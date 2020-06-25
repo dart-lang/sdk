@@ -1555,6 +1555,7 @@ interpreted
 interpreter
 interpreting
 intersect
+intersecting
 intersection
 intertwined
 into
@@ -2396,6 +2397,7 @@ referred
 refers
 refine
 refinement
+refinements
 reflecting
 regardless
 region

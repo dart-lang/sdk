@@ -1662,6 +1662,16 @@ abstract class TypeOperations<Variable, Type> {
   /// consideration by an instance check.
   Type factor(Type from, Type what);
 
+  /// Whether the possible promotion from [from] to [to] should be forced, given
+  /// the current [promotedTypes], and [newPromotedTypes] resulting from
+  /// possible demotion.
+  ///
+  /// It is not expected that any implementation would override this except for
+  /// the migration engine.
+  bool forcePromotion(Type to, Type from, List<Type> promotedTypes,
+          List<Type> newPromotedTypes) =>
+      false;
+
   /// Return `true` if the [variable] is a local variable (not a formal
   /// parameter), and it has no declared type (no explicit type, and not
   /// initializer).
@@ -1678,6 +1688,15 @@ abstract class TypeOperations<Variable, Type> {
   /// Note that some types don't have a non-nullable version (e.g.
   /// `FutureOr<int?>`), so [type] may be returned even if it is nullable.
   Type /*!*/ promoteToNonNull(Type type);
+
+  /// Performs refinements on the [promotedTypes] chain which resulted in
+  /// intersecting [chain1] and [chain2].
+  ///
+  /// It is not expected that any implementation would override this except for
+  /// the migration engine.
+  List<Type> refinePromotedTypes(
+          List<Type> chain1, List<Type> chain2, List<Type> promotedTypes) =>
+      promotedTypes;
 
   /// Tries to promote to the first type from the second type, and returns the
   /// promoted type if it succeeds, otherwise null.
@@ -1936,7 +1955,7 @@ class VariableModel<Variable, Type> {
   /// returns an updated promotion chain; otherwise returns [promotedTypes]
   /// unchanged.
   ///
-  /// Note that since promotions chains are considered immutable, if promotion
+  /// Note that since promotion chains are considered immutable, if promotion
   /// is required, a new promotion chain will be created and returned.
   List<Type> _tryPromoteToTypeOfInterest(
       TypeOperations<Variable, Type> typeOperations,
@@ -1944,6 +1963,11 @@ class VariableModel<Variable, Type> {
       List<Type> promotedTypes,
       Type writtenType) {
     assert(!writeCaptured);
+
+    if (typeOperations.forcePromotion(
+        writtenType, declaredType, this.promotedTypes, promotedTypes)) {
+      return _addToPromotedTypes(promotedTypes, writtenType);
+    }
 
     // Figure out if we have any promotion candidates (types that are a
     // supertype of writtenType and a proper subtype of the currently-promoted
@@ -2048,6 +2072,8 @@ class VariableModel<Variable, Type> {
       VariableModel<Variable, Type> second) {
     List<Type> newPromotedTypes = joinPromotedTypes(
         first.promotedTypes, second.promotedTypes, typeOperations);
+    newPromotedTypes = typeOperations.refinePromotedTypes(
+        first.promotedTypes, second.promotedTypes, newPromotedTypes);
     bool newAssigned = first.assigned && second.assigned;
     bool newUnassigned = first.unassigned && second.unassigned;
     bool newWriteCaptured = first.writeCaptured || second.writeCaptured;
