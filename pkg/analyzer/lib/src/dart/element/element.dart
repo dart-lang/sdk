@@ -107,9 +107,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
   bool get isMixin => false;
 
   @override
-  ElementKind get kind => ElementKind.CLASS;
-
-  @override
   List<InterfaceType> get superclassConstraints => const <InterfaceType>[];
 
   @override
@@ -794,6 +791,9 @@ class ClassElementImpl extends AbstractClassElementImpl
     }
     return true;
   }
+
+  @override
+  ElementKind get kind => ElementKind.CLASS;
 
   @override
   List<MethodElement> get methods {
@@ -3431,6 +3431,9 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   bool get isValidMixin => false;
+
+  @override
+  ElementKind get kind => ElementKind.ENUM;
 
   @override
   List<MethodElement> get methods {
