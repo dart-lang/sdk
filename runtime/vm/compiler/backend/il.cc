@@ -861,15 +861,16 @@ bool CheckClassInstr::IsBitTest() const {
 
 intptr_t CheckClassInstr::ComputeCidMask() const {
   ASSERT(IsBitTest());
+  const uintptr_t one = 1;
   intptr_t min = cids_.ComputeLowestCid();
   intptr_t mask = 0;
   for (intptr_t i = 0; i < cids_.length(); ++i) {
-    intptr_t run;
-    uintptr_t range = 1ul + cids_[i].Extent();
+    uintptr_t run;
+    uintptr_t range = one + cids_[i].Extent();
     if (range >= static_cast<uintptr_t>(compiler::target::kBitsPerWord)) {
       run = -1;
     } else {
-      run = (1 << range) - 1;
+      run = (one << range) - 1;
     }
     mask |= run << (cids_[i].cid_start - min);
   }
@@ -1522,7 +1523,9 @@ bool Instruction::IsDominatedBy(Instruction* dom) {
 bool Instruction::HasUnmatchedInputRepresentations() const {
   for (intptr_t i = 0; i < InputCount(); i++) {
     Definition* input = InputAt(i)->definition();
-    if (RequiredInputRepresentation(i) != input->representation()) {
+    const Representation input_representation = RequiredInputRepresentation(i);
+    if (input_representation != kNoRepresentation &&
+        input_representation != input->representation()) {
       return true;
     }
   }
@@ -5150,6 +5153,9 @@ LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
 }
 
 void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(representation() == RequiredInputRepresentation(kIndexPos));
+  ASSERT(representation() == RequiredInputRepresentation(kLengthPos));
+
   RangeErrorSlowPath* slow_path =
       new RangeErrorSlowPath(this, compiler->CurrentTryIndex());
   compiler->AddSlowPathCode(slow_path);
@@ -5158,8 +5164,15 @@ void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register length = length_loc.reg();
   Register index = index_loc.reg();
   const intptr_t index_cid = this->index()->Type()->ToCid();
-  if (index_cid != kSmiCid) {
-    __ BranchIfNotSmi(index, slow_path->entry_label());
+
+  // The length comes from one of our variable-sized heap objects (e.g. typed
+  // data array) and is therefore guaranteed to be in the positive Smi range.
+  if (representation() == kTagged) {
+    if (index_cid != kSmiCid) {
+      __ BranchIfNotSmi(index, slow_path->entry_label());
+    }
+  } else {
+    ASSERT(representation() == kUnboxedInt64);
   }
   __ CompareRegisters(index, length);
   __ BranchIf(UNSIGNED_GREATER_EQUAL, slow_path->entry_label());
@@ -5714,6 +5727,22 @@ LoadIndexedInstr::LoadIndexedInstr(Value* array,
   SetInputAt(1, index);
 }
 
+Definition* LoadIndexedInstr::Canonicalize(FlowGraph* flow_graph) {
+  auto Z = flow_graph->zone();
+  if (auto box = index()->definition()->AsBoxInt64()) {
+    // TODO(dartbug.com/39432): Make LoadIndexed fully suport unboxed indices.
+    if (!box->ComputeCanDeoptimize() && compiler::target::kWordSize == 8) {
+      auto load = new (Z) LoadIndexedInstr(
+          array()->CopyWithType(Z), box->value()->CopyWithType(Z),
+          /*index_unboxed=*/true, index_scale(), class_id(), alignment_,
+          GetDeoptId(), token_pos(), result_type_);
+      flow_graph->InsertBefore(this, load, env(), FlowGraph::kValue);
+      return load;
+    }
+  }
+  return this;
+}
+
 StoreIndexedInstr::StoreIndexedInstr(Value* array,
                                      Value* index,
                                      Value* value,
@@ -5736,6 +5765,23 @@ StoreIndexedInstr::StoreIndexedInstr(Value* array,
   SetInputAt(kArrayPos, array);
   SetInputAt(kIndexPos, index);
   SetInputAt(kValuePos, value);
+}
+
+Instruction* StoreIndexedInstr::Canonicalize(FlowGraph* flow_graph) {
+  auto Z = flow_graph->zone();
+  if (auto box = index()->definition()->AsBoxInt64()) {
+    // TODO(dartbug.com/39432): Make StoreIndexed fully suport unboxed indices.
+    if (!box->ComputeCanDeoptimize() && compiler::target::kWordSize == 8) {
+      auto store = new (Z) StoreIndexedInstr(
+          array()->CopyWithType(Z), box->value()->CopyWithType(Z),
+          value()->CopyWithType(Z), emit_store_barrier_,
+          /*index_unboxed=*/true, index_scale(), class_id(), alignment_,
+          GetDeoptId(), token_pos(), speculative_mode_);
+      flow_graph->InsertBefore(this, store, env(), FlowGraph::kEffect);
+      return nullptr;
+    }
+  }
+  return this;
 }
 
 bool Utf8ScanInstr::IsScanFlagsUnboxed() const {

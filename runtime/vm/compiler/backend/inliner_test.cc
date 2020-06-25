@@ -213,44 +213,80 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_generate) {
   FlowGraph* flow_graph = pipeline.RunPasses({});
 
   auto entry = flow_graph->graph_entry()->normal_entry();
-  ILMatcher cursor(flow_graph, entry);
+  ILMatcher cursor(flow_graph, entry, /*trace=*/true,
+                   ParallelMovesHandling::kSkip);
 
-  RELEASE_ASSERT(cursor.TryMatch({
-      kMoveGlob,
-      kMatchAndMoveCreateArray,
-      kMoveParallelMoves,
-      kMatchAndMoveUnboxInt64,
-      kMatchAndMoveUnboxedConstant,
-      kMatchAndMoveUnboxedConstant,
-      kMoveParallelMoves,
-      kMatchAndMoveGoto,
+  if (function.is_declared_in_bytecode()) {
+    RELEASE_ASSERT(cursor.TryMatch({
+        kMoveGlob,
+        kMatchAndMoveCreateArray,
+        kWordSize == 8 ? kMatchAndMoveUnboxInt64 : kNop,
+        kMatchAndMoveGoto,
 
-      // Loop header
-      kMatchAndMoveJoinEntry,
-      kMatchAndMoveCheckStackOverflow,
-      kMatchAndMoveBranchTrue,
+        // Loop header
+        kMatchAndMoveJoinEntry,
+        kMatchAndMoveCheckStackOverflow,
+        kMatchAndMoveUnboxInt64,
+        kMatchAndMoveUnboxInt64,
+        kMatchAndMoveBranchTrue,
 
-      // Loop body
-      kMatchAndMoveTargetEntry,
-      kMatchAndMoveBoxInt64,
-      kMatchAndMoveBoxInt64,
-      kMoveParallelMoves,
-      kMatchAndMoveStoreIndexed,
-      kMoveParallelMoves,
-      kMatchAndMoveBinaryInt64Op,
-      kMoveParallelMoves,
-      kMatchAndMoveGoto,
+        // Loop body
+        kMatchAndMoveTargetEntry,
+        kWordSize == 8 ? kMatchAndMoveUnboxInt64 : kNop,
+        kMatchAndMoveGenericCheckBound,
+        kMatchAndMoveStoreIndexed,
+        kMatchAndMoveCheckedSmiOp,
+        kMatchAndMoveGoto,
 
-      // Loop header once again
-      kMatchAndMoveJoinEntry,
-      kMatchAndMoveCheckStackOverflow,
-      kMatchAndMoveBranchFalse,
+        // Loop header once again
+        kMatchAndMoveJoinEntry,
+        kMatchAndMoveCheckStackOverflow,
+        kMatchAndMoveUnboxInt64,
+        kMatchAndMoveUnboxInt64,
+        kMatchAndMoveBranchFalse,
 
-      // After loop
-      kMatchAndMoveTargetEntry,
-      kMoveParallelMoves,
-      kMatchReturn,
-  }));
+        // After loop
+        kMatchAndMoveTargetEntry,
+        kMatchReturn,
+    }));
+  } else {
+    Instruction* unbox1 = nullptr;
+    Instruction* unbox2 = nullptr;
+
+    RELEASE_ASSERT(cursor.TryMatch({
+        kMoveGlob,
+        kMatchAndMoveCreateArray,
+        kMatchAndMoveUnboxInt64,
+        {kMoveAny, &unbox1},
+        {kMoveAny, &unbox2},
+        kMatchAndMoveGoto,
+
+        // Loop header
+        kMatchAndMoveJoinEntry,
+        kMatchAndMoveCheckStackOverflow,
+        kMatchAndMoveBranchTrue,
+
+        // Loop body
+        kMatchAndMoveTargetEntry,
+        kWordSize == 4 ? kMatchAndMoveBoxInt64 : kNop,
+        kMatchAndMoveBoxInt64,
+        kMatchAndMoveStoreIndexed,
+        kMatchAndMoveBinaryInt64Op,
+        kMatchAndMoveGoto,
+
+        // Loop header once again
+        kMatchAndMoveJoinEntry,
+        kMatchAndMoveCheckStackOverflow,
+        kMatchAndMoveBranchFalse,
+
+        // After loop
+        kMatchAndMoveTargetEntry,
+        kMatchReturn,
+    }));
+
+    EXPECT(unbox1->IsUnboxedConstant() || unbox1->IsUnboxInt64());
+    EXPECT(unbox2->IsUnboxedConstant() || unbox2->IsUnboxInt64());
+  }
 }
 
 #endif  // defined(DART_PRECOMPILER)

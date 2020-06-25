@@ -18,6 +18,7 @@ import 'package:kernel/type_environment.dart';
 
 import 'calls.dart';
 import 'native_code.dart';
+import 'protobuf_handler.dart' show ProtobufHandler;
 import 'summary.dart';
 import 'summary_collector.dart';
 import 'types.dart';
@@ -1222,8 +1223,34 @@ class _WorkList {
     enqueueInvocation(invocation);
   }
 
+  bool invalidateProtobufFields() {
+    if (_typeFlowAnalysis.protobufHandler == null) {
+      return false;
+    }
+    final fields = _typeFlowAnalysis.protobufHandler.getInvalidatedFields();
+    if (fields.isEmpty) {
+      return false;
+    }
+    // Protobuf handler replaced contents of static field initializers.
+    for (var field in fields) {
+      assertx(field.isStatic);
+      // Reset summary in order to rebuild it.
+      _typeFlowAnalysis._summaries[field] = null;
+      // Invalidate (and enqueue) field initializer invocation.
+      final initializerInvocation = _typeFlowAnalysis._invocationsCache
+          .getInvocation(
+              DirectSelector(field, callKind: CallKind.FieldInitializer),
+              Args<Type>(const <Type>[]));
+      invalidateInvocation(initializerInvocation);
+    }
+    return true;
+  }
+
   void process() {
-    while (pending.isNotEmpty) {
+    for (;;) {
+      if (pending.isEmpty && !invalidateProtobufFields()) {
+        break;
+      }
       assertx(callStack.isEmpty && processing.isEmpty);
       Statistics.iterationsOverInvocationsWorkList++;
       processInvocation(pending.first);
@@ -1320,6 +1347,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   final TypeEnvironment environment;
   final LibraryIndex libraryIndex;
   final PragmaAnnotationParser annotationMatcher;
+  final ProtobufHandler protobufHandler;
   NativeCodeOracle nativeCodeOracle;
   _ClassHierarchyCache hierarchyCache;
   SummaryCollector summaryCollector;
@@ -1343,14 +1371,22 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
       this._genericInterfacesInfo,
       this.environment,
       this.libraryIndex,
-      {PragmaAnnotationParser matcher})
+      this.protobufHandler,
+      PragmaAnnotationParser matcher)
       : annotationMatcher =
             matcher ?? new ConstantPragmaAnnotationParser(coreTypes) {
     nativeCodeOracle = new NativeCodeOracle(libraryIndex, annotationMatcher);
     hierarchyCache = new _ClassHierarchyCache(this, hierarchy,
         _genericInterfacesInfo, environment, target.flags.enableNullSafety);
-    summaryCollector = new SummaryCollector(target, environment, hierarchy,
-        this, hierarchyCache, nativeCodeOracle, hierarchyCache);
+    summaryCollector = new SummaryCollector(
+        target,
+        environment,
+        hierarchy,
+        this,
+        hierarchyCache,
+        nativeCodeOracle,
+        hierarchyCache,
+        protobufHandler);
     _invocationsCache = new _InvocationsCache(this);
     workList = new _WorkList(this);
 

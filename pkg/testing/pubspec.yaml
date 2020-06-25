@@ -1,6 +1,7 @@
 # This pubspec is currently mainly used to make it easier to develop by making 
 # it a package.
 name: testing
+# This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 environment:
   sdk: '>=2.0.0 <3.0.0'

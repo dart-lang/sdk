@@ -71,7 +71,7 @@ static method test() → void {
     :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
     return :async_completer.{asy::Completer::future};
   });
-  self::MyFuture<core::int*>* t2 = f.{self::MyFuture::then}<core::int*>((core::bool* x) → asy::Future<core::int*>* /* originally async */ {
+  self::MyFuture<core::int*>* t2 = f.{self::MyFuture::then}<core::int*>((core::bool* x) → FutureOr<core::int*>* /* originally async */ {
     final asy::_AsyncAwaitCompleter<core::int*>* :async_completer = new asy::_AsyncAwaitCompleter::•<core::int*>();
     FutureOr<core::int*>* :return_value;
     dynamic :async_stack_trace;

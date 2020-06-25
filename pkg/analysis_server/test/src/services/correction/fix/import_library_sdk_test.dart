@@ -278,28 +278,28 @@ class MyCompleter with Completer<String> {}
   Future<void> test_withTopLevelVariable() async {
     await resolveTestUnit('''
 main() {
-  print(PI);
+  print(pi);
 }
 ''');
     await assertHasFix('''
 import 'dart:math';
 
 main() {
-  print(PI);
+  print(pi);
 }
 ''');
   }
 
   Future<void> test_withTopLevelVariable_annotation() async {
     await resolveTestUnit('''
-@PI
+@pi
 main() {
 }
 ''');
     await assertHasFix('''
 import 'dart:math';
 
-@PI
+@pi
 main() {
 }
 ''');

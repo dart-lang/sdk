@@ -1,5 +1,5 @@
 name: meta
-version: 1.1.8
+version: 1.2.0-nnbd
 author: Dart Team <misc@dartlang.org>
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/meta
 description: >
@@ -7,4 +7,6 @@ description: >
  semantic information about the program being annotated. These annotations are
  intended to be used by tools to provide a better user experience.
 environment:
-  sdk: '>=2.9.0 <3.0.0'
+  # This must remain a tight constraint (only allow dev versions) until nnbd is
+  # stable.
+  sdk: '>=2.9.0-18.0 <2.9.0'

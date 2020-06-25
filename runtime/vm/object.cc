@@ -10757,24 +10757,28 @@ void Script::SetLocationOffset(intptr_t line_offset,
 
 // Specialized for AOT compilation, which does this lookup for every token
 // position that could be part of a stack trace.
-intptr_t Script::GetTokenLineUsingLineStarts(
-    TokenPosition target_token_pos) const {
-  if (target_token_pos.IsNoSource()) {
-    return 0;
-  }
+bool Script::GetTokenLocationUsingLineStarts(TokenPosition target_token_pos,
+                                             intptr_t* line,
+                                             intptr_t* column) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return false;
+#else
+  // Negative positions denote positions that do not correspond to Dart code.
+  if (target_token_pos.value() < 0) return false;
+
   Zone* zone = Thread::Current()->zone();
   TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
   // Scripts loaded from bytecode may have null line_starts().
-  if (line_starts_data.IsNull()) {
-    return 0;
-  }
+  if (line_starts_data.IsNull()) return false;
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
   kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
-  return line_starts_reader.LineNumberForPosition(target_token_pos.value());
-#else
-  return 0;
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  line_starts_reader.LocationForPosition(target_token_pos.value(), line,
+                                         column);
+  // The line and column numbers returned are ordinals, so we shouldn't get 0.
+  ASSERT(*line > 0);
+  ASSERT(*column > 0);
+  return true;
+#endif
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

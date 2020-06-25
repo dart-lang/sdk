@@ -597,18 +597,6 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   @override
-  String visitIs(HIs node) {
-    String type = node.typeExpression.toString();
-    return "Is: ${temporaryId(node.expression)} is $type";
-  }
-
-  @override
-  String visitIsViaInterceptor(HIsViaInterceptor node) {
-    String type = node.typeExpression.toString();
-    return "IsViaInterceptor: ${temporaryId(node.inputs[0])} is $type";
-  }
-
-  @override
   String visitPrimitiveCheck(HPrimitiveCheck node) {
     String checkedInput = temporaryId(node.checkedInput);
     assert(node.inputs.length == 1);

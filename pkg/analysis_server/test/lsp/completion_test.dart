@@ -417,7 +417,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(updated, contains('a.abcdefghij'));
   }
 
-  Future<void> test_prefixFilter() async {
+  Future<void> test_prefixFilter_endOfSymbol() async {
     final content = '''
     class UniqueNamedClassForLspOne {}
     class UniqueNamedClassForLspTwo {}
@@ -425,7 +425,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
 
     main() {
       // Should match only Two and Three
-      class UniqueNamedClassForLspT^
+      UniqueNamedClassForLspT^
     }
     ''';
 
@@ -433,6 +433,46 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     expect(res.any((c) => c.label == 'UniqueNamedClassForLspOne'), isFalse);
+    expect(res.any((c) => c.label == 'UniqueNamedClassForLspTwo'), isTrue);
+    expect(res.any((c) => c.label == 'UniqueNamedClassForLspThree'), isTrue);
+  }
+
+  Future<void> test_prefixFilter_midSymbol() async {
+    final content = '''
+    class UniqueNamedClassForLspOne {}
+    class UniqueNamedClassForLspTwo {}
+    class UniqueNamedClassForLspThree {}
+
+    main() {
+      // Should match only Two and Three
+      UniqueNamedClassForLspT^hree
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'UniqueNamedClassForLspOne'), isFalse);
+    expect(res.any((c) => c.label == 'UniqueNamedClassForLspTwo'), isTrue);
+    expect(res.any((c) => c.label == 'UniqueNamedClassForLspThree'), isTrue);
+  }
+
+  Future<void> test_prefixFilter_startOfSymbol() async {
+    final content = '''
+    class UniqueNamedClassForLspOne {}
+    class UniqueNamedClassForLspTwo {}
+    class UniqueNamedClassForLspThree {}
+
+    main() {
+      // Should match all three
+      ^UniqueNamedClassForLspT
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'UniqueNamedClassForLspOne'), isTrue);
     expect(res.any((c) => c.label == 'UniqueNamedClassForLspTwo'), isTrue);
     expect(res.any((c) => c.label == 'UniqueNamedClassForLspThree'), isTrue);
   }

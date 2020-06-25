@@ -165,14 +165,6 @@ class BackendImpacts {
     ]);
   }
 
-  BackendImpact _abstractClassInstantiation;
-
-  BackendImpact get abstractClassInstantiation {
-    return _abstractClassInstantiation ??= new BackendImpact(
-        staticUses: [_commonElements.throwAbstractClassInstantiationError],
-        otherImpacts: [_needsString('Needed to encode the message.')]);
-  }
-
   BackendImpact _fallThroughError;
 
   BackendImpact get fallThroughError {
@@ -183,9 +175,7 @@ class BackendImpacts {
   BackendImpact _asCheck;
 
   BackendImpact get asCheck {
-    return _asCheck ??= new BackendImpact(staticUses: [
-      _commonElements.throwRuntimeError,
-    ], otherImpacts: [
+    return _asCheck ??= new BackendImpact(staticUses: [], otherImpacts: [
       newRtiImpact,
     ]);
   }
@@ -256,9 +246,7 @@ class BackendImpacts {
   BackendImpact _throwRuntimeError;
 
   BackendImpact get throwRuntimeError {
-    return _throwRuntimeError ??= new BackendImpact(staticUses: [
-      _commonElements.throwRuntimeError,
-    ], otherImpacts: [
+    return _throwRuntimeError ??= new BackendImpact(otherImpacts: [
       // Also register the types of the arguments passed to this method.
       stringValues
     ]);

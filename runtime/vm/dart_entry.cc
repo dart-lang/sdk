@@ -188,6 +188,7 @@ ObjectPtr DartEntry::InvokeCode(const Code& code,
                                 Thread* thread) {
   ASSERT(!code.IsNull());
   ASSERT(thread->no_callback_scope_depth() == 0);
+  ASSERT(!Isolate::Current()->null_safety_not_set());
 
   invokestub entrypoint =
       reinterpret_cast<invokestub>(StubCode::InvokeDartCode().EntryPoint());

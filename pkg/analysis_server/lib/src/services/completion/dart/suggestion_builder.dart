@@ -607,8 +607,13 @@ class SuggestionBuilder {
   /// Add a suggestion for a [keyword]. The [offset] is the offset from the
   /// beginning of the keyword where the cursor will be left.
   void suggestKeyword(String keyword, {int offset, @required int relevance}) {
-    // TODO(brianwilkerson) Use the location at which the keyword is being
-    //  inserted to compute the relevance.
+    if (request.useNewRelevance) {
+      // TODO(brianwilkerson) The default value should probably be a constant.
+      relevance = toRelevance(
+          request.featureComputer
+              .keywordFeature(keyword, request.opType.completionLocation),
+          800);
+    }
     _add(CompletionSuggestion(CompletionSuggestionKind.KEYWORD, relevance,
         keyword, offset ?? keyword.length, 0, false, false));
   }

@@ -362,26 +362,38 @@ class CompletionHandler
   }
 
   /// Return the pattern to match suggestions against, from the identifier
-  /// to the left of the caret. Return the empty string if cannot find the
-  /// identifier.
+  /// to the left of (or spanning) the caret. Return the empty string if cannot
+  /// find the identifier.
+  ///
+  /// If the caret is within the identifier, the returned pattern will be truncated
+  /// to the position of the caret. For example at:
+  ///
+  ///     new MyClass^Foo
+  ///
+  /// will return "MyClass" as the search pattern.
   String _prefixMatchingPattern(DartCompletionRequestImpl request) {
-    final nodeAtOffsetVisitor =
-        _IdentifierEndingAtOffsetVisitor(request.offset);
-    request.target.containingNode.accept(nodeAtOffsetVisitor);
+    final nodeSpanningOffsetVisitor =
+        _IdentifierSpanningOffsetVisitor(request.offset);
+    request.target.containingNode.accept(nodeSpanningOffsetVisitor);
+    final node = nodeSpanningOffsetVisitor.matchingNode;
 
-    return nodeAtOffsetVisitor.matchingNode?.name ?? '';
+    final prefix = node != null && request.offset - node.offset < node.length
+        ? node.name.substring(0, request.offset - node.offset)
+        : node?.name;
+
+    return prefix ?? '';
   }
 }
 
-/// An AST visitor to locate a [SimpleIdentifier] that ends at the provided offset.
-class _IdentifierEndingAtOffsetVisitor extends RecursiveAstVisitor<void> {
+/// An AST visitor to locate a [SimpleIdentifier] that spans the provided offset.
+class _IdentifierSpanningOffsetVisitor extends RecursiveAstVisitor<void> {
   final int offset;
   SimpleIdentifier _matchingNode;
-  _IdentifierEndingAtOffsetVisitor(this.offset);
+  _IdentifierSpanningOffsetVisitor(this.offset);
   SimpleIdentifier get matchingNode => _matchingNode;
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.end == offset) {
+    if (node.offset <= offset && node.end >= offset) {
       _matchingNode = node;
     }
   }

@@ -1,5 +1,5 @@
 name: async_helper
-# This package is not intended to be published
+# This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 description: >-
  Async_helper is used for asynchronous tests that do not want to

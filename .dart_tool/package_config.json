@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-06-17T09:39:51.245406",
+  "generated": "2020-06-23T13:49:13.378284",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -380,7 +380,8 @@
     {
       "name": "meta",
       "rootUri": "../pkg/meta",
-      "packageUri": "lib/"
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
     },
     {
       "name": "mime",
@@ -559,7 +560,7 @@
       "name": "stack_trace",
       "rootUri": "../third_party/pkg/stack_trace",
       "packageUri": "lib/",
-      "languageVersion": "1.23"
+      "languageVersion": "2.0"
     },
     {
       "name": "stagehand",
@@ -674,6 +675,12 @@
       "rootUri": "../pkg/vm_service",
       "packageUri": "lib/",
       "languageVersion": "2.6"
+    },
+    {
+      "name": "vm_snapshot_analysis",
+      "rootUri": "../pkg/vm_snapshot_analysis",
+      "packageUri": "lib/",
+      "languageVersion": "2.8"
     },
     {
       "name": "watcher",

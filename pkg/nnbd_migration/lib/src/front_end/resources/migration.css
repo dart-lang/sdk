@@ -2,6 +2,55 @@
 /* for details. All rights reserved. Use of this source code is governed by a */
 /* BSD-style license that can be found in the LICENSE file.                   */
 
+/*
+ * Colors mentioned in this file, e.g. "$dark-text-color" are from DartPad:
+ * https://github.com/dart-lang/dart-pad/blob/master/lib/scss/colors.scss
+ */
+
+/* Text selection */
+::selection {
+  background: #6e8eb1; /* $dark-selection-color */;
+}
+
+/* Material icons configuration */
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Material Icons'),
+  local('MaterialIcons-Regular'),
+  url(/MaterialIconsRegular.ttf) format('truetype');
+}
+
+/*
+ * Required for Material Icons:
+ * https://google.github.io/material-design-icons/
+ */
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;  /* Preferred icon size */
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+
+  /* Support for all WebKit browsers. */
+  -webkit-font-smoothing: antialiased;
+  /* Support for Safari and Chrome. */
+  text-rendering: optimizeLegibility;
+
+  /* Support for Firefox. */
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Support for IE. */
+  font-feature-settings: 'liga';
+}
+
 body {
   background-color: #12202f;
   color: #ccc;
@@ -44,7 +93,8 @@ header {
 }
 
 header h1,
-header h2 {
+header h2,
+header h3 {
   display: inline-block;
   font-family: "Google Sans","Roboto",sans-serif;
   font-weight: 400;
@@ -57,9 +107,20 @@ h1 {
 
 header h2 {
   font-size: 1.2em;
+
+  /* Shift text up */
+  position: relative;
+  top: -2px;
 }
 
-header .apply-migration, .rerun-migration {
+header h3 {
+  /* Shift text up */
+  position: relative;
+  top: -2px;
+}
+
+
+header .action-button, header a {
   right: 0px;
   float: right;
   margin: 10px;
@@ -69,6 +130,8 @@ header img.logo {
   height: 24px;
   width: 24px;
   margin-right: 8px;
+  position: relative;
+  top: 4px;
 }
 
 footer .report-problem {
@@ -88,36 +151,6 @@ footer .report-problem {
   display:none;
 }
 
-/* Red triangle */
-.rerun-migration .required .icon::before {
-  transform: translate(-8px, -11px);
-  content: '\25B3';
-  font-size: 25px;
-  position: fixed;
-  color: #e82c2c;
-  text-shadow: 0px 0px 5px white;
-  z-index: -3;
-}
-
-/* Red triangle fill */
-.rerun-migration .required .icon::after {
-  transform: translate(-9px, -10px);
-  content: '\25B4';
-  font-size: 25px;
-  position: fixed;
-  color: #b3ecff;
-  z-index: -1;
-}
-
-/* Red triangle exclamation */
-.rerun-migration .required .icon {
-  display: inline-block;
-  margin-right: 8px;
-  transform: translate(0px, 2px);
-  margin-left: 2px;
-  color: #2b2b2b;
-}
-
 footer {
   color: #ccc;
   background-color: #27323a;
@@ -131,6 +164,10 @@ footer .wide {
   flex: 1;
 }
 
+footer .sdk-version {
+  margin-right: 32px;
+}
+
 .horizontal {
   display: flex;
 }
@@ -142,7 +179,7 @@ footer .wide {
 }
 
 .panel-heading {
-  color: gray;
+  color: #676767;
   margin: 8px;
 }
 
@@ -152,10 +189,11 @@ footer .wide {
 }
 
 .nav-panel {
-  background-color: #282b2e;
+  background-color: #12202f;
   flex: 1 200px;
   margin: 0;
   overflow: scroll;
+  user-select: none;
 }
 
 .nav-inner {
@@ -174,6 +212,14 @@ footer .wide {
 
 .nav-tree > ul {
   padding-left: 6px;
+}
+
+.nav-tree .material-icons {
+  font-size: 20px;
+  position: relative;
+  top: 5px;
+  margin-right: 8px;
+  color: #676767;
 }
 
 .nav-inner ul {
@@ -220,9 +266,9 @@ footer .wide {
 }
 
 .edit-count {
-  background-color: #37aedc;
+  background-color: #676767;
   border-radius: 10px;
-  color: #000000;
+  color: #fff;
   display: inline-block;
   font-size: 11px;
   font-weight: 600;
@@ -235,8 +281,8 @@ footer .wide {
 
 .content {
   flex: 4 300px;
-  background: #282b2e;
-  font-family: monospace;
+  background: #12202f;
+  font-family: "Roboto Mono", monospace;
   margin: 0 6px;
   position: relative;
   white-space: pre;
@@ -251,13 +297,6 @@ footer .wide {
   margin-left: 56px;
 }
 
-.hljs {
-  background-color: #282b2e;
-  display: block;
-  overflow-x: auto;
-  padding: 0.5em;
-}
-
 .code .welcome {
   font-family: "Google Sans","Roboto",sans-serif;
   font-size: 18px;
@@ -266,12 +305,12 @@ footer .wide {
 }
 
 .code .nav-link {
-  color: inherit;
+  color: #16adca;
   text-decoration-line: none;
 }
 
 .code .nav-link:visited {
-  color: inherit;
+  color: #139bb5; /* #16adca darkened 10% */
   text-decoration-line: none;
 }
 
@@ -311,7 +350,7 @@ footer .wide {
 }
 
 .regions td.line-no {
-  border-right: solid #282b2e 2px;
+  border-right: solid #12202f 2px;
   color: #999999;
   padding-right: 4px;
   text-align: right;
@@ -332,22 +371,22 @@ footer .wide {
 }
 
 .region.added-region {
-  background-color: #ccffcc;
-  color: #003300;
+  background-color: #263952; /* $dark-selection-color */
+  color: #c0c2c5; /* $dark-editor-text */
 }
 
 .region.removed-region {
-  background-color: #ff6666;
-  color: #001100;
+  background-color: #FA557d; /* $dark-pink */
+  color: #fff;
 }
 
 .region.informative-region {
-  background-color: #404549; /* #282b2e, lightened 10% */
-  border-bottom: solid rgba(255, 255, 0, 0.7) 1px;
+  background-color: #178afd; /* $dark-selection-color */
+  color: #fff;
   display: inline-block;
-  height: 14px; 
+  height: 18px;
   position: relative;
-  top: 1px;
+  top: 3px;
 }
 
 .target {
@@ -366,7 +405,7 @@ footer .wide {
 }
 
 .info-panel .edit-panel {
-  background-color: #282b2e;
+  background-color: #12202f;
   overflow: auto;
 }
 
@@ -392,11 +431,15 @@ footer .wide {
 }
 
 .info-panel a {
-  color: #33ccff;
+  color: #139bb5;
+}
+
+.info-panel a:hover {
+  color: #1ec7e7; /* #139bb5 lightened 20% */
 }
 
 .info-panel .edit-list {
-  background-color: #282b2e;
+  background-color: #12202f;
   overflow: auto;
 }
 
@@ -456,7 +499,7 @@ footer .wide {
 }
 
 .popup-pane pre {
-  background: #282b2e;
+  background: #12202f;
   padding: 20px;
   bottom: 0px;
   overflow: auto scroll;
@@ -494,8 +537,8 @@ body.rerunning .rerunning-pane {
 }
 
 .edit-panel .type-description {
-  /* From HLJS's .hljs-keyword, .hljs-selector-tag, .hljs-deletion */
-  color: #cc7832;
+  /* From DartPad $dark-orange */
+  color: #ff916e;
   font-family: monospace;
 }
 
@@ -510,8 +553,8 @@ ul.trace li {
 }
 
 ul.trace li .function {
-  /* From HLJS's .hljs-section, .hljs-title, .hljs-type */
-  color: #ffc66d;
+  /* from .hljs-variable */
+  color: #16adca;
   font-family: monospace;
   font-weight: 600;
 }
@@ -538,7 +581,7 @@ a {
 }
 
 a:hover {
-  color: #fff;
+  color: #dbdbdb; /* #ccc lightented 30%*/
   fill: #fff;
 }
 
@@ -547,28 +590,77 @@ a:hover {
   margin: 3px;
 }
 
+.add-hint-link:hover {
+  color: #fff;
+}
+
+header button {
+  text-transform: uppercase;
+}
+
+header a {
+  margin: 0;
+}
+
 /* Careful here. `a.button` is repetitive but required to get correct
  * specificity */
 button, .button, a.button {
-  background-color: #33ccff;
-  border: 2px solid #37aedc;
+  background-color: rgba(22, 138, 253, 0.15);
+  border: none;
   border-radius: 3px;
-  padding: 6px 10px;
-  font-weight: bold;
-  color: #282828;
+  padding: 3px 10px;
+  font-weight: 500;
+  font-font: Roboto, sans-serif;
+  color: #fff;
 }
 
 button:hover, .button:hover {
-  background-color: #80dfff;
-  border: 2px solid #52b8e0;
+  background-color: rgba(22, 138, 253, 0.29);
   cursor: pointer;
 }
 
 button[disabled] {
-  background-color: #7aa8b8;
-  color: #507177;
-  border: 2px solid #507177;
+  background-color: rgba(255,255,255,.12);
+  color: rgba(255,255,255,.37);
   cursor: not-allowed;
+}
+
+/* Change edit panel button colors */
+.edit-panel .button, .edit-panel button {
+  background-color: rgba(63, 104, 148, 0.6);
+  color: white;
+}
+.edit-panel .button:hover, .edit-panel button:hover {
+  background-color: rgba(101, 153, 208, 0.6);
+  color: white;
+}
+
+/*
+ * Adjustments to align material icons in the toolbar buttons.
+*/
+.action-button > span {
+  position:relative;
+  top: -3px;
+}
+
+.action-button .material-icons {
+  top: 4px;
+}
+
+/* Don't shift the icon when it's a direct child of the button */
+.action-button > .material-icons {
+  top: 1px;
+}
+
+/* Shift the text to center with the icon. */
+.action-button > span.label {
+  position:relative;
+  top: -4px;
+}
+
+.action-button .material-icons {
+  font-size: 20px;
+  position: relative;
 }
 
 .placeholder {
@@ -581,8 +673,57 @@ button[disabled] {
  * HLJS Overrides
  */
 .hljs {
+  background-color: #12202f; /* $dark-code-background-color */
+  color: #c0c2c5; /* $dark-editor-text */
+  display: block;
+  overflow-x: auto;
+  padding: 0.5em;
   /**
    * This allows the per-line highlights to show.
    */
   background: none;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-deletion {
+  color: #51c686; /* cm-keyword */
+}
+
+.hljs-number {
+  color: #627978; /* cm-number */
+}
+
+.hljs-comment {
+  color: #9198b4; /* cm-comment */
+}
+
+.hljs-literal {
+  color: #ee8666; /* cm-atom */
+}
+
+.hljs-string {
+  color: #e55074; /* cm-string */
+}
+
+.hljs-variable {
+  color: #16adca; /* cm-variable */
+}
+
+.hljs-link {
+  color: #e55074; /* cm-string */
+}
+.hljs-section,
+.hljs-type,
+.hljs-built_in,
+.hljs-title {
+  color: #ee8666; /* cm-variable-2 */
+}
+
+.hljs-addition {
+  color: #263952; /* $dark-selection-color */
+}
+
+.hljs-meta {
+  color: #627978;
 }

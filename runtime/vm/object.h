@@ -4495,7 +4495,9 @@ class Script : public Object {
 
   void SetLocationOffset(intptr_t line_offset, intptr_t col_offset) const;
 
-  intptr_t GetTokenLineUsingLineStarts(TokenPosition token_pos) const;
+  bool GetTokenLocationUsingLineStarts(TokenPosition token_pos,
+                                       intptr_t* line,
+                                       intptr_t* column) const;
   void GetTokenLocation(TokenPosition token_pos,
                         intptr_t* line,
                         intptr_t* column,

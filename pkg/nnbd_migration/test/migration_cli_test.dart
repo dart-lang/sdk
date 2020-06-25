@@ -61,10 +61,12 @@ class _ExceptionGeneratingNonNullableFix extends NonNullableFix {
   _ExceptionGeneratingNonNullableFix(DartFixListener listener,
       ResourceProvider resourceProvider, LineInfo Function(String) getLineInfo,
       {List<String> included = const <String>[],
+      String hostname,
       int preferredPort,
       String summaryPath})
       : super(listener, resourceProvider, getLineInfo,
             included: included,
+            hostname: hostname,
             preferredPort: preferredPort,
             summaryPath: summaryPath);
 
@@ -121,17 +123,20 @@ class _MigrationCliRunner extends MigrationCliRunner {
   NonNullableFix createNonNullableFix(DartFixListener listener,
       ResourceProvider resourceProvider, LineInfo getLineInfo(String path),
       {List<String> included = const <String>[],
+      String hostname,
       int preferredPort,
       String summaryPath}) {
     if (cli._test.injectArtificialException) {
       return _ExceptionGeneratingNonNullableFix(
           listener, resourceProvider, getLineInfo,
           included: included,
+          hostname: hostname,
           preferredPort: preferredPort,
           summaryPath: summaryPath);
     } else {
       return super.createNonNullableFix(listener, resourceProvider, getLineInfo,
           included: included,
+          hostname: hostname,
           preferredPort: preferredPort,
           summaryPath: summaryPath);
     }
@@ -759,6 +764,7 @@ void call_g() => g(null);
     await runWithPreviewServer(cli, [projectDir], (url) async {
       expect(
           logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+      expect(url, startsWith('http://127.0.0.1:'));
       await assertPreviewServerResponsive(url);
     });
     // No changes should have been made.
@@ -870,6 +876,19 @@ void call_g() => g(null);
         }
       }
     });
+  }
+
+  test_lifecycle_preview_on_host_any() async {
+    var projectContents = simpleProject();
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli()
+      ..decodeCommandLineArgs(_parseArgs(['--preview-hostname=any']));
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      expect(url, isNot(contains('localhost')));
+      await assertPreviewServerResponsive(url);
+    });
+    // No changes should have been made.
+    assertProjectContents(projectDir, projectContents);
   }
 
   test_lifecycle_preview_region_link() async {
@@ -1292,6 +1311,16 @@ int f() => null;
   test_migrate_path_two() async {
     var stderrText = await assertRunFailure(['foo', 'bar'], withUsage: true);
     expect(stderrText, contains('No more than one path may be specified'));
+  }
+
+  test_option_preview_hostname() {
+    expect(
+        assertParseArgsSuccess(['--preview-hostname', 'any']).previewHostname,
+        'any');
+  }
+
+  test_option_preview_hostname_default() {
+    expect(assertParseArgsSuccess([]).previewHostname, 'localhost');
   }
 
   test_option_preview_port() {

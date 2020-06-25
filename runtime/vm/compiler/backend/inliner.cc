@@ -2436,6 +2436,8 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
 }
 
 static bool InlineGetIndexed(FlowGraph* flow_graph,
+                             bool can_speculate,
+                             bool is_dynamic_call,
                              MethodRecognizer::Kind kind,
                              Definition* call,
                              Definition* receiver,
@@ -2447,6 +2449,11 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
 
   Definition* array = receiver;
   Definition* index = call->ArgumentAt(1);
+
+  if (!can_speculate && is_dynamic_call && !index->Type()->IsInt()) {
+    return false;
+  }
+
   *entry =
       new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
                                  call->GetBlock()->try_index(), DeoptId::kNone);
@@ -3401,6 +3408,7 @@ static bool CheckMask(Definition* definition, intptr_t* mask_ptr) {
 }
 
 static bool InlineSimdOp(FlowGraph* flow_graph,
+                         bool is_dynamic_call,
                          Instruction* call,
                          Definition* receiver,
                          MethodRecognizer::Kind kind,
@@ -3410,13 +3418,6 @@ static bool InlineSimdOp(FlowGraph* flow_graph,
                          Definition** result) {
   if (!ShouldInlineSimd()) {
     return false;
-  }
-  bool is_dynamic_call = false;
-  if (auto instance_call = call->AsInstanceCallBase()) {
-    is_dynamic_call = Function::IsDynamicInvocationForwarderName(
-        instance_call->function_name());
-  } else if (auto static_call = call->AsStaticCall()) {
-    is_dynamic_call = static_call->function().IsDynamicInvocationForwarder();
   }
   if (is_dynamic_call && call->ArgumentCount() > 1) {
     // Issue(dartbug.com/37737): Dynamic invocation forwarders have the
@@ -3666,6 +3667,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
   }
 
   const bool can_speculate = policy->IsAllowedForInlining(call->deopt_id());
+  const bool is_dynamic_call = Function::IsDynamicInvocationForwarderName(
+      String::Handle(flow_graph->zone(), target.name()));
 
   const MethodRecognizer::Kind kind = target.recognized_kind();
   switch (kind) {
@@ -3680,36 +3683,36 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kExternalUint8ClampedArrayGetIndexed:
     case MethodRecognizer::kInt16ArrayGetIndexed:
     case MethodRecognizer::kUint16ArrayGetIndexed:
-      return InlineGetIndexed(flow_graph, kind, call, receiver, graph_entry,
-                              entry, last, result);
+      return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
+                              call, receiver, graph_entry, entry, last, result);
     case MethodRecognizer::kFloat32ArrayGetIndexed:
     case MethodRecognizer::kFloat64ArrayGetIndexed:
       if (!CanUnboxDouble()) {
         return false;
       }
-      return InlineGetIndexed(flow_graph, kind, call, receiver, graph_entry,
-                              entry, last, result);
+      return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
+                              call, receiver, graph_entry, entry, last, result);
     case MethodRecognizer::kFloat32x4ArrayGetIndexed:
     case MethodRecognizer::kFloat64x2ArrayGetIndexed:
       if (!ShouldInlineSimd()) {
         return false;
       }
-      return InlineGetIndexed(flow_graph, kind, call, receiver, graph_entry,
-                              entry, last, result);
+      return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
+                              call, receiver, graph_entry, entry, last, result);
     case MethodRecognizer::kInt32ArrayGetIndexed:
     case MethodRecognizer::kUint32ArrayGetIndexed:
       if (!CanUnboxInt32()) {
         return false;
       }
-      return InlineGetIndexed(flow_graph, kind, call, receiver, graph_entry,
-                              entry, last, result);
+      return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
+                              call, receiver, graph_entry, entry, last, result);
     case MethodRecognizer::kInt64ArrayGetIndexed:
     case MethodRecognizer::kUint64ArrayGetIndexed:
       if (!ShouldInlineInt64ArrayOps()) {
         return false;
       }
-      return InlineGetIndexed(flow_graph, kind, call, receiver, graph_entry,
-                              entry, last, result);
+      return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
+                              call, receiver, graph_entry, entry, last, result);
     case MethodRecognizer::kClassIDgetID:
       return InlineLoadClassId(flow_graph, call, graph_entry, entry, last,
                                result);
@@ -4040,8 +4043,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kFloat64x2Div:
     case MethodRecognizer::kFloat64x2Add:
     case MethodRecognizer::kFloat64x2Sub:
-      return InlineSimdOp(flow_graph, call, receiver, kind, graph_entry, entry,
-                          last, result);
+      return InlineSimdOp(flow_graph, is_dynamic_call, call, receiver, kind,
+                          graph_entry, entry, last, result);
 
     case MethodRecognizer::kMathSqrt:
     case MethodRecognizer::kMathDoublePow:

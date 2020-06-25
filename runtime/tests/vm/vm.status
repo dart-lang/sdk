@@ -248,6 +248,7 @@ dart/minimal_kernel_bytecode_test: SkipByDesign # Test needs to run from source
 dart/minimal_kernel_test: SkipByDesign # Test needs to run from source
 dart/null_safety_autodetection_in_kernel_compiler_test: SkipByDesign # Test needs to run from source
 dart/snapshot_depfile_test: SkipByDesign # Test needs to run from source
+dart/type_casts_with_null_safety_autodetection_test: SkipByDesign # Test needs to run from source
 dart_2/appjit*: SkipByDesign # Test needs to run from source
 dart_2/bytecode_and_ast_mix_test: SkipByDesign # Test needs to run from source
 dart_2/kernel_determinism_test: SkipByDesign # Test needs to run from source

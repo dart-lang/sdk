@@ -73,14 +73,13 @@ _logger = logging.getLogger('dartdomgenerator')
 class GeneratorOptions(object):
 
     def __init__(self, templates, database, type_registry, renamer, metadata,
-                 dart_js_interop, nnbd):
+                 dart_js_interop):
         self.templates = templates
         self.database = database
         self.type_registry = type_registry
         self.renamer = renamer
         self.metadata = metadata
         self.dart_js_interop = dart_js_interop
-        self.nnbd = nnbd
 
 
 def LoadDatabase(database_dir, use_database_cache):
@@ -96,18 +95,14 @@ def GenerateFromDatabase(common_database,
                          dart2js_output_dir,
                          update_dom_metadata=False,
                          logging_level=logging.WARNING,
-                         dart_js_interop=False,
-                         nnbd=False):
+                         dart_js_interop=False):
     print '\n ----- Accessing DOM using %s -----\n' % (
         'dart:js' if dart_js_interop else 'C++')
 
     start_time = time.time()
 
     current_dir = os.path.dirname(__file__)
-    if nnbd:
-        auxiliary_dir = os.path.join(current_dir, '..', 'nnbd_src')
-    else:
-        auxiliary_dir = os.path.join(current_dir, '..', 'src')
+    auxiliary_dir = os.path.join(current_dir, '..', 'src')
     template_dir = os.path.join(current_dir, '..', 'templates')
 
     _logger.setLevel(logging_level)
@@ -142,7 +137,7 @@ def GenerateFromDatabase(common_database,
                      backend_factory, dart_js_interop):
         options = GeneratorOptions(template_loader, webkit_database,
                                    type_registry, renamer, metadata,
-                                   dart_js_interop, nnbd)
+                                   dart_js_interop)
         dart_library_emitter = DartLibraryEmitter(emitters, dart_output_dir,
                                                   dart_libraries)
         event_generator = HtmlEventGenerator(webkit_database, renamer, metadata,
@@ -167,11 +162,11 @@ def GenerateFromDatabase(common_database,
             'DARTIUM': False,
             'DART2JS': True,
             'JSINTEROP': False,
-            'NNBD': nnbd
+            'NNBD': True,
         })
         backend_options = GeneratorOptions(template_loader, webkit_database,
                                            type_registry, renamer, metadata,
-                                           dart_js_interop, nnbd)
+                                           dart_js_interop)
         backend_factory = lambda interface:\
             Dart2JSBackend(interface, backend_options, logging_level)
 
@@ -268,12 +263,6 @@ def main():
         default=None,
         help='Directory to put the generated files')
     parser.add_option(
-        '--nnbd',
-        dest='nnbd',
-        action='store_true',
-        default=False,
-        help='Generate code with non-nullability annotations')
-    parser.add_option(
         '--use-database-cache',
         dest='use_database_cache',
         action='store_true',
@@ -348,7 +337,7 @@ def main():
 
     GenerateFromDatabase(database, dart2js_output_dir,
                          options.update_dom_metadata, logging_level,
-                         options.dart_js_interop, options.nnbd)
+                         options.dart_js_interop)
 
     file_generation_start_time = time.time()
 

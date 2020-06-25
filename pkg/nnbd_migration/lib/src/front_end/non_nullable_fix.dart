@@ -38,6 +38,8 @@ class NonNullableFix {
 
   static final List<HttpPreviewServer> _allServers = [];
 
+  final String hostname;
+
   final int preferredPort;
 
   final DartFixListener listener;
@@ -60,10 +62,6 @@ class NonNullableFix {
   /// The HTTP server that serves the preview tool.
   HttpPreviewServer _server;
 
-  /// The port on which preview pages should be served, or `null` if no preview
-  /// server should be started.
-  int port;
-
   String authToken;
 
   InstrumentationListener instrumentationListener;
@@ -83,7 +81,10 @@ class NonNullableFix {
   List<String> previewUrls;
 
   NonNullableFix(this.listener, this.resourceProvider, this._getLineInfo,
-      {List<String> included = const [], this.preferredPort, this.summaryPath})
+      {List<String> included = const [],
+      this.hostname,
+      this.preferredPort,
+      this.summaryPath})
       : includedRoot =
             _getIncludedRoot(included, listener.server.resourceProvider) {
     reset();
@@ -183,18 +184,19 @@ class NonNullableFix {
 
   Future<void> startPreviewServer(MigrationState state) async {
     if (_server == null) {
-      _server = HttpPreviewServer(state, rerun, preferredPort);
+      _server = HttpPreviewServer(state, rerun, hostname, preferredPort);
       _server.serveHttp();
       _allServers.add(_server);
-      port = await _server.boundPort;
+      var serverHostname = await _server.boundHostname;
+      var serverPort = await _server.boundPort;
       authToken = await _server.authToken;
 
       previewUrls = [
         // TODO(jcollins-g): Change protocol to only return a single string.
         Uri(
             scheme: 'http',
-            host: 'localhost',
-            port: port,
+            host: serverHostname,
+            port: serverPort,
             path: state.pathMapper.map(includedRoot),
             queryParameters: {'authToken': authToken}).toString()
       ];

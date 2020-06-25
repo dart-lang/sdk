@@ -313,6 +313,7 @@ class Dwarf : public ZoneAllocated {
   static const intptr_t DW_LNS_advance_pc = 0x2;
   static const intptr_t DW_LNS_advance_line = 0x3;
   static const intptr_t DW_LNS_set_file = 0x4;
+  static const intptr_t DW_LNS_set_column = 0x5;
 
   static const intptr_t DW_LNE_end_sequence = 0x01;
   static const intptr_t DW_LNE_set_address = 0x02;
@@ -323,12 +324,6 @@ class Dwarf : public ZoneAllocated {
     kConcreteFunction,
     kInlinedFunction,
   };
-
-  static constexpr intptr_t kNoLineInformation = 0;
-
-  // Returns the line number or kNoLineInformation if there is no line
-  // information available for the given token position.
-  static intptr_t TokenPositionToLine(const TokenPosition& token_pos);
 
   void WriteAbstractFunctions(DwarfWriteStream* stream);
   void WriteConcreteFunctions(DwarfWriteStream* stream);

@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/micro/performance.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
@@ -32,6 +33,9 @@ class CiderCompletionComputer {
   final PerformanceLog _logger;
   final CiderCompletionCache _cache;
   final FileResolver _fileResolver;
+
+  final CiderOperationPerformanceImpl _performanceRoot =
+      CiderOperationPerformanceImpl('<root>');
 
   DartCompletionRequestImpl _dartCompletionRequest;
 
@@ -55,91 +59,109 @@ class CiderCompletionComputer {
     @required int line,
     @required int column,
   }) async {
-    var getFileTimer = Stopwatch()..start();
-    var fileContext = _logger.run('Get file $path', () {
-      try {
-        return _fileResolver.getFileContext(path);
-      } finally {
-        getFileTimer.stop();
-      }
-    });
-
-    var file = fileContext.file;
-
-    var lineInfo = file.lineInfo;
-    var offset = lineInfo.getOffsetOfLine(line) + column;
-
-    var resolutionTimer = Stopwatch()..start();
-    var resolvedUnit = _fileResolver.resolve(path);
-    resolutionTimer.stop();
-
-    var completionRequest = CompletionRequestImpl(
-      resolvedUnit,
-      offset,
-      false,
-      CompletionPerformance(),
-    );
-    var dartdocDirectiveInfo = DartdocDirectiveInfo();
-
-    var suggestionsTimer = Stopwatch()..start();
-    var suggestions = await _logger.runAsync('Compute suggestions', () async {
-      var includedElementKinds = <ElementKind>{};
-      var includedElementNames = <String>{};
-      var includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
-
-      var manager = DartCompletionManager(
-        dartdocDirectiveInfo: dartdocDirectiveInfo,
-        includedElementKinds: includedElementKinds,
-        includedElementNames: includedElementNames,
-        includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
-      );
-
-      return await manager.computeSuggestions(
-        completionRequest,
-        enableUriContributor: false,
-      );
-    });
-    suggestionsTimer.stop();
-
-    _dartCompletionRequest = await DartCompletionRequestImpl.from(
-      completionRequest,
-      dartdocDirectiveInfo,
-    );
-
-    var importsTimer = Stopwatch();
-    if (_dartCompletionRequest.includeIdentifiers) {
-      _logger.run('Add imported suggestions', () {
-        importsTimer.start();
-        suggestions.addAll(
-          _importedLibrariesSuggestions(
-            resolvedUnit.libraryElement,
-          ),
+    return _performanceRoot.runAsync('completion', (performance) async {
+      var fileContext = _logger.run('Get file $path', () {
+        return _fileResolver.getFileContext(
+          path: path,
+          performance: performance,
         );
-        importsTimer.stop();
       });
-    }
 
-    var filter = _FilterSort(
-      _dartCompletionRequest,
-      suggestions,
-    );
+      var file = fileContext.file;
 
-    _logger.run('Filter suggestions', () {
-      suggestions = filter.perform();
+      var lineInfo = file.lineInfo;
+      var offset = lineInfo.getOffsetOfLine(line) + column;
+
+      var resolvedUnit = performance.run('resolution', (performance) {
+        return _fileResolver.resolve2(
+          path: path,
+          performance: performance,
+        );
+      });
+
+      var completionRequest = CompletionRequestImpl(
+        resolvedUnit,
+        offset,
+        false,
+        CompletionPerformance(),
+      );
+      var dartdocDirectiveInfo = DartdocDirectiveInfo();
+
+      var suggestions = await performance.runAsync(
+        'suggestions',
+        (performance) async {
+          var result = await _logger.runAsync('Compute suggestions', () async {
+            var includedElementKinds = <ElementKind>{};
+            var includedElementNames = <String>{};
+            var includedSuggestionRelevanceTags =
+                <IncludedSuggestionRelevanceTag>[];
+
+            var manager = DartCompletionManager(
+              dartdocDirectiveInfo: dartdocDirectiveInfo,
+              includedElementKinds: includedElementKinds,
+              includedElementNames: includedElementNames,
+              includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
+            );
+
+            return await manager.computeSuggestions(
+              completionRequest,
+              enableUriContributor: false,
+            );
+          });
+
+          for (var operation in completionRequest.performance.operations) {
+            performance.addChildFixed(
+              operation.name,
+              operation.elapsed,
+            );
+          }
+
+          return result;
+        },
+      );
+
+      _dartCompletionRequest = await DartCompletionRequestImpl.from(
+        completionRequest,
+        dartdocDirectiveInfo,
+      );
+
+      performance.run('imports', (performance) {
+        if (_dartCompletionRequest.includeIdentifiers) {
+          _logger.run('Add imported suggestions', () {
+            suggestions.addAll(
+              _importedLibrariesSuggestions(
+                resolvedUnit.libraryElement,
+              ),
+            );
+          });
+        }
+      });
+
+      var filter = _FilterSort(
+        _dartCompletionRequest,
+        suggestions,
+      );
+
+      performance.run('filter', (performance) {
+        _logger.run('Filter suggestions', () {
+          suggestions = filter.perform();
+        });
+      });
+
+      var result = CiderCompletionResult._(
+        suggestions: suggestions,
+        performance: CiderCompletionPerformance._(
+          file: performance.getChild('fileContext').elapsed,
+          imports: performance.getChild('imports').elapsed,
+          resolution: performance.getChild('resolution').elapsed,
+          suggestions: performance.getChild('suggestions').elapsed,
+          operations: _performanceRoot.children.first,
+        ),
+        prefixStart: CiderPosition(line, column - filter._pattern.length),
+      );
+
+      return result;
     });
-
-    var result = CiderCompletionResult._(
-      suggestions: suggestions,
-      performance: CiderCompletionPerformance(
-        file: getFileTimer.elapsed,
-        imports: importsTimer.elapsed,
-        resolution: resolutionTimer.elapsed,
-        suggestions: suggestionsTimer.elapsed,
-      ),
-      prefixStart: CiderPosition(line, column - filter._pattern.length),
-    );
-
-    return result;
   }
 
   @Deprecated('Use compute')
@@ -149,6 +171,17 @@ class CiderCompletionComputer {
     @required int column,
   }) async {
     return compute(path: path, line: line, column: column);
+  }
+
+  /// Prepare for computing completions in files from the [pathList].
+  ///
+  /// This method might be called when we are finishing a large initial
+  /// analysis, so spending additionally a fraction of this time to make
+  /// any subsequent completion seem fast is a reasonable trade-off.
+  Future<void> warmUp(List<String> pathList) async {
+    for (var path in pathList) {
+      await compute(path: path, line: 0, column: 0);
+    }
   }
 
   /// Return suggestions from libraries imported into the [target].
@@ -214,11 +247,15 @@ class CiderCompletionPerformance {
   /// The elapsed time to compute suggestions.
   final Duration suggestions;
 
-  CiderCompletionPerformance({
+  /// The tree of operation performances.
+  final CiderOperationPerformance operations;
+
+  CiderCompletionPerformance._({
     @required this.file,
     @required this.imports,
     @required this.resolution,
     @required this.suggestions,
+    @required this.operations,
   });
 }
 

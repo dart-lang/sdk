@@ -68,6 +68,7 @@ import 'transformations/obfuscation_prohibitions_annotator.dart'
 import 'transformations/call_site_annotator.dart' as call_site_annotator;
 import 'transformations/unreachable_code_elimination.dart'
     as unreachable_code_elimination;
+import 'transformations/deferred_loading.dart' as deferred_loading;
 
 /// Declare options consumed by [runCompiler].
 void declareCompilerOptions(ArgParser args) {
@@ -110,6 +111,8 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('protobuf-tree-shaker',
       help: 'Enable protobuf tree shaker transformation in AOT mode.',
       defaultsTo: false);
+  args.addFlag('protobuf-tree-shaker-v2',
+      help: 'Enable protobuf tree shaker v2 in AOT mode.', defaultsTo: false);
   args.addMultiOption('define',
       abbr: 'D',
       help: 'The values for the environment constants (e.g. -Dkey=value).');
@@ -140,6 +143,9 @@ void declareCompilerOptions(ArgParser args) {
       help: 'Comma separated list of experimental features to enable.');
   args.addFlag('help',
       abbr: 'h', negatable: false, help: 'Print this help message.');
+  args.addFlag('track-widget-creation',
+      help: 'Run a kernel transformer to track creation locations for widgets.',
+      defaultsTo: false);
 }
 
 /// Create ArgParser and populate it with options consumed by [runCompiler].
@@ -185,6 +191,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool enableAsserts = options['enable-asserts'];
   final bool nullSafety = options['null-safety'];
   final bool useProtobufTreeShaker = options['protobuf-tree-shaker'];
+  final bool useProtobufTreeShakerV2 = options['protobuf-tree-shaker-v2'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
   final String manifestFilename = options['manifest'];
   final String dataDir = options['component-name'] ?? options['data-dir'];
@@ -255,8 +262,11 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     await autoDetectNullSafetyMode(mainUri, compilerOptions);
   }
 
-  compilerOptions.target = createFrontEndTarget(targetName,
-      nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong);
+  compilerOptions.target = createFrontEndTarget(
+    targetName,
+    trackWidgetCreation: options['track-widget-creation'],
+    nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
+  );
   if (compilerOptions.target == null) {
     print('Failed to create front-end target $targetName.');
     return badUsageExitCode;
@@ -272,6 +282,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       bytecodeOptions: bytecodeOptions,
       dropAST: dropAST && !splitOutputByPackages,
       useProtobufTreeShaker: useProtobufTreeShaker,
+      useProtobufTreeShakerV2: useProtobufTreeShakerV2,
       minimalKernel: minimalKernel,
       treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
       fromDillFile: fromDillFile);
@@ -352,6 +363,7 @@ Future<KernelCompilationResults> compileToKernel(
     BytecodeOptions bytecodeOptions,
     bool dropAST: false,
     bool useProtobufTreeShaker: false,
+    bool useProtobufTreeShakerV2: false,
     bool minimalKernel: false,
     bool treeShakeWriteOnlyFields: false,
     String fromDillFile: null}) async {
@@ -385,6 +397,7 @@ Future<KernelCompilationResults> compileToKernel(
         useGlobalTypeFlowAnalysis,
         enableAsserts,
         useProtobufTreeShaker,
+        useProtobufTreeShakerV2,
         errorDetector,
         minimalKernel: minimalKernel,
         treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
@@ -462,6 +475,7 @@ Future runGlobalTransformations(
     bool useGlobalTypeFlowAnalysis,
     bool enableAsserts,
     bool useProtobufTreeShaker,
+    bool useProtobufTreeShakerV2,
     ErrorDetector errorDetector,
     {bool minimalKernel: false,
     bool treeShakeWriteOnlyFields: false}) async {
@@ -481,10 +495,15 @@ Future runGlobalTransformations(
   // before type flow analysis so TFA won't take unreachable code into account.
   unreachable_code_elimination.transformComponent(component, enableAsserts);
 
+  if (useProtobufTreeShaker && useProtobufTreeShakerV2) {
+    throw 'Cannot use both versions of protobuf tree shaker';
+  }
+
   if (useGlobalTypeFlowAnalysis) {
     globalTypeFlow.transformComponent(target, coreTypes, component,
         treeShakeSignatures: !minimalKernel,
-        treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
+        treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
+        treeShakeProtobufs: useProtobufTreeShakerV2);
   } else {
     devirtualization.transformComponent(coreTypes, component);
     no_dynamic_invocations_annotator.transformComponent(component);
@@ -513,6 +532,8 @@ Future runGlobalTransformations(
   // We don't know yet whether gen_snapshot will want to do obfuscation, but if
   // it does it will need the obfuscation prohibitions.
   obfuscationProhibitions.transformComponent(component, coreTypes);
+
+  deferred_loading.transformComponent(component);
 }
 
 /// Runs given [action] with [CompilerContext]. This is needed to

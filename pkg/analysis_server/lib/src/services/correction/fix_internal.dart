@@ -15,6 +15,7 @@ import 'package:analysis_server/src/services/correction/dart/add_const.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_explicit_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/add_field_formal_parameters.dart';
+import 'package:analysis_server/src/services/correction/dart/add_late.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_enum_case_clauses.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_parameter_named.dart';
@@ -627,6 +628,9 @@ class FixProcessor extends BaseProcessor {
       ChangeTo.classOrMixin,
       CreateClass.newInstance,
     ],
+    CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD: [
+      AddLate.newInstance,
+    ],
     CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE: [
       RemoveQuestionMark.newInstance,
     ],
@@ -912,6 +916,7 @@ class FixProcessor extends BaseProcessor {
       RemoveDeadIfNull.newInstance,
     ],
     StaticWarningCode.FINAL_NOT_INITIALIZED: [
+      AddLate.newInstance,
       CreateConstructorForFinalFields.newInstance,
     ],
     StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1: [

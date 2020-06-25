@@ -52,6 +52,40 @@ main(int b) {
     _assertNoClass(text: 'Random');
   }
 
+  Future<void> test_compute_performance_operations() async {
+    await _compute(r'''
+main() {
+  ^
+}
+''');
+
+    _assertHasOperationPerformance(['resolution']);
+    _assertHasOperationPerformance(['suggestions']);
+    _assertHasOperationPerformance([
+      'suggestions',
+      'DartCompletionManager - KeywordContributor',
+    ]);
+  }
+
+  Future<void> test_compute_performance_timers() async {
+    await _compute(r'''
+main() {
+  ^
+}
+''');
+
+    void assertTimerNotEmpty(Duration duration) {
+      expect(duration, isNotNull);
+      expect(duration, isNot(Duration.zero));
+    }
+
+    var performance = _completionResult.performance;
+    assertTimerNotEmpty(performance.file);
+    assertTimerNotEmpty(performance.imports);
+    assertTimerNotEmpty(performance.resolution);
+    assertTimerNotEmpty(performance.suggestions);
+  }
+
   Future<void> test_compute_prefixStart_hasPrefix() async {
     await _compute('''
 class A {
@@ -278,6 +312,30 @@ main() {
     ]);
   }
 
+  Future<void> test_warmUp_cachesImportedLibraries() async {
+    var aPath = convertPath('/workspace/dart/test/lib/a.dart');
+    newFile(aPath, content: r'''
+class A {}
+''');
+
+    var bPath = convertPath('/workspace/dart/test/lib/b.dart');
+    newFile(bPath, content: r'''
+import 'a.dart';
+''');
+
+    // Pre-cache `a.dart` using import in `b.dart`
+    await _newComputer().warmUp([bPath]);
+    _assertComputedImportedLibraries([aPath], hasCore: true);
+
+    // Now we complete in `test.dart`, and `a.dart` is already cached.
+    await _compute(r'''
+import 'a.dart';
+^
+''');
+    _assertComputedImportedLibraries([]);
+    _assertHasClass(text: 'A');
+  }
+
   void _assertComputedImportedLibraries(
     List<String> expected, {
     bool hasCore = false,
@@ -326,6 +384,15 @@ main() {
     var matching = _matchingNamedArgumentSuggestions(name: name);
     expect(matching, hasLength(1), reason: 'Expected exactly one completion');
     return matching.single;
+  }
+
+  void _assertHasOperationPerformance(List<String> path) {
+    var current = _completionResult.performance.operations;
+    for (var name in path) {
+      var child = current.getChild(name);
+      expect(child, isNotNull, reason: "No '$name' in $current");
+      current = child;
+    }
   }
 
   CompletionSuggestion _assertHasTopLevelVariable({@required String text}) {

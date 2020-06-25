@@ -6,6 +6,7 @@ import 'package:test/test.dart';
 
 import 'analytics_test.dart' as analytics;
 import 'commands/analyze_test.dart' as analyze;
+import 'commands/compile_test.dart' as compile;
 import 'commands/create_test.dart' as create;
 import 'commands/flag_test.dart' as flag;
 import 'commands/format_test.dart' as format;
@@ -18,7 +19,7 @@ import 'core_test.dart' as core;
 import 'sdk_test.dart' as sdk;
 import 'utils_test.dart' as utils;
 
-main() {
+void main() {
   group('dart', () {
     analytics.main();
     analyze.main();
@@ -29,6 +30,7 @@ main() {
     migrate.main();
     pub.main();
     run.main();
+    compile.main();
     test.main();
     core.main();
     sdk.main();

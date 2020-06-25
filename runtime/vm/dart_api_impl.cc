@@ -6032,6 +6032,10 @@ DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
                                        const uint8_t* snapshot_instructions,
                                        const uint8_t* kernel_buffer,
                                        intptr_t kernel_buffer_size) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  ASSERT(FLAG_null_safety != kNullSafetyOptionUnspecified);
+  return (FLAG_null_safety == kNullSafetyOptionStrong);
+#else
   bool null_safety;
   if (FLAG_null_safety == kNullSafetyOptionUnspecified) {
     null_safety = Dart::DetectNullSafety(
@@ -6041,6 +6045,7 @@ DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
     null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
   }
   return null_safety;
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 // --- Service support ---

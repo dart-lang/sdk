@@ -11,15 +11,36 @@
 
 namespace dart {
 
-#ifdef DART_PRECOMPILER
+#if defined(DART_PRECOMPILER)
+
+class DwarfPosition {
+ public:
+  // The DWARF standard uses 0 to denote missing line or column information.
+  DwarfPosition(intptr_t line, intptr_t column)
+      : line_(line > 0 ? line : 0), column_(column > 0 ? column : 0) {
+    // Should only have no line information if also no column information.
+    ASSERT(line_ > 0 || column_ == 0);
+  }
+  explicit DwarfPosition(intptr_t line) : DwarfPosition(line, 0) {}
+  constexpr DwarfPosition() : line_(0), column_(0) {}
+
+  intptr_t line() const { return line_; }
+  intptr_t column() const { return column_; }
+
+ private:
+  intptr_t line_;
+  intptr_t column_;
+};
+
+static constexpr auto kNoDwarfPositionInfo = DwarfPosition();
 
 class InliningNode : public ZoneAllocated {
  public:
   InliningNode(const Function& function,
-               TokenPosition call_pos,
+               const DwarfPosition& position,
                int32_t start_pc_offset)
       : function(function),
-        call_pos(call_pos),
+        position(position),
         start_pc_offset(start_pc_offset),
         end_pc_offset(-1),
         children_head(NULL),
@@ -39,7 +60,7 @@ class InliningNode : public ZoneAllocated {
   }
 
   const Function& function;
-  TokenPosition call_pos;
+  DwarfPosition position;
   int32_t start_pc_offset;
   int32_t end_pc_offset;
   InliningNode* children_head;
@@ -170,14 +191,6 @@ intptr_t Dwarf::AddCode(const Code& orig_code,
   return index;
 }
 
-intptr_t Dwarf::TokenPositionToLine(const TokenPosition& token_pos) {
-  // By the point we're creating the DWARF information, the values of
-  // non-special token positions have been converted to line numbers, so
-  // we just need to handle special (negative) token positions.
-  ASSERT(token_pos.value() > TokenPosition::kLast.value());
-  return token_pos.value() < 0 ? kNoLineInformation : token_pos.value();
-}
-
 intptr_t Dwarf::AddFunction(const Function& function) {
   RELEASE_ASSERT(!function.IsNull());
   FunctionIndexPair* pair = function_to_index_.Lookup(&function);
@@ -257,8 +270,6 @@ void Dwarf::WriteAbbreviations(DwarfWriteStream* stream) {
   stream->uleb128(DW_FORM_string);
   stream->uleb128(DW_AT_decl_file);
   stream->uleb128(DW_FORM_udata);
-  stream->uleb128(DW_AT_decl_line);
-  stream->uleb128(DW_FORM_udata);
   stream->uleb128(DW_AT_inline);
   stream->uleb128(DW_FORM_udata);
   stream->uleb128(0);
@@ -288,6 +299,8 @@ void Dwarf::WriteAbbreviations(DwarfWriteStream* stream) {
   stream->uleb128(DW_AT_call_file);
   stream->uleb128(DW_FORM_udata);
   stream->uleb128(DW_AT_call_line);
+  stream->uleb128(DW_FORM_udata);
+  stream->uleb128(DW_AT_call_column);
   stream->uleb128(DW_FORM_udata);
   stream->uleb128(0);
   stream->uleb128(0);  // End of attributes.
@@ -354,8 +367,8 @@ void Dwarf::WriteAbstractFunctions(DwarfWriteStream* stream) {
   String& name = String::Handle(zone_);
   stream->InitializeAbstractOrigins(functions_.length());
   // By the point we're creating DWARF information, scripts have already lost
-  // their token stream, so we can't look up their line number information.
-  auto const line = kNoLineInformation;
+  // their token stream and we can't look up their line number or column
+  // information, hence the lack of DW_AT_decl_line and DW_AT_decl_column.
   for (intptr_t i = 0; i < functions_.length(); i++) {
     const Function& function = *(functions_[i]);
     name = function.QualifiedUserVisibleName();
@@ -367,7 +380,6 @@ void Dwarf::WriteAbstractFunctions(DwarfWriteStream* stream) {
     stream->uleb128(kAbstractFunction);
     stream->string(name_cstr);        // DW_AT_name
     stream->uleb128(file);            // DW_AT_decl_file
-    stream->uleb128(line);            // DW_AT_decl_line
     stream->uleb128(DW_INL_inlined);  // DW_AT_inline
     stream->uleb128(0);               // End of children.
   }
@@ -411,6 +423,15 @@ void Dwarf::WriteConcreteFunctions(DwarfWriteStream* stream) {
   }
 }
 
+static DwarfPosition ReadPosition(ReadStream* stream) {
+  const intptr_t line = stream->Read<int32_t>();
+  if (!FLAG_dwarf_stack_traces_mode) {
+    return DwarfPosition(line);
+  }
+  const intptr_t column = stream->Read<int32_t>();
+  return DwarfPosition(line, column);
+}
+
 // Our state machine encodes position metadata such that we don't know the
 // end pc for an inlined function until it is popped, but DWARF DIEs encode
 // it where the function is pushed. We expand the state transitions into
@@ -428,24 +449,23 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
   }
 
   GrowableArray<InliningNode*> node_stack(zone_, 4);
-  GrowableArray<TokenPosition> token_positions(zone_, 4);
+  GrowableArray<DwarfPosition> token_positions(zone_, 4);
 
   NoSafepointScope no_safepoint;
   ReadStream stream(map.Data(), map.Length());
 
   int32_t current_pc_offset = 0;
+  token_positions.Add(kNoDwarfPositionInfo);
   InliningNode* root_node =
-      new (zone_) InliningNode(root_function, TokenPosition(), 0);
+      new (zone_) InliningNode(root_function, token_positions.Last(), 0);
   root_node->end_pc_offset = code.Size();
   node_stack.Add(root_node);
-  token_positions.Add(CodeSourceMapBuilder::kInitialPosition);
 
   while (stream.PendingBytes() > 0) {
     uint8_t opcode = stream.Read<uint8_t>();
     switch (opcode) {
       case CodeSourceMapBuilder::kChangePosition: {
-        int32_t position = stream.Read<int32_t>();
-        token_positions[token_positions.length() - 1] = TokenPosition(position);
+        token_positions[token_positions.length() - 1] = ReadPosition(&stream);
         break;
       }
       case CodeSourceMapBuilder::kAdvancePC: {
@@ -457,12 +477,11 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
         int32_t func = stream.Read<int32_t>();
         const Function& child_func =
             Function::ZoneHandle(zone_, Function::RawCast(functions.At(func)));
-        TokenPosition call_pos = token_positions.Last();
-        InliningNode* child_node =
-            new (zone_) InliningNode(child_func, call_pos, current_pc_offset);
+        InliningNode* child_node = new (zone_)
+            InliningNode(child_func, token_positions.Last(), current_pc_offset);
         node_stack.Last()->AppendChild(child_node);
         node_stack.Add(child_node);
-        token_positions.Add(CodeSourceMapBuilder::kInitialPosition);
+        token_positions.Add(kNoDwarfPositionInfo);
         break;
       }
       case CodeSourceMapBuilder::kPopFunction: {
@@ -498,7 +517,6 @@ void Dwarf::WriteInliningNode(DwarfWriteStream* stream,
                               const Script& parent_script,
                               SnapshotTextObjectNamer* namer) {
   intptr_t file = LookupScript(parent_script);
-  const auto& token_pos = node->call_pos;
   intptr_t function_index = LookupFunction(node->function);
   const Script& script = Script::Handle(zone_, node->function.script());
 
@@ -514,7 +532,9 @@ void Dwarf::WriteInliningNode(DwarfWriteStream* stream,
   // DW_AT_call_file
   stream->uleb128(file);
   // DW_AT_call_line
-  stream->uleb128(TokenPositionToLine(token_pos));
+  stream->uleb128(node->position.line());
+  // DW_at_call_column
+  stream->uleb128(node->position.column());
 
   for (InliningNode* child = node->children_head; child != NULL;
        child = child->children_next) {
@@ -582,17 +602,21 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
 
   // 6.2.5 The Line Number Program
 
+  // The initial values for the line number program state machine registers
+  // according to the DWARF standard.
+  intptr_t previous_pc_offset = 0;
   intptr_t previous_file = 1;
   intptr_t previous_line = 1;
+  intptr_t previous_column = 0;
+  // Other info not stored in the state machine registers.
   const char* previous_asm_name = nullptr;
-  intptr_t previous_pc_offset = 0;
 
   Function& root_function = Function::Handle(zone_);
   Script& script = Script::Handle(zone_);
   CodeSourceMap& map = CodeSourceMap::Handle(zone_);
   Array& functions = Array::Handle(zone_);
   GrowableArray<const Function*> function_stack(zone_, 8);
-  GrowableArray<TokenPosition> token_positions(zone_, 8);
+  GrowableArray<DwarfPosition> token_positions(zone_, 8);
   SnapshotTextObjectNamer namer(zone_);
 
   for (intptr_t i = 0; i < codes_.length(); i++) {
@@ -614,15 +638,14 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
 
     int32_t current_pc_offset = 0;
     function_stack.Add(&root_function);
-    token_positions.Add(CodeSourceMapBuilder::kInitialPosition);
+    token_positions.Add(kNoDwarfPositionInfo);
 
     while (code_map_stream.PendingBytes() > 0) {
       uint8_t opcode = code_map_stream.Read<uint8_t>();
       switch (opcode) {
         case CodeSourceMapBuilder::kChangePosition: {
-          int32_t position = code_map_stream.Read<int32_t>();
           token_positions[token_positions.length() - 1] =
-              TokenPosition(position);
+              ReadPosition(&code_map_stream);
           break;
         }
         case CodeSourceMapBuilder::kAdvancePC: {
@@ -641,11 +664,17 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
           }
 
           // 2. Update LNP line.
-          const auto line = TokenPositionToLine(token_positions.Last());
+          const intptr_t line = token_positions.Last().line();
+          const intptr_t column = token_positions.Last().column();
           if (line != previous_line) {
             stream->u1(DW_LNS_advance_line);
             stream->sleb128(line - previous_line);
             previous_line = line;
+          }
+          if (column != previous_column) {
+            stream->u1(DW_LNS_set_column);
+            stream->uleb128(column);
+            previous_column = column;
           }
 
           // 3. Emit LNP row if the address register has been updated to a
@@ -676,7 +705,7 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
           const Function& child_func = Function::Handle(
               zone_, Function::RawCast(functions.At(func_index)));
           function_stack.Add(&child_func);
-          token_positions.Add(CodeSourceMapBuilder::kInitialPosition);
+          token_positions.Add(kNoDwarfPositionInfo);
           break;
         }
         case CodeSourceMapBuilder::kPopFunction: {

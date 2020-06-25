@@ -591,11 +591,6 @@ class HtmlDartInterfaceGenerator(object):
         self._template_loader = options.templates
         self._type_registry = options.type_registry
         self._options = options
-        # TODO(srujzs): This sets the nnbd option globally inside generator.py
-        # since there is no options object there. This should should be cleaned
-        # up and passed as an option instead.
-        global_options_hack.nnbd = options.nnbd
-        self._nnbd = options.nnbd
         self._library_emitter = library_emitter
         self._event_generator = event_generator
         self._interface = interface
@@ -808,9 +803,9 @@ class HtmlDartInterfaceGenerator(object):
             NATIVESPEC=native_spec,
             KEYTYPE=maplikeKeyType,
             VALUETYPE=maplikeValueType,
-            NULLABLE='?' if self._options.nnbd else '',
-            NULLSAFECAST=True if self._options.nnbd else False,
-            NULLASSERT='!' if self._options.nnbd else '')
+            NULLABLE='?',
+            NULLSAFECAST=True,
+            NULLASSERT='!')
         stream_getter_signatures_emitter = None
         element_stream_getters_emitter = None
         if type(implementation_members_emitter) == tuple:
@@ -1159,7 +1154,6 @@ class Dart2JSBackend(HtmlDartGenerator):
         self._type_registry = options.type_registry
         self._renamer = options.renamer
         self._metadata = options.metadata
-        self._nnbd = options.nnbd
         self._interface_type_info = self._type_registry.TypeInfo(
             self._interface.id)
         self._current_secondary_parent = None
@@ -1181,8 +1175,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         ):
             item_type = self._type_registry.TypeInfo(
                 self._interface_type_info.list_item_type()).dart_type()
-            if self._nnbd and \
-                    self._interface_type_info.list_item_type_nullable():
+            if self._interface_type_info.list_item_type_nullable():
                 item_type += '?'
             implements.append('JavaScriptIndexingBehavior<%s>' % item_type)
         return implements
@@ -1241,19 +1234,17 @@ class Dart2JSBackend(HtmlDartGenerator):
                 "JS$CAST("
                 "'returns:$INTERFACE_NAME;creates:$INTERFACE_NAME;new:true',"
                 " '#.$METHOD(#)', $FACTORY, $ARGUMENTS)",
-                CAST='<' + self._interface_type_info.interface_name() +
-                '>' if self._nnbd else '',
+                CAST='<' + self._interface_type_info.interface_name() + '>',
                 INTERFACE_NAME=self._interface_type_info.interface_name(),
                 FACTORY=factory,
                 METHOD=method,
                 ARGUMENTS=arguments)
-        return emitter.Format(
-            '$FACTORY.$METHOD($ARGUMENTS)$CAST',
-            FACTORY=factory,
-            METHOD=method,
-            ARGUMENTS=arguments,
-            CAST=' as ' + self._interface_type_info.interface_name() \
-            if self._nnbd else '')
+        return emitter.Format('$FACTORY.$METHOD($ARGUMENTS)$CAST',
+                              FACTORY=factory,
+                              METHOD=method,
+                              ARGUMENTS=arguments,
+                              CAST=' as ' +
+                              self._interface_type_info.interface_name())
 
     def _HasUnreliableFactoryConstructor(self):
         return self._interface.doc_js_name in _js_unreliable_element_factories
@@ -1361,8 +1352,8 @@ class Dart2JSBackend(HtmlDartGenerator):
                                            nullable=nullable),
                 # If the type of the operation is not nullable but the getter
                 # is, we must assert non-null.
-                NULLASSERT='!' if self._nnbd and not nullable and \
-                    indexed_getter_nullable else '')
+                NULLASSERT='!' if not nullable and indexed_getter_nullable \
+                    else '')
 
         if 'CustomIndexedSetter' in self._interface.ext_attrs:
             self._members_emitter.Emit(
@@ -1370,7 +1361,7 @@ class Dart2JSBackend(HtmlDartGenerator):
                 '  void operator[]=(int index, $TYPE$NULLABLE value) {'
                 ' JS("void", "#[#] = #", this, index, value); }',
                 TYPE=self._NarrowInputType(element_type),
-                NULLABLE='?' if self._nnbd and nullable else '')
+                NULLABLE='?' if nullable else '')
         else:
             theType = self._NarrowInputType(element_type)
             if theType == 'DomRectList':
@@ -1382,7 +1373,7 @@ class Dart2JSBackend(HtmlDartGenerator):
                 '    throw new UnsupportedError("Cannot assign element of immutable List.");\n'
                 '  }\n',
                 TYPE=theType,
-                NULLABLE='?' if self._nnbd and nullable else '')
+                NULLABLE='?' if nullable else '')
 
         self.EmitListMixin(self._DartType(element_type), nullable)
 
@@ -1460,7 +1451,7 @@ class Dart2JSBackend(HtmlDartGenerator):
             return
 
         input_type = self._NarrowInputType(attribute.type.id)
-        if self._nnbd and attribute.type.nullable:
+        if attribute.type.nullable:
             input_type += '?'
         if not read_only:
             if attribute.type.id == 'Promise':
@@ -1483,8 +1474,8 @@ class Dart2JSBackend(HtmlDartGenerator):
                         promiseCall = 'promiseToFutureAsMap'
                         output_conversion = self._OutputConversion("Dictionary",
                                                                    None)
-                        nullability = '?' if self._nnbd and \
-                            output_conversion.nullable_output else ''
+                        nullability = '?' if output_conversion.nullable_output \
+                            else ''
                         promiseType = 'Future<Map<String, dynamic>' + \
                             nullability + '>'
                     else:
@@ -1492,7 +1483,7 @@ class Dart2JSBackend(HtmlDartGenerator):
                         promiseCall = 'promiseToFuture<%s>' % paramType
                         promiseType = 'Future<%s>' % paramType
 
-                if self._nnbd and attribute.type.nullable:
+                if attribute.type.nullable:
                     promiseType += '?'
 
                 template = '\n  $RENAME$(ANNOTATIONS)$TYPE get $NAME => $PROMISE_CALL(JS("", "#.$NAME", this));\n'
@@ -1592,11 +1583,11 @@ class Dart2JSBackend(HtmlDartGenerator):
             HTML_NAME=html_name,
             NAME=attr.id,
             RETURN_TYPE=conversion.output_type,
-            NULLABLE_OUT='?' if nullable_out and self._nnbd else '',
+            NULLABLE_OUT='?' if nullable_out else '',
             NATIVE_TYPE=conversion.input_type,
-            NULLABLE_IN='?' if nullable_in and self._nnbd else '',
+            NULLABLE_IN='?' if nullable_in else '',
             NULLASSERT='!' if nullable_in and \
-                not conversion.nullable_input and self._nnbd else '')
+                not conversion.nullable_input else '')
 
     def _AddConvertingSetter(self, attr, html_name, conversion):
         # If the attribute is nullable, the setter should be nullable.
@@ -1617,11 +1608,11 @@ class Dart2JSBackend(HtmlDartGenerator):
             HTML_NAME=html_name,
             NAME=attr.id,
             INPUT_TYPE=conversion.input_type,
-            NULLABLE_IN='?' if nullable_in and self._nnbd else '',
+            NULLABLE_IN='?' if nullable_in else '',
             NATIVE_TYPE=conversion.output_type,
-            NULLABLE_OUT='?' if nullable_out and self._nnbd else '',
+            NULLABLE_OUT='?' if nullable_out else '',
             NULLASSERT='!' if nullable_in and \
-                not conversion.nullable_input and self._nnbd else '')
+                not conversion.nullable_input else '')
 
     def AmendIndexer(self, element_type):
         pass
@@ -1765,8 +1756,8 @@ class Dart2JSBackend(HtmlDartGenerator):
                     promiseCall = 'promiseToFutureAsMap'
                     output_conversion = self._OutputConversion("Dictionary",
                                                                None)
-                    nullability = '?' if self._nnbd and \
-                        output_conversion.nullable_output else ''
+                    nullability = '?' if output_conversion.nullable_output \
+                        else ''
                     promiseType = 'Future<Map<String, dynamic>' + \
                         nullability + '>'
                 else:
@@ -1777,7 +1768,7 @@ class Dart2JSBackend(HtmlDartGenerator):
             dictionary_argument = info.dictionaryArgumentName()
             codeTemplate = self._promiseToFutureCode(argsNames,
                                                      dictionary_argument)
-            if self._nnbd and info.type_nullable:
+            if info.type_nullable:
                 promiseType += '?'
             self._members_emitter.Emit(
                 codeTemplate,
@@ -1852,8 +1843,7 @@ class Dart2JSBackend(HtmlDartGenerator):
 
             if output_conversion:
                 call = '%s(%s)' % (output_conversion.function_name, call)
-                if self._nnbd and output_conversion.nullable_output and \
-                        not info.type_nullable:
+                if output_conversion.nullable_output and not info.type_nullable:
                     # Return type of operation is not nullable while conversion
                     # is, so we need to assert non-null.
                     call += '!'
@@ -1904,7 +1894,7 @@ class Dart2JSBackend(HtmlDartGenerator):
             html_name.startswith('_')) else True
 
         nullsafe_return_type = return_type;
-        if self._nnbd and info.type_nullable:
+        if info.type_nullable:
             nullsafe_return_type += '?'
 
         declaration = '%s%s%s %s(%s)' % (
@@ -1970,18 +1960,15 @@ class Dart2JSBackend(HtmlDartGenerator):
             return_type = self.SecureOutputType(idl_type)
             native_type = self._NarrowToImplementationType(idl_type)
 
-            null_union = '' if self._nnbd and not nullable else '|Null'
+            null_union = '' if not nullable else '|Null'
             if native_type != return_type:
                 anns = anns + [
                     "@Returns('%s%s')" % (native_type, null_union),
                     "@Creates('%s')" % native_type,
                 ]
-        if dart_type == 'dynamic' or \
-            (not self._nnbd and dart_type == 'Object') or \
-            (self._nnbd and dart_type == 'Object?'):
-            # If we're generating nnbd code, we emit non-nullable Object
-            # annotations but exclude nullable Object annotations since that's
-            # the default.
+        if dart_type == 'dynamic' or dart_type == 'Object?':
+            # We emit non-nullable Object annotations but exclude nullable
+            # Object annotations since that's the default.
 
             def js_type_annotation(ann):
                 return re.search('^@.*Returns', ann) or re.search(
@@ -2097,7 +2084,7 @@ class DartLibrary():
         emitters = library_emitter.Emit(
             self._template,
             AUXILIARY_DIR=massage_path(auxiliary_dir),
-            NULLABLE='?' if global_options_hack.nnbd else '')
+            NULLABLE='?')
         if isinstance(emitters, tuple):
             imports_emitter, map_emitter = emitters
         else:

@@ -5,6 +5,6 @@
 import 'package:dartdev/dartdev.dart';
 
 /// The entry point for dartdev.
-void main(List<String> args) async {
+Future<void> main(List<String> args) async {
   await runDartdev(args);
 }

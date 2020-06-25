@@ -322,16 +322,13 @@ template("compile_dartdevc_platform") {
     ]
 
     if (invoker.sound_null_safety) {
-      args += [
-        "--nnbd-strong",
-      ]
+      args += [ "--nnbd-strong" ]
 
       outputs = [
         sdk_full_sound_dill,
         sdk_outline_sound_dill,
       ]
     } else {
-
       outputs = [
         sdk_full_dill,
         sdk_outline_dill,
@@ -387,7 +384,7 @@ template("dartdevc_sdk_js") {
       "$js_gen_dir/legacy/dart_sdk.js.map",
     ]
 
-    script = "../../pkg/dev_compiler/tool/compile_dartdevc_sdk.dart"
+    script = "../../pkg/dev_compiler/bin/dartdevc.dart"
 
     args = [
       "--multi-root-scheme",

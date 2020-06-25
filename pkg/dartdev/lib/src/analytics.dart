@@ -26,7 +26,7 @@ const String analyticsDisabledNoticeMessage = '''
   ║ `dart --enable-analytics`                                                  ║
   ╚════════════════════════════════════════════════════════════════════════════╝
 ''';
-const String _unknown_command = '<unknown>';
+const String _unknownCommand = '<unknown>';
 const String _appName = 'dartdev';
 const String _dartDirectoryName = '.dart';
 const String _settingsFileName = 'dartdev.json';
@@ -87,7 +87,7 @@ String getCommandStr(List<String> args, List<String> allCommands) {
     return 'help';
   }
   return args.firstWhere((arg) => allCommands.contains(arg),
-      orElse: () => _unknown_command);
+      orElse: () => _unknownCommand);
 }
 
 /// Given some set of arguments and parameters, this returns a proper subset

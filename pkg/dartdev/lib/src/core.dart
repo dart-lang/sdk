@@ -31,7 +31,7 @@ abstract class DartdevCommand<int> extends Command {
   @override
   String get description => _description;
 
-  Project get project => (_project ??= Project());
+  Project get project => _project ??= Project();
 }
 
 /// A utility method to start the given executable as a process, optionally
@@ -48,7 +48,7 @@ Future<Process> startProcess(
 void routeToStdout(
   Process process, {
   bool logToTrace = false,
-  void listener(String str),
+  void Function(String str) listener,
 }) {
   if (isVerbose) {
     _streamLineTransform(process.stdout, (String line) {
@@ -72,7 +72,10 @@ void routeToStdout(
   }
 }
 
-void _streamLineTransform(Stream<List<int>> stream, handler(String line)) {
+void _streamLineTransform(
+  Stream<List<int>> stream,
+  Function(String line) handler,
+) {
   stream
       .transform(utf8.decoder)
       .transform(const LineSplitter())
@@ -119,7 +122,6 @@ class PackageConfig {
     return _packages.map<Map<String, dynamic>>(castStringKeyedMap).toList();
   }
 
-  bool hasDependency(String packageName) {
-    return packages.any((element) => element['name'] == packageName);
-  }
+  bool hasDependency(String packageName) =>
+      packages.any((element) => element['name'] == packageName);
 }

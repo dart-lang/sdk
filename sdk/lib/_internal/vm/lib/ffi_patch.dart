@@ -68,7 +68,7 @@ dynamic _asExternalTypedData(Pointer ptr, int count)
 // Function objects returned by this native method are not Dart instances,
 // so we need to use top type as a return type to avoid type check.
 dynamic _nativeCallbackFunction<NS extends Function>(Function target,
-    Object exceptionalReturn) native "Ffi_nativeCallbackFunction";
+    Object? exceptionalReturn) native "Ffi_nativeCallbackFunction";
 
 Pointer<NS> _pointerFromFunction<NS extends NativeFunction>(dynamic function)
     native "Ffi_pointerFromFunction";

@@ -86,6 +86,15 @@ class MigrationInfo {
   /// The path of the Dart logo displayed in the toolbar.
   String get dartLogoPath => PreviewSite.dartLogoPath;
 
+  /// The path of the Material icons font.
+  String get materialIconsPath => PreviewSite.materialIconsPath;
+
+  /// The path of the Roboto font.
+  String get robotoFont => PreviewSite.robotoFontPath;
+
+  /// The path of the Roboto Mono font.
+  String get robotoMonoFont => PreviewSite.robotoMonoFontPath;
+
   /// Return the path to [unit] from [includedRoot], to be used as a display
   /// name for a library.
   String computeName(UnitInfo unit) =>

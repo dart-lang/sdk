@@ -3251,6 +3251,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     ir.DartType type = node.type;
     if (type is ir.InterfaceType ||
         type is ir.DynamicType ||
+        type is ir.NeverType ||
         type is ir.TypedefType ||
         type is ir.FunctionType ||
         type is ir.FutureOrType) {
@@ -4494,16 +4495,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
             .registerInstantiatedClass(closureClass);
         return js.js
             .expressionTemplateYielding(_emitter.typeAccess(closureClass));
-
-      case JsBuiltin.isCheckPropertyToJsConstructorName:
-        int isPrefixLength = _namer.fixedNames.operatorIsPrefix.length;
-        return js.js.expressionTemplateFor('#.substring($isPrefixLength)');
-
-      case JsBuiltin.rawRtiToJsConstructorName:
-        return js.js.expressionTemplateFor("#.name");
-
-      case JsBuiltin.rawRuntimeType:
-        return js.js.expressionTemplateFor("#.constructor");
 
       case JsBuiltin.getMetadata:
         String metadataAccess =

@@ -17,6 +17,7 @@ import 'package:kernel/external_name.dart';
 
 import 'analysis.dart';
 import 'calls.dart';
+import 'protobuf_handler.dart' show ProtobufHandler;
 import 'summary.dart';
 import 'table_selector.dart';
 import 'types.dart';
@@ -40,20 +41,31 @@ Component transformComponent(
     Target target, CoreTypes coreTypes, Component component,
     {PragmaAnnotationParser matcher,
     bool treeShakeSignatures: true,
-    bool treeShakeWriteOnlyFields: true}) {
+    bool treeShakeWriteOnlyFields: true,
+    bool treeShakeProtobufs: false}) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(component, coreTypes,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final types = new TypeEnvironment(coreTypes, hierarchy);
   final libraryIndex = new LibraryIndex.all(component);
   final genericInterfacesInfo = new GenericInterfacesInfoImpl(hierarchy);
+  final protobufHandler = treeShakeProtobufs
+      ? ProtobufHandler.forComponent(component, coreTypes)
+      : null;
 
   Statistics.reset();
   final analysisStopWatch = new Stopwatch()..start();
 
-  final typeFlowAnalysis = new TypeFlowAnalysis(target, component, coreTypes,
-      hierarchy, genericInterfacesInfo, types, libraryIndex,
-      matcher: matcher);
+  final typeFlowAnalysis = new TypeFlowAnalysis(
+      target,
+      component,
+      coreTypes,
+      hierarchy,
+      genericInterfacesInfo,
+      types,
+      libraryIndex,
+      protobufHandler,
+      matcher);
 
   Procedure main = component.mainMethod;
 

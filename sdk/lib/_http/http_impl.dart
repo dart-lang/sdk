@@ -1808,7 +1808,11 @@ class _HttpClientConnection {
             startTimer();
             return;
           }
-          if (closed) return;
+          // Keep the connection open if the CONNECT request was successful.
+          if (closed ||
+              (method == 'CONNECT' && incoming.statusCode == HttpStatus.ok)) {
+            return;
+          }
           if (!closing &&
               !_dispose &&
               incoming.headers.persistentConnection &&
@@ -1895,10 +1899,8 @@ class _HttpClientConnection {
     timeline?.instant('Establishing proxy tunnel', arguments: {
       'proxyInfo': {
         if (proxy.host != null) 'host': proxy.host,
-        if (proxy.port != null)
-          'port': proxy.port,
-        if (proxy.username != null)
-          'username': proxy.username,
+        if (proxy.port != null) 'port': proxy.port,
+        if (proxy.username != null) 'username': proxy.username,
         // TODO(bkonyi): is this something we would want to surface? Initial
         // thought is no.
         // if (proxy.password != null)

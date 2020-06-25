@@ -29,6 +29,40 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
+const List<String> intNames = ['i', 'j', 'index', 'length'];
+const List<String> listNames = ['list', 'items'];
+const List<String> numNames = ['height', 'width'];
+const List<String> stringNames = [
+  'key',
+  'text',
+  'url',
+  'uri',
+  'name',
+  'str',
+  'string'
+];
+
+DartType impliedDartTypeWithName(TypeProvider typeProvider, String name) {
+  if (typeProvider == null || name == null || name.isEmpty) {
+    return null;
+  }
+  if (intNames.contains(name)) {
+    return typeProvider.intType;
+  } else if (numNames.contains(name)) {
+    return typeProvider.numType;
+  } else if (listNames.contains(name)) {
+    return typeProvider.listType2(typeProvider.dynamicType);
+  } else if (stringNames.contains(name)) {
+    return typeProvider.stringType;
+  } else if (name == 'iterator') {
+    return typeProvider.iterableDynamicType;
+  } else if (name == 'map') {
+    return typeProvider.mapType2(
+        typeProvider.dynamicType, typeProvider.dynamicType);
+  }
+  return null;
+}
+
 /// Convert a relevance score (assumed to be between `0.0` and `1.0` inclusive)
 /// to a relevance value between `0` and `1000`. If the score is outside that
 /// range, return the [defaultValue].
@@ -223,6 +257,33 @@ class FeatureComputer {
       return 1.0;
     }
     return 0.0;
+  }
+
+  /// Return the value of the _keyword_ feature for the [keyword] when
+  /// completing at the given [completionLocation].
+  double keywordFeature(String keyword, String completionLocation) {
+    if (completionLocation == null) {
+      return -1.0;
+    }
+    var locationTable = keywordRelevance[completionLocation];
+    if (locationTable == null) {
+      return -1.0;
+    }
+    var range = locationTable[keyword];
+    if (range == null) {
+      // We sometimes suggest multiple tokens where a keyword is allowed, such
+      // as 'async*'. In those cases a valid keyword is always first followed by
+      // a non-alphabetic character. Try stripping off everything after the
+      // keyword and indexing into the table again.
+      var index = keyword.indexOf(RegExp('[^a-z]'));
+      if (index > 0) {
+        range = locationTable[keyword.substring(0, index)];
+      }
+    }
+    if (range == null) {
+      return 0.0;
+    }
+    return range.upper;
   }
 
   /// Return the value of the _starts with dollar_ feature.
@@ -726,7 +787,8 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
     if (node.equals != null && node.equals.end <= offset) {
       var parent = node.parent;
       if (parent is VariableDeclarationList) {
-        return parent.type?.type;
+        return parent.type?.type ??
+            impliedDartTypeWithName(typeProvider, node.name?.name);
       }
     }
     return null;
@@ -736,8 +798,10 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   DartType visitVariableDeclarationList(VariableDeclarationList node) {
     for (var varDecl in node.variables) {
       if (varDecl != null && varDecl.contains(offset)) {
-        if (varDecl.equals.end <= offset) {
-          return node.type?.type;
+        var equals = varDecl.equals;
+        if (equals != null && equals.end <= offset) {
+          return node.type?.type ??
+              impliedDartTypeWithName(typeProvider, varDecl.name?.name);
         }
       }
     }

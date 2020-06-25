@@ -110,6 +110,9 @@ enum MatchOpCode {
   // Matches a branch and moves right.
   kMatchAndMoveBranchFalse,
 
+  // Is ignored.
+  kNop,
+
   // Moves forward across any instruction.
   kMoveAny,
 
@@ -150,6 +153,16 @@ class MatchCode {
   Instruction** capture_;
 };
 
+enum class ParallelMovesHandling {
+  // Matcher doesn't do anything special with ParallelMove instructions.
+  kDefault,
+  // All ParallelMove instructions are skipped.
+  // This mode is useful when matching a flow graph after the whole
+  // compiler pipeline, as it may have ParallelMove instructions
+  // at arbitrary architecture-dependent places.
+  kSkip,
+};
+
 // Used for matching a sequence of IL instructions including capturing support.
 //
 // Example:
@@ -170,9 +183,14 @@ class MatchCode {
 // value for the cursor.
 class ILMatcher : public ValueObject {
  public:
-  ILMatcher(FlowGraph* flow_graph, Instruction* cursor, bool trace = true)
+  ILMatcher(FlowGraph* flow_graph,
+            Instruction* cursor,
+            bool trace = true,
+            ParallelMovesHandling parallel_moves_handling =
+                ParallelMovesHandling::kDefault)
       : flow_graph_(flow_graph),
         cursor_(cursor),
+        parallel_moves_handling_(parallel_moves_handling),
   // clang-format off
 #if !defined(PRODUCT)
         trace_(trace) {}
@@ -202,6 +220,7 @@ class ILMatcher : public ValueObject {
 
   FlowGraph* flow_graph_;
   Instruction* cursor_;
+  ParallelMovesHandling parallel_moves_handling_;
   bool trace_;
 };
 

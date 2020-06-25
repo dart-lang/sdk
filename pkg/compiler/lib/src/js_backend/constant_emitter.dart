@@ -13,6 +13,8 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/field_analysis.dart';
 import '../js_backend/type_reference.dart' show TypeReference;
+import '../js_backend/string_reference.dart'
+    show StringReference, StringReferencePolicy;
 import '../js_emitter/code_emitter_task.dart';
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../options.dart';
@@ -143,7 +145,11 @@ class ModularConstantEmitter
   /// The string is assumed quoted by double quote characters.
   @override
   jsAst.Expression visitString(StringConstantValue constant, [_]) {
-    return js.escapedString(constant.stringValue, ascii: true);
+    String value = constant.stringValue;
+    if (value.length < StringReferencePolicy.minimumLength) {
+      return js.escapedString(value, ascii: true);
+    }
+    return StringReference(constant);
   }
 
   @override
@@ -276,7 +282,8 @@ class ConstantEmitter extends ModularConstantEmitter {
         }
 
         // Keys in literal maps must be emitted in place.
-        jsAst.Literal keyExpression = _visit(key);
+        jsAst.Literal keyExpression =
+            js.escapedString(key.stringValue, ascii: true);
         jsAst.Expression valueExpression =
             _constantReferenceGenerator(constant.values[i]);
         properties.add(new jsAst.Property(keyExpression, valueExpression));

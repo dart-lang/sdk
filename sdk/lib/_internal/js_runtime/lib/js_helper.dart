@@ -82,22 +82,6 @@ part 'linked_hash_map.dart';
 /// them.
 abstract class InternalMap {}
 
-/// Extracts the JavaScript-constructor name from the given isCheckProperty.
-// TODO(floitsch): move this to foreign_helper.dart or similar.
-@pragma('dart2js:tryInline')
-String isCheckPropertyToJsConstructorName(String isCheckProperty) {
-  return JS_BUILTIN('returns:String;depends:none;effects:none',
-      JsBuiltin.isCheckPropertyToJsConstructorName, isCheckProperty);
-}
-
-/// Retrieves the class name from type information stored on the constructor of
-/// [type].
-// TODO(floitsch): move this to foreign_helper.dart or similar.
-@pragma('dart2js:tryInline')
-String rawRtiToJsConstructorName(Object rti) {
-  return JS_BUILTIN('String', JsBuiltin.rawRtiToJsConstructorName, rti);
-}
-
 /// Given a raw constructor name, return the unminified name, if available,
 /// otherwise tag the name with `minified:`.
 String unminifyOrTag(String rawClassName) {
@@ -105,25 +89,6 @@ String unminifyOrTag(String rawClassName) {
   if (preserved != null) return preserved;
   if (JS_GET_FLAG('MINIFIED')) return 'minified:${rawClassName}';
   return rawClassName;
-}
-
-/// Returns the rti from the given [constructorName].
-// TODO(floitsch): make this a builtin.
-jsConstructorNameToRti(String constructorName) {
-  var getTypeFromName = JS_EMBEDDED_GLOBAL('', GET_TYPE_FROM_NAME);
-  return JS('', '#(#)', getTypeFromName, constructorName);
-}
-
-/// Returns the raw runtime type of the given object [o].
-///
-/// The argument [o] must be the interceptor for primitive types. If
-/// necessary run it through [getInterceptor] first.
-// TODO(floitsch): move this to foreign_helper.dart or similar.
-// TODO(floitsch): we should call getInterceptor ourselves, but currently
-//    getInterceptor is not GVNed.
-@pragma('dart2js:tryInline')
-Object getRawRuntimeType(Object o) {
-  return JS_BUILTIN('', JsBuiltin.rawRuntimeType, o);
 }
 
 /// Returns the metadata of the given [index].
@@ -414,72 +379,6 @@ class Primitives {
   @pragma('dart2js:noInline')
   static String objectTypeName(Object object) {
     return _objectTypeNameNewRti(object);
-  }
-
-  static String _objectClassName(Object object) {
-    var interceptor = getInterceptor(object);
-    // The interceptor is either an object (self-intercepting plain Dart class),
-    // the prototype of the constructor for an Interceptor class (like
-    // `JSString.prototype`, `JSNull.prototype`), or an Interceptor object
-    // instance (`const JSString()`, should use `JSString.prototype`).
-    //
-    // These all should have a `constructor` property with a `name` property.
-    String? name;
-    var interceptorConstructor = JS('', '#.constructor', interceptor);
-    if (JS('bool', 'typeof # == "function"', interceptorConstructor)) {
-      var interceptorConstructorName = JS('', '#.name', interceptorConstructor);
-      if (interceptorConstructorName is String) {
-        name = interceptorConstructorName;
-      }
-    }
-
-    if (name == null ||
-        identical(interceptor, JS_INTERCEPTOR_CONSTANT(Interceptor)) ||
-        object is UnknownJavaScriptObject) {
-      // Try to do better.  If we do not find something better, leave the name
-      // as 'UnknownJavaScriptObject' or 'Interceptor' (or the minified name).
-      //
-      // When we get here via the UnknownJavaScriptObject test (for JavaScript
-      // objects from outside the program), the object's constructor has a
-      // better name that 'UnknownJavaScriptObject'.
-      //
-      // When we get here the Interceptor test (for Native classes that are
-      // declared in the Dart program but have been 'folded' into Interceptor),
-      // the native class's constructor name is better than the generic
-      // 'Interceptor' (an abstract class).
-
-      // Try the [constructorNameFallback]. This gets the constructor name for
-      // any browser (used by [getNativeInterceptor]).
-      String dispatchName = constructorNameFallback(object);
-      name ??= dispatchName;
-      if (dispatchName == 'Object') {
-        // Try to decompile the constructor by turning it into a string and get
-        // the name out of that. If the decompiled name is a string containing
-        // an identifier, we use that instead of the very generic 'Object'.
-        var objectConstructor = JS('', '#.constructor', object);
-        if (JS('bool', 'typeof # == "function"', objectConstructor)) {
-          var match = JS('var', r'#.match(/^\s*function\s*([\w$]*)\s*\(/)',
-              JS('var', r'String(#)', objectConstructor));
-          var decompiledName = match == null ? null : JS('var', r'#[1]', match);
-          if (decompiledName is String &&
-              JS('bool', r'/^\w+$/.test(#)', decompiledName)) {
-            name = decompiledName;
-          }
-        }
-      }
-      return JS('String', '#', name);
-    }
-
-    // Type inference does not understand that [name] is now always a non-null
-    // String. (There is some imprecision in the negation of the disjunction.)
-    name = JS<String>('String', '#', name);
-
-    // TODO(kasperl): If the namer gave us a fresh global name, we may
-    // want to remove the numeric suffix that makes it unique too.
-    if (name.length > 1 && identical(name.codeUnitAt(0), DOLLAR_CHAR_VALUE)) {
-      name = name.substring(1);
-    }
-    return unminifyOrTag(name);
   }
 
   /// Returns the type of [object] as a string (including type arguments).
@@ -1261,16 +1160,8 @@ throwExpression(ex) {
   JS('void', 'throw #', wrapException(ex));
 }
 
-throwRuntimeError(message) {
-  throw new RuntimeError(message);
-}
-
 throwUnsupportedError(message) {
   throw new UnsupportedError(message);
-}
-
-throwAbstractClassInstantiationError(className) {
-  throw new AbstractClassInstantiationError(className);
 }
 
 // This is used in open coded for-in loops on arrays.
@@ -2136,45 +2027,6 @@ abstract class Closure implements Function {
     JS('', '#.# = #.#', prototype, defValProperty, function, defValProperty);
 
     return constructor;
-  }
-
-  static _computeSignatureFunctionLegacy(
-      Object functionType, bool isStatic, bool isIntercepted) {
-    if (JS('bool', 'typeof # == "number"', functionType)) {
-      // We cannot call [getType] here, since the types-metadata might not be
-      // set yet. This is, because fromTearOff might be called for constants
-      // when the program isn't completely set up yet.
-      //
-      // Note that we cannot just textually inline the call
-      // `getType(functionType)` since we cannot guarantee that the (then)
-      // captured variable `functionType` isn't reused.
-      return JS(
-          '',
-          '''(function(getType, t) {
-                    return function(){ return getType(t); };
-                })(#, #)''',
-          RAW_DART_FUNCTION_REF(getType),
-          functionType);
-    }
-    if (JS('bool', 'typeof # == "function"', functionType)) {
-      if (isStatic) {
-        return functionType;
-      } else {
-        var getReceiver = isIntercepted
-            ? RAW_DART_FUNCTION_REF(BoundClosure.receiverOf)
-            : RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
-        return JS(
-            '',
-            'function(f,r){'
-                'return function(){'
-                'return f.apply({\$receiver:r(this)},arguments)'
-                '}'
-                '}(#,#)',
-            functionType,
-            getReceiver);
-      }
-    }
-    throw 'Error in functionType of tearoff';
   }
 
   static _computeSignatureFunctionNewRti(

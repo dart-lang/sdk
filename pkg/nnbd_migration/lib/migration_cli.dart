@@ -50,6 +50,7 @@ class CommandLineOptions {
   static const helpFlag = 'help';
   static const ignoreErrorsFlag = 'ignore-errors';
   static const ignoreExceptionsFlag = 'ignore-exceptions';
+  static const previewHostnameOption = 'preview-hostname';
   static const previewPortOption = 'preview-port';
   static const sdkPathOption = 'sdk-path';
   static const skipPubOutdatedFlag = 'skip-pub-outdated';
@@ -64,6 +65,8 @@ class CommandLineOptions {
   final bool ignoreErrors;
 
   final bool ignoreExceptions;
+
+  final String previewHostname;
 
   final int previewPort;
 
@@ -80,6 +83,7 @@ class CommandLineOptions {
       @required this.directory,
       @required this.ignoreErrors,
       @required this.ignoreExceptions,
+      @required this.previewHostname,
       @required this.previewPort,
       @required this.sdkPath,
       @required this.skipPubOutdated,
@@ -311,6 +315,8 @@ class MigrationCli {
           ignoreErrors: argResults[CommandLineOptions.ignoreErrorsFlag] as bool,
           ignoreExceptions:
               argResults[CommandLineOptions.ignoreExceptionsFlag] as bool,
+          previewHostname:
+              argResults[CommandLineOptions.previewHostnameOption] as String,
           previewPort: previewPort,
           sdkPath: argResults[CommandLineOptions.sdkPathOption] as String ??
               defaultSdkPathOverride ??
@@ -394,6 +400,11 @@ class MigrationCli {
         help:
             'Attempt to perform null safety analysis even if exceptions occur.',
         hide: hide);
+    parser.addOption(CommandLineOptions.previewHostnameOption,
+        defaultsTo: 'localhost',
+        help: 'Run the preview server on the specified hostname.  If not '
+            'specified, "localhost" is used. Use "any" to specify IPv6.any or '
+            'IPv4.any.');
     parser.addOption(CommandLineOptions.previewPortOption,
         help:
             'Run the preview server on the specified port.  If not specified, '
@@ -517,10 +528,12 @@ class MigrationCliRunner {
   NonNullableFix createNonNullableFix(DartFixListener listener,
       ResourceProvider resourceProvider, LineInfo getLineInfo(String path),
       {List<String> included = const <String>[],
+      String hostname,
       int preferredPort,
       String summaryPath}) {
     return NonNullableFix(listener, resourceProvider, getLineInfo,
         included: included,
+        hostname: hostname,
         preferredPort: preferredPort,
         summaryPath: summaryPath);
   }
@@ -538,8 +551,9 @@ class MigrationCliRunner {
     logger.stdout('');
 
     if (hasMultipleAnalysisContext) {
-      logger.stdout(
-          'Note: more than one project found; migrating the top-level project.');
+      logger
+          .stdout('Note: more than one project found; migrating the top-level '
+              'project.');
       logger.stdout('');
     }
 
@@ -555,6 +569,7 @@ class MigrationCliRunner {
     nonNullableFix = createNonNullableFix(
         _dartFixListener, resourceProvider, _fixCodeProcessor.getLineInfo,
         included: [options.directory],
+        hostname: options.previewHostname,
         preferredPort: options.previewPort,
         summaryPath: options.summary);
     nonNullableFix.rerunFunction = _rerunFunction;

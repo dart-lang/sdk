@@ -166,12 +166,12 @@ import 'dart:async' as test;
 import 'dart:math' as test;
 main() {
   test.Future f;
-  test.PI;
-  test.E;
+  test.pi;
+  test.e;
 }
 ''');
     // configure refactoring
-    createRenameRefactoringAtString('test.PI');
+    createRenameRefactoringAtString('test.pi');
     expect(refactoring.refactoringName, 'Rename Import Prefix');
     expect(refactoring.oldName, 'test');
     refactoring.newName = 'newName';
@@ -181,8 +181,8 @@ import 'dart:async' as test;
 import 'dart:math' as newName;
 main() {
   test.Future f;
-  newName.PI;
-  newName.E;
+  newName.pi;
+  newName.e;
 }
 ''');
   }

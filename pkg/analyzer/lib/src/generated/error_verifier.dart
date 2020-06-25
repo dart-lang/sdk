@@ -2869,7 +2869,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } else {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          identifier);
+          identifier,
+          [identifier.name]);
     }
   }
 

@@ -12,7 +12,7 @@ import 'package:meta/meta.dart';
 
 class SendReceiveBytes extends AsyncBenchmarkBase {
   SendReceiveBytes(String name,
-      {@required int this.size, @required bool this.useTransferable})
+      {@required this.size, @required this.useTransferable})
       : super(name);
 
   @override
@@ -86,10 +86,10 @@ class StartMessage {
 
 // Measures how long sending and receiving of [size]-length Uint8List takes.
 class SendReceiveHelper {
-  SendReceiveHelper(this.size, {@required bool this.useTransferable});
+  SendReceiveHelper(this.size, {@required this.useTransferable});
 
   Future<void> setup() async {
-    data = new Uint8List(size);
+    data = Uint8List(size);
 
     port = ReceivePort();
     inbox = StreamIterator<dynamic>(port);
@@ -132,13 +132,13 @@ class SendReceiveHelper {
   final bool useTransferable;
 }
 
-packageList(Uint8List data, bool useTransferable) =>
+Object packageList(Uint8List data, bool useTransferable) =>
     useTransferable ? TransferableTypedData.fromList(<Uint8List>[data]) : data;
 
 Future<void> isolate(StartMessage startMessage) async {
   final port = ReceivePort();
   final inbox = StreamIterator<dynamic>(port);
-  final data = Uint8List.view(new Uint8List(startMessage.size).buffer);
+  final data = Uint8List.view(Uint8List(startMessage.size).buffer);
 
   startMessage.sendPort.send(port.sendPort);
   while (true) {
@@ -163,22 +163,22 @@ class SizeName {
   final String name;
 }
 
-final List<SizeName> sizes = <SizeName>[
-  SizeName(1 * 1024, "1KB"),
-  SizeName(10 * 1024, "10KB"),
-  SizeName(100 * 1024, "100KB"),
-  SizeName(1 * 1024 * 1024, "1MB"),
-  SizeName(10 * 1024 * 1024, "10MB"),
-  SizeName(100 * 1024 * 1024, "100MB")
+const List<SizeName> sizes = <SizeName>[
+  SizeName(1 * 1024, '1KB'),
+  SizeName(10 * 1024, '10KB'),
+  SizeName(100 * 1024, '100KB'),
+  SizeName(1 * 1024 * 1024, '1MB'),
+  SizeName(10 * 1024 * 1024, '10MB'),
+  SizeName(100 * 1024 * 1024, '100MB')
 ];
 
 Future<void> main() async {
-  for (SizeName sizeName in sizes) {
-    await SendReceiveBytes("Isolate.SendReceiveBytes${sizeName.name}",
+  for (final sizeName in sizes) {
+    await SendReceiveBytes('Isolate.SendReceiveBytes${sizeName.name}',
             size: sizeName.size, useTransferable: false)
         .report();
     await SendReceiveBytes(
-            "Isolate.SendReceiveBytesTransferable${sizeName.name}",
+            'Isolate.SendReceiveBytesTransferable${sizeName.name}',
             size: sizeName.size,
             useTransferable: true)
         .report();

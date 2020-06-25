@@ -10,7 +10,7 @@ class Console {
 
   bool get _isConsoleDefined => JS('bool', 'typeof console != "undefined"');
 
-  MemoryInfo get memory =>
+  MemoryInfo? get memory =>
       _isConsoleDefined ? JS('MemoryInfo', 'window.console.memory') : null;
 
   void assertCondition(bool condition, Object arg) => _isConsoleDefined

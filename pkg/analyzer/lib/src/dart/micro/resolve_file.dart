@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
+import 'package:analyzer/src/dart/micro/performance.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -146,12 +147,25 @@ class FileResolver {
     _libraryContextReset.dispose();
   }
 
+  @deprecated
   ErrorsResult getErrors(String path) {
+    return getErrors2(path: path);
+  }
+
+  ErrorsResult getErrors2({
+    @required String path,
+    CiderOperationPerformanceImpl performance,
+  }) {
     _throwIfNotAbsoluteNormalizedPath(path);
+
+    performance ??= CiderOperationPerformanceImpl('<default>');
 
     return _withLibraryContextReset(() {
       return logger.run('Get errors for $path', () {
-        var fileContext = getFileContext(path);
+        var fileContext = getFileContext(
+          path: path,
+          performance: performance,
+        );
         var file = fileContext.file;
 
         var errorsSignatureBuilder = ApiSignature();
@@ -170,7 +184,10 @@ class FileResolver {
         }
 
         if (errors == null) {
-          var unitResult = resolve(path);
+          var unitResult = resolve2(
+            path: path,
+            performance: performance,
+          );
           errors = unitResult.errors;
 
           bytes = CiderUnitErrorsBuilder(
@@ -192,12 +209,17 @@ class FileResolver {
     });
   }
 
-  FileContext getFileContext(String path) {
-    var analysisOptions = _getAnalysisOptions(path);
-    _createContext(path, analysisOptions);
+  FileContext getFileContext({
+    @required String path,
+    @required CiderOperationPerformanceImpl performance,
+  }) {
+    return performance.run('fileContext', (performance) {
+      var analysisOptions = _getAnalysisOptions(path);
+      _createContext(path, analysisOptions);
 
-    var file = fsState.getFileForPath(path);
-    return FileContext(analysisOptions, file);
+      var file = fsState.getFileForPath(path);
+      return FileContext(analysisOptions, file);
+    });
   }
 
   String getLibraryLinkedSignature(String path) {
@@ -207,16 +229,31 @@ class FileResolver {
     return file.libraryCycle.signatureStr;
   }
 
+  @deprecated
   ResolvedUnitResult resolve(String path) {
+    return resolve2(path: path);
+  }
+
+  ResolvedUnitResult resolve2({
+    @required String path,
+    CiderOperationPerformanceImpl performance,
+  }) {
     _throwIfNotAbsoluteNormalizedPath(path);
+
+    performance ??= CiderOperationPerformanceImpl('<default>');
 
     return _withLibraryContextReset(() {
       return logger.run('Resolve $path', () {
-        var fileContext = getFileContext(path);
+        var fileContext = getFileContext(
+          path: path,
+          performance: performance,
+        );
         var file = fileContext.file;
         var libraryFile = file.partOfLibrary ?? file;
 
-        libraryContext.load2(libraryFile);
+        performance.run('libraryContext', (performance) {
+          libraryContext.load2(libraryFile);
+        });
 
         testView?.addResolvedFile(path);
 
@@ -240,7 +277,11 @@ class FileResolver {
             (String path) => resourceProvider.getFile(path).readAsStringSync(),
           );
 
-          results = libraryAnalyzer.analyzeSync();
+          results = performance.run('analyze', (performance) {
+            return libraryAnalyzer.analyzeSync(
+              performance: performance,
+            );
+          });
         });
         UnitAnalysisResult fileResult = results[file];
 

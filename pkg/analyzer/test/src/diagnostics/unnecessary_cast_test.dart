@@ -27,13 +27,11 @@ I m(A a, B b) {
   }
 
   test_dynamic_type() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 m(v) {
-  var b = v as Object;
+  v as Object;
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-    ]);
+''');
   }
 
   test_function() async {
@@ -46,19 +44,16 @@ void main() {
   }
 
   test_function2() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {}
 
 class B<T extends A> {
   void foo() {
     T Function(T) f;
-    A Function(A) g;
-    g = f as A Function(A);
+    f as A Function(A);
   }
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 89, 1),
-    ]);
+''');
   }
 
   test_generics() async {
@@ -90,34 +85,30 @@ class B<E> {
   }
 
   test_type_dynamic() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 m(v) {
-  var b = Object as dynamic;
+  Object as dynamic;
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-    ]);
+''');
   }
 
   test_type_supertype() async {
     await assertErrorsInCode(r'''
 m(int i) {
-  var b = i as Object;
+  i as Object;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(HintCode.UNNECESSARY_CAST, 21, 11),
+      error(HintCode.UNNECESSARY_CAST, 13, 11),
     ]);
   }
 
   test_type_type() async {
     await assertErrorsInCode(r'''
 m(num i) {
-  var b = i as num;
+  i as num;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(HintCode.UNNECESSARY_CAST, 21, 8),
+      error(HintCode.UNNECESSARY_CAST, 13, 8),
     ]);
   }
 }

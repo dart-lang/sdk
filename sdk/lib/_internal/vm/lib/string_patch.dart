@@ -824,7 +824,7 @@ abstract class _StringBase implements String {
 
   // Convert single object to string.
   @pragma("vm:entry-point", "call")
-  static String _interpolateSingle(Object o) {
+  static String _interpolateSingle(Object? o) {
     if (o is String) return o;
     final s = o.toString();
     if (s is! String) {

@@ -20,10 +20,7 @@ main() {
   jsCallVoid();
   jsCallUnion();
 
-  jsBuiltin_rawRtiToJsConstructorName();
-
   jsEmbeddedGlobal_getTypeFromName();
-  jsEmbeddedGlobal_libraries();
 
   jsStringConcat();
 
@@ -42,19 +39,9 @@ jsCallVoid() => JS('void', '#', 0);
 /*member: jsCallUnion:Union([exact=JSString], [subclass=JSInt])*/
 jsCallUnion() => JS('int|String', '#', 0);
 
-/*member: jsBuiltin_rawRtiToJsConstructorName:[exact=JSString]*/
-jsBuiltin_rawRtiToJsConstructorName() {
-  return JS_BUILTIN('String', JsBuiltin.rawRtiToJsConstructorName, null);
-}
-
 /*member: jsEmbeddedGlobal_getTypeFromName:[null|subclass=Object]*/
 jsEmbeddedGlobal_getTypeFromName() {
   return JS_EMBEDDED_GLOBAL('', GET_TYPE_FROM_NAME);
-}
-
-/*member: jsEmbeddedGlobal_libraries:[null|exact=JSExtendableArray]*/
-jsEmbeddedGlobal_libraries() {
-  return JS_EMBEDDED_GLOBAL('JSExtendableArray|Null', LIBRARIES);
 }
 
 /*member: jsStringConcat:[exact=JSString]*/

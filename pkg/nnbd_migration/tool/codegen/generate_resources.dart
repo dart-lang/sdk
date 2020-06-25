@@ -69,6 +69,7 @@ final List<String> resourceTypes = [
   '.html',
   '.js',
   '.png',
+  '.ttf',
 ];
 
 String base64Encode(List<int> bytes) {
@@ -173,7 +174,8 @@ String _decode(String data) {
     var name = path.basename(resource.path).replaceAll('.', '_');
 
     String source;
-    if (path.extension(resource.path) == '.png') {
+    var extension = path.extension(resource.path);
+    if (extension == '.png' || extension == '.ttf') {
       source = resource.readAsStringSync(encoding: latin1);
     } else {
       source = resource.readAsStringSync();
@@ -240,7 +242,9 @@ void verifyResourcesGDartGenerated({
       continue;
     }
 
-    if (name == 'migration.js' || name == 'dart_192.png') {
+    if (name == 'migration.js' ||
+        name == 'dart_192.png' ||
+        path.extension(name) == '.ttf') {
       // skip the compiled js and logo
       continue;
     }

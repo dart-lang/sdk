@@ -268,7 +268,7 @@ class C {
   Future<void> test_assignmentExpression_withoutType() async {
     await assertContextType('''
 void g(String s) {
-  var i = ^s.length;
+  var x = ^s.length;
 }
 ''', null);
   }
@@ -332,15 +332,39 @@ class Foo {
   Future<void> test_fieldDeclaration_var() async {
     await assertContextType('''
 class Foo {
-  var i =^;
+  var x =^;
 }
 ''', null);
+  }
+
+  Future<void> test_fieldDeclaration_var_impliedType_int() async {
+    await assertContextType('''
+class Foo {
+  var i = ^ ;
+}
+''', 'int');
+  }
+
+  Future<void> test_fieldDeclaration_var_impliedType_list() async {
+    await assertContextType('''
+class Foo {
+  var list = ^ ;
+}
+''', 'List<dynamic>');
+  }
+
+  Future<void> test_fieldDeclaration_var_impliedType_string() async {
+    await assertContextType('''
+class Foo {
+  var string = ^ ;
+}
+''', 'String');
   }
 
   Future<void> test_fieldDeclaration_var_whitespace() async {
     await assertContextType('''
 class Foo {
-  var i = ^ ;
+  var x = ^ ;
 }
 ''', null);
   }
@@ -534,13 +558,19 @@ int i =  ^  ;
 
   Future<void> test_topLevelVariableDeclaration_var() async {
     await assertContextType('''
-var i=^;
+var x=^;
+''', null);
+  }
+
+  Future<void> test_topLevelVariableDeclaration_var_noEqual() async {
+    await assertContextType('''
+int x^;
 ''', null);
   }
 
   Future<void> test_topLevelVariableDeclaration_var_whitespace() async {
     await assertContextType('''
-var i=  ^  ;
+var x=  ^  ;
 ''', null);
   }
 }

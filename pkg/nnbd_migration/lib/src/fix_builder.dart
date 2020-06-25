@@ -310,18 +310,6 @@ class MigrationResolutionHooksImpl
 
   TypeProvider get typeProvider => _fixBuilder.typeProvider;
 
-  Element get _elementHashCode =>
-      _fixBuilder.typeProvider.objectType.getGetter('hashCode');
-
-  Element get _elementNoSuchMethod =>
-      _fixBuilder.typeProvider.objectType.getGetter('noSuchMethod');
-
-  Element get _elementRuntimeType =>
-      _fixBuilder.typeProvider.objectType.getMethod('runtimeType');
-
-  Element get _elementToString =>
-      _fixBuilder.typeProvider.objectType.getMethod('toString');
-
   @override
   void freshTypeParameterCreated(TypeParameterElement newTypeParameter,
       TypeParameterElement oldTypeParameter) {

@@ -125,6 +125,18 @@ class StubCodeCompiler : public AllStatic {
   static void GenerateJITCallbackTrampolines(Assembler* assembler,
                                              intptr_t next_callback_id);
 
+  // Calculates the offset (in words) from FP to the provided [cpu_register].
+  //
+  // Assumes
+  //   * all [kDartAvailableCpuRegs] followed by saved-PC, saved-FP were
+  //     pushed on the stack
+  //   * [cpu_register] is in [kDartAvailableCpuRegs]
+  //
+  // The intended use of this function is to find registers on the stack which
+  // were spilled in the
+  // `StubCode::*<stub-name>Shared{With,Without}FpuRegsStub()`
+  static intptr_t WordOffsetFromFpToCpuRegister(Register cpu_register);
+
  private:
   // Common function for generating InitLateInstanceField and
   // InitLateFinalInstanceField stubs.

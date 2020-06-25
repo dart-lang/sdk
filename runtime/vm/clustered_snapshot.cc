@@ -6713,6 +6713,21 @@ char* SnapshotHeaderReader::InitializeGlobalVMFlagsFromSnapshot(
 #undef CHECK_FLAG
 #undef SET_FLAG
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+    if (FLAG_null_safety == kNullSafetyOptionUnspecified) {
+      if (strncmp(cursor, "null-safety", end - cursor) == 0) {
+        FLAG_null_safety = kNullSafetyOptionStrong;
+        cursor = end;
+        continue;
+      }
+      if (strncmp(cursor, "no-null-safety", end - cursor) == 0) {
+        FLAG_null_safety = kNullSafetyOptionWeak;
+        cursor = end;
+        continue;
+      }
+    }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
     cursor = end;
   }
 

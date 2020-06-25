@@ -154,6 +154,8 @@ class DartFixKind {
       'dart.fix.add.fieldFormalParameters',
       70,
       'Add final field formal parameters');
+  static const ADD_LATE =
+      FixKind('dart.fix.add.late', 50, "Add 'late' modifier");
   static const ADD_MISSING_ENUM_CASE_CLAUSES = FixKind(
       'dart.fix.add.missingEnumCaseClauses', 50, 'Add missing case clauses');
   static const ADD_MISSING_PARAMETER_NAMED = FixKind(

@@ -39,16 +39,16 @@ vars = {
 
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
   # cipd package used to run Dart scripts in the build and test infrastructure.
-  "sdk_tag": "version:2.9.0-16.0.dev",
+  "sdk_tag": "version:2.9.0-18.0.dev",
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "b071a4729a57ee47dcc7330ab9ea3566ef58e5c2",
+  "co19_rev": "443e4b3cd3953e9d8feef85bb712a93f6dac0858",
   "co19_2_rev": "620c1148c8b7a3d7f74afacf348c46f109eb64f2",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
-  "benchmarks_internal_rev": "478f5a8be0bad2b1bc3c1c9cf150486ec77516e1",
+  "benchmarks_internal_rev": "8a7ce78ada809beb62fcfdf2f8e7a400a7bc5ed3",
   "checkout_benchmarks_internal": False,
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -142,7 +142,7 @@ vars = {
   "source_maps-0.9.4_rev": "38524",
   "source_maps_rev": "87b4fd9027378bbd51b02e9d7df794eee8a82b7a",
   "source_span_tag": "1.7.0",
-  "stack_trace_tag": "1.9.3",
+  "stack_trace_tag": "07569831f17844ef90214a179db211954a7f7324",
   "stagehand_tag": "v3.3.7",
   "stream_channel_tag": "70433d577be02c48cb16d72d65654f3b4d82c6ed",
   "string_scanner_rev": "a918e7371af6b6e73bfd534ff9da6084741c1f99",

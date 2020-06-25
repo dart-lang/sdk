@@ -1223,80 +1223,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   @override
-  HInstruction visitIs(HIs node) {
-    DartType type = node.typeExpression;
-
-    if (!node.isRawCheck) {
-      return node;
-    } else if (type is FunctionType) {
-      return node;
-    } else if (type is FutureOrType) {
-      return node;
-    }
-
-    if (_closedWorld.dartTypes.isTopType(type)) {
-      return _graph.addConstantBool(true, _closedWorld);
-    }
-    InterfaceType interfaceType = type;
-    ClassEntity element = interfaceType.element;
-    HInstruction expression = node.expression;
-    if (expression.isInteger(_abstractValueDomain).isDefinitelyTrue) {
-      if (element == commonElements.intClass ||
-          element == commonElements.numClass ||
-          commonElements.isNumberOrStringSupertype(element)) {
-        return _graph.addConstantBool(true, _closedWorld);
-      } else if (element == commonElements.doubleClass) {
-        // We let the JS semantics decide for that check. Currently
-        // the code we emit will always return true.
-        return node;
-      } else {
-        return _graph.addConstantBool(false, _closedWorld);
-      }
-    } else if (expression.isDouble(_abstractValueDomain).isDefinitelyTrue) {
-      if (element == commonElements.doubleClass ||
-          element == commonElements.numClass ||
-          commonElements.isNumberOrStringSupertype(element)) {
-        return _graph.addConstantBool(true, _closedWorld);
-      } else if (element == commonElements.intClass) {
-        // We let the JS semantics decide for that check. Currently
-        // the code we emit will return true for a double that can be
-        // represented as a 31-bit integer and for -0.0.
-        return node;
-      } else {
-        return _graph.addConstantBool(false, _closedWorld);
-      }
-    } else if (expression.isNumber(_abstractValueDomain).isDefinitelyTrue) {
-      if (element == commonElements.numClass) {
-        return _graph.addConstantBool(true, _closedWorld);
-      } else {
-        // We cannot just return false, because the expression may be of
-        // type int or double.
-      }
-    } else if (expression
-            .isPrimitiveNumber(_abstractValueDomain)
-            .isPotentiallyTrue &&
-        element == commonElements.intClass) {
-      // We let the JS semantics decide for that check.
-      return node;
-      // We need the [:hasTypeArguments:] check because we don't have
-      // the notion of generics in the backend. For example, [:this:] in
-      // a class [:A<T>:], is currently always considered to have the
-      // raw type.
-    } else if (!RuntimeTypesSubstitutions.hasTypeArguments(
-        _closedWorld.dartTypes, type)) {
-      AbstractValue expressionMask = expression.instructionType;
-      AbstractBool isInstanceOf =
-          _abstractValueDomain.isInstanceOf(expressionMask, element);
-      if (isInstanceOf.isDefinitelyTrue) {
-        return _graph.addConstantBool(true, _closedWorld);
-      } else if (isInstanceOf.isDefinitelyFalse) {
-        return _graph.addConstantBool(false, _closedWorld);
-      }
-    }
-    return node;
-  }
-
-  @override
   HInstruction visitPrimitiveCheck(HPrimitiveCheck node) {
     if (node.isRedundant(_closedWorld)) return node.checkedInput;
     return node;
@@ -3057,35 +2983,6 @@ class SsaTypeConversionInserter extends HBaseVisitor
   }
 
   @override
-  void visitIs(HIs instruction) {
-    DartType type = instruction.typeExpression;
-    if (!instruction.isRawCheck) {
-      return;
-    } else if (type is FutureOrType) {
-      return;
-    }
-    InterfaceType interfaceType = type;
-    ClassEntity cls = interfaceType.element;
-
-    List<HBasicBlock> trueTargets = <HBasicBlock>[];
-    List<HBasicBlock> falseTargets = <HBasicBlock>[];
-
-    collectTargets(instruction, trueTargets, falseTargets);
-
-    if (trueTargets.isEmpty && falseTargets.isEmpty) return;
-
-    AbstractValue convertedType =
-        _abstractValueDomain.createNonNullSubtype(cls);
-    HInstruction input = instruction.expression;
-
-    for (HBasicBlock block in trueTargets) {
-      insertTypePropagationForDominatedUsers(block, input, convertedType);
-    }
-    // TODO(sra): Also strengthen uses for when the condition is known
-    // false. Avoid strengthening to `null`.
-  }
-
-  @override
   void visitIsTest(HIsTest instruction) {
     List<HBasicBlock> trueTargets = <HBasicBlock>[];
     List<HBasicBlock> falseTargets = <HBasicBlock>[];
@@ -3463,10 +3360,6 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   void visitIf(HIf instruction) {}
   @override
   void visitInterceptor(HInterceptor instruction) {}
-  @override
-  void visitIs(HIs instruction) {}
-  @override
-  void visitIsViaInterceptor(HIsViaInterceptor instruction) {}
   @override
   void visitNot(HNot instruction) {}
   @override

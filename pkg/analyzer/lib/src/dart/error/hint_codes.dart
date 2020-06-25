@@ -373,6 +373,46 @@ class HintCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an element in a non-constant set
+  // is the same as a previous element in the same set. If two elements are the
+  // same, then the second value is  ignored, which makes having both elements
+  // pointless and likely signals a bug.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the element `1` appears
+  // twice:
+  //
+  // ```dart
+  // const a = 1;
+  // const b = 1;
+  // var s = <int>{a, [!b!]};
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If both elements should be included in the set, then change one of the
+  // elements:
+  //
+  // ```dart
+  // const a = 1;
+  // const b = 2;
+  // var s = <int>{a, b};
+  // ```
+  //
+  // If only one of the elements is needed, then remove the one that isn't
+  // needed:
+  //
+  // ```dart
+  // const a = 1;
+  // var s = <int>{a};
+  // ```
+  //
+  // Note that literal sets preserve the order of their elements, so the choice
+  // of which element to remove might affect the order in which elements are
+  // returned by an iterator.
   static const HintCode EQUAL_ELEMENTS_IN_SET = HintCode(
       'EQUAL_ELEMENTS_IN_SET',
       "Two elements in a set literal shouldn't be equal.",
@@ -381,6 +421,45 @@ class HintCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a key in a non-constant map is
+  // the same as a previous key in the same map. If two keys are the same, then
+  // the second value overwrites the first value, which makes having both pairs
+  // pointless and likely signals a bug.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the keys `a` and `b`
+  // have the same value:
+  //
+  // ```dart
+  // const a = 1;
+  // const b = 1;
+  // var m = <int, String>{a: 'a', [!b!]: 'b'};
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If both entries should be included in the map, then change one of the keys:
+  //
+  // ```dart
+  // const a = 1;
+  // const b = 2;
+  // var m = <int, String>{a: 'a', b: 'b'};
+  // ```
+  //
+  // If only one of the entries is needed, then remove the one that isn't
+  // needed:
+  //
+  // ```dart
+  // const a = 1;
+  // var m = <int, String>{a: 'a'};
+  // ```
+  //
+  // Note that literal maps preserve the order of their entries, so the choice
+  // of which entry to remove might affect the order in which the keys and
+  // values are returned by an iterator.
   static const HintCode EQUAL_KEYS_IN_MAP = HintCode(
       'EQUAL_KEYS_IN_MAP', "Two keys in a map literal shouldn't be equal.",
       correction: "Change or remove the duplicate key.");

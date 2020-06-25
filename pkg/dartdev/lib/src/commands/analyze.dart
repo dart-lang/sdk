@@ -17,13 +17,9 @@ class AnalyzeCommand extends DartdevCommand<int> {
       : super('analyze', "Analyze the project's Dart code.") {
     argParser
       ..addFlag('fatal-infos',
-          help: 'Treat info level issues as fatal.',
-          defaultsTo: false,
-          negatable: false)
+          help: 'Treat info level issues as fatal.', negatable: false)
       ..addFlag('fatal-warnings',
-          help: 'Treat warning level issues as fatal.',
-          defaultsTo: true,
-          negatable: true);
+          help: 'Treat warning level issues as fatal.', defaultsTo: true);
   }
 
   @override
@@ -69,7 +65,7 @@ class AnalyzeCommand extends DartdevCommand<int> {
     await server.start();
     // Completing the future in the callback can't fail.
     //ignore: unawaited_futures
-    server.onExit.then<void>((int exitCode) {
+    server.onExit.then((int exitCode) {
       if (!analysisCompleter.isCompleted) {
         analysisCompleter.completeError('analysis server exited: $exitCode');
       }

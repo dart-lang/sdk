@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math' as math;
 
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:stagehand/stagehand.dart' as stagehand;
 
 import '../core.dart';
@@ -24,13 +24,11 @@ class CreateCommand extends DartdevCommand {
     'web-simple'
   ];
 
-  static Iterable<stagehand.Generator> get generators {
-    return legalTemplateIds.map(retrieveTemplateGenerator);
-  }
+  static Iterable<stagehand.Generator> get generators =>
+      legalTemplateIds.map(retrieveTemplateGenerator);
 
-  static stagehand.Generator retrieveTemplateGenerator(String templateId) {
-    return stagehand.getGenerator(templateId);
-  }
+  static stagehand.Generator retrieveTemplateGenerator(String templateId) =>
+      stagehand.getGenerator(templateId);
 
   CreateCommand({bool verbose = false})
       : super('create', 'Create a new project.') {
@@ -53,8 +51,8 @@ class CreateCommand extends DartdevCommand {
     argParser.addFlag(
       'force',
       negatable: false,
-      help:
-          'Force project generation, even if the target directory already exists.',
+      help: 'Force project generation, even if the target directory already '
+          'exists.',
     );
   }
 
@@ -77,19 +75,23 @@ class CreateCommand extends DartdevCommand {
 
     String dir = argResults.rest.first;
     var targetDir = io.Directory(dir);
-    if (targetDir.existsSync() && !(argResults['force'])) {
+    if (targetDir.existsSync() && !argResults['force']) {
       log.stderr(
-          "Directory '$dir' already exists (use '--force' to force project generation).");
+        "Directory '$dir' already exists "
+        "(use '--force' to force project generation).",
+      );
       return 73;
     }
 
     log.stdout(
-        'Creating ${log.ansi.emphasized(path.absolute(dir))} using template $templateId...');
+      'Creating ${log.ansi.emphasized(p.absolute(dir))} '
+      'using template $templateId...',
+    );
     log.stdout('');
 
     var generator = retrieveTemplateGenerator(templateId);
     await generator.generate(
-      path.basename(dir),
+      p.basename(dir),
       DirectoryGeneratorTarget(generator, io.Directory(dir)),
     );
 
@@ -125,7 +127,7 @@ class CreateCommand extends DartdevCommand {
     log.stdout('');
     log.stdout('Created project $dir! In order to get started, type:');
     log.stdout('');
-    log.stdout(log.ansi.emphasized('  cd ${path.relative(dir)}'));
+    log.stdout(log.ansi.emphasized('  cd ${p.relative(dir)}'));
     // TODO(devoncarew): Once we have a 'run' command, print out here how to run
     // the app.
     log.stdout('');
@@ -159,7 +161,7 @@ class CreateCommand extends DartdevCommand {
       return m;
     });
 
-    JsonEncoder encoder = JsonEncoder.withIndent('  ');
+    JsonEncoder encoder = const JsonEncoder.withIndent('  ');
     return encoder.convert(items.toList());
   }
 }
@@ -173,10 +175,10 @@ class DirectoryGeneratorTarget extends stagehand.GeneratorTarget {
   }
 
   @override
-  Future createFile(String filePath, List<int> contents) async {
-    io.File file = io.File(path.join(dir.path, filePath));
+  Future createFile(String path, List<int> contents) async {
+    io.File file = io.File(p.join(dir.path, path));
 
-    String name = path.relative(file.path, from: dir.path);
+    String name = p.relative(file.path, from: dir.path);
     log.stdout('  $name');
 
     await file.create(recursive: true);
