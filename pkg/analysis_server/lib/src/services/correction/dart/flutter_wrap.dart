@@ -46,7 +46,19 @@ class FlutterWrap extends MultiCorrectionProducer {
         widgetExpressions.add(selectedNode);
       }
     } else {
-      var widget = flutter.identifyWidgetExpression(analyzer.coveringNode);
+      var coveringNode = analyzer.coveringNode;
+
+      // If the coveringNode is an argument list but the caret is exactly at the
+      // start (before the opening paren) we should use the parent instead
+      // as the user associates this location with the widget name:
+      //
+      //     Text^('foo')
+      if (coveringNode is ArgumentList &&
+          coveringNode.offset == selectionOffset) {
+        coveringNode = coveringNode.parent;
+      }
+
+      var widget = flutter.identifyWidgetExpression(coveringNode);
       if (widget != null) {
         widgetExpressions.add(widget);
       }
