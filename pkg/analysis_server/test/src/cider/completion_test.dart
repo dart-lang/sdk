@@ -28,17 +28,6 @@ class CiderCompletionComputerTest extends CiderServiceTest {
 
   Future<void> test_limitedResolution_;
 
-  ocalTypeInference() async {
-    await _compute(r'''
-void foo() {
-  var a = 0;
-  a.^
-}
-''');
-
-    _assertHasGetter(text: 'isEven');
-  }
-
   @override
   void setUp() {
     super.setUp();
@@ -364,6 +353,17 @@ void bar(int a) {
 
     _assertHasFunction(text: 'foo');
     _assertHasParameter(text: 'a');
+  }
+
+  Future<void> test_localTypeInference() async {
+    await _compute(r'''
+void foo() {
+  var a = 0;
+  a.^
+}
+''');
+
+    _assertHasGetter(text: 'isEven');
   }
 
   Future<void> test_warmUp_cachesImportedLibraries() async {
