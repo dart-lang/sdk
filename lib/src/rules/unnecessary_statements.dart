@@ -58,6 +58,7 @@ class UnnecessaryStatements extends LintRule implements NodeLintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     final visitor = _Visitor(_ReportNoClearEffectVisitor(this));
+    registry.addAsExpression(this, visitor);
     registry.addExpressionStatement(this, visitor);
     registry.addForStatement(this, visitor);
     registry.addCascadeExpression(this, visitor);
@@ -68,6 +69,11 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
   final LintRule rule;
 
   _ReportNoClearEffectVisitor(this.rule);
+
+  @override
+  void visitAsExpression(AsExpression node) {
+    //  https://github.com/dart-lang/linter/issues/2163
+  }
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {

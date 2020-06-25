@@ -4,6 +4,12 @@
 
 // test w/ `pub run test -N unnecessary_statements`
 
+String f(Object o) {
+  // See: https://github.com/dart-lang/linter/issues/2163
+  o as int; // OK
+  return null;
+}
+
 notReturned() {
   1; // LINT
   1 + 1; // LINT
@@ -82,11 +88,11 @@ expressionBranching() {
   null ?? new MyClass().foo; // LINT
   false || 1 + 1 == 2; // LINT
   false || foo == true; // LINT
-  false || new MyClass() as bool; // LINT
+  false || new MyClass() as bool; // OK
   false || new MyClass().foo == true; // LINT
   true && 1 + 1 == 2; // LINT
   true && foo == true; // LINT
-  true && new MyClass() as bool; // LINT
+  true && new MyClass() as bool; // OK
   true && new MyClass().foo == true; // LINT
 
   // ternaries can detect either/both sides
@@ -108,7 +114,7 @@ expressionBranching() {
 
   // not unnecessary condition, but unnecessary branching
   foo() ?? 1 + 1; // LINT
-  foo() || new MyClass() as bool; // LINT
+  foo() || new MyClass() as bool; // OK
   foo() && foo == true; // LINT
   foo() ? 1 + 1 : foo(); // LINT
   foo() ? foo() : foo; // LINT
