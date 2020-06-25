@@ -567,17 +567,6 @@ void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
 }
 
 // Input parameters:
-//   R0 : stop message (const char*).
-// Must preserve all registers.
-void StubCodeCompiler::GeneratePrintStopMessageStub(Assembler* assembler) {
-  __ EnterCallRuntimeFrame(0);
-  // Call the runtime leaf function. R0 already contains the parameter.
-  __ CallRuntime(kPrintStopMessageRuntimeEntry, 1);
-  __ LeaveCallRuntimeFrame();
-  __ Ret();
-}
-
-// Input parameters:
 //   LR : return address.
 //   SP : address of return value.
 //   R9 : address of the native function to call.

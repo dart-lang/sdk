@@ -62,7 +62,6 @@ namespace dart {
 // values like ObjectPtr.
 
 #define LEAF_RUNTIME_ENTRY_LIST(V)                                             \
-  V(void, PrintStopMessage, const char*)                                       \
   V(intptr_t, DeoptimizeCopyFrame, uword, uword)                               \
   V(void, DeoptimizeFillFrame, uword)                                          \
   V(void, StoreBufferBlockProcess, Thread*)                                    \

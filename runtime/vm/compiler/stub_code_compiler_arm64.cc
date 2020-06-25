@@ -653,10 +653,6 @@ void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
       /*allow_return=*/true);
 }
 
-void StubCodeCompiler::GeneratePrintStopMessageStub(Assembler* assembler) {
-  __ Stop("GeneratePrintStopMessageStub");
-}
-
 // Input parameters:
 //   LR : return address.
 //   SP : address of return value.
