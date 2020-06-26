@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-06-23T13:49:13.378284",
+  "generated": "2020-06-25T14:50:17.022226",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -225,7 +225,7 @@
       "name": "fixnum",
       "rootUri": "../third_party/pkg/fixnum",
       "packageUri": "lib/",
-      "languageVersion": "2.1"
+      "languageVersion": "2.9"
     },
     {
       "name": "front_end",
