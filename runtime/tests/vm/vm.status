@@ -94,6 +94,8 @@ dart_2/emit_aot_size_info_flag_test: SkipByDesign # The test itself cannot deter
 dart_2/bytecode_with_ast_in_aot_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
 dart_2/split_aot_kernel_generation_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
 dart_2/split_aot_kernel_generation2_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
+dart_2/sdk_hash_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
+dart/sdk_hash_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
 
 [ $builder_tag == obfuscated ]
 dart/causal_stacks/async_throws_stack_lazy_test: SkipByDesign # Asserts exact stacktrace output.
