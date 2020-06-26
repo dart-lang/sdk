@@ -24,7 +24,7 @@ import 'package:_fe_analyzer_shared/src/parser/value_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
 import 'package:kernel/ast.dart'
-    show AsyncMarker, InvalidType, Nullability, ProcedureKind, Variance;
+    show InvalidType, Nullability, ProcedureKind, Variance;
 
 import '../builder/constructor_reference_builder.dart';
 import '../builder/enum_builder.dart';
@@ -797,7 +797,6 @@ class OutlineBuilder extends StackListenerImpl {
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     debugEvent("endTopLevelMethod");
     MethodBody kind = pop();
-    AsyncMarker asyncModifier = pop();
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
     List<TypeVariableBuilder> typeVariables = pop();
@@ -842,7 +841,6 @@ class OutlineBuilder extends StackListenerImpl {
         formalsOffset,
         endToken.charOffset,
         nativeMethodName,
-        asyncModifier,
         isTopLevel: true);
     nativeMethodName = null;
   }
@@ -975,7 +973,6 @@ class OutlineBuilder extends StackListenerImpl {
       pop();
     }
     assert(checkState(beginToken, [
-      ValueKinds.AsyncModifier,
       ValueKinds.FormalsOrNull,
       ValueKinds.Integer, // formals offset
       ValueKinds.TypeVariableListOrNull,
@@ -991,7 +988,6 @@ class OutlineBuilder extends StackListenerImpl {
       ValueKinds.Integer, // var/final/const offset
       ValueKinds.MetadataListOrNull,
     ]));
-    AsyncMarker asyncModifier = pop();
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
     List<TypeVariableBuilder> typeVariables = pop();
@@ -1185,7 +1181,6 @@ class OutlineBuilder extends StackListenerImpl {
           formalsOffset,
           endToken.charOffset,
           nativeMethodName,
-          asyncModifier,
           isTopLevel: false);
     }
     nativeMethodName = null;
@@ -1931,7 +1926,6 @@ class OutlineBuilder extends StackListenerImpl {
     if (kind == MethodBody.RedirectingFactoryBody) {
       redirectionTarget = nullIfParserRecovery(pop());
     }
-    AsyncMarker asyncModifier = pop();
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
     pop(); // type variables
@@ -1949,19 +1943,17 @@ class OutlineBuilder extends StackListenerImpl {
     }
     String documentationComment = getDocumentationComment(beginToken);
     libraryBuilder.addFactoryMethod(
-      documentationComment,
-      metadata,
-      modifiers,
-      name,
-      formals,
-      redirectionTarget,
-      beginToken.charOffset,
-      charOffset,
-      formalsOffset,
-      endToken.charOffset,
-      nativeMethodName,
-      asyncModifier,
-    );
+        documentationComment,
+        metadata,
+        modifiers,
+        name,
+        formals,
+        redirectionTarget,
+        beginToken.charOffset,
+        charOffset,
+        formalsOffset,
+        endToken.charOffset,
+        nativeMethodName);
     nativeMethodName = null;
     inConstructor = false;
   }
@@ -2068,7 +2060,6 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleAsyncModifier(Token asyncToken, Token starToken) {
     debugEvent("AsyncModifier");
-    push(asyncMarkerFromTokens(asyncToken, starToken));
   }
 
   void addProblem(Message message, int charOffset, int length,

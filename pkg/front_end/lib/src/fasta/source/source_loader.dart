@@ -29,7 +29,6 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
 import 'package:kernel/ast.dart'
     show
         Arguments,
-        AsyncMarker,
         BottomType,
         Class,
         Component,
@@ -399,8 +398,7 @@ class SourceLoader extends Loader {
         -1,
         -1,
         null,
-        null,
-        AsyncMarker.Sync)
+        null)
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope,

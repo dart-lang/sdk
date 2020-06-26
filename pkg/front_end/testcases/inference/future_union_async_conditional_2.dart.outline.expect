@@ -32,11 +32,11 @@ class MyFuture<T extends core::Object* = dynamic> extends core::Object implement
   member-signature no-such-method-forwarder method timeout(core::Duration* timeLimit, {generic-covariant-impl () →* FutureOr<self::MyFuture::T*>onTimeout}) → asy::Future<self::MyFuture::T*>*
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#timeout, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[timeLimit]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#onTimeout: onTimeout}))) as{TypeError,ForDynamic} asy::Future<self::MyFuture::T*>*;
 }
-static method g1(core::bool* x) → asy::Future<core::int*>* async 
+static method g1(core::bool* x) → asy::Future<core::int*>*
   ;
-static method g2(core::bool* x) → asy::Future<core::int*>* async 
+static method g2(core::bool* x) → asy::Future<core::int*>*
   ;
-static method g3(core::bool* x) → asy::Future<core::int*>* async 
+static method g3(core::bool* x) → asy::Future<core::int*>*
   ;
 static method main() → dynamic
   ;

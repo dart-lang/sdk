@@ -5,5 +5,5 @@ static method throwing() → Never
   ;
 static method main() → void
   ;
-static method errors() → void async 
+static method errors() → void
   ;

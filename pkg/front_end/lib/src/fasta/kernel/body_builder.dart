@@ -6546,6 +6546,27 @@ String getNodeName(Object node) {
   }
 }
 
+AsyncMarker asyncMarkerFromTokens(Token asyncToken, Token starToken) {
+  if (asyncToken == null || identical(asyncToken.stringValue, "sync")) {
+    if (starToken == null) {
+      return AsyncMarker.Sync;
+    } else {
+      assert(identical(starToken.stringValue, "*"));
+      return AsyncMarker.SyncStar;
+    }
+  } else if (identical(asyncToken.stringValue, "async")) {
+    if (starToken == null) {
+      return AsyncMarker.Async;
+    } else {
+      assert(identical(starToken.stringValue, "*"));
+      return AsyncMarker.AsyncStar;
+    }
+  } else {
+    return unhandled(asyncToken.lexeme, "asyncMarkerFromTokens",
+        asyncToken.charOffset, null);
+  }
+}
+
 /// A data holder used to hold the information about a label that is pushed on
 /// the stack.
 class Label {

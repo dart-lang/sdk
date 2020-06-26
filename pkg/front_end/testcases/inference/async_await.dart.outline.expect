@@ -24,7 +24,7 @@ abstract class MyFuture extends core::Object implements asy::Future<core::int*> 
   abstract member-signature method asStream() → asy::Stream<core::int*>*;
   abstract member-signature method timeout(core::Duration* timeLimit, {generic-covariant-impl () →* FutureOr<core::int*>onTimeout}) → asy::Future<core::int*>*;
 }
-static method test() → void async 
+static method test() → void
   ;
 static method main() → dynamic
   ;

@@ -1,5 +1,5 @@
 library;
 import self as self;
 
-static method main() → dynamic async 
+static method main() → dynamic
   ;

@@ -23,5 +23,5 @@ class Node extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
   abstract member-signature get runtimeType() → core::Type*;
 }
-static method main() → void async 
+static method main() → void
   ;

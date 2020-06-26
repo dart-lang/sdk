@@ -35,9 +35,9 @@ class MyFuture<T extends core::Object* = dynamic> extends core::Object implement
 static field self::MyFuture<dynamic>* f;
 static field asy::Future<core::int*>* t1;
 static field asy::Future<core::List<core::int*>*>* t2;
-static method g2() → asy::Future<core::List<core::int*>*>* async 
+static method g2() → asy::Future<core::List<core::int*>*>*
   ;
-static method g3() → asy::Future<core::List<core::int*>*>* async 
+static method g3() → asy::Future<core::List<core::int*>*>*
   ;
 static method main() → dynamic
   ;

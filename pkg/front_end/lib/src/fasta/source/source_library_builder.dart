@@ -16,7 +16,6 @@ import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
 import 'package:kernel/ast.dart'
     show
         Arguments,
-        AsyncMarker,
         Class,
         Constructor,
         ConstructorInvocation,
@@ -2121,7 +2120,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charOpenParenOffset,
       int charEndOffset,
       String nativeMethodName,
-      AsyncMarker asyncModifier,
       {bool isTopLevel}) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
     if (returnType == null) {
@@ -2196,7 +2194,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         charEndOffset,
         referenceFrom,
         tearOffReferenceFrom,
-        asyncModifier,
         nativeMethodName);
     metadataCollector?.setDocumentationComment(
         procedureBuilder.procedure, documentationComment);
@@ -2219,8 +2216,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
-      String nativeMethodName,
-      AsyncMarker asyncModifier) {
+      String nativeMethodName) {
     TypeBuilder returnType = addNamedType(
         currentTypeParameterScopeBuilder.parent.name,
         const NullabilityBuilder.omitted(),
@@ -2282,7 +2278,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           charEndOffset,
           referenceFrom,
           null,
-          asyncModifier,
           nativeMethodName);
     }
 

@@ -26,5 +26,5 @@ class C extends self::A {
   synthetic constructor •() → self::C*
     ;
 }
-static method main() → dynamic async 
+static method main() → dynamic
   ;

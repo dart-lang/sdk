@@ -7,7 +7,6 @@ library fasta.enum_builder;
 import 'package:kernel/ast.dart'
     show
         Arguments,
-        AsyncMarker,
         Class,
         Constructor,
         ConstructorInvocation,
@@ -240,8 +239,7 @@ class EnumBuilder extends SourceClassBuilder {
         charOffset,
         charEndOffset,
         toStringReference,
-        null,
-        AsyncMarker.Sync);
+        null);
     members["toString"] = toStringBuilder;
     String className = name;
     if (enumConstantInfos != null) {
