@@ -314,60 +314,7 @@ abstract class TypeSystem implements public.TypeSystem {
   /// left operand has the type [leftType] and whose right operand has the type
   /// [rightType], given that resolution has so far produced the [currentType].
   DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
-      DartType rightType, DartType currentType) {
-    // bool
-    if (operator == TokenType.AMPERSAND_AMPERSAND ||
-        operator == TokenType.BAR_BAR ||
-        operator == TokenType.EQ_EQ ||
-        operator == TokenType.BANG_EQ) {
-      if (isNonNullableByDefault) {
-        return promoteToNonNull(typeProvider.boolType);
-      }
-      return typeProvider.boolType;
-    }
-    if (leftType.isDartCoreInt) {
-      // int op double
-      if (operator == TokenType.MINUS ||
-          operator == TokenType.PERCENT ||
-          operator == TokenType.PLUS ||
-          operator == TokenType.STAR ||
-          operator == TokenType.MINUS_EQ ||
-          operator == TokenType.PERCENT_EQ ||
-          operator == TokenType.PLUS_EQ ||
-          operator == TokenType.STAR_EQ) {
-        if (rightType.isDartCoreDouble) {
-          InterfaceTypeImpl doubleType = typeProvider.doubleType;
-          if (isNonNullableByDefault) {
-            return promoteToNonNull(doubleType);
-          }
-          return doubleType;
-        }
-      }
-      // int op int
-      if (operator == TokenType.MINUS ||
-          operator == TokenType.PERCENT ||
-          operator == TokenType.PLUS ||
-          operator == TokenType.STAR ||
-          operator == TokenType.TILDE_SLASH ||
-          operator == TokenType.MINUS_EQ ||
-          operator == TokenType.PERCENT_EQ ||
-          operator == TokenType.PLUS_EQ ||
-          operator == TokenType.STAR_EQ ||
-          operator == TokenType.TILDE_SLASH_EQ ||
-          operator == TokenType.PLUS_PLUS ||
-          operator == TokenType.MINUS_MINUS) {
-        if (rightType.isDartCoreInt) {
-          InterfaceTypeImpl intType = typeProvider.intType;
-          if (isNonNullableByDefault) {
-            return promoteToNonNull(intType);
-          }
-          return intType;
-        }
-      }
-    }
-    // default
-    return currentType;
-  }
+      DartType rightType, DartType currentType);
 
   @override
   DartType resolveToBound(DartType type) {
@@ -1419,8 +1366,58 @@ class TypeSystemImpl extends TypeSystem {
       }
       return currentType;
     }
-    return super
-        .refineBinaryExpressionType(leftType, operator, rightType, currentType);
+    // bool
+    if (operator == TokenType.AMPERSAND_AMPERSAND ||
+        operator == TokenType.BAR_BAR ||
+        operator == TokenType.EQ_EQ ||
+        operator == TokenType.BANG_EQ) {
+      if (isNonNullableByDefault) {
+        return promoteToNonNull(typeProvider.boolType);
+      }
+      return typeProvider.boolType;
+    }
+    if (leftType.isDartCoreInt) {
+      // int op double
+      if (operator == TokenType.MINUS ||
+          operator == TokenType.PERCENT ||
+          operator == TokenType.PLUS ||
+          operator == TokenType.STAR ||
+          operator == TokenType.MINUS_EQ ||
+          operator == TokenType.PERCENT_EQ ||
+          operator == TokenType.PLUS_EQ ||
+          operator == TokenType.STAR_EQ) {
+        if (rightType.isDartCoreDouble) {
+          InterfaceTypeImpl doubleType = typeProvider.doubleType;
+          if (isNonNullableByDefault) {
+            return promoteToNonNull(doubleType);
+          }
+          return doubleType;
+        }
+      }
+      // int op int
+      if (operator == TokenType.MINUS ||
+          operator == TokenType.PERCENT ||
+          operator == TokenType.PLUS ||
+          operator == TokenType.STAR ||
+          operator == TokenType.TILDE_SLASH ||
+          operator == TokenType.MINUS_EQ ||
+          operator == TokenType.PERCENT_EQ ||
+          operator == TokenType.PLUS_EQ ||
+          operator == TokenType.STAR_EQ ||
+          operator == TokenType.TILDE_SLASH_EQ ||
+          operator == TokenType.PLUS_PLUS ||
+          operator == TokenType.MINUS_MINUS) {
+        if (rightType.isDartCoreInt) {
+          InterfaceTypeImpl intType = typeProvider.intType;
+          if (isNonNullableByDefault) {
+            return promoteToNonNull(intType);
+          }
+          return intType;
+        }
+      }
+    }
+    // default
+    return currentType;
   }
 
   /// Return `true` if runtime types [T1] and [T2] are equal.
