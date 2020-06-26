@@ -24,9 +24,7 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
-/**
- * Finds an [Element] with the given [name].
- */
+/// Finds an [Element] with the given [name].
 Element findChildElement(Element root, String name, [ElementKind kind]) {
   Element result;
   root.accept(_ElementVisitorFunctionWrapper((Element element) {
@@ -156,9 +154,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   void tearDown() {}
 }
 
-/**
- * Wraps an [_ElementVisitorFunction] into a [GeneralizingElementVisitor].
- */
+/// Wraps an [_ElementVisitorFunction] into a [GeneralizingElementVisitor].
 class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor {
   final _ElementVisitorFunction function;
 

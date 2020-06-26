@@ -2834,10 +2834,8 @@ class ToSourceVisitor2Test {
         AstTestFactory.yieldEachStatement(AstTestFactory.identifier3("e")));
   }
 
-  /**
-   * Assert that a `ToSourceVisitor2` will produce the [expectedSource] when
-   * visiting the given [node].
-   */
+  /// Assert that a `ToSourceVisitor2` will produce the [expectedSource] when
+  /// visiting the given [node].
   void _assertSource(String expectedSource, AstNode node) {
     StringBuffer buffer = StringBuffer();
     node.accept(ToSourceVisitor(buffer));

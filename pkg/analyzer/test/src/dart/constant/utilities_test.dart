@@ -40,10 +40,8 @@ class ConstantFinderTest {
     _source = TestSource();
   }
 
-  /**
-   * Test an annotation that consists solely of an identifier (and hence
-   * represents a reference to a compile-time constant variable).
-   */
+  /// Test an annotation that consists solely of an identifier (and hence
+  /// represents a reference to a compile-time constant variable).
   void test_visitAnnotation_constantVariable() {
     CompilationUnitElement compilationUnitElement =
         ElementFactory.compilationUnit('/test.dart', _source)..source = _source;
@@ -66,10 +64,8 @@ class ConstantFinderTest {
     expect(_findConstants(), isEmpty);
   }
 
-  /**
-   * Test an annotation that represents the invocation of a constant
-   * constructor.
-   */
+  /// Test an annotation that represents the invocation of a constant
+  /// constructor.
   void test_visitAnnotation_invocation() {
     CompilationUnitElement compilationUnitElement =
         ElementFactory.compilationUnit('/test.dart', _source)..source = _source;

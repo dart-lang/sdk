@@ -1575,11 +1575,9 @@ class DartObjectImplTest {
     _assertTimes(_intValue(null), _intValue(null), _intValue(3));
   }
 
-  /**
-   * Assert that the result of adding the [left] and [right] operands is the
-   * [expected] value, or that the operation throws an exception if the expected
-   * value is `null`.
-   */
+  /// Assert that the result of adding the [left] and [right] operands is the
+  /// [expected] value, or that the operation throws an exception if the
+  /// expected value is `null`.
   void _assertAdd(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
@@ -1593,10 +1591,8 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the bit-not of the [operand] is the [expected] value, or that
-   * the operation throws an exception if the expected value is `null`.
-   */
+  /// Assert that the bit-not of the [operand] is the [expected] value, or that
+  /// the operation throws an exception if the expected value is `null`.
   void _assertBitNot(DartObjectImpl expected, DartObjectImpl operand) {
     if (expected == null) {
       expect(() {
@@ -1609,11 +1605,9 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the result of concatenating the [left] and [right] operands is
-   * the [expected] value, or that the operation throws an exception if the
-   * expected value is `null`.
-   */
+  /// Assert that the result of concatenating the [left] and [right] operands is
+  /// the [expected] value, or that the operation throws an exception if the
+  /// expected value is `null`.
   void _assertConcatenate(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
@@ -1627,11 +1621,9 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the result of dividing the [left] and [right] operands is the
-   * [expected] value, or that the operation throws an exception if the expected
-   * value is `null`.
-   */
+  /// Assert that the result of dividing the [left] and [right] operands is the
+  /// [expected] value, or that the operation throws an exception if the
+  /// expected value is `null`.
   void _assertDivide(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
@@ -1645,11 +1637,9 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the result of bit-anding the [left] and [right] operands is the
-   * [expected] value, or that the operation throws an exception if the expected
-   * value is `null`.
-   */
+  /// Assert that the result of bit-anding the [left] and [right] operands is
+  /// the [expected] value, or that the operation throws an exception if the
+  /// expected value is `null`.
   void _assertEagerAnd(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
@@ -1663,11 +1653,9 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the result of bit-oring the [left] and [right] operands is the
-   * [expected] value, or that the operation throws an exception if the expected
-   * value is `null`.
-   */
+  /// Assert that the result of bit-oring the [left] and [right] operands is the
+  /// [expected] value, or that the operation throws an exception if the
+  /// expected value is `null`.
   void _assertEagerOr(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
@@ -1681,11 +1669,9 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the result of bit-xoring the [left] and [right] operands is the
-   * [expected] value, or that the operation throws an exception if the expected
-   * value is `null`.
-   */
+  /// Assert that the result of bit-xoring the [left] and [right] operands is
+  /// the [expected] value, or that the operation throws an exception if the
+  /// expected value is `null`.
   void _assertEagerXor(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
@@ -1699,11 +1685,9 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the result of comparing the [left] and [right] operands for
-   * equality is the [expected] value, or that the operation throws an exception
-   * if the expected value is `null`.
-   */
+  /// Assert that the result of comparing the [left] and [right] operands for
+  /// equality is the [expected] value, or that the operation throws an
+  /// exception if the expected value is `null`.
   void _assertEqualEqual(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
@@ -1717,11 +1701,9 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the result of comparing the [left] and [right] operands is the
-   * [expected] value, or that the operation throws an exception if the expected
-   * value is `null`.
-   */
+  /// Assert that the result of comparing the [left] and [right] operands is the
+  /// [expected] value, or that the operation throws an exception if the
+  /// expected value is `null`.
   void _assertGreaterThan(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
@@ -1735,11 +1717,9 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the result of comparing the [left] and [right] operands is the
-   * [expected] value, or that the operation throws an exception if the expected
-   * value is `null`.
-   */
+  /// Assert that the result of comparing the [left] and [right] operands is the
+  /// [expected] value, or that the operation throws an exception if the
+  /// expected value is `null`.
   void _assertGreaterThanOrEqual(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
@@ -1753,10 +1733,8 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the result of comparing the [left] and [right] operands using
-   * identical() is the expected value.
-   */
+  /// Assert that the result of comparing the [left] and [right] operands using
+  /// identical() is the expected value.
   void _assertIdentical(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     DartObjectImpl result = left.isIdentical2(_typeSystem, right);
@@ -1768,11 +1746,9 @@ class DartObjectImplTest {
     // TODO(scheglov) implement
   }
 
-  /**
-   * Assert that the result of dividing the [left] and [right] operands as
-   * integers is the [expected] value, or that the operation throws an exception
-   * if the expected value is `null`.
-   */
+  /// Assert that the result of dividing the [left] and [right] operands as
+  /// integers is the [expected] value, or that the operation throws an
+  /// exception if the expected value is `null`.
   void _assertIntegerDivide(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
@@ -1786,11 +1762,9 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the result of logical-anding the [left] and [right] operands is
-   * the [expected] value, or that the operation throws an exception if the
-   * expected value is `null`.
-   */
+  /// Assert that the result of logical-anding the [left] and [right] operands
+  /// is the [expected] value, or that the operation throws an exception if the
+  /// expected value is `null`.
   void _assertLazyAnd(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
@@ -1804,11 +1778,9 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the result of logical-oring the [left] and [right] operands is
-   * the [expected] value, or that the operation throws an exception if the
-   * expected value is `null`.
-   */
+  /// Assert that the result of logical-oring the [left] and [right] operands is
+  /// the [expected] value, or that the operation throws an exception if the
+  /// expected value is `null`.
   void _assertLazyOr(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
@@ -1822,11 +1794,9 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the result of comparing the [left] and [right] operands is the
-   * [expected] value, or that the operation throws an exception if the expected
-   * value is `null`.
-   */
+  /// Assert that the result of comparing the [left] and [right] operands is the
+  /// [expected] value, or that the operation throws an exception if the
+  /// expected value is `null`.
   void _assertLessThan(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
@@ -1840,11 +1810,9 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the result of comparing the [left] and [right] operands is the
-   * [expected] value, or that the operation throws an exception if the expected
-   * value is `null`.
-   */
+  /// Assert that the result of comparing the [left] and [right] operands is the
+  /// [expected] value, or that the operation throws an exception if the
+  /// expected value is `null`.
   void _assertLessThanOrEqual(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
@@ -1858,10 +1826,8 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the logical-not of the [operand] is the [expected] value, or
-   * that the operation throws an exception if the expected value is `null`.
-   */
+  /// Assert that the logical-not of the [operand] is the [expected] value, or
+  /// that the operation throws an exception if the expected value is `null`.
   void _assertLogicalNot(DartObjectImpl expected, DartObjectImpl operand) {
     if (expected == null) {
       expect(() {
@@ -1874,11 +1840,9 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the result of subtracting the [left] and [right] operands is
-   * the [expected] value, or that the operation throws an exception if the
-   * expected value is `null`.
-   */
+  /// Assert that the result of subtracting the [left] and [right] operands is
+  /// the [expected] value, or that the operation throws an exception if the
+  /// expected value is `null`.
   void _assertMinus(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
@@ -1892,10 +1856,8 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the negation of the [operand] is the [expected] value, or that
-   * the operation throws an exception if the expected value is `null`.
-   */
+  /// Assert that the negation of the [operand] is the [expected] value, or that
+  /// the operation throws an exception if the expected value is `null`.
   void _assertNegated(DartObjectImpl expected, DartObjectImpl operand) {
     if (expected == null) {
       expect(() {
@@ -1908,11 +1870,9 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the result of comparing the [left] and [right] operands for
-   * inequality is the [expected] value, or that the operation throws an
-   * exception if the expected value is `null`.
-   */
+  /// Assert that the result of comparing the [left] and [right] operands for
+  /// inequality is the [expected] value, or that the operation throws an
+  /// exception if the expected value is `null`.
   void _assertNotEqual(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
@@ -1926,10 +1886,8 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that converting the [operand] to a string is the [expected] value,
-   * or that the operation throws an exception if the expected value is `null`.
-   */
+  /// Assert that converting the [operand] to a string is the [expected] value,
+  /// or that the operation throws an exception if the expected value is `null`.
   void _assertPerformToString(DartObjectImpl expected, DartObjectImpl operand) {
     if (expected == null) {
       expect(() {
@@ -1942,11 +1900,9 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the result of taking the remainder of the [left] and [right]
-   * operands is the [expected] value, or that the operation throws an exception
-   * if the expected value is `null`.
-   */
+  /// Assert that the result of taking the remainder of the [left] and [right]
+  /// operands is the [expected] value, or that the operation throws an
+  /// exception if the expected value is `null`.
   void _assertRemainder(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
@@ -1960,11 +1916,9 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the result of multiplying the [left] and [right] operands is
-   * the [expected] value, or that the operation throws an exception if the
-   * expected value is `null`.
-   */
+  /// Assert that the result of multiplying the [left] and [right] operands is
+  /// the [expected] value, or that the operation throws an exception if the
+  /// expected value is `null`.
   void _assertShiftLeft(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
@@ -1978,11 +1932,9 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the result of multiplying the [left] and [right] operands is
-   * the [expected] value, or that the operation throws an exception if the
-   * expected value is `null`.
-   */
+  /// Assert that the result of multiplying the [left] and [right] operands is
+  /// the [expected] value, or that the operation throws an exception if the
+  /// expected value is `null`.
   void _assertShiftRight(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
@@ -1996,10 +1948,8 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the length of the [operand] is the [expected] value, or that
-   * the operation throws an exception if the expected value is `null`.
-   */
+  /// Assert that the length of the [operand] is the [expected] value, or that
+  /// the operation throws an exception if the expected value is `null`.
   void _assertStringLength(DartObjectImpl expected, DartObjectImpl operand) {
     if (expected == null) {
       expect(() {
@@ -2012,11 +1962,9 @@ class DartObjectImplTest {
     }
   }
 
-  /**
-   * Assert that the result of multiplying the [left] and [right] operands is
-   * the [expected] value, or that the operation throws an exception if the
-   * expected value is `null`.
-   */
+  /// Assert that the result of multiplying the [left] and [right] operands is
+  /// the [expected] value, or that the operation throws an exception if the
+  /// expected value is `null`.
   void _assertTimes(
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {

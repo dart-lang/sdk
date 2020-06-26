@@ -100,9 +100,8 @@ class C {
   }
 }
 
-/**
- * Tests for generic method and function resolution that do not use strong mode.
- */
+/// Tests for generic method and function resolution that do not use strong
+/// mode.
 @reflectiveTest
 class GenericMethodResolverTest extends StaticTypeAnalyzer2TestShared {
   test_genericMethod_propagatedType_promotion() async {
@@ -470,14 +469,10 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
   /// The TypeAnnotation nodes that were not resolved.
   final List<TypeAnnotation> _unresolvedTypes = <TypeAnnotation>[];
 
-  /**
-   * Counter for the number of Expression nodes visited that are resolved.
-   */
+  /// Counter for the number of Expression nodes visited that are resolved.
   int _resolvedExpressionCount = 0;
 
-  /**
-   * Counter for the number of TypeName nodes visited that are resolved.
-   */
+  /// Counter for the number of TypeName nodes visited that are resolved.
   int _resolvedTypeCount = 0;
 
   /// Assert that all of the visited nodes have a static type associated with
@@ -633,10 +628,8 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
   }
 }
 
-/**
- * The class `StrictModeTest` contains tests to ensure that the correct errors
- * and warnings are reported when the analysis engine is run in strict mode.
- */
+/// The class `StrictModeTest` contains tests to ensure that the correct errors
+/// and warnings are reported when the analysis engine is run in strict mode.
 @reflectiveTest
 class StrictModeTest extends DriverResolutionTest {
   test_assert_is() async {

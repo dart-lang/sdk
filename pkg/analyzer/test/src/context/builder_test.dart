@@ -40,30 +40,20 @@ main() {
 
 @reflectiveTest
 class ContextBuilderTest with ResourceProviderMixin {
-  /**
-   * The SDK manager used by the tests;
-   */
+  /// The SDK manager used by the tests;
   DartSdkManager sdkManager;
 
-  /**
-   * The content cache used by the tests.
-   */
+  /// The content cache used by the tests.
   ContentCache contentCache;
 
-  /**
-   * The options passed to the context builder.
-   */
+  /// The options passed to the context builder.
   ContextBuilderOptions builderOptions = ContextBuilderOptions();
 
-  /**
-   * The context builder to be used in the test.
-   */
+  /// The context builder to be used in the test.
   ContextBuilder builder;
 
-  /**
-   * The path to the default SDK, or `null` if the test has not explicitly
-   * invoked [createDefaultSdk].
-   */
+  /// The path to the default SDK, or `null` if the test has not explicitly
+  /// invoked [createDefaultSdk].
   String defaultSdkPath;
 
   _MockLintRule _mockLintRule;

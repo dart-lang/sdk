@@ -220,10 +220,8 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
     expect(version.isNotEmpty, isTrue);
   }
 
-  /**
-   * The "part" format should result in the same source as the non-part format
-   * when the file is the library file.
-   */
+  /// The "part" format should result in the same source as the non-part format
+  /// when the file is the library file.
   void test_mapDartUri_partFormatForLibrary() {
     FolderBasedDartSdk sdk = _createDartSdk();
     Source normalSource = sdk.mapDartUri('dart:core');

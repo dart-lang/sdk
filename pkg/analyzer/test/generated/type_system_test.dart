@@ -441,9 +441,7 @@ class AssignabilityTest extends AbstractTypeSystemTest {
   }
 }
 
-/**
- * Base class for testing LUB and GLB in spec and strong mode.
- */
+/// Base class for testing LUB and GLB in spec and strong mode.
 abstract class BoundTestBase extends AbstractTypeSystemTest {
   void _checkLeastUpperBound(DartType T1, DartType T2, DartType expected) {
     var expectedStr = _typeString(expected);

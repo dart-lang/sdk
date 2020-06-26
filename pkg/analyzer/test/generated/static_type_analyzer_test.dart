@@ -60,9 +60,7 @@ void useSet(Set<int> s) {
   }
 }
 
-/**
- * Like [StaticTypeAnalyzerTest], but as end-to-end tests.
- */
+/// Like [StaticTypeAnalyzerTest], but as end-to-end tests.
 @reflectiveTest
 class StaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
   test_FunctionExpressionInvocation_block() async {
@@ -170,9 +168,7 @@ main() {
   }
 }
 
-/**
- * End-to-end tests of the static type analyzer that use the new driver.
- */
+/// End-to-end tests of the static type analyzer that use the new driver.
 @reflectiveTest
 class StaticTypeAnalyzer3Test extends StaticTypeAnalyzer2TestShared {
   test_emptyMapLiteral_initializer_var() async {
@@ -200,37 +196,25 @@ void useMap(Map<int, int> m) {
 
 @reflectiveTest
 class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
-  /**
-   * The error listener to which errors will be reported.
-   */
+  /// The error listener to which errors will be reported.
   GatheringErrorListener _listener;
 
-  /**
-   * The resolver visitor used to create the analyzer.
-   */
+  /// The resolver visitor used to create the analyzer.
   ResolverVisitor _visitor;
 
-  /**
-   * The library containing the code being resolved.
-   */
+  /// The library containing the code being resolved.
   LibraryElementImpl _definingLibrary;
 
-  /**
-   * The analyzer being used to analyze the test cases.
-   */
+  /// The analyzer being used to analyze the test cases.
   StaticTypeAnalyzer _analyzer;
 
-  /**
-   * The type provider used to access the types.
-   */
+  /// The type provider used to access the types.
   TypeProvider _typeProvider;
 
   @override
   TypeProvider get typeProvider => _definingLibrary.typeProvider;
 
-  /**
-   * The type system used to analyze the test cases.
-   */
+  /// The type system used to analyze the test cases.
   TypeSystemImpl get _typeSystem => _definingLibrary.typeSystem;
 
   void fail_visitFunctionExpressionInvocation() {
@@ -682,11 +666,9 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  /**
-   * Return the type associated with the given [node] after the static type
-   * analyzer has computed a type for it. If [thisType] is provided, it is the
-   * type of 'this'.
-   */
+  /// Return the type associated with the given [node] after the static type
+  /// analyzer has computed a type for it. If [thisType] is provided, it is the
+  /// type of 'this'.
   DartType _analyze(Expression node, [InterfaceType thisType]) {
     _visitor.setThisInterfaceType(thisType);
     node.accept(_analyzer);
@@ -714,9 +696,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     // utility method.
   }
 
-  /**
-   * Create the analyzer used by the tests.
-   */
+  /// Create the analyzer used by the tests.
   void _createAnalyzer() {
     var context = TestAnalysisContext();
     var inheritance = InheritanceManager3();
@@ -743,49 +723,43 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
 
   DartType _flatten(DartType type) => _typeSystem.flatten(type);
 
-  /**
-   * Return an integer literal that has been resolved to the correct type.
-   *
-   * @param value the value of the literal
-   * @return an integer literal that has been resolved to the correct type
-   */
+  /// Return an integer literal that has been resolved to the correct type.
+  ///
+  /// @param value the value of the literal
+  /// @return an integer literal that has been resolved to the correct type
   DoubleLiteral _resolvedDouble(double value) {
     DoubleLiteral literal = AstTestFactory.doubleLiteral(value);
     literal.staticType = _typeProvider.doubleType;
     return literal;
   }
 
-  /**
-   * Return an integer literal that has been resolved to the correct type.
-   *
-   * @param value the value of the literal
-   * @return an integer literal that has been resolved to the correct type
-   */
+  /// Return an integer literal that has been resolved to the correct type.
+  ///
+  /// @param value the value of the literal
+  /// @return an integer literal that has been resolved to the correct type
   IntegerLiteral _resolvedInteger(int value) {
     IntegerLiteral literal = AstTestFactory.integer(value);
     literal.staticType = _typeProvider.intType;
     return literal;
   }
 
-  /**
-   * Return a string literal that has been resolved to the correct type.
-   *
-   * @param value the value of the literal
-   * @return a string literal that has been resolved to the correct type
-   */
+  /// Return a string literal that has been resolved to the correct type.
+  ///
+  /// @param value the value of the literal
+  /// @return a string literal that has been resolved to the correct type
   SimpleStringLiteral _resolvedString(String value) {
     SimpleStringLiteral string = AstTestFactory.string2(value);
     string.staticType = _typeProvider.stringType;
     return string;
   }
 
-  /**
-   * Return a simple identifier that has been resolved to a variable element with the given type.
-   *
-   * @param type the type of the variable being represented
-   * @param variableName the name of the variable
-   * @return a simple identifier that has been resolved to a variable element with the given type
-   */
+  /// Return a simple identifier that has been resolved to a variable element
+  /// with the given type.
+  ///
+  /// @param type the type of the variable being represented
+  /// @param variableName the name of the variable
+  /// @return a simple identifier that has been resolved to a variable element
+  ///           with the given type
   SimpleIdentifier _resolvedVariable(InterfaceType type, String variableName) {
     SimpleIdentifier identifier = AstTestFactory.identifier3(variableName);
     VariableElementImpl element =
@@ -797,10 +771,8 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   }
 }
 
-/**
- * End-to-end tests of the static type analyzer that use the new driver and
- * enable the set-literals experiment.
- */
+/// End-to-end tests of the static type analyzer that use the new driver and
+/// enable the set-literals experiment.
 @reflectiveTest
 class StaticTypeAnalyzerWithSetLiteralsTest
     extends StaticTypeAnalyzer2TestShared {

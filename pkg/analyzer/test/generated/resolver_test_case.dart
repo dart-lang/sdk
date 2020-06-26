@@ -39,15 +39,11 @@ import 'test_support.dart';
 
 const String _defaultSourceName = "/test.dart";
 
-/**
- * An AST visitor used to verify that all of the nodes in an AST structure that
- * should have been resolved were resolved.
- */
+/// An AST visitor used to verify that all of the nodes in an AST structure that
+/// should have been resolved were resolved.
 class ResolutionVerifier extends RecursiveAstVisitor<void> {
-  /**
-   * A set containing nodes that are known to not be resolvable and should
-   * therefore not cause the test to fail.
-   */
+  /// A set containing nodes that are known to not be resolvable and should
+  /// therefore not cause the test to fail.
   final Set<AstNode> _knownExceptions;
 
   /// A list containing all of the AST nodes that were not resolved.
@@ -57,18 +53,14 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   /// the wrong type.
   final List<AstNode> _wrongTypedNodes = <AstNode>[];
 
-  /**
-   * Initialize a newly created verifier to verify that all of the identifiers
-   * in the visited AST structures that are expected to have been resolved have
-   * an element associated with them. Nodes in the set of [_knownExceptions] are
-   * not expected to have been resolved, even if they normally would have been
-   * expected to have been resolved.
-   */
+  /// Initialize a newly created verifier to verify that all of the identifiers
+  /// in the visited AST structures that are expected to have been resolved have
+  /// an element associated with them. Nodes in the set of [_knownExceptions]
+  /// are not expected to have been resolved, even if they normally would have
+  /// been expected to have been resolved.
   ResolutionVerifier([this._knownExceptions]);
 
-  /**
-   * Assert that all of the visited identifiers were resolved.
-   */
+  /// Assert that all of the visited identifiers were resolved.
   void assertResolved() {
     if (_unresolvedNodes.isNotEmpty || _wrongTypedNodes.isNotEmpty) {
       StringBuffer buffer = StringBuffer();
@@ -307,10 +299,8 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
 }
 
 class ResolverTestCase with ResourceProviderMixin {
-  /**
-   * Specifies if [assertErrors] should check for [HintCode.UNUSED_ELEMENT] and
-   * [HintCode.UNUSED_FIELD].
-   */
+  /// Specifies if [assertErrors] should check for [HintCode.UNUSED_ELEMENT] and
+  /// [HintCode.UNUSED_FIELD].
   bool enableUnusedElement = false;
 
   /// Specifies if [assertErrors] should check for
@@ -325,22 +315,16 @@ class ResolverTestCase with ResourceProviderMixin {
 
   AnalysisOptions get analysisOptions => driver?.analysisOptions;
 
-  /**
-   * The default [AnalysisOptions] that should be used by [reset].
-   */
+  /// The default [AnalysisOptions] that should be used by [reset].
   AnalysisOptions get defaultAnalysisOptions => AnalysisOptionsImpl();
 
-  /**
-   * Return the list of experiments that are to be enabled for tests in this
-   * class.
-   */
+  /// Return the list of experiments that are to be enabled for tests in this
+  /// class.
   List<String> get enabledExperiments => null;
 
-  /**
-   * Return a type provider that can be used to test the results of resolution.
-   *
-   * Throws an [AnalysisException] if `dart:core` cannot be resolved.
-   */
+  /// Return a type provider that can be used to test the results of resolution.
+  ///
+  /// Throws an [AnalysisException] if `dart:core` cannot be resolved.
   TypeProvider get typeProvider {
     if (analysisResults.isEmpty) {
       fail('typeProvider called before computing an analysis result.');
@@ -348,9 +332,7 @@ class ResolverTestCase with ResourceProviderMixin {
     return analysisResults.values.first.typeProvider;
   }
 
-  /**
-   * Return a type system that can be used to test the results of resolution.
-   */
+  /// Return a type system that can be used to test the results of resolution.
   TypeSystemImpl get typeSystem {
     if (analysisResults.isEmpty) {
       fail('typeSystem called before computing an analysis result.');
@@ -358,11 +340,10 @@ class ResolverTestCase with ResourceProviderMixin {
     return analysisResults.values.first.typeSystem;
   }
 
-  /**
-   * Add a source file with the given [filePath] in the root of the file system.
-   * The file path should be absolute. The file will have the given [contents]
-   * set in the content provider. Return the source representing the added file.
-   */
+  /// Add a source file with the given [filePath] in the root of the file
+  /// system. The file path should be absolute. The file will have the given
+  /// [contents] set in the content provider. Return the source representing the
+  /// added file.
   Source addNamedSource(String filePath, String contents) {
     filePath = convertPath(filePath);
     File file = newFile(filePath, content: contents);
@@ -371,20 +352,16 @@ class ResolverTestCase with ResourceProviderMixin {
     return source;
   }
 
-  /**
-   * Add a source file named 'test.dart' in the root of the file system. The
-   * file will have the given [contents] set in the content provider. Return the
-   * source representing the added file.
-   */
+  /// Add a source file named 'test.dart' in the root of the file system. The
+  /// file will have the given [contents] set in the content provider. Return
+  /// the source representing the added file.
   Source addSource(String contents) =>
       addNamedSource(_defaultSourceName, contents);
 
-  /**
-   * Assert that the number of errors reported against the given
-   * [source] matches the number of errors that are given and that they have
-   * the expected error codes. The order in which the errors were gathered is
-   * ignored.
-   */
+  /// Assert that the number of errors reported against the given
+  /// [source] matches the number of errors that are given and that they have
+  /// the expected error codes. The order in which the errors were gathered is
+  /// ignored.
   void assertErrors(Source source,
       [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) {
     TestAnalysisResult result = analysisResults[source];
@@ -410,11 +387,9 @@ class ResolverTestCase with ResourceProviderMixin {
     errorListener.assertErrorsWithCodes(expectedErrorCodes);
   }
 
-  /**
-   * Asserts that [code] verifies, but has errors with the given error codes.
-   *
-   * Like [assertErrors], but takes a string of source code.
-   */
+  /// Asserts that [code] verifies, but has errors with the given error codes.
+  ///
+  /// Like [assertErrors], but takes a string of source code.
   // TODO(rnystrom): Use this in more tests that have the same structure.
   Future<void> assertErrorsInCode(String code, List<ErrorCode> errors,
       {bool verify = true, String sourceName = _defaultSourceName}) async {
@@ -426,11 +401,9 @@ class ResolverTestCase with ResourceProviderMixin {
     }
   }
 
-  /**
-   * Asserts that [code] has errors with the given error codes.
-   *
-   * Like [assertErrors], but takes a string of source code.
-   */
+  /// Asserts that [code] has errors with the given error codes.
+  ///
+  /// Like [assertErrors], but takes a string of source code.
   Future<void> assertErrorsInUnverifiedCode(
       String code, List<ErrorCode> errors) async {
     Source source = addSource(code);
@@ -438,20 +411,16 @@ class ResolverTestCase with ResourceProviderMixin {
     assertErrors(source, errors);
   }
 
-  /**
-   * Assert that no errors have been reported against the given source.
-   *
-   * @param source the source against which no errors should have been reported
-   * @throws AnalysisException if the reported errors could not be computed
-   * @throws AssertionFailedError if any errors have been reported
-   */
+  /// Assert that no errors have been reported against the given source.
+  ///
+  /// @param source the source against which no errors should have been reported
+  /// @throws AnalysisException if the reported errors could not be computed
+  /// @throws AssertionFailedError if any errors have been reported
   void assertNoErrors(Source source) {
     assertErrors(source);
   }
 
-  /**
-   * Asserts that [code] has no errors or warnings.
-   */
+  /// Asserts that [code] has no errors or warnings.
   // TODO(rnystrom): Use this in more tests that have the same structure.
   Future<void> assertNoErrorsInCode(String code) async {
     Source source = addSource(code);
@@ -468,37 +437,29 @@ class ResolverTestCase with ResourceProviderMixin {
     return analysisResult;
   }
 
-  /**
-   * Compute the analysis result to the given [code] in '/test.dart'.
-   */
+  /// Compute the analysis result to the given [code] in '/test.dart'.
   Future<TestAnalysisResult> computeTestAnalysisResult(String code) async {
     Source source = addSource(code);
     return await computeAnalysisResult(source);
   }
 
-  /**
-   * Create a library element that represents a library named `"test"` containing a single
-   * empty compilation unit.
-   *
-   * @return the library element that was created
-   */
+  /// Create a library element that represents a library named `"test"`
+  /// containing a single empty compilation unit.
+  ///
+  /// @return the library element that was created
   LibraryElementImpl createDefaultTestLibrary() =>
       createTestLibrary(TestAnalysisContext(), "test");
 
-  /**
-   * Return a source object representing a file with the given [fileName].
-   */
+  /// Return a source object representing a file with the given [fileName].
   Source createNamedSource(String fileName) {
     return getFile(fileName).createSource();
   }
 
-  /**
-   * Create a library element that represents a library with the given name containing a single
-   * empty compilation unit.
-   *
-   * @param libraryName the name of the library to be created
-   * @return the library element that was created
-   */
+  /// Create a library element that represents a library with the given name
+  /// containing a single empty compilation unit.
+  ///
+  /// @param libraryName the name of the library to be created
+  /// @return the library element that was created
   LibraryElementImpl createTestLibrary(
       AnalysisContext context, String libraryName,
       [List<String> typeNames]) {
@@ -557,17 +518,13 @@ class ResolverTestCase with ResourceProviderMixin {
     // Not found
   }
 
-  /**
-   * Re-create the analysis context being used by the test case.
-   */
+  /// Re-create the analysis context being used by the test case.
   void reset() {
     resetWith();
   }
 
-  /**
-   * Re-create the analysis context being used by the test with the either given
-   * [options] or [packages].
-   */
+  /// Re-create the analysis context being used by the test with the either
+  /// given [options] or [packages].
   void resetWith({AnalysisOptions options, List<List<String>> packages}) {
     if (options != null && packages != null) {
       fail('Only packages or options can be specified.');
@@ -667,10 +624,8 @@ class ResolverTestCase with ResourceProviderMixin {
     AnalysisEngine.instance.clearCaches();
   }
 
-  /**
-   * Verify that all of the identifiers in the compilation units associated with
-   * the given [sources] have been resolved.
-   */
+  /// Verify that all of the identifiers in the compilation units associated
+  /// with the given [sources] have been resolved.
   void verify(List<Source> sources) {
     ResolutionVerifier verifier = ResolutionVerifier();
     for (Source source in sources) {
@@ -682,29 +637,23 @@ class ResolverTestCase with ResourceProviderMixin {
   }
 }
 
-/**
- * Shared infrastructure for [StaticTypeAnalyzer2Test] and
- * [StrongModeStaticTypeAnalyzer2Test].
- */
+/// Shared infrastructure for [StaticTypeAnalyzer2Test] and
+/// [StrongModeStaticTypeAnalyzer2Test].
 class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
-  /**
-   * Find the expression that starts at the offset of [search] and validate its
-   * that its static type matches the given [type].
-   *
-   * If [type] is a string, validates that the expression's static type
-   * stringifies to that text. Otherwise, [type] is used directly a [Matcher]
-   * to match the type.
-   */
+  /// Find the expression that starts at the offset of [search] and validate its
+  /// that its static type matches the given [type].
+  ///
+  /// If [type] is a string, validates that the expression's static type
+  /// stringifies to that text. Otherwise, [type] is used directly a [Matcher]
+  /// to match the type.
   void expectExpressionType(String search, type) {
     Expression expression = findNode.expression(search);
     _expectType(expression.staticType, type);
   }
 
-  /**
-   * Looks up the identifier with [name] and validates that its type type
-   * stringifies to [type] and that its generics match the given stringified
-   * output.
-   */
+  /// Looks up the identifier with [name] and validates that its type type
+  /// stringifies to [type] and that its generics match the given stringified
+  /// output.
   FunctionTypeImpl expectFunctionType(String name, String type,
       {String typeParams = '[]',
       String typeArgs = '[]',
@@ -728,11 +677,9 @@ class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
     return functionType;
   }
 
-  /**
-   * Looks up the identifier with [name] and validates that its element type
-   * stringifies to [type] and that its generics match the given stringified
-   * output.
-   */
+  /// Looks up the identifier with [name] and validates that its element type
+  /// stringifies to [type] and that its generics match the given stringified
+  /// output.
   FunctionTypeImpl expectFunctionType2(String name, String type) {
     var identifier = findNode.simple(name);
     var functionType = _getFunctionTypedElementType(identifier);
@@ -740,26 +687,22 @@ class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
     return functionType;
   }
 
-  /**
-   * Looks up the identifier with [name] and validates its static [type].
-   *
-   * If [type] is a string, validates that the identifier's static type
-   * stringifies to that text. Otherwise, [type] is used directly a [Matcher]
-   * to match the type.
-   */
+  /// Looks up the identifier with [name] and validates its static [type].
+  ///
+  /// If [type] is a string, validates that the identifier's static type
+  /// stringifies to that text. Otherwise, [type] is used directly a [Matcher]
+  /// to match the type.
   void expectIdentifierType(String name, type) {
     SimpleIdentifier identifier = findNode.simple(name);
     _expectType(identifier.staticType, type);
   }
 
-  /**
-   * Looks up the initializer for the declaration containing [identifier] and
-   * validates its static [type].
-   *
-   * If [type] is a string, validates that the identifier's static type
-   * stringifies to that text. Otherwise, [type] is used directly a [Matcher]
-   * to match the type.
-   */
+  /// Looks up the initializer for the declaration containing [identifier] and
+  /// validates its static [type].
+  ///
+  /// If [type] is a string, validates that the identifier's static type
+  /// stringifies to that text. Otherwise, [type] is used directly a [Matcher]
+  /// to match the type.
   void expectInitializerType(String name, type) {
     SimpleIdentifier identifier = findNode.simple(name);
     VariableDeclaration declaration =
@@ -768,12 +711,11 @@ class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
     _expectType(initializer.staticType, type);
   }
 
-  /**
-   * Validates that [type] matches [expected].
-   *
-   * If [expected] is a string, validates that the type stringifies to that
-   * text. Otherwise, [expected] is used directly a [Matcher] to match the type.
-   */
+  /// Validates that [type] matches [expected].
+  ///
+  /// If [expected] is a string, validates that the type stringifies to that
+  /// text. Otherwise, [expected] is used directly a [Matcher] to match the
+  /// type.
   _expectType(DartType type, expected) {
     if (expected is String) {
       assertType(type, expected);

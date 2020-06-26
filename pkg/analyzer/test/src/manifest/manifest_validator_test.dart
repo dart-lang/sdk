@@ -22,10 +22,8 @@ main() {
 class ManifestValidatorTest with ResourceProviderMixin {
   ManifestValidator validator;
 
-  /**
-   * Assert that when the validator is used on the given [content] the
-   * [expectedErrorCodes] are produced.
-   */
+  /// Assert that when the validator is used on the given [content] the
+  /// [expectedErrorCodes] are produced.
   void assertErrors(String content, List<ErrorCode> expectedErrorCodes) {
     List<AnalysisError> errors = validator.validate(content, true);
     GatheringErrorListener listener = GatheringErrorListener();
@@ -33,10 +31,8 @@ class ManifestValidatorTest with ResourceProviderMixin {
     listener.assertErrorsWithCodes(expectedErrorCodes);
   }
 
-  /**
-   * Assert that when the validator is used on the given [content] no errors are
-   * produced.
-   */
+  /// Assert that when the validator is used on the given [content] no errors
+  /// are produced.
   void assertNoErrors(String content) {
     assertErrors(content, []);
   }

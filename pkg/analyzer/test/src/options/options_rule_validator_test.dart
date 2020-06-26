@@ -32,10 +32,8 @@ class OptionsRuleValidatorTest extends Object with ResourceProviderMixin {
   LinterRuleOptionsValidator validator = LinterRuleOptionsValidator(
       provider: () => [DeprecatedLint(), StableLint(), RuleNeg(), RulePos()]);
 
-/**
- * Assert that when the validator is used on the given [content] the
- * [expectedErrorCodes] are produced.
- */
+  /// Assert that when the validator is used on the given [content] the
+  /// [expectedErrorCodes] are produced.
   void assertErrors(String content, List<ErrorCode> expectedErrorCodes) {
     GatheringErrorListener listener = GatheringErrorListener();
     ErrorReporter reporter = ErrorReporter(

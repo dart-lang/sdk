@@ -1118,13 +1118,12 @@ library l;''');
     _assertCloneUnitMember('main() async* { yield 42; }');
   }
 
-  /**
-   * Assert that an `AstCloner` will produce the expected AST structure when
-   * visiting the given [node].
-   *
-   * @param node the AST node being visited to produce the cloned structure
-   * @throws AFE if the visitor does not produce the expected source for the given node
-   */
+  /// Assert that an `AstCloner` will produce the expected AST structure when
+  /// visiting the given [node].
+  ///
+  /// @param node the AST node being visited to produce the cloned structure
+  /// @throws AFE if the visitor does not produce the expected source for the
+  ///           given node
   void _assertClone(AstNode node) {
     {
       AstNode clone = node.accept(AstCloner());
@@ -1255,10 +1254,8 @@ library l;''');
     }
   }
 
-  /**
-   * Assert that the [token] has `previous` set, and if it `EOF`, then it
-   * points itself.
-   */
+  /// Assert that the [token] has `previous` set, and if it `EOF`, then it
+  /// points itself.
   static void _assertHasPrevious(Token token) {
     expect(token, isNotNull);
     if (token.type == TokenType.EOF) {
@@ -2609,9 +2606,7 @@ class ListGetter_NodeReplacerTest_testSwitchMember_2
 
 @reflectiveTest
 class NodeReplacerTest {
-  /**
-   * An empty list of tokens.
-   */
+  /// An empty list of tokens.
   static const List<Token> EMPTY_TOKEN_LIST = <Token>[];
 
   void test_adjacentStrings() {

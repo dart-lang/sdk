@@ -348,9 +348,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
   }
 }
 
-/**
- * Tests of the fasta parser based on [ExpressionParserTestMixin].
- */
+/// Tests of the fasta parser based on [ExpressionParserTestMixin].
 @reflectiveTest
 class CollectionLiteralParserTest extends FastaParserTestCase {
   Expression parseCollectionLiteral(String source,
@@ -976,9 +974,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 }
 
-/**
- * Tests of the fasta parser based on [ComplexParserTestMixin].
- */
+/// Tests of the fasta parser based on [ComplexParserTestMixin].
 @reflectiveTest
 class ComplexParserTest_Fasta extends FastaParserTestCase
     with ComplexParserTestMixin {
@@ -1044,9 +1040,7 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
   }
 }
 
-/**
- * Tests of the fasta parser based on [ErrorParserTest].
- */
+/// Tests of the fasta parser based on [ErrorParserTest].
 @reflectiveTest
 class ErrorParserTest_Fasta extends FastaParserTestCase
     with ErrorParserTestMixin {
@@ -1252,9 +1246,7 @@ main() { // missing async
   }
 }
 
-/**
- * Tests of the fasta parser based on [ExpressionParserTestMixin].
- */
+/// Tests of the fasta parser based on [ExpressionParserTestMixin].
 @reflectiveTest
 class ExpressionParserTest_Fasta extends FastaParserTestCase
     with ExpressionParserTestMixin {
@@ -1882,10 +1874,8 @@ class C {}
   }
 }
 
-/**
- * Implementation of [AbstractParserTestCase] specialized for testing the
- * Fasta parser.
- */
+/// Implementation of [AbstractParserTestCase] specialized for testing the
+/// Fasta parser.
 class FastaParserTestCase
     with ParserTestHelpers
     implements AbstractParserTestCase {
@@ -2411,9 +2401,7 @@ class FastaParserTestCase
       expectedErrorCodes.map(_toFastaGeneratedAnalyzerErrorCode).toList();
 }
 
-/**
- * Tests of the fasta parser based on [FormalParameterParserTestMixin].
- */
+/// Tests of the fasta parser based on [FormalParameterParserTestMixin].
 @reflectiveTest
 class FormalParameterParserTest_Fasta extends FastaParserTestCase
     with FormalParameterParserTestMixin {
@@ -2677,9 +2665,7 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   }
 }
 
-/**
- * Tests of the fasta parser based on [ComplexParserTestMixin].
- */
+/// Tests of the fasta parser based on [ComplexParserTestMixin].
 @reflectiveTest
 class NNBDParserTest_Fasta extends FastaParserTestCase {
   @override
@@ -3514,27 +3500,21 @@ class Foo {
   }
 }
 
-/**
- * Proxy implementation of the analyzer parser, implemented in terms of the
- * Fasta parser.
- *
- * This allows many of the analyzer parser tests to be run on Fasta, even if
- * they call into the analyzer parser class directly.
- */
+/// Proxy implementation of the analyzer parser, implemented in terms of the
+/// Fasta parser.
+///
+/// This allows many of the analyzer parser tests to be run on Fasta, even if
+/// they call into the analyzer parser class directly.
 class ParserProxy extends analyzer.ParserAdapter {
-  /**
-   * The error listener to which scanner and parser errors will be reported.
-   */
+  /// The error listener to which scanner and parser errors will be reported.
   final GatheringErrorListener _errorListener;
 
   ForwardingTestListener _eventListener;
 
   final int expectedEndOffset;
 
-  /**
-   * Creates a [ParserProxy] which is prepared to begin parsing at the given
-   * Fasta token.
-   */
+  /// Creates a [ParserProxy] which is prepared to begin parsing at the given
+  /// Fasta token.
   factory ParserProxy(analyzer.Token firstToken, FeatureSet featureSet,
       {bool allowNativeClause = false, int expectedEndOffset}) {
     TestSource source = TestSource();
@@ -3916,9 +3896,7 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
   }
 }
 
-/**
- * Tests of the fasta parser based on [StatementParserTestMixin].
- */
+/// Tests of the fasta parser based on [StatementParserTestMixin].
 @reflectiveTest
 class StatementParserTest_Fasta extends FastaParserTestCase
     with StatementParserTestMixin {
@@ -4323,9 +4301,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   }
 }
 
-/**
- * Tests of the fasta parser based on [TopLevelParserTestMixin].
- */
+/// Tests of the fasta parser based on [TopLevelParserTestMixin].
 @reflectiveTest
 class TopLevelParserTest_Fasta extends FastaParserTestCase
     with TopLevelParserTestMixin {

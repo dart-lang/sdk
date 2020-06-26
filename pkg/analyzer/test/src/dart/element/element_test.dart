@@ -982,9 +982,7 @@ class ElementLocationImplTest {
     expect(location.encoding, encoding);
   }
 
-  /**
-   * For example unnamed constructor.
-   */
+  /// For example unnamed constructor.
   void test_create_encoding_emptyLast() {
     String encoding = "a;b;c;";
     ElementLocationImpl location = ElementLocationImpl.con2(encoding);

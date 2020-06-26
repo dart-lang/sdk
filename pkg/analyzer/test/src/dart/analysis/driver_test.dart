@@ -40,11 +40,9 @@ main() {
   });
 }
 
-/**
- * Returns a [Future] that completes after pumping the event queue [times]
- * times. By default, this should pump the event queue enough times to allow
- * any code to run, as long as it's not waiting on some external event.
- */
+/// Returns a [Future] that completes after pumping the event queue [times]
+/// times. By default, this should pump the event queue enough times to allow
+/// any code to run, as long as it's not waiting on some external event.
 Future pumpEventQueue([int times = 5000]) {
   if (times == 0) return Future.value();
   // We use a delayed future to allow microtask events to finish. The
