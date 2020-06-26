@@ -1,7 +1,7 @@
 //
 // Problems in component:
 //
-// pkg/front_end/testcases/nnbd/strong_lib_not_ok_from_dill/strong_lib.dart: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// pkg/front_end/testcases/nnbd/strong_lib_not_ok_from_dill/strong_lib.dart: Error: A library can't opt out of null safety by default, when using sound null safety.
 //
 library /*isNonNullableByDefault*/;
 import self as self;

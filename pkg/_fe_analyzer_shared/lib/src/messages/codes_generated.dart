@@ -7850,7 +7850,7 @@ const Code<Null> codeStrongModeNNBDButOptOut = messageStrongModeNNBDButOptOut;
 const MessageCode messageStrongModeNNBDButOptOut = const MessageCode(
     "StrongModeNNBDButOptOut",
     message:
-        r"""A library can't opt out of non-nullable by default, when in nnbd-strong mode.""");
+        r"""A library can't opt out of null safety by default, when using sound null safety.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperAsExpression = messageSuperAsExpression;
