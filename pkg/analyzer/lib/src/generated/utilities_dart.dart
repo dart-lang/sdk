@@ -9,10 +9,8 @@ import 'package:analyzer/src/dart/element/element.dart' show ElementImpl;
 export 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
     show resolveRelativeUri;
 
-/**
- * If the given [node] has a documentation comment, remember its content
- * and range into the given [element].
- */
+/// If the given [node] has a documentation comment, remember its content
+/// and range into the given [element].
 void setElementDocumentationComment(ElementImpl element, AnnotatedNode node) {
   Comment comment = node.documentationComment;
   if (comment != null && comment.isDocumentation) {
@@ -21,10 +19,8 @@ void setElementDocumentationComment(ElementImpl element, AnnotatedNode node) {
   }
 }
 
-/**
- * Check whether [uri1] starts with (or 'is prefixed by') [uri2] by checking
- * path segments.
- */
+/// Check whether [uri1] starts with (or 'is prefixed by') [uri2] by checking
+/// path segments.
 bool startsWith(Uri uri1, Uri uri2) {
   List<String> uri1Segments = uri1.pathSegments;
   List<String> uri2Segments = uri2.pathSegments.toList();
@@ -49,10 +45,8 @@ bool startsWith(Uri uri1, Uri uri2) {
   return true;
 }
 
-/**
- * The kind of a parameter. A parameter can be either positional or named, and
- * can be either required or optional. 
- */
+/// The kind of a parameter. A parameter can be either positional or named, and
+/// can be either required or optional.
 class ParameterKind implements Comparable<ParameterKind> {
   /// A positional required parameter.
   static const ParameterKind REQUIRED =
@@ -76,29 +70,19 @@ class ParameterKind implements Comparable<ParameterKind> {
     NAMED
   ];
 
-  /**
-   * The name of this parameter.
-   */
+  /// The name of this parameter.
   final String name;
 
-  /**
-   * The ordinal value of the parameter.
-   */
+  /// The ordinal value of the parameter.
   final int ordinal;
 
-  /**
-   * A flag indicating whether this is a named or positional parameter.
-   */
+  /// A flag indicating whether this is a named or positional parameter.
   final bool isNamed;
 
-  /**
-   * A flag indicating whether this is an optional or required parameter.
-   */
+  /// A flag indicating whether this is an optional or required parameter.
   final bool isOptional;
 
-  /**
-   * Initialize a newly created kind with the given state.
-   */
+  /// Initialize a newly created kind with the given state.
   const ParameterKind(this.name, this.ordinal, this.isNamed, this.isOptional);
 
   @override

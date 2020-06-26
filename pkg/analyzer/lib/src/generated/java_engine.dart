@@ -29,10 +29,8 @@ class StringUtilities {
 
   static Interner INTERNER = NullInterner();
 
-  /**
-   * Compute line starts for the given [content].
-   * Lines end with `\r`, `\n` or `\r\n`.
-   */
+  /// Compute line starts for the given [content].
+  /// Lines end with `\r`, `\n` or `\r\n`.
   static List<int> computeLineStarts(String content) {
     List<int> lineStarts = <int>[0];
     int length = content.length;
@@ -126,11 +124,9 @@ class StringUtilities {
     return -1;
   }
 
-  /**
-   * Return the index of the first not letter/digit character in the [string]
-   * that is at or after the [startIndex]. Return the length of the [string] if
-   * all characters to the end are letters/digits.
-   */
+  /// Return the index of the first not letter/digit character in the [string]
+  /// that is at or after the [startIndex]. Return the length of the [string] if
+  /// all characters to the end are letters/digits.
   static int indexOfFirstNotLetterDigit(String string, int startIndex) {
     int index = startIndex;
     int last = string.length;
@@ -168,13 +164,13 @@ class StringUtilities {
     return true;
   }
 
-  /**
-   * Produce a string containing all of the names in the given array, surrounded by single quotes,
-   * and separated by commas. The list must contain at least two elements.
-   *
-   * @param names the names to be printed
-   * @return the result of printing the names
-   */
+  /// Produce a string containing all of the names in the given array,
+  /// surrounded by single quotes, and separated by commas.
+  ///
+  /// The list must contain at least two elements.
+  ///
+  /// @param names the names to be printed
+  /// @return the result of printing the names
   static String printListOfQuotedNames(List<String> names) {
     if (names == null) {
       throw ArgumentError("The list must not be null");

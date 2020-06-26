@@ -5,9 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
-/**
- * Search the [unit] for declared [SimpleIdentifier]s with the given [name].
- */
+/// Search the [unit] for declared [SimpleIdentifier]s with the given [name].
 List<SimpleIdentifier> findDeclaredIdentifiersByName(
     CompilationUnit unit, String name) {
   var finder = _DeclaredIdentifiersByNameFinder(name);

@@ -6,9 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
-/**
- * Search the [unit] for the [Element]s with the given [name].
- */
+/// Search the [unit] for the [Element]s with the given [name].
 List<Element> findElementsByName(CompilationUnit unit, String name) {
   var finder = _ElementsByNameFinder(name);
   unit.accept(finder);

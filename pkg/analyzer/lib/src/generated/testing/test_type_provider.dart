@@ -11,10 +11,8 @@ import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk_elements.dart';
 
-/**
- * A type provider that can be used by tests without creating the element model
- * for the core library.
- */
+/// A type provider that can be used by tests without creating the element model
+/// for the core library.
 class TestTypeProvider extends TypeProviderImpl {
   factory TestTypeProvider() {
     var analysisContext = _MockAnalysisContext();

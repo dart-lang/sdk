@@ -28,13 +28,11 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
 import 'package:meta/meta.dart';
 
-/**
- * The interface `TypeSystem` defines the behavior of an object representing
- * the type system.  This provides a common location to put methods that act on
- * types but may need access to more global data structures, and it paves the
- * way for a possible future where we may wish to make the type system
- * pluggable.
- */
+/// The interface `TypeSystem` defines the behavior of an object representing
+/// the type system.  This provides a common location to put methods that act on
+/// types but may need access to more global data structures, and it paves the
+/// way for a possible future where we may wish to make the type system
+/// pluggable.
 // TODO(brianwilkerson) Rename this class to TypeSystemImpl.
 abstract class TypeSystem implements public.TypeSystem {
   /// If `true`, then NNBD type rules should be used.
@@ -43,9 +41,7 @@ abstract class TypeSystem implements public.TypeSystem {
 
   TypeSystem({@required this.isNonNullableByDefault});
 
-  /**
-   * The provider of types for the system
-   */
+  /// The provider of types for the system
   TypeProvider get typeProvider;
 
   @override
@@ -111,26 +107,20 @@ abstract class TypeSystem implements public.TypeSystem {
         .toList();
   }
 
-  /**
-   * Compute the least upper bound of two types.
-   */
+  /// Compute the least upper bound of two types.
   DartType getLeastUpperBound(DartType type1, DartType type2);
 
-  /**
-   * Given a [DartType] [type], instantiate it with its bounds.
-   *
-   * The behavior of this method depends on the type system, for example, in
-   * classic Dart `dynamic` will be used for all type arguments, whereas
-   * strong mode prefers the actual bound type if it was specified.
-   */
+  /// Given a [DartType] [type], instantiate it with its bounds.
+  ///
+  /// The behavior of this method depends on the type system, for example, in
+  /// classic Dart `dynamic` will be used for all type arguments, whereas
+  /// strong mode prefers the actual bound type if it was specified.
   DartType instantiateToBounds(DartType type, {List<bool> hasError});
 
-  /**
-   * Given a [DartType] [type] and a list of types
-   * [typeArguments], instantiate the type formals with the
-   * provided actuals.  If [type] is not a parameterized type,
-   * no instantiation is done.
-   */
+  /// Given a [DartType] [type] and a list of types
+  /// [typeArguments], instantiate the type formals with the
+  /// provided actuals.  If [type] is not a parameterized type,
+  /// no instantiation is done.
   DartType instantiateType(DartType type, List<DartType> typeArguments) {
     if (type is FunctionType) {
       return type.instantiate(typeArguments);
@@ -145,26 +135,20 @@ abstract class TypeSystem implements public.TypeSystem {
     }
   }
 
-  /**
-   * Given uninstantiated [typeFormals], instantiate them to their bounds.
-   */
+  /// Given uninstantiated [typeFormals], instantiate them to their bounds.
   List<DartType> instantiateTypeFormalsToBounds(
       List<TypeParameterElement> typeFormals,
       {List<bool> hasError});
 
-  /**
-   * Return `true` if the [leftType] is assignable to the [rightType] (that is,
-   * if leftType <==> rightType).
-   */
+  /// Return `true` if the [leftType] is assignable to the [rightType] (that is,
+  /// if leftType <==> rightType).
   @override
   bool isAssignableTo(DartType leftType, DartType rightType);
 
-  /**
-   * Return `true` if the [leftType] is more specific than the [rightType]
-   * (that is, if leftType << rightType), as defined in the Dart language spec.
-   *
-   * In strong mode, this is equivalent to [isSubtypeOf].
-   */
+  /// Return `true` if the [leftType] is more specific than the [rightType]
+  /// (that is, if leftType << rightType), as defined in the Dart language spec.
+  ///
+  /// In strong mode, this is equivalent to [isSubtypeOf].
   @Deprecated('Use isSubtypeOf() instead.')
   bool isMoreSpecificThan(DartType leftType, DartType rightType);
 
@@ -214,10 +198,8 @@ abstract class TypeSystem implements public.TypeSystem {
     return true;
   }
 
-  /**
-   * Return `true` if the [leftType] is a subtype of the [rightType] (that is,
-   * if leftType <: rightType).
-   */
+  /// Return `true` if the [leftType] is a subtype of the [rightType] (that is,
+  /// if leftType <: rightType).
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType);
 
@@ -268,17 +250,16 @@ abstract class TypeSystem implements public.TypeSystem {
     return inferredTypes;
   }
 
-  /**
-   * Searches the superinterfaces of [type] for implementations of [genericType]
-   * and returns the most specific type argument used for that generic type.
-   *
-   * For a more general/robust solution, use [InterfaceTypeImpl.asInstanceOf].
-   *
-   * For example, given [type] `List<int>` and [genericType] `Iterable<T>`,
-   * returns [int].
-   *
-   * Returns `null` if [type] does not implement [genericType].
-   */
+  /// Searches the superinterfaces of [type] for implementations of
+  /// [genericType] and returns the most specific type argument used for that
+  /// generic type.
+  ///
+  /// For a more general/robust solution, use [InterfaceTypeImpl.asInstanceOf].
+  ///
+  /// For example, given [type] `List<int>` and [genericType] `Iterable<T>`,
+  /// returns [int].
+  ///
+  /// Returns `null` if [type] does not implement [genericType].
   DartType mostSpecificTypeArgument(DartType type, DartType genericType) {
     if (type is! InterfaceType) return null;
     if (genericType is! InterfaceType) return null;
@@ -329,11 +310,9 @@ abstract class TypeSystem implements public.TypeSystem {
     return (type as TypeImpl).withNullability(NullabilitySuffix.none);
   }
 
-  /**
-   * Determine the type of a binary expression with the given [operator] whose
-   * left operand has the type [leftType] and whose right operand has the type
-   * [rightType], given that resolution has so far produced the [currentType].
-   */
+  /// Determine the type of a binary expression with the given [operator] whose
+  /// left operand has the type [leftType] and whose right operand has the type
+  /// [rightType], given that resolution has so far produced the [currentType].
   DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
       DartType rightType, DartType currentType) {
     // bool
@@ -419,19 +398,15 @@ abstract class TypeSystem implements public.TypeSystem {
     return type;
   }
 
-  /**
-   * Tries to promote from the first type from the second type, and returns the
-   * promoted type if it succeeds, otherwise null.
-   */
+  /// Tries to promote from the first type from the second type, and returns the
+  /// promoted type if it succeeds, otherwise null.
   DartType tryPromoteToType(DartType to, DartType from);
 
-  /**
-   * Given a [DartType] type, return the [TypeParameterElement]s corresponding
-   * to its formal type parameters (if any).
-   *
-   * @param type the type whose type arguments are to be returned
-   * @return the type arguments associated with the given type
-   */
+  /// Given a [DartType] type, return the [TypeParameterElement]s corresponding
+  /// to its formal type parameters (if any).
+  ///
+  /// @param type the type whose type arguments are to be returned
+  /// @return the type arguments associated with the given type
   List<TypeParameterElement> typeFormalsAsElements(DartType type) {
     if (type is FunctionType) {
       return type.typeFormals;
@@ -442,10 +417,8 @@ abstract class TypeSystem implements public.TypeSystem {
     }
   }
 
-  /**
-   * Starting from the given [type], search its class hierarchy for types of the
-   * form Future<R>, and return a list of the resulting R's.
-   */
+  /// Starting from the given [type], search its class hierarchy for types of
+  /// the form Future<R>, and return a list of the resulting R's.
   List<DartType> _searchTypeHierarchyForFutureTypeParameters(DartType type) {
     List<DartType> result = <DartType>[];
     HashSet<ClassElement> visitedClasses = HashSet<ClassElement>();
@@ -469,15 +442,11 @@ abstract class TypeSystem implements public.TypeSystem {
   }
 }
 
-/**
- * The [public.TypeSystem] implementation.
- */
+/// The [public.TypeSystem] implementation.
 class TypeSystemImpl extends TypeSystem {
-  /**
-   * False if implicit casts should always be disallowed.
-   *
-   * This affects the behavior of [isAssignableTo].
-   */
+  /// False if implicit casts should always be disallowed.
+  ///
+  /// This affects the behavior of [isAssignableTo].
   bool implicitCasts;
 
   /// A flag indicating whether inference failures are allowed, off by default.
@@ -554,21 +523,20 @@ class TypeSystemImpl extends TypeSystem {
     return ft.parameters.any((p) => predicate(p.type));
   }
 
-  /**
-   * Eliminates type variables from the context [type], replacing them with
-   * `Null` or `Object` as appropriate.
-   *
-   * For example in `List<T> list = const []`, the context type for inferring
-   * the list should be changed from `List<T>` to `List<Null>` so the constant
-   * doesn't depend on the type variables `T` (because it can't be canonicalized
-   * at compile time, as `T` is unknown).
-   *
-   * Conceptually this is similar to the "least closure", except instead of
-   * eliminating `_` ([UnknownInferredType]) it eliminates all type variables
-   * ([TypeParameterType]).
-   *
-   * The equivalent CFE code can be found in the `TypeVariableEliminator` class.
-   */
+  /// Eliminates type variables from the context [type], replacing them with
+  /// `Null` or `Object` as appropriate.
+  ///
+  /// For example in `List<T> list = const []`, the context type for inferring
+  /// the list should be changed from `List<T>` to `List<Null>` so the constant
+  /// doesn't depend on the type variables `T` (because it can't be
+  /// canonicalized at compile time, as `T` is unknown).
+  ///
+  /// Conceptually this is similar to the "least closure", except instead of
+  /// eliminating `_` ([UnknownInferredType]) it eliminates all type variables
+  /// ([TypeParameterType]).
+  ///
+  /// The equivalent CFE code can be found in the `TypeVariableEliminator`
+  /// class.
   DartType eliminateTypeVariables(DartType type) {
     if (isNonNullableByDefault) {
       return _TypeVariableEliminator(
@@ -669,9 +637,8 @@ class TypeSystemImpl extends TypeSystem {
     return objectQuestion;
   }
 
-  /// Given a type t, if t is an interface type with a call method
-  /// defined, return the function type for the call method, otherwise
-  /// return null.
+  /// Given a type t, if t is an interface type with a call method defined,
+  /// return the function type for the call method, otherwise return null.
   FunctionType getCallMethodType(DartType t) {
     if (t is InterfaceType) {
       return t.lookUpMethod2('call', t.element.library)?.type;
@@ -684,22 +651,21 @@ class TypeSystemImpl extends TypeSystem {
     return _greatestLowerBoundHelper.getGreatestLowerBound(T1, T2);
   }
 
-  /**
-   * Compute the least upper bound of two types.
-   *
-   * https://github.com/dart-lang/language
-   * See `resources/type-system/upper-lower-bounds.md`
-   */
+  /// Compute the least upper bound of two types.
+  ///
+  /// https://github.com/dart-lang/language
+  /// See `resources/type-system/upper-lower-bounds.md`
   @override
   DartType getLeastUpperBound(DartType T1, DartType T2) {
     return _leastUpperBoundHelper.getLeastUpperBound(T1, T2);
   }
 
-  /// Returns the greatest closure of the given type [schema] with respect to `_`.
+  /// Returns the greatest closure of the given type [schema] with respect to
+  /// `_`.
   ///
-  /// The greatest closure of a type schema `P` with respect to `_` is defined as
-  /// `P` with every covariant occurrence of `_` replaced with `Null`, and every
-  /// contravariant occurrence of `_` replaced with `Object`.
+  /// The greatest closure of a type schema `P` with respect to `_` is defined
+  /// as `P` with every covariant occurrence of `_` replaced with `Null`, and
+  /// every contravariant occurrence of `_` replaced with `Object`.
   ///
   /// If the schema contains no instances of `_`, the original schema object is
   /// returned to avoid unnecessary allocation.
@@ -726,17 +692,15 @@ class TypeSystemImpl extends TypeSystem {
     }
   }
 
-  /**
-   * Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
-   * infer an instantiation of F, such that `F<S0, S1, ..., Sn>` <: C.
-   *
-   * This is similar to [inferGenericFunctionOrType], but the return type is
-   * also considered as part of the solution.
-   *
-   * If this function is called with a [contextType] that is also
-   * uninstantiated, or a [fnType] that is already instantiated, it will have
-   * no effect and return `null`.
-   */
+  /// Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
+  /// infer an instantiation of F, such that `F<S0, S1, ..., Sn>` <: C.
+  ///
+  /// This is similar to [inferGenericFunctionOrType], but the return type is
+  /// also considered as part of the solution.
+  ///
+  /// If this function is called with a [contextType] that is also
+  /// uninstantiated, or a [fnType] that is already instantiated, it will have
+  /// no effect and return `null`.
   List<DartType> inferFunctionTypeInstantiation(
       FunctionType contextType, FunctionType fnType,
       {ErrorReporter errorReporter, AstNode errorNode}) {
@@ -828,16 +792,13 @@ class TypeSystemImpl extends TypeSystem {
     );
   }
 
-  /**
-   * Given a [DartType] [type], if [type] is an uninstantiated
-   * parameterized type then instantiate the parameters to their
-   * bounds. See the issue for the algorithm description.
-   *
-   * https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
-   *
-   * TODO(scheglov) Move this method to elements for classes, typedefs,
-   * and generic functions; compute lazily and cache.
-   */
+  /// Given a [DartType] [type], if [type] is an uninstantiated
+  /// parameterized type then instantiate the parameters to their
+  /// bounds. See the issue for the algorithm description.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
+  // TODO(scheglov) Move this method to elements for classes, typedefs,
+  //  and generic functions; compute lazily and cache.
   @override
   DartType instantiateToBounds(DartType type,
       {List<bool> hasError, Map<TypeParameterElement, DartType> knownTypes}) {
@@ -880,12 +841,10 @@ class TypeSystemImpl extends TypeSystem {
     }
   }
 
-  /**
-   * Given uninstantiated [typeFormals], instantiate them to their bounds.
-   * See the issue for the algorithm description.
-   *
-   * https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
-   */
+  /// Given uninstantiated [typeFormals], instantiate them to their bounds.
+  /// See the issue for the algorithm description.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
   @override
   List<DartType> instantiateTypeFormalsToBounds(
       List<TypeParameterElement> typeFormals,
@@ -1419,12 +1378,10 @@ class TypeSystemImpl extends TypeSystem {
     }
   }
 
-  /**
-   * Compute the canonical representation of [T].
-   *
-   * https://github.com/dart-lang/language
-   * See `resources/type-system/normalization.md`
-   */
+  /// Compute the canonical representation of [T].
+  ///
+  /// https://github.com/dart-lang/language
+  /// See `resources/type-system/normalization.md`
   DartType normalize(DartType T) {
     return NormalizeHelper(this).normalize(T);
   }
@@ -1478,14 +1435,12 @@ class TypeSystemImpl extends TypeSystem {
     return NullabilityEliminator.perform(typeProvider, type);
   }
 
-  /**
-   * Merges two types into a single type.
-   * Compute the canonical representation of [T].
-   *
-   * https://github.com/dart-lang/language/
-   * See `accepted/future-releases/nnbd/feature-specification.md`
-   * See `#classes-defined-in-opted-in-libraries`
-   */
+  /// Merges two types into a single type.
+  /// Compute the canonical representation of [T].
+  ///
+  /// https://github.com/dart-lang/language/
+  /// See `accepted/future-releases/nnbd/feature-specification.md`
+  /// See `#classes-defined-in-opted-in-libraries`
   DartType topMerge(DartType T, DartType S) {
     return TopMergeHelper(this).topMerge(T, S);
   }
