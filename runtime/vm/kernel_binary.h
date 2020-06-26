@@ -20,8 +20,8 @@ namespace kernel {
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 
 // Both version numbers are inclusive.
-static const uint32_t kMinSupportedKernelFormatVersion = 29;
-static const uint32_t kMaxSupportedKernelFormatVersion = 42;
+static const uint32_t kMinSupportedKernelFormatVersion = 43;
+static const uint32_t kMaxSupportedKernelFormatVersion = 43;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -325,6 +325,12 @@ class Reader : public ValueObject {
   uint8_t ReadByte() { return buffer()[offset_++]; }
 
   uint8_t PeekByte() { return buffer()[offset_]; }
+
+  void ReadBytes(uint8_t* buffer, uint8_t size) {
+    for (int i = 0; i < size; i++) {
+      buffer[i] = ReadByte();
+    }
+  }
 
   bool ReadBool() { return (ReadByte() & 1) == 1; }
 

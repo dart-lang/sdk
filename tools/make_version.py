@@ -7,18 +7,12 @@
 
 from __future__ import print_function
 
+import argparse
 import hashlib
 import os
 import sys
 import time
-from optparse import OptionParser
 import utils
-
-
-def debugLog(message):
-    print(message, file=sys.stderr)
-    sys.stderr.flush()
-
 
 # When these files change, snapshots created by the VM are potentially no longer
 # backwards-compatible.
@@ -45,141 +39,141 @@ VM_SNAPSHOT_FILES = [
 ]
 
 
-def MakeVersionString(quiet, no_git_hash, custom_for_pub=None):
-    channel = utils.GetChannel()
-
-    if custom_for_pub and channel == 'be':
-        latest = utils.GetLatestDevTag()
-        if not latest:
-            # If grabbing the dev tag fails, then fall back on the VERSION file.
-            latest = utils.GetSemanticSDKVersion(no_git_hash=True)
-        if no_git_hash:
-            version_string = ("%s.%s" % (latest, custom_for_pub))
-        else:
-            git_hash = utils.GetShortGitHash()
-            version_string = ("%s.%s-%s" % (latest, custom_for_pub, git_hash))
-    else:
-        version_string = utils.GetSemanticSDKVersion(no_git_hash=no_git_hash)
-    if not quiet:
-        debugLog("Returning version string: %s " % version_string)
-    return version_string
-
-
 def MakeSnapshotHashString():
     vmhash = hashlib.md5()
     for vmfilename in VM_SNAPSHOT_FILES:
         vmfilepath = os.path.join(utils.DART_DIR, 'runtime', 'vm', vmfilename)
-        with open(vmfilepath) as vmfile:
-            vmhash.update(vmfile.read().encode('utf-8'))
+        with open(vmfilepath, 'rb') as vmfile:
+            vmhash.update(vmfile.read())
     return vmhash.hexdigest()
 
 
-def MakeFile(quiet,
-             output_file,
-             input_file,
-             no_git_hash,
-             custom_for_pub,
-             version_file=None):
-    if version_file:
-        version_string = utils.GetVersion(no_git_hash, version_file)
-    else:
-        version_string = MakeVersionString(quiet, no_git_hash, custom_for_pub)
+def GetSemanticVersionFormat(no_git_hash, custom_for_pub):
+    version_format = '{{SEMANTIC_SDK_VERSION}}'
 
-    version_cc_text = open(input_file).read()
-    version_cc_text = version_cc_text.replace("{{VERSION_STR}}", version_string)
+    if custom_for_pub and utils.GetChannel() == 'be':
+        if no_git_hash:
+            version_format = '{{LATEST}}.{{PUB_CUSTOM}}'
+        else:
+            version_format = '{{LATEST}}.{{PUB_CUSTOM}}-{{GIT_HASH}}'
+
+    return version_format
+
+
+def FormatVersionString(version,
+                        no_git_hash,
+                        custom_for_pub,
+                        version_file=None,
+                        git_revision_file=None):
+    semantic_sdk_version = utils.GetSemanticSDKVersion(no_git_hash,
+                                                       version_file,
+                                                       git_revision_file)
+    semantic_version_format = GetSemanticVersionFormat(no_git_hash,
+                                                       custom_for_pub)
+    version_str = (semantic_sdk_version
+                   if version_file else semantic_version_format)
+
+    version = version.replace('{{VERSION_STR}}', version_str)
+
+    version = version.replace('{{SEMANTIC_SDK_VERSION}}', semantic_sdk_version)
+
+    # If grabbing the dev tag fails, then fall back on the default VERSION file.
+    latest = utils.GetLatestDevTag()
+    if not latest:
+        utils.GetSemanticSDKVersion(no_git_hash=True)
+    version = version.replace('{{LATEST}}', latest)
+
+    if custom_for_pub:
+        version = version.replace('{{PUB_CUSTOM}}', custom_for_pub)
+
+    git_hash = utils.GetShortGitHash()
+    if git_hash is None or len(git_hash) != 10:
+        git_hash = '0000000000'
+    version = version.replace('{{GIT_HASH}}', git_hash)
+
     channel = utils.GetChannel()
-    version_cc_text = version_cc_text.replace("{{CHANNEL}}", channel)
+    version = version.replace('{{CHANNEL}}', channel)
+
     version_time = utils.GetGitTimestamp()
     if no_git_hash or version_time == None:
-        version_time = "Unknown timestamp"
-    version_cc_text = version_cc_text.replace("{{COMMIT_TIME}}", version_time.decode("utf-8"))
+        version_time = 'Unknown timestamp'
+    version = version.replace('{{COMMIT_TIME}}', version_time.decode('utf-8'))
+
     abi_version = utils.GetAbiVersion(version_file)
-    version_cc_text = version_cc_text.replace("{{ABI_VERSION}}", abi_version)
+    version = version.replace('{{ABI_VERSION}}', abi_version)
+
     oldest_supported_abi_version = utils.GetOldestSupportedAbiVersion(
         version_file)
-    version_cc_text = version_cc_text.replace(
-        "{{OLDEST_SUPPORTED_ABI_VERSION}}", oldest_supported_abi_version)
+    version = version.replace('{{OLDEST_SUPPORTED_ABI_VERSION}}',
+                              oldest_supported_abi_version)
+
     snapshot_hash = MakeSnapshotHashString()
-    version_cc_text = version_cc_text.replace("{{SNAPSHOT_HASH}}",
-                                              snapshot_hash)
-    open(output_file, 'w').write(version_cc_text)
-    return True
+    version = version.replace('{{SNAPSHOT_HASH}}', snapshot_hash)
+
+    return version
 
 
-def main(args):
+def main():
     try:
         # Parse input.
-        parser = OptionParser()
-        parser.add_option(
-            "--custom_for_pub",
-            action="store",
-            type="string",
-            help=("Generates a version string that works with pub that includes"
-                  "the given string. This is silently ignored on channels other"
-                  "than be"))
-        parser.add_option(
-            "--input",
-            action="store",
-            type="string",
-            help="input template file.")
-        parser.add_option(
-            "--no_git_hash",
-            action="store_true",
-            default=False,
-            help="Don't try to determine svn revision")
-        parser.add_option(
-            "--output", action="store", type="string", help="output file name")
-        parser.add_option(
-            "-q",
-            "--quiet",
-            action="store_true",
-            default=False,
-            help="disable console output")
-        parser.add_option(
-            "--version-file",
-            action="store",
-            type="string",
-            default=None,
-            help="Version file")
+        parser = argparse.ArgumentParser()
+        parser.add_argument(
+            '--custom_for_pub',
+            help=('Generates a version string that works with pub that '
+                  'includes the given string. This is silently ignored on '
+                  'channels other than be.'))
+        parser.add_argument('--input', help='Input template file.')
+        parser.add_argument('--no_git_hash',
+                            action='store_true',
+                            default=False,
+                            help='Don\'t try to determine VCS revision.')
+        parser.add_argument('--output', help='output file name')
+        parser.add_argument('-q',
+                            '--quiet',
+                            action='store_true',
+                            default=False,
+                            help='DEPRECATED: Does nothing!')
+        parser.add_argument('--version-file', help='Path to the VERSION file.')
+        parser.add_argument('--git-revision-file',
+                            help='Path to the GIT_REVISION file.')
+        parser.add_argument(
+            '--format',
+            default='{{VERSION_STR}}',
+            help='Version format used if no input template is given.')
 
-        (options, args) = parser.parse_args()
+        args = parser.parse_args()
 
         # If there is no input template, then write the bare version string to
-        # options.output. If there is no options.output, then write the version
+        # args.output. If there is no args.output, then write the version
         # string to stdout.
-        if not options.input:
-            version_string = MakeVersionString(
-                options.quiet, options.no_git_hash, options.custom_for_pub)
-            if options.output:
-                open(options.output, 'w').write(version_string)
-            else:
-                print(version_string)
-            return 0
 
-        if not options.output:
-            sys.stderr.write('--output not specified\n')
-            return -1
-        if not options.input:
-            sys.stderr.write('--input not specified\n')
-            return -1
+        version_template = ''
+        if args.input:
+            version_template = open(args.input).read()
+        elif not args.format is None:
+            version_template = args.format
+        else:
+            raise 'No version template given! Set either --input or --format.'
 
-        files = []
-        for arg in args:
-            files.append(arg)
+        version = FormatVersionString(version_template, args.no_git_hash,
+                                      args.custom_for_pub, args.version_file,
+                                      args.git_revision_file)
 
-        if not MakeFile(options.quiet, options.output, options.input,
-                        options.no_git_hash, options.custom_for_pub,
-                        options.version_file):
-            return -1
+        if args.output:
+            with open(args.output, 'w') as fh:
+                fh.write(version)
+        else:
+            sys.stdout.write(version)
 
         return 0
+
     except Exception as inst:
         sys.stderr.write('make_version.py exception\n')
         sys.stderr.write(str(inst))
         sys.stderr.write('\n')
+
         return -1
 
 
 if __name__ == '__main__':
-    exit_code = main(sys.argv)
-    sys.exit(exit_code)
+    sys.exit(main())

@@ -297,7 +297,11 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
     reader.set_raw_buffer(program->kernel_data() + subprogram_start);
     reader.set_size(subprogram_end - subprogram_start);
     reader.set_offset(0);
-    std::unique_ptr<Program> subprogram = Program::ReadFrom(&reader);
+    const char* error = nullptr;
+    std::unique_ptr<Program> subprogram = Program::ReadFrom(&reader, &error);
+    if (subprogram == nullptr) {
+      FATAL1("Failed to load kernel file: %s", error);
+    }
     ASSERT(subprogram->is_single_program());
     KernelLoader loader(subprogram.get(), &uri_to_source_table);
     Object& load_result = Object::Handle(loader.LoadProgram(false));
@@ -849,7 +853,8 @@ void KernelLoader::FindModifiedLibraries(Program* program,
                                          intptr_t* p_num_classes,
                                          intptr_t* p_num_procedures) {
   LongJumpScope jump;
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   if (setjmp(*jump.Set()) == 0) {
     if (force_reload) {
       // If a reload is being forced we mark all libraries as having
@@ -894,7 +899,11 @@ void KernelLoader::FindModifiedLibraries(Program* program,
       reader.set_raw_buffer(program->kernel_data() + subprogram_start);
       reader.set_size(subprogram_end - subprogram_start);
       reader.set_offset(0);
-      std::unique_ptr<Program> subprogram = Program::ReadFrom(&reader);
+      const char* error = nullptr;
+      std::unique_ptr<Program> subprogram = Program::ReadFrom(&reader, &error);
+      if (subprogram == nullptr) {
+        FATAL1("Failed to load kernel file: %s", error);
+      }
       ASSERT(subprogram->is_single_program());
       KernelLoader loader(subprogram.get(), /*uri_to_source_table=*/nullptr);
       loader.walk_incremental_kernel(modified_libs, is_empty_program,
