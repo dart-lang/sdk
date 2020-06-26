@@ -6939,6 +6939,22 @@ FunctionPtr Function::FfiCSignature() const {
   return FfiTrampolineData::Cast(obj).c_signature();
 }
 
+bool Function::FfiCSignatureContainsHandles() const {
+  ASSERT(IsFfiTrampoline());
+  const Function& c_signature = Function::Handle(FfiCSignature());
+  const intptr_t num_params = c_signature.num_fixed_parameters();
+  for (intptr_t i = 0; i < num_params; i++) {
+    const bool is_handle =
+        AbstractType::Handle(c_signature.ParameterTypeAt(i)).type_class_id() ==
+        kFfiHandleCid;
+    if (is_handle) {
+      return true;
+    }
+  }
+  return AbstractType::Handle(c_signature.result_type()).type_class_id() ==
+         kFfiHandleCid;
+}
+
 int32_t Function::FfiCallbackId() const {
   ASSERT(IsFfiTrampoline());
   const Object& obj = Object::Handle(raw_ptr()->data_);

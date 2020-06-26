@@ -23,6 +23,7 @@ void main() {
   testDeepException2();
   testNull();
   testDeepRecursive();
+  testNoHandlePropagateError();
 }
 
 void testHandle() {
@@ -220,6 +221,19 @@ void testDeepRecursive() {
   Expect.isTrue(identical(someObject, result));
 }
 
+void testNoHandlePropagateError() {
+  bool throws = false;
+  try {
+    final result = propagateErrorWithoutHandle(exceptionHandleCallbackPointer);
+    print(result);
+  } catch (e) {
+    throws = true;
+    print("caught ($e)");
+    Expect.isTrue(identical(someException, e));
+  }
+  Expect.isTrue(throws);
+}
+
 final testLibrary = dlopenPlatformSpecific("ffi_test_functions");
 
 final passObjectToC = testLibrary.lookupFunction<Handle Function(Handle),
@@ -247,3 +261,8 @@ final handleRecursion = testLibrary.lookupFunction<
         Handle, Pointer<NativeFunction<Handle Function(Int64)>>, Int64),
     Object Function(Object, Pointer<NativeFunction<Handle Function(Int64)>>,
         int)>("HandleRecursion");
+
+final propagateErrorWithoutHandle = testLibrary.lookupFunction<
+        Int64 Function(Pointer<NativeFunction<Handle Function()>>),
+        int Function(Pointer<NativeFunction<Handle Function()>>)>(
+    "PropagateErrorWithoutHandle");

@@ -2953,6 +2953,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
 
   const auto& marshaller = *new (Z) compiler::ffi::CallMarshaller(Z, function);
 
+  const bool signature_contains_handles = marshaller.ContainsHandles();
+
   BuildArgumentTypeChecks(TypeChecksToBuild::kCheckAllTypeParameterBounds,
                           &function_body, &function_body, &function_body);
 
@@ -2976,14 +2978,16 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
     function_body += Drop();
   }
 
-  // Wrap in Try catch to transition from Native to Generated on a throw from
-  // the dart_api.
-  const intptr_t try_handler_index = AllocateTryIndex();
-  Fragment body = TryCatch(try_handler_index);
-  ++try_depth_;
-
+  Fragment body;
+  intptr_t try_handler_index = -1;
   LocalVariable* api_local_scope = nullptr;
-  if (marshaller.ContainsHandles()) {
+  if (signature_contains_handles) {
+    // Wrap in Try catch to transition from Native to Generated on a throw from
+    // the dart_api.
+    try_handler_index = AllocateTryIndex();
+    body += TryCatch(try_handler_index);
+    ++try_depth_;
+
     body += EnterHandleScope();
     api_local_scope = MakeTemporary();
   }
@@ -3020,29 +3024,34 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
 
   body += FfiConvertArgumentToDart(marshaller, compiler::ffi::kResultIndex);
 
-  if (marshaller.ContainsHandles()) {
+  if (signature_contains_handles) {
     body += DropTempsPreserveTop(1);  // Drop api_local_scope.
     body += ExitHandleScope();
   }
 
   body += Return(TokenPosition::kNoSource);
 
-  --try_depth_;
+  if (signature_contains_handles) {
+    --try_depth_;
+  }
+
   function_body += body;
 
-  ++catch_depth_;
-  Fragment catch_body =
-      CatchBlockEntry(Array::empty_array(), try_handler_index,
-                      /*needs_stacktrace=*/true, /*is_synthesized=*/true);
-  if (marshaller.ContainsHandles()) {
+  if (signature_contains_handles) {
+    ++catch_depth_;
+    Fragment catch_body =
+        CatchBlockEntry(Array::empty_array(), try_handler_index,
+                        /*needs_stacktrace=*/true, /*is_synthesized=*/true);
+
     // TODO(41984): If we want to pass in the handle scope, move it out
     // of the try catch.
     catch_body += ExitHandleScope();
+
+    catch_body += LoadLocal(CurrentException());
+    catch_body += LoadLocal(CurrentStackTrace());
+    catch_body += RethrowException(TokenPosition::kNoSource, try_handler_index);
+    --catch_depth_;
   }
-  catch_body += LoadLocal(CurrentException());
-  catch_body += LoadLocal(CurrentStackTrace());
-  catch_body += RethrowException(TokenPosition::kNoSource, try_handler_index);
-  --catch_depth_;
 
   return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
                            prologue_info);

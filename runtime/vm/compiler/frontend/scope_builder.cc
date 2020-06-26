@@ -420,14 +420,19 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
                                             : Object::dynamic_type().raw()));
         scope_->InsertParameterAt(i, variable);
       }
-      current_function_async_marker_ = FunctionNodeHelper::kSync;
-      ++depth_.try_;
-      AddTryVariables();
-      --depth_.try_;
-      ++depth_.catch_;
-      AddCatchVariables();
-      FinalizeCatchVariables();
-      --depth_.catch_;
+      // Callbacks and calls with handles need try/catch variables.
+      if (function.IsFfiTrampoline() &&
+          (function.FfiCallbackTarget() != Function::null() ||
+           function.FfiCSignatureContainsHandles())) {
+        current_function_async_marker_ = FunctionNodeHelper::kSync;
+        ++depth_.try_;
+        AddTryVariables();
+        --depth_.try_;
+        ++depth_.catch_;
+        AddCatchVariables();
+        FinalizeCatchVariables();
+        --depth_.catch_;
+      }
       break;
     case FunctionLayout::kSignatureFunction:
     case FunctionLayout::kIrregexpFunction:

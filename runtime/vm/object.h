@@ -2504,6 +2504,8 @@ class Function : public Object {
   // Can only be used on FFI trampolines.
   FunctionPtr FfiCSignature() const;
 
+  bool FfiCSignatureContainsHandles() const;
+
   // Can only be called on FFI trampolines.
   // -1 for Dart -> native calls.
   int32_t FfiCallbackId() const;
