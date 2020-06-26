@@ -552,19 +552,19 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitAssignmentExpression(AssignmentExpression node) {
+  void visitAssignmentExpression(AssignmentExpression node) {
     recordOperatorReference(node.operator, node.staticElement);
     super.visitAssignmentExpression(node);
   }
 
   @override
-  visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryExpression(BinaryExpression node) {
     recordOperatorReference(node.operator, node.staticElement);
     super.visitBinaryExpression(node);
   }
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     _addSubtypeForClassDeclaration(node);
     if (node.extendsClause == null) {
       ClassElement objectElement = node.declaredElement.supertype?.element;
@@ -576,14 +576,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias(ClassTypeAlias node) {
     _addSubtypeForClassTypeAlis(node);
     recordIsAncestorOf(node.declaredElement);
     super.visitClassTypeAlias(node);
   }
 
   @override
-  visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     SimpleIdentifier fieldName = node.fieldName;
     if (fieldName != null) {
       Element element = fieldName.staticElement;
@@ -593,7 +593,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitConstructorName(ConstructorName node) {
+  void visitConstructorName(ConstructorName node) {
     ConstructorElement element = node.staticElement;
     element = _getActualConstructorElement(element);
     // record relation
@@ -611,14 +611,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitExportDirective(ExportDirective node) {
+  void visitExportDirective(ExportDirective node) {
     ExportElement element = node.element;
     recordUriReference(element?.exportedLibrary, node.uri);
     super.visitExportDirective(node);
   }
 
   @override
-  visitExpression(Expression node) {
+  void visitExpression(Expression node) {
     ParameterElement parameterElement = node.staticParameterElement;
     if (parameterElement != null && parameterElement.isOptionalPositional) {
       recordRelationOffset(parameterElement, IndexRelationKind.IS_REFERENCED_BY,
@@ -628,26 +628,26 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitExtendsClause(ExtendsClause node) {
+  void visitExtendsClause(ExtendsClause node) {
     recordSuperType(node.superclass, IndexRelationKind.IS_EXTENDED_BY);
   }
 
   @override
-  visitImplementsClause(ImplementsClause node) {
+  void visitImplementsClause(ImplementsClause node) {
     for (TypeName typeName in node.interfaces) {
       recordSuperType(typeName, IndexRelationKind.IS_IMPLEMENTED_BY);
     }
   }
 
   @override
-  visitImportDirective(ImportDirective node) {
+  void visitImportDirective(ImportDirective node) {
     ImportElement element = node.element;
     recordUriReference(element?.importedLibrary, node.uri);
     super.visitImportDirective(node);
   }
 
   @override
-  visitIndexExpression(IndexExpression node) {
+  void visitIndexExpression(IndexExpression node) {
     MethodElement element = node.staticElement;
     if (element is MethodElement) {
       Token operator = node.leftBracket;
@@ -657,10 +657,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitLibraryIdentifier(LibraryIdentifier node) {}
+  void visitLibraryIdentifier(LibraryIdentifier node) {}
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
+  void visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier name = node.methodName;
     Element element = name.staticElement;
     // unresolved name invocation
@@ -679,21 +679,21 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration(MixinDeclaration node) {
     _addSubtypeForMixinDeclaration(node);
     recordIsAncestorOf(node.declaredElement);
     super.visitMixinDeclaration(node);
   }
 
   @override
-  visitOnClause(OnClause node) {
+  void visitOnClause(OnClause node) {
     for (TypeName typeName in node.superclassConstraints) {
       recordSuperType(typeName, IndexRelationKind.IS_IMPLEMENTED_BY);
     }
   }
 
   @override
-  visitPartDirective(PartDirective node) {
+  void visitPartDirective(PartDirective node) {
     CompilationUnitElement element = node.element;
     if (element?.source != null) {
       recordUriReference(element, node.uri);
@@ -702,19 +702,20 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitPostfixExpression(PostfixExpression node) {
+  void visitPostfixExpression(PostfixExpression node) {
     recordOperatorReference(node.operator, node.staticElement);
     super.visitPostfixExpression(node);
   }
 
   @override
-  visitPrefixExpression(PrefixExpression node) {
+  void visitPrefixExpression(PrefixExpression node) {
     recordOperatorReference(node.operator, node.staticElement);
     super.visitPrefixExpression(node);
   }
 
   @override
-  visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+  void visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
     ConstructorElement element = node.staticElement;
     if (node.constructorName != null) {
       int offset = node.period.offset;
@@ -730,7 +731,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     // name in declaration
     if (node.inDeclarationContext()) {
       return;
@@ -776,7 +777,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     ConstructorElement element = node.staticElement;
     if (node.constructorName != null) {
       int offset = node.period.offset;
@@ -792,7 +793,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitTypeName(TypeName node) {
+  void visitTypeName(TypeName node) {
     AstNode parent = node.parent;
     if (parent is ClassTypeAlias && parent.superclass == node) {
       recordSuperType(node, IndexRelationKind.IS_EXTENDED_BY);
@@ -802,7 +803,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitWithClause(WithClause node) {
+  void visitWithClause(WithClause node) {
     for (TypeName typeName in node.mixinTypes) {
       recordSuperType(typeName, IndexRelationKind.IS_MIXED_IN_BY);
     }

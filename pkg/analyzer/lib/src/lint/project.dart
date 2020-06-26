@@ -121,7 +121,7 @@ class _ApiModel {
     return false;
   }
 
-  _calculate() async {
+  void _calculate() async {
     if (sources == null || sources.isEmpty) {
       return;
     }

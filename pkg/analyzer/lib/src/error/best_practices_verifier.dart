@@ -165,7 +165,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     } else if (element?.isVisibleForTemplate == true ||
         element?.isVisibleForTesting == true) {
       if (parent is Declaration) {
-        reportInvalidAnnotation(Element declaredElement) {
+        void reportInvalidAnnotation(Element declaredElement) {
           _errorReporter.reportErrorForNode(
               HintCode.INVALID_VISIBILITY_ANNOTATION,
               node,

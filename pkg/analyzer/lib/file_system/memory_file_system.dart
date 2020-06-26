@@ -569,7 +569,7 @@ abstract class _MemoryResource implements Resource {
   }
 
   @override
-  get hashCode => path.hashCode;
+  int get hashCode => path.hashCode;
 
   @override
   Folder get parent {

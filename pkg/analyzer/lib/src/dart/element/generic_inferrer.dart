@@ -558,7 +558,7 @@ class _TypeConstraintFromArgument extends _TypeConstraintOrigin {
       : super(isNonNullableByDefault: isNonNullableByDefault);
 
   @override
-  formatError() {
+  List<String> formatError() {
     // TODO(jmesserly): we should highlight the span. That would be more useful.
     // However in summary code it doesn't look like the AST node with span is
     // available.
@@ -592,7 +592,7 @@ class _TypeConstraintFromExtendsClause extends _TypeConstraintOrigin {
       : super(isNonNullableByDefault: isNonNullableByDefault);
 
   @override
-  formatError() {
+  List<String> formatError() {
     return [
       "Type parameter '${typeParam.name}'",
       "declared to extend '${_typeStr(extendsType)}'."
@@ -609,7 +609,7 @@ class _TypeConstraintFromFunctionContext extends _TypeConstraintOrigin {
       : super(isNonNullableByDefault: isNonNullableByDefault);
 
   @override
-  formatError() {
+  List<String> formatError() {
     return [
       "Function type",
       "declared as '${_typeStr(functionType)}'",
@@ -627,7 +627,7 @@ class _TypeConstraintFromReturnType extends _TypeConstraintOrigin {
       : super(isNonNullableByDefault: isNonNullableByDefault);
 
   @override
-  formatError() {
+  List<String> formatError() {
     return [
       "Return type",
       "declared as '${_typeStr(declaredType)}'",

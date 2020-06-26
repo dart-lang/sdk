@@ -54,7 +54,7 @@ abstract class ParserAdapter implements Parser {
 
   /// Append the given token to the end of the token stream,
   /// and update the token's offset.
-  appendToken(Token token, Token newToken) {
+  void appendToken(Token token, Token newToken) {
     while (!token.next.isEof) {
       token = token.next;
     }
@@ -386,5 +386,5 @@ class _Parser2 extends ParserAdapter {
             allowNativeClause: allowNativeClause);
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

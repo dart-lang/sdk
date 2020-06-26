@@ -1087,7 +1087,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     _token(maybe);
   }
 
-  _typedLiteral(TypedLiteral node) {
+  void _typedLiteral(TypedLiteral node) {
     _token(node.constKeyword);
     node.typeArguments?.accept(this);
   }

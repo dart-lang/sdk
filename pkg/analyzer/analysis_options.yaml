@@ -1,15 +1,12 @@
 include: package:pedantic/analysis_options.1.9.0.yaml
 
 analyzer:
-  # This currently finds ~4,500 implicit-casts issues when enabled.
-  # strong-mode:
-  #   implicit-casts: false
   errors:
     # Increase the severity of the unused_import hint.
     unused_import: warning
-    # There are currently 140 violations in lib/.
+    # There are currently 10k violations in test/ and tool/.
     always_declare_return_types: ignore
-    # There are currently 5500 violations in lib/. This just does not fit well
+    # There are currently 5000 violations in lib/. This just does not fit well
     # with the analyzer team's style.
     omit_local_variable_types: ignore
     # There are currently 3360 violations in lib/.
@@ -17,11 +14,10 @@ analyzer:
     # Ignoring "style" lint rules from pedantic for now. There are pre-existing
     # violations that need to be cleaned up. Each one can be cleaned up and
     # enabled according to the value provided.
-    # TODO(srawlins): At the time of writing, 1700 violations in lib/. The fix
-    # is mechanical, via `dartfmt --fix-doc-comments`, but not worth the churn
-    # today.
+    # TODO(srawlins): At the time of writing, 500 violations in lib/. The fix
+    # is mechanical, via `dartfmt --fix-doc-comments`.
     slash_for_doc_comments: ignore
-    # There are currently 1980 violations in lib/.
+    # There are currently 2000 violations in lib/.
     unnecessary_this: ignore
 
 linter:

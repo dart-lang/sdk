@@ -357,7 +357,7 @@ abstract class _PhysicalResource implements Resource {
   }
 
   @override
-  get hashCode => path.hashCode;
+  int get hashCode => path.hashCode;
 
   @override
   Folder get parent {

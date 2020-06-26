@@ -79,7 +79,8 @@ class ElementFactory {
     return element;
   }
 
-  static classTypeAlias(String typeName, InterfaceType superclassType,
+  static ClassElementImpl classTypeAlias(
+      String typeName, InterfaceType superclassType,
       [List<String> parameterNames]) {
     ClassElementImpl element =
         classElement(typeName, superclassType, parameterNames);

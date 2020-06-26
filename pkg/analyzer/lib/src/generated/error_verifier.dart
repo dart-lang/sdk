@@ -5208,11 +5208,11 @@ class HiddenElements {
 }
 
 /// Recursively visits an AST, looking for method invocations.
-class _InvocationCollector extends RecursiveAstVisitor {
+class _InvocationCollector extends RecursiveAstVisitor<void> {
   final List<String> superCalls = <String>[];
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
+  void visitMethodInvocation(MethodInvocation node) {
     if (node.target is SuperExpression) {
       superCalls.add(node.methodName.name);
     }
@@ -5221,13 +5221,13 @@ class _InvocationCollector extends RecursiveAstVisitor {
 }
 
 /// Recursively visits a type annotation, looking uninstantiated bounds.
-class _UninstantiatedBoundChecker extends RecursiveAstVisitor {
+class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {
   final ErrorReporter _errorReporter;
 
   _UninstantiatedBoundChecker(this._errorReporter);
 
   @override
-  visitTypeName(node) {
+  void visitTypeName(node) {
     var typeArgs = node.typeArguments;
     if (typeArgs != null) {
       typeArgs.accept(this);

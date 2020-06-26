@@ -218,7 +218,7 @@ class _FunctionElementForLink_Initializer
   }
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _InferenceDependenciesCollector extends RecursiveAstVisitor<void> {

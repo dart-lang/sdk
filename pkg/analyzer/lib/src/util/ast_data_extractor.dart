@@ -9,9 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 /// Abstract IR visitor for computing data corresponding to a node or element,
 /// and record it with a generic [Id]
-/// TODO(paulberry): if I try to extend GeneralizingAstVisitor<void>, the VM
-/// crashes.
-abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
+abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
     with DataRegistry<T> {
   final Uri uri;
 
@@ -110,46 +108,46 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
   }
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     computeForClass(node, createClassId(node));
-    return super.visitClassDeclaration(node);
+    super.visitClassDeclaration(node);
   }
 
   @override
-  visitCollectionElement(CollectionElement node) {
+  void visitCollectionElement(CollectionElement node) {
     computeForCollectionElement(node, computeDefaultNodeId(node));
     super.visitCollectionElement(node);
   }
 
   @override
-  visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     var library = node.declaredElement.library;
     computeForLibrary(library, createLibraryId(library));
-    return super.visitCompilationUnit(node);
+    super.visitCompilationUnit(node);
   }
 
   @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     computeForMember(node, createMemberId(node));
-    return super.visitConstructorDeclaration(node);
+    super.visitConstructorDeclaration(node);
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     if (node.parent is CompilationUnit) {
       computeForMember(node, createMemberId(node));
     }
-    return super.visitFunctionDeclaration(node);
+    super.visitFunctionDeclaration(node);
   }
 
   @override
-  visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     computeForMember(node, createMemberId(node));
-    return super.visitMethodDeclaration(node);
+    super.visitMethodDeclaration(node);
   }
 
   @override
-  visitStatement(Statement node) {
+  void visitStatement(Statement node) {
     computeForStatement(
         node,
         node is ExpressionStatement
@@ -159,13 +157,13 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     if (node.parent.parent is TopLevelVariableDeclaration) {
       computeForMember(node, createMemberId(node));
     } else if (node.parent.parent is FieldDeclaration) {
       computeForMember(node, createMemberId(node));
     }
-    return super.visitVariableDeclaration(node);
+    super.visitVariableDeclaration(node);
   }
 
   int _nodeOffset(AstNode node) {

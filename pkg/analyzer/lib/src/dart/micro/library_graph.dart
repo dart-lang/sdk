@@ -573,7 +573,7 @@ class _FakeSource implements Source {
   _FakeSource(this.fullName, this.uri);
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Node in [_LibraryWalker].

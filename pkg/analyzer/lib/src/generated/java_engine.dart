@@ -54,7 +54,7 @@ class StringUtilities {
     return lineStarts;
   }
 
-  static endsWith3(String str, int c1, int c2, int c3) {
+  static bool endsWith3(String str, int c1, int c2, int c3) {
     var length = str.length;
     return length >= 3 &&
         str.codeUnitAt(length - 3) == c1 &&
@@ -62,7 +62,7 @@ class StringUtilities {
         str.codeUnitAt(length - 1) == c3;
   }
 
-  static endsWithChar(String str, int c) {
+  static bool endsWithChar(String str, int c) {
     int length = str.length;
     return length > 0 && str.codeUnitAt(length - 1) == c;
   }
@@ -194,20 +194,21 @@ class StringUtilities {
     return buffer.toString();
   }
 
-  static startsWith2(String str, int start, int c1, int c2) {
+  static bool startsWith2(String str, int start, int c1, int c2) {
     return str.length - start >= 2 &&
         str.codeUnitAt(start) == c1 &&
         str.codeUnitAt(start + 1) == c2;
   }
 
-  static startsWith3(String str, int start, int c1, int c2, int c3) {
+  static bool startsWith3(String str, int start, int c1, int c2, int c3) {
     return str.length - start >= 3 &&
         str.codeUnitAt(start) == c1 &&
         str.codeUnitAt(start + 1) == c2 &&
         str.codeUnitAt(start + 2) == c3;
   }
 
-  static startsWith4(String str, int start, int c1, int c2, int c3, int c4) {
+  static bool startsWith4(
+      String str, int start, int c1, int c2, int c3, int c4) {
     return str.length - start >= 4 &&
         str.codeUnitAt(start) == c1 &&
         str.codeUnitAt(start + 1) == c2 &&
@@ -215,7 +216,7 @@ class StringUtilities {
         str.codeUnitAt(start + 3) == c4;
   }
 
-  static startsWith5(
+  static bool startsWith5(
       String str, int start, int c1, int c2, int c3, int c4, int c5) {
     return str.length - start >= 5 &&
         str.codeUnitAt(start) == c1 &&
@@ -225,7 +226,7 @@ class StringUtilities {
         str.codeUnitAt(start + 4) == c5;
   }
 
-  static startsWith6(
+  static bool startsWith6(
       String str, int start, int c1, int c2, int c3, int c4, int c5, int c6) {
     return str.length - start >= 6 &&
         str.codeUnitAt(start) == c1 &&

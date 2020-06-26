@@ -573,14 +573,14 @@ class SubtypeResult {
 }
 
 /// A visitor that finds the deep-most [Element] that contains the [offset].
-class _ContainingElementFinder extends GeneralizingElementVisitor {
+class _ContainingElementFinder extends GeneralizingElementVisitor<void> {
   final int offset;
   Element containingElement;
 
   _ContainingElementFinder(this.offset);
 
   @override
-  visitElement(Element element) {
+  void visitElement(Element element) {
     if (element is ElementImpl) {
       if (element.codeOffset != null &&
           element.codeOffset <= offset &&
@@ -593,7 +593,7 @@ class _ContainingElementFinder extends GeneralizingElementVisitor {
 }
 
 /// Visitor that adds [SearchResult]s for references to the [importElement].
-class _ImportElementReferencesVisitor extends RecursiveAstVisitor {
+class _ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
   final List<SearchResult> results = <SearchResult>[];
 
   final ImportElement importElement;
@@ -608,13 +608,13 @@ class _ImportElementReferencesVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitExportDirective(ExportDirective node) {}
+  void visitExportDirective(ExportDirective node) {}
 
   @override
-  visitImportDirective(ImportDirective node) {}
+  void visitImportDirective(ImportDirective node) {}
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       return;
     }
@@ -869,7 +869,7 @@ class _IndexRequest {
 /// Visitor that adds [SearchResult]s for local elements of a block, method,
 /// class or a library - labels, local functions, local variables and
 /// parameters, type parameters, import prefixes.
-class _LocalReferencesVisitor extends RecursiveAstVisitor {
+class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
   final List<SearchResult> results = <SearchResult>[];
 
   final Element element;
@@ -878,7 +878,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor {
   _LocalReferencesVisitor(this.element, this.enclosingUnitElement);
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       return;
     }

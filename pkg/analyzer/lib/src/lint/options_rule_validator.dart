@@ -73,7 +73,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     return errors;
   }
 
-  validateRules(YamlNode rules, ErrorReporter reporter) {
+  void validateRules(YamlNode rules, ErrorReporter reporter) {
     if (rules is YamlList) {
       final seenRules = <String>{};
 

@@ -7554,7 +7554,7 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
   }
 
   @override
-  accept(AstVisitor visitor) {
+  void accept(AstVisitor visitor) {
     int length = _elements.length;
     for (var i = 0; i < length; i++) {
       _elements[i].accept(visitor);

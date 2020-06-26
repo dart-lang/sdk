@@ -143,7 +143,7 @@ class DartLinter implements AnalysisErrorListener {
   }
 
   @override
-  onError(AnalysisError error) => errors.add(error);
+  void onError(AnalysisError error) => errors.add(error);
 
   Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
       lintPubspecSource(
@@ -796,7 +796,7 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   }
 
   @override
-  onError(AnalysisError error) => errors.add(error);
+  void onError(AnalysisError error) => errors.add(error);
 
   @override
   Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>

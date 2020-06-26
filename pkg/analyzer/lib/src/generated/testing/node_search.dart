@@ -20,7 +20,7 @@ class _DeclaredIdentifiersByNameFinder extends RecursiveAstVisitor<void> {
   _DeclaredIdentifiersByNameFinder(this.name);
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.name == name && node.inDeclarationContext()) {
       identifiers.add(node);
     }

@@ -20,7 +20,7 @@ class _ElementsByNameFinder extends RecursiveAstVisitor<void> {
   _ElementsByNameFinder(this.name);
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.name == name && node.inDeclarationContext()) {
       elements.add(node.staticElement);
     }

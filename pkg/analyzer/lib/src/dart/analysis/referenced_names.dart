@@ -170,14 +170,14 @@ class _LocalNameScope {
   }
 }
 
-class _ReferencedNamesComputer extends GeneralizingAstVisitor {
+class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
   final Set<String> names = <String>{};
   final Set<String> importPrefixNames = <String>{};
 
   _LocalNameScope localScope = _LocalNameScope(null);
 
   @override
-  visitBlock(Block node) {
+  void visitBlock(Block node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forBlock(localScope, node);
@@ -188,7 +188,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor {
   }
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forClass(localScope, node);
@@ -199,7 +199,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor {
   }
 
   @override
-  visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias(ClassTypeAlias node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forClassTypeAlias(localScope, node);
@@ -210,13 +210,13 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor {
   }
 
   @override
-  visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     localScope = _LocalNameScope.forUnit(node);
     super.visitCompilationUnit(node);
   }
 
   @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forConstructor(localScope, node);
@@ -227,14 +227,14 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor {
   }
 
   @override
-  visitConstructorName(ConstructorName node) {
+  void visitConstructorName(ConstructorName node) {
     if (node.parent is! ConstructorDeclaration) {
       super.visitConstructorName(node);
     }
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forFunction(localScope, node);
@@ -245,7 +245,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor {
   }
 
   @override
-  visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forFunctionTypeAlias(localScope, node);
@@ -256,7 +256,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor {
   }
 
   @override
-  visitImportDirective(ImportDirective node) {
+  void visitImportDirective(ImportDirective node) {
     if (node.prefix != null) {
       importPrefixNames.add(node.prefix.name);
     }
@@ -264,7 +264,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor {
   }
 
   @override
-  visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forMethod(localScope, node);
@@ -275,7 +275,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor {
   }
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     // Ignore all declarations.
     if (node.inDeclarationContext()) {
       return;

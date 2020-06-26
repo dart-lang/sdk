@@ -210,7 +210,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   /// Returns `true` iff [nativeType] is a struct type.
-  _isStructClass(DartType nativeType) {
+  bool _isStructClass(DartType nativeType) {
     if (nativeType is InterfaceType) {
       final superClassElement = nativeType.element.supertype.element;
       if (superClassElement.library.name == 'dart.ffi') {

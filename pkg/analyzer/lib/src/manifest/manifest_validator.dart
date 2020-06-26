@@ -75,7 +75,7 @@ class ManifestValidator {
   }
 
   /// Validate the 'activity' tags.
-  _validateActivities(List<Element> activites, ErrorReporter reporter) {
+  void _validateActivities(List<Element> activites, ErrorReporter reporter) {
     activites.forEach((activity) {
       var attributes = activity.attributes;
       if (attributes.containsKey(ATTRIBUTE_SCREEN_ORIENTATION)) {
@@ -95,7 +95,7 @@ class ManifestValidator {
   }
 
   /// Validate the `uses-feature` tags.
-  _validateFeatures(List<Element> features, ErrorReporter reporter) {
+  void _validateFeatures(List<Element> features, ErrorReporter reporter) {
     var unsupported = features
         .where((element) => UNSUPPORTED_HARDWARE_FEATURES
             .contains(element.attributes[ANDROID_NAME]))
@@ -120,7 +120,7 @@ class ManifestValidator {
   }
 
   /// Validate the `uses-permission` tags.
-  _validatePermissions(List<Element> permissions, List<Element> features,
+  void _validatePermissions(List<Element> permissions, List<Element> features,
       ErrorReporter reporter) {
     permissions.forEach((permission) {
       if (permission.attributes[ANDROID_NAME] == ANDROID_PERMISSION_CAMERA) {
@@ -145,7 +145,7 @@ class ManifestValidator {
   }
 
   /// Validate the presence/absence of the touchscreen feature tag.
-  _validateTouchScreenFeature(
+  void _validateTouchScreenFeature(
       List<Element> features, Element manifest, ErrorReporter reporter) {
     var feature = features.firstWhere(
         (element) =>

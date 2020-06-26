@@ -39,7 +39,7 @@ class _MockAnalysisContext implements AnalysisContext {
   final SourceFactory sourceFactory = _MockSourceFactory();
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _MockAnalysisSession implements AnalysisSessionImpl {
@@ -47,7 +47,7 @@ class _MockAnalysisSession implements AnalysisSessionImpl {
   final ClassHierarchy classHierarchy = ClassHierarchy();
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _MockSource implements Source {
@@ -63,7 +63,7 @@ class _MockSource implements Source {
   String get fullName => uri.path;
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _MockSourceFactory implements SourceFactory {
@@ -74,5 +74,5 @@ class _MockSourceFactory implements SourceFactory {
   }
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -72,7 +72,7 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   }
 
   @override
-  operator ==(Object other) {
+  bool operator ==(Object other) {
     if (other is ExperimentStatus) {
       if (_enableFlags.length != other._enableFlags.length) return false;
       for (int i = 0; i < _enableFlags.length; i++) {
