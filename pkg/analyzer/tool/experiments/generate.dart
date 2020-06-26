@@ -1,7 +1,5 @@
-/**
- * This file contains code to generate experimental flags
- * based on the information in tools/experimental_features.yaml.
- */
+/// This file contains code to generate experimental flags
+/// based on the information in tools/experimental_features.yaml.
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart'

@@ -48,9 +48,7 @@ void main(List<String> args) {
   }
 }
 
-/**
- * The name of the SDK summaries builder application.
- */
+/// The name of the SDK summaries builder application.
 const BINARY_NAME = "build_sdk_summaries";
 
 void _buildSummary(String sdkPath, String outPath) {
@@ -64,9 +62,7 @@ void _buildSummary(String sdkPath, String outPath) {
   print('\tDone in ${sw.elapsedMilliseconds} ms.');
 }
 
-/**
- * Print information about how to use the SDK summaries builder.
- */
+/// Print information about how to use the SDK summaries builder.
 void _printUsage() {
   print('Usage: $BINARY_NAME command arguments');
   print('Where command can be one of the following:');

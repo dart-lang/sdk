@@ -8,10 +8,8 @@ import 'package:path/path.dart';
 import '../../test/utils/package_root.dart' as package_root;
 import 'generate.dart';
 
-/**
- * Check that the target file has been code generated.  If it hasn't tell the
- * user to run generate.dart.
- */
+/// Check that the target file has been code generated.  If it hasn't tell the
+/// user to run generate.dart.
 main() async {
   var idlFolderPath = normalize(
       join(package_root.packageRoot, 'analyzer', 'lib', 'src', 'summary'));
