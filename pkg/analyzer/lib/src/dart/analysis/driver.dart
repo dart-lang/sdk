@@ -235,27 +235,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The [FileTracker] used by this driver.
   FileTracker _fileTracker;
 
-  /// When this flag is set to `true`, the set of analyzed files must not change,
-  /// and all [AnalysisResult]s are cached infinitely.
-  ///
-  /// The flag is intended to be used for non-interactive clients, like DDC,
-  /// which start a new analysis session, load a set of files, resolve all of
-  /// them, process the resolved units, and then throw away that whole session.
-  ///
-  /// The key problem that this flag is solving is that the driver analyzes the
-  /// whole library when the result for a unit of the library is requested. So,
-  /// when the client requests sequentially the defining unit, then the first
-  /// part, then the second part, the driver has to perform analysis of the
-  /// library three times and every time throw away all the units except the one
-  /// which was requested. With this flag set to `true`, the driver can analyze
-  /// once and cache all the resolved units.
-  final bool disableChangesAndCacheAllResults;
-
   /// Whether resolved units should be indexed.
   final bool enableIndex;
-
-  /// The cache to use with [disableChangesAndCacheAllResults].
-  final Map<String, AnalysisResult> _allCachedResults = {};
 
   /// The current analysis session.
   AnalysisSessionImpl _currentSession;
@@ -288,7 +269,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       SourceFactory sourceFactory,
       this._analysisOptions,
       {Packages packages,
-      this.disableChangesAndCacheAllResults = false,
       this.enableIndex = false,
       SummaryDataStore externalSummaries,
       bool retainDataForTesting = false})
@@ -482,7 +462,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// [changeFile] invocation.
   void changeFile(String path) {
     _throwIfNotAbsolutePath(path);
-    _throwIfChangesAreNotAllowed();
     _changeFile(path);
   }
 
@@ -547,11 +526,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The [path] can be any file - explicitly or implicitly analyzed, or neither.
   ResolvedUnitResult getCachedResult(String path) {
     _throwIfNotAbsolutePath(path);
-    ResolvedUnitResult result = _priorityResults[path];
-    if (disableChangesAndCacheAllResults) {
-      result ??= _allCachedResults[path];
-    }
-    return result;
+    return _priorityResults[path];
   }
 
   /// Return a [Future] that completes with the [ErrorsResult] for the Dart
@@ -1179,7 +1154,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// but does not guarantee this.
   void removeFile(String path) {
     _throwIfNotAbsolutePath(path);
-    _throwIfChangesAreNotAllowed();
     _fileTracker.removeFile(path);
     clearLibraryContext();
     _priorityResults.clear();
@@ -1322,12 +1296,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           if (unitFile == file) {
             bytes = unitBytes;
             resolvedUnit = unitResult.unit;
-          }
-          if (disableChangesAndCacheAllResults) {
-            AnalysisResult result = _getAnalysisResultFromBytes(
-                unitFile, unitSignature, unitBytes,
-                content: unitFile.content, resolvedUnit: unitResult.unit);
-            _allCachedResults[unitFile.path] = result;
           }
         }
 
@@ -1720,14 +1688,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return key;
     } catch (_) {
       return null;
-    }
-  }
-
-  /// If the driver is used in the read-only mode with infinite cache,
-  /// we should not allow invocations that change files.
-  void _throwIfChangesAreNotAllowed() {
-    if (disableChangesAndCacheAllResults) {
-      throw StateError('Changing files is not allowed for this driver.');
     }
   }
 

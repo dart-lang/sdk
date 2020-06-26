@@ -36,7 +36,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDriverSchedulerTest);
     defineReflectiveTests(AnalysisDriverTest);
-    defineReflectiveTests(CacheAllAnalysisDriverTest);
   });
 }
 
@@ -3165,96 +3164,6 @@ var v = 0
       }
     }
     fail('Cannot find the top-level variable $name in\n$unit');
-  }
-}
-
-@reflectiveTest
-class CacheAllAnalysisDriverTest extends BaseAnalysisDriverTest {
-  @override
-  bool get disableChangesAndCacheAllResults => true;
-
-  test_addFile() async {
-    var a = convertPath('/test/lib/a.dart');
-    var b = convertPath('/test/lib/b.dart');
-    driver.addFile(a);
-    driver.addFile(b);
-  }
-
-  test_changeFile() async {
-    var path = convertPath('/test.dart');
-    expect(() {
-      driver.changeFile(path);
-    }, throwsStateError);
-  }
-
-  test_getResult_libraryUnits() async {
-    var lib = convertPath('/lib.dart');
-    var part1 = convertPath('/part1.dart');
-    var part2 = convertPath('/part2.dart');
-
-    newFile(lib, content: r'''
-library test;
-part 'part1.dart';
-part 'part2.dart';
-''');
-    newFile(part1, content: 'part of test; class A {}');
-    newFile(part2, content: 'part of test; class B {}');
-
-    driver.addFile(lib);
-    driver.addFile(part1);
-    driver.addFile(part2);
-
-    // No analyzed libraries initially.
-    expect(driver.test.numOfAnalyzedLibraries, 0);
-
-    ResolvedUnitResult libResult = await driver.getResult(lib);
-    ResolvedUnitResult partResult1 = await driver.getResult(part1);
-    ResolvedUnitResult partResult2 = await driver.getResult(part2);
-
-    // Just one library was analyzed, results for parts are cached.
-    expect(driver.test.numOfAnalyzedLibraries, 1);
-
-    expect(libResult.path, lib);
-    expect(partResult1.path, part1);
-    expect(partResult2.path, part2);
-
-    expect(libResult.unit, isNotNull);
-    expect(partResult1.unit, isNotNull);
-    expect(partResult2.unit, isNotNull);
-
-    // The parts uses the same resynthesized library element.
-    var libLibrary = libResult.unit.declaredElement.library;
-    var partLibrary1 = partResult1.unit.declaredElement.library;
-    var partLibrary2 = partResult2.unit.declaredElement.library;
-    expect(partLibrary1, same(libLibrary));
-    expect(partLibrary2, same(libLibrary));
-  }
-
-  test_getResult_singleFile() async {
-    var path = convertPath('/test.dart');
-    newFile(path, content: 'main() {}');
-    driver.addFile(path);
-
-    ResolvedUnitResult result1 = await driver.getResult(path);
-    expect(driver.test.numOfAnalyzedLibraries, 1);
-    var unit1 = result1.unit;
-    var unitElement1 = unit1.declaredElement;
-    expect(result1.path, path);
-    expect(unit1, isNotNull);
-    expect(unitElement1, isNotNull);
-
-    ResolvedUnitResult result2 = await driver.getResult(path);
-    expect(driver.test.numOfAnalyzedLibraries, 1);
-    expect(result2.path, path);
-    expect(result2.unit, same(unit1));
-    expect(result2.unit.declaredElement, same(unitElement1));
-  }
-
-  test_removeFile() async {
-    var path = convertPath('/test.dart');
-    expect(() {
-      driver.removeFile(path);
-    }, throwsStateError);
   }
 }
 

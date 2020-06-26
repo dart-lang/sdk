@@ -66,8 +66,6 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
 
   List<String> enabledExperiments = [];
 
-  bool get disableChangesAndCacheAllResults => false;
-
   void addTestFile(String content, {bool priority = false}) {
     testCode = content;
     newFile(testFile, content: content);
@@ -100,7 +98,6 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
         ]),
         createAnalysisOptions(),
         packages: Packages.empty,
-        disableChangesAndCacheAllResults: disableChangesAndCacheAllResults,
         enableIndex: true,
         externalSummaries: externalSummaries);
   }
