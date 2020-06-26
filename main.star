@@ -246,6 +246,13 @@ luci.gitiles_poller(
     refs=["refs/heads/master"],
 )
 
+luci.gitiles_poller(
+    name="dart-ci-test-data-trigger",
+    bucket="ci",
+    path_regexps=["tools/bots/ci_test_data_trigger"],
+    repo=DART_GIT,
+    refs=["refs/heads/ci-test-data"],
+)
 
 def dart_poller(name, bucket="ci", branches=BRANCHES, paths=None):
     for branch in branches:
@@ -294,6 +301,12 @@ luci.notifier(name="dart-fuzz-testing",
 luci.notifier(name="frontend-team",
               on_failure=True,
               notify_emails=["jensj@google.com"])
+
+luci.notifier(
+    name="ci-test-data",
+    on_success=True,
+    on_failure=True,
+    notify_emails=["karlklose@google.com"])
 
 luci.cq(
     submit_max_burst=2,
@@ -932,6 +945,14 @@ dart_infra_builder(
     properties={"builders": nightly_builders},
     recipe="cron/cron",
     schedule="0 5 * * *",  # daily, at 05:00 UTC
+)
+
+dart_ci_sandbox_builder(
+   "ci-test-data",
+   channels=[],
+   properties={"bisection_enabled": True},
+   notifies="ci-test-data",
+   triggered_by=["dart-ci-test-data-trigger"],
 )
 
 # Fuzz testing builders
