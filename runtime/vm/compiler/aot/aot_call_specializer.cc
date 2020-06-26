@@ -890,6 +890,9 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
       bool is_object_eq = true;
       for (intptr_t i = 0; i < class_ids.length(); i++) {
         const intptr_t cid = class_ids[i];
+        // Skip sentinel cid. It may appear in the unreachable code after
+        // inlining a method which doesn't return.
+        if (cid == kNeverCid) continue;
         const Class& cls = Class::Handle(Z, isolate()->class_table()->At(cid));
         const Function& target =
             Function::Handle(Z, instr->ResolveForReceiverClass(cls));
