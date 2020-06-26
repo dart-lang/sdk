@@ -1071,6 +1071,9 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
                     // TODO(johnniwinther): Use register generic instantiations
                     // instead.
                     assumeInstantiations: _genericInstantiations.isNotEmpty)) {
+          if (functionType.typeVariables.isNotEmpty) {
+            potentiallyNeedTypeArguments(function);
+          }
           functionType.forEachTypeVariable((TypeVariableType typeVariable) {
             Entity typeDeclaration = typeVariable.element.typeDeclaration;
             if (!processedEntities.contains(typeDeclaration)) {

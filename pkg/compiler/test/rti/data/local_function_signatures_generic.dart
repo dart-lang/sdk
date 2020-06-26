@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 
 class Class1 {
   method1() {
-    /*needsSignature*/
+    /*needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature*/
     num local<T>(num n) => null;
     return local;
   }
@@ -19,7 +19,7 @@ class Class1 {
   }
 
   method3() {
-    /*needsSignature*/
+    /*needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature*/
     int local<T>(num n) => null;
     return local;
   }
@@ -75,13 +75,13 @@ method9<T>() {
 
 method10() {
   /*spec.direct,explicit=[local.T*],needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature*/
-  /*prod.needsSignature*/
+  /*prod.needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature*/
   num local<T>(T n) => null;
   return local;
 }
 
 method11() {
-  /*needsSignature*/
+  /*needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature*/
   T local<T>(num n) => null;
   return local;
 }
@@ -93,20 +93,20 @@ method12() {
 }
 
 num Function(num) method13() {
-  /*needsSignature*/
+  /*needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature*/
   num local<T>(num n) => null;
   return local;
 }
 
 num Function(num) method14() {
   /*spec.direct,explicit=[local.T*],needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature*/
-  /*prod.needsSignature*/
+  /*prod.needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature*/
   num local<T>(T n) => null;
   return local;
 }
 
 num Function(num) method15() {
-  /*needsSignature*/
+  /*needsArgs,needsInst=[<dynamic>,<num*>,<num*>],needsSignature*/
   T local<T>(num n) => null;
   return local;
 }
