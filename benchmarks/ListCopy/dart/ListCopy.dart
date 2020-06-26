@@ -131,7 +131,7 @@ List<Benchmark> makeBenchmarks(int length) => [
         output = <num>[...input];
       }),
       Benchmark('spread.int', length, () {
-        output = <int>[...input.cast<int>()];
+        output = <int>[...input as dynamic];
       }),
     ];
 
