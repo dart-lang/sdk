@@ -79,9 +79,7 @@ class SummaryBuilder {
   /// TODO(scheglov) Remove it.
   AnalysisContext _context;
 
-  /**
-   * Create a summary builder for these [librarySources] and [context].
-   */
+  /// Create a summary builder for these [librarySources] and [context].
   SummaryBuilder(Iterable<Source> librarySources, AnalysisContext context)
       : _librarySources = librarySources,
         _context = context,
@@ -100,9 +98,7 @@ class SummaryBuilder {
     @required this.sdkPath,
   });
 
-  /**
-   * Build the linked bundle and return its bytes.
-   */
+  /// Build the linked bundle and return its bytes.
   List<int> build({@deprecated FeatureSet featureSet}) {
     if (_librarySources != null) {
       return _build();
@@ -157,9 +153,7 @@ class _Builder {
     allowedExperiments = _parseAllowedExperiments(allowedExperimentsJson);
   }
 
-  /**
-   * Build the linked bundle and return its bytes.
-   */
+  /// Build the linked bundle and return its bytes.
   List<int> build() {
     librarySources.forEach(_addLibrary);
 

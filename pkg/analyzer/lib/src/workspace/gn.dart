@@ -16,37 +16,25 @@ import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
-/**
- * Information about a Gn workspace.
- */
+/// Information about a Gn workspace.
 class GnWorkspace extends Workspace {
-  /**
-   * The name of the directory that identifies the root of the workspace.
-   */
+  /// The name of the directory that identifies the root of the workspace.
   static const String _jiriRootName = '.jiri_root';
 
-  /**
-   * The name of the file that identifies a set of GN Targets.
-   *
-   * For Dart package purposes, a BUILD.gn file identifies a package.
-   */
+  /// The name of the file that identifies a set of GN Targets.
+  ///
+  /// For Dart package purposes, a BUILD.gn file identifies a package.
   static const String _buildFileName = 'BUILD.gn';
 
-  /**
-   * The resource provider used to access the file system.
-   */
+  /// The resource provider used to access the file system.
   final ResourceProvider provider;
 
-  /**
-   * The absolute workspace root path (the directory containing the `.jiri_root`
-   * directory).
-   */
+  /// The absolute workspace root path (the directory containing the
+  /// `.jiri_root` directory).
   @override
   final String root;
 
-  /**
-   * The map from a package name to the list of its `lib/` folders.
-   */
+  /// The map from a package name to the list of its `lib/` folders.
   final Map<String, List<Folder>> _packageMap;
 
   GnWorkspace._(this.provider, this.root, this._packageMap);
@@ -73,11 +61,9 @@ class GnWorkspace extends Workspace {
     return SourceFactory(resolvers);
   }
 
-  /**
-   * Return the file with the given [absolutePath].
-   *
-   * Return `null` if the given [absolutePath] is not in the workspace [root].
-   */
+  /// Return the file with the given [absolutePath].
+  ///
+  /// Return `null` if the given [absolutePath] is not in the workspace [root].
   File findFile(String absolutePath) {
     try {
       File writableFile = provider.getFile(absolutePath);
@@ -112,13 +98,11 @@ class GnWorkspace extends Workspace {
     }
   }
 
-  /**
-   * Find the GN workspace that contains the given [filePath].
-   *
-   * Return `null` if a workspace could not be found. For a workspace to be
-   * found, both a `.jiri_root` file must be found, and at least one "packages"
-   * file must be found in [filePath]'s output directory.
-   */
+  /// Find the GN workspace that contains the given [filePath].
+  ///
+  /// Return `null` if a workspace could not be found. For a workspace to be
+  /// found, both a `.jiri_root` file must be found, and at least one "packages"
+  /// file must be found in [filePath]'s output directory.
   static GnWorkspace find(ResourceProvider provider, String filePath) {
     Resource resource = provider.getResource(filePath);
     if (resource is File) {
@@ -156,15 +140,13 @@ class GnWorkspace extends Workspace {
     }
   }
 
-  /**
-   * For a source at `$root/foo/bar`, the packages files are generated in
-   * `$root/out/<debug|release>-XYZ/dartlang/gen/foo/bar`.
-   *
-   * Note that in some cases multiple .packages files can be found at that
-   * location, for example if the package contains both a library and a binary
-   * target. For a complete view of the package, all of these files need to be
-   * taken into account.
-   */
+  /// For a source at `$root/foo/bar`, the packages files are generated in
+  /// `$root/out/<debug|release>-XYZ/dartlang/gen/foo/bar`.
+  ///
+  /// Note that in some cases multiple .packages files can be found at that
+  /// location, for example if the package contains both a library and a binary
+  /// target. For a complete view of the package, all of these files need to be
+  /// taken into account.
   static List<File> _findPackagesFile(
     ResourceProvider provider,
     String root,
@@ -188,13 +170,11 @@ class GnWorkspace extends Workspace {
         .toList();
   }
 
-  /**
-   * Returns the output directory of the build, or `null` if it could not be
-   * found.
-   *
-   * First attempts to read a config file at the root of the source tree. If
-   * that file cannot be found, looks for standard output directory locations.
-   */
+  /// Returns the output directory of the build, or `null` if it could not be
+  /// found.
+  ///
+  /// First attempts to read a config file at the root of the source tree. If
+  /// that file cannot be found, looks for standard output directory locations.
   static Folder _getOutDirectory(String root, ResourceProvider provider) {
     const String fuchsiaDirConfigFile = '.fx-build-dir';
 
@@ -223,13 +203,11 @@ class GnWorkspace extends Workspace {
   }
 }
 
-/**
- * Information about a package defined in a GnWorkspace.
- *
- * Separate from [Packages] or package maps, this class is designed to simply
- * understand whether arbitrary file paths represent libraries declared within
- * a given package in a GnWorkspace.
- */
+/// Information about a package defined in a GnWorkspace.
+///
+/// Separate from [Packages] or package maps, this class is designed to simply
+/// understand whether arbitrary file paths represent libraries declared within
+/// a given package in a GnWorkspace.
 class GnWorkspacePackage extends WorkspacePackage {
   @override
   final String root;

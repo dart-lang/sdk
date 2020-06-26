@@ -66,13 +66,10 @@ class BoolExpressionVerifier {
     );
   }
 
-  /**
-   * Check for situations where the result of a method or function is used, when
-   * it returns 'void'. Or, in rare cases, when other types of expressions are
-   * void, such as identifiers.
-   *
-   * TODO(scheglov) Move this in a separate verifier.
-   */
+  /// Check for situations where the result of a method or function is used,
+  /// when it returns 'void'. Or, in rare cases, when other types of expressions
+  /// are void, such as identifiers.
+  // TODO(scheglov) Move this in a separate verifier.
   bool _checkForUseOfVoidResult(Expression expression) {
     if (expression == null ||
         !identical(expression.staticType, VoidTypeImpl.instance)) {

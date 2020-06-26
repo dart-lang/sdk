@@ -11,9 +11,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:meta/meta.dart';
 
-/**
- * An [AnalysisContext] in which analysis can be performed.
- */
+/// An [AnalysisContext] in which analysis can be performed.
 class AnalysisContextImpl implements AnalysisContext {
   final SynchronousSession _synchronousSession;
 
@@ -85,15 +83,11 @@ class AnalysisContextImpl implements AnalysisContext {
   }
 }
 
-/**
- * An [AnalysisContext] that only contains sources for a Dart SDK.
- */
+/// An [AnalysisContext] that only contains sources for a Dart SDK.
 class SdkAnalysisContext extends AnalysisContextImpl {
-  /**
-   * Initialize a newly created SDK analysis context with the given [options].
-   * Analysis options cannot be changed afterwards.  If the given [options] are
-   * `null`, then default options are used.
-   */
+  /// Initialize a newly created SDK analysis context with the given [options].
+  /// Analysis options cannot be changed afterwards.  If the given [options] are
+  /// `null`, then default options are used.
   SdkAnalysisContext(AnalysisOptions options, SourceFactory sourceFactory)
       : super(SynchronousSession(options, DeclaredVariables()), sourceFactory);
 }

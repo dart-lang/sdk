@@ -9,33 +9,23 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/asserts.dart' as asserts;
 import 'package:path/path.dart' as pathos;
 
-/**
- * A [UriResolver] implementation for the `package:` scheme that uses a map of
- * package names to their directories.
- */
+/// A [UriResolver] implementation for the `package:` scheme that uses a map of
+/// package names to their directories.
 class PackageMapUriResolver extends UriResolver {
-  /**
-   * The name of the `package` scheme.
-   */
+  /// The name of the `package` scheme.
   static const String PACKAGE_SCHEME = "package";
 
-  /**
-   * A table mapping package names to the path of the directories containing
-   * the package.
-   */
+  /// A table mapping package names to the path of the directories containing
+  /// the package.
   final Map<String, List<Folder>> packageMap;
 
-  /**
-   * The [ResourceProvider] for this resolver.
-   */
+  /// The [ResourceProvider] for this resolver.
   final ResourceProvider resourceProvider;
 
-  /**
-   * Create a new [PackageMapUriResolver].
-   *
-   * [packageMap] is a table mapping package names to the paths of the
-   * directories containing the package
-   */
+  /// Create a new [PackageMapUriResolver].
+  ///
+  /// [packageMap] is a table mapping package names to the paths of the
+  /// directories containing the package
   PackageMapUriResolver(this.resourceProvider, this.packageMap) {
     asserts.notNull(resourceProvider);
     asserts.notNull(packageMap);
@@ -90,9 +80,7 @@ class PackageMapUriResolver extends UriResolver {
     return null;
   }
 
-  /**
-   * Returns `true` if [uri] is a `package` URI.
-   */
+  /// Returns `true` if [uri] is a `package` URI.
   static bool isPackageUri(Uri uri) {
     return uri.scheme == PACKAGE_SCHEME;
   }

@@ -8,17 +8,13 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/workspace/simple.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 
-/**
- * Information about a default Dart workspace.
- *
- * A BasicWorkspace should only be used when no other workspace type is valid.
- */
+/// Information about a default Dart workspace.
+///
+/// A BasicWorkspace should only be used when no other workspace type is valid.
 class BasicWorkspace extends SimpleWorkspace {
-  /**
-   * The singular package in this workspace.
-   *
-   * Each basic workspace is itself one package.
-   */
+  /// The singular package in this workspace.
+  ///
+  /// Each basic workspace is itself one package.
   BasicWorkspacePackage _theOnlyPackage;
 
   BasicWorkspace._(
@@ -38,13 +34,11 @@ class BasicWorkspace extends SimpleWorkspace {
     }
   }
 
-  /**
-   * Find the basic workspace that contains the given [path].
-   *
-   * As a [BasicWorkspace] is not defined by any marker files or build
-   * artifacts, this simply creates a BasicWorkspace with [path] as the [root]
-   * (or [path]'s parent if [path] points to a file).
-   */
+  /// Find the basic workspace that contains the given [path].
+  ///
+  /// As a [BasicWorkspace] is not defined by any marker files or build
+  /// artifacts, this simply creates a BasicWorkspace with [path] as the [root]
+  /// (or [path]'s parent if [path] points to a file).
   static BasicWorkspace find(
     ResourceProvider provider,
     Map<String, List<Folder>> packageMap,
@@ -58,13 +52,11 @@ class BasicWorkspace extends SimpleWorkspace {
   }
 }
 
-/**
- * Information about a package defined in a [BasicWorkspace].
- *
- * Separate from [Packages] or package maps, this class is designed to simply
- * understand whether arbitrary file paths represent libraries declared within
- * a given package in a [BasicWorkspace].
- */
+/// Information about a package defined in a [BasicWorkspace].
+///
+/// Separate from [Packages] or package maps, this class is designed to simply
+/// understand whether arbitrary file paths represent libraries declared within
+/// a given package in a [BasicWorkspace].
 class BasicWorkspacePackage extends WorkspacePackage {
   @override
   final String root;

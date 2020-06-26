@@ -15,11 +15,9 @@ import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:path/path.dart' as path;
 
-/**
- * Instances of the class `BazelFileUriResolver` resolve `file` URI's by first
- * resolving file uri's in the expected way, and then by looking in the
- * corresponding generated directories.
- */
+/// Instances of the class `BazelFileUriResolver` resolve `file` URI's by first
+/// resolving file uri's in the expected way, and then by looking in the
+/// corresponding generated directories.
 class BazelFileUriResolver extends ResourceUriResolver {
   final BazelWorkspace workspace;
 
@@ -41,16 +39,12 @@ class BazelFileUriResolver extends ResourceUriResolver {
   }
 }
 
-/**
- * The [UriResolver] that can resolve `package` URIs in [BazelWorkspace].
- */
+/// The [UriResolver] that can resolve `package` URIs in [BazelWorkspace].
 class BazelPackageUriResolver extends UriResolver {
   final BazelWorkspace _workspace;
   final path.Context _context;
 
-  /**
-   * The cache of absolute [Uri]s to [Source]s mappings.
-   */
+  /// The cache of absolute [Uri]s to [Source]s mappings.
   final Map<Uri, Source> _sourceCache = HashMap<Uri, Source>();
 
   BazelPackageUriResolver(BazelWorkspace workspace)
@@ -145,42 +139,32 @@ class BazelPackageUriResolver extends UriResolver {
   }
 }
 
-/**
- * Information about a Bazel workspace.
- */
+/// Information about a Bazel workspace.
 class BazelWorkspace extends Workspace
     implements WorkspaceWithDefaultAnalysisOptions {
   static const String _WORKSPACE = 'WORKSPACE';
   static const String _READONLY = 'READONLY';
 
-  /**
-   * The name of the file that identifies a set of Bazel Targets.
-   *
-   * For Dart package purposes, a BUILD file identifies a package.
-   */
+  /// The name of the file that identifies a set of Bazel Targets.
+  ///
+  /// For Dart package purposes, a BUILD file identifies a package.
   static const String _buildFileName = 'BUILD';
 
-  /**
-   * Default prefix for "-genfiles" and "-bin" that will be assumed if no build
-   * output symlinks are found.
-   */
+  /// Default prefix for "-genfiles" and "-bin" that will be assumed if no build
+  /// output symlinks are found.
   static const defaultSymlinkPrefix = 'bazel';
 
   final ResourceProvider provider;
 
-  /**
-   * The absolute workspace root path.
-   *
-   * It contains the `WORKSPACE` file or its parent contains the `READONLY`
-   * folder.
-   */
+  /// The absolute workspace root path.
+  ///
+  /// It contains the `WORKSPACE` file or its parent contains the `READONLY`
+  /// folder.
   @override
   final String root;
 
-  /**
-   * The absolute path to the optional read only workspace root, in the
-   * `READONLY` folder if a git-based workspace, or `null`.
-   */
+  /// The absolute path to the optional read only workspace root, in the
+  /// `READONLY` folder if a git-based workspace, or `null`.
   final String readonly;
 
   /// The absolute paths to all `bazel-bin` folders.
@@ -189,9 +173,7 @@ class BazelWorkspace extends Workspace
   /// on distributed build systems. It is very rare to have more than two.
   final List<String> binPaths;
 
-  /**
-   * The absolute path to the `bazel-genfiles` folder.
-   */
+  /// The absolute path to the `bazel-genfiles` folder.
   final String genfiles;
 
   BazelWorkspace._(
@@ -217,13 +199,11 @@ class BazelWorkspace extends Workspace
     return SourceFactory(resolvers);
   }
 
-  /**
-   * Return the file with the given [absolutePath], looking first into
-   * directories for generated files: `bazel-bin` and `bazel-genfiles`, and
-   * then into the workspace root. The file in the workspace root is returned
-   * even if it does not exist. Return `null` if the given [absolutePath] is
-   * not in the workspace [root].
-   */
+  /// Return the file with the given [absolutePath], looking first into
+  /// directories for generated files: `bazel-bin` and `bazel-genfiles`, and
+  /// then into the workspace root. The file in the workspace root is returned
+  /// even if it does not exist. Return `null` if the given [absolutePath] is
+  /// not in the workspace [root].
   File findFile(String absolutePath) {
     path.Context context = provider.pathContext;
     try {
@@ -455,13 +435,11 @@ class BazelWorkspace extends Workspace
       .firstWhere((folder) => folder.exists, orElse: () => null);
 }
 
-/**
- * Information about a package defined in a BazelWorkspace.
- *
- * Separate from [Packages] or package maps, this class is designed to simply
- * understand whether arbitrary file paths represent libraries declared within
- * a given package in a BazelWorkspace.
- */
+/// Information about a package defined in a BazelWorkspace.
+///
+/// Separate from [Packages] or package maps, this class is designed to simply
+/// understand whether arbitrary file paths represent libraries declared within
+/// a given package in a BazelWorkspace.
 class BazelWorkspacePackage extends WorkspacePackage {
   /// A prefix for any URI of a path in this package.
   final String _uriPrefix;

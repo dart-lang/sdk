@@ -12,52 +12,34 @@ import 'package:source_span/src/span.dart';
 import 'package:yaml/yaml.dart';
 
 class PubspecValidator {
-  /**
-   * The name of the sub-field (under `flutter`) whose value is a list of assets
-   * available to Flutter apps at runtime.
-   */
+  /// The name of the sub-field (under `flutter`) whose value is a list of
+  /// assets available to Flutter apps at runtime.
   static const String ASSETS_FIELD = 'assets';
 
-  /**
-   * The name of the field whose value is a map of dependencies.
-   */
+  /// The name of the field whose value is a map of dependencies.
   static const String DEPENDENCIES_FIELD = 'dependencies';
 
-  /**
-   * The name of the field whose value is a map of development dependencies.
-   */
+  /// The name of the field whose value is a map of development dependencies.
   static const String DEV_DEPENDENCIES_FIELD = 'dev_dependencies';
 
-  /**
-   * The name of the field whose value is a specification of Flutter-specific
-   * configuration data.
-   */
+  /// The name of the field whose value is a specification of Flutter-specific
+  /// configuration data.
   static const String FLUTTER_FIELD = 'flutter';
 
-  /**
-   * The name of the field whose value is the name of the package.
-   */
+  /// The name of the field whose value is the name of the package.
   static const String NAME_FIELD = 'name';
 
-  /**
-   * The resource provider used to access the file system.
-   */
+  /// The resource provider used to access the file system.
   final ResourceProvider provider;
 
-  /**
-   * The source representing the file being validated.
-   */
+  /// The source representing the file being validated.
   final Source source;
 
-  /**
-   * Initialize a newly create validator to validate the content of the given
-   * [source].
-   */
+  /// Initialize a newly create validator to validate the content of the given
+  /// [source].
   PubspecValidator(this.provider, this.source);
 
-  /**
-   * Validate the given [contents].
-   */
+  /// Validate the given [contents].
   List<AnalysisError> validate(Map<dynamic, YamlNode> contents) {
     RecordingErrorListener recorder = RecordingErrorListener();
     ErrorReporter reporter = ErrorReporter(
@@ -73,10 +55,8 @@ class PubspecValidator {
     return recorder.errors;
   }
 
-  /**
-   * Return `true` if an asset (file) exists at the given absolute, normalized
-   * [assetPath] or in a subdirectory of the parent of the file.
-   */
+  /// Return `true` if an asset (file) exists at the given absolute, normalized
+  /// [assetPath] or in a subdirectory of the parent of the file.
   bool _assetExistsAtPath(String assetPath) {
     // Check for asset directories.
     Folder assetDirectory = provider.getFolder(assetPath);
@@ -105,11 +85,9 @@ class PubspecValidator {
     return false;
   }
 
-  /**
-   * Return a map whose keys are the names of declared dependencies and whose
-   * values are the specifications of those dependencies. The map is extracted
-   * from the given [contents] using the given [key].
-   */
+  /// Return a map whose keys are the names of declared dependencies and whose
+  /// values are the specifications of those dependencies. The map is extracted
+  /// from the given [contents] using the given [key].
   Map<dynamic, YamlNode> _getDeclaredDependencies(
       ErrorReporter reporter, Map<dynamic, YamlNode> contents, String key) {
     YamlNode field = contents[key];
@@ -123,9 +101,7 @@ class PubspecValidator {
     return <String, YamlNode>{};
   }
 
-  /**
-   * Report an error for the given node.
-   */
+  /// Report an error for the given node.
   void _reportErrorForNode(
       ErrorReporter reporter, YamlNode node, ErrorCode errorCode,
       [List<Object> arguments]) {
@@ -134,9 +110,7 @@ class PubspecValidator {
         errorCode, span.start.offset, span.length, arguments);
   }
 
-  /**
-   * Validate the value of the required `name` field.
-   */
+  /// Validate the value of the required `name` field.
   void _validateDependencies(
       ErrorReporter reporter, Map<dynamic, YamlNode> contents) {
     Map<dynamic, YamlNode> declaredDependencies =
@@ -152,9 +126,7 @@ class PubspecValidator {
     }
   }
 
-  /**
-   * Validate the value of the optional `flutter` field.
-   */
+  /// Validate the value of the optional `flutter` field.
   void _validateFlutter(
       ErrorReporter reporter, Map<dynamic, YamlNode> contents) {
     YamlNode flutterField = contents[FLUTTER_FIELD];
@@ -211,9 +183,7 @@ class PubspecValidator {
     }
   }
 
-  /**
-   * Validate the value of the required `name` field.
-   */
+  /// Validate the value of the required `name` field.
   void _validateName(ErrorReporter reporter, Map<dynamic, YamlNode> contents) {
     YamlNode nameField = contents[NAME_FIELD];
     if (nameField == null) {

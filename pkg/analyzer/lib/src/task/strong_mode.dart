@@ -16,10 +16,8 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 
-/**
- * An object used to infer the type of instance fields and the return types of
- * instance methods within a single compilation unit.
- */
+/// An object used to infer the type of instance fields and the return types of
+/// instance methods within a single compilation unit.
 class InstanceMemberInferrer {
   final InheritanceManager3 inheritance;
   final Set<ClassElement> elementsBeingInferred = HashSet<ClassElement>();
@@ -28,17 +26,13 @@ class InstanceMemberInferrer {
   bool isNonNullableByDefault;
   ClassElement currentClassElement;
 
-  /**
-   * Initialize a newly create inferrer.
-   */
+  /// Initialize a newly create inferrer.
   InstanceMemberInferrer(this.inheritance);
 
   DartType get _dynamicType => DynamicTypeImpl.instance;
 
-  /**
-   * Infer type information for all of the instance members in the given
-   * compilation [unit].
-   */
+  /// Infer type information for all of the instance members in the given
+  /// compilation [unit].
   void inferCompilationUnit(CompilationUnitElement unit) {
     typeSystem = unit.library.typeSystem;
     isNonNullableByDefault = typeSystem.isNonNullableByDefault;
@@ -46,10 +40,8 @@ class InstanceMemberInferrer {
     _inferClasses(unit.types);
   }
 
-  /**
-   * Return `true` if the elements corresponding to the [elements] have the same
-   * kind as the [element].
-   */
+  /// Return `true` if the elements corresponding to the [elements] have the
+  /// same kind as the [element].
   bool _allSameElementKind(
       ExecutableElement element, List<ExecutableElement> elements) {
     var elementKind = element.kind;
@@ -61,12 +53,9 @@ class InstanceMemberInferrer {
     return true;
   }
 
-  /**
-   * Given a method, return the parameter in the method that corresponds to the
-   * given [parameter]. If the parameter is positional, then
-   * it appears at the given [index] in its enclosing element's list of
-   * parameters.
-   */
+  /// Given a method, return the parameter in the method that corresponds to the
+  /// given [parameter]. If the parameter is positional, then it appears at the
+  /// given [index] in its enclosing element's list of parameters.
   ParameterElement _getCorrespondingParameter(ParameterElement parameter,
       int index, List<ParameterElement> methodParameters) {
     //
@@ -95,13 +84,11 @@ class InstanceMemberInferrer {
     return null;
   }
 
-  /**
-   * If the given [accessor] represents a non-synthetic instance property
-   * accessor for which no type was provided, infer its types.
-   *
-   * If the given [field] represents a non-synthetic instance field for
-   * which no type was provided, infer the type of the field.
-   */
+  /// If the given [accessor] represents a non-synthetic instance property
+  /// accessor for which no type was provided, infer its types.
+  ///
+  /// If the given [field] represents a non-synthetic instance field for
+  /// which no type was provided, infer the type of the field.
   void _inferAccessorOrField({
     PropertyAccessorElementImpl accessor,
     FieldElementImpl field,
@@ -319,10 +306,8 @@ class InstanceMemberInferrer {
     }
   }
 
-  /**
-   * Infer type information for all of the instance members in the given
-   * [classElement].
-   */
+  /// Infer type information for all of the instance members in the given
+  /// [classElement].
   void _inferClass(ClassElement classElement) {
     if (classElement is ClassElementImpl) {
       if (classElement.hasBeenInferred) {
@@ -393,11 +378,9 @@ class InstanceMemberInferrer {
     }
   }
 
-  /**
-   * If the given [element] represents a non-synthetic instance method,
-   * getter or setter, infer the return type and any parameter type(s) where
-   * they were not provided.
-   */
+  /// If the given [element] represents a non-synthetic instance method,
+  /// getter or setter, infer the return type and any parameter type(s) where
+  /// they were not provided.
   void _inferExecutable(MethodElementImpl element) {
     if (element.isSynthetic || element.isStatic) {
       return;
@@ -487,9 +470,7 @@ class InstanceMemberInferrer {
     _resetOperatorEqualParameterTypeToDynamic(element, overriddenElements);
   }
 
-  /**
-   * If a parameter is covariant, any parameters that override it are too.
-   */
+  /// If a parameter is covariant, any parameters that override it are too.
   void _inferParameterCovariance(ParameterElementImpl parameter, int index,
       Iterable<ExecutableElement> overridden) {
     parameter.inheritsCovariant = overridden.any((f) {
@@ -498,11 +479,9 @@ class InstanceMemberInferrer {
     });
   }
 
-  /**
-   * Set the type for the [parameter] at the given [index] from the given
-   * [combinedSignatureType], which might be `null` if there is no valid
-   * combined signature for signatures from direct superinterfaces.
-   */
+  /// Set the type for the [parameter] at the given [index] from the given
+  /// [combinedSignatureType], which might be `null` if there is no valid
+  /// combined signature for signatures from direct superinterfaces.
   void _inferParameterType(ParameterElementImpl parameter, int index,
       FunctionType combinedSignatureType) {
     if (combinedSignatureType != null) {
@@ -523,10 +502,8 @@ class InstanceMemberInferrer {
     }
   }
 
-  /**
-   * Infer type information for all of the instance members in the given
-   * interface [type].
-   */
+  /// Infer type information for all of the instance members in the given
+  /// interface [type].
   void _inferType(InterfaceType type) {
     if (type != null) {
       ClassElement element = type.element;
@@ -586,18 +563,16 @@ class InstanceMemberInferrer {
     element.isOperatorEqualWithParameterTypeFromObject = true;
   }
 
-  /**
-   * Return the [FunctionType] of the [overriddenElement] that [element]
-   * overrides. Return `null`, in case of type parameters inconsistency.
-   *
-   * The overridden element must have the same number of generic type
-   * parameters as the target element, or none.
-   *
-   * If we do have generic type parameters on the element we're inferring,
-   * we must express its parameter and return types in terms of its own
-   * parameters. For example, given `m<T>(t)` overriding `m<S>(S s)` we
-   * should infer this as `m<T>(T t)`.
-   */
+  /// Return the [FunctionType] of the [overriddenElement] that [element]
+  /// overrides. Return `null`, in case of type parameters inconsistency.
+  ///
+  /// The overridden element must have the same number of generic type
+  /// parameters as the target element, or none.
+  ///
+  /// If we do have generic type parameters on the element we're inferring,
+  /// we must express its parameter and return types in terms of its own
+  /// parameters. For example, given `m<T>(t)` overriding `m<S>(S s)` we
+  /// should infer this as `m<T>(T t)`.
   FunctionType _toOverriddenFunctionType(
       ExecutableElement element, ExecutableElement overriddenElement) {
     var elementTypeParameters = element.typeParameters;
@@ -624,7 +599,5 @@ class InstanceMemberInferrer {
   }
 }
 
-/**
- * A class of exception that is not used anywhere else.
- */
+/// A class of exception that is not used anywhere else.
 class _CycleException implements Exception {}
