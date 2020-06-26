@@ -40,17 +40,14 @@ class Result {
 class Event {
   final Result before;
   final Result after;
-  final Result approved;
 
-  Event(this.before, this.after, this.approved);
+  Event(this.before, this.after);
 
   bool get isNew => before == null;
   bool get isNewPassing => before == null && after.matches;
   bool get isNewFailing => before == null && !after.matches;
   bool get changed => !unchanged;
   bool get unchanged => before != null && before.outcome == after.outcome;
-  bool get isApproved => approved != null && approved.outcome == after.outcome;
-  bool get isUnapproved => !isApproved;
   bool get remainedPassing => before.matches && after.matches;
   bool get remainedFailing => !before.matches && !after.matches;
   bool get flaked => after.flaked;
@@ -81,7 +78,6 @@ bool firstSection = true;
 bool search(
     String description,
     String searchForStatus,
-    String searchForApproval,
     List<Event> events,
     ArgResults options,
     Map<String, Map<String, dynamic>> logs,
@@ -101,12 +97,6 @@ bool search(
     }
     if (searchForStatus == "failing" &&
         (event.after.flaked || event.after.matches)) {
-      continue;
-    }
-    if (searchForApproval == "approved" && !event.isApproved) {
-      continue;
-    }
-    if (searchForApproval == "unapproved" && !event.isUnapproved) {
       continue;
     }
     if (options["unchanged"] && !event.unchanged) continue;
@@ -177,8 +167,6 @@ bool search(
 
 main(List<String> args) async {
   final parser = new ArgParser();
-  parser.addFlag("approved",
-      abbr: 'A', negatable: false, help: "Show approved tests.");
   parser.addFlag("changed",
       abbr: 'c',
       negatable: false,
@@ -197,14 +185,9 @@ main(List<String> args) async {
   parser.addFlag("flaky",
       abbr: 'F', negatable: false, help: "Show flaky tests.");
   parser.addFlag("help", help: "Show the program usage.", negatable: false);
-  parser.addFlag("human",
-      abbr: "h",
-      help: "Prove you can't read machine readable output.",
-      negatable: false);
+  parser.addFlag("human", abbr: "h", negatable: false);
   parser.addFlag("passing",
       abbr: 'p', negatable: false, help: "Show passing tests.");
-  parser.addFlag("unapproved",
-      abbr: 'U', negatable: false, help: "Show unapproved tests.");
   parser.addFlag("unchanged",
       abbr: 'u',
       negatable: false,
@@ -222,9 +205,8 @@ main(List<String> args) async {
   final options = parser.parse(args);
   if (options["help"]) {
     print("""
-Usage: compare_results.dart [OPTION]... BEFORE AFTER [APPROVED]
+Usage: compare_results.dart [OPTION]... BEFORE AFTER
 Compare the old and new test results and list tests that pass the filters.
-Three-way compare with the approved results if provided.
 All tests are listed if no filters are given.
 
 The options are as follows:
@@ -241,9 +223,9 @@ ${parser.usage}""");
   }
 
   final parameters = options.rest;
-  if (parameters.length != 2 && parameters.length != 3) {
-    print("error: Expected two or three parameters "
-        "(results before, results after, and (optionally) approved results)");
+  if (parameters.length != 2) {
+    print("error: Expected two parameters "
+        "(results before, results after)");
     exitCode = 2;
     return;
   }
@@ -251,9 +233,6 @@ ${parser.usage}""");
   // Load the input and the flakiness data if specified.
   final before = await loadResultsMap(parameters[0]);
   final after = await loadResultsMap(parameters[1]);
-  final approved = 3 <= parameters.length
-      ? await loadResultsMap(parameters[2])
-      : <String, Map<String, dynamic>>{};
   final logs = options['logs'] == null
       ? <String, Map<String, dynamic>>{}
       : await loadResultsMap(options['logs']);
@@ -268,15 +247,11 @@ ${parser.usage}""");
   for (final name in names) {
     final mapBefore = before[name];
     final mapAfter = after[name];
-    final mapApproved = approved[name];
     final resultBefore = mapBefore != null
         ? new Result.fromMap(mapBefore, flakinessData[name])
         : null;
     final resultAfter = new Result.fromMap(mapAfter, flakinessData[name]);
-    final resultApproved = mapApproved != null && mapApproved["result"] != null
-        ? new Result.fromMap(mapApproved, flakinessData[name])
-        : null;
-    final event = new Event(resultBefore, resultAfter, resultApproved);
+    final event = new Event(resultBefore, resultAfter);
     events.add(event);
   }
 
@@ -306,57 +281,24 @@ ${parser.usage}""");
   final searchForStatuses =
       ["passing", "flaky", "failing"].where((option) => options[option]);
 
-  final approvalDescriptions = {
-    "passing": {
-      "approved": " (approved)",
-      "unapproved": " (should be approved)",
-      null: "",
-    },
-    "flaky": {
-      "approved": " (approved result)",
-      "unapproved": " (unapproved result)",
-      null: "",
-    },
-    "failing": {
-      "approved": " (approved)",
-      "unapproved": " (needs approval)",
-      null: "",
-    },
-    null: {
-      "approved": " (approved)",
-      "unapproved": " (needs approval)",
-      null: "",
-    },
-  };
-
-  final searchForApprovals =
-      ["approved", "unapproved"].where((option) => options[option]);
-
   // Report tests matching the filters.
   final logSection = <String>[];
   bool judgement = false;
   for (final searchForStatus
       in searchForStatuses.isNotEmpty ? searchForStatuses : <String>[null]) {
-    for (final searchForApproval in searchForApprovals.isNotEmpty
-        ? searchForApprovals
-        : <String>[null]) {
-      final searchForChanged = options["unchanged"]
-          ? "unchanged"
-          : options["changed"] ? "changed" : null;
-      final aboutStatus = filterDescriptions[searchForStatus][searchForChanged];
-      final aboutApproval =
-          approvalDescriptions[searchForStatus][searchForApproval];
-      final sectionHeader = "The following tests $aboutStatus$aboutApproval:";
-      final logSectionArg =
-          searchForStatus == "failing" || searchForStatus == "flaky"
-              ? logSection
-              : null;
-      bool possibleJudgement = search(sectionHeader, searchForStatus,
-          searchForApproval, events, options, logs, logSectionArg);
-      if ((searchForStatus == null || searchForStatus == "failing") &&
-          (searchForApproval == null || searchForApproval == "unapproved")) {
-        judgement = possibleJudgement;
-      }
+    final searchForChanged = options["unchanged"]
+        ? "unchanged"
+        : options["changed"] ? "changed" : null;
+    final aboutStatus = filterDescriptions[searchForStatus][searchForChanged];
+    final sectionHeader = "The following tests $aboutStatus:";
+    final logSectionArg =
+        searchForStatus == "failing" || searchForStatus == "flaky"
+            ? logSection
+            : null;
+    bool possibleJudgement = search(
+        sectionHeader, searchForStatus, events, options, logs, logSectionArg);
+    if ((searchForStatus == null || searchForStatus == "failing")) {
+      judgement = possibleJudgement;
     }
   }
 
