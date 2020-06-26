@@ -31,12 +31,10 @@ var timerInputLibraries = Stopwatch();
 var timerLinking = Stopwatch();
 var timerLoad2 = Stopwatch();
 
-/**
- * Context information necessary to analyze one or more libraries within an
- * [AnalysisDriver].
- *
- * Currently this is implemented as a wrapper around [AnalysisContext].
- */
+/// Context information necessary to analyze one or more libraries within an
+/// [AnalysisDriver].
+///
+/// Currently this is implemented as a wrapper around [AnalysisContext].
 class LibraryContext {
   static const _maxLinkedDataInBytes = 64 * 1024 * 1024;
 
@@ -76,9 +74,7 @@ class LibraryContext {
     load2(targetLibrary);
   }
 
-  /**
-   * Computes a [CompilationUnitElement] for the given library/unit pair.
-   */
+  /// Computes a [CompilationUnitElement] for the given library/unit pair.
   CompilationUnitElement computeUnitElement(FileState library, FileState unit) {
     var reference = elementFactory.rootReference
         .getChild(library.uriStr)
@@ -87,16 +83,12 @@ class LibraryContext {
     return elementFactory.elementOfReference(reference);
   }
 
-  /**
-   * Get the [LibraryElement] for the given library.
-   */
+  /// Get the [LibraryElement] for the given library.
   LibraryElement getLibraryElement(FileState library) {
     return elementFactory.libraryOfUri(library.uriStr);
   }
 
-  /**
-   * Return `true` if the given [uri] is known to be a library.
-   */
+  /// Return `true` if the given [uri] is known to be a library.
   bool isLibraryUri(Uri uri) {
     String uriStr = uri.toString();
     return elementFactory.isLibraryUri(uriStr);

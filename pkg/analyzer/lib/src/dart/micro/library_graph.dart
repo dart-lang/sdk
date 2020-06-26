@@ -42,19 +42,13 @@ void computeLibraryCycle(Uint32List linkedSalt, FileState file) {
 class FileState {
   final FileSystemState _fsState;
 
-  /**
-   * The path of the file.
-   */
+  /// The path of the file.
   final String path;
 
-  /**
-   * The URI of the file.
-   */
+  /// The URI of the file.
   final Uri uri;
 
-  /**
-   * The [Source] of the file with the [uri].
-   */
+  /// The [Source] of the file with the [uri].
   final Source source;
 
   /// Files that reference this file.
@@ -385,11 +379,9 @@ class FileSystemState {
   final AnalysisOptions _analysisOptions;
   final Uint32List _linkedSalt;
 
-  /**
-   * A function that returns the digest for a file as a String. The function
-   * returns a non null value, returns an empty string if file does
-   * not exist/has no contents.
-   */
+  /// A function that returns the digest for a file as a String. The function
+  /// returns a non null value, returns an empty string if file does
+  /// not exist/has no contents.
   final String Function(String path) getFileDigest;
 
   final Map<String, FileState> _pathToFile = {};
@@ -397,10 +389,8 @@ class FileSystemState {
 
   final FeatureSetProvider featureSetProvider;
 
-  /**
-   * A function that fetches the given list of files. This function can be used
-   * to batch file reads in systems where file fetches are expensive.
-   */
+  /// A function that fetches the given list of files. This function can be used
+  /// to batch file reads in systems where file fetches are expensive.
   final void Function(List<String> paths) prefetchFiles;
 
   final FileSystemStateTimers timers = FileSystemStateTimers();

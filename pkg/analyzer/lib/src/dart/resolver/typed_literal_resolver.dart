@@ -574,14 +574,12 @@ class TypedLiteralResolver {
     }
   }
 
-  /**
-   * Record that the static type of the given node is the given type.
-   *
-   * @param expression the node whose type is to be recorded
-   * @param type the static type of the node
-   *
-   * TODO(scheglov) Inline this.
-   */
+  /// Record that the static type of the given node is the given type.
+  ///
+  /// @param expression the node whose type is to be recorded
+  /// @param type the static type of the node
+  ///
+  /// TODO(scheglov) Inline this.
   void _recordStaticType(Expression expression, DartType type) {
     expression.staticType = type;
 //    if (type == null) {

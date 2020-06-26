@@ -254,10 +254,8 @@ class InterfaceLeastUpperBoundHelper {
     return _computeTypeAtMaxUniqueDepth(s);
   }
 
-  /**
-   * Return the length of the longest inheritance path from the [element] to
-   * Object.
-   */
+  /// Return the length of the longest inheritance path from the [element] to
+  /// Object.
   @visibleForTesting
   static int computeLongestInheritancePathToObject(ClassElement element) {
     return _computeLongestInheritancePathToObject(
@@ -407,10 +405,8 @@ class InterfaceLeastUpperBoundHelper {
     return null;
   }
 
-  /**
-   * Return the intersection of the [first] and [second] sets of types, where
-   * intersection is based on the equality of the types themselves.
-   */
+  /// Return the intersection of the [first] and [second] sets of types, where
+  /// intersection is based on the equality of the types themselves.
   static List<InstantiatedClass> _intersection(
     Set<InstantiatedClass> first,
     Set<InstantiatedClass> second,
@@ -435,12 +431,10 @@ class LeastUpperBoundHelper {
 
   InterfaceType get _objectType => _typeSystem.typeProvider.objectType;
 
-  /**
-   * Compute the least upper bound of two types.
-   *
-   * https://github.com/dart-lang/language
-   * See `resources/type-system/upper-lower-bounds.md`
-   */
+  /// Compute the least upper bound of two types.
+  ///
+  /// https://github.com/dart-lang/language
+  /// See `resources/type-system/upper-lower-bounds.md`
   DartType getLeastUpperBound(DartType T1, DartType T2) {
     // UP(T, T) = T
     if (identical(T1, T2)) {
@@ -678,12 +672,10 @@ class LeastUpperBoundHelper {
     return helper.compute(T1, T2);
   }
 
-  /**
-   * Compute the least upper bound of function types [f] and [g].
-   *
-   * https://github.com/dart-lang/language
-   * See `resources/type-system/upper-lower-bounds.md`
-   */
+  /// Compute the least upper bound of function types [f] and [g].
+  ///
+  /// https://github.com/dart-lang/language
+  /// See `resources/type-system/upper-lower-bounds.md`
   DartType _functionType(FunctionType f, FunctionType g) {
     var fTypeFormals = f.typeFormals;
     var gTypeFormals = g.typeFormals;

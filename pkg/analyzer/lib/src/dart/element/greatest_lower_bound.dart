@@ -257,12 +257,10 @@ class GreatestLowerBoundHelper {
     return NeverTypeImpl.instance;
   }
 
-  /**
-   * Compute the greatest lower bound of function types [f] and [g].
-   *
-   * https://github.com/dart-lang/language
-   * See `resources/type-system/upper-lower-bounds.md`
-   */
+  /// Compute the greatest lower bound of function types [f] and [g].
+  ///
+  /// https://github.com/dart-lang/language
+  /// See `resources/type-system/upper-lower-bounds.md`
   DartType _functionType(FunctionType f, FunctionType g) {
     var fTypeFormals = f.typeFormals;
     var gTypeFormals = g.typeFormals;

@@ -1112,10 +1112,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * For each [Annotation] found in [annotations], create a new
-   * [ElementAnnotation] object and set the [Annotation] to point to it.
-   */
+  /// For each [Annotation] found in [annotations], create a new
+  /// [ElementAnnotation] object and set the [Annotation] to point to it.
   List<ElementAnnotation> _createElementAnnotations(
       List<Annotation> annotations) {
     if (annotations.isEmpty) {

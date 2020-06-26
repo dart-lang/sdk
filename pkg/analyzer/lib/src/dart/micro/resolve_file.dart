@@ -58,10 +58,8 @@ class FileResolver {
    */
   final String Function(String path) getFileDigest;
 
-  /**
-   * A function that fetches the given list of files. This function can be used
-   * to batch file reads in systems where file fetches are expensive.
-   */
+  /// A function that fetches the given list of files. This function can be used
+  /// to batch file reads in systems where file fetches are expensive.
   final void Function(List<String> paths) prefetchFiles;
 
   final Workspace workspace;

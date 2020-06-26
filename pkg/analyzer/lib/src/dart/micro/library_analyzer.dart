@@ -49,9 +49,7 @@ import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-/**
- * Analyzer of a single library.
- */
+/// Analyzer of a single library.
 class LibraryAnalyzer {
   /// A marker object used to prevent the initialization of
   /// [_versionConstraintFromPubspec] when the previous initialization attempt
@@ -79,11 +77,9 @@ class LibraryAnalyzer {
   final List<UsedImportedElements> _usedImportedElementsList = [];
   final List<UsedLocalElements> _usedLocalElementsList = [];
 
-  /**
-   * Constants in the current library.
-   *
-   * TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
-   */
+  /// Constants in the current library.
+  ///
+  /// TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
   final Set<ConstantEvaluationTarget> _libraryConstants = {};
 
   final Set<ConstantEvaluationTarget> _constants = {};
@@ -107,9 +103,7 @@ class LibraryAnalyzer {
 
   TypeSystemImpl get _typeSystem => _libraryElement.typeSystem;
 
-  /**
-   * Compute analysis results for all units of the library.
-   */
+  /// Compute analysis results for all units of the library.
   Map<FileState, UnitAnalysisResult> analyzeSync({
     @required String completionPath,
     @required int completionOffset,
@@ -175,15 +169,13 @@ class LibraryAnalyzer {
     return results;
   }
 
-  /**
-   * Clear evaluation results for all constants before computing them again.
-   * The reason is described in https://github.com/dart-lang/sdk/issues/35940
-   *
-   * Otherwise, we reuse results, including errors are recorded only when
-   * we evaluate constants resynthesized from summaries.
-   *
-   * TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
-   */
+  /// Clear evaluation results for all constants before computing them again.
+  /// The reason is described in https://github.com/dart-lang/sdk/issues/35940
+  ///
+  /// Otherwise, we reuse results, including errors are recorded only when
+  /// we evaluate constants resynthesized from summaries.
+  ///
+  /// TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
   void _clearConstantEvaluationResults() {
     for (var constant in _libraryConstants) {
       if (constant is ConstFieldElementImpl_ofEnum) continue;
@@ -201,9 +193,7 @@ class LibraryAnalyzer {
     unit.accept(constantVerifier);
   }
 
-  /**
-   * Compute [_constants] in all units.
-   */
+  /// Compute [_constants] in all units.
   void _computeConstants() {
     computeConstants(_typeProvider, _typeSystem, _declaredVariables,
         _constants.toList(), _analysisOptions.experimentStatus);
@@ -412,10 +402,8 @@ class LibraryAnalyzer {
     unit.accept(errorVerifier);
   }
 
-  /**
-   * Return a subset of the given [errors] that are not marked as ignored in
-   * the [file].
-   */
+  /// Return a subset of the given [errors] that are not marked as ignored in
+  /// the [file].
   List<AnalysisError> _filterIgnoredErrors(
       FileState file, List<AnalysisError> errors) {
     if (errors.isEmpty) {
@@ -460,9 +448,7 @@ class LibraryAnalyzer {
     });
   }
 
-  /**
-   * Catch all exceptions from the `getFileContent` function.
-   */
+  /// Catch all exceptions from the `getFileContent` function.
   String _getFileContent(String path) {
     try {
       return getFileContent(path);
@@ -488,10 +474,8 @@ class LibraryAnalyzer {
     return workspace?.findPackageFor(libraryPath);
   }
 
-  /**
-   * Return the name of the library that the given part is declared to be a
-   * part of, or `null` if the part does not contain a part-of directive.
-   */
+  /// Return the name of the library that the given part is declared to be a
+  /// part of, or `null` if the part does not contain a part-of directive.
   _NameOrSource _getPartLibraryNameOrUri(Source partSource,
       CompilationUnit partUnit, List<Directive> directivesToResolve) {
     for (Directive directive in partUnit.directives) {
@@ -522,16 +506,12 @@ class LibraryAnalyzer {
     return false;
   }
 
-  /**
-   * Return `true` if the given [source] is a library.
-   */
+  /// Return `true` if the given [source] is a library.
   bool _isLibrarySource(Source source) {
     return _isLibraryUri(source.uri);
   }
 
-  /**
-   * Return a  parsed unresolved [CompilationUnit].
-   */
+  /// Return a  parsed unresolved [CompilationUnit].
   CompilationUnit _parse(FileState file) {
     AnalysisErrorListener errorListener = _getErrorListener(file);
     String content = _getFileContent(file.path);
@@ -728,10 +708,8 @@ class LibraryAnalyzer {
     }
   }
 
-  /**
-   * Return the result of resolve the given [uriContent], reporting errors
-   * against the [uriLiteral].
-   */
+  /// Return the result of resolve the given [uriContent], reporting errors
+  /// against the [uriLiteral].
   Source _resolveUri(FileState file, bool isImport, StringLiteral uriLiteral,
       String uriContent) {
     UriValidationCode code =
@@ -779,10 +757,8 @@ class LibraryAnalyzer {
     }
   }
 
-  /**
-   * Check the given [directive] to see if the referenced source exists and
-   * report an error if it does not.
-   */
+  /// Check the given [directive] to see if the referenced source exists and
+  /// report an error if it does not.
   void _validateUriBasedDirective(
       FileState file, UriBasedDirectiveImpl directive) {
     Source source = directive.uriSource;
@@ -806,10 +782,8 @@ class LibraryAnalyzer {
         .reportErrorForNode(errorCode, uriLiteral, [directive.uriContent]);
   }
 
-  /**
-   * Check each directive in the given [unit] to see if the referenced source
-   * exists and report an error if it does not.
-   */
+  /// Check each directive in the given [unit] to see if the referenced source
+  /// exists and report an error if it does not.
   void _validateUriBasedDirectives(FileState file, CompilationUnit unit) {
     for (Directive directive in unit.directives) {
       if (directive is UriBasedDirective) {
@@ -818,10 +792,8 @@ class LibraryAnalyzer {
     }
   }
 
-  /**
-   * Return `true` if the given [source] refers to a file that is assumed to be
-   * generated.
-   */
+  /// Return `true` if the given [source] refers to a file that is assumed to be
+  /// generated.
   static bool _isGenerated(Source source) {
     if (source == null) {
       return false;
@@ -845,9 +817,7 @@ class LibraryAnalyzer {
   }
 }
 
-/**
- * Analysis result for single file.
- */
+/// Analysis result for single file.
 class UnitAnalysisResult {
   final FileState file;
   final CompilationUnit unit;
@@ -856,9 +826,7 @@ class UnitAnalysisResult {
   UnitAnalysisResult(this.file, this.unit, this.errors);
 }
 
-/**
- * Either the name or the source associated with a part-of directive.
- */
+/// Either the name or the source associated with a part-of directive.
 class _NameOrSource {
   final String name;
   final Source source;

@@ -5,19 +5,15 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
-/**
- * Compute the set of external names referenced in the [unit].
- */
+/// Compute the set of external names referenced in the [unit].
 Set<String> computeReferencedNames(CompilationUnit unit) {
   _ReferencedNamesComputer computer = _ReferencedNamesComputer();
   unit.accept(computer);
   return computer.names;
 }
 
-/**
- * Compute the set of names which are used in `extends`, `with` or `implements`
- * clauses in the file. Import prefixes and type arguments are not included.
- */
+/// Compute the set of names which are used in `extends`, `with` or `implements`
+/// clauses in the file. Import prefixes and type arguments are not included.
 Set<String> computeSubtypedNames(CompilationUnit unit) {
   Set<String> subtypedNames = <String>{};
 
@@ -54,9 +50,7 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
   return subtypedNames;
 }
 
-/**
- * Chained set of local names, that hide corresponding external names.
- */
+/// Chained set of local names, that hide corresponding external names.
 class _LocalNameScope {
   final _LocalNameScope enclosing;
   Set<String> names;
