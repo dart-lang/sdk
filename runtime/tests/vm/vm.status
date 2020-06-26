@@ -357,7 +357,7 @@ cc/GenKernelKernelReadAllBytecode: SkipByDesign # No interpreter support.
 # On the simluator stack traces produced by the Profiler do not match
 # up with the real Dart stack trace and hence we don't get correct
 # symbol names.
-[ $arch == simarm || $arch == simarm64 || $arch == simarmv6 ]
+[ $arch == simarm || $arch == simarm64 ]
 cc/LargeMap: SkipByDesign
 cc/Profiler_AllocationSampleTest: SkipByDesign
 cc/Profiler_ArrayAllocation: SkipByDesign

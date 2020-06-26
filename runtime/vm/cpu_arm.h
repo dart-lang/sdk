@@ -22,12 +22,6 @@ namespace dart {
 // additionally mock the options needed for the target architecture so that
 // they may be altered for testing.
 
-enum ARMVersion {
-  ARMv6,
-  ARMv7,
-  ARMvUnknown,
-};
-
 class HostCPUFeatures : public AllStatic {
  public:
   static void Init();
@@ -52,10 +46,6 @@ class HostCPUFeatures : public AllStatic {
     DEBUG_ASSERT(initialized_);
     return hardfp_supported_;
   }
-  static ARMVersion arm_version() {
-    DEBUG_ASSERT(initialized_);
-    return arm_version_;
-  }
   static intptr_t store_pc_read_offset() {
     DEBUG_ASSERT(initialized_);
     return store_pc_read_offset_;
@@ -74,10 +64,6 @@ class HostCPUFeatures : public AllStatic {
     DEBUG_ASSERT(initialized_);
     neon_supported_ = supported;
   }
-  static void set_arm_version(ARMVersion version) {
-    DEBUG_ASSERT(initialized_);
-    arm_version_ = version;
-  }
 #endif  // !defined(HOST_ARCH_ARM)
 
  private:
@@ -86,7 +72,6 @@ class HostCPUFeatures : public AllStatic {
   static bool vfp_supported_;
   static bool neon_supported_;
   static bool hardfp_supported_;
-  static ARMVersion arm_version_;
   static intptr_t store_pc_read_offset_;
 #if defined(DEBUG)
   static bool initialized_;
@@ -108,7 +93,6 @@ class TargetCPUFeatures : public AllStatic {
   static bool neon_supported() { return HostCPUFeatures::neon_supported(); }
   static bool hardfp_supported() { return HostCPUFeatures::hardfp_supported(); }
   static const char* hardware() { return HostCPUFeatures::hardware(); }
-  static ARMVersion arm_version() { return HostCPUFeatures::arm_version(); }
   static intptr_t store_pc_read_offset() {
     return HostCPUFeatures::store_pc_read_offset();
   }

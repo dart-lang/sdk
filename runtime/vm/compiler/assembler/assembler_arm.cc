@@ -364,13 +364,8 @@ void Assembler::mls(Register rd,
                     Register ra,
                     Condition cond) {
   // rd <- ra - rn * rm.
-  if (TargetCPUFeatures::arm_version() == ARMv7) {
-    // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
-    EmitMulOp(cond, B22 | B21, ra, rd, rn, rm);
-  } else {
-    mul(IP, rn, rm, cond);
-    sub(rd, ra, Operand(IP), cond);
-  }
+  // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
+  EmitMulOp(cond, B22 | B21, ra, rd, rn, rm);
 }
 
 void Assembler::smull(Register rd_lo,
@@ -978,9 +973,6 @@ void Assembler::vmovd(DRegister dd, DRegister dm, Condition cond) {
 }
 
 bool Assembler::vmovs(SRegister sd, float s_imm, Condition cond) {
-  if (TargetCPUFeatures::arm_version() != ARMv7) {
-    return false;
-  }
   uint32_t imm32 = bit_cast<uint32_t, float>(s_imm);
   if (((imm32 & ((1 << 19) - 1)) == 0) &&
       ((((imm32 >> 25) & ((1 << 6) - 1)) == (1 << 5)) ||
@@ -995,9 +987,6 @@ bool Assembler::vmovs(SRegister sd, float s_imm, Condition cond) {
 }
 
 bool Assembler::vmovd(DRegister dd, double d_imm, Condition cond) {
-  if (TargetCPUFeatures::arm_version() != ARMv7) {
-    return false;
-  }
   uint64_t imm64 = bit_cast<uint64_t, double>(d_imm);
   if (((imm64 & ((1LL << 48) - 1)) == 0) &&
       ((((imm64 >> 54) & ((1 << 9) - 1)) == (1 << 8)) ||
@@ -2074,69 +2063,15 @@ static int32_t DecodeARMv7LoadImmediate(int32_t movt, int32_t movw) {
   return offset;
 }
 
-static int32_t DecodeARMv6LoadImmediate(int32_t mov,
-                                        int32_t or1,
-                                        int32_t or2,
-                                        int32_t or3) {
-  int32_t offset = 0;
-  offset |= (mov & 0xff) << 24;
-  offset |= (or1 & 0xff) << 16;
-  offset |= (or2 & 0xff) << 8;
-  offset |= (or3 & 0xff);
-  return offset;
-}
-
 class PatchFarBranch : public AssemblerFixup {
  public:
   PatchFarBranch() {}
 
   void Process(const MemoryRegion& region, intptr_t position) {
-    const ARMVersion version = TargetCPUFeatures::arm_version();
-    if (version == ARMv6) {
-      ProcessARMv6(region, position);
-    } else {
-      ASSERT(version == ARMv7);
-      ProcessARMv7(region, position);
-    }
+    ProcessARMv7(region, position);
   }
 
  private:
-  void ProcessARMv6(const MemoryRegion& region, intptr_t position) {
-    const int32_t mov = region.Load<int32_t>(position);
-    const int32_t or1 = region.Load<int32_t>(position + 1 * Instr::kInstrSize);
-    const int32_t or2 = region.Load<int32_t>(position + 2 * Instr::kInstrSize);
-    const int32_t or3 = region.Load<int32_t>(position + 3 * Instr::kInstrSize);
-    const int32_t bx = region.Load<int32_t>(position + 4 * Instr::kInstrSize);
-
-    if (((mov & 0xffffff00) == 0xe3a0c400) &&  // mov IP, (byte3 rot 4)
-        ((or1 & 0xffffff00) == 0xe38cc800) &&  // orr IP, IP, (byte2 rot 8)
-        ((or2 & 0xffffff00) == 0xe38ccc00) &&  // orr IP, IP, (byte1 rot 12)
-        ((or3 & 0xffffff00) == 0xe38cc000)) {  // orr IP, IP, byte0
-      const int32_t offset = DecodeARMv6LoadImmediate(mov, or1, or2, or3);
-      const int32_t dest = region.start() + offset;
-      const int32_t dest0 = (dest & 0x000000ff);
-      const int32_t dest1 = (dest & 0x0000ff00) >> 8;
-      const int32_t dest2 = (dest & 0x00ff0000) >> 16;
-      const int32_t dest3 = (dest & 0xff000000) >> 24;
-      const int32_t patched_mov = 0xe3a0c400 | dest3;
-      const int32_t patched_or1 = 0xe38cc800 | dest2;
-      const int32_t patched_or2 = 0xe38ccc00 | dest1;
-      const int32_t patched_or3 = 0xe38cc000 | dest0;
-
-      region.Store<int32_t>(position + 0 * Instr::kInstrSize, patched_mov);
-      region.Store<int32_t>(position + 1 * Instr::kInstrSize, patched_or1);
-      region.Store<int32_t>(position + 2 * Instr::kInstrSize, patched_or2);
-      region.Store<int32_t>(position + 3 * Instr::kInstrSize, patched_or3);
-      return;
-    }
-
-    // If the offset loading instructions aren't there, we must have replaced
-    // the far branch with a near one, and so these instructions
-    // should be NOPs.
-    ASSERT((or1 == Instr::kNopInstruction) && (or2 == Instr::kNopInstruction) &&
-           (or3 == Instr::kNopInstruction) && (bx == Instr::kNopInstruction));
-  }
-
   void ProcessARMv7(const MemoryRegion& region, intptr_t position) {
     const int32_t movw = region.Load<int32_t>(position);
     const int32_t movt = region.Load<int32_t>(position + Instr::kInstrSize);
@@ -2196,85 +2131,6 @@ void Assembler::EmitBranch(Condition cond, Label* label, bool link) {
     }
     label->LinkTo(position);
   }
-}
-
-void Assembler::BindARMv6(Label* label) {
-  ASSERT(!label->IsBound());
-  intptr_t bound_pc = buffer_.Size();
-  while (label->IsLinked()) {
-    const int32_t position = label->Position();
-    int32_t dest = bound_pc - position;
-    if (use_far_branches() && !CanEncodeBranchDistance(dest)) {
-      // Far branches are enabled and we can't encode the branch offset.
-
-      // Grab instructions that load the offset.
-      const int32_t mov = buffer_.Load<int32_t>(position);
-      const int32_t or1 =
-          buffer_.Load<int32_t>(position + 1 * Instr::kInstrSize);
-      const int32_t or2 =
-          buffer_.Load<int32_t>(position + 2 * Instr::kInstrSize);
-      const int32_t or3 =
-          buffer_.Load<int32_t>(position + 3 * Instr::kInstrSize);
-
-      // Change from relative to the branch to relative to the assembler
-      // buffer.
-      dest = buffer_.Size();
-      const int32_t dest0 = (dest & 0x000000ff);
-      const int32_t dest1 = (dest & 0x0000ff00) >> 8;
-      const int32_t dest2 = (dest & 0x00ff0000) >> 16;
-      const int32_t dest3 = (dest & 0xff000000) >> 24;
-      const int32_t patched_mov = 0xe3a0c400 | dest3;
-      const int32_t patched_or1 = 0xe38cc800 | dest2;
-      const int32_t patched_or2 = 0xe38ccc00 | dest1;
-      const int32_t patched_or3 = 0xe38cc000 | dest0;
-
-      // Rewrite the instructions.
-      buffer_.Store<int32_t>(position + 0 * Instr::kInstrSize, patched_mov);
-      buffer_.Store<int32_t>(position + 1 * Instr::kInstrSize, patched_or1);
-      buffer_.Store<int32_t>(position + 2 * Instr::kInstrSize, patched_or2);
-      buffer_.Store<int32_t>(position + 3 * Instr::kInstrSize, patched_or3);
-      label->position_ = DecodeARMv6LoadImmediate(mov, or1, or2, or3);
-    } else if (use_far_branches() && CanEncodeBranchDistance(dest)) {
-      // Grab instructions that load the offset, and the branch.
-      const int32_t mov = buffer_.Load<int32_t>(position);
-      const int32_t or1 =
-          buffer_.Load<int32_t>(position + 1 * Instr::kInstrSize);
-      const int32_t or2 =
-          buffer_.Load<int32_t>(position + 2 * Instr::kInstrSize);
-      const int32_t or3 =
-          buffer_.Load<int32_t>(position + 3 * Instr::kInstrSize);
-      const int32_t branch =
-          buffer_.Load<int32_t>(position + 4 * Instr::kInstrSize);
-
-      // Grab the branch condition, and encode the link bit.
-      const int32_t cond = branch & 0xf0000000;
-      const int32_t link = (branch & 0x20) << 19;
-
-      // Encode the branch and the offset.
-      const int32_t new_branch = cond | link | 0x0a000000;
-      const int32_t encoded = EncodeBranchOffset(dest, new_branch);
-
-      // Write the encoded branch instruction followed by two nops.
-      buffer_.Store<int32_t>(position, encoded);
-      buffer_.Store<int32_t>(position + 1 * Instr::kInstrSize,
-                             Instr::kNopInstruction);
-      buffer_.Store<int32_t>(position + 2 * Instr::kInstrSize,
-                             Instr::kNopInstruction);
-      buffer_.Store<int32_t>(position + 3 * Instr::kInstrSize,
-                             Instr::kNopInstruction);
-      buffer_.Store<int32_t>(position + 4 * Instr::kInstrSize,
-                             Instr::kNopInstruction);
-
-      label->position_ = DecodeARMv6LoadImmediate(mov, or1, or2, or3);
-    } else {
-      BailoutIfInvalidBranchOffset(dest);
-      int32_t next = buffer_.Load<int32_t>(position);
-      int32_t encoded = Assembler::EncodeBranchOffset(dest, next);
-      buffer_.Store<int32_t>(position, encoded);
-      label->position_ = Assembler::DecodeBranchOffset(next);
-    }
-  }
-  label->BindTo(bound_pc);
 }
 
 void Assembler::BindARMv7(Label* label) {
@@ -2345,13 +2201,7 @@ void Assembler::BindARMv7(Label* label) {
 }
 
 void Assembler::Bind(Label* label) {
-  const ARMVersion version = TargetCPUFeatures::arm_version();
-  if (version == ARMv6) {
-    BindARMv6(label);
-  } else {
-    ASSERT(version == ARMv7);
-    BindARMv7(label);
-  }
+  BindARMv7(label);
 }
 
 OperandSize Address::OperandSizeFor(intptr_t cid) {
@@ -2794,45 +2644,19 @@ void Assembler::BranchLinkOffset(Register base, int32_t offset) {
 void Assembler::LoadPatchableImmediate(Register rd,
                                        int32_t value,
                                        Condition cond) {
-  const ARMVersion version = TargetCPUFeatures::arm_version();
-  if (version == ARMv6) {
-    // This sequence is patched in a few places, and should remain fixed.
-    const uint32_t byte0 = (value & 0x000000ff);
-    const uint32_t byte1 = (value & 0x0000ff00) >> 8;
-    const uint32_t byte2 = (value & 0x00ff0000) >> 16;
-    const uint32_t byte3 = (value & 0xff000000) >> 24;
-    mov(rd, Operand(4, byte3), cond);
-    orr(rd, rd, Operand(8, byte2), cond);
-    orr(rd, rd, Operand(12, byte1), cond);
-    orr(rd, rd, Operand(byte0), cond);
-  } else {
-    ASSERT(version == ARMv7);
-    const uint16_t value_low = Utils::Low16Bits(value);
-    const uint16_t value_high = Utils::High16Bits(value);
-    movw(rd, value_low, cond);
-    movt(rd, value_high, cond);
-  }
+  const uint16_t value_low = Utils::Low16Bits(value);
+  const uint16_t value_high = Utils::High16Bits(value);
+  movw(rd, value_low, cond);
+  movt(rd, value_high, cond);
 }
 
 void Assembler::LoadDecodableImmediate(Register rd,
                                        int32_t value,
                                        Condition cond) {
-  const ARMVersion version = TargetCPUFeatures::arm_version();
-  if (version == ARMv6) {
-    if (constant_pool_allowed()) {
-      const int32_t offset =
-          target::ObjectPool::element_offset(FindImmediate(value));
-      LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, PP, cond);
-    } else {
-      LoadPatchableImmediate(rd, value, cond);
-    }
-  } else {
-    ASSERT(version == ARMv7);
-    movw(rd, Utils::Low16Bits(value), cond);
-    const uint16_t value_high = Utils::High16Bits(value);
-    if (value_high != 0) {
-      movt(rd, value_high, cond);
-    }
+  movw(rd, Utils::Low16Bits(value), cond);
+  const uint16_t value_high = Utils::High16Bits(value);
+  if (value_high != 0) {
+    movt(rd, value_high, cond);
   }
 }
 
