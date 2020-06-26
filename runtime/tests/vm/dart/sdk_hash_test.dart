@@ -46,7 +46,7 @@ Future<void> main(List<String> args) async {
       final result = await Process.run(dart, [dillPath, '--child']);
       Expect.equals('', result.stderr);
       Expect.equals(0, result.exitCode);
-      Expect.equals('Hello, SDK Hash!\n', result.stdout);
+      Expect.equals('Hello, SDK Hash!', result.stdout.trim());
     }
 
     // Invalidate the SDK hash in the kernel dill:
@@ -65,7 +65,7 @@ Future<void> main(List<String> args) async {
     {
       final result = await Process.run(dart, [dillPath, '--child']);
       Expect.equals(
-          'Can\'t load Kernel binary: Invalid SDK hash.\n', result.stderr);
+          'Can\'t load Kernel binary: Invalid SDK hash.', result.stderr.trim());
       Expect.equals(253, result.exitCode);
       Expect.equals('', result.stdout);
     }
@@ -82,7 +82,7 @@ Future<void> main(List<String> args) async {
       final result = await Process.run(dart, [dillPath, '--child']);
       Expect.equals('', result.stderr);
       Expect.equals(0, result.exitCode);
-      Expect.equals('Hello, SDK Hash!\n', result.stdout);
+      Expect.equals('Hello, SDK Hash!', result.stdout.trim());
     }
   });
 }
