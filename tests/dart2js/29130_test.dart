@@ -20,7 +20,7 @@ class A {
 
 // interface scenario: we shouldn't trace B
 abstract class B implements A {
-  factory B() => null;
+  factory B() => null as dynamic;
 }
 
 // mixin scenario: we should trace C, but we should trace _C

@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 // Regression test for Issue 12320, Issue 12363.
 
 String log = '';
-int x;
+int? x;
 
 void main() {
   (run)(run);

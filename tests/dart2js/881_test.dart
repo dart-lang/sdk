@@ -6,6 +6,6 @@
 
 @pragma('dart2js:disableFinal')
 void main() {
-  String v = null;
+  String? v = null;
   print('${v.hashCode}');
 }

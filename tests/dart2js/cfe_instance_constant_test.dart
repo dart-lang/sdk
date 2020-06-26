@@ -17,5 +17,5 @@ class Class9 {
 const c0 = const bool.fromEnvironment("x") ? null : const Class9();
 
 main() {
-  Expect.equals(0, c0.field);
+  Expect.equals(0, c0!.field);
 }

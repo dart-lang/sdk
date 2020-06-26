@@ -5,11 +5,11 @@
 import 'package:expect/expect.dart';
 
 class A {
-  String field;
+  String? field;
 }
 
 class B {
-  int field;
+  int? field;
 }
 
 @pragma('dart2js:noInline')

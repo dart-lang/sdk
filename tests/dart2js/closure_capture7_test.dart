@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A<T> {
-  List<List> xs;
+  List<List>? xs;
 
   void foo() {
     // the inner closure only needs to capture 'this' if
     // `A` needs runtime type information.
-    xs.map((x) => x.map((a) => a as T));
+    xs!.map((x) => x.map((a) => a as T));
   }
 }
 

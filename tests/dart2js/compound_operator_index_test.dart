@@ -69,7 +69,7 @@ main() {
   a[0] += 2;
   Expect.equals(3, a[0]);
 
-  List trace = new List();
+  List trace = [];
   getB(trace)[getIndex(trace)] += 37;
 
   Expect.listEquals([-1, -2, -3, 42, 100, -4, 101, 37, -5, 42, 102], trace);

@@ -15,7 +15,7 @@ import "package:expect/expect.dart";
 class A<T> {
   const A();
   void add(T x) {}
-  T elementAt(int index) => index == 0 ? 42 : 'string';
+  T elementAt(int index) => index == 0 ? 42 as dynamic : 'string';
 
   // This call get:elementAt has a known receiver type, so is is potentially
   // eligible for a dummy receiver optimization.
@@ -89,7 +89,7 @@ main() {
 
     for (var object in objects) {
       for (var methodName in methodNames) {
-        var methodFn = methods[methodName];
+        var methodFn = methods[methodName] as dynamic;
         var description = '$object';
         checkers.forEach((checkName, checkFn) {
           bool answer = trueCheckNames.contains(checkName);

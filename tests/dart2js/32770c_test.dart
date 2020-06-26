@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2jsOptions=--strong
-
 // Regression test for issue 32770.
 
 import 'dart:async' show Future;
 
-A<J> futureToA<T, J>(Future<T> future, [J wrapValue(T value)]) {
+A<J> futureToA<T, J>(Future<T> future, [J wrapValue(T value)?]) {
   return new A<J>(
     (void resolveFn(J value), void rejectFn(error)) {
       future.then((value) {
