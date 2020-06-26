@@ -239,10 +239,24 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer):
             gn_args['toolchain_prefix'] = ParseStringMap(arch, toolchain)
 
     goma_dir = os.environ.get('GOMA_DIR')
+    # Search for goma in depot_tools in path
+    goma_depot_tools_dir = None
+    for path in os.environ.get('PATH', '').split(os.pathsep):
+        if os.path.basename(path) == 'depot_tools':
+            cipd_bin = os.path.join(path, '.cipd_bin')
+            if os.path.isfile(os.path.join(cipd_bin, 'gomacc')):
+                goma_depot_tools_dir = cipd_bin
+                break
+    # Otherwise use goma from home directory.
+    # TODO(whesse): Remove support for goma installed in home directory.
+    # Goma will only be distributed through depot_tools.
     goma_home_dir = os.path.join(os.getenv('HOME', ''), 'goma')
     if args.goma and goma_dir:
         gn_args['use_goma'] = True
         gn_args['goma_dir'] = goma_dir
+    elif args.goma and goma_depot_tools_dir:
+        gn_args['use_goma'] = True
+        gn_args['goma_dir'] = goma_depot_tools_dir
     elif args.goma and os.path.exists(goma_home_dir):
         gn_args['use_goma'] = True
         gn_args['goma_dir'] = goma_home_dir
