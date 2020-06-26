@@ -82,8 +82,6 @@ template("dart2js_compile") {
 
     packages = "../../.packages"
 
-    vm_args = [ "-Dsdk_hash=$sdk_hash" ]
-
     args = [
       "$abs_main",
       "-m",
@@ -119,8 +117,6 @@ prebuilt_dart_action("dartdevc_patch_sdk") {
   # the sources have changed.
   # TODO(rnystrom): List the outputs more precisely?
   outputs = [ "$patched_sdk_dir/version" ]
-
-  vm_args = [ "-Dsdk_hash=$sdk_hash" ]
 
   args = [
     "--libraries",
@@ -233,8 +229,6 @@ template("dartdevc_kernel_compile") {
       "$js_gen_dir/$module.dill",
       "$js_gen_dir/$module.js",
     ]
-
-    vm_args = [ "-Dsdk_hash=$sdk_hash" ]
 
     args = [
       "-k",
@@ -389,8 +383,6 @@ template("dartdevc_sdk_js") {
       "$js_gen_dir/legacy/dart_sdk.js",
       "$js_gen_dir/legacy/dart_sdk.js.map",
     ]
-
-    vm_args = [ "-Dsdk_hash=$sdk_hash" ]
 
     script = "../../pkg/dev_compiler/bin/dartdevc.dart"
 

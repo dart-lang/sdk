@@ -313,7 +313,6 @@ disallow
 disambiguator
 disjoint
 dispatched
-distribute
 divided
 dmitryas
 doc
@@ -326,7 +325,6 @@ downloaded
 downloading
 dq
 dquote
-dsdk
 dst
 dummy
 dupdate
@@ -437,14 +435,12 @@ futured
 futureor
 g
 gardening
-gen
 generation
 gets
 getter1a
 getter1b
 getting
 gft
-git
 github
 glb
 glob

@@ -149,7 +149,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 43;
+  static const int BinaryFormatVersion = 42;
 }
 
 abstract class ConstantTag {
@@ -168,28 +168,4 @@ abstract class ConstantTag {
   static const int TypeLiteralConstant = 11;
   static const int UnevaluatedConstant = 12;
   // 13 is occupied by [SetConstant]
-}
-
-const int sdkHashLength = 10; // Bytes, a Git "short hash".
-
-const String sdkHashNull = '0000000000';
-
-// Will be correct hash for Flutter SDK / Dart SDK we distribute.
-// If non-null we will validate when consuming kernel, will use when producing
-// kernel.
-// If null, local development setting (e.g. run gen_kernel.dart from source),
-// we put 0x00..00 into when producing, do not validate when consuming.
-String get expectedSdkHash {
-  final sdkHash =
-      const String.fromEnvironment('sdk_hash', defaultValue: sdkHashNull);
-  if (sdkHash.length != 10) {
-    throw '-Dsdk_hash=<hash> must be a 10 byte string!';
-  }
-  return sdkHash;
-}
-
-bool isValidSdkHash(String sdkHash) {
-  return (sdkHash == sdkHashNull ||
-      expectedSdkHash == sdkHashNull ||
-      sdkHash == expectedSdkHash);
 }

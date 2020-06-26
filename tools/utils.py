@@ -350,16 +350,13 @@ def GetShortVersion():
                                 version.prerelease, version.prerelease_patch))
 
 
-def GetSemanticSDKVersion(no_git_hash=False,
-                          version_file=None,
-                          git_revision_file=None):
+def GetSemanticSDKVersion(no_git_hash=False, version_file=None):
     version = ReadVersionFile(version_file)
     if not version:
         return None
 
     if version.channel == 'be':
-        postfix = '-edge' if no_git_hash else '-edge.%s' % GetGitRevision(
-            git_revision_file)
+        postfix = '-edge' if no_git_hash else '-edge.%s' % GetGitRevision()
     elif version.channel in ('beta', 'dev'):
         postfix = '-%s.%s.%s' % (version.prerelease, version.prerelease_patch,
                                  version.channel)
@@ -370,8 +367,8 @@ def GetSemanticSDKVersion(no_git_hash=False,
     return '%s.%s.%s%s' % (version.major, version.minor, version.patch, postfix)
 
 
-def GetVersion(no_git_hash=False, version_file=None, git_revision_file=None):
-    return GetSemanticSDKVersion(no_git_hash, version_file, git_revision_file)
+def GetVersion(no_git_hash=False, version_file=None):
+    return GetSemanticSDKVersion(no_git_hash, version_file)
 
 
 # The editor used to produce the VERSION file put on gcs. We now produce this
@@ -470,13 +467,12 @@ def GetArchiveVersion():
     return GetSemanticSDKVersion()
 
 
-def GetGitRevision(git_revision_file=None):
+def GetGitRevision():
     # When building from tarball use tools/GIT_REVISION
-    if git_revision_file is None:
-        git_revision_file = os.path.join(DART_DIR, 'tools', 'GIT_REVISION')
+    git_revision_file = os.path.join(DART_DIR, 'tools', 'GIT_REVISION')
     try:
         with open(git_revision_file) as fd:
-            return fd.read().strip()
+            return fd.read()
     except:
         pass
     p = subprocess.Popen(['git', 'rev-parse', 'HEAD'],

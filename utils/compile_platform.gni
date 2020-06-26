@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../build/dart/dart_action.gni")
-import("../sdk_args.gni")
 
 _dart_root = get_path_info("..", "abspath")
 
@@ -46,8 +45,6 @@ template("compile_platform") {
     packages = "$_dart_root/.packages"
 
     outputs = invoker.outputs
-
-    vm_args = [ "-Dsdk_hash=$sdk_hash" ]
 
     inputs = []
     deps = []

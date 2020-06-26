@@ -2654,7 +2654,18 @@ TokenPosition KernelReaderHelper::ReadPosition() {
 }
 
 intptr_t KernelReaderHelper::SourceTableFieldCountFromFirstLibraryOffset() {
-  return SourceTableFieldCountFromFirstLibraryOffset41Plus;
+  // translation_helper_.info() might not be initialized at this point so we
+  // can't use translation_helper_.info().kernel_binary_version().
+  SetOffset(KernelFormatVersionOffset);
+  uint32_t formatVersion = reader_.ReadUInt32();
+  intptr_t count_from_first_library_offset =
+      SourceTableFieldCountFromFirstLibraryOffsetPre41;
+  static_assert(kMinSupportedKernelFormatVersion < 41, "cleanup this code");
+  if (formatVersion >= 41) {
+    count_from_first_library_offset =
+        SourceTableFieldCountFromFirstLibraryOffset41Plus;
+  }
+  return count_from_first_library_offset;
 }
 
 intptr_t KernelReaderHelper::SourceTableSize() {

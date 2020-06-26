@@ -136,7 +136,7 @@ def UseSysroot(args, gn_args):
     return True
 
 
-def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
+def ToGnArgs(args, mode, arch, target_os, sanitizer):
     gn_args = {}
 
     host_os = HostOsForGn(HOST_OS)
@@ -257,8 +257,6 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
     elif args.debug_opt_level:
         gn_args['dart_debug_optimization_level'] = args.debug_opt_level
         gn_args['debug_optimization_level'] = args.debug_opt_level
-
-    gn_args['verify_sdk_hash'] = verify_sdk_hash
 
     return gn_args
 
@@ -468,10 +466,6 @@ def parse_args(args):
         default=False,
         dest='use_qemu',
         action='store_true')
-    other_group.add_argument('--no-verify-sdk-hash',
-                             help='Disable SDK hash checks.',
-                             default=False,
-                             action='store_true')
 
     options = parser.parse_args(args)
     if not ProcessOptions(options):
@@ -512,8 +506,7 @@ def Main(argv):
                     # See dartbug.com/32364
                     command = [gn, 'gen', out_dir]
                     gn_args = ToCommandLine(
-                        ToGnArgs(args, mode, arch, target_os, sanitizer,
-                                 not args.no_verify_sdk_hash))
+                        ToGnArgs(args, mode, arch, target_os, sanitizer))
                     gn_args += GetGNArgs(args)
                     if args.verbose:
                         print("gn gen --check in %s" % out_dir)

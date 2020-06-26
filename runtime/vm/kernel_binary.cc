@@ -15,7 +15,6 @@
 #include "vm/kernel.h"
 #include "vm/object.h"
 #include "vm/os.h"
-#include "vm/version.h"
 
 namespace dart {
 
@@ -85,14 +84,12 @@ const char* kKernelInvalidBinaryFormatVersion =
     "Invalid kernel binary format version";
 const char* kKernelInvalidSizeIndicated =
     "Invalid kernel binary: Indicated size is invalid";
-const char* kKernelInvalidSdkHash = "Invalid SDK hash";
 
 std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
-  if (reader->size() < 70) {
-    // A kernel file (v43) currently contains at least the following:
+  if (reader->size() < 60) {
+    // A kernel file (v41) currently contains at least the following:
     //   * Magic number (32)
     //   * Kernel version (32)
-    //   * SDK Hash (10 * 8)
     //   * List of problems (8)
     //   * Length of source map (32)
     //   * Length of canonical name table (8)
@@ -101,7 +98,7 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
     //   * Length of constant table (8)
     //   * Component index (11 * 32)
     //
-    // so is at least 74 bytes.
+    // so is at least 64 bytes.
     // (Technically it will also contain an empty entry in both source map and
     // string table, taking up another 8 bytes.)
     if (error != nullptr) {
@@ -123,18 +120,6 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
       (formatVersion > kMaxSupportedKernelFormatVersion)) {
     if (error != nullptr) {
       *error = kKernelInvalidBinaryFormatVersion;
-    }
-    return nullptr;
-  }
-
-  uint8_t sdkHash[11];
-  reader->ReadBytes(sdkHash, 10);
-  sdkHash[10] = 0;  // Null terminate.
-  if (strcmp(Version::SdkHash(), "0000000000") != 0 &&
-      strcmp((const char*)sdkHash, "0000000000") != 0 &&
-      strcmp((const char*)sdkHash, Version::SdkHash()) != 0) {
-    if (error != nullptr) {
-      *error = kKernelInvalidSdkHash;
     }
     return nullptr;
   }
@@ -167,8 +152,13 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   // Read backwards at the end.
   program->library_count_ = reader->ReadFromIndexNoReset(
       reader->size_, LibraryCountFieldCountFromEnd, 1, 0);
+  static_assert(kMinSupportedKernelFormatVersion < 41, "cleanup this code");
   intptr_t count_from_first_library_offset =
-      SourceTableFieldCountFromFirstLibraryOffset41Plus;
+      SourceTableFieldCountFromFirstLibraryOffsetPre41;
+  if (formatVersion >= 41) {
+    count_from_first_library_offset =
+        SourceTableFieldCountFromFirstLibraryOffset41Plus;
+  }
   program->source_table_offset_ = reader->ReadFromIndexNoReset(
       reader->size_,
       LibraryCountFieldCountFromEnd + 1 + program->library_count_ + 1 +
@@ -181,9 +171,13 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   program->constant_table_offset_ = reader->ReadUInt32();
 
   program->main_method_reference_ = NameIndex(reader->ReadUInt32() - 1);
-  NNBDCompiledMode compilation_mode =
-      static_cast<NNBDCompiledMode>(reader->ReadUInt32());
-  program->compilation_mode_ = compilation_mode;
+  if (formatVersion >= 41) {
+    NNBDCompiledMode compilation_mode =
+        static_cast<NNBDCompiledMode>(reader->ReadUInt32());
+    program->compilation_mode_ = compilation_mode;
+  } else {
+    program->compilation_mode_ = NNBDCompiledMode::kDisabled;
+  }
 
   return program;
 }

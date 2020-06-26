@@ -473,33 +473,31 @@ class BinaryMdDillReader {
         type = type.substring(0, type.indexOf("["));
         type = _lookupGenericType(typeNames, type, types);
 
-        int intCount = int.tryParse(count) ?? -1;
-        if (intCount == -1) {
-          if (vars[count] != null && vars[count] is int) {
-            intCount = vars[count];
-          } else if (count.contains(".")) {
-            List<String> countData =
-                count.split(regExpSplit).map((s) => s.trim()).toList();
-            if (vars[countData[0]] != null) {
-              dynamic v = vars[countData[0]];
-              if (v is Map &&
-                  countData[1] == "last" &&
-                  v["items"] is List &&
-                  v["items"].last is int) {
-                intCount = v["items"].last;
-              } else if (v is Map && v[countData[1]] != null) {
-                v = v[countData[1]];
-                if (v is Map && v[countData[2]] != null) {
-                  v = v[countData[2]];
-                  if (v is int) intCount = v;
-                } else if (v is int &&
-                    countData.length == 4 &&
-                    countData[2] == "+") {
-                  intCount = v + int.parse(countData[3]);
-                }
-              } else {
-                throw "Unknown dot to int ($count)";
+        int intCount = -1;
+        if (vars[count] != null && vars[count] is int) {
+          intCount = vars[count];
+        } else if (count.contains(".")) {
+          List<String> countData =
+              count.split(regExpSplit).map((s) => s.trim()).toList();
+          if (vars[countData[0]] != null) {
+            dynamic v = vars[countData[0]];
+            if (v is Map &&
+                countData[1] == "last" &&
+                v["items"] is List &&
+                v["items"].last is int) {
+              intCount = v["items"].last;
+            } else if (v is Map && v[countData[1]] != null) {
+              v = v[countData[1]];
+              if (v is Map && v[countData[2]] != null) {
+                v = v[countData[2]];
+                if (v is int) intCount = v;
+              } else if (v is int &&
+                  countData.length == 4 &&
+                  countData[2] == "+") {
+                intCount = v + int.parse(countData[3]);
               }
+            } else {
+              throw "Unknown dot to int ($count)";
             }
           }
         }
