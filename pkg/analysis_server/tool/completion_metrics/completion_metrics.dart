@@ -37,6 +37,7 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' show ElementKind;
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:args/args.dart';
 import 'package:meta/meta.dart';
@@ -168,7 +169,7 @@ bool validArguments(ArgParser parser, ArgResults result) {
 
 /// An indication of the group in which the completion falls for the purposes of
 /// subdividing the results.
-enum CompletionGroup { instanceMember, staticMember, topLevel }
+enum CompletionGroup { instanceMember, staticMember, typeReference, topLevel }
 
 /// A wrapper for the collection of [Counter] and [MeanReciprocalRankComputer]
 /// objects for a run of [CompletionMetricsComputer].
@@ -208,6 +209,9 @@ class CompletionMetrics {
   MeanReciprocalRankComputer staticMemberMrrComputer =
       MeanReciprocalRankComputer('static member completions');
 
+  MeanReciprocalRankComputer typeRefMrrComputer =
+      MeanReciprocalRankComputer('type reference completions');
+
   MeanReciprocalRankComputer topLevelMrrComputer =
       MeanReciprocalRankComputer('non-type member completions');
 
@@ -238,6 +242,10 @@ class CompletionMetrics {
   List<CompletionResult> staticMemberWorstResults = [];
 
   /// A list of the top [maxWorstResults] completion results with the highest
+  /// (worst) ranks for completing to type references.
+  List<CompletionResult> typeRefWorstResults = [];
+
+  /// A list of the top [maxWorstResults] completion results with the highest
   /// (worst) ranks for completing to top-level declarations.
   List<CompletionResult> topLevelWorstResults = [];
 
@@ -248,6 +256,10 @@ class CompletionMetrics {
   /// A list of the top [maxSlowestResults] completion results that took the
   /// longest top compute for static members.
   List<CompletionResult> staticMemberSlowestResults = [];
+
+  /// A list of the top [maxSlowestResults] completion results that took the
+  /// longest top compute for type references.
+  List<CompletionResult> typeRefSlowestResults = [];
 
   /// A list of the top [maxSlowestResults] completion results that took the
   /// longest top compute for top-level declarations.
@@ -292,6 +304,9 @@ class CompletionMetrics {
       case CompletionGroup.staticMember:
         staticMemberMrrComputer.addRank(rank);
         break;
+      case CompletionGroup.typeReference:
+        typeRefMrrComputer.addRank(rank);
+        break;
       case CompletionGroup.topLevel:
         topLevelMrrComputer.addRank(rank);
         break;
@@ -314,6 +329,8 @@ class CompletionMetrics {
           return instanceMemberSlowestResults;
         case CompletionGroup.staticMember:
           return staticMemberSlowestResults;
+        case CompletionGroup.typeReference:
+          return typeRefSlowestResults;
         case CompletionGroup.topLevel:
           return topLevelSlowestResults;
       }
@@ -344,6 +361,8 @@ class CompletionMetrics {
           return instanceMemberWorstResults;
         case CompletionGroup.staticMember:
           return staticMemberWorstResults;
+        case CompletionGroup.typeReference:
+          return typeRefWorstResults;
         case CompletionGroup.topLevel:
           return topLevelWorstResults;
       }
@@ -512,6 +531,9 @@ class CompletionMetricsComputer {
     metrics.staticMemberMrrComputer.printMean();
     print('');
 
+    metrics.typeRefMrrComputer.printMean();
+    print('');
+
     metrics.topLevelMrrComputer.printMean();
     print('');
 
@@ -586,6 +608,7 @@ class CompletionMetricsComputer {
     _printSlowestResults(
         'Instance members', metrics.instanceMemberSlowestResults);
     _printSlowestResults('Static members', metrics.staticMemberSlowestResults);
+    _printSlowestResults('Type references', metrics.typeRefSlowestResults);
     _printSlowestResults('Top level', metrics.topLevelSlowestResults);
   }
 
@@ -595,6 +618,7 @@ class CompletionMetricsComputer {
     print('The worst completion results');
     _printWorstResults('Instance members', metrics.instanceMemberWorstResults);
     _printWorstResults('Static members', metrics.staticMemberWorstResults);
+    _printWorstResults('Type references', metrics.topLevelWorstResults);
     _printWorstResults('Top level', metrics.topLevelWorstResults);
   }
 
@@ -1012,6 +1036,8 @@ class CompletionResult {
         } else {
           return CompletionGroup.instanceMember;
         }
+      } else if (expectedCompletion.elementKind == ElementKind.CLASS) {
+        return CompletionGroup.typeReference;
       }
     }
     return CompletionGroup.topLevel;
