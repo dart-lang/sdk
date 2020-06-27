@@ -246,7 +246,7 @@ class FileState {
     }
 
     if (_libraryCycle == null) {
-      computeLibraryCycle(_fsState._linkedSalt, this);
+      computeLibraryCycle(_fsState._saltForElements, this);
     }
 
     return _libraryCycle;
@@ -362,7 +362,7 @@ class FileState {
     List<int> contentSignature;
     {
       var signature = ApiSignature();
-      signature.addUint32List(_fsState._unlinkedSalt);
+      signature.addUint32List(_fsState._saltForUnlinked);
       signature.addFeatureSet(_contextFeatureSet);
       signature.addLanguageVersion(_packageLanguageVersion);
       signature.addString(_contentHash);
@@ -736,8 +736,8 @@ class FileSystemState {
   final SourceFactory _sourceFactory;
   final AnalysisOptions _analysisOptions;
   final DeclaredVariables _declaredVariables;
-  final Uint32List _unlinkedSalt;
-  final Uint32List _linkedSalt;
+  final Uint32List _saltForUnlinked;
+  final Uint32List _saltForElements;
 
   final FeatureSetProvider featureSetProvider;
 
@@ -795,8 +795,8 @@ class FileSystemState {
     this._sourceFactory,
     this._analysisOptions,
     this._declaredVariables,
-    this._unlinkedSalt,
-    this._linkedSalt,
+    this._saltForUnlinked,
+    this._saltForElements,
     this.featureSetProvider, {
     this.externalSummaries,
   }) {

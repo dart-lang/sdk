@@ -38,6 +38,7 @@ var timerLoad2 = Stopwatch();
 class LibraryContext {
   static const _maxLinkedDataInBytes = 64 * 1024 * 1024;
 
+  final LibraryContextTestView testView;
   final PerformanceLog logger;
   final ByteStore byteStore;
   final AnalysisSessionImpl analysisSession;
@@ -55,6 +56,7 @@ class LibraryContext {
   Set<LibraryCycle> loadedBundles = Set<LibraryCycle>.identity();
 
   LibraryContext({
+    @required this.testView,
     @required AnalysisSessionImpl session,
     @required PerformanceLog logger,
     @required ByteStore byteStore,
@@ -119,6 +121,10 @@ class LibraryContext {
 
       if (bytes == null) {
         librariesLinkedTimer.start();
+
+        testView.linkedCycles.add(
+          cycle.libraries.map((e) => e.path).toSet(),
+        );
 
         timerInputLibraries.start();
         inputsTimer.start();
@@ -310,6 +316,10 @@ class LibraryContext {
     }
     throw LibraryCycleLinkException(exception, stackTrace, fileContentMap);
   }
+}
+
+class LibraryContextTestView {
+  final List<Set<String>> linkedCycles = [];
 }
 
 /// TODO(scheglov) replace in the internal patch

@@ -91,7 +91,7 @@ typedef WorkToWaitAfterComputingResult = Future<void> Function(String path);
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 103;
+  static const int DATA_VERSION = 104;
 
   /// The length of the list returned by [_computeDeclaredVariablesSignature].
   static const int _declaredVariablesSignatureLength = 4;
@@ -144,12 +144,18 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   api.AnalysisContext analysisContext;
 
   /// The salt to mix into all hashes used as keys for unlinked data.
-  final Uint32List _unlinkedSalt =
-      Uint32List(2 + AnalysisOptionsImpl.unlinkedSignatureLength);
+  final Uint32List _saltForUnlinked =
+      Uint32List(2 + AnalysisOptionsImpl.signatureLength);
+
+  /// The salt to mix into all hashes used as keys for elements.
+  final Uint32List _saltForElements = Uint32List(1 +
+      AnalysisOptionsImpl.signatureLength +
+      _declaredVariablesSignatureLength);
 
   /// The salt to mix into all hashes used as keys for linked data.
-  final Uint32List _linkedSalt = Uint32List(
-      2 + AnalysisOptions.signatureLength + _declaredVariablesSignatureLength);
+  final Uint32List _saltForResolution = Uint32List(2 +
+      AnalysisOptionsImpl.signatureLength +
+      _declaredVariablesSignatureLength);
 
   /// The set of priority files, that should be analyzed sooner.
   final _priorityFiles = <String>{};
@@ -860,7 +866,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _throwIfNotAbsolutePath(path);
     var file = fsState.getFileForPath(path);
     ApiSignature signature = ApiSignature();
-    signature.addUint32List(_linkedSalt);
+    signature.addUint32List(_saltForResolution);
     signature.addString(file.transitiveSignature);
     return signature;
   }
@@ -1461,8 +1467,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       sourceFactory,
       analysisOptions,
       declaredVariables,
-      _unlinkedSalt,
-      _linkedSalt,
+      _saltForUnlinked,
+      _saltForElements,
       featureSetProvider,
       externalSummaries: _externalSummaries,
     );
@@ -1480,6 +1486,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
       if (_libraryContext == null) {
         _libraryContext = LibraryContext(
+          testView: _testView.libraryContext,
           session: currentSession,
           logger: _logger,
           byteStore: _byteStore,
@@ -1511,29 +1518,45 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _discoverAvailableFilesTask ??= _DiscoverAvailableFilesTask(this);
   }
 
-  /// Fill [_unlinkedSalt] and [_linkedSalt] with data.
   void _fillSalt() {
-    _unlinkedSalt[0] = DATA_VERSION;
-    _unlinkedSalt[1] = enableIndex ? 1 : 0;
-    _unlinkedSalt.setAll(2, _analysisOptions.unlinkedSignature);
-
-    _fillSaltLinked();
+    _fillSaltForUnlinked();
+    _fillSaltForElements();
+    _fillSaltForResolution();
   }
 
-  void _fillSaltLinked() {
+  void _fillSaltForElements() {
     var index = 0;
 
-    _linkedSalt[index] = DATA_VERSION;
+    _saltForElements[index] = DATA_VERSION;
     index++;
 
-    _linkedSalt[index] = enableIndex ? 1 : 0;
-    index++;
+    _saltForElements.setAll(index, _analysisOptions.signatureForElements);
+    index += AnalysisOptionsImpl.signatureLength;
 
-    _linkedSalt.setAll(index, _analysisOptions.signature);
-    index += AnalysisOptionsImpl.unlinkedSignatureLength;
-
-    _linkedSalt.setAll(index, _computeDeclaredVariablesSignature());
+    _saltForResolution.setAll(index, _computeDeclaredVariablesSignature());
     index += _declaredVariablesSignatureLength;
+  }
+
+  void _fillSaltForResolution() {
+    var index = 0;
+
+    _saltForResolution[index] = DATA_VERSION;
+    index++;
+
+    _saltForResolution[index] = enableIndex ? 1 : 0;
+    index++;
+
+    _saltForResolution.setAll(index, _analysisOptions.signature);
+    index += AnalysisOptionsImpl.signatureLength;
+
+    _saltForResolution.setAll(index, _computeDeclaredVariablesSignature());
+    index += _declaredVariablesSignatureLength;
+  }
+
+  void _fillSaltForUnlinked() {
+    _saltForUnlinked[0] = DATA_VERSION;
+    _saltForUnlinked[1] = enableIndex ? 1 : 0;
+    _saltForUnlinked.setAll(2, _analysisOptions.unlinkedSignature);
   }
 
   /// Load the [AnalysisResult] for the given [file] from the [bytes]. Set
@@ -1580,7 +1603,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// in the [library], e.g. element model, errors, index, etc.
   String _getResolvedUnitSignature(FileState library, FileState file) {
     ApiSignature signature = ApiSignature();
-    signature.addUint32List(_linkedSalt);
+    signature.addUint32List(_saltForResolution);
     signature.addString(library.transitiveSignature);
     signature.addString(file.contentHash);
     return signature.toHex();
@@ -1949,6 +1972,7 @@ class AnalysisDriverScheduler {
 @visibleForTesting
 class AnalysisDriverTestView {
   final AnalysisDriver driver;
+  final LibraryContextTestView libraryContext = LibraryContextTestView();
 
   int numOfAnalyzedLibraries = 0;
 
