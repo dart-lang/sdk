@@ -527,10 +527,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             DartObjectImpl result = initializer
                 .accept(ConstantVisitor(_evaluationEngine, subErrorReporter));
             if (result == null) {
-              _errorReporter.reportErrorForNode(
+              _errorReporter.reportErrorForToken(
                   CompileTimeErrorCode
                       .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
-                  errorSite,
+                  errorSite.constKeyword,
                   [variableDeclaration.name.name]);
             }
           }
