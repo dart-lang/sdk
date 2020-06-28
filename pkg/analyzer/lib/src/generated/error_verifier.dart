@@ -3437,10 +3437,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
     }
 
-    _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
-        declaration.name,
-        [superType, _enclosingClass.displayName]);
+    if (!_typeProvider.nonSubtypableClasses.contains(superType.element)) {
+      // Don't report this diagnostic for non-subtypable classes because the
+      // real problem was already reported.
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+          declaration.name,
+          [superType, _enclosingClass.displayName]);
+    }
   }
 
   /// Verify the given map [literal] either:

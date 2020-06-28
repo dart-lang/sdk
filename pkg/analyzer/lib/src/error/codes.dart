@@ -4138,7 +4138,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode MIXIN_OF_DISALLOWED_CLASS =
       CompileTimeErrorCodeWithUniqueName('SUBTYPE_OF_DISALLOWED_TYPE',
-          'MIXIN_OF_DISALLOWED_CLASS', "Classes can't mixin '{0}'.");
+          'MIXIN_OF_DISALLOWED_CLASS', "Classes can't mixin '{0}'.",
+          correction: "Try specifying a different class or mixin, or "
+              "remove the class or mixin from the list.");
 
   /**
    * No parameters.
@@ -4190,7 +4192,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCodeWithUniqueName(
           'SUBTYPE_OF_DISALLOWED_TYPE',
           'MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS',
-          "'{0}' can't be used as a super-class constraint.");
+          "'{0}' can't be used as a super-class constraint.",
+          correction: "Try specifying a different super-class constraint, or "
+              "remove the 'on' clause.");
 
   /**
    * No parameters.
