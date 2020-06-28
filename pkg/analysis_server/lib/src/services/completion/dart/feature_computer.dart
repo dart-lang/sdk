@@ -387,20 +387,11 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
           return positionalParamElts[i].type;
         }
       }
-      // Named and positional parameters
-      if (positionalParamElts.length < paramElts.length) {
-        for (; i < node.arguments.length && i < paramElts.length; i++) {
-          if (node.arguments[i].contains(offset)) {
-            if (node.arguments[i] is NamedExpression) {
-              var namedExpression = node.arguments[i] as NamedExpression;
-              var needle = paramElts
-                  .where((paramElt) =>
-                      paramElt.isNamed &&
-                      paramElt.name == namedExpression.name.label.name)
-                  ?.first;
-              return needle?.type;
-            }
-          }
+
+      // Named arguments.
+      for (var argument in node.arguments) {
+        if (argument is NamedExpression && argument.contains(offset)) {
+          return argument.staticParameterElement?.type;
         }
       }
     }

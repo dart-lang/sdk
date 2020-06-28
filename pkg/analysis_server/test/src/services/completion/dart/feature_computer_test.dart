@@ -60,6 +60,26 @@ void g(int j) {
 ''', 'String');
   }
 
+  Future<void> test_argumentList_named_unresolved_hasNamedParameters() async {
+    await assertContextType('''
+void f({int a}) {}
+
+void g() {
+  f(b: ^);
+}
+''', null);
+  }
+
+  Future<void> test_argumentList_named_unresolved_noNamedParameters() async {
+    await assertContextType('''
+void f() {}
+
+void g() {
+  f(a: ^);
+}
+''', null);
+  }
+
   Future<void> test_argumentList_named_with_requiredPositional() async {
     await assertContextType('''
 void f(String s, {int i}) {}
