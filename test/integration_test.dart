@@ -21,6 +21,24 @@ void main() {
 
 void defineTests() {
   group('integration', () {
+    group('unnecessary_lambdas', () {
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
+      setUp(() => outSink = collectingOut);
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+      });
+      test('deferred import', () async {
+        await cli.runLinter([
+          'test/_data/unnecessary_lambdas',
+          '--rules=unnecessary_lambdas',
+        ], LinterOptions());
+        expect(collectingOut.trim(),
+            contains('2 files analyzed, 0 issues found, in'));
+      });
+    });
+
     group('exhaustive_cases', () {
       final currentOut = outSink;
       final collectingOut = CollectingSink();

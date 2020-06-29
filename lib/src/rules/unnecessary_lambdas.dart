@@ -168,6 +168,12 @@ class _Visitor extends SimpleAstVisitor<void> {
         rule.reportLint(nodeToLint);
       }
     } else if (node is MethodInvocation) {
+      var target = node.target;
+      if (target is SimpleIdentifier &&
+          target?.staticElement is PrefixElement) {
+        return;
+      }
+
       var parent = nodeToLint.parent;
       if (parent is NamedExpression) {
         var argType = parent.staticType;
