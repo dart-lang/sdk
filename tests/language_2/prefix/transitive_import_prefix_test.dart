@@ -7,7 +7,7 @@ main() {
   // Library prefixes in the imported libraries should not be visible here.
   new lib11.Library11(1);
   //  ^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
+  // [analyzer] STATIC_WARNING.CREATION_WITH_NON_TYPE
   // [cfe] Method not found: 'lib11.Library11'.
   lib11.Library11.static_func();
 //^^^^^

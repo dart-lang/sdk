@@ -1530,10 +1530,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the non-type element
    */
-  static const CompileTimeErrorCode CONST_WITH_NON_TYPE = CompileTimeErrorCode(
-      'CONST_WITH_NON_TYPE', "The name '{0}' isn't a class.",
-      correction: "Try correcting the name to match an existing class.",
-      isUnresolvedIdentifier: true);
+  static const CompileTimeErrorCode CONST_WITH_NON_TYPE =
+      CompileTimeErrorCodeWithUniqueName('CREATION_WITH_NON_TYPE',
+          'CONST_WITH_NON_TYPE', "The name '{0}' isn't a class.",
+          correction: "Try correcting the name to match an existing class.",
+          isUnresolvedIdentifier: true);
 
   /**
    * 16.12.2 Const: If <i>T</i> is a parameterized type, it is a compile-time
@@ -7031,9 +7032,13 @@ class CompileTimeErrorCodeWithUniqueName extends CompileTimeErrorCode {
 
   const CompileTimeErrorCodeWithUniqueName(
       String name, this.uniqueName, String message,
-      {String correction, bool hasPublishedDocs})
+      {String correction,
+      bool hasPublishedDocs,
+      bool isUnresolvedIdentifier = false})
       : super(name, message,
-            correction: correction, hasPublishedDocs: hasPublishedDocs);
+            correction: correction,
+            hasPublishedDocs: hasPublishedDocs,
+            isUnresolvedIdentifier: isUnresolvedIdentifier);
 }
 
 /**
@@ -9572,10 +9577,11 @@ class StaticWarningCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the non-type element
    */
-  static const StaticWarningCode NEW_WITH_NON_TYPE = StaticWarningCode(
-      'NEW_WITH_NON_TYPE', "The name '{0}' isn't a class.",
-      correction: "Try correcting the name to match an existing class.",
-      isUnresolvedIdentifier: true);
+  static const StaticWarningCode NEW_WITH_NON_TYPE =
+      StaticWarningCodeWithUniqueName('CREATION_WITH_NON_TYPE',
+          'NEW_WITH_NON_TYPE', "The name '{0}' isn't a class.",
+          correction: "Try correcting the name to match an existing class.",
+          isUnresolvedIdentifier: true);
 
   /**
    * 12.11.1 New: If <i>T</i> is a class or parameterized type accessible in the
@@ -10571,9 +10577,13 @@ class StaticWarningCodeWithUniqueName extends StaticWarningCode {
 
   const StaticWarningCodeWithUniqueName(
       String name, this.uniqueName, String message,
-      {String correction, bool hasPublishedDocs})
+      {String correction,
+      bool hasPublishedDocs,
+      bool isUnresolvedIdentifier = false})
       : super(name, message,
-            correction: correction, hasPublishedDocs: hasPublishedDocs);
+            correction: correction,
+            hasPublishedDocs: hasPublishedDocs,
+            isUnresolvedIdentifier: isUnresolvedIdentifier);
 }
 
 /**
