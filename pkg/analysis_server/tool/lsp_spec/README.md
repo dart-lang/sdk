@@ -5,6 +5,7 @@
 ## Using the Dart LSP server in editors
 
 - [Using LSP with Dart-Vim](https://github.com/dart-lang/dart-vim-plugin/blob/master/README.md#how-do-i-configure-an-lsp-plugin-to-start-the-analysis-server)
+- [Using LSP with Emacs](https://emacs-lsp.github.io/lsp-dart)
 
 ## Running the Server
 
