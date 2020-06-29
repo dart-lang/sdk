@@ -90,6 +90,13 @@ Updated the Linter to `0.1.117`, which includes:
 
 ### Dart VM
 
+*   **Breaking Change** [#41100][]: When printing a string using the `print`
+    function, the default implementation (used when not overridden by the
+    embedder or the current zone) will print any unpaired surrogates in the
+    string as replacement characters (`U+FFFD`). Similarly, the
+    `Dart_StringToUTF8` function in the Dart API will convert unpaired
+    surrogates into replacement characters.
+
 ### Pub
 * `pub run` and `pub global run` accepts a `--enable-experiment` flag enabling
   experiments in the Dart VM (and language).
