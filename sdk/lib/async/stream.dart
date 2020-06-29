@@ -248,6 +248,77 @@ abstract class Stream<T> {
   }
 
   /**
+   * Creates a multi-subscription stream.
+   *
+   * Each time the created stream is listened to,
+   * the [onListen] callback is invoked with a new [MultiStreamController]
+   * which forwards events to the [StreamSubscription]
+   * returned by that [listen] call.
+   *
+   * This allows each listener to be treated as an individual stream.
+   *
+   * The [MultiStreamController] does not support reading its
+   * [StreamController.stream]. Setting its [StreamController.onListen]
+   * has no effect since the [onListen] callback is called instead,
+   * and the [StreamController.onListen] won't be called later.
+   * The controller acts like an asynchronous controller,
+   * but provides extra methods for delivering events synchronously.
+   *
+   * If [isBroadcast] is set to `true`, the returned stream's
+   * [Stream.isBroadcast] will be `true`.
+   * This has no effect on the stream behavior,
+   * it is up to the [onListen] function
+   * to act like a broadcast stream if it claims to be one.
+   *
+   * A multi-subscription stream can behave like any other stream.
+   * If the [onListen] callback throws on every call after the first,
+   * the stream behaves like a single-subscription stream.
+   * If the stream emits the same events to all current listeners,
+   * it behaves like a broadcast stream.
+   *
+   * It can also choose to emit different events to different listeners.
+   * For example, a stream which repeats the most recent
+   * non-`null` event to new listeners, could be implemented as this example:
+   * ```dart
+   * extension StreamRepeatLatestExtension<T extends Object> on Stream<T> {
+   *   Stream<T> repeatLatest() {
+   *     var done = false;
+   *     T? latest = null;
+   *     var currentListeners = <MultiStreamController<T>>{};
+   *     this.listen((event) {
+   *       latest = event;
+   *       for (var listener in [...currentListeners]) listener.addSync(event);
+   *     }, onError: (Object error, StackTrace stack) {
+   *       for (var listener in [...currentListeners]) listener.addErrorSync(error, stack);
+   *     }, onDone: () {
+   *       done = true;
+   *       latest = null;
+   *       for (var listener in currentListeners) listener.closeSync();
+   *       currentListeners.clear();
+   *     });
+   *     return Stream.multi((controller) {
+   *       if (done) {
+   *         controller.close();
+   *         return;
+   *       }
+   *       currentListeners.add(controller);
+   *       var latestValue = latest;
+   *       if (latestValue != null) controller.add(latestValue);
+   *       controller.onCancel = () {
+   *         currentListeners.remove(controller);
+   *       };
+   *     });
+   *   }
+   * }
+   * ```
+   */
+  @Since("2.9")
+  factory Stream.multi(void Function(MultiStreamController<T>) onListen,
+      {bool isBroadcast = false}) {
+    return _MultiStream<T>(onListen, isBroadcast);
+  }
+
+  /**
    * Creates a stream that repeatedly emits events at [period] intervals.
    *
    * The event values are computed by invoking [computation]. The argument to
@@ -2229,4 +2300,50 @@ class _ControllerEventSinkWrapper<T> implements EventSink<T> {
   void close() {
     _ensureSink().close();
   }
+}
+
+/**
+ * An enhanced stream controller provided by [Stream.multi].
+ *
+ * Acts like a normal asynchronous controller, but also allows
+ * adding events synchronously.
+ * As with any synchronous event delivery, the sender should be very careful
+ * to not deliver events at times when a new listener might not
+ * be ready to receive them.
+ * That generally means only delivering events synchronously in response to other
+ * asynchronous events, because that is a time when an asynchronous event could
+ * happen.
+ */
+@Since("2.9")
+abstract class MultiStreamController<T> implements StreamController<T> {
+  /**
+   * Adds and delivers an event.
+   *
+   * Adds an event like [add] and attempts to deliver it immediately.
+   * Delivery can be delayed if other previously added events are
+   * still pending delivery, if the subscription is paused,
+   * or if the subscription isn't listening yet.
+   */
+  void addSync(T value);
+
+  /**
+   * Adds and delivers an error event.
+   *
+   * Adds an error like [addError] and attempts to deliver it immediately.
+   * Delivery can be delayed if other previously added events are
+   * still pending delivery, if the subscription is paused,
+   * or if the subscription isn't listening yet.
+   */
+  void addErrorSync(Object error, [StackTrace? stackTrace]);
+
+  /**
+   * Closes the controller and delivers a done event.
+   *
+   * Closes the controller like [close] and attempts to deliver a "done"
+   * event immediately.
+   * Delivery can be delayed if other previously added events are
+   * still pending delivery, if the subscription is paused,
+   * or if the subscription isn't listening yet.
+   */
+  void closeSync();
 }

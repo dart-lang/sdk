@@ -628,7 +628,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
    * Send or enqueue an error event.
    */
   void addError(Object error, [StackTrace? stackTrace]) {
-    // TODO(40614): Remove once non-nullability is sound.
+    // TODO(40614): Remove once non-nullability is sound. Use checkNotNullable.
     ArgumentError.checkNotNull(error, "error");
     if (!_mayAddEvent) throw _badEventState();
     AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
@@ -804,9 +804,6 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
 
 abstract class _SyncStreamControllerDispatch<T>
     implements _StreamController<T>, SynchronousStreamController<T> {
-  int get _state;
-  void set _state(int state);
-
   void _sendData(T data) {
     _subscription._add(data);
   }

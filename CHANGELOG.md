@@ -4,12 +4,11 @@
 
 ### Core libraries
 
-#### `dart:io`
+#### `dart:async`
 
-*   [#42006][]: The signature of `exit` has been changed to return the
-    `Never`type instead of `void`. since no code will run after it,
-
-[#42006]: https://github.com/dart-lang/sdk/issues/42006
+*   Adds `Stream.multi` constructor creating streams which can be
+    listened to more than once, and where each individual listener
+    can be controlled independently.
 
 #### `dart:convert`
 
@@ -22,6 +21,20 @@
 
 [#41100]: https://github.com/dart-lang/sdk/issues/41100
 [WHATWG encoding standard]: https://encoding.spec.whatwg.org/#utf-8-decoder
+
+#### `dart:io`
+
+*   [#42006][]: The signature of `exit` has been changed to return the
+    `Never`type instead of `void`. since no code will run after it,
+*   Class `OSError` now implements `Exception`. This change means `OSError` will
+    now be caught in catch clauses catching `Exception`s.
+*   Added `InternetAddress.tryParse`.
+*   [Abstract Unix Domain Socket][] is supported on Linux/Android now. Using an
+    `InternetAddress` with `address` starting with '@' and type being
+    `InternetAddressType.Unix` will create an abstract Unix Domain Socket.
+
+[#42006]: https://github.com/dart-lang/sdk/issues/42006
+[Abstract Unix Domain Socket]: http://man7.org/linux/man-pages/man7/unix.7.html
 
 #### `dart:html`
 
@@ -37,21 +50,9 @@
     `Future` is empty instead, it completes asynchronously, therefore
     potentially invalidating code that relied on the synchronous side-effect.
     This change will only affect code using sound null-safety. See issue
-    [41653][] for more details.
+    [#41653][] for more details.
 
-[41653]: https://github.com/dart-lang/sdk/issues/41653
-
-
-#### `dart:io`
-
-*   Class `OSError` now implements `Exception`. This change means `OSError` will
-    now be caught in catch clauses catching `Exception`s.
-*   Added `InternetAddress.tryParse`.
-*   [Abstract Unix Domain Socket][] is supported on Linux/Android now. Using an
-    `InternetAddress` with `address` starting with '@' and type being
-    `InternetAddressType.Unix` will create an abstract Unix Domain Socket.
-
-[Abstract Unix Domain Socket]: http://man7.org/linux/man-pages/man7/unix.7.html
+[#41653]: https://github.com/dart-lang/sdk/issues/41653
 
 ### Tools
 
@@ -100,7 +101,7 @@ Updated the Linter to `0.1.117`, which includes:
 * Warn at publishing first time a package version opts in to null-safety.
 * Preserve Windows line endings in pubspec.lock if they are already there (#2489)
 * Better terminal color-detection. Use colors in terminals on Windows.
-* `pub outdated`: If the current version of a dependency is a prerelease 
+* `pub outdated`: If the current version of a dependency is a prerelease
   version, use prereleases for latest if no newer stable.
 * `pub outdated` now works without a lockfile. In that case the 'Current'
   column will be empty.
