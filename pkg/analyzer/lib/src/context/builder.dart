@@ -242,8 +242,7 @@ class ContextBuilder {
     }
 
     String sdkPath = sdkManager.defaultSdkDirectory;
-    SdkDescription description =
-        SdkDescription(<String>[sdkPath], analysisOptions);
+    SdkDescription description = SdkDescription(sdkPath);
     return sdkManager.getSdk(description, () {
       var sdk = FolderBasedDartSdk(
         resourceProvider,

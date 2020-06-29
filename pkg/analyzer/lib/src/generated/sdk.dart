@@ -6,10 +6,8 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisOptions;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source;
-import 'package:analyzer/src/generated/utilities_general.dart';
 
 /// A Dart SDK installed in a specified location.
 abstract class DartSdk {
@@ -140,72 +138,27 @@ class LibraryMap {
 
 /// A description of a [DartSdk].
 class SdkDescription {
-  /// The paths to the files or directories that define the SDK.
-  final List<String> paths;
+  /// The path of the SDK.
+  final String path;
 
-  /// The analysis options that will be used by the SDK's context.
-  final AnalysisOptions options;
-
-  /// Initialize a newly created SDK description to describe an SDK based on the
-  /// files or directories at the given [paths] that is analyzed using the given
-  /// [options].
-  SdkDescription(this.paths, this.options);
+  SdkDescription(this.path);
 
   @override
   int get hashCode {
-    int hashCode = 0;
-    for (int value in options.signature) {
-      hashCode = JenkinsSmiHash.combine(hashCode, value);
-    }
-    for (String path in paths) {
-      hashCode = JenkinsSmiHash.combine(hashCode, path.hashCode);
-    }
-    return JenkinsSmiHash.finish(hashCode);
+    return path.hashCode;
   }
 
   @override
   bool operator ==(Object other) {
     if (other is SdkDescription) {
-      if (!AnalysisOptions.signaturesEqual(
-          options.signature, other.options.signature)) {
-        return false;
-      }
-      int length = paths.length;
-      if (other.paths.length != length) {
-        return false;
-      }
-      for (int i = 0; i < length; i++) {
-        if (other.paths[i] != paths[i]) {
-          return false;
-        }
-      }
-      return true;
+      return other.path == path;
     }
     return false;
   }
 
   @override
   String toString() {
-    StringBuffer buffer = StringBuffer();
-    bool needsSeparator = false;
-    void add(String optionName) {
-      if (needsSeparator) {
-        buffer.write(', ');
-      }
-      buffer.write(optionName);
-      needsSeparator = true;
-    }
-
-    for (String path in paths) {
-      add(path);
-    }
-    if (needsSeparator) {
-      buffer.write(' ');
-    }
-    buffer.write('(');
-    buffer.write(options.signature);
-    buffer.write(')');
-    return buffer.toString();
+    return path;
   }
 }
 
