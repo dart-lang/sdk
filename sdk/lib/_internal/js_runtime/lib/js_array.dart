@@ -156,7 +156,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
       iterable = iterable.toList();
     }
     int insertionLength = iterable.length;
-    this.length += insertionLength;
+    this._setLengthUnsafe(this.length + insertionLength);
     int end = index + insertionLength;
     this.setRange(end, this.length, this, index);
     this.setRange(index, end, iterable);
@@ -489,7 +489,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
       int delta = insertLength - removeLength;
       int newLength = this.length + delta;
       int insertEnd = start + insertLength; // aka. end + delta.
-      this.length = newLength;
+      this._setLengthUnsafe(newLength);
       this.setRange(insertEnd, newLength, this, end);
       this.setRange(start, insertEnd, replacement);
     }
@@ -616,6 +616,29 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
     if (newLength < 0) {
       throw new RangeError.range(newLength, 0, null, 'newLength');
     }
+
+    // Verify that element type is nullable.
+    if (newLength > length) null as E;
+
+    // JavaScript with throw a RangeError for numbers that are too big. The
+    // message does not contain the value.
+    JS('void', r'#.length = #', this, newLength);
+  }
+
+  /// Unsafe alternative to the [length] setter that skips the check and will
+  /// not fail when increasing the size of a list of non-nullable elements.
+  ///
+  /// To ensure null safe soundness this should only be called when every new
+  /// index will be filled before returning.
+  ///
+  /// Should only be called when the list is already known to be growable.
+  void _setLengthUnsafe(int newLength) {
+    assert(newLength is int,
+        throw new ArgumentError.value(newLength, 'newLength'));
+
+    assert(newLength >= 0,
+        throw new RangeError.range(newLength, 0, null, 'newLength'));
+
     // JavaScript with throw a RangeError for numbers that are too big. The
     // message does not contain the value.
     JS('void', r'#.length = #', this, newLength);
