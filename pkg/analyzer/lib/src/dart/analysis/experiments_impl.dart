@@ -272,10 +272,14 @@ class ExperimentalFeature implements Feature {
 
   final String _firstSupportedVersion;
 
-  const ExperimentalFeature(this.index, this.enableString,
-      this.isEnabledByDefault, this.isExpired, this.documentation,
-      {String firstSupportedVersion})
-      : _firstSupportedVersion = firstSupportedVersion,
+  const ExperimentalFeature({
+    @required this.index,
+    @required this.enableString,
+    @required this.isEnabledByDefault,
+    @required this.isExpired,
+    @required this.documentation,
+    @required String firstSupportedVersion,
+  })  : _firstSupportedVersion = firstSupportedVersion,
         assert(index != null),
         assert(isEnabledByDefault
             ? firstSupportedVersion != null
