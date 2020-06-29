@@ -235,10 +235,13 @@ class Duration implements Comparable<Duration> {
    * Returns a string representation of this `Duration`.
    *
    * Returns a string with hours, minutes, seconds, and microseconds, in the
-   * following format: `HH:MM:SS.mmmmmm`. For example,
+   * following format: `H:MM:SS.mmmmmm`. For example,
    *
-   *     var d = new Duration(days:1, hours:1, minutes:33, microseconds: 500);
+   *     var d = Duration(days: 1, hours: 1, minutes: 33, microseconds: 500);
    *     d.toString();  // "25:33:00.000500"
+   *
+   *     d = Duration(days: 0, hours: 1, minutes: 10, microseconds: 500);
+   *     d.toString();  // "1:10:00.000500"
    */
   String toString() {
     String sixDigits(int n) {
