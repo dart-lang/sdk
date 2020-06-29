@@ -47,13 +47,13 @@ or through an
 As some lints may contradict each other, only a subset of these will be
 enabled in practice, but this list should provide a convenient jumping-off point.
 
-Other rulesets to consider are:
+Many lints are included in various predefined rulesets:
 
-* [package:pedantic](https://github.com/dart-lang/pedantic) for rules enforced internally at Google, and 
-* [package:effective_dart](https://github.com/tenhobi/effective_dart) for rules corresponding to the [Effective Dart](https://dart.dev/guides/language/effective-dart) guide
+* [pedantic](https://github.com/dart-lang/pedantic) for rules enforced internally at Google
+* [effective_dart](https://github.com/tenhobi/effective_dart) for rules corresponding to the [Effective Dart](https://dart.dev/guides/language/effective-dart) style guide
+* [flutter](https://github.com/flutter/flutter/blob/master/packages/flutter/lib/analysis_options_user.yaml) for rules used in <code>flutter analyze</code>
 
-(Rules included in these rulesets are badged in the documentation below;
-rules enforced by the `flutter analyze` command are badged **Flutter** as well.)
+Rules included in these rulesets are badged in the documentation below.
 
 These rules are under active development.  Feedback is
 [welcome](https://github.com/dart-lang/linter/issues)!
@@ -76,7 +76,7 @@ String get enumerateErrorRules => rules
 
 String get enumerateGroups => Group.builtin
     .map((Group g) =>
-        '<li><strong>${g.name}</strong> - ${markdownToHtml(g.description)}</li>')
+        '<li><strong>${g.name} -</strong> ${markdownToHtml(g.description)}</li>')
     .join('\n');
 
 String get enumeratePubRules => rules
@@ -183,15 +183,18 @@ String getBadges(String rule) {
   var sb = StringBuffer();
   if (flutterRules.contains(rule)) {
     sb.write(
-        '<a href="https://github.com/flutter/flutter/blob/master/packages/flutter/lib/analysis_options_user.yaml"><!--suppress HtmlUnknownTarget --><img alt="flutter" src="style-flutter.svg"></a> ');
+        '<a class="style-type" href="https://github.com/flutter/flutter/blob/master/packages/flutter/lib/analysis_options_user.yaml">'
+        '<!--suppress HtmlUnknownTarget --><img alt="flutter" src="style-flutter.svg"></a>');
   }
   if (pedanticRules.contains(rule)) {
     sb.write(
-        '<a href="https://github.com/dart-lang/pedantic/#enabled-lints"><!--suppress HtmlUnknownTarget --><img alt="pedantic" src="style-pedantic.svg"></a>');
+        '<a class="style-type" href="https://github.com/dart-lang/pedantic/#enabled-lints">'
+        '<!--suppress HtmlUnknownTarget --><img alt="pedantic" src="style-pedantic.svg"></a>');
   }
   if (effectiveDartRules.contains(rule)) {
     sb.write(
-        '<a href="https://github.com/tenhobi/effective_dart"><!--suppress HtmlUnknownTarget --><img alt="effective_dart" src="style-effective_dart.svg"></a>');
+        '<a class="style-type" href="https://github.com/tenhobi/effective_dart">'
+        '<!--suppress HtmlUnknownTarget --><img alt="effective dart" src="style-effective_dart.svg"></a>');
   }
   return sb.toString();
 }
@@ -257,7 +260,6 @@ class Generator {
     var version = info.sinceDartSdk != null
         ? '>= ${info.sinceDartSdk}'
         : '<strong>unreleased</strong>';
-    // todo (pq): consider a footnote explaining that since info is static and "unreleased" tags may be stale.
     return 'Dart SDK: $version • <small>(Linter v${info.sinceLinter})</small>';
   }
 
@@ -268,7 +270,8 @@ class Generator {
       sb.writeln('<p>');
       sb.write('Incompatible with: ');
       var rule = incompatibleRules.first;
-      sb.write('<a href = "$rule.html" >$rule</a>');
+      sb.write(
+          '<!--suppress HtmlUnknownTarget --><a href = "$rule.html" >$rule</a>');
       for (var i = 1; i < incompatibleRules.length; ++i) {
         rule = incompatibleRules[i];
         sb.write(', <a href = "$rule.html" >$rule</a>');
@@ -291,19 +294,16 @@ class Generator {
   }
 
   String _generate() => '''
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
    <head>
       <meta charset="utf-8">
-      <meta http-equiv="X-UA-Compatible" content="chrome=1">
+      <link rel="shortcut icon" href="../dart-192.png">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+      <meta name="mobile-web-app-capable" content="yes">
+      <meta name="apple-mobile-web-app-capable" content="yes">
       <title>$name</title>
-      <link rel="stylesheet" href="../stylesheets/styles.css">
-      <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
-      <script src="../javascripts/scale.fix.js"></script>
-      <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-      <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-      <![endif]-->
+      <link rel="stylesheet" href="../styles.css">
    </head>
    <body>
       <div class="wrapper">
@@ -311,13 +311,17 @@ class Generator {
             <h1>$humanReadableName</h1>
             <p>Group: $group</p>
             <p>Maturity: $maturityString</p>
-            <p style="padding-bottom: 10px;">$since</p>
+            <div class="tooltip">
+               <p>$since</p>
+               <span class="tooltip-content">Since info is static, may be stale</span>
+            </div>
             ${getBadges(name)}
-            <p class="view"><a href="https://github.com/dart-lang/linter">View the Project on GitHub <small>dart-lang/linter</small></a></p>
             <ul>
-               <li><a href="https://dart.dev/guides/language/effective-dart/style/">See the <strong>Style Guide</strong></a></li>
-               <li><a href="https://dart-lang.github.io/linter/lints/">List of <strong>Lint Rules</strong></a></li>
+               <li><a href="index.html">View all <strong>Lint Rules</strong></a></li>
+               <li><a href="https://dart.dev/guides/language/analysis-options#enabling-linter-rules">Using the <strong>Linter</strong></a></li>
             </ul>
+            <p><a class="overflow-link" href="index.html">View all <strong>Lint Rules</strong></a></p>
+            <p><a class="overflow-link" href="https://dart.dev/guides/language/analysis-options#enabling-linter-rules">Using the <strong>Linter</strong></a></p>
          </header>
          <section>
 
@@ -326,10 +330,9 @@ class Generator {
          </section>
       </div>
       <footer>
-         <p>Project maintained by <a href="https://github.com/dart-lang">dart-lang</a></p>
-         <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+         <p>Maintained by the <a href="https://dart.dev/">Dart Team</a></p>
+         <p>Visit us on <a href="https://github.com/dart-lang/linter">Github</a></p>
       </footer>
-      <!--[if !IE]><script>fixScale(document);</script><![endif]-->
    </body>
 </html>
 ''';
@@ -351,79 +354,59 @@ class Indexer {
   }
 
   String _generate() => '''
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
    <head>
       <meta charset="utf-8">
-      <meta http-equiv="X-UA-Compatible" content="chrome=1">
+      <link rel="shortcut icon" href="../dart-192.png">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+      <meta name="mobile-web-app-capable" content="yes">
+      <meta name="apple-mobile-web-app-capable" content="yes">
+      <link rel="stylesheet" href="../styles.css">
       <title>Linter for Dart</title>
-      <link rel="stylesheet" href="../stylesheets/styles.css">
-      <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
-      <script src="javascripts/scale.fix.js"></script>
-      <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-      <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-      <![endif]-->
    </head>
    <body>
       <div class="wrapper">
          <header>
-            <a href="https://dart-lang.github.io/linter/">
+            <a href="../index.html">
                <h1>Linter for Dart</h1>
             </a>
             <p>Lint Rules</p>
-            <p class="view"><a href="https://github.com/dart-lang/linter">View the Project on GitHub <small>dartlang/linter</small></a></p>
             <ul>
-               <li><a href="https://github.com/dart-lang/linter">View On <strong>GitHub</strong></a></li>
+              <li><a href="https://dart.dev/guides/language/analysis-options#enabling-linter-rules">Using the <strong>Linter</strong></a></li>
             </ul>
+            <p><a class="overflow-link" href="https://dart.dev/guides/language/analysis-options#enabling-linter-rules">Using the <strong>Linter</strong></a></p>
          </header>
          <section>
 
-            <h1 id="supported-lints">Supported Lint Rules</h1>
+            <h1>Supported Lint Rules</h1>
             <p>
                This list is auto-generated from our sources.
             </p>
-            <p>
-               ${markdownToHtml(ruleLeadMatter)}
-            </p>
+            ${markdownToHtml(ruleLeadMatter)}
             <ul>
-               <p>
-                  $enumerateGroups
-               </p>
+               $enumerateGroups
             </ul>
-            <p>
-               ${markdownToHtml(ruleFootMatter)}
-            </p>
+            ${markdownToHtml(ruleFootMatter)}
 
-            <h2 id="styleguide-rules">Error Rules</h2>
+            <h2>Error Rules</h2>
 
                $enumerateErrorRules
 
-            <h2 id="styleguide-rules">Style Rules</h2>
+            <h2>Style Rules</h2>
 
                $enumerateStyleRules
 
-            <h2 id="styleguide-rules">Pub Rules</h2>
+            <h2>Pub Rules</h2>
 
                $enumeratePubRules
 
          </section>
       </div>
       <footer>
-         <p>Project maintained by <a href="https://github.com/google">google</a></p>
-         <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+         <p>Maintained by the <a href="https://dart.dev/">Dart Team</a></p>
+         <p>Visit us on <a href="https://github.com/dart-lang/linter">Github</a></p>
       </footer>
-      <!--[if !IE]><script>fixScale(document);</script><![endif]-->
-      <script type="text/javascript">
-         var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-         document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-      </script>
-      <script type="text/javascript">
-         try {
-           var pageTracker = _gat._getTracker("UA-34425814-2");
-         pageTracker._trackPageview();
-         } catch(err) {}
-      </script>
    </body>
 </html>
 ''';
@@ -465,32 +448,30 @@ linter:
   }
 
   String _generate() => '''
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
    <head>
       <meta charset="utf-8">
-      <meta http-equiv="X-UA-Compatible" content="chrome=1">
+      <link rel="shortcut icon" href="../../dart-192.png">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+      <meta name="mobile-web-app-capable" content="yes">
+      <meta name="apple-mobile-web-app-capable" content="yes">
+      <link rel="stylesheet" href="../../styles.css">
       <title>Analysis Options</title>
-      <link rel="stylesheet" href="../../stylesheets/styles.css">
-      <link rel="stylesheet" href="../../stylesheets/pygment_trac.css">
-      <script src="../../javascripts/scale.fix.js"></script>
-      <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-      <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-      <![endif]-->
    </head>
   <body>
       <div class="wrapper">
          <header>
-            <a href="https://dart-lang.github.io/linter/">
-               <h1>Dart Lint</h1>
+            <a href="../../index.html">
+               <h1>Linter for Dart</h1>
             </a>
             <p>Analysis Options</p>
-            <p class="view"><a href="https://github.com/dart-lang/linter">View the Project on GitHub <small>dart-lang/linter</small></a></p>
             <ul>
-              <li><a href="https://dart-lang.github.io/linter/lints/">List of <strong>Lint Rules</strong></a></li>
-              <li><a href="https://github.com/dart-lang/linter">View On <strong>GitHub</strong></a></li>
+              <li><a href="../index.html">View all <strong>Lint Rules</strong></a></li>
+              <li><a href="https://dart.dev/guides/language/analysis-options#enabling-linter-rules">Using the <strong>Linter</strong></a></li>
             </ul>
+            <p><a class="overflow-link" href="../index.html">View all <strong>Lint Rules</strong></a></p>
+            <p><a class="overflow-link" href="https://dart.dev/guides/language/analysis-options#enabling-linter-rules">Using the <strong>Linter</strong></a></p>
          </header>
          <section>
 
@@ -502,25 +483,14 @@ linter:
                and tailor to fit!
             </p>
 
-${markdownToHtml(generateOptions())}
+            ${markdownToHtml(generateOptions())}
 
          </section>
       </div>
       <footer>
-         <p>Project maintained by <a href="https://github.com/google">google</a></p>
-         <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+         <p>Maintained by the <a href="https://dart.dev/">Dart Team</a></p>
+         <p>Visit us on <a href="https://github.com/dart-lang/linter">Github</a></p>
       </footer>
-      <!--[if !IE]><script>fixScale(document);</script><![endif]-->
-      <script type="text/javascript">
-         var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-         document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-      </script>
-      <script type="text/javascript">
-         try {
-           var pageTracker = _gat._getTracker("UA-34425814-2");
-         pageTracker._trackPageview();
-         } catch(err) {}
-      </script>
    </body>
 </html>
 ''';
