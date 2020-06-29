@@ -26,7 +26,75 @@ try:
 except:
     pass
 
-DART_DIR = os.path.abspath(os.path.normpath(os.path.join(__file__, '..', '..')))
+
+# To eliminate clashing with older archived builds on bleeding edge we add
+# a base number bigger the largest svn revision (this also gives us an easy
+# way of seeing if an archive comes from git based or svn based commits).
+GIT_NUMBER_BASE = 100000
+
+# Mapping table between build mode and build configuration.
+BUILD_MODES = {
+    'debug': 'Debug',
+    'release': 'Release',
+    'product': 'Product',
+}
+
+# Mapping table between build mode and build configuration.
+BUILD_SANITIZERS = {
+    None: '',
+    'none': '',
+    'asan': 'ASAN',
+    'lsan': 'LSAN',
+    'msan': 'MSAN',
+    'tsan': 'TSAN',
+    'ubsan': 'UBSAN',
+}
+
+# Mapping table between OS and build output location.
+BUILD_ROOT = {
+    'win32': os.path.join('out'),
+    'linux': os.path.join('out'),
+    'freebsd': os.path.join('out'),
+    'macos': os.path.join('xcodebuild'),
+}
+
+# Note: gn expects these to be lower case.
+ARCH_FAMILY = {
+    'ia32': 'ia32',
+    'x64': 'ia32',
+    'arm': 'arm',
+    'armv6': 'arm',
+    'arm64': 'arm',
+    'arm_x64': 'arm',
+    'simarm': 'ia32',
+    'simarmv6': 'ia32',
+    'simarm64': 'ia32',
+    'simarm_x64': 'ia32',
+}
+
+BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
+DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..'))
+VERSION_FILE = os.path.join(DART_DIR, 'tools', 'VERSION')
+
+
+def GetArchFamily(arch):
+    return ARCH_FAMILY[arch]
+
+
+def GetBuildDir(host_os):
+    return BUILD_ROOT[host_os]
+
+
+def GetBuildMode(mode):
+    return BUILD_MODES[mode]
+
+
+def GetBuildSanitizer(sanitizer):
+    return BUILD_SANITIZERS[sanitizer]
+
+
+def GetBaseDir():
+    return BASE_DIR
 
 
 def GetBotUtils():
@@ -246,66 +314,8 @@ def ListDartArgCallback(option, value, parser):
     setattr(parser.values, option.dest, value)
 
 
-# Mapping table between build mode and build configuration.
-BUILD_MODES = {
-    'debug': 'Debug',
-    'release': 'Release',
-    'product': 'Product',
-}
-
-# Mapping table between build mode and build configuration.
-BUILD_SANITIZERS = {
-    None: '',
-    'none': '',
-    'asan': 'ASAN',
-    'lsan': 'LSAN',
-    'msan': 'MSAN',
-    'tsan': 'TSAN',
-    'ubsan': 'UBSAN',
-}
-
-# Mapping table between OS and build output location.
-BUILD_ROOT = {
-    'win32': os.path.join('out'),
-    'linux': os.path.join('out'),
-    'freebsd': os.path.join('out'),
-    'macos': os.path.join('xcodebuild'),
-}
-
-# Note: gn expects these to be lower case.
-ARCH_FAMILY = {
-    'ia32': 'ia32',
-    'x64': 'ia32',
-    'arm': 'arm',
-    'armv6': 'arm',
-    'arm64': 'arm',
-    'arm_x64': 'arm',
-    'simarm': 'ia32',
-    'simarmv6': 'ia32',
-    'simarm64': 'ia32',
-    'simarm_x64': 'ia32',
-}
-
-ARCH_GUESS = GuessArchitecture()
-BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
-DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..'))
-VERSION_FILE = os.path.join(DART_DIR, 'tools', 'VERSION')
-
-
-def GetBuildMode(mode):
-    return BUILD_MODES[mode]
-
-
-def GetBuildSanitizer(sanitizer):
-    return BUILD_SANITIZERS[sanitizer]
-
-
-def GetArchFamily(arch):
-    return ARCH_FAMILY[arch]
-
-
 def IsCrossBuild(target_os, arch):
-    host_arch = ARCH_GUESS
+    host_arch = GuessArchitecture()
     return ((GetArchFamily(host_arch) != GetArchFamily(arch)) or
             (target_os != GuessOS()))
 
@@ -315,16 +325,12 @@ def GetBuildConf(mode, arch, conf_os=None, sanitizer=None):
         return '%s%s%s' % (GetBuildMode(mode), conf_os.title(), arch.upper())
     else:
         # Ask for a cross build if the host and target architectures don't match.
-        host_arch = ARCH_GUESS
+        host_arch = GuessArchitecture()
         cross_build = ''
         if GetArchFamily(host_arch) != GetArchFamily(arch):
             cross_build = 'X'
         return '%s%s%s%s' % (GetBuildMode(mode), GetBuildSanitizer(sanitizer),
                              cross_build, arch.upper())
-
-
-def GetBuildDir(host_os):
-    return BUILD_ROOT[host_os]
 
 
 def GetBuildRoot(host_os, mode=None, arch=None, target_os=None, sanitizer=None):
@@ -338,10 +344,6 @@ def GetBuildRoot(host_os, mode=None, arch=None, target_os=None, sanitizer=None):
 def GetBuildSdkBin(host_os, mode=None, arch=None, target_os=None):
     build_root = GetBuildRoot(host_os, mode, arch, target_os)
     return os.path.join(build_root, 'dart-sdk', 'bin')
-
-
-def GetBaseDir():
-    return BASE_DIR
 
 
 def GetShortVersion():
@@ -537,12 +539,6 @@ def GetGitTimestamp():
     return output
 
 
-# To eliminate clashing with older archived builds on bleeding edge we add
-# a base number bigger the largest svn revision (this also gives us an easy
-# way of seeing if an archive comes from git based or svn based commits).
-GIT_NUMBER_BASE = 100000
-
-
 def GetGitNumber():
     p = subprocess.Popen(['git', 'rev-list', 'HEAD', '--count'],
                          stdout=subprocess.PIPE,
@@ -642,18 +638,6 @@ def CheckedUnlink(name):
         os.unlink(name)
     except OSError as e:
         PrintError("os.unlink() " + str(e))
-
-
-def Main():
-    print("GuessOS() -> ", GuessOS())
-    print("GuessArchitecture() -> ", GuessArchitecture())
-    print("GuessCpus() -> ", GuessCpus())
-    print("IsWindows() -> ", IsWindows())
-    print("GuessVisualStudioPath() -> ", GuessVisualStudioPath())
-    print("GetGitRevision() -> ", GetGitRevision())
-    print("GetGitTimestamp() -> ", GetGitTimestamp())
-    print("GetVersionFileContent() -> ", GetVersionFileContent())
-    print("GetGitNumber() -> ", GetGitNumber())
 
 
 class Error(Exception):
@@ -1243,6 +1227,17 @@ def FileDescriptorLimitIncreaser():
         return NooptContextManager()
 
 
+def Main():
+    print("GuessOS() -> ", GuessOS())
+    print("GuessArchitecture() -> ", GuessArchitecture())
+    print("GuessCpus() -> ", GuessCpus())
+    print("IsWindows() -> ", IsWindows())
+    print("GuessVisualStudioPath() -> ", GuessVisualStudioPath())
+    print("GetGitRevision() -> ", GetGitRevision())
+    print("GetGitTimestamp() -> ", GetGitTimestamp())
+    print("GetVersionFileContent() -> ", GetVersionFileContent())
+    print("GetGitNumber() -> ", GetGitNumber())
+
+
 if __name__ == "__main__":
-    import sys
     Main()
