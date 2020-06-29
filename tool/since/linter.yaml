@@ -53,9 +53,11 @@ constant_identifier_names: 0.1.1
 curly_braces_in_flow_control_structures: 0.1.57
 diagnostic_describe_all_properties: 0.1.85
 directives_ordering: 0.1.30
+do_not_use_environment : 0.1.117
 empty_catches: 0.1.22
 empty_constructor_bodies: 0.1.1
 empty_statements: 0.1.21
+exhaustive_cases : 0.1.116
 file_names: 0.1.54
 flutter_style_todos: 0.1.61
 hash_and_equals: 0.1.11
@@ -71,6 +73,7 @@ list_remove_unrelated_type: 0.1.22
 literal_only_boolean_expressions: 0.1.25
 missing_whitespace_between_adjacent_strings : 0.1.110
 no_adjacent_strings_in_list: 0.1.30
+no_default_cases : 0.1.116
 no_duplicate_case_values: 0.1.30
 no_logic_in_create_state : 0.1.106
 non_constant_identifier_names: 0.1.1
@@ -158,6 +161,7 @@ unrelated_type_equality_checks: 0.1.16
 unsafe_html : 0.1.90
 use_full_hex_values_for_flutter_colors: 0.1.80
 use_function_type_syntax_for_parameters: 0.1.72
+use_is_even_rather_than_modulo : 0.1.116
 use_key_in_widget_constructors : 0.1.108
 use_raw_strings : 0.1.111
 use_rethrow_when_possible: 0.1.31
