@@ -59,6 +59,7 @@ class LintNames {
   static const String prefer_expression_function_bodies =
       'prefer_expression_function_bodies';
   static const String prefer_final_fields = 'prefer_final_fields';
+  static const String prefer_final_in_for_each = 'prefer_final_in_for_each';
   static const String prefer_final_locals = 'prefer_final_locals';
   static const String prefer_for_elements_to_map_fromIterable =
       'prefer_for_elements_to_map_fromIterable';

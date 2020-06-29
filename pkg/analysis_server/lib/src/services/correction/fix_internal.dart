@@ -383,6 +383,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.prefer_final_fields: [
       MakeFinal.newInstance,
     ],
+    LintNames.prefer_final_in_for_each: [
+      MakeFinal.newInstance,
+    ],
     LintNames.prefer_final_locals: [
       MakeFinal.newInstance,
     ],
