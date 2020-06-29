@@ -11,19 +11,19 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SortDirectivesTest);
+    defineReflectiveTests(OrganizeImportsTest);
   });
 }
 
 @reflectiveTest
-class SortDirectivesTest extends FixProcessorLintTest {
+class OrganizeImportsTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.SORT_DIRECTIVES;
+  FixKind get kind => DartFixKind.ORGANIZE_IMPORTS;
 
   @override
   String get lintCode => LintNames.directives_ordering;
 
-  Future<void> test_sortDirectives() async {
+  Future<void> test_organizeImports() async {
     await resolveTestUnit('''
 //ignore_for_file: unused_import
 import 'dart:io';

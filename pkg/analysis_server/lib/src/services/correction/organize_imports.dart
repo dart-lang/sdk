@@ -10,8 +10,8 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element;
 
-/// Organizer of directives in the [unit].
-class DirectiveOrganizer {
+/// Organizer of imports (and other directives) in the [unit].
+class ImportOrganizer {
   final String initialCode;
   final CompilationUnit unit;
   final List<AnalysisError> errors;
@@ -21,7 +21,7 @@ class DirectiveOrganizer {
   String endOfLine;
   bool hasUnresolvedIdentifierError;
 
-  DirectiveOrganizer(this.initialCode, this.unit, this.errors,
+  ImportOrganizer(this.initialCode, this.unit, this.errors,
       {this.removeUnused = true}) {
     code = initialCode;
     endOfLine = getEOL(code);
@@ -30,7 +30,7 @@ class DirectiveOrganizer {
     });
   }
 
-  /// Return the [SourceEdit]s that organize directives in the [unit].
+  /// Return the [SourceEdit]s that organize imports in the [unit].
   List<SourceEdit> organize() {
     _organizeDirectives();
     // prepare edits

@@ -91,6 +91,7 @@ import 'make_field_not_final_test.dart' as make_field_not_final;
 import 'make_final_test.dart' as make_final;
 import 'make_variable_not_final_test.dart' as make_variable_not_final;
 import 'move_type_arguments_to_class_test.dart' as move_type_arguments_to_class;
+import 'organize_imports_test.dart' as organize_imports;
 import 'qualify_reference_test.dart' as qualify_reference;
 import 'remove_annotation_test.dart' as remove_annotation;
 import 'remove_argument_test.dart' as remove_argument;
@@ -150,7 +151,6 @@ import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'replace_with_var_test.dart' as replace_with_var;
 import 'sort_child_property_last_test.dart' as sort_properties_last;
-import 'sort_directives_test.dart' as sort_directives;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
 import 'use_const_test.dart' as use_const;
 import 'use_effective_integer_division_test.dart'
@@ -240,6 +240,7 @@ void main() {
     make_final.main();
     make_variable_not_final.main();
     move_type_arguments_to_class.main();
+    organize_imports.main();
     qualify_reference.main();
     remove_annotation.main();
     remove_argument.main();
@@ -294,7 +295,6 @@ void main() {
     replace_with_null_aware.main();
     replace_with_tear_off.main();
     replace_with_var.main();
-    sort_directives.main();
     sort_properties_last.main();
     update_sdk_constraints.main();
     use_const.main();
