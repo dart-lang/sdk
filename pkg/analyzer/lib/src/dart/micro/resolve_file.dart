@@ -22,7 +22,6 @@ import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
-import 'package:analyzer/src/dart/micro/performance.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -34,6 +33,7 @@ import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
@@ -147,11 +147,11 @@ class FileResolver {
 
   ErrorsResult getErrors({
     @required String path,
-    CiderOperationPerformanceImpl performance,
+    OperationPerformanceImpl performance,
   }) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
-    performance ??= CiderOperationPerformanceImpl('<default>');
+    performance ??= OperationPerformanceImpl('<default>');
 
     return _withLibraryContextReset(() {
       return logger.run('Get errors for $path', () {
@@ -205,7 +205,7 @@ class FileResolver {
   @deprecated
   ErrorsResult getErrors2({
     @required String path,
-    CiderOperationPerformanceImpl performance,
+    OperationPerformanceImpl performance,
   }) {
     return getErrors(
       path: path,
@@ -215,7 +215,7 @@ class FileResolver {
 
   FileContext getFileContext({
     @required String path,
-    @required CiderOperationPerformanceImpl performance,
+    @required OperationPerformanceImpl performance,
   }) {
     return performance.run('fileContext', (performance) {
       var analysisOptions = _getAnalysisOptions(path);
@@ -236,11 +236,11 @@ class FileResolver {
   ResolvedUnitResult resolve({
     int completionOffset,
     @required String path,
-    CiderOperationPerformanceImpl performance,
+    OperationPerformanceImpl performance,
   }) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
-    performance ??= CiderOperationPerformanceImpl('<default>');
+    performance ??= OperationPerformanceImpl('<default>');
 
     return _withLibraryContextReset(() {
       return logger.run('Resolve $path', () {
@@ -306,7 +306,7 @@ class FileResolver {
   ResolvedUnitResult resolve2({
     int completionOffset,
     @required String path,
-    CiderOperationPerformanceImpl performance,
+    OperationPerformanceImpl performance,
   }) {
     return resolve(
       completionOffset: completionOffset,

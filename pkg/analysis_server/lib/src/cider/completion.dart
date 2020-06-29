@@ -13,9 +13,9 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/micro/performance.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 
@@ -32,8 +32,8 @@ class CiderCompletionComputer {
   final CiderCompletionCache _cache;
   final FileResolver _fileResolver;
 
-  final CiderOperationPerformanceImpl _performanceRoot =
-      CiderOperationPerformanceImpl('<root>');
+  final OperationPerformanceImpl _performanceRoot =
+      OperationPerformanceImpl('<root>');
 
   DartCompletionRequestImpl _dartCompletionRequest;
 
@@ -247,7 +247,7 @@ class CiderCompletionPerformance {
   final Duration suggestions;
 
   /// The tree of operation performances.
-  final CiderOperationPerformance operations;
+  final OperationPerformance operations;
 
   CiderCompletionPerformance._({
     @required this.file,

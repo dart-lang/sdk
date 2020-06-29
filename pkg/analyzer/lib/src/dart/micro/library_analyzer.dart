@@ -20,7 +20,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
-import 'package:analyzer/src/dart/micro/performance.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
@@ -45,6 +44,7 @@ import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -107,7 +107,7 @@ class LibraryAnalyzer {
   Map<FileState, UnitAnalysisResult> analyzeSync({
     @required String completionPath,
     @required int completionOffset,
-    @required CiderOperationPerformanceImpl performance,
+    @required OperationPerformanceImpl performance,
   }) {
     var forCompletion = completionPath != null;
     var units = <FileState, CompilationUnit>{};
@@ -200,7 +200,7 @@ class LibraryAnalyzer {
   }
 
   void _computeDiagnostics({
-    @required CiderOperationPerformanceImpl performance,
+    @required OperationPerformanceImpl performance,
     @required Map<FileState, CompilationUnit> units,
   }) {
     performance.run('computeVerifyErrors', (performance) {

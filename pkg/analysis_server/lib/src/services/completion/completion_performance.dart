@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/util/performance/operation_performance.dart';
+
 /// Compute a string representing a code completion operation at the
 /// given source and location.
 ///
@@ -90,17 +92,6 @@ class CompletionPerformance {
   }
 
   void _logDuration(String tag, Duration elapsed) {
-    operations.add(OperationPerformance(tag, elapsed));
+    operations.add(OperationPerformanceFixed(tag, elapsed));
   }
-}
-
-/// The performance of an operation when computing code completion.
-class OperationPerformance {
-  /// The name of the operation
-  final String name;
-
-  /// The elapse time or `null` if undefined.
-  final Duration elapsed;
-
-  OperationPerformance(this.name, this.elapsed);
 }
