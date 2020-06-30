@@ -5,6 +5,8 @@
 # This file contains a set of utilities functions used by other Python-based
 # scripts.
 
+from __future__ import print_function
+
 import contextlib
 import datetime
 import glob
@@ -52,10 +54,10 @@ BUILD_SANITIZERS = {
 
 # Mapping table between OS and build output location.
 BUILD_ROOT = {
-    'win32': os.path.join('out'),
-    'linux': os.path.join('out'),
-    'freebsd': os.path.join('out'),
-    'macos': os.path.join('xcodebuild'),
+    'win32': 'out',
+    'linux': 'out',
+    'freebsd': 'out',
+    'macos': 'xcodebuild',
 }
 
 # Note: gn expects these to be lower case.
@@ -97,16 +99,16 @@ def GetBaseDir():
     return BASE_DIR
 
 
-def GetBotUtils():
+def GetBotUtils(repo_path=DART_DIR):
     '''Dynamically load the tools/bots/bot_utils.py python module.'''
     return imp.load_source(
-        'bot_utils', os.path.join(DART_DIR, 'tools', 'bots', 'bot_utils.py'))
+        'bot_utils', os.path.join(repo_path, 'tools', 'bots', 'bot_utils.py'))
 
 
-def GetMinidumpUtils():
+def GetMinidumpUtils(repo_path=DART_DIR):
     '''Dynamically load the tools/minidump.py python module.'''
     return imp.load_source('minidump',
-                           os.path.join(DART_DIR, 'tools', 'minidump.py'))
+                           os.path.join(repo_path, 'tools', 'minidump.py'))
 
 
 class Version(object):
@@ -126,22 +128,22 @@ class Version(object):
 # Try to guess the host operating system.
 def GuessOS():
     os_id = platform.system()
-    if os_id == "Linux":
-        return "linux"
-    elif os_id == "Darwin":
-        return "macos"
-    elif os_id == "Windows" or os_id == "Microsoft":
-        # On Windows Vista platform.system() can return "Microsoft" with some
+    if os_id == 'Linux':
+        return 'linux'
+    elif os_id == 'Darwin':
+        return 'macos'
+    elif os_id == 'Windows' or os_id == 'Microsoft':
+        # On Windows Vista platform.system() can return 'Microsoft' with some
         # versions of Python, see http://bugs.python.org/issue1082 for details.
-        return "win32"
+        return 'win32'
     elif os_id == 'FreeBSD':
         return 'freebsd'
     elif os_id == 'OpenBSD':
         return 'openbsd'
     elif os_id == 'SunOS':
         return 'solaris'
-    else:
-        return None
+
+    return None
 
 
 # Try to guess the host architecture.
@@ -159,24 +161,24 @@ def GuessArchitecture():
         return 'ia32'
     elif os_id == 'i86pc':
         return 'ia32'
-    else:
-        guess_os = GuessOS()
-        print ("Warning: Guessing architecture %s based on os %s\n"\
-              % (os_id, guess_os))
-        if guess_os == 'win32':
-            return 'ia32'
-        return None
+
+    guess_os = GuessOS()
+    print('Warning: Guessing architecture {} based on os {}\n'.format(
+        os_id, guess_os))
+    if guess_os == 'win32':
+        return 'ia32'
+    return None
 
 
 # Try to guess the number of cpus on this machine.
 def GuessCpus():
-    if os.getenv("DART_NUMBER_OF_CORES") is not None:
-        return int(os.getenv("DART_NUMBER_OF_CORES"))
-    if os.path.exists("/proc/cpuinfo"):
+    if os.getenv('DART_NUMBER_OF_CORES') is not None:
+        return int(os.getenv('DART_NUMBER_OF_CORES'))
+    if os.path.exists('/proc/cpuinfo'):
         return int(
             subprocess.check_output(
-                "grep -E '^processor' /proc/cpuinfo | wc -l", shell=True))
-    if os.path.exists("/usr/bin/hostinfo"):
+                'grep -E \'^processor\' /proc/cpuinfo | wc -l', shell=True))
+    if os.path.exists('/usr/bin/hostinfo'):
         return int(
             subprocess.check_output(
                 '/usr/bin/hostinfo |'
@@ -198,17 +200,17 @@ def GetWindowsRegistryKeyName(name):
         wow6432Node = 'Wow6432Node\\'
     else:
         wow6432Node = ''
-    return r'SOFTWARE\%s%s' % (wow6432Node, name)
+    return r'SOFTWARE\{}{}'.format(wow6432Node, name)
 
 
 # Try to guess Visual Studio location when buiding on Windows.
 def GuessVisualStudioPath():
-    defaultPath = r"C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7" \
-                  r"\IDE"
-    defaultExecutable = "devenv.com"
+    defaultPath = r'C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7' \
+                  r'\IDE'
+    defaultExecutable = 'devenv.com'
 
     if not IsWindows():
-        return defaultPath, defaultExecutable
+        return (defaultPath, defaultExecutable)
 
     keyNamesAndExecutables = [
         # Pair for non-Express editions.
@@ -254,12 +256,12 @@ def GuessVisualStudioPath():
                             # Stop search since if we found non-Express VS2015 version
                             # installed, which is preferred version.
                             return installDir, executable
-                        else:
-                            version = float(subkeyName)
-                            # We prefer higher version of Visual Studio and given equal
-                            # version numbers we prefer non-Express edition.
-                            if version > bestGuess[0]:
-                                bestGuess = (version, (installDir, executable))
+
+                        version = float(subkeyName)
+                        # We prefer higher version of Visual Studio and given equal
+                        # version numbers we prefer non-Express edition.
+                        if version > bestGuess[0]:
+                            bestGuess = (version, (installDir, executable))
         finally:
             _winreg.CloseKey(key)
     return bestGuess[1]
@@ -321,15 +323,16 @@ def IsCrossBuild(target_os, arch):
 
 
 def GetBuildConf(mode, arch, conf_os=None, sanitizer=None):
-    if conf_os is not None and conf_os != GuessOS() and conf_os != "host":
-        return '%s%s%s' % (GetBuildMode(mode), conf_os.title(), arch.upper())
-    else:
-        # Ask for a cross build if the host and target architectures don't match.
-        host_arch = GuessArchitecture()
-        cross_build = ''
-        if GetArchFamily(host_arch) != GetArchFamily(arch):
-            cross_build = 'X'
-        return '%s%s%s%s' % (GetBuildMode(mode), GetBuildSanitizer(sanitizer),
+    if conf_os is not None and conf_os != GuessOS() and conf_os != 'host':
+        return '{}{}{}'.format(GetBuildMode(mode), conf_os.title(),
+                               arch.upper())
+
+    # Ask for a cross build if the host and target architectures don't match.
+    host_arch = GuessArchitecture()
+    cross_build = ''
+    if GetArchFamily(host_arch) != GetArchFamily(arch):
+        cross_build = 'X'
+    return '{}{}{}{}'.format(GetBuildMode(mode), GetBuildSanitizer(sanitizer),
                              cross_build, arch.upper())
 
 
@@ -348,8 +351,9 @@ def GetBuildSdkBin(host_os, mode=None, arch=None, target_os=None):
 
 def GetShortVersion():
     version = ReadVersionFile()
-    return ('%s.%s.%s.%s.%s' % (version.major, version.minor, version.patch,
-                                version.prerelease, version.prerelease_patch))
+    return ('{}.{}.{}.{}.{}'.format(version.major, version.minor, version.patch,
+                                    version.prerelease,
+                                    version.prerelease_patch))
 
 
 def GetSemanticSDKVersion(no_git_hash=False, version_file=None):
@@ -358,15 +362,17 @@ def GetSemanticSDKVersion(no_git_hash=False, version_file=None):
         return None
 
     if version.channel == 'be':
-        postfix = '-edge' if no_git_hash else '-edge.%s' % GetGitRevision()
+        postfix = '-edge' if no_git_hash else '-edge.{}'.format(
+            GetGitRevision())
     elif version.channel in ('beta', 'dev'):
-        postfix = '-%s.%s.%s' % (version.prerelease, version.prerelease_patch,
-                                 version.channel)
+        postfix = '-{}.{}.{}'.format(version.prerelease,
+                                     version.prerelease_patch, version.channel)
     else:
         assert version.channel == 'stable'
         postfix = ''
 
-    return '%s.%s.%s%s' % (version.major, version.minor, version.patch, postfix)
+    return '{}.{}.{}{}'.format(version.major, version.minor, version.patch,
+                               postfix)
 
 
 def GetVersion(no_git_hash=False, version_file=None):
@@ -383,9 +389,9 @@ def GetVersion(no_git_hash=False, version_file=None):
 #}
 def GetVersionFileContent():
     result = {
-        "date": str(datetime.date.today()),
-        "version": GetVersion(),
-        "revision": GetGitRevision()
+        'date': str(datetime.date.today()),
+        'version': GetVersion(),
+        'revision': GetGitRevision()
     }
     return json.dumps(result, indent=2)
 
@@ -423,12 +429,12 @@ def ReadVersionFile(version_file=None):
     if version_file == None:
         version_file = VERSION_FILE
 
+    content = None
     try:
-        fd = open(version_file)
-        content = fd.read()
-        fd.close()
+        with open(version_file) as fd:
+            content = fd.read()
     except:
-        print("Warning: Couldn't read VERSION file (%s)" % version_file)
+        print('Warning: Could not read VERSION file ({})'.format(version_file))
         return None
 
     channel = match_against('^CHANNEL ([A-Za-z0-9]+)$', content)
@@ -441,14 +447,14 @@ def ReadVersionFile(version_file=None):
     oldest_supported_abi_version = match_against(
         '^OLDEST_SUPPORTED_ABI_VERSION (\d+)$', content)
 
-    if channel and major and minor and prerelease and prerelease_patch and \
-        abi_version and oldest_supported_abi_version:
+    if (channel and major and minor and prerelease and prerelease_patch and
+            abi_version and oldest_supported_abi_version):
         return Version(channel, major, minor, patch, prerelease,
                        prerelease_patch, abi_version,
                        oldest_supported_abi_version)
-    else:
-        print("Warning: VERSION file (%s) has wrong format" % version_file)
-        return None
+
+    print('Warning: VERSION file ({}) has wrong format'.format(version_file))
+    return None
 
 
 # Our schema for releases and archiving is based on an increasing
@@ -469,42 +475,43 @@ def GetArchiveVersion():
     return GetSemanticSDKVersion()
 
 
-def GetGitRevision():
+def GetGitRevision(repo_path=DART_DIR):
     # When building from tarball use tools/GIT_REVISION
-    git_revision_file = os.path.join(DART_DIR, 'tools', 'GIT_REVISION')
+    git_revision_file = os.path.join(repo_path, 'tools', 'GIT_REVISION')
     try:
         with open(git_revision_file) as fd:
-            return fd.read()
+            return fd.read().decode('utf-8').strip()
     except:
         pass
     p = subprocess.Popen(['git', 'rev-parse', 'HEAD'],
                          stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT,
                          shell=IsWindows(),
-                         cwd=DART_DIR)
+                         cwd=repo_path)
     output, _ = p.communicate()
-    output = output.strip()
+    revision = output.decode('utf-8').strip()
     # We expect a full git hash
-    if len(output) != 40:
-        print("Warning: could not parse git commit, output was %s" % output)
+    if len(revision) != 40:
+        print('Warning: Could not parse git commit, output was {}'.format(
+            revision))
         return None
-    return output
+    return revision
 
 
-def GetShortGitHash():
+def GetShortGitHash(repo_path=DART_DIR):
     p = subprocess.Popen(['git', 'rev-parse', '--short', 'HEAD'],
                          stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT,
                          shell=IsWindows(),
-                         cwd=DART_DIR)
+                         cwd=repo_path)
     output, _ = p.communicate()
-    output = output.strip()
+    revision = output.decode('utf-8').strip()
     if p.wait() != 0:
         return None
-    return output
+    return revision
 
 
-def GetLatestDevTag():
+def GetLatestDevTag(repo_path=DART_DIR):
     cmd = [
         'git',
         'for-each-ref',
@@ -513,44 +520,47 @@ def GetLatestDevTag():
         "--format=%(refname:lstrip=2)",
         '--count=1',
     ]
-    p = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        shell=IsWindows(),
-        cwd=DART_DIR)
+    p = subprocess.Popen(cmd,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT,
+                         shell=IsWindows(),
+                         cwd=repo_path)
     output, _ = p.communicate()
+    tag = output.decode('utf-8').strip()
     if p.wait() != 0:
-        print(
-            "Warning: Could not get the most recent dev branch tag %s" % output)
+        print('Warning: Could not get the most recent dev branch tag {}'.format(
+            tag))
         return None
-    return output.strip()
+    return tag
 
 
-def GetGitTimestamp():
+def GetGitTimestamp(repo_path=DART_DIR):
     p = subprocess.Popen(['git', 'log', '-n', '1', '--pretty=format:%cd'],
                          stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT,
                          shell=IsWindows(),
-                         cwd=DART_DIR)
+                         cwd=repo_path)
     output, _ = p.communicate()
+    timestamp = output.decode('utf-8').strip()
     if p.wait() != 0:
         return None
-    return output
+    return timestamp
 
 
-def GetGitNumber():
+def GetGitNumber(repo_path=DART_DIR):
     p = subprocess.Popen(['git', 'rev-list', 'HEAD', '--count'],
                          stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT,
                          shell=IsWindows(),
-                         cwd=DART_DIR)
+                         cwd=repo_path)
     output, _ = p.communicate()
+    number = output.decode('utf-8').strip()
     try:
-        number = int(output)
+        number = int(number)
         return number + GIT_NUMBER_BASE
     except:
-        print("Warning: could not parse git count, output was %s" % output)
+        print(
+            'Warning: Could not parse git count, output was {}'.format(number))
     return None
 
 
@@ -590,8 +600,7 @@ def ParseTestOptions(pattern, source, workspace):
             RewritePathSeparator(o, workspace)
             for o in match.group(1).split(' ')
         ]
-    else:
-        return None
+    return None
 
 
 def ParseTestOptionsMultiple(pattern, source, workspace):
@@ -606,30 +615,24 @@ def ParseTestOptionsMultiple(pattern, source, workspace):
             else:
                 result.append([])
         return result
-    else:
-        return None
+    return None
 
 
 def Daemonize():
     """
-  Create a detached background process (daemon). Returns True for
-  the daemon, False for the parent process.
-  See: http://www.faqs.org/faqs/unix-faq/programmer/faq/
-  "1.7 How do I get my program to act like a daemon?"
-  """
+    Create a detached background process (daemon). Returns True for
+    the daemon, False for the parent process.
+    See: http://www.faqs.org/faqs/unix-faq/programmer/faq/
+    "1.7 How do I get my program to act like a daemon?"
+    """
     if os.fork() > 0:
         return False
     os.setsid()
     if os.fork() > 0:
         exit(0)
+        # TODO: What is this supposed to do? Didn't we already exit?
         raise
     return True
-
-
-def PrintError(string):
-    """Writes and flushes a string to stderr."""
-    sys.stderr.write(string)
-    sys.stderr.write('\n')
 
 
 def CheckedUnlink(name):
@@ -637,9 +640,11 @@ def CheckedUnlink(name):
     try:
         os.unlink(name)
     except OSError as e:
-        PrintError("os.unlink() " + str(e))
+        sys.stderr.write('os.unlink() ' + str(e))
+        sys.stderr.write('\n')
 
 
+# TODO(42528): Can we remove this? It's basically just an alias for Exception.
 class Error(Exception):
     pass
 
@@ -657,14 +662,14 @@ class ToolError(Exception):
 def IsCrashExitCode(exit_code):
     if IsWindows():
         return 0x80000000 & exit_code
-    else:
-        return exit_code < 0
+    return exit_code < 0
 
 
 def DiagnoseExitCode(exit_code, command):
     if IsCrashExitCode(exit_code):
-        sys.stderr.write('Command: %s\nCRASHED with exit code %d (0x%x)\n' %
-                         (' '.join(command), exit_code, exit_code & 0xffffffff))
+        sys.stderr.write(
+            'Command: {}\nCRASHED with exit code {} (0x{:x})\n'.format(
+                ' '.join(command), exit_code, exit_code & 0xffffffff))
 
 
 def Touch(name):
@@ -675,8 +680,10 @@ def Touch(name):
 def ExecuteCommand(cmd):
     """Execute a command in a subprocess."""
     print('Executing: ' + ' '.join(cmd))
-    pipe = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=IsWindows())
+    pipe = subprocess.Popen(cmd,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            shell=IsWindows())
     output = pipe.communicate()
     if pipe.returncode != 0:
         raise Exception('Execution failed: ' + str(output))
@@ -693,7 +700,8 @@ def CheckedInSdkPath():
     try:
         osname = osdict[system]
     except KeyError:
-        sys.stderr.write('WARNING: platform "%s" not supported\n' % system)
+        sys.stderr.write(
+            'WARNING: platform "{}" not supported\n'.format(system))
         return None
     tools_dir = os.path.dirname(os.path.realpath(__file__))
     return os.path.join(tools_dir, 'sdks', 'dart-sdk')
@@ -733,9 +741,8 @@ def CheckLinuxCoreDumpPattern(fatal=False):
             format(core_pattern_file, expected_core_pattern, core_pattern))
         if fatal:
             raise Exception(message)
-        else:
-            print(message)
-            return False
+        print(message)
+        return False
     return True
 
 
@@ -760,11 +767,11 @@ class ChangedWorkingDirectory(object):
 
     def __enter__(self):
         self._old_cwd = os.getcwd()
-        print("Enter directory = ", self._working_directory)
+        print('Enter directory = ', self._working_directory)
         os.chdir(self._working_directory)
 
     def __exit__(self, *_):
-        print("Enter directory = ", self._old_cwd)
+        print('Enter directory = ', self._old_cwd)
         os.chdir(self._old_cwd)
 
 
@@ -776,8 +783,8 @@ class UnexpectedCrash(object):
         self.binaries = binaries
 
     def __str__(self):
-        return "Crash(%s: %s %s)" % (self.test, self.pid, ', '.join(
-            self.binaries))
+        return 'Crash({}: {} {})'.format(self.test, self.pid,
+                                         ', '.join(self.binaries))
 
 
 class PosixCoreDumpEnabler(object):
@@ -808,19 +815,19 @@ class LinuxCoreDumpEnabler(PosixCoreDumpEnabler):
 
 class WindowsCoreDumpEnabler(object):
     """This enabler assumes that Dart binary was built with Crashpad support.
-  In this case DART_CRASHPAD_CRASHES_DIR environment variable allows to
-  specify the location of Crashpad crashes database. Actual minidumps will
-  be written into reports subfolder of the database.
-  """
-    CRASHPAD_DB_FOLDER = os.path.join(DART_DIR, r'crashes')
-    DUMPS_FOLDER = os.path.join(CRASHPAD_DB_FOLDER, r'reports')
+    In this case DART_CRASHPAD_CRASHES_DIR environment variable allows to
+    specify the location of Crashpad crashes database. Actual minidumps will
+    be written into reports subfolder of the database.
+    """
+    CRASHPAD_DB_FOLDER = os.path.join(DART_DIR, 'crashes')
+    DUMPS_FOLDER = os.path.join(CRASHPAD_DB_FOLDER, 'reports')
 
     def __init__(self):
         pass
 
     def __enter__(self):
-        print("INFO: Enabling coredump archiving into %s" %
-              (WindowsCoreDumpEnabler.CRASHPAD_DB_FOLDER))
+        print('INFO: Enabling coredump archiving into {}'.format(
+            WindowsCoreDumpEnabler.CRASHPAD_DB_FOLDER))
         os.environ[
             'DART_CRASHPAD_CRASHES_DIR'] = WindowsCoreDumpEnabler.CRASHPAD_DB_FOLDER
 
@@ -832,18 +839,18 @@ def TryUnlink(file):
     try:
         os.unlink(file)
     except Exception as error:
-        print("ERROR: Failed to remove %s: %s" % (file, error))
+        print('ERROR: Failed to remove {}: {}'.format(file, error))
 
 
 class BaseCoreDumpArchiver(object):
     """This class reads coredumps file written by UnexpectedCrashDumpArchiver
-  into the current working directory and uploads all cores and binaries
-  listed in it into Cloud Storage (see
-  pkg/test_runner/lib/src/test_progress.dart).
-  """
+    into the current working directory and uploads all cores and binaries
+    listed in it into Cloud Storage (see
+    pkg/test_runner/lib/src/test_progress.dart).
+    """
 
     # test.dart will write a line for each unexpected crash into this file.
-    _UNEXPECTED_CRASHES_FILE = "unexpected-crashes"
+    _UNEXPECTED_CRASHES_FILE = 'unexpected-crashes'
 
     def __init__(self, search_dir, output_directory):
         self._bucket = 'dart-temp-crash-archive'
@@ -855,15 +862,15 @@ class BaseCoreDumpArchiver(object):
         try:
             return self._cleanup()
         except Exception as error:
-            print("ERROR: Failure during cleanup: %s" % error)
+            print('ERROR: Failure during cleanup: {}'.format(error))
             return False
 
     def __enter__(self):
-        print("INFO: Core dump archiving is activated")
+        print('INFO: Core dump archiving is activated')
 
         # Cleanup any stale files
         if self._safe_cleanup():
-            print("WARNING: Found and removed stale coredumps")
+            print('WARNING: Found and removed stale coredumps')
 
     def __exit__(self, *_):
         try:
@@ -873,22 +880,22 @@ class BaseCoreDumpArchiver(object):
                 archive_crashes = crashes[:10]
                 print('Archiving coredumps for crash (if possible):')
                 for crash in archive_crashes:
-                    print('----> %s' % crash)
+                    print('----> {}'.format(crash))
 
                 sys.stdout.flush()
 
                 self._archive(archive_crashes)
             else:
-                print("INFO: No unexpected crashes recorded")
+                print('INFO: No unexpected crashes recorded')
                 dumps = self._find_all_coredumps()
                 if dumps:
-                    print("INFO: However there are %d core dumps found" %
-                          len(dumps))
+                    print('INFO: However there are {} core dumps found'.format(
+                        len(dumps)))
                     for dump in dumps:
-                        print("INFO:        -> %s" % dump)
+                        print('INFO:        -> {}'.format(dump))
                     print()
         except Exception as error:
-            print("ERROR: Failed to archive crashes: %s" % error)
+            print('ERROR: Failed to archive crashes: {}'.format(error))
             raise
 
         finally:
@@ -931,14 +938,16 @@ class BaseCoreDumpArchiver(object):
         missing_as_string = ', '.join([str(c) for c in missing])
         other_files = list(glob.glob(os.path.join(self._search_dir, '*')))
         sys.stderr.write(
-            "Could not find crash dumps for '%s' in search directory '%s'.\n"
+            "Could not find crash dumps for '{}' in search directory '{}'.\n"
             "Existing files which *did not* match the pattern inside the search "
-            "directory are are:\n  %s\n" % (missing_as_string, self._search_dir,
-                                            '\n  '.join(other_files)))
+            "directory are are:\n  {}\n".format(missing_as_string,
+                                                self._search_dir,
+                                                '\n  '.join(other_files)))
         # TODO: Figure out why windows coredump generation does not work.
         # See http://dartbug.com/36469
         if throw and GuessOS() != 'win32':
-            raise Exception('Missing crash dumps for: %s' % missing_as_string)
+            raise Exception(
+                'Missing crash dumps for: {}'.format(missing_as_string))
 
     def _get_file_name(self, file):
         # Sanitize the name: actual cores follow 'core.%d' pattern, crashed
@@ -955,8 +964,8 @@ class BaseCoreDumpArchiver(object):
 
     def _move(self, files):
         for file in files:
-            print('+++ Moving %s to output_directory (%s)' %
-                  (file, self._output_directory))
+            print('+++ Moving {} to output_directory ({})'.format(
+                file, self._output_directory))
             (name, is_binary) = self._get_file_name(file)
             destination = os.path.join(self._output_directory, name)
             shutil.move(file, destination)
@@ -967,7 +976,7 @@ class BaseCoreDumpArchiver(object):
 
     def _tar(self, file):
         (name, is_binary) = self._get_file_name(file)
-        tarname = '%s.tar.gz' % name
+        tarname = '{}.tar.gz'.format(name)
 
         # Compress the file.
         tar = tarfile.open(tarname, mode='w:gz')
@@ -981,23 +990,24 @@ class BaseCoreDumpArchiver(object):
     def _upload(self, files):
         bot_utils = GetBotUtils()
         gsutil = bot_utils.GSUtil()
-        storage_path = '%s/%s/' % (self._bucket, uuid.uuid4())
-        gs_prefix = 'gs://%s' % storage_path
-        http_prefix = 'https://storage.cloud.google.com/%s' % storage_path
+        storage_path = '{}/{}/'.format(self._bucket, uuid.uuid4())
+        gs_prefix = 'gs://{}'.format(storage_path)
+        http_prefix = 'https://storage.cloud.google.com/{}'.format(storage_path)
 
-        print('\n--- Uploading into %s (%s) ---' % (gs_prefix, http_prefix))
+        print('\n--- Uploading into {} ({}) ---'.format(gs_prefix, http_prefix))
         for file in files:
             tarname = self._tar(file)
 
             # Remove / from absolute path to not have // in gs path.
-            gs_url = '%s%s' % (gs_prefix, tarname)
-            http_url = '%s%s' % (http_prefix, tarname)
+            gs_url = '{}{}'.format(gs_prefix, tarname)
+            http_url = '{}{}'.format(http_prefix, tarname)
 
             try:
                 gsutil.upload(tarname, gs_url)
-                print('+++ Uploaded %s (%s)' % (gs_url, http_url))
+                print('+++ Uploaded {} ({})'.format(gs_url, http_url))
             except Exception as error:
-                print('!!! Failed to upload %s, error: %s' % (tarname, error))
+                print('!!! Failed to upload {}, error: {}'.format(
+                    tarname, error))
 
             TryUnlink(tarname)
 
@@ -1005,15 +1015,15 @@ class BaseCoreDumpArchiver(object):
 
     def _find_all_coredumps(self):
         """Return coredumps that were recorded (if supported by the platform).
-    This method will be overriden by concrete platform specific implementations.
-    """
+        This method will be overriden by concrete platform specific implementations.
+        """
         return []
 
     def _find_unexpected_crashes(self):
         """Load coredumps file. Each line has the following format:
 
         test-name,pid,binary-file1,binary-file2,...
-    """
+        """
         try:
             with open(BaseCoreDumpArchiver._UNEXPECTED_CRASHES_FILE) as f:
                 return [
@@ -1049,7 +1059,8 @@ class PosixCoreDumpArchiver(BaseCoreDumpArchiver):
         return found
 
     def _find_coredump_file(self, crash):
-        core_filename = os.path.join(self._search_dir, 'core.%s' % crash.pid)
+        core_filename = os.path.join(self._search_dir,
+                                     'core.{}'.format(crash.pid))
         if os.path.exists(core_filename):
             return core_filename
 
@@ -1081,7 +1092,7 @@ class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
         if not os.path.exists(win_toolchain_json_path):
             return None
 
-        with open(win_toolchain_json_path, "r") as f:
+        with open(win_toolchain_json_path, 'r') as f:
             win_toolchain_info = json.loads(f.read())
 
         win_sdk_path = win_toolchain_info['win_sdk']
@@ -1108,32 +1119,32 @@ class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
         if not dumps:
             return
 
-        print("### Collected %d crash dumps" % len(dumps))
+        print('### Collected {} crash dumps'.format(len(dumps)))
         for dump in dumps:
             print()
-            print("### Dumping stacks from %s using CDB" % dump)
+            print('### Dumping stacks from {} using CDB'.format(dump))
             cdb_output = subprocess.check_output(
-                '"%s" -z "%s" -kqm -c "!uniqstack -b -v -p;qd"' % (cdb_path,
-                                                                   dump),
+                '"{}" -z "{}" -kqm -c "!uniqstack -b -v -p;qd"'.format(
+                    cdb_path, dump),
                 stderr=subprocess.STDOUT)
             # Extract output of uniqstack from the whole output of CDB.
             output = False
             for line in cdb_output.split('\n'):
                 if re.match(WindowsCoreDumpArchiver.CDBG_PROMPT_RE, line):
                     output = True
-                elif line.startswith("quit:"):
+                elif line.startswith('quit:'):
                     break
                 elif output:
                     print(line)
         print()
-        print("#############################################")
+        print('#############################################')
         print()
 
     def __exit__(self, *args):
         try:
             self._dump_all_stacks()
         except Exception as error:
-            print("ERROR: Unable to dump stacks from dumps: %s" % error)
+            print('ERROR: Unable to dump stacks from dumps: {}'.format(error))
 
         super(WindowsCoreDumpArchiver, self).__exit__(*args)
 
@@ -1171,7 +1182,8 @@ class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
 
         if throw:
             missing_as_string = ', '.join([str(c) for c in missing])
-            raise Exception('Missing crash dumps for: %s' % missing_as_string)
+            raise Exception(
+                'Missing crash dumps for: {}'.format(missing_as_string))
 
 
 class IncreasedNumberOfFileDescriptors(object):
@@ -1212,32 +1224,32 @@ def CoreDumpArchiver(args):
     elif osname == 'win32':
         return contextlib.nested(WindowsCoreDumpEnabler(),
                                  WindowsCoreDumpArchiver(output_directory))
-    else:
-        # We don't have support for MacOS yet.
-        return NooptContextManager()
+
+    # We don't have support for MacOS yet.
+    return NooptContextManager()
 
 
 def FileDescriptorLimitIncreaser():
     osname = GuessOS()
     if osname == 'macos':
         return IncreasedNumberOfFileDescriptors(nofiles=10000)
-    else:
-        assert osname in ('linux', 'win32')
-        # We don't have support for MacOS yet.
-        return NooptContextManager()
+
+    assert osname in ('linux', 'win32')
+    # We don't have support for MacOS yet.
+    return NooptContextManager()
 
 
 def Main():
-    print("GuessOS() -> ", GuessOS())
-    print("GuessArchitecture() -> ", GuessArchitecture())
-    print("GuessCpus() -> ", GuessCpus())
-    print("IsWindows() -> ", IsWindows())
-    print("GuessVisualStudioPath() -> ", GuessVisualStudioPath())
-    print("GetGitRevision() -> ", GetGitRevision())
-    print("GetGitTimestamp() -> ", GetGitTimestamp())
-    print("GetVersionFileContent() -> ", GetVersionFileContent())
-    print("GetGitNumber() -> ", GetGitNumber())
+    print('GuessOS() -> ', GuessOS())
+    print('GuessArchitecture() -> ', GuessArchitecture())
+    print('GuessCpus() -> ', GuessCpus())
+    print('IsWindows() -> ', IsWindows())
+    print('GuessVisualStudioPath() -> ', GuessVisualStudioPath())
+    print('GetGitRevision() -> ', GetGitRevision())
+    print('GetGitTimestamp() -> ', GetGitTimestamp())
+    print('GetVersionFileContent() -> ', GetVersionFileContent())
+    print('GetGitNumber() -> ', GetGitNumber())
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     Main()
