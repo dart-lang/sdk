@@ -126,15 +126,7 @@ class Stdin {
 @patch
 class Stdout {
   @patch
-  bool _hasTerminal(int fd) {
-    try {
-      _terminalSize(fd);
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
+  bool _hasTerminal(int fd) => _getTerminalSize(fd) is List;
   @patch
   int _terminalColumns(int fd) => _terminalSize(fd)[0];
   @patch
