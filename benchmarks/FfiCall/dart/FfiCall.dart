@@ -1068,7 +1068,7 @@ class Doublex20 extends BenchmarkBase {
 class PointerUint8x01 extends BenchmarkBase {
   PointerUint8x01() : super('FfiCall.PointerUint8x01');
 
-  Pointer<Uint8> pointer;
+  Pointer<Uint8> pointer = nullptr;
   @override
   void setup() => pointer = allocate(count: N + 1);
   @override
@@ -1086,7 +1086,8 @@ class PointerUint8x01 extends BenchmarkBase {
 class PointerUint8x02 extends BenchmarkBase {
   PointerUint8x02() : super('FfiCall.PointerUint8x02');
 
-  Pointer<Uint8> pointer, pointer2;
+  Pointer<Uint8> pointer = nullptr;
+  Pointer<Uint8> pointer2 = nullptr;
 
   @override
   void setup() {
@@ -1111,7 +1112,10 @@ class PointerUint8x02 extends BenchmarkBase {
 class PointerUint8x04 extends BenchmarkBase {
   PointerUint8x04() : super('FfiCall.PointerUint8x04');
 
-  Pointer<Uint8> pointer, pointer2, pointer3, pointer4;
+  Pointer<Uint8> pointer = nullptr;
+  Pointer<Uint8> pointer2 = nullptr;
+  Pointer<Uint8> pointer3 = nullptr;
+  Pointer<Uint8> pointer4 = nullptr;
 
   @override
   void setup() {
@@ -1139,16 +1143,16 @@ class PointerUint8x04 extends BenchmarkBase {
 class PointerUint8x10 extends BenchmarkBase {
   PointerUint8x10() : super('FfiCall.PointerUint8x10');
 
-  Pointer<Uint8> pointer,
-      pointer2,
-      pointer3,
-      pointer4,
-      pointer5,
-      pointer6,
-      pointer7,
-      pointer8,
-      pointer9,
-      pointer10;
+  Pointer<Uint8> pointer = nullptr;
+  Pointer<Uint8> pointer2 = nullptr;
+  Pointer<Uint8> pointer3 = nullptr;
+  Pointer<Uint8> pointer4 = nullptr;
+  Pointer<Uint8> pointer5 = nullptr;
+  Pointer<Uint8> pointer6 = nullptr;
+  Pointer<Uint8> pointer7 = nullptr;
+  Pointer<Uint8> pointer8 = nullptr;
+  Pointer<Uint8> pointer9 = nullptr;
+  Pointer<Uint8> pointer10 = nullptr;
 
   @override
   void setup() {
@@ -1192,26 +1196,26 @@ class PointerUint8x10 extends BenchmarkBase {
 class PointerUint8x20 extends BenchmarkBase {
   PointerUint8x20() : super('FfiCall.PointerUint8x20');
 
-  Pointer<Uint8> pointer,
-      pointer2,
-      pointer3,
-      pointer4,
-      pointer5,
-      pointer6,
-      pointer7,
-      pointer8,
-      pointer9,
-      pointer10,
-      pointer11,
-      pointer12,
-      pointer13,
-      pointer14,
-      pointer15,
-      pointer16,
-      pointer17,
-      pointer18,
-      pointer19,
-      pointer20;
+  Pointer<Uint8> pointer = nullptr;
+  Pointer<Uint8> pointer2 = nullptr;
+  Pointer<Uint8> pointer3 = nullptr;
+  Pointer<Uint8> pointer4 = nullptr;
+  Pointer<Uint8> pointer5 = nullptr;
+  Pointer<Uint8> pointer6 = nullptr;
+  Pointer<Uint8> pointer7 = nullptr;
+  Pointer<Uint8> pointer8 = nullptr;
+  Pointer<Uint8> pointer9 = nullptr;
+  Pointer<Uint8> pointer10 = nullptr;
+  Pointer<Uint8> pointer11 = nullptr;
+  Pointer<Uint8> pointer12 = nullptr;
+  Pointer<Uint8> pointer13 = nullptr;
+  Pointer<Uint8> pointer14 = nullptr;
+  Pointer<Uint8> pointer15 = nullptr;
+  Pointer<Uint8> pointer16 = nullptr;
+  Pointer<Uint8> pointer17 = nullptr;
+  Pointer<Uint8> pointer18 = nullptr;
+  Pointer<Uint8> pointer19 = nullptr;
+  Pointer<Uint8> pointer20 = nullptr;
 
   @override
   void setup() {

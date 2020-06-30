@@ -79,7 +79,7 @@ const String expectedHash =
 class DigestCMemory extends BenchmarkBase {
   DigestCMemory() : super('FfiBoringssl.DigestCMemory');
 
-  Pointer<Data> data; // Data in C memory that we want to digest.
+  Pointer<Data> data = nullptr; // Data in C memory that we want to digest.
 
   @override
   void setup() {
@@ -108,7 +108,7 @@ class DigestCMemory extends BenchmarkBase {
 class DigestDartMemory extends BenchmarkBase {
   DigestDartMemory() : super('FfiBoringssl.DigestDartMemory');
 
-  Uint8List data; // Data in C memory that we want to digest.
+  Uint8List data = Uint8List(0); // Data in C memory that we want to digest.
 
   @override
   void setup() {

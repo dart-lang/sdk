@@ -206,7 +206,7 @@ int doLoadInt64Mint(Pointer<Int64> pointer, int length) {
 const N = 1000;
 
 class PointerInt8 extends BenchmarkBase {
-  Pointer<Int8> pointer;
+  Pointer<Int8> pointer = nullptr;
   PointerInt8() : super('FfiMemory.PointerInt8');
 
   @override
@@ -225,7 +225,7 @@ class PointerInt8 extends BenchmarkBase {
 }
 
 class PointerUint8 extends BenchmarkBase {
-  Pointer<Uint8> pointer;
+  Pointer<Uint8> pointer = nullptr;
   PointerUint8() : super('FfiMemory.PointerUint8');
 
   @override
@@ -244,7 +244,7 @@ class PointerUint8 extends BenchmarkBase {
 }
 
 class PointerInt16 extends BenchmarkBase {
-  Pointer<Int16> pointer;
+  Pointer<Int16> pointer = nullptr;
   PointerInt16() : super('FfiMemory.PointerInt16');
 
   @override
@@ -263,7 +263,7 @@ class PointerInt16 extends BenchmarkBase {
 }
 
 class PointerUint16 extends BenchmarkBase {
-  Pointer<Uint16> pointer;
+  Pointer<Uint16> pointer = nullptr;
   PointerUint16() : super('FfiMemory.PointerUint16');
 
   @override
@@ -282,7 +282,7 @@ class PointerUint16 extends BenchmarkBase {
 }
 
 class PointerInt32 extends BenchmarkBase {
-  Pointer<Int32> pointer;
+  Pointer<Int32> pointer = nullptr;
   PointerInt32() : super('FfiMemory.PointerInt32');
 
   @override
@@ -301,7 +301,7 @@ class PointerInt32 extends BenchmarkBase {
 }
 
 class PointerUint32 extends BenchmarkBase {
-  Pointer<Uint32> pointer;
+  Pointer<Uint32> pointer = nullptr;
   PointerUint32() : super('FfiMemory.PointerUint32');
 
   @override
@@ -320,7 +320,7 @@ class PointerUint32 extends BenchmarkBase {
 }
 
 class PointerInt64 extends BenchmarkBase {
-  Pointer<Int64> pointer;
+  Pointer<Int64> pointer = nullptr;
   PointerInt64() : super('FfiMemory.PointerInt64');
 
   @override
@@ -339,7 +339,7 @@ class PointerInt64 extends BenchmarkBase {
 }
 
 class PointerUint64 extends BenchmarkBase {
-  Pointer<Uint64> pointer;
+  Pointer<Uint64> pointer = nullptr;
   PointerUint64() : super('FfiMemory.PointerUint64');
 
   @override
@@ -358,7 +358,7 @@ class PointerUint64 extends BenchmarkBase {
 }
 
 class PointerFloat extends BenchmarkBase {
-  Pointer<Float> pointer;
+  Pointer<Float> pointer = nullptr;
   PointerFloat() : super('FfiMemory.PointerFloat');
 
   @override
@@ -377,7 +377,7 @@ class PointerFloat extends BenchmarkBase {
 }
 
 class PointerDouble extends BenchmarkBase {
-  Pointer<Double> pointer;
+  Pointer<Double> pointer = nullptr;
   PointerDouble() : super('FfiMemory.PointerDouble');
 
   @override
@@ -396,8 +396,8 @@ class PointerDouble extends BenchmarkBase {
 }
 
 class PointerPointer extends BenchmarkBase {
-  Pointer<Pointer<Int8>> pointer;
-  Pointer<Int8> data;
+  Pointer<Pointer<Int8>> pointer = nullptr;
+  Pointer<Int8> data = nullptr;
   PointerPointer() : super('FfiMemory.PointerPointer');
 
   @override
@@ -423,7 +423,7 @@ class PointerPointer extends BenchmarkBase {
 }
 
 class PointerInt64Mint extends BenchmarkBase {
-  Pointer<Int64> pointer;
+  Pointer<Int64> pointer = nullptr;
   PointerInt64Mint() : super('FfiMemory.PointerInt64Mint');
 
   @override

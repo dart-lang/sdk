@@ -189,13 +189,13 @@ EOF
     out/ReleaseIA32/dart --profile-period=10000 --packages=.packages benchmarks/Example/dart2/Example.dart
     out/ReleaseIA32/dart --null-safety --enable-experiment=non-nullable --profile-period=10000 --packages=.packages benchmarks/Example/dart/Example.dart
     out/ReleaseIA32/dart benchmarks/FfiBoringssl/dart2/FfiBoringssl.dart
-    #out/ReleaseIA32/dart --null-safety --enable-experiment=non-nullable benchmarks/FfiBoringssl/dart/FfiBoringssl.dart
+    out/ReleaseIA32/dart --null-safety --enable-experiment=non-nullable benchmarks/FfiBoringssl/dart/FfiBoringssl.dart
     out/ReleaseIA32/dart benchmarks/FfiCall/dart2/FfiCall.dart
-    #out/ReleaseIA32/dart --null-safety --enable-experiment=non-nullable benchmarks/FfiCall/dart/FfiCall.dart
+    out/ReleaseIA32/dart --null-safety --enable-experiment=non-nullable benchmarks/FfiCall/dart/FfiCall.dart
     out/ReleaseIA32/dart benchmarks/FfiMemory/dart2/FfiMemory.dart
-    #out/ReleaseIA32/dart --null-safety --enable-experiment=non-nullable benchmarks/FfiMemory/dart/FfiMemory.dart
+    out/ReleaseIA32/dart --null-safety --enable-experiment=non-nullable benchmarks/FfiMemory/dart/FfiMemory.dart
     out/ReleaseIA32/dart benchmarks/FfiStruct/dart2/FfiStruct.dart
-    #out/ReleaseIA32/dart --null-safety --enable-experiment=non-nullable benchmarks/FfiStruct/dart/FfiStruct.dart
+    out/ReleaseIA32/dart --null-safety --enable-experiment=non-nullable benchmarks/FfiStruct/dart/FfiStruct.dart
     cd ..
     rm -rf tmp
   elif [ "$command" = linux-x64-build ]; then

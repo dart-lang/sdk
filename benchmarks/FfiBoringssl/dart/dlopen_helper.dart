@@ -33,7 +33,7 @@ String _checkRunningMode(String architecture) {
 
 String _architecture() {
   final String uname = Process.runSync('uname', ['-m']).stdout.trim();
-  final String architecture = _unames[uname];
+  final String? architecture = _unames[uname];
   if (architecture == null) {
     throw Exception('Unrecognized architecture: "$uname"');
   }
@@ -42,7 +42,7 @@ String _architecture() {
   return _checkRunningMode(architecture);
 }
 
-String _platformPath(String name, {String path = ''}) {
+String _platformPath(String name, String path) {
   if (Platform.isMacOS || Platform.isIOS) {
     return '${path}mac/${_architecture()}/lib$name.dylib';
   }
@@ -55,7 +55,7 @@ String _platformPath(String name, {String path = ''}) {
   return '${path}linux/${_architecture()}/lib$name.so';
 }
 
-DynamicLibrary dlopenPlatformSpecific(String name, {String path}) {
-  final String fullPath = _platformPath(name, path: path);
+DynamicLibrary dlopenPlatformSpecific(String name, {String path = ''}) {
+  final String fullPath = _platformPath(name, path);
   return DynamicLibrary.open(fullPath);
 }
