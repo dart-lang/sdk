@@ -4,6 +4,11 @@
 
 // test w/ `pub run test -N unnecessary_this`
 
+extension E on int {
+  String f() => this?.toString(); //OK
+  int get h => this?.hashCode; //OK
+}
+
 void bar() {}
 
 int x;

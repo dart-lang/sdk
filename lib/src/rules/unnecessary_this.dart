@@ -84,9 +84,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     final parent = node.parent;
 
     Element element;
-    if (parent is PropertyAccess) {
+    if (parent is PropertyAccess && !parent.isNullAware) {
       element = parent.propertyName.staticElement;
-    } else if (parent is MethodInvocation) {
+    } else if (parent is MethodInvocation && !parent.isNullAware) {
       element = parent.methodName.staticElement;
     } else {
       return;
