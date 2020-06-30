@@ -19,54 +19,54 @@ import 'dlopen_helper.dart';
 // Trampoline functions.
 //
 
-DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("native_functions",
-    path: Platform.script.resolve("../native/out/").path);
+DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific('native_functions',
+    path: Platform.script.resolve('../native/out/').path);
 
 typedef NativeFunction1Uint8 = Uint8 Function(Uint8);
 typedef Function1int = int Function(int);
-Function1int function1Uint8 = ffiTestFunctions
-    .lookupFunction<NativeFunction1Uint8, Function1int>("Function1Uint8");
+final function1Uint8 = ffiTestFunctions
+    .lookupFunction<NativeFunction1Uint8, Function1int>('Function1Uint8');
 
 typedef NativeFunction1Uint16 = Uint16 Function(Uint16);
-Function1int function1Uint16 = ffiTestFunctions
-    .lookupFunction<NativeFunction1Uint16, Function1int>("Function1Uint16");
+final function1Uint16 = ffiTestFunctions
+    .lookupFunction<NativeFunction1Uint16, Function1int>('Function1Uint16');
 
 typedef NativeFunction1Uint32 = Uint32 Function(Uint32);
-Function1int function1Uint32 = ffiTestFunctions
-    .lookupFunction<NativeFunction1Uint32, Function1int>("Function1Uint32");
+final function1Uint32 = ffiTestFunctions
+    .lookupFunction<NativeFunction1Uint32, Function1int>('Function1Uint32');
 
 typedef NativeFunction1Uint64 = Uint64 Function(Uint64);
-Function1int function1Uint64 = ffiTestFunctions
-    .lookupFunction<NativeFunction1Uint64, Function1int>("Function1Uint64");
+final function1Uint64 = ffiTestFunctions
+    .lookupFunction<NativeFunction1Uint64, Function1int>('Function1Uint64');
 
 typedef NativeFunction1Int8 = Int8 Function(Int8);
-Function1int function1Int8 = ffiTestFunctions
-    .lookupFunction<NativeFunction1Int8, Function1int>("Function1Int8");
+final function1Int8 = ffiTestFunctions
+    .lookupFunction<NativeFunction1Int8, Function1int>('Function1Int8');
 
 typedef NativeFunction1Int16 = Int16 Function(Int16);
-Function1int function1Int16 = ffiTestFunctions
-    .lookupFunction<NativeFunction1Int16, Function1int>("Function1Int16");
+final function1Int16 = ffiTestFunctions
+    .lookupFunction<NativeFunction1Int16, Function1int>('Function1Int16');
 
 typedef NativeFunction1Int32 = Int32 Function(Int32);
-Function1int function1Int32 = ffiTestFunctions
-    .lookupFunction<NativeFunction1Int32, Function1int>("Function1Int32");
+final function1Int32 = ffiTestFunctions
+    .lookupFunction<NativeFunction1Int32, Function1int>('Function1Int32');
 
 typedef NativeFunction2Int32 = Int32 Function(Int32, Int32);
 typedef Function2int = int Function(int, int);
-Function2int function2Int32 = ffiTestFunctions
-    .lookupFunction<NativeFunction2Int32, Function2int>("Function2Int32");
+final function2Int32 = ffiTestFunctions
+    .lookupFunction<NativeFunction2Int32, Function2int>('Function2Int32');
 
 typedef NativeFunction4Int32 = Int32 Function(Int32, Int32, Int32, Int32);
 typedef Function4int = int Function(int, int, int, int);
-Function4int function4Int32 = ffiTestFunctions
-    .lookupFunction<NativeFunction4Int32, Function4int>("Function4Int32");
+final function4Int32 = ffiTestFunctions
+    .lookupFunction<NativeFunction4Int32, Function4int>('Function4Int32');
 
 typedef NativeFunction10Int32 = Int32 Function(
     Int32, Int32, Int32, Int32, Int32, Int32, Int32, Int32, Int32, Int32);
 typedef Function10int = int Function(
     int, int, int, int, int, int, int, int, int, int);
-Function10int function10Int32 = ffiTestFunctions
-    .lookupFunction<NativeFunction10Int32, Function10int>("Function10Int32");
+final function10Int32 = ffiTestFunctions
+    .lookupFunction<NativeFunction10Int32, Function10int>('Function10Int32');
 
 typedef NativeFunction20Int32 = Int32 Function(
     Int32,
@@ -91,25 +91,25 @@ typedef NativeFunction20Int32 = Int32 Function(
     Int32);
 typedef Function20int = int Function(int, int, int, int, int, int, int, int,
     int, int, int, int, int, int, int, int, int, int, int, int);
-Function20int function20Int32 = ffiTestFunctions
-    .lookupFunction<NativeFunction20Int32, Function20int>("Function20Int32");
+final function20Int32 = ffiTestFunctions
+    .lookupFunction<NativeFunction20Int32, Function20int>('Function20Int32');
 
 typedef NativeFunction1Int64 = Int64 Function(Int64);
-Function1int function1Int64 = ffiTestFunctions
-    .lookupFunction<NativeFunction1Int64, Function1int>("Function1Int64");
+final function1Int64 = ffiTestFunctions
+    .lookupFunction<NativeFunction1Int64, Function1int>('Function1Int64');
 
 typedef NativeFunction2Int64 = Int64 Function(Int64, Int64);
-Function2int function2Int64 = ffiTestFunctions
-    .lookupFunction<NativeFunction2Int64, Function2int>("Function2Int64");
+final function2Int64 = ffiTestFunctions
+    .lookupFunction<NativeFunction2Int64, Function2int>('Function2Int64');
 
 typedef NativeFunction4Int64 = Int64 Function(Int64, Int64, Int64, Int64);
-Function4int function4Int64 = ffiTestFunctions
-    .lookupFunction<NativeFunction4Int64, Function4int>("Function4Int64");
+final function4Int64 = ffiTestFunctions
+    .lookupFunction<NativeFunction4Int64, Function4int>('Function4Int64');
 
 typedef NativeFunction10Int64 = Int64 Function(
     Int64, Int64, Int64, Int64, Int64, Int64, Int64, Int64, Int64, Int64);
-Function10int function10Int64 = ffiTestFunctions
-    .lookupFunction<NativeFunction10Int64, Function10int>("Function10Int64");
+final function10Int64 = ffiTestFunctions
+    .lookupFunction<NativeFunction10Int64, Function10int>('Function10Int64');
 
 typedef NativeFunction20Int64 = Int64 Function(
     Int64,
@@ -132,30 +132,30 @@ typedef NativeFunction20Int64 = Int64 Function(
     Int64,
     Int64,
     Int64);
-Function20int function20Int64 = ffiTestFunctions
-    .lookupFunction<NativeFunction20Int64, Function20int>("Function20Int64");
+final function20Int64 = ffiTestFunctions
+    .lookupFunction<NativeFunction20Int64, Function20int>('Function20Int64');
 
 typedef NativeFunction1Float = Float Function(Float);
 typedef Function1double = double Function(double);
-Function1double function1Float = ffiTestFunctions
-    .lookupFunction<NativeFunction1Float, Function1double>("Function1Float");
+final function1Float = ffiTestFunctions
+    .lookupFunction<NativeFunction1Float, Function1double>('Function1Float');
 
 typedef NativeFunction2Float = Float Function(Float, Float);
 typedef Function2double = double Function(double, double);
-Function2double function2Float = ffiTestFunctions
-    .lookupFunction<NativeFunction2Float, Function2double>("Function2Float");
+final function2Float = ffiTestFunctions
+    .lookupFunction<NativeFunction2Float, Function2double>('Function2Float');
 
 typedef NativeFunction4Float = Float Function(Float, Float, Float, Float);
 typedef Function4double = double Function(double, double, double, double);
-Function4double function4Float = ffiTestFunctions
-    .lookupFunction<NativeFunction4Float, Function4double>("Function4Float");
+final function4Float = ffiTestFunctions
+    .lookupFunction<NativeFunction4Float, Function4double>('Function4Float');
 
 typedef NativeFunction10Float = Float Function(
     Float, Float, Float, Float, Float, Float, Float, Float, Float, Float);
 typedef Function10double = double Function(double, double, double, double,
     double, double, double, double, double, double);
-Function10double function10Float = ffiTestFunctions
-    .lookupFunction<NativeFunction10Float, Function10double>("Function10Float");
+final function10Float = ffiTestFunctions
+    .lookupFunction<NativeFunction10Float, Function10double>('Function10Float');
 
 typedef NativeFunction20Float = Float Function(
     Float,
@@ -199,26 +199,26 @@ typedef Function20double = double Function(
     double,
     double,
     double);
-Function20double function20Float = ffiTestFunctions
-    .lookupFunction<NativeFunction20Float, Function20double>("Function20Float");
+final function20Float = ffiTestFunctions
+    .lookupFunction<NativeFunction20Float, Function20double>('Function20Float');
 
 typedef NativeFunction1Double = Double Function(Double);
-Function1double function1Double = ffiTestFunctions
-    .lookupFunction<NativeFunction1Double, Function1double>("Function1Double");
+final function1Double = ffiTestFunctions
+    .lookupFunction<NativeFunction1Double, Function1double>('Function1Double');
 
 typedef NativeFunction2Double = Double Function(Double, Double);
-Function2double function2Double = ffiTestFunctions
-    .lookupFunction<NativeFunction2Double, Function2double>("Function1Double");
+final function2Double = ffiTestFunctions
+    .lookupFunction<NativeFunction2Double, Function2double>('Function1Double');
 
 typedef NativeFunction4Double = Double Function(Double, Double, Double, Double);
-Function4double function4Double = ffiTestFunctions
-    .lookupFunction<NativeFunction4Double, Function4double>("Function1Double");
+final function4Double = ffiTestFunctions
+    .lookupFunction<NativeFunction4Double, Function4double>('Function1Double');
 
 typedef NativeFunction10Double = Double Function(Double, Double, Double, Double,
     Double, Double, Double, Double, Double, Double);
 Function10double function10Double =
     ffiTestFunctions.lookupFunction<NativeFunction10Double, Function10double>(
-        "Function10Double");
+        'Function10Double');
 
 typedef NativeFunction20Double = Double Function(
     Double,
@@ -243,21 +243,21 @@ typedef NativeFunction20Double = Double Function(
     Double);
 Function20double function20Double =
     ffiTestFunctions.lookupFunction<NativeFunction20Double, Function20double>(
-        "Function20Double");
+        'Function20Double');
 
 typedef Function1PointerUint8 = Pointer<Uint8> Function(Pointer<Uint8>);
-Function1PointerUint8 function1PointerUint8 = ffiTestFunctions.lookupFunction<
-    Function1PointerUint8, Function1PointerUint8>("Function1PointerUint8");
+final function1PointerUint8 = ffiTestFunctions.lookupFunction<
+    Function1PointerUint8, Function1PointerUint8>('Function1PointerUint8');
 
 typedef Function2PointerUint8 = Pointer<Uint8> Function(
     Pointer<Uint8>, Pointer<Uint8>);
-Function2PointerUint8 function2PointerUint8 = ffiTestFunctions.lookupFunction<
-    Function2PointerUint8, Function2PointerUint8>("Function2PointerUint8");
+final function2PointerUint8 = ffiTestFunctions.lookupFunction<
+    Function2PointerUint8, Function2PointerUint8>('Function2PointerUint8');
 
 typedef Function4PointerUint8 = Pointer<Uint8> Function(
     Pointer<Uint8>, Pointer<Uint8>, Pointer<Uint8>, Pointer<Uint8>);
-Function4PointerUint8 function4PointerUint8 = ffiTestFunctions.lookupFunction<
-    Function4PointerUint8, Function4PointerUint8>("Function4PointerUint8");
+final function4PointerUint8 = ffiTestFunctions.lookupFunction<
+    Function4PointerUint8, Function4PointerUint8>('Function4PointerUint8');
 
 typedef Function10PointerUint8 = Pointer<Uint8> Function(
     Pointer<Uint8>,
@@ -270,8 +270,8 @@ typedef Function10PointerUint8 = Pointer<Uint8> Function(
     Pointer<Uint8>,
     Pointer<Uint8>,
     Pointer<Uint8>);
-Function10PointerUint8 function10PointerUint8 = ffiTestFunctions.lookupFunction<
-    Function10PointerUint8, Function10PointerUint8>("Function10PointerUint8");
+final function10PointerUint8 = ffiTestFunctions.lookupFunction<
+    Function10PointerUint8, Function10PointerUint8>('Function10PointerUint8');
 
 typedef Function20PointerUint8 = Pointer<Uint8> Function(
     Pointer<Uint8>,
@@ -294,25 +294,25 @@ typedef Function20PointerUint8 = Pointer<Uint8> Function(
     Pointer<Uint8>,
     Pointer<Uint8>,
     Pointer<Uint8>);
-Function20PointerUint8 function20PointerUint8 = ffiTestFunctions.lookupFunction<
-    Function20PointerUint8, Function20PointerUint8>("Function20PointerUint8");
+final function20PointerUint8 = ffiTestFunctions.lookupFunction<
+    Function20PointerUint8, Function20PointerUint8>('Function20PointerUint8');
 
 final function1handle = ffiTestFunctions.lookupFunction<Handle Function(Handle),
-    Object Function(Object)>("Function1Handle");
+    Object Function(Object)>('Function1Handle');
 
 final function2handle = ffiTestFunctions.lookupFunction<
     Handle Function(Handle, Handle),
-    Object Function(Object, Object)>("Function2Handle");
+    Object Function(Object, Object)>('Function2Handle');
 
 final function4handle = ffiTestFunctions.lookupFunction<
     Handle Function(Handle, Handle, Handle, Handle),
-    Object Function(Object, Object, Object, Object)>("Function4Handle");
+    Object Function(Object, Object, Object, Object)>('Function4Handle');
 
 final function10handle = ffiTestFunctions.lookupFunction<
     Handle Function(Handle, Handle, Handle, Handle, Handle, Handle, Handle,
         Handle, Handle, Handle),
     Object Function(Object, Object, Object, Object, Object, Object, Object,
-        Object, Object, Object)>("Function10Handle");
+        Object, Object, Object)>('Function10Handle');
 
 final function20handle = ffiTestFunctions.lookupFunction<
     Handle Function(
@@ -356,7 +356,7 @@ final function20handle = ffiTestFunctions.lookupFunction<
         Object,
         Object,
         Object,
-        Object)>("Function20Handle");
+        Object)>('Function20Handle');
 
 //
 // Trampoline call.
@@ -732,354 +732,388 @@ Object doCall20Handle(
 const N = 1000;
 
 class Uint8x01 extends BenchmarkBase {
-  Uint8x01() : super("FfiCall.Uint8x01");
+  Uint8x01() : super('FfiCall.Uint8x01');
 
+  @override
   void run() {
     final int x = doCall1Uint8(N);
     if (x != N * 17 + N * 42) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Uint16x01 extends BenchmarkBase {
-  Uint16x01() : super("FfiCall.Uint16x01");
+  Uint16x01() : super('FfiCall.Uint16x01');
 
+  @override
   void run() {
     final int x = doCall1Uint16(N);
     if (x != N * 17 + N * 42) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Uint32x01 extends BenchmarkBase {
-  Uint32x01() : super("FfiCall.Uint32x01");
+  Uint32x01() : super('FfiCall.Uint32x01');
 
+  @override
   void run() {
     final int x = doCall1Uint32(N);
     if (x != N * (N - 1) / 2 + N * 42) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Uint64x01 extends BenchmarkBase {
-  Uint64x01() : super("FfiCall.Uint64x01");
+  Uint64x01() : super('FfiCall.Uint64x01');
 
+  @override
   void run() {
     final int x = doCall1Uint64(N);
     if (x != N * (N - 1) / 2 + N * 42) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Int8x01 extends BenchmarkBase {
-  Int8x01() : super("FfiCall.Int8x01");
+  Int8x01() : super('FfiCall.Int8x01');
 
+  @override
   void run() {
     final int x = doCall1Int8(N);
     if (x != N * 17 + N * 42) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Int16x01 extends BenchmarkBase {
-  Int16x01() : super("FfiCall.Int16x01");
+  Int16x01() : super('FfiCall.Int16x01');
 
+  @override
   void run() {
     final int x = doCall1Int16(N);
     if (x != N * 17 + N * 42) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Int32x01 extends BenchmarkBase {
-  Int32x01() : super("FfiCall.Int32x01");
+  Int32x01() : super('FfiCall.Int32x01');
 
+  @override
   void run() {
     final int x = doCall1Int32(N);
     if (x != N * (N - 1) / 2 + N * 42) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Int32x02 extends BenchmarkBase {
-  Int32x02() : super("FfiCall.Int32x02");
+  Int32x02() : super('FfiCall.Int32x02');
 
+  @override
   void run() {
     final int x = doCall2Int32(N);
     if (x != N * (N - 1) * 2 / 2) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Int32x04 extends BenchmarkBase {
-  Int32x04() : super("FfiCall.Int32x04");
+  Int32x04() : super('FfiCall.Int32x04');
 
+  @override
   void run() {
     final int x = doCall4Int32(N);
     if (x != N * (N - 1) * 4 / 2) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Int32x10 extends BenchmarkBase {
-  Int32x10() : super("FfiCall.Int32x10");
+  Int32x10() : super('FfiCall.Int32x10');
 
+  @override
   void run() {
     final int x = doCall10Int32(N);
     if (x != N * (N - 1) * 10 / 2) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Int32x20 extends BenchmarkBase {
-  Int32x20() : super("FfiCall.Int32x20");
+  Int32x20() : super('FfiCall.Int32x20');
 
+  @override
   void run() {
     final int x = doCall20Int32(N);
     if (x != N * (N - 1) * 20 / 2) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Int64x01 extends BenchmarkBase {
-  Int64x01() : super("FfiCall.Int64x01");
+  Int64x01() : super('FfiCall.Int64x01');
 
+  @override
   void run() {
     final int x = doCall1Int64(N);
     if (x != N * (N - 1) / 2 + N * 42) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Int64x02 extends BenchmarkBase {
-  Int64x02() : super("FfiCall.Int64x02");
+  Int64x02() : super('FfiCall.Int64x02');
 
+  @override
   void run() {
     final int x = doCall2Int64(N);
     if (x != N * (N - 1) * 2 / 2) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Int64x04 extends BenchmarkBase {
-  Int64x04() : super("FfiCall.Int64x04");
+  Int64x04() : super('FfiCall.Int64x04');
 
+  @override
   void run() {
     final int x = doCall4Int64(N);
     if (x != N * (N - 1) * 4 / 2) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Int64x10 extends BenchmarkBase {
-  Int64x10() : super("FfiCall.Int64x10");
+  Int64x10() : super('FfiCall.Int64x10');
 
+  @override
   void run() {
     final int x = doCall10Int64(N);
     if (x != N * (N - 1) * 10 / 2) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Int64x20 extends BenchmarkBase {
-  Int64x20() : super("FfiCall.Int64x20");
+  Int64x20() : super('FfiCall.Int64x20');
 
+  @override
   void run() {
     final int x = doCall20Int64(N);
     if (x != N * (N - 1) * 20 / 2) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Int64Mintx01 extends BenchmarkBase {
-  Int64Mintx01() : super("FfiCall.Int64Mintx01");
+  Int64Mintx01() : super('FfiCall.Int64Mintx01');
 
+  @override
   void run() {
     final int x = doCall1Int64Mint(N);
     if (x != 0x7FFFFFFF00000000 + N * 42) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Floatx01 extends BenchmarkBase {
-  Floatx01() : super("FfiCall.Floatx01");
+  Floatx01() : super('FfiCall.Floatx01');
 
+  @override
   void run() {
     final double x = doCall1Float(N);
     final double expected = N * (N - 1) / 2 + N * 42;
     if (0.999 * expected > x && x > 1.001 * expected) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Floatx02 extends BenchmarkBase {
-  Floatx02() : super("FfiCall.Floatx02");
+  Floatx02() : super('FfiCall.Floatx02');
 
+  @override
   void run() {
     final double x = doCall2Float(N);
     final double expected = N * 55.0;
     if (0.999 * expected > x && x > 1.001 * expected) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Floatx04 extends BenchmarkBase {
-  Floatx04() : super("FfiCall.Floatx04");
+  Floatx04() : super('FfiCall.Floatx04');
 
+  @override
   void run() {
     final double x = doCall4Float(N);
     final double expected = N * 55.0;
     if (0.999 * expected > x && x > 1.001 * expected) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Floatx10 extends BenchmarkBase {
-  Floatx10() : super("FfiCall.Floatx10");
+  Floatx10() : super('FfiCall.Floatx10');
 
+  @override
   void run() {
     final double x = doCall10Float(N);
     final double expected = N * 55.0;
     if (0.999 * expected > x && x > 1.001 * expected) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Floatx20 extends BenchmarkBase {
-  Floatx20() : super("FfiCall.Floatx20");
+  Floatx20() : super('FfiCall.Floatx20');
 
+  @override
   void run() {
     final double x = doCall20Float(N);
     final double expected = N * 220.0;
     if (0.999 * expected > x && x > 1.001 * expected) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Doublex01 extends BenchmarkBase {
-  Doublex01() : super("FfiCall.Doublex01");
+  Doublex01() : super('FfiCall.Doublex01');
 
+  @override
   void run() {
     final double x = doCall1Double(N);
     final double expected = N * (N - 1) / 2 + N * 42;
     if (0.999 * expected > x && x > 1.001 * expected) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Doublex02 extends BenchmarkBase {
-  Doublex02() : super("FfiCall.Doublex02");
+  Doublex02() : super('FfiCall.Doublex02');
 
+  @override
   void run() {
     final double x = doCall2Double(N);
     final double expected = N * 55.0;
     if (0.999 * expected > x && x > 1.001 * expected) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Doublex04 extends BenchmarkBase {
-  Doublex04() : super("FfiCall.Doublex04");
+  Doublex04() : super('FfiCall.Doublex04');
 
+  @override
   void run() {
     final double x = doCall4Double(N);
     final double expected = N * 55.0;
     if (0.999 * expected > x && x > 1.001 * expected) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Doublex10 extends BenchmarkBase {
-  Doublex10() : super("FfiCall.Doublex10");
+  Doublex10() : super('FfiCall.Doublex10');
 
+  @override
   void run() {
     final double x = doCall10Double(N);
     final double expected = N * 55.0;
     if (0.999 * expected > x && x > 1.001 * expected) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Doublex20 extends BenchmarkBase {
-  Doublex20() : super("FfiCall.Doublex20");
+  Doublex20() : super('FfiCall.Doublex20');
 
+  @override
   void run() {
     final double x = doCall20Double(N);
     final double expected = N * 220.0;
     if (0.999 * expected > x && x > 1.001 * expected) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class PointerUint8x01 extends BenchmarkBase {
-  PointerUint8x01() : super("FfiCall.PointerUint8x01");
+  PointerUint8x01() : super('FfiCall.PointerUint8x01');
 
   Pointer<Uint8> pointer;
+  @override
   void setup() => pointer = allocate(count: N + 1);
+  @override
   void teardown() => free(pointer);
 
+  @override
   void run() {
     final Pointer<Uint8> x = doCall1PointerUint8(N, pointer);
     if (x.address != pointer.address + N) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class PointerUint8x02 extends BenchmarkBase {
-  PointerUint8x02() : super("FfiCall.PointerUint8x02");
+  PointerUint8x02() : super('FfiCall.PointerUint8x02');
 
   Pointer<Uint8> pointer, pointer2;
 
+  @override
   void setup() {
     pointer = allocate(count: N + 1);
     pointer2 = pointer.elementAt(1);
   }
 
+  @override
   void teardown() {
     free(pointer);
   }
 
+  @override
   void run() {
     final Pointer<Uint8> x = doCall2PointerUint8(N, pointer, pointer2);
     if (x.address != pointer.address + N * sizeOf<Uint8>()) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class PointerUint8x04 extends BenchmarkBase {
-  PointerUint8x04() : super("FfiCall.PointerUint8x04");
+  PointerUint8x04() : super('FfiCall.PointerUint8x04');
 
   Pointer<Uint8> pointer, pointer2, pointer3, pointer4;
 
+  @override
   void setup() {
     pointer = allocate(count: N + 1);
     pointer2 = pointer.elementAt(1);
@@ -1087,21 +1121,23 @@ class PointerUint8x04 extends BenchmarkBase {
     pointer4 = pointer.elementAt(3);
   }
 
+  @override
   void teardown() {
     free(pointer);
   }
 
+  @override
   void run() {
     final Pointer<Uint8> x =
         doCall4PointerUint8(N, pointer, pointer2, pointer3, pointer4);
     if (x.address != pointer.address + N * sizeOf<Uint8>()) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class PointerUint8x10 extends BenchmarkBase {
-  PointerUint8x10() : super("FfiCall.PointerUint8x10");
+  PointerUint8x10() : super('FfiCall.PointerUint8x10');
 
   Pointer<Uint8> pointer,
       pointer2,
@@ -1114,6 +1150,7 @@ class PointerUint8x10 extends BenchmarkBase {
       pointer9,
       pointer10;
 
+  @override
   void setup() {
     pointer = allocate(count: N + 1);
     pointer2 = pointer.elementAt(1);
@@ -1127,10 +1164,12 @@ class PointerUint8x10 extends BenchmarkBase {
     pointer10 = pointer.elementAt(9);
   }
 
+  @override
   void teardown() {
     free(pointer);
   }
 
+  @override
   void run() {
     final Pointer<Uint8> x = doCall10PointerUint8(
         N,
@@ -1145,13 +1184,13 @@ class PointerUint8x10 extends BenchmarkBase {
         pointer9,
         pointer10);
     if (x.address != pointer.address + N * sizeOf<Uint8>()) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class PointerUint8x20 extends BenchmarkBase {
-  PointerUint8x20() : super("FfiCall.PointerUint8x20");
+  PointerUint8x20() : super('FfiCall.PointerUint8x20');
 
   Pointer<Uint8> pointer,
       pointer2,
@@ -1174,6 +1213,7 @@ class PointerUint8x20 extends BenchmarkBase {
       pointer19,
       pointer20;
 
+  @override
   void setup() {
     pointer = allocate(count: N + 1);
     pointer2 = pointer.elementAt(1);
@@ -1197,10 +1237,12 @@ class PointerUint8x20 extends BenchmarkBase {
     pointer20 = pointer.elementAt(19);
   }
 
+  @override
   void teardown() {
     free(pointer);
   }
 
+  @override
   void run() {
     final Pointer<Uint8> x = doCall20PointerUint8(
         N,
@@ -1225,7 +1267,7 @@ class PointerUint8x20 extends BenchmarkBase {
         pointer19,
         pointer20);
     if (x.address != pointer.address + N * sizeOf<Uint8>()) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
@@ -1236,35 +1278,38 @@ class MyClass {
 }
 
 class Handlex01 extends BenchmarkBase {
-  Handlex01() : super("FfiCall.Handlex01");
+  Handlex01() : super('FfiCall.Handlex01');
 
+  @override
   void run() {
     final p1 = MyClass(123);
     final x = doCall1Handle(N, p1);
 
     if (!identical(p1, x)) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Handlex02 extends BenchmarkBase {
-  Handlex02() : super("FfiCall.Handlex02");
+  Handlex02() : super('FfiCall.Handlex02');
 
+  @override
   void run() {
     final p1 = MyClass(123);
     final p2 = MyClass(2);
     final x = doCall2Handle(N, p1, p2);
 
     if (!identical(p1, x)) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Handlex04 extends BenchmarkBase {
-  Handlex04() : super("FfiCall.Handlex04");
+  Handlex04() : super('FfiCall.Handlex04');
 
+  @override
   void run() {
     final p1 = MyClass(123);
     final p2 = MyClass(2);
@@ -1273,14 +1318,15 @@ class Handlex04 extends BenchmarkBase {
     final x = doCall4Handle(N, p1, p2, p3, p4);
 
     if (!identical(p1, x)) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Handlex10 extends BenchmarkBase {
-  Handlex10() : super("FfiCall.Handlex10");
+  Handlex10() : super('FfiCall.Handlex10');
 
+  @override
   void run() {
     final p1 = MyClass(123);
     final p2 = MyClass(2);
@@ -1295,14 +1341,15 @@ class Handlex10 extends BenchmarkBase {
     final x = doCall10Handle(N, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10);
 
     if (!identical(p1, x)) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class Handlex20 extends BenchmarkBase {
-  Handlex20() : super("FfiCall.Handlex20");
+  Handlex20() : super('FfiCall.Handlex20');
 
+  @override
   void run() {
     final p1 = MyClass(123);
     final p2 = MyClass(2);
@@ -1328,7 +1375,7 @@ class Handlex20 extends BenchmarkBase {
         p12, p13, p14, p15, p16, p17, p18, p19, p20);
 
     if (!identical(p1, x)) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
@@ -1337,7 +1384,7 @@ class Handlex20 extends BenchmarkBase {
 // Main driver.
 //
 
-main() {
+void main() {
   final benchmarks = [
     () => Uint8x01(),
     () => Uint16x01(),
@@ -1377,5 +1424,7 @@ main() {
     () => Handlex10(),
     () => Handlex20(),
   ];
-  benchmarks.forEach((benchmark) => benchmark().report());
+  for (final benchmark in benchmarks) {
+    benchmark().report();
+  }
 }
