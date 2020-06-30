@@ -1403,6 +1403,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
+    // Casting from `T*` to `T?` is a way to force `T?`.
+    if (leftType.nullabilitySuffix == NullabilitySuffix.star &&
+        rightType.nullabilitySuffix == NullabilitySuffix.question) {
+      return false;
+    }
+
     // For `condition ? then : else` the result type is `LUB`.
     // Casts might be used to consider only a portion of the inheritance tree.
     var parent = node.parent;

@@ -217,4 +217,38 @@ void f<T>(T a) {
 
 @reflectiveTest
 class UnnecessaryCastTestWithNullSafety extends UnnecessaryCastTest
-    with WithNullSafetyMixin {}
+    with WithNullSafetyMixin {
+  test_interfaceType_star_toNone() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+int a = 0;
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+
+void f() {
+  var b = a as int;
+  b;
+}
+''', [
+      error(HintCode.UNNECESSARY_CAST, 39, 8),
+    ]);
+  }
+
+  test_interfaceType_star_toQuestion() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+int a = 0;
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart';
+
+void f() {
+  var b = a as int?;
+  b;
+}
+''');
+  }
+}
