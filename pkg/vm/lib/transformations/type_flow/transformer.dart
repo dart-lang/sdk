@@ -163,7 +163,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
         _procedureAttributesMetadata =
             new ProcedureAttributesMetadataRepository(),
         _tableSelectorMetadata = new TableSelectorMetadataRepository(),
-        _tableSelectorAssigner = new TableSelectorAssigner(),
+        _tableSelectorAssigner = new TableSelectorAssigner(component),
         _unboxingInfoMetadata = new UnboxingInfoMetadataRepository(),
         _intClass = _typeFlowAnalysis.environment.coreTypes.intClass {
     component.addMetadataRepository(_inferredTypeMetadata);

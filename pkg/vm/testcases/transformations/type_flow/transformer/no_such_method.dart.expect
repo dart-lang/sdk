@@ -104,7 +104,7 @@ class H extends core::Object {
   synthetic constructor •() → self::H*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo({[@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] dynamic left = #C1, [@vm.inferred-type.metadata=dart.core::_Smi (value: 2)] dynamic right = #C1}) → dynamic
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:8,getterSelectorId:9]  method foo({[@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] dynamic left = #C1, [@vm.inferred-type.metadata=dart.core::_Smi (value: 2)] dynamic right = #C1}) → dynamic
     return new self::T6::•();
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]  method noSuchMethod(core::Invocation* invocation) → dynamic {
     return new self::T7::•();
