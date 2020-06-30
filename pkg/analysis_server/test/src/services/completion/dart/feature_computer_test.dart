@@ -78,13 +78,22 @@ void g() {
 ''', null);
   }
 
-  @failingTest
   Future<void>
       test_argumentList_named_beforeLabel_hasPreviousParameter() async {
     await assertContextType('''
 void f(int i, {String s = ''}) {}
 void g() {
   f(^s:);
+}
+''', 'int');
+  }
+
+  Future<void>
+      test_argumentList_named_beforeLabel_hasPreviousParameter2() async {
+    await assertContextType('''
+void f(int i, {String s = ''}) {}
+void g() {
+  f(^ s:);
 }
 ''', 'int');
   }
@@ -173,7 +182,6 @@ void g() {
 ''', 'int');
   }
 
-  @failingTest
   Future<void> test_argumentList_positional_asNamed() async {
     await assertContextType('''
 void f([int i]) {}
@@ -198,10 +206,9 @@ void f([int i = 0]) {}
 void g() {
   f(^i:);
 }
-''', null);
+''', 'int');
   }
 
-  @failingTest
   Future<void>
       test_argumentList_positional_asNamed_beforeLabel_hasPreviousParameter() async {
     await assertContextType('''
@@ -240,7 +247,6 @@ void g() {
 ''', 'int');
   }
 
-  @failingTest
   Future<void> test_argumentList_requiredPositional_asNamed() async {
     await assertContextType('''
 void f(int i, String str, bool b) {}
@@ -255,6 +261,15 @@ void g() {
 void f(int i, String str, bool b) {}
 void g() {
   f(^w);
+}
+''', 'int');
+  }
+
+  Future<void> test_argumentList_requiredPositional_first2() async {
+    await assertContextType('''
+void f(int i, String str, bool b) {}
+void g() {
+  f( ^ , 'str');
 }
 ''', 'int');
   }
@@ -286,6 +301,15 @@ void g() {
 ''', 'bool');
   }
 
+  Future<void> test_argumentList_requiredPositional_last_implicit2() async {
+    await assertContextType('''
+void f(int i, String str, bool b, num n) {}
+void g() {
+  f(1, 'str', ^ );
+}
+''', 'bool');
+  }
+
   Future<void> test_argumentList_requiredPositional_middle() async {
     await assertContextType('''
 void f(int i, String str, bool b) {}
@@ -300,6 +324,15 @@ void g() {
 void f(int i, String str, bool b) {}
 void g() {
   f(1, ^, );
+}
+''', 'String');
+  }
+
+  Future<void> test_argumentList_requiredPositional_middle3() async {
+    await assertContextType('''
+void f(int i, String str, bool b) {}
+void g() {
+  f(1, ^ , );
 }
 ''', 'String');
   }

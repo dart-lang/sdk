@@ -362,38 +362,45 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
     if (range
         .endStart(node.leftParenthesis, node.rightParenthesis)
         .contains(offset)) {
-      final paramElts = node.functionType?.parameters;
-      if (paramElts == null || paramElts.isEmpty) {
+      final parameters = node.functionType?.parameters;
+      if (parameters == null) {
         return null;
       }
 
-      // Required parameters
-      final positionalParamElts =
-          paramElts.where((param) => !param.isNamed)?.toList(growable: false);
-      var i = 0;
-      if (positionalParamElts.isNotEmpty) {
-        for (;
-            i < node.arguments.length && i < positionalParamElts.length;
-            i++) {
-          // We don't need to compare offsets between commas, tests show that
-          // such tests aren't needed, also the commas and their respective
-          // offsets aren't accessible with existing getters and setters.
-          if (node.arguments[i].contains(offset)) {
-            return positionalParamElts[i].type;
+      var index = 0;
+
+      DartType typeOfIndexPositionalParameter() {
+        if (index < parameters.length) {
+          var parameter = parameters[index];
+          if (parameter.isPositional) {
+            return parameter.type;
           }
         }
-        // The case where the user is filling out the required parameters
-        if (i < positionalParamElts.length) {
-          return positionalParamElts[i].type;
+        return null;
+      }
+
+      Expression previousArgument;
+      for (var argument in node.arguments) {
+        if (argument is NamedExpression) {
+          if (offset <= argument.offset) {
+            return typeOfIndexPositionalParameter();
+          }
+          if (argument.contains(offset)) {
+            return argument.staticParameterElement?.type;
+          }
+          return null;
+        } else {
+          if (previousArgument == null || previousArgument.end < offset) {
+            if (offset <= argument.end) {
+              return argument.staticParameterElement?.type;
+            }
+          }
+          previousArgument = argument;
+          index++;
         }
       }
 
-      // Named arguments.
-      for (var argument in node.arguments) {
-        if (argument is NamedExpression && argument.contains(offset)) {
-          return argument.staticParameterElement?.type;
-        }
-      }
+      return typeOfIndexPositionalParameter();
     }
     return null;
   }
@@ -632,6 +639,9 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
 
   @override
   DartType visitLabel(Label node) {
+    if (offset == node.offset) {
+      return _visitParent(node);
+    }
     if (node.colon.end <= offset) {
       return _visitParent(node);
     }
@@ -670,6 +680,9 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
 
   @override
   DartType visitNamedExpression(NamedExpression node) {
+    if (offset == node.offset) {
+      return _visitParent(node);
+    }
     if (node.name.end <= offset) {
       return _visitParent(node);
     }
