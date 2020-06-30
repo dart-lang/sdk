@@ -47,7 +47,7 @@ template("build_libdart_builtin") {
       } else if (using_fuchsia_sdk) {
         public_deps = [ "$fuchsia_sdk_root/pkg:fdio" ]
       } else {
-        public_deps = [ "//zircon/public/lib/fdio" ]
+        public_deps = [ "//sdk/lib/fdio" ]
       }
     }
     include_dirs = [ ".." ]
@@ -333,7 +333,7 @@ template("build_gen_snapshot_dart_io") {
           "//sdk/fidl/fuchsia.netstack",
           "//sdk/lib/sys/cpp",
         ]
-        public_deps = [ "//zircon/public/lib/fdio" ]
+        public_deps = [ "//sdk/lib/fdio" ]
       }
     }
 
@@ -475,7 +475,7 @@ template("dart_io") {
           "//sdk/fidl/fuchsia.netstack",
           "//sdk/lib/sys/cpp",
         ]
-        public_deps = [ "//zircon/public/lib/fdio" ]
+        public_deps = [ "//sdk/lib/fdio" ]
       }
     }
 
