@@ -1207,12 +1207,9 @@ class FlowModel<Variable, Type> {
       variableInfo[variable] ?? _freshVariableInfo;
 
   /// Updates the state to indicate that variables that are not definitely
-  /// unassigned in the [other], or are [written], are also not definitely
-  /// unassigned in the result.
-  FlowModel<Variable, Type> joinUnassigned({
-    FlowModel<Variable, Type> other,
-    Iterable<Variable> written,
-  }) {
+  /// unassigned in the [other], are also not definitely unassigned in the
+  /// result.
+  FlowModel<Variable, Type> joinUnassigned(FlowModel<Variable, Type> other) {
     Map<Variable, VariableModel<Variable, Type>> newVariableInfo;
 
     void markNotUnassigned(Variable variable) {
@@ -1227,17 +1224,9 @@ class FlowModel<Variable, Type> {
               variableInfo))[variable] = newInfo;
     }
 
-    if (other != null) {
-      for (Variable variable in other.variableInfo.keys) {
-        VariableModel<Variable, Type> otherInfo = other.variableInfo[variable];
-        if (!otherInfo.unassigned) {
-          markNotUnassigned(variable);
-        }
-      }
-    }
-
-    if (written != null) {
-      for (Variable variable in written) {
+    for (Variable variable in other.variableInfo.keys) {
+      VariableModel<Variable, Type> otherInfo = other.variableInfo[variable];
+      if (!otherInfo.unassigned) {
         markNotUnassigned(variable);
       }
     }
@@ -1273,10 +1262,12 @@ class FlowModel<Variable, Type> {
 
     for (Variable variable in writtenVariables) {
       VariableModel<Variable, Type> info = infoFor(variable);
-      if (info.promotedTypes != null) {
+      VariableModel<Variable, Type> newInfo =
+          info.discardPromotionsAndMarkNotUnassigned();
+      if (!identical(info, newInfo)) {
         (newVariableInfo ??=
             new Map<Variable, VariableModel<Variable, Type>>.from(
-                variableInfo))[variable] = info.discardPromotions();
+                variableInfo))[variable] = newInfo;
       }
     }
 
@@ -1297,8 +1288,6 @@ class FlowModel<Variable, Type> {
     FlowModel<Variable, Type> result = newVariableInfo == null
         ? this
         : new FlowModel<Variable, Type>._(reachable, newVariableInfo);
-
-    result = result.joinUnassigned(written: writtenVariables);
 
     return result;
   }
@@ -1754,11 +1743,13 @@ class VariableModel<Variable, Type> {
         writeCaptured = false;
 
   /// Returns a new [VariableModel] in which any promotions present have been
-  /// dropped.
-  VariableModel<Variable, Type> discardPromotions() {
-    assert(promotedTypes != null, 'No promotions to discard');
+  /// dropped, and the variable has been marked as "not unassigned".
+  VariableModel<Variable, Type> discardPromotionsAndMarkNotUnassigned() {
+    if (promotedTypes == null && !unassigned) {
+      return this;
+    }
     return new VariableModel<Variable, Type>(
-        null, tested, assigned, unassigned, writeCaptured);
+        null, tested, assigned, false, writeCaptured);
   }
 
   /// Returns a new [VariableModel] reflecting the fact that the variable was
@@ -2522,7 +2513,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     _SimpleContext<Variable, Type> context =
         _stack.removeLast() as _SimpleContext<Variable, Type>;
     _current = context._previous;
-    _current = _current.joinUnassigned(other: afterBody);
+    _current = _current.joinUnassigned(afterBody);
   }
 
   @override
