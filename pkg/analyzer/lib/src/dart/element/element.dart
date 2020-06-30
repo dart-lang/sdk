@@ -3991,7 +3991,14 @@ class ExtensionElementImpl extends ElementImpl
   }
 
   @override
-  DartType get extendedType {
+  DartType get extendedType =>
+      ElementTypeProvider.current.getExtendedType(this);
+
+  set extendedType(DartType extendedType) {
+    _extendedType = extendedType;
+  }
+
+  DartType get extendedTypeInternal {
     if (_extendedType != null) return _extendedType;
 
     if (linkedNode != null) {
@@ -3999,10 +4006,6 @@ class ExtensionElementImpl extends ElementImpl
     }
 
     return _extendedType;
-  }
-
-  set extendedType(DartType extendedType) {
-    _extendedType = extendedType;
   }
 
   @override

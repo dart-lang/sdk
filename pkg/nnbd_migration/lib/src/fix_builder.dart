@@ -382,6 +382,15 @@ class MigrationResolutionHooksImpl
       });
 
   @override
+  DartType getExtendedType(ExtensionElementImpl element) {
+    return _wrapExceptions(
+        _fixBuilder.unit,
+        () => element.extendedTypeInternal,
+        () => _fixBuilder._variables
+            .toFinalType(_fixBuilder._variables.decoratedElementType(element)));
+  }
+
+  @override
   DartType getFieldType(PropertyInducingElementImpl element) =>
       _wrapExceptions(_fixBuilder.unit, () => element.typeInternal, () {
         assert(!element.isSynthetic);
