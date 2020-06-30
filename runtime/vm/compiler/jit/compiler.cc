@@ -658,12 +658,11 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         //
         thread()->isolate_group()->RunWithStoppedMutators(
             install_code_fun, install_code_fun, /*use_force_growth=*/true);
-
-        // We notify code observers after finalizing the code in order to be
-        // outside a [SafepointOperationScope].
-        Code::NotifyCodeObservers(function, *result, optimized());
       }
       if (!result->IsNull()) {
+        // Must be called outside of safepoint.
+        Code::NotifyCodeObservers(function, *result, optimized());
+
 #if !defined(PRODUCT)
         if (!function.HasOptimizedCode()) {
           isolate()->debugger()->NotifyCompilation(function);
