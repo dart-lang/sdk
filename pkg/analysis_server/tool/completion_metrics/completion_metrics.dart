@@ -37,6 +37,7 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' show ElementKind;
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:args/args.dart';
@@ -642,7 +643,9 @@ class CompletionMetricsComputer {
   }
 
   Future<List<protocol.CompletionSuggestion>> _computeCompletionSuggestions(
-      MetricsSuggestionListener listener, CompletionRequestImpl request,
+      MetricsSuggestionListener listener,
+      OperationPerformanceImpl performance,
+      CompletionRequestImpl request,
       [DeclarationsTracker declarationsTracker,
       protocol.CompletionAvailableSuggestionsParams
           availableSuggestionsParams]) async {
@@ -654,6 +657,7 @@ class CompletionMetricsComputer {
         dartdocDirectiveInfo: DartdocDirectiveInfo(),
         listener: listener,
       ).computeSuggestions(
+        performance,
         request,
         enableUriContributor: true,
       );
@@ -671,6 +675,7 @@ class CompletionMetricsComputer {
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTagList,
         listener: listener,
       ).computeSuggestions(
+        performance,
         request,
         enableUriContributor: true,
       );
@@ -818,12 +823,24 @@ class CompletionMetricsComputer {
                 CompletionPerformance(),
               );
               var directiveInfo = DartdocDirectiveInfo();
-              var dartRequest =
-                  await DartCompletionRequestImpl.from(request, directiveInfo);
-              var opType =
-                  OpType.forCompletion(dartRequest.target, request.offset);
-              var suggestions = await _computeCompletionSuggestions(listener,
-                  request, declarationsTracker, availableSuggestionsParams);
+
+              OpType opType;
+              List<protocol.CompletionSuggestion> suggestions;
+              await request.performance.runRequestOperation(
+                (performance) async {
+                  var dartRequest = await DartCompletionRequestImpl.from(
+                      performance, request, directiveInfo);
+                  opType =
+                      OpType.forCompletion(dartRequest.target, request.offset);
+                  suggestions = await _computeCompletionSuggestions(
+                    listener,
+                    performance,
+                    request,
+                    declarationsTracker,
+                    availableSuggestionsParams,
+                  );
+                },
+              );
               stopwatch.stop();
 
               return forEachExpectedCompletion(

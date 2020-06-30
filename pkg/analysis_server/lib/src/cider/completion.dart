@@ -103,23 +103,18 @@ class CiderCompletionComputer {
             );
 
             return await manager.computeSuggestions(
+              performance,
               completionRequest,
               enableUriContributor: false,
             );
           });
-
-          for (var operation in completionRequest.performance.operations) {
-            performance.addChildFixed(
-              operation.name,
-              operation.elapsed,
-            );
-          }
 
           return result;
         },
       );
 
       _dartCompletionRequest = await DartCompletionRequestImpl.from(
+        performance,
         completionRequest,
         dartdocDirectiveInfo,
       );

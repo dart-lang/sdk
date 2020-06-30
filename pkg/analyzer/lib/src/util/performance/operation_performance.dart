@@ -27,38 +27,6 @@ abstract class OperationPerformance {
   });
 }
 
-/// TODO(scheglov) remove it
-class OperationPerformanceFixed implements OperationPerformance {
-  @override
-  final String name;
-
-  @override
-  final Duration elapsedSelf;
-
-  OperationPerformanceFixed(this.name, this.elapsedSelf);
-
-  @override
-  List<OperationPerformance> get children => const [];
-
-  @override
-  Duration get elapsed => elapsedSelf;
-
-  @override
-  OperationPerformance getChild(String name) {
-    return null;
-  }
-
-  @override
-  String toString() {
-    return '(name: $name, elapsed: $elapsed)';
-  }
-
-  @override
-  void write({StringBuffer buffer, String indent = ''}) {
-    buffer.writeln('$indent${toString()}');
-  }
-}
-
 class OperationPerformanceImpl implements OperationPerformance {
   @override
   final String name;
@@ -87,16 +55,6 @@ class OperationPerformanceImpl implements OperationPerformance {
     return children.fold<Duration>(
       Duration.zero,
       (sum, child) => sum + child.elapsed,
-    );
-  }
-
-  /// Add a new child with the known elapsed time.
-  ///
-  /// This method is used when we already measure performance using some other
-  /// mechanism, but want to add it to this performance hierarchy.
-  void addChildFixed(String name, Duration elapsed) {
-    _children.add(
-      OperationPerformanceFixed(name, elapsed),
     );
   }
 

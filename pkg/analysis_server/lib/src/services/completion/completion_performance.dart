@@ -38,24 +38,16 @@ String computeCompletionSnippet(String contents, int offset) {
 
 /// Overall performance of a code completion operation.
 class CompletionPerformance {
-  final DateTime start = DateTime.now();
-  final Map<String, Duration> _startTimes = <String, Duration>{};
-  final Stopwatch _stopwatch = Stopwatch();
-  final List<OperationPerformance> operations = <OperationPerformance>[];
-
   String path;
   String snippet = '';
   int notificationCount = -1;
   int suggestionCountFirst = -1;
   int suggestionCountLast = -1;
-  Duration _firstNotification;
+  OperationPerformanceImpl _operation;
 
-  CompletionPerformance() {
-    _stopwatch.start();
+  int get elapsedInMilliseconds {
+    return _operation.elapsed.inMilliseconds;
   }
-
-  int get elapsedInMilliseconds =>
-      operations.isNotEmpty ? operations.last.elapsed.inMilliseconds : 0;
 
   String get suggestionCount {
     if (notificationCount < 1) return '';
@@ -63,35 +55,20 @@ class CompletionPerformance {
     return '$suggestionCountFirst,  $suggestionCountLast';
   }
 
-  void complete([String tag]) {
-    _stopwatch.stop();
-    _logDuration(tag ?? 'total time', _stopwatch.elapsed);
-  }
-
-  void logElapseTime(String tag) {
-    var end = _stopwatch.elapsed;
-    var start = _startTimes[tag];
-    if (start == null) {
-      _logDuration(tag, null);
-      return null;
+  Future<T> runRequestOperation<T>(
+    Future<T> Function(OperationPerformanceImpl) operation,
+  ) async {
+    var rootOperation = OperationPerformanceImpl('<root>');
+    try {
+      return rootOperation.runAsync('<request>', (performance) async {
+        return await operation(performance);
+      });
+    } finally {
+      _operation = rootOperation.children.first;
     }
-    _logDuration(tag, end - start);
-  }
-
-  void logFirstNotificationComplete(String tag) {
-    _firstNotification = _stopwatch.elapsed;
-    _logDuration(tag, _firstNotification);
-  }
-
-  void logStartTime(String tag) {
-    _startTimes[tag] = _stopwatch.elapsed;
   }
 
   void setContentsAndOffset(String contents, int offset) {
     snippet = computeCompletionSnippet(contents, offset);
-  }
-
-  void _logDuration(String tag, Duration elapsed) {
-    operations.add(OperationPerformanceFixed(tag, elapsed));
   }
 }
