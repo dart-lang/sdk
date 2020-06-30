@@ -40,19 +40,16 @@ String computeCompletionSnippet(String contents, int offset) {
 class CompletionPerformance {
   String path;
   String snippet = '';
-  int notificationCount = -1;
-  int suggestionCountFirst = -1;
-  int suggestionCountLast = -1;
+  int suggestionCount = -1;
   OperationPerformanceImpl _operation;
 
   int get elapsedInMilliseconds {
     return _operation.elapsed.inMilliseconds;
   }
 
-  String get suggestionCount {
-    if (notificationCount < 1) return '';
-    if (notificationCount == 1) return '$suggestionCountFirst';
-    return '$suggestionCountFirst,  $suggestionCountLast';
+  String get suggestionCountStr {
+    if (suggestionCount < 1) return '';
+    return '$suggestionCount';
   }
 
   Future<T> runRequestOperation<T>(

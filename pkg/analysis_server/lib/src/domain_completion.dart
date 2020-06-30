@@ -378,10 +378,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
           );
         });
 
-        // TODO(scheglov) I think we have now just one notification always.
-        performance.notificationCount = 1;
-        performance.suggestionCountFirst = result.suggestions.length;
-        performance.suggestionCountLast = result.suggestions.length;
+        performance.suggestionCount = result.suggestions.length;
       } finally {
         ifMatchesRequestClear(completionRequest);
       }

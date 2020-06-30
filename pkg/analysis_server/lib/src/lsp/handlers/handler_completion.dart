@@ -330,10 +330,7 @@ class CompletionHandler
         final matchingResults =
             results.where((e) => fuzzyMatcher.score(e.label) > 0).toList();
 
-        // TODO(scheglov) I think we have now just one notification always.
-        performance.notificationCount = 1;
-        performance.suggestionCountFirst = results.length;
-        performance.suggestionCountLast = results.length;
+        performance.suggestionCount = results.length;
 
         return success(matchingResults);
       } on AbortCompletion {

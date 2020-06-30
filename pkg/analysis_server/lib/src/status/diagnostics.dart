@@ -215,7 +215,7 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
       var shortName = pathContext.basename(completion.path);
       buf.writeln('<tr>'
           '<td class="pre right">${printMilliseconds(completion.elapsedInMilliseconds)}</td>'
-          '<td class="right">${completion.suggestionCount}</td>'
+          '<td class="right">${completion.suggestionCountStr}</td>'
           '<td>${escape(shortName)}</td>'
           '<td><code>${escape(completion.snippet)}</code></td>'
           '</tr>');
