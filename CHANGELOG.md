@@ -52,6 +52,10 @@
     This change will only affect code using sound null-safety. See issue
     [#41653][] for more details.
 
+*   Methods in `Console` have been updated to better reflect the modern Console
+    specification. Particularly of interest are `dir` and `table` which take in
+    extra optional arguments.
+
 [#41653]: https://github.com/dart-lang/sdk/issues/41653
 
 ### Tools

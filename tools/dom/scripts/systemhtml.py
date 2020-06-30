@@ -39,6 +39,7 @@ _js_custom_members = monitored.Set(
         'ConsoleBase.assertCondition',
         'ConsoleBase.clear',
         'ConsoleBase.count',
+        'ConsoleBase.countReset',
         'ConsoleBase.debug',
         'ConsoleBase.dir',
         'ConsoleBase.dirxml',
