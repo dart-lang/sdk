@@ -12,6 +12,8 @@ import '../sdk.dart';
 import '../utils.dart';
 import 'analyze_impl.dart';
 
+// TODO: Support enable-experiment for 'dart analyze'.
+
 class AnalyzeCommand extends DartdevCommand<int> {
   AnalyzeCommand({bool verbose = false})
       : super('analyze', "Analyze the project's Dart code.") {

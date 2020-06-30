@@ -33,7 +33,7 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   static final Version currentVersion = Version.parse(_currentVersion);
 
   /// A map containing information about all known experimental flags.
-  static const knownFeatures = _knownFeatures;
+  static const Map<String, ExperimentalFeature> knownFeatures = _knownFeatures;
 
   final List<bool> _enableFlags;
 

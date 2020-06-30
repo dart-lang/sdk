@@ -125,7 +125,7 @@ class ExperimentalFeatures {
     enableString: EnableString.nonfunction_type_aliases,
     isEnabledByDefault: IsEnabledByDefault.nonfunction_type_aliases,
     isExpired: IsExpired.nonfunction_type_aliases,
-    documentation: 'Type aliases define a <type>, not just a <functionType>.',
+    documentation: 'Type aliases define a <type>, not just a <functionType>',
     firstSupportedVersion: null,
   );
 
@@ -161,7 +161,7 @@ class ExperimentalFeatures {
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
-    documentation: 'Sound variance.',
+    documentation: 'Sound variance',
     firstSupportedVersion: null,
   );
 

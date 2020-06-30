@@ -47,8 +47,7 @@ class LineInfo {
   /// Return the location information for the character at the given [offset].
   ///
   /// A future version of this API will return a [CharacterLocation] rather than
-  /// // ignore: deprecated_member_use_from_same_package
-  /// a [LineInfo_Location].
+  /// a [LineInfo_Location]. // ignore: deprecated_member_use_from_same_package
   // ignore: deprecated_member_use_from_same_package
   LineInfo_Location getLocation(int offset) {
     var min = 0;

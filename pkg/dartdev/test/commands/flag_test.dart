@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dartdev/dartdev.dart';
 import 'package:test/test.dart';
@@ -36,6 +37,17 @@ void command() {
         expect(command.argParser.usageLineLength, isNull);
       }
     });
+  });
+
+  test('enable experiments flag is supported', () {
+    final args = [
+      '--disable-dartdev-analytics',
+      '--enable-experiment=non-nullable'
+    ];
+    final runner = DartdevRunner(args);
+    ArgResults results = runner.parse(args);
+    expect(results['enable-experiment'], isNotEmpty);
+    expect(results['enable-experiment'].first, 'non-nullable');
   });
 }
 

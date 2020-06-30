@@ -36,6 +36,20 @@ void run() {
     expect(result.exitCode, 0);
   });
 
+  test('--enable-experiment', () {
+    p = project();
+    p.file('main.dart', "void main() { int a; a = null; print('a is \$a.'); }");
+    var result =
+        p.runSync('--enable-experiment=non-nullable', ['run', 'main.dart']);
+
+    expect(result.exitCode, 254);
+    expect(result.stdout, isEmpty);
+    expect(
+        result.stderr,
+        contains("A value of type 'Null' can't be assigned to a variable of "
+            "type 'int'"));
+  });
+
   test('no such file', () {
     p = project(mainSrc: "void main() { print('Hello World'); }");
     ProcessResult result =
@@ -47,7 +61,7 @@ void run() {
 
   test('implicit packageName.dart', () {
     // TODO(jwren) circle back to reimplement this test if possible, the file
-    //  name (package name) will be the name of the temporary directory on disk
+    // name (package name) will be the name of the temporary directory on disk
     p = project(mainSrc: "void main() { print('Hello World'); }");
     p.file('bin/main.dart', "void main() { print('Hello main.dart'); }");
     ProcessResult result = p.runSync('run', []);
@@ -57,7 +71,7 @@ void run() {
     expect(result.exitCode, 0);
   }, skip: true);
 
-  //Could not find the implicit file to run: bin
+  // Could not find the implicit file to run: bin
   test('missing implicit packageName.dart', () {
     p = project(mainSrc: "void main() { print('Hello World'); }");
     p.file('bin/foo.dart', "void main() { print('Hello main.dart'); }");
