@@ -120,15 +120,16 @@ class _GrowableList<T> extends ListBase<T> {
   int get length native "GrowableList_getLength";
 
   void set length(int new_length) {
-    int old_capacity = _capacity;
-    int new_capacity = new_length;
-    if (new_capacity > old_capacity) {
+    if (new_length > length) {
       // Verify that element type is nullable.
       null as T;
-      _grow(new_capacity);
+      if (new_length > _capacity) {
+        _grow(new_length);
+      }
       _setLength(new_length);
       return;
     }
+    final int new_capacity = new_length;
     // We are shrinking. Pick the method which has fewer writes.
     // In the shrink-to-fit path, we write |new_capacity + new_length| words
     // (null init + copy).
