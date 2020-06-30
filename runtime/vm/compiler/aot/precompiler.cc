@@ -1262,9 +1262,14 @@ void Precompiler::CheckForNewDynamicFunctions() {
         kernel::ProcedureAttributesMetadata metadata;
 
         // Handle the implicit call type conversions.
-        if (Field::IsGetterName(selector)) {
+        if (Field::IsGetterName(selector) &&
+            (function.kind() != FunctionLayout::kMethodExtractor)) {
           // Call-through-getter.
           // Function is get:foo and somewhere foo (or dyn:foo) is called.
+          // Note that we need to skip method extractors (which were potentially
+          // created by DispatchTableGenerator): call of foo will never
+          // hit method extractor get:foo, because it will hit an existing
+          // method foo first.
           selector2 = Field::NameFromGetter(selector);
           selector3 = Symbols::Lookup(thread(), selector2);
           if (IsSent(selector3)) {
