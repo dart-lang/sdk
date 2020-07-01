@@ -1141,6 +1141,22 @@ def _GetPromiseAttributeType(interface_operation):
         return promise_attributes[interface_operation]
     return None
 
+# Compatibility is used to help determine getter nullability i.e. if the
+# attribute is not compatible across all browsers, the getter is marked as
+# nullable. There are cases where the attribute belongs to a class that
+# implements an interface whose methods are not in the IDL, however.
+# Since attribute getters need to match their overridden method declaration,
+# there are conflicts when the overriding method is not compatible, the
+# overriding method is, and they're not already nullable. This dict marks the
+# attributes where there is a conflict that cannot be resolved with code
+# generation or within src/template files.
+compat_conflicts = {
+    # These interfaces implement Rectangle, which is a Dart interface. In order
+    # to match the interface of Rectangle, they must be marked as non-nullable.
+    'DOMRectReadOnly': ['bottom', 'height', 'left', 'right', 'top', 'width'],
+    'DOMRect': ['height', 'width'],
+}
+
 
 class Dart2JSBackend(HtmlDartGenerator):
     """Generates a dart2js class for the dart:html library from a DOM IDL
@@ -1547,16 +1563,40 @@ class Dart2JSBackend(HtmlDartGenerator):
                                             nullable=(not is_compat) or
                                             attr.type.nullable)
         native_type = self._NarrowToImplementationType(attr.type.id)
-        self._members_emitter.Emit(
-            '\n  $RENAME'
-            '\n  $METADATA'
-            '\n  $STATIC $TYPE get $HTML_NAME native;'
-            '\n',
-            RENAME=rename if rename else '',
-            METADATA=metadata if metadata else '',
-            HTML_NAME=html_name,
-            STATIC='static' if attr.is_static else '',
-            TYPE=return_type)
+        interface = self._interface.id
+        non_null_return_type = self.SecureOutputType(attr.type.id,
+                                                     nullable=False)
+        if interface in compat_conflicts and attr.id in compat_conflicts[
+                interface]:
+            if is_compat or attr.type.nullable:
+                # Only attributes that are not compatible and not nullable
+                # belong in this list.
+                raise ValueError(
+                    interface + '.' + attr.id +
+                    ' has no conflict between compatibility and nullability.')
+            if not rename:
+                rename = '@JSName(\'%s\')' % html_name
+            template = """\n
+                // The following getter is incompatible with some browsers but
+                // must be made non-nullable to match the overridden method.
+                \n  $RENAME
+                \n  $METADATA
+                \n  $STATIC $TYPE get _$HTML_NAME native;
+                \n
+                \n  $STATIC $NONNULLTYPE get $HTML_NAME => _$HTML_NAME$NULLASSERT;"""
+        else:
+            template = """\n  $RENAME
+                \n  $METADATA
+                \n  $STATIC $TYPE get $HTML_NAME native;
+                \n"""
+        self._members_emitter.Emit(template,
+                                   RENAME=rename if rename else '',
+                                   METADATA=metadata if metadata else '',
+                                   HTML_NAME=html_name,
+                                   STATIC='static' if attr.is_static else '',
+                                   TYPE=return_type,
+                                   NULLASSERT='!',
+                                   NONNULLTYPE=non_null_return_type)
 
     def _AddRenamingSetter(self, attr, html_name, rename):
         conversion = self._InputConversion(attr.type.id, attr.id)

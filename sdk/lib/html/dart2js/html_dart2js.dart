@@ -10498,7 +10498,10 @@ class DocumentFragment extends Node
   ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
       new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
-  String get innerHtml {
+  // innerHtml is marked as nullable, even though it is guaranteed to return a
+  // non-nullable, because ShadowRoot.innerHtml overrides it and can be
+  // incompatible.
+  String? get innerHtml {
     final e = new DivElement();
     e.append(this.clone(true));
     return e.innerHtml;
@@ -11539,17 +11542,53 @@ class DomRectReadOnly extends Interceptor implements Rectangle {
   static DomRectReadOnly _create_5() =>
       JS('DomRectReadOnly', 'new DOMRectReadOnly()');
 
-  num? get bottom native;
+  // The following getter is incompatible with some browsers but
+  // must be made non-nullable to match the overridden method.
 
-  num? get height native;
+  @JSName('bottom')
+  num? get _bottom native;
 
-  num? get left native;
+  num get bottom => _bottom!;
 
-  num? get right native;
+  // The following getter is incompatible with some browsers but
+  // must be made non-nullable to match the overridden method.
 
-  num? get top native;
+  @JSName('height')
+  num? get _height native;
 
-  num? get width native;
+  num get height => _height!;
+
+  // The following getter is incompatible with some browsers but
+  // must be made non-nullable to match the overridden method.
+
+  @JSName('left')
+  num? get _left native;
+
+  num get left => _left!;
+
+  // The following getter is incompatible with some browsers but
+  // must be made non-nullable to match the overridden method.
+
+  @JSName('right')
+  num? get _right native;
+
+  num get right => _right!;
+
+  // The following getter is incompatible with some browsers but
+  // must be made non-nullable to match the overridden method.
+
+  @JSName('top')
+  num? get _top native;
+
+  num get top => _top!;
+
+  // The following getter is incompatible with some browsers but
+  // must be made non-nullable to match the overridden method.
+
+  @JSName('width')
+  num? get _width native;
+
+  num get width => _width!;
 
   num? get x native;
 
@@ -19267,22 +19306,22 @@ abstract class InputElementBase implements Element {
   bool get autofocus;
   set autofocus(bool value);
 
-  bool get disabled;
+  bool? get disabled;
   set disabled(bool value);
 
-  bool get incremental;
+  bool? get incremental;
   set incremental(bool value);
 
-  bool get indeterminate;
+  bool? get indeterminate;
   set indeterminate(bool value);
 
-  String get name;
+  String? get name;
   set name(String value);
 
-  String get value;
+  String? get value;
   set value(String? value);
 
-  List<Node> get labels;
+  List<Node>? get labels;
 
   String get validationMessage;
 
@@ -19309,7 +19348,7 @@ abstract class TextInputElementBase implements InputElementBase {
   String get autocomplete;
   set autocomplete(String value);
 
-  int get maxLength;
+  int? get maxLength;
   set maxLength(int value);
 
   String get pattern;
@@ -19318,13 +19357,13 @@ abstract class TextInputElementBase implements InputElementBase {
   String get placeholder;
   set placeholder(String value);
 
-  bool get readOnly;
+  bool? get readOnly;
   set readOnly(bool value);
 
   bool get required;
   set required(bool value);
 
-  int get size;
+  int? get size;
   set size(int value);
 
   void select();
@@ -19354,7 +19393,7 @@ abstract class TextInputElementBase implements InputElementBase {
 abstract class SearchInputElement implements TextInputElementBase {
   factory SearchInputElement() => new InputElement(type: 'search');
 
-  String get dirName;
+  String? get dirName;
   set dirName(String value);
 
   Element? get list;
@@ -19371,7 +19410,7 @@ abstract class SearchInputElement implements TextInputElementBase {
 abstract class TextInputElement implements TextInputElementBase {
   factory TextInputElement() => new InputElement(type: 'text');
 
-  String get dirName;
+  String? get dirName;
   set dirName(String value);
 
   Element? get list;
@@ -19440,10 +19479,10 @@ abstract class EmailInputElement implements TextInputElementBase {
 
   Element? get list;
 
-  int get maxLength;
+  int? get maxLength;
   set maxLength(int value);
 
-  bool get multiple;
+  bool? get multiple;
   set multiple(bool value);
 
   String get pattern;
@@ -19452,13 +19491,13 @@ abstract class EmailInputElement implements TextInputElementBase {
   String get placeholder;
   set placeholder(String value);
 
-  bool get readOnly;
+  bool? get readOnly;
   set readOnly(bool value);
 
   bool get required;
   set required(bool value);
 
-  int get size;
+  int? get size;
   set size(int value);
 
   /// Returns true if this input type is supported on the current platform.
@@ -19480,16 +19519,16 @@ abstract class PasswordInputElement implements TextInputElementBase {
 abstract class RangeInputElementBase implements InputElementBase {
   Element? get list;
 
-  String get max;
+  String? get max;
   set max(String value);
 
-  String get min;
+  String? get min;
   set min(String value);
 
-  String get step;
+  String? get step;
   set step(String value);
 
-  num get valueAsNumber;
+  num? get valueAsNumber;
   set valueAsNumber(num value);
 
   void stepDown([int? n]);
@@ -19509,7 +19548,7 @@ abstract class DateInputElement implements RangeInputElementBase {
   DateTime get valueAsDate;
   set valueAsDate(DateTime value);
 
-  bool get readOnly;
+  bool? get readOnly;
   set readOnly(bool value);
 
   bool get required;
@@ -19533,7 +19572,7 @@ abstract class MonthInputElement implements RangeInputElementBase {
   DateTime get valueAsDate;
   set valueAsDate(DateTime value);
 
-  bool get readOnly;
+  bool? get readOnly;
   set readOnly(bool value);
 
   bool get required;
@@ -19557,7 +19596,7 @@ abstract class WeekInputElement implements RangeInputElementBase {
   DateTime get valueAsDate;
   set valueAsDate(DateTime value);
 
-  bool get readOnly;
+  bool? get readOnly;
   set readOnly(bool value);
 
   bool get required;
@@ -19581,7 +19620,7 @@ abstract class TimeInputElement implements RangeInputElementBase {
   DateTime get valueAsDate;
   set valueAsDate(DateTime value);
 
-  bool get readOnly;
+  bool? get readOnly;
   set readOnly(bool value);
 
   bool get required;
@@ -19604,7 +19643,7 @@ abstract class LocalDateTimeInputElement implements RangeInputElementBase {
   factory LocalDateTimeInputElement() =>
       new InputElement(type: 'datetime-local');
 
-  bool get readOnly;
+  bool? get readOnly;
   set readOnly(bool value);
 
   bool get required;
@@ -19628,7 +19667,7 @@ abstract class NumberInputElement implements RangeInputElementBase {
   String get placeholder;
   set placeholder(String value);
 
-  bool get readOnly;
+  bool? get readOnly;
   set readOnly(bool value);
 
   bool get required;
@@ -19666,7 +19705,7 @@ abstract class RangeInputElement implements RangeInputElementBase {
 abstract class CheckboxInputElement implements InputElementBase {
   factory CheckboxInputElement() => new InputElement(type: 'checkbox');
 
-  bool get checked;
+  bool? get checked;
   set checked(bool value);
 
   bool get required;
@@ -19687,7 +19726,7 @@ abstract class CheckboxInputElement implements InputElementBase {
 abstract class RadioButtonInputElement implements InputElementBase {
   factory RadioButtonInputElement() => new InputElement(type: 'radio');
 
-  bool get checked;
+  bool? get checked;
   set checked(bool value);
 
   bool get required;
@@ -19700,10 +19739,10 @@ abstract class RadioButtonInputElement implements InputElementBase {
 abstract class FileUploadInputElement implements InputElementBase {
   factory FileUploadInputElement() => new InputElement(type: 'file');
 
-  String get accept;
+  String? get accept;
   set accept(String value);
 
-  bool get multiple;
+  bool? get multiple;
   set multiple(bool value);
 
   bool get required;
@@ -19741,7 +19780,7 @@ abstract class SubmitButtonInputElement implements InputElementBase {
 abstract class ImageButtonInputElement implements InputElementBase {
   factory ImageButtonInputElement() => new InputElement(type: 'image');
 
-  String get alt;
+  String? get alt;
   set alt(String value);
 
   String get formAction;
@@ -19759,13 +19798,13 @@ abstract class ImageButtonInputElement implements InputElementBase {
   String get formTarget;
   set formTarget(String value);
 
-  int get height;
+  int? get height;
   set height(int value);
 
-  String get src;
+  String? get src;
   set src(String value);
 
-  int get width;
+  int? get width;
   set width(int value);
 }
 
@@ -34579,13 +34618,25 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
 
   // Shadowing definition.
 
-  num? get height native;
+  // The following getter is incompatible with some browsers but
+  // must be made non-nullable to match the overridden method.
+
+  @JSName('height')
+  num? get _height native;
+
+  num get height => _height!;
 
   set height(num value) native;
 
   // Shadowing definition.
 
-  num? get width native;
+  // The following getter is incompatible with some browsers but
+  // must be made non-nullable to match the overridden method.
+
+  @JSName('width')
+  num? get _width native;
+
+  num get width => _width!;
 
   set width(num value) native;
 
@@ -36012,8 +36063,11 @@ abstract class WindowBase implements EventTarget {
    *     print(window.closed); // 'false'
    *     window.close();
    *     print(window.closed); // 'true'
+   *
+   * MDN does not have compatibility info on this attribute, and therefore is
+   * marked nullable.
    */
-  bool get closed;
+  bool? get closed;
 
   /**
    * A reference to the window that opened this one.
