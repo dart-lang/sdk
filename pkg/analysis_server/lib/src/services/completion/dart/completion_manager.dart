@@ -120,6 +120,8 @@ class DartCompletionManager {
       return const <CompletionSuggestion>[];
     }
 
+    request.checkAborted();
+
     final ranking = CompletionRanking.instance;
     var probabilityFuture =
         ranking != null ? ranking.predict(dartRequest) : Future.value(null);
