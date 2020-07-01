@@ -1303,7 +1303,11 @@ class InferenceVisitor
   DartType getSpreadElementType(DartType spreadType, bool isNullAware) {
     if (spreadType is InterfaceType) {
       if (spreadType.classNode == inferrer.coreTypes.nullClass) {
-        return isNullAware ? spreadType : null;
+        if (inferrer.isNonNullableByDefault) {
+          return isNullAware ? const NeverType(Nullability.nonNullable) : null;
+        } else {
+          return isNullAware ? spreadType : null;
+        }
       }
       List<DartType> supertypeArguments = inferrer.typeSchemaEnvironment
           .getTypeArgumentsAsInstanceOf(
@@ -1706,7 +1710,12 @@ class InferenceVisitor
     if (spreadMapEntryType is InterfaceType) {
       if (spreadMapEntryType.classNode == inferrer.coreTypes.nullClass) {
         if (isNullAware) {
-          output[offset] = output[offset + 1] = spreadMapEntryType;
+          if (inferrer.isNonNullableByDefault) {
+            output[offset] =
+                output[offset + 1] = const NeverType(Nullability.nonNullable);
+          } else {
+            output[offset] = output[offset + 1] = spreadMapEntryType;
+          }
         }
       } else {
         List<DartType> supertypeArguments = inferrer.typeSchemaEnvironment
