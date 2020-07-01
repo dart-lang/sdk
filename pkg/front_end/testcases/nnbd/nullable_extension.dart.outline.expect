@@ -1,0 +1,18 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::String text;
+  synthetic constructor •() → self::A
+    ;
+}
+extension _extension#0 on self::A? {
+  get text = self::_extension#0|get#text;
+}
+static method _extension#0|get#text(final self::A? #this) → core::String
+  ;
+static method main() → void
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
