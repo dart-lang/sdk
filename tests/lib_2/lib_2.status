@@ -38,6 +38,9 @@ isolate/deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not
 js/instanceof_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/parameters_test: SkipByDesign # Issue 42085.
 
+[ $compiler != dart2js && $compiler != dartdevk ]
+web/*: SkipByDesign
+
 [ $runtime == chrome && $system == linux ]
 mirrors/native_class_test: Slow, Pass
 
