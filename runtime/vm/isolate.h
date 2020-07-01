@@ -370,6 +370,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   }
   Mutex* subtype_test_cache_mutex() { return &subtype_test_cache_mutex_; }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+  Mutex* unlinked_call_map_mutex() { return &unlinked_call_map_mutex_; }
+#endif
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
   Mutex* initializer_functions_mutex() { return &initializer_functions_mutex_; }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -645,6 +649,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Mutex type_canonicalization_mutex_;
   Mutex type_arguments_canonicalization_mutex_;
   Mutex subtype_test_cache_mutex_;
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  Mutex unlinked_call_map_mutex_;
+#endif
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   Mutex initializer_functions_mutex_;

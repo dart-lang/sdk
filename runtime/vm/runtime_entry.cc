@@ -1478,6 +1478,8 @@ static bool IsSingleTarget(Isolate* isolate,
   return true;
 }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+
 class SavedUnlinkedCallMapKeyEqualsTraits : public AllStatic {
  public:
   static const char* Name() { return "SavedUnlinkedCallMapKeyEqualsTraits "; }
@@ -1499,6 +1501,8 @@ static void SaveUnlinkedCall(Zone* zone,
                              uword frame_pc,
                              const UnlinkedCall& unlinked_call) {
   IsolateGroup* isolate_group = isolate->group();
+
+  SafepointMutexLocker ml(isolate_group->unlinked_call_map_mutex());
   if (isolate_group->saved_unlinked_calls() == Array::null()) {
     const auto& initial_map =
         Array::Handle(zone, HashTables::New<UnlinkedCallMap>(16, Heap::kOld));
@@ -1510,37 +1514,44 @@ static void SaveUnlinkedCall(Zone* zone,
   const auto& pc = Integer::Handle(zone, Integer::NewFromUint64(frame_pc));
   // Some other isolate might have updated unlinked_call_map[pc] too, but
   // their update should be identical to ours.
-  UnlinkedCall& new_or_old_value = UnlinkedCall::Handle(
+  const auto& new_or_old_value = UnlinkedCall::Handle(
       zone, UnlinkedCall::RawCast(
                 unlinked_call_map.InsertOrGetValue(pc, unlinked_call)));
   RELEASE_ASSERT(new_or_old_value.raw() == unlinked_call.raw());
   isolate_group->set_saved_unlinked_calls(unlinked_call_map.Release());
 }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
 static UnlinkedCallPtr LoadUnlinkedCall(Zone* zone,
                                         Isolate* isolate,
-                                        uword pc,
-                                        bool is_monomorphic_hit) {
+                                        uword pc) {
   IsolateGroup* isolate_group = isolate->group();
-  ASSERT(isolate_group->saved_unlinked_calls() != Array::null());
 
+  SafepointMutexLocker ml(isolate_group->unlinked_call_map_mutex());
+  ASSERT(isolate_group->saved_unlinked_calls() != Array::null());
   UnlinkedCallMap unlinked_call_map(zone,
                                     isolate_group->saved_unlinked_calls());
 
   const auto& pc_integer = Integer::Handle(zone, Integer::NewFromUint64(pc));
   const auto& unlinked_call = UnlinkedCall::Cast(
       Object::Handle(zone, unlinked_call_map.GetOrDie(pc_integer)));
-  // Only remove entry from unlinked_call_map if we are actually transitioning
-  // out of monomorphic state.
-  if (!is_monomorphic_hit) {
-    unlinked_call_map.Remove(pc_integer);
-    isolate_group->set_saved_unlinked_calls(unlinked_call_map.Release());
-  }
-
+  isolate_group->set_saved_unlinked_calls(unlinked_call_map.Release());
   return unlinked_call.raw();
 }
-#endif
+
+// NOTE: Right now we never delete [UnlinkedCall] objects. They are needed while
+// a call site is in Unlinked/Monomorphic/MonomorphicSmiable/SingleTarget
+// states.
+//
+// Theoretically we could free the [UnlinkedCall] object once we transition the
+// call site to use ICData/MegamorphicCache, but that would require careful
+// coordination between the deleter and a possible concurrent reader.
+//
+// To simplify the code we decided not to do that atm (only a very small
+// fraction of callsites in AOT use switchable calls, the name/args-descriptor
+// objects are kept alive anyways -> there is little memory savings from
+// freeing the [UnlinkedCall] objects).
+
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 class SwitchableCallHandler {
  public:
@@ -1557,7 +1568,9 @@ class SwitchableCallHandler {
         arguments_(arguments),
         caller_frame_(caller_frame),
         caller_code_(caller_code),
-        caller_function_(caller_function) {}
+        caller_function_(caller_function),
+        name_(String::Handle()),
+        args_descriptor_(Array::Handle()) {}
 
   FunctionPtr ResolveTargetFunction(const Object& data);
   void HandleMiss(const Object& old_data,
@@ -1572,16 +1585,11 @@ class SwitchableCallHandler {
                                   const Function& target_function,
                                   intptr_t* lower,
                                   intptr_t* upper);
-  FunctionPtr LookupMonomorphicOldTargetNameDescriptorCid(
-      const Object& data,
-      String* out_name,
-      Array* out_descriptor,
-      classid_t* out_old_expected_cid,
-      bool keep_unlinked_call_map_entry_regardless,
-      bool* out_is_monomorphic_hit);
   void DoMonomorphicMiss(const Object& data, const Function& target_function);
+#if defined(DART_PRECOMPILED_RUNTIME)
   void DoSingleTargetMiss(const SingleTargetCache& data,
                           const Function& target_function);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   void DoICDataMiss(const ICData& data, const Function& target_function);
   void DoMegamorphicMiss(const MegamorphicCache& data,
                          const Function& target_function);
@@ -1594,6 +1602,11 @@ class SwitchableCallHandler {
   StackFrame* caller_frame_;
   const Code& caller_code_;
   const Function& caller_function_;
+
+  // Call-site information populated during resolution.
+  String& name_;
+  Array& args_descriptor_;
+  bool is_monomorphic_hit_ = false;
 };
 
 void SwitchableCallHandler::DoUnlinkedCall(const UnlinkedCall& unlinked,
@@ -1606,36 +1619,6 @@ void SwitchableCallHandler::DoUnlinkedCall(const UnlinkedCall& unlinked,
                                         ICData::kInstance));
   if (!target_function.IsNull()) {
     ic_data.AddReceiverCheck(receiver_.GetClassId(), target_function);
-  }
-
-  // In AOT bare mode, the PC -> Code mapping is ambiguous, since multiple code
-  // objects can have the same deduped instructions and bare frames are compact
-  // (i.e. have only PC but no code object in the frame)
-  //
-  // In JIT and AOT non-bare mode, instructions will push the unique code
-  // object on the frame.
-  //
-  // If we can find the unique code object of the callee, we can find it's
-  // owner function. If the callee function is non-generic and has no optional
-  // parameters, we can and thereby deduce the call-site argument descriptor +
-  // name from it.
-  //
-  // If not, we'll save the unlinked call object in a map.
-  //
-  // See [DoMonomorphicMiss]
-  const bool need_saved_unlinked_call =
-      (FLAG_use_bare_instructions && FLAG_dedup_instructions);
-
-  // We transition from an unlinked call to a monomorphic call. This transition
-  // will cause us to loose the argument descriptor information on the call
-  // site.
-  //
-  // Though if the monomorphic call site transitions to a
-  // polymorphic/megamorphic we need to reconstruct the arguments descriptor.
-  //
-  // We assume here that generated code never moves.
-  if (need_saved_unlinked_call) {
-    SaveUnlinkedCall(zone_, isolate_, caller_frame_->pc(), unlinked);
   }
 
   Object& object = Object::Handle(zone_, ic_data.raw());
@@ -1739,90 +1722,26 @@ static FunctionPtr Resolve(Zone* zone,
   return target_function.raw();
 }
 
-FunctionPtr SwitchableCallHandler::LookupMonomorphicOldTargetNameDescriptorCid(
-    const Object& data,
-    String* out_name,
-    Array* out_descriptor,
-    classid_t* out_old_expected_cid,
-    bool keep_unlinked_call_map_entry_regardless,
-    bool* out_is_monomorphic_hit) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  ASSERT(out_name != nullptr);
-  ASSERT(out_descriptor != nullptr);
-  ASSERT(out_old_expected_cid != nullptr);
-  ASSERT(out_is_monomorphic_hit != nullptr);
-  Function& old_target = Function::Handle(zone_);
-  if (data.IsSmi()) {
-    *out_old_expected_cid = Smi::Cast(data).Value();
-  } else if (data.IsMonomorphicSmiableCall()) {
-    *out_old_expected_cid = MonomorphicSmiableCall::Cast(data).expected_cid();
-    old_target ^=
-        Code::Handle(zone_, MonomorphicSmiableCall::Cast(data).target())
-            .owner();
-  } else {
-    UNREACHABLE();
-  }
-
-  // The site might have just been updated to monomorphic state with same
-  // exact class id, in which case we are staying in monomorphic state.
-  *out_is_monomorphic_hit = *out_old_expected_cid == receiver_.GetClassId();
-
-  if (FLAG_use_bare_instructions && FLAG_dedup_instructions) {
-    const UnlinkedCall& unlinked_call = UnlinkedCall::Handle(
-        zone_, LoadUnlinkedCall(zone_, isolate_, caller_frame_->pc(),
-                                keep_unlinked_call_map_entry_regardless ||
-                                    *out_is_monomorphic_hit));
-    *out_name = unlinked_call.target_name();
-    *out_descriptor = unlinked_call.args_descriptor();
-
-    const Class& old_receiver_class = Class::Handle(
-        zone_, isolate_->class_table()->At(*out_old_expected_cid));
-    return Resolve(zone_, old_receiver_class, *out_name, *out_descriptor);
-  }
-
-  // We lost the original UnlinkedCall (and the name + arg descriptor inside
-  // it) when the call site transitioned from unlinked to monomorphic.
-  //
-  // Though we can deduce name + arg descriptor based on the first
-  // monomorphic callee (we are guaranteed it is not generic and does not have
-  // optional parameters, see DEFINE_RUNTIME_ENTRY(UnlinkedCall) above).
-  if (old_target.IsNull()) {
-    const Code& old_target_code =
-        Code::Handle(zone_, CodePatcher::GetSwitchableCallTargetAt(
-                                caller_frame_->pc(), caller_code_));
-    old_target ^= old_target_code.owner();
-  }
-
-  const int kTypeArgsLen = 0;
-  *out_name = old_target.name();
-  // TODO(dartbug.com/33549): Update this code to use the size of the
-  // parameters when supporting calls to non-static methods with
-  // unboxed parameters.
-  *out_descriptor = ArgumentsDescriptor::NewBoxed(
-      kTypeArgsLen, old_target.num_fixed_parameters());
-  return old_target.raw();
-#else
-  UNREACHABLE();
-#endif
-}
-
 void SwitchableCallHandler::DoMonomorphicMiss(const Object& data,
                                               const Function& target_function) {
 #if defined(DART_PRECOMPILED_RUNTIME)
-  String& name = String::Handle(zone_);
-  Array& descriptor = Array::Handle(zone_);
-  bool is_monomorphic_hit;
   classid_t old_expected_cid;
-  const Function& old_target = Function::Handle(
-      zone_, LookupMonomorphicOldTargetNameDescriptorCid(
-                 data, &name, &descriptor, &old_expected_cid,
-                 /*keep_unlinked_call_map_entry_regardless=*/false,
-                 &is_monomorphic_hit));
+  if (data.IsSmi()) {
+    old_expected_cid = Smi::Cast(data).Value();
+  } else {
+    RELEASE_ASSERT(data.IsMonomorphicSmiableCall());
+    old_expected_cid = MonomorphicSmiableCall::Cast(data).expected_cid();
+  }
+  const bool is_monomorphic_hit = old_expected_cid == receiver_.GetClassId();
+  const auto& old_receiver_class =
+      Class::Handle(zone_, isolate_->class_table()->At(old_expected_cid));
+  const auto& old_target = Function::Handle(
+      zone_, Resolve(zone_, old_receiver_class, name_, args_descriptor_));
 
-  const ICData& ic_data =
-      ICData::Handle(zone_, ICData::New(caller_function_, name, descriptor,
-                                        DeoptId::kNone, 1, /* args_tested */
-                                        ICData::kInstance));
+  const ICData& ic_data = ICData::Handle(
+      zone_, ICData::New(caller_function_, name_, args_descriptor_,
+                         DeoptId::kNone, 1, /* args_tested */
+                         ICData::kInstance));
   // Add the first target.
   if (!old_target.IsNull()) {
     ic_data.AddReceiverCheck(old_expected_cid, old_target);
@@ -1838,7 +1757,7 @@ void SwitchableCallHandler::DoMonomorphicMiss(const Object& data,
 
   intptr_t lower = old_expected_cid;
   intptr_t upper = old_expected_cid;
-  if (CanExtendSingleTargetRange(name, old_target, target_function, &lower,
+  if (CanExtendSingleTargetRange(name_, old_target, target_function, &lower,
                                  &upper)) {
     const SingleTargetCache& cache =
         SingleTargetCache::Handle(zone_, SingleTargetCache::New());
@@ -1900,6 +1819,7 @@ void SwitchableCallHandler::DoMonomorphicMiss(const Object& data,
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
 void SwitchableCallHandler::DoSingleTargetMiss(
     const SingleTargetCache& data,
     const Function& target_function) {
@@ -1908,24 +1828,17 @@ void SwitchableCallHandler::DoSingleTargetMiss(
       Function::Handle(zone_, Function::RawCast(old_target_code.owner()));
 
   // We lost the original ICData when we patched to the monomorphic case.
-  const String& name = String::Handle(zone_, old_target.name());
-  ASSERT(!old_target.HasOptionalParameters());
-  ASSERT(!old_target.IsGeneric());
-  const int kTypeArgsLen = 0;
-  const Array& descriptor = Array::Handle(
-      zone_, ArgumentsDescriptor::NewBoxed(kTypeArgsLen,
-                                           old_target.num_fixed_parameters()));
-  const ICData& ic_data =
-      ICData::Handle(zone_, ICData::New(caller_function_, name, descriptor,
-                                        DeoptId::kNone, 1, /* args_tested */
-                                        ICData::kInstance));
+  const ICData& ic_data = ICData::Handle(
+      zone_, ICData::New(caller_function_, name_, args_descriptor_,
+                         DeoptId::kNone, 1, /* args_tested */
+                         ICData::kInstance));
   if (!target_function.IsNull()) {
     ic_data.AddReceiverCheck(receiver_.GetClassId(), target_function);
   }
 
   intptr_t lower = data.lower_limit();
   intptr_t upper = data.upper_limit();
-  if (CanExtendSingleTargetRange(name, old_target, target_function, &lower,
+  if (CanExtendSingleTargetRange(name_, old_target, target_function, &lower,
                                  &upper)) {
     data.set_lower_limit(lower);
     data.set_upper_limit(upper);
@@ -1946,6 +1859,7 @@ void SwitchableCallHandler::DoSingleTargetMiss(
   arguments_.SetArgAt(0, stub);
   arguments_.SetReturn(ic_data);
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void SwitchableCallHandler::DoICDataMiss(const ICData& ic_data,
                                          const Function& target_function) {
@@ -2036,76 +1950,68 @@ void SwitchableCallHandler::DoMegamorphicMiss(const MegamorphicCache& data,
 }
 
 FunctionPtr SwitchableCallHandler::ResolveTargetFunction(const Object& data) {
-  const Class& cls = Class::Handle(zone_, receiver_.clazz());
   switch (data.GetClassId()) {
     case kUnlinkedCallCid: {
-      const UnlinkedCall& unlinked = UnlinkedCall::Cast(data);
-      const String& name = String::Handle(zone_, unlinked.target_name());
-      const Array& descriptor =
-          Array::Handle(zone_, unlinked.args_descriptor());
-      return Resolve(zone_, cls, name, descriptor);
+      const auto& unlinked_call = UnlinkedCall::Cast(data);
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+      // When transitioning out of UnlinkedCall to other states (e.g.
+      // Monomorphic, MonomorphicSmiable, SingleTarget) we lose
+      // name/arg-descriptor in AOT mode and cannot recover it.
+      //
+      // Even if we could recover an old target function (which was missed) -
+      // which we cannot in AOT bare mode - we can still lose the name due to a
+      // dyn:* call site potentially targeting non-dyn:* targets.
+      //
+      // => We will therefore retain the unlinked call here.
+      //
+      // In JIT mode we always use ICData from the call site, which has the
+      // correct name/args-descriptor.
+      SaveUnlinkedCall(zone_, isolate_, caller_frame_->pc(), unlinked_call);
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
+      name_ = unlinked_call.target_name();
+      args_descriptor_ = unlinked_call.args_descriptor();
+      break;
     }
     case kMonomorphicSmiableCallCid:
       FALL_THROUGH;
 #if defined(DART_PRECOMPILED_RUNTIME)
-    case kSmiCid: {
-      String& name = String::Handle(zone_);
-      Array& descriptor = Array::Handle(zone_);
-      classid_t old_expected_cid;
-      bool is_monomorphic_hit;
-      LookupMonomorphicOldTargetNameDescriptorCid(
-          data, &name, &descriptor, &old_expected_cid,
-          /*keep_unlinked_call_map_entry=*/true, &is_monomorphic_hit);
-      return Resolve(zone_, cls, name, descriptor);
+    case kSmiCid:
+      FALL_THROUGH;
+    case kSingleTargetCacheCid: {
+      const auto& unlinked_call = UnlinkedCall::Handle(
+          zone_, LoadUnlinkedCall(zone_, isolate_, caller_frame_->pc()));
+      name_ = unlinked_call.target_name();
+      args_descriptor_ = unlinked_call.args_descriptor();
+      break;
     }
-#else  // JIT
-    case kArrayCid:
+#else
+    case kArrayCid: {
       // ICData three-element array: Smi(receiver CID), Smi(count),
       // Function(target). It is the Array from ICData::entries_.
-      {
-        const ICData& ic_data = ICData::Handle(
-            zone_, FindICDataForInstanceCall(zone_, caller_code_,
-                                             caller_frame_->pc()));
-        RELEASE_ASSERT(!ic_data.IsNull());
-
-        const String& name = String::Handle(zone_, ic_data.target_name());
-        ASSERT(name.IsSymbol());
-
-        const Array& descriptor =
-            Array::CheckedHandle(zone_, ic_data.arguments_descriptor());
-        return Resolve(zone_, cls, name, descriptor);
-      }
-#endif
-    case kSingleTargetCacheCid: {
-      const SingleTargetCache& single_target_cache =
-          SingleTargetCache::Cast(data);
-      const Code& old_target_code =
-          Code::Handle(zone_, single_target_cache.target());
-      const Function& old_target =
-          Function::Handle(zone_, Function::RawCast(old_target_code.owner()));
-
-      // We lost the original ICData when we patched to the monomorphic case.
-      const String& name = String::Handle(zone_, old_target.name());
-      ASSERT(!old_target.HasOptionalParameters());
-      ASSERT(!old_target.IsGeneric());
-      const int kTypeArgsLen = 0;
-      const Array& descriptor = Array::Handle(
-          zone_, ArgumentsDescriptor::NewBoxed(
-                     kTypeArgsLen, old_target.num_fixed_parameters()));
-      return Resolve(zone_, cls, name, descriptor);
+      const auto& ic_data = ICData::Handle(
+          zone_,
+          FindICDataForInstanceCall(zone_, caller_code_, caller_frame_->pc()));
+      RELEASE_ASSERT(!ic_data.IsNull());
+      name_ = ic_data.target_name();
+      args_descriptor_ = ic_data.arguments_descriptor();
+      break;
     }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
     case kICDataCid:
       FALL_THROUGH;
     case kMegamorphicCacheCid: {
       const CallSiteData& call_site_data = CallSiteData::Cast(data);
-      const String& name = String::Handle(zone_, call_site_data.target_name());
-      const Array& descriptor =
-          Array::CheckedHandle(zone_, call_site_data.arguments_descriptor());
-      return Resolve(zone_, cls, name, descriptor);
+      name_ = call_site_data.target_name();
+      args_descriptor_ = call_site_data.arguments_descriptor();
+      break;
     }
     default:
       UNREACHABLE();
   }
+  const Class& cls = Class::Handle(zone_, receiver_.clazz());
+  return Resolve(zone_, cls, name_, args_descriptor_);
 }
 
 void SwitchableCallHandler::HandleMiss(const Object& old_data,
@@ -2121,17 +2027,19 @@ void SwitchableCallHandler::HandleMiss(const Object& old_data,
       FALL_THROUGH;
 #if defined(DART_PRECOMPILED_RUNTIME)
     case kSmiCid:
-#else  // JIT
-    case kArrayCid:
-      // ICData three-element array: Smi(receiver CID), Smi(count),
-      // Function(target). It is the Array from ICData::entries_.
-#endif
       DoMonomorphicMiss(old_data, target_function);
       break;
     case kSingleTargetCacheCid:
       ASSERT(old_code.raw() == StubCode::SingleTargetCall().raw());
       DoSingleTargetMiss(SingleTargetCache::Cast(old_data), target_function);
       break;
+#else
+    case kArrayCid:
+      // ICData three-element array: Smi(receiver CID), Smi(count),
+      // Function(target). It is the Array from ICData::entries_.
+      DoMonomorphicMiss(old_data, target_function);
+      break;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     case kICDataCid:
       ASSERT(old_code.raw() == StubCode::ICCallThroughCode().raw());
       DoICDataMiss(ICData::Cast(old_data), target_function);
