@@ -35,7 +35,7 @@ class ValueKey<T> extends LocalKey {
 
 abstract class Widget {
   const Widget({this.key});
-  final Key key;
+  final Key? key;
 
   @pragma('dart2js:noInline')
   static bool canUpdate(Widget oldWidget, Widget newWidget) {
@@ -45,32 +45,32 @@ abstract class Widget {
 }
 
 class AWidget extends Widget {
-  const AWidget({Key key}) : super(key: key);
+  const AWidget({Key? key}) : super(key: key);
 }
 
 class BWidget extends Widget {
-  const BWidget({Key key}) : super(key: key);
+  const BWidget({Key? key}) : super(key: key);
 }
 
 class CWidget extends Widget {
-  const CWidget({Key key}) : super(key: key);
+  const CWidget({Key? key}) : super(key: key);
 }
 
 class DWidget extends Widget {
-  const DWidget({Key key}) : super(key: key);
+  const DWidget({Key? key}) : super(key: key);
 }
 
 class EWidget extends Widget {
-  const EWidget({Key key}) : super(key: key);
+  const EWidget({Key? key}) : super(key: key);
 }
 
 class FWidget extends Widget {
-  const FWidget({Key key}) : super(key: key);
+  const FWidget({Key? key}) : super(key: key);
 }
 
 class WWidget<W extends Widget> extends Widget {
-  final W /*?*/ ref;
-  const WWidget({this.ref, Key key}) : super(key: key);
+  final W? ref;
+  const WWidget({this.ref, Key? key}) : super(key: key);
 }
 
 class WidgetCanUpdateBenchmark extends BenchmarkBase {
