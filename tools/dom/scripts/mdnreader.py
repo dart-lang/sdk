@@ -159,9 +159,14 @@ class MDNReader(object):
                 attribute.id) > 0:
             interface_dict = self._BROWSER_COMPAT_DATA[interface]
             id_name = attribute.id.lower()
+            secure_context_key = 'isSecureContext'
             if interface in self._compat_overrides and id_name in self._compat_overrides[
                     interface]:
                 return self._compat_overrides[interface][id_name]
+            elif secure_context_key in interface_dict:
+                # If the interface requires a secure context, all attributes are
+                # implicitly incompatible.
+                return False
             elif id_name in interface_dict:
                 id_data = interface_dict[id_name]
                 return self._get_attr_compatibility(id_data['__compat'])
