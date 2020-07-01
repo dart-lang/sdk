@@ -4,11 +4,15 @@
 
 import 'dart:async';
 
-/*
-* `return exp;` where `exp` has static type `S` is an error if `flatten(S)` is
-  `void` and `flatten(T)` is not `void`, `dynamic`, or `Null`.
-*/
+/* `return exp;` where `exp` has static type `S` is an error if the future
+ * value type of the function is neither `void` nor `dynamic`,
+ * and `flatten(S)` is `void` or `void*`.
+ *
+ * With null-safety, this is an error because of the downcast.
+ */
+
 FutureOr<void> v = null;
+
 Future<int> test() async {
   return v;
   //     ^

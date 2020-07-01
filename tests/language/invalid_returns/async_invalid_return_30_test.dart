@@ -4,14 +4,15 @@
 
 import 'dart:async';
 
-/*
-* `return exp;` where `exp` has static type `S` is an error if `flatten(S)` is
-  `void` and `flatten(T)` is not `void`, `dynamic`, or `Null`.
-*/
-Future<void> v = null;
-//               ^^^^
-// [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
-// [cfe] A value of type 'Null' can't be assigned to a variable of type 'Future<void>'.
+/* `return exp;` where `exp` has static type `S` is an error if the future
+ * value type of the function is neither `void` nor `dynamic`,
+ * and `flatten(S)` is `void` or `void*`.
+ *
+ * With null-safety, this is an error because of the downcast.
+ */
+
+Future<void> v = Future.value(null);
+
 FutureOr<int> test() async {
   return v;
   //     ^
