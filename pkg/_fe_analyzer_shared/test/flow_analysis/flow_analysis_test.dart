@@ -2000,7 +2000,7 @@ main() {
             x: _matchVariableModel(chain: null),
           });
 
-          var s2 = s1.removePromotedAll([], [x]);
+          var s2 = s1.conservativeJoin([], [x]);
           expect(s2.variableInfo, {
             x: _matchVariableModel(chain: null, writeCaptured: true),
           });
@@ -2432,14 +2432,14 @@ main() {
       });
     });
 
-    group('removePromotedAll', () {
+    group('conservativeJoin', () {
       test('unchanged', () {
         var h = _Harness();
         var s1 = FlowModel<_Var, _Type>(true)
             .declare(intQVar, true)
             .tryPromoteForTypeCheck(h, objectQVar, _Type('int'))
             .ifTrue;
-        var s2 = s1.removePromotedAll([intQVar], []);
+        var s2 = s1.conservativeJoin([intQVar], []);
         expect(s2, same(s1));
       });
 
@@ -2450,7 +2450,7 @@ main() {
             .ifTrue
             .tryPromoteForTypeCheck(h, intQVar, _Type('int'))
             .ifTrue;
-        var s2 = s1.removePromotedAll([intQVar], []);
+        var s2 = s1.conservativeJoin([intQVar], []);
         expect(s2.reachable, true);
         expect(s2.variableInfo, {
           objectQVar: _matchVariableModel(chain: ['int'], ofInterest: ['int']),
@@ -2465,7 +2465,7 @@ main() {
             .ifTrue
             .tryPromoteForTypeCheck(h, intQVar, _Type('int'))
             .ifTrue;
-        var s2 = s1.removePromotedAll([], [intQVar]);
+        var s2 = s1.conservativeJoin([], [intQVar]);
         expect(s2.reachable, true);
         expect(s2.variableInfo, {
           objectQVar: _matchVariableModel(chain: ['int'], ofInterest: ['int']),
@@ -2518,8 +2518,8 @@ main() {
             .declare(c, false)
             .declare(d, false);
         // In s1, a and b are write captured.  In s2, a and c are.
-        var s1 = s0.removePromotedAll([a, b], [a, b]);
-        var s2 = s1.removePromotedAll([a, c], [a, c]);
+        var s1 = s0.conservativeJoin([a, b], [a, b]);
+        var s2 = s1.conservativeJoin([a, c], [a, c]);
         var result = s2.restrict(h, s1, Set());
         expect(
           result.infoFor(a),
