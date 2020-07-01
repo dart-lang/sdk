@@ -170,7 +170,13 @@ bool validArguments(ArgParser parser, ArgResults result) {
 
 /// An indication of the group in which the completion falls for the purposes of
 /// subdividing the results.
-enum CompletionGroup { instanceMember, staticMember, typeReference, topLevel }
+enum CompletionGroup {
+  instanceMember,
+  staticMember,
+  typeReference,
+  localReference,
+  topLevel
+}
 
 /// A wrapper for the collection of [Counter] and [MeanReciprocalRankComputer]
 /// objects for a run of [CompletionMetricsComputer].
@@ -213,6 +219,9 @@ class CompletionMetrics {
   MeanReciprocalRankComputer typeRefMrrComputer =
       MeanReciprocalRankComputer('type reference completions');
 
+  MeanReciprocalRankComputer localRefMrrComputer =
+      MeanReciprocalRankComputer('local reference completions');
+
   MeanReciprocalRankComputer topLevelMrrComputer =
       MeanReciprocalRankComputer('non-type member completions');
 
@@ -247,6 +256,10 @@ class CompletionMetrics {
   List<CompletionResult> typeRefWorstResults = [];
 
   /// A list of the top [maxWorstResults] completion results with the highest
+  /// (worst) ranks for completing to local references.
+  List<CompletionResult> localRefWorstResults = [];
+
+  /// A list of the top [maxWorstResults] completion results with the highest
   /// (worst) ranks for completing to top-level declarations.
   List<CompletionResult> topLevelWorstResults = [];
 
@@ -261,6 +274,10 @@ class CompletionMetrics {
   /// A list of the top [maxSlowestResults] completion results that took the
   /// longest top compute for type references.
   List<CompletionResult> typeRefSlowestResults = [];
+
+  /// A list of the top [maxSlowestResults] completion results that took the
+  /// longest top compute for local references.
+  List<CompletionResult> localRefSlowestResults = [];
 
   /// A list of the top [maxSlowestResults] completion results that took the
   /// longest top compute for top-level declarations.
@@ -308,6 +325,10 @@ class CompletionMetrics {
       case CompletionGroup.typeReference:
         typeRefMrrComputer.addRank(rank);
         break;
+      case CompletionGroup.localReference:
+        localRefMrrComputer.addRank(rank);
+        break;
+
       case CompletionGroup.topLevel:
         topLevelMrrComputer.addRank(rank);
         break;
@@ -332,6 +353,8 @@ class CompletionMetrics {
           return staticMemberSlowestResults;
         case CompletionGroup.typeReference:
           return typeRefSlowestResults;
+        case CompletionGroup.localReference:
+          return localRefSlowestResults;
         case CompletionGroup.topLevel:
           return topLevelSlowestResults;
       }
@@ -364,6 +387,8 @@ class CompletionMetrics {
           return staticMemberWorstResults;
         case CompletionGroup.typeReference:
           return typeRefWorstResults;
+        case CompletionGroup.localReference:
+          return localRefWorstResults;
         case CompletionGroup.topLevel:
           return topLevelWorstResults;
       }
@@ -535,6 +560,9 @@ class CompletionMetricsComputer {
     metrics.typeRefMrrComputer.printMean();
     print('');
 
+    metrics.localRefMrrComputer.printMean();
+    print('');
+
     metrics.topLevelMrrComputer.printMean();
     print('');
 
@@ -610,6 +638,7 @@ class CompletionMetricsComputer {
         'Instance members', metrics.instanceMemberSlowestResults);
     _printSlowestResults('Static members', metrics.staticMemberSlowestResults);
     _printSlowestResults('Type references', metrics.typeRefSlowestResults);
+    _printSlowestResults('Local references', metrics.localRefSlowestResults);
     _printSlowestResults('Top level', metrics.topLevelSlowestResults);
   }
 
@@ -620,6 +649,7 @@ class CompletionMetricsComputer {
     _printWorstResults('Instance members', metrics.instanceMemberWorstResults);
     _printWorstResults('Static members', metrics.staticMemberWorstResults);
     _printWorstResults('Type references', metrics.topLevelWorstResults);
+    _printWorstResults('Local references', metrics.localRefWorstResults);
     _printWorstResults('Top level', metrics.topLevelWorstResults);
   }
 
@@ -1053,8 +1083,14 @@ class CompletionResult {
         } else {
           return CompletionGroup.instanceMember;
         }
-      } else if (expectedCompletion.elementKind == ElementKind.CLASS) {
+      } else if (expectedCompletion.elementKind == ElementKind.CLASS ||
+          expectedCompletion.elementKind == ElementKind.MIXIN ||
+          expectedCompletion.elementKind == ElementKind.ENUM ||
+          expectedCompletion.elementKind == ElementKind.TYPE_PARAMETER) {
         return CompletionGroup.typeReference;
+      } else if (expectedCompletion.elementKind == ElementKind.LOCAL_VARIABLE ||
+          expectedCompletion.elementKind == ElementKind.PARAMETER) {
+        return CompletionGroup.localReference;
       }
     }
     return CompletionGroup.topLevel;
