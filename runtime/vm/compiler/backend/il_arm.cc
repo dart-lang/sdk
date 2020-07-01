@@ -6560,17 +6560,10 @@ void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // in order to be able to allocate it on register.
   __ CompareObject(value_reg, Object::null_object());
 
-  auto object_store = compiler->isolate()->object_store();
   const bool live_fpu_regs = locs()->live_registers()->FpuRegisterCount() > 0;
-  const Code& stub = Code::ZoneHandle(
+  Code& stub = Code::ZoneHandle(
       compiler->zone(),
-      IsArgumentCheck()
-          ? (live_fpu_regs
-                 ? object_store->null_arg_error_stub_with_fpu_regs_stub()
-                 : object_store->null_arg_error_stub_without_fpu_regs_stub())
-          : (live_fpu_regs
-                 ? object_store->null_error_stub_with_fpu_regs_stub()
-                 : object_store->null_error_stub_without_fpu_regs_stub()));
+      NullErrorSlowPath::GetStub(compiler, exception_type(), live_fpu_regs));
   const bool using_shared_stub = locs()->call_on_shared_slow_path();
 
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
@@ -6589,12 +6582,8 @@ void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  ThrowErrorSlowPathCode* slow_path = nullptr;
-  if (IsArgumentCheck()) {
-    slow_path = new NullArgErrorSlowPath(this, compiler->CurrentTryIndex());
-  } else {
-    slow_path = new NullErrorSlowPath(this, compiler->CurrentTryIndex());
-  }
+  ThrowErrorSlowPathCode* slow_path =
+      new NullErrorSlowPath(this, compiler->CurrentTryIndex());
   compiler->AddSlowPathCode(slow_path);
 
   __ BranchIf(EQUAL, slow_path->entry_label());

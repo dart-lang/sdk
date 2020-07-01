@@ -1011,8 +1011,10 @@ Fragment BaseFlowGraphBuilder::CheckNull(TokenPosition position,
                                          bool clear_the_temp /* = true */) {
   Fragment instructions = LoadLocal(receiver);
 
-  CheckNullInstr* check_null =
-      new (Z) CheckNullInstr(Pop(), function_name, GetNextDeoptId(), position);
+  CheckNullInstr* check_null = new (Z)
+      CheckNullInstr(Pop(), function_name, GetNextDeoptId(), position,
+                     function_name.IsNull() ? CheckNullInstr::kCastError
+                                            : CheckNullInstr::kNoSuchMethod);
 
   // Does not use the redefinition, no `Push(check_null)`.
   instructions <<= check_null;

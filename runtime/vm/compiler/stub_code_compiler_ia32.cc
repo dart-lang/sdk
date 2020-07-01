@@ -323,6 +323,17 @@ void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub(
     Assembler* assembler) {
   __ Breakpoint();
 }
+
+void StubCodeCompiler::GenerateNullCastErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  __ Breakpoint();
+}
+
+void StubCodeCompiler::GenerateNullCastErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
+  __ Breakpoint();
+}
+
 void StubCodeCompiler::GenerateRangeErrorSharedWithoutFPURegsStub(
     Assembler* assembler) {
   __ Breakpoint();

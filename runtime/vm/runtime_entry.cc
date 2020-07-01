@@ -227,6 +227,10 @@ DEFINE_RUNTIME_ENTRY(NullErrorWithSelector, 1) {
   NullErrorHelper(zone, selector);
 }
 
+DEFINE_RUNTIME_ENTRY(NullCastError, 0) {
+  NullErrorHelper(zone, String::null_string());
+}
+
 DEFINE_RUNTIME_ENTRY(ArgumentNullError, 0) {
   const String& error = String::Handle(String::New("argument value is null"));
   Exceptions::ThrowArgumentError(error);

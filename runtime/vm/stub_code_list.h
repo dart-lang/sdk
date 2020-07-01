@@ -81,6 +81,8 @@ namespace dart {
   V(NullErrorSharedWithoutFPURegs)                                             \
   V(NullArgErrorSharedWithFPURegs)                                             \
   V(NullArgErrorSharedWithoutFPURegs)                                          \
+  V(NullCastErrorSharedWithFPURegs)                                            \
+  V(NullCastErrorSharedWithoutFPURegs)                                         \
   V(RangeErrorSharedWithFPURegs)                                               \
   V(RangeErrorSharedWithoutFPURegs)                                            \
   V(StackOverflowSharedWithFPURegs)                                            \

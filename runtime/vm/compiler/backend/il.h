@@ -8538,6 +8538,7 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
   enum ExceptionType {
     kNoSuchMethod,
     kArgumentError,
+    kCastError,
   };
 
   CheckNullInstr(Value* value,
@@ -8556,7 +8557,6 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
   Value* value() const { return inputs_[0]; }
   virtual TokenPosition token_pos() const { return token_pos_; }
   const String& function_name() const { return function_name_; }
-  bool IsArgumentCheck() const { return exception_type_ == kArgumentError; }
   ExceptionType exception_type() const { return exception_type_; }
 
   virtual bool UseSharedSlowPathStub(bool is_optimizing) const {
