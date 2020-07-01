@@ -24,7 +24,8 @@ mutationCallback(Completer done, int count, expectation) {
 
   callback(mutations, observer) {
     for (MutationRecord mutation in mutations) {
-      for (Node node in mutation.addedNodes) {
+      var addedNodes = mutation.addedNodes!;
+      for (Node node in addedNodes) {
         nodes.add(node);
       }
     }

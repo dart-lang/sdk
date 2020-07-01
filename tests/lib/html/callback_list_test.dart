@@ -27,7 +27,7 @@ Future waitUntilCallbackDone(bool test()) async {
 }
 
 void main() async {
-  window.navigator.persistentStorage.requestQuota(1024 * 1024, _quotaHandler);
+  window.navigator.persistentStorage!.requestQuota(1024 * 1024, _quotaHandler);
 
   await waitUntilCallbackDone(isCallbackDone);
   expect(true, isCallbackDone());
@@ -36,7 +36,7 @@ void main() async {
 Future _quotaHandler(int byteCount) async {
   FileSystem filesystem =
       await window.requestFileSystem(1024 * 1024, persistent: true);
-  DirectoryEntry dir = await filesystem.root;
+  DirectoryEntry dir = await filesystem.root!;
   DirectoryReader dirReader = dir.createReader();
   await dirReader.readEntries();
   List<Entry> secondEntries = await dirReader.readEntries();

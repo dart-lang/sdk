@@ -24,7 +24,7 @@ main() {
       });
 
       test('successful call', () {
-        var crypto = window.crypto;
+        var crypto = window.crypto!;
         var data = new Uint8List(100);
         expect(data.every((e) => e == 0), isTrue);
         crypto.getRandomValues(data);
@@ -35,7 +35,7 @@ main() {
       });
 
       test('type mismatch', () {
-        var crypto = window.crypto;
+        var crypto = window.crypto!;
         var data = new Float32List(100);
         expect(() {
           crypto.getRandomValues(data);

@@ -59,7 +59,7 @@ Future<FileEntry> createFile() async {
   var fs = await fileSystem;
 
   _myDirectory =
-      await fs.root.createDirectory('my_directory') as DirectoryEntry;
+      await fs.root!.createDirectory('my_directory') as DirectoryEntry;
 
   FileEntry fileEntry = await _myDirectory.createFile('log.txt') as FileEntry;
 
@@ -122,7 +122,7 @@ Future testFileSystemRequestCreateRW() async {
   FileEntry fileEntry = await createFile();
   expect(fileEntry.name, 'log.txt');
 
-  List<Entry> entries = await readEntries(fs.root);
+  List<Entry> entries = await readEntries(fs.root!);
   expect(entries.length > 0, true);
   expect(entries[0].isDirectory, true);
   expect(entries[0].name, 'my_directory');
