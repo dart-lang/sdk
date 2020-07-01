@@ -41,8 +41,6 @@ abstract class D4 = C with T;
 
 X foo<X>(X x) => x;
 
-T Function(T) id = (x) => x;
-
 main() {
   var v14 = <Set<T>, Set<T>>{{}: {}};
   v14[{}] = {T()};

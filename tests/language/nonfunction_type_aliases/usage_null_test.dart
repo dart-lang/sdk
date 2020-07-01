@@ -43,7 +43,8 @@ extension E on T {
 
 X foo<X>(X x) => x;
 
-T Function(T) id = (x) => x;
+// Function literal signature inference yields `Object? x`, so we force it.
+T Function(T) id = (Null x) => x;
 
 main() {
   var v13 = <T>[];
