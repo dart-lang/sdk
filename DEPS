@@ -152,7 +152,7 @@ vars = {
   "test_reflective_loader_tag": "0.1.9",
   "test_rev": "988e38ff3051f24607ad0aaf4e780835785f2ab5",
   "tflite_native_rev": "3c777c40608a2a9f1427bfe0028ab48e7116b4c1",
-  "typed_data_tag": "1.1.6",
+  "typed_data_tag": "0c369b73a9b7ebf042c06512951bfe5b52b84a5f",
   "usage_tag": "3.4.0",
   "watcher_rev": "fc3c9aae5d31d707b3013b42634dde8d8a1161b4",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
