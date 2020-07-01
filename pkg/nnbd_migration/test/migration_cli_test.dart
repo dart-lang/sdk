@@ -58,15 +58,16 @@ class _ExceptionGeneratingInstrumentationListener
 /// Specialization of [NonNullableFix] that generates artificial exceptions, so
 /// that we can test they are properly propagated to top level.
 class _ExceptionGeneratingNonNullableFix extends NonNullableFix {
-  _ExceptionGeneratingNonNullableFix(DartFixListener listener,
-      ResourceProvider resourceProvider, LineInfo Function(String) getLineInfo,
+  _ExceptionGeneratingNonNullableFix(
+      DartFixListener listener,
+      ResourceProvider resourceProvider,
+      LineInfo Function(String) getLineInfo,
+      Object bindAddress,
       {List<String> included = const <String>[],
-      String hostname,
       int preferredPort,
       String summaryPath})
-      : super(listener, resourceProvider, getLineInfo,
+      : super(listener, resourceProvider, getLineInfo, bindAddress,
             included: included,
-            hostname: hostname,
             preferredPort: preferredPort,
             summaryPath: summaryPath);
 
@@ -116,27 +117,38 @@ class _MigrationCliRunner extends MigrationCliRunner {
   }
 
   @override
+  Object computeBindAddress() {
+    var address = super.computeBindAddress();
+    if (Platform.environment.containsKey('FORCE_IPV6') &&
+        address == InternetAddress.loopbackIPv4) {
+      return InternetAddress.loopbackIPv6;
+    }
+    return address;
+  }
+
+  @override
   Set<String> computePathsToProcess(DriverBasedAnalysisContext context) =>
       cli._test.overridePathsToProcess ?? super.computePathsToProcess(context);
 
   @override
-  NonNullableFix createNonNullableFix(DartFixListener listener,
-      ResourceProvider resourceProvider, LineInfo getLineInfo(String path),
+  NonNullableFix createNonNullableFix(
+      DartFixListener listener,
+      ResourceProvider resourceProvider,
+      LineInfo getLineInfo(String path),
+      Object bindAddress,
       {List<String> included = const <String>[],
-      String hostname,
       int preferredPort,
       String summaryPath}) {
     if (cli._test.injectArtificialException) {
       return _ExceptionGeneratingNonNullableFix(
-          listener, resourceProvider, getLineInfo,
+          listener, resourceProvider, getLineInfo, bindAddress,
           included: included,
-          hostname: hostname,
           preferredPort: preferredPort,
           summaryPath: summaryPath);
     } else {
-      return super.createNonNullableFix(listener, resourceProvider, getLineInfo,
+      return super.createNonNullableFix(
+          listener, resourceProvider, getLineInfo, bindAddress,
           included: included,
-          hostname: hostname,
           preferredPort: preferredPort,
           summaryPath: summaryPath);
     }
@@ -762,9 +774,12 @@ void call_g() => g(null);
     var projectDir = await createProjectDir(projectContents);
     var cli = _createCli();
     await runWithPreviewServer(cli, [projectDir], (url) async {
+      var localhostAddressText = Platform.environment.containsKey('FORCE_IPV6')
+          ? '[::1]'
+          : '127.0.0.1';
       expect(
           logger.stdoutBuffer.toString(), contains('No analysis issues found'));
-      expect(url, startsWith('http://127.0.0.1:'));
+      expect(url, startsWith('http://$localhostAddressText:'));
       await assertPreviewServerResponsive(url);
     });
     // No changes should have been made.

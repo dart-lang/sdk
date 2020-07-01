@@ -38,7 +38,10 @@ class NonNullableFix {
 
   static final List<HttpPreviewServer> _allServers = [];
 
-  final String hostname;
+  /// The internet address the server should bind to.  Should be suitable for
+  /// passing to HttpServer.bind, i.e. either a [String] or an
+  /// [InternetAddress].
+  final Object bindAddress;
 
   final int preferredPort;
 
@@ -80,11 +83,9 @@ class NonNullableFix {
   /// A list of the URLs corresponding to the included roots.
   List<String> previewUrls;
 
-  NonNullableFix(this.listener, this.resourceProvider, this._getLineInfo,
-      {List<String> included = const [],
-      this.hostname,
-      this.preferredPort,
-      this.summaryPath})
+  NonNullableFix(
+      this.listener, this.resourceProvider, this._getLineInfo, this.bindAddress,
+      {List<String> included = const [], this.preferredPort, this.summaryPath})
       : includedRoot =
             _getIncludedRoot(included, listener.server.resourceProvider) {
     reset();
@@ -184,7 +185,7 @@ class NonNullableFix {
 
   Future<void> startPreviewServer(MigrationState state) async {
     if (_server == null) {
-      _server = HttpPreviewServer(state, rerun, hostname, preferredPort);
+      _server = HttpPreviewServer(state, rerun, bindAddress, preferredPort);
       _server.serveHttp();
       _allServers.add(_server);
       var serverHostname = await _server.boundHostname;
