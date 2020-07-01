@@ -52,21 +52,21 @@ class AnalyserNode extends AudioNode {
 
   int? get fftSize native;
 
-  set fftSize(int value) native;
+  set fftSize(int? value) native;
 
   int? get frequencyBinCount native;
 
   num? get maxDecibels native;
 
-  set maxDecibels(num value) native;
+  set maxDecibels(num? value) native;
 
   num? get minDecibels native;
 
-  set minDecibels(num value) native;
+  set minDecibels(num? value) native;
 
   num? get smoothingTimeConstant native;
 
-  set smoothingTimeConstant(num value) native;
+  set smoothingTimeConstant(num? value) native;
 
   void getByteFrequencyData(Uint8List array) native;
 
@@ -146,15 +146,15 @@ class AudioBufferSourceNode extends AudioScheduledSourceNode {
 
   bool? get loop native;
 
-  set loop(bool value) native;
+  set loop(bool? value) native;
 
   num? get loopEnd native;
 
-  set loopEnd(num value) native;
+  set loopEnd(num? value) native;
 
   num? get loopStart native;
 
-  set loopStart(num value) native;
+  set loopStart(num? value) native;
 
   AudioParam? get playbackRate native;
 
@@ -309,15 +309,15 @@ class AudioNode extends EventTarget {
 
   int? get channelCount native;
 
-  set channelCount(int value) native;
+  set channelCount(int? value) native;
 
   String? get channelCountMode native;
 
-  set channelCountMode(String value) native;
+  set channelCountMode(String? value) native;
 
   String? get channelInterpretation native;
 
-  set channelInterpretation(String value) native;
+  set channelInterpretation(String? value) native;
 
   BaseAudioContext? get context native;
 
@@ -357,7 +357,7 @@ class AudioParam extends Interceptor {
 
   num? get value native;
 
-  set value(num value) native;
+  set value(num? value) native;
 
   AudioParam cancelAndHoldAtTime(num startTime) native;
 
@@ -503,7 +503,7 @@ class AudioTrack extends Interceptor {
 
   bool? get enabled native;
 
-  set enabled(bool value) native;
+  set enabled(bool? value) native;
 
   String? get id native;
 
@@ -720,7 +720,7 @@ class BiquadFilterNode extends AudioNode {
 
   String? get type native;
 
-  set type(String value) native;
+  set type(String? value) native;
 
   void getFrequencyResponse(Float32List frequencyHz, Float32List magResponse,
       Float32List phaseResponse) native;
@@ -825,7 +825,7 @@ class ConvolverNode extends AudioNode {
 
   bool? get normalize native;
 
-  set normalize(bool value) native;
+  set normalize(bool? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1111,7 +1111,7 @@ class OscillatorNode extends AudioScheduledSourceNode {
 
   String? get type native;
 
-  set type(String value) native;
+  set type(String? value) native;
 
   void setPeriodicWave(PeriodicWave periodicWave) native;
 }
@@ -1140,23 +1140,23 @@ class PannerNode extends AudioNode {
 
   num? get coneInnerAngle native;
 
-  set coneInnerAngle(num value) native;
+  set coneInnerAngle(num? value) native;
 
   num? get coneOuterAngle native;
 
-  set coneOuterAngle(num value) native;
+  set coneOuterAngle(num? value) native;
 
   num? get coneOuterGain native;
 
-  set coneOuterGain(num value) native;
+  set coneOuterGain(num? value) native;
 
   String? get distanceModel native;
 
-  set distanceModel(String value) native;
+  set distanceModel(String? value) native;
 
   num? get maxDistance native;
 
-  set maxDistance(num value) native;
+  set maxDistance(num? value) native;
 
   AudioParam? get orientationX native;
 
@@ -1166,7 +1166,7 @@ class PannerNode extends AudioNode {
 
   String? get panningModel native;
 
-  set panningModel(String value) native;
+  set panningModel(String? value) native;
 
   AudioParam? get positionX native;
 
@@ -1176,11 +1176,11 @@ class PannerNode extends AudioNode {
 
   num? get refDistance native;
 
-  set refDistance(num value) native;
+  set refDistance(num? value) native;
 
   num? get rolloffFactor native;
 
-  set rolloffFactor(num value) native;
+  set rolloffFactor(num? value) native;
 
   void setOrientation(num x, num y, num z) native;
 
@@ -1298,5 +1298,5 @@ class WaveShaperNode extends AudioNode {
 
   String? get oversample native;
 
-  set oversample(String value) native;
+  set oversample(String? value) native;
 }

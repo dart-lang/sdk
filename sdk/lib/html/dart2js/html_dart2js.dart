@@ -488,7 +488,7 @@ class AccessibleNodeList extends Interceptor {
 
   int? get length native;
 
-  set length(int value) native;
+  set length(int? value) native;
 
   void __setter__(int index, AccessibleNode node) native;
 
@@ -552,7 +552,7 @@ class AnchorElement extends HtmlElement implements HtmlHyperlinkElementUtils {
 
   String? get download native;
 
-  set download(String value) native;
+  set download(String? value) native;
 
   String get hreflang native;
 
@@ -560,7 +560,7 @@ class AnchorElement extends HtmlElement implements HtmlHyperlinkElementUtils {
 
   String? get referrerPolicy native;
 
-  set referrerPolicy(String value) native;
+  set referrerPolicy(String? value) native;
 
   String get rel native;
 
@@ -578,45 +578,45 @@ class AnchorElement extends HtmlElement implements HtmlHyperlinkElementUtils {
 
   String? get hash native;
 
-  set hash(String value) native;
+  set hash(String? value) native;
 
   String? get host native;
 
-  set host(String value) native;
+  set host(String? value) native;
 
   String? get hostname native;
 
-  set hostname(String value) native;
+  set hostname(String? value) native;
 
   String? get href native;
 
-  set href(String value) native;
+  set href(String? value) native;
 
   String? get origin native;
 
   String? get password native;
 
-  set password(String value) native;
+  set password(String? value) native;
 
   String? get pathname native;
 
-  set pathname(String value) native;
+  set pathname(String? value) native;
 
   String? get port native;
 
-  set port(String value) native;
+  set port(String? value) native;
 
   String? get protocol native;
 
-  set protocol(String value) native;
+  set protocol(String? value) native;
 
   String? get search native;
 
-  set search(String value) native;
+  set search(String? value) native;
 
   String? get username native;
 
-  set username(String value) native;
+  set username(String? value) native;
 
   String toString() => JS('String', 'String(#)', this);
 }
@@ -669,13 +669,13 @@ class Animation extends EventTarget {
 
   String? get id native;
 
-  set id(String value) native;
+  set id(String? value) native;
 
   String? get playState native;
 
   num? get playbackRate native;
 
-  set playbackRate(num value) native;
+  set playbackRate(num? value) native;
 
   Future<Animation> get ready =>
       promiseToFuture<Animation>(JS("", "#.ready", this));
@@ -735,13 +735,13 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
 
   num? get delay native;
 
-  set delay(num value) native;
+  set delay(num? value) native;
 
   // Shadowing definition.
 
   String? get direction native;
 
-  set direction(String value) native;
+  set direction(String? value) native;
 
   // Shadowing definition.
 
@@ -754,31 +754,31 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
 
   String? get easing native;
 
-  set easing(String value) native;
+  set easing(String? value) native;
 
   // Shadowing definition.
 
   num? get endDelay native;
 
-  set endDelay(num value) native;
+  set endDelay(num? value) native;
 
   // Shadowing definition.
 
   String? get fill native;
 
-  set fill(String value) native;
+  set fill(String? value) native;
 
   // Shadowing definition.
 
   num? get iterationStart native;
 
-  set iterationStart(num value) native;
+  set iterationStart(num? value) native;
 
   // Shadowing definition.
 
   num? get iterations native;
 
-  set iterations(num value) native;
+  set iterations(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1106,11 +1106,11 @@ class AreaElement extends HtmlElement implements HtmlHyperlinkElementUtils {
 
   String? get download native;
 
-  set download(String value) native;
+  set download(String? value) native;
 
   String? get referrerPolicy native;
 
-  set referrerPolicy(String value) native;
+  set referrerPolicy(String? value) native;
 
   String get rel native;
 
@@ -1128,45 +1128,45 @@ class AreaElement extends HtmlElement implements HtmlHyperlinkElementUtils {
 
   String? get hash native;
 
-  set hash(String value) native;
+  set hash(String? value) native;
 
   String? get host native;
 
-  set host(String value) native;
+  set host(String? value) native;
 
   String? get hostname native;
 
-  set hostname(String value) native;
+  set hostname(String? value) native;
 
   String? get href native;
 
-  set href(String value) native;
+  set href(String? value) native;
 
   String? get origin native;
 
   String? get password native;
 
-  set password(String value) native;
+  set password(String? value) native;
 
   String? get pathname native;
 
-  set pathname(String value) native;
+  set pathname(String? value) native;
 
   String? get port native;
 
-  set port(String value) native;
+  set port(String? value) native;
 
   String? get protocol native;
 
-  set protocol(String value) native;
+  set protocol(String? value) native;
 
   String? get search native;
 
-  set search(String value) native;
+  set search(String? value) native;
 
   String? get username native;
 
-  set username(String value) native;
+  set username(String? value) native;
 
   String toString() => JS('String', 'String(#)', this);
 }
@@ -1570,7 +1570,7 @@ class BeforeUnloadEvent extends Event {
 
   String? get returnValue native;
 
-  set returnValue(String value) native;
+  set returnValue(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1935,7 +1935,7 @@ class ButtonElement extends HtmlElement {
 
   String? get formAction native;
 
-  set formAction(String value) native;
+  set formAction(String? value) native;
 
   String get formEnctype native;
 
@@ -2369,11 +2369,11 @@ class CanvasRenderingContext2D extends Interceptor
 
   Matrix? get currentTransform native;
 
-  set currentTransform(Matrix value) native;
+  set currentTransform(Matrix? value) native;
 
   String? get direction native;
 
-  set direction(String value) native;
+  set direction(String? value) native;
 
   @Creates('String|CanvasGradient|CanvasPattern')
   @Returns('String|CanvasGradient|CanvasPattern')
@@ -2383,7 +2383,7 @@ class CanvasRenderingContext2D extends Interceptor
 
   String? get filter native;
 
-  set filter(String value) native;
+  set filter(String? value) native;
 
   String get font native;
 
@@ -2410,11 +2410,11 @@ class CanvasRenderingContext2D extends Interceptor
 
   bool? get imageSmoothingEnabled native;
 
-  set imageSmoothingEnabled(bool value) native;
+  set imageSmoothingEnabled(bool? value) native;
 
   String? get imageSmoothingQuality native;
 
-  set imageSmoothingQuality(String value) native;
+  set imageSmoothingQuality(String? value) native;
 
   String get lineCap native;
 
@@ -2978,7 +2978,7 @@ class CharacterData extends Node
 
   String? get data native;
 
-  set data(String value) native;
+  set data(String? value) native;
 
   int? get length native;
 
@@ -3212,7 +3212,7 @@ class ContentElement extends HtmlElement {
 
   String? get select native;
 
-  set select(String value) native;
+  set select(String? value) native;
 
   @Returns('NodeList')
   @Creates('NodeList')
@@ -3485,7 +3485,7 @@ class CssCharsetRule extends CssRule {
 
   String? get encoding native;
 
-  set encoding(String value) native;
+  set encoding(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3579,7 +3579,7 @@ class CssKeyframeRule extends CssRule {
 
   String? get keyText native;
 
-  set keyText(String value) native;
+  set keyText(String? value) native;
 
   CssStyleDeclaration? get style native;
 }
@@ -3600,7 +3600,7 @@ class CssKeyframesRule extends CssRule {
 
   String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
   CssKeyframeRule __getter__(int index) native;
 
@@ -3629,7 +3629,7 @@ class CssKeywordValue extends CssStyleValue {
 
   String? get value native;
 
-  set value(String value) native;
+  set value(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3656,7 +3656,7 @@ class CssMatrixComponent extends CssTransformComponent {
 
   DomMatrix? get matrix native;
 
-  set matrix(DomMatrix value) native;
+  set matrix(DomMatrix? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3723,7 +3723,7 @@ class CssPageRule extends CssRule {
 
   String? get selectorText native;
 
-  set selectorText(String value) native;
+  set selectorText(String? value) native;
 
   CssStyleDeclaration? get style native;
 }
@@ -3746,7 +3746,7 @@ class CssPerspective extends CssTransformComponent {
 
   CssNumericValue? get length native;
 
-  set length(CssNumericValue value) native;
+  set length(CssNumericValue? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3767,11 +3767,11 @@ class CssPositionValue extends CssStyleValue {
 
   CssNumericValue? get x native;
 
-  set x(CssNumericValue value) native;
+  set x(CssNumericValue? value) native;
 
   CssNumericValue? get y native;
 
-  set y(CssNumericValue value) native;
+  set y(CssNumericValue? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3820,19 +3820,19 @@ class CssRotation extends CssTransformComponent {
 
   CssNumericValue? get angle native;
 
-  set angle(CssNumericValue value) native;
+  set angle(CssNumericValue? value) native;
 
   num? get x native;
 
-  set x(num value) native;
+  set x(num? value) native;
 
   num? get y native;
 
-  set y(num value) native;
+  set y(num? value) native;
 
   num? get z native;
 
-  set z(num value) native;
+  set z(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3869,7 +3869,7 @@ class CssRule extends Interceptor {
 
   String? get cssText native;
 
-  set cssText(String value) native;
+  set cssText(String? value) native;
 
   CssRule? get parentRule native;
 
@@ -3903,15 +3903,15 @@ class CssScale extends CssTransformComponent {
 
   num? get x native;
 
-  set x(num value) native;
+  set x(num? value) native;
 
   num? get y native;
 
-  set y(num value) native;
+  set y(num? value) native;
 
   num? get z native;
 
-  set z(num value) native;
+  set z(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3931,11 +3931,11 @@ class CssSkew extends CssTransformComponent {
 
   CssNumericValue? get ax native;
 
-  set ax(CssNumericValue value) native;
+  set ax(CssNumericValue? value) native;
 
   CssNumericValue? get ay native;
 
-  set ay(CssNumericValue value) native;
+  set ay(CssNumericValue? value) native;
 }
 
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
@@ -4054,7 +4054,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
   String? get cssText native;
 
-  set cssText(String value) native;
+  set cssText(String? value) native;
 
   int get length native;
 
@@ -8746,7 +8746,7 @@ class CssTransformComponent extends Interceptor {
 
   bool? get is2D native;
 
-  set is2D(bool value) native;
+  set is2D(bool? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8812,15 +8812,15 @@ class CssTranslation extends CssTransformComponent {
 
   CssNumericValue? get x native;
 
-  set x(CssNumericValue value) native;
+  set x(CssNumericValue? value) native;
 
   CssNumericValue? get y native;
 
-  set y(CssNumericValue value) native;
+  set y(CssNumericValue? value) native;
 
   CssNumericValue? get z native;
 
-  set z(CssNumericValue value) native;
+  set z(CssNumericValue? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8843,11 +8843,11 @@ class CssUnitValue extends CssNumericValue {
 
   String? get unit native;
 
-  set unit(String value) native;
+  set unit(String? value) native;
 
   num? get value native;
 
-  set value(num value) native;
+  set value(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9055,7 +9055,7 @@ class DataElement extends HtmlElement {
 
   String? get value native;
 
-  set value(String value) native;
+  set value(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9106,11 +9106,11 @@ class DataTransfer extends Interceptor {
 
   String? get dropEffect native;
 
-  set dropEffect(String value) native;
+  set dropEffect(String? value) native;
 
   String? get effectAllowed native;
 
-  set effectAllowed(String value) native;
+  set effectAllowed(String? value) native;
 
   @Returns('FileList')
   @Creates('FileList')
@@ -9374,7 +9374,7 @@ class DetailsElement extends HtmlElement {
 
   bool? get open native;
 
-  set open(bool value) native;
+  set open(bool? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9560,11 +9560,11 @@ class DialogElement extends HtmlElement {
 
   bool? get open native;
 
-  set open(bool value) native;
+  set open(bool? value) native;
 
   String? get returnValue native;
 
-  set returnValue(String value) native;
+  set returnValue(String? value) native;
 
   void close([String? returnValue]) native;
 
@@ -9883,7 +9883,7 @@ class Document extends Node {
 
   String? get cookie native;
 
-  set cookie(String value) native;
+  set cookie(String? value) native;
 
   ScriptElement? get currentScript native;
 
@@ -10769,133 +10769,133 @@ class DomMatrix extends DomMatrixReadOnly {
 
   num? get a native;
 
-  set a(num value) native;
+  set a(num? value) native;
 
   // Shadowing definition.
 
   num? get b native;
 
-  set b(num value) native;
+  set b(num? value) native;
 
   // Shadowing definition.
 
   num? get c native;
 
-  set c(num value) native;
+  set c(num? value) native;
 
   // Shadowing definition.
 
   num? get d native;
 
-  set d(num value) native;
+  set d(num? value) native;
 
   // Shadowing definition.
 
   num? get e native;
 
-  set e(num value) native;
+  set e(num? value) native;
 
   // Shadowing definition.
 
   num? get f native;
 
-  set f(num value) native;
+  set f(num? value) native;
 
   // Shadowing definition.
 
   num? get m11 native;
 
-  set m11(num value) native;
+  set m11(num? value) native;
 
   // Shadowing definition.
 
   num? get m12 native;
 
-  set m12(num value) native;
+  set m12(num? value) native;
 
   // Shadowing definition.
 
   num? get m13 native;
 
-  set m13(num value) native;
+  set m13(num? value) native;
 
   // Shadowing definition.
 
   num? get m14 native;
 
-  set m14(num value) native;
+  set m14(num? value) native;
 
   // Shadowing definition.
 
   num? get m21 native;
 
-  set m21(num value) native;
+  set m21(num? value) native;
 
   // Shadowing definition.
 
   num? get m22 native;
 
-  set m22(num value) native;
+  set m22(num? value) native;
 
   // Shadowing definition.
 
   num? get m23 native;
 
-  set m23(num value) native;
+  set m23(num? value) native;
 
   // Shadowing definition.
 
   num? get m24 native;
 
-  set m24(num value) native;
+  set m24(num? value) native;
 
   // Shadowing definition.
 
   num? get m31 native;
 
-  set m31(num value) native;
+  set m31(num? value) native;
 
   // Shadowing definition.
 
   num? get m32 native;
 
-  set m32(num value) native;
+  set m32(num? value) native;
 
   // Shadowing definition.
 
   num? get m33 native;
 
-  set m33(num value) native;
+  set m33(num? value) native;
 
   // Shadowing definition.
 
   num? get m34 native;
 
-  set m34(num value) native;
+  set m34(num? value) native;
 
   // Shadowing definition.
 
   num? get m41 native;
 
-  set m41(num value) native;
+  set m41(num? value) native;
 
   // Shadowing definition.
 
   num? get m42 native;
 
-  set m42(num value) native;
+  set m42(num? value) native;
 
   // Shadowing definition.
 
   num? get m43 native;
 
-  set m43(num value) native;
+  set m43(num? value) native;
 
   // Shadowing definition.
 
   num? get m44 native;
 
-  set m44(num value) native;
+  set m44(num? value) native;
 
   static DomMatrix fromFloat32Array(Float32List array32) native;
 
@@ -11173,25 +11173,25 @@ class DomPoint extends DomPointReadOnly {
 
   num? get w native;
 
-  set w(num value) native;
+  set w(num? value) native;
 
   // Shadowing definition.
 
   num? get x native;
 
-  set x(num value) native;
+  set x(num? value) native;
 
   // Shadowing definition.
 
   num? get y native;
 
-  set y(num value) native;
+  set y(num? value) native;
 
   // Shadowing definition.
 
   num? get z native;
 
-  set z(num value) native;
+  set z(num? value) native;
 
   static DomPoint fromPoint([Map? other]) {
     if (other != null) {
@@ -11700,7 +11700,7 @@ class DomTokenList extends Interceptor {
 
   String? get value native;
 
-  set value(String value) native;
+  set value(String? value) native;
 
   void add(String tokens) native;
 
@@ -14490,7 +14490,7 @@ class Element extends Node
 
   String? get dir native;
 
-  set dir(String value) native;
+  set dir(String? value) native;
 
   /**
    * Indicates whether the element can be dragged and dropped.
@@ -14526,31 +14526,31 @@ class Element extends Node
 
   bool? get inert native;
 
-  set inert(bool value) native;
+  set inert(bool? value) native;
 
   String? get inputMode native;
 
-  set inputMode(String value) native;
+  set inputMode(String? value) native;
 
   bool? get isContentEditable native;
 
   String? get lang native;
 
-  set lang(String value) native;
+  set lang(String? value) native;
 
   bool? get spellcheck native;
 
-  set spellcheck(bool value) native;
+  set spellcheck(bool? value) native;
 
   CssStyleDeclaration get style native;
 
   int? get tabIndex native;
 
-  set tabIndex(int value) native;
+  set tabIndex(int? value) native;
 
   String? get title native;
 
-  set title(String value) native;
+  set title(String? value) native;
 
   /**
    * Specifies whether this element's text content changes when the page is
@@ -14565,7 +14565,7 @@ class Element extends Node
 
   bool? get translate native;
 
-  set translate(bool value) native;
+  set translate(bool? value) native;
 
   void blur() native;
 
@@ -14635,7 +14635,7 @@ class Element extends Node
 
   String? get slot native;
 
-  set slot(String value) native;
+  set slot(String? value) native;
 
   StylePropertyMap? get styleMap native;
 
@@ -15267,7 +15267,7 @@ class EmbedElement extends HtmlElement {
 
   String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
   String get src native;
 
@@ -16461,15 +16461,15 @@ class FontFace extends Interceptor {
 
   String? get display native;
 
-  set display(String value) native;
+  set display(String? value) native;
 
   String? get family native;
 
-  set family(String value) native;
+  set family(String? value) native;
 
   String? get featureSettings native;
 
-  set featureSettings(String value) native;
+  set featureSettings(String? value) native;
 
   Future<FontFace> get loaded =>
       promiseToFuture<FontFace>(JS("", "#.loaded", this));
@@ -16478,23 +16478,23 @@ class FontFace extends Interceptor {
 
   String? get stretch native;
 
-  set stretch(String value) native;
+  set stretch(String? value) native;
 
   String? get style native;
 
-  set style(String value) native;
+  set style(String? value) native;
 
   String? get unicodeRange native;
 
-  set unicodeRange(String value) native;
+  set unicodeRange(String? value) native;
 
   String? get variant native;
 
-  set variant(String value) native;
+  set variant(String? value) native;
 
   String? get weight native;
 
-  set weight(String value) native;
+  set weight(String? value) native;
 
   Future<FontFace> load() =>
       promiseToFuture<FontFace>(JS("", "#.load()", this));
@@ -16673,41 +16673,41 @@ class FormElement extends HtmlElement {
 
   String? get acceptCharset native;
 
-  set acceptCharset(String value) native;
+  set acceptCharset(String? value) native;
 
   String? get action native;
 
-  set action(String value) native;
+  set action(String? value) native;
 
   String? get autocomplete native;
 
-  set autocomplete(String value) native;
+  set autocomplete(String? value) native;
 
   String? get encoding native;
 
-  set encoding(String value) native;
+  set encoding(String? value) native;
 
   String? get enctype native;
 
-  set enctype(String value) native;
+  set enctype(String? value) native;
 
   int? get length native;
 
   String? get method native;
 
-  set method(String value) native;
+  set method(String? value) native;
 
   String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
   bool? get noValidate native;
 
-  set noValidate(bool value) native;
+  set noValidate(bool? value) native;
 
   String? get target native;
 
-  set target(String value) native;
+  set target(String? value) native;
 
   Object? __getter__(String name) native;
 
@@ -17542,7 +17542,7 @@ class History extends Interceptor implements HistoryBase {
 
   String? get scrollRestoration native;
 
-  set scrollRestoration(String value) native;
+  set scrollRestoration(String? value) native;
 
   dynamic get state =>
       convertNativeToDart_SerializedScriptValue(this._get_state);
@@ -17862,45 +17862,45 @@ class HtmlHyperlinkElementUtils extends Interceptor {
 
   String? get hash native;
 
-  set hash(String value) native;
+  set hash(String? value) native;
 
   String? get host native;
 
-  set host(String value) native;
+  set host(String? value) native;
 
   String? get hostname native;
 
-  set hostname(String value) native;
+  set hostname(String? value) native;
 
   String? get href native;
 
-  set href(String value) native;
+  set href(String? value) native;
 
   String? get origin native;
 
   String? get password native;
 
-  set password(String value) native;
+  set password(String? value) native;
 
   String? get pathname native;
 
-  set pathname(String value) native;
+  set pathname(String? value) native;
 
   String? get port native;
 
-  set port(String value) native;
+  set port(String? value) native;
 
   String? get protocol native;
 
-  set protocol(String value) native;
+  set protocol(String? value) native;
 
   String? get search native;
 
-  set search(String value) native;
+  set search(String? value) native;
 
   String? get username native;
 
-  set username(String value) native;
+  set username(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18488,7 +18488,7 @@ class HttpRequest extends HttpRequestEventTarget {
 
   int? get timeout native;
 
-  set timeout(int value) native;
+  set timeout(int? value) native;
 
   /**
    * [EventTarget] that can hold listeners to track the progress of the request.
@@ -18506,7 +18506,7 @@ class HttpRequest extends HttpRequestEventTarget {
 
   bool? get withCredentials native;
 
-  set withCredentials(bool value) native;
+  set withCredentials(bool? value) native;
 
   /**
    * Stop the current request.
@@ -18733,15 +18733,15 @@ class IFrameElement extends HtmlElement {
 
   String? get allow native;
 
-  set allow(String value) native;
+  set allow(String? value) native;
 
   bool? get allowFullscreen native;
 
-  set allowFullscreen(bool value) native;
+  set allowFullscreen(bool? value) native;
 
   bool? get allowPaymentRequest native;
 
-  set allowPaymentRequest(bool value) native;
+  set allowPaymentRequest(bool? value) native;
 
   WindowBase? get contentWindow =>
       _convertNativeToDart_Window(this._get_contentWindow);
@@ -18752,33 +18752,33 @@ class IFrameElement extends HtmlElement {
 
   String? get csp native;
 
-  set csp(String value) native;
+  set csp(String? value) native;
 
   String? get height native;
 
-  set height(String value) native;
+  set height(String? value) native;
 
   String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
   String? get referrerPolicy native;
 
-  set referrerPolicy(String value) native;
+  set referrerPolicy(String? value) native;
 
   DomTokenList? get sandbox native;
 
   String? get src native;
 
-  set src(String value) native;
+  set src(String? value) native;
 
   String? get srcdoc native;
 
-  set srcdoc(String value) native;
+  set srcdoc(String? value) native;
 
   String? get width native;
 
-  set width(String value) native;
+  set width(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18946,11 +18946,11 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
 
   String? get alt native;
 
-  set alt(String value) native;
+  set alt(String? value) native;
 
   String? get async native;
 
-  set async(String value) native;
+  set async(String? value) native;
 
   bool? get complete native;
 
@@ -18962,11 +18962,11 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
 
   int? get height native;
 
-  set height(int value) native;
+  set height(int? value) native;
 
   bool? get isMap native;
 
-  set isMap(bool value) native;
+  set isMap(bool? value) native;
 
   int get naturalHeight native;
 
@@ -18974,27 +18974,27 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
 
   String? get referrerPolicy native;
 
-  set referrerPolicy(String value) native;
+  set referrerPolicy(String? value) native;
 
   String? get sizes native;
 
-  set sizes(String value) native;
+  set sizes(String? value) native;
 
   String? get src native;
 
-  set src(String value) native;
+  set src(String? value) native;
 
   String? get srcset native;
 
-  set srcset(String value) native;
+  set srcset(String? value) native;
 
   String? get useMap native;
 
-  set useMap(String value) native;
+  set useMap(String? value) native;
 
   int? get width native;
 
-  set width(int value) native;
+  set width(int? value) native;
 
   Future decode() => promiseToFuture(JS("", "#.decode()", this));
 }
@@ -19077,15 +19077,15 @@ class InputElement extends HtmlElement
 
   String? get accept native;
 
-  set accept(String value) native;
+  set accept(String? value) native;
 
   String? get alt native;
 
-  set alt(String value) native;
+  set alt(String? value) native;
 
   String? get autocapitalize native;
 
-  set autocapitalize(String value) native;
+  set autocapitalize(String? value) native;
 
   String get autocomplete native;
 
@@ -19097,27 +19097,27 @@ class InputElement extends HtmlElement
 
   String? get capture native;
 
-  set capture(String value) native;
+  set capture(String? value) native;
 
   bool? get checked native;
 
-  set checked(bool value) native;
+  set checked(bool? value) native;
 
   bool? get defaultChecked native;
 
-  set defaultChecked(bool value) native;
+  set defaultChecked(bool? value) native;
 
   String? get defaultValue native;
 
-  set defaultValue(String value) native;
+  set defaultValue(String? value) native;
 
   String? get dirName native;
 
-  set dirName(String value) native;
+  set dirName(String? value) native;
 
   bool? get disabled native;
 
-  set disabled(bool value) native;
+  set disabled(bool? value) native;
 
   @Returns('FileList|Null')
   @Creates('FileList')
@@ -19149,15 +19149,15 @@ class InputElement extends HtmlElement
 
   int? get height native;
 
-  set height(int value) native;
+  set height(int? value) native;
 
   bool? get incremental native;
 
-  set incremental(bool value) native;
+  set incremental(bool? value) native;
 
   bool? get indeterminate native;
 
-  set indeterminate(bool value) native;
+  set indeterminate(bool? value) native;
 
   @Returns('NodeList')
   @Creates('NodeList')
@@ -19167,27 +19167,27 @@ class InputElement extends HtmlElement
 
   String? get max native;
 
-  set max(String value) native;
+  set max(String? value) native;
 
   int? get maxLength native;
 
-  set maxLength(int value) native;
+  set maxLength(int? value) native;
 
   String? get min native;
 
-  set min(String value) native;
+  set min(String? value) native;
 
   int? get minLength native;
 
-  set minLength(int value) native;
+  set minLength(int? value) native;
 
   bool? get multiple native;
 
-  set multiple(bool value) native;
+  set multiple(bool? value) native;
 
   String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
   String get pattern native;
 
@@ -19199,7 +19199,7 @@ class InputElement extends HtmlElement
 
   bool? get readOnly native;
 
-  set readOnly(bool value) native;
+  set readOnly(bool? value) native;
 
   bool get required native;
 
@@ -19219,19 +19219,19 @@ class InputElement extends HtmlElement
 
   int? get size native;
 
-  set size(int value) native;
+  set size(int? value) native;
 
   String? get src native;
 
-  set src(String value) native;
+  set src(String? value) native;
 
   String? get step native;
 
-  set step(String value) native;
+  set step(String? value) native;
 
   String? get type native;
 
-  set type(String value) native;
+  set type(String? value) native;
 
   String get validationMessage native;
 
@@ -19257,7 +19257,7 @@ class InputElement extends HtmlElement
 
   num? get valueAsNumber native;
 
-  set valueAsNumber(num value) native;
+  set valueAsNumber(num? value) native;
 
   @JSName('webkitEntries')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -19270,11 +19270,11 @@ class InputElement extends HtmlElement
   bool? get directory native;
 
   @JSName('webkitdirectory')
-  set directory(bool value) native;
+  set directory(bool? value) native;
 
   int? get width native;
 
-  set width(int value) native;
+  set width(int? value) native;
 
   bool get willValidate native;
 
@@ -19308,16 +19308,16 @@ abstract class InputElementBase implements Element {
   set autofocus(bool value);
 
   bool? get disabled;
-  set disabled(bool value);
+  set disabled(bool? value);
 
   bool? get incremental;
-  set incremental(bool value);
+  set incremental(bool? value);
 
   bool? get indeterminate;
-  set indeterminate(bool value);
+  set indeterminate(bool? value);
 
   String? get name;
-  set name(String value);
+  set name(String? value);
 
   String? get value;
   set value(String? value);
@@ -19350,7 +19350,7 @@ abstract class TextInputElementBase implements InputElementBase {
   set autocomplete(String value);
 
   int? get maxLength;
-  set maxLength(int value);
+  set maxLength(int? value);
 
   String get pattern;
   set pattern(String value);
@@ -19359,13 +19359,13 @@ abstract class TextInputElementBase implements InputElementBase {
   set placeholder(String value);
 
   bool? get readOnly;
-  set readOnly(bool value);
+  set readOnly(bool? value);
 
   bool get required;
   set required(bool value);
 
   int? get size;
-  set size(int value);
+  set size(int? value);
 
   void select();
 
@@ -19395,7 +19395,7 @@ abstract class SearchInputElement implements TextInputElementBase {
   factory SearchInputElement() => new InputElement(type: 'search');
 
   String? get dirName;
-  set dirName(String value);
+  set dirName(String? value);
 
   Element? get list;
 
@@ -19412,7 +19412,7 @@ abstract class TextInputElement implements TextInputElementBase {
   factory TextInputElement() => new InputElement(type: 'text');
 
   String? get dirName;
-  set dirName(String value);
+  set dirName(String? value);
 
   Element? get list;
 }
@@ -19481,10 +19481,10 @@ abstract class EmailInputElement implements TextInputElementBase {
   Element? get list;
 
   int? get maxLength;
-  set maxLength(int value);
+  set maxLength(int? value);
 
   bool? get multiple;
-  set multiple(bool value);
+  set multiple(bool? value);
 
   String get pattern;
   set pattern(String value);
@@ -19493,13 +19493,13 @@ abstract class EmailInputElement implements TextInputElementBase {
   set placeholder(String value);
 
   bool? get readOnly;
-  set readOnly(bool value);
+  set readOnly(bool? value);
 
   bool get required;
   set required(bool value);
 
   int? get size;
-  set size(int value);
+  set size(int? value);
 
   /// Returns true if this input type is supported on the current platform.
   static bool get supported {
@@ -19521,16 +19521,16 @@ abstract class RangeInputElementBase implements InputElementBase {
   Element? get list;
 
   String? get max;
-  set max(String value);
+  set max(String? value);
 
   String? get min;
-  set min(String value);
+  set min(String? value);
 
   String? get step;
-  set step(String value);
+  set step(String? value);
 
   num? get valueAsNumber;
-  set valueAsNumber(num value);
+  set valueAsNumber(num? value);
 
   void stepDown([int? n]);
 
@@ -19550,7 +19550,7 @@ abstract class DateInputElement implements RangeInputElementBase {
   set valueAsDate(DateTime value);
 
   bool? get readOnly;
-  set readOnly(bool value);
+  set readOnly(bool? value);
 
   bool get required;
   set required(bool value);
@@ -19574,7 +19574,7 @@ abstract class MonthInputElement implements RangeInputElementBase {
   set valueAsDate(DateTime value);
 
   bool? get readOnly;
-  set readOnly(bool value);
+  set readOnly(bool? value);
 
   bool get required;
   set required(bool value);
@@ -19598,7 +19598,7 @@ abstract class WeekInputElement implements RangeInputElementBase {
   set valueAsDate(DateTime value);
 
   bool? get readOnly;
-  set readOnly(bool value);
+  set readOnly(bool? value);
 
   bool get required;
   set required(bool value);
@@ -19622,7 +19622,7 @@ abstract class TimeInputElement implements RangeInputElementBase {
   set valueAsDate(DateTime value);
 
   bool? get readOnly;
-  set readOnly(bool value);
+  set readOnly(bool? value);
 
   bool get required;
   set required(bool value);
@@ -19645,7 +19645,7 @@ abstract class LocalDateTimeInputElement implements RangeInputElementBase {
       new InputElement(type: 'datetime-local');
 
   bool? get readOnly;
-  set readOnly(bool value);
+  set readOnly(bool? value);
 
   bool get required;
   set required(bool value);
@@ -19669,7 +19669,7 @@ abstract class NumberInputElement implements RangeInputElementBase {
   set placeholder(String value);
 
   bool? get readOnly;
-  set readOnly(bool value);
+  set readOnly(bool? value);
 
   bool get required;
   set required(bool value);
@@ -19707,7 +19707,7 @@ abstract class CheckboxInputElement implements InputElementBase {
   factory CheckboxInputElement() => new InputElement(type: 'checkbox');
 
   bool? get checked;
-  set checked(bool value);
+  set checked(bool? value);
 
   bool get required;
   set required(bool value);
@@ -19728,7 +19728,7 @@ abstract class RadioButtonInputElement implements InputElementBase {
   factory RadioButtonInputElement() => new InputElement(type: 'radio');
 
   bool? get checked;
-  set checked(bool value);
+  set checked(bool? value);
 
   bool get required;
   set required(bool value);
@@ -19741,10 +19741,10 @@ abstract class FileUploadInputElement implements InputElementBase {
   factory FileUploadInputElement() => new InputElement(type: 'file');
 
   String? get accept;
-  set accept(String value);
+  set accept(String? value);
 
   bool? get multiple;
-  set multiple(bool value);
+  set multiple(bool? value);
 
   bool get required;
   set required(bool value);
@@ -19782,7 +19782,7 @@ abstract class ImageButtonInputElement implements InputElementBase {
   factory ImageButtonInputElement() => new InputElement(type: 'image');
 
   String? get alt;
-  set alt(String value);
+  set alt(String? value);
 
   String get formAction;
   set formAction(String value);
@@ -19800,13 +19800,13 @@ abstract class ImageButtonInputElement implements InputElementBase {
   set formTarget(String value);
 
   int? get height;
-  set height(int value);
+  set height(int? value);
 
   String? get src;
-  set src(String value);
+  set src(String? value);
 
   int? get width;
-  set width(int value);
+  set width(int? value);
 }
 
 /**
@@ -20266,7 +20266,7 @@ class LinkElement extends HtmlElement {
 
   String? get as native;
 
-  set as(String value) native;
+  set as(String? value) native;
 
   String? get crossOrigin native;
 
@@ -20274,7 +20274,7 @@ class LinkElement extends HtmlElement {
 
   bool? get disabled native;
 
-  set disabled(bool value) native;
+  set disabled(bool? value) native;
 
   String get href native;
 
@@ -20288,7 +20288,7 @@ class LinkElement extends HtmlElement {
 
   String? get integrity native;
 
-  set integrity(String value) native;
+  set integrity(String? value) native;
 
   String get media native;
 
@@ -20296,7 +20296,7 @@ class LinkElement extends HtmlElement {
 
   String? get referrerPolicy native;
 
-  set referrerPolicy(String value) native;
+  set referrerPolicy(String? value) native;
 
   String get rel native;
 
@@ -20306,7 +20306,7 @@ class LinkElement extends HtmlElement {
 
   String? get scope native;
 
-  set scope(String value) native;
+  set scope(String? value) native;
 
   StyleSheet? get sheet native;
 
@@ -20346,7 +20346,7 @@ class Location extends Interceptor implements LocationBase {
 
   String? get hostname native;
 
-  set hostname(String value) native;
+  set hostname(String? value) native;
 
   String get href native;
 
@@ -20354,7 +20354,7 @@ class Location extends Interceptor implements LocationBase {
 
   String? get pathname native;
 
-  set pathname(String value) native;
+  set pathname(String? value) native;
 
   String get port native;
 
@@ -20366,11 +20366,11 @@ class Location extends Interceptor implements LocationBase {
 
   String? get search native;
 
-  set search(String value) native;
+  set search(String? value) native;
 
   TrustedUrl? get trustedHref native;
 
-  set trustedHref(TrustedUrl value) native;
+  set trustedHref(TrustedUrl? value) native;
 
   void assign([String? url]) native;
 
@@ -20597,7 +20597,7 @@ class MediaElement extends HtmlElement {
 
   bool? get defaultMuted native;
 
-  set defaultMuted(bool value) native;
+  set defaultMuted(bool? value) native;
 
   num get defaultPlaybackRate native;
 
@@ -20653,7 +20653,7 @@ class MediaElement extends HtmlElement {
 
   MediaStream? get srcObject native;
 
-  set srcObject(MediaStream value) native;
+  set srcObject(MediaStream? value) native;
 
   TextTrackList? get textTracks native;
 
@@ -20939,19 +20939,19 @@ class MediaMetadata extends Interceptor {
 
   String? get album native;
 
-  set album(String value) native;
+  set album(String? value) native;
 
   String? get artist native;
 
-  set artist(String value) native;
+  set artist(String? value) native;
 
   List? get artwork native;
 
-  set artwork(List value) native;
+  set artwork(List? value) native;
 
   String? get title native;
 
-  set title(String value) native;
+  set title(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21080,7 +21080,7 @@ class MediaSession extends Interceptor {
 
   String? get playbackState native;
 
-  set playbackState(String value) native;
+  set playbackState(String? value) native;
 
   void setActionHandler(String action, MediaSessionActionHandler? handler)
       native;
@@ -21134,7 +21134,7 @@ class MediaSource extends EventTarget {
 
   num? get duration native;
 
-  set duration(num value) native;
+  set duration(num? value) native;
 
   String? get readyState native;
 
@@ -21314,11 +21314,11 @@ class MediaStreamTrack extends EventTarget {
 
   String? get contentHint native;
 
-  set contentHint(String value) native;
+  set contentHint(String? value) native;
 
   bool? get enabled native;
 
-  set enabled(bool value) native;
+  set enabled(bool? value) native;
 
   String? get id native;
 
@@ -21666,7 +21666,7 @@ class MetaElement extends HtmlElement {
 
   String? get httpEquiv native;
 
-  set httpEquiv(String value) native;
+  set httpEquiv(String? value) native;
 
   String get name native;
 
@@ -23856,7 +23856,7 @@ class OListElement extends HtmlElement {
 
   bool? get reversed native;
 
-  set reversed(bool value) native;
+  set reversed(bool? value) native;
 
   int get start native;
 
@@ -23960,11 +23960,11 @@ class OffscreenCanvas extends EventTarget {
 
   int? get height native;
 
-  set height(int value) native;
+  set height(int? value) native;
 
   int? get width native;
 
-  set width(int value) native;
+  set width(int? value) native;
 
   Future<Blob> convertToBlob([Map? options]) {
     var options_dict = null;
@@ -24006,7 +24006,7 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
 
   String? get direction native;
 
-  set direction(String value) native;
+  set direction(String? value) native;
 
   Object? get fillStyle native;
 
@@ -24014,63 +24014,63 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
 
   String? get filter native;
 
-  set filter(String value) native;
+  set filter(String? value) native;
 
   String? get font native;
 
-  set font(String value) native;
+  set font(String? value) native;
 
   num? get globalAlpha native;
 
-  set globalAlpha(num value) native;
+  set globalAlpha(num? value) native;
 
   String? get globalCompositeOperation native;
 
-  set globalCompositeOperation(String value) native;
+  set globalCompositeOperation(String? value) native;
 
   bool? get imageSmoothingEnabled native;
 
-  set imageSmoothingEnabled(bool value) native;
+  set imageSmoothingEnabled(bool? value) native;
 
   String? get imageSmoothingQuality native;
 
-  set imageSmoothingQuality(String value) native;
+  set imageSmoothingQuality(String? value) native;
 
   String? get lineCap native;
 
-  set lineCap(String value) native;
+  set lineCap(String? value) native;
 
   num? get lineDashOffset native;
 
-  set lineDashOffset(num value) native;
+  set lineDashOffset(num? value) native;
 
   String? get lineJoin native;
 
-  set lineJoin(String value) native;
+  set lineJoin(String? value) native;
 
   num? get lineWidth native;
 
-  set lineWidth(num value) native;
+  set lineWidth(num? value) native;
 
   num? get miterLimit native;
 
-  set miterLimit(num value) native;
+  set miterLimit(num? value) native;
 
   num? get shadowBlur native;
 
-  set shadowBlur(num value) native;
+  set shadowBlur(num? value) native;
 
   String? get shadowColor native;
 
-  set shadowColor(String value) native;
+  set shadowColor(String? value) native;
 
   num? get shadowOffsetX native;
 
-  set shadowOffsetX(num value) native;
+  set shadowOffsetX(num? value) native;
 
   num? get shadowOffsetY native;
 
-  set shadowOffsetY(num value) native;
+  set shadowOffsetY(num? value) native;
 
   Object? get strokeStyle native;
 
@@ -24078,11 +24078,11 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
 
   String? get textAlign native;
 
-  set textAlign(String value) native;
+  set textAlign(String? value) native;
 
   String? get textBaseline native;
 
-  set textBaseline(String value) native;
+  set textBaseline(String? value) native;
 
   void beginPath() native;
 
@@ -24349,7 +24349,7 @@ class OptionElement extends HtmlElement {
 
   String? get label native;
 
-  set label(String value) native;
+  set label(String? value) native;
 
   bool get selected native;
 
@@ -24401,7 +24401,7 @@ class OutputElement extends HtmlElement {
 
   String? get defaultValue native;
 
-  set defaultValue(String value) native;
+  set defaultValue(String? value) native;
 
   FormElement? get form native;
 
@@ -24414,7 +24414,7 @@ class OutputElement extends HtmlElement {
 
   String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
   String? get type native;
 
@@ -24424,7 +24424,7 @@ class OutputElement extends HtmlElement {
 
   String? get value native;
 
-  set value(String value) native;
+  set value(String? value) native;
 
   bool? get willValidate native;
 
@@ -24501,7 +24501,7 @@ class PaintRenderingContext2D extends Interceptor implements _CanvasPath {
 
   Matrix? get currentTransform native;
 
-  set currentTransform(Matrix value) native;
+  set currentTransform(Matrix? value) native;
 
   Object? get fillStyle native;
 
@@ -24509,59 +24509,59 @@ class PaintRenderingContext2D extends Interceptor implements _CanvasPath {
 
   String? get filter native;
 
-  set filter(String value) native;
+  set filter(String? value) native;
 
   num? get globalAlpha native;
 
-  set globalAlpha(num value) native;
+  set globalAlpha(num? value) native;
 
   String? get globalCompositeOperation native;
 
-  set globalCompositeOperation(String value) native;
+  set globalCompositeOperation(String? value) native;
 
   bool? get imageSmoothingEnabled native;
 
-  set imageSmoothingEnabled(bool value) native;
+  set imageSmoothingEnabled(bool? value) native;
 
   String? get imageSmoothingQuality native;
 
-  set imageSmoothingQuality(String value) native;
+  set imageSmoothingQuality(String? value) native;
 
   String? get lineCap native;
 
-  set lineCap(String value) native;
+  set lineCap(String? value) native;
 
   num? get lineDashOffset native;
 
-  set lineDashOffset(num value) native;
+  set lineDashOffset(num? value) native;
 
   String? get lineJoin native;
 
-  set lineJoin(String value) native;
+  set lineJoin(String? value) native;
 
   num? get lineWidth native;
 
-  set lineWidth(num value) native;
+  set lineWidth(num? value) native;
 
   num? get miterLimit native;
 
-  set miterLimit(num value) native;
+  set miterLimit(num? value) native;
 
   num? get shadowBlur native;
 
-  set shadowBlur(num value) native;
+  set shadowBlur(num? value) native;
 
   String? get shadowColor native;
 
-  set shadowColor(String value) native;
+  set shadowColor(String? value) native;
 
   num? get shadowOffsetX native;
 
-  set shadowOffsetX(num value) native;
+  set shadowOffsetX(num? value) native;
 
   num? get shadowOffsetY native;
 
-  set shadowOffsetY(num value) native;
+  set shadowOffsetY(num? value) native;
 
   Object? get strokeStyle native;
 
@@ -24784,13 +24784,13 @@ class PasswordCredential extends Credential implements CredentialUserData {
 
   String? get idName native;
 
-  set idName(String value) native;
+  set idName(String? value) native;
 
   String? get password native;
 
   String? get passwordName native;
 
-  set passwordName(String value) native;
+  set passwordName(String? value) native;
 
   // From CredentialUserData
 
@@ -24932,7 +24932,7 @@ class PaymentManager extends Interceptor {
 
   String? get userHint native;
 
-  set userHint(String value) native;
+  set userHint(String? value) native;
 }
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25800,7 +25800,7 @@ class PresentationConnection extends EventTarget {
 
   String? get binaryType native;
 
-  set binaryType(String value) native;
+  set binaryType(String? value) native;
 
   String? get id native;
 
@@ -26555,13 +26555,13 @@ class RtcDataChannel extends EventTarget {
 
   String? get binaryType native;
 
-  set binaryType(String value) native;
+  set binaryType(String? value) native;
 
   int? get bufferedAmount native;
 
   int? get bufferedAmountLowThreshold native;
 
-  set bufferedAmountLowThreshold(int value) native;
+  set bufferedAmountLowThreshold(int? value) native;
 
   int? get id native;
 
@@ -26712,15 +26712,15 @@ class RtcIceCandidate extends Interceptor {
 
   String? get candidate native;
 
-  set candidate(String value) native;
+  set candidate(String? value) native;
 
   int? get sdpMLineIndex native;
 
-  set sdpMLineIndex(int value) native;
+  set sdpMLineIndex(int? value) native;
 
   String? get sdpMid native;
 
-  set sdpMid(String value) native;
+  set sdpMid(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27256,7 +27256,7 @@ class Screen extends Interceptor {
 
   bool? get keepAwake native;
 
-  set keepAwake(bool value) native;
+  set keepAwake(bool? value) native;
 
   ScreenOrientation? get orientation native;
 
@@ -27314,7 +27314,7 @@ class ScriptElement extends HtmlElement {
 
   bool? get async native;
 
-  set async(bool value) native;
+  set async(bool? value) native;
 
   String get charset native;
 
@@ -27326,15 +27326,15 @@ class ScriptElement extends HtmlElement {
 
   bool? get defer native;
 
-  set defer(bool value) native;
+  set defer(bool? value) native;
 
   String? get integrity native;
 
-  set integrity(String value) native;
+  set integrity(String? value) native;
 
   bool? get noModule native;
 
-  set noModule(bool value) native;
+  set noModule(bool? value) native;
 
   String get src native;
 
@@ -27524,27 +27524,27 @@ class SelectElement extends HtmlElement {
 
   int? get length native;
 
-  set length(int value) native;
+  set length(int? value) native;
 
   bool? get multiple native;
 
-  set multiple(bool value) native;
+  set multiple(bool? value) native;
 
   String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
   bool? get required native;
 
-  set required(bool value) native;
+  set required(bool? value) native;
 
   int? get selectedIndex native;
 
-  set selectedIndex(int value) native;
+  set selectedIndex(int? value) native;
 
   int? get size native;
 
-  set size(int value) native;
+  set size(int? value) native;
 
   String get type native;
 
@@ -27554,7 +27554,7 @@ class SelectElement extends HtmlElement {
 
   String? get value native;
 
-  set value(String value) native;
+  set value(String? value) native;
 
   bool get willValidate native;
 
@@ -28107,7 +28107,7 @@ class SlotElement extends HtmlElement {
 
   String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
   List<Node> assignedNodes([Map? options]) {
     if (options != null) {
@@ -28141,11 +28141,11 @@ class SourceBuffer extends EventTarget {
 
   num? get appendWindowEnd native;
 
-  set appendWindowEnd(num value) native;
+  set appendWindowEnd(num? value) native;
 
   num? get appendWindowStart native;
 
-  set appendWindowStart(num value) native;
+  set appendWindowStart(num? value) native;
 
   AudioTrackList? get audioTracks native;
 
@@ -28153,15 +28153,15 @@ class SourceBuffer extends EventTarget {
 
   String? get mode native;
 
-  set mode(String value) native;
+  set mode(String? value) native;
 
   num? get timestampOffset native;
 
-  set timestampOffset(num value) native;
+  set timestampOffset(num? value) native;
 
   TrackDefaultList? get trackDefaults native;
 
-  set trackDefaults(TrackDefaultList value) native;
+  set trackDefaults(TrackDefaultList? value) native;
 
   bool? get updating native;
 
@@ -28269,7 +28269,7 @@ class SourceElement extends HtmlElement {
 
   String? get sizes native;
 
-  set sizes(String value) native;
+  set sizes(String? value) native;
 
   String get src native;
 
@@ -28277,7 +28277,7 @@ class SourceElement extends HtmlElement {
 
   String? get srcset native;
 
-  set srcset(String value) native;
+  set srcset(String? value) native;
 
   String get type native;
 
@@ -28325,11 +28325,11 @@ class SpeechGrammar extends Interceptor {
 
   String? get src native;
 
-  set src(String value) native;
+  set src(String? value) native;
 
   num? get weight native;
 
-  set weight(num value) native;
+  set weight(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28522,23 +28522,23 @@ class SpeechRecognition extends EventTarget {
 
   bool? get continuous native;
 
-  set continuous(bool value) native;
+  set continuous(bool? value) native;
 
   SpeechGrammarList? get grammars native;
 
-  set grammars(SpeechGrammarList value) native;
+  set grammars(SpeechGrammarList? value) native;
 
   bool? get interimResults native;
 
-  set interimResults(bool value) native;
+  set interimResults(bool? value) native;
 
   String? get lang native;
 
-  set lang(String value) native;
+  set lang(String? value) native;
 
   int? get maxAlternatives native;
 
-  set maxAlternatives(int value) native;
+  set maxAlternatives(int? value) native;
 
   void abort() native;
 
@@ -28826,19 +28826,19 @@ class SpeechSynthesisUtterance extends EventTarget {
 
   String? get lang native;
 
-  set lang(String value) native;
+  set lang(String? value) native;
 
   num? get pitch native;
 
-  set pitch(num value) native;
+  set pitch(num? value) native;
 
   num? get rate native;
 
-  set rate(num value) native;
+  set rate(num? value) native;
 
   String? get text native;
 
-  set text(String value) native;
+  set text(String? value) native;
 
   SpeechSynthesisVoice? get voice native;
 
@@ -28846,7 +28846,7 @@ class SpeechSynthesisUtterance extends EventTarget {
 
   num? get volume native;
 
-  set volume(num value) native;
+  set volume(num? value) native;
 
   /// Stream of `boundary` events handled by this [SpeechSynthesisUtterance].
   Stream<SpeechSynthesisEvent> get onBoundary => boundaryEvent.forTarget(this);
@@ -29222,7 +29222,7 @@ class StyleSheet extends Interceptor {
 
   bool? get disabled native;
 
-  set disabled(bool value) native;
+  set disabled(bool? value) native;
 
   String? get href native;
 
@@ -29708,7 +29708,7 @@ class TextAreaElement extends HtmlElement {
 
   String? get autocapitalize native;
 
-  set autocapitalize(String value) native;
+  set autocapitalize(String? value) native;
 
   bool get autofocus native;
 
@@ -29720,11 +29720,11 @@ class TextAreaElement extends HtmlElement {
 
   String? get defaultValue native;
 
-  set defaultValue(String value) native;
+  set defaultValue(String? value) native;
 
   String? get dirName native;
 
-  set dirName(String value) native;
+  set dirName(String? value) native;
 
   bool get disabled native;
 
@@ -29767,15 +29767,15 @@ class TextAreaElement extends HtmlElement {
 
   String? get selectionDirection native;
 
-  set selectionDirection(String value) native;
+  set selectionDirection(String? value) native;
 
   int? get selectionEnd native;
 
-  set selectionEnd(int value) native;
+  set selectionEnd(int? value) native;
 
   int? get selectionStart native;
 
-  set selectionStart(int value) native;
+  set selectionStart(int? value) native;
 
   int? get textLength native;
 
@@ -29928,7 +29928,7 @@ class TextTrack extends EventTarget {
 
   String? get mode native;
 
-  set mode(String value) native;
+  set mode(String? value) native;
 
   void addCue(TextTrackCue cue) native;
 
@@ -29968,19 +29968,19 @@ class TextTrackCue extends EventTarget {
 
   num? get endTime native;
 
-  set endTime(num value) native;
+  set endTime(num? value) native;
 
   String? get id native;
 
-  set id(String value) native;
+  set id(String? value) native;
 
   bool? get pauseOnExit native;
 
-  set pauseOnExit(bool value) native;
+  set pauseOnExit(bool? value) native;
 
   num? get startTime native;
 
-  set startTime(num value) native;
+  set startTime(num? value) native;
 
   TextTrack? get track native;
 
@@ -30150,7 +30150,7 @@ class TimeElement extends HtmlElement {
 
   String? get dateTime native;
 
-  set dateTime(String value) native;
+  set dateTime(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30500,25 +30500,25 @@ class TrackElement extends HtmlElement {
   bool? get defaultValue native;
 
   @JSName('default')
-  set defaultValue(bool value) native;
+  set defaultValue(bool? value) native;
 
   String? get kind native;
 
-  set kind(String value) native;
+  set kind(String? value) native;
 
   String? get label native;
 
-  set label(String value) native;
+  set label(String? value) native;
 
   int? get readyState native;
 
   String? get src native;
 
-  set src(String value) native;
+  set src(String? value) native;
 
   String? get srclang native;
 
-  set srclang(String value) native;
+  set srclang(String? value) native;
 
   TextTrack? get track native;
 }
@@ -30811,47 +30811,47 @@ class Url extends Interceptor {
 
   String? get hash native;
 
-  set hash(String value) native;
+  set hash(String? value) native;
 
   String? get host native;
 
-  set host(String value) native;
+  set host(String? value) native;
 
   String? get hostname native;
 
-  set hostname(String value) native;
+  set hostname(String? value) native;
 
   String? get href native;
 
-  set href(String value) native;
+  set href(String? value) native;
 
   String? get origin native;
 
   String? get password native;
 
-  set password(String value) native;
+  set password(String? value) native;
 
   String? get pathname native;
 
-  set pathname(String value) native;
+  set pathname(String? value) native;
 
   String? get port native;
 
-  set port(String value) native;
+  set port(String? value) native;
 
   String? get protocol native;
 
-  set protocol(String value) native;
+  set protocol(String? value) native;
 
   String? get search native;
 
-  set search(String value) native;
+  set search(String? value) native;
 
   UrlSearchParams? get searchParams native;
 
   String? get username native;
 
-  set username(String value) native;
+  set username(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31009,11 +31009,11 @@ class VRDisplay extends EventTarget {
 
   num? get depthFar native;
 
-  set depthFar(num value) native;
+  set depthFar(num? value) native;
 
   num? get depthNear native;
 
-  set depthNear(num value) native;
+  set depthNear(num? value) native;
 
   int? get displayId native;
 
@@ -31186,11 +31186,11 @@ class VRSession extends EventTarget {
 
   num? get depthFar native;
 
-  set depthFar(num value) native;
+  set depthFar(num? value) native;
 
   num? get depthNear native;
 
-  set depthNear(num value) native;
+  set depthNear(num? value) native;
 
   VRDevice? get device native;
 
@@ -31410,7 +31410,7 @@ class VideoTrack extends Interceptor {
 
   bool? get selected native;
 
-  set selected(bool value) native;
+  set selected(bool? value) native;
 
   SourceBuffer? get sourceBuffer native;
 }
@@ -31499,7 +31499,7 @@ class VttCue extends TextTrackCue {
 
   String? get align native;
 
-  set align(String value) native;
+  set align(String? value) native;
 
   @Creates('Null')
   @Returns('num|String')
@@ -31519,19 +31519,19 @@ class VttCue extends TextTrackCue {
 
   num? get size native;
 
-  set size(num value) native;
+  set size(num? value) native;
 
   bool? get snapToLines native;
 
-  set snapToLines(bool value) native;
+  set snapToLines(bool? value) native;
 
   String? get text native;
 
-  set text(String value) native;
+  set text(String? value) native;
 
   String? get vertical native;
 
-  set vertical(String value) native;
+  set vertical(String? value) native;
 
   @JSName('getCueAsHTML')
   DocumentFragment getCueAsHtml() native;
@@ -31554,35 +31554,35 @@ class VttRegion extends Interceptor {
 
   String? get id native;
 
-  set id(String value) native;
+  set id(String? value) native;
 
   int? get lines native;
 
-  set lines(int value) native;
+  set lines(int? value) native;
 
   num? get regionAnchorX native;
 
-  set regionAnchorX(num value) native;
+  set regionAnchorX(num? value) native;
 
   num? get regionAnchorY native;
 
-  set regionAnchorY(num value) native;
+  set regionAnchorY(num? value) native;
 
   String? get scroll native;
 
-  set scroll(String value) native;
+  set scroll(String? value) native;
 
   num? get viewportAnchorX native;
 
-  set viewportAnchorX(num value) native;
+  set viewportAnchorX(num? value) native;
 
   num? get viewportAnchorY native;
 
-  set viewportAnchorY(num value) native;
+  set viewportAnchorY(num? value) native;
 
   num? get width native;
 
-  set width(num value) native;
+  set width(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31694,7 +31694,7 @@ class WebSocket extends EventTarget {
 
   String? get binaryType native;
 
-  set binaryType(String value) native;
+  set binaryType(String? value) native;
 
   int? get bufferedAmount native;
 
@@ -32385,13 +32385,13 @@ class Window extends EventTarget
 
   String? get defaultStatus native;
 
-  set defaultStatus(String value) native;
+  set defaultStatus(String? value) native;
 
   /// *Deprecated*.
 
   String? get defaultstatus native;
 
-  set defaultstatus(String value) native;
+  set defaultstatus(String? value) native;
 
   /**
    * The ratio between physical pixels and logical CSS pixels.
@@ -32493,7 +32493,7 @@ class Window extends EventTarget
 
   String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
   /**
    * The user agent accessing this window.
@@ -32732,7 +32732,7 @@ class Window extends EventTarget
 
   String? get status native;
 
-  set status(String value) native;
+  set status(String? value) native;
 
   /**
    * This window's status bar.
@@ -33677,8 +33677,9 @@ class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
 
   String get returnValue => _returnValue;
 
-  set returnValue(String value) {
-    _returnValue = value;
+  set returnValue(String? value) {
+    // Typed as nullable only to be compatible with the overriden method.
+    _returnValue = value!;
     // FF and IE use the value as the return value, Chrome will return this from
     // the event callback function.
     if (JS<bool>('bool', '("returnValue" in #)', wrapped)) {
@@ -34239,7 +34240,7 @@ class _Attr extends Node {
 
   String? get value native;
 
-  set value(String value) native;
+  set value(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34643,13 +34644,13 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
 
   num? get x native;
 
-  set x(num value) native;
+  set x(num? value) native;
 
   // Shadowing definition.
 
   num? get y native;
 
-  set y(num value) native;
+  set y(num? value) native;
 }
 
 /**

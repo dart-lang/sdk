@@ -86,15 +86,15 @@ class Angle extends Interceptor {
 
   num? get value native;
 
-  set value(num value) native;
+  set value(num? value) native;
 
   String? get valueAsString native;
 
-  set valueAsString(String value) native;
+  set valueAsString(String? value) native;
 
   num? get valueInSpecifiedUnits native;
 
-  set valueInSpecifiedUnits(num value) native;
+  set valueInSpecifiedUnits(num? value) native;
 
   void convertToSpecifiedUnits(int unitType) native;
 
@@ -222,7 +222,7 @@ class AnimatedBoolean extends Interceptor {
 
   bool? get baseVal native;
 
-  set baseVal(bool value) native;
+  set baseVal(bool? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -240,7 +240,7 @@ class AnimatedEnumeration extends Interceptor {
 
   int? get baseVal native;
 
-  set baseVal(int value) native;
+  set baseVal(int? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -258,7 +258,7 @@ class AnimatedInteger extends Interceptor {
 
   int? get baseVal native;
 
-  set baseVal(int value) native;
+  set baseVal(int? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -308,7 +308,7 @@ class AnimatedNumber extends Interceptor {
 
   num? get baseVal native;
 
-  set baseVal(num value) native;
+  set baseVal(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -374,7 +374,7 @@ class AnimatedString extends Interceptor {
 
   String? get baseVal native;
 
-  set baseVal(String value) native;
+  set baseVal(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1962,7 +1962,7 @@ class ImageElement extends GraphicsElement implements UriReference {
 
   String? get async native;
 
-  set async(String value) native;
+  set async(String? value) native;
 
   AnimatedLength? get height native;
 
@@ -2018,15 +2018,15 @@ class Length extends Interceptor {
 
   num? get value native;
 
-  set value(num value) native;
+  set value(num? value) native;
 
   String? get valueAsString native;
 
-  set valueAsString(String value) native;
+  set valueAsString(String? value) native;
 
   num? get valueInSpecifiedUnits native;
 
-  set valueInSpecifiedUnits(num value) native;
+  set valueInSpecifiedUnits(num? value) native;
 
   void convertToSpecifiedUnits(int unitType) native;
 
@@ -2279,27 +2279,27 @@ class Matrix extends Interceptor {
 
   num? get a native;
 
-  set a(num value) native;
+  set a(num? value) native;
 
   num? get b native;
 
-  set b(num value) native;
+  set b(num? value) native;
 
   num? get c native;
 
-  set c(num value) native;
+  set c(num? value) native;
 
   num? get d native;
 
-  set d(num value) native;
+  set d(num? value) native;
 
   num? get e native;
 
-  set e(num value) native;
+  set e(num? value) native;
 
   num? get f native;
 
-  set f(num value) native;
+  set f(num? value) native;
 
   Matrix flipX() native;
 
@@ -2355,7 +2355,7 @@ class Number extends Interceptor {
 
   num? get value native;
 
-  set value(num value) native;
+  set value(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2522,11 +2522,11 @@ class Point extends Interceptor {
 
   num? get x native;
 
-  set x(num value) native;
+  set x(num? value) native;
 
   num? get y native;
 
-  set y(num value) native;
+  set y(num? value) native;
 
   Point matrixTransform(Matrix matrix) native;
 }
@@ -2656,11 +2656,11 @@ class PreserveAspectRatio extends Interceptor {
 
   int? get align native;
 
-  set align(int value) native;
+  set align(int? value) native;
 
   int? get meetOrSlice native;
 
-  set meetOrSlice(int value) native;
+  set meetOrSlice(int? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2710,19 +2710,19 @@ class Rect extends Interceptor {
 
   num? get height native;
 
-  set height(num value) native;
+  set height(num? value) native;
 
   num? get width native;
 
-  set width(num value) native;
+  set width(num? value) native;
 
   num? get x native;
 
-  set x(num value) native;
+  set x(num? value) native;
 
   num? get y native;
 
-  set y(num value) native;
+  set y(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2781,7 +2781,7 @@ class ScriptElement extends SvgElement implements UriReference {
 
   String? get type native;
 
-  set type(String value) native;
+  set type(String? value) native;
 
   // From SVGURIReference
 
@@ -2939,21 +2939,21 @@ class StyleElement extends SvgElement {
 
   bool? get disabled native;
 
-  set disabled(bool value) native;
+  set disabled(bool? value) native;
 
   String? get media native;
 
-  set media(String value) native;
+  set media(String? value) native;
 
   StyleSheet? get sheet native;
 
   // Use implementation from Element.
   // String? get title native;
-  // void set title(String value) native;
+  // void set title(String? value) native;
 
   String? get type native;
 
-  set type(String value) native;
+  set type(String? value) native;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3294,7 +3294,7 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
 
   // Use implementation from Element.
   // int? get tabIndex native;
-  // void set tabIndex(int value) native;
+  // void set tabIndex(int? value) native;
 
   SvgElement? get viewportElement native;
 
@@ -3460,7 +3460,7 @@ class SvgSvgElement extends GraphicsElement
 
   num? get currentScale native;
 
-  set currentScale(num value) native;
+  set currentScale(num? value) native;
 
   Point? get currentTranslate native;
 
@@ -3541,7 +3541,7 @@ class SvgSvgElement extends GraphicsElement
 
   int? get zoomAndPan native;
 
-  set zoomAndPan(int value) native;
+  set zoomAndPan(int? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4006,7 +4006,7 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
 
   int? get zoomAndPan native;
 
-  set zoomAndPan(int value) native;
+  set zoomAndPan(int? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4027,7 +4027,7 @@ abstract class ZoomAndPan extends Interceptor {
 
   int? get zoomAndPan native;
 
-  set zoomAndPan(int value) native;
+  set zoomAndPan(int? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

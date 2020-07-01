@@ -660,7 +660,7 @@ class Index extends Interceptor {
 
   String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
   ObjectStore? get objectStore native;
 
@@ -890,7 +890,7 @@ class ObjectStore extends Interceptor {
 
   String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
   Transaction? get transaction native;
 

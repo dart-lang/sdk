@@ -833,23 +833,19 @@ class HtmlDartGenerator(object):
                     attr_name == 'isContentEditable' and self._dart_js_interop):
                 return
             else:
-                template = '\n  $GET_TYPE get $NAME;\n'
+                template = '\n  $TYPE get $NAME;\n'
         else:
-            template = '\n  $GET_TYPE get $NAME native;\n' \
-                       '\n  set $NAME($SET_TYPE value) native;\n'
+            template = '\n  $TYPE get $NAME native;\n' \
+                       '\n  set $NAME($TYPE value) native;\n'
 
-        # Getter nullability is determined by attribute compatibility.
+        # Nullability is determined by attribute compatibility.
         is_compat = self._mdn_reader.is_compatible(attribute)
-        get_type = self.SecureOutputType(attribute.type.id,
-                                         nullable=(not is_compat) or
-                                         attribute.type.nullable)
-        set_type = self.SecureOutputType(attribute.type.id,
-                                         nullable=attribute.type.nullable)
+        nullable = attribute.type.nullable or not is_compat
 
         self._members_emitter.Emit(template,
                                    NAME=attr_name,
-                                   GET_TYPE=get_type,
-                                   SET_TYPE=set_type)
+                                   TYPE=self.SecureOutputType(
+                                       attribute.type.id, nullable=nullable))
 
     def DeclareOperation(self, operation, return_type_name, method_name):
         """ Declares an operation but does not include the code to invoke it.
