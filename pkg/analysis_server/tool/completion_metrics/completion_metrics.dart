@@ -1088,8 +1088,7 @@ class CompletionResult {
           expectedCompletion.elementKind == ElementKind.ENUM ||
           expectedCompletion.elementKind == ElementKind.TYPE_PARAMETER) {
         return CompletionGroup.typeReference;
-      } else if (expectedCompletion.elementKind == ElementKind.LOCAL_VARIABLE ||
-          expectedCompletion.elementKind == ElementKind.PARAMETER) {
+      } else if (expectedCompletion.elementKind == ElementKind.LOCAL_VARIABLE) {
         return CompletionGroup.localReference;
       }
     }
