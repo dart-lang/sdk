@@ -22,7 +22,8 @@ import 'package:analyzer/dart/element/element.dart'
         FieldElement,
         LibraryElement,
         PropertyAccessorElement,
-        TopLevelVariableElement;
+        TopLevelVariableElement,
+        LocalVariableElement;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -236,9 +237,6 @@ class FeatureComputer {
   double inheritanceDistanceFeature(
       ClassElement subclass, ClassElement superclass) {
     var distance = _inheritanceDistance(subclass, superclass, {});
-    if (distance < 0) {
-      return 0.0;
-    }
     return _distanceToPercent(distance);
   }
 
@@ -286,6 +284,87 @@ class FeatureComputer {
     return range.upper;
   }
 
+  /// Return the distance between the [reference] and the referenced local
+  /// [variable], where the distance is defined to be the number of variable
+  /// declarations between the local variable and the reference.
+  int localVariableDistance(AstNode reference, LocalVariableElement variable) {
+    var distance = 0;
+    var node = reference;
+    while (node != null) {
+      if (node is ForStatement || node is ForElement) {
+        var loopParts = node is ForStatement
+            ? node.forLoopParts
+            : (node as ForElement).forLoopParts;
+        if (loopParts is ForPartsWithDeclarations) {
+          for (var declaredVariable in loopParts.variables.variables.reversed) {
+            if (declaredVariable.declaredElement == variable) {
+              return distance;
+            }
+            distance++;
+          }
+        } else if (loopParts is ForEachPartsWithDeclaration) {
+          if (loopParts.loopVariable.declaredElement == variable) {
+            return distance;
+          }
+          distance++;
+        }
+      } else if (node is VariableDeclaration) {
+        var parent = node.parent;
+        if (parent is VariableDeclarationList) {
+          var variables = parent.variables;
+          var index = variables.indexOf(node);
+          for (var i = index - 1; i >= 0; i--) {
+            var declaredVariable = variables[i];
+            if (declaredVariable.declaredElement == variable) {
+              return distance;
+            }
+            distance++;
+          }
+        }
+      } else if (node is CatchClause) {
+        if (node.exceptionParameter?.staticElement == variable ||
+            node.stackTraceParameter?.staticElement == variable) {
+          return distance;
+        }
+      }
+      if (node is Statement) {
+        var parent = node.parent;
+        var statements = const <Statement>[];
+        if (parent is Block) {
+          statements = parent.statements;
+        } else if (parent is SwitchCase) {
+          statements = parent.statements;
+        } else if (parent is SwitchDefault) {
+          statements = parent.statements;
+        }
+        var index = statements.indexOf(node);
+        for (var i = index - 1; i >= 0; i--) {
+          var statement = statements[i];
+          if (statement is VariableDeclarationStatement) {
+            for (var declaredVariable
+                in statement.variables.variables.reversed) {
+              if (declaredVariable.declaredElement == variable) {
+                return distance;
+              }
+              distance++;
+            }
+          }
+        }
+      }
+      node = node.parent;
+    }
+    return -1;
+  }
+
+  /// Return the value of the _local variable distance_ feature for a local
+  /// variable whose declaration is separated from the completion location by
+  /// [distance] other variable declarations.
+  double localVariableDistanceFeature(
+      AstNode reference, LocalVariableElement variable) {
+    var distance = localVariableDistance(reference, variable);
+    return _distanceToPercent(distance);
+  }
+
   /// Return the value of the _starts with dollar_ feature.
   double startsWithDollarFeature(String name) =>
       name.startsWith('\$') ? 0.0 : 1.0;
@@ -297,8 +376,14 @@ class FeatureComputer {
           ? -1.0
           : (proposedMemberName == containingMethodName ? 1.0 : 0.0);
 
-  /// Convert a [distance] to a percentage value and return the percentage.
-  double _distanceToPercent(int distance) => math.pow(0.95, distance);
+  /// Convert a [distance] to a percentage value and return the percentage. If
+  /// the [distance] is negative, return `-1.0`.
+  double _distanceToPercent(int distance) {
+    if (distance < 0) {
+      return -1.0;
+    }
+    return math.pow(0.95, distance);
+  }
 
   /// Return the inheritance distance between the [subclass] and the
   /// [superclass]. The set of [visited] elements is used to guard against

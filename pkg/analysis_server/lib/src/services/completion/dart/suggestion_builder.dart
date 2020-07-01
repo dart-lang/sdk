@@ -661,17 +661,19 @@ class SuggestionBuilder {
     var variableType = variable.type;
     int relevance;
     if (request.useNewRelevance) {
-      // TODO(brianwilkerson) Use the distance to the local variable as
-      //  another feature.
       var contextType = request.featureComputer
           .contextTypeFeature(request.contextType, variableType);
       var elementKind = _computeElementKind(variable);
       var isConstant = request.inConstantContext
           ? request.featureComputer.isConstantFeature(variable)
           : -1.0;
+      var localVariableDistance = request.featureComputer
+          .localVariableDistanceFeature(
+              request.target.containingNode, variable);
       relevance = toRelevance(
           weightedAverage(
-              [contextType, elementKind, isConstant], [1.0, 1.0, 1.0]),
+              [contextType, elementKind, isConstant, localVariableDistance],
+              [1.0, 1.0, 1.0, 0.25]),
           800);
       listener?.computedFeatures(contextType: contextType);
     } else {
