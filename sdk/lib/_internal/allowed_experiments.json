@@ -46,6 +46,9 @@
     "flutter": {
       "experimentSet": "nullSafety"
     },
+    "flutter_test": {
+      "experimentSet": "nullSafety"
+    },
     "js": {
       "experimentSet": "nullSafety"
     },
