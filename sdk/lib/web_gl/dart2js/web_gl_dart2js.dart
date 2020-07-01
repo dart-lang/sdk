@@ -727,9 +727,9 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
 
   // From WebGLRenderingContextBase
 
-  int get drawingBufferHeight native;
+  int? get drawingBufferHeight native;
 
-  int get drawingBufferWidth native;
+  int? get drawingBufferWidth native;
 
   void activeTexture(int texture) native;
 
@@ -1363,7 +1363,7 @@ class RenderingContext2 extends Interceptor
     throw new UnsupportedError("Not supported");
   }
 
-  Canvas get canvas native;
+  Canvas? get canvas native;
 
   // From WebGL2RenderingContextBase
 
@@ -2304,9 +2304,9 @@ class RenderingContext2 extends Interceptor
 
   // From WebGLRenderingContextBase
 
-  int get drawingBufferHeight native;
+  int? get drawingBufferHeight native;
 
-  int get drawingBufferWidth native;
+  int? get drawingBufferWidth native;
 
   void activeTexture(int texture) native;
 
@@ -2890,13 +2890,13 @@ class Texture extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get lastUploadedVideoFrameWasSkipped native;
+  bool? get lastUploadedVideoFrameWasSkipped native;
 
-  int get lastUploadedVideoHeight native;
+  int? get lastUploadedVideoHeight native;
 
-  num get lastUploadedVideoTimestamp native;
+  num? get lastUploadedVideoTimestamp native;
 
-  int get lastUploadedVideoWidth native;
+  int? get lastUploadedVideoWidth native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
