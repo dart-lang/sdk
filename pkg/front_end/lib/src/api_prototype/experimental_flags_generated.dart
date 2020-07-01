@@ -108,6 +108,9 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   "collection": {
     ExperimentalFlag.nonNullable,
   },
+  "dart_internal": {
+    ExperimentalFlag.nonNullable,
+  },
   "fake_async": {
     ExperimentalFlag.nonNullable,
   },
