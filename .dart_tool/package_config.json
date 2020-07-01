@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-06-25T14:50:17.022226",
+  "generated": "2020-06-29T11:21:54.984521",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -119,7 +119,7 @@
       "name": "collection",
       "rootUri": "../third_party/pkg/collection",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.9"
     },
     {
       "name": "compiler",
@@ -566,7 +566,7 @@
       "name": "stagehand",
       "rootUri": "../third_party/pkg/stagehand",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.8"
     },
     {
       "name": "status_file",
