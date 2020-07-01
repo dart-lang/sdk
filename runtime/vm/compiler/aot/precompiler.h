@@ -445,10 +445,6 @@ class Obfuscator : public ValueObject {
     return state_->RenameImpl(name, atomic);
   }
 
-  // Given a constant |instance| of dart:internal.Symbol rename it by updating
-  // its |name| field.
-  static void ObfuscateSymbolInstance(Thread* thread, const Instance& instance);
-
   // Given a sequence of obfuscated identifiers deobfuscate it.
   //
   // This method is only used by parser when resolving conditional imports
@@ -585,8 +581,6 @@ class Obfuscator {
   }
 
   void PreventRenaming(const String& name) {}
-  static void ObfuscateSymbolInstance(Thread* thread,
-                                      const Instance& instance) {}
 
   static void Deobfuscate(Thread* thread, const GrowableObjectArray& pieces) {}
 };
