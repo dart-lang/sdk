@@ -570,7 +570,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // If there's a reasonable value that can be returned, then add a return
+  // If there's a reasonable value that can be returned, then add a `return`
   // statement at the end of the method:
   //
   // ```dart
@@ -583,8 +583,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // }
   // ```
   //
-  // If the method won't reach the implicit return, then add a throw at the end
-  // of the method:
+  // If the method won't reach the implicit return, then add a `throw` at the
+  // end of the method:
   //
   // ```dart
   // %experiments=non-nullable
@@ -752,8 +752,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when the expression following `case`
-  // in a switch statement has a static type that isn't a subtype of the static
-  // type of the expression following `switch`.
+  // in a `switch` statement has a static type that isn't a subtype of the
+  // static type of the expression following `switch`.
   //
   // #### Example
   //
@@ -772,7 +772,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // If the value of the case expression is wrong, then change the case
+  // If the value of the `case` expression is wrong, then change the `case`
   // expression so that it has the required type:
   //
   // ```dart
@@ -785,7 +785,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // }
   // ```
   //
-  // If the value of the case expression is correct, then change the switch
+  // If the value of the `case` expression is correct, then change the `switch`
   // expression to have the required type:
   //
   // ```dart
@@ -1621,7 +1621,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode DEFAULT_LIST_CONSTRUCTOR =
       CompileTimeErrorCode(
           'DEFAULT_LIST_CONSTRUCTOR',
-          "The default 'List' constructor is not available when null safety is "
+          "The default 'List' constructor isn't available when null safety is "
               "enabled.",
           correction: "Try using a list literal, 'List.filled' or "
               "'List.generate'.");
@@ -1710,7 +1710,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // The following code produces this diagnostic because `x` was not assigned a
+  // The following code produces this diagnostic because `x` wasn't assigned a
   // value before being read:
   //
   // ```dart
@@ -2162,7 +2162,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when an extends clause contains a
+  // The analyzer produces this diagnostic when an `extends` clause contains a
   // name that is declared to be something other than a class.
   //
   // #### Examples
@@ -2179,7 +2179,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Common fixes
   //
   // If you want the class to extend a class other than `Object`, then replace
-  // the name in the extends clause with the name of that class:
+  // the name in the `extends` clause with the name of that class:
   //
   // ```dart
   // void f() {}
@@ -2189,7 +2189,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // class B {}
   // ```
   //
-  // If you want the class to extend `Object`, then remove the extends clause:
+  // If you want the class to extend `Object`, then remove the `extends` clause:
   //
   // ```dart
   // void f() {}
@@ -2431,7 +2431,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // The analyzer produces this diagnostic when an extension override is used as
   // the target of a cascade expression. The value of a cascade expression
-  // `e..m` is the value of the target `e`, but extension overrides are not
+  // `e..m` is the value of the target `e`, but extension overrides aren't
   // expressions and don't have a value.
   //
   // #### Examples
@@ -2758,7 +2758,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when a name used in the implements
+  // The analyzer produces this diagnostic when a name used in the `implements`
   // clause of a class or mixin declaration is defined to be something other
   // than a class or mixin.
   //
@@ -2782,8 +2782,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // imported, then add an import, with a prefix, for the library in which it’s
   // declared.
   //
-  // Otherwise, either replace the name in the implements clause with the name
-  // of an existing class or mixin, or remove the name from the implements
+  // Otherwise, either replace the name in the `implements` clause with the name
+  // of an existing class or mixin, or remove the name from the `implements`
   // clause.
   static const CompileTimeErrorCode IMPLEMENTS_NON_CLASS = CompileTimeErrorCode(
       'IMPLEMENTS_NON_CLASS',
@@ -2800,7 +2800,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a single class is specified more
-  // than once in an implements clause.
+  // than once in an `implements` clause.
   //
   // #### Examples
   //
@@ -4148,7 +4148,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when a name in a mixin clause is
+  // The analyzer produces this diagnostic when a name in a `with` clause is
   // defined to be something other than a mixin or a class.
   //
   // #### Examples
@@ -4164,7 +4164,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // Remove the invalid name from the list, possibly replacing it with the name of the intended mixin or class:
+  // Remove the invalid name from the list, possibly replacing it with the name
+  // of the intended mixin or class:
   //
   // ```dart
   // typedef F = int Function(String);
@@ -4221,7 +4222,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If the type was intended to be a class but was mistyped, then replace the
   // name.
   //
-  // Otherwise, remove the type from the on clause.
+  // Otherwise, remove the type from the `on` clause.
   static const CompileTimeErrorCode MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE =
       CompileTimeErrorCode('MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE',
           "Only classes and mixins can be used as superclass constraints.",
@@ -4362,8 +4363,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when the expression in a case clause
-  // isn't a constant expression.
+  // The analyzer produces this diagnostic when the expression in a `case`
+  // clause isn't a constant expression.
   //
   // #### Examples
   //
@@ -4381,8 +4382,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // Either make the expression a constant expression, or rewrite the switch
-  // statement as a sequence of if statements:
+  // Either make the expression a constant expression, or rewrite the `switch`
+  // statement as a sequence of `if` statements:
   //
   // ```dart
   // void f(int i, int j) {
@@ -4637,12 +4638,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when an if element or a spread
+  // The analyzer produces this diagnostic when an `if` element or a spread
   // element in a constant map isn't a constant element.
   //
   // #### Examples
   //
-  // The following code produces this diagnostic because it is attempting to
+  // The following code produces this diagnostic because it's attempting to
   // spread a non-constant map:
   //
   // ```dart
@@ -4651,7 +4652,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   //
   // Similarly, the following code produces this diagnostic because the
-  // condition in the if element isn't a constant expression:
+  // condition in the `if` element isn't a constant expression:
   //
   // ```dart
   // bool notConst = true;
@@ -4660,7 +4661,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // If the map needs to be a constant map, then make the elements  constants.
+  // If the map needs to be a constant map, then make the elements constants.
   // In the spread example, you might do that by making the collection being
   // spread a constant:
   //
@@ -5228,12 +5229,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a class declaration uses an
-  // extends clause to specify a superclass, and the superclass is followed by a
-  // `?`.
+  // `extends` clause to specify a superclass, and the superclass is followed by
+  // a `?`.
   //
   // It isn't valid to specify a nullable superclass because doing so would have
   // no meaning; it wouldn't change either the interface or implementation being
-  // inherited by the class containing the extends clause.
+  // inherited by the class containing the `extends` clause.
   //
   // Note, however, that it _is_ valid to use a nullable type as a type argument
   // to the superclass, such as `class A extends B<C?> {}`.
@@ -5241,7 +5242,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Example
   //
   // The following code produces this diagnostic because `A?` is a nullable
-  // type, and nullable types can't be used in an extends clause:
+  // type, and nullable types can't be used in an `extends` clause:
   //
   // ```dart
   // %experiments=non-nullable
@@ -5269,11 +5270,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a class or mixin declaration has
-  // an implements clause, and an interface is followed by a `?`.
+  // an `implements` clause, and an interface is followed by a `?`.
   //
   // It isn't valid to specify a nullable interface because doing so would have
   // no meaning; it wouldn't change the interface being inherited by the class
-  // containing the implements clause.
+  // containing the `implements` clause.
   //
   // Note, however, that it _is_ valid to use a nullable type as a type argument
   // to the interface, such as `class A implements B<C?> {}`.
@@ -5282,7 +5283,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Example
   //
   // The following code produces this diagnostic because `A?` is a nullable
-  // type, and nullable types can't be used in an implements clause:
+  // type, and nullable types can't be used in an `implements` clause:
   //
   // ```dart
   // %experiments=non-nullable
@@ -5309,13 +5310,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when a mixin declaration uses an on
+  // The analyzer produces this diagnostic when a mixin declaration uses an `on`
   // clause to specify a superclass constraint, and the class that's specified
   // is followed by a `?`.
   //
   // It isn't valid to specify a nullable superclass constraint because doing so
   // would have no meaning; it wouldn't change the interface being depended on
-  // by the mixin containing the on clause.
+  // by the mixin containing the `on` clause.
   //
   // Note, however, that it _is_ valid to use a nullable type as a type argument
   // to the superclass constraint, such as `mixin A on B<C?> {}`.
@@ -5324,7 +5325,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Example
   //
   // The following code produces this diagnostic because `A?` is a nullable type
-  // and nullable types can't be used in an on clause:
+  // and nullable types can't be used in an `on` clause:
   //
   // ```dart
   // %experiments=non-nullable
@@ -5352,11 +5353,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a class or mixin declaration has
-  // a with clause, and a mixin is followed by a `?`.
+  // a `with` clause, and a mixin is followed by a `?`.
   //
   // It isn't valid to specify a nullable mixin because doing so would have no
   // meaning; it wouldn't change either the interface or implementation being
-  // inherited by the class containing the with clause.
+  // inherited by the class containing the `with` clause.
   //
   // Note, however, that it _is_ valid to use a nullable type as a type argument
   // to the mixin, such as `class A with B<C?> {}`.
@@ -5364,7 +5365,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Example
   //
   // The following code produces this diagnostic because `A?` is a nullable
-  // type, and nullable types can't be used in a with clause:
+  // type, and nullable types can't be used in a `with` clause:
   //
   // ```dart
   // %experiments=non-nullable
@@ -5843,13 +5844,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a generative constructor
-  // contains a return statement that specifies a value to be returned.
+  // contains a `return` statement that specifies a value to be returned.
   // Generative constructors always return the object that was created, and
   // therefore can't return a different object.
   //
   // #### Example
   //
-  // The following code produces this diagnostic because the return statement
+  // The following code produces this diagnostic because the `return` statement
   // has an expression:
   //
   // ```dart
@@ -5863,7 +5864,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Common fixes
   //
   // If the constructor should create a new instance, then remove either the
-  // return statement or the expression:
+  // `return` statement or the expression:
   //
   // ```dart
   // class C {
@@ -6025,7 +6026,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when the type of the expression in a
-  // throw expression is not assignable to `Object`. It’s not valid to throw
+  // throw expression isn't assignable to `Object`. It isn't valid to throw
   // `null`, so it isn't valid to use an expression that might evaluate to
   // `null`.
   //
@@ -8605,13 +8606,13 @@ class StaticWarningCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when the last statement in a case
+  // The analyzer produces this diagnostic when the last statement in a `case`
   // block isn't one of the required terminators: `break`, `continue`,
   // `rethrow`, `return`, or `throw`.
   //
   // #### Examples
   //
-  // The following code produces this diagnostic because the case block ends
+  // The following code produces this diagnostic because the `case` block ends
   // with an assignment:
   //
   // ```dart
@@ -9121,7 +9122,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
       StaticWarningCodeWithUniqueName(
           'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
           'StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
-          "All final variables must be initialized, but '{0}' is not.",
+          "All final variables must be initialized, but '{0}' isn't.",
           correction: "Try adding an initializer for the field.",
           hasPublishedDocs: true);
 
@@ -9134,8 +9135,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
       StaticWarningCodeWithUniqueName(
           'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
           'StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
-          "All final variables must be initialized, but '{0}' and '{1}' are "
-              "not.",
+          "All final variables must be initialized, but '{0}' and '{1}' "
+              "aren't.",
           correction: "Try adding initializers for the fields.",
           hasPublishedDocs: true);
 
@@ -9150,7 +9151,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
           'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
           'StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
           "All final variables must be initialized, but '{0}', '{1}', and {2} "
-              "others are not.",
+              "others aren't.",
           correction: "Try adding initializers for the fields.",
           hasPublishedDocs: true);
 
@@ -9275,8 +9276,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // Replace the null-aware operator with a non-null-aware equivalent, such as
-  // replacing '?.' with  '.':
+  // Replace the null-aware operator with a non-null-aware equivalent; for
+  // example, change `?.` to  `.`:
   //
   // ```dart
   // %experiments=non-nullable
@@ -9494,7 +9495,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when a switch statement for an enum
+  // The analyzer produces this diagnostic when a `switch` statement for an enum
   // doesn't include an option for one of the values in the enumeration.
   //
   // Note that `null` is always a possible value for an enum and therefore also
@@ -9518,8 +9519,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // If there's special handling for the missing values, then add a case clause
-  // for each of the missing values:
+  // If there's special handling for the missing values, then add a `case`
+  // clause for each of the missing values:
   //
   // ```dart
   // enum E { e1, e2 }
@@ -9534,7 +9535,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // }
   // ```
   //
-  // If the missing values should be handled the same way, then add a default
+  // If the missing values should be handled the same way, then add a `default`
   // clause:
   //
   // ```dart
@@ -9802,7 +9803,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when the identifier following the
-  // `on` in a catch clause is defined to be something other than a type.
+  // `on` in a `catch` clause is defined to be something other than a type.
   //
   // #### Examples
   //
@@ -10085,7 +10086,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when it finds a return statement
+  // The analyzer produces this diagnostic when it finds a `return` statement
   // without an expression in a function that declares a return type.
   //
   // #### Examples
@@ -10186,8 +10187,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when the type of the expression in a
-  // switch statement isn't assignable to the type of the expressions in the
-  // case clauses.
+  // `switch` statement isn't assignable to the type of the expressions in the
+  // `case` clauses.
   //
   // #### Example
   //
@@ -10205,8 +10206,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // If the type of the case expressions is correct, then change the expression
-  // in the switch statement to have the correct type:
+  // If the type of the `case` expressions is correct, then change the
+  // expression in the `switch` statement to have the correct type:
   //
   // ```dart
   // void f(String s) {
@@ -10217,7 +10218,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // }
   // ```
   //
-  // If the type of the switch expression is correct, then change the case
+  // If the type of the `switch` expression is correct, then change the `case`
   // expressions to have the correct type:
   //
   // ```dart
