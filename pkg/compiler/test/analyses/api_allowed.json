@@ -56,7 +56,7 @@
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/async_patch.dart": {
     "Dynamic invocation of '-'.": 1,
     "Dynamic access of 'iterator'.": 1,
-    "Dynamic invocation of 'call'.": 4,
+    "Dynamic invocation of 'call'.": 1,
     "Dynamic invocation of 'then'.": 1
   },
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/collection_patch.dart": {

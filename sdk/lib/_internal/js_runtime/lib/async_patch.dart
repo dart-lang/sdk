@@ -402,9 +402,10 @@ void _asyncStarHelper(
     return;
   }
 
+  _WrappedAsyncBody bodyFunction = bodyFunctionOrErrorCode;
   if (object is _IterationMarker) {
     if (controller.isCanceled) {
-      bodyFunctionOrErrorCode(async_error_codes.STREAM_WAS_CANCELED, null);
+      bodyFunction(async_error_codes.STREAM_WAS_CANCELED, null);
       return;
     }
     if (object.state == _IterationMarker.YIELD_SINGLE) {
@@ -418,7 +419,7 @@ void _asyncStarHelper(
           controller.isSuspended = true;
           return;
         }
-        bodyFunctionOrErrorCode(null, async_error_codes.SUCCESS);
+        bodyFunction(async_error_codes.SUCCESS, null);
       });
       return;
     } else if (object.state == _IterationMarker.YIELD_STAR) {
@@ -434,13 +435,13 @@ void _asyncStarHelper(
         int errorCode = controller.isCanceled
             ? async_error_codes.STREAM_WAS_CANCELED
             : async_error_codes.SUCCESS;
-        bodyFunctionOrErrorCode(errorCode, null);
+        bodyFunction(errorCode, null);
       });
       return;
     }
   }
 
-  _awaitOnObject(object, bodyFunctionOrErrorCode);
+  _awaitOnObject(object, bodyFunction);
 }
 
 Stream _streamOfController(_AsyncStarStreamController controller) {
