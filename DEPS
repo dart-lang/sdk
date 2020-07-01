@@ -66,8 +66,8 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.6.0",
-  "async_tag": "2.4.1",
-  "bazel_worker_tag": "v0.1.22",
+  "async_rev": "e0c41e0c1fb70ba606dc81335c981af7c00987c6",
+  "bazel_worker_rev": "26680d5e249b249c7216ab2fed0ac8ed4ee285c5",
   "benchmark_harness_rev": "81641290dea44c34138a109a37e215482f405f81",
   "boolean_selector_rev": "1309eabed510cc3b7536fd4367d39b97ebee3d69",
   "boringssl_gen_rev": "429ccb1877f7987a6f3988228bc2440e61293499",
@@ -295,9 +295,9 @@ deps = {
   Var("dart_root") + "/third_party/pkg/args":
       Var("dart_git") + "args.git" + "@" + Var("args_tag"),
   Var("dart_root") + "/third_party/pkg/async":
-      Var("dart_git") + "async.git" + "@" + Var("async_tag"),
+      Var("dart_git") + "async.git" + "@" + Var("async_rev"),
   Var("dart_root") + "/third_party/pkg/bazel_worker":
-      Var("dart_git") + "bazel_worker.git" + "@" + Var("bazel_worker_tag"),
+      Var("dart_git") + "bazel_worker.git" + "@" + Var("bazel_worker_rev"),
   Var("dart_root") + "/third_party/pkg/benchmark_harness":
       Var("dart_git") + "benchmark_harness.git" + "@" +
       Var("benchmark_harness_rev"),
