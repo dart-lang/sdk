@@ -299,7 +299,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
 
     if (element is TemplateElement) {
       TemplateElement template = element;
-      sanitizeTree(template.content);
+      sanitizeTree(template.content!);
     }
   }
 

@@ -9137,9 +9137,9 @@ class DataTransferItem extends Interceptor {
   Entry getAsEntry() {
     Entry entry = _webkitGetAsEntry() as Entry;
 
-    if (entry.isFile)
+    if (entry.isFile!)
       applyExtension('FileEntry', entry);
-    else if (entry.isDirectory)
+    else if (entry.isDirectory!)
       applyExtension('DirectoryEntry', entry);
     else
       applyExtension('Entry', entry);
@@ -9754,9 +9754,9 @@ class DirectoryReader extends Interceptor {
       values.forEach((value) {
         applyExtension('Entry', value);
         Entry entry = value as Entry;
-        if (entry.isFile)
+        if (entry.isFile!)
           applyExtension('FileEntry', entry);
-        else if (entry.isDirectory) applyExtension('DirectoryEntry', entry);
+        else if (entry.isDirectory!) applyExtension('DirectoryEntry', entry);
       });
       completer.complete(new List<Entry>.from(values));
     }, (error) {
@@ -13144,7 +13144,7 @@ class Element extends Node
    * Gets the position of this element relative to the client area of the page.
    */
   Rectangle get client =>
-      new Rectangle(clientLeft, clientTop, clientWidth, clientHeight);
+      new Rectangle(clientLeft!, clientTop!, clientWidth, clientHeight);
 
   /**
    * Gets the offset of this element relative to its offsetParent.
@@ -13687,13 +13687,13 @@ class Element extends Node
     }
 
     if (_parseDocument == null) {
-      _parseDocument = document.implementation.createHtmlDocument('');
+      _parseDocument = document.implementation!.createHtmlDocument('');
       _parseRange = _parseDocument!.createRange();
 
       // Workaround for Safari bug. Was also previously Chrome bug 229142
       // - URIs are not resolved in new doc.
       BaseElement base = _parseDocument!.createElement('base') as BaseElement;
-      base.href = document.baseUri;
+      base.href = document.baseUri!;
       _parseDocument!.head!.append(base);
     }
 
@@ -13815,7 +13815,7 @@ class Element extends Node
     }
   }
 
-  String get innerHtml => _innerHtml;
+  String? get innerHtml => _innerHtml;
 
   @JSName('innerText')
   String get innerText native;
@@ -17681,7 +17681,7 @@ class HtmlDocument extends Document {
 
   HeadElement? get head => _head;
 
-  String get lastModified => _lastModified;
+  String? get lastModified => _lastModified;
 
   String? get preferredStylesheetSet => _preferredStylesheetSet;
 
@@ -17692,7 +17692,7 @@ class HtmlDocument extends Document {
     _selectedStylesheetSet = value;
   }
 
-  List<StyleSheet> get styleSheets => _styleSheets;
+  List<StyleSheet>? get styleSheets => _styleSheets;
 
   String get title => _title;
 
@@ -17992,7 +17992,7 @@ class HttpRequest extends HttpRequestEventTarget {
       {bool? withCredentials, void onProgress(ProgressEvent e)?}) {
     return request(url,
             withCredentials: withCredentials, onProgress: onProgress)
-        .then((HttpRequest xhr) => xhr.responseText);
+        .then((HttpRequest xhr) => xhr.responseText!);
   }
 
   /**
@@ -18140,15 +18140,16 @@ class HttpRequest extends HttpRequestEventTarget {
     }
 
     xhr.onLoad.listen((e) {
-      var accepted = xhr.status >= 200 && xhr.status < 300;
-      var fileUri = xhr.status == 0; // file:// URIs have status of 0.
-      var notModified = xhr.status == 304;
+      var status = xhr.status!;
+      var accepted = status >= 200 && status < 300;
+      var fileUri = status == 0; // file:// URIs have status of 0.
+      var notModified = status == 304;
       // Redirect status is specified up to 307, but others have been used in
       // practice. Notably Google Drive uses 308 Resume Incomplete for
       // resumable uploads, and it's also been used as a redirect. The
       // redirect case will be handled by the browser before it gets to us,
       // so if we see it we should pass it through to the user.
-      var unknownRedirect = xhr.status > 307 && xhr.status < 400;
+      var unknownRedirect = status > 307 && status < 400;
 
       if (accepted || fileUri || notModified || unknownRedirect) {
         completer.complete(xhr);
@@ -18215,7 +18216,7 @@ class HttpRequest extends HttpRequestEventTarget {
       {String? method, String? sendData}) {
     if (supportsCrossOrigin) {
       return request(url, method: method, sendData: sendData).then((xhr) {
-        return xhr.responseText;
+        return xhr.responseText!;
       });
     }
     var completer = new Completer<String>();
@@ -20032,7 +20033,7 @@ class KeyboardEvent extends UIEvent {
 
   int get charCode native;
 
-  int get which => _which;
+  int? get which => _which;
 
   factory KeyboardEvent._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
@@ -22325,7 +22326,7 @@ class MouseEvent extends UIEvent {
 
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
-  Point get movement => new Point(_movementX, _movementY);
+  Point get movement => new Point(_movementX!, _movementY!);
 
   /**
    * The coordinates of the mouse pointer in target node coordinates.
@@ -22352,9 +22353,9 @@ class MouseEvent extends UIEvent {
 
   Point get screen => new Point(_screenX, _screenY);
 
-  Point get layer => new Point(_layerX, _layerY);
+  Point get layer => new Point(_layerX!, _layerY!);
 
-  Point get page => new Point(_pageX, _pageY);
+  Point get page => new Point(_pageX!, _pageY!);
 
   DataTransfer get dataTransfer =>
       JS('DataTransfer', "#['dataTransfer']", this);
@@ -27231,7 +27232,7 @@ class RtcTrackEvent extends Event {
 @Native("Screen")
 class Screen extends Interceptor {
   Rectangle get available =>
-      new Rectangle(_availLeft, _availTop, _availWidth, _availHeight);
+      new Rectangle(_availLeft!, _availTop!, _availWidth!, _availHeight!);
   // To suppress missing implicit constructor warnings.
   factory Screen._() {
     throw new UnsupportedError("Not supported");
@@ -27580,11 +27581,11 @@ class SelectElement extends HtmlElement {
 
   List<OptionElement> get selectedOptions {
     // IE does not change the selected flag for single-selection items.
-    if (this.multiple) {
+    if (this.multiple!) {
       var options = this.options.where((o) => o.selected).toList();
       return new UnmodifiableListView(options);
     } else {
-      return [this.options[this.selectedIndex]];
+      return [this.options[this.selectedIndex!]];
     }
   }
 }
@@ -29647,11 +29648,11 @@ class TemplateElement extends HtmlElement {
   void setInnerHtml(String? html,
       {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     text = null;
-    content.nodes.clear();
+    content!.nodes.clear();
     var fragment = createFragment(html,
         validator: validator, treeSanitizer: treeSanitizer);
 
-    content.append(fragment);
+    content!.append(fragment);
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31857,10 +31858,9 @@ class WheelEvent extends MouseEvent {
    * * [WheelEvent.deltaY](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaY) from the W3C.
    */
   num get deltaY {
-    if (JS('bool', '#.deltaY !== undefined', this)) {
-      // W3C WheelEvent
-      return this._deltaY;
-    }
+    // deltaY may be missing or undefined.
+    num? value = JS('', '#.deltaY', this);
+    if (value != null) return value;
     throw new UnsupportedError('deltaY is not supported');
   }
 
@@ -31873,10 +31873,9 @@ class WheelEvent extends MouseEvent {
    * * [WheelEvent.deltaX](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaX) from the W3C.
    */
   num get deltaX {
-    if (JS('bool', '#.deltaX !== undefined', this)) {
-      // W3C WheelEvent
-      return this._deltaX;
-    }
+    // deltaX may be missing or undefined.
+    num? value = JS('', '#.deltaX', this);
+    if (value != null) return value;
     throw new UnsupportedError('deltaX is not supported');
   }
 
@@ -35722,12 +35721,12 @@ abstract class _AttributeMap extends MapBase<String, String> {
 
   Iterable<String> get keys {
     // TODO: generate a lazy collection instead.
-    var attributes = _element._attributes;
+    var attributes = _element._attributes!;
     var keys = <String>[];
     for (int i = 0, len = attributes.length; i < len; i++) {
       _Attr attr = attributes[i] as _Attr;
       if (_matches(attr)) {
-        keys.add(attr.name);
+        keys.add(attr.name!);
       }
     }
     return keys;
@@ -35735,12 +35734,12 @@ abstract class _AttributeMap extends MapBase<String, String> {
 
   Iterable<String> get values {
     // TODO: generate a lazy collection instead.
-    var attributes = _element._attributes;
+    var attributes = _element._attributes!;
     var values = <String>[];
     for (int i = 0, len = attributes.length; i < len; i++) {
       _Attr attr = attributes[i] as _Attr;
       if (_matches(attr)) {
-        values.add(attr.value);
+        values.add(attr.value!);
       }
     }
     return values;
@@ -40575,12 +40574,12 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   static EventStreamProvider<KeyEvent> keyPressEvent =
       new _KeyboardEventHandler('keypress');
 
-  String get code => _parent.code;
+  String get code => _parent.code!;
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;
-  int get detail => _parent.detail;
-  bool get isComposing => _parent.isComposing;
-  String get key => _parent.key;
+  int get detail => _parent.detail!;
+  bool get isComposing => _parent.isComposing!;
+  String get key => _parent.key!;
   /**
    * Accessor to the part of the keyboard that the key was pressed from (one of
    * KeyLocation.STANDARD, KeyLocation.RIGHT, KeyLocation.LEFT,
@@ -40662,11 +40661,11 @@ class _WrappedEvent implements Event {
 
   _WrappedEvent(this.wrapped);
 
-  bool get bubbles => wrapped.bubbles;
+  bool get bubbles => wrapped.bubbles!;
 
-  bool get cancelable => wrapped.cancelable;
+  bool get cancelable => wrapped.cancelable!;
 
-  bool get composed => wrapped.composed;
+  bool get composed => wrapped.composed!;
 
   EventTarget? get currentTarget => wrapped.currentTarget;
 
@@ -40674,7 +40673,7 @@ class _WrappedEvent implements Event {
 
   int get eventPhase => wrapped.eventPhase;
 
-  bool get isTrusted => wrapped.isTrusted;
+  bool get isTrusted => wrapped.isTrusted!;
 
   EventTarget? get target => wrapped.target;
 
@@ -41099,7 +41098,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
 
     if (element is TemplateElement) {
       TemplateElement template = element;
-      sanitizeTree(template.content);
+      sanitizeTree(template.content!);
     }
   }
 

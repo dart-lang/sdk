@@ -805,8 +805,8 @@ $endif
   /**
    * Gets the position of this element relative to the client area of the page.
    */
-  Rectangle get client => new Rectangle(clientLeft, clientTop, clientWidth,
-      clientHeight);
+  Rectangle get client => new Rectangle(clientLeft$NULLASSERT,
+      clientTop$NULLASSERT, clientWidth, clientHeight);
 
   /**
    * Gets the offset of this element relative to its offsetParent.
@@ -1346,14 +1346,14 @@ $endif
     }
 
     if (_parseDocument == null) {
-      _parseDocument = document.implementation.createHtmlDocument('');
+      _parseDocument = document.implementation$NULLASSERT.createHtmlDocument('');
       _parseRange = _parseDocument$NULLASSERT.createRange();
 
       // Workaround for Safari bug. Was also previously Chrome bug 229142
       // - URIs are not resolved in new doc.
       BaseElement base =
           _parseDocument$NULLASSERT.createElement('base') $#NULLSAFECAST(as BaseElement);
-      base.href = document.baseUri;
+      base.href = document.baseUri$NULLASSERT;
       _parseDocument$NULLASSERT.head$NULLASSERT.append(base);
     }
 
@@ -1456,7 +1456,7 @@ $endif
           treeSanitizer: treeSanitizer));
     }
   }
-  String get innerHtml => _innerHtml;
+  String$NULLABLE get innerHtml => _innerHtml;
 
   @JSName('innerText')
   String get innerText native;

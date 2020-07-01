@@ -3023,14 +3023,14 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
     children.addAll(value);
   }
 
-  String get outerHtml {
+  String? get outerHtml {
     final container = new DivElement();
     final SvgElement cloned = this.clone(true) as SvgElement;
     container.children.add(cloned);
     return container.innerHtml;
   }
 
-  String get innerHtml {
+  String? get innerHtml {
     final container = new DivElement();
     final SvgElement cloned = this.clone(true) as SvgElement;
     container.children.addAll(cloned.children);
