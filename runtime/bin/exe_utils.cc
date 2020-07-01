@@ -98,7 +98,7 @@ Utils::CStringUniquePtr EXEUtils::GetDirectoryPrefixFromExeName() {
       name = File::LinkTarget(namespc, GetFileNameFromPath(name), target,
                               kTargetSize);
       if (name == nullptr) {
-        return Utils::CreateCStringUniquePtr(strdup(""));
+        return Utils::CreateCStringUniquePtr(Utils::StrDup(""));
       }
     } while (File::GetType(namespc, name, false) == File::kIsLink);
     target_size = strlen(name);
@@ -117,7 +117,8 @@ Utils::CStringUniquePtr EXEUtils::GetDirectoryPrefixFromExeName() {
     result = GetDirectoryFromPath(target, nullptr);
   }
   namespc->Release();
-  return Utils::CreateCStringUniquePtr(result == nullptr ? strdup("") : result);
+  return Utils::CreateCStringUniquePtr(result == nullptr ? Utils::StrDup("")
+                                                         : result);
 }
 
 }  // namespace bin

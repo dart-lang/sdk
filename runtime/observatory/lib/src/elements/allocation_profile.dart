@@ -10,7 +10,7 @@ import 'package:observatory/src/elements/containers/virtual_collection.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -37,17 +37,6 @@ enum _SortingField {
 enum _SortingDirection { ascending, descending }
 
 class AllocationProfileElement extends CustomElement implements Renderable {
-  static const tag = const Tag<AllocationProfileElement>('allocation-profile',
-      dependencies: const [
-        ClassRefElement.tag,
-        NavTopMenuElement.tag,
-        NavVMMenuElement.tag,
-        NavIsolateMenuElement.tag,
-        NavRefreshElement.tag,
-        NavNotifyElement.tag,
-        VirtualCollectionElement.tag
-      ]);
-
   RenderingScheduler<AllocationProfileElement> _r;
 
   Stream<RenderedEvent<AllocationProfileElement>> get onRendered =>
@@ -91,7 +80,7 @@ class AllocationProfileElement extends CustomElement implements Renderable {
     return e;
   }
 
-  AllocationProfileElement.created() : super.created(tag);
+  AllocationProfileElement.created() : super.created('allocation-profile');
 
   @override
   attached() {

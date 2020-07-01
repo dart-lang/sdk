@@ -14,9 +14,7 @@ final dartRootDir = path.dirname(path.dirname(execDir));
 final dartRootPath = dartRootDir.toString();
 
 List<String> packageOptions() {
-  if (Platform.packageRoot != null) {
-    return <String>['--package-root=${Platform.packageRoot}'];
-  } else if (Platform.packageConfig != null) {
+  if (Platform.packageConfig != null) {
     return <String>['--packages=${Platform.packageConfig}'];
   } else {
     return <String>[];

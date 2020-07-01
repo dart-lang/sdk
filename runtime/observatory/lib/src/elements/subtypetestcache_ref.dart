@@ -7,13 +7,10 @@ import 'dart:async';
 import 'package:observatory/models.dart' as M
     show IsolateRef, SubtypeTestCacheRef;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class SubtypeTestCacheRefElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<SubtypeTestCacheRefElement>('subtypetestcache-ref');
-
   RenderingScheduler<SubtypeTestCacheRefElement> _r;
 
   Stream<RenderedEvent<SubtypeTestCacheRefElement>> get onRendered =>
@@ -37,7 +34,7 @@ class SubtypeTestCacheRefElement extends CustomElement implements Renderable {
     return e;
   }
 
-  SubtypeTestCacheRefElement.created() : super.created(tag);
+  SubtypeTestCacheRefElement.created() : super.created('subtypetestcache-ref');
 
   @override
   void attached() {

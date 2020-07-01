@@ -258,8 +258,7 @@ class FlowAnalysisResult {
 }
 
 /// CFE-specific implementation of [TypeOperations].
-class TypeOperationsCfe
-    implements TypeOperations<VariableDeclaration, DartType> {
+class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
   final TypeEnvironment typeEnvironment;
 
   TypeOperationsCfe(this.typeEnvironment);

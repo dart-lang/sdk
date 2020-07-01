@@ -26,6 +26,8 @@ class CiderCompletionComputerTest extends CiderServiceTest {
   CiderCompletionResult _completionResult;
   List<CompletionSuggestion> _suggestions;
 
+  Future<void> test_limitedResolution_;
+
   @override
   void setUp() {
     super.setUp();
@@ -312,6 +314,58 @@ main() {
     ]);
   }
 
+  Future<void> test_limitedResolution_class_method() async {
+    await _compute(r'''
+class A<T> {
+  void foo() {}
+
+  void bar<U>(int a) {
+    ^
+  }
+}
+
+class B {}
+
+enum E { e }
+''');
+
+    _assertHasClass(text: 'A');
+    _assertHasClass(text: 'B');
+    _assertHasClass(text: 'String');
+    _assertHasConstructor(text: 'A');
+    _assertHasConstructor(text: 'B');
+    _assertHasEnumConstant(text: 'E.e');
+    _assertHasMethod(text: 'foo');
+    _assertHasMethod(text: 'bar');
+    _assertHasParameter(text: 'a');
+    _assertHasTypeParameter(text: 'T');
+    _assertHasTypeParameter(text: 'U');
+  }
+
+  Future<void> test_limitedResolution_unit_function() async {
+    await _compute(r'''
+void foo() {}
+
+void bar(int a) {
+  ^
+}
+''');
+
+    _assertHasFunction(text: 'foo');
+    _assertHasParameter(text: 'a');
+  }
+
+  Future<void> test_localTypeInference() async {
+    await _compute(r'''
+void foo() {
+  var a = 0;
+  a.^
+}
+''');
+
+    _assertHasGetter(text: 'isEven');
+  }
+
   Future<void> test_warmUp_cachesImportedLibraries() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
     newFile(aPath, content: r'''
@@ -367,6 +421,42 @@ import 'a.dart';
     expect(matching, hasLength(1), reason: 'Expected exactly one completion');
   }
 
+  CompletionSuggestion _assertHasConstructor({@required String text}) {
+    var matching = _matchingCompletions(
+      text: text,
+      elementKind: ElementKind.CONSTRUCTOR,
+    );
+    expect(matching, hasLength(1), reason: 'Expected exactly one completion');
+    return matching.single;
+  }
+
+  CompletionSuggestion _assertHasEnumConstant({@required String text}) {
+    var matching = _matchingCompletions(
+      text: text,
+      elementKind: ElementKind.ENUM_CONSTANT,
+    );
+    expect(matching, hasLength(1), reason: 'Expected exactly one completion');
+    return matching.single;
+  }
+
+  CompletionSuggestion _assertHasFunction({@required String text}) {
+    var matching = _matchingCompletions(
+      text: text,
+      elementKind: ElementKind.FUNCTION,
+    );
+    expect(matching, hasLength(1), reason: 'Expected exactly one completion');
+    return matching.single;
+  }
+
+  CompletionSuggestion _assertHasGetter({@required String text}) {
+    var matching = _matchingCompletions(
+      text: text,
+      elementKind: ElementKind.GETTER,
+    );
+    expect(matching, hasLength(1), reason: 'Expected exactly one completion');
+    return matching.single;
+  }
+
   CompletionSuggestion _assertHasLocalVariable({@required String text}) {
     var matching = _matchingCompletions(
       text: text,
@@ -377,6 +467,15 @@ import 'a.dart';
       hasLength(1),
       reason: 'Expected exactly one completion in $_suggestions',
     );
+    return matching.single;
+  }
+
+  CompletionSuggestion _assertHasMethod({@required String text}) {
+    var matching = _matchingCompletions(
+      text: text,
+      elementKind: ElementKind.METHOD,
+    );
+    expect(matching, hasLength(1), reason: 'Expected exactly one completion');
     return matching.single;
   }
 
@@ -395,6 +494,15 @@ import 'a.dart';
     }
   }
 
+  CompletionSuggestion _assertHasParameter({@required String text}) {
+    var matching = _matchingCompletions(
+      text: text,
+      elementKind: ElementKind.PARAMETER,
+    );
+    expect(matching, hasLength(1), reason: 'Expected exactly one completion');
+    return matching.single;
+  }
+
   CompletionSuggestion _assertHasTopLevelVariable({@required String text}) {
     var matching = _matchingCompletions(
       text: text,
@@ -405,6 +513,15 @@ import 'a.dart';
       hasLength(1),
       reason: 'Expected exactly one completion in $_suggestions',
     );
+    return matching.single;
+  }
+
+  CompletionSuggestion _assertHasTypeParameter({@required String text}) {
+    var matching = _matchingCompletions(
+      text: text,
+      elementKind: ElementKind.TYPE_PARAMETER,
+    );
+    expect(matching, hasLength(1), reason: 'Expected exactly one completion');
     return matching.single;
   }
 

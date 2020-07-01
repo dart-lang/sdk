@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/inbound_references.dart';
 import 'package:observatory/src/elements/retaining_path.dart';
 import 'package:observatory/src/elements/sentinel_value.dart';
@@ -15,13 +15,6 @@ import 'package:observatory/src/elements/strongly_reachable_instances.dart';
 import 'package:observatory/utils.dart';
 
 class ClassInstancesElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<ClassInstancesElement>('class-instances', dependencies: const [
-    ClassRefElement.tag,
-    InboundReferencesElement.tag,
-    RetainingPathElement.tag,
-  ]);
-
   RenderingScheduler<ClassInstancesElement> _r;
 
   Stream<RenderedEvent<ClassInstancesElement>> get onRendered => _r.onRendered;
@@ -65,7 +58,7 @@ class ClassInstancesElement extends CustomElement implements Renderable {
     return e;
   }
 
-  ClassInstancesElement.created() : super.created(tag);
+  ClassInstancesElement.created() : super.created('class-instances');
 
   @override
   void attached() {

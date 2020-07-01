@@ -11,6 +11,7 @@
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -31,7 +32,7 @@ class DFE {
     if (frontend_filename_ != nullptr) {
       free(frontend_filename_);
     }
-    frontend_filename_ = strdup(name);
+    frontend_filename_ = Utils::StrDup(name);
     set_use_dfe();
   }
   void set_use_dfe(bool value = true) { use_dfe_ = value; }

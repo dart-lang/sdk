@@ -3297,12 +3297,6 @@ DEFINE_RUNTIME_ENTRY(LateInitializationError, 1) {
   Exceptions::ThrowLateInitializationError(String::Handle(field.name()));
 }
 
-// Print the stop message.
-DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, 1, const char* message) {
-  OS::PrintErr("Stop message: %s\n", message);
-}
-END_LEAF_RUNTIME_ENTRY
-
 // Use expected function signatures to help MSVC compiler resolve overloading.
 typedef double (*UnaryMathCFunction)(double x);
 typedef double (*BinaryMathCFunction)(double x, double y);

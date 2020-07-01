@@ -17,11 +17,11 @@ const list4 = /*cfe.List<int>(Int(42),Int(87))*/ [42, 87];
 main() {
   print(/*List<dynamic>()*/ list0);
   print(
-      /*cfe|analyzer|dart2js.List<int>()*/ /*dart2js:nnbd-sdk.List<int*>()*/ list1);
+      /*cfe|analyzer.List<int>()*/ /*dart2js.List<int*>()*/ list1);
   print(
-      /*cfe|analyzer|dart2js.List<int>()*/ /*dart2js:nnbd-sdk.List<int*>()*/ list2);
+      /*cfe|analyzer.List<int>()*/ /*dart2js.List<int*>()*/ list2);
   print(
-      /*cfe|analyzer|dart2js.List<int>(Int(42))*/ /*dart2js:nnbd-sdk.List<int*>(Int(42))*/ list3);
+      /*cfe|analyzer.List<int>(Int(42))*/ /*dart2js.List<int*>(Int(42))*/ list3);
   print(
-      /*cfe|analyzer|dart2js.List<int>(Int(42),Int(87))*/ /*dart2js:nnbd-sdk.List<int*>(Int(42),Int(87))*/ list4);
+      /*cfe|analyzer.List<int>(Int(42),Int(87))*/ /*dart2js.List<int*>(Int(42),Int(87))*/ list4);
 }

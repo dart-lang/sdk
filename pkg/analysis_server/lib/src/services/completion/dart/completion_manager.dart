@@ -374,6 +374,24 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   }
 
   @override
+  String get targetPrefix {
+    var entity = target.entity;
+    while (entity is AstNode) {
+      if (entity is SimpleIdentifier) {
+        var identifier = entity.name;
+        if (offset >= entity.offset &&
+            offset - entity.offset < identifier.length) {
+          return identifier.substring(0, offset - entity.offset);
+        }
+        return identifier;
+      }
+      var children = (entity as AstNode).childEntities;
+      entity = children.isEmpty ? null : children.first;
+    }
+    return '';
+  }
+
+  @override
   bool get useNewRelevance => _originalRequest.useNewRelevance;
 
   /// Throw [AbortCompletion] if the completion request has been aborted.

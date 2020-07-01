@@ -58,6 +58,25 @@ const _AlwaysThrows alwaysThrows = _AlwaysThrows();
 @Deprecated('Use the `covariant` modifier instead')
 const _Checked checked = _Checked();
 
+/// Used to annotate a method, getter or top-level getter or function to
+/// indicate that the value obtained by invoking it should not be stored in a
+/// field or top-level variable. The annotation can also be applied to a class
+/// to implicitly annotate all of the valid members of the class, or applied to
+/// a library to annotate all of the valid members of the library, including
+/// classes. If a value returned by an element marked as `doNotStore` is returned
+/// from a function or getter, that function or getter should be similarly
+/// annotated.
+///
+/// Tools, such as the analyzer, can provide feedback if
+///
+/// * the annotation is associated with anything other than a library, class,
+///   method or getter, top-level getter or function, or
+/// * an invocation of a member that has this annotation is returned by a method,
+///   getter or function that is not similarly annotated as `doNotStore`, or
+/// * an invocation of a member that has this annotation is assigned to a field
+///   or top-level variable.
+const _DoNotStore doNotStore = _DoNotStore();
+
 /// Used to annotate a library, or any declaration that is part of the public
 /// interface of a library (such as top-level members, class members, and
 /// function parameters) to indicate that the annotated API is experimental and
@@ -283,6 +302,10 @@ class _AlwaysThrows {
 
 class _Checked {
   const _Checked();
+}
+
+class _DoNotStore {
+  const _DoNotStore();
 }
 
 class _Experimental {

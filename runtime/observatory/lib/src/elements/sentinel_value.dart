@@ -6,11 +6,9 @@ import 'dart:async';
 
 import 'package:observatory/models.dart' as M show Sentinel, SentinelKind;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 
 class SentinelValueElement extends CustomElement implements Renderable {
-  static const tag = const Tag<SentinelValueElement>('sentinel-value');
-
   RenderingScheduler<SentinelValueElement> _r;
 
   Stream<RenderedEvent<SentinelValueElement>> get onRendered => _r.onRendered;
@@ -27,7 +25,7 @@ class SentinelValueElement extends CustomElement implements Renderable {
     return e;
   }
 
-  SentinelValueElement.created() : super.created(tag);
+  SentinelValueElement.created() : super.created('sentinel-value');
 
   @override
   void attached() {

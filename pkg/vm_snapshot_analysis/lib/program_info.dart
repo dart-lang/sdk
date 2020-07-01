@@ -123,6 +123,27 @@ class ProgramInfoNode {
   final Map<String, ProgramInfoNode> children = {};
   final int _type;
 
+  /// Number of bytes in the snapshot which can be attributed to this node.
+  ///
+  /// Note that this is neither a shallow size of the object that represents
+  /// this node in the AOT snapshot, nor a cumulative size of its children.
+  /// Instead this size is similar to _retained size_ used by heap profiling
+  /// tools. Snapshot nodes corresponding to the info nodes are viewed as
+  /// a dominator tree and all nodes in the snapshot are partitioned based
+  /// on which node of this tree dominates them.
+  ///
+  /// Consider for example the following Dart code:
+  ///
+  ///     ```dart
+  ///     class C {
+  ///       void f() { use("something"); }
+  ///       void g() { use("something"); }
+  ///     }
+  ///     ```
+  ///
+  /// Assuming that both `C.f` and `C.g` are included into AOT snapshot
+  /// and string `"something"` does not occur anywhere else in the program
+  /// then the size of `"something"` is going to be attributed to `C`.
   int size;
 
   ProgramInfoNode._(

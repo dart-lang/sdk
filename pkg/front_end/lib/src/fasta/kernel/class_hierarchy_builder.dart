@@ -2540,15 +2540,6 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   CoreTypes get coreTypes => hierarchy.coreTypes;
 
   @override
-  Class get objectClass => hierarchy.objectClass;
-
-  @override
-  Class get functionClass => hierarchy.functionClass;
-
-  @override
-  Class get nullClass => hierarchy.nullClass;
-
-  @override
   void addLowerBound(
       TypeConstraint constraint, DartType lower, Library clientLibrary) {
     constraint.lower =

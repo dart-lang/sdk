@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.35
+# Dart VM Service Protocol 3.36
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.35_ of the Dart VM Service Protocol. This
+This document describes of _version 3.36_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -48,6 +48,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [getIsolateGroup](#getisolategroup)
   - [getMemoryUsage](#getmemoryusage)
   - [getObject](#getobject)
+  - [getProcessMemoryUsage](#getprocessmemoryusage)
   - [getRetainingPath](#getretainingpath)
   - [getScripts](#getscripts)
   - [getSourceReport](#getsourcereport)
@@ -978,6 +979,19 @@ of the retaining path. If a path is longer than _limit_, it will be truncated at
 the root end of the path.
 
 See [RetainingPath](#retainingpath).
+
+
+### getProcessMemoryUsage
+
+```
+ProcessMemoryUsage getProcessMemoryUsage()
+```
+
+Returns a description of major uses of memory known to the VM.
+
+Adding or removing buckets is considered a backwards-compatible change
+for the purposes of versioning. A client must gracefully handle the
+removal or addition of any bucket.
 
 ### getStack
 
@@ -3275,6 +3289,36 @@ class Protocol {
 
 See [getSupportedProtocols](#getsupportedprotocols).
 
+### ProcessMemoryUsage
+
+```
+class ProcessMemoryUsage extends Response {
+  ProcessMemoryItem root;
+}
+```
+
+Set [getProcessMemoryUsage](#getprocessmemoryusage).
+
+### ProcessMemoryItem
+
+```
+class ProcessMemoryItem {
+  // A short name for this bucket of memory.
+  string name;
+
+  // A longer description for this item.
+  string description;
+
+  // The amount of memory in bytes.
+  // This is a retained size, not a shallow size. That is, it includes the size
+  // of children.
+  int size;
+
+  // Subdivisons of this bucket of memory.
+  ProcessMemoryItem[] children;
+}
+```
+
 ### ReloadReport
 
 ```
@@ -3848,5 +3892,6 @@ the VM service.
 3.33 | Added deprecation notice for `getClientName`, `setClientName`, `requireResumeApproval`, and `ClientName`. These RPCs are moving to the DDS protocol and will be removed in v4.0 of the VM service protocol.
 3.34 | Added `TimelineStreamSubscriptionsUpdate` event which is sent when `setVMTimelineFlags` is invoked.
 3.35 | Added `getSupportedProtocols` RPC and `ProtocolList`, `Protocol` objects.
+3.36 | Added `getProcessMemoryUsage` RPC and `ProcessMemoryUsage` and `ProcessMemoryItem` objects.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

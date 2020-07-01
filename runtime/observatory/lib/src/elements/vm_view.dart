@@ -9,7 +9,7 @@ import 'dart:html';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/isolate/summary.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
@@ -20,15 +20,6 @@ import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/utils.dart';
 
 class VMViewElement extends CustomElement implements Renderable {
-  static const tag = const Tag<VMViewElement>('vm-view', dependencies: const [
-    IsolateSummaryElement.tag,
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-    ViewFooterElement.tag
-  ]);
-
   RenderingScheduler<VMViewElement> _r;
 
   Stream<RenderedEvent<VMViewElement>> get onRendered => _r.onRendered;
@@ -74,7 +65,7 @@ class VMViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  VMViewElement.created() : super.created(tag);
+  VMViewElement.created() : super.created('vm-view');
 
   @override
   attached() {
@@ -211,7 +202,9 @@ class VMViewElement extends CustomElement implements Renderable {
               ..children = <Element>[
                 new DivElement()
                   ..classes = ['memberName']
-                  ..text = 'peak memory',
+                  ..text = 'peak process memory'
+                  ..title =
+                      'highest value of the resident set size of the process running this VM',
                 new DivElement()
                   ..classes = ['memberValue']
                   ..text = _vm.maxRSS != null
@@ -223,7 +216,9 @@ class VMViewElement extends CustomElement implements Renderable {
               ..children = <Element>[
                 new DivElement()
                   ..classes = ['memberName']
-                  ..text = 'current memory',
+                  ..text = 'current process memory'
+                  ..title =
+                      'current value of the resident set size of the process running this VM',
                 new DivElement()
                   ..classes = ['memberValue']
                   ..text = _vm.currentRSS != null
@@ -235,18 +230,7 @@ class VMViewElement extends CustomElement implements Renderable {
               ..children = <Element>[
                 new DivElement()
                   ..classes = ['memberName']
-                  ..text = 'native zone memory',
-                new DivElement()
-                  ..classes = ['memberValue']
-                  ..text = Utils.formatSize(_vm.nativeZoneMemoryUsage)
-                  ..title = '${_vm.nativeZoneMemoryUsage} bytes'
-              ],
-            new DivElement()
-              ..classes = ['memberItem']
-              ..children = <Element>[
-                new DivElement()
-                  ..classes = ['memberName']
-                  ..text = 'native heap memory',
+                  ..text = 'malloc memory',
                 new DivElement()
                   ..classes = ['memberValue']
                   ..text = _vm.heapAllocatedMemoryUsage != null
@@ -261,7 +245,7 @@ class VMViewElement extends CustomElement implements Renderable {
               ..children = <Element>[
                 new DivElement()
                   ..classes = ['memberName']
-                  ..text = 'native heap allocation count',
+                  ..text = 'malloc allocation count',
                 new DivElement()
                   ..classes = ['memberValue']
                   ..text = _vm.heapAllocationCount != null
@@ -293,7 +277,14 @@ class VMViewElement extends CustomElement implements Renderable {
                   ..children = <Element>[
                     new SpanElement()..text = 'view ',
                     new AnchorElement(href: Uris.nativeMemory())
-                      ..text = 'native memory profile'
+                      ..text = 'malloc profile'
+                  ],
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..children = <Element>[
+                    new SpanElement()..text = 'view ',
+                    new AnchorElement(href: Uris.processSnapshot())
+                      ..text = 'process memory'
                   ]
               ]
           ],

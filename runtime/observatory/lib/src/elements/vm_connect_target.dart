@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:html';
 import 'package:observatory/models.dart' as M show Target;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 
 class TargetEvent {
   final M.Target target;
@@ -15,8 +15,6 @@ class TargetEvent {
 }
 
 class VMConnectTargetElement extends CustomElement implements Renderable {
-  static const tag = const Tag<VMConnectTargetElement>('vm-connect-target');
-
   RenderingScheduler<VMConnectTargetElement> _r;
 
   Stream<RenderedEvent<VMConnectTargetElement>> get onRendered => _r.onRendered;
@@ -45,7 +43,7 @@ class VMConnectTargetElement extends CustomElement implements Renderable {
     return e;
   }
 
-  VMConnectTargetElement.created() : super.created(tag);
+  VMConnectTargetElement.created() : super.created('vm-connect-target');
 
   @override
   void attached() {

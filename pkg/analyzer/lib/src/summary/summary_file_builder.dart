@@ -6,9 +6,12 @@ import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -239,6 +242,12 @@ class _Builder {
         'Unexpected diagnostics:\n$errorsStr',
       );
     }
+
+    var unit = result.unit as CompilationUnitImpl;
+    unit.languageVersion = LibraryLanguageVersion(
+      package: ExperimentStatus.currentVersion,
+      override: null,
+    );
 
     return result.unit;
   }

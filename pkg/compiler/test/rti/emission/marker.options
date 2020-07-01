@@ -1,4 +1,2 @@
-spec:nnbd-off=pkg/compiler/test/rti/rti_emission_test_helper.dart
-prod:nnbd-off=pkg/compiler/test/rti/rti_emission_test_helper.dart
-spec:nnbd-sdk=pkg/compiler/test/rti/rti_emission_test_helper.dart
-prod:nnbd-sdk=pkg/compiler/test/rti/rti_emission_test_helper.dart
+spec=pkg/compiler/test/rti/rti_emission_test_helper.dart
+prod=pkg/compiler/test/rti/rti_emission_test_helper.dart

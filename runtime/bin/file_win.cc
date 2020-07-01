@@ -11,6 +11,7 @@
 #include <fcntl.h>     // NOLINT
 #include <io.h>        // NOLINT
 #include <Shlwapi.h>   // NOLINT
+#undef StrDup  // defined in Shlwapi.h as StrDupW
 #include <stdio.h>     // NOLINT
 #include <string.h>    // NOLINT
 #include <sys/stat.h>  // NOLINT
@@ -55,9 +56,9 @@ void File::Close() {
     int fd = _open("NUL", _O_WRONLY);
     ASSERT(fd >= 0);
     _dup2(fd, closing_fd);
-    close(fd);
+    Utils::Close(fd);
   } else {
-    int err = close(closing_fd);
+    int err = Utils::Close(closing_fd);
     if (err != 0) {
       Syslog::PrintErr("%s\n", strerror(errno));
     }
@@ -141,7 +142,7 @@ void MappedMemory::Unmap() {
 
 int64_t File::Read(void* buffer, int64_t num_bytes) {
   ASSERT(handle_->fd() >= 0);
-  return read(handle_->fd(), buffer, num_bytes);
+  return Utils::Read(handle_->fd(), buffer, num_bytes);
 }
 
 int64_t File::Write(const void* buffer, int64_t num_bytes) {
@@ -311,7 +312,7 @@ Utils::CStringUniquePtr File::UriToPath(const char* uri) {
 
   Utf8ToWideScope uri_w(uri_decoder.decoded());
   if (!UrlIsFileUrlW(uri_w.wide())) {
-    return Utils::CreateCStringUniquePtr(strdup(uri_decoder.decoded()));
+    return Utils::CreateCStringUniquePtr(Utils::StrDup(uri_decoder.decoded()));
   }
   wchar_t filename_w[MAX_PATH];
   DWORD filename_len = MAX_PATH;
@@ -382,7 +383,7 @@ bool File::Create(Namespace* namespc, const char* name) {
   if (fd < 0) {
     return false;
   }
-  return (close(fd) == 0);
+  return (Utils::Close(fd) == 0);
 }
 
 // This structure is needed for creating and reading Junctions.

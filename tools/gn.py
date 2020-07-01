@@ -119,12 +119,6 @@ def ParseStringMap(key, string_map):
             return l[1]
     return None
 
-
-def DontUseClang(args, target_os, host_cpu, target_cpu):
-    # We don't have clang on Windows.
-    return target_os == 'win'
-
-
 def UseSysroot(args, gn_args):
     # Don't try to use a Linux sysroot if we aren't on Linux.
     if gn_args['target_os'] != 'linux' and HOST_OS != 'linux':
@@ -209,9 +203,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer):
 
     gn_args['exclude_kernel_service'] = args.exclude_kernel_service
 
-    dont_use_clang = DontUseClang(args, gn_args['target_os'],
-                                  gn_args['host_cpu'], gn_args['target_cpu'])
-    gn_args['is_clang'] = args.clang and not dont_use_clang
+    gn_args['is_clang'] = args.clang
 
     enable_code_coverage = args.code_coverage and gn_args['is_clang']
     gn_args['dart_vm_code_coverage'] = enable_code_coverage

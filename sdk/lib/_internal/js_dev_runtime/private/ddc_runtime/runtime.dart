@@ -202,10 +202,7 @@ void hotRestart() {
   for (var m in _cacheMaps) JS('', '#.clear()', m);
   _cacheMaps.clear();
   JS('', '#.clear()', _nullComparisonSet);
-  JS('', '#.clear()', constants);
-  JS('', '#.clear()', constantLists);
   JS('', '#.clear()', constantMaps);
-  JS('', '#.clear()', constantSets);
 }
 
 /// Marks enqueuing an async operation.

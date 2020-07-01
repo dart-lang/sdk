@@ -6,14 +6,11 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 
 class FieldRefElement extends CustomElement implements Renderable {
-  static const tag = const Tag<FieldRefElement>('field-ref',
-      dependencies: const [InstanceRefElement.tag]);
-
   RenderingScheduler<FieldRefElement> _r;
 
   Stream<RenderedEvent<FieldRefElement>> get onRendered => _r.onRendered;
@@ -41,7 +38,7 @@ class FieldRefElement extends CustomElement implements Renderable {
     return e;
   }
 
-  FieldRefElement.created() : super.created(tag);
+  FieldRefElement.created() : super.created('field-ref');
 
   @override
   void attached() {

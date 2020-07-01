@@ -25,6 +25,26 @@ half of the snapshot, those this varies depending on the application.
 it attributes bytes written into a snapshot to a node in the heap graph. This
 format covers both data and code sections of the snapshot.
 
+### Passing flags to the AOT compiler
+
+Both in `dart2native` and Flutter you can use `--extra-gen-snapshot-options` to
+pass flags to the AOT compiler:
+
+```console
+$ flutter build aot --release --extra-gen-snapshot-options=--write-v8-snapshot-profile-to=profile.json
+
+$ dart2native --extra-gen-snapshot-options=--write-v8-snapshot-profile-to=profile.json -o binary input.dart
+```
+
+Similarly with `--print-instructions-sizes-to`.
+
+If you are working on the Dart SDK you can use the `pkg/vm/tool/precompiler2`
+script, in which case you can just pass these flags directly:
+
+```console
+$ pkg/vm/tool/precompiler2 --write-v8-snapshot-profile-to=profile.json input.dart binary
+```
+
 ## CLI
 
 The command line interface to the tools in this package is provided by a single
@@ -32,7 +52,7 @@ entry point `bin/analyse.dart`. It consumes output of
 `--print-instructions-sizes-to` and `--write-v8-snapshot-profile-to` flags and
 presents it in different human readable ways.
 
-This script can be intalled globally as `snapshot_analysis` using
+This script can be installed globally as `snapshot_analysis` using
 
 ```console
 $ pub global activate vm_snapshot_analysis
@@ -101,7 +121,7 @@ In this example `11519` more bytes can be attributed to `_SimpleUri` class in
 ### `treemap`
 
 ```console
-$ snapshot_analysis treemap <input.json> <output-dir>
+$ snapshot_analysis treemap [--format <format>] <input.json> <output-dir>
 $ google-chrome <output-dir>/index.html
 ```
 
@@ -109,6 +129,18 @@ This command generates treemap representation of the information from the
 profile `input.json` and stores it in `output-dir` directory. Treemap can
 later be viewed by opening `<output-dir>/index.html` in the browser of your
 choice.
+
+`--format` flag allows to control granularity of the output when `input.json`
+is a V8 snapshot profile, available options are:
+* `collapsed` essentially renders `ProgramInfo` as a treemap, individual
+snapshot nodes are ignored.
+* `simplified` same as `collapsed`, but also folds size information from
+nested functions into outermost function (e.g. top level function or a
+method) producing easy to consume output.
+* `data-and-code` collapses snapshot nodes based on whether they represent
+data or executable code.
+* `object-type` (default) collapses snapshot nodes based on their type only.
+
 
 ## API
 

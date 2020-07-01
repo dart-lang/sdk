@@ -9,12 +9,7 @@ T getFoo<T>(T v) => v;
 
 typedef dynamic G<T>(T v);
 
-/*spec:nnbd-off.member: m:
- OutputUnit(2, {b}),
- constants=[
-  InstantiationConstant([int],FunctionConstant(getFoo))=OutputUnit(2, {b})]
-*/
-/*spec:nnbd-sdk.member: m:OutputUnit(2, {b}),constants=[InstantiationConstant([int*],FunctionConstant(getFoo))=OutputUnit(2, {b})]*/
+/*member: m:OutputUnit(2, {b}),constants=[InstantiationConstant([int*],FunctionConstant(getFoo))=OutputUnit(2, {b})]*/
 m(int x, {G<int> f: getFoo}) {
   print(f(x));
 }

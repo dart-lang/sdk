@@ -36,7 +36,7 @@ main() {
 
   asyncTest(() async {
     Map<fe.ExperimentalFlag, bool> baseFlags = {
-      fe.ExperimentalFlag.nonNullable: isDart2jsNnbd
+      fe.ExperimentalFlag.nonNullable: true
     };
     await runTest(baseFlags);
   });

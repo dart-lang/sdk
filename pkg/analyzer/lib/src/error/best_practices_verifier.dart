@@ -1385,44 +1385,48 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// Returns `true` if and only if an unnecessary cast hint should be generated
   /// on [node].  See [HintCode.UNNECESSARY_CAST].
   static bool isUnnecessaryCast(AsExpression node, TypeSystemImpl typeSystem) {
-    // TODO(jwren) After dartbug.com/13732, revisit this, we should be able to
-    // remove the (x is! TypeParameterType) checks.
-    AstNode parent = node.parent;
-    if (parent is ConditionalExpression &&
-        (node == parent.thenExpression || node == parent.elseExpression)) {
-      Expression thenExpression = parent.thenExpression;
-      DartType thenType;
-      if (thenExpression is AsExpression) {
-        thenType = thenExpression.expression.staticType;
-      } else {
-        thenType = thenExpression.staticType;
-      }
-      Expression elseExpression = parent.elseExpression;
-      DartType elseType;
-      if (elseExpression is AsExpression) {
-        elseType = elseExpression.expression.staticType;
-      } else {
-        elseType = elseExpression.staticType;
-      }
-      if (thenType != null &&
-          elseType != null &&
-          !thenType.isDynamic &&
-          !elseType.isDynamic &&
-          !typeSystem.isSubtypeOf2(thenType, elseType) &&
-          !typeSystem.isSubtypeOf2(elseType, thenType)) {
+    var leftType = node.expression.staticType;
+    var rightType = node.type.type;
+
+    // `dynamicValue as SomeType` is a valid use case.
+    if (leftType.isDynamic) {
+      return false;
+    }
+
+    // `x as Unresolved` is already reported as an error.
+    if (rightType.isDynamic) {
+      return false;
+    }
+
+    // The cast is necessary.
+    if (!typeSystem.isSubtypeOf2(leftType, rightType)) {
+      return false;
+    }
+
+    // For `condition ? then : else` the result type is `LUB`.
+    // Casts might be used to consider only a portion of the inheritance tree.
+    var parent = node.parent;
+    if (parent is ConditionalExpression) {
+      var other = node == parent.thenExpression
+          ? parent.elseExpression
+          : parent.thenExpression;
+
+      var currentType = typeSystem.leastUpperBound(
+        node.staticType,
+        other.staticType,
+      );
+
+      var typeWithoutCast = typeSystem.leastUpperBound(
+        node.expression.staticType,
+        other.staticType,
+      );
+
+      if (typeWithoutCast != currentType) {
         return false;
       }
     }
-    DartType lhsType = node.expression.staticType;
-    DartType rhsType = node.type.type;
-    if (lhsType != null &&
-        rhsType != null &&
-        !lhsType.isDynamic &&
-        !rhsType.isDynamic &&
-        typeSystem.isSubtypeOf2(lhsType, rhsType)) {
-      return true;
-    }
-    return false;
+
+    return true;
   }
 
   /// Return the message in the deprecated annotation on the given [element], or

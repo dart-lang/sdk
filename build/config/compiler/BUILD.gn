@@ -514,19 +514,32 @@ if (is_win) {
     default_warning_flags += [ "/WX" ]  # Treat warnings as errors.
   }
 
-  default_warning_flags += [
-    # Permanent.
-    "/wd4091",  # typedef warning from dbghelp.h
-    "/wd4722",  # destructor never returns
+  if (is_clang) {
+    default_warning_flags += [
+      "-Wno-deprecated-declarations", # crashpad
+      "-Wno-ignored-pragma-optimize", # icu, double-conversion
+      "-Wno-implicit-int-float-conversion", # icu
+      "-Wno-macro-redefined",
+      "-Wno-microsoft-cast",
+      "-Wno-microsoft-unqualified-friend",
+      "-Wno-unknown-argument", # icu
+      "-Wno-unused-value", # crashpad
+    ]
+  } else {
+    default_warning_flags += [
+      # Permanent.
+      "/wd4091",  # typedef warning from dbghelp.h
+      "/wd4722",  # destructor never returns
 
-    # Investigate.
-    "/wd4312",  # int to pointer of greater size conversion.
-    "/wd4838",  # Narrowing conversion required.
-    "/wd4172",  # Returning address of local.
-    "/wd4005",  # Redefinition of macros for PRId64 etc.
-    "/wd4311",  # Pointer truncation from PVOID to DWORD.
-    "/wd4477",  # Format string requires wchar_t*
-  ]
+      # Investigate.
+      "/wd4312",  # int to pointer of greater size conversion.
+      "/wd4838",  # Narrowing conversion required.
+      "/wd4172",  # Returning address of local.
+      "/wd4005",  # Redefinition of macros for PRId64 etc.
+      "/wd4311",  # Pointer truncation from PVOID to DWORD.
+      "/wd4477",  # Format string requires wchar_t*
+    ]
+  }
 } else {
   # Common GCC warning setup.
   default_warning_flags += [

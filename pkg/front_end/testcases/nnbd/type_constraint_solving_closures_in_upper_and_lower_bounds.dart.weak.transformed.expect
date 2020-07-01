@@ -1,0 +1,26 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/type_constraint_solving_closures_in_upper_and_lower_bounds.dart:15:14: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//   String s = x; // Should be an error, `T` should be int.
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C<X extends core::Object? = dynamic> extends core::Object {
+  constructor •((self::C::X%) → void x) → self::C<self::C::X%>
+    : super core::Object::•()
+    ;
+}
+static method check<T extends core::Object? = dynamic>(self::C<core::List<self::check::T%>> f) → self::check::T% {
+  return null;
+}
+static method test() → void {
+  core::int x = self::check<core::int>(new self::C::•<core::List<core::int>>((core::List<core::int> x) → core::Null? {}));
+  core::String s = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/type_constraint_solving_closures_in_upper_and_lower_bounds.dart:15:14: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+  String s = x; // Should be an error, `T` should be int.
+             ^" in x as{TypeError,ForNonNullableByDefault} core::String;
+}
+static method main() → dynamic {}

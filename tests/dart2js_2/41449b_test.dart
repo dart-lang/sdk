@@ -29,6 +29,13 @@ class B2 implements AAA {
   dynamic get foo => _arr.first;
 }
 
+class B3 implements AAA {
+  final dynamic __foo;
+  B3(this.__foo);
+  dynamic get _foo => __foo;
+  dynamic get foo => _foo;
+}
+
 @pragma('dart2js:noInline')
 test1<T>(AAA a, String expected) {
   // call-through getter 'foo' with one type argument.
@@ -44,7 +51,9 @@ test2<U, V>(AAA a, String expected) {
 main() {
   test1<int>(B1(<P>() => '$P'), 'int');
   test1<num>(B2(<Q>() => '$Q'), 'num');
+  test1<double>(B3(<R>() => '$R'), 'double');
 
   test2<int, num>(B1(<A, B>() => '$A $B'), 'int num');
   test2<num, int>(B2(<X, Y>() => '$X $Y'), 'num int');
+  test2<double, String>(B3(<C, D>() => '$C $D'), 'double String');
 }

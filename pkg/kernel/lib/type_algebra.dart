@@ -68,11 +68,21 @@ DartType substituteDeep(
 
 /// Returns true if [type] contains a reference to any of the given [variables].
 ///
+/// [unhandledTypeHandler] is a helper function invoked on unknown implementers
+/// of [DartType].  Its arguments are the unhandled type and the function that
+/// can be invoked from within the handler on parts of the unknown type to
+/// recursively call the visitor.  If not passed, an exception is thrown then an
+/// unhandled implementer of [DartType] is encountered.
+///
 /// It is an error to call this with a [type] that contains a [FunctionType]
 /// that declares one of the parameters in [variables].
-bool containsTypeVariable(DartType type, Set<TypeParameter> variables) {
+bool containsTypeVariable(DartType type, Set<TypeParameter> variables,
+    {bool Function(DartType type, bool Function(DartType type) recursor)
+        unhandledTypeHandler}) {
   if (variables.isEmpty) return false;
-  return new _OccurrenceVisitor(variables).visit(type);
+  return new _OccurrenceVisitor(variables,
+          unhandledTypeHandler: unhandledTypeHandler)
+      .visit(type);
 }
 
 /// Returns `true` if [type] contains any free type variables, that is, type
@@ -800,7 +810,16 @@ class _TypeUnification {
 class _OccurrenceVisitor implements DartTypeVisitor<bool> {
   final Set<TypeParameter> variables;
 
-  _OccurrenceVisitor(this.variables);
+  /// Helper function invoked on unknown implementers of [DartType].
+  ///
+  /// Its arguments are the unhandled type and the function that can be invoked
+  /// from within the handler on parts of the unknown type to recursively call
+  /// the visitor.  If not set, an exception is thrown then an unhandled
+  /// implementer of [DartType] is encountered.
+  final bool Function(DartType node, bool Function(DartType node) recursor)
+      unhandledTypeHandler;
+
+  _OccurrenceVisitor(this.variables, {this.unhandledTypeHandler});
 
   bool visit(DartType node) => node.accept(this);
 
@@ -809,7 +828,11 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
   }
 
   bool defaultDartType(DartType node) {
-    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
+    if (unhandledTypeHandler == null) {
+      throw new UnsupportedError("Unsupported type '${node.runtimeType}'.");
+    } else {
+      return unhandledTypeHandler(node, visit);
+    }
   }
 
   bool visitBottomType(BottomType node) => false;
@@ -928,4 +951,73 @@ Nullability intersectNullabilities(Nullability a, Nullability b) {
     return Nullability.legacy;
   }
   return Nullability.nullable;
+}
+
+/// Tells if a [DartType] is primitive or not.
+///
+/// This is useful in recursive algorithms over types where the primitive types
+/// are the base cases of the recursion.  According to the visitor a primitive
+/// type is any [DartType] that doesn't include other [DartType]s as its parts.
+/// The nullability attributes don't affect the primitiveness of a type.
+bool isPrimitiveDartType(DartType type,
+    {bool Function(DartType unhandledType) unhandledTypeHandler}) {
+  return type.accept(const _PrimitiveTypeVerifier());
+}
+
+/// Visitors that implements the algorithm of [isPrimitiveDartType].
+///
+/// The visitor is shallow, that is, it doesn't recurse over the given type due
+/// to its purpose.  The reason for having a visitor is to make the need for an
+/// update visible when a new implementer of [DartType] is introduced in Kernel.
+class _PrimitiveTypeVerifier implements DartTypeVisitor<bool> {
+  const _PrimitiveTypeVerifier();
+
+  @override
+  bool defaultDartType(DartType node) {
+    throw new UnsupportedError(
+        "Unsupported operation: _PrimitiveTypeVerifier(${node.runtimeType})");
+  }
+
+  @override
+  bool visitBottomType(BottomType node) => true;
+
+  @override
+  bool visitDynamicType(DynamicType node) => true;
+
+  @override
+  bool visitFunctionType(FunctionType node) {
+    // Function types are never primitive because they at least include the
+    // return types as their parts.
+    return false;
+  }
+
+  @override
+  bool visitFutureOrType(FutureOrType node) => false;
+
+  @override
+  bool visitInterfaceType(InterfaceType node) {
+    return node.typeArguments.isEmpty;
+  }
+
+  @override
+  bool visitInvalidType(InvalidType node) {
+    throw new UnsupportedError(
+        "Unsupported operation: _PrimitiveTypeVerifier(InvalidType).");
+  }
+
+  @override
+  bool visitNeverType(NeverType node) => true;
+
+  @override
+  bool visitTypeParameterType(TypeParameterType node) {
+    return node.promotedBound == null;
+  }
+
+  @override
+  bool visitTypedefType(TypedefType node) {
+    return node.typeArguments.isEmpty;
+  }
+
+  @override
+  bool visitVoidType(VoidType node) => true;
 }

@@ -1,0 +1,40 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class B extends core::Object {
+  synthetic constructor •() → self::B*
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  get x() → dynamic
+    return 0;
+}
+class A extends core::Object {
+[@vm.inferred-type.metadata=dart.core::_GrowableList?<#lib::B*>] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]  field dynamic list = null;
+  constructor •() → self::A*
+    : super core::Object::•() {
+    [@vm.direct-call.metadata=#lib::A.list] [@vm.inferred-type.metadata=!? (skip check)] this.{self::A::list} = <self::B*>[new self::B::•()];
+  }
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]  @#C3
+  method forIn() → void {
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator??] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::B*>] _in::unsafeCast<core::Iterable<dynamic>*>([@vm.direct-call.metadata=#lib::A.list] [@vm.inferred-type.metadata=dart.core::_GrowableList?<#lib::B*>] this.{self::A::list}).{core::Iterable::iterator};
+      for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+        dynamic e = [@vm.direct-call.metadata=dart._internal::ListIterator.current] [@vm.inferred-type.metadata=#lib::B?] :sync-for-iterator.{core::Iterator::current};
+        core::print([@vm.direct-call.metadata=#lib::B.x??] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0) (receiver not int)] e.x);
+      }
+    }
+  }
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  @#C3
+  method cLoop() → void {
+    for (core::int* i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(_in::unsafeCast<core::num>([@vm.direct-call.metadata=dart.core::_GrowableList.length??] [@vm.inferred-type.metadata=dart.core::_Smi (receiver not int)] [@vm.direct-call.metadata=#lib::A.list] [@vm.inferred-type.metadata=dart.core::_GrowableList?<#lib::B*>] this.{self::A::list}.length)); i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1)) {
+      final dynamic e = [@vm.direct-call.metadata=dart.core::_GrowableList.[]??] [@vm.inferred-type.metadata=#lib::B? (receiver not int)] [@vm.direct-call.metadata=#lib::A.list] [@vm.inferred-type.metadata=dart.core::_GrowableList?<#lib::B*>] this.{self::A::list}.[](i);
+      core::print([@vm.direct-call.metadata=#lib::B.x??] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0) (receiver not int)] e.x);
+    }
+  }
+}
+static method main() → void {
+  [@vm.direct-call.metadata=#lib::A.forIn] [@vm.inferred-type.metadata=!? (skip check)] new self::A::•().{self::A::forIn}();
+  [@vm.direct-call.metadata=#lib::A.cLoop] [@vm.inferred-type.metadata=!? (skip check)] new self::A::•().{self::A::cLoop}();
+}

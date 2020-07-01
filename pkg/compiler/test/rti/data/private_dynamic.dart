@@ -5,8 +5,7 @@
 // @dart = 2.7
 
 class C {
-  /*spec:nnbd-off|prod:nnbd-off.member: C._private:direct,explicit=[_private.T],needsArgs,selectors=[Selector(call, _private, arity=1, types=1)]*/
-  /*spec:nnbd-sdk|prod:nnbd-sdk.member: C._private:direct,explicit=[_private.T*],needsArgs,selectors=[Selector(call, _private, arity=1, types=1)]*/
+  /*member: C._private:direct,explicit=[_private.T*],needsArgs,selectors=[Selector(call, _private, arity=1, types=1)]*/
   _private<T>(t) => t is T;
 }
 

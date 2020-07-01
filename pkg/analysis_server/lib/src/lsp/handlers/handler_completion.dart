@@ -18,8 +18,6 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/ast/ast.dart' show SimpleIdentifier;
-import 'package:analyzer/dart/ast/visitor.dart' show RecursiveAstVisitor;
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -323,7 +321,7 @@ class CompletionHandler
 
       // Perform fuzzy matching based on the identifier in front of the caret to
       // reduce the size of the payload.
-      final fuzzyPattern = _prefixMatchingPattern(dartCompletionRequest);
+      final fuzzyPattern = dartCompletionRequest.targetPrefix;
       final fuzzyMatcher =
           FuzzyMatcher(fuzzyPattern, matchStyle: MatchStyle.TEXT);
 
@@ -359,42 +357,5 @@ class CompletionHandler
         ),
       );
     });
-  }
-
-  /// Return the pattern to match suggestions against, from the identifier
-  /// to the left of (or spanning) the caret. Return the empty string if cannot
-  /// find the identifier.
-  ///
-  /// If the caret is within the identifier, the returned pattern will be truncated
-  /// to the position of the caret. For example at:
-  ///
-  ///     new MyClass^Foo
-  ///
-  /// will return "MyClass" as the search pattern.
-  String _prefixMatchingPattern(DartCompletionRequestImpl request) {
-    final nodeSpanningOffsetVisitor =
-        _IdentifierSpanningOffsetVisitor(request.offset);
-    request.target.containingNode.accept(nodeSpanningOffsetVisitor);
-    final node = nodeSpanningOffsetVisitor.matchingNode;
-
-    final prefix = node != null && request.offset - node.offset < node.length
-        ? node.name.substring(0, request.offset - node.offset)
-        : node?.name;
-
-    return prefix ?? '';
-  }
-}
-
-/// An AST visitor to locate a [SimpleIdentifier] that spans the provided offset.
-class _IdentifierSpanningOffsetVisitor extends RecursiveAstVisitor<void> {
-  final int offset;
-  SimpleIdentifier _matchingNode;
-  _IdentifierSpanningOffsetVisitor(this.offset);
-  SimpleIdentifier get matchingNode => _matchingNode;
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.offset <= offset && node.end >= offset) {
-      _matchingNode = node;
-    }
   }
 }

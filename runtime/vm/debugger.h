@@ -369,7 +369,6 @@ class ActivationFrame : public ZoneAllocated {
   void PrintToJSONObjectRegular(JSONObject* jsobj);
   void PrintToJSONObjectAsyncCausal(JSONObject* jsobj);
   void PrintToJSONObjectAsyncSuspensionMarker(JSONObject* jsobj);
-  void PrintToJSONObjectAsyncActivation(JSONObject* jsobj);
   void PrintContextMismatchError(intptr_t ctx_slot,
                                  intptr_t frame_ctx_level,
                                  intptr_t var_ctx_level);

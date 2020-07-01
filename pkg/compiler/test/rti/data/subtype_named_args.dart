@@ -8,112 +8,30 @@
 
 import 'package:expect/expect.dart';
 
-/*spec:nnbd-off.class: A:
- explicit=[
-  A,G<A,A1,A1,A1>,
-  dynamic Function({a:A,b:A1,c:A1,d:A1}),
-  dynamic Function({a:A,b:B,c:C,d:D}),
-  dynamic Function({b:B,f:dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),g:G<A,B,C,D>,x:dynamic}),
-  dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),
-  dynamic Function({g:G<A,A1,A1,A1>,l:List<List<A1>>,m:Map<num,num>}),
-  dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),
-  dynamic Function({v:dynamic Function({a:A,b:B,c:C,d:D}),x:int,y:bool,z:List<Map>}),
-  dynamic Function({v:dynamic,x:A,y:G,z:dynamic Function({b:B,f:dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),g:G<A,B,C,D>,x:dynamic})})]
-*/
-/*prod:nnbd-off.class: A:
- explicit=[
-  dynamic Function({a:A,b:B,c:C,d:D}),
-  dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),
-  dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]
-*/
-/*spec:nnbd-sdk.class: A:explicit=[A*,G<A*,A1*,A1*,A1*>*,dynamic Function({a:A*,b:A1*,c:A1*,d:A1*})*,dynamic Function({a:A*,b:B*,c:C*,d:D*})*,dynamic Function({b:B*,f:dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,g:G<A*,B*,C*,D*>*,x:dynamic})*,dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,dynamic Function({g:G<A*,A1*,A1*,A1*>*,l:List<List<A1*>*>*,m:Map<num*,num*>*})*,dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,dynamic Function({v:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,x:int*,y:bool*,z:List<Map*>*})*,dynamic Function({v:dynamic,x:A*,y:G*,z:dynamic Function({b:B*,f:dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,g:G<A*,B*,C*,D*>*,x:dynamic})*})*]*/
-/*prod:nnbd-sdk.class: A:explicit=[dynamic Function({a:A*,b:B*,c:C*,d:D*})*,dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*]*/
+/*spec.class: A:explicit=[A*,G<A*,A1*,A1*,A1*>*,dynamic Function({a:A*,b:A1*,c:A1*,d:A1*})*,dynamic Function({a:A*,b:B*,c:C*,d:D*})*,dynamic Function({b:B*,f:dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,g:G<A*,B*,C*,D*>*,x:dynamic})*,dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,dynamic Function({g:G<A*,A1*,A1*,A1*>*,l:List<List<A1*>*>*,m:Map<num*,num*>*})*,dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,dynamic Function({v:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,x:int*,y:bool*,z:List<Map*>*})*,dynamic Function({v:dynamic,x:A*,y:G*,z:dynamic Function({b:B*,f:dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,g:G<A*,B*,C*,D*>*,x:dynamic})*})*]*/
+/*prod.class: A:explicit=[dynamic Function({a:A*,b:B*,c:C*,d:D*})*,dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*]*/
 class A {}
 
-/*spec:nnbd-off.class: A1:explicit=[A1,G<A,A1,A1,A1>,List<List<A1>>,dynamic Function({a:A,b:A1,c:A1,d:A1}),dynamic Function({g:G<A,A1,A1,A1>,l:List<List<A1>>,m:Map<num,num>})]*/
-/*spec:nnbd-sdk.class: A1:explicit=[A1*,G<A*,A1*,A1*,A1*>*,List<List<A1*>*>*,dynamic Function({a:A*,b:A1*,c:A1*,d:A1*})*,dynamic Function({g:G<A*,A1*,A1*,A1*>*,l:List<List<A1*>*>*,m:Map<num*,num*>*})*]*/
+/*spec.class: A1:explicit=[A1*,G<A*,A1*,A1*,A1*>*,List<List<A1*>*>*,dynamic Function({a:A*,b:A1*,c:A1*,d:A1*})*,dynamic Function({g:G<A*,A1*,A1*,A1*>*,l:List<List<A1*>*>*,m:Map<num*,num*>*})*]*/
 class A1 {}
 
-/*spec:nnbd-off.class: A2:explicit=[A2]*/
-/*spec:nnbd-sdk.class: A2:explicit=[A2*]*/
+/*spec.class: A2:explicit=[A2*]*/
 class A2 {}
 
-/*spec:nnbd-off.class: B:
- explicit=[
-  B,
-  dynamic Function({a:A,b:B,c:C,d:D}),
-  dynamic Function({b:B,f:dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),g:G<A,B,C,D>,x:dynamic}),
-  dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),
-  dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),
-  dynamic Function({v:dynamic Function({a:A,b:B,c:C,d:D}),x:int,y:bool,z:List<Map>}),
-  dynamic Function({v:dynamic,x:A,y:G,z:dynamic Function({b:B,f:dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),g:G<A,B,C,D>,x:dynamic})})]
-*/
-/*prod:nnbd-off.class: B:
- explicit=[
-  dynamic Function({a:A,b:B,c:C,d:D}),
-  dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),
-  dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]
-*/
-/*spec:nnbd-sdk.class: B:explicit=[B*,dynamic Function({a:A*,b:B*,c:C*,d:D*})*,dynamic Function({b:B*,f:dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,g:G<A*,B*,C*,D*>*,x:dynamic})*,dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,dynamic Function({v:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,x:int*,y:bool*,z:List<Map*>*})*,dynamic Function({v:dynamic,x:A*,y:G*,z:dynamic Function({b:B*,f:dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,g:G<A*,B*,C*,D*>*,x:dynamic})*})*]*/
-/*prod:nnbd-sdk.class: B:explicit=[dynamic Function({a:A*,b:B*,c:C*,d:D*})*,dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*]*/
+/*spec.class: B:explicit=[B*,dynamic Function({a:A*,b:B*,c:C*,d:D*})*,dynamic Function({b:B*,f:dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,g:G<A*,B*,C*,D*>*,x:dynamic})*,dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,dynamic Function({v:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,x:int*,y:bool*,z:List<Map*>*})*,dynamic Function({v:dynamic,x:A*,y:G*,z:dynamic Function({b:B*,f:dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,g:G<A*,B*,C*,D*>*,x:dynamic})*})*]*/
+/*prod.class: B:explicit=[dynamic Function({a:A*,b:B*,c:C*,d:D*})*,dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*]*/
 class B implements A, A1, A2 {}
 
-/*spec:nnbd-off.class: C:
- explicit=[
-  C,
-  dynamic Function({a:A,b:B,c:C,d:D}),
-  dynamic Function({b:B,f:dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),g:G<A,B,C,D>,x:dynamic}),
-  dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),
-  dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),dynamic Function({v:dynamic Function({a:A,b:B,c:C,d:D}),x:int,y:bool,z:List<Map>}),
-  dynamic Function({v:dynamic,x:A,y:G,z:dynamic Function({b:B,f:dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),g:G<A,B,C,D>,x:dynamic})})]
-*/
-/*prod:nnbd-off.class: C:
- explicit=[
-  dynamic Function({a:A,b:B,c:C,d:D}),
-  dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),
-  dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]
-*/
-/*spec:nnbd-sdk.class: C:explicit=[C*,dynamic Function({a:A*,b:B*,c:C*,d:D*})*,dynamic Function({b:B*,f:dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,g:G<A*,B*,C*,D*>*,x:dynamic})*,dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,dynamic Function({v:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,x:int*,y:bool*,z:List<Map*>*})*,dynamic Function({v:dynamic,x:A*,y:G*,z:dynamic Function({b:B*,f:dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,g:G<A*,B*,C*,D*>*,x:dynamic})*})*]*/
-/*prod:nnbd-sdk.class: C:explicit=[dynamic Function({a:A*,b:B*,c:C*,d:D*})*,dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*]*/
+/*spec.class: C:explicit=[C*,dynamic Function({a:A*,b:B*,c:C*,d:D*})*,dynamic Function({b:B*,f:dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,g:G<A*,B*,C*,D*>*,x:dynamic})*,dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,dynamic Function({v:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,x:int*,y:bool*,z:List<Map*>*})*,dynamic Function({v:dynamic,x:A*,y:G*,z:dynamic Function({b:B*,f:dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,g:G<A*,B*,C*,D*>*,x:dynamic})*})*]*/
+/*prod.class: C:explicit=[dynamic Function({a:A*,b:B*,c:C*,d:D*})*,dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*]*/
 class C implements B {}
 
-/*spec:nnbd-off.class: D:
- explicit=[
-  D,G<D,D,D,D>,List<List<D>>,
-  dynamic Function({a:A,b:B,c:C,d:D}),
-  dynamic Function({a:D,b:D,c:D,d:D}),
-  dynamic Function({b:B,f:dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),g:G<A,B,C,D>,x:dynamic}),
-  dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),dynamic Function({g:G<D,D,D,D>,l:List<List<D>>,m:Map<int,int>}),
-  dynamic Function({v:dynamic Function({a:A,b:B,c:C,d:D}),x:int,y:bool,z:List<Map>}),dynamic Function({v:dynamic,x:A,y:G,z:dynamic Function({b:B,f:dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),g:G<A,B,C,D>,x:dynamic})})]
-*/
-/*prod:nnbd-off.class: D:
- explicit=[
-  dynamic Function({a:A,b:B,c:C,d:D}),
-  dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),
-  dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]
-*/
-/*spec:nnbd-sdk.class: D:explicit=[D*,G<D*,D*,D*,D*>*,List<List<D*>*>*,dynamic Function({a:A*,b:B*,c:C*,d:D*})*,dynamic Function({a:D*,b:D*,c:D*,d:D*})*,dynamic Function({b:B*,f:dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,g:G<A*,B*,C*,D*>*,x:dynamic})*,dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,dynamic Function({g:G<D*,D*,D*,D*>*,l:List<List<D*>*>*,m:Map<int*,int*>*})*,dynamic Function({v:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,x:int*,y:bool*,z:List<Map*>*})*,dynamic Function({v:dynamic,x:A*,y:G*,z:dynamic Function({b:B*,f:dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,g:G<A*,B*,C*,D*>*,x:dynamic})*})*]*/
-/*prod:nnbd-sdk.class: D:explicit=[dynamic Function({a:A*,b:B*,c:C*,d:D*})*,dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*]*/
+/*spec.class: D:explicit=[D*,G<D*,D*,D*,D*>*,List<List<D*>*>*,dynamic Function({a:A*,b:B*,c:C*,d:D*})*,dynamic Function({a:D*,b:D*,c:D*,d:D*})*,dynamic Function({b:B*,f:dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,g:G<A*,B*,C*,D*>*,x:dynamic})*,dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,dynamic Function({g:G<D*,D*,D*,D*>*,l:List<List<D*>*>*,m:Map<int*,int*>*})*,dynamic Function({v:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,x:int*,y:bool*,z:List<Map*>*})*,dynamic Function({v:dynamic,x:A*,y:G*,z:dynamic Function({b:B*,f:dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,g:G<A*,B*,C*,D*>*,x:dynamic})*})*]*/
+/*prod.class: D:explicit=[dynamic Function({a:A*,b:B*,c:C*,d:D*})*,dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*]*/
 class D implements C {}
 
-/*spec:nnbd-off.class: G:
- explicit=[
-  G,G<A,A1,A1,A1>,G<D,D,D,D>,
-  dynamic Function({b:B,f:dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),g:G<A,B,C,D>,x:dynamic}),
-  dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),
-  dynamic Function({g:G<A,A1,A1,A1>,l:List<List<A1>>,m:Map<num,num>}),
-  dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),
-  dynamic Function({g:G<D,D,D,D>,l:List<List<D>>,m:Map<int,int>}),
-  dynamic Function({v:dynamic,x:A,y:G,z:dynamic Function({b:B,f:dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),g:G<A,B,C,D>,x:dynamic})})],
- needsArgs
-*/
-/*prod:nnbd-off.class: G:
- explicit=[
-  dynamic Function({f1:dynamic Function({a:A,b:B,c:C,d:D}),f2:dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>}),f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})}),
-  dynamic Function({g:G<A,B,C,D>,l:List<List<B>>,m:Map<num,int>})]
-*/
-/*spec:nnbd-sdk.class: G:explicit=[G*,G<A*,A1*,A1*,A1*>*,G<D*,D*,D*,D*>*,dynamic Function({b:B*,f:dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,g:G<A*,B*,C*,D*>*,x:dynamic})*,dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,dynamic Function({g:G<A*,A1*,A1*,A1*>*,l:List<List<A1*>*>*,m:Map<num*,num*>*})*,dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,dynamic Function({g:G<D*,D*,D*,D*>*,l:List<List<D*>*>*,m:Map<int*,int*>*})*,dynamic Function({v:dynamic,x:A*,y:G*,z:dynamic Function({b:B*,f:dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,g:G<A*,B*,C*,D*>*,x:dynamic})*})*],needsArgs*/
-/*prod:nnbd-sdk.class: G:explicit=[dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*]*/
+/*spec.class: G:explicit=[G*,G<A*,A1*,A1*,A1*>*,G<D*,D*,D*,D*>*,dynamic Function({b:B*,f:dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,g:G<A*,B*,C*,D*>*,x:dynamic})*,dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,dynamic Function({g:G<A*,A1*,A1*,A1*>*,l:List<List<A1*>*>*,m:Map<num*,num*>*})*,dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,dynamic Function({g:G<D*,D*,D*,D*>*,l:List<List<D*>*>*,m:Map<int*,int*>*})*,dynamic Function({v:dynamic,x:A*,y:G*,z:dynamic Function({b:B*,f:dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,g:G<A*,B*,C*,D*>*,x:dynamic})*})*],needsArgs*/
+/*prod.class: G:explicit=[dynamic Function({f1:dynamic Function({a:A*,b:B*,c:C*,d:D*})*,f2:dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*,f3:dynamic Function({v:dynamic,x:dynamic,y:dynamic,z:dynamic})*})*,dynamic Function({g:G<A*,B*,C*,D*>*,l:List<List<B*>*>*,m:Map<num*,int*>*})*]*/
 class G<T, S, U, W> {}
 
 typedef classesFunc({A a, B b, C c, D d});
@@ -135,19 +53,19 @@ typedef okWithDynamicFunc_2({int x, bool y, List<Map> z, classesFunc v});
 
 main() {
   Expect.isTrue(
-      /*spec:nnbd-off|spec:nnbd-sdk.needsSignature*/
+      /*spec.needsSignature*/
       ({D a, B b, C c, A d}) {} is classesFunc);
   Expect.isTrue(
       /*needsSignature*/
       ({A a, A b, A c, A d}) {} is classesFunc);
   Expect.isTrue(
-      /*spec:nnbd-off|spec:nnbd-sdk.needsSignature*/
+      /*spec.needsSignature*/
       ({D a, A1 b, A1 c, A1 d}) {} is classesFunc);
   Expect.isTrue(
-      /*spec:nnbd-off|spec:nnbd-sdk.needsSignature*/
+      /*spec.needsSignature*/
       ({D a, A2 b, A2 c, A2 d}) {} is classesFunc);
   Expect.isTrue(
-      /*spec:nnbd-off|spec:nnbd-sdk.needsSignature*/
+      /*spec.needsSignature*/
       ({D a, D b, D c, D d}) {} is classesFunc);
   Expect.isTrue(
       /*needsSignature*/
@@ -161,7 +79,7 @@ main() {
       ({Map<num, num> m, List<List<A1>> l, G<A, A1, A1, A1> g}) {}
           is genericsFunc);
   Expect.isTrue(
-      /*spec:nnbd-off|spec:nnbd-sdk.needsSignature*/
+      /*spec.needsSignature*/
       ({Map<int, int> m, List<List<D>> l, G<D, D, D, D> g}) {} is genericsFunc);
   Expect.isTrue(
       /*needsSignature*/
@@ -171,10 +89,10 @@ main() {
       ({Object m, Object l, Object g}) {} is genericsFunc);
 
   Expect.isTrue(
-      /*spec:nnbd-off|spec:nnbd-sdk.needsSignature*/
+      /*spec.needsSignature*/
       ({A x, G y, mixFunc z, var v}) {} is dynamicFunc);
   Expect.isTrue(
-      /*spec:nnbd-off|spec:nnbd-sdk.needsSignature*/
+      /*spec.needsSignature*/
       ({int x, bool y, List<Map> z, classesFunc v}) {} is dynamicFunc);
 
   Expect.isTrue((

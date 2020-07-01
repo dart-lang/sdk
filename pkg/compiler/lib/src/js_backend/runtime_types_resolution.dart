@@ -126,7 +126,11 @@ class ClassNode extends RtiNode {
   String get kind => 'class';
 }
 
-class MethodNode extends RtiNode {
+abstract class CallableNode extends RtiNode {
+  bool selectorApplies(Selector selector, BuiltWorld world);
+}
+
+class MethodNode extends CallableNode {
   final Entity function;
   final ParameterStructure parameterStructure;
   final bool isCallTarget;
@@ -139,7 +143,8 @@ class MethodNode extends RtiNode {
   @override
   Entity get entity => function;
 
-  bool selectorApplies(Selector selector) {
+  @override
+  bool selectorApplies(Selector selector, BuiltWorld world) {
     if (isNoSuchMethod) return true;
     return (isCallTarget && selector.isClosureCall ||
             instanceName == selector.memberName) &&
@@ -162,10 +167,37 @@ class MethodNode extends RtiNode {
   }
 }
 
+class CallablePropertyNode extends CallableNode {
+  final MemberEntity property;
+  final DartType type;
+
+  CallablePropertyNode(this.property, this.type);
+
+  @override
+  Entity get entity => property;
+
+  @override
+  String get kind => 'callable-property';
+
+  @override
+  bool selectorApplies(Selector selector, BuiltWorld world) {
+    if (world.annotationsData.getParameterCheckPolicy(property).isTrusted)
+      return false;
+    if (property.memberName != selector.memberName) return false;
+    if (type is FunctionType &&
+        !selector.callStructure
+            .signatureApplies(ParameterStructure.fromType(type))) return false;
+    return true;
+  }
+
+  @override
+  String toString() => 'CallablePropertyNode(property=$property)';
+}
+
 class TypeVariableTests {
-  List<RtiNode> _nodes = <RtiNode>[];
-  Map<ClassEntity, ClassNode> _classes = <ClassEntity, ClassNode>{};
-  Map<Entity, MethodNode> _methods = <Entity, MethodNode>{};
+  Map<ClassEntity, ClassNode> _classes = {};
+  Map<Entity, MethodNode> _methods = {};
+  Map<MemberEntity, CallablePropertyNode> _callableProperties = {};
   Map<Selector, Set<Entity>> _appliedSelectorMap;
   Map<GenericInstantiation, Set<Entity>> _instantiationMap;
 
@@ -293,11 +325,7 @@ class TypeVariableTests {
   }
 
   ClassNode _getClassNode(ClassEntity cls) {
-    return _classes.putIfAbsent(cls, () {
-      ClassNode node = new ClassNode(cls);
-      _nodes.add(node);
-      return node;
-    });
+    return _classes.putIfAbsent(cls, () => ClassNode(cls));
   }
 
   MethodNode _getMethodNode(ElementEnvironment elementEnvironment,
@@ -325,10 +353,14 @@ class TypeVariableTests {
             elementEnvironment.getLocalFunctionType(function));
         node = new MethodNode(function, parameterStructure, isCallTarget: true);
       }
-      _nodes.add(node);
       return node;
     });
   }
+
+  CallablePropertyNode _getCallablePropertyNode(
+          MemberEntity property, DartType type) =>
+      _callableProperties.putIfAbsent(
+          property, () => CallablePropertyNode(property, type));
 
   void _setupDependencies(
       ElementEnvironment elementEnvironment,
@@ -431,9 +463,8 @@ class TypeVariableTests {
 
     world.forEachDynamicTypeArgument(
         (Selector selector, Iterable<DartType> typeArguments) {
-      void processEntity(Entity entity) {
-        MethodNode node = _getMethodNode(elementEnvironment, world, entity);
-        if (node.selectorApplies(selector)) {
+      void processCallableNode(CallableNode node) {
+        if (node.selectorApplies(selector, world)) {
           for (DartType type in typeArguments) {
             // Register that if `node.entity` needs type arguments then so do
             // the entities that declare type variables occurring in [type].
@@ -442,10 +473,21 @@ class TypeVariableTests {
         }
       }
 
-      world.forEachGenericInstanceMethod(processEntity);
-      world.genericLocalFunctions.forEach(processEntity);
-      world.closurizedStatics.forEach(processEntity);
-      world.userNoSuchMethods.forEach(processEntity);
+      void processMethod(Entity entity) {
+        MethodNode node = _getMethodNode(elementEnvironment, world, entity);
+        processCallableNode(node);
+      }
+
+      void processCallableProperty(MemberEntity entity, DartType type) {
+        CallablePropertyNode node = _getCallablePropertyNode(entity, type);
+        processCallableNode(node);
+      }
+
+      world.forEachGenericInstanceMethod(processMethod);
+      world.genericLocalFunctions.forEach(processMethod);
+      world.closurizedStatics.forEach(processMethod);
+      world.userNoSuchMethods.forEach(processMethod);
+      world.genericCallableProperties.forEach(processCallableProperty);
     });
 
     for (GenericInstantiation instantiation in genericInstantiations) {
@@ -627,11 +669,14 @@ class TypeVariableTests {
 
     world.forEachDynamicTypeArgument(
         (Selector selector, Iterable<DartType> typeArguments) {
-      for (MethodNode node in _methods.values) {
-        if (node.selectorApplies(selector)) {
+      for (CallableNode node in [
+        ..._methods.values,
+        ..._callableProperties.values
+      ]) {
+        if (node.selectorApplies(selector, world)) {
           if (forRtiNeeds) {
             _appliedSelectorMap
-                .putIfAbsent(selector, () => new Set<Entity>())
+                .putIfAbsent(selector, () => {})
                 .add(node.entity);
           }
           if (node.hasTest) {
@@ -824,18 +869,14 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
     sink.end(tag);
   }
 
-  bool checkClass(covariant ClassEntity cls) => true;
-
   @override
   bool classNeedsTypeArguments(ClassEntity cls) {
-    assert(checkClass(cls));
     if (!_elementEnvironment.isGenericClass(cls)) return false;
     return classesNeedingTypeArguments.contains(cls);
   }
 
   @override
   bool classHasErasedTypeArguments(ClassEntity cls) {
-    assert(checkClass(cls));
     if (!_elementEnvironment.isGenericClass(cls)) return false;
     return !classesNeedingTypeArguments.contains(cls);
   }
@@ -1273,7 +1314,8 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
     typeVariableTests
         .forEachAppliedSelector((Selector selector, Set<Entity> targets) {
       for (Entity target in targets) {
-        if (methodsNeedingTypeArguments.contains(target) ||
+        if (target is MemberEntity && (target.isField || target.isGetter) ||
+            methodsNeedingTypeArguments.contains(target) ||
             localFunctionsNeedingTypeArguments.contains(target)) {
           selectorsNeedingTypeArguments.add(selector);
           if (retainDataForTesting) {

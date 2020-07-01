@@ -10,7 +10,6 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/universe/call_structure.dart';
 import 'package:expect/expect.dart';
-import '../helpers/memory_compiler.dart';
 import '../helpers/type_test_helper.dart';
 
 List<FunctionTypeData> signatures = const <FunctionTypeData>[
@@ -37,8 +36,8 @@ main() {
 
     for (FunctionTypeData data in signatures) {
       DartType functionType = env.getElementType('t${data.name}');
-      Expect.isTrue(functionType is! LegacyType ||
-          (env.options.useLegacySubtyping && isDart2jsNnbd));
+      Expect.isTrue(
+          functionType is! LegacyType || env.options.useLegacySubtyping);
       functionType = functionType.withoutNullability;
       FunctionEntity method = env.getElement('m${data.name}');
       FunctionType methodType = env.getElementType('m${data.name}');

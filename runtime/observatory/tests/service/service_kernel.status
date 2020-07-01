@@ -113,6 +113,7 @@ issue_30555_test: SkipByDesign
 kill_paused_test: Skip, Timeout
 library_dependency_test: CompileTimeError
 local_variable_declaration_test: Skip, Timeout
+local_variable_in_awaiter_async_frame_test: Skip, Timeout
 logging_test: Skip, Timeout
 mirror_references_test: CompileTimeError
 mixin_break_test: Skip, Timeout

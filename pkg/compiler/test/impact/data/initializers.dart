@@ -30,46 +30,7 @@ main() {
   testGenericClass();
 }
 
-/*spec:nnbd-off.member: testDefaultValuesPositional:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  param:bool]
-*/
-/*spec:nnbd-sdk.member: testDefaultValuesPositional:
+/*member: testDefaultValuesPositional:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -113,46 +74,7 @@ main() {
 */
 testDefaultValuesPositional([bool value = false]) {}
 
-/*spec:nnbd-off.member: testDefaultValuesNamed:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  param:bool]
-*/
-/*spec:nnbd-sdk.member: testDefaultValuesNamed:
+/*member: testDefaultValuesNamed:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -246,46 +168,7 @@ testFieldInitializer3() {
 
 /*member: ClassInstanceFieldWithInitializer.:static=[Object.(0)]*/
 class ClassInstanceFieldWithInitializer {
-  /*spec:nnbd-off.member: ClassInstanceFieldWithInitializer.field:
-   static=[
-    Rti._bind(1),
-    Rti._eval(1),
-    _arrayInstanceType(1),
-    _asBool(1),
-    _asBoolQ(1),
-    _asBoolS(1),
-    _asDouble(1),
-    _asDoubleQ(1),
-    _asDoubleS(1),
-    _asInt(1),
-    _asIntQ(1),
-    _asIntS(1),
-    _asNum(1),
-    _asNumQ(1),
-    _asNumS(1),
-    _asObject(1),
-    _asString(1),
-    _asStringQ(1),
-    _asStringS(1),
-    _asTop(1),
-    _generalAsCheckImplementation(1),
-    _generalIsTestImplementation(1),
-    _installSpecializedIsTest(1),
-    _instanceType(1),
-    _isBool(1),
-    _isInt(1),
-    _isNum(1),
-    _isObject(1),
-    _isString(1),
-    _isTop(1),
-    findType(1),
-    instanceType(1)],
-   type=[
-    inst:Closure,
-    inst:JSBool,
-    param:bool]
-  */
-  /*spec:nnbd-sdk.member: ClassInstanceFieldWithInitializer.field:
+  /*member: ClassInstanceFieldWithInitializer.field:
    static=[
     Rti._bind(1),
     Rti._eval(1),
@@ -335,47 +218,7 @@ testInstanceFieldWithInitializer() => new ClassInstanceFieldWithInitializer();
 
 /*member: ClassInstanceFieldTyped.:static=[Object.(0)]*/
 class ClassInstanceFieldTyped {
-  /*spec:nnbd-off.member: ClassInstanceFieldTyped.field:
-   static=[
-    Rti._bind(1),
-    Rti._eval(1),
-    _arrayInstanceType(1),
-    _asBool(1),
-    _asBoolQ(1),
-    _asBoolS(1),
-    _asDouble(1),
-    _asDoubleQ(1),
-    _asDoubleS(1),
-    _asInt(1),
-    _asIntQ(1),
-    _asIntS(1),
-    _asNum(1),
-    _asNumQ(1),
-    _asNumS(1),
-    _asObject(1),
-    _asString(1),
-    _asStringQ(1),
-    _asStringS(1),
-    _asTop(1),
-    _generalAsCheckImplementation(1),
-    _generalIsTestImplementation(1),
-    _installSpecializedIsTest(1),
-    _instanceType(1),
-    _isBool(1),
-    _isInt(1),
-    _isNum(1),
-    _isObject(1),
-    _isString(1),
-    _isTop(1),
-    findType(1),
-    instanceType(1)],
-   type=[
-    inst:Closure,
-    inst:JSBool,
-    inst:JSNull,
-    param:int]
-  */
-  /*spec:nnbd-sdk.member: ClassInstanceFieldTyped.field:
+  /*member: ClassInstanceFieldTyped.field:
    static=[
     Rti._bind(1),
     Rti._eval(1),
@@ -444,53 +287,7 @@ class ClassSuperInitializer extends ClassThisInitializer {
 testSuperInitializer() => new ClassSuperInitializer();
 
 class ClassGeneric<T> {
-  /*spec:nnbd-off.member: ClassGeneric.:
-   static=[
-    Object.(0),
-    Rti._bind(1),
-    Rti._eval(1),
-    _arrayInstanceType(1),
-    _asBool(1),
-    _asBoolQ(1),
-    _asBoolS(1),
-    _asDouble(1),
-    _asDoubleQ(1),
-    _asDoubleS(1),
-    _asInt(1),
-    _asIntQ(1),
-    _asIntS(1),
-    _asNum(1),
-    _asNumQ(1),
-    _asNumS(1),
-    _asObject(1),
-    _asString(1),
-    _asStringQ(1),
-    _asStringS(1),
-    _asTop(1),
-    _generalAsCheckImplementation(1),
-    _generalIsTestImplementation(1),
-    _installSpecializedIsTest(1),
-    _instanceType(1),
-    _isBool(1),
-    _isInt(1),
-    _isNum(1),
-    _isObject(1),
-    _isString(1),
-    _isTop(1),
-    findType(1),
-    instanceType(1),
-    setRuntimeTypeInfo(2)],
-   type=[
-    inst:Closure,
-    inst:JSArray<dynamic>,
-    inst:JSBool,
-    inst:JSExtendableArray<dynamic>,
-    inst:JSFixedArray<dynamic>,
-    inst:JSMutableArray<dynamic>,
-    inst:JSUnmodifiableArray<dynamic>,
-    param:ClassGeneric.T]
-  */
-  /*spec:nnbd-sdk.member: ClassGeneric.:
+  /*member: ClassGeneric.:
    static=[
     Object.(0),
     Rti._bind(1),

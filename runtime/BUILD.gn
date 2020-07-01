@@ -137,7 +137,7 @@ config("dart_config") {
 
   if (is_fuchsia) {
     if (using_fuchsia_gn_sdk) {
-      lib_dirs = [ "../out/DebugFuchsiaX64/lib" ]
+      lib_dirs = [ root_out_dir + "/lib" ]
     }
     if (using_fuchsia_gn_sdk || using_fuchsia_sdk) {
       # TODO(chinmaygarde): Currenty these targets need to be build in the

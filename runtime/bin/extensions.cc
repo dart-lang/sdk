@@ -65,7 +65,7 @@ void* Extensions::MakePathAndResolve(const char* dir, const char* name) {
 // loaded from the standard location.
 void* Extensions::ResolveAbsPathExtension(const char* extension_path) {
   const char* last_slash = strrchr(extension_path, PathSeparator()) + 1;
-  char* name = strdup(last_slash);
+  char* name = Utils::StrDup(last_slash);
   char* dir = Utils::StrNDup(extension_path, last_slash - extension_path);
   void* library_handle = MakePathAndResolve(dir, name);
   free(dir);

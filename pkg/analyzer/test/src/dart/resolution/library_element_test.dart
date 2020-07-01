@@ -4,6 +4,8 @@
 
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -82,40 +84,60 @@ class A {}
 ''');
 
     // No override.
-    await _assertLanguageVersion('package:test/a.dart', 2, 7);
+    await _assertLanguageVersion(
+      uriStr: 'package:test/a.dart',
+      package: Version.parse('2.7.0'),
+      override: null,
+    );
 
     // Valid override, less than the latest supported language version.
-    await _assertLanguageVersion('package:test/b.dart', 2, 6);
+    await _assertLanguageVersion(
+      uriStr: 'package:test/b.dart',
+      package: Version.parse('2.7.0'),
+      override: Version.parse('2.6.0'),
+    );
 
     // Valid override, even if greater than the package language version.
-    await _assertLanguageVersion('package:test/c.dart', 2, 9);
+    await _assertLanguageVersion(
+      uriStr: 'package:test/c.dart',
+      package: Version.parse('2.7.0'),
+      override: Version.parse('2.9.0'),
+    );
 
     // Invalid override: minor is greater than the latest minor.
-    await _assertLanguageVersion('package:test/d.dart', 2, 7);
+    await _assertLanguageVersion(
+      uriStr: 'package:test/d.dart',
+      package: Version.parse('2.7.0'),
+      override: null,
+    );
 
     // Invalid override: major is greater than the latest major.
-    await _assertLanguageVersion('package:test/e.dart', 2, 7);
+    await _assertLanguageVersion(
+      uriStr: 'package:test/e.dart',
+      package: Version.parse('2.7.0'),
+      override: null,
+    );
 
     await _assertLanguageVersionCurrent('package:aaa/a.dart');
     await _assertLanguageVersionCurrent('package:aaa/b.dart');
     await _assertLanguageVersionCurrent('package:aaa/c.dart');
   }
 
-  Future<void> _assertLanguageVersion(
-    String uriStr,
-    int major,
-    int minor,
-  ) async {
+  Future<void> _assertLanguageVersion({
+    @required String uriStr,
+    @required Version package,
+    @required Version override,
+  }) async {
     var element = await driver.getLibraryByUri(uriStr);
-    expect(element.languageVersionMajor, major);
-    expect(element.languageVersionMinor, minor);
+    expect(element.languageVersion.package, package);
+    expect(element.languageVersion.override, override);
   }
 
   Future<void> _assertLanguageVersionCurrent(String uriStr) async {
     await _assertLanguageVersion(
-      uriStr,
-      ExperimentStatus.currentVersion.major,
-      ExperimentStatus.currentVersion.minor,
+      uriStr: uriStr,
+      package: ExperimentStatus.currentVersion,
+      override: null,
     );
   }
 }

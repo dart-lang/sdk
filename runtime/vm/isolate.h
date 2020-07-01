@@ -192,7 +192,7 @@ class IsolateGroupSource {
                      intptr_t kernel_buffer_size,
                      Dart_IsolateFlags flags)
       : script_uri(script_uri),
-        name(strdup(name)),
+        name(Utils::StrDup(name)),
         snapshot_data(snapshot_data),
         snapshot_instructions(snapshot_instructions),
         kernel_buffer(kernel_buffer),

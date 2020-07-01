@@ -780,6 +780,13 @@ class LibraryAnalyzer {
           _library.source,
           relativeUri,
         );
+        for (var configuration in directive.configurations) {
+          var uriLiteral = configuration.uri;
+          String uriContent = uriLiteral.stringValue?.trim();
+          Source defaultSource = _resolveUri(
+              file, directive is ImportDirective, uriLiteral, uriContent);
+          configuration.uriSource = defaultSource;
+        }
       }
     }
   }

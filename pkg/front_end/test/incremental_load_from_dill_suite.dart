@@ -541,11 +541,6 @@ class NewWorldTest {
         }
       }
 
-      compiler.useExperimentalInvalidation = false;
-      if (world["useExperimentalInvalidation"] == true) {
-        compiler.useExperimentalInvalidation = true;
-      }
-
       List<Uri> invalidated = new List<Uri>();
       if (world["invalidate"] != null) {
         for (String filename in world["invalidate"]) {

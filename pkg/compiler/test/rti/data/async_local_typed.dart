@@ -4,8 +4,7 @@
 
 // @dart = 2.7
 
-/*spec:nnbd-off.class: Class:explicit=[Class<int>],needsArgs*/
-/*spec:nnbd-sdk.class: Class:explicit=[Class<int*>*],needsArgs*/
+/*spec.class: Class:explicit=[Class<int*>*],needsArgs*/
 class Class<T> {}
 
 main() async {
@@ -14,7 +13,7 @@ main() async {
   // `dynamic Function(dynamic, Class<int>)`, is not a potential subtype and
   // therefore doesn't need its signature.
 
-  /*spec:nnbd-off|spec:nnbd-sdk.needsSignature*/
+  /*spec.needsSignature*/
   local(object, Class<int> stacktrace) => null;
 
   return local;

@@ -18,11 +18,11 @@ const map4 = /*cfe.Map<String,int>(String(foo):Int(42),String(bar):Int(87))*/
 main() {
   print(/*Map<dynamic,dynamic>()*/ map0);
   print(
-      /*cfe|analyzer|dart2js.Map<String,int>()*/ /*dart2js:nnbd-sdk.Map<String*,int*>()*/ map1);
+      /*cfe|analyzer.Map<String,int>()*/ /*dart2js.Map<String*,int*>()*/ map1);
   print(
-      /*cfe|analyzer|dart2js.Map<String,int>()*/ /*dart2js:nnbd-sdk.Map<String*,int*>()*/ map2);
+      /*cfe|analyzer.Map<String,int>()*/ /*dart2js.Map<String*,int*>()*/ map2);
   print(
-      /*cfe|analyzer|dart2js.Map<String,int>(String(foo):Int(42))*/ /*dart2js:nnbd-sdk.Map<String*,int*>(String(foo):Int(42))*/ map3);
+      /*cfe|analyzer.Map<String,int>(String(foo):Int(42))*/ /*dart2js.Map<String*,int*>(String(foo):Int(42))*/ map3);
   print(
-      /*cfe|analyzer|dart2js.Map<String,int>(String(foo):Int(42),String(bar):Int(87))*/ /*dart2js:nnbd-sdk.Map<String*,int*>(String(foo):Int(42),String(bar):Int(87))*/ map4);
+      /*cfe|analyzer.Map<String,int>(String(foo):Int(42),String(bar):Int(87))*/ /*dart2js.Map<String*,int*>(String(foo):Int(42),String(bar):Int(87))*/ map4);
 }

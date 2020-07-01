@@ -1816,6 +1816,25 @@
     },
     {
       "builders": [
+        "vm-fuchsia-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is for the VM fuchsia builder."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--os=fuchsia",
+            "runtime",
+            "create_sdk"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "cross-vm-linux-release-arm64"
       ],
       "meta": {

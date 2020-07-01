@@ -58,53 +58,8 @@ testNativeMethodReturns() native;
 
 @Native("NativeClass")
 class NativeClass {
-  /*spec:nnbd-off.member: NativeClass.field:
-   static=[
-    Rti._bind(1),
-    Rti._eval(1),
-    _arrayInstanceType(1),
-    _asBool(1),
-    _asBoolQ(1),
-    _asBoolS(1),
-    _asDouble(1),
-    _asDoubleQ(1),
-    _asDoubleS(1),
-    _asInt(1),
-    _asIntQ(1),
-    _asIntS(1),
-    _asNum(1),
-    _asNumQ(1),
-    _asNumS(1),
-    _asObject(1),
-    _asString(1),
-    _asStringQ(1),
-    _asStringS(1),
-    _asTop(1),
-    _generalAsCheckImplementation(1),
-    _generalIsTestImplementation(1),
-    _installSpecializedIsTest(1),
-    _instanceType(1),
-    _isBool(1),
-    _isInt(1),
-    _isNum(1),
-    _isObject(1),
-    _isString(1),
-    _isTop(1),
-    findType(1),
-    instanceType(1)],
-   type=[
-    inst:Closure,
-    inst:JSBool,
-    inst:JSNull,
-    native:JSExtendableArray<JSExtendableArray.E>,
-    native:Object,
-    native:String,
-    native:bool,
-    native:double,
-    native:int,
-    param:Object]
-  */
-  /*spec:nnbd-sdk.member: NativeClass.field:
+  @annotation_Creates_SerializedScriptValue
+  /*member: NativeClass.field:
    static=[
     Rti._bind(1),
     Rti._eval(1),
@@ -153,7 +108,6 @@ class NativeClass {
     native:int,
     param:Object*]
   */
-  @annotation_Creates_SerializedScriptValue
   final Object field;
 
   factory NativeClass._() {
@@ -161,48 +115,7 @@ class NativeClass {
   }
 }
 
-/*spec:nnbd-off.member: testNativeField:
- dynamic=[NativeClass.field],
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  defineProperty(3),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  param:NativeClass]
-*/
-/*spec:nnbd-sdk.member: testNativeField:
+/*member: testNativeField:
  dynamic=[NativeClass.field],
  static=[
   Rti._bind(1),

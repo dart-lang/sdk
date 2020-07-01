@@ -23,8 +23,7 @@ method1<T>(T o) {
 ////////////////////////////////////////////////////////////////////////////////
 
 method2<T>() {
-  /*spec:nnbd-off|spec:nnbd-sdk.fields=[T],free=[T]*/
-  /*prod:nnbd-off.*/
+  /*spec.fields=[T],free=[T]*/
   dynamic local(T t) => t;
   return local;
 }
@@ -34,8 +33,8 @@ method2<T>() {
 ////////////////////////////////////////////////////////////////////////////////
 
 method3<T>(dynamic o) {
-  /*spec:nnbd-off|spec:nnbd-sdk.fields=[T,o],free=[T,o]*/
-  /*prod:nnbd-off|prod:nnbd-sdk.fields=[o],free=[o]*/
+  /*spec.fields=[T,o],free=[T,o]*/
+  /*prod.fields=[o],free=[o]*/
   T local() => o;
   return local;
 }
@@ -65,8 +64,7 @@ T method5<T>(dynamic o) {
 ////////////////////////////////////////////////////////////////////////////////
 
 method6<T>() {
-  /*spec:nnbd-off|spec:nnbd-sdk.fields=[T],free=[T]*/
-  /*prod:nnbd-off.*/
+  /*spec.fields=[T],free=[T]*/
   dynamic local(T t) {
     /*fields=[t],free=[t]*/
     dynamic inner() => t;
@@ -81,8 +79,8 @@ method6<T>() {
 ////////////////////////////////////////////////////////////////////////////////
 
 method7<T>(dynamic o) {
-  /*spec:nnbd-off|spec:nnbd-sdk.fields=[T,o],free=[T,o]*/
-  /*prod:nnbd-off|prod:nnbd-sdk.fields=[o],free=[o]*/
+  /*spec.fields=[T,o],free=[T,o]*/
+  /*prod.fields=[o],free=[o]*/
   T local() {
     /*fields=[o],free=[o]*/
     dynamic inner() => o;

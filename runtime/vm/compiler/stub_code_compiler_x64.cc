@@ -593,21 +593,6 @@ void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
 
 // Input parameters:
 //   RSP : points to return address.
-//   RDI : stop message (const char*).
-// Must preserve all registers.
-void StubCodeCompiler::GeneratePrintStopMessageStub(Assembler* assembler) {
-  __ EnterCallRuntimeFrame(0);
-// Call the runtime leaf function. RDI already contains the parameter.
-#if defined(TARGET_OS_WINDOWS)
-  __ movq(CallingConventions::kArg1Reg, RDI);
-#endif
-  __ CallRuntime(kPrintStopMessageRuntimeEntry, 1);
-  __ LeaveCallRuntimeFrame();
-  __ ret();
-}
-
-// Input parameters:
-//   RSP : points to return address.
 //   RSP + 8 : address of return value.
 //   RAX : address of first argument in argument array.
 //   RBX : address of the native function to call.

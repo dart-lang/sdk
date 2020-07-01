@@ -1,6 +1,9 @@
 ## 1.2.0-nnbd
 
 * Opt into null safety.
+* Introduce `@doNotStore` to annotate methods, getters and functions to
+  indicate that values obtained by invoking them should not be stored in a
+  field or top-level variable.
 
 ## 1.1.8
 

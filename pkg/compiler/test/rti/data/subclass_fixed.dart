@@ -4,8 +4,7 @@
 
 // @dart = 2.7
 
-/*spec:nnbd-off|prod:nnbd-off.class: A:explicit=[A<int>],needsArgs*/
-/*spec:nnbd-sdk|prod:nnbd-sdk.class: A:explicit=[A<int*>*],needsArgs*/
+/*class: A:explicit=[A<int*>*],needsArgs*/
 class A<T> {}
 
 class B extends A<int> {}

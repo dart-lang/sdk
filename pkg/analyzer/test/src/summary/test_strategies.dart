@@ -6,8 +6,11 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -38,6 +41,13 @@ CompilationUnit parseText(
   );
   CompilationUnit unit = parser.parseCompilationUnit(token);
   unit.lineInfo = LineInfo(scanner.lineStarts);
+
+  var unitImpl = unit as CompilationUnitImpl;
+  unitImpl.languageVersion = LibraryLanguageVersion(
+    package: ExperimentStatus.currentVersion,
+    override: null,
+  );
+
   return unit;
 }
 

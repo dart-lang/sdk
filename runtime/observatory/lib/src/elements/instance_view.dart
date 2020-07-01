@@ -17,7 +17,7 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
@@ -33,27 +33,6 @@ import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/utils.dart';
 
 class InstanceViewElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<InstanceViewElement>('instance-view', dependencies: const [
-    ClassRefElement.tag,
-    ContextRefElement.tag,
-    CurlyBlockElement.tag,
-    FieldRefElement.tag,
-    FunctionRefElement.tag,
-    InstanceRefElement.tag,
-    NavClassMenuElement.tag,
-    NavLibraryMenuElement.tag,
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-    ObjectCommonElement.tag,
-    SourceInsetElement.tag,
-    SourceLinkElement.tag,
-    ViewFooterElement.tag
-  ]);
-
   RenderingScheduler<InstanceViewElement> _r;
 
   Stream<RenderedEvent<InstanceViewElement>> get onRendered => _r.onRendered;
@@ -138,7 +117,7 @@ class InstanceViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  InstanceViewElement.created() : super.created(tag);
+  InstanceViewElement.created() : super.created('instance-view');
 
   @override
   attached() {

@@ -242,7 +242,7 @@ const char* DartUtils::RemoveScheme(const char* url) {
 char* DartUtils::DirName(const char* url) {
   const char* slash = strrchr(url, File::PathSeparator()[0]);
   if (slash == NULL) {
-    return strdup(url);
+    return Utils::StrDup(url);
   } else {
     return Utils::StrNDup(url, slash - url + 1);
   }

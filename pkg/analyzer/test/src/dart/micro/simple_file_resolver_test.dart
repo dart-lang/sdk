@@ -46,20 +46,20 @@ import 'b.dart';
 ''');
 
     // First time we refresh everything.
-    await fileResolver.resolve2(path: cPath);
+    await resolveFile(cPath);
     _assertRefreshedFiles([aPath, bPath, cPath], withSdk: true);
 
     // Without changes we refresh nothing.
-    await fileResolver.resolve2(path: cPath);
+    await resolveFile(cPath);
     _assertRefreshedFiles([]);
 
     // We already know a.dart, refresh nothing.
-    await fileResolver.resolve2(path: aPath);
+    await resolveFile(aPath);
     _assertRefreshedFiles([]);
 
     // Change a.dart, refresh a.dart and c.dart, but not b.dart
     fileResolver.changeFile(aPath);
-    await fileResolver.resolve2(path: cPath);
+    await resolveFile(cPath);
     _assertRefreshedFiles([aPath, cPath]);
   }
 
@@ -74,7 +74,7 @@ A a;
 B b;
 ''');
 
-    result = fileResolver.resolve2(path: bPath);
+    result = await resolveFile(bPath);
     assertErrorsInResolvedUnit(result, [
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 22, 1),
     ]);
@@ -85,7 +85,7 @@ class B {}
 ''');
     fileResolver.changeFile(aPath);
 
-    result = fileResolver.resolve2(path: bPath);
+    result = await resolveFile(bPath);
     assertErrorsInResolvedUnit(result, []);
   }
 
@@ -107,17 +107,17 @@ import 'a.dart';
 ''');
 
     // First time we refresh everything.
-    await fileResolver.resolve2(path: bPath);
+    await resolveFile(bPath);
     _assertRefreshedFiles([aPath, bPath], withSdk: true);
     // Change b.dart, refresh a.dart
     fileResolver.changeFile(bPath);
-    await fileResolver.resolve2(path: bPath);
+    await resolveFile(bPath);
     _assertRefreshedFiles([aPath, bPath]);
     // now with c.dart
-    await fileResolver.resolve2(path: cPath);
+    await resolveFile(cPath);
     _assertRefreshedFiles([cPath]);
     fileResolver.changeFile(bPath);
-    await fileResolver.resolve2(path: cPath);
+    await resolveFile(cPath);
     _assertRefreshedFiles([aPath, bPath, cPath]);
   }
 

@@ -72,9 +72,23 @@ abstract class TargetImplementation extends Target {
   /// to locate the corresponding file.
   ///
   /// [origin] is non-null if the created library is a patch to [origin].
+  ///
+  /// [packageUri] is the base uri for the package which the library belongs to.
+  /// For instance 'package:foo'.
+  ///
+  /// This is used to associate libraries in for instance the 'bin' and 'test'
+  /// folders of a package source with the package uri of the 'lib' folder.
+  ///
+  /// If the [packageUri] is `null` the package association of this library is
+  /// based on its [importUri].
+  ///
+  /// For libraries with a 'package:' [importUri], the package path must match
+  /// the path in the [importUri]. For libraries with a 'dart:' [importUri] the
+  /// [packageUri] must be `null`.
   LibraryBuilder createLibraryBuilder(
       Uri uri,
       Uri fileUri,
+      Uri packageUri,
       covariant LibraryBuilder origin,
       Library referencesFrom,
       bool referenceIsPartOwner);

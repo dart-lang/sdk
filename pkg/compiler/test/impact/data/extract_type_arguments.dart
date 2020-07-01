@@ -14,56 +14,7 @@ class B<S, U> {}
 /*member: C.:static=[Object.(0)]*/
 class C implements A<int>, B<String, bool> {}
 
-/*spec:nnbd-off.member: testA:
- dynamic=[call<A.T>(0)],
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  extractTypeArguments<A<dynamic>>(2),
-  findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
- type=[
-  impl:A<dynamic>,
-  impl:Function,
-  inst:Closure,
-  inst:JSArray<dynamic>,
-  inst:JSBool,
-  inst:JSExtendableArray<dynamic>,
-  inst:JSFixedArray<dynamic>,
-  inst:JSMutableArray<dynamic>,
-  inst:JSUnmodifiableArray<dynamic>,
-  is:A<A.T>]
-*/
-/*spec:nnbd-sdk.member: testA:
+/*member: testA:
  dynamic=[call<A.T>(0)],
  static=[
   Rti._bind(1),
@@ -117,56 +68,7 @@ class C implements A<int>, B<String, bool> {}
 */
 testA(c, f) => extractTypeArguments<A>(c, f);
 
-/*spec:nnbd-off.member: testB:
- dynamic=[call<B.S,B.U>(0)],
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  extractTypeArguments<B<dynamic,dynamic>>(2),
-  findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
- type=[
-  impl:B<dynamic,dynamic>,
-  impl:Function,
-  inst:Closure,
-  inst:JSArray<dynamic>,
-  inst:JSBool,
-  inst:JSExtendableArray<dynamic>,
-  inst:JSFixedArray<dynamic>,
-  inst:JSMutableArray<dynamic>,
-  inst:JSUnmodifiableArray<dynamic>,
-  is:B<B.S,B.U>]
-*/
-/*spec:nnbd-sdk.member: testB:
+/*member: testB:
  dynamic=[call<B.S,B.U>(0)],
  static=[
   Rti._bind(1),

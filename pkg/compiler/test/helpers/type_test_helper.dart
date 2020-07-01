@@ -63,9 +63,7 @@ class TypeEnvironment {
   TypeEnvironment._(Compiler this.compiler, {this.testBackendWorld: false});
 
   DartType legacyWrap(DartType type) {
-    return memory.isDart2jsNnbd && options.useLegacySubtyping
-        ? types.legacyType(type)
-        : type;
+    return options.useLegacySubtyping ? types.legacyType(type) : type;
   }
 
   ElementEnvironment get elementEnvironment {

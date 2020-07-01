@@ -82,4 +82,9 @@ abstract class DartCompletionRequest extends CompletionRequest {
   /// At a minimum, all declarations in the completion scope in [target.unit]
   /// will be resolved if they can be resolved.
   CompletionTarget get target;
+
+  /// Return prefix that already exists in the document for [target] or empty
+  /// string if unavailable. This can be used to filter the completion list to
+  /// items that already match the text to the left of the caret.
+  String get targetPrefix;
 }

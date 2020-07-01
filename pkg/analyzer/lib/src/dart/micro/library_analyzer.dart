@@ -111,14 +111,19 @@ class LibraryAnalyzer {
    * Compute analysis results for all units of the library.
    */
   Map<FileState, UnitAnalysisResult> analyzeSync({
+    @required String completionPath,
+    @required int completionOffset,
     @required CiderOperationPerformanceImpl performance,
   }) {
-    Map<FileState, CompilationUnit> units = {};
+    var forCompletion = completionPath != null;
+    var units = <FileState, CompilationUnit>{};
 
     // Parse all files.
     performance.run('parse', (performance) {
       for (FileState file in _library.libraryFiles) {
-        units[file] = _parse(file);
+        if (completionPath == null || file.path == completionPath) {
+          units[file] = _parse(file);
+        }
       }
     });
 
@@ -140,52 +145,22 @@ class LibraryAnalyzer {
 
     performance.run('resolveFiles', (performance) {
       units.forEach((file, unit) {
-        _resolveFile(file, unit);
+        _resolveFile(
+          completionOffset: completionOffset,
+          file: file,
+          unit: unit,
+        );
       });
     });
 
-    performance.run('computeConstants', (performance) {
-      units.values.forEach(_findConstants);
-      _clearConstantEvaluationResults();
-      _computeConstants();
-    });
-
-    performance.run('computeVerifyErrors', (performance) {
-      units.forEach((file, unit) {
-        _computeVerifyErrors(file, unit);
+    if (!forCompletion) {
+      performance.run('computeConstants', (performance) {
+        units.values.forEach(_findConstants);
+        _clearConstantEvaluationResults();
+        _computeConstants();
       });
-    });
 
-    if (_analysisOptions.hint) {
-      performance.run('computeHints', (performance) {
-        units.forEach((file, unit) {
-          {
-            var visitor = GatherUsedLocalElementsVisitor(_libraryElement);
-            unit.accept(visitor);
-            _usedLocalElementsList.add(visitor.usedElements);
-          }
-          {
-            var visitor = GatherUsedImportedElementsVisitor(_libraryElement);
-            unit.accept(visitor);
-            _usedImportedElementsList.add(visitor.usedElements);
-          }
-        });
-        units.forEach((file, unit) {
-          _computeHints(file, unit);
-        });
-      });
-    }
-
-    if (_analysisOptions.lint) {
-      performance.run('computeLints', (performance) {
-        var allUnits = _library.libraryFiles.map((file) {
-          var content = _getFileContent(file.path);
-          return LinterContextUnit(content, units[file]);
-        }).toList();
-        for (int i = 0; i < allUnits.length; i++) {
-          _computeLints(_library.libraryFiles[i], allUnits[i], allUnits);
-        }
-      });
+      _computeDiagnostics(performance: performance, units: units);
     }
 
     assert(units.values.every(LegacyTypeAsserter.assertLegacyTypes));
@@ -232,6 +207,49 @@ class LibraryAnalyzer {
   void _computeConstants() {
     computeConstants(_typeProvider, _typeSystem, _declaredVariables,
         _constants.toList(), _analysisOptions.experimentStatus);
+  }
+
+  void _computeDiagnostics({
+    @required CiderOperationPerformanceImpl performance,
+    @required Map<FileState, CompilationUnit> units,
+  }) {
+    performance.run('computeVerifyErrors', (performance) {
+      units.forEach((file, unit) {
+        _computeVerifyErrors(file, unit);
+      });
+    });
+
+    if (_analysisOptions.hint) {
+      performance.run('computeHints', (performance) {
+        units.forEach((file, unit) {
+          {
+            var visitor = GatherUsedLocalElementsVisitor(_libraryElement);
+            unit.accept(visitor);
+            _usedLocalElementsList.add(visitor.usedElements);
+          }
+          {
+            var visitor = GatherUsedImportedElementsVisitor(_libraryElement);
+            unit.accept(visitor);
+            _usedImportedElementsList.add(visitor.usedElements);
+          }
+        });
+        units.forEach((file, unit) {
+          _computeHints(file, unit);
+        });
+      });
+    }
+
+    if (_analysisOptions.lint) {
+      performance.run('computeLints', (performance) {
+        var allUnits = _library.libraryFiles.map((file) {
+          var content = _getFileContent(file.path);
+          return LinterContextUnit(content, units[file]);
+        }).toList();
+        for (int i = 0; i < allUnits.length; i++) {
+          _computeLints(_library.libraryFiles[i], allUnits[i], allUnits);
+        }
+      });
+    }
   }
 
   void _computeHints(FileState file, CompilationUnit unit) {
@@ -647,7 +665,11 @@ class LibraryAnalyzer {
     // TODO(scheglov) remove DirectiveResolver class
   }
 
-  void _resolveFile(FileState file, CompilationUnit unit) {
+  void _resolveFile({
+    @required int completionOffset,
+    @required FileState file,
+    @required CompilationUnit unit,
+  }) {
     Source source = file.source;
     if (source == null) {
       return;
@@ -691,9 +713,19 @@ class LibraryAnalyzer {
       flowAnalysisHelper = FlowAnalysisHelper(_typeSystem, false);
     }
 
-    unit.accept(ResolverVisitor(
+    var resolverVisitor = ResolverVisitor(
         _inheritance, _libraryElement, source, _typeProvider, errorListener,
-        featureSet: unit.featureSet, flowAnalysisHelper: flowAnalysisHelper));
+        featureSet: unit.featureSet, flowAnalysisHelper: flowAnalysisHelper);
+
+    if (completionOffset != null) {
+      var node = NodeLocator2(completionOffset).searchWithin(unit);
+      var enclosingExecutable = node?.thisOrAncestorMatching((e) {
+        return e.parent is ClassDeclaration || e.parent is CompilationUnit;
+      });
+      enclosingExecutable?.accept(resolverVisitor);
+    } else {
+      unit.accept(resolverVisitor);
+    }
   }
 
   /**

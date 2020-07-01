@@ -65,7 +65,15 @@ bool SocketBase::FormatNumericAddress(const RawAddr& addr,
   socklen_t salen = SocketAddress::GetAddrLength(addr);
   DWORD l = len;
   RawAddr& raw = const_cast<RawAddr&>(addr);
-  return WSAAddressToStringA(&raw.addr, salen, NULL, address, &l) != 0;
+  wchar_t* waddress = reinterpret_cast<wchar_t*>(
+      Dart_ScopeAllocate((salen + 1) * sizeof(wchar_t)));
+  intptr_t result = WSAAddressToStringW(&raw.addr, salen, NULL, waddress, &l);
+  if (result != 0) {
+    return true;
+  }
+  WideToUtf8Scope wide_name(waddress);
+  strncpy(address, wide_name.utf8(), l);
+  return false;
 }
 
 intptr_t SocketBase::Available(intptr_t fd) {

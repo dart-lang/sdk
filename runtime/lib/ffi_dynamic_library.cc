@@ -105,7 +105,8 @@ static void* ResolveSymbol(void* handle, const char* symbol) {
   return pointer;
 #elif defined(HOST_OS_WINDOWS)
   SetLastError(0);
-  void* pointer = GetProcAddress(reinterpret_cast<HMODULE>(handle), symbol);
+  void* pointer = reinterpret_cast<void*>(
+      GetProcAddress(reinterpret_cast<HMODULE>(handle), symbol));
   if (pointer == nullptr) {
     const int error = GetLastError();
     const String& msg = String::Handle(

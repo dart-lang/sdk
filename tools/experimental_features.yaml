@@ -76,6 +76,14 @@
 # Dart source files that don't specify their own version will be
 # presumed to be in this version.  Experiment flags will not affect
 # files that specify an earlier version.
+#
+# Furthermore, most of the above was designed with language features
+# (spanning both CFE and Analyzer) in mind, but didn't take into account
+# features in individual products (e.g. in CFE that has no influence on
+# Analyzer). As a stepping-stone to allow for this usage as well, a "category"
+# is also available. If no "category" is specified it's assumed to be the
+# default 'language' "category" with code generated for both CFE and Analyzer,
+# while other categories can be tailored more specifically.
 
 current-version: 2.9
 
@@ -91,6 +99,10 @@ features:
 
   nonfunction-type-aliases:
     help: "Type aliases define a <type>, not just a <functionType>."
+
+  alternative-invalidation-strategy:
+    help: "Alternative invalidation strategy for incremental compilation."
+    category: "CFE"
 
 #
 # Flags below this line are shipped, retired, or rejected, cannot be specified

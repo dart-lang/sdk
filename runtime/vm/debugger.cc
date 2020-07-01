@@ -1602,14 +1602,12 @@ const char* ActivationFrame::ToCString() {
 }
 
 void ActivationFrame::PrintToJSONObject(JSONObject* jsobj) {
-  if (kind_ == kRegular) {
+  if (kind_ == kRegular || kind_ == kAsyncActivation) {
     PrintToJSONObjectRegular(jsobj);
   } else if (kind_ == kAsyncCausal) {
     PrintToJSONObjectAsyncCausal(jsobj);
   } else if (kind_ == kAsyncSuspensionMarker) {
     PrintToJSONObjectAsyncSuspensionMarker(jsobj);
-  } else if (kind_ == kAsyncActivation) {
-    PrintToJSONObjectAsyncActivation(jsobj);
   } else {
     UNIMPLEMENTED();
   }
@@ -1674,20 +1672,6 @@ void ActivationFrame::PrintToJSONObjectAsyncSuspensionMarker(
   jsobj->AddProperty("type", "Frame");
   jsobj->AddProperty("kind", KindToCString(kind_));
   jsobj->AddProperty("marker", "AsynchronousSuspension");
-}
-
-void ActivationFrame::PrintToJSONObjectAsyncActivation(JSONObject* jsobj) {
-  jsobj->AddProperty("type", "Frame");
-  jsobj->AddProperty("kind", KindToCString(kind_));
-  const Script& script = Script::Handle(SourceScript());
-  const TokenPosition pos = TokenPos().SourcePosition();
-  jsobj->AddLocation(script, pos);
-  jsobj->AddProperty("function", function());
-  if (IsInterpreted()) {
-    jsobj->AddProperty("code", bytecode());
-  } else {
-    jsobj->AddProperty("code", code());
-  }
 }
 
 static bool IsFunctionVisible(const Function& function) {

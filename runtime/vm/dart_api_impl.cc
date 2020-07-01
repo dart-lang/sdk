@@ -1047,13 +1047,13 @@ DART_EXPORT const char* Dart_VersionString() {
 
 DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params) {
   if (params == NULL) {
-    return strdup(
+    return Utils::StrDup(
         "Dart_Initialize: "
         "Dart_InitializeParams is null.");
   }
 
   if (params->version != DART_INITIALIZE_PARAMS_CURRENT_VERSION) {
-    return strdup(
+    return Utils::StrDup(
         "Dart_Initialize: "
         "Invalid Dart_InitializeParams version.");
   }
@@ -1139,7 +1139,7 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
   Isolate* I = Dart::CreateIsolate(name, source->flags, group);
   if (I == NULL) {
     if (error != NULL) {
-      *error = strdup("Isolate creation failed");
+      *error = Utils::StrDup("Isolate creation failed");
     }
     return reinterpret_cast<Dart_Isolate>(NULL);
   }
@@ -1166,7 +1166,7 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
 #endif  // defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME).
       success = true;
     } else if (error != NULL) {
-      *error = strdup(error_obj.ToErrorCString());
+      *error = Utils::StrDup(error_obj.ToErrorCString());
     }
     // We exit the API scope entered above.
     T->ExitApiScope();
@@ -1615,7 +1615,7 @@ DART_EXPORT bool Dart_WriteProfileToTimeline(Dart_Port main_port,
 #else
   if (!FLAG_profiler) {
     if (error != NULL) {
-      *error = strdup("The profiler is not running.");
+      *error = Utils::StrDup("The profiler is not running.");
     }
     return false;
   }
@@ -1898,7 +1898,7 @@ DART_EXPORT char* Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
     error = iso->MakeRunnable();
   }
   if (error != NULL) {
-    return strdup(error);
+    return Utils::StrDup(error);
   }
   return NULL;
 }
@@ -5986,7 +5986,7 @@ Dart_CompileToKernel(const char* script_uri,
   Dart_KernelCompilationResult result = {};
 #if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
-  result.error = strdup("Dart_CompileToKernel is unsupported.");
+  result.error = Utils::StrDup("Dart_CompileToKernel is unsupported.");
 #else
   result = KernelIsolate::CompileToKernel(script_uri, platform_kernel,
                                           platform_kernel_size, 0, NULL,
@@ -6009,7 +6009,7 @@ DART_EXPORT Dart_KernelCompilationResult Dart_KernelListDependencies() {
   Dart_KernelCompilationResult result = {};
 #if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
-  result.error = strdup("Dart_KernelListDependencies is unsupported.");
+  result.error = Utils::StrDup("Dart_KernelListDependencies is unsupported.");
 #else
   result = KernelIsolate::ListDependencies();
 #endif
@@ -6092,28 +6092,28 @@ DART_EXPORT char* Dart_SetServiceStreamCallbacks(
 #else
   if (listen_callback != NULL) {
     if (Service::stream_listen_callback() != NULL) {
-      return strdup(
+      return Utils::StrDup(
           "Dart_SetServiceStreamCallbacks "
           "permits only one listen callback to be registered, please "
           "remove the existing callback and then add this callback");
     }
   } else {
     if (Service::stream_listen_callback() == NULL) {
-      return strdup(
+      return Utils::StrDup(
           "Dart_SetServiceStreamCallbacks "
           "expects 'listen_callback' to be present in the callback set.");
     }
   }
   if (cancel_callback != NULL) {
     if (Service::stream_cancel_callback() != NULL) {
-      return strdup(
+      return Utils::StrDup(
           "Dart_SetServiceStreamCallbacks "
           "permits only one cancel callback to be registered, please "
           "remove the existing callback and then add this callback");
     }
   } else {
     if (Service::stream_cancel_callback() == NULL) {
-      return strdup(
+      return Utils::StrDup(
           "Dart_SetServiceStreamCallbacks "
           "expects 'cancel_callback' to be present in the callback set.");
     }
@@ -6162,14 +6162,14 @@ DART_EXPORT char* Dart_SetFileModifiedCallback(
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (file_modified_callback != NULL) {
     if (IsolateGroupReloadContext::file_modified_callback() != NULL) {
-      return strdup(
+      return Utils::StrDup(
           "Dart_SetFileModifiedCallback permits only one callback to be"
           " registered, please remove the existing callback and then add"
           " this callback");
     }
   } else {
     if (IsolateGroupReloadContext::file_modified_callback() == NULL) {
-      return strdup(
+      return Utils::StrDup(
           "Dart_SetFileModifiedCallback expects 'file_modified_callback' to"
           " be set before it is cleared.");
     }

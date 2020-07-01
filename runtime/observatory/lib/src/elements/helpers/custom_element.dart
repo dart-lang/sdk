@@ -46,9 +46,9 @@ class CustomElement {
   }
 
   final HtmlElement element;
-  CustomElement.created(Tag tag) : element = document.createElement("shadow") {
+  CustomElement.created(String elementClass) : element = document.createElement("shadow") {
     reverseElements[element] = this;
-    element.classes = [tag.name];
+    element.classes = [elementClass];
 
     if (toBeAttached.isEmpty) {
       scheduleMicrotask(() => drainAttached());
@@ -83,15 +83,4 @@ class CustomElement {
       element.getElementsByClassName(c);
 
   void scrollIntoView() => element.scrollIntoView();
-}
-
-/// Utility class for Custom Tags registration.
-class Tag<T extends CustomElement> {
-  /// Tag name.
-  final String name;
-
-  /// Dependent tags that need to be registred for this tag to work properly.
-  final Iterable<Tag> dependencies;
-
-  const Tag(this.name, {this.dependencies: const []});
 }

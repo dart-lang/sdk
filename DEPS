@@ -44,11 +44,11 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "443e4b3cd3953e9d8feef85bb712a93f6dac0858",
+  "co19_rev": "bfa5ab1e3a0be81899760af9c24ab734348114a5",
   "co19_2_rev": "620c1148c8b7a3d7f74afacf348c46f109eb64f2",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
-  "benchmarks_internal_rev": "8a7ce78ada809beb62fcfdf2f8e7a400a7bc5ed3",
+  "benchmarks_internal_rev": "02695da98bcf006b95630d3c386f4169d7ec4ecf",
   "checkout_benchmarks_internal": False,
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -164,6 +164,13 @@ vars = {
   "minichromium_rev": "8d641e30a8b12088649606b912c2bc4947419ccc",
   "googletest_rev": "f854f1d27488996dc8a6db3c9453f80b02585e12",
 
+  # Pinned browser versions used by the testing infrastructure. These are not
+  # meant to be downloaded by users for local testing.
+  "download_chrome": False,
+  "chrome_tag": "81",
+  "download_firefox": False,
+  "firefox_tag": "67",
+
   # An LLVM backend needs LLVM binaries and headers. To avoid build time
   # increases we can use prebuilts. We don't want to download this on every
   # CQ/CI bot nor do we want the average Dart developer to incur that cost.
@@ -183,6 +190,16 @@ deps = {
     Var("chromium_git") + "/chromium/llvm-project/cfe/tools/clang-format.git" +
     "@" + Var("clang_format_scripts_rev"),
 
+  Var("dart_root") + "/third_party/llvm-build/Release+Asserts": {
+    "packages": [
+      {
+        "package": "flutter/clang/win-amd64",
+        "version": "git_revision:5ec206df8534d2dd8cb9217c3180e5ddba587393"
+      }
+    ],
+    "condition": "download_windows_deps",
+    "dep_type": "cipd",
+  },
   Var("dart_root") + "/benchmarks-internal": {
     "url": Var("dart_internal_git") + "/benchmarks-internal.git" +
            "@" + Var("benchmarks_internal_rev"),
@@ -530,7 +547,27 @@ deps = {
       ],
       "condition": "checkout_llvm",
       "dep_type": "cipd",
-  }
+  },
+  Var("dart_root") + "/third_party/browsers/chrome": {
+      "packages": [
+          {
+              "package": "dart/browsers/chrome/${{platform}}",
+              "version": "version:" + Var("chrome_tag"),
+          },
+      ],
+      "condition": "download_chrome",
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/third_party/browsers/firefox": {
+      "packages": [
+          {
+              "package": "dart/browsers/firefox/${{platform}}",
+              "version": "version:" + Var("firefox_tag"),
+          },
+      ],
+      "condition": "download_firefox",
+      "dep_type": "cipd",
+  },
 }
 
 deps_os = {

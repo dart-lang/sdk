@@ -190,7 +190,7 @@ class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
 
   @override
   Future<ResolvedUnitResult> getResolvedUnit(String path) async {
-    return analysisContext.fileResolver.resolve2(path: path);
+    return analysisContext.fileResolver.resolve(path: path);
   }
 
   @override

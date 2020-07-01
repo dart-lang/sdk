@@ -5,9 +5,8 @@
 // @dart = 2.7
 
 main() {
-  /*spec:nnbd-off|spec:nnbd-sdk.checks=[$signature],instance*/
-  /*prod:nnbd-off|prod:nnbd-sdk.checks=[],instance*/
-  T id<T>(T t) => t;
+  /*spec.checks=[$signature],instance*/
+  /*prod.checks=[],instance*/ T id<T>(T t) => t;
   int Function(int) x = id;
   print("${x.runtimeType}");
 }

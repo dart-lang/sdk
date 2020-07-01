@@ -147,12 +147,7 @@ class FileResolver {
     _libraryContextReset.dispose();
   }
 
-  @deprecated
-  ErrorsResult getErrors(String path) {
-    return getErrors2(path: path);
-  }
-
-  ErrorsResult getErrors2({
+  ErrorsResult getErrors({
     @required String path,
     CiderOperationPerformanceImpl performance,
   }) {
@@ -184,7 +179,7 @@ class FileResolver {
         }
 
         if (errors == null) {
-          var unitResult = resolve2(
+          var unitResult = resolve(
             path: path,
             performance: performance,
           );
@@ -209,6 +204,17 @@ class FileResolver {
     });
   }
 
+  @deprecated
+  ErrorsResult getErrors2({
+    @required String path,
+    CiderOperationPerformanceImpl performance,
+  }) {
+    return getErrors(
+      path: path,
+      performance: performance,
+    );
+  }
+
   FileContext getFileContext({
     @required String path,
     @required CiderOperationPerformanceImpl performance,
@@ -229,12 +235,8 @@ class FileResolver {
     return file.libraryCycle.signatureStr;
   }
 
-  @deprecated
-  ResolvedUnitResult resolve(String path) {
-    return resolve2(path: path);
-  }
-
-  ResolvedUnitResult resolve2({
+  ResolvedUnitResult resolve({
+    int completionOffset,
     @required String path,
     CiderOperationPerformanceImpl performance,
   }) {
@@ -279,6 +281,8 @@ class FileResolver {
 
           results = performance.run('analyze', (performance) {
             return libraryAnalyzer.analyzeSync(
+              completionPath: completionOffset != null ? path : null,
+              completionOffset: completionOffset,
               performance: performance,
             );
           });
@@ -298,6 +302,19 @@ class FileResolver {
         );
       });
     });
+  }
+
+  @deprecated
+  ResolvedUnitResult resolve2({
+    int completionOffset,
+    @required String path,
+    CiderOperationPerformanceImpl performance,
+  }) {
+    return resolve(
+      completionOffset: completionOffset,
+      path: path,
+      performance: performance,
+    );
   }
 
   /// Make sure that [fsState], [contextObjects], and [libraryContext] are

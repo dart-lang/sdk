@@ -3158,7 +3158,7 @@ class _Expression {
   String toString() => 'E$_id';
 }
 
-class _Harness implements TypeOperations<_Var, _Type> {
+class _Harness extends TypeOperations<_Var, _Type> {
   static const Map<String, bool> _coreSubtypes = const {
     'double <: Object': true,
     'double <: num': true,

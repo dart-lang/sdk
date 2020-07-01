@@ -245,6 +245,7 @@ class KernelTarget extends TargetImplementation {
   LibraryBuilder createLibraryBuilder(
       Uri uri,
       Uri fileUri,
+      Uri packageUri,
       SourceLibraryBuilder origin,
       Library referencesFrom,
       bool referenceIsPartOwner) {
@@ -260,7 +261,7 @@ class KernelTarget extends TargetImplementation {
         return builder;
       }
     }
-    return new SourceLibraryBuilder(uri, fileUri, loader, origin,
+    return new SourceLibraryBuilder(uri, fileUri, packageUri, loader, origin,
         referencesFrom: referencesFrom,
         referenceIsPartOwner: referenceIsPartOwner);
   }

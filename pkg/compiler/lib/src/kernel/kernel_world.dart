@@ -233,4 +233,28 @@ class KClosedWorldImpl implements KClosedWorld {
     }
     return _closurizedStaticsCache;
   }
+
+  Map<MemberEntity, DartType> _genericCallablePropertiesCache;
+
+  @override
+  Map<MemberEntity, DartType> get genericCallableProperties {
+    if (_genericCallablePropertiesCache == null) {
+      _genericCallablePropertiesCache = {};
+      liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+        if (usage.hasRead) {
+          DartType type;
+          if (member.isField) {
+            type = elementEnvironment.getFieldType(member);
+          } else if (member.isGetter) {
+            type = elementEnvironment.getFunctionType(member).returnType;
+          }
+          if (type == null) return;
+          if (dartTypes.canAssignGenericFunctionTo(type)) {
+            _genericCallablePropertiesCache[member] = type;
+          }
+        }
+      });
+    }
+    return _genericCallablePropertiesCache;
+  }
 }

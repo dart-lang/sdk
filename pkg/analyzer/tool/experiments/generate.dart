@@ -60,12 +60,29 @@ class _ExperimentsGenerator {
 part of 'experiments.dart';
 ''');
 
+  Map<String, dynamic> _features;
+
   _ExperimentsGenerator(this.experimentsYaml);
 
-  Map get features => experimentsYaml['features'];
+  Map<String, dynamic> get features {
+    if (_features != null) return _features;
+    _features = {};
+    Map yamlFeatures = experimentsYaml['features'];
+    for (MapEntry entry in yamlFeatures.entries) {
+      String category = entry.value['category'] ?? 'language';
+      if (category != "language") {
+        // Skip a feature with a category that's not language. In the future
+        // possibly allow e.g. 'analyzer' etc.
+        continue;
+      }
+      _features[entry.key] = entry.value;
+    }
+
+    return _features;
+  }
 
   void generateFormatCode() {
-    keysSorted = features.keys.cast<String>().toList()..sort();
+    keysSorted = features.keys.toList()..sort();
     generateSection_CurrentVersion();
     generateSection_KnownFeatures();
     generateSection_BuildExperimentalFlagsArray();

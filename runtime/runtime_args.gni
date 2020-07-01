@@ -75,7 +75,8 @@ declare_args() {
   # Controls whether the VM is built as a static library or a shared library.
   if (is_fuchsia) {
     # Allow for deduping the VM between standalone, flutter_runner and dart_runner.
-    dart_component_kind = "shared_library"
+    # TODO(dartbug.com/42473): Use shared_library once elf_loader is untangled.
+    dart_component_kind = "static_library"
   } else {
     dart_component_kind = "static_library"
   }

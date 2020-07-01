@@ -6917,7 +6917,8 @@ static void UnreachableFinalizer(void* isolate_callback_data,
 }
 
 TEST_CASE(DartAPI_PostCObject_DoesNotRunFinalizerOnFailure) {
-  char* my_str = strdup("Ownership of this memory remains with the caller");
+  char* my_str =
+      Utils::StrDup("Ownership of this memory remains with the caller");
 
   Dart_CObject message;
   message.type = Dart_CObject_kExternalTypedData;

@@ -10,6 +10,7 @@
 
 #include "include/dart_api.h"
 #include "platform/globals.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -43,7 +44,7 @@ class OSError {
     if (message == NULL) {
       message_ = NULL;
     } else {
-      message_ = strdup(message);
+      message_ = Utils::StrDup(message);
     }
   }
 

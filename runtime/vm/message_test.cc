@@ -9,7 +9,7 @@
 namespace dart {
 
 static uint8_t* AllocMsg(const char* str) {
-  return reinterpret_cast<uint8_t*>(strdup(str));
+  return reinterpret_cast<uint8_t*>(Utils::StrDup(str));
 }
 
 TEST_CASE(MessageQueue_BasicOperations) {

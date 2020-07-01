@@ -4,19 +4,15 @@
 
 // @dart = 2.7
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: Class1:needsArgs*/
+/*spec.class: Class1:needsArgs*/
 class Class1<T> {
-  /*spec:nnbd-off|prod:nnbd-off.member: Class1.:*/
   Class1();
 }
 
-/*spec:nnbd-off|prod:nnbd-off.class: Class2:*/
 class Class2<T> {
-  /*spec:nnbd-off|prod:nnbd-off.member: Class2.:*/
   Class2();
 }
 
-/*spec:nnbd-off|prod:nnbd-off.member: main:*/
 main() {
   Class1<int> cls1 = new Class1<int>();
   print(cls1.runtimeType?.toString());

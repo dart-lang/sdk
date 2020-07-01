@@ -81,7 +81,7 @@ bool OptionProcessor::ProcessEnvironmentOption(
   name = reinterpret_cast<char*>(malloc(name_len + 1));
   strncpy(name, arg, name_len);
   name[name_len] = '\0';
-  value = strdup(equals_pos + 1);
+  value = Utils::StrDup(equals_pos + 1);
   SimpleHashMap::Entry* entry =
       (*environment)
           ->Lookup(GetHashmapKeyFromString(name),

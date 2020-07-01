@@ -161,11 +161,11 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   CheckOffsets();
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
-    return strdup("VM already initialized or flags not initialized.");
+    return Utils::StrDup("VM already initialized or flags not initialized.");
   }
 
   if (FLAG_causal_async_stacks && FLAG_lazy_async_stacks) {
-    return strdup(
+    return Utils::StrDup(
         "To use --lazy-async-stacks, please disable --causal-async-stacks!");
   }
 
@@ -173,7 +173,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   if (vm_isolate_snapshot != nullptr) {
     snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
     if (snapshot == nullptr) {
-      return strdup("Invalid vm isolate snapshot seen");
+      return Utils::StrDup("Invalid vm isolate snapshot seen");
     }
   }
 
@@ -282,15 +282,16 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
       if (Snapshot::IncludesCode(vm_snapshot_kind_)) {
         if (vm_snapshot_kind_ == Snapshot::kFullAOT) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-          return strdup("JIT runtime cannot run a precompiled snapshot");
+          return Utils::StrDup("JIT runtime cannot run a precompiled snapshot");
 #endif
         }
         if (instructions_snapshot == NULL) {
-          return strdup("Missing instructions snapshot");
+          return Utils::StrDup("Missing instructions snapshot");
         }
       } else if (Snapshot::IsFull(vm_snapshot_kind_)) {
 #if defined(DART_PRECOMPILED_RUNTIME)
-        return strdup("Precompiled runtime requires a precompiled snapshot");
+        return Utils::StrDup(
+            "Precompiled runtime requires a precompiled snapshot");
 #else
         StubCode::Init();
         Object::FinishInit(vm_isolate_);
@@ -303,13 +304,13 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
         MallocHooks::Init();
 #endif
       } else {
-        return strdup("Invalid vm isolate snapshot seen");
+        return Utils::StrDup("Invalid vm isolate snapshot seen");
       }
       FullSnapshotReader reader(snapshot, instructions_snapshot, T);
       const Error& error = Error::Handle(reader.ReadVMSnapshot());
       if (!error.IsNull()) {
         // Must copy before leaving the zone.
-        return strdup(error.ToErrorCString());
+        return Utils::StrDup(error.ToErrorCString());
       }
 
       ReversePcLookupCache::BuildAndAttachToIsolateGroup(vm_isolate_->group());
@@ -337,7 +338,8 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
       }
     } else {
 #if defined(DART_PRECOMPILED_RUNTIME)
-      return strdup("Precompiled runtime requires a precompiled snapshot");
+      return Utils::StrDup(
+          "Precompiled runtime requires a precompiled snapshot");
 #else
       vm_snapshot_kind_ = Snapshot::kNone;
       StubCode::Init();
@@ -358,7 +360,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     // Dart VM requires at least SSE2.
     if (!TargetCPUFeatures::sse2_supported()) {
-      return strdup("SSE2 is required.");
+      return Utils::StrDup("SSE2 is required.");
     }
 #endif
     {
@@ -469,7 +471,7 @@ void Dart::WaitForIsolateShutdown() {
 char* Dart::Cleanup() {
   ASSERT(Isolate::Current() == NULL);
   if (vm_isolate_ == NULL) {
-    return strdup("VM already terminated.");
+    return Utils::StrDup("VM already terminated.");
   }
 
   if (FLAG_trace_shutdown) {

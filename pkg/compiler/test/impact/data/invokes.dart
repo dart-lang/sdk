@@ -117,46 +117,7 @@ testTopLevelInvoke() {
   topLevelFunction3(15, c: 16, b: 17);
 }
 
-/*spec:nnbd-off.member: topLevelFunction1Typed:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  param:int]
-*/
-/*spec:nnbd-sdk.member: topLevelFunction1Typed:
+/*member: topLevelFunction1Typed:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -200,49 +161,7 @@ testTopLevelInvoke() {
 */
 void topLevelFunction1Typed(int a) {}
 
-/*spec:nnbd-off.member: topLevelFunction2Typed:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  inst:JSNull,
-  param:String,
-  param:double,
-  param:num]
-*/
-/*spec:nnbd-sdk.member: topLevelFunction2Typed:
+/*member: topLevelFunction2Typed:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -289,55 +208,7 @@ void topLevelFunction1Typed(int a) {}
 */
 int topLevelFunction2Typed(String a, [num b, double c]) => null;
 
-/*spec:nnbd-off.member: topLevelFunction3Typed:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
- type=[
-  inst:Closure,
-  inst:JSArray<dynamic>,
-  inst:JSBool,
-  inst:JSExtendableArray<dynamic>,
-  inst:JSFixedArray<dynamic>,
-  inst:JSMutableArray<dynamic>,
-  inst:JSNull,
-  inst:JSUnmodifiableArray<dynamic>,
-  param:List<int>,
-  param:Map<String,bool>,
-  param:bool]
-*/
-/*spec:nnbd-sdk.member: topLevelFunction3Typed:
+/*member: topLevelFunction3Typed:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -392,31 +263,7 @@ double topLevelFunction3Typed(bool a, {List<int> b, Map<String, bool> c}) {
   return null;
 }
 
-/*spec:nnbd-off.member: testTopLevelInvokeTyped:
- static=[
-  topLevelFunction1Typed(1),
-  topLevelFunction2Typed(1),
-  topLevelFunction2Typed(2),
-  topLevelFunction2Typed(3),
-  topLevelFunction3Typed(1),
-  topLevelFunction3Typed(1,b),
-  topLevelFunction3Typed(1,b,c),
-  topLevelFunction3Typed(1,b,c),
-  topLevelFunction3Typed(1,c)],
- type=[
-  inst:JSBool,
-  inst:JSDouble,
-  inst:JSInt,
-  inst:JSNull,
-  inst:JSNumber,
-  inst:JSPositiveInt,
-  inst:JSString,
-  inst:JSUInt31,
-  inst:JSUInt32,
-  inst:List<int>,
-  inst:Map<String,bool>]
-*/
-/*spec:nnbd-sdk.member: testTopLevelInvokeTyped:
+/*member: testTopLevelInvokeTyped:
  static=[
   topLevelFunction1Typed(1),
   topLevelFunction2Typed(1),
@@ -452,52 +299,7 @@ testTopLevelInvokeTyped() {
   topLevelFunction3Typed(false, c: {'16': false}, b: [17]);
 }
 
-/*spec:nnbd-off.member: topLevelFunctionTyped1:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
- type=[
-  inst:Closure,
-  inst:JSArray<dynamic>,
-  inst:JSBool,
-  inst:JSExtendableArray<dynamic>,
-  inst:JSFixedArray<dynamic>,
-  inst:JSMutableArray<dynamic>,
-  inst:JSUnmodifiableArray<dynamic>,
-  param:void Function(num)]
-*/
-/*spec:nnbd-sdk.member: topLevelFunctionTyped1:
+/*member: topLevelFunctionTyped1:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -547,52 +349,7 @@ testTopLevelInvokeTyped() {
 */
 topLevelFunctionTyped1(void a(num b)) {}
 
-/*spec:nnbd-off.member: topLevelFunctionTyped2:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
- type=[
-  inst:Closure,
-  inst:JSArray<dynamic>,
-  inst:JSBool,
-  inst:JSExtendableArray<dynamic>,
-  inst:JSFixedArray<dynamic>,
-  inst:JSMutableArray<dynamic>,
-  inst:JSUnmodifiableArray<dynamic>,
-  param:void Function(num,[String])]
-*/
-/*spec:nnbd-sdk.member: topLevelFunctionTyped2:
+/*member: topLevelFunctionTyped2:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -642,52 +399,7 @@ topLevelFunctionTyped1(void a(num b)) {}
 */
 topLevelFunctionTyped2(void a(num b, [String c])) {}
 
-/*spec:nnbd-off.member: topLevelFunctionTyped3:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
- type=[
-  inst:Closure,
-  inst:JSArray<dynamic>,
-  inst:JSBool,
-  inst:JSExtendableArray<dynamic>,
-  inst:JSFixedArray<dynamic>,
-  inst:JSMutableArray<dynamic>,
-  inst:JSUnmodifiableArray<dynamic>,
-  param:void Function(num,{String c,int d})]
-*/
-/*spec:nnbd-sdk.member: topLevelFunctionTyped3:
+/*member: topLevelFunctionTyped3:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -737,52 +449,7 @@ topLevelFunctionTyped2(void a(num b, [String c])) {}
 */
 topLevelFunctionTyped3(void a(num b, {String c, int d})) {}
 
-/*spec:nnbd-off.member: topLevelFunctionTyped4:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
- type=[
-  inst:Closure,
-  inst:JSArray<dynamic>,
-  inst:JSBool,
-  inst:JSExtendableArray<dynamic>,
-  inst:JSFixedArray<dynamic>,
-  inst:JSMutableArray<dynamic>,
-  inst:JSUnmodifiableArray<dynamic>,
-  param:void Function(num,{int c,String d})]
-*/
-/*spec:nnbd-sdk.member: topLevelFunctionTyped4:
+/*member: topLevelFunctionTyped4:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -868,46 +535,7 @@ set topLevelSetter(_) {}
 /*member: testTopLevelSetterSet:static=[set:topLevelSetter],type=[inst:JSNull]*/
 testTopLevelSetterSet() => topLevelSetter = null;
 
-/*spec:nnbd-off.member: topLevelSetterTyped=:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  param:int]
-*/
-/*spec:nnbd-sdk.member: topLevelSetterTyped=:
+/*member: topLevelSetterTyped=:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -977,47 +605,7 @@ final topLevelFieldFinal = topLevelFunction1(null);
 /*member: testTopLevelFieldFinal:static=[topLevelFieldFinal]*/
 testTopLevelFieldFinal() => topLevelFieldFinal;
 
-/*spec:nnbd-off.member: topLevelFieldTyped:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  inst:JSNull,
-  param:int]
-*/
-/*spec:nnbd-sdk.member: topLevelFieldTyped:
+/*member: topLevelFieldTyped:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -1065,47 +653,7 @@ int topLevelFieldTyped;
 /*member: testTopLevelFieldTyped:static=[topLevelFieldTyped]*/
 testTopLevelFieldTyped() => topLevelFieldTyped;
 
-/*spec:nnbd-off.member: topLevelFieldGeneric1:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  inst:JSNull,
-  param:GenericClass<dynamic,dynamic>]
-*/
-/*spec:nnbd-sdk.member: topLevelFieldGeneric1:
+/*member: topLevelFieldGeneric1:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -1153,47 +701,7 @@ GenericClass topLevelFieldGeneric1;
 /*member: testTopLevelFieldGeneric1:static=[topLevelFieldGeneric1]*/
 testTopLevelFieldGeneric1() => topLevelFieldGeneric1;
 
-/*spec:nnbd-off.member: topLevelFieldGeneric2:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  inst:JSNull,
-  param:GenericClass<dynamic,dynamic>]
-*/
-/*spec:nnbd-sdk.member: topLevelFieldGeneric2:
+/*member: topLevelFieldGeneric2:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -1241,53 +749,7 @@ GenericClass<dynamic, dynamic> topLevelFieldGeneric2;
 /*member: testTopLevelFieldGeneric2:static=[topLevelFieldGeneric2]*/
 testTopLevelFieldGeneric2() => topLevelFieldGeneric2;
 
-/*spec:nnbd-off.member: topLevelFieldGeneric3:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
- type=[
-  inst:Closure,
-  inst:JSArray<dynamic>,
-  inst:JSBool,
-  inst:JSExtendableArray<dynamic>,
-  inst:JSFixedArray<dynamic>,
-  inst:JSMutableArray<dynamic>,
-  inst:JSNull,
-  inst:JSUnmodifiableArray<dynamic>,
-  param:GenericClass<int,String>]
-*/
-/*spec:nnbd-sdk.member: topLevelFieldGeneric3:
+/*member: topLevelFieldGeneric3:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -1457,55 +919,7 @@ testLocalFunction() {
   localFunction() {}
 }
 
-/*spec:nnbd-off.member: testLocalFunctionTyped:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  def:localFunction,
-  findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
- type=[
-  inst:Closure,
-  inst:Function,
-  inst:JSArray<dynamic>,
-  inst:JSBool,
-  inst:JSExtendableArray<dynamic>,
-  inst:JSFixedArray<dynamic>,
-  inst:JSMutableArray<dynamic>,
-  inst:JSNull,
-  inst:JSUnmodifiableArray<dynamic>,
-  param:String]
-*/
-/*spec:nnbd-sdk.member: testLocalFunctionTyped:
+/*member: testLocalFunctionTyped:
  static=[
   Rti._bind(1),
   Rti._eval(1),

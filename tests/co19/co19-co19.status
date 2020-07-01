@@ -2,24 +2,24 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-Language/Classes/Constructors/Factories/*: Skip # Not migrated to NNBD
-Language/Classes/Constructors/Generative_Constructors/*: Skip # Not migrated to NNBD
+Language/Classes/Constructors/Factories/redirecting_constructor_call_t03: Skip # Type aliases are not fully implemented
+Language/Classes/Constructors/Factories/redirecting_constructor_t04: Skip # Type aliases are not fully implemented
 Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t07: Skip # Type aliases are not fully implemented
-Language/Expressions/Assignment/Compound_Assignment/*: Skip # Not migrated to NNBD
 Language/Expressions/Assignment/Compound_Assignment/null_aware_compound_assignment_static_t12: Skip # Triple shift is not implemented yet
 Language/Expressions/Assignment/Compound_Assignment/null_aware_compound_assignment_t12: Skip # Triple shift is not implemented yet
 Language/Expressions/Assignment/Compound_Assignment/variable_assignment_t12: Skip # Triple shift is not implemented yet
 Language/Expressions/Bitwise_Expressions/syntax_t01: Skip # Triple shift is not implemented yet
-Language/Expressions/Constants/*: Skip # Not migrated to NNBD
+Language/Expressions/Constants/bitwise_operators_t01: Skip # Triple shift is not implemented yet
 Language/Expressions/Equality/syntax_t01: Skip # Triple shift is not implemented yet
-Language/Expressions/Identifier_Reference/*: Skip # Not migrated to NNBD
 Language/Expressions/Instance_Creation/New/type_t09: Skip # Type aliases are not fully implemented
 Language/Expressions/Lists/syntax_t01: Skip # Triple shift is not implemented yet
 Language/Expressions/Maps/syntax_t01: Skip # Triple shift is not implemented yet
-Language/Generics/*: Skip # Not migrated to NNBD
-Language/Generics/Superbounded_types/*: Skip # Not migrated to NNBD
-Language/Interfaces/Superinterfaces/*: Skip # Not migrated to NNBD
-Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/*: Skip # Not migrated to NNBD
+Language/Generics/Superbounded_types/typedef2_A01_t02: Skip # Non function type aliases are not implemented yet
+Language/Generics/Superbounded_types/typedef2_A01_t03: Skip # Non function type aliases are not implemented yet
+Language/Generics/Superbounded_types/typedef2_A01_t04: Skip # Non function type aliases are not implemented yet
+Language/Generics/parameter_A01_t03: Skip # Type aliases are not fully implemented
+Language/Generics/syntax_t31: Skip # Type aliases are not fully implemented
+Language/Generics/typedef_A01_t10: Skip # Type aliases are not fully implemented
 Language/Libraries_and_Scripts/*: Skip # Not migrated to NNBD
 Language/Libraries_and_Scripts/Exports/*: Skip # Not migrated to NNBD
 Language/Libraries_and_Scripts/Parts/*: Skip # Not migrated to NNBD
@@ -325,8 +325,6 @@ Language/Classes/Constructors/Constant_Constructors/superinitializer_t05: Skip #
 Language/Classes/Constructors/Constant_Constructors/superinitializer_t06: Skip # github.com/dart-lang/language/issues/115
 Language/Classes/Constructors/Factories/name_t06: Skip # github.com/dart-lang/language/issues/115
 Language/Classes/Constructors/Factories/name_t07: Skip # github.com/dart-lang/language/issues/115
-Language/Classes/Constructors/Factories/redirecting_constructor_call_t03: Skip # github.com/dart-lang/language/issues/115
-Language/Classes/Constructors/Factories/redirecting_constructor_t04: Skip # github.com/dart-lang/language/issues/115
 Language/Classes/Constructors/Factories/redirecting_to_itself_t05: Skip # github.com/dart-lang/language/issues/115
 Language/Classes/Constructors/Factories/redirecting_to_itself_t06: Skip # github.com/dart-lang/language/issues/115
 Language/Classes/Constructors/Factories/redirecting_to_itself_t07: Skip # github.com/dart-lang/language/issues/115

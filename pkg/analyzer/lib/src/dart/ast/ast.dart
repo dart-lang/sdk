@@ -2019,11 +2019,8 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   @override
   LineInfo lineInfo;
 
-  /// The major component of the actual language version (not just override).
-  int languageVersionMajor;
-
-  /// The minor component of the actual language version (not just override).
-  int languageVersionMinor;
+  /// The language version information.
+  LibraryLanguageVersion languageVersion;
 
   @override
   final FeatureSet featureSet;
@@ -3426,6 +3423,7 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
+    configurations.accept(visitor);
     super.visitChildren(visitor);
     combinators.accept(visitor);
   }
@@ -5772,6 +5770,7 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
+    configurations.accept(visitor);
     _prefix?.accept(visitor);
     combinators.accept(visitor);
   }

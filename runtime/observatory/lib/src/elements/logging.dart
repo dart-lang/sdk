@@ -11,7 +11,7 @@ import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/logging_list.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
@@ -22,18 +22,6 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class LoggingPageElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<LoggingPageElement>('logging-page', dependencies: const [
-    LoggingListElement.tag,
-    NavClassMenuElement.tag,
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-    ViewFooterElement.tag
-  ]);
-
   RenderingScheduler<LoggingPageElement> _r;
 
   Stream<RenderedEvent<LoggingPageElement>> get onRendered => _r.onRendered;
@@ -64,7 +52,7 @@ class LoggingPageElement extends CustomElement implements Renderable {
     return e;
   }
 
-  LoggingPageElement.created() : super.created(tag);
+  LoggingPageElement.created() : super.created('logging-page');
 
   @override
   attached() {

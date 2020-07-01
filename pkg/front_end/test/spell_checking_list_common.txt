@@ -103,6 +103,7 @@ allocation
 allow
 allowed
 allowing
+allowlisted
 allows
 almost
 alone
@@ -242,6 +243,7 @@ awaiter
 aware
 awareness
 away
+axiom
 back
 backend
 backends
@@ -296,7 +298,6 @@ bit
 bits
 bitwise
 black
-denylisted
 block
 blocks
 blogs
@@ -661,6 +662,7 @@ correctness
 correspond
 correspondence
 corresponding
+correspondingly
 corresponds
 cost
 could
@@ -774,6 +776,7 @@ denoted
 denotes
 denoting
 deny
+denylisted
 depend
 dependence
 dependencies
@@ -869,6 +872,7 @@ distance
 distinct
 distinction
 distinguish
+distinguishes
 divide
 division
 divisor
@@ -936,7 +940,9 @@ elapsed
 element
 elements
 eligible
+eliminate
 eliminated
+eliminates
 elimination
 eliminator
 else
@@ -1397,6 +1403,7 @@ implement
 implementation
 implementations
 implemented
+implementer
 implementing
 implements
 implication
@@ -1548,6 +1555,7 @@ interpreted
 interpreter
 interpreting
 intersect
+intersecting
 intersection
 intertwined
 into
@@ -2103,6 +2111,9 @@ patching
 paths
 pattern
 peek
+peel
+peeled
+peeling
 pending
 percent
 percolate
@@ -2222,6 +2233,7 @@ previous
 previously
 primary
 primitive
+primitiveness
 principle
 print
 printed
@@ -2364,6 +2376,7 @@ recurse
 recursing
 recursive
 recursively
+recursor
 redirect
 redirected
 redirecting
@@ -2384,6 +2397,7 @@ referred
 refers
 refine
 refinement
+refinements
 reflecting
 regardless
 region
@@ -3254,7 +3268,6 @@ whether
 which
 while
 white
-allowlisted
 whitespace
 whole
 whose

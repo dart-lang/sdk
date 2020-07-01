@@ -26,9 +26,6 @@ export 'output_collector.dart';
 export 'package:compiler/compiler_new.dart' show CompilationResult;
 export 'diagnostic_helper.dart';
 
-bool isDart2jsNnbd =
-    !Platform.environment['DART_CONFIGURATION'].endsWith('Legacy');
-
 String sdkPath = 'sdk/lib';
 
 String sdkLibrariesSpecificationPath = '$sdkPath/libraries.json';

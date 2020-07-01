@@ -27,54 +27,26 @@ export 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, StringDataInterpreter;
 export '../helpers/memory_compiler.dart' show CollectedMessage;
 
-const String specWithNnbdOffMarker = 'spec:nnbd-off';
-const String prodWithNnbdOffMarker = 'prod:nnbd-off';
-const String specWithNnbdSdkMarker = 'spec:nnbd-sdk';
-const String prodWithNnbdSdkMarker = 'prod:nnbd-sdk';
+const String specMarker = 'spec';
+const String prodMarker = 'prod';
 
-const TestConfig specWithNnbdOffConfig = const TestConfig(
-    specWithNnbdOffMarker, 'compliance mode with nnbd off', []);
+const TestConfig specConfig = TestConfig(specMarker, 'compliance mode', []);
 
-const TestConfig prodWithNnbdOffConfig = const TestConfig(
-    prodWithNnbdOffMarker,
-    'production mode with nnbd off',
+const TestConfig prodConfig = TestConfig(prodMarker, 'production mode',
     [Flags.omitImplicitChecks, Flags.laxRuntimeTypeToString]);
-
-const TestConfig specWithNnbdSdkConfig = const TestConfig(
-    specWithNnbdSdkMarker, 'compliance mode with nnbd sdk', []);
-
-const TestConfig prodWithNnbdSdkConfig = const TestConfig(
-    prodWithNnbdSdkMarker,
-    'production mode with nnbd sdk',
-    [Flags.omitImplicitChecks, Flags.laxRuntimeTypeToString]);
-
-const List<String> allInternalMarkers = const [
-  specWithNnbdOffMarker,
-  prodWithNnbdOffMarker,
-  specWithNnbdSdkMarker,
-  prodWithNnbdSdkMarker
-];
 
 /// Default internal configurations not including experimental features.
-List<TestConfig> defaultInternalConfigs = isDart2jsNnbd
-    ? const [specWithNnbdSdkConfig, prodWithNnbdSdkConfig]
-    : const [specWithNnbdOffConfig, prodWithNnbdOffConfig];
+const List<TestConfig> defaultInternalConfigs = [specConfig, prodConfig];
 
 /// All internal configurations including experimental features.
-List<TestConfig> allInternalConfigs = isDart2jsNnbd
-    ? const [specWithNnbdSdkConfig, prodWithNnbdSdkConfig]
-    : const [specWithNnbdOffConfig, prodWithNnbdOffConfig];
+const List<TestConfig> allInternalConfigs = [specConfig, prodConfig];
 
 /// Compliance mode configurations (with strong mode checks) including
 /// experimental features.
-List<TestConfig> allSpecConfigs = isDart2jsNnbd
-    ? const [specWithNnbdSdkConfig]
-    : const [specWithNnbdOffConfig];
+const List<TestConfig> allSpecConfigs = [specConfig];
 
 /// Test configuration used in tests shared with CFE.
-TestConfig sharedConfig = isDart2jsNnbd
-    ? const TestConfig(dart2jsWithNnbdSdkMarker, 'dart2js with nnbd sdk', [])
-    : const TestConfig(dart2jsMarker, 'dart2js', []);
+const TestConfig sharedConfig = TestConfig(dart2jsMarker, 'dart2js', []);
 
 abstract class DataComputer<T> {
   const DataComputer();

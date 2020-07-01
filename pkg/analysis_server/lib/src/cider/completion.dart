@@ -11,13 +11,11 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/performance.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 
@@ -73,7 +71,8 @@ class CiderCompletionComputer {
       var offset = lineInfo.getOffsetOfLine(line) + column;
 
       var resolvedUnit = performance.run('resolution', (performance) {
-        return _fileResolver.resolve2(
+        return _fileResolver.resolve(
+          completionOffset: offset,
           path: path,
           performance: performance,
         );
@@ -300,7 +299,7 @@ class _FilterSort {
   _FilterSort(this._request, this._suggestions);
 
   List<CompletionSuggestion> perform() {
-    _pattern = _matchingPattern();
+    _pattern = _request.targetPrefix;
     _matcher = FuzzyMatcher(_pattern, matchStyle: MatchStyle.SYMBOL);
 
     var scored = _suggestions
@@ -326,26 +325,6 @@ class _FilterSort {
     });
 
     return scored.map((e) => e.suggestion).toList();
-  }
-
-  /// Return the pattern to match suggestions against, from the identifier
-  /// to the left of the caret. Return the empty string if cannot find the
-  /// identifier.
-  String _matchingPattern() {
-    SimpleIdentifier patternNode;
-    _request.target.containingNode.accept(
-      FunctionAstVisitor(simpleIdentifier: (node) {
-        if (node.end == _request.offset) {
-          patternNode = node;
-        }
-      }),
-    );
-
-    if (patternNode != null) {
-      return patternNode.name;
-    }
-
-    return '';
   }
 
   double _score(CompletionSuggestion e) {

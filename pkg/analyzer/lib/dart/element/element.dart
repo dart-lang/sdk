@@ -49,6 +49,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// An element that represents a class or a mixin. The class can be defined by
 /// either a class declaration (with a class body), a mixin application (without
@@ -822,62 +823,64 @@ class ElementKind implements Comparable<ElementKind> {
 
   static const ElementKind DYNAMIC = ElementKind('DYNAMIC', 3, "<dynamic>");
 
-  static const ElementKind ERROR = ElementKind('ERROR', 4, "<error>");
+  static const ElementKind ENUM = ElementKind('ENUM', 4, "enum");
+
+  static const ElementKind ERROR = ElementKind('ERROR', 5, "<error>");
 
   static const ElementKind EXPORT =
-      ElementKind('EXPORT', 5, "export directive");
+      ElementKind('EXPORT', 6, "export directive");
 
-  static const ElementKind EXTENSION =
-      ElementKind('EXTENSION', 24, "extension");
+  static const ElementKind EXTENSION = ElementKind('EXTENSION', 7, "extension");
 
-  static const ElementKind FIELD = ElementKind('FIELD', 6, "field");
+  static const ElementKind FIELD = ElementKind('FIELD', 8, "field");
 
-  static const ElementKind FUNCTION = ElementKind('FUNCTION', 7, "function");
+  static const ElementKind FUNCTION = ElementKind('FUNCTION', 9, "function");
 
   static const ElementKind GENERIC_FUNCTION_TYPE =
-      ElementKind('GENERIC_FUNCTION_TYPE', 8, 'generic function type');
+      ElementKind('GENERIC_FUNCTION_TYPE', 10, 'generic function type');
 
-  static const ElementKind GETTER = ElementKind('GETTER', 9, "getter");
+  static const ElementKind GETTER = ElementKind('GETTER', 11, "getter");
 
   static const ElementKind IMPORT =
-      ElementKind('IMPORT', 10, "import directive");
+      ElementKind('IMPORT', 12, "import directive");
 
-  static const ElementKind LABEL = ElementKind('LABEL', 11, "label");
+  static const ElementKind LABEL = ElementKind('LABEL', 13, "label");
 
-  static const ElementKind LIBRARY = ElementKind('LIBRARY', 12, "library");
+  static const ElementKind LIBRARY = ElementKind('LIBRARY', 14, "library");
 
   static const ElementKind LOCAL_VARIABLE =
-      ElementKind('LOCAL_VARIABLE', 13, "local variable");
+      ElementKind('LOCAL_VARIABLE', 15, "local variable");
 
-  static const ElementKind METHOD = ElementKind('METHOD', 14, "method");
+  static const ElementKind METHOD = ElementKind('METHOD', 16, "method");
 
-  static const ElementKind NAME = ElementKind('NAME', 15, "<name>");
+  static const ElementKind NAME = ElementKind('NAME', 17, "<name>");
 
-  static const ElementKind NEVER = ElementKind('NEVER', 16, "<never>");
+  static const ElementKind NEVER = ElementKind('NEVER', 18, "<never>");
 
   static const ElementKind PARAMETER =
-      ElementKind('PARAMETER', 17, "parameter");
+      ElementKind('PARAMETER', 19, "parameter");
 
-  static const ElementKind PREFIX = ElementKind('PREFIX', 18, "import prefix");
+  static const ElementKind PREFIX = ElementKind('PREFIX', 20, "import prefix");
 
-  static const ElementKind SETTER = ElementKind('SETTER', 19, "setter");
+  static const ElementKind SETTER = ElementKind('SETTER', 21, "setter");
 
   static const ElementKind TOP_LEVEL_VARIABLE =
-      ElementKind('TOP_LEVEL_VARIABLE', 20, "top level variable");
+      ElementKind('TOP_LEVEL_VARIABLE', 22, "top level variable");
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
-      ElementKind('FUNCTION_TYPE_ALIAS', 21, "function type alias");
+      ElementKind('FUNCTION_TYPE_ALIAS', 23, "function type alias");
 
   static const ElementKind TYPE_PARAMETER =
-      ElementKind('TYPE_PARAMETER', 22, "type parameter");
+      ElementKind('TYPE_PARAMETER', 24, "type parameter");
 
-  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 23, "<universe>");
+  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 25, "<universe>");
 
   static const List<ElementKind> values = [
     CLASS,
     COMPILATION_UNIT,
     CONSTRUCTOR,
     DYNAMIC,
+    ENUM,
     ERROR,
     EXPORT,
     FIELD,
@@ -1339,10 +1342,15 @@ abstract class LibraryElement implements Element {
 
   bool get isNonNullableByDefault;
 
+  /// The language version for this library.
+  LibraryLanguageVersion get languageVersion;
+
   /// The major component of the language version for this library.
+  @Deprecated("Use 'languageVersion'")
   int get languageVersionMajor;
 
   /// The minor component of the language version for this library.
+  @Deprecated("Use 'languageVersion'")
   int get languageVersionMinor;
 
   /// Return the element representing the synthetic function `loadLibrary` that
@@ -1395,6 +1403,24 @@ abstract class LibraryElement implements Element {
   /// If a legacy library, return the legacy version of the [type].
   /// Otherwise, return the original type.
   DartType toLegacyTypeIfOptOut(DartType type);
+}
+
+class LibraryLanguageVersion {
+  /// The version for the whole package that contains this library.
+  final Version package;
+
+  /// The version specified using `@dart` override, `null` if absent or invalid.
+  final Version override;
+
+  LibraryLanguageVersion({
+    @required this.package,
+    @required this.override,
+  });
+
+  /// The effective language version for the library.
+  Version get effective {
+    return override ?? package;
+  }
 }
 
 /// An element that can be (but is not required to be) defined within a method

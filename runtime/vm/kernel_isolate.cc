@@ -409,10 +409,10 @@ MallocGrowableArray<char*>* KernelIsolate::experimental_flags_ =
 
 void KernelIsolate::AddExperimentalFlag(const char* value) {
   char* save_ptr;  // Needed for strtok_r.
-  char* temp = strdup(value);
+  char* temp = Utils::StrDup(value);
   char* token = strtok_r(temp, ",", &save_ptr);
   while (token != NULL) {
-    experimental_flags_->Add(strdup(token));
+    experimental_flags_->Add(Utils::StrDup(token));
     token = strtok_r(NULL, ",", &save_ptr);
   }
   free(temp);
@@ -928,7 +928,7 @@ class KernelCompilationRequest : public ValueObject {
       }
       // This is an error.
       ASSERT(response[1]->type == Dart_CObject_kString);
-      result_.error = strdup(response[1]->value.as_string);
+      result_.error = Utils::StrDup(response[1]->value.as_string);
     }
     ml.Notify();
   }
@@ -1007,7 +1007,7 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
   if (!Start()) {
     Dart_KernelCompilationResult result = {};
     result.status = Dart_KernelCompilationStatus_Unknown;
-    result.error = strdup("Error while starting Kernel isolate task");
+    result.error = Utils::StrDup("Error while starting Kernel isolate task");
     return result;
   }
 
@@ -1017,7 +1017,7 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
   if (kernel_port == ILLEGAL_PORT) {
     Dart_KernelCompilationResult result = {};
     result.status = Dart_KernelCompilationStatus_Unknown;
-    result.error = strdup("Error while initializing Kernel isolate");
+    result.error = Utils::StrDup("Error while initializing Kernel isolate");
     return result;
   }
 
@@ -1036,7 +1036,7 @@ bool KernelIsolate::DetectNullSafety(const char* script_uri,
   if (!Start()) {
     Dart_KernelCompilationResult result = {};
     result.status = Dart_KernelCompilationStatus_Unknown;
-    result.error = strdup("Error while starting Kernel isolate task");
+    result.error = Utils::StrDup("Error while starting Kernel isolate task");
     return false;
   }
   // Wait for Kernel isolate to finish initialization.
@@ -1044,7 +1044,7 @@ bool KernelIsolate::DetectNullSafety(const char* script_uri,
   if (kernel_port == ILLEGAL_PORT) {
     Dart_KernelCompilationResult result = {};
     result.status = Dart_KernelCompilationStatus_Unknown;
-    result.error = strdup("Error while initializing Kernel isolate");
+    result.error = Utils::StrDup("Error while initializing Kernel isolate");
     return false;
   }
   KernelCompilationRequest request;
@@ -1060,7 +1060,7 @@ Dart_KernelCompilationResult KernelIsolate::ListDependencies() {
   if (kernel_port == ILLEGAL_PORT) {
     Dart_KernelCompilationResult result = {};
     result.status = Dart_KernelCompilationStatus_Unknown;
-    result.error = strdup("Error while initializing Kernel isolate");
+    result.error = Utils::StrDup("Error while initializing Kernel isolate");
     return result;
   }
 
@@ -1077,7 +1077,7 @@ Dart_KernelCompilationResult KernelIsolate::AcceptCompilation() {
   if (kernel_port == ILLEGAL_PORT) {
     Dart_KernelCompilationResult result = {};
     result.status = Dart_KernelCompilationStatus_Unknown;
-    result.error = strdup("Error while initializing Kernel isolate");
+    result.error = Utils::StrDup("Error while initializing Kernel isolate");
     return result;
   }
 
@@ -1098,7 +1098,7 @@ Dart_KernelCompilationResult KernelIsolate::CompileExpressionToKernel(
   if (kernel_port == ILLEGAL_PORT) {
     Dart_KernelCompilationResult result = {};
     result.status = Dart_KernelCompilationStatus_Unknown;
-    result.error = strdup("Error while initializing Kernel isolate");
+    result.error = Utils::StrDup("Error while initializing Kernel isolate");
     return result;
   }
 
@@ -1119,7 +1119,7 @@ Dart_KernelCompilationResult KernelIsolate::UpdateInMemorySources(
   if (kernel_port == ILLEGAL_PORT) {
     Dart_KernelCompilationResult result = {};
     result.status = Dart_KernelCompilationStatus_Unknown;
-    result.error = strdup("Error while initializing Kernel isolate");
+    result.error = Utils::StrDup("Error while initializing Kernel isolate");
     return result;
   }
 

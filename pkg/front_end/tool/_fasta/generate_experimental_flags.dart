@@ -103,9 +103,20 @@ String generateCfeFile() {
 part of 'experimental_flags.dart';
 ''');
 
-  Map<dynamic, dynamic> features = yaml['features'];
+  Map<String, dynamic> features = {};
+  Map<dynamic, dynamic> yamlFeatures = yaml['features'];
+  for (MapEntry<dynamic, dynamic> entry in yamlFeatures.entries) {
+    String category = entry.value["category"] ?? "language";
+    if (category != "language" && category != "CFE") {
+      // Skip a feature with a category that's not language or CFE.
+      // In the future we might want to generate different code for different
+      // things.
+      continue;
+    }
+    features[entry.key] = entry.value;
+  }
 
-  List<String> keys = features.keys.cast<String>().toList()..sort();
+  List<String> keys = features.keys.toList()..sort();
 
   sb.write('''
 

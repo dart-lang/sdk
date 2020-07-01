@@ -22,11 +22,11 @@ const set4 = /*cfe.Set<int>(Int(42),Int(87))*/ {42, 87};
 main() {
   print(/*Set<dynamic>()*/ set0);
   print(
-      /*cfe|analyzer|dart2js.Set<int>()*/ /*dart2js:nnbd-sdk.Set<int*>()*/ set1);
+      /*cfe|analyzer.Set<int>()*/ /*dart2js.Set<int*>()*/ set1);
   print(
-      /*cfe|analyzer|dart2js.Set<int>()*/ /*dart2js:nnbd-sdk.Set<int*>()*/ set2);
+      /*cfe|analyzer.Set<int>()*/ /*dart2js.Set<int*>()*/ set2);
   print(
-      /*cfe|analyzer|dart2js.Set<int>(Int(42))*/ /*dart2js:nnbd-sdk.Set<int*>(Int(42))*/ set3);
+      /*cfe|analyzer.Set<int>(Int(42))*/ /*dart2js.Set<int*>(Int(42))*/ set3);
   print(
-      /*cfe|analyzer|dart2js.Set<int>(Int(42),Int(87))*/ /*dart2js:nnbd-sdk.Set<int*>(Int(42),Int(87))*/ set4);
+      /*cfe|analyzer.Set<int>(Int(42),Int(87))*/ /*dart2js.Set<int*>(Int(42),Int(87))*/ set4);
 }

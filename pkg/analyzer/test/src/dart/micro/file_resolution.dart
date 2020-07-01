@@ -52,18 +52,19 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       getFileDigest: (String path) => _getDigest(path),
       workspace: workspace,
       prefetchFiles: null,
+      libraryContextResetTimeout: null,
     );
     fileResolver.testView = FileResolverTestView();
   }
 
   ErrorsResult getTestErrors() {
     var path = convertPath(_testFile);
-    return fileResolver.getErrors2(path: path);
+    return fileResolver.getErrors(path: path);
   }
 
   @override
   Future<ResolvedUnitResult> resolveFile(String path) async {
-    return fileResolver.resolve2(path: path);
+    return fileResolver.resolve(path: path);
   }
 
   @override

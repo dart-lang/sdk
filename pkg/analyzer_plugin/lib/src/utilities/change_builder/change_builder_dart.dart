@@ -639,11 +639,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         name = _generateUniqueName(parameterNames, 'p');
         parameterNames.add(name);
       }
+      var groupPrefix =
+          methodBeingCopied != null ? '${methodBeingCopied.name}:' : '';
       writeParameter(name,
           methodBeingCopied: methodBeingCopied,
-          nameGroupName: 'PARAM$i',
+          nameGroupName: parameter.isNamed ? null : '${groupPrefix}PARAM$i',
           type: parameter.type,
-          typeGroupName: 'TYPE$i');
+          typeGroupName: '${groupPrefix}TYPE$i');
       // default value
       var defaultCode = parameter.defaultValueCode;
       if (defaultCode != null) {

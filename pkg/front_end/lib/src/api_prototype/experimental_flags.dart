@@ -104,10 +104,13 @@ bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri canonicalUri,
       allowedFlags = allowedExperimentalFlags.forSdkLibrary(canonicalUri.path);
     } else if (canonicalUri.scheme == 'package') {
       int index = canonicalUri.path.indexOf('/');
+      String packageName;
       if (index >= 0) {
-        String packageName = canonicalUri.path.substring(0, index);
-        allowedFlags = allowedExperimentalFlags.forPackage(packageName);
+        packageName = canonicalUri.path.substring(0, index);
+      } else {
+        packageName = canonicalUri.path;
       }
+      allowedFlags = allowedExperimentalFlags.forPackage(packageName);
     }
     if (allowedFlags != null) {
       enabled = allowedFlags.contains(flag);

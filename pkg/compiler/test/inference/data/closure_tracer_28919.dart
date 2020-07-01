@@ -57,8 +57,8 @@ foo2(int /*[exact=JSUInt31]*/ choice) {
       i /*invoke: [subclass=JSPositiveInt]*/ ++) {
     methods. /*invoke: [exact=JSExtendableArray]*/ add(
         /*[null]*/ (int
-            /*spec:nnbd-off|spec:nnbd-sdk.[null|subclass=Object]*/
-            /*prod:nnbd-off|prod:nnbd-sdk.[null|subclass=JSInt]*/
+            /*spec.[null|subclass=Object]*/
+            /*prod.[null|subclass=JSInt]*/
             x) {
       res = x;
       sum = x /*invoke: [null|subclass=JSInt]*/ + i;

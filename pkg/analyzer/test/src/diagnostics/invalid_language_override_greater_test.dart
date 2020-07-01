@@ -32,8 +32,8 @@ class A {}
       error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 15),
     ]);
     _assertUnitLanguageVersion(
-      major: latestVersion.major,
-      minor: latestVersion.minor,
+      package: latestVersion,
+      override: null,
     );
   }
 
@@ -43,7 +43,10 @@ class A {}
 // @dart = 2.9
 int? a;
 ''');
-    _assertUnitLanguageVersion(major: 2, minor: 9);
+    _assertUnitLanguageVersion(
+      package: Version.parse('2.5.0'),
+      override: Version.parse('2.9.0'),
+    );
   }
 
   test_lessThanPackage() async {
@@ -52,16 +55,20 @@ int? a;
 // @dart = 2.4
 class A {}
 ''');
-    _assertUnitLanguageVersion(major: 2, minor: 4);
+    _assertUnitLanguageVersion(
+      package: Version.parse('2.5.0'),
+      override: Version.parse('2.4.0'),
+    );
   }
 
   void _assertUnitLanguageVersion({
-    @required int major,
-    @required int minor,
+    @required Version package,
+    @required Version override,
   }) {
     var unitImpl = result.unit as CompilationUnitImpl;
-    expect(unitImpl.languageVersionMajor, major);
-    expect(unitImpl.languageVersionMinor, minor);
+    var languageVersion = unitImpl.languageVersion;
+    expect(languageVersion.package, package);
+    expect(languageVersion.override, override);
   }
 
   void _configureTestPackageLanguageVersion(String versionStr) {

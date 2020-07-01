@@ -15,7 +15,7 @@ import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/library_ref.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/library_menu.dart';
@@ -29,26 +29,6 @@ import 'package:observatory/src/elements/script_inset.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class LibraryViewElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<LibraryViewElement>('library-view', dependencies: const [
-    ClassRefElement.tag,
-    CurlyBlockElement.tag,
-    EvalBoxElement.tag,
-    FieldRefElement.tag,
-    FunctionRefElement.tag,
-    LibraryRefElement.tag,
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavLibraryMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-    ObjectCommonElement.tag,
-    ScriptRefElement.tag,
-    ScriptInsetElement.tag,
-    ViewFooterElement.tag
-  ]);
-
   RenderingScheduler<LibraryViewElement> _r;
 
   Stream<RenderedEvent<LibraryViewElement>> get onRendered => _r.onRendered;
@@ -123,7 +103,7 @@ class LibraryViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  LibraryViewElement.created() : super.created(tag);
+  LibraryViewElement.created() : super.created('library-view');
 
   @override
   attached() {

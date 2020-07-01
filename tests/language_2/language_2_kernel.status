@@ -19,9 +19,6 @@ regress/regress41983_test: Pass, Slow
 
 [ $fasta ]
 nnbd/*: Skip
-superinterface_variance/abstract_class_error_test/27: Crash # Issue dart-lang/language#113
-superinterface_variance/concrete_class_error_test/27: Crash # Issue dart-lang/language#113
-superinterface_variance/mixin_error_test/27: Crash # Issue dart-lang/language#113
 superinterface_variance/mixin_error_test/37: Crash # Issue dart-lang/language#113
 superinterface_variance/mixin_error_test/38: Crash # Issue dart-lang/language#113
 superinterface_variance/mixin_error_test/40: Crash # Issue dart-lang/language#113

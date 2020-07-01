@@ -7,10 +7,9 @@
 import 'package:expect/expect.dart';
 
 method1() {
-  /*spec:nnbd-off.direct,explicit=[local.T],needsArgs,needsSignature*/
-  /*prod:nnbd-off|prod:nnbd-sdk.needsSignature*/
-  /*spec:nnbd-sdk.direct,explicit=[local.T*],needsArgs,needsSignature*/ T
-      local<T>(T t) => t;
+  /*spec.direct,explicit=[local.T*],needsArgs,needsSignature*/
+  /*prod.needsSignature*/
+  T local<T>(T t) => t;
   return local;
 }
 

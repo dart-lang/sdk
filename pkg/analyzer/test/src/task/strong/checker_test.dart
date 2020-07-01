@@ -564,13 +564,13 @@ class B extends A {
   covariant num foo;
 }
 class C extends A {
-  covariant @virtual num foo;
+  covariant num foo;
 }
 class D extends C {
-  @virtual int foo;
+  int foo;
 }
 class E extends D {
-  @virtual num foo;
+  num foo;
 }
     ''');
   }
@@ -779,36 +779,6 @@ class H implements F {
   final ToVoid<dynamic> g = null;
 }
  ''');
-  }
-
-  test_fieldOverride_virtual() async {
-    _addMetaLibrary();
-    await checkFile(r'''
-import 'meta.dart';
-class C {
-  @virtual int x;
-}
-class OverrideGetter extends C {
-  int get x => 42;
-}
-class OverrideSetter extends C {
-  set x(int v) {}
-}
-class OverrideBoth extends C {
-  int get x => 42;
-  set x(int v) {}
-}
-class OverrideWithField extends C {
-  int x;
-
-  // expose the hidden storage slot
-  int get superX => super.x;
-  set superX(int v) { super.x = v; }
-}
-class VirtualNotInherited extends OverrideWithField {
-  int x;
-}
-    ''');
   }
 
   test_fieldSetterOverride() async {
@@ -4871,16 +4841,5 @@ void main () {
   Foo x = /*error:USE_OF_VOID_RESULT*/foo();
 }
 ''');
-  }
-
-  void _addMetaLibrary() {
-    addFile(r'''
-library meta;
-class _Checked { const _Checked(); }
-const Object checked = const _Checked();
-
-class _Virtual { const _Virtual(); }
-const Object virtual = const _Virtual();
-    ''', name: '/meta.dart');
   }
 }

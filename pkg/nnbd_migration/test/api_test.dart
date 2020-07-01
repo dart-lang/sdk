@@ -5025,6 +5025,90 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_promotion_conditional_variableRead() async {
+    var content = '''
+f({int i}) {
+  i = i == null ? 0 : i;
+  g(i);
+}
+
+g(int j) {}
+''';
+    var expected = '''
+f({int? i}) {
+  i = i == null ? 0 : i;
+  g(i);
+}
+
+g(int j) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_promotion_ifNull_variableRead() async {
+    var content = '''
+f({int i}) {
+  i ??= 3;
+  g(i);
+}
+
+g(int j) {}
+''';
+    var expected = '''
+f({int? i}) {
+  i ??= 3;
+  g(i);
+}
+
+g(int j) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_promotion_ifNull_variableRead_alreadyPromoted() async {
+    var content = '''
+f({num i}) {
+  if (i is int /*?*/) {
+    i ??= 3;
+    g(i);
+  }
+}
+
+g(int j) {}
+''';
+    var expected = '''
+f({num? i}) {
+  if (i is int?) {
+    i ??= 3;
+    g(i);
+  }
+}
+
+g(int j) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_promotion_ifNull_variableRead_subType() async {
+    var content = '''
+f({num i}) {
+  i ??= 3;
+  g(i);
+}
+
+g(int j) {}
+''';
+    var expected = '''
+f({num? i}) {
+  i ??= 3;
+  g(i as int);
+}
+
+g(int j) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_promotion_preserves_complex_types() async {
     var content = '''
 int/*!*/ f(List<int/*?*/>/*?*/ x) {

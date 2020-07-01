@@ -2177,6 +2177,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       }
       if (destinationLocalVariable != null) {
+        _dispatch(destinationExpression);
         destinationType = getOrComputeElementType(destinationLocalVariable);
       } else {
         destinationType = _dispatch(destinationExpression);

@@ -5,12 +5,9 @@
 import 'dart:html';
 import 'dart:async';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 
 class IsolateCounterChartElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<IsolateCounterChartElement>('isolate-counter-chart');
-
   RenderingScheduler<IsolateCounterChartElement> _r;
 
   Stream<RenderedEvent<IsolateCounterChartElement>> get onRendered =>
@@ -27,7 +24,7 @@ class IsolateCounterChartElement extends CustomElement implements Renderable {
     return e;
   }
 
-  IsolateCounterChartElement.created() : super.created(tag);
+  IsolateCounterChartElement.created() : super.created('isolate-counter-chart');
 
   @override
   void attached() {

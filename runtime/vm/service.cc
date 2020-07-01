@@ -1201,7 +1201,7 @@ class EmbedderServiceHandler {
   explicit EmbedderServiceHandler(const char* name)
       : name_(NULL), callback_(NULL), user_data_(NULL), next_(NULL) {
     ASSERT(name != NULL);
-    name_ = strdup(name);
+    name_ = Utils::StrDup(name);
   }
 
   ~EmbedderServiceHandler() { free(name_); }
@@ -4059,6 +4059,90 @@ static bool RequestHeapSnapshot(Thread* thread, JSONStream* js) {
   return true;
 }
 
+static const MethodParameter* get_process_memory_usage_params[] = {
+    NULL,
+};
+
+static bool GetProcessMemoryUsage(Thread* thread, JSONStream* js) {
+  JSONObject response(js);
+  response.AddProperty("type", "ProcessMemoryUsage");
+
+  JSONObject rss(&response, "root");
+  rss.AddPropertyF("name", "Process %" Pd "", OS::ProcessId());
+  rss.AddProperty("description", "Resident set size");
+  rss.AddProperty64("size", Service::CurrentRSS());
+  JSONArray rss_children(&rss, "children");
+
+  {
+    JSONObject profiler(&rss_children);
+    profiler.AddProperty("name", "Profiler");
+    profiler.AddProperty("description", "Samples from the Dart VM's profiler");
+    profiler.AddProperty64("size", Profiler::Size());
+    JSONArray(&profiler, "children");
+  }
+
+  {
+    JSONObject timeline(&rss_children);
+    timeline.AddProperty("name", "Timeline");
+    timeline.AddProperty(
+        "description",
+        "Timeline events from dart:developer and Dart_TimelineEvent");
+    timeline.AddProperty64("size", Timeline::recorder()->Size());
+    JSONArray(&timeline, "children");
+  }
+
+  {
+    JSONObject zone(&rss_children);
+    zone.AddProperty("name", "Zone");
+    zone.AddProperty("description", "Arena allocation in the Dart VM");
+    zone.AddProperty64("size", Zone::Size());
+    JSONArray(&zone, "children");
+  }
+
+  {
+    JSONObject semi(&rss_children);
+    semi.AddProperty("name", "SemiSpace Cache");
+    semi.AddProperty("description", "Cached heap regions");
+    semi.AddProperty64("size", SemiSpace::CachedSize());
+    JSONArray(&semi, "children");
+  }
+
+  IsolateGroup::ForEach([&rss_children](IsolateGroup* isolate_group) {
+    // Note: new_space()->CapacityInWords() includes memory that hasn't been
+    // allocated from the OS yet.
+    int64_t capacity = (isolate_group->heap()->new_space()->UsedInWords() +
+                        isolate_group->heap()->old_space()->CapacityInWords()) *
+                       kWordSize;
+    int64_t used = isolate_group->heap()->TotalUsedInWords() * kWordSize;
+    int64_t free = capacity - used;
+
+    JSONObject group(&rss_children);
+    group.AddPropertyF("name", "IsolateGroup %s",
+                       isolate_group->source()->name);
+    group.AddProperty("description", "Dart heap capacity");
+    group.AddProperty64("size", capacity);
+    JSONArray group_children(&group, "children");
+
+    {
+      JSONObject jsused(&group_children);
+      jsused.AddProperty("name", "Used");
+      jsused.AddProperty("description", "");
+      jsused.AddProperty64("size", used);
+      JSONArray(&jsused, "children");
+    }
+
+    {
+      JSONObject jsfree(&group_children);
+      jsfree.AddProperty("name", "Free");
+      jsfree.AddProperty("description", "");
+      jsfree.AddProperty64("size", free);
+      JSONArray(&jsfree, "children");
+    }
+  });
+
+  return true;
+}
+
 void Service::SendInspectEvent(Isolate* isolate, const Object& inspectee) {
   if (!Service::debug_stream.enabled()) {
     return;
@@ -4653,7 +4737,7 @@ static const MethodParameter* set_vm_name_params[] = {
 static bool SetVMName(Thread* thread, JSONStream* js) {
   const char* name_param = js->LookupParam("name");
   free(vm_name);
-  vm_name = strdup(name_param);
+  vm_name = Utils::StrDup(name_param);
   if (Service::vm_stream.enabled()) {
     ServiceEvent event(NULL, ServiceEvent::kVMUpdate);
     Service::HandleEvent(&event);
@@ -4842,6 +4926,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
       get_persistent_handles_params, },
   { "_getPorts", GetPorts,
     get_ports_params },
+  { "getProcessMemoryUsage", GetProcessMemoryUsage,
+    get_process_memory_usage_params },
   { "_getReachableSize", GetReachableSize,
     get_reachable_size_params },
   { "_getRetainedSize", GetRetainedSize,

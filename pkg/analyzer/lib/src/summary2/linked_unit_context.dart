@@ -446,12 +446,8 @@ class LinkedUnitContext {
     }
   }
 
-  int getLanguageVersionMajor(CompilationUnit node) {
-    return LazyCompilationUnit.getLanguageVersionMajor(node);
-  }
-
-  int getLanguageVersionMinor(CompilationUnit node) {
-    return LazyCompilationUnit.getLanguageVersionMinor(node);
+  LibraryLanguageVersion getLanguageVersion(CompilationUnit node) {
+    return LazyCompilationUnit.getLanguageVersion(node);
   }
 
   Comment getLibraryDocumentationComment(CompilationUnit unit) {

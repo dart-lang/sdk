@@ -14,15 +14,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:math' show max;
 
 import 'package:path/path.dart' as p;
 import 'package:args/command_runner.dart';
 
-import 'package:vm_snapshot_analysis/instruction_sizes.dart'
-    as instruction_sizes;
-import 'package:vm_snapshot_analysis/program_info.dart';
-import 'package:vm_snapshot_analysis/v8_profile.dart' as v8_profile;
+import 'package:vm_snapshot_analysis/treemap.dart';
 import 'package:vm_snapshot_analysis/utils.dart';
 
 class TreemapCommand extends Command<void> {
@@ -48,9 +44,14 @@ viewed in a browser:
 
   TreemapCommand() {
     // [argParser] is automatically created by the parent class.
-    argParser.addFlag('force',
-        abbr: 'f',
-        help: 'Force overwrite output directory even if it already exists');
+    argParser
+      ..addFlag('force',
+          abbr: 'f',
+          help: 'Force overwrite output directory even if it already exists')
+      ..addOption('format',
+          help: 'Specifies granularity of the treemap output',
+          allowed: _formatFromString.keys,
+          defaultsTo: _formatFromString.keys.first);
   }
 
   @override
@@ -71,26 +72,25 @@ viewed in a browser:
           'Output directory ${outputDir.path} already exists, specify --force to ignore.');
     }
 
-    await generateTreeMap(input, outputDir);
+    await generateTreeMap(input, outputDir,
+        format: _formatFromString[argResults['format']]);
   }
+
+  // Note: the first key in this map is the default format.
+  static const _formatFromString = {
+    'object-type': TreemapFormat.objectType,
+    'data-and-code': TreemapFormat.dataAndCode,
+    'collapsed': TreemapFormat.collapsed,
+    'simplified': TreemapFormat.simplified,
+  };
 }
 
-Future<void> generateTreeMap(File input, Directory outputDir) async {
+Future<void> generateTreeMap(File input, Directory outputDir,
+    {TreemapFormat format = TreemapFormat.objectType}) async {
   // Load symbols data produced by the AOT compiler and convert it to
   // a tree.
   final inputJson = await loadJson(input);
-
-  final root = {'n': '', 'children': {}, 'k': kindPath, 'maxDepth': 0};
-
-  if (v8_profile.Snapshot.isV8HeapSnapshot(inputJson)) {
-    treemapFromSnapshot(root, v8_profile.Snapshot.fromJson(inputJson));
-  } else {
-    final symbols = instruction_sizes.fromJson(inputJson);
-    for (var symbol in symbols) {
-      addSymbol(root, treePath(symbol), symbol.name.scrubbed, symbol.size);
-    }
-  }
-  final tree = flatten(root);
+  final tree = treemapFromJson(inputJson, format: format);
 
   // Create output directory and copy all auxiliary files from binary_size tool.
   await outputDir.create(recursive: true);
@@ -120,108 +120,6 @@ Future<void> generateTreeMap(File input, Directory outputDir) async {
 
   // Done.
   print('Generated ${p.toUri(p.absolute(outputDir.path, 'index.html'))}');
-}
-
-void treemapFromSnapshot(Map<String, dynamic> root, v8_profile.Snapshot snap) {
-  final info = v8_profile.toProgramInfo(snap);
-
-  final ownerPathCache = List<String>(info.snapshotInfo.infoNodes.length);
-  ownerPathCache[info.root.id] = info.root.name;
-
-  String nameOf(v8_profile.Node node) {
-    switch (node.type) {
-      case 'Library':
-      case 'Class':
-      case 'Function':
-        return node.name;
-
-      default:
-        return '${node.type}';
-    }
-  }
-
-  String ownerPath(ProgramInfoNode n) {
-    return ownerPathCache[n.id] ??=
-        ((n.parent != info.root) ? '${ownerPath(n.parent)}/${n.name}' : n.name);
-  }
-
-  for (var node in snap.nodes) {
-    if (node.selfSize > 0) {
-      final owner = info.snapshotInfo.ownerOf(node);
-      final path = ownerPath(owner);
-      final name = nameOf(node);
-      addSymbol(root, path, name, node.selfSize,
-          symbolType: node.type == '(RO) Instructions'
-              ? symbolTypeGlobalText
-              : symbolTypeGlobalInitializedData);
-    }
-  }
-}
-
-/// Returns a /-separated path to the given symbol within the treemap.
-String treePath(instruction_sizes.SymbolInfo symbol) {
-  if (symbol.name.isStub) {
-    if (symbol.name.isAllocationStub) {
-      return '@stubs/allocation-stubs/${symbol.libraryUri}/${symbol.className}';
-    } else {
-      return '@stubs';
-    }
-  } else {
-    return '${symbol.libraryUri}/${symbol.className}';
-  }
-}
-
-const kindSymbol = 's';
-const kindPath = 'p';
-const kindBucket = 'b';
-const symbolTypeGlobalText = 'T';
-const symbolTypeGlobalInitializedData = 'D';
-
-/// Create a child with the given name within the given node or return
-/// an existing child.
-Map<String, dynamic> addChild(
-    Map<String, dynamic> node, String kind, String name) {
-  return node['children'].putIfAbsent(name, () {
-    final n = <String, dynamic>{'n': name, 'k': kind};
-    if (kind != kindSymbol) {
-      n['children'] = {};
-    }
-    return n;
-  });
-}
-
-/// Add the given symbol to the tree.
-void addSymbol(Map<String, dynamic> root, String path, String name, int size,
-    {String symbolType = symbolTypeGlobalText}) {
-  var node = root;
-  var depth = 0;
-  for (var part in path.split('/')) {
-    node = addChild(node, kindPath, part);
-    depth++;
-  }
-  node['lastPathElement'] = true;
-  node = addChild(node, kindBucket, symbolType);
-  node['t'] = symbolType;
-  node = addChild(node, kindSymbol, name);
-  node['t'] = symbolType;
-  node['value'] = (node['value'] ?? 0) + size;
-  depth += 2;
-  root['maxDepth'] = max<int>(root['maxDepth'], depth);
-}
-
-/// Convert all children entries from maps to lists.
-Map<String, dynamic> flatten(Map<String, dynamic> node) {
-  dynamic children = node['children'];
-  if (children != null) {
-    children = children.values.map((dynamic v) => flatten(v)).toList();
-    node['children'] = children;
-    if (children.length == 1 && children.first['k'] == 'p') {
-      final singleChild = children.first;
-      singleChild['n'] = '${node['n']}/${singleChild['n']}';
-      return singleChild;
-    }
-  }
-  return node;
 }
 
 /// Copy file with the given name from [fromDir] to [toDir].

@@ -94,7 +94,7 @@ static void PrintUsage() {
 
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \
-    *error = strdup(Dart_GetError(result));                                    \
+    *error = Utils::StrDup(Dart_GetError(result));                             \
     Dart_ExitScope();                                                          \
     Dart_ShutdownIsolate();                                                    \
     return nullptr;                                                            \
@@ -150,7 +150,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
                              /*write_service_info_filename*/ "",
                              /*trace_loading=*/false, /*deterministic=*/true,
                              /*enable_service_port_fallback=*/false)) {
-    *error = strdup(bin::VmService::GetErrorMessage());
+    *error = Utils::StrDup(bin::VmService::GetErrorMessage());
     return nullptr;
   }
   result = Dart_SetEnvironmentCallback(bin::DartUtils::EnvironmentCallback);
@@ -176,8 +176,8 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
   const bool is_kernel_isolate =
       strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0;
   if (!is_kernel_isolate) {
-    *error =
-        strdup("Spawning of only Kernel isolate is supported in run_vm_tests.");
+    *error = Utils::StrDup(
+        "Spawning of only Kernel isolate is supported in run_vm_tests.");
     return nullptr;
   }
   Dart_Isolate isolate = nullptr;
@@ -337,7 +337,7 @@ static int Main(int argc, const char** argv) {
       PrintUsage();
       return 1;
     }
-    kernel_snapshot = strdup(delim + 1);
+    kernel_snapshot = Utils::StrDup(delim + 1);
     start_kernel_isolate = true;
     ShiftArgs(&argc, argv);
   }

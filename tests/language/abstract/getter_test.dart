@@ -7,16 +7,21 @@ import "package:expect/expect.dart";
 // Test to ensure that an abstract getter is not mistaken for a field.
 
 class Foo {
+//    ^
+// [cfe] The non-abstract class 'Foo' is missing implementations for these members:
+
   // Intentionally abstract:
-  get i; //# 01: compile-time error
+  get i;
+//^^^^^^
+// [analyzer] STATIC_WARNING.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
 }
 
 class Bar {}
 
 checkIt(f) {
-  Expect.throwsNoSuchMethodError(() => f.i = 'hi'); // //# 01: continued
-  Expect.throwsNoSuchMethodError(() => print(f.i)); // //# 01: continued
-  Expect.throwsNoSuchMethodError(() => print(f.i())); // //# 01: continued
+  Expect.throwsNoSuchMethodError(() => f.i = 'hi');
+  Expect.throwsNoSuchMethodError(() => print(f.i));
+  Expect.throwsNoSuchMethodError(() => print(f.i()));
 }
 
 main() {

@@ -19,8 +19,7 @@ class Class1 {
 }
 
 class Class2 {
-  /*spec:nnbd-off|spec:nnbd-sdk.member: Class2.field2:constant=BoolConstant(true)*/
-  /*prod:nnbd-off|prod:nnbd-sdk.strong.member: Class2.field2:constant=BoolConstant(true)*/
+  /*spec.member: Class2.field2:constant=BoolConstant(true)*/
   final bool field2;
 
   const Class2({this.field2: false});

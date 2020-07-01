@@ -347,18 +347,6 @@ void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
 
 // Input parameters:
 //   ESP : points to return address.
-//   EAX : stop message (const char*).
-// Must preserve all registers, except EAX.
-void StubCodeCompiler::GeneratePrintStopMessageStub(Assembler* assembler) {
-  __ EnterCallRuntimeFrame(1 * target::kWordSize);
-  __ movl(Address(ESP, 0), EAX);
-  __ CallRuntime(kPrintStopMessageRuntimeEntry, 1);
-  __ LeaveCallRuntimeFrame();
-  __ ret();
-}
-
-// Input parameters:
-//   ESP : points to return address.
 //   ESP + 4 : address of return value.
 //   EAX : address of first argument in argument array.
 //   ECX : address of the native function to call.

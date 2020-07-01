@@ -10,6 +10,7 @@
 part of 'experimental_flags.dart';
 
 enum ExperimentalFlag {
+  alternativeInvalidationStrategy,
   constantUpdate2018,
   controlFlowCollections,
   extensionMethods,
@@ -21,6 +22,8 @@ enum ExperimentalFlag {
   variance,
 }
 
+const Version enableAlternativeInvalidationStrategyVersion =
+    const Version(2, 9);
 const Version enableConstantUpdate2018Version = const Version(2, 4);
 const Version enableControlFlowCollectionsVersion = const Version(2, 2);
 const Version enableExtensionMethodsVersion = const Version(2, 6);
@@ -33,6 +36,8 @@ const Version enableVarianceVersion = const Version(2, 9);
 
 ExperimentalFlag parseExperimentalFlag(String flag) {
   switch (flag) {
+    case "alternative-invalidation-strategy":
+      return ExperimentalFlag.alternativeInvalidationStrategy;
     case "constant-update-2018":
       return ExperimentalFlag.constantUpdate2018;
     case "control-flow-collections":
@@ -56,6 +61,7 @@ ExperimentalFlag parseExperimentalFlag(String flag) {
 }
 
 const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
+  ExperimentalFlag.alternativeInvalidationStrategy: false,
   ExperimentalFlag.constantUpdate2018: true,
   ExperimentalFlag.controlFlowCollections: true,
   ExperimentalFlag.extensionMethods: true,
@@ -68,6 +74,7 @@ const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
 };
 
 const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
+  ExperimentalFlag.alternativeInvalidationStrategy: false,
   ExperimentalFlag.constantUpdate2018: true,
   ExperimentalFlag.controlFlowCollections: true,
   ExperimentalFlag.extensionMethods: false,

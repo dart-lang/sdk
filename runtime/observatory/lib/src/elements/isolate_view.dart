@@ -12,7 +12,7 @@ import 'package:observatory/src/elements/eval_box.dart';
 import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/isolate/location.dart';
 import 'package:observatory/src/elements/isolate/run_state.dart';
@@ -31,26 +31,6 @@ import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/utils.dart';
 
 class IsolateViewElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<IsolateViewElement>('isolate-view', dependencies: const [
-    CurlyBlockElement.tag,
-    EvalBoxElement.tag,
-    FunctionRefElement.tag,
-    IsolateLocationElement.tag,
-    IsolateRunStateElement.tag,
-    IsolateSharedSummaryElement.tag,
-    LibraryRefElement.tag,
-    NavClassMenuElement.tag,
-    NavTopMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavRefreshElement.tag,
-    NavReloadElement.tag,
-    NavNotifyElement.tag,
-    ScriptInsetElement.tag,
-    SourceInsetElement.tag,
-    ViewFooterElement.tag
-  ]);
-
   RenderingScheduler<IsolateViewElement> _r;
 
   Stream<RenderedEvent<IsolateViewElement>> get onRendered => _r.onRendered;
@@ -110,7 +90,7 @@ class IsolateViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  IsolateViewElement.created() : super.created(tag);
+  IsolateViewElement.created() : super.created('isolate-view');
 
   @override
   attached() {

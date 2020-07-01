@@ -59,23 +59,7 @@ main() {
 }
 ''';
 
-  Map<String, Impact> expectedImpactMapNnbdOff = <String, Impact>{
-    'method1': const Impact(),
-    'method2': new Impact(implicitCasts: ['int']),
-    'method3': new Impact(parameterChecks: ['int']),
-    'method4': new Impact(asCasts: ['int']),
-    'method5': const Impact(),
-    'method6': const Impact(),
-    'method7': const Impact(),
-    'method8': const Impact(),
-    'method9': new Impact(implicitCasts: ['int']),
-    'method10': const Impact(),
-    'method11': const Impact(),
-    'method12': const Impact(),
-    'method13': new Impact(implicitCasts: ['int'], parameterChecks: ['String']),
-  };
-
-  Map<String, Impact> expectedImpactMapNnbdOn = <String, Impact>{
+  Map<String, Impact> expectedImpactMap = <String, Impact>{
     'method1': const Impact(),
     'method2': new Impact(implicitCasts: ['int*']),
     'method3': new Impact(parameterChecks: ['int*']),
@@ -92,8 +76,6 @@ main() {
         new Impact(implicitCasts: ['int*'], parameterChecks: ['String*']),
   };
 
-  Map<String, Impact> expectedImpactMap =
-      isDart2jsNnbd ? expectedImpactMapNnbdOn : expectedImpactMapNnbdOff;
   retainDataForTesting = true;
   CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': source},
