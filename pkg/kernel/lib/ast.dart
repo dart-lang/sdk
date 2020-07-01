@@ -6960,6 +6960,13 @@ class VariableDeclaration extends Statement {
   }
 
   @override
+  String toStringInternal() {
+    AstPrinter printer = new AstPrinter(defaultAstTextStrategy);
+    printer.writeVariableDeclaration(this, includeInitializer: false);
+    return printer.getText();
+  }
+
+  @override
   void toTextInternal(AstPrinter printer) {
     printer.writeVariableDeclaration(this);
     printer.write(';');

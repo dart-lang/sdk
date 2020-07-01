@@ -363,7 +363,10 @@ class AstPrinter {
   /// If [isLate] and [type] are provided, these values are used instead of
   /// the corresponding properties on [node].
   void writeVariableDeclaration(VariableDeclaration node,
-      {bool includeModifiersAndType: true, bool isLate, DartType type}) {
+      {bool includeModifiersAndType: true,
+      bool isLate,
+      DartType type,
+      bool includeInitializer: true}) {
     if (includeModifiersAndType) {
       if (node.isRequired) {
         _sb.write('required ');
@@ -381,7 +384,7 @@ class AstPrinter {
       _sb.write(' ');
     }
     _sb.write(getVariableName(node));
-    if (node.initializer != null && !node.isRequired) {
+    if (includeInitializer && node.initializer != null && !node.isRequired) {
       _sb.write(' = ');
       writeExpression(node.initializer);
     }

@@ -633,7 +633,16 @@ void _testPropertySetImpl() {}
 
 void _testExtensionTearOff() {}
 
-void _testEqualsExpression() {}
+void _testEqualsExpression() {
+  testExpression(
+      new EqualsExpression(new IntLiteral(0), new IntLiteral(1), isNot: false),
+      '''
+0 == 1''');
+  testExpression(
+      new EqualsExpression(new IntLiteral(0), new IntLiteral(1), isNot: true),
+      '''
+0 != 1''');
+}
 
 void _testBinaryExpression() {}
 

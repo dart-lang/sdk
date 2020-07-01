@@ -5480,9 +5480,7 @@ class InferenceVisitor
       inferredType = inferrer.inferDeclarationType(
           initializerResult.inferredType,
           forSyntheticVariable: node.name == null);
-      inferrer.flowAnalysis.declare(node, true);
     } else {
-      inferrer.flowAnalysis.declare(node, false);
       inferredType = const DynamicType();
     }
     if (node.isImplicitlyTyped) {
@@ -5499,6 +5497,7 @@ class InferenceVisitor
           fileOffset: node.fileOffset, isVoidAllowed: node.type is VoidType);
       node.initializer = initializer..parent = node;
     }
+    inferrer.flowAnalysis.declare(node, node.initializer != null);
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.library;
       if (node.isImplicitlyTyped) {

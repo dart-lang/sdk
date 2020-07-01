@@ -3500,6 +3500,17 @@ class EqualsExpression extends InternalExpression {
   String toString() {
     return "EqualsExpression(${toStringInternal()})";
   }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(left, minimumPrecedence: Precedence.EQUALITY);
+    if (isNot) {
+      printer.write(' != ');
+    } else {
+      printer.write(' == ');
+    }
+    printer.writeExpression(right, minimumPrecedence: Precedence.EQUALITY + 1);
+  }
 }
 
 /// Internal expression for a binary expression.

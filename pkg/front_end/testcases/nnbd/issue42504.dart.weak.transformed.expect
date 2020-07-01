@@ -1,0 +1,38 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class ImageStreamCompleter extends core::Object {
+  synthetic constructor •() → self::ImageStreamCompleter
+    : super core::Object::•()
+    ;
+  abstract method addListener() → void;
+}
+class _LiveImage extends core::Object {
+  static factory •(self::ImageStreamCompleter a) → self::_LiveImage
+    return throw new core::UnimplementedError::•();
+}
+abstract class Foo extends core::Object {
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+  abstract get _pendingImages() → dynamic;
+  method putIfAbsent(core::Object key, () → self::ImageStreamCompleter loader) → self::ImageStreamCompleter? {
+    assert(!key.{core::Object::==}(null));
+    assert(!loader.{core::Object::==}(null));
+    self::ImageStreamCompleter? result = (let final dynamic #t1 = this.{self::Foo::_pendingImages}.[](key) in #t1.{core::Object::==}(null) ?{dynamic} null : #t1.completer) as{TypeError,ForDynamic,ForNonNullableByDefault} self::ImageStreamCompleter?;
+    if(!result.{core::Object::==}(null)) {
+      return result{self::ImageStreamCompleter};
+    }
+    try {
+      result = loader.call();
+      self::_LiveImage::•(result{self::ImageStreamCompleter});
+    }
+    on core::Object catch(final core::Object error) {
+      return null;
+    }
+    result{self::ImageStreamCompleter}.{self::ImageStreamCompleter::addListener}();
+    return result{self::ImageStreamCompleter};
+  }
+}
+static method main() → dynamic {}
