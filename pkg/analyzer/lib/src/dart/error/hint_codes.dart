@@ -416,7 +416,8 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode EQUAL_ELEMENTS_IN_SET = HintCode(
       'EQUAL_ELEMENTS_IN_SET',
       "Two elements in a set literal shouldn't be equal.",
-      correction: "Change or remove the duplicate element.");
+      correction: "Change or remove the duplicate element.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -462,7 +463,8 @@ class HintCode extends AnalyzerErrorCode {
   // values are returned by an iterator.
   static const HintCode EQUAL_KEYS_IN_MAP = HintCode(
       'EQUAL_KEYS_IN_MAP', "Two keys in a map literal shouldn't be equal.",
-      correction: "Change or remove the duplicate key.");
+      correction: "Change or remove the duplicate key.",
+      hasPublishedDocs: true);
 
   /**
    * It is a bad practice for a source file in a package "lib" directory
@@ -1435,7 +1437,8 @@ class HintCode extends AnalyzerErrorCode {
       'NULLABLE_TYPE_IN_CATCH_CLAUSE',
       "A potentially nullable type can't be used in an 'on' clause because it "
           "isn't valid to throw a nullable expression.",
-      correction: "Try using a non-nullable type.");
+      correction: "Try using a non-nullable type.",
+      hasPublishedDocs: true);
 
   /**
    * Hint for classes that override equals, but not hashCode.
@@ -2421,7 +2424,8 @@ class HintCode extends AnalyzerErrorCode {
           'UNNECESSARY_NULL_COMPARISON_FALSE',
           "The operand can't be null, so the condition is always false.",
           correction: "Try removing the condition, an enclosing condition, "
-              "or the whole conditional statement.");
+              "or the whole conditional statement.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -2431,7 +2435,8 @@ class HintCode extends AnalyzerErrorCode {
           'UNNECESSARY_NULL_COMPARISON',
           'UNNECESSARY_NULL_COMPARISON_TRUE',
           "The operand can't be null, so the condition is always true.",
-          correction: "Remove the condition.");
+          correction: "Remove the condition.",
+          hasPublishedDocs: true);
 
   /**
    * Unnecessary type checks, the result is always false.

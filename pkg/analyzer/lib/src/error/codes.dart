@@ -93,7 +93,8 @@ class CheckedModeCompileTimeErrorCode extends AnalyzerErrorCode {
       CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH = CheckedModeCompileTimeErrorCode(
           'CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
           "A value of type '{0}' can't be assigned to a parameter of type "
-              "'{1}'.");
+              "'{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * 7.6.1 Generative Constructors: In checked mode, it is a dynamic type error
@@ -613,7 +614,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The body might complete normally, causing 'null' to be returned, "
               "but the return type is a potentially non-nullable type.",
           correction:
-              "Try adding either a return or a throw statement at the end.");
+              "Try adding either a return or a throw statement at the end.",
+          hasPublishedDocs: true);
 
   static const CompileTimeErrorCode BREAK_LABEL_ON_SWITCH_MEMBER =
       CompileTimeErrorCode('BREAK_LABEL_ON_SWITCH_MEMBER',
@@ -802,7 +804,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE',
           "The switch case expression type '{0}' must be a subtype of the "
-              "switch expression type '{1}'.");
+              "switch expression type '{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
@@ -1624,7 +1627,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The default 'List' constructor isn't available when null safety is "
               "enabled.",
           correction: "Try using a list literal, 'List.filled' or "
-              "'List.generate'.");
+              "'List.generate'.",
+          hasPublishedDocs: true);
 
   /**
    * 6.2.1 Required Formals: By means of a function signature that names the
@@ -1739,7 +1743,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The late local variable '{0}' is definitely unassigned at this "
               "point.",
           correction:
-              "Ensure that it is assigned on necessary execution paths.");
+              "Ensure that it is assigned on necessary execution paths.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -1820,7 +1825,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'DUPLICATE_CONSTRUCTOR',
           'DUPLICATE_CONSTRUCTOR_DEFAULT',
           "The default constructor is already defined.",
-          correction: "Try giving one of the constructors a name.");
+          correction: "Try giving one of the constructors a name.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -1831,7 +1837,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'DUPLICATE_CONSTRUCTOR',
           'DUPLICATE_CONSTRUCTOR_NAME',
           "The constructor with name '{0}' is already defined.",
-          correction: "Try renaming one of the constructors.");
+          correction: "Try renaming one of the constructors.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -2084,7 +2091,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       'EXPORT_LEGACY_SYMBOL',
       "The symbol '{0}' is defined in a legacy library, and can't be "
           "re-exported from a non-nullable by default library.",
-      correction: "Try removing the export or migrating the legacy library.");
+      correction: "Try removing the export or migrating the legacy library.",
+      hasPublishedDocs: true);
 
   /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at
@@ -2919,7 +2927,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // Remove the import directive.
   static const CompileTimeErrorCode IMPORT_INTERNAL_LIBRARY =
       CompileTimeErrorCode('IMPORT_INTERNAL_LIBRARY',
-          "The library '{0}' is internal and can't be imported.");
+          "The library '{0}' is internal and can't be imported.",
+          hasPublishedDocs: true);
 
   /**
    * 14.1 Imports: It is a compile-time error if the specified URI of an
@@ -2999,7 +3008,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Superinterfaces don't have a valid override for '{0}': {1}.",
           correction:
               "Try adding an explicit override that is consistent with all "
-              "of the inherited members.");
+              "of the inherited members.",
+          hasPublishedDocs: true);
 
   /**
    * 11.1.1 Inheritance and Overriding. Let `I` be the implicit interface of a
@@ -3965,7 +3975,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The parameter '{0}' can't have a value of 'null' because of its "
               "type, and no non-null default value is provided.",
           correction:
-              "Try adding either a default value or the 'required' modifier.");
+              "Try adding either a default value or the 'required' modifier.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -4005,7 +4016,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'MISSING_REQUIRED_ARGUMENT',
           "The named parameter '{0}' is required, but there's no corresponding "
               "argument.",
-          correction: "Try adding the required argument.");
+          correction: "Try adding the required argument.",
+          hasPublishedDocs: true);
 
   /**
    * It's a compile-time error to apply a mixin containing super-invocations to
@@ -4740,7 +4752,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // remove the annotation or use a different class for the annotation.
   static const CompileTimeErrorCode NON_CONSTANT_ANNOTATION_CONSTRUCTOR =
       CompileTimeErrorCode('NON_CONSTANT_ANNOTATION_CONSTRUCTOR',
-          "Annotation creation can only call a const constructor.");
+          "Annotation creation can only call a const constructor.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -4941,7 +4954,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The non-nullable local variable '{0}' must be assigned before it "
               "can be used.",
           correction: "Try giving it an initializer expression, or ensure that "
-              "it's assigned on every execution path.");
+              "it's assigned on every execution path.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -5069,7 +5083,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Non-nullable instance field '{0}' must be initialized.",
           correction: "Try adding an initializer expression, "
               "or a generative constructor that initializes it, "
-              "or mark it 'late'.");
+              "or mark it 'late'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -5083,7 +5098,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Non-nullable instance field '{0}' must be initialized.",
           correction: "Try adding an initializer expression, "
               "or add a field initializer in this constructor, "
-              "or mark it 'late'.");
+              "or mark it 'late'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -5149,7 +5165,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NOT_INITIALIZED_NON_NULLABLE_VARIABLE =
       CompileTimeErrorCode('NOT_INITIALIZED_NON_NULLABLE_VARIABLE',
           "The non-nullable variable '{0}' must be initialized.",
-          correction: "Try adding an initializer expression.");
+          correction: "Try adding an initializer expression.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -5262,7 +5279,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NULLABLE_TYPE_IN_EXTENDS_CLAUSE =
       CompileTimeErrorCode('NULLABLE_TYPE_IN_EXTENDS_CLAUSE',
           "A class can't extend a nullable type.",
-          correction: "Try removing the question mark.");
+          correction: "Try removing the question mark.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -5303,7 +5321,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE =
       CompileTimeErrorCode('NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE',
           "A class or mixin can't implement a nullable type.",
-          correction: "Try removing the question mark.");
+          correction: "Try removing the question mark.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -5345,7 +5364,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NULLABLE_TYPE_IN_ON_CLAUSE =
       CompileTimeErrorCode('NULLABLE_TYPE_IN_ON_CLAUSE',
           "A mixin can't have a nullable type as a superclass constraint.",
-          correction: "Try removing the question mark.");
+          correction: "Try removing the question mark.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -5385,7 +5405,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NULLABLE_TYPE_IN_WITH_CLAUSE =
       CompileTimeErrorCode('NULLABLE_TYPE_IN_WITH_CLAUSE',
           "A class or mixin can't mix in a nullable type.",
-          correction: "Try removing the question mark.");
+          correction: "Try removing the question mark.",
+          hasPublishedDocs: true);
 
   /**
    * 7.9 Superclasses: It is a compile-time error to specify an extends clause
@@ -5539,7 +5560,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "by '.'.",
           correction:
               "Try correcting the name to refer to something other than a "
-              "prefix, or renaming the prefix.");
+              "prefix, or renaming the prefix.",
+          hasPublishedDocs: true);
 
   /**
    * It is an error for a mixin to add a private name that conflicts with a
@@ -5890,7 +5912,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('RETURN_IN_GENERATIVE_CONSTRUCTOR',
           "Constructors can't return values.",
           correction: "Try removing the return statement or using a factory "
-              "constructor.");
+              "constructor.",
+          hasPublishedDocs: true);
 
   /**
    * 13.12 Return: It is a compile-time error if a return statement of the form
@@ -6053,7 +6076,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode THROW_OF_INVALID_TYPE = CompileTimeErrorCode(
       'THROW_OF_INVALID_TYPE',
-      "The type '{0}' of the thrown expression must be assignable to 'Object'.");
+      "The type '{0}' of the thrown expression must be assignable to 'Object'.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -7145,7 +7169,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
           "Functions marked 'async' must have a return type assignable to "
               "'Future'.",
           correction: "Try fixing the return type of the function, or "
-              "removing the modifier 'async' from the function body.");
+              "removing the modifier 'async' from the function body.",
+          hasPublishedDocs: true);
 
   /**
    * 9 Functions: It is a static warning if the declared return type of a
@@ -7692,7 +7717,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
           "There's no constant named '{0}' in '{1}'.",
           correction:
               "Try correcting the name to the name of an existing constant, or "
-              "defining a constant named '{0}'.");
+              "defining a constant named '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -8817,7 +8843,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
       'DEAD_NULL_AWARE_EXPRESSION',
       "The left operand can't be null, so the right operand is never executed.",
       correction: "Try removing the operator and the right operand.",
-      errorSeverity: ErrorSeverity.WARNING);
+      errorSeverity: ErrorSeverity.WARNING,
+      hasPublishedDocs: true);
 
   /**
    * 14.2 Exports: It is a static warning to export two different libraries with
@@ -8894,7 +8921,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
           'FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION',
           "Fields can't be initialized in the constructor if they are final "
               "and were already initialized at their declaration.",
-          correction: "Try removing one of the initializations.");
+          correction: "Try removing one of the initializations.",
+          hasPublishedDocs: true);
 
   /**
    * 5. Variables: It is a static warning if a final instance variable that has
@@ -8962,7 +8990,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
       StaticWarningCode(
           'FIELD_INITIALIZER_NOT_ASSIGNABLE',
           "The initializer type '{0}' can't be assigned to the field type "
-              "'{1}'.");
+              "'{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * 7.6.1 Generative Constructors: An initializing formal has the form
@@ -9294,7 +9323,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
           "The target expression can't be null, so the null-aware operator "
               "'{0}' can't be used.",
           correction: "Try replace the operator '{0}' with '{1}'.",
-          errorSeverity: ErrorSeverity.WARNING);
+          errorSeverity: ErrorSeverity.WARNING,
+          hasPublishedDocs: true);
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method
@@ -9361,7 +9391,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   static const StaticWarningCode INVALID_USE_OF_NULL_VALUE = StaticWarningCode(
       'INVALID_USE_OF_NULL_VALUE',
       "An expression whose value is always 'null' can't be dereferenced.",
-      correction: "Try changing the type of the expression.");
+      correction: "Try changing the type of the expression.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -9929,7 +9960,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
       'PART_OF_DIFFERENT_LIBRARY',
       "Expected this library to be part of '{0}', not '{1}'.",
       correction: "Try including a different part, or changing the name of "
-          "the library in the part's part-of directive.");
+          "the library in the part's part-of directive.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -10233,7 +10265,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
       StaticWarningCode(
           'SWITCH_EXPRESSION_NOT_ASSIGNABLE',
           "Type '{0}' of the switch expression isn't assignable to "
-              "the type '{1}' of case expressions.");
+              "the type '{1}' of case expressions.",
+          hasPublishedDocs: true);
 
   /**
    * 15.1 Static Types: It is a static warning to use a deferred type in a type
@@ -10399,7 +10432,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
       "Undefined name 'await' in function body not marked with 'async'.",
       correction: "Try correcting the name to one that is defined, "
           "defining the name, or "
-          "adding 'async' to the enclosing function body.");
+          "adding 'async' to the enclosing function body.",
+      hasPublishedDocs: true);
 
   @Deprecated('Use CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER')
   static const CompileTimeErrorCode UNDEFINED_NAMED_PARAMETER =
@@ -10474,7 +10508,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
               "it can be dereferenced.",
           correction:
               "Try checking that the value isn't 'null' before dereferencing "
-              "it.");
+              "it.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -10511,7 +10546,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
           "The '!' will have no effect because the target expression can't be"
               " null.",
           correction: "Try removing the '!' operator.",
-          errorSeverity: ErrorSeverity.WARNING);
+          errorSeverity: ErrorSeverity.WARNING,
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
