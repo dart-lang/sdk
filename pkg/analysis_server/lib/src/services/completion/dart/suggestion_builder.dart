@@ -673,7 +673,7 @@ class SuggestionBuilder {
       relevance = toRelevance(
           weightedAverage(
               [contextType, elementKind, isConstant, localVariableDistance],
-              [1.0, 1.0, 1.0, 0.25]),
+              [1.0, 1.0, 1.0, 1.0]),
           800);
       listener?.computedFeatures(contextType: contextType);
     } else {

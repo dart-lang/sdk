@@ -84,10 +84,10 @@ double weightedAverage(List<double> values, List<double> weights) {
   var totalWeight = 0.0;
   for (var i = 0; i < values.length; i++) {
     var value = values[i];
+    var weight = weights[i];
+    totalWeight += weight;
     if (value >= 0.0) {
-      var weight = weights[i];
       totalValue += value * weight;
-      totalWeight += weight;
     }
   }
   if (totalWeight == 0.0) {
@@ -382,7 +382,7 @@ class FeatureComputer {
     if (distance < 0) {
       return -1.0;
     }
-    return math.pow(0.95, distance);
+    return math.pow(0.98, distance);
   }
 
   /// Return the inheritance distance between the [subclass] and the
