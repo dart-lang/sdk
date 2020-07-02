@@ -28,14 +28,14 @@ main() async {
 
     test('directoryDoesntExist', () async {
       try {
-        await fs.root!.getDirectory('directory2');
+        await fs.root.getDirectory('directory2');
       } on DomException catch (error) {
         expect(DomException.NOT_FOUND, error.name);
       }
     });
 
     test('directoryCreate', () async {
-      var entry = await fs.root!.createDirectory('directory3');
+      var entry = await fs.root.createDirectory('directory3');
       expect(entry.name, equals('directory3'));
     });
   }

@@ -35,7 +35,7 @@ class MockHtmlDocument extends Mock
 class MockWindow extends Mock with _EventListeners implements Window {
   Stream<Event> get onBeforeUnload => new Stream.fromIterable([]);
 
-  String? name = "MOCK_NAME";
+  String name = "MOCK_NAME";
 }
 
 @proxy

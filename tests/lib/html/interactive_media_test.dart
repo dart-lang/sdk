@@ -17,7 +17,7 @@ testUserMediaAudio(Future userMediaFuture) async {
     var mediaStream = await userMediaFuture;
     expect(mediaStream, isNotNull);
     expect(mediaStream is MediaStream, true);
-    var devices = window.navigator.mediaDevices!;
+    var devices = window.navigator.mediaDevices;
     var enumDevices = await devices.enumerateDevices();
     expect(enumDevices.length > 1, true);
     for (var device in enumDevices) {
@@ -65,14 +65,14 @@ main() {
       await testUserMediaAudio(window.navigator
           .getUserMedia(audio: true)); // Deprecated way to get a media stream.
       await testUserMediaAudio(
-          window.navigator.mediaDevices!.getUserMedia({'audio': true}));
+          window.navigator.mediaDevices.getUserMedia({'audio': true}));
     });
 
     test('getUserMedia', () async {
       await testUserMediaVideo(window.navigator
           .getUserMedia(video: true)); // Deprecated way to get a media stream.
       await testUserMediaVideo(
-          window.navigator.mediaDevices!.getUserMedia({'video': true}));
+          window.navigator.mediaDevices.getUserMedia({'video': true}));
     });
 
     test('getUserMediaComplexConstructor', () async {
@@ -86,7 +86,7 @@ main() {
       await testUserMediaVideo(window.navigator.getUserMedia(
           video: videoOptions)); // Deprecated way to get a media stream.
       await testUserMediaVideo(
-          window.navigator.mediaDevices!.getUserMedia({'video': videoOptions}));
+          window.navigator.mediaDevices.getUserMedia({'video': videoOptions}));
     });
   }
 }

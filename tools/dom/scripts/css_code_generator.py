@@ -17,7 +17,6 @@ TEMPLATE_FILE = '../templates/html/impl/impl_CSSStyleDeclaration.darttemplate'
 
 # These are the properties that are supported on all Dart project supported
 # browsers as camelCased names on the CssStyleDeclaration.
-# Note that we do not use the MDN for compatibility info here.
 BROWSER_PATHS = [
     'cssProperties.CSS21.txt',  # Remove when we have samples from all browsers.
     'cssProperties.ie9.txt',

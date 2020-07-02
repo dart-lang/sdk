@@ -24,7 +24,7 @@ $!MEMBERS
 
   HeadElement$NULLABLE get head => _head;
 
-  String$NULLABLE get lastModified => _lastModified;
+  String get lastModified => _lastModified;
 
   String$NULLABLE get preferredStylesheetSet => _preferredStylesheetSet;
 
@@ -35,7 +35,7 @@ $!MEMBERS
     _selectedStylesheetSet = value;
   }
 
-  List<StyleSheet>$NULLABLE get styleSheets => _styleSheets;
+  List<StyleSheet> get styleSheets => _styleSheets;
 
   String get title => _title;
 

@@ -46,7 +46,7 @@ String view(var e) {
 
 main() {
   Set<String> extractClasses(Element el) {
-    final match = new RegExp('class="([^"]+)"').firstMatch(el.outerHtml!)!;
+    final match = new RegExp('class="([^"]+)"').firstMatch(el.outerHtml)!;
     return new LinkedHashSet.from(match[1]!.split(' '));
   }
 

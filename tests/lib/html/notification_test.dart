@@ -34,7 +34,7 @@ main() {
         expect(allSpecified.title, "Deluxe notification");
         expect(allSpecified.dir, "rtl");
         expect(allSpecified.body, "All parameters set");
-        var icon = allSpecified.icon!;
+        var icon = allSpecified.icon;
         var tail = Uri.parse(icon).pathSegments.last;
         expect(tail, "icon.png");
         expect(allSpecified.tag, "tag");

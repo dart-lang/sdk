@@ -31,7 +31,7 @@ main() {
   test('anchor2', () {
     var e = new AnchorElement(href: '#blah');
     expect(e, isAnchorElement);
-    expect(e.href!.endsWith('#blah'), isTrue);
+    expect(e.href.endsWith('#blah'), isTrue);
   });
 
   test('area', () {

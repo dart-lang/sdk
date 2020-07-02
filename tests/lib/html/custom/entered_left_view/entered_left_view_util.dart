@@ -62,7 +62,7 @@ class FooOldCallbacks extends HtmlElement {
 }
 
 var docA = document;
-var docB = document.implementation!.createHtmlDocument('');
+var docB = document.implementation.createHtmlDocument('');
 var nullSanitizer = new NullTreeSanitizer();
 
 setupFunc() {

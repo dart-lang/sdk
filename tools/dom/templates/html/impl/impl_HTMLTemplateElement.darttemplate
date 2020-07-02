@@ -20,10 +20,10 @@ $!MEMBERS
     {NodeValidator$NULLABLE validator,
      NodeTreeSanitizer$NULLABLE treeSanitizer}) {
     text = null;
-    content$NULLASSERT.nodes.clear();
+    content.nodes.clear();
     var fragment = createFragment(html, validator: validator,
         treeSanitizer: treeSanitizer);
 
-    content$NULLASSERT.append(fragment);
+    content.append(fragment);
   }
 }

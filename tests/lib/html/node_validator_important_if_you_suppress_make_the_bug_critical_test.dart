@@ -117,7 +117,7 @@ main() {
       var expectedContent = document.body!.createFragment('<div></div>'
           '<img/>');
 
-      validateNodeTree(template.content!, expectedContent);
+      validateNodeTree(template.content, expectedContent);
     });
 
     test("appendHtml is sanitized", () {

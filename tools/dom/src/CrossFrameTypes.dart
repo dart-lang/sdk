@@ -51,11 +51,8 @@ abstract class WindowBase implements EventTarget {
    *     print(window.closed); // 'false'
    *     window.close();
    *     print(window.closed); // 'true'
-   *
-   * MDN does not have compatibility info on this attribute, and therefore is
-   * marked nullable.
    */
-  bool? get closed;
+  bool get closed;
 
   /**
    * A reference to the window that opened this one.

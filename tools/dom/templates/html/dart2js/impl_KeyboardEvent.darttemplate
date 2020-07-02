@@ -67,6 +67,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 
   int get charCode native;
 
-  int$NULLABLE get which => _which;
+  int get which => _which;
 $!MEMBERS
 }

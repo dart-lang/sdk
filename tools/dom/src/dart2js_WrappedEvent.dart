@@ -15,11 +15,11 @@ class _WrappedEvent implements Event {
 
   _WrappedEvent(this.wrapped);
 
-  bool get bubbles => wrapped.bubbles!;
+  bool get bubbles => wrapped.bubbles;
 
-  bool get cancelable => wrapped.cancelable!;
+  bool get cancelable => wrapped.cancelable;
 
-  bool get composed => wrapped.composed!;
+  bool get composed => wrapped.composed;
 
   EventTarget? get currentTarget => wrapped.currentTarget;
 
@@ -27,7 +27,7 @@ class _WrappedEvent implements Event {
 
   int get eventPhase => wrapped.eventPhase;
 
-  bool get isTrusted => wrapped.isTrusted!;
+  bool get isTrusted => wrapped.isTrusted;
 
   EventTarget? get target => wrapped.target;
 

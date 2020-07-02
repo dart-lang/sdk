@@ -27,11 +27,11 @@ main() {
 
   test('StyleSheetList', () {
     var document = window.document as HtmlDocument;
-    List<StyleSheet> asList = document.styleSheets!;
+    List<StyleSheet> asList = document.styleSheets;
     expect(asList, isStyleSheetList);
     // Check it's Iterable.
     int counter = 0;
-    for (StyleSheet styleSheet in asList) {
+    for (StyleSheet styleSheet in document.styleSheets) {
       counter++;
     }
 

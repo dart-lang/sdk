@@ -28,7 +28,7 @@ main() async {
 
     test('fileDoesntExist', () async {
       try {
-        var fileObj = await fs.root!.getFile('file2');
+        var fileObj = await fs.root.getFile('file2');
         fail("file found");
       } on DomException catch (error) {
         expect(DomException.NOT_FOUND, error.name);
@@ -36,7 +36,7 @@ main() async {
     });
 
     test('fileCreate', () async {
-      var fileObj = await fs.root!.createFile('file4');
+      var fileObj = await fs.root.createFile('file4');
       expect(fileObj.name, equals('file4'));
       expect(fileObj.isFile, isTrue);
 

@@ -11,7 +11,7 @@ main() {
       predicate((x) => x is List<CssRule>, 'is a List<CssRule>');
 
   test("ClientRectList test", () {
-    var sheet = document.styleSheets![0] as CssStyleSheet;
+    var sheet = document.styleSheets[0] as CssStyleSheet;
     List<CssRule> rulesList = sheet.cssRules;
     expect(rulesList, isCssRuleList);
   });

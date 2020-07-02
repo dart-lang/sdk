@@ -47,12 +47,12 @@ abstract class _AttributeMap extends MapBase<String, String> {
 
   Iterable<String> get keys {
     // TODO: generate a lazy collection instead.
-    var attributes = _element._attributes!;
+    var attributes = _element._attributes;
     var keys = <String>[];
     for (int i = 0, len = attributes.length; i < len; i++) {
       _Attr attr = attributes[i] as _Attr;
       if (_matches(attr)) {
-        keys.add(attr.name!);
+        keys.add(attr.name);
       }
     }
     return keys;
@@ -60,12 +60,12 @@ abstract class _AttributeMap extends MapBase<String, String> {
 
   Iterable<String> get values {
     // TODO: generate a lazy collection instead.
-    var attributes = _element._attributes!;
+    var attributes = _element._attributes;
     var values = <String>[];
     for (int i = 0, len = attributes.length; i < len; i++) {
       _Attr attr = attributes[i] as _Attr;
       if (_matches(attr)) {
-        values.add(attr.value!);
+        values.add(attr.value);
       }
     }
     return values;

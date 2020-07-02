@@ -56,10 +56,12 @@ $!MEMBERS
    * * [WheelEvent.deltaY](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaY) from the W3C.
    */
   num get deltaY {
-    // deltaY may be missing or undefined.
-    num? value = JS('', '#.deltaY', this);
-    if (value != null) return value;
-    throw new UnsupportedError('deltaY is not supported');
+    if (JS('bool', '#.deltaY !== undefined', this)) {
+      // W3C WheelEvent
+      return this._deltaY;
+    }
+    throw new UnsupportedError(
+        'deltaY is not supported');
   }
 
   /**
@@ -71,10 +73,12 @@ $!MEMBERS
    * * [WheelEvent.deltaX](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaX) from the W3C.
    */
   num get deltaX {
-    // deltaX may be missing or undefined.
-    num? value = JS('', '#.deltaX', this);
-    if (value != null) return value;
-    throw new UnsupportedError('deltaX is not supported');
+    if (JS('bool', '#.deltaX !== undefined', this)) {
+      // W3C WheelEvent
+      return this._deltaX;
+    }
+    throw new UnsupportedError(
+        'deltaX is not supported');
   }
 
   int get deltaMode {

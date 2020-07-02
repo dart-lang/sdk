@@ -24,11 +24,11 @@ main() {
       expect(e, isNotNull);
 
       svg.RectElement r = document.querySelector('#rect1') as svg.RectElement;
-      expect(r.x!.baseVal!.value, 10);
-      expect(r.y!.baseVal!.value, 20);
-      expect(r.height!.baseVal!.value, 40);
-      expect(r.width!.baseVal!.value, 130);
-      expect(r.rx!.baseVal!.value, 5);
+      expect(r.x.baseVal.value, 10);
+      expect(r.y.baseVal.value, 20);
+      expect(r.height.baseVal.value, 40);
+      expect(r.width.baseVal.value, 130);
+      expect(r.rx.baseVal.value, 5);
     });
 
     test('trailing newline', () {

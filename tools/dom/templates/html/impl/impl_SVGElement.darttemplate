@@ -68,14 +68,14 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     children.addAll(value);
   }
 
-  String$NULLABLE get outerHtml {
+  String get outerHtml {
     final container = new DivElement();
     final SvgElement cloned = this.clone(true) $#NULLSAFECAST(as SvgElement);
     container.children.add(cloned);
     return container.innerHtml;
   }
 
-  String$NULLABLE get innerHtml {
+  String get innerHtml {
     final container = new DivElement();
     final SvgElement cloned = this.clone(true) $#NULLSAFECAST(as SvgElement);
     container.children.addAll(cloned.children);

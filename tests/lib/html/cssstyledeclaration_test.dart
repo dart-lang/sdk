@@ -23,7 +23,7 @@ main() {
 
   test('default constructor is empty', () {
     var style = new CssStyleDeclaration();
-    expect(style.cssText!.isEmpty, isTrue);
+    expect(style.cssText.isEmpty, isTrue);
     expect(style.getPropertyPriority('color').isEmpty, isTrue);
     expect(style.item(0).isEmpty, isTrue);
     expect(style.length, 0);
@@ -46,7 +46,7 @@ main() {
   test('removeProperty is wrapped', () {
     var style = createTestStyle();
     style.removeProperty("width");
-    expect(style.cssText!.trim(), equals("color: blue;"));
+    expect(style.cssText.trim(), equals("color: blue;"));
   });
 
   test('CSS property empty getters and setters', () {

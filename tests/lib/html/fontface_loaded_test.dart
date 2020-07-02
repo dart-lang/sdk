@@ -34,7 +34,7 @@ main() {
   test('document fonts - temporary', () async {
     var atLeastOneFont = false;
     var loaded = <Future<FontFace>>[];
-    document.fonts!.forEach((FontFace fontFace, _, __) async {
+    document.fonts.forEach((FontFace fontFace, _, __) async {
       atLeastOneFont = true;
       var f1 = fontFace.loaded;
       var f2 = fontFace.loaded;
@@ -44,14 +44,14 @@ main() {
     });
     expect(atLeastOneFont, isTrue);
     return Future.wait(loaded).then(expectAsync((_) async {
-      document.fonts!.forEach((fontFace, _, __) {
+      document.fonts.forEach((fontFace, _, __) {
         expect(fontFace.status, 'loaded');
       });
       expect(loaded.length, 3);
       for (var loadedEntry in loaded) {
         var fontFace = await loadedEntry;
         expect(fontFace.status, 'loaded');
-        var fontFamily = fontFace.family!;
+        var fontFamily = fontFace.family;
         if (fontFamily.startsWith('"')) {
           // FF wraps family in quotes - remove the quotes.
           fontFamily = fontFamily.substring(1, fontFamily.length - 1);

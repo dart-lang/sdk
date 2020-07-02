@@ -6,8 +6,8 @@ import 'dart:html';
 
 import 'package:expect/minitest.dart';
 
-bool isChecked(Element e) => (e as CheckboxInputElement).checked!;
-bool isUnchecked(Element e) => !(e as CheckboxInputElement).checked!;
+bool isChecked(Element e) => (e as CheckboxInputElement).checked;
+bool isUnchecked(Element e) => !(e as CheckboxInputElement).checked;
 
 // Test that List<Element> implements List<T>
 main() {
