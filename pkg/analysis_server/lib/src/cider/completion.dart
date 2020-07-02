@@ -124,7 +124,8 @@ class CiderCompletionComputer {
           _logger.run('Add imported suggestions', () {
             suggestions.addAll(
               _importedLibrariesSuggestions(
-                resolvedUnit.libraryElement,
+                target: resolvedUnit.libraryElement,
+                performance: performance,
               ),
             );
           });
@@ -182,12 +183,16 @@ class CiderCompletionComputer {
   ///
   /// TODO(scheglov) Implement show / hide combinators.
   /// TODO(scheglov) Implement prefixes.
-  List<CompletionSuggestion> _importedLibrariesSuggestions(
-    LibraryElement target,
-  ) {
+  List<CompletionSuggestion> _importedLibrariesSuggestions({
+    @required LibraryElement target,
+    @required OperationPerformanceImpl performance,
+  }) {
     var suggestions = <CompletionSuggestion>[];
     for (var importedLibrary in target.importedLibraries) {
-      var importedSuggestions = _importedLibrarySuggestions(importedLibrary);
+      var importedSuggestions = _importedLibrarySuggestions(
+        element: importedLibrary,
+        performance: performance,
+      );
       suggestions.addAll(importedSuggestions);
     }
     return suggestions;
@@ -195,11 +200,15 @@ class CiderCompletionComputer {
 
   /// Return cached, or compute unprefixed suggestions for all elements
   /// exported from the library.
-  List<CompletionSuggestion> _importedLibrarySuggestions(
-    LibraryElement element,
-  ) {
+  List<CompletionSuggestion> _importedLibrarySuggestions({
+    @required LibraryElement element,
+    @required OperationPerformanceImpl performance,
+  }) {
     var path = element.source.fullName;
-    var signature = _fileResolver.getLibraryLinkedSignature(path);
+    var signature = _fileResolver.getLibraryLinkedSignature(
+      path: path,
+      performance: performance,
+    );
 
     var cacheEntry = _cache._importedLibraries[path];
     if (cacheEntry == null || cacheEntry.signature != signature) {

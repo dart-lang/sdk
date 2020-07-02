@@ -218,18 +218,36 @@ class FileResolver {
     @required OperationPerformanceImpl performance,
   }) {
     return performance.run('fileContext', (performance) {
-      var analysisOptions = _getAnalysisOptions(path);
-      _createContext(path, analysisOptions);
+      var analysisOptions = performance.run('analysisOptions', (_) {
+        return _getAnalysisOptions(path);
+      });
 
-      var file = fsState.getFileForPath(path);
+      performance.run('createContext', (_) {
+        _createContext(path, analysisOptions);
+      });
+
+      var file = performance.run('fileForPath', (performance) {
+        return fsState.getFileForPath(
+          path: path,
+          performance: performance,
+        );
+      });
+
       return FileContext(analysisOptions, file);
     });
   }
 
-  String getLibraryLinkedSignature(String path) {
+  String getLibraryLinkedSignature({
+    @required String path,
+    @required OperationPerformanceImpl performance,
+  }) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
-    var file = fsState.getFileForPath(path);
+    var file = fsState.getFileForPath(
+      path: path,
+      performance: performance,
+    );
+
     return file.libraryCycle.signatureStr;
   }
 
@@ -346,7 +364,6 @@ class FileResolver {
       );
 
       fsState = FileSystemState(
-        logger,
         resourceProvider,
         byteStore,
         sourceFactory,

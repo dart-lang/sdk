@@ -14,7 +14,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
@@ -30,7 +29,9 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
 import 'package:analyzer/src/summary2/informative_data.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:convert/convert.dart';
+import 'package:meta/meta.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
 /// depends on is computed.
@@ -161,10 +162,12 @@ class FileState {
     return unit;
   }
 
-  void refresh() {
+  void refresh({
+    @required OperationPerformanceImpl performance,
+  }) {
     _fsState.testView.refreshedFiles.add(path);
 
-    _fsState.timers.digest.run(() {
+    performance.run('digest', (_) {
       _digest = utf8.encode(_fsState.getFileDigest(path));
       _exists = _digest.isNotEmpty;
     });
@@ -177,19 +180,21 @@ class FileState {
       bytes = _fsState._byteStore.get(unlinkedKey, _digest);
 
       if (bytes == null || bytes.isEmpty) {
-        var content = _fsState.timers.read.run(() {
+        var content = performance.run('content', (_) {
           return getContent();
         });
-        var unit = _fsState.timers.parse.run(() {
+
+        var unit = performance.run('parse', (_) {
           return parse(AnalysisErrorListener.NULL_LISTENER, content);
         });
-        _fsState.timers.unlinked.run(() {
+
+        performance.run('unlinked', (_) {
           var unlinkedBuilder = serializeAstCiderUnlinked(_digest, unit);
           bytes = unlinkedBuilder.toBuffer();
           _fsState._byteStore.put(unlinkedKey, _digest, bytes);
         });
 
-        _fsState.timers.prefetch.run(() {
+        performance.run('prefetch', (_) {
           unlinked2 = CiderUnlinkedUnit.fromBuffer(bytes).unlinkedUnit;
           _prefetchDirectReferences(unlinked2);
         });
@@ -202,19 +207,28 @@ class FileState {
 
     // Build the graph.
     for (var directive in unlinked2.imports) {
-      var file = _fileForRelativeUri(directive.uri);
+      var file = _fileForRelativeUri(
+        relativeUri: directive.uri,
+        performance: performance,
+      );
       if (file != null) {
         importedFiles.add(file);
       }
     }
     for (var directive in unlinked2.exports) {
-      var file = _fileForRelativeUri(directive.uri);
+      var file = _fileForRelativeUri(
+        relativeUri: directive.uri,
+        performance: performance,
+      );
       if (file != null) {
         exportedFiles.add(file);
       }
     }
     for (var uri in unlinked2.parts) {
-      var file = _fileForRelativeUri(uri);
+      var file = _fileForRelativeUri(
+        relativeUri: uri,
+        performance: performance,
+      );
       if (file != null) {
         partedFiles.add(file);
       }
@@ -222,7 +236,10 @@ class FileState {
     if (unlinked2.hasPartOfDirective) {
       var uri = unlinked2.partOfUri;
       if (uri.isNotEmpty) {
-        partOfLibrary = _fileForRelativeUri(uri);
+        partOfLibrary = _fileForRelativeUri(
+          relativeUri: uri,
+          performance: performance,
+        );
         if (partOfLibrary != null) {
           directReferencedFiles.add(partOfLibrary);
         }
@@ -244,7 +261,10 @@ class FileState {
     return path;
   }
 
-  FileState _fileForRelativeUri(String relativeUri) {
+  FileState _fileForRelativeUri({
+    @required String relativeUri,
+    @required OperationPerformanceImpl performance,
+  }) {
     if (relativeUri.isEmpty) {
       return null;
     }
@@ -256,7 +276,10 @@ class FileState {
       return null;
     }
 
-    var file = _fsState.getFileForUri(absoluteUri);
+    var file = _fsState.getFileForUri(
+      uri: absoluteUri,
+      performance: performance,
+    );
     if (file == null) {
       return null;
     }
@@ -372,7 +395,6 @@ class FileState {
 }
 
 class FileSystemState {
-  final PerformanceLog _logger;
   final ResourceProvider _resourceProvider;
   final CiderByteStore _byteStore;
   final SourceFactory _sourceFactory;
@@ -393,12 +415,11 @@ class FileSystemState {
   /// to batch file reads in systems where file fetches are expensive.
   final void Function(List<String> paths) prefetchFiles;
 
-  final FileSystemStateTimers timers = FileSystemStateTimers();
+  final FileSystemStateTimers timers2 = FileSystemStateTimers();
 
   final FileSystemStateTestView testView = FileSystemStateTestView();
 
   FileSystemState(
-    this._logger,
     this._resourceProvider,
     this._byteStore,
     this._sourceFactory,
@@ -432,7 +453,10 @@ class FileSystemState {
     }
   }
 
-  FileState getFileForPath(String path) {
+  FileState getFileForPath({
+    @required String path,
+    @required OperationPerformanceImpl performance,
+  }) {
     var file = _pathToFile[path];
     if (file == null) {
       var fileUri = _resourceProvider.pathContext.toUri(path);
@@ -446,12 +470,19 @@ class FileSystemState {
       _pathToFile[path] = file;
       _uriToFile[uri] = file;
 
-      file.refresh();
+      performance.run('refresh', (performance) {
+        file.refresh(
+          performance: performance,
+        );
+      });
     }
     return file;
   }
 
-  FileState getFileForUri(Uri uri) {
+  FileState getFileForUri({
+    @required Uri uri,
+    @required OperationPerformanceImpl performance,
+  }) {
     FileState file = _uriToFile[uri];
     if (file == null) {
       var source = _sourceFactory.forUri2(uri);
@@ -464,7 +495,9 @@ class FileSystemState {
       _pathToFile[path] = file;
       _uriToFile[uri] = file;
 
-      file.refresh();
+      file.refresh(
+        performance: performance,
+      );
     }
     return file;
   }
@@ -475,18 +508,6 @@ class FileSystemState {
       return null;
     }
     return source.fullName;
-  }
-
-  void logStatistics() {
-    _logger.writeln(
-      '[files: ${_pathToFile.length}]'
-      '[digest: ${timers.digest.timer.elapsedMilliseconds} ms]'
-      '[read: ${timers.read.timer.elapsedMilliseconds} ms]'
-      '[parse: ${timers.parse.timer.elapsedMilliseconds} ms]'
-      '[unlinked: ${timers.unlinked.timer.elapsedMilliseconds} ms]'
-      '[prefetch: ${timers.prefetch.timer.elapsedMilliseconds} ms]',
-    );
-    timers.reset();
   }
 }
 

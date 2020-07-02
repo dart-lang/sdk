@@ -66,13 +66,17 @@ class OperationPerformanceImpl implements OperationPerformance {
     );
   }
 
-  /// Run the [operation] as a new child.
+  /// Run the [operation] as a child with the given [name].
+  ///
+  /// If there is no such child, a new one is created, with a new timer.
+  ///
+  /// If there is already a child with that name, its timer will resume and
+  /// then stop. So, it will accumulate time across all runs.
   T run<T>(
     String name,
     T Function(OperationPerformanceImpl) operation,
   ) {
-    var child = OperationPerformanceImpl(name);
-    _children.add(child);
+    OperationPerformanceImpl child = _existingOrNewChild(name);
     child._timer.start();
 
     try {
@@ -82,13 +86,17 @@ class OperationPerformanceImpl implements OperationPerformance {
     }
   }
 
-  /// Run the [operation] as a new child.
+  /// Run the [operation] as a child with the given [name].
+  ///
+  /// If there is no such child, a new one is created, with a new timer.
+  ///
+  /// If there is already a child with that name, its timer will resume and
+  /// then stop. So, it will accumulate time across all runs.
   Future<T> runAsync<T>(
     String name,
     Future<T> Function(OperationPerformanceImpl) operation,
   ) async {
-    var child = OperationPerformanceImpl(name);
-    _children.add(child);
+    var child = _existingOrNewChild(name);
     child._timer.start();
 
     try {
@@ -111,5 +119,14 @@ class OperationPerformanceImpl implements OperationPerformance {
     for (var child in children) {
       child.write(buffer: buffer, indent: childIndent);
     }
+  }
+
+  OperationPerformanceImpl _existingOrNewChild(String name) {
+    var child = getChild(name);
+    if (child == null) {
+      child = OperationPerformanceImpl(name);
+      _children.add(child);
+    }
+    return child;
   }
 }
