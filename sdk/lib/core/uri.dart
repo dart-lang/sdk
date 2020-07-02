@@ -163,7 +163,7 @@ abstract class Uri {
    * argument.
    */
   factory Uri.http(String authority, String unencodedPath,
-      [Map<String, String>? queryParameters]) = _Uri.http;
+      [Map<String, dynamic>? queryParameters]) = _Uri.http;
 
   /**
    * Creates a new `https` URI from authority, path and query.
@@ -172,7 +172,7 @@ abstract class Uri {
    * which is set to `https`.
    */
   factory Uri.https(String authority, String unencodedPath,
-      [Map<String, String>? queryParameters]) = _Uri.https;
+      [Map<String, dynamic>? queryParameters]) = _Uri.https;
 
   /**
    * Creates a new file URI from an absolute or relative file path.
@@ -1542,13 +1542,13 @@ class _Uri implements Uri {
 
   /// Implementation of [Uri.http].
   factory _Uri.http(String authority, String unencodedPath,
-      [Map<String, String>? queryParameters]) {
+      [Map<String, dynamic>? queryParameters]) {
     return _makeHttpUri("http", authority, unencodedPath, queryParameters);
   }
 
   /// Implementation of [Uri.https].
   factory _Uri.https(String authority, String unencodedPath,
-      [Map<String, String>? queryParameters]) {
+      [Map<String, dynamic>? queryParameters]) {
     return _makeHttpUri("https", authority, unencodedPath, queryParameters);
   }
 
@@ -1629,7 +1629,7 @@ class _Uri implements Uri {
   }
 
   static _Uri _makeHttpUri(String scheme, String? authority,
-      String unencodedPath, Map<String, String>? queryParameters) {
+      String unencodedPath, Map<String, dynamic>? queryParameters) {
     var userInfo = "";
     String? host;
     int? port;
