@@ -10163,7 +10163,7 @@ class ByteBuffer : public AllStatic {
 class Pointer : public Instance {
  public:
   static PointerPtr New(const AbstractType& type_arg,
-                        size_t native_address,
+                        uword native_address,
                         Heap::Space space = Heap::kNew);
 
   static intptr_t InstanceSize() {

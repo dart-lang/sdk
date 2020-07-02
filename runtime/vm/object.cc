@@ -23468,7 +23468,7 @@ const char* ExternalTypedData::ToCString() const {
 }
 
 PointerPtr Pointer::New(const AbstractType& type_arg,
-                        size_t native_address,
+                        uword native_address,
                         Heap::Space space) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
