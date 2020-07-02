@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0
+
+- Add `buildComparisonTreemap` for constructing treemap representing the diff
+between two size profiles.
+
 ## 0.3.0
 
 - Extract treemap construction code into a separate library, to make it

@@ -10,6 +10,7 @@ import 'package:vm_snapshot_analysis/ascii_table.dart';
 import 'package:vm_snapshot_analysis/program_info.dart';
 import 'package:vm_snapshot_analysis/instruction_sizes.dart'
     as instruction_sizes;
+import 'package:vm_snapshot_analysis/treemap.dart';
 import 'package:vm_snapshot_analysis/v8_profile.dart' as v8_profile;
 
 Future<Object> loadJson(File input) async {
@@ -30,6 +31,20 @@ Future<ProgramInfo> loadProgramInfo(File input,
     return instruction_sizes.loadProgramInfo(json,
         collapseAnonymousClosures: collapseAnonymousClosures);
   }
+}
+
+/// Compare two size profiles and return result of the comparison as a treemap.
+Future<Map<String, dynamic>> buildComparisonTreemap(File oldJson, File newJson,
+    {TreemapFormat format = TreemapFormat.collapsed,
+    bool collapseAnonymousClosures = false}) async {
+  final oldSizes = await loadProgramInfo(oldJson,
+      collapseAnonymousClosures: collapseAnonymousClosures);
+  final newSizes = await loadProgramInfo(newJson,
+      collapseAnonymousClosures: collapseAnonymousClosures);
+
+  final diff = computeDiff(oldSizes, newSizes);
+
+  return treemapFromInfo(diff, format: format);
 }
 
 void printHistogram(ProgramInfo info, Histogram histogram,

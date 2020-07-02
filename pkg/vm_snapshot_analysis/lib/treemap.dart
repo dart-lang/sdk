@@ -93,6 +93,57 @@ Map<String, dynamic> treemapFromJson(Object inputJson,
       collapseSingleChildPathNodes: collapseSingleChildPathNodes);
 }
 
+/// Convert the given [ProgramInfo] object into a treemap in either
+/// [TreemapFormat.collapsed] or [TreemapFormat.simplified] format.
+///
+/// See [treemapFromJson] for the schema of the returned map object.
+Map<String, dynamic> treemapFromInfo(ProgramInfo info,
+    {TreemapFormat format = TreemapFormat.collapsed,
+    bool collapseSingleChildPathNodes = true}) {
+  final root = {'n': '', 'children': {}, 'k': kindPath, 'maxDepth': 0};
+  _treemapFromInfo(root, info, format: format);
+  return _flatten(root,
+      collapseSingleChildPathNodes: collapseSingleChildPathNodes);
+}
+
+void _treemapFromInfo(Map<String, dynamic> root, ProgramInfo info,
+    {TreemapFormat format = TreemapFormat.simplified}) {
+  if (format != TreemapFormat.collapsed && format != TreemapFormat.simplified) {
+    throw ArgumentError(
+      'can only build simplified or collapsed formats from the program info',
+    );
+  }
+
+  int cumulativeSize(ProgramInfoNode node) {
+    return (node.size ?? 0) +
+        node.children.values
+            .fold<int>(0, (sum, child) => sum + cumulativeSize(child));
+  }
+
+  void recurse(ProgramInfoNode node, String path, Map<String, dynamic> root,
+      TreemapFormat format) {
+    if (node.children.isEmpty ||
+        (node.type == NodeType.functionNode &&
+            format == TreemapFormat.simplified)) {
+      // For simple format we remove information about nested functions from
+      // the output.
+      _addSymbol(root, path, node.name, cumulativeSize(node));
+      return;
+    }
+
+    path = path != '' ? '$path/${node.name}' : node.name;
+    _addSymbol(root, path, '<self>', node.size);
+    for (var child in node.children.values) {
+      recurse(child, path, root, format);
+    }
+  }
+
+  _addSymbol(root, '', info.root.name, info.root.size);
+  for (var child in info.root.children.values) {
+    recurse(child, '', root, format);
+  }
+}
+
 void _treemapFromSnapshot(Map<String, dynamic> root, v8_profile.Snapshot snap,
     {TreemapFormat format = TreemapFormat.objectType}) {
   final info = v8_profile.toProgramInfo(snap);
@@ -100,33 +151,7 @@ void _treemapFromSnapshot(Map<String, dynamic> root, v8_profile.Snapshot snap,
   // For collapsed and simple formats there is no need to traverse snapshot
   // nodes. Just recurse into [ProgramInfo] structure instead.
   if (format == TreemapFormat.collapsed || format == TreemapFormat.simplified) {
-    int cumulativeSize(ProgramInfoNode node) {
-      return (node.size ?? 0) +
-          node.children.values
-              .fold<int>(0, (sum, child) => sum + cumulativeSize(child));
-    }
-
-    void recurse(ProgramInfoNode node, String path) {
-      if (node.children.isEmpty ||
-          (node.type == NodeType.functionNode &&
-              format == TreemapFormat.simplified)) {
-        // For simple format we remove information about nested functions from
-        // the output.
-        _addSymbol(root, path, node.name, cumulativeSize(node));
-        return;
-      }
-
-      path = path != '' ? '$path/${node.name}' : node.name;
-      _addSymbol(root, path, '<self>', node.size);
-      for (var child in node.children.values) {
-        recurse(child, path);
-      }
-    }
-
-    _addSymbol(root, '', info.root.name, info.root.size);
-    for (var child in info.root.children.values) {
-      recurse(child, '');
-    }
+    _treemapFromInfo(root, info, format: format);
     return;
   }
 
