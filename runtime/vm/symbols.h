@@ -107,6 +107,7 @@ class ObjectPointerVisitor;
   V(DotWithType, "._withType")                                                 \
   V(Double, "double")                                                          \
   V(Dynamic, "dynamic")                                                        \
+  V(DynamicCall, "dyn:call")                                                   \
   V(DynamicPrefix, "dyn:")                                                     \
   V(EntryPointsTemp, ":entry_points_temp")                                     \
   V(EqualOperator, "==")                                                       \

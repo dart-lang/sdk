@@ -705,6 +705,11 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
   }
 }
 
+static bool IsPotentialClosureCall(const String& selector) {
+  return selector.raw() == Symbols::Call().raw() ||
+         selector.raw() == Symbols::DynamicCall().raw();
+}
+
 void Precompiler::AddCalleesOfHelper(const Object& entry,
                                      String* temp_selector,
                                      Class* temp_cls) {
@@ -713,22 +718,20 @@ void Precompiler::AddCalleesOfHelper(const Object& entry,
     // A dynamic call.
     *temp_selector = call_site.target_name();
     AddSelector(*temp_selector);
-    if (temp_selector->raw() == Symbols::Call().raw()) {
-      // Potential closure call.
+    if (IsPotentialClosureCall(*temp_selector)) {
       const Array& arguments_descriptor =
           Array::Handle(Z, call_site.arguments_descriptor());
-      AddClosureCall(arguments_descriptor);
+      AddClosureCall(*temp_selector, arguments_descriptor);
     }
   } else if (entry.IsMegamorphicCache()) {
     // A dynamic call.
     const auto& cache = MegamorphicCache::Cast(entry);
     *temp_selector = cache.target_name();
     AddSelector(*temp_selector);
-    if (temp_selector->raw() == Symbols::Call().raw()) {
-      // Potential closure call.
+    if (IsPotentialClosureCall(*temp_selector)) {
       const Array& arguments_descriptor =
           Array::Handle(Z, cache.arguments_descriptor());
-      AddClosureCall(arguments_descriptor);
+      AddClosureCall(*temp_selector, arguments_descriptor);
     }
   } else if (entry.IsField()) {
     // Potential need for field initializer.
@@ -952,12 +955,13 @@ void Precompiler::AddConstObject(const class Instance& instance) {
   instance.raw()->ptr()->VisitPointers(&visitor);
 }
 
-void Precompiler::AddClosureCall(const Array& arguments_descriptor) {
+void Precompiler::AddClosureCall(const String& call_selector,
+                                 const Array& arguments_descriptor) {
   const Class& cache_class =
       Class::Handle(Z, I->object_store()->closure_class());
   const Function& dispatcher =
       Function::Handle(Z, cache_class.GetInvocationDispatcher(
-                              Symbols::Call(), arguments_descriptor,
+                              call_selector, arguments_descriptor,
                               FunctionLayout::kInvokeFieldDispatcher,
                               true /* create_if_absent */));
   AddFunction(dispatcher);

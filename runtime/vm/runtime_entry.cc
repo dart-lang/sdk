@@ -511,13 +511,17 @@ static void ThrowIfError(const Object& result) {
 
 // Invoke field getter before dispatch.
 // Arg0: instance.
-// Arg1: field name.
+// Arg1: field name (may be demangled during call).
 // Return value: field value.
 DEFINE_RUNTIME_ENTRY(GetFieldForDispatch, 2) {
   ASSERT(FLAG_enable_interpreter);
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
-  const String& name = String::CheckedHandle(zone, arguments.ArgAt(1));
+  String& name = String::CheckedHandle(zone, arguments.ArgAt(1));
   const Class& receiver_class = Class::Handle(zone, receiver.clazz());
+  if (Function::IsDynamicInvocationForwarderName(name)) {
+    name = Function::DemangleDynamicInvocationForwarderName(name);
+    arguments.SetArgAt(1, name);  // Reflect change in arguments.
+  }
   const String& getter_name = String::Handle(zone, Field::GetterName(name));
   const int kTypeArgsLen = 0;
   const int kNumArguments = 1;
@@ -1086,10 +1090,10 @@ DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
 // non-closure, attempt to invoke "call" on it.
 static bool ResolveCallThroughGetter(const Class& receiver_class,
                                      const String& target_name,
+                                     const String& demangled,
                                      const Array& arguments_descriptor,
                                      Function* result) {
-  // 1. Check if there is a getter with the same name.
-  const String& getter_name = String::Handle(Field::GetterName(target_name));
+  const String& getter_name = String::Handle(Field::GetterName(demangled));
   const int kTypeArgsLen = 0;
   const int kNumArguments = 1;
   ArgumentsDescriptor args_desc(Array::Handle(
@@ -1100,6 +1104,9 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
   if (getter.IsNull() || getter.IsMethodExtractor()) {
     return false;
   }
+  // We do this on the target_name, _not_ on the demangled name, so that
+  // FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher can detect dynamic
+  // calls from the dyn: tag on the name of the dispatcher.
   const Function& target_function =
       Function::Handle(receiver_class.GetInvocationDispatcher(
           target_name, arguments_descriptor,
@@ -1119,21 +1126,21 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
 FunctionPtr InlineCacheMissHelper(const Class& receiver_class,
                                   const Array& args_descriptor,
                                   const String& target_name) {
-  // Handle noSuchMethod for dyn:methodName by getting a noSuchMethod dispatcher
-  // (or a call-through getter for methodName).
+  // Create a demangled version of the target_name, if necessary, This is used
+  // for the field getter in ResolveCallThroughGetter and as the target name
+  // for the NoSuchMethod dispatcher (if needed).
+  const String* demangled = &target_name;
   if (Function::IsDynamicInvocationForwarderName(target_name)) {
-    const String& demangled = String::Handle(
+    demangled = &String::Handle(
         Function::DemangleDynamicInvocationForwarderName(target_name));
-    return InlineCacheMissHelper(receiver_class, args_descriptor, demangled);
   }
-
   Function& result = Function::Handle();
-  if (!ResolveCallThroughGetter(receiver_class, target_name, args_descriptor,
-                                &result)) {
+  if (!ResolveCallThroughGetter(receiver_class, target_name, *demangled,
+                                args_descriptor, &result)) {
     ArgumentsDescriptor desc(args_descriptor);
     const Function& target_function =
         Function::Handle(receiver_class.GetInvocationDispatcher(
-            target_name, args_descriptor,
+            *demangled, args_descriptor,
             FunctionLayout::kNoSuchMethodDispatcher, FLAG_lazy_dispatchers));
     if (FLAG_trace_ic) {
       OS::PrintErr(
@@ -2170,7 +2177,9 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
     target_name = MegamorphicCache::Cast(ic_data_or_cache).target_name();
   }
 
-  if (Function::IsDynamicInvocationForwarderName(target_name)) {
+  const bool is_dynamic_call =
+      Function::IsDynamicInvocationForwarderName(target_name);
+  if (is_dynamic_call) {
     target_name = Function::DemangleDynamicInvocationForwarderName(target_name);
   }
 
@@ -2219,8 +2228,19 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
       // Special case: closures are implemented with a call getter instead of a
       // call method and with lazy dispatchers the field-invocation-dispatcher
       // would perform the closure call.
-      const Object& result = Object::Handle(
-          zone, DartEntry::InvokeClosure(orig_arguments, orig_arguments_desc));
+      auto& result = Object::Handle(
+          zone,
+          DartEntry::ResolveCallable(orig_arguments, orig_arguments_desc));
+      ThrowIfError(result);
+      const Function& callable_function =
+          Function::Handle(zone, Function::RawCast(result.raw()));
+      if (is_dynamic_call && !callable_function.IsNull()) {
+        // TODO(dartbug.com/40813): Move checks that are currently compiled
+        // in the closure body to here as they are also moved to
+        // FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher.
+      }
+      result = DartEntry::InvokeCallable(callable_function, orig_arguments,
+                                         orig_arguments_desc);
       ThrowIfError(result);
       arguments.SetReturn(result);
       return;
@@ -2245,9 +2265,19 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
         ASSERT(getter_result.IsNull() || getter_result.IsInstance());
 
         orig_arguments.SetAt(args_desc.FirstArgIndex(), getter_result);
-        const Object& call_result = Object::Handle(
+        auto& call_result = Object::Handle(
             zone,
-            DartEntry::InvokeClosure(orig_arguments, orig_arguments_desc));
+            DartEntry::ResolveCallable(orig_arguments, orig_arguments_desc));
+        ThrowIfError(call_result);
+        const Function& callable_function =
+            Function::Handle(zone, Function::RawCast(call_result.raw()));
+        if (is_dynamic_call && !callable_function.IsNull()) {
+          // TODO(dartbug.com/40813): Move checks that are currently compiled
+          // in the closure body to here as they are also moved to
+          // FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher.
+        }
+        call_result = DartEntry::InvokeCallable(
+            callable_function, orig_arguments, orig_arguments_desc);
         ThrowIfError(call_result);
         arguments.SetReturn(call_result);
         return;

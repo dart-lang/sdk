@@ -3431,22 +3431,27 @@ SwitchDispatch:
     const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
     const intptr_t argc =
         InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
-
     ObjectPtr receiver = FrameArguments(FP, argc)[receiver_idx];
 
-    // Invoke field getter on receiver.
+    // Possibly demangle field name and invoke field getter on receiver.
     {
       SP[1] = argdesc_;                // Save argdesc_.
       SP[2] = 0;                       // Result of runtime call.
       SP[3] = receiver;                // Receiver.
-      SP[4] = function->ptr()->name_;  // Field name.
+      SP[4] = function->ptr()->name_;  // Field name (may change during call).
       Exit(thread, FP, SP + 5, pc);
       if (!InvokeRuntime(thread, this, DRT_GetFieldForDispatch,
                          NativeArguments(thread, 2, SP + 3, SP + 2))) {
         HANDLE_EXCEPTION;
       }
+      function = FrameFunction(FP);
       argdesc_ = Array::RawCast(SP[1]);
     }
+
+    // If the field name in the arguments is different after the call, then
+    // this was a dynamic call.
+    StringPtr field_name = String::RawCast(SP[4]);
+    const bool is_dynamic_call = function->ptr()->name_ != field_name;
 
     // Replace receiver with field value, keep all other arguments, and
     // invoke 'call' function, or if not found, invoke noSuchMethod.
@@ -3454,6 +3459,11 @@ SwitchDispatch:
 
     // If the field value is a closure, no need to resolve 'call' function.
     if (InterpreterHelpers::GetClassId(receiver) == kClosureCid) {
+      if (is_dynamic_call) {
+        // TODO(dartbug.com/40813): Move checks that are currently compiled
+        // in the closure body to here as they are also moved to
+        // FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher.
+      }
       SP[1] = Closure::RawCast(receiver)->ptr()->function_;
       goto TailCallSP1;
     }

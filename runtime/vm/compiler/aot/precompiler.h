@@ -269,7 +269,8 @@ class Precompiler : public ValueObject {
                           String* temp_selector,
                           Class* temp_cls);
   void AddConstObject(const class Instance& instance);
-  void AddClosureCall(const Array& arguments_descriptor);
+  void AddClosureCall(const String& selector,
+                      const Array& arguments_descriptor);
   void AddFunction(const Function& function, bool retain = true);
   void AddInstantiatedClass(const Class& cls);
   void AddSelector(const String& selector);

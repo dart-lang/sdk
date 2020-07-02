@@ -1933,7 +1933,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
   // Find the name of the field we should dispatch to.
   const Class& owner = Class::Handle(Z, function.Owner());
   ASSERT(!owner.IsNull());
-  const String& field_name = String::Handle(Z, function.name());
+  auto& field_name = String::Handle(Z, function.name());
+  // If the field name has a dyn: tag, then remove it. We don't add dynamic
+  // invocation forwarders for field getters used for invoking, we just use
+  // the tag in the name of the invoke field dispatcher to detect dynamic calls.
+  const bool is_dynamic_call =
+      Function::IsDynamicInvocationForwarderName(field_name);
+  if (is_dynamic_call) {
+    field_name = Function::DemangleDynamicInvocationForwarderName(field_name);
+  }
   const String& getter_name = String::ZoneHandle(
       Z, Symbols::New(thread_,
                       String::Handle(Z, Field::GetterSymbol(field_name))));
@@ -1990,6 +1998,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
 
     // The closure itself is the first argument.
     body += LoadLocal(closure);
+
+    if (is_dynamic_call) {
+      // TODO(dartbug.com/40813): Move checks that are currently compiled
+      // in the closure body to here, using the dynamic versions of
+      // AssertSubtype to typecheck the type arguments using the runtime types
+      // available in the closure object.
+    }
   } else {
     // Invoke the getter to get the field value.
     body += LoadLocal(parsed_function_->ParameterVariable(0));
@@ -2003,6 +2018,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
   intptr_t pos = 1;
   for (; pos < descriptor.Count(); pos++) {
     body += LoadLocal(parsed_function_->ParameterVariable(pos));
+    if (is_closure_call && is_dynamic_call) {
+      // TODO(dartbug.com/40813): Move checks that are currently compiled
+      // in the closure body to here, using the dynamic versions of
+      // AssertAssignable to typecheck the parameters using the runtime types
+      // available in the closure object.
+    }
   }
 
   if (is_closure_call) {

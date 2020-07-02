@@ -2989,14 +2989,13 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   }
 
   const String* mangled_name = &name;
-  // Do not mangle == or call:
+  // Do not mangle ==:
   //   * operator == takes an Object so its either not checked or checked
   //     at the entry because the parameter is marked covariant, neither of
-  //     those cases require a dynamic invocation forwarder;
-  //   * we assume that all closures are entered in a checked way.
+  //     those cases require a dynamic invocation forwarder.
   const Function* direct_call_target = &direct_call.target_;
-  if ((name.raw() != Symbols::EqualOperator().raw()) &&
-      (name.raw() != Symbols::Call().raw()) && H.IsRoot(itarget_name)) {
+  if (H.IsRoot(itarget_name) &&
+      (name.raw() != Symbols::EqualOperator().raw())) {
     mangled_name = &String::ZoneHandle(
         Z, Function::CreateDynamicInvocationForwarderName(name));
     if (!direct_call_target->IsNull()) {
