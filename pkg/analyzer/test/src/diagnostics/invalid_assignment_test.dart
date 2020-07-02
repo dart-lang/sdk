@@ -24,6 +24,18 @@ class InvalidAssignmentNnbdTest extends InvalidAssignmentTest {
         sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
 
   @override
+  test_ifNullAssignment() async {
+    await assertErrorsInCode('''
+void f(int i) {
+  double? d;
+  d ??= i;
+}
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 37, 1),
+    ]);
+  }
+
+  @override
   test_ifNullAssignment_sameType() async {
     // This test is overridden solely to make [j] nullable.
     await assertNoErrorsInCode('''
@@ -68,6 +80,22 @@ void f() {
       error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 37, 4),
     ]);
   }
+
+  @override
+  test_typeParameter() async {
+    // This test is overridden solely to make [value] nullable.
+    // https://github.com/dart-lang/sdk/issues/14221
+    await assertErrorsInCode(r'''
+class B<T> {
+  T? value;
+  void test(num n) {
+    value = n;
+  }
+}
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 58, 1),
+    ]);
+  }
 }
 
 @reflectiveTest
@@ -102,16 +130,64 @@ void main() {
   }
 
   test_defaultValue_named() async {
+    await assertErrorsInCode(r'''
+f({String x: 0}) {
+}
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 13, 1),
+    ]);
+  }
+
+  test_defaultValue_named_sameType() async {
     await assertNoErrorsInCode(r'''
 f({String x: '0'}) {
 }''');
   }
 
   test_defaultValue_optional() async {
+    await assertErrorsInCode(r'''
+f([String x = 0]) {
+}''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 14, 1),
+    ]);
+  }
+
+  test_defaultValue_optional_sameType() async {
     await assertNoErrorsInCode(r'''
 f([String x = '0']) {
 }
 ''');
+  }
+
+  test_dynamic() async {
+    await assertErrorsInCode(r'''
+main() {
+  dynamic = 1;
+}
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 21, 1),
+    ]);
+  }
+
+  test_functionExpressionInvocation() async {
+    await assertErrorsInCode('''
+class C {
+  String x = (() => 5)();
+}
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 23, 11),
+    ]);
+  }
+
+  test_ifNullAssignment() async {
+    await assertErrorsInCode('''
+void f(int i) {
+  double d;
+  d ??= i;
+}
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 36, 1),
+    ]);
   }
 
   test_ifNullAssignment_sameType() async {
@@ -239,6 +315,18 @@ f() {
 
   test_localVariable() async {
     await assertErrorsInCode(r'''
+f() {
+  int x;
+  x = '0';
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 21, 3),
+    ]);
+  }
+
+  test_localVariable_promotion() async {
+    await assertErrorsInCode(r'''
 f(var y) {
   if (y is String) {
     int x = y;
@@ -251,6 +339,22 @@ f(var y) {
   }
 
   test_postfixExpression_localVariable() async {
+    await assertErrorsInCode(r'''
+class A {
+  B operator+(_) => new B();
+}
+
+class B {}
+
+f(A a) {
+  a++;
+}
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 65, 3),
+    ]);
+  }
+
+  test_postfixExpression_localVariable_sameType() async {
     await assertNoErrorsInCode(r'''
 class A {
   A operator+(_) => this;
@@ -263,6 +367,26 @@ f(A a) {
   }
 
   test_postfixExpression_property() async {
+    await assertErrorsInCode(r'''
+class A {
+  B operator+(_) => new B();
+}
+
+class B {}
+
+class C {
+  A a = A();
+}
+
+f(C c) {
+  c.a++;
+}
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 91, 5),
+    ]);
+  }
+
+  test_postfixExpression_property_sameType() async {
     await assertNoErrorsInCode(r'''
 class A {
   A operator+(_) => this;
@@ -279,6 +403,22 @@ f(C c) {
   }
 
   test_prefixExpression_localVariable() async {
+    await assertErrorsInCode(r'''
+class A {
+  B operator+(_) => new B();
+}
+
+class B {}
+
+f(A a) {
+  ++a;
+}
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 65, 3),
+    ]);
+  }
+
+  test_prefixExpression_localVariable_sameType() async {
     await assertNoErrorsInCode(r'''
 class A {
   A operator+(_) => this;
@@ -291,6 +431,26 @@ f(A a) {
   }
 
   test_prefixExpression_property() async {
+    await assertErrorsInCode(r'''
+class A {
+  B operator+(_) => new B();
+}
+
+class B {}
+
+class C {
+  A a = A();
+}
+
+f(C c) {
+  ++c.a;
+}
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 91, 5),
+    ]);
+  }
+
+  test_prefixExpression_property_sameType() async {
     await assertNoErrorsInCode(r'''
 class A {
   A operator+(_) => this;
@@ -329,7 +489,31 @@ void f<X extends A, Y extends B>(X x) {
     ]);
   }
 
+  test_regressionInIssue18468Fix() async {
+    // https://code.google.com/p/dart/issues/detail?id=18628
+    await assertErrorsInCode(r'''
+class C<T> {
+  T t = int;
+}
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 21, 3),
+    ]);
+  }
+
   test_staticVariable() async {
+    await assertErrorsInCode(r'''
+class A {
+  static int x = 1;
+}
+f() {
+  A.x = '0';
+}
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 46, 3),
+    ]);
+  }
+
+  test_staticVariable_promoted() async {
     await assertErrorsInCode(r'''
 class A {
   static int x = 7;
@@ -341,6 +525,28 @@ f(var y) {
 }
 ''', [
       error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 74, 1),
+    ]);
+  }
+
+  test_topLevelVariableDeclaration() async {
+    await assertErrorsInCode('''
+int x = 'string';
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 8, 8),
+    ]);
+  }
+
+  test_typeParameter() async {
+    // https://github.com/dart-lang/sdk/issues/14221
+    await assertErrorsInCode(r'''
+class B<T> {
+  T value;
+  void test(num n) {
+    value = n;
+  }
+}
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 57, 1),
     ]);
   }
 
@@ -363,7 +569,17 @@ void f<X extends A, Y extends B>(X x) {
   }
 
   test_variableDeclaration() async {
-    // 17971
+    await assertErrorsInCode(r'''
+class A {
+  int x = 'string';
+}
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 20, 8),
+    ]);
+  }
+
+  test_variableDeclaration_overriddenOperator() async {
+    // https://github.com/dart-lang/sdk/issues/17971
     await assertErrorsInCode(r'''
 class Point {
   final num x, y;
