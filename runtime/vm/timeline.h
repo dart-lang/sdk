@@ -20,7 +20,15 @@
 #include <lib/trace-engine/instrumentation.h>
 #elif defined(HOST_OS_MACOS)
 #include <os/availability.h>
+#if defined(__MAC_10_14) || defined (__IPHONE_12_0)
+#define HOST_OS_SUPPORTS_SIGNPOST 1
+#endif
+//signpost.h exists in macOS 10.14, iOS 12 or above
+#if defined(HOST_OS_SUPPORTS_SIGNPOST)
 #include <os/signpost.h>
+#else
+#include <os/log.h>
+#endif
 #endif
 
 namespace dart {
