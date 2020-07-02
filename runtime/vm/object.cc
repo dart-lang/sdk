@@ -14348,14 +14348,6 @@ SingleTargetCachePtr SingleTargetCache::New() {
   return result.raw();
 }
 
-void UnlinkedCall::set_target_name(const String& value) const {
-  StorePointer(&raw_ptr()->target_name_, value.raw());
-}
-
-void UnlinkedCall::set_args_descriptor(const Array& value) const {
-  StorePointer(&raw_ptr()->args_descriptor_, value.raw());
-}
-
 void UnlinkedCall::set_can_patch_to_monomorphic(bool value) const {
   StoreNonPointer(&raw_ptr()->can_patch_to_monomorphic_, value);
 }
@@ -14366,7 +14358,7 @@ intptr_t UnlinkedCall::Hashcode() const {
 
 bool UnlinkedCall::Equals(const UnlinkedCall& other) const {
   return (target_name() == other.target_name()) &&
-         (args_descriptor() == other.args_descriptor()) &&
+         (arguments_descriptor() == other.arguments_descriptor()) &&
          (can_patch_to_monomorphic() == other.can_patch_to_monomorphic());
 }
 
@@ -15311,7 +15303,7 @@ UnlinkedCallPtr ICData::AsUnlinkedCall() const {
   ASSERT(!is_tracking_exactness());
   const UnlinkedCall& result = UnlinkedCall::Handle(UnlinkedCall::New());
   result.set_target_name(String::Handle(target_name()));
-  result.set_args_descriptor(Array::Handle(arguments_descriptor()));
+  result.set_arguments_descriptor(Array::Handle(arguments_descriptor()));
   result.set_can_patch_to_monomorphic(!FLAG_precompiled_mode ||
                                       receiver_cannot_be_smi());
   return result.raw();

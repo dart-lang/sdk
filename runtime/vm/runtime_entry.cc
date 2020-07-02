@@ -1616,7 +1616,8 @@ class SwitchableCallHandler {
 void SwitchableCallHandler::DoUnlinkedCall(const UnlinkedCall& unlinked,
                                            const Function& target_function) {
   const String& name = String::Handle(zone_, unlinked.target_name());
-  const Array& descriptor = Array::Handle(zone_, unlinked.args_descriptor());
+  const Array& descriptor =
+      Array::Handle(zone_, unlinked.arguments_descriptor());
   const ICData& ic_data =
       ICData::Handle(zone_, ICData::New(caller_function_, name, descriptor,
                                         DeoptId::kNone, 1, /* args_tested */
@@ -1975,7 +1976,7 @@ FunctionPtr SwitchableCallHandler::ResolveTargetFunction(const Object& data) {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
       name_ = unlinked_call.target_name();
-      args_descriptor_ = unlinked_call.args_descriptor();
+      args_descriptor_ = unlinked_call.arguments_descriptor();
       break;
     }
     case kMonomorphicSmiableCallCid:
@@ -1987,7 +1988,7 @@ FunctionPtr SwitchableCallHandler::ResolveTargetFunction(const Object& data) {
       const auto& unlinked_call = UnlinkedCall::Handle(
           zone_, LoadUnlinkedCall(zone_, isolate_, caller_frame_->pc()));
       name_ = unlinked_call.target_name();
-      args_descriptor_ = unlinked_call.args_descriptor();
+      args_descriptor_ = unlinked_call.arguments_descriptor();
       break;
     }
 #else

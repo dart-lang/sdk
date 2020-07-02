@@ -1979,16 +1979,6 @@ class SingleTargetCacheLayout : public ObjectLayout {
   classid_t upper_limit_;
 };
 
-class UnlinkedCallLayout : public ObjectLayout {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(UnlinkedCall);
-  VISIT_FROM(ObjectPtr, target_name_);
-  StringPtr target_name_;
-  ArrayPtr args_descriptor_;
-  VISIT_TO(ObjectPtr, args_descriptor_);
-  bool can_patch_to_monomorphic_;
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
-};
-
 class MonomorphicSmiableCallLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(MonomorphicSmiableCall);
   VISIT_FROM(ObjectPtr, target_);
@@ -2008,6 +1998,15 @@ class CallSiteDataLayout : public ObjectLayout {
   ArrayPtr args_descriptor_;  // Arguments descriptor.
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(CallSiteData)
+};
+
+class UnlinkedCallLayout : public CallSiteDataLayout {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(UnlinkedCall);
+  VISIT_FROM(ObjectPtr, target_name_);
+  VISIT_TO(ObjectPtr, args_descriptor_);
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+
+  bool can_patch_to_monomorphic_;
 };
 
 class ICDataLayout : public CallSiteDataLayout {

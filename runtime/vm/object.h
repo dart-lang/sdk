@@ -1919,36 +1919,9 @@ class MonomorphicSmiableCall : public Object {
   friend class Class;
 };
 
-class UnlinkedCall : public Object {
- public:
-  StringPtr target_name() const { return raw_ptr()->target_name_; }
-  void set_target_name(const String& target_name) const;
-  ArrayPtr args_descriptor() const { return raw_ptr()->args_descriptor_; }
-  void set_args_descriptor(const Array& args_descriptor) const;
-
-  bool can_patch_to_monomorphic() const {
-    return raw_ptr()->can_patch_to_monomorphic_;
-  }
-  void set_can_patch_to_monomorphic(bool value) const;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(UnlinkedCallLayout));
-  }
-
-  intptr_t Hashcode() const;
-  bool Equals(const UnlinkedCall& other) const;
-
-  static UnlinkedCallPtr New();
-
- private:
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(UnlinkedCall, Object);
-  friend class Class;
-};
-
 class CallSiteData : public Object {
  public:
   StringPtr target_name() const { return raw_ptr()->target_name_; }
-
   ArrayPtr arguments_descriptor() const { return raw_ptr()->args_descriptor_; }
 
   static intptr_t target_name_offset() {
@@ -1961,13 +1934,36 @@ class CallSiteData : public Object {
 
  private:
   void set_target_name(const String& value) const;
-
   void set_arguments_descriptor(const Array& value) const;
 
   HEAP_OBJECT_IMPLEMENTATION(CallSiteData, Object)
 
   friend class ICData;
   friend class MegamorphicCache;
+};
+
+class UnlinkedCall : public CallSiteData {
+ public:
+  bool can_patch_to_monomorphic() const {
+    return raw_ptr()->can_patch_to_monomorphic_;
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UnlinkedCallLayout));
+  }
+
+  intptr_t Hashcode() const;
+  bool Equals(const UnlinkedCall& other) const;
+
+  static UnlinkedCallPtr New();
+
+ private:
+  friend class ICData;  // For set_*() methods.
+
+  void set_can_patch_to_monomorphic(bool value) const;
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(UnlinkedCall, CallSiteData);
+  friend class Class;
 };
 
 // Object holding information about an IC: test classes and their

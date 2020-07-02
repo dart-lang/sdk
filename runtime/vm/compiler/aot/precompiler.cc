@@ -716,7 +716,7 @@ void Precompiler::AddCalleesOfHelper(const Object& entry,
     if (temp_selector->raw() == Symbols::Call().raw()) {
       // Potential closure call.
       const Array& arguments_descriptor =
-          Array::Handle(Z, call_site.args_descriptor());
+          Array::Handle(Z, call_site.arguments_descriptor());
       AddClosureCall(arguments_descriptor);
     }
   } else if (entry.IsMegamorphicCache()) {
