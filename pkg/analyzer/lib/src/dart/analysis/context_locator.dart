@@ -72,8 +72,7 @@ class ContextLocatorImpl implements ContextLocator {
     }
     PerformanceLog performanceLog = PerformanceLog(StringBuffer());
     AnalysisDriverScheduler scheduler = AnalysisDriverScheduler(performanceLog);
-    DartSdkManager sdkManager =
-        DartSdkManager(sdkPath ?? _defaultSdkPath, true);
+    DartSdkManager sdkManager = DartSdkManager(sdkPath ?? _defaultSdkPath);
     scheduler.start();
     ContextBuilderOptions options = ContextBuilderOptions();
     ContextBuilder builder =

@@ -552,7 +552,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
         useSummaries ? options.buildSummaryInputs : <String>[]);
 
     // Once options and embedders are processed, setup the SDK.
-    _setupSdk(options, useSummaries, analysisOptions);
+    _setupSdk(options, analysisOptions);
 
     // Choose a package resolution policy and a diet parsing policy based on
     // the command-line options.
@@ -627,8 +627,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
     return analyzer.analyze(formatter);
   }
 
-  void _setupSdk(CommandLineOptions options, bool useSummaries,
-      AnalysisOptions analysisOptions) {
+  void _setupSdk(CommandLineOptions options, AnalysisOptions analysisOptions) {
     if (sdk == null) {
       if (options.dartSdkSummaryPath != null) {
         sdk = SummaryBasedDartSdk(options.dartSdkSummaryPath, true);
@@ -636,12 +635,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
         var dartSdkPath = options.dartSdkPath;
         var dartSdk = FolderBasedDartSdk(
             resourceProvider, resourceProvider.getFolder(dartSdkPath));
-        dartSdk.useSummary = useSummaries &&
-            options.sourceFiles.every((String sourcePath) {
-              sourcePath = path.absolute(sourcePath);
-              sourcePath = path.normalize(sourcePath);
-              return !path.isWithin(dartSdkPath, sourcePath);
-            });
         dartSdk.analysisOptions = analysisOptions;
         sdk = dartSdk;
       }

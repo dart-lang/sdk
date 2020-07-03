@@ -31,10 +31,6 @@ abstract class AbstractDartSdk implements DartSdk {
   /// The [AnalysisOptions] to use to create the [context].
   AnalysisOptions _analysisOptions;
 
-  /// The flag that specifies whether an SDK summary should be used. This is a
-  /// temporary flag until summaries are enabled by default.
-  bool _useSummary = false;
-
   /// The [AnalysisContext] which is used for all of the sources in this SDK.
   SdkAnalysisContext _analysisContext;
 
@@ -71,18 +67,6 @@ abstract class AbstractDartSdk implements DartSdk {
 
   @override
   List<String> get uris => libraryMap.uris;
-
-  /// Return `true` if the SDK summary will be used when available.
-  bool get useSummary => _useSummary;
-
-  /// Specify whether SDK summary should be used.
-  set useSummary(bool use) {
-    if (_analysisContext != null) {
-      throw StateError(
-          'The "useSummary" flag cannot be changed after context creation.');
-    }
-    _useSummary = use;
-  }
 
   /// Add the extensions from one or more sdk extension files to this sdk. The
   /// [extensions] should be a table mapping the names of extensions to the

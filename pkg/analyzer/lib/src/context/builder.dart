@@ -249,7 +249,6 @@ class ContextBuilder {
         resourceProvider.getFolder(sdkPath),
       );
       sdk.analysisOptions = analysisOptions;
-      sdk.useSummary = sdkManager.canUseSummaries;
       return sdk;
     });
   }

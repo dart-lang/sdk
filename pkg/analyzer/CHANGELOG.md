@@ -1,3 +1,7 @@
+## 0.39.12-dev
+* Deprecated `canUseSummaries` in `DartSdkManager` constructor.
+  Summaries are not supported this way for SDK.
+
 ## 0.39.11
 * Deprecated `ClassElement.hasReferenceToSuper`.
   It was used internally, should not be part of API.

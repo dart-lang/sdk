@@ -65,16 +65,12 @@ class DartSdkManager {
   /// The absolute path to the directory containing the default SDK.
   final String defaultSdkDirectory;
 
-  /// A flag indicating whether it is acceptable to use summaries when they are
-  /// available.
-  final bool canUseSummaries;
-
   /// A table mapping (an encoding of) analysis options and SDK locations to the
   /// DartSdk from that location that has been configured with those options.
   Map<SdkDescription, DartSdk> sdkMap = HashMap<SdkDescription, DartSdk>();
 
   /// Initialize a newly created manager.
-  DartSdkManager(this.defaultSdkDirectory, this.canUseSummaries);
+  DartSdkManager(this.defaultSdkDirectory, [@deprecated bool canUseSummaries]);
 
   /// Return any SDK that has been created, or `null` if no SDKs have been
   /// created.

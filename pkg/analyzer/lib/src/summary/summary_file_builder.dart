@@ -36,7 +36,6 @@ List<int> buildSdkSummary({
     resourceProvider,
     resourceProvider.getFolder(sdkPath),
   );
-  sdk.useSummary = false;
   sdk.analysisOptions = AnalysisOptionsImpl();
 
   // Append libraries from the embedder.
