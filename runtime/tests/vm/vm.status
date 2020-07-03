@@ -33,6 +33,9 @@ dart_2/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart_2/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart_2/use_bare_instructions_flag_test: Pass, Slow # Spawns several subprocesses
 
+[ ($system != linux || $arch != x64) && $system != fuchsia ]
+cc/CodeExecutability: SkipByDesign  # --dual-map-code not supported on non-Linux/Fuchsia
+
 [ $system != macos || $arch == simarm || $arch == simarm64 ]
 dart/thread_priority_macos_test: SkipByDesign
 dart_2/thread_priority_macos_test: SkipByDesign
