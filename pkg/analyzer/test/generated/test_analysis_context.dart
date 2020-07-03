@@ -10,8 +10,8 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk_elements.dart';
 
 class TestAnalysisContext implements AnalysisContext {

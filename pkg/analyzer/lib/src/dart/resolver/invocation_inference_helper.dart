@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:meta/meta.dart';
 
 class InvocationInferenceHelper {

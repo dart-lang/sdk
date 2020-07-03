@@ -17,6 +17,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
+import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
@@ -31,8 +32,7 @@ import 'package:analyzer/src/generated/engine.dart'
         AnalysisErrorInfoImpl,
         AnalysisOptions,
         AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/resolver.dart'
-    show ConstantVerifier, ScopedVisitor;
+import 'package:analyzer/src/generated/resolver.dart' show ScopedVisitor;
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/lint/analysis.dart';

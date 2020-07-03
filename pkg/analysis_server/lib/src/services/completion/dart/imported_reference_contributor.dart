@@ -8,7 +8,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show SuggestionBuilder;
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 
 /// A contributor for calculating suggestions for imported top level members.
 class ImportedReferenceContributor extends DartCompletionContributor {

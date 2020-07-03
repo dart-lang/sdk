@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_promotion_manager.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:meta/meta.dart';
 
 class FunctionExpressionResolver {

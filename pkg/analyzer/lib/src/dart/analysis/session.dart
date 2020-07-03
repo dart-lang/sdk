@@ -18,8 +18,8 @@ import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:meta/meta.dart';
 
 /// A concrete implementation of an analysis session.

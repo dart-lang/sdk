@@ -12,7 +12,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/resolver.dart' show Namespace;
 import 'package:pub_semver/pub_semver.dart';
 
 /// A visitor that finds code that assumes a later version of the SDK than the

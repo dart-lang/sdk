@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 
 /// The context to resolve an [AstNode] in.
 class ResolutionContext {
