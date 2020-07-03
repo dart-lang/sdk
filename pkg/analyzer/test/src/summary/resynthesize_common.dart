@@ -6937,6 +6937,15 @@ class B extends A {
     expect(typeA.element.source.shortName, 'foo_html.dart');
   }
 
+  test_import_dartCore_implicit() async {
+    var library = await checkLibrary('''
+import 'dart:math';
+''');
+    expect(library.imports, hasLength(2));
+    expect(library.imports[0].uri, 'dart:math');
+    expect(library.imports[1].uri, 'dart:core');
+  }
+
   test_import_deferred() async {
     addLibrarySource('/a.dart', 'f() {}');
     var library = await checkLibrary('''

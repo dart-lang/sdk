@@ -5418,9 +5418,12 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       });
       if (!hasCore) {
         var elements = linkedContext.bundleContext.elementFactory;
-        _imports.add(ImportElementImpl(-1)
-          ..importedLibrary = elements.libraryOfUri('dart:core')
-          ..isSynthetic = true);
+        _imports.add(
+          ImportElementImpl(-1)
+            ..importedLibrary = elements.libraryOfUri('dart:core')
+            ..isSynthetic = true
+            ..uri = 'dart:core',
+        );
       }
       return _imports;
     }
