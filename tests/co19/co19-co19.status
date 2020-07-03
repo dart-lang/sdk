@@ -20,10 +20,9 @@ Language/Generics/Superbounded_types/typedef2_A01_t04: Skip # Non function type 
 Language/Generics/parameter_A01_t03: Skip # Type aliases are not fully implemented
 Language/Generics/syntax_t31: Skip # Type aliases are not fully implemented
 Language/Generics/typedef_A01_t10: Skip # Type aliases are not fully implemented
-Language/Reference/Lexical_Rules/*: Skip # Not migrated to NNBD
-Language/Reference/Lexical_Rules/Comments/*: Skip # Not migrated to NNBD
-Language/Reference/Lexical_Rules/Reserved_Words/*: Skip # Not migrated to NNBD
-Language/Reference/Operator_Precedence/*: Skip # Not migrated to NNBD
+Language/Reference/Operator_Precedence/precedence_01_assignment_t14: Skip # Triple shift is not implemented yet
+Language/Reference/Operator_Precedence/precedence_12_Shift_t04: Skip # Triple shift is not implemented yet
+Language/Reference/Operator_Precedence/precedence_t05: Skip # Triple shift is not implemented yet
 Language/Statements/Assert/*: Skip # Not migrated to NNBD
 Language/Statements/Blocks/*: Skip # Not migrated to NNBD
 Language/Statements/Break/*: Skip # Not migrated to NNBD
