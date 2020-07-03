@@ -361,6 +361,7 @@ class ObjectPointerVisitor;
   V(_FutureListener, "_FutureListener")                                        \
   V(_GrowableList, "_GrowableList")                                            \
   V(_GrowableListFactory, "_GrowableList.")                                    \
+  V(_GrowableListFilledFactory, "_GrowableList.filled")                        \
   V(_GrowableListWithData, "_GrowableList._withData")                          \
   V(_ImmutableList, "_ImmutableList")                                          \
   V(_Int16ArrayFactory, "Int16List.")                                          \
@@ -388,6 +389,7 @@ class ObjectPointerVisitor;
   V(_LinkedHashSet, "_CompactLinkedHashSet")                                   \
   V(_List, "_List")                                                            \
   V(_ListFactory, "_List.")                                                    \
+  V(_ListFilledFactory, "_List.filled")                                        \
   V(_MethodMirror, "_MethodMirror")                                            \
   V(_Mint, "_Mint")                                                            \
   V(_MirrorReference, "_MirrorReference")                                      \

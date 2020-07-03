@@ -1300,10 +1300,12 @@ class List<E> extends Iterable {
 
 class _GrowableList<E> {
   factory _GrowableList() => null;
+  factory _GrowableList.filled() => null;
 }
 
 class _List<E> {
   factory _List() => null;
+  factory _List.filled() => null;
 }
 
 class MapEntry<K, V> {
