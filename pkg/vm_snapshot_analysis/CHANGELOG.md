@@ -4,6 +4,14 @@
 
 - Add `buildComparisonTreemap` for constructing treemap representing the diff
 between two size profiles.
+- Implemented support for extracting call graph information from the AOT
+compiler trace (`--trace-precompiler-to` flag), see `precompiler_trace.dart`.
+- New command `explain dynamic-calls` which estimates the impact of different
+dynamic calls on the resulting AOT snapshot size using information from the
+size dump (e.g. V8 snapshot profile) and AOT compiler trace.
+- `summary` command can now use information from the AOT compiler trace to
+group packages/libraries together with their dependencies to given more precise
+estimate of how much a specific package/library brings into the snapshot.
 
 ## 0.3.0
 

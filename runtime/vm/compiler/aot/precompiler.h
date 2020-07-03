@@ -25,13 +25,10 @@ class Error;
 class Field;
 class Function;
 class GrowableObjectArray;
-class SequenceNode;
 class String;
-class ParsedJSONObject;
-class ParsedJSONArray;
 class Precompiler;
 class FlowGraph;
-class PrecompilerEntryPointsPrinter;
+class PrecompilerTracer;
 
 class TableSelectorKeyValueTrait {
  public:
@@ -249,8 +246,26 @@ class Precompiler : public ValueObject {
 
   Phase phase() const { return phase_; }
 
+  bool is_tracing() const { return is_tracing_; }
+
  private:
   static Precompiler* singleton_;
+
+  // Scope which activates machine readable precompiler tracing if tracer
+  // is available.
+  class TracingScope : public ValueObject {
+   public:
+    explicit TracingScope(Precompiler* precompiler)
+        : precompiler_(precompiler), was_tracing_(precompiler->is_tracing_) {
+      precompiler->is_tracing_ = (precompiler->tracer_ != nullptr);
+    }
+
+    ~TracingScope() { precompiler_->is_tracing_ = was_tracing_; }
+
+   private:
+    Precompiler* const precompiler_;
+    const bool was_tracing_;
+  };
 
   explicit Precompiler(Thread* thread);
   ~Precompiler();
@@ -356,6 +371,8 @@ class Precompiler : public ValueObject {
   void* il_serialization_stream_;
 
   Phase phase_ = Phase::kPreparation;
+  PrecompilerTracer* tracer_ = nullptr;
+  bool is_tracing_ = false;
 };
 
 class FunctionsTraits {

@@ -8,6 +8,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/aot/aot_call_specializer.h"
+#include "vm/compiler/aot/precompiler_tracer.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
@@ -50,6 +51,7 @@
 #include "vm/type_table.h"
 #include "vm/type_testing_stubs.h"
 #include "vm/version.h"
+#include "vm/zone_text_buffer.h"
 
 namespace dart {
 
@@ -268,6 +270,8 @@ void Precompiler::DoCompileAll() {
         }
       }
 
+      tracer_ = PrecompilerTracer::StartTracingIfRequested(this);
+
       // All stubs have already been generated, all of them share the same pool.
       // We use that pool to initialize our global object pool, to guarantee
       // stubs as well as code compiled from here on will have the same pool.
@@ -298,8 +302,11 @@ void Precompiler::DoCompileAll() {
       CollectDynamicFunctionNames();
 
       // Start with the allocations and invocations that happen from C++.
-      AddRoots();
-      AddAnnotatedRoots();
+      {
+        TracingScope scope(this);
+        AddRoots();
+        AddAnnotatedRoots();
+      }
 
       // With the nnbd experiment enabled, these non-nullable type arguments may
       // not be retained, although they will be used and expected to be
@@ -375,6 +382,11 @@ void Precompiler::DoCompileAll() {
             AddFunction(function);
           }
         }
+      }
+
+      if (tracer_ != nullptr) {
+        tracer_->Finalize();
+        tracer_ = nullptr;
       }
 
       TraceForRetainedFunctions();
@@ -611,38 +623,27 @@ void Precompiler::ProcessFunction(const Function& function) {
   const intptr_t gop_offset =
       FLAG_use_bare_instructions ? global_object_pool_builder()->CurrentLength()
                                  : 0;
+  RELEASE_ASSERT(!function.HasCode());
 
-  if (!function.HasCode()) {
-    function_count_++;
+  TracingScope tracing_scope(this);
+  function_count_++;
 
-    if (FLAG_trace_precompiler) {
-      THR_Print("Precompiling %" Pd " %s (%s, %s)\n", function_count_,
-                function.ToLibNamePrefixedQualifiedCString(),
-                function.token_pos().ToCString(),
-                Function::KindToCString(function.kind()));
-    }
-
-    ASSERT(!function.is_abstract());
-    ASSERT(!function.IsRedirectingFactory());
-
-    error_ = CompileFunction(this, thread_, zone_, function);
-    if (!error_.IsNull()) {
-      Jump(error_);
-    }
-    // Used in the JIT to save type-feedback across compilations.
-    function.ClearICDataArray();
-  } else {
-    if (FLAG_trace_precompiler) {
-      // This function was compiled from somewhere other than Precompiler,
-      // such as const constructors compiled by the parser.
-      THR_Print("Already has code: %s (%s, %s)\n",
-                function.ToLibNamePrefixedQualifiedCString(),
-                function.token_pos().ToCString(),
-                Function::KindToCString(function.kind()));
-    }
+  if (FLAG_trace_precompiler) {
+    THR_Print("Precompiling %" Pd " %s (%s, %s)\n", function_count_,
+              function.ToLibNamePrefixedQualifiedCString(),
+              function.token_pos().ToCString(),
+              Function::KindToCString(function.kind()));
   }
 
-  ASSERT(function.HasCode());
+  ASSERT(!function.is_abstract());
+  ASSERT(!function.IsRedirectingFactory());
+
+  error_ = CompileFunction(this, thread_, zone_, function);
+  if (!error_.IsNull()) {
+    Jump(error_);
+  }
+  // Used in the JIT to save type-feedback across compilations.
+  function.ClearICDataArray();
   AddCalleesOf(function, gop_offset);
 }
 
@@ -676,7 +677,11 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
 #endif
 
   String& selector = String::Handle(Z);
-  if (FLAG_use_bare_instructions) {
+  // When tracing we want to scan the object pool attached to the code object
+  // rather than scanning global object pool - because we want to include
+  // *all* outgoing references into the trace. Scanning GOP would exclude
+  // references that have been deduplicated.
+  if (FLAG_use_bare_instructions && !is_tracing()) {
     for (intptr_t i = gop_offset;
          i < global_object_pool_builder()->CurrentLength(); i++) {
       const auto& wrapper_entry = global_object_pool_builder()->EntryAt(i);
@@ -968,6 +973,10 @@ void Precompiler::AddClosureCall(const String& call_selector,
 }
 
 void Precompiler::AddField(const Field& field) {
+  if (is_tracing()) {
+    tracer_->WriteFieldRef(field);
+  }
+
   if (fields_to_retain_.HasKey(&field)) return;
 
   fields_to_retain_.Insert(&Field::ZoneHandle(Z, field.raw()));
@@ -1023,6 +1032,10 @@ bool Precompiler::MustRetainFunction(const Function& function) {
 }
 
 void Precompiler::AddFunction(const Function& function, bool retain) {
+  if (is_tracing()) {
+    tracer_->WriteFunctionRef(function);
+  }
+
   if (possibly_retained_functions_.ContainsKey(function)) return;
   if (retain || MustRetainFunction(function)) {
     possibly_retained_functions_.Insert(function);
@@ -1042,8 +1055,11 @@ bool Precompiler::IsSent(const String& selector) {
 }
 
 void Precompiler::AddSelector(const String& selector) {
-  ASSERT(!selector.IsNull());
+  if (is_tracing()) {
+    tracer_->WriteSelectorRef(selector);
+  }
 
+  ASSERT(!selector.IsNull());
   if (!IsSent(selector)) {
     sent_selectors_.Insert(&String::ZoneHandle(Z, selector.raw()));
     selector_count_++;
@@ -1058,6 +1074,10 @@ void Precompiler::AddSelector(const String& selector) {
 
 void Precompiler::AddTableSelector(const compiler::TableSelector* selector) {
   ASSERT(FLAG_use_bare_instructions && FLAG_use_table_dispatch);
+
+  if (is_tracing()) {
+    tracer_->WriteTableSelectorRef(selector->id);
+  }
 
   if (seen_table_selectors_.HasKey(selector->id)) return;
 
@@ -1076,6 +1096,10 @@ bool Precompiler::IsHitByTableSelector(const Function& function) {
 }
 
 void Precompiler::AddInstantiatedClass(const Class& cls) {
+  if (is_tracing()) {
+    tracer_->WriteClassInstantiationRef(cls);
+  }
+
   if (cls.is_allocated()) return;
 
   class_count_++;
@@ -2698,6 +2722,10 @@ ErrorPtr Precompiler::CompileFunction(Precompiler* precompiler,
   ASSERT(CompilerState::Current().is_aot());
   const bool optimized = function.IsOptimizable();  // False for natives.
   DartCompilationPipeline pipeline;
+  if (precompiler->is_tracing()) {
+    precompiler->tracer_->WriteCompileFunctionEvent(function);
+  }
+
   return PrecompileFunctionHelper(precompiler, &pipeline, function, optimized);
 }
 

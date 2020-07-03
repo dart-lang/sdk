@@ -414,6 +414,7 @@ void ProgramVisitor::BindStaticCalls(Zone* zone, Isolate* isolate) {
   WalkProgram(zone, isolate, &visitor);
 }
 
+DECLARE_FLAG(charp, trace_precompiler_to);
 DECLARE_FLAG(charp, write_v8_snapshot_profile_to);
 
 void ProgramVisitor::ShareMegamorphicBuckets(Zone* zone, Isolate* isolate) {
@@ -913,7 +914,8 @@ void ProgramVisitor::DedupUnlinkedCalls(Zone* zone, Isolate* isolate) {
   // implicit and go through global object pool). This information is needed
   // to produce more informative snapshot profile.
   if (!FLAG_use_bare_instructions ||
-      FLAG_write_v8_snapshot_profile_to != nullptr) {
+      FLAG_write_v8_snapshot_profile_to != nullptr ||
+      FLAG_trace_precompiler_to != nullptr) {
     WalkProgram(zone, isolate, &deduper);
   }
 }

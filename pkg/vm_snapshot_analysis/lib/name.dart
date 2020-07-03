@@ -55,6 +55,23 @@ class Name {
     return result;
   }
 
+  /// Split raw name into individual '.' separated components (e.g. names of
+  /// its parent functions).
+  List<String> get rawComponents {
+    // Break the rest of the name into components.
+    final result = raw.split('.');
+
+    // Constructor names look like this 'new <ClassName>.<CtorName>' so
+    // we need to concatenate the first two components back to form
+    // the constructor name.
+    if (result.first.startsWith('new ')) {
+      result[0] = '${result[0]}.${result[1]}';
+      result.removeAt(1);
+    }
+
+    return result;
+  }
+
   static String collapse(String name) =>
       name.replaceAll(_collapseRe, '<anonymous closure>');
 }

@@ -2,7 +2,8 @@
 
 This package provides libraries and a utility for analysing the size and
 contents of Dart VM AOT snapshots based on the output of
-`--print-instructions-sizes-to` and `--write-v8-snapshot-profile-to` VM flags.
+`--print-instructions-sizes-to`, `--write-v8-snapshot-profile-to` and
+`--trace-precompiler-to` VM flags.
 
 ## AOT Snapshot Basics
 
@@ -24,6 +25,9 @@ half of the snapshot, those this varies depending on the application.
 * `--write-v8-snapshot-profile-to` is a graph representation of the snapshot,
 it attributes bytes written into a snapshot to a node in the heap graph. This
 format covers both data and code sections of the snapshot.
+* `--trace-precompiler-to` gives information about dependencies between
+compiled functions, allowing to determine why certain function was pulled into
+the snapshot.
 
 ### Passing flags to the AOT compiler
 
@@ -92,6 +96,45 @@ Here objects which can be attributed to `_Uri` take `5.7%` of the snapshot,
 at the same time objects which can be attributed to `dart:core` library
 but not to any specific class within this library take `3.33%` of the snapshot.
 
+This command also supports _estimating_ cumulative impact of a library or a
+package together with its dependencies - which can be computed from
+a precompiler trace (`--trace-precompiler-to` options). For example:
+
+```console
+$ snapshot_analysis summary -b package /tmp/profile.json
++-----------------------------+--------------+---------+
+| Package                     | Size (Bytes) | Percent |
++-----------------------------+--------------+---------+
+| package:compiler            |      5369933 |  38.93% |
+| package:front_end           |      2644942 |  19.18% |
+| package:kernel              |      1443568 |  10.47% |
+| package:_fe_analyzer_shared |       944555 |   6.85% |
+...
+$ snapshot_analysis summary -b package -d 1 --precompiler-trace=/tmp/trace.json /tmp/profile.json
++------------------------------+--------------+---------+
+| Package                      | Size (Bytes) | Percent |
++------------------------------+--------------+---------+
+| package:compiler (+ 8 deps)  |      5762761 |  41.78% |
+| package:front_end (+ 1 deps) |      2708981 |  19.64% |
+| package:kernel               |      1443568 |  10.47% |
+| package:_fe_analyzer_shared  |       944555 |   6.85% |
+...
+Dependency trees:
+
+package:compiler (total 5762761 bytes)
+├── package:js_ast (total 242490 bytes)
+├── package:dart2js_info (total 101280 bytes)
+├── package:crypto (total 27434 bytes)
+│   ├── package:typed_data (total 11850 bytes)
+│   └── package:convert (total 5185 bytes)
+├── package:collection (total 15182 bytes)
+├── package:_js_interop_checks (total 4627 bytes)
+└── package:js_runtime (total 1815 bytes)
+
+package:front_end (total 2708981 bytes)
+└── package:package_config (total 64039 bytes)
+```
+
 
 ### `compare`
 
@@ -141,6 +184,31 @@ method) producing easy to consume output.
 data or executable code.
 * `object-type` (default) collapses snapshot nodes based on their type only.
 
+### `explain`
+
+#### `explain dynamic-calls`
+
+```console
+$ snapshot_analysis explain dynamic-calls <profile.json> <trace.json>
+```
+
+This command generates a report listing dynamically dispatched selectors
+and their approximate impact on the code size.
+
+```console
+snapshot_analysis explain dynamic-calls /tmp/profile.json /tmp/trace.json
++------------------------------+--------------+---------+----------+
+| Selector                     | Size (Bytes) | Percent | Of total |
++------------------------------+--------------+---------+----------+
+| set:requestHeader            |        10054 |  28.00% |    0.03% |
+| get:scale                    |         3630 |  10.11% |    0.01% |
+...
+Dynamic call to set:requestHeader (retaining ~10054 bytes) occurs in:
+    package:my-super-app/src/injector.dart::Injector.handle{body}
+
+Dynamic call to get:scale (retaining ~3630 bytes) occurs in:
+    package:some-dependency/src/image.dart::Image.==
+```
 
 ## API
 
@@ -161,6 +229,48 @@ to packages, libraries, classes and functions.
 `loadProgramInfo` which automatically detects format of the input JSON file
 and creates `ProgramInfo` in an appropriate way, allowing to write code
 which works in the same way with both formats.
+
+## Precompiler Trace Format (`--write-precompiler-trace-to=...`)
+
+AOT compiler can produce a JSON file containing information about compiled
+functions and dependencies between them. This file has the following structure:
+
+```json
+{
+    "trace": traceArray,
+    "entities": entitiesArray,
+    "strings": stringsArray,
+}
+```
+
+- `stringsArray` is an array of strings referenced by other parts of the trace
+by their index in this array.
+- `entitiesArray` is an flattened array of entities:
+
+    - `"C", <library-uri-idx>, <class-name-idx>, 0` - class record;
+    - `"V", <class-idx>, <name-idx>, 0` - static field record;
+    - `"F"|"S", <class-idx>, <name-idx>, <selector-id>` - function record (`F` for dynamic functions and `S` for static functions);
+
+  Note that all records in this array occupy the same amount of elements (`4`)
+  to make random access by index possible.
+
+- `traceArray` is an flattened array of precompilation events:
+
+    - `"R"` - root event (always the first element)
+    - `"E"` - end event (always the last element)
+    - `"C", <function-idx>` - function compilation event
+
+  Root and function compilation events can additionally be followed by a
+  sequence of references which enumerate outgoing dependencies discovered
+  by the AOT compiler:
+
+    - `<entity-idx>` - a reference to a function or a static field;
+    - `"S", <selector-idx>` - a dynamic call with the given selector;
+    - `"T", <selector-id>` - dispatch table call with the given selector id;
+
+*Flattened array* is an array of records formed by consecutive elements:
+`[R0_0, R0_1, R0_2, R1_0, R1_1, R1_2, ...]` here `R0_*` is the first record
+and `R1_*` is the second record and so on.
 
 ## Features and bugs
 

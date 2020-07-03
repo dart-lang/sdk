@@ -15964,6 +15964,7 @@ CodePtr Code::FinalizeCodeAndNotify(const char* name,
 
 #if defined(DART_PRECOMPILER)
 DECLARE_FLAG(charp, write_v8_snapshot_profile_to);
+DECLARE_FLAG(charp, trace_precompiler_to);
 #endif  // defined(DART_PRECOMPILER)
 
 CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
@@ -15985,12 +15986,13 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
     }
   } else {
 #if defined(DART_PRECOMPILER)
-    if (FLAG_write_v8_snapshot_profile_to != nullptr &&
-        assembler->HasObjectPoolBuilder() &&
+    const bool needs_pool = (FLAG_write_v8_snapshot_profile_to != nullptr) ||
+                            (FLAG_trace_precompiler_to != nullptr);
+    if (needs_pool && assembler->HasObjectPoolBuilder() &&
         assembler->object_pool_builder().HasParent()) {
       // We are not going to write this pool into snapshot, but we will use
-      // it to emit references from code object to other objects in the
-      // snapshot that it caused to be added to the pool.
+      // it to emit references from this code object to other objects in the
+      // snapshot that it uses.
       object_pool =
           ObjectPool::NewFromBuilder(assembler->object_pool_builder());
     }
