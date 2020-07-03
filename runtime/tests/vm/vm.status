@@ -84,7 +84,15 @@ dart/generic_field_invocation_test: SkipByDesign # KBC interpreters do not suppo
 dart_2/generic_field_invocation_test: SkipByDesign # KBC interpreters do not support --no_lazy_dispatchers
 
 [ $compiler == dartkp ]
+dart/causal_stacks/async_throws_stack_no_causal_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
+dart/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # --no-lazy... does nothing on precompiler.
+dart/causal_stacks/async_throws_stack_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
+dart/causal_stacks/async_throws_stack_test: SkipByDesign # --no-lazy... does nothing on precompiler.
 dart/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invoking the precompiler.
+dart_2/causal_stacks/async_throws_stack_no_causal_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
+dart_2/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # --no-lazy... does nothing on precompiler.
+dart_2/causal_stacks/async_throws_stack_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
+dart_2/causal_stacks/async_throws_stack_test: SkipByDesign # --no-lazy... does nothing on precompiler.
 dart_2/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invoking the precompiler.
 
 [ $compiler != dartkp ]
