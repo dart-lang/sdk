@@ -330,13 +330,17 @@ EOF
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages --optimization-counter-threshold=-1 hello.dart
     out/ReleaseX64/dart-sdk/bin/dart2js --packages=.packages --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
+    out/ReleaseX64/dart-sdk/bin/dart2js --enable-experiment=non-nullable --sound-null-safety --packages=.packages --out=out.js -m hello.dart
+    third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseX64/dart-sdk/bin/dart2js --packages=.packages --out=out.js -m hello.dart
+    LD_LIBRARY_PATH=third_party/firefox_jsshell/linux/jsshell/ third_party/firefox_jsshell/linux/jsshell/js -f sdk/lib/_internal/js_runtime/lib/preambles/jsshell.js -f out.js
+    out/ReleaseX64/dart-sdk/bin/dart2js --enable-experiment=non-nullable --sound-null-safety --packages=.packages --out=out.js -m hello.dart
     LD_LIBRARY_PATH=third_party/firefox_jsshell/linux/jsshell/ third_party/firefox_jsshell/linux/jsshell/js -f sdk/lib/_internal/js_runtime/lib/preambles/jsshell.js -f out.js
     out/ReleaseX64/dart-sdk/bin/dart2js --benchmarking-production --packages=.packages --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
-    out/ReleaseX64/dart-sdk/bin/dart2js --benchmarking-x --packages=.packages --out=out.js -m hello.dart
+    out/ReleaseX64/dart-sdk/bin/dart2js --enable-experiment=non-nullable --sound-null-safety --benchmarking-production --packages=.packages --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
-    out/ReleaseX64/dart-sdk/bin/dart2js --use-kernel --packages=.packages --out=out.js -m hello.dart
+    out/ReleaseX64/dart-sdk/bin/dart2js --benchmarking-x --packages=.packages --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --kernel hello.dart
     out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --mode=compile --compile-vm-options=--print-metrics --packages=.packages --out out.js --kernel hello.dart
