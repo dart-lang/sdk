@@ -12,7 +12,7 @@ import '../experiments.dart';
 import '../sdk.dart';
 
 class PubCommand extends DartdevCommand<int> {
-  PubCommand({bool verbose = false}) : super('pub', 'Work with packages.');
+  PubCommand() : super('pub', 'Work with packages.');
 
   @override
   final ArgParser argParser = ArgParser.allowAnything();
@@ -46,8 +46,8 @@ class PubCommand extends DartdevCommand<int> {
     var args = argResults.arguments;
 
     // Pass any --enable-experiment options along.
-    if (args.isNotEmpty && wereExperimentsSpecified(globalResults)) {
-      List<String> experimentIds = specifiedExperiments(globalResults);
+    if (args.isNotEmpty && wereExperimentsSpecified) {
+      List<String> experimentIds = specifiedExperiments;
 
       if (args.first == 'run') {
         args = [

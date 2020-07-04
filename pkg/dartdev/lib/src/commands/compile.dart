@@ -18,6 +18,7 @@ class Option {
   final String flag;
   final String help;
   final String abbr;
+
   Option({this.flag, this.help, this.abbr});
 }
 
@@ -44,10 +45,7 @@ bool checkFile(String sourcePath) {
 }
 
 class CompileJSCommand extends DartdevCommand<int> {
-  bool verbose = false;
-  CompileJSCommand({
-    this.verbose,
-  }) : super('js', 'Compile Dart to JavaScript') {
+  CompileJSCommand() : super('js', 'Compile Dart to JavaScript') {
     argParser
       ..addOption(
         commonOptions['outputFile'].flag,
@@ -85,14 +83,12 @@ class CompileJSCommand extends DartdevCommand<int> {
 }
 
 class CompileSnapshotCommand extends DartdevCommand<int> {
-  bool verbose = false;
   final String commandName;
   final String help;
   final String fileExt;
   final String formatName;
 
   CompileSnapshotCommand({
-    this.verbose,
     this.commandName,
     this.help,
     this.fileExt,
@@ -146,13 +142,11 @@ class CompileSnapshotCommand extends DartdevCommand<int> {
 }
 
 class CompileNativeCommand extends DartdevCommand<int> {
-  bool verbose = false;
   final String commandName;
   final String format;
   final String help;
 
   CompileNativeCommand({
-    this.verbose,
     this.commandName,
     this.format,
     this.help,
@@ -216,29 +210,27 @@ Remove debugging information from the output and save it separately to the speci
 class CompileCommand extends Command {
   @override
   String get description => 'Compile Dart to various formats.';
+
   @override
   String get name => 'compile';
 
-  CompileCommand({bool verbose = false}) {
+  CompileCommand() {
     addSubcommand(CompileJSCommand());
     addSubcommand(CompileSnapshotCommand(
       commandName: 'jit-snapshot',
       help: 'to a JIT snapshot',
       fileExt: 'jit',
       formatName: 'app-jit',
-      verbose: verbose,
     ));
     addSubcommand(CompileNativeCommand(
       commandName: 'exe',
       help: 'to a self-contained executable',
       format: 'exe',
-      verbose: verbose,
     ));
     addSubcommand(CompileNativeCommand(
       commandName: 'aot-snapshot',
       help: 'to an AOT snapshot',
       format: 'aot',
-      verbose: verbose,
     ));
   }
 }

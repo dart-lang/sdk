@@ -145,7 +145,7 @@ class DartdevRunner<int> extends CommandRunner {
     final bool verbose = args.contains('-v') || args.contains('--verbose');
 
     argParser.addFlag('verbose',
-        abbr: 'v', negatable: false, help: 'Show verbose output.');
+        abbr: 'v', negatable: false, help: 'Show additional command output.');
     argParser.addFlag('version',
         negatable: false, help: 'Print the Dart SDK version.');
     argParser.addFlag('enable-analytics',
@@ -155,6 +155,9 @@ class DartdevRunner<int> extends CommandRunner {
 
     addExperimentalFlags(argParser, verbose);
 
+    argParser.addFlag('diagnostics',
+        negatable: false, help: 'Show tool diagnostic output.', hide: !verbose);
+
     // A hidden flag to disable analytics on this run, this constructor can be
     // called with this flag, but should be removed before run() is called as
     // the flag has not been added to all sub-commands.
@@ -163,14 +166,14 @@ class DartdevRunner<int> extends CommandRunner {
         help: 'Disable anonymous analytics for this `dart *` run',
         hide: true);
 
-    addCommand(AnalyzeCommand(verbose: verbose));
+    addCommand(AnalyzeCommand());
     addCommand(CreateCommand(verbose: verbose));
-    addCommand(CompileCommand(verbose: verbose));
-    addCommand(FormatCommand(verbose: verbose));
+    addCommand(CompileCommand());
+    addCommand(FormatCommand());
     addCommand(MigrateCommand(verbose: verbose));
-    addCommand(PubCommand(verbose: verbose));
-    addCommand(RunCommand(verbose: verbose));
-    addCommand(TestCommand(verbose: verbose));
+    addCommand(PubCommand());
+    addCommand(RunCommand());
+    addCommand(TestCommand());
   }
 
   @override
@@ -192,13 +195,16 @@ class DartdevRunner<int> extends CommandRunner {
         io.exit(254);
       }
     }
-    isVerbose = topLevelResults['verbose'];
+
+    isDiagnostics = topLevelResults['diagnostics'];
 
     final Ansi ansi = Ansi(Ansi.terminalSupportsAnsi);
-    log = isVerbose ? Logger.verbose(ansi: ansi) : Logger.standard(ansi: ansi);
+    log = isDiagnostics
+        ? Logger.verbose(ansi: ansi)
+        : Logger.standard(ansi: ansi);
 
-    if (wereExperimentsSpecified(topLevelResults)) {
-      List<String> experimentIds = specifiedExperiments(topLevelResults);
+    if (topLevelResults.wasParsed(experimentFlagName)) {
+      List<String> experimentIds = topLevelResults[experimentFlagName];
       for (ExperimentalFeature feature in experimentalFeatures) {
         // We allow default true flags, but complain when they are passed in.
         if (feature.isEnabledByDefault &&

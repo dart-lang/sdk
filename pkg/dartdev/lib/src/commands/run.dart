@@ -18,6 +18,8 @@ import '../utils.dart';
 class RunCommand extends DartdevCommand<int> {
   @override
   final ArgParser argParser = ArgParser.allowAnything();
+
+  @override
   final bool verbose;
 
   RunCommand({this.verbose = false}) : super('run', '''
@@ -102,9 +104,8 @@ Run a Dart file.''');
     }
 
     // Pass any --enable-experiment options along.
-    // todo: test
-    if (args.isNotEmpty && wereExperimentsSpecified(globalResults)) {
-      List<String> experimentIds = specifiedExperiments(globalResults);
+    if (args.isNotEmpty && wereExperimentsSpecified) {
+      List<String> experimentIds = specifiedExperiments;
       args = [
         '--$experimentFlagName=${experimentIds.join(',')}',
         ...args,

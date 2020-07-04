@@ -45,7 +45,6 @@ class AnalysisServer {
       sdkPath.path,
     ];
 
-    log.trace('dart ${command.join(' ')}');
     _process = await startProcess(sdk.dart, command);
     // This callback hookup can't throw.
     //ignore: unawaited_futures
