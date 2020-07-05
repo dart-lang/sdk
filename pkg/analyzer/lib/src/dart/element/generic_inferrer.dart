@@ -16,8 +16,8 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart' show HintCode, StrongModeCode;
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:meta/meta.dart';
 
 /// Tracks upper and lower type bounds for a set of type parameters.

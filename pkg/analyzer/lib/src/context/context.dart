@@ -5,10 +5,10 @@
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:meta/meta.dart';
 
 /// An [AnalysisContext] in which analysis can be performed.

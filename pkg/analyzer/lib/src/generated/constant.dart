@@ -9,10 +9,10 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
+import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart' show RecordingErrorListener;
 import 'package:analyzer/src/generated/source.dart' show Source;
-import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 
 export 'package:analyzer/dart/analysis/declared_variables.dart';
 export 'package:analyzer/dart/constant/value.dart';
