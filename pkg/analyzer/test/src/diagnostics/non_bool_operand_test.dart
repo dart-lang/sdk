@@ -12,8 +12,52 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(NonBoolOperandTest);
     defineReflectiveTests(NonBoolOperandTest_NNBD);
   });
+}
+
+@reflectiveTest
+class NonBoolOperandTest extends DriverResolutionTest {
+  test_and_left() async {
+    await assertErrorsInCode(r'''
+bool f(int left, bool right) {
+  return left && right;
+}
+''', [
+      error(StaticTypeWarningCode.NON_BOOL_OPERAND, 40, 4),
+    ]);
+  }
+
+  test_and_right() async {
+    await assertErrorsInCode(r'''
+bool f(bool left, String right) {
+  return left && right;
+}
+''', [
+      error(StaticTypeWarningCode.NON_BOOL_OPERAND, 51, 5),
+    ]);
+  }
+
+  test_or_left() async {
+    await assertErrorsInCode(r'''
+bool f(List<int> left, bool right) {
+  return left || right;
+}
+''', [
+      error(StaticTypeWarningCode.NON_BOOL_OPERAND, 46, 4),
+    ]);
+  }
+
+  test_or_right() async {
+    await assertErrorsInCode(r'''
+bool f(bool left, double right) {
+  return left || right;
+}
+''', [
+      error(StaticTypeWarningCode.NON_BOOL_OPERAND, 51, 5),
+    ]);
+  }
 }
 
 @reflectiveTest

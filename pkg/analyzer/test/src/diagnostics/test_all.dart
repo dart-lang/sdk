@@ -321,6 +321,7 @@ import 'no_default_super_constructor_test.dart' as no_default_super_constructor;
 import 'non_abstract_class_inherits_abstract_member_test.dart'
     as non_abstract_class_inherits_abstract_member;
 import 'non_bool_condition_test.dart' as non_bool_condition;
+import 'non_bool_expression_test.dart' as non_bool_expression;
 import 'non_bool_negation_expression_test.dart' as non_bool_negation_expression;
 import 'non_bool_operand_test.dart' as non_bool_operand;
 import 'non_constant_case_expression_from_deferred_library_test.dart'
@@ -750,6 +751,7 @@ main() {
     no_default_super_constructor.main();
     non_abstract_class_inherits_abstract_member.main();
     non_bool_condition.main();
+    non_bool_expression.main();
     non_bool_negation_expression.main();
     non_bool_operand.main();
     non_constant_list_element.main();
