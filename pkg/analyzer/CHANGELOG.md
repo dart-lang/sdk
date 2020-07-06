@@ -1,6 +1,10 @@
-## 0.39.12-dev
+## 0.39.12
 * Deprecated `canUseSummaries` in `DartSdkManager` constructor.
   Summaries are not supported this way for SDK.
+* Set uri for implicit dart:core import.
+* Add overrideKnownFeaturesAsync() for DartDoc testing.
+* Remove DartSdk.useSummary.
+* Move TypeSystemImpl to src/dart/element/type_system.dart
 
 ## 0.39.11
 * Deprecated `ClassElement.hasReferenceToSuper`.
