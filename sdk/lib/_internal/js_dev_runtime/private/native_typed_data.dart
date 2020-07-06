@@ -1361,21 +1361,25 @@ class NativeFloat32x4 implements Float32x4 {
 
   /// Copy [this] and replace the [x] lane.
   Float32x4 withX(double newX) {
+    ArgumentError.checkNotNull(newX);
     return NativeFloat32x4._truncated(_truncate(newX), y, z, w);
   }
 
   /// Copy [this] and replace the [y] lane.
   Float32x4 withY(double newY) {
+    ArgumentError.checkNotNull(newY);
     return NativeFloat32x4._truncated(x, _truncate(newY), z, w);
   }
 
   /// Copy [this] and replace the [z] lane.
   Float32x4 withZ(double newZ) {
+    ArgumentError.checkNotNull(newZ);
     return NativeFloat32x4._truncated(x, y, _truncate(newZ), w);
   }
 
   /// Copy [this] and replace the [w] lane.
   Float32x4 withW(double newW) {
+    ArgumentError.checkNotNull(newW);
     return NativeFloat32x4._truncated(x, y, z, _truncate(newW));
   }
 
@@ -1583,24 +1587,28 @@ class NativeInt32x4 implements Int32x4 {
 
   /// Returns a new [Int32x4] copied from [this] with a new x value.
   Int32x4 withX(int x) {
+    ArgumentError.checkNotNull(x);
     int _x = _truncate(x);
     return NativeInt32x4._truncated(_x, y, z, w);
   }
 
   /// Returns a new [Int32x4] copied from [this] with a new y value.
   Int32x4 withY(int y) {
+    ArgumentError.checkNotNull(y);
     int _y = _truncate(y);
     return NativeInt32x4._truncated(x, _y, z, w);
   }
 
   /// Returns a new [Int32x4] copied from [this] with a new z value.
   Int32x4 withZ(int z) {
+    ArgumentError.checkNotNull(z);
     int _z = _truncate(z);
     return NativeInt32x4._truncated(x, y, _z, w);
   }
 
   /// Returns a new [Int32x4] copied from [this] with a new w value.
   Int32x4 withW(int w) {
+    ArgumentError.checkNotNull(w);
     int _w = _truncate(w);
     return NativeInt32x4._truncated(x, y, z, _w);
   }
