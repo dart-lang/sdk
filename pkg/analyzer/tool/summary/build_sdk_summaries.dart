@@ -4,9 +4,9 @@
 
 import 'dart:io';
 
+import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/summary/summary_file_builder.dart';
 
 void main(List<String> args) {
   String command;

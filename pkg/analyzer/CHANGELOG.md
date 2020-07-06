@@ -1,3 +1,6 @@
+## 0.39.13-dev
+* Added 'dart/sdk/build_sdk_summary.dart' with `buildSdkSummary`.
+
 ## 0.39.12
 * Deprecated `canUseSummaries` in `DartSdkManager` constructor.
   Summaries are not supported this way for SDK.
