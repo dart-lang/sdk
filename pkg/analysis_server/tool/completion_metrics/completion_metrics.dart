@@ -175,6 +175,7 @@ enum CompletionGroup {
   staticMember,
   typeReference,
   localReference,
+  paramReference,
   topLevel
 }
 
@@ -222,6 +223,9 @@ class CompletionMetrics {
   MeanReciprocalRankComputer localRefMrrComputer =
       MeanReciprocalRankComputer('local reference completions');
 
+  MeanReciprocalRankComputer paramRefMrrComputer =
+      MeanReciprocalRankComputer('param reference completions');
+
   MeanReciprocalRankComputer topLevelMrrComputer =
       MeanReciprocalRankComputer('non-type member completions');
 
@@ -260,6 +264,10 @@ class CompletionMetrics {
   List<CompletionResult> localRefWorstResults = [];
 
   /// A list of the top [maxWorstResults] completion results with the highest
+  /// (worst) ranks for completing to parameter references.
+  List<CompletionResult> paramRefWorstResults = [];
+
+  /// A list of the top [maxWorstResults] completion results with the highest
   /// (worst) ranks for completing to top-level declarations.
   List<CompletionResult> topLevelWorstResults = [];
 
@@ -278,6 +286,10 @@ class CompletionMetrics {
   /// A list of the top [maxSlowestResults] completion results that took the
   /// longest top compute for local references.
   List<CompletionResult> localRefSlowestResults = [];
+
+  /// A list of the top [maxSlowestResults] completion results that took the
+  /// longest top compute for parameter references.
+  List<CompletionResult> paramRefSlowestResults = [];
 
   /// A list of the top [maxSlowestResults] completion results that took the
   /// longest top compute for top-level declarations.
@@ -328,7 +340,9 @@ class CompletionMetrics {
       case CompletionGroup.localReference:
         localRefMrrComputer.addRank(rank);
         break;
-
+      case CompletionGroup.paramReference:
+        paramRefMrrComputer.addRank(rank);
+        break;
       case CompletionGroup.topLevel:
         topLevelMrrComputer.addRank(rank);
         break;
@@ -355,6 +369,8 @@ class CompletionMetrics {
           return typeRefSlowestResults;
         case CompletionGroup.localReference:
           return localRefSlowestResults;
+        case CompletionGroup.paramReference:
+          return paramRefSlowestResults;
         case CompletionGroup.topLevel:
           return topLevelSlowestResults;
       }
@@ -389,6 +405,8 @@ class CompletionMetrics {
           return typeRefWorstResults;
         case CompletionGroup.localReference:
           return localRefWorstResults;
+        case CompletionGroup.paramReference:
+          return paramRefWorstResults;
         case CompletionGroup.topLevel:
           return topLevelWorstResults;
       }
@@ -563,6 +581,9 @@ class CompletionMetricsComputer {
     metrics.localRefMrrComputer.printMean();
     print('');
 
+    metrics.paramRefMrrComputer.printMean();
+    print('');
+
     metrics.topLevelMrrComputer.printMean();
     print('');
 
@@ -639,6 +660,8 @@ class CompletionMetricsComputer {
     _printSlowestResults('Static members', metrics.staticMemberSlowestResults);
     _printSlowestResults('Type references', metrics.typeRefSlowestResults);
     _printSlowestResults('Local references', metrics.localRefSlowestResults);
+    _printSlowestResults(
+        'Parameter references', metrics.paramRefSlowestResults);
     _printSlowestResults('Top level', metrics.topLevelSlowestResults);
   }
 
@@ -650,6 +673,7 @@ class CompletionMetricsComputer {
     _printWorstResults('Static members', metrics.staticMemberWorstResults);
     _printWorstResults('Type references', metrics.topLevelWorstResults);
     _printWorstResults('Local references', metrics.localRefWorstResults);
+    _printWorstResults('Parameter references', metrics.paramRefWorstResults);
     _printWorstResults('Top level', metrics.topLevelWorstResults);
   }
 
@@ -1090,6 +1114,8 @@ class CompletionResult {
         return CompletionGroup.typeReference;
       } else if (expectedCompletion.elementKind == ElementKind.LOCAL_VARIABLE) {
         return CompletionGroup.localReference;
+      } else if (expectedCompletion.elementKind == ElementKind.PARAMETER) {
+        return CompletionGroup.paramReference;
       }
     }
     return CompletionGroup.topLevel;
