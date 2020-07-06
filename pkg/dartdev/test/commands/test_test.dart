@@ -65,4 +65,26 @@ void main() {
     expect(result.stdout, contains('All tests passed!'));
     expect(result.stderr, isEmpty);
   }, skip: 'https://github.com/dart-lang/sdk/issues/40854');
+
+  test('--enable-experiment', () {
+    p = project(mainSrc: 'int get foo => 1;\n');
+    p.file('test/foo_test.dart', '''
+import 'package:test/test.dart';
+
+void main() {
+  test('', () {
+    int a;
+    a = null;
+    print('a is \$a.');
+  });
+}
+''');
+
+    var result = p.runSync('pub', ['get', '--offline']);
+    expect(result.exitCode, 0);
+
+    result = p.runSync('--enable-experiment=non-nullable',
+        ['test', '--no-color', '--reporter', 'expanded']);
+    expect(result.exitCode, 1);
+  }, skip: 'https://github.com/dart-lang/sdk/issues/40854');
 }
