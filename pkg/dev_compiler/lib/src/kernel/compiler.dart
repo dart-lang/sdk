@@ -3125,7 +3125,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var gen = emitGeneratorFn((_) => []);
     // Return type of an async body is `Future<flatten(T)>`, where T is the
     // declared return type.
-    var returnType = _types.unfutureType(function
+    var returnType = _types.flatten(function
         .computeThisFunctionType(_currentLibrary.nonNullable)
         .returnType);
     return js.call('#.async(#, #)',

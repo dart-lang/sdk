@@ -78,6 +78,7 @@ callable
 camel
 capitalized
 casing
+causal
 cc
 ccc
 charcode
@@ -507,6 +508,7 @@ spurious
 sqrt
 squared
 sssp
+stacks
 stashed
 stat
 stats

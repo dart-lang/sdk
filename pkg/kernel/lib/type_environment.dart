@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.type_environment;
 
+import 'package:kernel/type_algebra.dart';
+
 import 'ast.dart';
 import 'class_hierarchy.dart';
 import 'core_types.dart';
@@ -79,27 +81,38 @@ abstract class TypeEnvironment extends Types {
         coreTypes.futureClass, nullability, <DartType>[type]);
   }
 
-  /// Removes a level of `Future<>` types wrapping a type.
-  ///
-  /// This implements the function `flatten` from the spec, which unwraps a
+  DartType _withDeclaredNullability(DartType type, Nullability nullability) {
+    if (type == nullType) return type;
+    return type.withDeclaredNullability(
+        uniteNullabilities(type.declaredNullability, nullability));
+  }
+
+  /// Returns the `flatten` of [type] as defined in the spec, which unwraps a
   /// layer of Future or FutureOr from a type.
-  DartType unfutureType(DartType type) {
-    if (type is FutureOrType) return type.typeArgument;
-    if (type is InterfaceType) {
-      if (type.classNode == coreTypes.futureClass) {
-        return type.typeArguments[0];
-      }
-      // It is a compile-time error to implement, extend, or mixin FutureOr so
-      // we aren't concerned with it.  If a class implements multiple
-      // instantiations of Future, getTypeAsInstanceOf is responsible for
-      // picking the least one in the sense required by the spec.
+  DartType flatten(DartType t) {
+    // if T is S? then flatten(T) = flatten(S)?
+    // otherwise if T is S* then flatten(T) = flatten(S)*
+    // -- this is preserve with the calls to [_withDeclaredNullability] below.
+
+    // otherwise if T is FutureOr<S> then flatten(T) = S
+    if (t is FutureOrType) {
+      return _withDeclaredNullability(t.typeArgument, t.declaredNullability);
+    }
+
+    // otherwise if T <: Future then let S be a type such that T <: Future<S>
+    //   and for all R, if T <: Future<R> then S <: R; then flatten(T) = S
+    DartType resolved = _resolveTypeParameterType(t);
+    if (resolved is InterfaceType) {
       List<DartType> futureArguments =
-          getTypeArgumentsAsInstanceOf(type, coreTypes.futureClass);
+          getTypeArgumentsAsInstanceOf(resolved, coreTypes.futureClass);
       if (futureArguments != null) {
-        return futureArguments[0];
+        return _withDeclaredNullability(
+            futureArguments.single, t.declaredNullability);
       }
     }
-    return type;
+
+    // otherwise flatten(T) = T
+    return t;
   }
 
   /// Returns the non-type parameter type bound of [type].

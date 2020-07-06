@@ -121,6 +121,13 @@ class Env {
     _libraryEnvironment =
         _libraryEnvironment.extendWithTypeParameters(typeParameters);
   }
+
+  void withTypeParameters(String typeParameters, void Function() f) {
+    TypeParserEnvironment oldLibraryEnvironment = _libraryEnvironment;
+    extendWithTypeParameters(typeParameters);
+    f();
+    _libraryEnvironment = oldLibraryEnvironment;
+  }
 }
 
 class TypeParserEnvironment {

@@ -5483,7 +5483,7 @@ class AwaitExpression extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) {
-    return context.typeEnvironment.unfutureType(operand.getStaticType(context));
+    return context.typeEnvironment.flatten(operand.getStaticType(context));
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitAwaitExpression(this);
@@ -8310,22 +8310,17 @@ class TypeParameterType extends DartType {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeTypeParameterName(parameter);
-    printer.write(nullabilityToString(declaredNullability));
     if (promotedBound != null) {
+      printer.write('(');
+      printer.writeTypeParameterName(parameter);
+      printer.write(nullabilityToString(declaredNullability));
       printer.write(" & ");
-      printer.write(promotedBound.toStringInternal());
-      printer.write(" /* '");
+      printer.writeType(promotedBound);
+      printer.write(')');
+      printer.write(nullabilityToString(nullability));
+    } else {
+      printer.writeTypeParameterName(parameter);
       printer.write(nullabilityToString(declaredNullability));
-      printer.write("' & '");
-      if (promotedBound is InvalidType) {
-        printer.write(nullabilityToString(Nullability.undetermined));
-      } else {
-        printer.write(nullabilityToString(promotedBound.nullability));
-      }
-      printer.write("' = '");
-      printer.write(nullabilityToString(declaredNullability));
-      printer.write("' */");
     }
   }
 }

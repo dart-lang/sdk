@@ -11,19 +11,19 @@ Future<bool> getFutureBool() async {
   return true;
 }
 
-Future<bool> test1() async => await getNull(); // error
+Future<bool> test1() async => await getNull(); // ok
 Future<bool> test2() => getNull(); // ok
 bool test3() => getNull(); // ok
-Future<bool> test4() async => await getFutureNull(); // error
+Future<bool> test4() async => await getFutureNull(); // ok
 Future<bool> test5() => getFutureNull(); // error
 Future<bool> test6() => getFutureBool(); // ok
 Future<bool> test7() async => getFutureBool(); // ok
 
 test() async {
-  Future<bool> test1() async => await getNull(); // error
+  Future<bool> test1() async => await getNull(); // ok
   Future<bool> test2() => getNull(); // ok
   bool test3() => getNull(); // ok
-  Future<bool> test4() async => await getFutureNull(); // error
+  Future<bool> test4() async => await getFutureNull(); // ok
   Future<bool> test5() => getFutureNull(); // error
   Future<bool> test6() => getFutureBool(); // ok
   Future<bool> test7() async => getFutureBool(); // ok

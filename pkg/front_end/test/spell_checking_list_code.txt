@@ -348,6 +348,7 @@ emits
 emitted
 emitting
 en
+encapsulation
 enforce
 enforced
 enforces

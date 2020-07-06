@@ -3401,6 +3401,18 @@ ReturnWithoutExpression:
   analyzerCode: RETURN_WITHOUT_VALUE
   declaration: "int foo() { return; }"
 
+ReturnWithoutExpressionSync:
+  template: "A value must be explicitly returned from a non-void function."
+  configuration: nnbd-strong
+  script: |
+    import "dart:async";
+    FutureOr<Object?> foo() { return; }
+
+ReturnWithoutExpressionAsync:
+  template: "A value must be explicitly returned from a non-void async function."
+  configuration: nnbd-strong
+  declaration: "Future<int> foo() async { return; }"
+
 ImplicitReturnNull:
   template: "A non-null value must be returned since the return type '#type' doesn't allow null."
   configuration: nnbd-strong

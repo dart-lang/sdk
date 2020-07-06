@@ -7542,6 +7542,26 @@ const MessageCode messageReturnWithoutExpression = const MessageCode(
     message: r"""Must explicitly return a value from a non-void function.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeReturnWithoutExpressionAsync =
+    messageReturnWithoutExpressionAsync;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageReturnWithoutExpressionAsync = const MessageCode(
+    "ReturnWithoutExpressionAsync",
+    message:
+        r"""A value must be explicitly returned from a non-void async function.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeReturnWithoutExpressionSync =
+    messageReturnWithoutExpressionSync;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageReturnWithoutExpressionSync = const MessageCode(
+    "ReturnWithoutExpressionSync",
+    message:
+        r"""A value must be explicitly returned from a non-void function.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_)> templateSdkRootNotFound =
     const Template<Message Function(Uri uri_)>(
         messageTemplate: r"""SDK root directory not found: #uri.""",

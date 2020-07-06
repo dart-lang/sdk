@@ -613,6 +613,9 @@ RequiredNamedParameterHasDefaultValueWarning/example: Fail
 RethrowNotCatch/example: Fail
 ReturnTypeFunctionExpression/analyzerCode: Fail
 ReturnTypeFunctionExpression/example: Fail
+ReturnWithoutExpressionAsync/analyzerCode: Fail
+ReturnWithoutExpressionSync/analyzerCode: Fail
+ReturnWithoutExpressionSync/part_wrapped_script: Fail
 SdkRootNotFound/analyzerCode: Fail
 SdkRootNotFound/example: Fail
 SdkSpecificationNotFound/analyzerCode: Fail

@@ -271,7 +271,7 @@ class InferenceVisitor
         node.operand, typeContext, true,
         isVoidAllowed: !inferrer.isNonNullableByDefault);
     DartType inferredType =
-        inferrer.typeSchemaEnvironment.unfutureType(operandResult.inferredType);
+        inferrer.typeSchemaEnvironment.flatten(operandResult.inferredType);
     node.operand = operandResult.expression..parent = node;
     return new ExpressionInferenceResult(inferredType, node);
   }
@@ -2161,7 +2161,7 @@ class InferenceVisitor
     bool typeContextIsMap = node.keyType is! ImplicitTypeArgument;
     bool typeContextIsIterable = false;
     DartType unfuturedTypeContext =
-        inferrer.typeSchemaEnvironment.unfutureType(typeContext);
+        inferrer.typeSchemaEnvironment.flatten(typeContext);
     if (!inferrer.isTopLevel && inferenceNeeded) {
       // Ambiguous set/map literal
       if (unfuturedTypeContext is InterfaceType) {
