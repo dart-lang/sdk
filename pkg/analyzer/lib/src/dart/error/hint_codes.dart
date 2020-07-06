@@ -5,6 +5,10 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/analyzer_error_code.dart';
 
+// It is hard to visually separate each code's _doc comment_ from its published
+// _documentation comment_ when each is written as an end-of-line comment.
+// ignore_for_file: slash_for_doc_comments
+
 /**
  * The hints and coding recommendations for best practices which are not
  * mentioned in the Dart Language Specification.

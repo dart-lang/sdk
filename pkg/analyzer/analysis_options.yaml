@@ -11,12 +11,6 @@ analyzer:
     omit_local_variable_types: ignore
     # There are currently 3360 violations in lib/.
     prefer_single_quotes: ignore
-    # Ignoring "style" lint rules from pedantic for now. There are pre-existing
-    # violations that need to be cleaned up. Each one can be cleaned up and
-    # enabled according to the value provided.
-    # TODO(srawlins): At the time of writing, 500 violations in lib/. The fix
-    # is mechanical, via `dartfmt --fix-doc-comments`.
-    slash_for_doc_comments: ignore
     # There are currently 2000 violations in lib/.
     unnecessary_this: ignore
 
