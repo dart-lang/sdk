@@ -8042,12 +8042,88 @@ class TypeParameterType extends DartType {
   /// is therefore the same as the bound of [parameter].
   DartType promotedBound;
 
-  TypeParameterType(this.parameter, this.declaredNullability,
-      [this.promotedBound]);
+  TypeParameterType.internal(
+      this.parameter, this.declaredNullability, this.promotedBound) {
+    assert(
+        promotedBound == null ||
+            (declaredNullability == Nullability.nonNullable &&
+                promotedBound.nullability == Nullability.nonNullable) ||
+            (declaredNullability == Nullability.nonNullable &&
+                promotedBound.nullability == Nullability.undetermined) ||
+            (declaredNullability == Nullability.legacy &&
+                promotedBound.nullability == Nullability.legacy) ||
+            (declaredNullability == Nullability.undetermined &&
+                promotedBound.nullability == Nullability.nonNullable) ||
+            (declaredNullability == Nullability.undetermined &&
+                promotedBound.nullability == Nullability.nullable) ||
+            (declaredNullability == Nullability.undetermined &&
+                promotedBound.nullability == Nullability.undetermined)
+            // These are observed in real situations:
+            ||
+            // pkg/front_end/test/id_tests/type_promotion_test
+            // replicated in nnbd_mixed/type_parameter_nullability
+            (declaredNullability == Nullability.nullable &&
+                promotedBound.nullability == Nullability.nonNullable) ||
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/incremental_hello_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/tool/fasta_perf_test
+            // nnbd/issue42089
+            // replicated in nnbd_mixed/type_parameter_nullability
+            (declaredNullability == Nullability.nullable &&
+                promotedBound.nullability == Nullability.nullable) ||
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/test/dill_round_trip_test
+            // pkg/front_end/test/compile_dart2js_with_no_sdk_test
+            // pkg/front_end/test/fasta/types/large_app_benchmark_test
+            // pkg/front_end/test/incremental_dart2js_test
+            // pkg/front_end/test/read_dill_from_binary_md_test
+            // pkg/front_end/test/static_types/static_type_test
+            // pkg/front_end/test/split_dill_test
+            // pkg/front_end/tool/incremental_perf_test
+            // pkg/vm/test/kernel_front_end_test
+            // general/promoted_null_aware_access
+            // inference/constructors_infer_from_arguments_factory
+            // inference/infer_types_on_loop_indices_for_each_loop
+            // inference/infer_types_on_loop_indices_for_each_loop_async
+            // replicated in nnbd_mixed/type_parameter_nullability
+            (declaredNullability == Nullability.legacy &&
+                promotedBound.nullability == Nullability.nonNullable) ||
+            // pkg/front_end/test/fasta/incremental_hello_test
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/tool/fasta_perf_test
+            // replicated in nnbd_mixed/type_parameter_nullability
+            (declaredNullability == Nullability.nullable &&
+                promotedBound.nullability == Nullability.undetermined) ||
+            // These are only observed in tests and might be artifacts of the
+            // tests rather than real situations:
+            //
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            (declaredNullability == Nullability.legacy &&
+                promotedBound.nullability == Nullability.nullable) ||
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            (declaredNullability == Nullability.nonNullable &&
+                promotedBound.nullability == Nullability.nullable) ||
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            (declaredNullability == Nullability.undetermined &&
+                promotedBound.nullability == Nullability.legacy),
+        "Unexpected nullabilities for $parameter & $promotedBound: "
+        "declaredNullability = $declaredNullability, "
+        "promoted bound nullability = ${promotedBound.nullability}.");
+  }
+
+  TypeParameterType(TypeParameter parameter, Nullability declaredNullability,
+      [DartType promotedBound])
+      : this.internal(parameter, declaredNullability, promotedBound);
 
   /// Creates an intersection type between a type parameter and [promotedBound].
-  TypeParameterType.intersection(
-      this.parameter, this.declaredNullability, this.promotedBound);
+  TypeParameterType.intersection(TypeParameter parameter,
+      Nullability declaredNullability, DartType promotedBound)
+      : this.internal(parameter, declaredNullability, promotedBound);
 
   /// Creates a type-parameter type to be used in alpha-renaming.
   ///
@@ -8246,16 +8322,80 @@ class TypeParameterType extends DartType {
     //
     // | LHS \ RHS |  !  |  ?  |  *  |  %  |
     // |-----------|-----|-----|-----|-----|
-    // |     !     |  !  | N/A | N/A |  !  |
-    // |     ?     | N/A | N/A | N/A | N/A |
-    // |     *     | N/A | N/A |  *  | N/A |
-    // |     %     |  !  |  %  | N/A |  %  |
+    // |     !     |  !  |  +  | N/A |  !  |
+    // |     ?     | (!) | (?) | N/A | (%) |
+    // |     *     | (*) |  +  |  *  | N/A |
+    // |     %     |  !  |  %  |  +  |  %  |
     //
     // In the table, LHS corresponds to lhsNullability in the code below; RHS
     // corresponds to promotedBound.nullability; !, ?, *, and % correspond to
     // nonNullable, nullable, legacy, and undetermined values of the Nullability
     // enum.
-    //
+
+    assert(
+        (lhsNullability == Nullability.nonNullable &&
+                promotedBound.nullability == Nullability.nonNullable) ||
+            (lhsNullability == Nullability.nonNullable &&
+                promotedBound.nullability == Nullability.undetermined) ||
+            (lhsNullability == Nullability.legacy &&
+                promotedBound.nullability == Nullability.legacy) ||
+            (lhsNullability == Nullability.undetermined &&
+                promotedBound.nullability == Nullability.nonNullable) ||
+            (lhsNullability == Nullability.undetermined &&
+                promotedBound.nullability == Nullability.nullable) ||
+            (lhsNullability == Nullability.undetermined &&
+                promotedBound.nullability == Nullability.undetermined)
+            // Apparently these happens as well:
+            ||
+            // pkg/front_end/test/id_tests/type_promotion_test
+            (lhsNullability == Nullability.nullable &&
+                promotedBound.nullability == Nullability.nonNullable) ||
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/incremental_hello_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/tool/fasta_perf_test
+            // nnbd/issue42089
+            (lhsNullability == Nullability.nullable &&
+                promotedBound.nullability == Nullability.nullable) ||
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/test/dill_round_trip_test
+            // pkg/front_end/test/compile_dart2js_with_no_sdk_test
+            // pkg/front_end/test/fasta/types/large_app_benchmark_test
+            // pkg/front_end/test/incremental_dart2js_test
+            // pkg/front_end/test/read_dill_from_binary_md_test
+            // pkg/front_end/test/static_types/static_type_test
+            // pkg/front_end/test/split_dill_test
+            // pkg/front_end/tool/incremental_perf_test
+            // pkg/vm/test/kernel_front_end_test
+            // general/promoted_null_aware_access
+            // inference/constructors_infer_from_arguments_factory
+            // inference/infer_types_on_loop_indices_for_each_loop
+            // inference/infer_types_on_loop_indices_for_each_loop_async
+            (lhsNullability == Nullability.legacy &&
+                promotedBound.nullability == Nullability.nonNullable) ||
+            // pkg/front_end/test/fasta/incremental_hello_test
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/tool/fasta_perf_test
+            // pkg/front_end/test/fasta/incremental_hello_test
+            (lhsNullability == Nullability.nullable &&
+                promotedBound.nullability == Nullability.undetermined) ||
+
+            // This is created but never observed.
+            // (lhsNullability == Nullability.legacy &&
+            //     promotedBound.nullability == Nullability.nullable) ||
+
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            (lhsNullability == Nullability.undetermined &&
+                promotedBound.nullability == Nullability.legacy) ||
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            (lhsNullability == Nullability.nonNullable &&
+                promotedBound.nullability == Nullability.nullable),
+        "Unexpected nullabilities for: LHS nullability = $lhsNullability, "
+        "RHS nullability = ${promotedBound.nullability}.");
+
     // Whenever there's N/A in the table, it means that the corresponding
     // combination of the LHS and RHS nullability is not possible when compiling
     // from Dart source files, so we can define it to be whatever is faster and
@@ -8267,9 +8407,29 @@ class TypeParameterType extends DartType {
     // | LHS \ RHS |  !  |  ?  |  *  |  %  |
     // |-----------|-----|-----|-----|-----|
     // |     !     |  !  |  !  |  !  |  !  |
-    // |     ?     |  !  |  *  |  *  |  %  |
-    // |     *     |  !  |  *  |  *  |  %  |
+    // |     ?     | (!) | (?) |  *  | (%) |
+    // |     *     | (*) |  *  |  *  |  %  |
     // |     %     |  !  |  %  |  %  |  %  |
+
+    if (lhsNullability == Nullability.nullable &&
+        promotedBound.nullability == Nullability.nonNullable) {
+      return Nullability.nonNullable;
+    }
+
+    if (lhsNullability == Nullability.nullable &&
+        promotedBound.nullability == Nullability.nullable) {
+      return Nullability.nullable;
+    }
+
+    if (lhsNullability == Nullability.legacy &&
+        promotedBound.nullability == Nullability.nonNullable) {
+      return Nullability.legacy;
+    }
+
+    if (lhsNullability == Nullability.nullable &&
+        promotedBound.nullability == Nullability.undetermined) {
+      return Nullability.undetermined;
+    }
 
     // Intersection with a non-nullable type always yields a non-nullable type,
     // as it's the most restrictive kind of types.

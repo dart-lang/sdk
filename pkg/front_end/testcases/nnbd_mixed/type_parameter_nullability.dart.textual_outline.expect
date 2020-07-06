@@ -1,0 +1,8 @@
+import 'type_parameter_nullability_lib.dart';
+
+class C<T extends num?, S, U> {
+  void promoteNullable(T? t) {}
+  void nullableAsUndetermined(S? s) {}
+}
+
+main() {}

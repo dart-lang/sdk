@@ -53,6 +53,7 @@ arises
 arising
 arity
 artifact
+artifacts
 artificial
 asgerf
 askesc
@@ -894,6 +895,7 @@ repeating
 replacements
 replacer
 replaces
+replicated
 repo
 repositories
 requirement
