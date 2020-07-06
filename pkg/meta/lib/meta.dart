@@ -1,8 +1,9 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Constants for use in metadata annotations.
+/// Constants and functions that developers can use to express the intentions
+/// that otherwise can't be deduced by statically analyzing the source code.
 ///
 /// See also `@deprecated` and `@override` in the `dart:core` library.
 ///
@@ -12,7 +13,7 @@
 /// function's name differently.
 ///
 /// For information on installing and importing this library, see the [meta
-/// package on pub.dev](https://pub.dev/packages/meta).  For examples of using
+/// package on pub.dev](https://pub.dev/packages/meta). For examples of using
 /// annotations, see
 /// [Metadata](https://dart.dev/guides/language/language-tour#metadata) in the
 /// language tour.
@@ -265,6 +266,26 @@ const _VisibleForOverriding visibleForOverriding = _VisibleForOverriding();
 /// * the declaration is referenced outside of its the defining library or a
 ///   library which is in the `test` folder of the defining package.
 const _VisibleForTesting visibleForTesting = _VisibleForTesting();
+
+/// Indicates to tools that [future] is intentionally not `await`-ed.
+///
+/// In an `async` context, it is normally expected that all [Future]s are
+/// awaited, and that is the basis of the lint `unawaited_futures`. However,
+/// there are times where one or more futures are intentionally not awaited.
+/// This function may be used to ignore a particular future. It silences the
+/// `unawaited_futures` lint.
+///
+/// ```
+/// Future<void> saveUserPreferences() async {
+///   await _writePreferences();
+///
+///   // While 'log' returns a Future, the consumer of 'saveUserPreferences'
+///   // is unlikely to want to wait for that future to complete; they only
+///   // care about the preferences being written).
+///   unawaited(log('Preferences saved!'));
+/// }
+/// ```
+void unawaited(Future<void>? future) {}
 
 /// Used to annotate a class.
 ///

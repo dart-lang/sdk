@@ -123,7 +123,7 @@ vars = {
   "oauth2_tag": "1.6.0",
   "package_config_rev": "9c586d04bd26fef01215fd10e7ab96a3050cfa64",
   "path_rev": "4f3bb71843fe5493ba490828a1721821d7b33746",
-  "pedantic_tag": "v1.9.0",
+  "pedantic_tag": "v1.9.1",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "86fbb2cde9bbc66c8d159909d2f65a5981ea5b50",
   "protobuf_rev": "3746c8fd3f2b0147623a8e3db89c3ff4330de760",
