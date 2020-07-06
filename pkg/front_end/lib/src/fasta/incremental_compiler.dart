@@ -1438,9 +1438,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     dillLoadedData = new DillTarget(ticker, uriTranslator, c.options.target);
     int bytesLength = 0;
 
+    data.component = c.options.target.configureComponent(new Component());
     if (summaryBytes != null) {
       ticker.logMs("Read ${c.options.sdkSummary}");
-      data.component = c.options.target.configureComponent(new Component());
       new BinaryBuilderWithMetadata(summaryBytes,
               disableLazyReading: false, disableLazyClassReading: true)
           .readComponent(data.component);
