@@ -103,8 +103,19 @@ class AnalyzeCommand extends DartdevCommand<int> {
           '(${error.code})',
         );
 
-        // TODO(devoncarew): If verbose, print additional information about the
-        // issue (resolution, more info url, ...).
+        if (verbose) {
+          var padding = ' '.padLeft(error.severity.length + 2);
+          for (var message in error.contextMessages) {
+            log.stdout('$padding${message.message} '
+                'at ${message.filePath}:${message.line}:${message.column}');
+          }
+          if (error.correction != null) {
+            log.stdout('$padding${error.correction}');
+          }
+          if (error.url != null) {
+            log.stdout('$padding${error.url}');
+          }
+        }
 
         hasErrors |= error.isError;
         hasWarnings |= error.isWarning;

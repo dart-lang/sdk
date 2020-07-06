@@ -157,4 +157,25 @@ void defineAnalyze() {
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('1 issue found.'));
   });
+
+  test('--verbose', () {
+    p = project(mainSrc: '''
+int f() {
+  var result = one + 2;
+  var one = 1;
+  return result;
+}''');
+    var result = p.runSync('analyze', ['--verbose', p.dirPath]);
+
+    expect(result.exitCode, 3);
+    expect(result.stderr, isEmpty);
+    var stdout = result.stdout;
+    expect(stdout, contains("The declaration of 'one' is on line 3."));
+    expect(
+        stdout, contains('Try moving the declaration to before the first use'));
+    expect(
+        stdout,
+        contains(
+            'https://dart.dev/tools/diagnostic-messages#referenced_before_declaration'));
+  });
 }
