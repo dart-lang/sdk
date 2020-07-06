@@ -22,7 +22,7 @@ namespace dart {
 namespace bin {
 
 static const int64_t kAppSnapshotHeaderSize = 5 * kInt64Size;
-static const int64_t kAppSnapshotPageSize = 4 * KB;
+static const int64_t kAppSnapshotPageSize = 16 * KB;
 
 class MappedAppSnapshot : public AppSnapshot {
  public:
