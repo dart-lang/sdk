@@ -2114,12 +2114,14 @@ abstract class DartTypes {
                 String sName = sNamed[sIndex++];
                 int comparison = sName.compareTo(tName);
                 if (comparison > 0) return false;
-                bool sIsRequired = sRequiredNamed.contains(sName);
+                bool sIsRequired =
+                    !useLegacySubtyping && sRequiredNamed.contains(sName);
                 if (comparison < 0) {
                   if (sIsRequired) return false;
                   continue;
                 }
-                bool tIsRequired = tRequiredNamed.contains(tName);
+                bool tIsRequired =
+                    !useLegacySubtyping && tRequiredNamed.contains(tName);
                 if (sIsRequired && !tIsRequired) return false;
                 if (!_isSubtype(
                     tNamedTypes[tIndex], sNamedTypes[sIndex - 1], env))
@@ -2127,8 +2129,10 @@ abstract class DartTypes {
                 break;
               }
             }
-            while (sIndex < sNamedLength) {
-              if (sRequiredNamed.contains(sNamed[sIndex++])) return false;
+            if (!useLegacySubtyping) {
+              while (sIndex < sNamedLength) {
+                if (sRequiredNamed.contains(sNamed[sIndex++])) return false;
+              }
             }
             return true;
           } finally {
