@@ -5,7 +5,7 @@ import "dart:core" as core;
 
 static method getNull() → dynamic
   ;
-static method fn() → asy::Future<core::Object>
+static method fn() → asy::Future<core::Object> async 
   ;
 static method main() → dynamic
   ;
