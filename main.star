@@ -989,7 +989,6 @@ dart_ci_sandbox_builder(
     category = "dart2js|d8|ha",
     location_regexp = to_location_regexp(DART2JS_PATHS),
 )
-dart_ci_sandbox_builder("dart2js-rti-linux-x64-d8", category = "dart2js|d8|rti")
 dart_ci_sandbox_builder(
     "dart2js-minified-strong-linux-x64-d8",
     category = "dart2js|d8|mi",
