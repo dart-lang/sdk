@@ -344,12 +344,10 @@ class VerificationState {
       !isStatementNotSupported(node);
 
   static bool isStatementNotSupported(Statement node) =>
-      node is BreakStatement ||
       node is VariableDeclaration &&
           (node.parent is! Block || node.name == null) ||
       node is SwitchStatement ||
       node is TryFinally ||
-      node is LabeledStatement ||
       node is TryCatch ||
       node is FunctionDeclaration ||
       node is ContinueSwitchStatement;

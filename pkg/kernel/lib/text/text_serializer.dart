@@ -397,12 +397,6 @@ Let wrapLet(Tuple2<VariableDeclaration, Expression> tuple) {
   return new Let(tuple.first, tuple.second);
 }
 
-String getVariableDeclarationName(VariableDeclaration node) => node.name;
-
-void setVariableDeclarationName(VariableDeclaration node, String name) {
-  node.name = name;
-}
-
 TextSerializer<PropertyGet> propertyGetSerializer = new Wrapped(
     unwrapPropertyGet,
     wrapPropertyGet,
@@ -751,24 +745,21 @@ class VariableDeclarationTagger implements Tagger<VariableDeclaration> {
 TextSerializer<VariableDeclaration> varDeclarationSerializer = new Wrapped(
     unwrapVariableDeclaration,
     wrapVarDeclaration,
-    Tuple4Serializer(
-        const DartString(),
-        dartTypeSerializer,
-        new Optional(expressionSerializer),
+    Tuple3Serializer(dartTypeSerializer, new Optional(expressionSerializer),
         new ListSerializer(expressionSerializer)));
 
-Tuple4<String, DartType, Expression, List<Expression>>
-    unwrapVariableDeclaration(VariableDeclaration declaration) {
-  return new Tuple4(declaration.name ?? "", declaration.type,
-      declaration.initializer, declaration.annotations);
+Tuple3<DartType, Expression, List<Expression>> unwrapVariableDeclaration(
+    VariableDeclaration declaration) {
+  return new Tuple3(
+      declaration.type, declaration.initializer, declaration.annotations);
 }
 
 VariableDeclaration wrapVarDeclaration(
-    Tuple4<String, DartType, Expression, List<Expression>> tuple) {
-  var result = new VariableDeclaration(tuple.first.isEmpty ? null : tuple.first,
-      initializer: tuple.third, type: tuple.second);
-  for (int i = 0; i < tuple.fourth.length; ++i) {
-    result.addAnnotation(tuple.fourth[i]);
+    Tuple3<DartType, Expression, List<Expression>> tuple) {
+  var result = new VariableDeclaration(null,
+      initializer: tuple.second, type: tuple.first);
+  for (int i = 0; i < tuple.third.length; ++i) {
+    result.addAnnotation(tuple.third[i]);
   }
   return result;
 }
@@ -776,18 +767,15 @@ VariableDeclaration wrapVarDeclaration(
 TextSerializer<VariableDeclaration> finalDeclarationSerializer = new Wrapped(
     unwrapVariableDeclaration,
     wrapFinalDeclaration,
-    Tuple4Serializer(
-        const DartString(),
-        dartTypeSerializer,
-        new Optional(expressionSerializer),
+    Tuple3Serializer(dartTypeSerializer, new Optional(expressionSerializer),
         new ListSerializer(expressionSerializer)));
 
 VariableDeclaration wrapFinalDeclaration(
-    Tuple4<String, DartType, Expression, List<Expression>> tuple) {
-  var result = new VariableDeclaration(tuple.first.isEmpty ? null : tuple.first,
-      initializer: tuple.third, type: tuple.second, isFinal: true);
-  for (int i = 0; i < tuple.fourth.length; ++i) {
-    result.addAnnotation(tuple.fourth[i]);
+    Tuple3<DartType, Expression, List<Expression>> tuple) {
+  var result = new VariableDeclaration(null,
+      initializer: tuple.second, type: tuple.first, isFinal: true);
+  for (int i = 0; i < tuple.third.length; ++i) {
+    result.addAnnotation(tuple.third[i]);
   }
   return result;
 }
@@ -795,39 +783,32 @@ VariableDeclaration wrapFinalDeclaration(
 TextSerializer<VariableDeclaration> constDeclarationSerializer = new Wrapped(
     unwrapVariableDeclaration,
     wrapConstDeclaration,
-    Tuple4Serializer(
-        const DartString(),
-        dartTypeSerializer,
-        new Optional(expressionSerializer),
+    Tuple3Serializer(dartTypeSerializer, new Optional(expressionSerializer),
         new ListSerializer(expressionSerializer)));
 
 VariableDeclaration wrapConstDeclaration(
-    Tuple4<String, DartType, Expression, List<Expression>> tuple) {
-  var result = new VariableDeclaration(tuple.first.isEmpty ? null : tuple.first,
-      initializer: tuple.third, type: tuple.second, isConst: true);
-  for (int i = 0; i < tuple.fourth.length; ++i) {
-    result.addAnnotation(tuple.fourth[i]);
+    Tuple3<DartType, Expression, List<Expression>> tuple) {
+  var result = new VariableDeclaration(null,
+      initializer: tuple.second, type: tuple.first, isConst: true);
+  for (int i = 0; i < tuple.third.length; ++i) {
+    result.addAnnotation(tuple.third[i]);
   }
   return result;
 }
 
-TextSerializer<VariableDeclaration> variableDeclarationSerializer = new Binder(
-    new Case(const VariableDeclarationTagger(), {
+TextSerializer<VariableDeclaration> variableDeclarationSerializer = Wrapped(
+    (v) => Tuple2(v.name, v),
+    (t) => t.second..name = t.first,
+    Binder(Case(VariableDeclarationTagger(), {
       "var": varDeclarationSerializer,
       "final": finalDeclarationSerializer,
       "const": constDeclarationSerializer,
-    }),
-    getVariableDeclarationName,
-    setVariableDeclarationName);
+    })));
 
-TextSerializer<TypeParameter> typeParameterSerializer = new Binder(
-    const Wrapped(unwrapTypeParameter, wrapTypeParameter, const DartString()),
-    getTypeParameterName,
-    setTypeParameterName);
-
-String unwrapTypeParameter(TypeParameter node) => node.name;
-
-TypeParameter wrapTypeParameter(String name) => new TypeParameter(name);
+TextSerializer<TypeParameter> typeParameterSerializer = Wrapped(
+    (p) => Tuple2(p.name, p),
+    (t) => t.second..name = t.first,
+    Binder(Wrapped((_) => null, (_) => TypeParameter(), const Nothing())));
 
 TextSerializer<List<TypeParameter>> typeParametersSerializer = new Zip(
     new Rebind(
@@ -839,12 +820,6 @@ TextSerializer<List<TypeParameter>> typeParametersSerializer = new Zip(
         new ListSerializer(dartTypeSerializer)),
     zipTypeParameterDefaultType,
     unzipTypeParameterDefaultType);
-
-String getTypeParameterName(TypeParameter node) => node.name;
-
-void setTypeParameterName(TypeParameter node, String name) {
-  node.name = name;
-}
 
 TypeParameter zipTypeParameterBound(TypeParameter node, DartType bound) {
   return node..bound = bound;
@@ -1050,6 +1025,8 @@ class StatementTagger extends StatementVisitor<String>
 
   String visitAssertStatement(AssertStatement node) => "assert";
   String visitAssertBlock(AssertBlock node) => "assert-block";
+  String visitLabeledStatement(LabeledStatement node) => "label";
+  String visitBreakStatement(BreakStatement node) => "break";
 }
 
 TextSerializer<ExpressionStatement> expressionStatementSerializer = new Wrapped(
@@ -1148,7 +1125,7 @@ class BlockSerializer extends TextSerializer<List<Statement>> {
           new DeserializationEnvironment(currentState.environment),
           currentState.nameRoot);
       result.add(statementSerializer.readFrom(list, currentState));
-      currentState.environment.close();
+      currentState.environment.extend();
     }
     stream.moveNext();
     return result;
@@ -1163,7 +1140,7 @@ class BlockSerializer extends TextSerializer<List<Statement>> {
       currentState = new SerializationState(
           new SerializationEnvironment(currentState.environment));
       statementSerializer.writeTo(buffer, statements[i], currentState);
-      currentState.environment.close();
+      currentState.environment.extend();
     }
     buffer.write(')');
   }
@@ -1282,6 +1259,31 @@ ForInStatement wrapAwaitForInStatement(
   return new ForInStatement(
       tuple.second.first, tuple.first, tuple.second.second,
       isAsync: true);
+}
+
+TextSerializer<LabeledStatement> labeledStatementSerializer =
+    Wrapped<Tuple2<LabeledStatement, Statement>, LabeledStatement>(
+        (ls) => Tuple2(ls, ls.body),
+        (t) => t.first..body = t.second,
+        Bind(
+            Wrapped(
+                (ls) => Tuple2("L", ls),
+                (t) => t.second,
+                Binder(Wrapped(
+                    (_) => null, (_) => LabeledStatement(null), Nothing()))),
+            statementSerializer));
+
+TextSerializer<BreakStatement> breakSerializer = new Wrapped(
+    unwrapBreakStatement,
+    wrapBreakStatement,
+    const ScopedUse<LabeledStatement>());
+
+LabeledStatement unwrapBreakStatement(BreakStatement node) {
+  return node.target;
+}
+
+BreakStatement wrapBreakStatement(LabeledStatement node) {
+  return new BreakStatement(node);
 }
 
 Case<Statement> statementSerializer =
@@ -1609,6 +1611,8 @@ void initializeSerializers() {
     "await-for-in": awaitForInStatementSerializer,
     "assert": assertStatementSerializer,
     "assert-block": assertBlockSerializer,
+    "label": labeledStatementSerializer,
+    "break": breakSerializer,
   });
   functionNodeSerializer.registerTags({
     "sync": syncFunctionNodeSerializer,

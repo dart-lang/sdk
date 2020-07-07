@@ -66,7 +66,7 @@ void test() {
           return new ExpressionStatement(new Let(x, new VariableGet(x)));
         }(),
         expectation: ''
-            '(expr (let (var "x^0" (dynamic) (int 42) ())'
+            '(expr (let "x^0" (var (dynamic) (int 42) ())'
             ' (get-var "x^0" _)))',
         serializer: statementSerializer),
     new TestCase<Statement>(
@@ -80,8 +80,8 @@ void test() {
               new Let(innerLetVar, new VariableGet(outterLetVar))));
         }(),
         expectation: ''
-            '(expr (let (var "x^0" (dynamic) (int 42) ())'
-            ' (let (var "x^1" (bottom) (null) ())'
+            '(expr (let "x^0" (var (dynamic) (int 42) ())'
+            ' (let "x^1" (var (bottom) (null) ())'
             ' (get-var "x^0" _))))',
         serializer: statementSerializer),
     new TestCase<Statement>(
@@ -95,8 +95,8 @@ void test() {
               new Let(innerLetVar, new VariableGet(innerLetVar))));
         }(),
         expectation: ''
-            '(expr (let (var "x^0" (dynamic) (int 42) ())'
-            ' (let (var "x^1" (bottom) (null) ())'
+            '(expr (let "x^0" (var (dynamic) (int 42) ())'
+            ' (let "x^1" (var (bottom) (null) ())'
             ' (get-var "x^1" _))))',
         serializer: statementSerializer),
     () {
@@ -108,13 +108,13 @@ void test() {
           expectation: '(expr (set-var "x^0" (int 42)))',
           makeSerializationState: () => new SerializationState(
                 new SerializationEnvironment(null)
-                  ..addBinder(x, 'x^0')
-                  ..close(),
+                  ..addBinder(x, nameClue: x.name)
+                  ..extend(),
               ),
           makeDeserializationState: () => new DeserializationState(
               new DeserializationEnvironment(null)
-                ..addBinder('x^0', x)
-                ..close(),
+                ..addBinder(x, "x^0")
+                ..extend(),
               new CanonicalName.root()),
           serializer: statementSerializer);
     }(),
@@ -227,12 +227,12 @@ void test() {
               ' "package:foo/bar.dart::A::@fields::field"))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)
-                ..addBinder(x, 'x^0')
-                ..close()),
+                ..addBinder(x, nameClue: 'x')
+                ..extend()),
           makeDeserializationState: () => new DeserializationState(
               new DeserializationEnvironment(null)
-                ..addBinder('x^0', x)
-                ..close(),
+                ..addBinder(x, "x^0")
+                ..extend(),
               component.root),
           serializer: statementSerializer);
     }(),
@@ -256,12 +256,12 @@ void test() {
               ' "package:foo/bar.dart::A::@fields::field" (int 42)))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)
-                ..addBinder(x, 'x^0')
-                ..close()),
+                ..addBinder(x, nameClue: 'x')
+                ..extend()),
           makeDeserializationState: () => new DeserializationState(
               new DeserializationEnvironment(null)
-                ..addBinder('x^0', x)
-                ..close(),
+                ..addBinder(x, "x^0")
+                ..extend(),
               component.root),
           serializer: statementSerializer);
     }(),
@@ -288,12 +288,12 @@ void test() {
               ' () () ()))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)
-                ..addBinder(x, 'x^0')
-                ..close()),
+                ..addBinder(x, nameClue: 'x')
+                ..extend()),
           makeDeserializationState: () => new DeserializationState(
               new DeserializationEnvironment(null)
-                ..addBinder('x^0', x)
-                ..close(),
+                ..addBinder(x, "x^0")
+                ..extend(),
               component.root),
           serializer: statementSerializer);
     }(),
@@ -389,8 +389,8 @@ void test() {
               returnType: new TypeParameterType(t, Nullability.legacy),
               asyncMarker: AsyncMarker.Sync))),
           expectation: ''
-              '(expr (fun (sync ("T^0") ((dynamic)) ((dynamic)) ((var '
-              '"t1^1" (par "T^0" _) _ ())) ((var "t2^2" (par "T^0" _) '
+              '(expr (fun (sync ("T^0") ((dynamic)) ((dynamic)) ("t1^1" '
+              '(var (par "T^0" _) _ ())) ("t2^2" (var (par "T^0" _) '
               '_ ())) () (par "T^0" _) (ret (get-var "t1^1" _)))))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
@@ -415,7 +415,7 @@ void test() {
           node: foo,
           expectation: ''
               '(static-method (public "foo")'
-              ' (sync () () () ((var "x^0" (dynamic) _ ())) () ()'
+              ' (sync () () () ("x^0" (var (dynamic) _ ())) () ()'
               ' (dynamic) (ret (get-var "x^0" _))))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
@@ -451,11 +451,11 @@ void test() {
               '(legacy "package:foo/bar.dart"'
               ''
               ' ((static-method (public "foo")'
-              ' (sync () () () ((var "x^0" (dynamic) _ ())) () () (dynamic)'
+              ' (sync () () () ("x^0" (var (dynamic) _ ())) () () (dynamic)'
               ' (ret (get-var "x^0" _))))'
               ''
               ' (static-method (public "bar")'
-              ' (sync () () () ((var "x^0" (dynamic) _ ())) () () (dynamic)'
+              ' (sync () () () ("x^0" (var (dynamic) _ ())) () () (dynamic)'
               ' (ret (invoke-static "package:foo/bar.dart::@methods::foo"'
               ' () ((get-var "x^0" _)) ()))))))',
           makeSerializationState: () =>
@@ -495,7 +495,7 @@ void test() {
       return new TestCase<Statement>(
           name: 'dynamic x;',
           node: VariableDeclaration('x', type: const DynamicType()),
-          expectation: '(local (var "x^0" (dynamic) _ ()))',
+          expectation: '(local "x^0" (var (dynamic) _ ()))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
           makeDeserializationState: () => new DeserializationState(
