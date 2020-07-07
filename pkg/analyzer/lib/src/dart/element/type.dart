@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -67,6 +68,11 @@ class DynamicTypeImpl extends TypeImpl implements DynamicType {
 
   @override
   bool operator ==(Object object) => identical(object, this);
+
+  @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    return visitor.visitDynamicType(this);
+  }
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -266,6 +272,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
           _equalParameters(other.parameters, parameters);
     }
     return false;
+  }
+
+  @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    return visitor.visitFunctionType(this);
   }
 
   @override
@@ -871,6 +882,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
           TypeImpl.equalArrays(other.typeArguments, typeArguments);
     }
     return false;
+  }
+
+  @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    return visitor.visitInterfaceType(this);
   }
 
   @override
@@ -1679,6 +1695,11 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
   bool operator ==(Object object) => identical(object, this);
 
   @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    return visitor.visitNeverType(this);
+  }
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeNeverType(this);
   }
@@ -1951,6 +1972,11 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    return visitor.visitTypeParameterType(this);
+  }
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeTypeParameterType(this);
   }
@@ -2085,6 +2111,11 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
 
   @override
   bool operator ==(Object object) => identical(object, this);
+
+  @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    return visitor.visitVoidType(this);
+  }
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {

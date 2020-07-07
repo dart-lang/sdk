@@ -27,7 +27,7 @@ class RecursiveTypeVisitorTest extends AbstractTypeTest {
   }
 
   void test_callsDefaultBehavior() {
-    expect(DartTypeVisitor.visit(intNone, visitor), true);
+    expect(intNone.accept(visitor), true);
     visitor.assertVisitedType(intNone);
   }
 
@@ -43,7 +43,7 @@ class RecursiveTypeVisitorTest extends AbstractTypeTest {
         typeFormals: [T, K],
         parameters: [a, b, c, d],
         nullabilitySuffix: NullabilitySuffix.none);
-    expect(DartTypeVisitor.visit(type, visitor), true);
+    expect(type.accept(visitor), true);
     visitor.assertVisitedTypes([
       dynamicType,
       intNone,
@@ -62,7 +62,7 @@ class RecursiveTypeVisitorTest extends AbstractTypeTest {
         typeFormals: [],
         parameters: [a],
         nullabilitySuffix: NullabilitySuffix.none);
-    expect(DartTypeVisitor.visit(type, visitor), true);
+    expect(type.accept(visitor), true);
     visitor.assertVisitedType(intNone);
   }
 
@@ -72,7 +72,7 @@ class RecursiveTypeVisitorTest extends AbstractTypeTest {
         typeFormals: [],
         parameters: [],
         nullabilitySuffix: NullabilitySuffix.none);
-    expect(DartTypeVisitor.visit(type, visitor), true);
+    expect(type.accept(visitor), true);
     visitor.assertVisitedType(intNone);
   }
 
@@ -83,7 +83,7 @@ class RecursiveTypeVisitorTest extends AbstractTypeTest {
         typeFormals: [T],
         parameters: [],
         nullabilitySuffix: NullabilitySuffix.none);
-    expect(DartTypeVisitor.visit(type, visitor), true);
+    expect(type.accept(visitor), true);
     visitor.assertVisitedTypes([dynamicType, intNone]);
   }
 
@@ -94,26 +94,26 @@ class RecursiveTypeVisitorTest extends AbstractTypeTest {
         typeFormals: [T],
         parameters: [],
         nullabilitySuffix: NullabilitySuffix.none);
-    expect(DartTypeVisitor.visit(type, visitor), true);
+    expect(type.accept(visitor), true);
     visitor.assertVisitedType(dynamicType);
   }
 
   void test_interfaceType_typeParameter() {
     final type = typeProvider.listType2(intNone);
-    expect(DartTypeVisitor.visit(type, visitor), true);
+    expect(type.accept(visitor), true);
     visitor.assertVisitedType(intNone);
   }
 
   void test_interfaceType_typeParameters() {
     final type = typeProvider.mapType2(intNone, stringNone);
-    expect(DartTypeVisitor.visit(type, visitor), true);
+    expect(type.accept(visitor), true);
     visitor.assertVisitedTypes([intNone, stringNone]);
   }
 
   void test_interfaceType_typeParameters_nested() {
     final innerList = typeProvider.listType2(intNone);
     final outerList = typeProvider.listType2(innerList);
-    expect(DartTypeVisitor.visit(outerList, visitor), true);
+    expect(outerList.accept(visitor), true);
     visitor.assertVisitedType(intNone);
   }
 
@@ -130,7 +130,7 @@ class RecursiveTypeVisitorTest extends AbstractTypeTest {
         parameters: [a, b, c, d],
         nullabilitySuffix: NullabilitySuffix.none);
     visitor.stopOnType = dynamicType;
-    expect(DartTypeVisitor.visit(type, visitor), false);
+    expect(type.accept(visitor), false);
     visitor.assertNotVisitedTypes(
         [intNone, stringNone, numNone, doubleNone, voidNone, objectNone]);
   }
@@ -148,7 +148,7 @@ class RecursiveTypeVisitorTest extends AbstractTypeTest {
         parameters: [a, b, c, d],
         nullabilitySuffix: NullabilitySuffix.none);
     visitor.stopOnType = intNone;
-    expect(DartTypeVisitor.visit(type, visitor), false);
+    expect(type.accept(visitor), false);
     visitor.assertNotVisitedTypes([stringNone, voidNone, objectNone]);
   }
 
@@ -156,7 +156,7 @@ class RecursiveTypeVisitorTest extends AbstractTypeTest {
     final innerType = typeProvider.mapType2(intNone, stringNone);
     final outerList = typeProvider.listType2(innerType);
     visitor.stopOnType = intNone;
-    expect(DartTypeVisitor.visit(outerList, visitor), false);
+    expect(outerList.accept(visitor), false);
     visitor.assertNotVisitedType(stringNone);
   }
 
@@ -165,14 +165,14 @@ class RecursiveTypeVisitorTest extends AbstractTypeTest {
     final innerTypeSkipped = typeProvider.listType2(stringNone);
     final outerType = typeProvider.mapType2(innerTypeStop, innerTypeSkipped);
     visitor.stopOnType = intNone;
-    expect(DartTypeVisitor.visit(outerType, visitor), false);
+    expect(outerType.accept(visitor), false);
     visitor.assertNotVisitedType(stringNone);
   }
 
   void test_stopVisiting_typeParameters() {
     final type = typeProvider.mapType2(intNone, stringNone);
     visitor.stopOnType = intNone;
-    expect(DartTypeVisitor.visit(type, visitor), false);
+    expect(type.accept(visitor), false);
     visitor.assertVisitedType(intNone);
     visitor.assertNotVisitedType(stringNone);
   }
@@ -197,7 +197,7 @@ class _MockRecursiveVisitor extends RecursiveTypeVisitor {
       types.forEach(assertVisitedType);
 
   @override
-  bool defaultDartType(DartType type) {
+  bool visitDartType(DartType type) {
     expect(type, isNotNull);
     visitedTypes.add(type);
     return type != stopOnType;

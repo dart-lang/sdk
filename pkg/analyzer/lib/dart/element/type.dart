@@ -21,6 +21,7 @@
 /// the references to `String` and `int` are type arguments.
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart' show InterfaceTypeImpl;
 
 /// The type associated with elements in the element model.
@@ -121,6 +122,9 @@ abstract class DartType {
 
   /// Return the nullability suffix of this type.
   NullabilitySuffix get nullabilitySuffix;
+
+  /// Use the given [visitor] to visit this type.
+  R accept<R>(TypeVisitor<R> visitor);
 
   /// Return the presentation of this type as it should appear when presented
   /// to users in contexts such as error messages.

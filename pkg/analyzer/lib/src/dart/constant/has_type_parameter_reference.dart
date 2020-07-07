@@ -8,7 +8,7 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 /// Return `true` if the [type] has a type parameter reference.
 bool hasTypeParameterReference(DartType type) {
   var visitor = _ReferencesTypeParameterVisitor();
-  DartTypeVisitor.visit(type, visitor);
+  type.accept(visitor);
   return visitor.result;
 }
 
@@ -22,9 +22,6 @@ bool hasTypeParameterReference(DartType type) {
 class _ReferencesTypeParameterVisitor extends RecursiveTypeVisitor {
   /// The result of whether any type parameters were found.
   bool result = false;
-
-  @override
-  bool defaultDartType(_) => true;
 
   @override
   bool visitTypeParameterType(_) {

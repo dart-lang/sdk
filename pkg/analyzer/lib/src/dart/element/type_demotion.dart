@@ -5,10 +5,10 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/element/type_visitor.dart';
 
 /// Returns [type] in which all promoted type variables have been replace with
 /// their unpromoted equivalents, and, if [library] is non-nullable by default,
@@ -16,16 +16,18 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 DartType demoteType(LibraryElement library, DartType type) {
   if (library.isNonNullableByDefault) {
     var visitor = const _DemotionNonNullification();
-    return visitor.visit(type) ?? type;
+    return type.accept(visitor) ?? type;
   } else {
     var visitor = const _DemotionNonNullification(nonNullifyTypes: false);
-    return visitor.visit(type) ?? type;
+    return type.accept(visitor) ?? type;
   }
 }
 
 /// Returns `true` if type contains a promoted type variable.
 bool hasPromotedTypeVariable(DartType type) {
-  return const _HasPromotedTypeVariableVisitor()._visit(type);
+  return type.accept(
+    const _HasPromotedTypeVariableVisitor(),
+  );
 }
 
 /// Returns [type] in which all legacy types have been replaced with
@@ -33,7 +35,7 @@ bool hasPromotedTypeVariable(DartType type) {
 DartType nonNullifyType(TypeSystemImpl typeSystem, DartType type) {
   if (typeSystem.isNonNullableByDefault && type != null) {
     var visitor = const _DemotionNonNullification(demoteTypeVariables: false);
-    return visitor.visit(type) ?? type;
+    return type.accept(visitor) ?? type;
   }
   return type;
 }
@@ -81,20 +83,20 @@ class _DemotionNonNullification extends ReplacementVisitor {
 }
 
 /// Visitor that returns `true` if a type contains a promoted type variable.
-class _HasPromotedTypeVariableVisitor extends DartTypeVisitor<bool> {
+class _HasPromotedTypeVariableVisitor extends UnifyingTypeVisitor<bool> {
   const _HasPromotedTypeVariableVisitor();
 
   @override
-  bool defaultDartType(DartType type) => false;
+  bool visitDartType(DartType type) => false;
 
   @override
   bool visitFunctionType(FunctionType type) {
-    if (_visit(type.returnType)) {
+    if (type.returnType.accept(this)) {
       return true;
     }
 
     for (var parameter in type.parameters) {
-      if (_visit(parameter.type)) {
+      if (parameter.type.accept(this)) {
         return true;
       }
     }
@@ -105,7 +107,7 @@ class _HasPromotedTypeVariableVisitor extends DartTypeVisitor<bool> {
   @override
   bool visitInterfaceType(InterfaceType type) {
     for (var typeArgument in type.typeArguments) {
-      if (_visit(typeArgument)) {
+      if (typeArgument.accept(this)) {
         return true;
       }
     }
@@ -115,9 +117,5 @@ class _HasPromotedTypeVariableVisitor extends DartTypeVisitor<bool> {
   @override
   bool visitTypeParameterType(TypeParameterType type) {
     return (type as TypeParameterTypeImpl).promotedBound != null;
-  }
-
-  bool _visit(DartType type) {
-    return DartTypeVisitor.visit(type, this);
   }
 }
