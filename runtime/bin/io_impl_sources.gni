@@ -49,6 +49,7 @@ io_impl_sources = [
   "platform_fuchsia.cc",
   "platform_linux.cc",
   "platform_macos.cc",
+  "platform_macos.h",
   "platform_win.cc",
   "process.cc",
   "process.h",
@@ -107,3 +108,5 @@ io_impl_sources = [
   "typed_data_utils.cc",
   "typed_data_utils.h",
 ]
+
+io_impl_tests = [ "platform_macos_test.cc" ]

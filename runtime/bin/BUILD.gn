@@ -1056,7 +1056,8 @@ executable("run_vm_tests") {
               "snapshot_utils.h",
               "vmservice_impl.cc",
               "vmservice_impl.h",
-            ] + builtin_impl_tests + vm_tests + compiler_tests + heap_tests
+            ] + builtin_impl_tests + vm_tests + compiler_tests + heap_tests +
+            io_impl_tests
 
   if (!is_win) {
     # Adds all symbols to the dynamic symbol table, not just used ones.
