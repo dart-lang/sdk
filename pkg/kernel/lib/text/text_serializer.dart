@@ -121,6 +121,8 @@ class ExpressionTagger extends ExpressionVisitor<String>
   String visitFileUriExpression(FileUriExpression _) => "with-uri";
   String visitCheckLibraryIsLoaded(CheckLibraryIsLoaded _) => "is-loaded";
   String visitLoadLibrary(LoadLibrary _) => "load";
+  String visitConstantExpression(ConstantExpression _) => "const";
+  String visitInstanceCreation(InstanceCreation _) => "object";
 }
 
 const TextSerializer<InvalidExpression> invalidExpressionSerializer =
@@ -739,6 +741,29 @@ TextSerializer<CheckLibraryIsLoaded> checkLibraryIsLoadedSerializer = Wrapped(
 
 TextSerializer<LoadLibrary> loadLibrarySerializer = Wrapped(
     (ll) => ll.import, (i) => LoadLibrary(i), libraryDependencySerializer);
+
+TextSerializer<ConstantExpression> constantExpressionSerializer = Wrapped(
+    (ce) => Tuple2(ce.constant, ce.type),
+    (t) => ConstantExpression(t.first, t.second),
+    Tuple2Serializer(constantSerializer, dartTypeSerializer));
+
+TextSerializer<InstanceCreation> instanceCreationSerializer = Wrapped(
+    (ic) => Tuple6(
+        ic.classReference.canonicalName,
+        ic.typeArguments,
+        ic.fieldValues.keys.map((r) => r.canonicalName).toList(),
+        ic.fieldValues.values.toList(),
+        ic.asserts,
+        ic.unusedArguments),
+    (t) => InstanceCreation(t.first.getReference(), t.second,
+        Map.fromIterables(t.third, t.fourth), t.fifth, t.sixth),
+    Tuple6Serializer(
+        CanonicalNameSerializer(),
+        ListSerializer(dartTypeSerializer),
+        ListSerializer(CanonicalNameSerializer()),
+        ListSerializer(expressionSerializer),
+        ListSerializer(assertStatementSerializer),
+        ListSerializer(expressionSerializer)));
 
 Case<Expression> expressionSerializer =
     new Case.uninitialized(const ExpressionTagger());
@@ -1605,6 +1630,109 @@ TextSerializer<LibraryDependency> libraryDependencySerializer = Wrapped(
         DartInt(),
         ListSerializer(expressionSerializer)));
 
+class ConstantTagger extends ConstantVisitor<String>
+    implements Tagger<Constant> {
+  const ConstantTagger();
+
+  String tag(Constant node) => node.accept(this);
+
+  String visitBoolConstant(BoolConstant node) => "const-bool";
+  String visitDoubleConstant(DoubleConstant node) => "const-double";
+  String visitInstanceConstant(InstanceConstant node) => "const-object";
+  String visitIntConstant(IntConstant node) => "const-int";
+  String visitListConstant(ListConstant node) => "const-list";
+  String visitMapConstant(MapConstant node) => "const-map";
+  String visitNullConstant(NullConstant node) => "const-null";
+  String visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+      "const-apply";
+  String visitSetConstant(SetConstant node) => "const-set";
+  String visitStringConstant(StringConstant node) => "const-string";
+  String visitSymbolConstant(SymbolConstant node) => "const-symbol";
+  String visitTearOffConstant(TearOffConstant node) => "const-tearoff";
+  String visitTypeLiteralConstant(TypeLiteralConstant node) => "const-type";
+  String visitUnevaluatedConstant(UnevaluatedConstant node) => "const-expr";
+}
+
+TextSerializer<BoolConstant> boolConstantSerializer =
+    Wrapped((w) => w.value, (u) => BoolConstant(u), DartBool());
+
+TextSerializer<DoubleConstant> doubleConstantSerializer =
+    Wrapped((w) => w.value, (u) => DoubleConstant(u), DartDouble());
+
+TextSerializer<IntConstant> intConstantSerializer =
+    Wrapped((w) => w.value, (u) => IntConstant(u), DartInt());
+
+TextSerializer<ListConstant> listConstantSerializer = Wrapped(
+    (w) => Tuple2(w.typeArgument, w.entries),
+    (u) => ListConstant(u.first, u.second),
+    Tuple2Serializer(dartTypeSerializer, ListSerializer(constantSerializer)));
+
+TextSerializer<MapConstant> mapConstantSerializer = Wrapped(
+    (w) => Tuple3(w.keyType, w.valueType, w.entries),
+    (u) => MapConstant(u.first, u.second, u.third),
+    Tuple3Serializer(
+        dartTypeSerializer,
+        dartTypeSerializer,
+        Zip(
+            Tuple2Serializer(ListSerializer(constantSerializer),
+                ListSerializer(constantSerializer)),
+            (k, v) => ConstantMapEntry(k, v),
+            (z) => Tuple2(z.key, z.value))));
+
+TextSerializer<NullConstant> nullConstantSerializer =
+    Wrapped((w) => null, (u) => NullConstant(), Nothing());
+
+TextSerializer<PartialInstantiationConstant>
+    partialInstantiationConstantSerializer = Wrapped(
+        (w) => Tuple2(w.tearOffConstant, w.types),
+        (u) => PartialInstantiationConstant(u.first, u.second),
+        Tuple2Serializer(
+            tearOffConstantSerializer, ListSerializer(dartTypeSerializer)));
+
+TextSerializer<SetConstant> setConstantSerializer = Wrapped(
+    (w) => Tuple2(w.typeArgument, w.entries),
+    (u) => SetConstant(u.first, u.second),
+    Tuple2Serializer(dartTypeSerializer, ListSerializer(constantSerializer)));
+
+TextSerializer<StringConstant> stringConstantSerializer =
+    Wrapped((w) => w.value, (u) => StringConstant(u), DartString());
+
+TextSerializer<SymbolConstant> symbolConstantSerializer = Wrapped(
+    (w) => Tuple2(w.name, w.libraryReference?.canonicalName),
+    (u) => SymbolConstant(u.first, u.second?.getReference()),
+    Tuple2Serializer(DartString(), Optional(CanonicalNameSerializer())));
+
+TextSerializer<TearOffConstant> tearOffConstantSerializer = Wrapped(
+    (w) => w.procedureReference.canonicalName,
+    (u) => TearOffConstant.byReference(u.getReference()),
+    CanonicalNameSerializer());
+
+TextSerializer<TypeLiteralConstant> typeLiteralConstantSerializer =
+    Wrapped((w) => w.type, (u) => TypeLiteralConstant(u), dartTypeSerializer);
+
+TextSerializer<UnevaluatedConstant> unevaluatedConstantSerializer = Wrapped(
+    (w) => w.expression, (u) => UnevaluatedConstant(u), expressionSerializer);
+
+TextSerializer<InstanceConstant> instanceConstantSerializer =
+    Wrapped<
+            Tuple4<CanonicalName, List<DartType>, List<CanonicalName>,
+                List<Constant>>,
+            InstanceConstant>(
+        (w) => Tuple4(
+            w.classReference.canonicalName,
+            w.typeArguments,
+            w.fieldValues.keys.map((r) => r.canonicalName).toList(),
+            w.fieldValues.values.toList()),
+        (u) => InstanceConstant(u.first.getReference(), u.second,
+            Map.fromIterables(u.third.map((c) => c.getReference()), u.fourth)),
+        Tuple4Serializer(
+            CanonicalNameSerializer(),
+            ListSerializer(dartTypeSerializer),
+            ListSerializer(CanonicalNameSerializer()),
+            ListSerializer(constantSerializer)));
+
+Case<Constant> constantSerializer = Case.uninitialized(ConstantTagger());
+
 void initializeSerializers() {
   expressionSerializer.registerTags({
     "string": stringLiteralSerializer,
@@ -1660,6 +1788,8 @@ void initializeSerializers() {
     "with-uri": fileUriExpressionSerializer,
     "is-loaded": checkLibraryIsLoadedSerializer,
     "load": loadLibrarySerializer,
+    "const": constantExpressionSerializer,
+    "object": instanceCreationSerializer,
   });
   dartTypeSerializer.registerTags({
     "invalid": invalidTypeSerializer,
@@ -1704,5 +1834,21 @@ void initializeSerializers() {
   librarySerializer.registerTags({
     "legacy": libraryContentsSerializer,
     "null-safe": libraryContentsSerializer,
+  });
+  constantSerializer.registerTags({
+    "const-bool": boolConstantSerializer,
+    "const-double": doubleConstantSerializer,
+    "const-int": intConstantSerializer,
+    "const-list": listConstantSerializer,
+    "const-map": mapConstantSerializer,
+    "const-null": nullConstantSerializer,
+    "const-apply": partialInstantiationConstantSerializer,
+    "const-set": setConstantSerializer,
+    "const-string": stringConstantSerializer,
+    "const-symbol": symbolConstantSerializer,
+    "const-tearoff": tearOffConstantSerializer,
+    "const-type": typeLiteralConstantSerializer,
+    "const-expr": unevaluatedConstantSerializer,
+    "const-object": instanceConstantSerializer,
   });
 }

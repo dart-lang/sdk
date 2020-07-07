@@ -154,6 +154,7 @@ casing
 cast
 casted
 casts
+ce
 cfe
 ch
 channel
@@ -495,6 +496,7 @@ human
 i
 i'll
 i2b
+ic
 id
 identifies
 identifying
@@ -1138,6 +1140,7 @@ tuple2
 tuple3
 tuple4
 tuple5
+tuple6
 type1
 type2
 typeref

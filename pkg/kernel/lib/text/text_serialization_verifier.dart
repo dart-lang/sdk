@@ -322,12 +322,6 @@ class VerificationState {
     }
   }
 
-  static bool isExpressionSupported(Expression node) =>
-      !isExpressionNotSupported(node);
-
-  static bool isExpressionNotSupported(Expression node) =>
-      node is InstanceCreation || node is ConstantExpression;
-
   static bool isStatementSupported(Statement node) =>
       !isStatementNotSupported(node);
 
@@ -343,46 +337,30 @@ class VerificationState {
   static bool isSupported(Node node) => !isNotSupported(node);
 
   static bool isNotSupported(Node node) =>
-      node is Expression && isExpressionNotSupported(node) ||
       node is Statement && isStatementNotSupported(node) ||
       node is FunctionNode && node.body == null ||
       node is Procedure &&
           (!node.isStatic || node.kind != ProcedureKind.Method) ||
       node is AssertInitializer ||
-      node is BoolConstant ||
       node is Catch ||
       node is Class ||
       node is Component ||
       node is Constructor ||
-      node is DoubleConstant ||
       node is Extension ||
       node is Field ||
       node is FieldInitializer ||
-      node is InstanceConstant ||
-      node is IntConstant ||
       node is InvalidInitializer ||
       node is Library ||
       node is LibraryPart ||
-      node is ListConstant ||
       node is LocalInitializer ||
-      node is MapConstant ||
       node is MapEntry ||
       node is Name && node.isPrivate ||
-      node is NullConstant ||
-      node is PartialInstantiationConstant ||
-      node is PrimitiveConstant ||
       node is RedirectingFactoryConstructor ||
       node is RedirectingInitializer ||
-      node is SetConstant ||
-      node is StringConstant ||
       node is SuperInitializer ||
       node is Supertype ||
       node is SwitchCase ||
-      node is SymbolConstant ||
-      node is TearOffConstant ||
-      node is TypeLiteralConstant ||
-      node is Typedef ||
-      node is UnevaluatedConstant;
+      node is Typedef;
 }
 
 class TextSerializationVerifier extends RecursiveVisitor<void> {
