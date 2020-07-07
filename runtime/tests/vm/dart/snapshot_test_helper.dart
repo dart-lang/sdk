@@ -48,6 +48,7 @@ final String executableSuffix = Platform.isWindows ? ".exe" : "";
 final String buildDir = p.dirname(Platform.executable);
 final String platformDill = p.join(buildDir, "vm_platform_strong.dill");
 final String genSnapshot = p.join(buildDir, "gen_snapshot${executableSuffix}");
+final String dart = p.join(buildDir, "dart${executableSuffix}");
 final String dartPrecompiledRuntime =
     p.join(buildDir, "dart_precompiled_runtime${executableSuffix}");
 final String genKernel = p.join("pkg", "vm", "bin", "gen_kernel.dart");

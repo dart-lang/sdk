@@ -16,11 +16,13 @@ class Version : public AllStatic {
   static const char* CommitString();
   static int CurrentAbiVersion();
   static int OldestSupportedAbiVersion();
+  static const char* SdkHash();
 
  private:
   static const char* str_;
   static const char* snapshot_hash_;
   static const char* commit_;
+  static const char* git_short_hash_;
 };
 
 }  // namespace dart

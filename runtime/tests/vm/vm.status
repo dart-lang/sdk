@@ -338,11 +338,13 @@ cc/Profiler_TypedArrayAllocation: SkipByDesign
 cc/Service_Profile: SkipByDesign
 dart/isolates/thread_pool_test: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
 dart/regress_41971_test: SkipByDesign # dart:ffi is not supported on simulator
+dart/sdk_hash_test: SkipSlow # gen_kernel is slow to run on simarm
 dart/unboxed_param_args_descriptor_test: SkipByDesign # FFI helper not supported on simulator
 dart/unboxed_param_tear_off_test: SkipByDesign # FFI helper not supported on simulator
 dart/unboxed_param_test: SkipByDesign # FFI helper not supported on simulator
 dart_2/isolates/thread_pool_test: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
 dart_2/regress_41971_test: SkipByDesign # dart:ffi is not supported on simulator
+dart_2/sdk_hash_test: SkipSlow # gen_kernel is slow to run on simarm
 dart_2/unboxed_param_args_descriptor_test: SkipByDesign # FFI helper not supported on simulator
 dart_2/unboxed_param_tear_off_test: SkipByDesign # FFI helper not supported on simulator
 dart_2/unboxed_param_test: SkipByDesign # FFI helper not supported on simulator

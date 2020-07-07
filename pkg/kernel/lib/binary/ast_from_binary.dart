@@ -5,6 +5,7 @@ library kernel.ast_from_binary;
 
 import 'dart:core' hide MapEntry;
 import 'dart:developer';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import '../ast.dart';
@@ -28,8 +29,19 @@ class InvalidKernelVersionError {
   InvalidKernelVersionError(this.version);
 
   String toString() {
-    return 'Unexpected Kernel version ${version} '
+    return 'Unexpected Kernel Format Version ${version} '
         '(expected ${Tag.BinaryFormatVersion}).';
+  }
+}
+
+class InvalidKernelSdkVersionError {
+  final String version;
+
+  InvalidKernelSdkVersionError(this.version);
+
+  String toString() {
+    return 'Unexpected Kernel SDK Version ${version} '
+        '(expected ${expectedSdkHash}).';
   }
 }
 
@@ -484,6 +496,13 @@ class BinaryBuilder {
     if (_bytes.length == 0) throw new StateError("Empty input given.");
   }
 
+  void _readAndVerifySdkHash() {
+    final sdkHash = ascii.decode(readBytes(sdkHashLength));
+    if (!isValidSdkHash(sdkHash)) {
+      throw InvalidKernelSdkVersionError(sdkHash);
+    }
+  }
+
   /// Deserializes a kernel component and stores it in [component].
   ///
   /// When linking with a non-empty component, canonical names must have been
@@ -511,6 +530,9 @@ class BinaryBuilder {
       if (version != Tag.BinaryFormatVersion) {
         throw InvalidKernelVersionError(version);
       }
+
+      _readAndVerifySdkHash();
+
       _byteOffset = offset;
       List<int> componentFileSizes = _indexComponents();
       if (componentFileSizes.length > 1) {
@@ -694,6 +716,8 @@ class BinaryBuilder {
       throw InvalidKernelVersionError(formatVersion);
     }
 
+    _readAndVerifySdkHash();
+
     // Read component index from the end of this ComponentFiles serialized data.
     _ComponentIndex index = _readComponentIndex(componentFileSize);
 
@@ -717,6 +741,8 @@ class BinaryBuilder {
     if (formatVersion != Tag.BinaryFormatVersion) {
       throw InvalidKernelVersionError(formatVersion);
     }
+
+    _readAndVerifySdkHash();
 
     List<String> problemsAsJson = readListOfStrings();
     if (problemsAsJson != null) {

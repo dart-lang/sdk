@@ -349,34 +349,36 @@ def GetBuildSdkBin(host_os, mode=None, arch=None, target_os=None):
     return os.path.join(build_root, 'dart-sdk', 'bin')
 
 
-def GetShortVersion():
-    version = ReadVersionFile()
+def GetShortVersion(version_file=None):
+    version = ReadVersionFile(version_file)
     return ('{}.{}.{}.{}.{}'.format(version.major, version.minor, version.patch,
                                     version.prerelease,
                                     version.prerelease_patch))
 
 
-def GetSemanticSDKVersion(no_git_hash=False, version_file=None):
+def GetSemanticSDKVersion(no_git_hash=False,
+                          version_file=None,
+                          git_revision_file=None):
     version = ReadVersionFile(version_file)
     if not version:
         return None
 
+    suffix = ''
     if version.channel == 'be':
-        postfix = '-edge' if no_git_hash else '-edge.{}'.format(
-            GetGitRevision())
+        suffix = '-edge' if no_git_hash else '-edge.{}'.format(
+            GetGitRevision(git_revision_file))
     elif version.channel in ('beta', 'dev'):
-        postfix = '-{}.{}.{}'.format(version.prerelease,
-                                     version.prerelease_patch, version.channel)
+        suffix = '-{}.{}.{}'.format(version.prerelease,
+                                    version.prerelease_patch, version.channel)
     else:
         assert version.channel == 'stable'
-        postfix = ''
 
     return '{}.{}.{}{}'.format(version.major, version.minor, version.patch,
-                               postfix)
+                               suffix)
 
 
-def GetVersion(no_git_hash=False, version_file=None):
-    return GetSemanticSDKVersion(no_git_hash, version_file)
+def GetVersion(no_git_hash=False, version_file=None, git_revision_file=None):
+    return GetSemanticSDKVersion(no_git_hash, version_file, git_revision_file)
 
 
 # The editor used to produce the VERSION file put on gcs. We now produce this
@@ -396,8 +398,8 @@ def GetVersionFileContent():
     return json.dumps(result, indent=2)
 
 
-def GetChannel():
-    version = ReadVersionFile()
+def GetChannel(version_file=None):
+    version = ReadVersionFile(version_file)
     return version.channel
 
 
@@ -466,8 +468,8 @@ def ReadVersionFile(version_file=None):
 # We only use numbers on the master branch (bleeding edge). On branches
 # we use the version number instead for archiving purposes.
 # The number on master is the count of commits on the master branch.
-def GetArchiveVersion():
-    version = ReadVersionFile()
+def GetArchiveVersion(version_file=None):
+    version = ReadVersionFile(version_file=None)
     if not version:
         raise 'Could not get the archive version, parsing the version file failed'
     if version.channel in ['be', 'integration']:
@@ -475,9 +477,10 @@ def GetArchiveVersion():
     return GetSemanticSDKVersion()
 
 
-def GetGitRevision(repo_path=DART_DIR):
+def GetGitRevision(git_revision_file=None, repo_path=DART_DIR):
     # When building from tarball use tools/GIT_REVISION
-    git_revision_file = os.path.join(repo_path, 'tools', 'GIT_REVISION')
+    if git_revision_file is None:
+        git_revision_file = os.path.join(repo_path, 'tools', 'GIT_REVISION')
     try:
         with open(git_revision_file) as fd:
             return fd.read().decode('utf-8').strip()
@@ -493,7 +496,8 @@ def GetGitRevision(repo_path=DART_DIR):
     # We expect a full git hash
     if len(revision) != 40:
         print('Warning: Could not parse git commit, output was {}'.format(
-            revision))
+            revision),
+              file=sys.stderr)
         return None
     return revision
 
@@ -512,12 +516,14 @@ def GetShortGitHash(repo_path=DART_DIR):
 
 
 def GetLatestDevTag(repo_path=DART_DIR):
+    # We used the old, pre-git2.13 refname:strip here since lstrip will fail on
+    # older git versions. strip is an alias for lstrip in later versions.
     cmd = [
         'git',
         'for-each-ref',
         'refs/tags/*dev*',
         '--sort=-taggerdate',
-        "--format=%(refname:lstrip=2)",
+        "--format=%(refname:strip=2)",
         '--count=1',
     ]
     p = subprocess.Popen(cmd,
@@ -529,7 +535,8 @@ def GetLatestDevTag(repo_path=DART_DIR):
     tag = output.decode('utf-8').strip()
     if p.wait() != 0:
         print('Warning: Could not get the most recent dev branch tag {}'.format(
-            tag))
+            tag),
+              file=sys.stderr)
         return None
     return tag
 
@@ -560,7 +567,8 @@ def GetGitNumber(repo_path=DART_DIR):
         return number + GIT_NUMBER_BASE
     except:
         print(
-            'Warning: Could not parse git count, output was {}'.format(number))
+            'Warning: Could not parse git count, output was {}'.format(number),
+            file=sys.stderr)
     return None
 
 

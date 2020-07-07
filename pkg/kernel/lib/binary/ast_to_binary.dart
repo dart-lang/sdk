@@ -4,6 +4,7 @@
 library kernel.ast_to_binary;
 
 import 'dart:core' hide MapEntry;
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' show BytesBuilder;
 import 'dart:typed_data';
@@ -537,6 +538,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       final componentOffset = getBufferOffset();
       writeUInt32(Tag.ComponentFile);
       writeUInt32(Tag.BinaryFormatVersion);
+      writeBytes(ascii.encode(expectedSdkHash));
       writeListOfStrings(component.problemsAsJson);
       indexLinkTable(component);
       _collectMetadata(component);
