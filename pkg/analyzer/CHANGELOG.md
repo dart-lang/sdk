@@ -1,5 +1,6 @@
 ## 0.39.13-dev
 * Added 'dart/sdk/build_sdk_summary.dart' with `buildSdkSummary`.
+* Added `DynamicType`, `NeverType`, and `VoidType` interfaces.
 
 ## 0.39.12
 * Deprecated `canUseSummaries` in `DartSdkManager` constructor.

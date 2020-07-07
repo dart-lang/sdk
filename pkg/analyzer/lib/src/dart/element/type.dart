@@ -45,7 +45,7 @@ List<T> _transformOrShare<T>(List<T> list, T Function(T) transform) {
 }
 
 /// The [Type] representing the type `dynamic`.
-class DynamicTypeImpl extends TypeImpl {
+class DynamicTypeImpl extends TypeImpl implements DynamicType {
   /// The unique instance of this class.
   static final DynamicTypeImpl instance = DynamicTypeImpl._();
 
@@ -1629,7 +1629,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 }
 
 /// The type `Never` represents the uninhabited bottom type.
-class NeverTypeImpl extends TypeImpl {
+class NeverTypeImpl extends TypeImpl implements NeverType {
   /// The unique instance of this class, nullable.
   ///
   /// This behaves equivalently to the `Null` type, but we distinguish it for
@@ -2060,14 +2060,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     }
     return types;
   }
-}
-
-/// The type `void`.
-abstract class VoidType implements DartType {
-  @override
-  @deprecated
-  VoidType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes);
 }
 
 /// A concrete implementation of a [VoidType].

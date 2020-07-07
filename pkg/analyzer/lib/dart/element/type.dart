@@ -165,6 +165,12 @@ Use ClassElement.instantiate() or FunctionTypeAliasElement.instantiate()
       List<DartType> argumentTypes, List<DartType> parameterTypes);
 }
 
+/// The type `dynamic` is a type which is a supertype of all other types, just
+/// like `Object`, with the difference that the static analysis assumes that
+/// every member access has a corresponding member with a signature that
+/// admits the given access.
+abstract class DynamicType implements DartType {}
+
 /// The type of a function, method, constructor, getter, or setter. Function
 /// types come in three variations:
 ///
@@ -551,6 +557,9 @@ abstract class InterfaceType implements ParameterizedType {
       InterfaceTypeImpl.getSmartLeastUpperBound(first, second);
 }
 
+/// The type `Never` represents the uninhabited bottom type.
+abstract class NeverType implements DartType {}
+
 /// A type that can track substituted type parameters, either for itself after
 /// instantiation, or from a surrounding context.
 ///
@@ -600,4 +609,13 @@ abstract class TypeParameterType implements DartType {
 
   @override
   TypeParameterElement get element;
+}
+
+/// The special type `void` is used to indicate that the value of an
+/// expression is meaningless, and intended to be discarded.
+abstract class VoidType implements DartType {
+  @override
+  @deprecated
+  VoidType substitute2(
+      List<DartType> argumentTypes, List<DartType> parameterTypes);
 }
