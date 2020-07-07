@@ -127,6 +127,10 @@ cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 dart_2/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 
+[ $system == android ]
+dart/sdk_hash_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
+dart_2/sdk_hash_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
+
 [ $system == fuchsia ]
 cc/CorelibIsolateStartup: Skip # OOM crash can bring down the OS.
 cc/Read: Fail # TODO(zra): Investigate, ../../dart/runtime/bin/file_test.cc: 34: error: expected: !file->WriteByte(1)
