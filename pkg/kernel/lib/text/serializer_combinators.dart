@@ -421,6 +421,51 @@ class Tuple4<T1, T2, T3, T4> {
   const Tuple4(this.first, this.second, this.third, this.fourth);
 }
 
+class Tuple5Serializer<T1, T2, T3, T4, T5>
+    extends TextSerializer<Tuple5<T1, T2, T3, T4, T5>> {
+  final TextSerializer<T1> first;
+  final TextSerializer<T2> second;
+  final TextSerializer<T3> third;
+  final TextSerializer<T4> fourth;
+  final TextSerializer<T5> fifth;
+
+  const Tuple5Serializer(
+      this.first, this.second, this.third, this.fourth, this.fifth);
+
+  Tuple5<T1, T2, T3, T4, T5> readFrom(
+      Iterator<Object> stream, DeserializationState state) {
+    return new Tuple5(
+        first.readFrom(stream, state),
+        second.readFrom(stream, state),
+        third.readFrom(stream, state),
+        fourth.readFrom(stream, state),
+        fifth.readFrom(stream, state));
+  }
+
+  void writeTo(StringBuffer buffer, Tuple5<T1, T2, T3, T4, T5> object,
+      SerializationState state) {
+    first.writeTo(buffer, object.first, state);
+    if (!second.isEmpty) buffer.write(' ');
+    second.writeTo(buffer, object.second, state);
+    if (!third.isEmpty) buffer.write(' ');
+    third.writeTo(buffer, object.third, state);
+    if (!fourth.isEmpty) buffer.write(' ');
+    fourth.writeTo(buffer, object.fourth, state);
+    if (!fifth.isEmpty) buffer.write(' ');
+    fifth.writeTo(buffer, object.fifth, state);
+  }
+}
+
+class Tuple5<T1, T2, T3, T4, T5> {
+  final T1 first;
+  final T2 second;
+  final T3 third;
+  final T4 fourth;
+  final T5 fifth;
+
+  const Tuple5(this.first, this.second, this.third, this.fourth, this.fifth);
+}
+
 // A serializer/deserializer for lists.
 class ListSerializer<T> extends TextSerializer<List<T>> {
   final TextSerializer<T> elements;

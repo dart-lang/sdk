@@ -1083,8 +1083,8 @@ experimental
 experimentally
 experiments
 expired
-explanation
 explain
+explanation
 explicit
 explicitly
 exponent
@@ -1152,6 +1152,7 @@ field
 field's
 fieldname
 fields
+fifth
 figure
 file
 filename

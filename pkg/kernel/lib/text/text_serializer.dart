@@ -112,6 +112,15 @@ class ExpressionTagger extends ExpressionVisitor<String>
   }
 
   String visitFunctionExpression(FunctionExpression _) => "fun";
+  String visitListConcatenation(ListConcatenation _) => "lists";
+  String visitSetConcatenation(SetConcatenation _) => "sets";
+  String visitMapConcatenation(MapConcatenation _) => "maps";
+  String visitBlockExpression(BlockExpression _) => "let-block";
+  String visitInstantiation(Instantiation _) => "apply";
+  String visitNullCheck(NullCheck _) => "not-null";
+  String visitFileUriExpression(FileUriExpression _) => "with-uri";
+  String visitCheckLibraryIsLoaded(CheckLibraryIsLoaded _) => "is-loaded";
+  String visitLoadLibrary(LoadLibrary _) => "load";
 }
 
 const TextSerializer<InvalidExpression> invalidExpressionSerializer =
@@ -689,6 +698,48 @@ FunctionExpression wrapFunctionExpression(FunctionNode node) {
   return new FunctionExpression(node);
 }
 
+TextSerializer<ListConcatenation> listConcatenationSerializer = Wrapped(
+    (lc) => Tuple2(lc.typeArgument, lc.lists),
+    (t) => ListConcatenation(t.second, typeArgument: t.first),
+    Tuple2Serializer(dartTypeSerializer, ListSerializer(expressionSerializer)));
+
+TextSerializer<SetConcatenation> setConcatenationSerializer = Wrapped(
+    (sc) => Tuple2(sc.typeArgument, sc.sets),
+    (t) => SetConcatenation(t.second, typeArgument: t.first),
+    Tuple2Serializer(dartTypeSerializer, ListSerializer(expressionSerializer)));
+
+TextSerializer<MapConcatenation> mapConcatenationSerializer = Wrapped(
+    (mc) => Tuple3(mc.keyType, mc.valueType, mc.maps),
+    (t) => MapConcatenation(t.third, keyType: t.first, valueType: t.second),
+    Tuple3Serializer(dartTypeSerializer, dartTypeSerializer,
+        ListSerializer(expressionSerializer)));
+
+TextSerializer<BlockExpression> blockExpressionSerializer = Wrapped(
+    (be) => Tuple2(be.body, be.value),
+    (t) => BlockExpression(t.first, t.second),
+    Tuple2Serializer(blockSerializer, expressionSerializer));
+
+TextSerializer<Instantiation> instantiationSerializer = Wrapped(
+    (i) => Tuple2(i.expression, i.typeArguments),
+    (t) => Instantiation(t.first, t.second),
+    Tuple2Serializer(expressionSerializer, ListSerializer(dartTypeSerializer)));
+
+TextSerializer<NullCheck> nullCheckSerializer =
+    Wrapped((nc) => nc.operand, (op) => NullCheck(op), expressionSerializer);
+
+TextSerializer<FileUriExpression> fileUriExpressionSerializer = Wrapped(
+    (fue) => Tuple2(fue.expression, fue.fileUri),
+    (t) => FileUriExpression(t.first, t.second),
+    Tuple2Serializer(expressionSerializer, const UriSerializer()));
+
+TextSerializer<CheckLibraryIsLoaded> checkLibraryIsLoadedSerializer = Wrapped(
+    (clil) => clil.import,
+    (i) => CheckLibraryIsLoaded(i),
+    libraryDependencySerializer);
+
+TextSerializer<LoadLibrary> loadLibrarySerializer = Wrapped(
+    (ll) => ll.import, (i) => LoadLibrary(i), libraryDependencySerializer);
+
 Case<Expression> expressionSerializer =
     new Case.uninitialized(const ExpressionTagger());
 
@@ -1067,18 +1118,10 @@ YieldStatement wrapYieldStatement(Expression expression) {
   return new YieldStatement(expression);
 }
 
-TextSerializer<AssertStatement> assertStatementSerializer = new Wrapped(
-    unwrapAssertStatement,
-    wrapAssertStatement,
-    new Tuple2Serializer(expressionSerializer, expressionSerializer));
-
-Tuple2<Expression, Expression> unwrapAssertStatement(AssertStatement node) {
-  return new Tuple2<Expression, Expression>(node.condition, node.message);
-}
-
-AssertStatement wrapAssertStatement(Tuple2<Expression, Expression> tuple) {
-  return new AssertStatement(tuple.first, message: tuple.second);
-}
+TextSerializer<AssertStatement> assertStatementSerializer = Wrapped(
+    (a) => Tuple2(a.condition, a.message),
+    (t) => AssertStatement(t.first, message: t.second),
+    Tuple2Serializer(expressionSerializer, Optional(expressionSerializer)));
 
 TextSerializer<Block> blockSerializer =
     new Wrapped(unwrapBlock, wrapBlock, const BlockSerializer());
@@ -1535,6 +1578,33 @@ Library wrapLibraryNode(Tuple2<Uri, List<Procedure>> tuple) {
 
 Case<Library> librarySerializer = new Case.uninitialized(const LibraryTagger());
 
+class ShowHideTagger implements Tagger<Combinator> {
+  String tag(Combinator node) => node.isShow ? "show" : "hide";
+}
+
+TextSerializer<Combinator> showSerializer = Wrapped(
+    (c) => c.names, (ns) => Combinator(true, ns), ListSerializer(DartString()));
+
+TextSerializer<Combinator> hideSerializer = Wrapped((c) => c.names,
+    (ns) => Combinator(false, ns), ListSerializer(DartString()));
+
+Case<Combinator> showHideSerializer = new Case(ShowHideTagger(), {
+  "show": showSerializer,
+  "hide": hideSerializer,
+});
+
+TextSerializer<LibraryDependency> libraryDependencySerializer = Wrapped(
+    (ld) => Tuple5(ld.importedLibraryReference.canonicalName, ld.name,
+        ld.combinators, ld.flags, ld.annotations),
+    (t) => LibraryDependency.byReference(
+        t.fourth, t.fifth, t.first.getReference(), t.second, t.third),
+    Tuple5Serializer(
+        CanonicalNameSerializer(),
+        Optional(DartString()),
+        ListSerializer(showHideSerializer),
+        DartInt(),
+        ListSerializer(expressionSerializer)));
+
 void initializeSerializers() {
   expressionSerializer.registerTags({
     "string": stringLiteralSerializer,
@@ -1581,6 +1651,15 @@ void initializeSerializers() {
     "invoke-constructor": constructorInvocationSerializer,
     "invoke-const-constructor": constConstructorInvocationSerializer,
     "fun": functionExpressionSerializer,
+    "lists": listConcatenationSerializer,
+    "sets": setConcatenationSerializer,
+    "maps": mapConcatenationSerializer,
+    "let-block": blockExpressionSerializer,
+    "apply": instantiationSerializer,
+    "not-null": nullCheckSerializer,
+    "with-uri": fileUriExpressionSerializer,
+    "is-loaded": checkLibraryIsLoadedSerializer,
+    "load": loadLibrarySerializer,
   });
   dartTypeSerializer.registerTags({
     "invalid": invalidTypeSerializer,

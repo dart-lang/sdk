@@ -326,19 +326,7 @@ class VerificationState {
       !isExpressionNotSupported(node);
 
   static bool isExpressionNotSupported(Expression node) =>
-      node is SetConcatenation ||
-      node is MapConcatenation ||
-      node is InstanceCreation ||
-      node is FileUriExpression ||
-      node is BlockExpression ||
-      node is ListConcatenation ||
-      node is NullCheck ||
-      node is BasicLiteral ||
-      node is InvocationExpression ||
-      node is Instantiation ||
-      node is ConstantExpression ||
-      node is CheckLibraryIsLoaded ||
-      node is LoadLibrary;
+      node is InstanceCreation || node is ConstantExpression;
 
   static bool isStatementSupported(Statement node) =>
       !isStatementNotSupported(node);
@@ -364,7 +352,6 @@ class VerificationState {
       node is BoolConstant ||
       node is Catch ||
       node is Class ||
-      node is Combinator ||
       node is Component ||
       node is Constructor ||
       node is DoubleConstant ||
@@ -375,11 +362,11 @@ class VerificationState {
       node is IntConstant ||
       node is InvalidInitializer ||
       node is Library ||
-      node is LibraryDependency ||
       node is LibraryPart ||
       node is ListConstant ||
       node is LocalInitializer ||
       node is MapConstant ||
+      node is MapEntry ||
       node is Name && node.isPrivate ||
       node is NullConstant ||
       node is PartialInstantiationConstant ||
@@ -532,6 +519,10 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
       makeRoundTrip<NamedType>(node, namedTypeSerializer);
     } else if (node is Name) {
       makeRoundTrip<Name>(node, nameSerializer);
+    } else if (node is Combinator) {
+      makeRoundTrip<Combinator>(node, showHideSerializer);
+    } else if (node is LibraryDependency) {
+      makeRoundTrip<LibraryDependency>(node, libraryDependencySerializer);
     } else {
       throw new StateError(
           "Don't know how to make a round trip for a supported node "

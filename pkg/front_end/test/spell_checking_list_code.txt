@@ -184,6 +184,7 @@ class6a
 class6b
 clazz
 cli
+clil
 clock
 cls
 cn
@@ -432,6 +433,7 @@ frontend
 frontends
 fs
 fsource
+fue
 fuller
 function's
 fuse
@@ -577,6 +579,8 @@ largest
 lattice
 layer
 layout
+lc
+ld
 leafp
 len
 lets
@@ -593,6 +597,7 @@ linearized
 linebreak
 linter
 lives
+ll
 llub
 lm
 locationd
@@ -622,6 +627,7 @@ masking
 master
 matcher
 mb
+mc
 md
 me
 merely
@@ -679,6 +685,7 @@ nameless
 namer
 natively
 nbsp
+nc
 ncs
 ncurses
 nd
@@ -1130,6 +1137,7 @@ tuple
 tuple2
 tuple3
 tuple4
+tuple5
 type1
 type2
 typeref
