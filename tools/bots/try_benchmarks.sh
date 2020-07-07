@@ -342,8 +342,8 @@ EOF
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseX64/dart-sdk/bin/dart2js --benchmarking-x --packages=.packages --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
-    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --kernel hello.dart
-    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --mode=compile --compile-vm-options=--print-metrics --packages=.packages --out out.js --kernel hello.dart
+    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 hello.dart
+    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --mode=compile --compile-vm-options=--print-metrics --packages=.packages --out out.js hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/perf.dart parse hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/perf.dart scan hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/fasta_perf.dart kernel_gen_e2e hello.dart
