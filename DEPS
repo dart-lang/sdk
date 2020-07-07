@@ -68,7 +68,7 @@ vars = {
   "args_tag": "1.6.0",
   "async_rev": "e0c41e0c1fb70ba606dc81335c981af7c00987c6",
   "bazel_worker_rev": "26680d5e249b249c7216ab2fed0ac8ed4ee285c5",
-  "benchmark_harness_rev": "81641290dea44c34138a109a37e215482f405f81",
+  "benchmark_harness_rev": "a9d5fe44b1cb5527101fb4597b38b3c8b7c04ea8",
   "boolean_selector_rev": "1309eabed510cc3b7536fd4367d39b97ebee3d69",
   "boringssl_gen_rev": "429ccb1877f7987a6f3988228bc2440e61293499",
   "boringssl_rev" : "4dfd5af70191b068aebe567b8e29ce108cee85ce",
