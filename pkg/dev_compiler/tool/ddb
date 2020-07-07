@@ -227,7 +227,9 @@ void main(List<String> args) async {
   }
 
   // Print an initial empty line to separate the invocation from the output.
-  print('');
+  if (verbose) {
+    print('');
+  }
 
   if (compile) {
     var ddcArgs = [
