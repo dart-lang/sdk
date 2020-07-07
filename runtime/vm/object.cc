@@ -4757,10 +4757,6 @@ void Class::set_is_type_finalized() const {
                                           raw_ptr()->state_bits_));
 }
 
-void Class::set_is_patch() const {
-  set_state_bits(PatchBit::update(true, raw_ptr()->state_bits_));
-}
-
 void Class::set_is_synthesized_class() const {
   set_state_bits(SynthesizedClassBit::update(true, raw_ptr()->state_bits_));
 }
@@ -5440,10 +5436,9 @@ const char* Class::ToCString() const {
   NoSafepointScope no_safepoint;
   const Library& lib = Library::Handle(library());
   const char* library_name = lib.IsNull() ? "" : lib.ToCString();
-  const char* patch_prefix = is_patch() ? "Patch " : "";
   const char* class_name = String::Handle(Name()).ToCString();
-  return OS::SCreate(Thread::Current()->zone(), "%s %sClass: %s", library_name,
-                     patch_prefix, class_name);
+  return OS::SCreate(Thread::Current()->zone(), "%s Class: %s", library_name,
+                     class_name);
 }
 
 // Thomas Wang, Integer Hash Functions.

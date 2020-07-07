@@ -404,11 +404,6 @@ class BecomeMapTraits {
 };
 
 bool IsolateReloadContext::IsSameClass(const Class& a, const Class& b) {
-  if (a.is_patch() != b.is_patch()) {
-    // TODO(johnmccutchan): Should we just check the class kind bits?
-    return false;
-  }
-
   // TODO(turnidge): We need to look at generic type arguments for
   // synthetic mixin classes.  Their names are not necessarily unique
   // currently.

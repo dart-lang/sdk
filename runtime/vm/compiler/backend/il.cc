@@ -202,7 +202,6 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
     if (cid == kNullCid && !exclude_null) continue;
     cls = table->At(cid);
     if (!include_abstract && cls.is_abstract()) continue;
-    if (cls.is_patch()) continue;
     if (cls.IsTopLevel()) continue;
 
     // We are either interested in [CidRange]es of subclasses or subtypes.
@@ -310,7 +309,7 @@ void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
         for (; j < current_cid; ++j) {
           if (table->HasValidClassAt(j)) {
             klass = table->At(j);
-            if (!klass.is_patch() && !klass.IsTopLevel()) {
+            if (!klass.IsTopLevel()) {
               // If we care about abstract classes also, we cannot skip over any
               // arbitrary abstract class, only those which are subtypes.
               if (include_abstract) {

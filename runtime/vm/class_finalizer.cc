@@ -1151,14 +1151,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  if (cls.is_patch()) {
-    // The fields and functions of a patch class are copied to the
-    // patched class after parsing. There is nothing to finalize.
-    ASSERT(Array::Handle(cls.functions()).Length() == 0);
-    ASSERT(Array::Handle(cls.fields()).Length() == 0);
-    cls.set_is_finalized();
-    return;
-  }
   // Ensure super class is finalized.
   const Class& super = Class::Handle(cls.SuperClass());
   if (!super.IsNull()) {
@@ -1426,7 +1418,7 @@ void ClassFinalizer::SortClasses() {
       continue;
     }
     cls = table->At(cid);
-    if (cls.is_patch() || !cls.is_declaration_loaded()) {
+    if (!cls.is_declaration_loaded()) {
       continue;
     }
     if (cls.SuperClass() == I->object_store()->object_class()) {

@@ -1359,9 +1359,6 @@ class Class : public Object {
   }
   void set_is_type_finalized() const;
 
-  bool is_patch() const { return PatchBit::decode(raw_ptr()->state_bits_); }
-  void set_is_patch() const;
-
   bool is_synthesized_class() const {
     return SynthesizedClassBit::decode(raw_ptr()->state_bits_);
   }
@@ -1666,7 +1663,6 @@ class Class : public Object {
     kClassLoadingPos = kClassFinalizedPos + kClassFinalizedSize,  // = 4
     kClassLoadingSize = 2,
     kAbstractBit = kClassLoadingPos + kClassLoadingSize,  // = 6
-    kPatchBit,
     kSynthesizedClassBit,
     kMixinAppAliasBit,
     kMixinTypeAppliedBit,
@@ -1688,7 +1684,6 @@ class Class : public Object {
                                            kClassLoadingPos,
                                            kClassLoadingSize> {};
   class AbstractBit : public BitField<uint32_t, bool, kAbstractBit, 1> {};
-  class PatchBit : public BitField<uint32_t, bool, kPatchBit, 1> {};
   class SynthesizedClassBit
       : public BitField<uint32_t, bool, kSynthesizedClassBit, 1> {};
   class FieldsMarkedNullableBit
