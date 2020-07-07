@@ -5,7 +5,8 @@
 // Test for null assertions for parameters in NNBD weak mode.
 
 // Requirements=nnbd-weak
-// VMOptions=--enable-asserts --null-assertions
+// VMOptions=--enable-asserts
+// SharedOptions=--null-assertions
 
 // Opt out of Null Safety:
 // @dart = 2.6

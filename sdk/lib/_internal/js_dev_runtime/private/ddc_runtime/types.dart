@@ -45,6 +45,18 @@ void weakNullSafetyWarnings(bool showWarnings) {
   _weakNullSafetyWarnings = showWarnings;
 }
 
+@notNull
+bool _nonNullAsserts = false;
+
+/// Sets the runtime mode to insert non-null assertions on non-nullable method
+/// parameters.
+///
+/// When [weakNullSafetyWarnings] is also `true` the assertions will fail
+/// instead of printing a warning for the non-null parameters.
+void nonNullAsserts(bool enable) {
+  _nonNullAsserts = enable;
+}
+
 final metadata = JS('', 'Symbol("metadata")');
 
 /// Types in dart are represented internally at runtime as follows.

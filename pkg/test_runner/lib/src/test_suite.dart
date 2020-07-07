@@ -810,8 +810,10 @@ class StandardTestSuite extends TestSuite {
             "${nameFromModuleRoot.directoryPath}/$nameNoExt";
         var jsDir =
             Path(compilationTempDir).relativeTo(Repository.dir).toString();
+        var nullAssertions =
+            testFile.sharedOptions.contains('--null-assertions');
         content = dartdevcHtml(nameNoExt, nameFromModuleRootNoExt, jsDir,
-            configuration.compiler, configuration.nnbdMode);
+            configuration.compiler, configuration.nnbdMode, nullAssertions);
       }
     }
 

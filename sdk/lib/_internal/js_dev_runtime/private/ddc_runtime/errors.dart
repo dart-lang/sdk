@@ -28,20 +28,19 @@ final _nullFailedSet = JS('!', 'new Set()');
 // Run-time null safety assertion per:
 // https://github.com/dart-lang/language/blob/master/accepted/future-releases/nnbd/feature-specification.md#automatic-debug-assertion-insertion
 nullFailed(String? fileUri, int? line, int? column, String? variable) {
-  if (strictNullSafety) {
+  if (_nonNullAsserts) {
     throw AssertionErrorImpl(
         'A null value was passed into a non-nullable parameter $variable',
         fileUri,
         line,
         column,
         '$variable != null');
-  } else {
-    var key = '$fileUri:$line:$column';
-    if (!JS('!', '#.has(#)', _nullFailedSet, key)) {
-      JS('', '#.add(#)', _nullFailedSet, key);
-      _nullWarn(
-          'A null value was passed into a non-nullable parameter $variable');
-    }
+  }
+  var key = '$fileUri:$line:$column';
+  if (!JS('!', '#.has(#)', _nullFailedSet, key)) {
+    JS('', '#.add(#)', _nullFailedSet, key);
+    _nullWarn(
+        'A null value was passed into a non-nullable parameter $variable');
   }
 }
 
