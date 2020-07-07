@@ -1214,7 +1214,7 @@ dart_try_builder("vm-kernel-gcc-linux", goma_rbe = False)
 dart_try_builder(
     "presubmit",
     bucket = "try.shared",
-    execution_timeout = 5 * time.minute,
+    execution_timeout = 10 * time.minute,
     recipe = "presubmit/presubmit",
 )
 
