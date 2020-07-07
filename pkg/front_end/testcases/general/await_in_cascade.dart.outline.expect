@@ -8,9 +8,9 @@ import "dart:async";
 class C extends core::Object {
   synthetic constructor •() → self::C*
     ;
-  method m() → asy::Future<core::List<core::int*>*>*
+  method m() → asy::Future<core::List<core::int*>*>* async 
     ;
-  method _m() → asy::Future<core::int*>*
+  method _m() → asy::Future<core::int*>* async 
     ;
   abstract member-signature get _identityHashCode() → core::int*;
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
@@ -23,7 +23,7 @@ class C extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
   abstract member-signature get runtimeType() → core::Type*;
 }
-static method main() → dynamic
+static method main() → dynamic async 
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;

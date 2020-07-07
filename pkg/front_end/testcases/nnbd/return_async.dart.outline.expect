@@ -6,13 +6,13 @@ import "dart:async";
 
 static method throwSync() → asy::Future<void>
   ;
-static method allYield() → asy::Future<void>
+static method allYield() → asy::Future<void> async 
   ;
-static method allYield2() → asy::Future<void>
+static method allYield2() → asy::Future<void> async 
   ;
-static method allYield3() → asy::Future<void>
+static method allYield3() → asy::Future<void> async 
   ;
-static method customErrorZone() → asy::Future<void>
+static method customErrorZone() → asy::Future<void> async 
   ;
 static method main() → dynamic
   ;

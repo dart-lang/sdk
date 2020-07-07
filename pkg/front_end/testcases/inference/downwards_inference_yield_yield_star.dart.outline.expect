@@ -56,9 +56,9 @@ abstract class MyStream<T extends core::Object* = dynamic> extends asy::Stream<s
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
   abstract member-signature get runtimeType() → core::Type*;
 }
-static method foo() → asy::Stream<core::List<core::int*>*>*
+static method foo() → asy::Stream<core::List<core::int*>*>* async* 
   ;
-static method bar() → core::Iterable<core::Map<core::int*, core::int*>*>*
+static method bar() → core::Iterable<core::Map<core::int*, core::int*>*>* sync* 
   ;
 static method main() → dynamic
   ;

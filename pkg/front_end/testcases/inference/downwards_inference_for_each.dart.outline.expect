@@ -58,7 +58,7 @@ abstract class MyStream<T extends core::Object* = dynamic> extends asy::Stream<s
 }
 static method F<T extends core::Object* = dynamic>() → self::F::T*
   ;
-static method f() → asy::Future<dynamic>*
+static method f() → asy::Future<dynamic>* async 
   ;
-static method main() → asy::Future<dynamic>*
+static method main() → asy::Future<dynamic>* async 
   ;

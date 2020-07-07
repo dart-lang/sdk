@@ -3,5 +3,5 @@ import self as self;
 
 import "dart:async";
 
-static method main() → dynamic
+static method main() → dynamic async 
   ;

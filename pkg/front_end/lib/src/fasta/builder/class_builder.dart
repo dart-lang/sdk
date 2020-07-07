@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart'
     show
         Arguments,
         AsExpression,
+        AsyncMarker,
         Class,
         Constructor,
         DartType,
@@ -873,6 +874,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     procedure.function.body = new ReturnStatement(result)
       ..fileOffset = procedure.fileOffset;
     procedure.function.body.parent = procedure.function;
+    procedure.function.asyncMarker = AsyncMarker.Sync;
+    procedure.function.dartAsyncMarker = AsyncMarker.Sync;
 
     procedure.isAbstract = false;
     procedure.isNoSuchMethodForwarder = true;

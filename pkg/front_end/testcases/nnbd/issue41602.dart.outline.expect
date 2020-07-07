@@ -2,13 +2,13 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:async" as asy;
 
-static method returnFutureOfVoid() → asy::Future<void>
+static method returnFutureOfVoid() → asy::Future<void> async 
   ;
 static method returnVoid() → void
   ;
-static method returnVoidAsync() → void
+static method returnVoidAsync() → void async 
   ;
-static method test() → dynamic
+static method test() → dynamic async 
   ;
-static method main() → dynamic
+static method main() → dynamic async 
   ;

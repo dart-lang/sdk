@@ -23,7 +23,7 @@ class Foo extends core::Object {
 class Bar<T extends asy::Stream<core::String*>* = asy::Stream<core::String*>*> extends core::Object {
   synthetic constructor •() → self::Bar<self::Bar::T*>*
     ;
-  method foo(generic-covariant-impl self::Bar::T* t) → dynamic
+  method foo(generic-covariant-impl self::Bar::T* t) → dynamic async 
     ;
   abstract member-signature get _identityHashCode() → core::int*;
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
@@ -39,7 +39,7 @@ class Bar<T extends asy::Stream<core::String*>* = asy::Stream<core::String*>*> e
 class Baz<T extends core::Object* = dynamic, E extends asy::Stream<self::Baz::T*>* = asy::Stream<dynamic>*, S extends self::Baz::E* = asy::Stream<dynamic>*> extends core::Object {
   synthetic constructor •() → self::Baz<self::Baz::T*, self::Baz::E*, self::Baz::S*>*
     ;
-  method foo(generic-covariant-impl self::Baz::S* t) → dynamic
+  method foo(generic-covariant-impl self::Baz::S* t) → dynamic async 
     ;
   abstract member-signature get _identityHashCode() → core::int*;
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
@@ -103,7 +103,7 @@ abstract class MyStream<T extends core::Object* = dynamic> extends asy::Stream<s
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
   abstract member-signature get runtimeType() → core::Type*;
 }
-static method test() → dynamic
+static method test() → dynamic async 
   ;
 static method main() → dynamic
   ;
