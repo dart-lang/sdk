@@ -1804,7 +1804,10 @@ class VariableModel<Variable, Type> {
     bool newUnassigned = unassigned && otherModel.unassigned;
     bool newWriteCaptured = writeCaptured || otherModel.writeCaptured;
     List<Type> newPromotedTypes;
-    if (unsafe) {
+    if (newWriteCaptured) {
+      // Write-captured variables can't be promoted
+      newPromotedTypes = null;
+    } else if (unsafe) {
       // There was an assignment to the variable in the "this" path, so none of
       // the promotions from the "other" path can be used.
       newPromotedTypes = thisPromotedTypes;
