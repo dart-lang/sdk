@@ -24,27 +24,7 @@ Language/Reference/Operator_Precedence/precedence_01_assignment_t14: Skip # Trip
 Language/Reference/Operator_Precedence/precedence_12_Shift_t04: Skip # Triple shift is not implemented yet
 Language/Reference/Operator_Precedence/precedence_t05: Skip # Triple shift is not implemented yet
 Language/Statements/Assert/*: Skip # Not migrated to NNBD
-Language/Statements/Blocks/*: Skip # Not migrated to NNBD
-Language/Statements/Break/*: Skip # Not migrated to NNBD
-Language/Statements/Continue/*: Skip # Not migrated to NNBD
-Language/Statements/Do/*: Skip # Not migrated to NNBD
-Language/Statements/Expression_Statements/*: Skip # Not migrated to NNBD
-Language/Statements/For/*: Skip # Not migrated to NNBD
-Language/Statements/For/Asynchronous_For_in/*: Skip # Not migrated to NNBD
-Language/Statements/For/For_Loop/*: Skip # Not migrated to NNBD
-Language/Statements/For/For_in/*: Skip # Not migrated to NNBD
-Language/Statements/If/*: Skip # Not migrated to NNBD
-Language/Statements/Labels/*: Skip # Not migrated to NNBD
-Language/Statements/Local_Function_Declaration/*: Skip # Not migrated to NNBD
-Language/Statements/Local_Variable_Declaration/*: Skip # Not migrated to NNBD
-Language/Statements/Rethrow/*: Skip # Not migrated to NNBD
-Language/Statements/Return/*: Skip # Not migrated to NNBD
-Language/Statements/Switch/*: Skip # Not migrated to NNBD
-Language/Statements/Try/*: Skip # Not migrated to NNBD
-Language/Statements/While/*: Skip # Not migrated to NNBD
-Language/Statements/Yield_and_Yield_Each/*: Skip # Not migrated to NNBD
-Language/Statements/Yield_and_Yield_Each/Yield/*: Skip # Not migrated to NNBD
-Language/Statements/Yield_and_Yield_Each/Yield_Each/*: Skip # Not migrated to NNBD
+Language/Statements/Expression_Statements/syntax_t06: Skip # Type aliases are not fully implemented
 Language/Types/Dynamic_Type_System/*: Skip # Not migrated to NNBD
 Language/Types/Function_Types/*: Skip # Not migrated to NNBD
 Language/Types/Interface_Types/*: Skip # Not migrated to NNBD
