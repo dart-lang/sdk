@@ -13,8 +13,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -65,7 +63,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   final _InvalidAccessVerifier _invalidAccessVerifier;
 
   /// The [WorkspacePackage] in which [_currentLibrary] is declared.
-  WorkspacePackage _workspacePackage;
+  final WorkspacePackage _workspacePackage;
 
   /// The [LinterContext] used for possible const calculations.
   LinterContext _linterContext;
@@ -87,9 +85,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     String content, {
     @required TypeSystemImpl typeSystem,
     @required InheritanceManager3 inheritanceManager,
-    @required ResourceProvider resourceProvider,
     @required DeclaredVariables declaredVariables,
     @required AnalysisOptions analysisOptions,
+    @required WorkspacePackage workspacePackage,
   })  : _nullType = typeProvider.nullType,
         _typeSystem = typeSystem,
         _isNonNullableByDefault = typeSystem.isNonNullableByDefault,
@@ -97,10 +95,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             (analysisOptions as AnalysisOptionsImpl).strictInference,
         _inheritanceManager = inheritanceManager,
         _invalidAccessVerifier =
-            _InvalidAccessVerifier(_errorReporter, _currentLibrary) {
+            _InvalidAccessVerifier(_errorReporter, _currentLibrary),
+        _workspacePackage = workspacePackage {
     _inDeprecatedMember = _currentLibrary.hasDeprecated;
-    String libraryPath = _currentLibrary.source.fullName;
-    _workspacePackage = _getPackage(libraryPath, resourceProvider);
 
     _linterContext = LinterContextImpl(
       null /* allUnits */,
@@ -1354,20 +1351,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           reportNode,
           [displayName]);
     }
-  }
-
-  WorkspacePackage _getPackage(String root, ResourceProvider resourceProvider) {
-    Workspace workspace = _currentLibrary.session?.analysisContext?.workspace;
-    // If there is no driver setup (as in test environments), we need to create
-    // a workspace ourselves.
-    // todo (pq): fix tests or otherwise de-dup this logic shared w/ library_analyzer.
-    if (workspace == null) {
-      final builder = ContextBuilder(
-          resourceProvider, null /* sdkManager */, null /* contentCache */);
-      workspace =
-          ContextBuilder.createWorkspace(resourceProvider, root, builder);
-    }
-    return workspace?.findPackageFor(root);
   }
 
   bool _isLibraryInWorkspacePackage(LibraryElement library) {

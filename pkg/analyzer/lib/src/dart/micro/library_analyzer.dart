@@ -279,8 +279,8 @@ class LibraryAnalyzer {
         declaredVariables: _declaredVariables,
         typeSystem: _typeSystem,
         inheritanceManager: _inheritance,
-        resourceProvider: _resourceProvider,
         analysisOptions: _context.analysisOptions,
+        workspacePackage: null, // TODO(scheglov) implement it
       ),
     );
 

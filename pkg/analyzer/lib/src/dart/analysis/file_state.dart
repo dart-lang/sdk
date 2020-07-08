@@ -38,6 +38,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
@@ -90,6 +91,11 @@ class FileState {
 
   /// The [Source] of the file with the [uri].
   final Source source;
+
+  /// The [WorkspacePackage] that contains this file.
+  ///
+  /// It might be `null` if the file is outside of the workspace.
+  final WorkspacePackage workspacePackage;
 
   /// Return `true` if this file is a stub created for a file in the provided
   /// external summary store. The values of most properties are not the same
@@ -144,6 +150,7 @@ class FileState {
     this.path,
     this.uri,
     this.source,
+    this.workspacePackage,
     this._contextFeatureSet,
     this._packageLanguageVersion,
   ) : isInExternalSummaries = false;
@@ -152,6 +159,7 @@ class FileState {
       : isInExternalSummaries = true,
         path = null,
         source = null,
+        workspacePackage = null,
         _exists = true,
         _contextFeatureSet = null,
         _packageLanguageVersion = null {
@@ -734,6 +742,7 @@ class FileSystemState {
   final ByteStore _byteStore;
   final FileContentOverlay _contentOverlay;
   final SourceFactory _sourceFactory;
+  final Workspace _workspace;
   final AnalysisOptions _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final Uint32List _saltForUnlinked;
@@ -793,6 +802,7 @@ class FileSystemState {
     this._resourceProvider,
     this.contextName,
     this._sourceFactory,
+    this._workspace,
     this._analysisOptions,
     this._declaredVariables,
     this._saltForUnlinked,
@@ -814,8 +824,8 @@ class FileSystemState {
   FileState get unresolvedFile {
     if (_unresolvedFile == null) {
       var featureSet = FeatureSet.fromEnableFlags([]);
-      _unresolvedFile = FileState._(
-          this, null, null, null, featureSet, ExperimentStatus.currentVersion);
+      _unresolvedFile = FileState._(this, null, null, null, null, featureSet,
+          ExperimentStatus.currentVersion);
       _unresolvedFile.refresh();
     }
     return _unresolvedFile;
@@ -841,11 +851,12 @@ class FileSystemState {
       }
       // Create a new file.
       FileSource uriSource = FileSource(resource, uri);
+      WorkspacePackage workspacePackage = _workspace?.findPackageFor(path);
       FeatureSet featureSet = featureSetProvider.getFeatureSet(path, uri);
       Version packageLanguageVersion =
           featureSetProvider.getLanguageVersion(path, uri);
-      file = FileState._(
-          this, path, uri, uriSource, featureSet, packageLanguageVersion);
+      file = FileState._(this, path, uri, uriSource, workspacePackage,
+          featureSet, packageLanguageVersion);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       _pathToCanonicalFile[path] = file;
@@ -884,11 +895,12 @@ class FileSystemState {
       String path = uriSource.fullName;
       File resource = _resourceProvider.getFile(path);
       FileSource source = FileSource(resource, uri);
+      WorkspacePackage workspacePackage = _workspace?.findPackageFor(path);
       FeatureSet featureSet = featureSetProvider.getFeatureSet(path, uri);
       Version packageLanguageVersion =
           featureSetProvider.getLanguageVersion(path, uri);
-      file = FileState._(
-          this, path, uri, source, featureSet, packageLanguageVersion);
+      file = FileState._(this, path, uri, source, workspacePackage, featureSet,
+          packageLanguageVersion);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       file.refresh(allowCached: true);

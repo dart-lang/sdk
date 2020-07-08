@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io' as io;
 import 'dart:isolate';
 
+import 'package:analyzer/dart/analysis/context_locator.dart' as api;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -16,6 +17,8 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/cache.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'
+    as api;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
@@ -432,6 +435,8 @@ class BuildMode with HasContextMixin {
       packages: packages,
     );
 
+    _setAnalysisDriverAnalysisContext(rootPath);
+
     declaredVariables = DeclaredVariables.fromMap(options.definedVariables);
     analysisDriver.declaredVariables = declaredVariables;
 
@@ -539,6 +544,27 @@ class BuildMode with HasContextMixin {
         io.File(outputPath).writeAsStringSync(buffer.toString());
       }
     });
+  }
+
+  void _setAnalysisDriverAnalysisContext(String rootPath) {
+    var apiContextRoots = api.ContextLocator(
+      resourceProvider: resourceProvider,
+    ).locateRoots(
+      includedPaths: [rootPath],
+      excludedPaths: [],
+    );
+
+    if (apiContextRoots.isEmpty) {
+      return;
+    }
+
+    analysisDriver.configure(
+      analysisContext: api.DriverBasedAnalysisContext(
+        resourceProvider,
+        apiContextRoots.first,
+        analysisDriver,
+      ),
+    );
   }
 }
 

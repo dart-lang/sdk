@@ -488,10 +488,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// At least one of the optional parameters should be provided, but only those
   /// that represent state that has actually changed need be provided.
   void configure({
+    api.AnalysisContext analysisContext,
     AnalysisOptions analysisOptions,
     Packages packages,
     SourceFactory sourceFactory,
   }) {
+    if (analysisContext != null) {
+      this.analysisContext = analysisContext;
+    }
     if (analysisOptions != null) {
       _analysisOptions = analysisOptions;
     }
@@ -1286,7 +1290,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             libraryContext.elementFactory,
             libraryContext.analysisSession.inheritanceManager,
             library,
-            _resourceProvider,
             testingData: testingData);
         Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
 
@@ -1363,7 +1366,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           libraryContext.elementFactory,
           libraryContext.analysisSession.inheritanceManager,
           library,
-          _resourceProvider,
           testingData: testingData);
       Map<FileState, UnitAnalysisResult> unitResults = analyzer.analyze();
       var resolvedUnits = <ResolvedUnitResult>[];
@@ -1465,6 +1467,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _resourceProvider,
       name,
       sourceFactory,
+      analysisContext?.workspace,
       analysisOptions,
       declaredVariables,
       _saltForUnlinked,
