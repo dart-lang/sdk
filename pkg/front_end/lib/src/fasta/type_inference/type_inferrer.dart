@@ -845,7 +845,8 @@ class TypeInferrerImpl implements TypeInferrer {
       }
       if (includeExtensionMethods) {
         ObjectAccessTarget target = _findExtensionMember(
-            receiverBound, coreTypes.objectClass, name, fileOffset);
+            receiverBound, coreTypes.objectClass, name, fileOffset,
+            setter: setter);
         if (target != null) {
           return target;
         }
