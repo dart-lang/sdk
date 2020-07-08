@@ -103,11 +103,6 @@ class ReplacementVisitor
   }
 
   @override
-  DartType visitDartType(DartType type) {
-    return null;
-  }
-
-  @override
   DartType visitDynamicType(DynamicType type) {
     return null;
   }
