@@ -2143,7 +2143,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  DartType get returnType =>
+  InterfaceType get returnType =>
       ElementTypeProvider.current.getExecutableReturnType(this);
 
   @override
@@ -2152,15 +2152,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  DartType get returnTypeInternal {
-    if (_returnType != null) return _returnType;
-
-    InterfaceTypeImpl classThisType = enclosingElement.thisType;
-    return _returnType = InterfaceTypeImpl(
-      element: classThisType.element,
-      typeArguments: classThisType.typeArguments,
-      nullabilitySuffix: classThisType.nullabilitySuffix,
-    );
+  InterfaceType get returnTypeInternal {
+    return _returnType ??= enclosingElement.thisType;
   }
 
   @override

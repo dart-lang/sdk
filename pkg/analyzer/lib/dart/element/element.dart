@@ -487,6 +487,9 @@ abstract class ConstructorElement
   /// if this constructor does not redirect to another constructor or if the
   /// library containing this constructor has not yet been resolved.
   ConstructorElement get redirectedConstructor;
+
+  @override
+  InterfaceType get returnType;
 }
 
 /// The base class for all of the elements in the element model. Generally

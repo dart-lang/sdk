@@ -355,8 +355,7 @@ class ConstantEvaluationEngine {
         if (defaultSuperInvocationNeeded) {
           // No explicit superconstructor invocation found, so we need to
           // manually insert a reference to the implicit superconstructor.
-          InterfaceType superclass =
-              (constant.returnType as InterfaceType).superclass;
+          InterfaceType superclass = (constant.returnType).superclass;
           if (superclass != null && !superclass.isDartCoreObject) {
             ConstructorElement unnamedConstructor =
                 superclass.element.unnamedConstructor?.declaration;
@@ -476,7 +475,7 @@ class ConstantEvaluationEngine {
     );
 
     constructor = followConstantRedirectionChain(constructor);
-    InterfaceType definingClass = constructor.returnType as InterfaceType;
+    InterfaceType definingClass = constructor.returnType;
     if (constructor.isFactory) {
       // We couldn't find a non-factory constructor.
       // See if it's because we reached an external const factory constructor
