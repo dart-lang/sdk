@@ -622,15 +622,25 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
         ASSERT(STRING_STARTS_WITH(format, "sz"));
         const int sz = instr->SzField();
         char const* sz_str;
+        bool signed_extend_required = instr->Bits(23, 1) == 1;
         switch (sz) {
           case 0:
-            sz_str = "b";
+            if (signed_extend_required)
+              sz_str = "sb";
+            else
+              sz_str = "b";
             break;
           case 1:
-            sz_str = "h";
+            if (signed_extend_required)
+              sz_str = "sh";
+            else
+              sz_str = "h";
             break;
           case 2:
-            sz_str = "w";
+            if (signed_extend_required)
+              sz_str = "sw";
+            else
+              sz_str = "w";
             break;
           case 3:
             sz_str = "x";
