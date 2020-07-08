@@ -9,14 +9,12 @@ main() {
   const f1;
   //    ^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_NOT_INITIALIZED
-  //      ^
-  // [cfe] The const variable ';' must be initialized.
+  // [cfe] The const variable 'f1' must be initialized.
   const int f2 = 87;
   const int f3;
   //        ^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_NOT_INITIALIZED
-  //          ^
-  // [cfe] The const variable ';' must be initialized.
+  // [cfe] The const variable 'f3' must be initialized.
   Expect.equals(42, f0);
   Expect.equals(87, f2);
 

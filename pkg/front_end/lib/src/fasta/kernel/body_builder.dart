@@ -2394,22 +2394,25 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
     bool isLate = (currentLocalVariableModifiers & lateMask) != 0;
     Expression initializer;
-    if (!optional("in", token)) {
+    if (!optional("in", token.next)) {
       // A for-in loop-variable can't have an initializer. So let's remain
       // silent if the next token is `in`. Since a for-in loop can only have
       // one variable it must be followed by `in`.
-      if (isConst) {
-        initializer = buildProblem(
-            fasta.templateConstFieldWithoutInitializer
-                .withArguments(token.lexeme),
-            token.charOffset,
-            token.length);
-      } else if (isFinal && !isLate) {
-        initializer = buildProblem(
-            fasta.templateFinalFieldWithoutInitializer
-                .withArguments(token.lexeme),
-            token.charOffset,
-            token.length);
+      if (!token.isSynthetic) {
+        // If [token] is synthetic it is created from error recovery.
+        if (isConst) {
+          initializer = buildProblem(
+              fasta.templateConstFieldWithoutInitializer
+                  .withArguments(token.lexeme),
+              token.charOffset,
+              token.length);
+        } else if (isFinal && !isLate) {
+          initializer = buildProblem(
+              fasta.templateFinalFieldWithoutInitializer
+                  .withArguments(token.lexeme),
+              token.charOffset,
+              token.length);
+        }
       }
     }
     pushNewLocalVariable(initializer);

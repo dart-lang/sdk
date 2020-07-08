@@ -2697,7 +2697,7 @@ class Parser {
       token = parseExpression(assignment);
       listener.endVariableInitializer(assignment);
     } else {
-      listener.handleNoVariableInitializer(token.next);
+      listener.handleNoVariableInitializer(token);
     }
     return token;
   }

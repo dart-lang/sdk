@@ -10,8 +10,7 @@ void main() {
   const c1;
   //    ^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_NOT_INITIALIZED
-  //      ^
-  // [cfe] The const variable ';' must be initialized.
+  // [cfe] The const variable 'c1' must be initialized.
   const c2 = 0;
   const c3 = field;
   //         ^^^^^
