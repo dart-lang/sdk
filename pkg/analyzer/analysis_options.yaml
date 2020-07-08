@@ -19,3 +19,4 @@ linter:
     - avoid_unused_constructor_parameters
     - empty_statements
     - unnecessary_brace_in_string_interps
+    - unnecessary_parenthesis

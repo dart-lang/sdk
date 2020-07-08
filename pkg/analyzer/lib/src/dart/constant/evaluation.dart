@@ -355,7 +355,7 @@ class ConstantEvaluationEngine {
         if (defaultSuperInvocationNeeded) {
           // No explicit superconstructor invocation found, so we need to
           // manually insert a reference to the implicit superconstructor.
-          InterfaceType superclass = (constant.returnType).superclass;
+          InterfaceType superclass = constant.returnType.superclass;
           if (superclass != null && !superclass.isDartCoreObject) {
             ConstructorElement unnamedConstructor =
                 superclass.element.unnamedConstructor?.declaration;

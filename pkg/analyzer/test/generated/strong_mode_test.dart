@@ -1263,9 +1263,9 @@ void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) targ
     assertNoErrors(source);
     verify([source]);
     var unit = analysisResult.unit;
-    var body = (AstFinder.getTopLevelFunction(unit, '_mergeSort')
+    var body = AstFinder.getTopLevelFunction(unit, '_mergeSort')
         .functionExpression
-        .body as BlockFunctionBody);
+        .body as BlockFunctionBody;
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
@@ -1290,9 +1290,9 @@ void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
     assertNoErrors(source);
     verify([source]);
     var unit = analysisResult.unit;
-    var body = (AstFinder.getTopLevelFunction(unit, '_mergeSort')
+    var body = AstFinder.getTopLevelFunction(unit, '_mergeSort')
         .functionExpression
-        .body as BlockFunctionBody);
+        .body as BlockFunctionBody;
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
@@ -1317,9 +1317,9 @@ void _mergeSort<T>(T list, int compare(T a, T b), T target) {
     assertNoErrors(source);
     verify([source]);
     var unit = analysisResult.unit;
-    var body = (AstFinder.getTopLevelFunction(unit, '_mergeSort')
+    var body = AstFinder.getTopLevelFunction(unit, '_mergeSort')
         .functionExpression
-        .body as BlockFunctionBody);
+        .body as BlockFunctionBody;
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;

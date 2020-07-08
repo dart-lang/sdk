@@ -172,7 +172,7 @@ class CovariantParametersVerifier {
             i,
           );
           if (superParameter != null) {
-            var parameterSuperList = (result[parameter] ??= []);
+            var parameterSuperList = result[parameter] ??= [];
             var superType = _superSubstitution(superMember)
                 .substituteType(superParameter.type);
             parameterSuperList.add(

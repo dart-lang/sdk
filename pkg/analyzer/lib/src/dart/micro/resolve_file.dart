@@ -185,7 +185,7 @@ class FileResolver {
 
           bytes = CiderUnitErrorsBuilder(
             signature: errorsSignature,
-            errors: errors.map((ErrorEncoding.encode)).toList(),
+            errors: errors.map(ErrorEncoding.encode).toList(),
           ).toBuffer();
           byteStore.put(errorsKey, errorsSignature, bytes);
         }

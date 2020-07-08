@@ -2240,7 +2240,7 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
   void test_resolveToBound_bound_nullableInner() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
-    element.bound = (interfaceTypeQuestion(classS));
+    element.bound = interfaceTypeQuestion(classS);
     TypeParameterTypeImpl type = typeParameterTypeStar(element);
     expect(type.resolveToBound(null), same(element.bound));
   }
