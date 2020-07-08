@@ -1103,6 +1103,11 @@ class StatementTagger extends StatementVisitor<String>
   String visitAssertBlock(AssertBlock node) => "assert-block";
   String visitLabeledStatement(LabeledStatement node) => "label";
   String visitBreakStatement(BreakStatement node) => "break";
+  String visitTryFinally(TryFinally node) => "try-finally";
+  String visitTryCatch(TryCatch node) => "try-catch";
+  String visitSwitchStatement(SwitchStatement node) => "switch";
+  String visitContinueSwitchStatement(ContinueSwitchStatement node) =>
+      "continue";
 }
 
 TextSerializer<ExpressionStatement> expressionStatementSerializer = new Wrapped(
@@ -1353,6 +1358,64 @@ LabeledStatement unwrapBreakStatement(BreakStatement node) {
 BreakStatement wrapBreakStatement(LabeledStatement node) {
   return new BreakStatement(node);
 }
+
+TextSerializer<TryFinally> tryFinallySerializer = Wrapped(
+    (w) => Tuple2(w.body, w.finalizer),
+    (u) => TryFinally(u.first, u.second),
+    Tuple2Serializer(statementSerializer, statementSerializer));
+
+TextSerializer<TryCatch> tryCatchSerializer = Wrapped(
+    (w) => Tuple2(w.body, w.catches),
+    (u) => TryCatch(u.first, u.second),
+    Tuple2Serializer(statementSerializer, ListSerializer(catchSerializer)));
+
+TextSerializer<Catch> catchSerializer = Wrapped(
+    (w) => Tuple4(w.guard, w.exception, w.stackTrace, w.body),
+    (u) => Catch(u.second, u.fourth, stackTrace: u.third, guard: u.first),
+    Tuple4Serializer(
+        dartTypeSerializer,
+        Optional(variableDeclarationSerializer),
+        Optional(variableDeclarationSerializer),
+        statementSerializer));
+
+TextSerializer<SwitchStatement> switchStatementSerializer = Wrapped(
+    (w) => Tuple2(w.expression, w.cases),
+    (u) => SwitchStatement(u.first, u.second),
+    Tuple2Serializer(
+        expressionSerializer,
+        Zip(
+            Bind(ListSerializer<SwitchCase>(switchCaseSerializer),
+                ListSerializer(statementSerializer)),
+            (SwitchCase c, Statement b) => c..body = b,
+            (SwitchCase z) => Tuple2(z, z.body))));
+
+class SwitchCaseTagger implements Tagger<SwitchCase> {
+  String tag(SwitchCase node) {
+    return node.isDefault ? "default" : "case";
+  }
+}
+
+TextSerializer<SwitchCase> switchCaseCaseSerializer = Wrapped(
+    (w) => Tuple2("L", w),
+    (u) => u.second,
+    Binder(Wrapped(
+        (w) => w.expressions,
+        (u) => SwitchCase(u, List.filled(u.length, 0), null),
+        ListSerializer(expressionSerializer))));
+
+TextSerializer<SwitchCase> switchCaseDefaultSerializer = Wrapped(
+    (w) => Tuple2("L", w),
+    (u) => u.second,
+    Binder(
+        Wrapped((w) => null, (u) => SwitchCase.defaultCase(null), Nothing())));
+
+TextSerializer<SwitchCase> switchCaseSerializer = Case(SwitchCaseTagger(), {
+  "case": switchCaseCaseSerializer,
+  "default": switchCaseDefaultSerializer,
+});
+
+TextSerializer<ContinueSwitchStatement> continueSwitchStatementSerializer =
+    Wrapped((w) => w.target, (u) => ContinueSwitchStatement(u), ScopedUse());
 
 Case<Statement> statementSerializer =
     new Case.uninitialized(const StatementTagger());
@@ -1822,6 +1885,10 @@ void initializeSerializers() {
     "assert-block": assertBlockSerializer,
     "label": labeledStatementSerializer,
     "break": breakSerializer,
+    "try-finally": tryFinallySerializer,
+    "try-catch": tryCatchSerializer,
+    "switch": switchStatementSerializer,
+    "continue": continueSwitchStatementSerializer,
   });
   functionNodeSerializer.registerTags({
     "sync": syncFunctionNodeSerializer,

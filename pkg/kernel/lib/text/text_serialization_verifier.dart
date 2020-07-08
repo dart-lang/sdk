@@ -328,11 +328,7 @@ class VerificationState {
   static bool isStatementNotSupported(Statement node) =>
       node is VariableDeclaration &&
           (node.parent is! Block || node.name == null) ||
-      node is SwitchStatement ||
-      node is TryFinally ||
-      node is TryCatch ||
-      node is FunctionDeclaration ||
-      node is ContinueSwitchStatement;
+      node is FunctionDeclaration;
 
   static bool isSupported(Node node) => !isNotSupported(node);
 
@@ -342,7 +338,6 @@ class VerificationState {
       node is Procedure &&
           (!node.isStatic || node.kind != ProcedureKind.Method) ||
       node is AssertInitializer ||
-      node is Catch ||
       node is Class ||
       node is Component ||
       node is Constructor ||
@@ -359,7 +354,6 @@ class VerificationState {
       node is RedirectingInitializer ||
       node is SuperInitializer ||
       node is Supertype ||
-      node is SwitchCase ||
       node is Typedef;
 }
 
@@ -501,6 +495,10 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
       makeRoundTrip<Combinator>(node, showHideSerializer);
     } else if (node is LibraryDependency) {
       makeRoundTrip<LibraryDependency>(node, libraryDependencySerializer);
+    } else if (node is Catch) {
+      makeRoundTrip<Catch>(node, catchSerializer);
+    } else if (node is SwitchCase) {
+      makeRoundTrip<SwitchCase>(node, switchCaseSerializer);
     } else {
       throw new StateError(
           "Don't know how to make a round trip for a supported node "
