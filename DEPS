@@ -48,7 +48,7 @@ vars = {
   "co19_2_rev": "620c1148c8b7a3d7f74afacf348c46f109eb64f2",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
-  "benchmarks_internal_rev": "42145e4ddea82e8180e55b00dfd7064622ebc190",
+  "benchmarks_internal_rev": "fce42736f4d6721b882b8d0119edac568dbc90d2",
   "checkout_benchmarks_internal": False,
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
