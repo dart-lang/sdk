@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class AddSync extends CorrectionProducer {
+class AddAsync extends CorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.ADD_ASYNC;
 
@@ -24,5 +24,5 @@ class AddSync extends CorrectionProducer {
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddSync newInstance() => AddSync();
+  static AddAsync newInstance() => AddAsync();
 }

@@ -300,7 +300,7 @@ class FixProcessor extends BaseProcessor {
       RemoveTypeAnnotation.newInstance,
     ],
     LintNames.avoid_returning_null_for_future: [
-      AddSync.newInstance,
+      AddAsync.newInstance,
       WrapInFuture.newInstance,
     ],
     LintNames.avoid_types_as_parameter_names: [
@@ -573,10 +573,10 @@ class FixProcessor extends BaseProcessor {
   /// generators used for lint rules are in the [lintProducerMap].
   static const Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {
     CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT: [
-      AddSync.newInstance,
+      AddAsync.newInstance,
     ],
     CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT: [
-      AddSync.newInstance,
+      AddAsync.newInstance,
     ],
     CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE: [
       UseConst.newInstance,
@@ -989,7 +989,7 @@ class FixProcessor extends BaseProcessor {
       CreateSetter.newInstance,
     ],
     StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT: [
-      AddSync.newInstance,
+      AddAsync.newInstance,
     ],
   };
 
