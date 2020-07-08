@@ -1164,7 +1164,7 @@ int main() {
           expression: 'const MyClass(1)',
           expectedResult: '''
           (function(p) {
-            return dart.const(new foo.MyClass.new(1));
+            return C0 || CT.C0;
           }(
           1
           ))

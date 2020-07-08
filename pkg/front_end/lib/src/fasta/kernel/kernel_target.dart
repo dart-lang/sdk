@@ -122,7 +122,7 @@ import '../target_implementation.dart' show TargetImplementation;
 import '../uri_translator.dart' show UriTranslator;
 
 import 'constant_evaluator.dart' as constants
-    show EvaluationMode, transformLibraries;
+    show EvaluationMode, transformLibraries, transformProcedure;
 
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 
@@ -1092,26 +1092,7 @@ class KernelTarget extends TargetImplementation {
 
     TypeEnvironment environment =
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
-    constants.EvaluationMode evaluationMode;
-    // If nnbd is not enabled we will use weak evaluation mode. This is needed
-    // because the SDK might be agnostic and therefore needs to be weakened
-    // for legacy mode.
-    assert(
-        isExperimentEnabledGlobally(ExperimentalFlag.nonNullable) ||
-            loader.nnbdMode == NnbdMode.Weak,
-        "Non-weak nnbd mode found without experiment enabled: "
-        "${loader.nnbdMode}.");
-    switch (loader.nnbdMode) {
-      case NnbdMode.Weak:
-        evaluationMode = constants.EvaluationMode.weak;
-        break;
-      case NnbdMode.Strong:
-        evaluationMode = constants.EvaluationMode.strong;
-        break;
-      case NnbdMode.Agnostic:
-        evaluationMode = constants.EvaluationMode.agnostic;
-        break;
-    }
+    constants.EvaluationMode evaluationMode = _getConstantEvaluationMode();
 
     constants.transformLibraries(
         loader.libraries,
@@ -1141,9 +1122,50 @@ class KernelTarget extends TargetImplementation {
   ChangedStructureNotifier get changedStructureNotifier => null;
 
   void runProcedureTransformations(Procedure procedure) {
+    TypeEnvironment environment =
+        new TypeEnvironment(loader.coreTypes, loader.hierarchy);
+    constants.EvaluationMode evaluationMode = _getConstantEvaluationMode();
+
+    constants.transformProcedure(
+        procedure,
+        backendTarget.constantsBackend(loader.coreTypes),
+        environmentDefines,
+        environment,
+        new KernelConstantErrorReporter(loader),
+        evaluationMode,
+        desugarSets: !backendTarget.supportsSetLiterals,
+        enableTripleShift:
+            isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
+        errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
+    ticker.logMs("Evaluated constants");
+
     backendTarget.performTransformationsOnProcedure(
         loader.coreTypes, loader.hierarchy, procedure,
         logger: (String msg) => ticker.logMs(msg));
+  }
+
+  constants.EvaluationMode _getConstantEvaluationMode() {
+    constants.EvaluationMode evaluationMode;
+    // If nnbd is not enabled we will use weak evaluation mode. This is needed
+    // because the SDK might be agnostic and therefore needs to be weakened
+    // for legacy mode.
+    assert(
+        isExperimentEnabledGlobally(ExperimentalFlag.nonNullable) ||
+            loader.nnbdMode == NnbdMode.Weak,
+        "Non-weak nnbd mode found without experiment enabled: "
+        "${loader.nnbdMode}.");
+    switch (loader.nnbdMode) {
+      case NnbdMode.Weak:
+        evaluationMode = constants.EvaluationMode.weak;
+        break;
+      case NnbdMode.Strong:
+        evaluationMode = constants.EvaluationMode.strong;
+        break;
+      case NnbdMode.Agnostic:
+        evaluationMode = constants.EvaluationMode.agnostic;
+        break;
+    }
+    return evaluationMode;
   }
 
   void verify() {

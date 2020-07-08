@@ -127,6 +127,32 @@ void transformLibraries(
   }
 }
 
+void transformProcedure(
+    Procedure procedure,
+    ConstantsBackend backend,
+    Map<String, String> environmentDefines,
+    TypeEnvironment typeEnvironment,
+    ErrorReporter errorReporter,
+    EvaluationMode evaluationMode,
+    {bool keepFields: true,
+    bool evaluateAnnotations: true,
+    bool desugarSets: false,
+    bool enableTripleShift: false,
+    bool errorOnUnevaluatedConstant: false}) {
+  final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
+      backend,
+      environmentDefines,
+      keepFields,
+      evaluateAnnotations,
+      desugarSets,
+      enableTripleShift,
+      errorOnUnevaluatedConstant,
+      typeEnvironment,
+      errorReporter,
+      evaluationMode);
+  constantsTransformer.visitProcedure(procedure);
+}
+
 enum EvaluationMode {
   weak,
   agnostic,
