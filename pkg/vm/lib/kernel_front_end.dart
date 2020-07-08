@@ -6,7 +6,7 @@
 library vm.kernel_front_end;
 
 import 'dart:async';
-import 'dart:io' show File, IOSink, IOException;
+import 'dart:io' show File, IOSink;
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
 
@@ -28,7 +28,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
         ExperimentalFlag,
         FileSystem,
         FileSystemEntity,
-        FileSystemException,
         NnbdMode,
         ProcessedOptions,
         Severity,
@@ -46,6 +45,7 @@ import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
+import 'package:package_config/package_config.dart' show loadPackageConfigUri;
 
 import 'bytecode/bytecode_serialization.dart' show BytecodeSizeStatistics;
 import 'bytecode/gen_bytecode.dart'
@@ -664,48 +664,22 @@ Future<Uri> asFileUri(FileSystem fileSystem, Uri uri) async {
 }
 
 /// Convert URI to a package URI if it is inside one of the packages.
+/// TODO(alexmarkov) Remove this conversion after Fuchsia build rules are fixed.
 Future<Uri> convertToPackageUri(
     FileSystem fileSystem, Uri uri, Uri packagesUri) async {
   if (uri.scheme == 'package') {
     return uri;
   }
   // Convert virtual URI to a real file URI.
-  String uriString = (await asFileUri(fileSystem, uri)).toString();
-  List<String> packages;
+  final Uri fileUri = await asFileUri(fileSystem, uri);
   try {
-    packages =
-        await new File((await asFileUri(fileSystem, packagesUri)).toFilePath())
-            .readAsLines();
-  } on IOException {
+    final packageConfig =
+        await loadPackageConfigUri(await asFileUri(fileSystem, packagesUri));
+    return packageConfig.toPackageUri(fileUri) ?? uri;
+  } catch (_) {
     // Can't read packages file - silently give up.
     return uri;
   }
-  // file:///a/b/x/y/main.dart -> package:x.y/main.dart
-  for (var line in packages) {
-    if (line.isEmpty || line.startsWith("#")) {
-      continue;
-    }
-
-    final colon = line.indexOf(':');
-    if (colon == -1) {
-      continue;
-    }
-    final packageName = line.substring(0, colon);
-    String packagePath;
-    try {
-      packagePath = (await asFileUri(
-              fileSystem, packagesUri.resolve(line.substring(colon + 1))))
-          .toString();
-    } on FileSystemException {
-      // Can't resolve package path.
-      continue;
-    }
-    if (uriString.startsWith(packagePath)) {
-      return Uri.parse(
-          'package:$packageName/${uriString.substring(packagePath.length)}');
-    }
-  }
-  return uri;
 }
 
 /// Write a separate kernel binary for each package. The name of the
