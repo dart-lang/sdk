@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
@@ -108,9 +109,13 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
       LinkedBundleContext(elementFactory, sdkBundle),
     );
 
-    var linkResult = link(
-      elementFactory,
-      inputLibraries,
+    var linkResult = NullSafetyUnderstandingFlag.enableNullSafetyTypes(
+      () {
+        return link(
+          elementFactory,
+          inputLibraries,
+        );
+      },
     );
 
     elementFactory.addBundle(

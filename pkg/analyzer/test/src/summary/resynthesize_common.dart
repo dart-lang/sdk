@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'element_text.dart';
 import 'test_strategies.dart';
@@ -9346,6 +9347,93 @@ mixin M {}
 mixin M on Object {
 }
 ''');
+  }
+
+  test_mixin_inference_legacy() async {
+    var library = await checkLibrary(r'''
+class A<T> {}
+mixin M<U> on A<U> {}
+class B extends A<int> with M {}
+''');
+    checkElementText(
+        library,
+        r'''
+class A<T> {
+}
+class B extends A<int*>* with M<int*>* {
+  synthetic B();
+}
+mixin M<U> on A<U*>* {
+}
+''',
+        annotateNullability: true);
+  }
+
+  test_mixin_inference_nullSafety() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+class A<T> {}
+mixin M<U> on A<U> {}
+class B extends A<int> with M {}
+''');
+    checkElementText(
+        library,
+        r'''
+class A<T> {
+}
+class B extends A<int> with M<int> {
+  synthetic B();
+}
+mixin M<U> on A<U> {
+}
+''',
+        annotateNullability: true);
+  }
+
+  test_mixin_inference_nullSafety_mixed_inOrder() async {
+    featureSet = enableNnbd;
+    addLibrarySource('/a.dart', r'''
+class A<T> {}
+mixin M<U> on A<U> {}
+''');
+    var library = await checkLibrary(r'''
+// @dart = 2.8
+import 'a.dart';
+class B extends A<int> with M {}
+''');
+    checkElementText(
+        library,
+        r'''
+import 'a.dart';
+class B extends A<int*>* with M<int*>* {
+  synthetic B();
+}
+''',
+        annotateNullability: true);
+  }
+
+  @FailingTest(reason: 'Out-of-order inference is not specified yet')
+  test_mixin_inference_nullSafety_mixed_outOfOrder() async {
+    featureSet = enableNnbd;
+    addLibrarySource('/a.dart', r'''
+// @dart = 2.8
+class A<T> {}
+mixin M<U> on A<U> {}
+''');
+    var library = await checkLibrary(r'''
+import 'a.dart';
+
+class B extends A<int> with M {}
+''');
+    checkElementText(
+        library,
+        r'''
+import 'a.dart';
+class B extends A<int> with M<int> {
+  synthetic B();
+}
+''',
+        annotateNullability: true);
   }
 
   test_mixin_method_namedAsConstraint() async {

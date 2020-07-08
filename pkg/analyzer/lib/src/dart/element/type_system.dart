@@ -241,7 +241,16 @@ abstract class TypeSystem implements public.TypeSystem {
     var substitution = Substitution.fromPairs(typeParameters, inferredTypes);
 
     for (int i = 0; i < srcTypes.length; i++) {
-      if (substitution.substituteType(srcTypes[i]) != destTypes[i]) {
+      var srcType = substitution.substituteType(srcTypes[i]);
+      var destType = destTypes[i];
+      if (isNonNullableByDefault) {
+        // TODO(scheglov) waiting for the spec
+        // https://github.com/dart-lang/sdk/issues/42605
+      } else {
+        srcType = toLegacyType(srcType);
+        destType = toLegacyType(destType);
+      }
+      if (srcType != destType) {
         // Failed to find an appropriate substitution
         return null;
       }
@@ -343,6 +352,11 @@ abstract class TypeSystem implements public.TypeSystem {
     }
 
     return type;
+  }
+
+  DartType toLegacyType(DartType type) {
+    if (isNonNullableByDefault) return type;
+    return NullabilityEliminator.perform(typeProvider, type);
   }
 
   /// Tries to promote from the first type from the second type, and returns the
@@ -1425,11 +1439,6 @@ class TypeSystemImpl extends TypeSystem {
   /// nnbd/feature-specification.md#runtime-type-equality-operator
   bool runtimeTypesEqual(DartType T1, DartType T2) {
     return RuntimeTypeEqualityHelper(this).equal(T1, T2);
-  }
-
-  DartType toLegacyType(DartType type) {
-    if (isNonNullableByDefault) return type;
-    return NullabilityEliminator.perform(typeProvider, type);
   }
 
   /// Merges two types into a single type.
