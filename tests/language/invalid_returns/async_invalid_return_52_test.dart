@@ -15,7 +15,7 @@ Future<void> test1() async {
   return v;
   //     ^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] A value of type 'int' can't be returned from an async function with return type 'Future<void>'.
 }
 
 // Inferred return type of function literal is `Future<int>`, no error.

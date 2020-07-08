@@ -195,7 +195,8 @@ class _SyncClosureContext implements ClosureContext {
           // nor dynamic, and S is void.
           statement.expression = inferrer.helper.wrapInProblem(
               statement.expression,
-              messageVoidExpression,
+              templateInvalidReturn.withArguments(expressionType,
+                  _declaredReturnType, inferrer.isNonNullableByDefault),
               statement.expression.fileOffset,
               noLength)
             ..parent = statement;
@@ -204,7 +205,9 @@ class _SyncClosureContext implements ClosureContext {
           // S is not assignable to T.
           Expression expression = inferrer.ensureAssignable(
               _returnContext, expressionType, statement.expression,
-              fileOffset: statement.expression.fileOffset, isVoidAllowed: true);
+              fileOffset: statement.expression.fileOffset,
+              isVoidAllowed: true,
+              errorTemplate: templateInvalidReturn);
           statement.expression = expression..parent = statement;
         }
       }
@@ -481,7 +484,8 @@ class _AsyncClosureContext implements ClosureContext {
           // flatten(S) is neither void, dynamic, Null.
           statement.expression = inferrer.helper.wrapInProblem(
               new NullLiteral()..fileOffset = statement.fileOffset,
-              messageReturnFromVoidFunction,
+              templateInvalidReturnAsync.withArguments(expressionType,
+                  _declaredReturnType, inferrer.isNonNullableByDefault),
               statement.expression.fileOffset,
               noLength)
             ..parent = statement;
@@ -492,25 +496,11 @@ class _AsyncClosureContext implements ClosureContext {
           // nor dynamic, and flatten(S) is void.
           statement.expression = inferrer.helper.wrapInProblem(
               new NullLiteral()..fileOffset = statement.fileOffset,
-              messageVoidExpression,
+              templateInvalidReturnAsync.withArguments(expressionType,
+                  _declaredReturnType, inferrer.isNonNullableByDefault),
               statement.expression.fileOffset,
               noLength)
             ..parent = statement;
-/*        } else if (flattenedExpressionType is! VoidType &&
-            !inferrer.isAssignable(futureValueType, expressionType) &&
-            !inferrer.typeSchemaEnvironment
-                .performNullabilityAwareSubtypeCheck(
-                    flattenedExpressionType, futureValueType)
-                .isSubtypeWhenUsingNullabilities()) {
-          // It is a compile-time error if s is `return e;`, flatten(S) is not
-          // void, S is not assignable to T_v, and flatten(S) is not a subtype
-          // of T_v.
-          statement.expression = inferrer.helper.wrapInProblem(
-              new NullLiteral()..fileOffset = statement.fileOffset,
-              messageReturnWithoutExpressionAsync,
-              statement.expression.fileOffset,
-              noLength)
-            ..parent = statement;*/
         } else if (flattenedExpressionType is! VoidType &&
             !inferrer.typeSchemaEnvironment
                 .performNullabilityAwareSubtypeCheck(
@@ -523,7 +513,9 @@ class _AsyncClosureContext implements ClosureContext {
               futureValueType, expressionType, statement.expression,
               fileOffset: statement.expression.fileOffset,
               runtimeCheckedType: _returnContext,
-              isVoidAllowed: false)
+              declaredContextType: _declaredReturnType,
+              isVoidAllowed: false,
+              errorTemplate: templateInvalidReturnAsync)
             ..parent = statement;
         }
       }

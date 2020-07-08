@@ -3413,6 +3413,16 @@ ReturnWithoutExpressionAsync:
   configuration: nnbd-strong
   declaration: "Future<int> foo() async { return; }"
 
+InvalidReturn:
+  template: "A value of type '#type' can't be returned from a function with return type '#type2'."
+  configuration: nnbd-strong
+  declaration: "int foo() { return true; }"
+
+InvalidReturnAsync:
+  template: "A value of type '#type' can't be returned from an async function with return type '#type2'."
+  configuration: nnbd-strong
+  declaration: "Future<int> foo() async { return true; }"
+
 ImplicitReturnNull:
   template: "A non-null value must be returned since the return type '#type' doesn't allow null."
   configuration: nnbd-strong

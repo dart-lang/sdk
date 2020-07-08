@@ -1,0 +1,6 @@
+propertyGet(Never never) {}
+propertySet(Never never) {}
+methodInvocation(Never never, Invocation invocation) {}
+equals(Never never) {}
+operator(Never never) {}
+main() {}

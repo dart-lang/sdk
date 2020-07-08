@@ -1,0 +1,4 @@
+class Null {}
+
+test() {}
+main() {}

@@ -15,21 +15,21 @@ FutureOr<Object> test1() async {
   return v;
   //     ^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] A value of type 'Future<void>' can't be returned from an async function with return type 'FutureOr<Object>'.
 }
 
 FutureOr<Object?> test2() async {
   return v;
   //     ^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] A value of type 'Future<void>' can't be returned from an async function with return type 'FutureOr<Object?>'.
 }
 
 FutureOr<Object> Function() test3 = () async {
   return v;
   //     ^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] A value of type 'Future<void>' can't be returned from an async function with return type 'FutureOr<Object>'.
 };
 
 // Inferred return type of function literal is `Future<void>`, no error.

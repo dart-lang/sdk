@@ -415,6 +415,8 @@ InvalidContinueTarget/example: Fail
 InvalidInitializer/example: Fail
 InvalidPackageUri/analyzerCode: Fail
 InvalidPackageUri/example: Fail
+InvalidReturn/analyzerCode: Fail
+InvalidReturnAsync/analyzerCode: Fail
 InvalidSuperInInitializer/example: Fail
 InvalidThisInInitializer/example: Fail
 InvalidTypeVariableInSupertype/analyzerCode: Fail

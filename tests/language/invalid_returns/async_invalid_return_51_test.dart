@@ -15,7 +15,7 @@ FutureOr<Null> test1() async {
   return v;
   //     ^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] A value of type 'FutureOr<void>' can't be returned from an async function with return type 'FutureOr<Null>'.
 }
 
 // Inferred return type of function literal is `Future<Null>`.
@@ -23,7 +23,7 @@ FutureOr<Null> Function() test2 = () async {
   return v;
   //     ^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] A value of type 'FutureOr<void>' can't be returned from an async function with return type 'FutureOr<Null>'.
 };
 
 void main() {

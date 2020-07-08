@@ -122,7 +122,7 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd_mixed/never_opt_out_lib.dart:19:28: Error: A value of type 'Type' can't be assigned to a variable of type 'Null'.
+// pkg/front_end/testcases/nnbd_mixed/never_opt_out_lib.dart:19:28: Error: A value of type 'Type' can't be returned from a function with return type 'Null'.
 //  - 'Type' is from 'dart:core'.
 //   Null get nullProperty => Null;
 //                            ^
@@ -147,7 +147,7 @@ class A extends core::Object {
   method nullMethod(core::Null? value) → core::Null?
     return value;
   get nullProperty() → core::Null?
-    return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/never_opt_out_lib.dart:19:28: Error: A value of type 'Type' can't be assigned to a variable of type 'Null'.
+    return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/never_opt_out_lib.dart:19:28: Error: A value of type 'Type' can't be returned from a function with return type 'Null'.
  - 'Type' is from 'dart:core'.
   Null get nullProperty => Null;
                            ^" in core::Null? as{TypeError,ForNonNullableByDefault} core::Null?;
