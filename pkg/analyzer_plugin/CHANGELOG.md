@@ -1,3 +1,6 @@
+## 0.2.5
+- Change supported analyzer version to `^0.39.12`
+
 ## 0.2.4
 - Exposed method `AnalyzerConverter.locationFromElement` (was previously
   private).
