@@ -490,6 +490,7 @@ class ObjectPointerVisitor;
   V(start_index_param, ":start_index_param")                                   \
   V(string_param, ":string_param")                                             \
   V(string_param_length, ":string_param_length")                               \
+  V(timeout, "timeout")                                                        \
   V(toString, "toString")                                                      \
   V(vm_prefer_inline, "vm:prefer-inline")                                      \
   V(vm_entry_point, "vm:entry-point")                                          \

@@ -540,6 +540,8 @@ void ScopeBuilder::VisitFunctionNode() {
   FunctionNodeHelper function_node_helper(&helper_);
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
 
+  const auto& function = parsed_function_->function();
+
   intptr_t list_length =
       helper_.ReadListLength();  // read type_parameters list length.
   for (intptr_t i = 0; i < list_length; ++i) {
@@ -565,10 +567,8 @@ void ScopeBuilder::VisitFunctionNode() {
   }
 
   if (function_node_helper.async_marker_ == FunctionNodeHelper::kSyncYielding) {
-    intptr_t offset = parsed_function_->function().num_fixed_parameters();
-    for (intptr_t i = 0;
-         i < parsed_function_->function().NumOptionalPositionalParameters();
-         i++) {
+    intptr_t offset = function.num_fixed_parameters();
+    for (intptr_t i = 0; i < function.NumOptionalPositionalParameters(); i++) {
       parsed_function_->ParameterVariable(offset + i)->set_is_forced_stack();
     }
   }
@@ -626,6 +626,14 @@ void ScopeBuilder::VisitFunctionNode() {
         scope_->CaptureVariable(temp);
       }
     }
+  }
+
+  // Mark known chained futures such as _Future::timeout()'s _future.
+  if (function.recognized_kind() == MethodRecognizer::kFutureTimeout &&
+      depth_.function_ == 1) {
+    LocalVariable* future = scope_->LookupVariable(Symbols::_future(), true);
+    ASSERT(future != nullptr);
+    future->set_is_chained_future();
   }
 }
 

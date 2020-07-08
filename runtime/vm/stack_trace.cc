@@ -104,6 +104,7 @@ class CallerClosureFinder {
   explicit CallerClosureFinder(Zone* zone)
       : receiver_context_(Context::Handle(zone)),
         receiver_function_(Function::Handle(zone)),
+        parent_function_(Function::Handle(zone)),
         context_entry_(Object::Handle(zone)),
         is_sync(Object::Handle(zone)),
         future_(Object::Handle(zone)),
@@ -130,7 +131,8 @@ class CallerClosureFinder {
         var_data_field(Field::Handle(zone)),
         state_field(Field::Handle(zone)),
         on_data_field(Field::Handle(zone)),
-        state_data_field(Field::Handle(zone)) {
+        state_data_field(Field::Handle(zone)),
+        future_timeout_method_(Function::Handle(zone)) {
     const auto& async_lib = Library::Handle(zone, Library::AsyncLibrary());
     // Look up classes:
     // - async:
@@ -195,6 +197,11 @@ class CallerClosureFinder {
     state_data_field =
         stream_iterator_class.LookupFieldAllowPrivate(Symbols::_stateData());
     ASSERT(!state_data_field.IsNull());
+
+    // Functions:
+    future_timeout_method_ =
+        future_impl_class.LookupFunction(Symbols::timeout());
+    ASSERT(!future_timeout_method_.IsNull());
   }
 
   ClosurePtr GetCallerInFutureImpl(const Object& future_) {
@@ -285,6 +292,13 @@ class CallerClosureFinder {
       return FindCallerInAsyncClosure(receiver_context_);
     } else if (receiver_function_.IsAsyncGenClosure()) {
       return FindCallerInAsyncGenClosure(receiver_context_);
+    } else if (receiver_function_.IsLocalFunction()) {
+      parent_function_ = receiver_function_.parent_function();
+      if (parent_function_.recognized_kind() ==
+          MethodRecognizer::kFutureTimeout) {
+        context_entry_ = receiver_context_.At(Context::kChainedFutureIndex);
+        return GetCallerInFutureImpl(context_entry_);
+      }
     }
 
     return Closure::null();
@@ -318,6 +332,7 @@ class CallerClosureFinder {
  private:
   Context& receiver_context_;
   Function& receiver_function_;
+  Function& parent_function_;
 
   Object& context_entry_;
   Object& is_sync;
@@ -348,6 +363,8 @@ class CallerClosureFinder {
   Field& state_field;
   Field& on_data_field;
   Field& state_data_field;
+
+  Function& future_timeout_method_;
 };
 
 void StackTraceUtils::CollectFramesLazy(

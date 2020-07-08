@@ -93,6 +93,7 @@ class LocalVariable : public ZoneAllocated {
         is_forced_stack_(false),
         is_explicit_covariant_parameter_(false),
         is_late_(false),
+        is_chained_future_(false),
         late_init_offset_(0),
         type_check_mode_(kDoTypeCheck),
         index_() {
@@ -130,6 +131,9 @@ class LocalVariable : public ZoneAllocated {
 
   bool is_late() const { return is_late_; }
   void set_is_late() { is_late_ = true; }
+
+  bool is_chained_future() const { return is_chained_future_; }
+  void set_is_chained_future() { is_chained_future_ = true; }
 
   intptr_t late_init_offset() const { return late_init_offset_; }
   void set_late_init_offset(intptr_t late_init_offset) {
@@ -220,6 +224,7 @@ class LocalVariable : public ZoneAllocated {
   bool is_forced_stack_;
   bool is_explicit_covariant_parameter_;
   bool is_late_;
+  bool is_chained_future_;
   intptr_t late_init_offset_;
   TypeCheckMode type_check_mode_;
   VariableIndex index_;
