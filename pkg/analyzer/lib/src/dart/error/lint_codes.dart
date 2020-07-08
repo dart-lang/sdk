@@ -35,6 +35,15 @@ class LintCode extends ErrorCode {
   bool operator ==(other) => uniqueName == other.uniqueName;
 }
 
+class LintCodeWithUniqueName extends LintCode {
+  @override
+  final String uniqueName;
+
+  const LintCodeWithUniqueName(String name, this.uniqueName, String message,
+      {String correction})
+      : super(name, message, correction: correction);
+}
+
 /// Defines security-related best practice recommendations.
 ///
 /// The primary difference from [LintCode]s is that these codes cannot be
@@ -45,4 +54,14 @@ class SecurityLintCode extends LintCode {
 
   @override
   bool get isIgnorable => false;
+}
+
+class SecurityLintCodeWithUniqueName extends SecurityLintCode {
+  @override
+  final String uniqueName;
+
+  const SecurityLintCodeWithUniqueName(
+      String name, this.uniqueName, String message,
+      {String correction})
+      : super(name, message, correction: correction);
 }
