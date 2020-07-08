@@ -659,7 +659,7 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         //      those writes are observed atomically.
         //
         thread()->isolate_group()->RunWithStoppedMutators(
-            install_code_fun, install_code_fun, /*use_force_growth=*/true);
+            install_code_fun, /*use_force_growth=*/true);
       }
       if (!result->IsNull()) {
         // Must be called outside of safepoint.

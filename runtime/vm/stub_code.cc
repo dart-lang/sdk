@@ -220,7 +220,7 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
       }
     };
     auto bg_compiler_fun = [&]() {
-      ForceGrowthSafepointOperationScope safepoint_scope(thread);
+      ASSERT(Thread::Current()->IsAtSafepoint());
       stub = cls.allocation_stub();
       // Check if stub was already generated.
       if (!stub.IsNull()) {
