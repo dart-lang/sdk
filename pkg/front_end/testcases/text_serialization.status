@@ -65,6 +65,7 @@ general/external_import: RuntimeError
 general/incomplete_field_formal_parameter: RuntimeError
 general/infer_field_from_multiple: TypeCheckError
 general/invalid_operator: TypeCheckError
+general/invalid_operator_override: TypeCheckError
 general/invocations: RuntimeError
 general/issue37776: RuntimeError
 general/issue38938: RuntimeError

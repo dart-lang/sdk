@@ -36,7 +36,7 @@ class Coordinate {
     return Math.sqrt(dx * dx + dy * dy);
   }
 
-  bool operator ==(Coordinate other) {
+  bool operator ==(covariant Coordinate other) {
     return other != null && x == other.x && y == other.y;
   }
 
@@ -73,7 +73,7 @@ class Interval {
     return end - start;
   }
 
-  bool operator ==(Interval other) {
+  bool operator ==(covariant Interval other) {
     return other != null && other.start == start && other.end == end;
   }
 

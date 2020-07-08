@@ -1,0 +1,5 @@
+class A {
+  operator ==(dynamic other);
+}
+
+main() {}

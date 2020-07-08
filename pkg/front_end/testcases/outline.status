@@ -17,6 +17,7 @@ general/bug30695: TypeCheckError
 general/covariant_field: TypeCheckError
 general/infer_field_from_multiple: TypeCheckError
 general/invalid_operator: TypeCheckError
+general/invalid_operator_override: TypeCheckError
 general/issue41210a: TypeCheckError
 general/issue41210b/issue41210: TypeCheckError
 general/mixin_application_override: TypeCheckError

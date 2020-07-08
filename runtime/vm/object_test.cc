@@ -4325,7 +4325,7 @@ TEST_CASE(InstanceEquality) {
   // Test that Instance::OperatorEquals can call a user-defined operator==.
   const char* kScript =
       "class A {\n"
-      "  bool operator==(A other) { return true; }\n"
+      "  bool operator==(covariant A other) { return true; }\n"
       "}\n"
       "main() {\n"
       "  A a = new A();\n"
