@@ -1296,6 +1296,8 @@ class List<E> extends Iterable {
   factory List() => null;
   factory List.unmodifiable(elements) => null;
   factory List.filled(int length, E fill, {bool growable = false}) => null;
+  factory List.generate(int length, E generator(int index),
+      {bool growable = true}) => null;
   void add(E) {}
   E operator [](int index) => null;
 }
@@ -1303,11 +1305,13 @@ class List<E> extends Iterable {
 class _GrowableList<E> {
   factory _GrowableList() => null;
   factory _GrowableList.filled() => null;
+  factory _GrowableList.generate(int length, E generator(int index)) => null;
 }
 
 class _List<E> {
   factory _List() => null;
   factory _List.filled() => null;
+  factory _List.generate(int length, E generator(int index)) => null;
 }
 
 class MapEntry<K, V> {

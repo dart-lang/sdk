@@ -16,33 +16,47 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 /// new List.filled(n, x, growable: true) => new _GrowableList.filled(n, x)
 /// new List.filled(n, null) => new _List(n)
 /// new List.filled(n, x) => new _List.filled(n, x)
+/// new List.generate(n, y) => new _GrowableList.generate(n, y)
+/// new List.generate(n, y, growable: false) => new _List.generate(n, y)
 ///
 class ListFactorySpecializer {
   final Procedure _defaultListFactory;
   final Procedure _listFilledFactory;
+  final Procedure _listGenerateFactory;
   final Procedure _growableListFactory;
   final Procedure _growableListFilledFactory;
+  final Procedure _growableListGenerateFactory;
   final Procedure _fixedListFactory;
   final Procedure _fixedListFilledFactory;
+  final Procedure _fixedListGenerateFactory;
 
   ListFactorySpecializer(CoreTypes coreTypes)
       : _defaultListFactory =
             coreTypes.index.getMember('dart:core', 'List', ''),
         _listFilledFactory =
             coreTypes.index.getMember('dart:core', 'List', 'filled'),
+        _listGenerateFactory =
+            coreTypes.index.getMember('dart:core', 'List', 'generate'),
         _growableListFactory =
             coreTypes.index.getMember('dart:core', '_GrowableList', ''),
         _growableListFilledFactory =
             coreTypes.index.getMember('dart:core', '_GrowableList', 'filled'),
+        _growableListGenerateFactory =
+            coreTypes.index.getMember('dart:core', '_GrowableList', 'generate'),
         _fixedListFactory = coreTypes.index.getMember('dart:core', '_List', ''),
         _fixedListFilledFactory =
-            coreTypes.index.getMember('dart:core', '_List', 'filled') {
+            coreTypes.index.getMember('dart:core', '_List', 'filled'),
+        _fixedListGenerateFactory =
+            coreTypes.index.getMember('dart:core', '_List', 'generate') {
     assert(_defaultListFactory.isFactory);
     assert(_listFilledFactory.isFactory);
+    assert(_listGenerateFactory.isFactory);
     assert(_growableListFactory.isFactory);
     assert(_growableListFilledFactory.isFactory);
+    assert(_growableListGenerateFactory.isFactory);
     assert(_fixedListFactory.isFactory);
     assert(_fixedListFilledFactory.isFactory);
+    assert(_fixedListGenerateFactory.isFactory);
   }
 
   TreeNode transformStaticInvocation(StaticInvocation node) {
@@ -64,25 +78,10 @@ class ListFactorySpecializer {
       final fill = args.positional[1];
       final fillingWithNull = fill is NullLiteral ||
           (fill is ConstantExpression && fill.constant is NullConstant);
-      bool growable;
-      if (args.named.isEmpty) {
-        growable = false;
-      } else {
-        final namedArg = args.named.single;
-        assert(namedArg.name == 'growable');
-        final value = namedArg.value;
-        if (value is BoolLiteral) {
-          growable = value.value;
-        } else if (value is ConstantExpression) {
-          final constant = value.constant;
-          if (constant is BoolConstant) {
-            growable = constant.value;
-          } else {
-            return node;
-          }
-        } else {
-          return node;
-        }
+      final bool growable =
+          _getConstantOptionalArgument(args, 'growable', false);
+      if (growable == null) {
+        return node;
       }
       if (growable) {
         if (fillingWithNull) {
@@ -105,8 +104,49 @@ class ListFactorySpecializer {
             ..fileOffset = node.fileOffset;
         }
       }
+    } else if (target == _listGenerateFactory) {
+      final args = node.arguments;
+      assert(args.positional.length == 2);
+      final length = args.positional[0];
+      final generator = args.positional[1];
+      final bool growable =
+          _getConstantOptionalArgument(args, 'growable', true);
+      if (growable == null) {
+        return node;
+      }
+      if (growable) {
+        return StaticInvocation(_growableListGenerateFactory,
+            Arguments([length, generator], types: args.types))
+          ..fileOffset = node.fileOffset;
+      } else {
+        return StaticInvocation(_fixedListGenerateFactory,
+            Arguments([length, generator], types: args.types))
+          ..fileOffset = node.fileOffset;
+      }
     }
 
     return node;
+  }
+
+  /// Returns constant value of the only optional argument in [args],
+  /// or null if it is not a constant. Returns [defaultValue] if optional
+  /// argument is not passed. Argument is asserted to have the given [name].
+  bool /*?*/ _getConstantOptionalArgument(
+      Arguments args, String name, bool defaultValue) {
+    if (args.named.isEmpty) {
+      return defaultValue;
+    }
+    final namedArg = args.named.single;
+    assert(namedArg.name == name);
+    final value = namedArg.value;
+    if (value is BoolLiteral) {
+      return value.value;
+    } else if (value is ConstantExpression) {
+      final constant = value.constant;
+      if (constant is BoolConstant) {
+        return constant.value;
+      }
+    }
+    return null;
   }
 }
