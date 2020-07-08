@@ -55,16 +55,14 @@ abstract class TestSuite {
   TestSuite(this.configuration, this.suiteName, this.statusFilePaths) {
     _environmentOverrides = {
       'DART_CONFIGURATION': configuration.configurationDirectory,
-      if (Platform.isWindows) 'DART_SUPPRESS_WER': '1',
-      if (Platform.isWindows && configuration.copyCoreDumps)
-        'DART_CRASHPAD_HANDLER':
-            Uri.base.resolve(buildDir + '/crashpad_handler.exe').toFilePath(),
-      if (configuration.chromePath != null)
-        'CHROME_PATH': Uri.base.resolve(configuration.chromePath).toFilePath(),
-      if (configuration.firefoxPath != null)
-        'FIREFOX_PATH':
-            Uri.base.resolve(configuration.firefoxPath).toFilePath(),
     };
+    if (Platform.isWindows) {
+      _environmentOverrides['DART_SUPPRESS_WER'] = '1';
+      if (configuration.copyCoreDumps) {
+        _environmentOverrides['DART_CRASHPAD_HANDLER'] =
+            Path(buildDir + '/crashpad_handler.exe').absolute.toNativePath();
+      }
+    }
   }
 
   Map<String, String> get environmentOverrides => _environmentOverrides;
