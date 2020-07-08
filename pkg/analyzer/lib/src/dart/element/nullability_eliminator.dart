@@ -37,7 +37,7 @@ class NullabilityEliminator extends ReplacementVisitor {
   /// If the [type] itself, or any of its components, has any nullability,
   /// return a new type with legacy nullability suffixes. Otherwise return the
   /// original instance.
-  static T perform<T extends DartType>(TypeProviderImpl typeProvider, T type) {
+  static DartType perform(TypeProviderImpl typeProvider, DartType type) {
     if (type == null) {
       return type;
     }
