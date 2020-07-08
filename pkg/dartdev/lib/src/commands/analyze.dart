@@ -12,9 +12,10 @@ import '../sdk.dart';
 import '../utils.dart';
 import 'analyze_impl.dart';
 
+// TODO: Support enable-experiment for 'dart analyze'.
+
 class AnalyzeCommand extends DartdevCommand<int> {
-  AnalyzeCommand({bool verbose = false})
-      : super('analyze', "Analyze the project's Dart code.") {
+  AnalyzeCommand() : super('analyze', "Analyze the project's Dart code.") {
     argParser
       ..addFlag('fatal-infos',
           help: 'Treat info level issues as fatal.', negatable: false)
@@ -101,6 +102,20 @@ class AnalyzeCommand extends DartdevCommand<int> {
           'at $filePath:${error.startLine}:${error.startColumn} $bullet '
           '(${error.code})',
         );
+
+        if (verbose) {
+          var padding = ' '.padLeft(error.severity.length + 2);
+          for (var message in error.contextMessages) {
+            log.stdout('$padding${message.message} '
+                'at ${message.filePath}:${message.line}:${message.column}');
+          }
+          if (error.correction != null) {
+            log.stdout('$padding${error.correction}');
+          }
+          if (error.url != null) {
+            log.stdout('$padding${error.url}');
+          }
+        }
 
         hasErrors |= error.isError;
         hasWarnings |= error.isWarning;

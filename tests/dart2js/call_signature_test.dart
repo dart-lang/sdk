@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 
 class A<T> {
   /// Weird signature to ensure it isn't match by any call selector.
-  call(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, {T t}) {}
+  call(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, {T? t}) {}
 }
 
 class B<T> {

@@ -7,8 +7,8 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 
 /// Returns [type] in which all promoted type variables have been replace with
 /// their unpromoted equivalents, and, if [library] is non-nullable by default,

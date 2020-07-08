@@ -204,12 +204,14 @@
   FIELD(Thread, switchable_call_miss_stub_offset)                              \
   FIELD(Thread, no_scope_native_wrapper_entry_point_offset)                    \
   FIELD(Thread, null_error_shared_with_fpu_regs_stub_offset)                   \
-  FIELD(Thread, null_arg_error_shared_with_fpu_regs_stub_offset)               \
-  FIELD(Thread, range_error_shared_with_fpu_regs_stub_offset)                  \
-                                                                               \
   FIELD(Thread, null_error_shared_without_fpu_regs_stub_offset)                \
+  FIELD(Thread, null_arg_error_shared_with_fpu_regs_stub_offset)               \
   FIELD(Thread, null_arg_error_shared_without_fpu_regs_stub_offset)            \
+  FIELD(Thread, null_cast_error_shared_with_fpu_regs_stub_offset)              \
+  FIELD(Thread, null_cast_error_shared_without_fpu_regs_stub_offset)           \
+  FIELD(Thread, range_error_shared_with_fpu_regs_stub_offset)                  \
   FIELD(Thread, range_error_shared_without_fpu_regs_stub_offset)               \
+                                                                               \
   FIELD(Thread, object_null_offset)                                            \
   FIELD(Thread, predefined_symbols_address_offset)                             \
   FIELD(Thread, resume_pc_offset)                                              \

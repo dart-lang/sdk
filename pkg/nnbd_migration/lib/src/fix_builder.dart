@@ -24,6 +24,7 @@ import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
@@ -380,6 +381,15 @@ class MigrationResolutionHooksImpl
         }
         return type as FunctionType;
       });
+
+  @override
+  DartType getExtendedType(ExtensionElementImpl element) {
+    return _wrapExceptions(
+        _fixBuilder.unit,
+        () => element.extendedTypeInternal,
+        () => _fixBuilder._variables
+            .toFinalType(_fixBuilder._variables.decoratedElementType(element)));
+  }
 
   @override
   DartType getFieldType(PropertyInducingElementImpl element) =>

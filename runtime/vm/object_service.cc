@@ -810,7 +810,8 @@ void UnlinkedCall::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  jsobj.AddProperty("_argumentsDescriptor", Array::Handle(args_descriptor()));
+  jsobj.AddProperty("_argumentsDescriptor",
+                    Array::Handle(arguments_descriptor()));
 }
 
 void MonomorphicSmiableCall::PrintJSONImpl(JSONStream* stream, bool ref) const {

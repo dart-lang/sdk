@@ -30,6 +30,7 @@ import 'package:collection/collection.dart' show groupBy;
 class CodeActionHandler extends MessageHandler<CodeActionParams,
     List<Either2<Command, CodeAction>>> {
   CodeActionHandler(LspAnalysisServer server) : super(server);
+
   @override
   Method get handlesMessage => Method.textDocument_codeAction;
 

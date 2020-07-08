@@ -528,22 +528,26 @@ Type _canonicalizeNormalizedTypeObject(type) {
   }
   if (_jsInstanceOf(type, GenericFunctionType)) {
     var formals = _getCanonicalTypeFormals(type.typeFormals.length);
-    var normBounds =
+    List<dynamic> normBounds =
         type.instantiateTypeBounds(formals).map(normalizeHelper).toList();
 
-    // Normalize type arguments that are bounded by Never to Never at their
-    // use site in the function type signature.
     var substitutedTypes = [];
-    for (var i = 0; i < formals.length; i++) {
-      var substitutedType = normBounds[i];
-      while (formals.contains(substitutedType)) {
-        substitutedType = normBounds[formals.indexOf(substitutedType)];
+    if (normBounds.contains(_never)) {
+      // Normalize type arguments that are bounded by Never to Never at their
+      // use site in the function type signature.
+      for (var i = 0; i < formals.length; i++) {
+        var substitutedType = normBounds[i];
+        while (formals.contains(substitutedType)) {
+          substitutedType = normBounds[formals.indexOf(substitutedType)];
+        }
+        if (substitutedType == _never) {
+          substitutedTypes.add(_never);
+        } else {
+          substitutedTypes.add(formals[i]);
+        }
       }
-      if (substitutedType == _never) {
-        substitutedTypes.add(_never);
-        continue;
-      }
-      substitutedTypes.add(formals[i]);
+    } else {
+      substitutedTypes = formals;
     }
 
     var normFunc =

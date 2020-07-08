@@ -34,6 +34,9 @@
     "collection": {
       "experimentSet": "nullSafety"
     },
+    "dart_internal": {
+      "experimentSet": "nullSafety"
+    },
     "fake_async": {
       "experimentSet": "nullSafety"
     },
@@ -41,6 +44,9 @@
       "experimentSet": "nullSafety"
     },
     "flutter": {
+      "experimentSet": "nullSafety"
+    },
+    "flutter_test": {
       "experimentSet": "nullSafety"
     },
     "js": {

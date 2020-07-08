@@ -45,7 +45,6 @@ class AnalysisServer {
       sdkPath.path,
     ];
 
-    log.trace('dart ${command.join(' ')}');
     _process = await startProcess(sdk.dart, command);
     // This callback hookup can't throw.
     //ignore: unawaited_futures
@@ -204,6 +203,8 @@ class AnalysisError implements Comparable<AnalysisError> {
 
   String get code => json['code'] as String;
 
+  String get correction => json['correction'] as String;
+
   String get file => json['location']['file'] as String;
 
   int get startLine => json['location']['startLine'] as int;
@@ -213,6 +214,13 @@ class AnalysisError implements Comparable<AnalysisError> {
   int get offset => json['location']['offset'] as int;
 
   String get messageSentenceFragment => trimEnd(message, '.');
+
+  String get url => json['url'] as String;
+
+  List<DiagnosticMessage> get contextMessages {
+    var messages = json['contextMessages'] as List<dynamic>;
+    return messages.map((message) => DiagnosticMessage(message)).toList();
+  }
 
   // TODO(jwren) add some tests to verify that the results are what we are
   //  expecting, 'other' is not always on the RHS of the subtraction in the
@@ -240,6 +248,20 @@ class AnalysisError implements Comparable<AnalysisError> {
   String toString() => '${severity.toLowerCase()} • '
       '$messageSentenceFragment at $file:$startLine:$startColumn • '
       '($code)';
+}
+
+class DiagnosticMessage {
+  final Map<String, dynamic> json;
+
+  DiagnosticMessage(this.json);
+
+  int get column => json['location']['startColumn'] as int;
+
+  String get filePath => json['location']['file'] as String;
+
+  int get line => json['location']['startLine'] as int;
+
+  String get message => json['message'] as String;
 }
 
 class FileAnalysisErrors {

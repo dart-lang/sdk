@@ -134,6 +134,7 @@ compiler/test/deferred/load_mapping_test: Slow, Pass
 compiler/test/end_to_end/dart2js_batch_test: Slow, Pass
 compiler/test/end_to_end/exit_code_test: Slow, Pass
 compiler/test/end_to_end/in_user_code_test: Slow, Pass
+vm_snapshot_analysis/test/precompiler_trace_test: SkipSlow
 
 [ $runtime == dart_precompiled ]
 *: SkipByDesign # The pkg test framework imports dart:mirrors.

@@ -1984,6 +1984,10 @@ DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle str,
 /**
  * Gets a UTF-8 encoded representation of a String.
  *
+ * Any unpaired surrogate code points in the string will be converted as
+ * replacement characters (U+FFFD, 0xEF 0xBF 0xBD in UTF-8). If you need
+ * to preserve unpaired surrogates, use the Dart_StringToUTF16 function.
+ *
  * \param str A string.
  * \param utf8_array Returns the String represented as UTF-8 code
  *   units.  This UTF-8 array is scope allocated and is only valid

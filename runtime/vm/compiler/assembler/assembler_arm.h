@@ -1283,7 +1283,6 @@ class Assembler : public AssemblerBase {
   void movw(Register rd, uint16_t imm16, Condition cond = AL);
   void movt(Register rd, uint16_t imm16, Condition cond = AL);
 
-  void BindARMv6(Label* label);
   void BindARMv7(Label* label);
 
   void BranchLink(const ExternalLabel* label);

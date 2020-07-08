@@ -250,10 +250,8 @@ class ScannerTest with ResourceProviderMixin {
   }
 }
 
-/**
- * An `ExpectedLocation` encodes information about the expected location of a
- * given offset in source code.
- */
+/// An `ExpectedLocation` encodes information about the expected location of a
+/// given offset in source code.
 class ScannerTest_ExpectedLocation {
   final int _offset;
 
@@ -265,15 +263,11 @@ class ScannerTest_ExpectedLocation {
       this._offset, this._lineNumber, this._columnNumber);
 }
 
-/**
- * A `TokenStreamValidator` is used to validate the correct construction of a
- * stream of tokens.
- */
+/// A `TokenStreamValidator` is used to validate the correct construction of a
+/// stream of tokens.
 class TokenStreamValidator {
-  /**
-   * Validate that the stream of tokens that starts with the given [token] is
-   * correct.
-   */
+  /// Validate that the stream of tokens that starts with the given [token] is
+  /// correct.
   void validate(Token token) {
     StringBuffer buffer = StringBuffer();
     _validateStream(buffer, token);

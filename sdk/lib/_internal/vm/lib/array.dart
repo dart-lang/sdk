@@ -11,6 +11,18 @@ class _List<E> extends FixedLengthListBase<E> {
   @pragma("vm:prefer-inline")
   factory _List(length) native "List_allocate";
 
+  // Specialization of List.filled constructor for growable == false.
+  // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
+  factory _List.filled(int length, E fill) {
+    final result = _List<E>(length);
+    if (fill != null) {
+      for (int i = 0; i < result.length; i++) {
+        result[i] = fill;
+      }
+    }
+    return result;
+  }
+
   E operator [](int index) native "List_getIndexed";
 
   void operator []=(int index, E value) {

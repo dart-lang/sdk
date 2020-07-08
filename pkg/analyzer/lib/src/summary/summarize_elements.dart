@@ -4,16 +4,12 @@
 
 import 'package:analyzer/src/summary/format.dart';
 
-/**
- * Object that gathers information uses it to assemble a new
- * [PackageBundleBuilder].
- */
+/// Object that gathers information uses it to assemble a new
+/// [PackageBundleBuilder].
 class PackageBundleAssembler {
   LinkedNodeBundleBuilder _bundle2;
 
-  /**
-   * Assemble a new [PackageBundleBuilder] using the gathered information.
-   */
+  /// Assemble a new [PackageBundleBuilder] using the gathered information.
   PackageBundleBuilder assemble() {
     return PackageBundleBuilder(bundle2: _bundle2);
   }

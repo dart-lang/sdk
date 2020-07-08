@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io' as io;
 import 'dart:isolate';
 
+import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -31,7 +32,6 @@ import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/source/path_filter.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary/summary_file_builder.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
@@ -552,7 +552,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
         useSummaries ? options.buildSummaryInputs : <String>[]);
 
     // Once options and embedders are processed, setup the SDK.
-    _setupSdk(options, useSummaries, analysisOptions);
+    _setupSdk(options, analysisOptions);
 
     // Choose a package resolution policy and a diet parsing policy based on
     // the command-line options.
@@ -627,8 +627,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
     return analyzer.analyze(formatter);
   }
 
-  void _setupSdk(CommandLineOptions options, bool useSummaries,
-      AnalysisOptions analysisOptions) {
+  void _setupSdk(CommandLineOptions options, AnalysisOptions analysisOptions) {
     if (sdk == null) {
       if (options.dartSdkSummaryPath != null) {
         sdk = SummaryBasedDartSdk(options.dartSdkSummaryPath, true);
@@ -636,12 +635,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
         var dartSdkPath = options.dartSdkPath;
         var dartSdk = FolderBasedDartSdk(
             resourceProvider, resourceProvider.getFolder(dartSdkPath));
-        dartSdk.useSummary = useSummaries &&
-            options.sourceFiles.every((String sourcePath) {
-              sourcePath = path.absolute(sourcePath);
-              sourcePath = path.normalize(sourcePath);
-              return !path.isWithin(dartSdkPath, sourcePath);
-            });
         dartSdk.analysisOptions = analysisOptions;
         sdk = dartSdk;
       }

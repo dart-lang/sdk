@@ -14,23 +14,19 @@ import '../recovery_test_support.dart';
 typedef AdjustValidUnitBeforeComparison = CompilationUnit Function(
     CompilationUnit unit);
 
-/**
- * A base class that adds support for tests that test how well the parser
- * recovers when the user has entered an incomplete (but otherwise correct)
- * construct (such as a top-level declaration, class member, or statement).
- *
- * Because users often add new constructs between two existing constructs, these
- * tests effectively test whether the parser is able to recognize where the
- * partially entered construct ends and where the next fully entered construct
- * begins. (The preceding construct is irrelevant.) Given the large number of
- * following constructs the are valid in most contexts, these tests are designed
- * to programmatically generate tests based on a list of possible following
- * constructs.
- */
+/// A base class that adds support for tests that test how well the parser
+/// recovers when the user has entered an incomplete (but otherwise correct)
+/// construct (such as a top-level declaration, class member, or statement).
+///
+/// Because users often add new constructs between two existing constructs,
+/// these tests effectively test whether the parser is able to recognize where
+/// the partially entered construct ends and where the next fully entered
+/// construct begins. (The preceding construct is irrelevant.) Given the large
+/// number of following constructs the are valid in most contexts, these tests
+/// are designed to programmatically generate tests based on a list of possible
+/// following constructs.
 abstract class PartialCodeTest extends AbstractRecoveryTest {
-  /**
-   * A list of suffixes that can be used by tests of class members.
-   */
+  /// A list of suffixes that can be used by tests of class members.
   static final List<TestSuffix> classMemberSuffixes = <TestSuffix>[
     TestSuffix('annotation', '@annotation var f;'),
     TestSuffix('field', 'var f;'),
@@ -42,10 +38,8 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
     TestSuffix('setter', 'set a(b) {}')
   ];
 
-  /**
-   * A list of suffixes that can be used by tests of top-level constructs that
-   * can validly be followed by any declaration.
-   */
+  /// A list of suffixes that can be used by tests of top-level constructs that
+  /// can validly be followed by any declaration.
   static final List<TestSuffix> declarationSuffixes = <TestSuffix>[
     TestSuffix('class', 'class A {}'),
     TestSuffix('enum', 'enum E { v }'),
@@ -61,29 +55,23 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
     TestSuffix('setter', 'set a(b) {}')
   ];
 
-  /**
-   * A list of suffixes that can be used by tests of top-level constructs that
-   * can validly be followed by anything that is valid after a part directive.
-   */
+  /// A list of suffixes that can be used by tests of top-level constructs that
+  /// can validly be followed by anything that is valid after a part directive.
   static final List<TestSuffix> postPartSuffixes = <TestSuffix>[
     TestSuffix('part', "part 'a.dart';"),
     ...declarationSuffixes
   ];
 
-  /**
-   * A list of suffixes that can be used by tests of top-level constructs that
-   * can validly be followed by any directive or declaration other than a
-   * library directive.
-   */
+  /// A list of suffixes that can be used by tests of top-level constructs that
+  /// can validly be followed by any directive or declaration other than a
+  /// library directive.
   static final List<TestSuffix> prePartSuffixes = <TestSuffix>[
     TestSuffix('import', "import 'a.dart';"),
     TestSuffix('export', "export 'a.dart';"),
     ...postPartSuffixes
   ];
 
-  /**
-   * A list of suffixes that can be used by tests of statements.
-   */
+  /// A list of suffixes that can be used by tests of statements.
   static final List<TestSuffix> statementSuffixes = <TestSuffix>[
     TestSuffix('assert', "assert (true);"),
     TestSuffix('block', "{}"),
@@ -102,14 +90,12 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
     TestSuffix('while', "while (true) {}"),
   ];
 
-  /**
-   * Build a group of tests with the given [groupName]. There will be one test
-   * for every combination of elements in the cross-product of the lists of
-   * [descriptors] and [suffixes], and one additional test for every descriptor
-   * where the suffix is the empty string (to test partial declarations at the
-   * end of the file). In total, there will be
-   * `descriptors.length * (suffixes.length + 1)` tests generated.
-   */
+  /// Build a group of tests with the given [groupName]. There will be one test
+  /// for every combination of elements in the cross-product of the lists of
+  /// [descriptors] and [suffixes], and one additional test for every descriptor
+  /// where the suffix is the empty string (to test partial declarations at the
+  /// end of the file). In total, there will be
+  /// `descriptors.length * (suffixes.length + 1)` tests generated.
   buildTests(String groupName, List<TestDescriptor> descriptors,
       List<TestSuffix> suffixes,
       {FeatureSet featureSet,
@@ -144,9 +130,7 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
     });
   }
 
-  /**
-   * Build a single test based on the given [descriptor] and [suffix].
-   */
+  /// Build a single test based on the given [descriptor] and [suffix].
   _buildTestForDescriptorAndSuffix(TestDescriptor descriptor, TestSuffix suffix,
       int suffixIndex, String head, String tail,
       {FeatureSet featureSet}) {
@@ -236,56 +220,36 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
   }
 }
 
-/**
- * A description of a set of tests that are to be built.
- */
+/// A description of a set of tests that are to be built.
 class TestDescriptor {
-  /**
-   * The name of the test.
-   */
+  /// The name of the test.
   final String name;
 
-  /**
-   * Invalid code that the parser is expected to recover from.
-   */
+  /// Invalid code that the parser is expected to recover from.
   final String invalid;
 
-  /**
-   * Error codes that the parser is expected to produce.
-   */
+  /// Error codes that the parser is expected to produce.
   final List<ErrorCode> errorCodes;
 
-  /**
-   * Valid code that is equivalent to what the parser should produce as part of
-   * recovering from the invalid code.
-   */
+  /// Valid code that is equivalent to what the parser should produce as part of
+  /// recovering from the invalid code.
   final String valid;
 
-  /**
-   * Error codes that the parser is expected to produce in the valid code.
-   */
+  /// Error codes that the parser is expected to produce in the valid code.
   final List<ErrorCode> expectedErrorsInValidCode;
 
-  /**
-   * A flag indicating whether all of the tests are expected to fail.
-   */
+  /// A flag indicating whether all of the tests are expected to fail.
   final bool allFailing;
 
-  /**
-   * A list containing the names of the suffixes for which the test is expected
-   * to fail.
-   */
+  /// A list containing the names of the suffixes for which the test is expected
+  /// to fail.
   final List<String> failing;
 
-  /**
-   * A function that modifies the valid compilation unit before it is compared
-   * with the invalid compilation unit, or `null` if no modification needed.
-   */
+  /// A function that modifies the valid compilation unit before it is compared
+  /// with the invalid compilation unit, or `null` if no modification needed.
   AdjustValidUnitBeforeComparison adjustValidUnitBeforeComparison;
 
-  /**
-   * Initialize a newly created test descriptor.
-   */
+  /// Initialize a newly created test descriptor.
   TestDescriptor(this.name, this.invalid, this.errorCodes, this.valid,
       {this.allFailing = false,
       this.failing,
@@ -293,24 +257,16 @@ class TestDescriptor {
       this.adjustValidUnitBeforeComparison});
 }
 
-/**
- * A description of a set of suffixes that are to be used to construct tests.
- */
+/// A description of a set of suffixes that are to be used to construct tests.
 class TestSuffix {
   static final TestSuffix eof = TestSuffix('eof', '');
 
-  /**
-   * The name of the suffix.
-   */
+  /// The name of the suffix.
   final String name;
 
-  /**
-   * The code to be appended to the test code.
-   */
+  /// The code to be appended to the test code.
   final String text;
 
-  /**
-   * Initialize a newly created suffix.
-   */
+  /// Initialize a newly created suffix.
   TestSuffix(this.name, this.text);
 }

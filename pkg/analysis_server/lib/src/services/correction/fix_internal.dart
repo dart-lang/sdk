@@ -79,6 +79,7 @@ import 'package:analysis_server/src/services/correction/dart/make_field_not_fina
 import 'package:analysis_server/src/services/correction/dart/make_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_not_final.dart';
 import 'package:analysis_server/src/services/correction/dart/move_type_arguments_to_class.dart';
+import 'package:analysis_server/src/services/correction/dart/organize_imports.dart';
 import 'package:analysis_server/src/services/correction/dart/qualify_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
@@ -132,7 +133,6 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_null_a
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_child_property_last.dart';
-import 'package:analysis_server/src/services/correction/dart/sort_directives.dart';
 import 'package:analysis_server/src/services/correction/dart/update_sdk_constraints.dart';
 import 'package:analysis_server/src/services/correction/dart/use_const.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
@@ -323,7 +323,7 @@ class FixProcessor extends BaseProcessor {
       AddDiagnosticPropertyReference.newInstance,
     ],
     LintNames.directives_ordering: [
-      SortDirectives.newInstance,
+      OrganizeImports.newInstance,
     ],
     LintNames.empty_catches: [
       RemoveEmptyCatch.newInstance,
@@ -381,6 +381,9 @@ class FixProcessor extends BaseProcessor {
       ConvertToExpressionFunctionBody.newInstance,
     ],
     LintNames.prefer_final_fields: [
+      MakeFinal.newInstance,
+    ],
+    LintNames.prefer_final_in_for_each: [
       MakeFinal.newInstance,
     ],
     LintNames.prefer_final_locals: [

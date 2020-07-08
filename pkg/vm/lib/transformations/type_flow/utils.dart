@@ -261,6 +261,48 @@ int findOverlap(List list, List sublist) {
   return list.length;
 }
 
+/// A Union-Find data structure over integers.
+class UnionFind {
+  // Negative weight if root, parent index otherwise.
+  final List<int> _elements;
+
+  UnionFind([int initialSize = 0])
+      : _elements = List<int>.filled(initialSize, -1, growable: true);
+
+  /// Add a new singleton set.
+  int add() {
+    int id = _elements.length;
+    _elements.add(-1);
+    return id;
+  }
+
+  /// Find the canonical element for the set containing the given element.
+  /// Two elements belonging to the same set have the same canonical element.
+  int find(int id) {
+    return _elements[id] < 0 ? id : _elements[id] = find(_elements[id]);
+  }
+
+  /// Merge the sets containing the given elements.
+  void union(int id1, int id2) {
+    id1 = find(id1);
+    id2 = find(id2);
+    if (id1 == id2) return;
+    final int w1 = _elements[id1];
+    final int w2 = _elements[id2];
+    assertx(w1 < 0 && w2 < 0);
+    if (w1 < w2) {
+      _elements[id1] += w2;
+      _elements[id2] = id1;
+    } else {
+      _elements[id2] += w1;
+      _elements[id1] = id2;
+    }
+  }
+
+  /// Total number of elements in the sets.
+  int get size => _elements.length;
+}
+
 const nullabilitySuffix = {
   Nullability.legacy: '*',
   Nullability.nullable: '?',

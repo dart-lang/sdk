@@ -64,6 +64,8 @@ class ValueKinds {
   static const ValueKind IdentifierOrNull =
       const SingleValueKind<type.Identifier>(NullValue.Identifier);
   static const ValueKind Integer = const SingleValueKind<int>();
+  static const ValueKind AsyncModifier =
+      const SingleValueKind<type.AsyncMarker>();
   static const ValueKind Formals =
       const SingleValueKind<List<type.FormalParameterBuilder>>();
   static const ValueKind FormalsOrNull =

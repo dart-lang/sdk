@@ -22,12 +22,10 @@ main() {
 
 @reflectiveTest
 class AbstractRecoveryTest extends FastaParserTestCase {
-  /**
-   * Given the path to the file containing the declaration of the fasta Parser,
-   * return a set containing the names of all the messages and templates that
-   * are referenced (presumably because they are being generated) within that
-   * file.
-   */
+  /// Given the path to the file containing the declaration of the fasta Parser,
+  /// return a set containing the names of all the messages and templates that
+  /// are referenced (presumably because they are being generated) within that
+  /// file.
   Set<String> getGeneratedNames(String parserPath) {
     String content = io.File(parserPath).readAsStringSync();
     CompilationUnit unit = parseCompilationUnit(content);
@@ -37,10 +35,8 @@ class AbstractRecoveryTest extends FastaParserTestCase {
     return visitor.generatedNames;
   }
 
-  /**
-   * Given the path to the file 'messages.yaml', return a list of the top-level
-   * keys defined in that file that define an 'analyzerCode'.
-   */
+  /// Given the path to the file 'messages.yaml', return a list of the top-level
+  /// keys defined in that file that define an 'analyzerCode'.
   List<String> getMappedCodes(String messagesPath) {
     String content = io.File(messagesPath).readAsStringSync();
     YamlDocument document = loadYamlDocument(content);
@@ -60,10 +56,8 @@ class AbstractRecoveryTest extends FastaParserTestCase {
     return codes.toList();
   }
 
-  /**
-   * Given the path to the file 'messages.yaml', return a list of the analyzer
-   * codes defined in that file.
-   */
+  /// Given the path to the file 'messages.yaml', return a list of the analyzer
+  /// codes defined in that file.
   List<String> getReferencedCodes(String messagesPath) {
     String content = io.File(messagesPath).readAsStringSync();
     YamlDocument document = loadYamlDocument(content);
@@ -84,10 +78,8 @@ class AbstractRecoveryTest extends FastaParserTestCase {
     return codes.toList();
   }
 
-  /**
-   * Given the path to the file containing the declaration of the AstBuilder,
-   * return a list of the analyzer codes that are translated by the builder.
-   */
+  /// Given the path to the file containing the declaration of the AstBuilder,
+  /// return a list of the analyzer codes that are translated by the builder.
   List<String> getTranslatedCodes(String astBuilderPath) {
     String content = io.File(astBuilderPath).readAsStringSync();
     CompilationUnit unit = parseCompilationUnit(content);
@@ -190,15 +182,11 @@ class AbstractRecoveryTest extends FastaParserTestCase {
   }
 }
 
-/**
- * A visitor that gathers the names of all the message codes that are generated
- * in the visited AST. This assumes that the codes are accessed via the prefix
- * 'fasta'.
- */
+/// A visitor that gathers the names of all the message codes that are generated
+/// in the visited AST. This assumes that the codes are accessed via the prefix
+/// 'fasta'.
 class GeneratedCodesVisitor extends RecursiveAstVisitor {
-  /**
-   * The names of the message codes that are generated in the visited AST.
-   */
+  /// The names of the message codes that are generated in the visited AST.
   Set<String> generatedNames = <String>{};
 
   @override

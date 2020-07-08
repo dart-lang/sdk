@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 void main() {
   var all = {"a": new A(), "b": new B()};
 
-  A a = all["a"];
+  A a = all["a"] as A;
   a.load();
 }
 

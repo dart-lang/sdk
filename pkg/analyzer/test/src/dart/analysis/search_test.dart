@@ -1752,18 +1752,14 @@ class NoMatchABCDEF {}
         isResolved: isResolved, isQualified: isQualified);
   }
 
-  /**
-   * Create [ExpectedResult] for a qualified and resolved match.
-   */
+  /// Create [ExpectedResult] for a qualified and resolved match.
   ExpectedResult _expectIdQ(
       Element element, SearchResultKind kind, String search,
       {int length, bool isResolved = true}) {
     return _expectId(element, kind, search, isQualified: true, length: length);
   }
 
-  /**
-   * Create [ExpectedResult] for a qualified and unresolved match.
-   */
+  /// Create [ExpectedResult] for a qualified and unresolved match.
   ExpectedResult _expectIdQU(
       Element element, SearchResultKind kind, String search,
       {int length}) {
@@ -1771,9 +1767,7 @@ class NoMatchABCDEF {}
         isQualified: true, isResolved: false, length: length);
   }
 
-  /**
-   * Create [ExpectedResult] for a unqualified and unresolved match.
-   */
+  /// Create [ExpectedResult] for a unqualified and unresolved match.
   ExpectedResult _expectIdU(
       Element element, SearchResultKind kind, String search,
       {int length}) {

@@ -18,13 +18,13 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
@@ -165,7 +165,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     } else if (element?.isVisibleForTemplate == true ||
         element?.isVisibleForTesting == true) {
       if (parent is Declaration) {
-        reportInvalidAnnotation(Element declaredElement) {
+        void reportInvalidAnnotation(Element declaredElement) {
           _errorReporter.reportErrorForNode(
               HintCode.INVALID_VISIBILITY_ANNOTATION,
               node,
@@ -1400,6 +1400,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     // The cast is necessary.
     if (!typeSystem.isSubtypeOf2(leftType, rightType)) {
+      return false;
+    }
+
+    // Casting from `T*` to `T?` is a way to force `T?`.
+    if (leftType.nullabilitySuffix == NullabilitySuffix.star &&
+        rightType.nullabilitySuffix == NullabilitySuffix.question) {
       return false;
     }
 

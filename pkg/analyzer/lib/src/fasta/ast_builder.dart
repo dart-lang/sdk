@@ -3775,7 +3775,7 @@ class _InvalidCollectionElement implements CollectionElement {
   const _InvalidCollectionElement._();
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Data structure placed on the stack to represent a non-empty sequence

@@ -248,6 +248,16 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     expect(error.message, contains('already declares class with name'));
   }
 
+  Future<void> test_rename_rejectedForSameName() async {
+    const content = '''
+    class My^Class {}
+    ''';
+    final error = await _test_rename_failure(content, 'MyClass');
+    expect(error.code, equals(ServerErrorCodes.RenameNotValid));
+    expect(error.message,
+        contains('new name must be different than the current name'));
+  }
+
   Future<void> test_rename_rejectedForStaleDocument() async {
     const content = '''
     class MyClass {}
@@ -257,6 +267,22 @@ class RenameTest extends AbstractLspAnalysisServerTest {
         await _test_rename_failure(content, 'MyNewClass', openFileVersion: 111);
     expect(error.code, equals(ErrorCodes.ContentModified));
     expect(error.message, contains('Document was modified'));
+  }
+
+  Future<void> test_rename_rejectionsDoNotCrashServer() async {
+    // Checks that a rename failure does not stop the server from responding
+    // as was previously the case in https://github.com/dart-lang/sdk/issues/42573
+    // because the error code was duplicated/reused for ClientServerInconsistentState.
+    const content = '''
+    /// Test Class
+    class My^Class {}
+    ''';
+    final error = await _test_rename_failure(content, 'MyClass');
+    expect(error.code, isNotNull);
+
+    // Send any other request to ensure the server is still responsive.
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    expect(hover?.contents, isNotNull);
   }
 
   Future<void> test_rename_sdkClass() async {

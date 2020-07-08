@@ -776,6 +776,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType visitExtensionOverride(ExtensionOverride node) {
+    return _dispatch(node.argumentList.arguments.single);
+  }
+
+  @override
   DecoratedType visitFieldFormalParameter(FieldFormalParameter node) {
     _dispatchList(node.metadata);
     _dispatch(node.parameters);

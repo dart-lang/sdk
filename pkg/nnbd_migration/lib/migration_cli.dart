@@ -509,6 +509,19 @@ class MigrationCliRunner {
     return stream.first;
   }
 
+  /// Computes the internet address that should be passed to `HttpServer.bind`
+  /// when starting the preview server.  May be overridden in derived classes.
+  Object computeBindAddress() {
+    var hostname = options.previewHostname;
+    if (hostname == 'localhost') {
+      return InternetAddress.loopbackIPv4;
+    } else if (hostname == 'any') {
+      return InternetAddress.anyIPv6;
+    } else {
+      return hostname;
+    }
+  }
+
   /// Computes the set of file paths that should be analyzed by the migration
   /// engine.  May be overridden by a derived class.
   ///
@@ -525,15 +538,16 @@ class MigrationCliRunner {
           .where((s) => s.endsWith('.dart'))
           .toSet();
 
-  NonNullableFix createNonNullableFix(DartFixListener listener,
-      ResourceProvider resourceProvider, LineInfo getLineInfo(String path),
+  NonNullableFix createNonNullableFix(
+      DartFixListener listener,
+      ResourceProvider resourceProvider,
+      LineInfo getLineInfo(String path),
+      Object bindAddress,
       {List<String> included = const <String>[],
-      String hostname,
       int preferredPort,
       String summaryPath}) {
-    return NonNullableFix(listener, resourceProvider, getLineInfo,
+    return NonNullableFix(listener, resourceProvider, getLineInfo, bindAddress,
         included: included,
-        hostname: hostname,
         preferredPort: preferredPort,
         summaryPath: summaryPath);
   }
@@ -566,10 +580,9 @@ class MigrationCliRunner {
     _fixCodeProcessor = _FixCodeProcessor(context, this);
     _dartFixListener = DartFixListener(
         DriverProviderImpl(resourceProvider, context), _exceptionReported);
-    nonNullableFix = createNonNullableFix(
-        _dartFixListener, resourceProvider, _fixCodeProcessor.getLineInfo,
+    nonNullableFix = createNonNullableFix(_dartFixListener, resourceProvider,
+        _fixCodeProcessor.getLineInfo, computeBindAddress(),
         included: [options.directory],
-        hostname: options.previewHostname,
         preferredPort: options.previewPort,
         summaryPath: options.summary);
     nonNullableFix.rerunFunction = _rerunFunction;

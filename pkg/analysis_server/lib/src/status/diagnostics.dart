@@ -215,7 +215,7 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
       var shortName = pathContext.basename(completion.path);
       buf.writeln('<tr>'
           '<td class="pre right">${printMilliseconds(completion.elapsedInMilliseconds)}</td>'
-          '<td class="right">${completion.suggestionCount}</td>'
+          '<td class="right">${completion.suggestionCountStr}</td>'
           '<td>${escape(shortName)}</td>'
           '<td><code>${escape(completion.snippet)}</code></td>'
           '</tr>');
@@ -516,10 +516,6 @@ class ContextsPage extends DiagnosticPageWithNav {
     if (sdkOptions != null) {
       h3('SDK analysis options');
       p(describe(sdkOptions), raw: true);
-
-      if (sdk is FolderBasedDartSdk) {
-        p(writeOption('Use summaries', sdk.useSummary), raw: true);
-      }
     }
 
     buf.writeln('</div>');

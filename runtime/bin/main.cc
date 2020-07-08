@@ -515,16 +515,20 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
                                                  char** error,
                                                  int* exit_code) {
 #if !defined(PRODUCT)
-  ASSERT(script_uri != NULL);
-  Dart_Isolate isolate = NULL;
+  ASSERT(script_uri != nullptr);
+  Dart_Isolate isolate = nullptr;
   auto isolate_group_data =
       new IsolateGroupData(script_uri, packages_config, nullptr, false);
+  ASSERT(flags != nullptr);
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   // AOT: All isolates start from the app snapshot.
   const uint8_t* isolate_snapshot_data = app_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       app_isolate_snapshot_instructions;
+  flags->null_safety =
+      Dart_DetectNullSafety(nullptr, nullptr, nullptr, isolate_snapshot_data,
+                            isolate_snapshot_instructions, nullptr, -1);
   isolate = Dart_CreateIsolateGroup(
       script_uri, DART_VM_SERVICE_ISOLATE_NAME, isolate_snapshot_data,
       isolate_snapshot_instructions, flags, isolate_group_data,
@@ -533,7 +537,6 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   // JIT: Service isolate uses the core libraries snapshot.
 
   // Set flag to load and retain the vmservice library.
-  ASSERT(flags != NULL);
   flags->load_vmservice_library = true;
   const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =

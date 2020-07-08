@@ -21,6 +21,8 @@ import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -36,7 +38,6 @@ import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
 import 'package:analyzer/src/task/strong/checker.dart';
 
@@ -112,56 +113,36 @@ class EnclosingExecutableContext {
   }
 }
 
-/**
- * A visitor used to traverse an AST structure looking for additional errors and
- * warnings not covered by the parser and resolver.
- */
+/// A visitor used to traverse an AST structure looking for additional errors
+/// and warnings not covered by the parser and resolver.
 class ErrorVerifier extends RecursiveAstVisitor<void> {
-  /**
-   * The error reporter by which errors will be reported.
-   */
+  /// The error reporter by which errors will be reported.
   final ErrorReporter _errorReporter;
 
-  /**
-   * The current library that is being analyzed.
-   */
+  /// The current library that is being analyzed.
   final LibraryElement _currentLibrary;
 
-  /**
-   * The type representing the type 'int'.
-   */
+  /// The type representing the type 'int'.
   InterfaceType _intType;
 
-  /**
-   * The options for verification.
-   */
+  /// The options for verification.
   AnalysisOptionsImpl _options;
 
-  /**
-   * The object providing access to the types defined by the language.
-   */
+  /// The object providing access to the types defined by the language.
   final TypeProvider _typeProvider;
 
-  /**
-   * The type system primitives
-   */
+  /// The type system primitives
   TypeSystemImpl _typeSystem;
 
-  /**
-   * The manager for the inheritance mappings.
-   */
+  /// The manager for the inheritance mappings.
   final InheritanceManager3 _inheritanceManager;
 
-  /**
-   * A flag indicating whether the visitor is currently within a catch clause.
-   *
-   * See [visitCatchClause].
-   */
+  /// A flag indicating whether the visitor is currently within a catch clause.
+  ///
+  /// See [visitCatchClause].
   bool _isInCatchClause = false;
 
-  /**
-   * A flag indicating whether the visitor is currently within a comment.
-   */
+  /// A flag indicating whether the visitor is currently within a comment.
   bool _isInComment = false;
 
   /// The stack of flags, where `true` at the top (last) of the stack indicates
@@ -170,69 +151,47 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// etc.
   final List<bool> _isInLateLocalVariable = [false];
 
-  /**
-   * A flag indicating whether the visitor is currently within a native class
-   * declaration.
-   */
+  /// A flag indicating whether the visitor is currently within a native class
+  /// declaration.
   bool _isInNativeClass = false;
 
-  /**
-   * A flag indicating whether the visitor is currently within a static variable
-   * declaration.
-   */
+  /// A flag indicating whether the visitor is currently within a static
+  /// variable declaration.
   bool _isInStaticVariableDeclaration = false;
 
-  /**
-   * A flag indicating whether the visitor is currently within an instance
-   * variable declaration, which is not `late`.
-   */
+  /// A flag indicating whether the visitor is currently within an instance
+  /// variable declaration, which is not `late`.
   bool _isInInstanceNotLateVariableDeclaration = false;
 
-  /**
-   * A flag indicating whether the visitor is currently within a constructor
-   * initializer.
-   */
+  /// A flag indicating whether the visitor is currently within a constructor
+  /// initializer.
   bool _isInConstructorInitializer = false;
 
-  /**
-   * This is set to `true` iff the visitor is currently within a function typed
-   * formal parameter.
-   */
+  /// This is set to `true` iff the visitor is currently within a function typed
+  /// formal parameter.
   bool _isInFunctionTypedFormalParameter = false;
 
-  /**
-   * A flag indicating whether the visitor is currently within code in the SDK.
-   */
+  /// A flag indicating whether the visitor is currently within code in the SDK.
   bool _isInSystemLibrary = false;
 
-  /**
-   * A flag indicating whether the current library contains at least one import
-   * directive with a URI that uses the "dart-ext" scheme.
-   */
+  /// A flag indicating whether the current library contains at least one import
+  /// directive with a URI that uses the "dart-ext" scheme.
   bool _hasExtUri = false;
 
-  /**
-   * The class containing the AST nodes being visited, or `null` if we are not
-   * in the scope of a class.
-   */
+  /// The class containing the AST nodes being visited, or `null` if we are not
+  /// in the scope of a class.
   ClassElementImpl _enclosingClass;
 
-  /**
-   * The enum containing the AST nodes being visited, or `null` if we are not
-   * in the scope of an enum.
-   */
+  /// The enum containing the AST nodes being visited, or `null` if we are not
+  /// in the scope of an enum.
   ClassElement _enclosingEnum;
 
-  /**
-   * The element of the extension being visited, or `null` if we are not
-   * in the scope of an extension.
-   */
+  /// The element of the extension being visited, or `null` if we are not
+  /// in the scope of an extension.
   ExtensionElement _enclosingExtension;
 
-  /**
-   * The context of the method or function that we are currently visiting, or
-   * `null` if we are not inside a method or function.
-   */
+  /// The context of the method or function that we are currently visiting, or
+  /// `null` if we are not inside a method or function.
   EnclosingExecutableContext _enclosingExecutable =
       EnclosingExecutableContext.empty();
 
@@ -253,10 +212,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   final HashSet<String> _namesForReferenceToDeclaredVariableInInitializer =
       HashSet<String>();
 
-  /**
-   * The elements that will be defined later in the current scope, but right
-   * now are not declared.
-   */
+  /// The elements that will be defined later in the current scope, but right
+  /// now are not declared.
   HiddenElements _hiddenElements;
 
   final _UninstantiatedBoundChecker _uninstantiatedBoundChecker;
@@ -270,9 +227,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   ConstructorFieldsVerifier _constructorFieldsVerifier;
   ReturnTypeVerifier _returnTypeVerifier;
 
-  /**
-   * Initialize a newly created error verifier.
-   */
+  /// Initialize a newly created error verifier.
   ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
       this._typeProvider, this._inheritanceManager)
       : _errorReporter = errorReporter,
@@ -304,14 +259,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   ClassElement get enclosingClass => _enclosingClass;
 
-  /**
-   * For consumers of error verification as a library, (currently just the
-   * angular plugin), expose a setter that can make the errors reported more
-   * accurate when dangling code snippets are being resolved from a class
-   * context. Note that this setter is very defensive for potential misuse; it
-   * should not be modified in the middle of visiting a tree and requires an
-   * analyzer-provided Impl instance to work.
-   */
+  /// For consumers of error verification as a library, (currently just the
+  /// angular plugin), expose a setter that can make the errors reported more
+  /// accurate when dangling code snippets are being resolved from a class
+  /// context. Note that this setter is very defensive for potential misuse; it
+  /// should not be modified in the middle of visiting a tree and requires an
+  /// analyzer-provided Impl instance to work.
   set enclosingClass(ClassElement classElement) {
     assert(classElement is ClassElementImpl);
     assert(_enclosingClass == null);
@@ -1277,10 +1230,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     super.visitWithClause(node);
   }
 
-  /**
-   * Checks the class for problems with the superclass, mixins, or implemented
-   * interfaces.
-   */
+  /// Checks the class for problems with the superclass, mixins, or implemented
+  /// interfaces.
   void _checkClassInheritance(
       NamedCompilationUnitMember node,
       TypeName superclass,
@@ -1303,12 +1254,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Given a list of [directives] that have the same prefix, generate an error
-   * if there is more than one import and any of those imports is deferred.
-   *
-   * See [CompileTimeErrorCode.SHARED_DEFERRED_PREFIX].
-   */
+  /// Given a list of [directives] that have the same prefix, generate an error
+  /// if there is more than one import and any of those imports is deferred.
+  ///
+  /// See [CompileTimeErrorCode.SHARED_DEFERRED_PREFIX].
   void _checkDeferredPrefixCollision(List<ImportDirective> directives) {
     int count = directives.length;
     if (count > 1) {
@@ -1322,12 +1271,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that all classes of the given [withClause] are valid.
-   *
-   * See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
-   * [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT].
-   */
+  /// Verify that all classes of the given [withClause] are valid.
+  ///
+  /// See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
+  /// [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT].
   bool _checkForAllMixinErrorCodes(WithClause withClause) {
     if (withClause == null) {
       return false;
@@ -1373,9 +1320,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return problemReported;
   }
 
-  /**
-   * Check for errors related to the redirected constructors.
-   */
+  /// Check for errors related to the redirected constructors.
   void _checkForAllRedirectConstructorErrorCodes(
       ConstructorDeclaration declaration) {
     // Prepare redirected constructor node
@@ -1428,15 +1373,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the export namespace of the given export [directive] does not
-   * export any name already exported by another export directive. The
-   * [exportElement] is the [ExportElement] retrieved from the node. If the
-   * element in the node was `null`, then this method is not called. The
-   * [exportedLibrary] is the library element containing the exported element.
-   *
-   * See [CompileTimeErrorCode.AMBIGUOUS_EXPORT].
-   */
+  /// Verify that the export namespace of the given export [directive] does not
+  /// export any name already exported by another export directive. The
+  /// [exportElement] is the [ExportElement] retrieved from the node. If the
+  /// element in the node was `null`, then this method is not called. The
+  /// [exportedLibrary] is the library element containing the exported element.
+  ///
+  /// See [CompileTimeErrorCode.AMBIGUOUS_EXPORT].
   void _checkForAmbiguousExport(ExportDirective directive,
       ExportElement exportElement, LibraryElement exportedLibrary) {
     if (exportedLibrary == null) {
@@ -1463,10 +1406,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Check the given node to see whether it was ambiguous because the name was
-   * imported from two or more imports.
-   */
+  /// Check the given node to see whether it was ambiguous because the name was
+  /// imported from two or more imports.
   void _checkForAmbiguousImport(SimpleIdentifier node) {
     Element element = node.staticElement;
     if (element is MultiplyDefinedElementImpl) {
@@ -1483,12 +1424,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given [expression] can be assigned to its corresponding
-   * parameters. The [expectedStaticType] is the expected static type of the
-   * parameter. The [actualStaticType] is the actual static type of the
-   * argument.
-   */
+  /// Verify that the given [expression] can be assigned to its corresponding
+  /// parameters. The [expectedStaticType] is the expected static type of the
+  /// parameter. The [actualStaticType] is the actual static type of the
+  /// argument.
   void _checkForArgumentTypeNotAssignable(
       Expression expression,
       DartType expectedStaticType,
@@ -1505,15 +1444,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given [argument] can be assigned to its corresponding
-   * parameter.
-   *
-   * This method corresponds to
-   * [BestPracticesVerifier.checkForArgumentTypeNotAssignableForArgument].
-   *
-   * See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
-   */
+  /// Verify that the given [argument] can be assigned to its corresponding
+  /// parameter.
+  ///
+  /// This method corresponds to
+  /// [BestPracticesVerifier.checkForArgumentTypeNotAssignableForArgument].
+  ///
+  /// See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void _checkForArgumentTypeNotAssignableForArgument(Expression argument,
       {bool promoteParameterToNullable = false}) {
     if (argument == null) {
@@ -1529,36 +1466,32 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         staticParameterType, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
   }
 
-  /**
-   * Verify that the given [expression] can be assigned to its corresponding
-   * parameters. The [expectedStaticType] is the expected static type.
-   *
-   * This method corresponds to
-   * [BestPracticesVerifier.checkForArgumentTypeNotAssignableWithExpectedTypes].
-   *
-   * See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE],
-   * [CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE],
-   * [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE],
-   * [CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE],
-   * [CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE],
-   * [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE], and
-   * [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE].
-   */
+  /// Verify that the given [expression] can be assigned to its corresponding
+  /// parameters. The [expectedStaticType] is the expected static type.
+  ///
+  /// This method corresponds to
+  /// [BestPracticesVerifier.checkForArgumentTypeNotAssignableWithExpectedTypes].
+  ///
+  /// See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE],
+  /// [CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE],
+  /// [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE],
+  /// [CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE],
+  /// [CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE],
+  /// [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE], and
+  /// [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE].
   void _checkForArgumentTypeNotAssignableWithExpectedTypes(
       Expression expression, DartType expectedStaticType, ErrorCode errorCode) {
     _checkForArgumentTypeNotAssignable(
         expression, expectedStaticType, getStaticType(expression), errorCode);
   }
 
-  /**
-   * Verify that the arguments in the given [argumentList] can be assigned to
-   * their corresponding parameters.
-   *
-   * This method corresponds to
-   * [BestPracticesVerifier.checkForArgumentTypesNotAssignableInList].
-   *
-   * See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
-   */
+  /// Verify that the arguments in the given [argumentList] can be assigned to
+  /// their corresponding parameters.
+  ///
+  /// This method corresponds to
+  /// [BestPracticesVerifier.checkForArgumentTypesNotAssignableInList].
+  ///
+  /// See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void _checkForArgumentTypesNotAssignableInList(ArgumentList argumentList) {
     if (argumentList == null) {
       return;
@@ -1590,13 +1523,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return true;
   }
 
-  /**
-   * Verify that the given [expression] is not final.
-   *
-   * See [StaticWarningCode.ASSIGNMENT_TO_CONST],
-   * [StaticWarningCode.ASSIGNMENT_TO_FINAL], and
-   * [StaticWarningCode.ASSIGNMENT_TO_METHOD].
-   */
+  /// Verify that the given [expression] is not final.
+  ///
+  /// See [StaticWarningCode.ASSIGNMENT_TO_CONST],
+  /// [StaticWarningCode.ASSIGNMENT_TO_FINAL], and
+  /// [StaticWarningCode.ASSIGNMENT_TO_METHOD].
   void _checkForAssignmentToFinal(Expression expression) {
     // prepare element
     Element element;
@@ -1663,10 +1594,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verifies that the class is not named `Function` and that it doesn't
-   * extends/implements/mixes in `Function`.
-   */
+  /// Verifies that the class is not named `Function` and that it doesn't
+  /// extends/implements/mixes in `Function`.
   void _checkForBadFunctionUse(ClassDeclaration node) {
     ExtendsClause extendsClause = node.extendsClause;
     WithClause withClause = node.withClause;
@@ -1695,15 +1624,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given [identifier] is not a keyword, and generates the
-   * given [errorCode] on the identifier if it is a keyword.
-   *
-   * See [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME],
-   * [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME],
-   * [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME], and
-   * [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME].
-   */
+  /// Verify that the given [identifier] is not a keyword, and generates the
+  /// given [errorCode] on the identifier if it is a keyword.
+  ///
+  /// See [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME],
+  /// [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME],
+  /// [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME], and
+  /// [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME].
   void _checkForBuiltInIdentifierAsName(
       SimpleIdentifier identifier, ErrorCode errorCode) {
     Token token = identifier.token;
@@ -1713,12 +1640,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given [switchCase] is terminated with 'break', 'continue',
-   * 'return' or 'throw'.
-   *
-   * see [StaticWarningCode.CASE_BLOCK_NOT_TERMINATED].
-   */
+  /// Verify that the given [switchCase] is terminated with 'break', 'continue',
+  /// 'return' or 'throw'.
+  ///
+  /// see [StaticWarningCode.CASE_BLOCK_NOT_TERMINATED].
   void _checkForCaseBlockNotTerminated(SwitchCase switchCase) {
     NodeList<Statement> statements = switchCase.statements;
     if (statements.isEmpty) {
@@ -1757,12 +1682,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         StaticWarningCode.CASE_BLOCK_NOT_TERMINATED, switchCase.keyword);
   }
 
-  /**
-   * Verify that the switch cases in the given switch [statement] are terminated
-   * with 'break', 'continue', 'rethrow', 'return' or 'throw'.
-   *
-   * See [StaticWarningCode.CASE_BLOCK_NOT_TERMINATED].
-   */
+  /// Verify that the switch cases in the given switch [statement] are
+  /// terminated with 'break', 'continue', 'rethrow', 'return' or 'throw'.
+  ///
+  /// See [StaticWarningCode.CASE_BLOCK_NOT_TERMINATED].
   void _checkForCaseBlocksNotTerminated(SwitchStatement statement) {
     if (_isNonNullableByDefault) return;
 
@@ -1776,14 +1699,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the [_enclosingClass] does not have a method and getter pair
-   * with the same name, via inheritance.
-   *
-   * See [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE],
-   * [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD], and
-   * [CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD].
-   */
+  /// Verify that the [_enclosingClass] does not have a method and getter pair
+  /// with the same name, via inheritance.
+  ///
+  /// See [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE],
+  /// [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD], and
+  /// [CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD].
   void _checkForConflictingClassMembers() {
     if (_enclosingClass == null) {
       return;
@@ -1845,13 +1766,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify all conflicts between type variable and enclosing class.
-   * TODO(scheglov)
-   *
-   * See [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS], and
-   * [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER].
-   */
+  /// Verify all conflicts between type variable and enclosing class.
+  /// TODO(scheglov)
+  ///
+  /// See [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS], and
+  /// [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER].
   void _checkForConflictingClassTypeVariableErrorCodes() {
     for (TypeParameterElement typeParameter in _enclosingClass.typeParameters) {
       String name = typeParameter.name;
@@ -1999,11 +1918,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         [supertype]);
   }
 
-  /**
-   * Verify that if the given [constructor] declaration is 'const' then there
-   * are no non-final instance variable. The [constructorElement] is the
-   * constructor element.
-   */
+  /// Verify that if the given [constructor] declaration is 'const' then there
+  /// are no non-final instance variable. The [constructorElement] is the
+  /// constructor element.
   void _checkForConstConstructorWithNonFinalField(
       ConstructorDeclaration constructor,
       ConstructorElement constructorElement) {
@@ -2024,14 +1941,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         constructor);
   }
 
-  /**
-   * Verify that the given 'const' instance creation [expression] is not
-   * creating a deferred type. The [constructorName] is the constructor name,
-   * always non-`null`. The [typeName] is the name of the type defining the
-   * constructor, always non-`null`.
-   *
-   * See [CompileTimeErrorCode.CONST_DEFERRED_CLASS].
-   */
+  /// Verify that the given 'const' instance creation [expression] is not
+  /// creating a deferred type. The [constructorName] is the constructor name,
+  /// always non-`null`. The [typeName] is the name of the type defining the
+  /// constructor, always non-`null`.
+  ///
+  /// See [CompileTimeErrorCode.CONST_DEFERRED_CLASS].
   void _checkForConstDeferredClass(InstanceCreationExpression expression,
       ConstructorName constructorName, TypeName typeName) {
     if (typeName.isDeferred) {
@@ -2042,12 +1957,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given throw [expression] is not enclosed in a 'const'
-   * constructor declaration.
-   *
-   * See [CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION].
-   */
+  /// Verify that the given throw [expression] is not enclosed in a 'const'
+  /// constructor declaration.
+  ///
+  /// See [CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION].
   void _checkForConstEvalThrowsException(ThrowExpression expression) {
     if (_enclosingExecutable.isConstConstructor) {
       _errorReporter.reportErrorForNode(
@@ -2055,11 +1968,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given normal formal [parameter] is not 'const'.
-   *
-   * See [CompileTimeErrorCode.CONST_FORMAL_PARAMETER].
-   */
+  /// Verify that the given normal formal [parameter] is not 'const'.
+  ///
+  /// See [CompileTimeErrorCode.CONST_FORMAL_PARAMETER].
   void _checkForConstFormalParameter(NormalFormalParameter parameter) {
     if (parameter.isConst) {
       _errorReporter.reportErrorForNode(
@@ -2067,13 +1978,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given instance creation [expression] is not being invoked
-   * on an abstract class. The [typeName] is the [TypeName] of the
-   * [ConstructorName] from the [InstanceCreationExpression], this is the AST
-   * node that the error is attached to. The [type] is the type being
-   * constructed with this [InstanceCreationExpression].
-   */
+  /// Verify that the given instance creation [expression] is not being invoked
+  /// on an abstract class. The [typeName] is the [TypeName] of the
+  /// [ConstructorName] from the [InstanceCreationExpression], this is the AST
+  /// node that the error is attached to. The [type] is the type being
+  /// constructed with this [InstanceCreationExpression].
   void _checkForConstOrNewWithAbstractClass(
       InstanceCreationExpression expression,
       TypeName typeName,
@@ -2094,15 +2003,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given instance creation [expression] is not being invoked
-   * on an enum. The [typeName] is the [TypeName] of the [ConstructorName] from
-   * the [InstanceCreationExpression], this is the AST node that the error is
-   * attached to. The [type] is the type being constructed with this
-   * [InstanceCreationExpression].
-   *
-   * See [CompileTimeErrorCode.INSTANTIATE_ENUM].
-   */
+  /// Verify that the given instance creation [expression] is not being invoked
+  /// on an enum. The [typeName] is the [TypeName] of the [ConstructorName] from
+  /// the [InstanceCreationExpression], this is the AST node that the error is
+  /// attached to. The [type] is the type being constructed with this
+  /// [InstanceCreationExpression].
+  ///
+  /// See [CompileTimeErrorCode.INSTANTIATE_ENUM].
   void _checkForConstOrNewWithEnum(InstanceCreationExpression expression,
       TypeName typeName, InterfaceType type) {
     if (type.element.isEnum) {
@@ -2111,9 +2018,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given [expression] is not a mixin instantiation.
-   */
+  /// Verify that the given [expression] is not a mixin instantiation.
   void _checkForConstOrNewWithMixin(InstanceCreationExpression expression,
       TypeName typeName, InterfaceType type) {
     if (type.element.isMixin) {
@@ -2122,15 +2027,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given 'const' instance creation [expression] is not being
-   * invoked on a constructor that is not 'const'.
-   *
-   * This method assumes that the instance creation was tested to be 'const'
-   * before being called.
-   *
-   * See [CompileTimeErrorCode.CONST_WITH_NON_CONST].
-   */
+  /// Verify that the given 'const' instance creation [expression] is not being
+  /// invoked on a constructor that is not 'const'.
+  ///
+  /// This method assumes that the instance creation was tested to be 'const'
+  /// before being called.
+  ///
+  /// See [CompileTimeErrorCode.CONST_WITH_NON_CONST].
   void _checkForConstWithNonConst(InstanceCreationExpression expression) {
     ConstructorElement constructorElement =
         expression.constructorName.staticElement;
@@ -2145,18 +2048,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that if the given 'const' instance creation [expression] is being
-   * invoked on the resolved constructor. The [constructorName] is the
-   * constructor name, always non-`null`. The [typeName] is the name of the type
-   * defining the constructor, always non-`null`.
-   *
-   * This method assumes that the instance creation was tested to be 'const'
-   * before being called.
-   *
-   * See [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR], and
-   * [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT].
-   */
+  /// Verify that if the given 'const' instance creation [expression] is being
+  /// invoked on the resolved constructor. The [constructorName] is the
+  /// constructor name, always non-`null`. The [typeName] is the name of the
+  /// type defining the constructor, always non-`null`.
+  ///
+  /// This method assumes that the instance creation was tested to be 'const'
+  /// before being called.
+  ///
+  /// See [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR], and
+  /// [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT].
   void _checkForConstWithUndefinedConstructor(
       InstanceCreationExpression expression,
       ConstructorName constructorName,
@@ -2200,12 +2101,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given default formal [parameter] is not part of a function
-   * typed parameter.
-   *
-   * See [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER].
-   */
+  /// Verify that the given default formal [parameter] is not part of a function
+  /// typed parameter.
+  ///
+  /// See [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER].
   void _checkForDefaultValueInFunctionTypedParameter(
       DefaultFormalParameter parameter) {
     // OK, not in a function typed parameter.
@@ -2222,10 +2121,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         parameter);
   }
 
-  /**
-   * Report a diagnostic if there are any extensions in the imported library
-   * that are not hidden.
-   */
+  /// Report a diagnostic if there are any extensions in the imported library
+  /// that are not hidden.
   void _checkForDeferredImportOfExtensions(
       ImportDirective directive, ImportElement importElement) {
     for (var element in importElement.namespace.definedNames.values) {
@@ -2239,12 +2136,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that any deferred imports in the given compilation [unit] have a
-   * unique prefix.
-   *
-   * See [CompileTimeErrorCode.SHARED_DEFERRED_PREFIX].
-   */
+  /// Verify that any deferred imports in the given compilation [unit] have a
+  /// unique prefix.
+  ///
+  /// See [CompileTimeErrorCode.SHARED_DEFERRED_PREFIX].
   void _checkForDeferredPrefixCollisions(CompilationUnit unit) {
     NodeList<Directive> directives = unit.directives;
     int count = directives.length;
@@ -2274,10 +2169,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Return `true` if the caller should continue checking the rest of the
-   * information in the for-each part.
-   */
+  /// Return `true` if the caller should continue checking the rest of the
+  /// information in the for-each part.
   bool _checkForEachParts(ForEachParts node, SimpleIdentifier variable) {
     if (_checkForUseOfVoidResult(node.iterable)) {
       return false;
@@ -2360,15 +2253,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return true;
   }
 
-  /**
-   * Verify that the given export [directive] has a unique name among other
-   * exported libraries. The [exportElement] is the [ExportElement] retrieved
-   * from the node, if the element in the node was `null`, then this method is
-   * not called. The [exportedLibrary] is the library element containing the
-   * exported element.
-   *
-   * See [CompileTimeErrorCode.EXPORT_DUPLICATED_LIBRARY_NAME].
-   */
+  /// Verify that the given export [directive] has a unique name among other
+  /// exported libraries. The [exportElement] is the [ExportElement] retrieved
+  /// from the node, if the element in the node was `null`, then this method is
+  /// not called. The [exportedLibrary] is the library element containing the
+  /// exported element.
+  ///
+  /// See [CompileTimeErrorCode.EXPORT_DUPLICATED_LIBRARY_NAME].
   void _checkForExportDuplicateLibraryName(ExportDirective directive,
       ExportElement exportElement, LibraryElement exportedLibrary) {
     if (exportedLibrary == null) {
@@ -2394,14 +2285,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Check that if the visiting library is not system, then any given library
-   * should not be SDK internal library. The [exportElement] is the
-   * [ExportElement] retrieved from the node, if the element in the node was
-   * `null`, then this method is not called.
-   *
-   * See [CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY].
-   */
+  /// Check that if the visiting library is not system, then any given library
+  /// should not be SDK internal library. The [exportElement] is the
+  /// [ExportElement] retrieved from the node, if the element in the node was
+  /// `null`, then this method is not called.
+  ///
+  /// See [CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY].
   void _checkForExportInternalLibrary(
       ExportDirective directive, ExportElement exportElement) {
     if (_isInSystemLibrary) {
@@ -2430,9 +2319,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         [directive.uri]);
   }
 
-  /**
-   * See [CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL].
-   */
+  /// See [CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL].
   void _checkForExportLegacySymbol(ExportDirective node) {
     if (!_isNonNullableByDefault) {
       return;
@@ -2461,11 +2348,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given extends [clause] does not extend a deferred class.
-   *
-   * See [CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS].
-   */
+  /// Verify that the given extends [clause] does not extend a deferred class.
+  ///
+  /// See [CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS].
   void _checkForExtendsDeferredClass(TypeName superclass) {
     if (superclass == null) {
       return;
@@ -2474,12 +2359,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         superclass, CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS);
   }
 
-  /**
-   * Verify that the given extends [clause] does not extend classes such as
-   * 'num' or 'String'.
-   *
-   * See [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS].
-   */
+  /// Verify that the given extends [clause] does not extend classes such as
+  /// 'num' or 'String'.
+  ///
+  /// See [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS].
   bool _checkForExtendsDisallowedClass(TypeName superclass) {
     if (superclass == null) {
       return false;
@@ -2488,18 +2371,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         superclass, CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
   }
 
-  /**
-   * Verify that the given [typeName] does not extend, implement or mixin
-   * classes that are deferred.
-   *
-   * See [_checkForExtendsDeferredClass],
-   * [_checkForExtendsDeferredClassInTypeAlias],
-   * [_checkForImplementsDeferredClass],
-   * [_checkForAllMixinErrorCodes],
-   * [CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS],
-   * [CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS], and
-   * [CompileTimeErrorCode.MIXIN_DEFERRED_CLASS].
-   */
+  /// Verify that the given [typeName] does not extend, implement or mixin
+  /// classes that are deferred.
+  ///
+  /// See [_checkForExtendsDeferredClass],
+  /// [_checkForExtendsDeferredClassInTypeAlias],
+  /// [_checkForImplementsDeferredClass],
+  /// [_checkForAllMixinErrorCodes],
+  /// [CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS],
+  /// [CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS], and
+  /// [CompileTimeErrorCode.MIXIN_DEFERRED_CLASS].
   bool _checkForExtendsOrImplementsDeferredClass(
       TypeName typeName, ErrorCode errorCode) {
     if (typeName.isSynthetic) {
@@ -2512,15 +2393,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  /**
-   * Verify that the given [typeName] does not extend, implement or mixin
-   * classes such as 'num' or 'String'.
-   *
-   * TODO(scheglov) Remove this method, when all inheritance / override
-   * is concentrated. We keep it for now only because we need to know when
-   * inheritance is completely wrong, so that we don't need to check anything
-   * else.
-   */
+  /// Verify that the given [typeName] does not extend, implement or mixin
+  /// classes such as 'num' or 'String'.
+  ///
+  /// TODO(scheglov) Remove this method, when all inheritance / override
+  /// is concentrated. We keep it for now only because we need to know when
+  /// inheritance is completely wrong, so that we don't need to check anything
+  /// else.
   bool _checkForExtendsOrImplementsDisallowedClass(
       TypeName typeName, ErrorCode errorCode) {
     if (typeName.isSynthetic) {
@@ -2551,14 +2430,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given constructor field [initializer] has compatible field
-   * and initializer expression types. The [fieldElement] is the static element
-   * from the name in the [ConstructorFieldInitializer].
-   *
-   * See [CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE], and
-   * [StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE].
-   */
+  /// Verify that the given constructor field [initializer] has compatible field
+  /// and initializer expression types. The [fieldElement] is the static element
+  /// from the name in the [ConstructorFieldInitializer].
+  ///
+  /// See [CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE], and
+  /// [StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE].
   void _checkForFieldInitializerNotAssignable(
       ConstructorFieldInitializer initializer, FieldElement fieldElement) {
     // prepare field type
@@ -2614,12 +2491,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 //        return true;
   }
 
-  /**
-   * Verify that the given field formal [parameter] is in a constructor
-   * declaration.
-   *
-   * See [CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR].
-   */
+  /// Verify that the given field formal [parameter] is in a constructor
+  /// declaration.
+  ///
+  /// See [CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR].
   void _checkForFieldInitializingFormalRedirectingConstructor(
       FieldFormalParameter parameter) {
     // prepare the node that should be a ConstructorDeclaration
@@ -2653,13 +2528,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given variable declaration [list] has only initialized
-   * variables if the list is final or const.
-   *
-   * See [CompileTimeErrorCode.CONST_NOT_INITIALIZED], and
-   * [StaticWarningCode.FINAL_NOT_INITIALIZED].
-   */
+  /// Verify that the given variable declaration [list] has only initialized
+  /// variables if the list is final or const.
+  ///
+  /// See [CompileTimeErrorCode.CONST_NOT_INITIALIZED], and
+  /// [StaticWarningCode.FINAL_NOT_INITIALIZED].
   void _checkForFinalNotInitialized(VariableDeclarationList list) {
     if (_isInNativeClass || list.isSynthetic) {
       return;
@@ -2686,14 +2559,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * If there are no constructors in the given [members], verify that all
-   * final fields are initialized.  Cases in which there is at least one
-   * constructor are handled in [_checkForAllFinalInitializedErrorCodes].
-   *
-   * See [CompileTimeErrorCode.CONST_NOT_INITIALIZED], and
-   * [StaticWarningCode.FINAL_NOT_INITIALIZED].
-   */
+  /// If there are no constructors in the given [members], verify that all
+  /// final fields are initialized.  Cases in which there is at least one
+  /// constructor are handled in [_checkForAllFinalInitializedErrorCodes].
+  ///
+  /// See [CompileTimeErrorCode.CONST_NOT_INITIALIZED], and
+  /// [StaticWarningCode.FINAL_NOT_INITIALIZED].
   void _checkForFinalNotInitializedInClass(List<ClassMember> members) {
     for (ClassMember classMember in members) {
       if (classMember is ConstructorDeclaration) {
@@ -2728,13 +2599,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given implements [clause] does not implement classes such
-   * as 'num' or 'String'.
-   *
-   * See [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS],
-   * [CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS].
-   */
+  /// Verify that the given implements [clause] does not implement classes such
+  /// as 'num' or 'String'.
+  ///
+  /// See [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS],
+  /// [CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS].
   bool _checkForImplementsClauseErrorCodes(ImplementsClause clause) {
     if (clause == null) {
       return false;
@@ -2803,14 +2672,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that if the given [identifier] is part of a constructor initializer,
-   * then it does not implicitly reference 'this' expression.
-   *
-   * See [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER], and
-   * [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC].
-   * TODO(scheglov) rename thid method
-   */
+  /// Verify that if the given [identifier] is part of a constructor
+  /// initializer, then it does not implicitly reference 'this' expression.
+  ///
+  /// See [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER], and
+  /// [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC].
+  /// TODO(scheglov) rename thid method
   void _checkForImplicitThisReferenceInInitializer(
       SimpleIdentifier identifier) {
     if (_isInComment) {
@@ -2874,14 +2741,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given import [directive] has a unique name among other
-   * imported libraries. The [importElement] is the [ImportElement] retrieved
-   * from the node, if the element in the node was `null`, then this method is
-   * not called.
-   *
-   * See [CompileTimeErrorCode.IMPORT_DUPLICATED_LIBRARY_NAME].
-   */
+  /// Verify that the given import [directive] has a unique name among other
+  /// imported libraries. The [importElement] is the [ImportElement] retrieved
+  /// from the node, if the element in the node was `null`, then this method is
+  /// not called.
+  ///
+  /// See [CompileTimeErrorCode.IMPORT_DUPLICATED_LIBRARY_NAME].
   void _checkForImportDuplicateLibraryName(
       ImportDirective directive, ImportElement importElement) {
     // prepare imported library
@@ -2906,14 +2771,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Check that if the visiting library is not system, then any given library
-   * should not be SDK internal library. The [importElement] is the
-   * [ImportElement] retrieved from the node, if the element in the node was
-   * `null`, then this method is not called
-   *
-   * See [CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY].
-   */
+  /// Check that if the visiting library is not system, then any given library
+  /// should not be SDK internal library. The [importElement] is the
+  /// [ImportElement] retrieved from the node, if the element in the node was
+  /// `null`, then this method is not called
+  ///
+  /// See [CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY].
   void _checkForImportInternalLibrary(
       ImportDirective directive, ImportElement importElement) {
     if (_isInSystemLibrary) {
@@ -2939,12 +2802,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         [directive.uri.stringValue]);
   }
 
-  /**
-   * Check that the given [typeReference] is not a type reference and that then
-   * the [name] is reference to an instance member.
-   *
-   * See [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER].
-   */
+  /// Check that the given [typeReference] is not a type reference and that then
+  /// the [name] is reference to an instance member.
+  ///
+  /// See [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER].
   void _checkForInstanceAccessToStaticMember(
       ClassElement typeReference, Expression target, SimpleIdentifier name) {
     if (_isInComment) {
@@ -2987,13 +2848,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that an 'int' can be assigned to the parameter corresponding to the
-   * given [argument]. This is used for prefix and postfix expressions where
-   * the argument value is implicit.
-   *
-   * See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
-   */
+  /// Verify that an 'int' can be assigned to the parameter corresponding to the
+  /// given [argument]. This is used for prefix and postfix expressions where
+  /// the argument value is implicit.
+  ///
+  /// See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void _checkForIntNotAssignable(Expression argument) {
     if (argument == null) {
       return;
@@ -3004,11 +2863,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
   }
 
-  /**
-   * Verify that the given [annotation] isn't defined in a deferred library.
-   *
-   * See [CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY].
-   */
+  /// Verify that the given [annotation] isn't defined in a deferred library.
+  ///
+  /// See [CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY].
   void _checkForInvalidAnnotationFromDeferredLibrary(Annotation annotation) {
     Identifier nameIdentifier = annotation.name;
     if (nameIdentifier is PrefixedIdentifier && nameIdentifier.isDeferred) {
@@ -3018,12 +2875,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given left hand side ([lhs]) and right hand side ([rhs])
-   * represent a valid assignment.
-   *
-   * See [StaticTypeWarningCode.INVALID_ASSIGNMENT].
-   */
+  /// Verify that the given left hand side ([lhs]) and right hand side ([rhs])
+  /// represent a valid assignment.
+  ///
+  /// See [StaticTypeWarningCode.INVALID_ASSIGNMENT].
   void _checkForInvalidAssignment(Expression lhs, Expression rhs) {
     if (lhs == null || rhs == null) {
       return;
@@ -3051,12 +2906,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         rhs, leftType, StaticTypeWarningCode.INVALID_ASSIGNMENT);
   }
 
-  /**
-   * Check the given [initializer] to ensure that the field being initialized is
-   * a valid field. The [fieldName] is the field name from the
-   * [ConstructorFieldInitializer]. The [staticElement] is the static element
-   * from the name in the [ConstructorFieldInitializer].
-   */
+  /// Check the given [initializer] to ensure that the field being initialized
+  /// is a valid field. The [fieldName] is the field name from the
+  /// [ConstructorFieldInitializer]. The [staticElement] is the static element
+  /// from the name in the [ConstructorFieldInitializer].
   void _checkForInvalidField(ConstructorFieldInitializer initializer,
       SimpleIdentifier fieldName, Element staticElement) {
     if (staticElement is FieldElement) {
@@ -3080,10 +2933,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Check to see whether the given function [body] has a modifier associated
-   * with it, and report it as an error if it does.
-   */
+  /// Check to see whether the given function [body] has a modifier associated
+  /// with it, and report it as an error if it does.
   void _checkForInvalidModifierOnBody(
       FunctionBody body, CompileTimeErrorCode errorCode) {
     Token keyword = body.keyword;
@@ -3092,11 +2943,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the usage of the given 'this' is valid.
-   *
-   * See [CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS].
-   */
+  /// Verify that the usage of the given 'this' is valid.
+  ///
+  /// See [CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS].
   void _checkForInvalidReferenceToThis(ThisExpression expression) {
     if (!_isThisInValidContext(expression)) {
       _errorReporter.reportErrorForNode(
@@ -3135,13 +2984,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the elements of the given list [literal] are subtypes of the
-   * list's static type.
-   *
-   * See [CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE], and
-   * [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE].
-   */
+  /// Verify that the elements of the given list [literal] are subtypes of the
+  /// list's static type.
+  ///
+  /// See [CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE], and
+  /// [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE].
   void _checkForListElementTypeNotAssignable(ListLiteral literal) {
     // Determine the list's element type. We base this on the static type and
     // not the literal's type arguments because in strong mode, the type
@@ -3207,11 +3054,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Check to make sure that the given switch [statement] whose static type is
-   * an enum type either have a default case or include all of the enum
-   * constants.
-   */
+  /// Check to make sure that the given switch [statement] whose static type is
+  /// an enum type either have a default case or include all of the enum
+  /// constants.
   void _checkForMissingEnumConstantInSwitch(SwitchStatement statement) {
     // TODO(brianwilkerson) This needs to be checked after constant values have
     // been computed.
@@ -3275,13 +3120,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given mixin does not have an explicitly declared
-   * constructor. The [mixinName] is the node to report problem on. The
-   * [mixinElement] is the mixing to evaluate.
-   *
-   * See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR].
-   */
+  /// Verify that the given mixin does not have an explicitly declared
+  /// constructor. The [mixinName] is the node to report problem on. The
+  /// [mixinElement] is the mixing to evaluate.
+  ///
+  /// See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR].
   bool _checkForMixinClassDeclaresConstructor(
       TypeName mixinName, ClassElement mixinElement) {
     for (ConstructorElement constructor in mixinElement.constructors) {
@@ -3296,13 +3139,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  /**
-   * Verify that the given mixin has the 'Object' superclass. The [mixinName] is
-   * the node to report problem on. The [mixinElement] is the mixing to
-   * evaluate.
-   *
-   * See [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT].
-   */
+  /// Verify that the given mixin has the 'Object' superclass.
+  ///
+  /// The [mixinName] is the node to report problem on. The [mixinElement] is
+  /// the mixing to evaluate.
+  ///
+  /// See [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT].
   bool _checkForMixinInheritsNotFromObject(
       TypeName mixinName, ClassElement mixinElement) {
     InterfaceType mixinSupertype = mixinElement.supertype;
@@ -3404,11 +3246,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  /**
-   * Check for the declaration of a mixin from a library other than the current
-   * library that defines a private member that conflicts with a private name
-   * from the same library but from a superclass or a different mixin.
-   */
+  /// Check for the declaration of a mixin from a library other than the current
+  /// library that defines a private member that conflicts with a private name
+  /// from the same library but from a superclass or a different mixin.
   void _checkForMixinWithConflictingPrivateMember(
       WithClause withClause, TypeName superclassName) {
     if (withClause == null) {
@@ -3482,11 +3322,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given [constructor] has at most one 'super' initializer.
-   *
-   * See [CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS].
-   */
+  /// Verify that the given [constructor] has at most one 'super' initializer.
+  ///
+  /// See [CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS].
   void _checkForMultipleSuperInitializers(ConstructorDeclaration constructor) {
     bool hasSuperInitializer = false;
     for (ConstructorInitializer initializer in constructor.initializers) {
@@ -3515,11 +3353,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Checks to ensure that the given native function [body] is in SDK code.
-   *
-   * See [ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE].
-   */
+  /// Checks to ensure that the given native function [body] is in SDK code.
+  ///
+  /// See [ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE].
   void _checkForNativeFunctionBodyInNonSdkCode(NativeFunctionBody body) {
     if (!_isInSystemLibrary && !_hasExtUri) {
       _errorReporter.reportErrorForNode(
@@ -3527,16 +3363,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given instance creation [expression] invokes an existing
-   * constructor. The [constructorName] is the constructor name. The [typeName]
-   * is the name of the type defining the constructor.
-   *
-   * This method assumes that the instance creation was tested to be 'new'
-   * before being called.
-   *
-   * See [StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR].
-   */
+  /// Verify that the given instance creation [expression] invokes an existing
+  /// constructor. The [constructorName] is the constructor name. The [typeName]
+  /// is the name of the type defining the constructor.
+  ///
+  /// This method assumes that the instance creation was tested to be 'new'
+  /// before being called.
+  ///
+  /// See [StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR].
   void _checkForNewWithUndefinedConstructor(
       InstanceCreationExpression expression,
       ConstructorName constructorName,
@@ -3570,13 +3404,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Check that if the given class [declaration] implicitly calls default
-   * constructor of its superclass, there should be such default constructor -
-   * implicit or explicit.
-   *
-   * See [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT].
-   */
+  /// Check that if the given class [declaration] implicitly calls default
+  /// constructor of its superclass, there should be such default constructor -
+  /// implicit or explicit.
+  ///
+  /// See [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT].
   void _checkForNoDefaultSuperConstructorImplicit(
       ClassDeclaration declaration) {
     // do nothing if there is explicit constructor
@@ -3606,20 +3438,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
     }
 
-    _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
-        declaration.name,
-        [superType, _enclosingClass.displayName]);
+    if (!_typeProvider.nonSubtypableClasses.contains(superType.element)) {
+      // Don't report this diagnostic for non-subtypable classes because the
+      // real problem was already reported.
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+          declaration.name,
+          [superType, _enclosingClass.displayName]);
+    }
   }
 
-  /**
-   * Verify the given map [literal] either:
-   * * has `const modifier`
-   * * has explicit type arguments
-   * * is not start of the statement
-   *
-   * See [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT].
-   */
+  /// Verify the given map [literal] either:
+  /// * has `const modifier`
+  /// * has explicit type arguments
+  /// * is not start of the statement
+  ///
+  /// See [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT].
   void _checkForNonConstMapAsExpressionStatement3(SetOrMapLiteral literal) {
     // "const"
     if (literal.constKeyword != null) {
@@ -3643,12 +3477,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT, literal);
   }
 
-  /**
-   * Verify that the given method [declaration] of operator `[]=`, has `void`
-   * return type.
-   *
-   * See [StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR].
-   */
+  /// Verify that the given method [declaration] of operator `[]=`, has `void`
+  /// return type.
+  ///
+  /// See [StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR].
   void _checkForNonVoidReturnTypeForOperator(MethodDeclaration declaration) {
     // check that []= operator
     SimpleIdentifier name = declaration.name;
@@ -3666,12 +3498,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify the [typeName], used as the return type of a setter, is valid
-   * (either `null` or the type 'void').
-   *
-   * See [StaticWarningCode.NON_VOID_RETURN_FOR_SETTER].
-   */
+  /// Verify the [typeName], used as the return type of a setter, is valid
+  /// (either `null` or the type 'void').
+  ///
+  /// See [StaticWarningCode.NON_VOID_RETURN_FOR_SETTER].
   void _checkForNonVoidReturnTypeForSetter(TypeAnnotation typeName) {
     if (typeName != null) {
       DartType type = typeName.type;
@@ -3752,12 +3582,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that all classes of the given [onClause] are valid.
-   *
-   * See [CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS],
-   * [CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS].
-   */
+  /// Verify that all classes of the given [onClause] are valid.
+  ///
+  /// See [CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS],
+  /// [CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS].
   bool _checkForOnClauseErrorCodes(OnClause onClause) {
     if (onClause == null) {
       return false;
@@ -3784,13 +3612,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return problemReported;
   }
 
-  /**
-   * Verify the given operator-method [declaration], does not have an optional
-   * parameter. This method assumes that the method declaration was tested to be
-   * an operator declaration before being called.
-   *
-   * See [CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR].
-   */
+  /// Verify the given operator-method [declaration], does not have an optional
+  /// parameter.
+  ///
+  /// This method assumes that the method declaration was tested to be an
+  /// operator declaration before being called.
+  ///
+  /// See [CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR].
   void _checkForOptionalParameterInOperator(MethodDeclaration declaration) {
     FormalParameterList parameterList = declaration.parameters;
     if (parameterList == null) {
@@ -3807,27 +3635,25 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Via informal specification: dart-lang/language/issues/4
-   *
-   * If e is an integer literal which is not the operand of a unary minus
-   * operator, then:
-   *   - If the context type is double, it is a compile-time error if the
-   *   numerical value of e is not precisely representable by a double.
-   *   Otherwise the static type of e is double and the result of evaluating e
-   *   is a double instance representing that value.
-   *   - Otherwise (the current behavior of e, with a static type of int).
-   *
-   * and
-   *
-   * If e is -n and n is an integer literal, then
-   *   - If the context type is double, it is a compile-time error if the
-   *   numerical value of n is not precisley representable by a double.
-   *   Otherwise the static type of e is double and the result of evaluating e
-   *   is the result of calling the unary minus operator on a double instance
-   *   representing the numerical value of n.
-   *   - Otherwise (the current behavior of -n)
-   */
+  /// Via informal specification: dart-lang/language/issues/4
+  ///
+  /// If e is an integer literal which is not the operand of a unary minus
+  /// operator, then:
+  ///   - If the context type is double, it is a compile-time error if the
+  ///   numerical value of e is not precisely representable by a double.
+  ///   Otherwise the static type of e is double and the result of evaluating e
+  ///   is a double instance representing that value.
+  ///   - Otherwise (the current behavior of e, with a static type of int).
+  ///
+  /// and
+  ///
+  /// If e is -n and n is an integer literal, then
+  ///   - If the context type is double, it is a compile-time error if the
+  ///   numerical value of n is not precisley representable by a double.
+  ///   Otherwise the static type of e is double and the result of evaluating e
+  ///   is the result of calling the unary minus operator on a double instance
+  ///   representing the numerical value of n.
+  ///   - Otherwise (the current behavior of -n)
   void _checkForOutOfRange(IntegerLiteral node) {
     String lexeme = node.literal.lexeme;
     final bool isNegated = (node as IntegerLiteralImpl).immediatelyNegated;
@@ -3856,11 +3682,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Check that the given named optional [parameter] does not begin with '_'.
-   *
-   * See [CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER].
-   */
+  /// Check that the given named optional [parameter] does not begin with '_'.
+  ///
+  /// See [CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER].
   void _checkForPrivateOptionalParameter(FormalParameter parameter) {
     // should be named parameter
     if (!parameter.isNamed) {
@@ -3876,13 +3700,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, parameter);
   }
 
-  /**
-   * Check whether the given constructor [declaration] is the redirecting
-   * generative constructor and references itself directly or indirectly. The
-   * [constructorElement] is the constructor element.
-   *
-   * See [CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT].
-   */
+  /// Check whether the given constructor [declaration] is the redirecting
+  /// generative constructor and references itself directly or indirectly. The
+  /// [constructorElement] is the constructor element.
+  ///
+  /// See [CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT].
   void _checkForRecursiveConstructorRedirect(ConstructorDeclaration declaration,
       ConstructorElement constructorElement) {
     // we check generative constructor here
@@ -3902,13 +3724,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Check whether the given constructor [declaration] has redirected
-   * constructor and references itself directly or indirectly. The
-   * constructor [element] is the element introduced by the declaration.
-   *
-   * See [CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT].
-   */
+  /// Check whether the given constructor [declaration] has redirected
+  /// constructor and references itself directly or indirectly. The
+  /// constructor [element] is the element introduced by the declaration.
+  ///
+  /// See [CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT].
   bool _checkForRecursiveFactoryRedirect(
       ConstructorDeclaration declaration, ConstructorElement element) {
     // prepare redirected constructor
@@ -3928,18 +3748,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return true;
   }
 
-  /**
-   * Check that the given constructor [declaration] has a valid combination of
-   * redirected constructor invocation(s), super constructor invocations and
-   * field initializers.
-   *
-   * See [CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR],
-   * [CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR],
-   * [CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR],
-   * [CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS],
-   * [CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR], and
-   * [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR].
-   */
+  /// Check that the given constructor [declaration] has a valid combination of
+  /// redirected constructor invocation(s), super constructor invocations and
+  /// field initializers.
+  ///
+  /// See [CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR],
+  /// [CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR],
+  /// [CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR],
+  /// [CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS],
+  /// [CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR], and
+  /// [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR].
   void _checkForRedirectingConstructorErrorCodes(
       ConstructorDeclaration declaration) {
     // Check for default values in the parameters
@@ -4038,12 +3856,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Check whether the redirecting constructor, [element], is const, and
-   * [redirectedElement], its redirectee, is not const.
-   *
-   * See [CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR].
-   */
+  /// Check whether the redirecting constructor, [element], is const, and
+  /// [redirectedElement], its redirectee, is not const.
+  ///
+  /// See [CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR].
   void _checkForRedirectToNonConstConstructor(
     ConstructorElement element,
     ConstructorElement redirectedElement,
@@ -4096,11 +3912,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Check that the given rethrow [expression] is inside of a catch clause.
-   *
-   * See [CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH].
-   */
+  /// Check that the given rethrow [expression] is inside of a catch clause.
+  ///
+  /// See [CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH].
   void _checkForRethrowOutsideCatch(RethrowExpression expression) {
     if (!_isInCatchClause) {
       _errorReporter.reportErrorForNode(
@@ -4108,12 +3922,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Check that if the given constructor [declaration] is generative, then
-   * it does not have an expression function body.
-   *
-   * See [CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR].
-   */
+  /// Check that if the given constructor [declaration] is generative, then
+  /// it does not have an expression function body.
+  ///
+  /// See [CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR].
   void _checkForReturnInGenerativeConstructor(
       ConstructorDeclaration declaration) {
     // ignore factory
@@ -4130,13 +3942,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, body);
   }
 
-  /**
-   * Verify that the elements in the given set [literal] are subtypes of the
-   * set's static type.
-   *
-   * See [CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE], and
-   * [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE].
-   */
+  /// Verify that the elements in the given set [literal] are subtypes of the
+  /// set's static type.
+  ///
+  /// See [CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE], and
+  /// [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE].
   void _checkForSetElementTypeNotAssignable3(SetOrMapLiteral literal) {
     // Determine the set's element type. We base this on the static type and
     // not the literal's type arguments because in strong mode, the type
@@ -4168,12 +3978,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Check the given [typeReference] and that the [name] is not a reference to
-   * an instance member.
-   *
-   * See [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER].
-   */
+  /// Check the given [typeReference] and that the [name] is not a reference to
+  /// an instance member.
+  ///
+  /// See [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER].
   void _checkForStaticAccessToInstanceMember(
       ClassElement typeReference, SimpleIdentifier name) {
     // OK, in comment
@@ -4198,12 +4006,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Check that the type of the expression in the given 'switch' [statement] is
-   * assignable to the type of the 'case' members.
-   *
-   * See [StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE].
-   */
+  /// Check that the type of the expression in the given 'switch' [statement] is
+  /// assignable to the type of the 'case' members.
+  ///
+  /// See [StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE].
   void _checkForSwitchExpressionNotAssignable(SwitchStatement statement) {
     // For NNBD we verify runtime types of values, and subtyping.
     if (_isNonNullableByDefault) {
@@ -4255,12 +4061,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given [element] does not reference itself directly.
-   * If it does, report the error on the [node].
-   *
-   * See [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF].
-   */
+  /// Verify that the given [element] does not reference itself directly.
+  /// If it does, report the error on the [node].
+  ///
+  /// See [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF].
   void _checkForTypeAliasCannotReferenceItself(
     AstNode node,
     FunctionTypeAliasElement element,
@@ -4273,11 +4077,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the [type] is not a deferred type.
-   *
-   * See [StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS].
-   */
+  /// Verify that the [type] is not a deferred type.
+  ///
+  /// See [StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS].
   void _checkForTypeAnnotationDeferredClass(TypeAnnotation type) {
     if (type is TypeName && type.isDeferred) {
       _errorReporter.reportErrorForNode(
@@ -4285,11 +4087,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Check that none of the type [parameters] references itself in its bound.
-   *
-   * See [StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
-   */
+  /// Check that none of the type [parameters] references itself in its bound.
+  ///
+  /// See [StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
   void _checkForTypeParameterBoundRecursion(List<TypeParameter> parameters) {
     Map<TypeParameterElement, TypeParameter> elementToNode;
     for (var parameter in parameters) {
@@ -4337,15 +4137,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Check that if the given generative [constructor] has neither an explicit
-   * super constructor invocation nor a redirecting constructor invocation, that
-   * the superclass has a default generative constructor.
-   *
-   * See [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT],
-   * [CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR], and
-   * [StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT].
-   */
+  /// Check that if the given generative [constructor] has neither an explicit
+  /// super constructor invocation nor a redirecting constructor invocation,
+  /// that the superclass has a default generative constructor.
+  ///
+  /// See [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT],
+  /// [CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR], and
+  /// [StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT].
   void _checkForUndefinedConstructorInInitializerImplicit(
       ConstructorDeclaration constructor) {
     if (_enclosingClass == null) {
@@ -4447,12 +4245,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Check that if the given [name] is a reference to a static member it is
-   * defined in the enclosing class rather than in a superclass.
-   *
-   * See [StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER].
-   */
+  /// Check that if the given [name] is a reference to a static member it is
+  /// defined in the enclosing class rather than in a superclass.
+  ///
+  /// See
+  /// [StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER].
   void _checkForUnqualifiedReferenceToNonLocalStaticMember(
       SimpleIdentifier name) {
     Element element = name.staticElement;
@@ -4492,15 +4289,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * While in general Never is a sort of placehold type that should be usable
-   * anywhere, we explicitly bar it from some dubious syntactic locations such
-   * as calling a method on Never, which in practice would look something like
-   * `(throw x).toString()` which is clearly something between a mistake and
-   * dead code.
-   *
-   * See [StaticWarningCode.RECEIVER_OF_TYPE_NEVER].
-   */
+  /// While in general Never is a sort of placehold type that should be usable
+  /// anywhere, we explicitly bar it from some dubious syntactic locations such
+  /// as calling a method on Never, which in practice would look something like
+  /// `(throw x).toString()` which is clearly something between a mistake and
+  /// dead code.
+  ///
+  /// See [StaticWarningCode.RECEIVER_OF_TYPE_NEVER].
   bool _checkForUseOfNever(Expression expression) {
     if (expression == null ||
         !identical(expression.staticType, NeverTypeImpl.instance)) {
@@ -4513,13 +4308,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return true;
   }
 
-  /**
-   * Check for situations where the result of a method or function is used, when
-   * it returns 'void'. Or, in rare cases, when other types of expressions are
-   * void, such as identifiers.
-   *
-   * See [StaticWarningCode.USE_OF_VOID_RESULT].
-   */
+  /// Check for situations where the result of a method or function is used,
+  /// when it returns 'void'. Or, in rare cases, when other types of expressions
+  /// are void, such as identifiers.
+  ///
+  /// See [StaticWarningCode.USE_OF_VOID_RESULT].
   bool _checkForUseOfVoidResult(Expression expression) {
     if (expression == null ||
         !identical(expression.staticType, VoidTypeImpl.instance)) {
@@ -4596,15 +4389,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 //        }
   }
 
-  /**
-   * Verify the given operator-method [declaration], has correct number of
-   * parameters.
-   *
-   * This method assumes that the method declaration was tested to be an
-   * operator declaration before being called.
-   *
-   * See [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR].
-   */
+  /// Verify the given operator-method [declaration], has correct number of
+  /// parameters.
+  ///
+  /// This method assumes that the method declaration was tested to be an
+  /// operator declaration before being called.
+  ///
+  /// See [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR].
   void _checkForWrongNumberOfParametersForOperator(
       MethodDeclaration declaration) {
     // prepare number of parameters
@@ -4656,16 +4447,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given setter [parameterList] has only one required
-   * parameter. The [setterName] is the name of the setter to report problems
-   * on.
-   *
-   * This method assumes that the method declaration was tested to be a setter
-   * before being called.
-   *
-   * See [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER].
-   */
+  /// Verify that the given setter [parameterList] has only one required
+  /// parameter. The [setterName] is the name of the setter to report problems
+  /// on.
+  ///
+  /// This method assumes that the method declaration was tested to be a setter
+  /// before being called.
+  ///
+  /// See [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER].
   void _checkForWrongNumberOfParametersForSetter(
       SimpleIdentifier setterName, FormalParameterList parameterList) {
     if (setterName == null || parameterList == null) {
@@ -4807,21 +4596,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _enclosingClass.superclassConstraints.forEach(checkOne);
   }
 
-  /**
-   * Check for invalid variance positions in members of a class or mixin.
-   *
-   * Let `C` be a class or mixin declaration with type parameter `T`.
-   * If `T` is an `out` type parameter then `T` can only appear in covariant
-   * positions within the accessors and methods of `C`.
-   * If `T` is an `in` type parameter then `T` can only appear in contravariant
-   * positions within the accessors and methods of `C`.
-   * If `T` is an `inout` type parameter or a type parameter with no explicit
-   * variance modifier then `T` can appear in any variant position within the
-   * accessors and methods of `C`.
-   *
-   * Errors should only be reported in classes and mixins since those are the
-   * only components that allow explicit variance modifiers.
-   */
+  /// Check for invalid variance positions in members of a class or mixin.
+  ///
+  /// Let `C` be a class or mixin declaration with type parameter `T`.
+  /// If `T` is an `out` type parameter then `T` can only appear in covariant
+  /// positions within the accessors and methods of `C`.
+  /// If `T` is an `in` type parameter then `T` can only appear in contravariant
+  /// positions within the accessors and methods of `C`.
+  /// If `T` is an `inout` type parameter or a type parameter with no explicit
+  /// variance modifier then `T` can appear in any variant position within the
+  /// accessors and methods of `C`.
+  ///
+  /// Errors should only be reported in classes and mixins since those are the
+  /// only components that allow explicit variance modifiers.
   void _checkForWrongVariancePosition(
       Variance variance, TypeParameterElement typeParameter, AstNode node) {
     TypeParameterElementImpl typeParameterImpl =
@@ -4839,12 +4626,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given class [declaration] does not have the same class in
-   * the 'extends' and 'implements' clauses.
-   *
-   * See [CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS].
-   */
+  /// Verify that the given class [declaration] does not have the same class in
+  /// the 'extends' and 'implements' clauses.
+  ///
+  /// See [CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS].
   void _checkImplementsSuperClass(ImplementsClause implementsClause) {
     // prepare super type
     InterfaceType superType = _enclosingClass.supertype;
@@ -4914,10 +4699,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Checks the class for problems with the superclass, mixins, or implemented
-   * interfaces.
-   */
+  /// Checks the class for problems with the superclass, mixins, or implemented
+  /// interfaces.
   void _checkMixinInheritance(MixinDeclaration node, OnClause onClause,
       ImplementsClause implementsClause) {
     // Only check for all of the inheritance logic around clauses if there
@@ -5105,10 +4888,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return null;
   }
 
-  /**
-   * Given an [expression] in a switch case whose value is expected to be an
-   * enum constant, return the name of the constant.
-   */
+  /// Given an [expression] in a switch case whose value is expected to be an
+  /// enum constant, return the name of the constant.
   String _getConstantName(Expression expression) {
     // TODO(brianwilkerson) Convert this to return the element representing the
     // constant.
@@ -5122,9 +4903,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return null;
   }
 
-  /**
-   * Return a human-readable representation of the kind of the [element].
-   */
+  /// Return a human-readable representation of the kind of the [element].
   String _getKind(ExecutableElement element) {
     if (element is MethodElement) {
       return 'method';
@@ -5148,9 +4927,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return 'member';
   }
 
-  /**
-   * Return the name of the library that defines given [element].
-   */
+  /// Return the name of the library that defines given [element].
   String _getLibraryName(Element element) {
     if (element == null) {
       return StringUtilities.EMPTY;
@@ -5210,10 +4987,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         (parent) => parent.lookUpConcreteMethod(name, parent.library) != null);
   }
 
-  /**
-   * Return `true` if the given [constructor] redirects to itself, directly or
-   * indirectly.
-   */
+  /// Return `true` if the given [constructor] redirects to itself, directly or
+  /// indirectly.
   bool _hasRedirectingFactoryConstructorCycle(ConstructorElement constructor) {
     Set<ConstructorElement> constructors = HashSet<ConstructorElement>();
     ConstructorElement current = constructor;
@@ -5240,9 +5015,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  /**
-   * Return `true` if the given 'this' [expression] is in a valid context.
-   */
+  /// Return `true` if the given 'this' [expression] is in a valid context.
   bool _isThisInValidContext(ThisExpression expression) {
     for (AstNode node = expression.parent; node != null; node = node.parent) {
       if (node is CompilationUnit) {
@@ -5265,10 +5038,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  /**
-   * Return `true` if the given [identifier] is in a location where it is
-   * allowed to resolve to a static member of a supertype.
-   */
+  /// Return `true` if the given [identifier] is in a location where it is
+  /// allowed to resolve to a static member of a supertype.
   bool _isUnqualifiedReferenceToNonLocalStaticMemberAllowed(
       SimpleIdentifier identifier) {
     if (identifier.inDeclarationContext()) {
@@ -5325,10 +5096,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Return [FieldElement]s that are declared in the [ClassDeclaration] with
-   * the given [constructor], but are not initialized.
-   */
+  /// Return [FieldElement]s that are declared in the [ClassDeclaration] with
+  /// the given [constructor], but are not initialized.
   static List<FieldElement> computeNotInitializedFields(
       ConstructorDeclaration constructor) {
     Set<FieldElement> fields = <FieldElement>{};
@@ -5364,10 +5133,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return fields.toList();
   }
 
-  /**
-   * Return the static type of the given [expression] that is to be used for
-   * type analysis.
-   */
+  /// Return the static type of the given [expression] that is to be used for
+  /// type analysis.
   static DartType getStaticType(Expression expression) {
     DartType type = expression.staticType;
     if (type == null) {
@@ -5377,10 +5144,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return type;
   }
 
-  /**
-   * Return the variable element represented by the given [expression], or
-   * `null` if there is no such element.
-   */
+  /// Return the variable element represented by the given [expression], or
+  /// `null` if there is no such element.
   static VariableElement getVariableElement(Expression expression) {
     if (expression is Identifier) {
       Element element = expression.staticElement;
@@ -5406,33 +5171,25 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 }
 
-/**
- * A record of the elements that will be declared in some scope (block), but are
- * not yet declared.
- */
+/// A record of the elements that will be declared in some scope (block), but
+/// are not yet declared.
 class HiddenElements {
-  /**
-   * The elements hidden in outer scopes, or `null` if this is the outermost
-   * scope.
-   */
+  /// The elements hidden in outer scopes, or `null` if this is the outermost
+  /// scope.
   final HiddenElements outerElements;
 
   /// A set containing the elements that will be declared in this scope, but are
   /// not yet declared.
   final Set<Element> _elements = HashSet<Element>();
 
-  /**
-   * Initialize a newly created set of hidden elements to include all of the
-   * elements defined in the set of [outerElements] and all of the elements
-   * declared in the given [block].
-   */
+  /// Initialize a newly created set of hidden elements to include all of the
+  /// elements defined in the set of [outerElements] and all of the elements
+  /// declared in the given [block].
   HiddenElements(this.outerElements, Block block) {
     _initializeElements(block);
   }
 
-  /**
-   * Return `true` if this set of elements contains the given [element].
-   */
+  /// Return `true` if this set of elements contains the given [element].
   bool contains(Element element) {
     if (_elements.contains(element)) {
       return true;
@@ -5442,31 +5199,25 @@ class HiddenElements {
     return false;
   }
 
-  /**
-   * Record that the given [element] has been declared, so it is no longer
-   * hidden.
-   */
+  /// Record that the given [element] has been declared, so it is no longer
+  /// hidden.
   void declare(Element element) {
     _elements.remove(element);
   }
 
-  /**
-   * Initialize the list of elements that are not yet declared to be all of the
-   * elements declared somewhere in the given [block].
-   */
+  /// Initialize the list of elements that are not yet declared to be all of the
+  /// elements declared somewhere in the given [block].
   void _initializeElements(Block block) {
     _elements.addAll(BlockScope.elementsInBlock(block));
   }
 }
 
-/**
- * Recursively visits an AST, looking for method invocations.
- */
-class _InvocationCollector extends RecursiveAstVisitor {
+/// Recursively visits an AST, looking for method invocations.
+class _InvocationCollector extends RecursiveAstVisitor<void> {
   final List<String> superCalls = <String>[];
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
+  void visitMethodInvocation(MethodInvocation node) {
     if (node.target is SuperExpression) {
       superCalls.add(node.methodName.name);
     }
@@ -5474,16 +5225,14 @@ class _InvocationCollector extends RecursiveAstVisitor {
   }
 }
 
-/**
- * Recursively visits a type annotation, looking uninstantiated bounds.
- */
-class _UninstantiatedBoundChecker extends RecursiveAstVisitor {
+/// Recursively visits a type annotation, looking uninstantiated bounds.
+class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {
   final ErrorReporter _errorReporter;
 
   _UninstantiatedBoundChecker(this._errorReporter);
 
   @override
-  visitTypeName(node) {
+  void visitTypeName(node) {
     var typeArgs = node.typeArguments;
     if (typeArgs != null) {
       typeArgs.accept(this);

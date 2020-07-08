@@ -577,9 +577,8 @@ class TrueOrFalseValueErrorBuilder extends ErrorBuilder {
 }
 
 class _OptionsProcessor {
-  /**
-   * Apply the options in the given [optionMap] to the given analysis [options].
-   */
+  /// Apply the options in the given [optionMap] to the given analysis
+  /// [options].
   void applyToAnalysisOptions(AnalysisOptionsImpl options, YamlMap optionMap) {
     if (optionMap == null) {
       return;

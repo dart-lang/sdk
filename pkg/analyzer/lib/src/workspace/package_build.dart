@@ -17,11 +17,9 @@ import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
-/**
- * Instances of the class `PackageBuildFileUriResolver` resolve `file` URI's by
- * first resolving file uri's in the expected way, and then by looking in the
- * corresponding generated directories.
- */
+/// Instances of the class `PackageBuildFileUriResolver` resolve `file` URI's by
+/// first resolving file uri's in the expected way, and then by looking in the
+/// corresponding generated directories.
 class PackageBuildFileUriResolver extends ResourceUriResolver {
   final PackageBuildWorkspace workspace;
 
@@ -47,9 +45,8 @@ class PackageBuildFileUriResolver extends ResourceUriResolver {
   }
 }
 
-/**
- * The [UriResolver] that can resolve `package` URIs in [PackageBuildWorkspace].
- */
+/// The [UriResolver] that can resolve `package` URIs in
+/// [PackageBuildWorkspace].
 class PackageBuildPackageUriResolver extends UriResolver {
   final PackageBuildWorkspace _workspace;
   final UriResolver _normalUriResolver;
@@ -124,58 +121,40 @@ class PackageBuildPackageUriResolver extends UriResolver {
   }
 }
 
-/**
- * Information about a package:build workspace.
- */
+/// Information about a package:build workspace.
 class PackageBuildWorkspace extends Workspace {
-  /**
-   * The name of the directory that identifies the root of the workspace. Note,
-   * the presence of this file does not show package:build is used. For that,
-   * the subdirectory [_dartToolBuildName] must exist. A `pub` subdirectory
-   * will usually exist in non-package:build projects too.
-   */
+  /// The name of the directory that identifies the root of the workspace. Note,
+  /// the presence of this file does not show package:build is used. For that,
+  /// the subdirectory [_dartToolBuildName] must exist. A `pub` subdirectory
+  /// will usually exist in non-package:build projects too.
   static const String _dartToolRootName = '.dart_tool';
 
-  /**
-   * The name of the subdirectory in [_dartToolName] that distinguishes projects
-   * built with package:build.
-   */
+  /// The name of the subdirectory in [_dartToolName] that distinguishes
+  /// projects built with package:build.
   static const String _dartToolBuildName = 'build';
 
-  /**
-   * We use pubspec.yaml to get the package name to be consistent with how
-   * package:build does it.
-   */
+  /// We use pubspec.yaml to get the package name to be consistent with how
+  /// package:build does it.
   static const String _pubspecName = 'pubspec.yaml';
 
-  /**
-   * The resource provider used to access the file system.
-   */
+  /// The resource provider used to access the file system.
   final ResourceProvider provider;
 
-  /**
-   * The map from a package name to the list of its `lib/` folders.
-   */
+  /// The map from a package name to the list of its `lib/` folders.
   final Map<String, List<Folder>> _packageMap;
 
-  /**
-   * The absolute workspace root path (the directory containing the `.dart_tool`
-   * directory).
-   */
+  /// The absolute workspace root path (the directory containing the
+  /// `.dart_tool` directory).
   @override
   final String root;
 
-  /**
-   * The name of the package under development as defined in pubspec.yaml. This
-   * matches the behavior of package:build.
-   */
+  /// The name of the package under development as defined in pubspec.yaml. This
+  /// matches the behavior of package:build.
   final String projectPackageName;
 
-  /**
-   * The singular package in this workspace.
-   *
-   * Each "package:build" workspace is itself one package.
-   */
+  /// The singular package in this workspace.
+  ///
+  /// Each "package:build" workspace is itself one package.
   PackageBuildWorkspacePackage _theOnlyPackage;
 
   PackageBuildWorkspace._(
@@ -185,15 +164,13 @@ class PackageBuildWorkspace extends Workspace {
   UriResolver get packageUriResolver => PackageBuildPackageUriResolver(
       this, PackageMapUriResolver(provider, _packageMap));
 
-  /**
-   * For some package file, which may or may not be a package source (it could
-   * be in `bin/`, `web/`, etc), find where its built counterpart will exist if
-   * its a generated source.
-   *
-   * To get a [builtPath] for a package source file to use in this method,
-   * use [builtPackageSourcePath]. For `bin/`, `web/`, etc, it must be relative
-   * to the project root.
-   */
+  /// For some package file, which may or may not be a package source (it could
+  /// be in `bin/`, `web/`, etc), find where its built counterpart will exist if
+  /// its a generated source.
+  ///
+  /// To get a [builtPath] for a package source file to use in this method,
+  /// use [builtPackageSourcePath]. For `bin/`, `web/`, etc, it must be relative
+  /// to the project root.
   File builtFile(String builtPath, String packageName) {
     if (!_packageMap.containsKey(packageName)) {
       return null;
@@ -204,13 +181,11 @@ class PackageBuildWorkspace extends Workspace {
     return provider.getFile(fullBuiltPath);
   }
 
-  /**
-   * Unlike the way that sources are resolved against `.packages` (if foo points
-   * to folder bar, then `foo:baz.dart` is found at `bar/baz.dart`), the built
-   * sources for a package require the `lib/` prefix first. This is because
-   * `bin/`, `web/`, and `test/` etc can all be built as well. This method
-   * exists to give a name to that prefix processing step.
-   */
+  /// Unlike the way that sources are resolved against `.packages` (if foo
+  /// points to folder bar, then `foo:baz.dart` is found at `bar/baz.dart`), the
+  /// built sources for a package require the `lib/` prefix first. This is
+  /// because `bin/`, `web/`, and `test/` etc can all be built as well. This
+  /// method exists to give a name to that prefix processing step.
   String builtPackageSourcePath(String filePath) {
     path.Context context = provider.pathContext;
     assert(context.isRelative(filePath), 'Not a relative path: $filePath');
@@ -232,14 +207,12 @@ class PackageBuildWorkspace extends Workspace {
     return SourceFactory(resolvers);
   }
 
-  /**
-   * Return the file with the given [filePath], looking first in the generated
-   * directory `.dart_tool/build/generated/$projectPackageName/`, then in
-   * source directories.
-   *
-   * The file in the workspace [root] is returned even if it does not exist.
-   * Return `null` if the given [filePath] is not in the workspace root.
-   */
+  /// Return the file with the given [filePath], looking first in the generated
+  /// directory `.dart_tool/build/generated/$projectPackageName/`, then in
+  /// source directories.
+  ///
+  /// The file in the workspace [root] is returned even if it does not exist.
+  /// Return `null` if the given [filePath] is not in the workspace root.
   File findFile(String filePath) {
     path.Context context = provider.pathContext;
     assert(context.isAbsolute(filePath), 'Not an absolute path: $filePath');
@@ -269,11 +242,9 @@ class PackageBuildWorkspace extends Workspace {
     }
   }
 
-  /**
-   * Find the package:build workspace that contains the given [filePath].
-   *
-   * Return `null` if the filePath is not in a package:build workspace.
-   */
+  /// Find the package:build workspace that contains the given [filePath].
+  ///
+  /// Return `null` if the filePath is not in a package:build workspace.
   static PackageBuildWorkspace find(ResourceProvider provider,
       Map<String, List<Folder>> packageMap, String filePath) {
     Folder folder = provider.getFolder(filePath);
@@ -305,13 +276,11 @@ class PackageBuildWorkspace extends Workspace {
   }
 }
 
-/**
- * Information about a package defined in a PackageBuildWorkspace.
- *
- * Separate from [Packages] or package maps, this class is designed to simply
- * understand whether arbitrary file paths represent libraries declared within
- * a given package in a PackageBuildWorkspace.
- */
+/// Information about a package defined in a PackageBuildWorkspace.
+///
+/// Separate from [Packages] or package maps, this class is designed to simply
+/// understand whether arbitrary file paths represent libraries declared within
+/// a given package in a PackageBuildWorkspace.
 class PackageBuildWorkspacePackage extends WorkspacePackage {
   @override
   final String root;

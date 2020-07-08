@@ -844,16 +844,12 @@ const List<ErrorCode> errorCodeValues = [
   TodoCode.TODO,
 ];
 
-/**
- * The lazy initialized map from [ErrorCode.uniqueName] to the [ErrorCode]
- * instance.
- */
+/// The lazy initialized map from [ErrorCode.uniqueName] to the [ErrorCode]
+/// instance.
 HashMap<String, ErrorCode> _uniqueNameToCodeMap;
 
-/**
- * Return the [ErrorCode] with the given [uniqueName], or `null` if not
- * found.
- */
+/// Return the [ErrorCode] with the given [uniqueName], or `null` if not
+/// found.
 ErrorCode errorCodeByUniqueName(String uniqueName) {
   if (_uniqueNameToCodeMap == null) {
     _uniqueNameToCodeMap = HashMap<String, ErrorCode>();
@@ -864,29 +860,21 @@ ErrorCode errorCodeByUniqueName(String uniqueName) {
   return _uniqueNameToCodeMap[uniqueName];
 }
 
-/**
- * An error discovered during the analysis of some Dart code.
- *
- * See [AnalysisErrorListener].
- */
+/// An error discovered during the analysis of some Dart code.
+///
+/// See [AnalysisErrorListener].
 class AnalysisError implements Diagnostic {
-  /**
-   * An empty array of errors used when no errors are expected.
-   */
+  /// An empty array of errors used when no errors are expected.
   static const List<AnalysisError> NO_ERRORS = <AnalysisError>[];
 
-  /**
-   * A [Comparator] that sorts by the name of the file that the [AnalysisError]
-   * was found.
-   */
+  /// A [Comparator] that sorts by the name of the file that the [AnalysisError]
+  /// was found.
   static Comparator<AnalysisError> FILE_COMPARATOR =
       (AnalysisError o1, AnalysisError o2) =>
           o1.source.shortName.compareTo(o2.source.shortName);
 
-  /**
-   * A [Comparator] that sorts error codes first by their severity (errors
-   * first, warnings second), and then by the error code type.
-   */
+  /// A [Comparator] that sorts error codes first by their severity (errors
+  /// first, warnings second), and then by the error code type.
   static Comparator<AnalysisError> ERROR_CODE_COMPARATOR =
       (AnalysisError o1, AnalysisError o2) {
     ErrorCode errorCode1 = o1.errorCode;
@@ -902,40 +890,28 @@ class AnalysisError implements Diagnostic {
     }
   };
 
-  /**
-   * The error code associated with the error.
-   */
+  /// The error code associated with the error.
   final ErrorCode errorCode;
 
-  /**
-   * The message describing the problem.
-   */
+  /// The message describing the problem.
   DiagnosticMessage _problemMessage;
 
-  /**
-   * The context messages associated with the problem. This list will be empty
-   * if there are no context messages.
-   */
+  /// The context messages associated with the problem. This list will be empty
+  /// if there are no context messages.
   List<DiagnosticMessage> _contextMessages;
 
-  /**
-   * The correction to be displayed for this error, or `null` if there is no
-   * correction information for this error.
-   */
+  /// The correction to be displayed for this error, or `null` if there is no
+  /// correction information for this error.
   String _correction;
 
-  /**
-   * The source in which the error occurred, or `null` if unknown.
-   */
+  /// The source in which the error occurred, or `null` if unknown.
   final Source source;
 
-  /**
-   * Initialize a newly created analysis error. The error is associated with the
-   * given [source] and is located at the given [offset] with the given
-   * [length]. The error will have the given [errorCode] and the list of
-   * [arguments] will be used to complete the message and correction. If any
-   * [contextMessages] are provided, they will be recorded with the error.
-   */
+  /// Initialize a newly created analysis error. The error is associated with
+  /// the given [source] and is located at the given [offset] with the given
+  /// [length]. The error will have the given [errorCode] and the list of
+  /// [arguments] will be used to complete the message and correction. If any
+  /// [contextMessages] are provided, they will be recorded with the error.
   AnalysisError(this.source, int offset, int length, this.errorCode,
       [List<Object> arguments,
       List<DiagnosticMessage> contextMessages = const []]) {
@@ -952,9 +928,7 @@ class AnalysisError implements Diagnostic {
     _contextMessages = contextMessages;
   }
 
-  /**
-   * Initialize a newly created analysis error with given values.
-   */
+  /// Initialize a newly created analysis error with given values.
   AnalysisError.forValues(this.source, int offset, int length, this.errorCode,
       String message, this._correction,
       {List<DiagnosticMessage> contextMessages = const []}) {
@@ -969,11 +943,9 @@ class AnalysisError implements Diagnostic {
   @override
   List<DiagnosticMessage> get contextMessages => _contextMessages;
 
-  /**
-   * Return the template used to create the correction to be displayed for this
-   * error, or `null` if there is no correction information for this error. The
-   * correction should indicate how the user can fix the error.
-   */
+  /// Return the template used to create the correction to be displayed for this
+  /// error, or `null` if there is no correction information for this error. The
+  /// correction should indicate how the user can fix the error.
   String get correction => _correction;
 
   @override
@@ -987,22 +959,16 @@ class AnalysisError implements Diagnostic {
     return hashCode;
   }
 
-  /**
-   * The number of characters from the offset to the end of the source which
-   * encompasses the compilation error.
-   */
+  /// The number of characters from the offset to the end of the source which
+  /// encompasses the compilation error.
   int get length => _problemMessage.length;
 
-  /**
-   * Return the message to be displayed for this error. The message should
-   * indicate what is wrong and why it is wrong.
-   */
+  /// Return the message to be displayed for this error. The message should
+  /// indicate what is wrong and why it is wrong.
   String get message => _problemMessage.message;
 
-  /**
-   * The character offset from the beginning of the source (zero based) where
-   * the error occurred.
-   */
+  /// The character offset from the beginning of the source (zero based) where
+  /// the error occurred.
   int get offset => _problemMessage.offset;
 
   @override
@@ -1063,10 +1029,8 @@ class AnalysisError implements Diagnostic {
     return buffer.toString();
   }
 
-  /**
-   * Merge all of the errors in the lists in the given list of [errorLists] into
-   * a single list of errors.
-   */
+  /// Merge all of the errors in the lists in the given list of [errorLists]
+  /// into a single list of errors.
   static List<AnalysisError> mergeLists(List<List<AnalysisError>> errorLists) {
     Set<AnalysisError> errors = HashSet<AnalysisError>();
     for (List<AnalysisError> errorList in errorLists) {

@@ -240,7 +240,7 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
       }
       assert(node.typeArguments.length == other.typeArguments.length);
       for (int i = 0; i < node.typeArguments.length; ++i) {
-        if (!node.typeArguments[i].accept1(this, node.typeArguments[i])) {
+        if (!node.typeArguments[i].accept1(this, other.typeArguments[i])) {
           return false;
         }
       }

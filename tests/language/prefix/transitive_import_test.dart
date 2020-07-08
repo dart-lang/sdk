@@ -10,7 +10,7 @@ main() {
   // Class should not be visible.
   new lib12.Library11(1);
   //        ^^^^^^^^^
-  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
+  // [analyzer] STATIC_WARNING.CREATION_WITH_NON_TYPE
   // [cfe] Method not found: 'Library11'.
 
   // Variable should not be visible.

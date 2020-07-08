@@ -38,13 +38,13 @@ class Y extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
   abstract member-signature get runtimeType() → core::Type*;
 }
-static method f1() → asy::Future<core::List<core::Object*>*>*
+static method f1() → asy::Future<core::List<core::Object*>*>* async 
   ;
 static method f2() → core::List<core::Object*>*
   ;
-static method f3() → asy::Future<core::Object*>*
+static method f3() → asy::Future<core::Object*>* async 
   ;
-static method foo() → asy::Future<self::X*>*
+static method foo() → asy::Future<self::X*>* async 
   ;
-static method main() → asy::Future<void>*
+static method main() → asy::Future<void>* async 
   ;

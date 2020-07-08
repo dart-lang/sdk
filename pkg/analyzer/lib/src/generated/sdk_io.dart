@@ -15,41 +15,25 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 
-/**
- * An abstract implementation of a Dart SDK in which the available libraries are
- * stored in a library map. Subclasses are responsible for populating the
- * library map.
- */
+/// An abstract implementation of a Dart SDK in which the available libraries
+/// are stored in a library map. Subclasses are responsible for populating the
+/// library map.
 @deprecated
 abstract class AbstractDartSdk implements DartSdk {
-  /**
-   * A mapping from Dart library URI's to the library represented by that URI.
-   */
+  /// A mapping from Dart library URI's to the library represented by that URI.
   LibraryMap libraryMap = LibraryMap();
 
-  /**
-   * The [AnalysisOptions] to use to create the [context].
-   */
+  /// The [AnalysisOptions] to use to create the [context].
   AnalysisOptions _analysisOptions;
 
-  /**
-   * The flag that specifies whether an SDK summary should be used. This is a
-   * temporary flag until summaries are enabled by default.
-   */
-  bool _useSummary = false;
-
-  /**
-   * The [AnalysisContext] which is used for all of the sources in this SDK.
-   */
+  /// The [AnalysisContext] which is used for all of the sources in this SDK.
   SdkAnalysisContext _analysisContext;
 
   /// The mapping from Dart URI's to the corresponding sources.
   final Map<String, Source> _uriToSourceMap = HashMap<String, Source>();
 
-  /**
-   * Set the [options] for this SDK analysis context.  Throw [StateError] if the
-   * context has been already created.
-   */
+  /// Set the [options] for this SDK analysis context.  Throw [StateError] if
+  /// the context has been already created.
   set analysisOptions(AnalysisOptions options) {
     if (_analysisContext != null) {
       throw StateError(
@@ -73,27 +57,9 @@ abstract class AbstractDartSdk implements DartSdk {
   @override
   List<String> get uris => libraryMap.uris;
 
-  /**
-   * Return `true` if the SDK summary will be used when available.
-   */
-  bool get useSummary => _useSummary;
-
-  /**
-   * Specify whether SDK summary should be used.
-   */
-  set useSummary(bool use) {
-    if (_analysisContext != null) {
-      throw StateError(
-          'The "useSummary" flag cannot be changed after context creation.');
-    }
-    _useSummary = use;
-  }
-
-  /**
-   * Add the extensions from one or more sdk extension files to this sdk. The
-   * [extensions] should be a table mapping the names of extensions to the paths
-   * where those extensions can be found.
-   */
+  /// Add the extensions from one or more sdk extension files to this sdk. The
+  /// [extensions] should be a table mapping the names of extensions to the
+  /// paths where those extensions can be found.
   void addExtensions(Map<String, String> extensions) {
     extensions.forEach((String uri, String path) {
       String shortName = uri.substring(uri.indexOf(':') + 1);
@@ -126,11 +92,9 @@ abstract class AbstractDartSdk implements DartSdk {
   @override
   SdkLibrary getSdkLibrary(String dartUri) => libraryMap.getLibrary(dartUri);
 
-  /**
-   * Return the [PackageBundle] for this SDK, if it exists, or `null` otherwise.
-   * This method should not be used outside of `analyzer` and `analyzer_cli`
-   * packages.
-   */
+  /// Return the [PackageBundle] for this SDK, if it exists, or `null`
+  /// otherwise. This method should not be used outside of `analyzer` and
+  /// `analyzer_cli` packages.
   @deprecated
   PackageBundle getSummarySdkBundle(bool _);
 

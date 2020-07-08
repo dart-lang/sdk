@@ -8,11 +8,11 @@ import 'dart:io';
 import 'package:args/args.dart';
 
 import '../core.dart';
+import '../experiments.dart';
 import '../sdk.dart';
 
 class TestCommand extends DartdevCommand<int> {
-  TestCommand({bool verbose = false})
-      : super('test', 'Runs tests in this project.');
+  TestCommand() : super('test', 'Runs tests in this project.');
 
   @override
   final ArgParser argParser = ArgParser.allowAnything();
@@ -43,9 +43,15 @@ class TestCommand extends DartdevCommand<int> {
   @override
   FutureOr<int> run() async {
     final command = sdk.pub;
-    final args = argResults.arguments.toList();
+    final testArgs = argResults.arguments.toList();
 
-    args.insertAll(0, ['run', 'test']);
+    final args = [
+      'run',
+      if (wereExperimentsSpecified)
+        '--$experimentFlagName=${specifiedExperiments.join(',')}',
+      'test',
+      ...testArgs,
+    ];
 
     log.trace('$command ${args.join(' ')}');
 

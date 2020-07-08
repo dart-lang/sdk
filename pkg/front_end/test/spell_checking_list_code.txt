@@ -53,6 +53,7 @@ arises
 arising
 arity
 artifact
+artifacts
 artificial
 asgerf
 askesc
@@ -313,6 +314,7 @@ disallow
 disambiguator
 disjoint
 dispatched
+distribute
 divided
 dmitryas
 doc
@@ -325,6 +327,7 @@ downloaded
 downloading
 dq
 dquote
+dsdk
 dst
 dummy
 dupdate
@@ -348,6 +351,7 @@ emits
 emitted
 emitting
 en
+encapsulation
 enforce
 enforced
 enforces
@@ -435,12 +439,14 @@ futured
 futureor
 g
 gardening
+gen
 generation
 gets
 getter1a
 getter1b
 getting
 gft
+git
 github
 glb
 glob
@@ -893,6 +899,7 @@ repeating
 replacements
 replacer
 replaces
+replicated
 repo
 repositories
 requirement

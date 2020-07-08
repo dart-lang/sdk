@@ -11,21 +11,17 @@ import 'package:analyzer/src/generated/source.dart'
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 
-/**
- * An implementation of [DartSdk] which provides analysis results for `dart:`
- * libraries from the given summary file.  This implementation is limited and
- * suitable only for command-line tools, but not for IDEs - it does not
- * implement [sdkLibraries], [sdkVersion], [uris] and [fromFileUri].
- */
+/// An implementation of [DartSdk] which provides analysis results for `dart:`
+/// libraries from the given summary file.  This implementation is limited and
+/// suitable only for command-line tools, but not for IDEs - it does not
+/// implement [sdkLibraries], [sdkVersion], [uris] and [fromFileUri].
 class SummaryBasedDartSdk implements DartSdk {
   SummaryDataStore _dataStore;
   InSummaryUriResolver _uriResolver;
   PackageBundle _bundle;
   ResourceProvider resourceProvider;
 
-  /**
-   * The [AnalysisContext] which is used for all of the sources in this sdk.
-   */
+  /// The [AnalysisContext] which is used for all of the sources in this sdk.
   SdkAnalysisContext _analysisContext;
 
   SummaryBasedDartSdk(String summaryPath, bool _, {this.resourceProvider}) {
@@ -48,9 +44,7 @@ class SummaryBasedDartSdk implements DartSdk {
     return _bundle.sdk?.allowedExperimentsJson;
   }
 
-  /**
-   * Return the [PackageBundle] for this SDK, not `null`.
-   */
+  /// Return the [PackageBundle] for this SDK, not `null`.
   PackageBundle get bundle => _bundle;
 
   @override

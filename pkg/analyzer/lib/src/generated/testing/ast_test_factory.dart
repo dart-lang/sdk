@@ -14,18 +14,19 @@ import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 
-/**
- * The class `AstTestFactory` defines utility methods that can be used to create AST nodes. The
- * nodes that are created are complete in the sense that all of the tokens that would have been
- * associated with the nodes by a parser are also created, but the token stream is not constructed.
- * None of the nodes are resolved.
- *
- * The general pattern is for the name of the factory method to be the same as the name of the class
- * of AST node being created. There are two notable exceptions. The first is for methods creating
- * nodes that are part of a cascade expression. These methods are all prefixed with 'cascaded'. The
- * second is places where a shorter name seemed unambiguous and easier to read, such as using
- * 'identifier' rather than 'prefixedIdentifier', or 'integer' rather than 'integerLiteral'.
- */
+/// The class `AstTestFactory` defines utility methods that can be used to
+/// create AST nodes. The nodes that are created are complete in the sense that
+/// all of the tokens that would have been
+/// associated with the nodes by a parser are also created, but the token stream
+/// is not constructed. None of the nodes are resolved.
+///
+/// The general pattern is for the name of the factory method to be the same as
+/// the name of the class of AST node being created. There are two notable
+/// exceptions. The first is for methods creating nodes that are part of a
+/// cascade expression. These methods are all prefixed with 'cascaded'. The
+/// second is places where a shorter name seemed unambiguous and easier to read,
+/// such as using 'identifier' rather than 'prefixedIdentifier', or 'integer'
+/// rather than 'integerLiteral'.
 class AstTestFactory {
   static AdjacentStrings adjacentStrings(List<StringLiteral> strings) =>
       astFactory.adjacentStrings(strings);
@@ -1320,13 +1321,11 @@ class AstTestFactory {
         types, TokenFactory.tokenFromType(TokenType.GT));
   }
 
-  /**
-   * Create a type name whose name has been resolved to the given [element] and
-   * whose type has been resolved to the type of the given element.
-   *
-   * <b>Note:</b> This method does not correctly handle class elements that have
-   * type parameters.
-   */
+  /// Create a type name whose name has been resolved to the given [element] and
+  /// whose type has been resolved to the type of the given element.
+  ///
+  /// <b>Note:</b> This method does not correctly handle class elements that
+  /// have type parameters.
   static TypeName typeName(ClassElement element,
       [List<TypeAnnotation> arguments]) {
     SimpleIdentifier name = identifier3(element.name);

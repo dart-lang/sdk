@@ -18,6 +18,8 @@ class Utf : AllStatic {
   static const int32_t kMaxCodePoint = 0x10FFFF;
   static const int32_t kInvalidChar = 0xFFFFFFFF;
 
+  static const int32_t kReplacementChar = 0xFFFD;
+
   static bool IsLatin1(int32_t code_point) {
     return (code_point >= 0) && (code_point <= 0xFF);
   }

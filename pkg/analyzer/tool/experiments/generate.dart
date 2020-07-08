@@ -1,7 +1,5 @@
-/**
- * This file contains code to generate experimental flags
- * based on the information in tools/experimental_features.yaml.
- */
+/// This file contains code to generate experimental flags
+/// based on the information in tools/experimental_features.yaml.
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
@@ -192,15 +190,17 @@ class ExperimentalFeatures {
       out.write('''
 
       static const $id = ExperimentalFeature(
-      $index,
-      EnableString.$id,
-      IsEnabledByDefault.$id,
-      IsExpired.$id,
-      '$help'
+        index: $index,
+        enableString: EnableString.$id,
+        isEnabledByDefault: IsEnabledByDefault.$id,
+        isExpired: IsExpired.$id,
+        documentation: '$help',
     ''');
       if (enabledIn != null) {
         enabledIn = _versionNumberAsString(enabledIn);
-        out.write(",firstSupportedVersion: '$enabledIn'");
+        out.write("firstSupportedVersion: '$enabledIn',");
+      } else {
+        out.write("firstSupportedVersion: null,");
       }
       out.writeln(');');
       ++index;
@@ -210,22 +210,25 @@ class ExperimentalFeatures {
 
       @deprecated
       static const bogus_disabled = ExperimentalFeature(
-        $index,
+        index: $index,
         // ignore: deprecated_member_use_from_same_package
-        EnableString.bogus_disabled,
-        IsEnabledByDefault.bogus_disabled,
-        IsExpired.bogus_disabled,
-        null);
+        enableString: EnableString.bogus_disabled,
+        isEnabledByDefault: IsEnabledByDefault.bogus_disabled,
+        isExpired: IsExpired.bogus_disabled,
+        documentation: null,
+        firstSupportedVersion: null,
+      );
 
       @deprecated
       static const bogus_enabled = ExperimentalFeature(
-        ${index + 1},
+        index: ${index + 1},
         // ignore: deprecated_member_use_from_same_package
-        EnableString.bogus_enabled,
-        IsEnabledByDefault.bogus_enabled,
-        IsExpired.bogus_enabled,
-        null,
-        firstSupportedVersion: '1.0.0');
+        enableString: EnableString.bogus_enabled,
+        isEnabledByDefault: IsEnabledByDefault.bogus_enabled,
+        isExpired: IsExpired.bogus_enabled,
+        documentation: null,
+        firstSupportedVersion: '1.0.0',
+      );
     }''');
   }
 

@@ -11,6 +11,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
@@ -18,7 +19,6 @@ import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:meta/meta.dart';
 
@@ -84,12 +84,10 @@ class AssignmentExpressionResolver {
             : node.staticType);
   }
 
-  /**
-   * Set the static type of [node] to be the least upper bound of the static
-   * types of subexpressions [expr1] and [expr2].
-   *
-   * TODO(scheglov) this is duplicate
-   */
+  /// Set the static type of [node] to be the least upper bound of the static
+  /// types of subexpressions [expr1] and [expr2].
+  ///
+  /// TODO(scheglov) this is duplicate
   void _analyzeLeastUpperBound(
       Expression node, Expression expr1, Expression expr2,
       {bool read = false}) {
@@ -99,12 +97,10 @@ class AssignmentExpressionResolver {
     _analyzeLeastUpperBoundTypes(node, staticType1, staticType2);
   }
 
-  /**
-   * Set the static type of [node] to be the least upper bound of the static
-   * types [staticType1] and [staticType2].
-   *
-   * TODO(scheglov) this is duplicate
-   */
+  /// Set the static type of [node] to be the least upper bound of the static
+  /// types [staticType1] and [staticType2].
+  ///
+  /// TODO(scheglov) this is duplicate
   void _analyzeLeastUpperBoundTypes(
       Expression node, DartType staticType1, DartType staticType2) {
     // TODO(brianwilkerson) Determine whether this can still happen.
@@ -122,25 +118,21 @@ class AssignmentExpressionResolver {
     _inferenceHelper.recordStaticType(node, staticType);
   }
 
-  /**
-   * Gets the definite type of expression, which can be used in cases where
-   * the most precise type is desired, for example computing the least upper
-   * bound.
-   *
-   * See [getExpressionType] for more information. Without strong mode, this is
-   * equivalent to [_getStaticType].
-   *
-   * TODO(scheglov) this is duplicate
-   */
+  /// Gets the definite type of expression, which can be used in cases where
+  /// the most precise type is desired, for example computing the least upper
+  /// bound.
+  ///
+  /// See [getExpressionType] for more information. Without strong mode, this is
+  /// equivalent to [_getStaticType].
+  ///
+  /// TODO(scheglov) this is duplicate
   DartType _getExpressionType(Expression expr, {bool read = false}) =>
       getExpressionType(expr, _typeSystem, _typeProvider, read: read);
 
-  /**
-   * Return the static type of the given [expression] that is to be used for
-   * type analysis.
-   *
-   * TODO(scheglov) this is duplicate
-   */
+  /// Return the static type of the given [expression] that is to be used for
+  /// type analysis.
+  ///
+  /// TODO(scheglov) this is duplicate
   DartType _getStaticType1(Expression expression, {bool read = false}) {
     if (expression is NullLiteral) {
       return _typeProvider.nullType;
@@ -149,11 +141,9 @@ class AssignmentExpressionResolver {
     return _resolveTypeParameter(type);
   }
 
-  /**
-   * Return the static type of the given [expression].
-   *
-   * TODO(scheglov) this is duplicate
-   */
+  /// Return the static type of the given [expression].
+  ///
+  /// TODO(scheglov) this is duplicate
   DartType _getStaticType2(Expression expression, {bool read = false}) {
     DartType type;
     if (read) {
@@ -179,10 +169,10 @@ class AssignmentExpressionResolver {
     return type;
   }
 
-  /// Return the non-nullable variant of the [type] if NNBD is enabled, otherwise
-  /// return the type itself.
+  /// Return the non-nullable variant of the [type] if null safety is enabled,
+  /// otherwise return the type itself.
   ///
-  /// TODO(scheglov) this is duplicate
+  // TODO(scheglov) this is duplicate
   DartType _nonNullable(DartType type) {
     if (_isNonNullableByDefault) {
       return _typeSystem.promoteToNonNull(type);
@@ -300,21 +290,16 @@ class AssignmentExpressionResolver {
     _resolver.nullShortingTermination(node);
   }
 
-  /**
-   * If the given [type] is a type parameter, resolve it to the type that should
-   * be used when looking up members. Otherwise, return the original type.
-   *
-   * TODO(scheglov) this is duplicate
-   */
+  /// If the given [type] is a type parameter, resolve it to the type that
+  /// should be used when looking up members. Otherwise, return the original
+  /// type.
+  // TODO(scheglov) this is duplicate
   DartType _resolveTypeParameter(DartType type) =>
       type?.resolveToBound(_typeProvider.objectType);
 
-  /**
-   * Return `true` if we should report an error for the lookup [result] on
-   * the [type].
-   *
-   * TODO(scheglov) this is duplicate
-   */
+  /// Return `true` if we should report an error for the lookup [result] on
+  /// the [type].
+  // TODO(scheglov) this is duplicate
   bool _shouldReportInvalidMember(DartType type, ResolutionResult result) {
     if (result.isNone && type != null && !type.isDynamic) {
       if (_typeSystem.isNonNullableByDefault &&

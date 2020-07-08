@@ -889,6 +889,18 @@ DART_EXPORT int64_t HandleReadFieldValue(Dart_Handle handle) {
   return value;
 }
 
+// Does not have a handle in it's own signature, so does not enter and exit
+// scope in the trampoline.
+DART_EXPORT int64_t PropagateErrorWithoutHandle(Dart_Handle (*callback)()) {
+  Dart_EnterScope();
+  Dart_Handle result = callback();
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+  Dart_ExitScope();
+  return 0;
+}
+
 DART_EXPORT Dart_Handle TrueHandle() {
   return Dart_True();
 }

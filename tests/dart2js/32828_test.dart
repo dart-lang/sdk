@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2jsOptions=--strong
-
 class A {
-  void m2<T>(void Function(T) f, [a]) {}
+  void m2<T>(void Function(T)? f, [a]) {}
 }
 
 main() => new A().m2<String>(null);

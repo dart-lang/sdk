@@ -29,6 +29,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
 import 'package:kernel/ast.dart'
     show
         Arguments,
+        AsyncMarker,
         BottomType,
         Class,
         Component,
@@ -398,7 +399,8 @@ class SourceLoader extends Loader {
         -1,
         -1,
         null,
-        null)
+        null,
+        AsyncMarker.Sync)
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope,
@@ -1300,10 +1302,12 @@ class List<E> extends Iterable {
 
 class _GrowableList<E> {
   factory _GrowableList() => null;
+  factory _GrowableList.filled() => null;
 }
 
 class _List<E> {
   factory _List() => null;
+  factory _List.filled() => null;
 }
 
 class MapEntry<K, V> {

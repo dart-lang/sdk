@@ -316,6 +316,8 @@ class DartFixKind {
       'Move type arguments to after class name');
   static const MAKE_VARIABLE_NOT_FINAL = FixKind(
       'dart.fix.makeVariableNotFinal', 50, "Make variable '{0}' not final");
+  static const ORGANIZE_IMPORTS =
+      FixKind('dart.fix.organize.imports', 50, 'Organize Imports');
   static const QUALIFY_REFERENCE =
       FixKind('dart.fix.qualifyReference', 50, "Use '{0}'");
   static const REMOVE_ANNOTATION =
@@ -449,8 +451,6 @@ class DartFixKind {
       'dart.fix.sort.childPropertyLast',
       50,
       'Move child property to end of arguments');
-  static const SORT_DIRECTIVES =
-      FixKind('dart.fix.sort.directives', 50, 'Sort directives');
   static const UPDATE_SDK_CONSTRAINTS = FixKind(
       'dart.fix.updateSdkConstraints', 50, 'Update the SDK constraints');
   static const USE_CONST =

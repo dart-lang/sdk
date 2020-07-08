@@ -1053,12 +1053,11 @@ class SimpleIdentifierTest extends ParserTestCase {
     return identifier;
   }
 
-  /**
-   * Return the top-most node in the AST structure containing the given identifier.
-   *
-   * @param identifier the identifier in the AST structure being traversed
-   * @return the root of the AST structure containing the identifier
-   */
+  /// Return the top-most node in the AST structure containing the given
+  /// identifier.
+  ///
+  /// @param identifier the identifier in the AST structure being traversed
+  /// @return the root of the AST structure containing the identifier
   AstNode _topMostNode(SimpleIdentifier identifier) {
     AstNode child = identifier;
     AstNode parent = identifier.parent;

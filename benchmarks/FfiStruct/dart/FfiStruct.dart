@@ -46,17 +46,20 @@ int doLoadInt32(Pointer<VeryLargeStruct> pointer, int length) {
 const N = 1000;
 
 class FieldLoadStore extends BenchmarkBase {
-  Pointer<VeryLargeStruct> pointer;
-  FieldLoadStore() : super("FfiStruct.FieldLoadStore");
+  Pointer<VeryLargeStruct> pointer = nullptr;
+  FieldLoadStore() : super('FfiStruct.FieldLoadStore');
 
+  @override
   void setup() => pointer = allocate(count: N);
+  @override
   void teardown() => free(pointer);
 
+  @override
   void run() {
     doStoreInt32(pointer, N);
     final int x = doLoadInt32(pointer, N);
     if (x != N) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
@@ -65,11 +68,13 @@ class FieldLoadStore extends BenchmarkBase {
 // Main driver.
 //
 
-main() {
+void main() {
   final benchmarks = [
     () => FieldLoadStore(),
   ];
-  benchmarks.forEach((benchmark) => benchmark().report());
+  for (final benchmark in benchmarks) {
+    benchmark().report();
+  }
 }
 
 //
@@ -77,45 +82,45 @@ main() {
 //
 class VeryLargeStruct extends Struct {
   @Int8()
-  int a;
+  external int a;
 
   @Int16()
-  int b;
+  external int b;
 
   @Int32()
-  int c;
+  external int c;
 
   @Int64()
-  int d;
+  external int d;
 
   @Uint8()
-  int e;
+  external int e;
 
   @Uint16()
-  int f;
+  external int f;
 
   @Uint32()
-  int g;
+  external int g;
 
   @Uint64()
-  int h;
+  external int h;
 
   @IntPtr()
-  int i;
+  external int i;
 
   @Double()
-  double j;
+  external double j;
 
   @Float()
-  double k;
+  external double k;
 
-  Pointer<VeryLargeStruct> parent;
+  external Pointer<VeryLargeStruct> parent;
 
   @IntPtr()
-  int numChildren;
+  external int numChildren;
 
-  Pointer<VeryLargeStruct> children;
+  external Pointer<VeryLargeStruct> children;
 
   @Int8()
-  int smallLastField;
+  external int smallLastField;
 }

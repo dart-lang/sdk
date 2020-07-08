@@ -2,33 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * An instance of [DependencyWalker] contains the core algorithms for
- * walking a dependency graph and evaluating nodes in a safe order.
- */
+/// An instance of [DependencyWalker] contains the core algorithms for
+/// walking a dependency graph and evaluating nodes in a safe order.
 abstract class DependencyWalker<NodeType extends Node<NodeType>> {
-  /**
-   * Called by [walk] to evaluate a single non-cyclical node, after
-   * all that node's dependencies have been evaluated.
-   */
+  /// Called by [walk] to evaluate a single non-cyclical node, after
+  /// all that node's dependencies have been evaluated.
   void evaluate(NodeType v);
 
-  /**
-   * Called by [walk] to evaluate a strongly connected component
-   * containing one or more nodes.  All dependencies of the strongly
-   * connected component have been evaluated.
-   */
+  /// Called by [walk] to evaluate a strongly connected component
+  /// containing one or more nodes.  All dependencies of the strongly
+  /// connected component have been evaluated.
   void evaluateScc(List<NodeType> scc);
 
-  /**
-   * Walk the dependency graph starting at [startingPoint], finding
-   * strongly connected components and evaluating them in a safe order
-   * by calling [evaluate] and [evaluateScc].
-   *
-   * This is an implementation of Tarjan's strongly connected
-   * components algorithm
-   * (https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm).
-   */
+  /// Walk the dependency graph starting at [startingPoint], finding
+  /// strongly connected components and evaluating them in a safe order
+  /// by calling [evaluate] and [evaluateScc].
+  ///
+  /// This is an implementation of Tarjan's strongly connected
+  /// components algorithm
+  /// (https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm).
   void walk(NodeType startingPoint) {
     // TODO(paulberry): consider rewriting in a non-recursive way so
     // that long dependency chains don't cause stack overflow.
@@ -128,42 +120,30 @@ abstract class DependencyWalker<NodeType extends Node<NodeType>> {
   }
 }
 
-/**
- * Instances of [Node] represent nodes in a dependency graph.  The
- * type parameter, [NodeType], is the derived type (this affords some
- * extra type safety by making it difficult to accidentally construct
- * bridges between unrelated dependency graphs).
- */
+/// Instances of [Node] represent nodes in a dependency graph.  The
+/// type parameter, [NodeType], is the derived type (this affords some
+/// extra type safety by making it difficult to accidentally construct
+/// bridges between unrelated dependency graphs).
 abstract class Node<NodeType> {
-  /**
-   * Index used by Tarjan's strongly connected components algorithm.
-   * Zero means the node has not been visited yet; a nonzero value
-   * counts the order in which the node was visited.
-   */
+  /// Index used by Tarjan's strongly connected components algorithm.
+  /// Zero means the node has not been visited yet; a nonzero value
+  /// counts the order in which the node was visited.
   int _index = 0;
 
-  /**
-   * Low link used by Tarjan's strongly connected components
-   * algorithm.  This represents the smallest [_index] of all the nodes
-   * in the strongly connected component to which this node belongs.
-   */
+  /// Low link used by Tarjan's strongly connected components
+  /// algorithm.  This represents the smallest [_index] of all the nodes
+  /// in the strongly connected component to which this node belongs.
   int _lowLink = 0;
 
   List<NodeType> _dependencies;
 
-  /**
-   * Indicates whether this node has been evaluated yet.
-   */
+  /// Indicates whether this node has been evaluated yet.
   bool get isEvaluated;
 
-  /**
-   * Compute the dependencies of this node.
-   */
+  /// Compute the dependencies of this node.
   List<NodeType> computeDependencies();
 
-  /**
-   * Gets the dependencies of the given node, computing them if necessary.
-   */
+  /// Gets the dependencies of the given node, computing them if necessary.
   static List<NodeType> getDependencies<NodeType>(Node<NodeType> node) {
     return node._dependencies ??= node.computeDependencies();
   }

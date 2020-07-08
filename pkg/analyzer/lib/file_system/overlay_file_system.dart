@@ -14,38 +14,28 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart';
 
-/**
- * A resource provider that allows clients to overlay the file system provided
- * by a base resource provider. These overlays allow both the contents and
- * modification stamps of files to be different than what the base resource
- * provider would report.
- *
- * This provider does not report watch events when overlays are added, modified
- * or removed.
- */
+/// A resource provider that allows clients to overlay the file system provided
+/// by a base resource provider. These overlays allow both the contents and
+/// modification stamps of files to be different than what the base resource
+/// provider would report.
+///
+/// This provider does not report watch events when overlays are added, modified
+/// or removed.
 class OverlayResourceProvider implements ResourceProvider {
-  /**
-   * The underlying resource provider used to access files and folders that
-   * do not have an overlay.
-   */
+  /// The underlying resource provider used to access files and folders that
+  /// do not have an overlay.
   final ResourceProvider baseProvider;
 
-  /**
-   * A map from the paths of files for which there is an overlay to the contents
-   * of the files.
-   */
+  /// A map from the paths of files for which there is an overlay to the
+  /// contents of the files.
   final Map<String, String> _overlayContent = <String, String>{};
 
-  /**
-   * A map from the paths of files for which there is an overlay to the
-   * modification stamps of the files.
-   */
+  /// A map from the paths of files for which there is an overlay to the
+  /// modification stamps of the files.
   final Map<String, int> _overlayModificationStamps = <String, int>{};
 
-  /**
-   * Initialize a newly created resource provider to represent an overlay on the
-   * given [baseProvider].
-   */
+  /// Initialize a newly created resource provider to represent an overlay on
+  /// the given [baseProvider].
   OverlayResourceProvider(this.baseProvider);
 
   @override
@@ -81,16 +71,12 @@ class OverlayResourceProvider implements ResourceProvider {
   Folder getStateLocation(String pluginId) =>
       _OverlayFolder(this, baseProvider.getStateLocation(pluginId));
 
-  /**
-   * Return `true` if there is an overlay associated with the file at the given
-   * [path].
-   */
+  /// Return `true` if there is an overlay associated with the file at the given
+  /// [path].
   bool hasOverlay(String path) => _overlayContent.containsKey(path);
 
-  /**
-   * Remove any overlay of the file at the given [path]. The state of the file
-   * in the base resource provider will not be affected.
-   */
+  /// Remove any overlay of the file at the given [path]. The state of the file
+  /// in the base resource provider will not be affected.
   bool removeOverlay(String path) {
     bool hadOverlay = _overlayContent.containsKey(path);
     _overlayContent.remove(path);
@@ -98,11 +84,9 @@ class OverlayResourceProvider implements ResourceProvider {
     return hadOverlay;
   }
 
-  /**
-   * Overlay the content of the file at the given [path]. The file will appear
-   * to have the given [content] and [modificationStamp] even if the file is
-   * modified in the base resource provider.
-   */
+  /// Overlay the content of the file at the given [path]. The file will appear
+  /// to have the given [content] and [modificationStamp] even if the file is
+  /// modified in the base resource provider.
   void setOverlay(String path,
       {@required String content, @required int modificationStamp}) {
     if (content == null) {
@@ -110,16 +94,15 @@ class OverlayResourceProvider implements ResourceProvider {
           'OverlayResourceProvider.setOverlay: content cannot be null');
     } else if (modificationStamp == null) {
       throw ArgumentError(
-          'OverlayResourceProvider.setOverlay: modificationStamp cannot be null');
+          'OverlayResourceProvider.setOverlay: modificationStamp cannot be '
+          'null');
     }
     _overlayContent[path] = content;
     _overlayModificationStamps[path] = modificationStamp;
   }
 
-  /**
-   * Copy any overlay for the file at the [oldPath] to be an overlay for the
-   * file with the [newPath].
-   */
+  /// Copy any overlay for the file at the [oldPath] to be an overlay for the
+  /// file with the [newPath].
   void _copyOverlay(String oldPath, String newPath) {
     if (hasOverlay(oldPath)) {
       _overlayContent[newPath] = _overlayContent[oldPath];
@@ -127,45 +110,33 @@ class OverlayResourceProvider implements ResourceProvider {
     }
   }
 
-  /**
-   * Return the content of the overlay of the file at the given [path], or
-   * `null` if there is no overlay for the specified file.
-   */
+  /// Return the content of the overlay of the file at the given [path], or
+  /// `null` if there is no overlay for the specified file.
   String _getOverlayContent(String path) {
     return _overlayContent[path];
   }
 
-  /**
-   * Return the modification stamp of the overlay of the file at the given
-   * [path], or `null` if there is no overlay for the specified file.
-   */
+  /// Return the modification stamp of the overlay of the file at the given
+  /// [path], or `null` if there is no overlay for the specified file.
   int _getOverlayModificationStamp(String path) {
     return _overlayModificationStamps[path];
   }
 
-  /**
-   * Return `true` if there is an overlay associated with at least one file
-   * contained inside the folder with the given [folderPath].
-   */
+  /// Return `true` if there is an overlay associated with at least one file
+  /// contained inside the folder with the given [folderPath].
   bool _hasOverlayIn(String folderPath) => _overlayContent.keys
       .any((filePath) => pathContext.isWithin(folderPath, filePath));
 
-  /**
-   * Return the paths of all of the overlaid files that are children of the
-   * given [folder], either directly or indirectly.
-   */
+  /// Return the paths of all of the overlaid files that are children of the
+  /// given [folder], either directly or indirectly.
   Iterable<String> _overlaysInFolder(String folderPath) => _overlayContent.keys
       .where((filePath) => pathContext.isWithin(folderPath, filePath));
 }
 
-/**
- * A file from an [OverlayResourceProvider].
- */
+/// A file from an [OverlayResourceProvider].
 class _OverlayFile extends _OverlayResource implements File {
-  /**
-   * Initialize a newly created file to have the given [provider] and to
-   * correspond to the given [file] from the provider's base resource provider.
-   */
+  /// Initialize a newly created file to have the given [provider] and to
+  /// correspond to the given [file] from the provider's base resource provider.
   _OverlayFile(OverlayResourceProvider provider, File file)
       : super(provider, file);
 
@@ -193,10 +164,8 @@ class _OverlayFile extends _OverlayResource implements File {
     return _file.modificationStamp;
   }
 
-  /**
-   * Return the file from the base resource provider that corresponds to this
-   * folder.
-   */
+  /// Return the file from the base resource provider that corresponds to this
+  /// folder.
   File get _file => _resource as File;
 
   @override
@@ -271,15 +240,11 @@ class _OverlayFile extends _OverlayResource implements File {
   }
 }
 
-/**
- * A folder from an [OverlayResourceProvider].
- */
+/// A folder from an [OverlayResourceProvider].
 class _OverlayFolder extends _OverlayResource implements Folder {
-  /**
-   * Initialize a newly created folder to have the given [provider] and to
-   * correspond to the given [folder] from the provider's base resource
-   * provider.
-   */
+  /// Initialize a newly created folder to have the given [provider] and to
+  /// correspond to the given [folder] from the provider's base resource
+  /// provider.
   _OverlayFolder(OverlayResourceProvider provider, Folder folder)
       : super(provider, folder);
 
@@ -289,10 +254,8 @@ class _OverlayFolder extends _OverlayResource implements Folder {
   @override
   bool get exists => _provider._hasOverlayIn(path) || _resource.exists;
 
-  /**
-   * Return the folder from the base resource provider that corresponds to this
-   * folder.
-   */
+  /// Return the folder from the base resource provider that corresponds to this
+  /// folder.
   Folder get _folder => _resource as Folder;
 
   @override
@@ -342,8 +305,8 @@ class _OverlayFolder extends _OverlayResource implements Folder {
         children[child.path] = _OverlayResource._from(_provider, child);
       }
     } on FileSystemException {
-      // We don't want to throw if we're a folder that only exists in the overlay
-      // and not on disk.
+      // We don't want to throw if we're a folder that only exists in the
+      // overlay and not on disk.
     }
 
     for (String overlayPath in _provider._overlaysInFolder(path)) {
@@ -361,32 +324,22 @@ class _OverlayFolder extends _OverlayResource implements Folder {
   }
 }
 
-/**
- * The base class for resources from an [OverlayResourceProvider].
- */
+/// The base class for resources from an [OverlayResourceProvider].
 abstract class _OverlayResource implements Resource {
-  /**
-   * The resource provider associated with this resource.
-   */
+  /// The resource provider associated with this resource.
   final OverlayResourceProvider _provider;
 
-  /**
-   * The resource from the provider's base provider that corresponds to this
-   * resource.
-   */
+  /// The resource from the provider's base provider that corresponds to this
+  /// resource.
   final Resource _resource;
 
-  /**
-   * Initialize a newly created instance of a resource to have the given
-   * [_provider] and to represent the [_resource] from the provider's base
-   * resource provider.
-   */
+  /// Initialize a newly created instance of a resource to have the given
+  /// [_provider] and to represent the [_resource] from the provider's base
+  /// resource provider.
   _OverlayResource(this._provider, this._resource);
 
-  /**
-   * Return an instance of the subclass of this class corresponding to the given
-   * [resource] that is associated with the given [provider].
-   */
+  /// Return an instance of the subclass of this class corresponding to the
+  /// given [resource] that is associated with the given [provider].
   factory _OverlayResource._from(
       OverlayResourceProvider provider, Resource resource) {
     if (resource is Folder) {

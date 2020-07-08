@@ -2023,7 +2023,39 @@ int f(int? i) => i!;
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
+  Future<void> test_extension_null_check_target() async {
+    var content = '''
+extension E on int/*!*/ {
+  int get plusOne => this + 1;
+}
+int f(int/*?*/ x) => x.plusOne;
+''';
+    var expected = '''
+extension E on int {
+  int get plusOne => this + 1;
+}
+int f(int? x) => x!.plusOne;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42529')
+  Future<void> test_extension_nullable_target() async {
+    var content = '''
+extension E on int {
+  int get one => 1;
+}
+int f(int/*?*/ x) => x.one;
+''';
+    var expected = '''
+extension E on int? {
+  int get one => 1;
+}
+int f(int? x) => x.one;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_extension_nullableOnType_addsNullCheckToThis() async {
     var content = '''
 extension E on String /*?*/ {
@@ -2075,7 +2107,6 @@ void g() => f([null]);
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
   Future<void> test_extension_nullableOnType_viaExplicitInvocation() async {
     var content = '''
 class C {}
@@ -2153,6 +2184,71 @@ extension Cloner<T extends C> on T {
   T clone() => throw Exception();
 }
 C f(C c) => c.clone();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_override() async {
+    var content = '''
+extension E on int {
+  int get plusOne => this + 1;
+}
+int f(int x) => E(x).plusOne;
+''';
+    var expected = '''
+extension E on int {
+  int get plusOne => this + 1;
+}
+int f(int x) => E(x).plusOne;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_override_null_check_target() async {
+    var content = '''
+extension E on int/*!*/ {
+  int get plusOne => this + 1;
+}
+int f(int/*?*/ x) => E(x).plusOne;
+''';
+    var expected = '''
+extension E on int {
+  int get plusOne => this + 1;
+}
+int f(int? x) => E(x!).plusOne;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_override_nullable_result_type() async {
+    var content = '''
+extension E on int {
+  int get nullValue => null;
+}
+int f(int x) => E(x).nullValue;
+''';
+    var expected = '''
+extension E on int {
+  int? get nullValue => null;
+}
+int? f(int x) => E(x).nullValue;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42529')
+  Future<void> test_extension_override_nullable_target() async {
+    var content = '''
+extension E on int {
+  int get one => 1;
+}
+int f(int/*?*/ x) => E(x).one;
+''';
+    var expected = '''
+extension E on int? {
+  int get one => 1;
+}
+int f(int? x) => E(x).one;
 ''';
     await _checkSingleFileChanges(content, expected);
   }

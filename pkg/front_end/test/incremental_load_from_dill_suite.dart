@@ -469,6 +469,9 @@ class NewWorldTest {
         options.fileSystem = fs;
         options.sdkRoot = null;
         options.sdkSummary = sdkSummaryUri;
+        if (world["badSdk"] == true) {
+          options.sdkSummary = sdkSummaryUri.resolve("nonexisting.dill");
+        }
         options.omitPlatform = omitPlatform != false;
         if (world["experiments"] != null) {
           Map<ExperimentalFlag, bool> experimentalFlags =
@@ -486,8 +489,12 @@ class NewWorldTest {
       final Set<String> formattedErrors = Set<String>();
       bool gotWarning = false;
       final Set<String> formattedWarnings = Set<String>();
+      final Set<String> seenDiagnosticCodes = Set<String>();
 
       options.onDiagnostic = (DiagnosticMessage message) {
+        String code = getMessageCodeObject(message)?.name;
+        if (code != null) seenDiagnosticCodes.add(code);
+
         String stringId = message.ansiFormatted.join("\n");
         if (message is FormattedMessage) {
           stringId = message.toJsonString();
@@ -581,6 +588,27 @@ class NewWorldTest {
       }
       performErrorAndWarningCheck(
           world, gotError, formattedErrors, gotWarning, formattedWarnings);
+      if (world["expectInitializationError"] != null) {
+        Set<String> seenInitializationError = seenDiagnosticCodes.intersection({
+          "InitializeFromDillNotSelfContainedNoDump",
+          "InitializeFromDillNotSelfContained",
+          "InitializeFromDillUnknownProblem",
+          "InitializeFromDillUnknownProblemNoDump",
+        });
+        if (world["expectInitializationError"] == true) {
+          if (seenInitializationError.isEmpty) {
+            throw "Expected to see an initialization error but didn't.";
+          }
+        } else if (world["expectInitializationError"] == false) {
+          if (seenInitializationError.isNotEmpty) {
+            throw "Expected not to see an initialization error but did: "
+                "$seenInitializationError.";
+          }
+        } else {
+          throw "Unsupported value for 'expectInitializationError': "
+              "${world["expectInitializationError"]}";
+        }
+      }
       util.throwOnEmptyMixinBodies(component);
       await util.throwOnInsufficientUriToSource(component,
           fileSystem: gotError ? null : fs);
@@ -1593,6 +1621,11 @@ class TestIncrementalCompiler extends IncrementalCompiler {
       doSimulateTransformer(result);
     }
     return result;
+  }
+
+  void recordTemporaryFileForTesting(Uri uri) {
+    File f = new File.fromUri(uri);
+    if (f.existsSync()) f.deleteSync();
   }
 }
 

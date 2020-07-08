@@ -1097,3 +1097,43 @@ class _EmptyStream<T> extends Stream<T> {
     return new _DoneStreamSubscription<T>(onDone);
   }
 }
+
+/** A stream which creates a new controller for each listener. */
+class _MultiStream<T> extends Stream<T> {
+  final bool isBroadcast;
+  /** The callback called for each listen. */
+  final void Function(MultiStreamController<T>) _onListen;
+
+  _MultiStream(this._onListen, this.isBroadcast);
+
+  StreamSubscription<T> listen(void onData(T event)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
+    var controller = _MultiStreamController<T>();
+    controller.onListen = () {
+      _onListen(controller);
+    };
+    return controller._subscribe(
+        onData, onError, onDone, cancelOnError ?? false);
+  }
+}
+
+class _MultiStreamController<T> extends _AsyncStreamController<T>
+    implements MultiStreamController<T> {
+  _MultiStreamController() : super(null, null, null, null);
+
+  void addSync(T data) {
+    _subscription._add(data);
+  }
+
+  void addErrorSync(Object error, [StackTrace? stackTrace]) {
+    _subscription._addError(error, stackTrace ?? StackTrace.empty);
+  }
+
+  void closeSync() {
+    _subscription._close();
+  }
+
+  Stream<T> get stream {
+    throw UnsupportedError("Not available");
+  }
+}

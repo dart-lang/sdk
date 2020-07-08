@@ -78,6 +78,7 @@ callable
 camel
 capitalized
 casing
+causal
 cc
 ccc
 charcode
@@ -271,6 +272,8 @@ i'm
 ia
 ikg
 illustrate
+image
+images
 implementor
 inclosure
 increased
@@ -505,6 +508,7 @@ spurious
 sqrt
 squared
 sssp
+stacks
 stashed
 stat
 stats

@@ -46,7 +46,7 @@ class Example<T> extends ListBase<T> {
 
   @override
   @pragma('dart2js:noInline')
-  void sort([int compare(T a, T b)]) {
+  void sort([int compare(T a, T b)?]) {
     super.sort(compare); // This super call had bad dummy interceptor.
   }
 }

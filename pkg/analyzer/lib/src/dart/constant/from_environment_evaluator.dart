@@ -6,7 +6,7 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
-import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 
 class FromEnvironmentEvaluator {
   /// Parameter to "fromEnvironment" methods that denotes the default value.

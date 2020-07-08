@@ -2677,7 +2677,7 @@ LocationSummary* LoadCodeUnitsInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const bool might_box = (representation() == kTagged) && !can_pack_into_smi();
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = might_box ? 1 : 0;
+  const intptr_t kNumTemps = might_box ? 2 : 0;
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
       might_box ? LocationSummary::kCallOnSlowPath : LocationSummary::kNoCall);
@@ -2686,6 +2686,7 @@ LocationSummary* LoadCodeUnitsInstr::MakeLocationSummary(Zone* zone,
 
   if (might_box) {
     summary->set_temp(0, Location::RequiresRegister());
+    summary->set_temp(1, Location::RequiresRegister());
   }
 
   if (representation() == kUnboxedInt64) {
@@ -6559,17 +6560,10 @@ void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // in order to be able to allocate it on register.
   __ CompareObject(value_reg, Object::null_object());
 
-  auto object_store = compiler->isolate()->object_store();
   const bool live_fpu_regs = locs()->live_registers()->FpuRegisterCount() > 0;
-  const Code& stub = Code::ZoneHandle(
+  Code& stub = Code::ZoneHandle(
       compiler->zone(),
-      IsArgumentCheck()
-          ? (live_fpu_regs
-                 ? object_store->null_arg_error_stub_with_fpu_regs_stub()
-                 : object_store->null_arg_error_stub_without_fpu_regs_stub())
-          : (live_fpu_regs
-                 ? object_store->null_error_stub_with_fpu_regs_stub()
-                 : object_store->null_error_stub_without_fpu_regs_stub()));
+      NullErrorSlowPath::GetStub(compiler, exception_type(), live_fpu_regs));
   const bool using_shared_stub = locs()->call_on_shared_slow_path();
 
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
@@ -6588,12 +6582,8 @@ void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  ThrowErrorSlowPathCode* slow_path = nullptr;
-  if (IsArgumentCheck()) {
-    slow_path = new NullArgErrorSlowPath(this, compiler->CurrentTryIndex());
-  } else {
-    slow_path = new NullErrorSlowPath(this, compiler->CurrentTryIndex());
-  }
+  ThrowErrorSlowPathCode* slow_path =
+      new NullErrorSlowPath(this, compiler->CurrentTryIndex());
   compiler->AddSlowPathCode(slow_path);
 
   __ BranchIf(EQUAL, slow_path->entry_label());

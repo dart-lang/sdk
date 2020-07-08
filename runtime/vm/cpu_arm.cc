@@ -24,8 +24,7 @@
 #endif
 
 // ARM version differences.
-// We support two major 32-bit ARM ISA versions: ARMv6 and variants,
-// and ARMv7 and variants. For each of these we detect the presence of vfp,
+// We support only ARMv7 and variants. We detect the presence of vfp,
 // neon, and integer division instructions. Considering ARMv5TE as the baseline,
 // later versions add the following features/instructions that we use:
 //
@@ -41,37 +40,21 @@
 //
 // If an aarch64 CPU is detected, we generate ARMv7 code.
 //
-// If an instruction is missing on ARMv6, we emulate it, if possible.
 // Where we are missing vfp, we do not unbox doubles, or generate intrinsics for
 // floating point operations. Where we are missing neon, we do not unbox SIMD
 // values, or inline operations on SIMD values. Where we are missing integer
 // division, we do not inline division operations, and we do not generate
 // intrinsics that do division. See the feature tests in flow_graph_optimizer.cc
 // for details.
-//
-// Alignment:
-//
-// On ARMv6 and on, we assume that the kernel is set up to fixup unaligned
-// accesses. This can be verified by checking /proc/cpu/alignment on modern
-// Linux systems.
 
 namespace dart {
 
-#if defined(TARGET_ARCH_ARM_6)
-DEFINE_FLAG(bool, use_vfp, true, "Use vfp instructions if supported");
-DEFINE_FLAG(bool, use_neon, false, "Use neon instructions if supported");
-DEFINE_FLAG(bool,
-            use_integer_division,
-            false,
-            "Use integer division instruction if supported");
-#else
 DEFINE_FLAG(bool, use_vfp, true, "Use vfp instructions if supported");
 DEFINE_FLAG(bool, use_neon, true, "Use neon instructions if supported");
 DEFINE_FLAG(bool,
             use_integer_division,
             true,
             "Use integer division instruction if supported");
-#endif
 
 #if defined(TARGET_HOST_MISMATCH)
 #if defined(TARGET_OS_ANDROID) || defined(TARGET_OS_IOS)
@@ -126,7 +109,6 @@ bool HostCPUFeatures::vfp_supported_ = false;
 bool HostCPUFeatures::neon_supported_ = false;
 bool HostCPUFeatures::hardfp_supported_ = false;
 const char* HostCPUFeatures::hardware_ = NULL;
-ARMVersion HostCPUFeatures::arm_version_ = ARMvUnknown;
 intptr_t HostCPUFeatures::store_pc_read_offset_ = 8;
 #if defined(DEBUG)
 bool HostCPUFeatures::initialized_ = false;
@@ -140,9 +122,6 @@ void HostCPUFeatures::Init() {
   hardware_ = "";
   // When the VM is targetted to ARMv7, pretend that the CPU is ARMv7 even if
   // the CPU is actually AArch64.
-  arm_version_ = ARMv7;
-  // Always assume we have floating point unit since we don't support ARMv6 in
-  // this path.
   vfp_supported_ = FLAG_use_vfp;
   integer_division_supported_ = FLAG_use_integer_division;
   neon_supported_ = FLAG_use_neon;
@@ -157,27 +136,18 @@ void HostCPUFeatures::Init() {
   CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
 
-  // Check for ARMv6, ARMv7, or aarch64.
+  // Check for ARMv7, or aarch64.
   // It can be in either the Processor or Model information fields.
   if (CpuInfo::FieldContains(kCpuInfoProcessor, "aarch64") ||
       CpuInfo::FieldContains(kCpuInfoModel, "aarch64") ||
       CpuInfo::FieldContains(kCpuInfoArchitecture, "8") ||
       CpuInfo::FieldContains(kCpuInfoArchitecture, "AArch64")) {
     // pretend that this arm64 cpu is really an ARMv7
-    arm_version_ = ARMv7;
     is_arm64 = true;
-  } else if (CpuInfo::FieldContains(kCpuInfoProcessor, "ARMv6") ||
-             CpuInfo::FieldContains(kCpuInfoModel, "ARMv6")) {
-    // Raspberry Pi, etc.
-    arm_version_ = ARMv6;
-  } else if (CpuInfo::FieldContains(kCpuInfoProcessor, "ARMv7") ||
-             CpuInfo::FieldContains(kCpuInfoModel, "ARMv7") ||
-             CpuInfo::FieldContains(kCpuInfoArchitecture, "7")) {
-    arm_version_ = ARMv7;
-  } else {
-#if defined(DART_RUN_IN_QEMU_ARMv7)
-    arm_version_ = ARMv7;
-#else
+  } else if (!CpuInfo::FieldContains(kCpuInfoProcessor, "ARMv7") &&
+             !CpuInfo::FieldContains(kCpuInfoModel, "ARMv7") &&
+             !CpuInfo::FieldContains(kCpuInfoArchitecture, "7")) {
+#if !defined(DART_RUN_IN_QEMU_ARMv7)
     FATAL("Unrecognized ARM CPU architecture.");
 #endif
   }
@@ -261,12 +231,6 @@ void HostCPUFeatures::Cleanup() {
 void HostCPUFeatures::Init() {
   CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
-
-#if defined(TARGET_ARCH_ARM_6)
-  arm_version_ = ARMv6;
-#else
-  arm_version_ = ARMv7;
-#endif
 
   integer_division_supported_ = FLAG_use_integer_division;
   vfp_supported_ = FLAG_use_vfp;

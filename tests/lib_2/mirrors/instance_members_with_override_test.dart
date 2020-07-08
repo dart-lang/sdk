@@ -6,12 +6,9 @@ library test.instance_members_with_override;
 
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
-import 'package:meta/meta.dart' show virtual;
 
 class S {
-  @virtual
   var field;
-  @virtual
   final finalField = 0;
   method() {}
   get getter {}

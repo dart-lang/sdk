@@ -1,0 +1,15 @@
+abstract class ImageStreamCompleter {
+  void addListener();
+}
+
+class _LiveImage {
+  factory _LiveImage(ImageStreamCompleter a) => throw UnimplementedError();
+}
+
+abstract class Foo {
+  dynamic get _pendingImages;
+  ImageStreamCompleter? putIfAbsent(
+      Object key, ImageStreamCompleter loader()) {}
+}
+
+main() {}

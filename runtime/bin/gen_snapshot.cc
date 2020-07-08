@@ -157,7 +157,7 @@ static void PrintUsage() {
 "--help                                                                      \n"
 "  Display this message (add --verbose for information about all VM options).\n"
 "--version                                                                   \n"
-"  Print the VM version.                                                     \n"
+"  Print the SDK version.                                                    \n"
 "                                                                            \n"
 "To create a core snapshot:                                                  \n"
 "--snapshot_kind=core                                                        \n"
@@ -235,7 +235,7 @@ static int ParseArguments(int argc,
     PrintUsage();
     Platform::Exit(0);
   } else if (version) {
-    Syslog::PrintErr("Dart VM version: %s\n", Dart_VersionString());
+    Syslog::PrintErr("Dart SDK version: %s\n", Dart_VersionString());
     Platform::Exit(0);
   }
 

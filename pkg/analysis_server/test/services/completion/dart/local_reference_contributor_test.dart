@@ -2995,6 +2995,32 @@ main() {
     assertNotSuggested('String');
   }
 
+  @failingTest
+  Future<void> test_ForEachStatement_statement_typed() async {
+    // Statement  ForEachStatement
+    addTestSource('main(args) {for (int foo in bar) ^}');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestParameter('args', null);
+    assertSuggestLocalVariable('foo', 'int');
+    assertNotSuggested('Object');
+  }
+
+  @failingTest
+  Future<void> test_ForEachStatement_statement_untyped() async {
+    // Statement  ForEachStatement
+    addTestSource('main(args) {for (var foo in bar) ^}');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestParameter('args', null);
+    assertSuggestLocalVariable('foo', null);
+    assertNotSuggested('Object');
+  }
+
   Future<void> test_FormalParameterList() async {
     // FormalParameterList MethodDeclaration
     addTestSource('''

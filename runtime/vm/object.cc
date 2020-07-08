@@ -6939,6 +6939,22 @@ FunctionPtr Function::FfiCSignature() const {
   return FfiTrampolineData::Cast(obj).c_signature();
 }
 
+bool Function::FfiCSignatureContainsHandles() const {
+  ASSERT(IsFfiTrampoline());
+  const Function& c_signature = Function::Handle(FfiCSignature());
+  const intptr_t num_params = c_signature.num_fixed_parameters();
+  for (intptr_t i = 0; i < num_params; i++) {
+    const bool is_handle =
+        AbstractType::Handle(c_signature.ParameterTypeAt(i)).type_class_id() ==
+        kFfiHandleCid;
+    if (is_handle) {
+      return true;
+    }
+  }
+  return AbstractType::Handle(c_signature.result_type()).type_class_id() ==
+         kFfiHandleCid;
+}
+
 int32_t Function::FfiCallbackId() const {
   ASSERT(IsFfiTrampoline());
   const Object& obj = Object::Handle(raw_ptr()->data_);
@@ -14332,14 +14348,6 @@ SingleTargetCachePtr SingleTargetCache::New() {
   return result.raw();
 }
 
-void UnlinkedCall::set_target_name(const String& value) const {
-  StorePointer(&raw_ptr()->target_name_, value.raw());
-}
-
-void UnlinkedCall::set_args_descriptor(const Array& value) const {
-  StorePointer(&raw_ptr()->args_descriptor_, value.raw());
-}
-
 void UnlinkedCall::set_can_patch_to_monomorphic(bool value) const {
   StoreNonPointer(&raw_ptr()->can_patch_to_monomorphic_, value);
 }
@@ -14350,7 +14358,7 @@ intptr_t UnlinkedCall::Hashcode() const {
 
 bool UnlinkedCall::Equals(const UnlinkedCall& other) const {
   return (target_name() == other.target_name()) &&
-         (args_descriptor() == other.args_descriptor()) &&
+         (arguments_descriptor() == other.arguments_descriptor()) &&
          (can_patch_to_monomorphic() == other.can_patch_to_monomorphic());
 }
 
@@ -15295,7 +15303,7 @@ UnlinkedCallPtr ICData::AsUnlinkedCall() const {
   ASSERT(!is_tracking_exactness());
   const UnlinkedCall& result = UnlinkedCall::Handle(UnlinkedCall::New());
   result.set_target_name(String::Handle(target_name()));
-  result.set_args_descriptor(Array::Handle(arguments_descriptor()));
+  result.set_arguments_descriptor(Array::Handle(arguments_descriptor()));
   result.set_can_patch_to_monomorphic(!FLAG_precompiled_mode ||
                                       receiver_cannot_be_smi());
   return result.raw();
@@ -15956,6 +15964,7 @@ CodePtr Code::FinalizeCodeAndNotify(const char* name,
 
 #if defined(DART_PRECOMPILER)
 DECLARE_FLAG(charp, write_v8_snapshot_profile_to);
+DECLARE_FLAG(charp, trace_precompiler_to);
 #endif  // defined(DART_PRECOMPILER)
 
 CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
@@ -15977,12 +15986,13 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
     }
   } else {
 #if defined(DART_PRECOMPILER)
-    if (FLAG_write_v8_snapshot_profile_to != nullptr &&
-        assembler->HasObjectPoolBuilder() &&
+    const bool needs_pool = (FLAG_write_v8_snapshot_profile_to != nullptr) ||
+                            (FLAG_trace_precompiler_to != nullptr);
+    if (needs_pool && assembler->HasObjectPoolBuilder() &&
         assembler->object_pool_builder().HasParent()) {
       // We are not going to write this pool into snapshot, but we will use
-      // it to emit references from code object to other objects in the
-      // snapshot that it caused to be added to the pool.
+      // it to emit references from this code object to other objects in the
+      // snapshot that it uses.
       object_pool =
           ObjectPool::NewFromBuilder(assembler->object_pool_builder());
     }
@@ -23460,7 +23470,7 @@ const char* ExternalTypedData::ToCString() const {
 }
 
 PointerPtr Pointer::New(const AbstractType& type_arg,
-                        size_t native_address,
+                        uword native_address,
                         Heap::Space space) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();

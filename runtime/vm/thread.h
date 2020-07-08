@@ -109,6 +109,10 @@ class Thread;
     StubCode::NullArgErrorSharedWithoutFPURegs().raw(), nullptr)               \
   V(CodePtr, null_arg_error_shared_with_fpu_regs_stub_,                        \
     StubCode::NullArgErrorSharedWithFPURegs().raw(), nullptr)                  \
+  V(CodePtr, null_cast_error_shared_without_fpu_regs_stub_,                    \
+    StubCode::NullCastErrorSharedWithoutFPURegs().raw(), nullptr)              \
+  V(CodePtr, null_cast_error_shared_with_fpu_regs_stub_,                       \
+    StubCode::NullCastErrorSharedWithFPURegs().raw(), nullptr)                 \
   V(CodePtr, range_error_shared_without_fpu_regs_stub_,                        \
     StubCode::RangeErrorSharedWithoutFPURegs().raw(), nullptr)                 \
   V(CodePtr, range_error_shared_with_fpu_regs_stub_,                           \

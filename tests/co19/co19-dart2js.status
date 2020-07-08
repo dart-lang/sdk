@@ -18,6 +18,7 @@ Language/Expressions/Shift/integer_t01: SkipByDesign # big integer cannot be rep
 Language/Expressions/Shift/integer_t02: SkipByDesign # big integer cannot be represented in JavaScript
 Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign
 Language/Metadata/before*: Skip # dart:mirrors not supported https://github.com/dart-lang/co19/issues/523.
+Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: SkipByDesign # binary '~' produces different results in JavaScript and Dart
 LibTest/io/*: SkipByDesign # dart:io not supported.
 LibTest/isolate/*: SkipByDesign # dart:isolate not supported.
 

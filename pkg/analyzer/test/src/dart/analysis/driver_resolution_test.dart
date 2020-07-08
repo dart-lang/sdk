@@ -36,9 +36,7 @@ final isNeverType = TypeMatcher<NeverTypeImpl>();
 
 final isVoidType = TypeMatcher<VoidTypeImpl>();
 
-/**
- * Integration tests for resolution.
- */
+/// Integration tests for resolution.
 @reflectiveTest
 class AnalysisDriverResolutionTest extends DriverResolutionTest
     with ElementsTypesMixin {
@@ -8610,9 +8608,7 @@ main() {
   }
 }
 
-/**
- * Resolution tests that are run with all of the experiments enabled.
- */
+/// Resolution tests that are run with all of the experiments enabled.
 @reflectiveTest
 class DriverResolutionWithExperimentsTest extends BaseAnalysisDriverTest {
   @override

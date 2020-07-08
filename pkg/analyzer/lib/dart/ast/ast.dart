@@ -4028,7 +4028,7 @@ abstract class NodeList<E extends AstNode> implements List<E> {
   void operator []=(int index, E node);
 
   /// Use the given [visitor] to visit each of the nodes in this list.
-  accept(AstVisitor visitor);
+  void accept(AstVisitor visitor);
 }
 
 /// A formal parameter that is required (is not optional).

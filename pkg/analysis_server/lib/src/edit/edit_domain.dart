@@ -27,7 +27,7 @@ import 'package:analysis_server/src/services/correction/fix/dart/top_level_decla
 import 'package:analysis_server/src/services/correction/fix/manifest/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analysis_server/src/services/correction/organize_directives.dart';
+import 'package:analysis_server/src/services/correction/organize_imports.dart';
 import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -502,7 +502,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
     // do organize
-    var sorter = DirectiveOrganizer(code, unit, errors);
+    var sorter = ImportOrganizer(code, unit, errors);
     var edits = sorter.organize();
     var fileEdit = SourceFileEdit(file, fileStamp, edits: edits);
     server.sendResponse(

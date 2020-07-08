@@ -44,11 +44,11 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "bfa5ab1e3a0be81899760af9c24ab734348114a5",
+  "co19_rev": "4035c66f0cacb70064395473cb54d810c046c225",
   "co19_2_rev": "620c1148c8b7a3d7f74afacf348c46f109eb64f2",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
-  "benchmarks_internal_rev": "02695da98bcf006b95630d3c386f4169d7ec4ecf",
+  "benchmarks_internal_rev": "88af52754f272e7a4c5737b7e003c2ed9e8a754f",
   "checkout_benchmarks_internal": False,
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -66,8 +66,8 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.6.0",
-  "async_tag": "2.4.1",
-  "bazel_worker_tag": "v0.1.22",
+  "async_rev": "e0c41e0c1fb70ba606dc81335c981af7c00987c6",
+  "bazel_worker_rev": "26680d5e249b249c7216ab2fed0ac8ed4ee285c5",
   "benchmark_harness_rev": "81641290dea44c34138a109a37e215482f405f81",
   "boolean_selector_rev": "1309eabed510cc3b7536fd4367d39b97ebee3d69",
   "boringssl_gen_rev": "429ccb1877f7987a6f3988228bc2440e61293499",
@@ -76,7 +76,7 @@ vars = {
   "charcode_rev": "9085e6b6127f084d66c0a94810a808121459012a",
   "chrome_rev" : "19997",
   "cli_util_tag" : "0.1.4",
-  "collection_rev": "7be42e03d427cc19571cd7f9fc628a5913a6b757",
+  "collection_rev": "80f5b6de8a8d8d584732a71bb59912da3e44883b",
   "convert_rev": "49bde5b371eb5c2c8e721557cf762f17c75e49fc",
   "crypto_rev": "7422fb2f6584fe1839eb30bc4ca56e9f9760b801",
   "csslib_rev": "bf372d4fdc6dfa232ad93f77a0a3de0891edd04c",
@@ -98,7 +98,7 @@ vars = {
 
   "dartdoc_tag" : "v0.32.1",
   "ffi_rev": "454ab0f9ea6bd06942a983238d8a6818b1357edb",
-  "fixnum_rev": "13da5123989a5d91cb59e76793c3923dd8d06e90",
+  "fixnum_rev": "9b38f49f6679654d66a363e69e48173cca07e882",
   "glob_rev": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
   "html_rev": "083a36cd801a4b787ba156b7c6e4c8b2e2daed4a",
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
@@ -142,23 +142,23 @@ vars = {
   "source_maps-0.9.4_rev": "38524",
   "source_maps_rev": "87b4fd9027378bbd51b02e9d7df794eee8a82b7a",
   "source_span_tag": "1.7.0",
-  "stack_trace_tag": "07569831f17844ef90214a179db211954a7f7324",
-  "stagehand_tag": "v3.3.7",
+  "stack_trace_tag": "56811dbb2530d823b764fe167ec335879a4adb32",
+  "stagehand_tag": "v3.3.9",
   "stream_channel_tag": "70433d577be02c48cb16d72d65654f3b4d82c6ed",
   "string_scanner_rev": "a918e7371af6b6e73bfd534ff9da6084741c1f99",
   "test_descriptor_tag": "1.1.1",
   "test_process_tag": "1.0.3",
   "term_glyph_rev": "b3da31e9684a99cfe5f192b89914492018b44da7",
   "test_reflective_loader_tag": "0.1.9",
-  "test_rev": "988e38ff3051f24607ad0aaf4e780835785f2ab5",
+  "test_rev": "718fe6f93c4655208460f28e89d887c5ef4144c5",
   "tflite_native_rev": "3c777c40608a2a9f1427bfe0028ab48e7116b4c1",
-  "typed_data_tag": "1.1.6",
+  "typed_data_tag": "0c369b73a9b7ebf042c06512951bfe5b52b84a5f",
   "usage_tag": "3.4.0",
   "watcher_rev": "fc3c9aae5d31d707b3013b42634dde8d8a1161b4",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "490061ef0e22d3c8460ad2802f9948219365ad6b",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
-  "yaml_rev": "62e9f6b3a933b1f76dd3007d1a5ce0be8e429b2d",
+  "yaml_rev": "e5de429147a6b0fcb7e8ddb3c8e4674dc5dd0ecc",
   "zlib_rev": "c44fb7248079cc3d5563b14b3f758aee60d6b415",
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",
   "minichromium_rev": "8d641e30a8b12088649606b912c2bc4947419ccc",
@@ -295,9 +295,9 @@ deps = {
   Var("dart_root") + "/third_party/pkg/args":
       Var("dart_git") + "args.git" + "@" + Var("args_tag"),
   Var("dart_root") + "/third_party/pkg/async":
-      Var("dart_git") + "async.git" + "@" + Var("async_tag"),
+      Var("dart_git") + "async.git" + "@" + Var("async_rev"),
   Var("dart_root") + "/third_party/pkg/bazel_worker":
-      Var("dart_git") + "bazel_worker.git" + "@" + Var("bazel_worker_tag"),
+      Var("dart_git") + "bazel_worker.git" + "@" + Var("bazel_worker_rev"),
   Var("dart_root") + "/third_party/pkg/benchmark_harness":
       Var("dart_git") + "benchmark_harness.git" + "@" +
       Var("benchmark_harness_rev"),
@@ -512,7 +512,7 @@ deps = {
     "packages": [
       {
         "package": "dart/cfe/dart2js_dills",
-        "version": "binary_version:42",
+        "version": "binary_version:43_2",
       }
     ],
     "dep_type": "cipd",

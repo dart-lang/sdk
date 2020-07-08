@@ -101,11 +101,11 @@ class BarKeep extends pro::GeneratedMessage {
   @#C11
   static method create() → self::BarKeep*
     return new self::BarKeep::_();
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6]  @#C13
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9]  @#C13
   set aKeep([@vm.inferred-type.metadata=dart.core::_Smi] core::int* v) → void {
     [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_setSignedInt32] [@vm.inferred-type.metadata=!? (skip check)] this.{pro::GeneratedMessage::$_setSignedInt32}(0, v);
   }
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9]  @#C25
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:10]  @#C25
   set bDrop([@vm.inferred-type.metadata=dart.core::_Smi (value: 4)] core::int* v) → void {
     [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_setSignedInt32] [@vm.inferred-type.metadata=!? (skip check)] this.{pro::GeneratedMessage::$_setSignedInt32}(1, v);
   }
@@ -157,7 +157,7 @@ class ZopDrop extends pro::GeneratedMessage {
   @#C11
   static method create() → self::ZopDrop*
     return new self::ZopDrop::_();
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:10]  @#C13
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11]  @#C13
   set aDrop([@vm.inferred-type.metadata=dart.core::_Smi (value: 3)] core::int* v) → void {
     [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_setSignedInt32] [@vm.inferred-type.metadata=!? (skip check)] this.{pro::GeneratedMessage::$_setSignedInt32}(0, v);
   }

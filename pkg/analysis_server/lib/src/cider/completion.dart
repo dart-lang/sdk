@@ -13,9 +13,9 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/micro/performance.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 
@@ -32,8 +32,8 @@ class CiderCompletionComputer {
   final CiderCompletionCache _cache;
   final FileResolver _fileResolver;
 
-  final CiderOperationPerformanceImpl _performanceRoot =
-      CiderOperationPerformanceImpl('<root>');
+  final OperationPerformanceImpl _performanceRoot =
+      OperationPerformanceImpl('<root>');
 
   DartCompletionRequestImpl _dartCompletionRequest;
 
@@ -103,23 +103,18 @@ class CiderCompletionComputer {
             );
 
             return await manager.computeSuggestions(
+              performance,
               completionRequest,
               enableUriContributor: false,
             );
           });
-
-          for (var operation in completionRequest.performance.operations) {
-            performance.addChildFixed(
-              operation.name,
-              operation.elapsed,
-            );
-          }
 
           return result;
         },
       );
 
       _dartCompletionRequest = await DartCompletionRequestImpl.from(
+        performance,
         completionRequest,
         dartdocDirectiveInfo,
       );
@@ -129,7 +124,8 @@ class CiderCompletionComputer {
           _logger.run('Add imported suggestions', () {
             suggestions.addAll(
               _importedLibrariesSuggestions(
-                resolvedUnit.libraryElement,
+                target: resolvedUnit.libraryElement,
+                performance: performance,
               ),
             );
           });
@@ -187,12 +183,16 @@ class CiderCompletionComputer {
   ///
   /// TODO(scheglov) Implement show / hide combinators.
   /// TODO(scheglov) Implement prefixes.
-  List<CompletionSuggestion> _importedLibrariesSuggestions(
-    LibraryElement target,
-  ) {
+  List<CompletionSuggestion> _importedLibrariesSuggestions({
+    @required LibraryElement target,
+    @required OperationPerformanceImpl performance,
+  }) {
     var suggestions = <CompletionSuggestion>[];
     for (var importedLibrary in target.importedLibraries) {
-      var importedSuggestions = _importedLibrarySuggestions(importedLibrary);
+      var importedSuggestions = _importedLibrarySuggestions(
+        element: importedLibrary,
+        performance: performance,
+      );
       suggestions.addAll(importedSuggestions);
     }
     return suggestions;
@@ -200,11 +200,15 @@ class CiderCompletionComputer {
 
   /// Return cached, or compute unprefixed suggestions for all elements
   /// exported from the library.
-  List<CompletionSuggestion> _importedLibrarySuggestions(
-    LibraryElement element,
-  ) {
+  List<CompletionSuggestion> _importedLibrarySuggestions({
+    @required LibraryElement element,
+    @required OperationPerformanceImpl performance,
+  }) {
     var path = element.source.fullName;
-    var signature = _fileResolver.getLibraryLinkedSignature(path);
+    var signature = _fileResolver.getLibraryLinkedSignature(
+      path: path,
+      performance: performance,
+    );
 
     var cacheEntry = _cache._importedLibraries[path];
     if (cacheEntry == null || cacheEntry.signature != signature) {
@@ -247,7 +251,7 @@ class CiderCompletionPerformance {
   final Duration suggestions;
 
   /// The tree of operation performances.
-  final CiderOperationPerformance operations;
+  final OperationPerformance operations;
 
   CiderCompletionPerformance._({
     @required this.file,

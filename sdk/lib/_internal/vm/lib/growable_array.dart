@@ -107,6 +107,18 @@ class _GrowableList<T> extends ListBase<T> {
     return new _GrowableList<T>._withData(data);
   }
 
+  // Specialization of List.filled constructor for growable == true.
+  // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
+  factory _GrowableList.filled(int length, T fill) {
+    final result = _GrowableList<T>(length);
+    if (fill != null) {
+      for (int i = 0; i < result.length; i++) {
+        result[i] = fill;
+      }
+    }
+    return result;
+  }
+
   @pragma("vm:exact-result-type",
       <dynamic>[_GrowableList, "result-type-uses-passed-type-arguments"])
   factory _GrowableList._withData(_List data) native "GrowableList_allocate";
@@ -120,15 +132,16 @@ class _GrowableList<T> extends ListBase<T> {
   int get length native "GrowableList_getLength";
 
   void set length(int new_length) {
-    int old_capacity = _capacity;
-    int new_capacity = new_length;
-    if (new_capacity > old_capacity) {
+    if (new_length > length) {
       // Verify that element type is nullable.
       null as T;
-      _grow(new_capacity);
+      if (new_length > _capacity) {
+        _grow(new_length);
+      }
       _setLength(new_length);
       return;
     }
+    final int new_capacity = new_length;
     // We are shrinking. Pick the method which has fewer writes.
     // In the shrink-to-fit path, we write |new_capacity + new_length| words
     // (null init + copy).

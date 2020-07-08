@@ -90,9 +90,15 @@ class RuntimeCompletionComputer {
       false,
       CompletionPerformance(),
     );
-    var suggestions = await contributor.computeSuggestions(
-      request,
-      enableUriContributor: true,
+
+    var suggestions = await request.performance.runRequestOperation(
+      (performance) async {
+        return await contributor.computeSuggestions(
+          performance,
+          request,
+          enableUriContributor: true,
+        );
+      },
     );
 
     // Remove completions with synthetic import prefixes.

@@ -384,9 +384,9 @@ footer .sdk-version {
   background-color: #178afd; /* $dark-selection-color */
   color: #fff;
   display: inline-block;
-  height: 18px;
+  height: 14px;
   position: relative;
-  top: 3px;
+  top: 1px;
 }
 
 .target {

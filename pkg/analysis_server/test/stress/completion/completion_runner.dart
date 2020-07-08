@@ -61,7 +61,7 @@ class CompletionRunner {
         includedPaths: <String>[analysisRoot],
         resourceProvider: resourceProvider);
     var contributor = DartCompletionManager();
-    var performance = CompletionPerformance();
+    var statistics = CompletionPerformance();
     var stamp = 1;
 
     var fileCount = 0;
@@ -100,10 +100,15 @@ class CompletionRunner {
 
           timer.start();
           var request =
-              CompletionRequestImpl(result, offset, false, performance);
-          var suggestions = await contributor.computeSuggestions(
-            request,
-            enableUriContributor: true,
+              CompletionRequestImpl(result, offset, false, statistics);
+          var suggestions = await request.performance.runRequestOperation(
+            (performance) async {
+              return await contributor.computeSuggestions(
+                performance,
+                request,
+                enableUriContributor: true,
+              );
+            },
           );
           timer.stop();
 

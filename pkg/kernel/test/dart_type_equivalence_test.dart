@@ -147,6 +147,21 @@ run() {
       equateTopTypes: true, ignoreAllNullabilities: true);
   notEqual("FutureOr<Object>", "Object",
       equateTopTypes: true, ignoreAllNullabilities: true);
+
+  // Typedef types.
+  areEqual("Typedef<int>", "Typedef<int>");
+  notEqual("Typedef<String>", "Typedef<num>");
+  notEqual("Typedef<num?>?", "Typedef<num>");
+  notEqual("Typedef<num?>?", "Typedef<num>", ignoreTopLevelNullability: true);
+  areEqual("Typedef<num?>?", "Typedef<num>", ignoreAllNullabilities: true);
+  notEqual("Typedef<Object?>?", "Typedef<dynamic>");
+  notEqual("Typedef<Object?>?", "Typedef<dynamic>",
+      ignoreTopLevelNullability: true);
+  notEqual("Typedef<Object?>?", "Typedef<dynamic>",
+      ignoreAllNullabilities: true);
+  notEqual("Typedef<Object?>?", "Typedef<dynamic>", equateTopTypes: true);
+  areEqual("Typedef<Object?>?", "Typedef<dynamic>",
+      equateTopTypes: true, ignoreTopLevelNullability: true);
 }
 
 areEqual(String type1, String type2,
@@ -154,7 +169,8 @@ areEqual(String type1, String type2,
     bool equateTopTypes = false,
     bool ignoreAllNullabilities = false,
     bool ignoreTopLevelNullability = false}) {
-  Env env = new Env('')..extendWithTypeParameters(typeParameters);
+  Env env = new Env("typedef Typedef<T> () -> T;\n")
+    ..extendWithTypeParameters(typeParameters);
   DartType t1 = env.parseType(type1);
   DartType t2 = env.parseType(type2);
 
@@ -192,7 +208,8 @@ notEqual(String type1, String type2,
     bool equateTopTypes = false,
     bool ignoreAllNullabilities = false,
     bool ignoreTopLevelNullability = false}) {
-  Env env = new Env('')..extendWithTypeParameters(typeParameters);
+  Env env = new Env("typedef Typedef<T> () -> T;\n")
+    ..extendWithTypeParameters(typeParameters);
   DartType t1 = env.parseType(type1);
   DartType t2 = env.parseType(type2);
 

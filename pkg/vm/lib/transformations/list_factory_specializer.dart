@@ -13,13 +13,17 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 /// new List() => new _GrowableList(0)
 /// new List(n) => new _List(n)
 /// new List.filled(n, null, growable: true) => new _GrowableList(n)
+/// new List.filled(n, x, growable: true) => new _GrowableList.filled(n, x)
 /// new List.filled(n, null) => new _List(n)
+/// new List.filled(n, x) => new _List.filled(n, x)
 ///
 class ListFactorySpecializer {
   final Procedure _defaultListFactory;
   final Procedure _listFilledFactory;
   final Procedure _growableListFactory;
+  final Procedure _growableListFilledFactory;
   final Procedure _fixedListFactory;
+  final Procedure _fixedListFilledFactory;
 
   ListFactorySpecializer(CoreTypes coreTypes)
       : _defaultListFactory =
@@ -28,12 +32,17 @@ class ListFactorySpecializer {
             coreTypes.index.getMember('dart:core', 'List', 'filled'),
         _growableListFactory =
             coreTypes.index.getMember('dart:core', '_GrowableList', ''),
-        _fixedListFactory =
-            coreTypes.index.getMember('dart:core', '_List', '') {
+        _growableListFilledFactory =
+            coreTypes.index.getMember('dart:core', '_GrowableList', 'filled'),
+        _fixedListFactory = coreTypes.index.getMember('dart:core', '_List', ''),
+        _fixedListFilledFactory =
+            coreTypes.index.getMember('dart:core', '_List', 'filled') {
     assert(_defaultListFactory.isFactory);
     assert(_listFilledFactory.isFactory);
     assert(_growableListFactory.isFactory);
+    assert(_growableListFilledFactory.isFactory);
     assert(_fixedListFactory.isFactory);
+    assert(_fixedListFilledFactory.isFactory);
   }
 
   TreeNode transformStaticInvocation(StaticInvocation node) {
@@ -53,10 +62,8 @@ class ListFactorySpecializer {
       assert(args.positional.length == 2);
       final length = args.positional[0];
       final fill = args.positional[1];
-      if (fill is! NullLiteral &&
-          !(fill is ConstantExpression && fill.constant is NullConstant)) {
-        return node;
-      }
+      final fillingWithNull = fill is NullLiteral ||
+          (fill is ConstantExpression && fill.constant is NullConstant);
       bool growable;
       if (args.named.isEmpty) {
         growable = false;
@@ -78,13 +85,25 @@ class ListFactorySpecializer {
         }
       }
       if (growable) {
-        return StaticInvocation(
-            _growableListFactory, Arguments([length], types: args.types))
-          ..fileOffset = node.fileOffset;
+        if (fillingWithNull) {
+          return StaticInvocation(
+              _growableListFactory, Arguments([length], types: args.types))
+            ..fileOffset = node.fileOffset;
+        } else {
+          return StaticInvocation(_growableListFilledFactory,
+              Arguments([length, fill], types: args.types))
+            ..fileOffset = node.fileOffset;
+        }
       } else {
-        return StaticInvocation(
-            _fixedListFactory, Arguments([length], types: args.types))
-          ..fileOffset = node.fileOffset;
+        if (fillingWithNull) {
+          return StaticInvocation(
+              _fixedListFactory, Arguments([length], types: args.types))
+            ..fileOffset = node.fileOffset;
+        } else {
+          return StaticInvocation(_fixedListFilledFactory,
+              Arguments([length, fill], types: args.types))
+            ..fileOffset = node.fileOffset;
+        }
       }
     }
 

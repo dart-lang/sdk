@@ -18,10 +18,10 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 
 /// Instances of the class `ConstantVerifier` traverse an AST structure looking
 /// for additional errors and warnings not covered by the parser and resolver.
@@ -527,10 +527,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             DartObjectImpl result = initializer
                 .accept(ConstantVisitor(_evaluationEngine, subErrorReporter));
             if (result == null) {
-              _errorReporter.reportErrorForNode(
+              _errorReporter.reportErrorForToken(
                   CompileTimeErrorCode
                       .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
-                  errorSite,
+                  errorSite.constKeyword,
                   [variableDeclaration.name.name]);
             }
           }

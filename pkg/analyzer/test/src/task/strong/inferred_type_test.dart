@@ -22,10 +22,8 @@ void main() {
 
 @reflectiveTest
 class InferredTypeTest extends AbstractStrongTest {
-  /**
-   * Add the file, process it (resolve, validate, etc) and return the resolved
-   * unit element.
-   */
+  /// Add the file, process it (resolve, validate, etc) and return the resolved
+  /// unit element.
   Future<CompilationUnitElement> checkFileElement(String content) async {
     CompilationUnit unit = await checkFile(content);
     return unit.declaredElement;

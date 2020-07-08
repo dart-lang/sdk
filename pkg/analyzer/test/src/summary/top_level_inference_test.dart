@@ -542,12 +542,10 @@ A vBoth;
 ''');
   }
 
-  /**
-   * A simple or qualified identifier referring to a top level function, static
-   * variable, field, getter; or a static class variable, static getter or
-   * method; or an instance method; has the inferred type of the identifier.
-   *
-   */
+  /// A simple or qualified identifier referring to a top level function, static
+  /// variable, field, getter; or a static class variable, static getter or
+  /// method; or an instance method; has the inferred type of the identifier.
+  ///
   test_initializer_classField_useInstanceGetter() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {

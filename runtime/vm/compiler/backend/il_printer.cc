@@ -307,7 +307,17 @@ void Definition::PrintTo(BufferFormatter* f) const {
 
 void CheckNullInstr::PrintOperandsTo(BufferFormatter* f) const {
   Definition::PrintOperandsTo(f);
-  f->Print(IsArgumentCheck() ? ", ArgumentError" : ", NoSuchMethodError");
+  switch (exception_type()) {
+    case kNoSuchMethod:
+      f->Print(", NoSuchMethodError");
+      break;
+    case kArgumentError:
+      f->Print(", ArgumentError");
+      break;
+    case kCastError:
+      f->Print(", CastError");
+      break;
+  }
 }
 
 void Definition::PrintOperandsTo(BufferFormatter* f) const {

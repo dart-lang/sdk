@@ -11,12 +11,15 @@ import 'package:dds/dds.dart';
 import 'package:path/path.dart';
 
 import '../core.dart';
+import '../experiments.dart';
 import '../sdk.dart';
 import '../utils.dart';
 
 class RunCommand extends DartdevCommand<int> {
   @override
   final ArgParser argParser = ArgParser.allowAnything();
+
+  @override
   final bool verbose;
 
   RunCommand({this.verbose = false}) : super('run', '''
@@ -55,7 +58,7 @@ Run a Dart file.''');
   @override
   FutureOr<int> run() async {
     // The command line arguments after 'run'
-    final args = argResults.arguments.toList();
+    var args = argResults.arguments.toList();
 
     var argsContainFileOrHelp = false;
     for (var arg in args) {
@@ -70,6 +73,7 @@ Run a Dart file.''');
     }
 
     final cwd = Directory.current;
+
     if (!argsContainFileOrHelp && cwd.existsSync()) {
       var foundImplicitFileToRun = false;
       var cwdName = cwd.name;
@@ -90,12 +94,22 @@ Run a Dart file.''');
           break;
         }
       }
+
       if (!foundImplicitFileToRun) {
         log.stderr(
           'Could not find the implicit file to run: '
           'bin$separator$cwdName.dart.',
         );
       }
+    }
+
+    // Pass any --enable-experiment options along.
+    if (args.isNotEmpty && wereExperimentsSpecified) {
+      List<String> experimentIds = specifiedExperiments;
+      args = [
+        '--$experimentFlagName=${experimentIds.join(',')}',
+        ...args,
+      ];
     }
 
     // If the user wants to start a debugging session we need to do some extra
@@ -107,14 +121,14 @@ Run a Dart file.''');
         element.startsWith('--observe') ||
         element.startsWith('--enable-vm-service'))) {
       return await _DebuggingSession(this, args).start();
+    } else {
+      // Starting in ProcessStartMode.inheritStdio mode means the child process
+      // can detect support for ansi chars.
+      final process = await Process.start(
+          sdk.dart, ['--disable-dart-dev', ...args],
+          mode: ProcessStartMode.inheritStdio);
+      return process.exitCode;
     }
-
-    // Starting in ProcessStartMode.inheritStdio mode means the child process
-    // can detect support for ansi chars.
-    final process = await Process.start(
-        sdk.dart, ['--disable-dart-dev', ...args],
-        mode: ProcessStartMode.inheritStdio);
-    return process.exitCode;
   }
 }
 

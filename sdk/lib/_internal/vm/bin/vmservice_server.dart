@@ -393,7 +393,7 @@ class Server {
       'uri': serverAddress.toString(),
     };
     final file = File.fromUri(Uri.parse(serviceInfoFilenameLocal));
-    return file.writeAsString(json.encode(serviceInfo));
+    return file.writeAsString(json.encode(serviceInfo)) as Future<void>;
   }
 
   Future<Server> startup() async {

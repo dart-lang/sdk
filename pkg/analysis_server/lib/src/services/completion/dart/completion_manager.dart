@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
-    show AbortCompletion, CompletionContributor, CompletionRequest;
+    show AbortCompletion, CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -45,6 +45,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -53,7 +54,7 @@ import 'package:meta/meta.dart';
 
 /// [DartCompletionManager] determines if a completion request is Dart specific
 /// and forwards those requests to all [DartCompletionContributor]s.
-class DartCompletionManager implements CompletionContributor {
+class DartCompletionManager {
   /// The [contributionSorter] is a long-lived object that isn't allowed
   /// to maintain state between calls to [DartContributionSorter#sort(...)].
   static DartContributionSorter contributionSorter = CommonUsageSorter();
@@ -98,8 +99,8 @@ class DartCompletionManager implements CompletionContributor {
                 includedElementNames == null &&
                 includedSuggestionRelevanceTags == null));
 
-  @override
   Future<List<CompletionSuggestion>> computeSuggestions(
+    OperationPerformanceImpl performance,
     CompletionRequest request, {
     @required bool enableUriContributor,
   }) async {
@@ -108,14 +109,18 @@ class DartCompletionManager implements CompletionContributor {
       return const <CompletionSuggestion>[];
     }
 
-    var performance = (request as CompletionRequestImpl).performance;
-    DartCompletionRequestImpl dartRequest =
-        await DartCompletionRequestImpl.from(request, dartdocDirectiveInfo);
+    var dartRequest = await DartCompletionRequestImpl.from(
+      performance,
+      request,
+      dartdocDirectiveInfo,
+    );
 
     // Don't suggest in comments.
     if (dartRequest.target.isCommentText) {
       return const <CompletionSuggestion>[];
     }
+
+    request.checkAborted();
 
     final ranking = CompletionRanking.instance;
     var probabilityFuture =
@@ -156,11 +161,12 @@ class DartCompletionManager implements CompletionContributor {
 
     try {
       for (var contributor in contributors) {
-        var contributorTag =
-            'DartCompletionManager - ${contributor.runtimeType}';
-        performance.logStartTime(contributorTag);
-        await contributor.computeSuggestions(dartRequest, builder);
-        performance.logElapseTime(contributorTag);
+        await performance.runAsync(
+          'DartCompletionManager - ${contributor.runtimeType}',
+          (_) async {
+            await contributor.computeSuggestions(dartRequest, builder);
+          },
+        );
         request.checkAborted();
       }
     } on InconsistentAnalysisException {
@@ -172,33 +178,33 @@ class DartCompletionManager implements CompletionContributor {
     // Adjust suggestion relevance before returning
     var suggestions = builder.suggestions.toList();
     const SORT_TAG = 'DartCompletionManager - sort';
-    performance.logStartTime(SORT_TAG);
-    if (ranking != null) {
-      request.checkAborted();
-      try {
-        suggestions = await ranking.rerank(
-            probabilityFuture,
-            suggestions,
-            includedElementNames,
-            includedSuggestionRelevanceTags,
-            dartRequest,
-            request.result.unit.featureSet);
-      } catch (exception, stackTrace) {
-        // TODO(brianwilkerson) Shutdown the isolates that have already been
-        //  started.
-        // Disable smart ranking if prediction fails.
-        CompletionRanking.instance = null;
-        AnalysisEngine.instance.instrumentationService.logException(
-            CaughtException.withMessage(
-                'Failed to rerank completion suggestions',
-                exception,
-                stackTrace));
+    await performance.runAsync(SORT_TAG, (_) async {
+      if (ranking != null) {
+        request.checkAborted();
+        try {
+          suggestions = await ranking.rerank(
+              probabilityFuture,
+              suggestions,
+              includedElementNames,
+              includedSuggestionRelevanceTags,
+              dartRequest,
+              request.result.unit.featureSet);
+        } catch (exception, stackTrace) {
+          // TODO(brianwilkerson) Shutdown the isolates that have already been
+          //  started.
+          // Disable smart ranking if prediction fails.
+          CompletionRanking.instance = null;
+          AnalysisEngine.instance.instrumentationService.logException(
+              CaughtException.withMessage(
+                  'Failed to rerank completion suggestions',
+                  exception,
+                  stackTrace));
+          await contributionSorter.sort(dartRequest, suggestions);
+        }
+      } else if (!request.useNewRelevance) {
         await contributionSorter.sort(dartRequest, suggestions);
       }
-    } else if (!request.useNewRelevance) {
-      await contributionSorter.sort(dartRequest, suggestions);
-    }
-    performance.logElapseTime(SORT_TAG);
+    });
     request.checkAborted();
     return suggestions;
   }
@@ -430,30 +436,32 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   /// Return a [Future] that completes with a newly created completion request
   /// based on the given [request]. This method will throw [AbortCompletion]
   /// if the completion request has been aborted.
-  static Future<DartCompletionRequest> from(CompletionRequest request,
+  static Future<DartCompletionRequest> from(
+      OperationPerformanceImpl performance,
+      CompletionRequest request,
       DartdocDirectiveInfo dartdocDirectiveInfo) async {
     request.checkAborted();
-    var performance = (request as CompletionRequestImpl).performance;
-    const BUILD_REQUEST_TAG = 'build DartCompletionRequest';
-    performance.logStartTime(BUILD_REQUEST_TAG);
 
-    var unit = request.result.unit;
-    var libSource = unit.declaredElement.library.source;
-    var objectType = request.result.typeProvider.objectType;
+    return performance.run(
+      'build DartCompletionRequest',
+      (_) {
+        var unit = request.result.unit;
+        var libSource = unit.declaredElement.library.source;
+        var objectType = request.result.typeProvider.objectType;
 
-    var dartRequest = DartCompletionRequestImpl._(
-        request.result,
-        request.resourceProvider,
-        objectType,
-        libSource,
-        request.source,
-        request.offset,
-        unit,
-        dartdocDirectiveInfo,
-        request,
-        performance);
-
-    performance.logElapseTime(BUILD_REQUEST_TAG);
-    return dartRequest;
+        return DartCompletionRequestImpl._(
+          request.result,
+          request.resourceProvider,
+          objectType,
+          libSource,
+          request.source,
+          request.offset,
+          unit,
+          dartdocDirectiveInfo,
+          request,
+          (request as CompletionRequestImpl).performance,
+        );
+      },
+    );
   }
 }

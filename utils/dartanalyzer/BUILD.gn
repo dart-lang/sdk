@@ -44,6 +44,7 @@ prebuilt_dart_action("generate_summary_strong") {
   inputs = sdk_lib_files + analyzer_files
   output = "$root_gen_dir/strong.sum"
   outputs = [ output ]
+  vm_args = [ "-Dsdk_hash=$sdk_hash" ]
   args = [
     "build",
     rebase_path(output),

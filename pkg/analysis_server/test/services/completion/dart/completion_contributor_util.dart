@@ -607,17 +607,21 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     var baseRequest = CompletionRequestImpl(resolveResult, completionOffset,
         useNewRelevance, CompletionPerformance());
 
-    // Build the request
-    var request =
-        await DartCompletionRequestImpl.from(baseRequest, dartdocInfo);
+    return await baseRequest.performance.runRequestOperation(
+      (performance) async {
+        // Build the request
+        var request = await DartCompletionRequestImpl.from(
+            performance, baseRequest, dartdocInfo);
 
-    var range = request.target.computeReplacementRange(request.offset);
-    replacementOffset = range.offset;
-    replacementLength = range.length;
+        var range = request.target.computeReplacementRange(request.offset);
+        replacementOffset = range.offset;
+        replacementLength = range.length;
 
-    // Request completions
-    suggestions = await computeContributedSuggestions(request);
-    expect(suggestions, isNotNull, reason: 'expected suggestions');
+        // Request completions
+        suggestions = await computeContributedSuggestions(request);
+        expect(suggestions, isNotNull, reason: 'expected suggestions');
+      },
+    );
   }
 
   void failedCompletion(String message,

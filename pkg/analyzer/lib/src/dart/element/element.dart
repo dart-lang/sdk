@@ -23,13 +23,14 @@ import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -3991,7 +3992,14 @@ class ExtensionElementImpl extends ElementImpl
   }
 
   @override
-  DartType get extendedType {
+  DartType get extendedType =>
+      ElementTypeProvider.current.getExtendedType(this);
+
+  set extendedType(DartType extendedType) {
+    _extendedType = extendedType;
+  }
+
+  DartType get extendedTypeInternal {
     if (_extendedType != null) return _extendedType;
 
     if (linkedNode != null) {
@@ -3999,10 +4007,6 @@ class ExtensionElementImpl extends ElementImpl
     }
 
     return _extendedType;
-  }
-
-  set extendedType(DartType extendedType) {
-    _extendedType = extendedType;
   }
 
   @override
@@ -5414,9 +5418,12 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       });
       if (!hasCore) {
         var elements = linkedContext.bundleContext.elementFactory;
-        _imports.add(ImportElementImpl(-1)
-          ..importedLibrary = elements.libraryOfUri('dart:core')
-          ..isSynthetic = true);
+        _imports.add(
+          ImportElementImpl(-1)
+            ..importedLibrary = elements.libraryOfUri('dart:core')
+            ..isSynthetic = true
+            ..uri = 'dart:core',
+        );
       }
       return _imports;
     }

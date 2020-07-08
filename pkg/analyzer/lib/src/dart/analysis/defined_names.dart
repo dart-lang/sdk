@@ -4,9 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 
-/**
- * Compute the [DefinedNames] for the given [unit].
- */
+/// Compute the [DefinedNames] for the given [unit].
 DefinedNames computeDefinedNames(CompilationUnit unit) {
   DefinedNames names = DefinedNames();
 
@@ -47,9 +45,7 @@ DefinedNames computeDefinedNames(CompilationUnit unit) {
   return names;
 }
 
-/**
- * Defined top-level and class member names.
- */
+/// Defined top-level and class member names.
 class DefinedNames {
   final Set<String> topLevelNames = <String>{};
   final Set<String> classMemberNames = <String>{};

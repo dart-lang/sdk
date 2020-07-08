@@ -285,18 +285,8 @@ void IRRegExpMacroAssembler::FinalizeRegistersArray() {
       TypedData::New(kTypedDataInt32ArrayCid, registers_count_, Heap::kOld);
 }
 
-#if defined(TARGET_ARCH_ARM)
-// Disabling unaligned accesses forces the regexp engine to load characters one
-// by one instead of up to 4 at once, along with the associated performance hit.
-// TODO(zerny): Be less conservative about disabling unaligned accesses.
-// For instance, ARMv6 supports unaligned accesses. Once it is enabled here,
-// update LoadCodeUnitsInstr methods for the appropriate architectures.
-static const bool kEnableUnalignedAccesses = false;
-#else
-static const bool kEnableUnalignedAccesses = true;
-#endif
 bool IRRegExpMacroAssembler::CanReadUnaligned() {
-  return kEnableUnalignedAccesses && !slow_safe();
+  return !slow_safe();
 }
 
 ArrayPtr IRRegExpMacroAssembler::Execute(const RegExp& regexp,

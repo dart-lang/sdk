@@ -26,11 +26,11 @@ class Utf8Decode extends BenchmarkBase {
   int totalOutputSize;
 
   static String _makeName(String language, int size, bool allowMalformed) {
-    String name = "Utf8Decode.$language.";
+    String name = 'Utf8Decode.$language.';
     name += size >= 1000000
-        ? "${size ~/ 1000000}M"
-        : size >= 1000 ? "${size ~/ 1000}k" : "$size";
-    if (allowMalformed) name += ".malformed";
+        ? '${size ~/ 1000000}M'
+        : size >= 1000 ? '${size ~/ 1000}k' : '$size';
+    if (allowMalformed) name += '.malformed';
     return name;
   }
 
@@ -39,9 +39,9 @@ class Utf8Decode extends BenchmarkBase {
 
   @override
   void setup() {
-    Uint8List data = utf8.encode(text) as Uint8List;
+    final Uint8List data = utf8.encode(text) as Uint8List;
     if (data.length != 10000) {
-      throw "Expected input data of exactly 10000 bytes.";
+      throw 'Expected input data of exactly 10000 bytes.';
     }
     if (size < data.length) {
       // Split into chunks.
@@ -83,7 +83,7 @@ class Utf8Decode extends BenchmarkBase {
       lengthSum += s.length;
     }
     if (lengthSum != totalOutputSize) {
-      throw "Output length doesn't match expected.";
+      throw 'Output length doesn\'t match expected.';
     }
   }
 
@@ -108,21 +108,21 @@ class Utf8Decode extends BenchmarkBase {
   void report() {
     // Report time in nanoseconds.
     final double score = measure() * 1000.0;
-    print("$name(RunTime): $score ns.");
+    print('$name(RunTime): $score ns.');
   }
 }
 
 void main(List<String> args) {
   const texts = {
-    "en": en,
-    "da": da,
-    "sk": sk,
-    "ru": ru,
-    "ne": ne,
-    "zh": zh,
+    'en': en,
+    'da': da,
+    'sk': sk,
+    'ru': ru,
+    'ne': ne,
+    'zh': zh,
   };
   final bool testMalformed =
-      args != null && args.isNotEmpty && args.first == "malformed";
+      args != null && args.isNotEmpty && args.first == 'malformed';
   final benchmarks = [
     // Only benchmark with allowMalformed: false unless specified otherwise.
     for (bool allowMalformed in [false, if (testMalformed) true])
@@ -131,5 +131,7 @@ void main(List<String> args) {
           () => Utf8Decode(language, texts[language], size, allowMalformed)
   ];
 
-  benchmarks.forEach((bm) => bm().report());
+  for (var bm in benchmarks) {
+    bm().report();
+  }
 }

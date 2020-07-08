@@ -5,13 +5,9 @@
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source.dart';
 
-/**
- * An implementation of [Source] that's based on an in-memory Dart string.
- */
+/// An implementation of [Source] that's based on an in-memory Dart string.
 class StringSource extends Source {
-  /**
-   * The content of the source.
-   */
+  /// The content of the source.
   final String _contents;
 
   @override
@@ -47,10 +43,8 @@ class StringSource extends Source {
   @override
   UriKind get uriKind => UriKind.FILE_URI;
 
-  /**
-   * Return `true` if the given [object] is a string source that is equal to
-   * this source.
-   */
+  /// Return `true` if the given [object] is a string source that is equal to
+  /// this source.
   @override
   bool operator ==(Object object) {
     return object is StringSource &&

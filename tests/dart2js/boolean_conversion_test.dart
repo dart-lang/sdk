@@ -23,12 +23,12 @@ void main() {
 }
 
 void conditionalTest() {
-  bool x = null;
+  bool x = null as dynamic;
   Expect.isFalse(x ? true : false);
 }
 
 void orTest() {
-  bool x = null;
+  bool x = null as dynamic;
   Expect.equals(null, x || x);
   Expect.isFalse(x || false);
   Expect.isTrue(x || true);
@@ -37,7 +37,7 @@ void orTest() {
 }
 
 void andTest() {
-  bool x = null;
+  bool x = null as dynamic;
   Expect.isFalse(x && x);
   Expect.isFalse(x && false);
   Expect.isFalse(x && true);
@@ -46,7 +46,7 @@ void andTest() {
 }
 
 void ifTest() {
-  bool x = null;
+  bool x = null as dynamic;
   Expect.isFalse(() {
     if (x) {
       return true;
@@ -57,7 +57,7 @@ void ifTest() {
 }
 
 void forTest() {
-  bool x = null;
+  bool x = null as dynamic;
   Expect.isFalse(() {
     for (; x;) {
       return true;
@@ -67,7 +67,7 @@ void forTest() {
 }
 
 void whileTest() {
-  bool x = null;
+  bool x = null as dynamic;
   Expect.isFalse(() {
     while (x) {
       return true;
@@ -77,7 +77,7 @@ void whileTest() {
 }
 
 void doTest() {
-  bool x = null;
+  bool x = null as dynamic;
   Expect.equals(1, () {
     int n = 0;
     do {
@@ -88,16 +88,16 @@ void doTest() {
 }
 
 void notTest() {
-  bool x = null;
+  bool x = null as dynamic;
   Expect.isTrue(!x);
 }
 
 void ifElementTest() {
-  bool x = null;
+  bool x = null as dynamic;
   Expect.listEquals([], [if (x) 1]);
 }
 
 void forElementTest() {
-  bool x = null;
+  bool x = null as dynamic;
   Expect.listEquals([], [for (var i = 0; x; i++) i]);
 }

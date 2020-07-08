@@ -16,25 +16,17 @@ import 'package:test/test.dart';
 
 import 'resolved_ast_printer.dart';
 
-/**
- * Set this path to automatically replace expectations in invocations of
- * [checkElementText] with the new actual texts.
- */
+/// Set this path to automatically replace expectations in invocations of
+/// [checkElementText] with the new actual texts.
 const String _testPath = null;
 
-/**
- * The list of replacements that update expectations.
- */
+/// The list of replacements that update expectations.
 final List<_Replacement> _replacements = [];
 
-/**
- * The cached content of the file with the [_testPath].
- */
+/// The cached content of the file with the [_testPath].
 String _testCode;
 
-/**
- * The cache line information for the [_testPath] file.
- */
+/// The cache line information for the [_testPath] file.
 LineInfo _testCodeLines;
 
 void applyCheckElementTextReplacements() {
@@ -49,11 +41,9 @@ void applyCheckElementTextReplacements() {
   }
 }
 
-/**
- * Write the given [library] elements into the canonical text presentation
- * taking into account the specified 'withX' options. Then compare the
- * actual text with the given [expected] one.
- */
+/// Write the given [library] elements into the canonical text presentation
+/// taking into account the specified 'withX' options. Then compare the
+/// actual text with the given [expected] one.
 void checkElementText(
   LibraryElement library,
   String expected, {
@@ -135,9 +125,7 @@ void checkElementText(
   expect(actualText, expected);
 }
 
-/**
- * Writes the canonical text presentation of elements.
- */
+/// Writes the canonical text presentation of elements.
 class _ElementWriter {
   final String selfUriStr;
   final bool withCodeRanges;

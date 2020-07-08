@@ -271,7 +271,7 @@ class InferenceVisitor
         node.operand, typeContext, true,
         isVoidAllowed: !inferrer.isNonNullableByDefault);
     DartType inferredType =
-        inferrer.typeSchemaEnvironment.unfutureType(operandResult.inferredType);
+        inferrer.typeSchemaEnvironment.flatten(operandResult.inferredType);
     node.operand = operandResult.expression..parent = node;
     return new ExpressionInferenceResult(inferredType, node);
   }
@@ -748,7 +748,8 @@ class InferenceVisitor
     assert(getExplicitTypeArguments(node.arguments) == null);
     Typedef typedef = node.typeAliasBuilder.typedef;
     FunctionType calleeType = node.target.function
-        .computeAliasedFunctionType(typedef, inferrer.library.library);
+        .computeAliasedConstructorFunctionType(
+            typedef, inferrer.library.library);
     InvocationInferenceResult result = inferrer.inferInvocation(
         typeContext, node.fileOffset, calleeType, node.arguments,
         returnType: calleeType.returnType.unalias, isConst: node.isConst);
@@ -772,10 +773,29 @@ class InferenceVisitor
 
   ExpressionInferenceResult visitTypeAliasedFactoryInvocationJudgment(
       TypeAliasedFactoryInvocationJudgment node, DartType typeContext) {
-    // TODO(eernst): See visitTypeAliasedConstructorInvocationJudgment
-    // for an implementation handling a similar task.
-    throw "visitTypeAliasedFactoryInvocationJudgment: "
-        "${node.typeAliasBuilder}, ${node.target}, $typeContext";
+    assert(getExplicitTypeArguments(node.arguments) == null);
+    Typedef typedef = node.typeAliasBuilder.typedef;
+    FunctionType calleeType = node.target.function
+        .computeAliasedFactoryFunctionType(typedef, inferrer.library.library);
+    InvocationInferenceResult result = inferrer.inferInvocation(
+        typeContext, node.fileOffset, calleeType, node.arguments,
+        returnType: calleeType.returnType.unalias, isConst: node.isConst);
+    node.hasBeenInferred = true;
+    Expression resultNode = node;
+    if (!inferrer.isTopLevel) {
+      SourceLibraryBuilder library = inferrer.library;
+      library.checkBoundsInType(result.inferredType,
+          inferrer.typeSchemaEnvironment, inferrer.helper.uri, node.fileOffset,
+          inferred: true);
+      if (inferrer.isNonNullableByDefault) {
+        if (node.target == inferrer.coreTypes.listDefaultConstructor) {
+          resultNode = inferrer.helper.wrapInProblem(node,
+              messageDefaultListConstructorError, node.fileOffset, noLength);
+        }
+      }
+    }
+    return new ExpressionInferenceResult(
+        result.inferredType, result.applyResult(resultNode));
   }
 
   @override
@@ -1303,7 +1323,11 @@ class InferenceVisitor
   DartType getSpreadElementType(DartType spreadType, bool isNullAware) {
     if (spreadType is InterfaceType) {
       if (spreadType.classNode == inferrer.coreTypes.nullClass) {
-        return isNullAware ? spreadType : null;
+        if (inferrer.isNonNullableByDefault) {
+          return isNullAware ? const NeverType(Nullability.nonNullable) : null;
+        } else {
+          return isNullAware ? spreadType : null;
+        }
       }
       List<DartType> supertypeArguments = inferrer.typeSchemaEnvironment
           .getTypeArgumentsAsInstanceOf(
@@ -1706,7 +1730,12 @@ class InferenceVisitor
     if (spreadMapEntryType is InterfaceType) {
       if (spreadMapEntryType.classNode == inferrer.coreTypes.nullClass) {
         if (isNullAware) {
-          output[offset] = output[offset + 1] = spreadMapEntryType;
+          if (inferrer.isNonNullableByDefault) {
+            output[offset] =
+                output[offset + 1] = const NeverType(Nullability.nonNullable);
+          } else {
+            output[offset] = output[offset + 1] = spreadMapEntryType;
+          }
         }
       } else {
         List<DartType> supertypeArguments = inferrer.typeSchemaEnvironment
@@ -2132,7 +2161,7 @@ class InferenceVisitor
     bool typeContextIsMap = node.keyType is! ImplicitTypeArgument;
     bool typeContextIsIterable = false;
     DartType unfuturedTypeContext =
-        inferrer.typeSchemaEnvironment.unfutureType(typeContext);
+        inferrer.typeSchemaEnvironment.flatten(typeContext);
     if (!inferrer.isTopLevel && inferenceNeeded) {
       // Ambiguous set/map literal
       if (unfuturedTypeContext is InterfaceType) {
@@ -5451,9 +5480,7 @@ class InferenceVisitor
       inferredType = inferrer.inferDeclarationType(
           initializerResult.inferredType,
           forSyntheticVariable: node.name == null);
-      inferrer.flowAnalysis.declare(node, true);
     } else {
-      inferrer.flowAnalysis.declare(node, false);
       inferredType = const DynamicType();
     }
     if (node.isImplicitlyTyped) {
@@ -5470,6 +5497,7 @@ class InferenceVisitor
           fileOffset: node.fileOffset, isVoidAllowed: node.type is VoidType);
       node.initializer = initializer..parent = node;
     }
+    inferrer.flowAnalysis.declare(node, node.initializer != null);
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.library;
       if (node.isImplicitlyTyped) {

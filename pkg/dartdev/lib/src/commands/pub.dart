@@ -8,10 +8,11 @@ import 'dart:io';
 import 'package:args/args.dart';
 
 import '../core.dart';
+import '../experiments.dart';
 import '../sdk.dart';
 
 class PubCommand extends DartdevCommand<int> {
-  PubCommand({bool verbose = false}) : super('pub', 'Work with packages.');
+  PubCommand() : super('pub', 'Work with packages.');
 
   @override
   final ArgParser argParser = ArgParser.allowAnything();
@@ -42,7 +43,26 @@ class PubCommand extends DartdevCommand<int> {
   @override
   FutureOr<int> run() async {
     final command = sdk.pub;
-    final args = argResults.arguments;
+    var args = argResults.arguments;
+
+    // Pass any --enable-experiment options along.
+    if (args.isNotEmpty && wereExperimentsSpecified) {
+      List<String> experimentIds = specifiedExperiments;
+
+      if (args.first == 'run') {
+        args = [
+          ...args.sublist(0, 1),
+          '--$experimentFlagName=${experimentIds.join(',')}',
+          ...args.sublist(1),
+        ];
+      } else if (args.length > 1 && args[0] == 'global' && args[0] == 'run') {
+        args = [
+          ...args.sublist(0, 2),
+          '--$experimentFlagName=${experimentIds.join(',')}',
+          ...args.sublist(2),
+        ];
+      }
+    }
 
     log.trace('$command ${args.join(' ')}');
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+import 'package:front_end/src/fasta/kernel/collections.dart';
 import 'package:front_end/src/fasta/kernel/forest.dart';
 import 'package:front_end/src/fasta/kernel/internal_ast.dart';
 import 'package:kernel/ast.dart';
@@ -632,7 +633,16 @@ void _testPropertySetImpl() {}
 
 void _testExtensionTearOff() {}
 
-void _testEqualsExpression() {}
+void _testEqualsExpression() {
+  testExpression(
+      new EqualsExpression(new IntLiteral(0), new IntLiteral(1), isNot: false),
+      '''
+0 == 1''');
+  testExpression(
+      new EqualsExpression(new IntLiteral(0), new IntLiteral(1), isNot: true),
+      '''
+0 != 1''');
+}
 
 void _testBinaryExpression() {}
 
@@ -640,9 +650,21 @@ void _testUnaryExpression() {}
 
 void _testParenthesizedExpression() {}
 
-void _testSpreadElement() {}
+void _testSpreadElement() {
+  testExpression(new SpreadElement(new IntLiteral(0), false), '''
+...0''');
+  testExpression(new SpreadElement(new IntLiteral(0), true), '''
+...?0''');
+}
 
-void _testIfElement() {}
+void _testIfElement() {
+  testExpression(new IfElement(new IntLiteral(0), new IntLiteral(1), null), '''
+if (0) 1''');
+  testExpression(
+      new IfElement(new IntLiteral(0), new IntLiteral(1), new IntLiteral(2)),
+      '''
+if (0) 1 else 2''');
+}
 
 void _testForElement() {}
 

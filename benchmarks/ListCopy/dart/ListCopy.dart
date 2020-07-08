@@ -131,7 +131,16 @@ List<Benchmark> makeBenchmarks(int length) => [
         output = <num>[...input];
       }),
       Benchmark('spread.int', length, () {
+        output = <int>[...input as dynamic];
+      }),
+      Benchmark('spread.int.cast', length, () {
         output = <int>[...input.cast<int>()];
+      }),
+      Benchmark('spread.int.map', length, () {
+        output = <int>[...input.map((x) => x as int)];
+      }),
+      Benchmark('for.int', length, () {
+        output = <int>[for (var n in input) n as int];
       }),
     ];
 

@@ -54,6 +54,9 @@ class ElementTypeProvider {
   FunctionType getExecutableType(ElementImplWithFunctionType element) =>
       element.typeInternal;
 
+  DartType getExtendedType(ExtensionElementImpl element) =>
+      element.extendedTypeInternal;
+
   /// Queries the type of a field.
   DartType getFieldType(PropertyInducingElementImpl element) =>
       element.typeInternal;

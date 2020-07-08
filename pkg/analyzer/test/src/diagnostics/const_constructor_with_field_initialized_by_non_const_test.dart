@@ -46,7 +46,7 @@ int f() {
           CompileTimeErrorCode
               .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
           33,
-          10),
+          5),
     ]);
   }
 

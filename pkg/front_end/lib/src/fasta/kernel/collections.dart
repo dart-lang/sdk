@@ -108,8 +108,12 @@ class SpreadElement extends Expression with ControlFlowElement {
   }
 
   @override
-  void toTextInternal(AstPrinter state) {
-    // TODO(johnniwinther): Implement this.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('...');
+    if (isNullAware) {
+      printer.write('?');
+    }
+    printer.writeExpression(expression);
   }
 }
 
@@ -174,8 +178,15 @@ class IfElement extends Expression with ControlFlowElement {
   }
 
   @override
-  void toTextInternal(AstPrinter state) {
-    // TODO(johnniwinther): Implement this.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('if (');
+    printer.writeExpression(condition);
+    printer.write(') ');
+    printer.writeExpression(then);
+    if (otherwise != null) {
+      printer.write(' else ');
+      printer.writeExpression(otherwise);
+    }
   }
 }
 

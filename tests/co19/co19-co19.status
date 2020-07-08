@@ -20,22 +20,9 @@ Language/Generics/Superbounded_types/typedef2_A01_t04: Skip # Non function type 
 Language/Generics/parameter_A01_t03: Skip # Type aliases are not fully implemented
 Language/Generics/syntax_t31: Skip # Type aliases are not fully implemented
 Language/Generics/typedef_A01_t10: Skip # Type aliases are not fully implemented
-Language/Libraries_and_Scripts/*: Skip # Not migrated to NNBD
-Language/Libraries_and_Scripts/Exports/*: Skip # Not migrated to NNBD
-Language/Libraries_and_Scripts/Parts/*: Skip # Not migrated to NNBD
-Language/Libraries_and_Scripts/Scripts/*: Skip # Not migrated to NNBD
-Language/Libraries_and_Scripts/URIs/*: Skip # Not migrated to NNBD
-Language/Metadata/*: Skip # Not migrated to NNBD
-Language/Mixins/*: Skip # Not migrated to NNBD
-Language/Mixins/Mixin_Application/*: Skip # Not migrated to NNBD
-Language/Mixins/Mixin_Composition/*: Skip # Not migrated to NNBD
-Language/Overview/*: Skip # Not migrated to NNBD
-Language/Overview/Privacy/*: Skip # Not migrated to NNBD
-Language/Overview/Scoping/*: Skip # Not migrated to NNBD
-Language/Reference/Lexical_Rules/*: Skip # Not migrated to NNBD
-Language/Reference/Lexical_Rules/Comments/*: Skip # Not migrated to NNBD
-Language/Reference/Lexical_Rules/Reserved_Words/*: Skip # Not migrated to NNBD
-Language/Reference/Operator_Precedence/*: Skip # Not migrated to NNBD
+Language/Reference/Operator_Precedence/precedence_01_assignment_t14: Skip # Triple shift is not implemented yet
+Language/Reference/Operator_Precedence/precedence_12_Shift_t04: Skip # Triple shift is not implemented yet
+Language/Reference/Operator_Precedence/precedence_t05: Skip # Triple shift is not implemented yet
 Language/Statements/Assert/*: Skip # Not migrated to NNBD
 Language/Statements/Blocks/*: Skip # Not migrated to NNBD
 Language/Statements/Break/*: Skip # Not migrated to NNBD
@@ -90,7 +77,6 @@ LanguageFeatures/Simple-bounds/static/*: Skip # Not migrated to NNBD
 LanguageFeatures/Simple-bounds/static/type-aliases/*: Skip # Not migrated to NNBD
 LanguageFeatures/Spread-collections/*: Skip # Not migrated to NNBD
 LanguageFeatures/Super-bounded-types/*: Skip # Not migrated to NNBD
-LanguageFeatures/Super-mixins/*: Skip # Not migrated to NNBD
 LanguageFeatures/Triple-Shift/*: Skip # Not migrated to NNBD
 LanguageFeatures/int-to-double/*: Skip # Not migrated to NNBD
 LanguageFeatures/regression/*: Skip # Not migrated to NNBD

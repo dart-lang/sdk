@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * This file contains code for collecting statistics about the use of fields in
- * a summary file.
- */
+/// This file contains code for collecting statistics about the use of fields in
+/// a summary file.
 import 'dart:io';
 import 'dart:mirrors';
 
@@ -31,31 +29,21 @@ main(List<String> args) {
   stats.dump();
 }
 
-/**
- * The name of the stats tool.
- */
+/// The name of the stats tool.
 const String BINARY_NAME = "stats";
 
-/**
- * Print information about how to use the stats tool.
- */
+/// Print information about how to use the stats tool.
 void _printUsage() {
   print('Usage: $BINARY_NAME input_file_path');
 }
 
-/**
- * An instance of [Stats] keeps track of statistics about the use of fields in
- * summary objects.
- */
+/// An instance of [Stats] keeps track of statistics about the use of fields in
+/// summary objects.
 class Stats {
-  /**
-   * Map from type to field name to a count of how often the field is used.
-   */
+  /// Map from type to field name to a count of how often the field is used.
   Map<Type, Map<String, int>> counts = <Type, Map<String, int>>{};
 
-  /**
-   * Print out statistics gathered so far.
-   */
+  /// Print out statistics gathered so far.
   void dump() {
     counts.forEach((Type type, Map<String, int> typeCounts) {
       print(type);
@@ -68,9 +56,7 @@ class Stats {
     });
   }
 
-  /**
-   * Record statistics for [obj] and all objects it refers to.
-   */
+  /// Record statistics for [obj] and all objects it refers to.
   void record(SummaryClass obj) {
     Map<String, int> typeCounts =
         counts.putIfAbsent(obj.runtimeType, () => <String, int>{});

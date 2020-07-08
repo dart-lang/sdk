@@ -12,17 +12,12 @@ import 'package:front_end/src/fasta/kernel/internal_ast.dart';
 import 'package:front_end/src/fasta/type_inference/type_demotion.dart';
 
 import 'package:kernel/ast.dart';
-
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
 import 'package:kernel/core_types.dart' show CoreTypes;
-
 import 'package:kernel/type_algebra.dart';
-
 import 'package:kernel/type_environment.dart';
-
 import 'package:kernel/src/bounds_checks.dart' show calculateBounds;
-
+import 'package:kernel/src/future_value_type.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 
 import '../../base/instrumentation.dart'
@@ -849,8 +844,8 @@ class TypeInferrerImpl implements TypeInferrer {
             isPotentiallyNullable: false);
       }
       if (includeExtensionMethods) {
-        ObjectAccessTarget target =
-            _findExtensionMember(receiverBound, classNode, name, fileOffset);
+        ObjectAccessTarget target = _findExtensionMember(
+            receiverBound, coreTypes.objectClass, name, fileOffset);
         if (target != null) {
           return target;
         }
@@ -3190,6 +3185,22 @@ class TypeInferrerImpl implements TypeInferrer {
   DartType wrapType(DartType type, Class class_, Nullability nullability) {
     return new InterfaceType(
         class_, nullability, <DartType>[type ?? const DynamicType()]);
+  }
+
+  /// Computes the `futureValueTypeSchema` for the type schema [type].
+  ///
+  /// This is the same as the [futureValueType] except that this handles
+  /// the unknown type.
+  DartType computeFutureValueTypeSchema(DartType type) {
+    return type.accept1(new FutureValueTypeVisitor(unhandledTypeHandler:
+        (DartType node, CoreTypes coreTypes,
+            DartType Function(DartType node, CoreTypes coreTypes) recursor) {
+      if (node is UnknownType) {
+        // futureValueTypeSchema(_) = _.
+        return node;
+      }
+      throw new UnsupportedError("Unsupported type '${node.runtimeType}'.");
+    }), coreTypes);
   }
 
   Member _getInterfaceMember(

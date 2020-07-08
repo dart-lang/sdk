@@ -37,6 +37,8 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' show ElementKind;
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:args/args.dart';
 import 'package:meta/meta.dart';
@@ -168,7 +170,14 @@ bool validArguments(ArgParser parser, ArgResults result) {
 
 /// An indication of the group in which the completion falls for the purposes of
 /// subdividing the results.
-enum CompletionGroup { instanceMember, staticMember, topLevel }
+enum CompletionGroup {
+  instanceMember,
+  staticMember,
+  typeReference,
+  localReference,
+  paramReference,
+  topLevel
+}
 
 /// A wrapper for the collection of [Counter] and [MeanReciprocalRankComputer]
 /// objects for a run of [CompletionMetricsComputer].
@@ -208,6 +217,15 @@ class CompletionMetrics {
   MeanReciprocalRankComputer staticMemberMrrComputer =
       MeanReciprocalRankComputer('static member completions');
 
+  MeanReciprocalRankComputer typeRefMrrComputer =
+      MeanReciprocalRankComputer('type reference completions');
+
+  MeanReciprocalRankComputer localRefMrrComputer =
+      MeanReciprocalRankComputer('local reference completions');
+
+  MeanReciprocalRankComputer paramRefMrrComputer =
+      MeanReciprocalRankComputer('param reference completions');
+
   MeanReciprocalRankComputer topLevelMrrComputer =
       MeanReciprocalRankComputer('non-type member completions');
 
@@ -238,6 +256,18 @@ class CompletionMetrics {
   List<CompletionResult> staticMemberWorstResults = [];
 
   /// A list of the top [maxWorstResults] completion results with the highest
+  /// (worst) ranks for completing to type references.
+  List<CompletionResult> typeRefWorstResults = [];
+
+  /// A list of the top [maxWorstResults] completion results with the highest
+  /// (worst) ranks for completing to local references.
+  List<CompletionResult> localRefWorstResults = [];
+
+  /// A list of the top [maxWorstResults] completion results with the highest
+  /// (worst) ranks for completing to parameter references.
+  List<CompletionResult> paramRefWorstResults = [];
+
+  /// A list of the top [maxWorstResults] completion results with the highest
   /// (worst) ranks for completing to top-level declarations.
   List<CompletionResult> topLevelWorstResults = [];
 
@@ -248,6 +278,18 @@ class CompletionMetrics {
   /// A list of the top [maxSlowestResults] completion results that took the
   /// longest top compute for static members.
   List<CompletionResult> staticMemberSlowestResults = [];
+
+  /// A list of the top [maxSlowestResults] completion results that took the
+  /// longest top compute for type references.
+  List<CompletionResult> typeRefSlowestResults = [];
+
+  /// A list of the top [maxSlowestResults] completion results that took the
+  /// longest top compute for local references.
+  List<CompletionResult> localRefSlowestResults = [];
+
+  /// A list of the top [maxSlowestResults] completion results that took the
+  /// longest top compute for parameter references.
+  List<CompletionResult> paramRefSlowestResults = [];
 
   /// A list of the top [maxSlowestResults] completion results that took the
   /// longest top compute for top-level declarations.
@@ -292,6 +334,15 @@ class CompletionMetrics {
       case CompletionGroup.staticMember:
         staticMemberMrrComputer.addRank(rank);
         break;
+      case CompletionGroup.typeReference:
+        typeRefMrrComputer.addRank(rank);
+        break;
+      case CompletionGroup.localReference:
+        localRefMrrComputer.addRank(rank);
+        break;
+      case CompletionGroup.paramReference:
+        paramRefMrrComputer.addRank(rank);
+        break;
       case CompletionGroup.topLevel:
         topLevelMrrComputer.addRank(rank);
         break;
@@ -314,6 +365,12 @@ class CompletionMetrics {
           return instanceMemberSlowestResults;
         case CompletionGroup.staticMember:
           return staticMemberSlowestResults;
+        case CompletionGroup.typeReference:
+          return typeRefSlowestResults;
+        case CompletionGroup.localReference:
+          return localRefSlowestResults;
+        case CompletionGroup.paramReference:
+          return paramRefSlowestResults;
         case CompletionGroup.topLevel:
           return topLevelSlowestResults;
       }
@@ -344,6 +401,12 @@ class CompletionMetrics {
           return instanceMemberWorstResults;
         case CompletionGroup.staticMember:
           return staticMemberWorstResults;
+        case CompletionGroup.typeReference:
+          return typeRefWorstResults;
+        case CompletionGroup.localReference:
+          return localRefWorstResults;
+        case CompletionGroup.paramReference:
+          return paramRefWorstResults;
         case CompletionGroup.topLevel:
           return topLevelWorstResults;
       }
@@ -512,6 +575,15 @@ class CompletionMetricsComputer {
     metrics.staticMemberMrrComputer.printMean();
     print('');
 
+    metrics.typeRefMrrComputer.printMean();
+    print('');
+
+    metrics.localRefMrrComputer.printMean();
+    print('');
+
+    metrics.paramRefMrrComputer.printMean();
+    print('');
+
     metrics.topLevelMrrComputer.printMean();
     print('');
 
@@ -586,6 +658,10 @@ class CompletionMetricsComputer {
     _printSlowestResults(
         'Instance members', metrics.instanceMemberSlowestResults);
     _printSlowestResults('Static members', metrics.staticMemberSlowestResults);
+    _printSlowestResults('Type references', metrics.typeRefSlowestResults);
+    _printSlowestResults('Local references', metrics.localRefSlowestResults);
+    _printSlowestResults(
+        'Parameter references', metrics.paramRefSlowestResults);
     _printSlowestResults('Top level', metrics.topLevelSlowestResults);
   }
 
@@ -595,6 +671,9 @@ class CompletionMetricsComputer {
     print('The worst completion results');
     _printWorstResults('Instance members', metrics.instanceMemberWorstResults);
     _printWorstResults('Static members', metrics.staticMemberWorstResults);
+    _printWorstResults('Type references', metrics.topLevelWorstResults);
+    _printWorstResults('Local references', metrics.localRefWorstResults);
+    _printWorstResults('Parameter references', metrics.paramRefWorstResults);
     _printWorstResults('Top level', metrics.topLevelWorstResults);
   }
 
@@ -618,7 +697,9 @@ class CompletionMetricsComputer {
   }
 
   Future<List<protocol.CompletionSuggestion>> _computeCompletionSuggestions(
-      MetricsSuggestionListener listener, CompletionRequestImpl request,
+      MetricsSuggestionListener listener,
+      OperationPerformanceImpl performance,
+      CompletionRequestImpl request,
       [DeclarationsTracker declarationsTracker,
       protocol.CompletionAvailableSuggestionsParams
           availableSuggestionsParams]) async {
@@ -630,6 +711,7 @@ class CompletionMetricsComputer {
         dartdocDirectiveInfo: DartdocDirectiveInfo(),
         listener: listener,
       ).computeSuggestions(
+        performance,
         request,
         enableUriContributor: true,
       );
@@ -647,6 +729,7 @@ class CompletionMetricsComputer {
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTagList,
         listener: listener,
       ).computeSuggestions(
+        performance,
         request,
         enableUriContributor: true,
       );
@@ -794,12 +877,24 @@ class CompletionMetricsComputer {
                 CompletionPerformance(),
               );
               var directiveInfo = DartdocDirectiveInfo();
-              var dartRequest =
-                  await DartCompletionRequestImpl.from(request, directiveInfo);
-              var opType =
-                  OpType.forCompletion(dartRequest.target, request.offset);
-              var suggestions = await _computeCompletionSuggestions(listener,
-                  request, declarationsTracker, availableSuggestionsParams);
+
+              OpType opType;
+              List<protocol.CompletionSuggestion> suggestions;
+              await request.performance.runRequestOperation(
+                (performance) async {
+                  var dartRequest = await DartCompletionRequestImpl.from(
+                      performance, request, directiveInfo);
+                  opType =
+                      OpType.forCompletion(dartRequest.target, request.offset);
+                  suggestions = await _computeCompletionSuggestions(
+                    listener,
+                    performance,
+                    request,
+                    declarationsTracker,
+                    availableSuggestionsParams,
+                  );
+                },
+              );
               stopwatch.stop();
 
               return forEachExpectedCompletion(
@@ -1012,6 +1107,15 @@ class CompletionResult {
         } else {
           return CompletionGroup.instanceMember;
         }
+      } else if (expectedCompletion.elementKind == ElementKind.CLASS ||
+          expectedCompletion.elementKind == ElementKind.MIXIN ||
+          expectedCompletion.elementKind == ElementKind.ENUM ||
+          expectedCompletion.elementKind == ElementKind.TYPE_PARAMETER) {
+        return CompletionGroup.typeReference;
+      } else if (expectedCompletion.elementKind == ElementKind.LOCAL_VARIABLE) {
+        return CompletionGroup.localReference;
+      } else if (expectedCompletion.elementKind == ElementKind.PARAMETER) {
+        return CompletionGroup.paramReference;
       }
     }
     return CompletionGroup.topLevel;

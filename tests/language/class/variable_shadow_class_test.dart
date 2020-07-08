@@ -16,7 +16,7 @@ main() {
     // Now this refers to the variable.
     var i = new Test.named(10);
     //          ^^^^^^^^^^
-    // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
+    // [analyzer] STATIC_WARNING.CREATION_WITH_NON_TYPE
     //          ^^^^
     // [cfe] Method not found: 'Test.named'.
     Expect.equals(10, i.field);

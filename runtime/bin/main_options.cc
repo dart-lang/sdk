@@ -126,7 +126,7 @@ DEFINE_BOOL_OPTION_CB(hot_reload_rollback_test_mode,
                       hot_reload_rollback_test_mode_callback);
 
 void Options::PrintVersion() {
-  Syslog::PrintErr("Dart VM version: %s\n", Dart_VersionString());
+  Syslog::PrintErr("Dart SDK version: %s\n", Dart_VersionString());
 }
 
 // clang-format off
@@ -169,7 +169,7 @@ void Options::PrintUsage() {
 "                    kernel(default) or app-jit\n"
 "    <file_name> specifies the file into which the snapshot is written\n"
 "--version\n"
-"  Print the VM version.\n");
+"  Print the SDK version.\n");
   } else {
     Syslog::PrintErr(
 "Supported options:\n"

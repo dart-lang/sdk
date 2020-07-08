@@ -1244,34 +1244,33 @@ main() {
     verifyTestResolved();
   }
 
-  /**
-   * Verify that all of the identifiers in the [result] have been resolved.
-   */
+  /// Verify that all of the identifiers in the [result] have been resolved.
   void verifyTestResolved() {
     var verifier = ResolutionVerifier();
     result.unit.accept(verifier);
     verifier.assertResolved();
   }
 
-  /**
-   * Resolve the test file and verify that the arguments in a specific method
-   * invocation were correctly resolved.
-   *
-   * The file is expected to define a method named `g`, and has exactly one
-   * [MethodInvocation] in a statement ending with `);`. It is the arguments to
-   * that method invocation that are tested. The method invocation can contain
-   * errors.
-   *
-   * The arguments were resolved correctly if the number of expressions in the list matches the
-   * length of the array of indices and if, for each index in the array of indices, the parameter to
-   * which the argument expression was resolved is the parameter in the invoked method's list of
-   * parameters at that index. Arguments that should not be resolved to a parameter because of an
-   * error can be denoted by including a negative index in the array of indices.
-   *
-   * @param indices the array of indices used to associate arguments with parameters
-   * @throws Exception if the source could not be resolved or if the structure of the source is not
-   *           valid
-   */
+  /// Resolve the test file and verify that the arguments in a specific method
+  /// invocation were correctly resolved.
+  ///
+  /// The file is expected to define a method named `g`, and has exactly one
+  /// [MethodInvocation] in a statement ending with `);`. It is the arguments to
+  /// that method invocation that are tested. The method invocation can contain
+  /// errors.
+  ///
+  /// The arguments were resolved correctly if the number of expressions in the
+  /// list matches the length of the array of indices and if, for each index in
+  /// the array of indices, the parameter to which the argument expression was
+  /// resolved is the parameter in the invoked method's list of parameters at
+  /// that index. Arguments that should not be resolved to a parameter because
+  /// of an error can be denoted by including a negative index in the array of
+  /// indices.
+  ///
+  /// @param indices the array of indices used to associate arguments with
+  ///          parameters
+  /// @throws Exception if the source could not be resolved or if the structure
+  ///           of the source is not valid
   Future<void> _validateArgumentResolution(List<int> indices) async {
     var g = findElement.method('g');
     var parameters = g.parameters;

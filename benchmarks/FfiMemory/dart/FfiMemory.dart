@@ -206,202 +206,238 @@ int doLoadInt64Mint(Pointer<Int64> pointer, int length) {
 const N = 1000;
 
 class PointerInt8 extends BenchmarkBase {
-  Pointer<Int8> pointer;
-  PointerInt8() : super("FfiMemory.PointerInt8");
+  Pointer<Int8> pointer = nullptr;
+  PointerInt8() : super('FfiMemory.PointerInt8');
 
+  @override
   void setup() => pointer = allocate(count: N);
+  @override
   void teardown() => free(pointer);
 
+  @override
   void run() {
     doStoreInt8(pointer, N);
     final int x = doLoadInt8(pointer, N);
     if (x != N) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class PointerUint8 extends BenchmarkBase {
-  Pointer<Uint8> pointer;
-  PointerUint8() : super("FfiMemory.PointerUint8");
+  Pointer<Uint8> pointer = nullptr;
+  PointerUint8() : super('FfiMemory.PointerUint8');
 
+  @override
   void setup() => pointer = allocate(count: N);
+  @override
   void teardown() => free(pointer);
 
+  @override
   void run() {
     doStoreUint8(pointer, N);
     final int x = doLoadUint8(pointer, N);
     if (x != N) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class PointerInt16 extends BenchmarkBase {
-  Pointer<Int16> pointer;
-  PointerInt16() : super("FfiMemory.PointerInt16");
+  Pointer<Int16> pointer = nullptr;
+  PointerInt16() : super('FfiMemory.PointerInt16');
 
+  @override
   void setup() => pointer = allocate(count: N);
+  @override
   void teardown() => free(pointer);
 
+  @override
   void run() {
     doStoreInt16(pointer, N);
     final int x = doLoadInt16(pointer, N);
     if (x != N) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class PointerUint16 extends BenchmarkBase {
-  Pointer<Uint16> pointer;
-  PointerUint16() : super("FfiMemory.PointerUint16");
+  Pointer<Uint16> pointer = nullptr;
+  PointerUint16() : super('FfiMemory.PointerUint16');
 
+  @override
   void setup() => pointer = allocate(count: N);
+  @override
   void teardown() => free(pointer);
 
+  @override
   void run() {
     doStoreUint16(pointer, N);
     final int x = doLoadUint16(pointer, N);
     if (x != N) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class PointerInt32 extends BenchmarkBase {
-  Pointer<Int32> pointer;
-  PointerInt32() : super("FfiMemory.PointerInt32");
+  Pointer<Int32> pointer = nullptr;
+  PointerInt32() : super('FfiMemory.PointerInt32');
 
+  @override
   void setup() => pointer = allocate(count: N);
+  @override
   void teardown() => free(pointer);
 
+  @override
   void run() {
     doStoreInt32(pointer, N);
     final int x = doLoadInt32(pointer, N);
     if (x != N) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class PointerUint32 extends BenchmarkBase {
-  Pointer<Uint32> pointer;
-  PointerUint32() : super("FfiMemory.PointerUint32");
+  Pointer<Uint32> pointer = nullptr;
+  PointerUint32() : super('FfiMemory.PointerUint32');
 
+  @override
   void setup() => pointer = allocate(count: N);
+  @override
   void teardown() => free(pointer);
 
+  @override
   void run() {
     doStoreUint32(pointer, N);
     final int x = doLoadUint32(pointer, N);
     if (x != N) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class PointerInt64 extends BenchmarkBase {
-  Pointer<Int64> pointer;
-  PointerInt64() : super("FfiMemory.PointerInt64");
+  Pointer<Int64> pointer = nullptr;
+  PointerInt64() : super('FfiMemory.PointerInt64');
 
+  @override
   void setup() => pointer = allocate(count: N);
+  @override
   void teardown() => free(pointer);
 
+  @override
   void run() {
     doStoreInt64(pointer, N);
     final int x = doLoadInt64(pointer, N);
     if (x != N) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class PointerUint64 extends BenchmarkBase {
-  Pointer<Uint64> pointer;
-  PointerUint64() : super("FfiMemory.PointerUint64");
+  Pointer<Uint64> pointer = nullptr;
+  PointerUint64() : super('FfiMemory.PointerUint64');
 
+  @override
   void setup() => pointer = allocate(count: N);
+  @override
   void teardown() => free(pointer);
 
+  @override
   void run() {
     doStoreUint64(pointer, N);
     final int x = doLoadUint64(pointer, N);
     if (x != N) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class PointerFloat extends BenchmarkBase {
-  Pointer<Float> pointer;
-  PointerFloat() : super("FfiMemory.PointerFloat");
+  Pointer<Float> pointer = nullptr;
+  PointerFloat() : super('FfiMemory.PointerFloat');
 
+  @override
   void setup() => pointer = allocate(count: N);
+  @override
   void teardown() => free(pointer);
 
+  @override
   void run() {
     doStoreFloat(pointer, N);
     final double x = doLoadFloat(pointer, N);
     if (0.99 * N > x || x > 1.01 * N) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class PointerDouble extends BenchmarkBase {
-  Pointer<Double> pointer;
-  PointerDouble() : super("FfiMemory.PointerDouble");
+  Pointer<Double> pointer = nullptr;
+  PointerDouble() : super('FfiMemory.PointerDouble');
 
+  @override
   void setup() => pointer = allocate(count: N);
+  @override
   void teardown() => free(pointer);
 
+  @override
   void run() {
     doStoreDouble(pointer, N);
     final double x = doLoadDouble(pointer, N);
     if (0.99 * N > x || x > 1.01 * N) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class PointerPointer extends BenchmarkBase {
-  Pointer<Pointer<Int8>> pointer;
-  Pointer<Int8> data;
-  PointerPointer() : super("FfiMemory.PointerPointer");
+  Pointer<Pointer<Int8>> pointer = nullptr;
+  Pointer<Int8> data = nullptr;
+  PointerPointer() : super('FfiMemory.PointerPointer');
 
+  @override
   void setup() {
     pointer = allocate(count: N);
     data = allocate();
   }
 
+  @override
   void teardown() {
     free(pointer);
     free(data);
   }
 
+  @override
   void run() {
     doStorePointer(pointer, N, data);
     final int x = doLoadPointer(pointer, N);
     if (x != 0 || x == data.address) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
 
 class PointerInt64Mint extends BenchmarkBase {
-  Pointer<Int64> pointer;
-  PointerInt64Mint() : super("FfiMemory.PointerInt64Mint");
+  Pointer<Int64> pointer = nullptr;
+  PointerInt64Mint() : super('FfiMemory.PointerInt64Mint');
 
+  @override
   void setup() => pointer = allocate(count: N);
+  @override
   void teardown() => free(pointer);
 
+  @override
   void run() {
     doStoreInt64Mint(pointer, N);
     final int x = doLoadInt64Mint(pointer, N);
     // Using overflow semantics in aggregation.
     if (x != -N) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
@@ -410,7 +446,7 @@ class PointerInt64Mint extends BenchmarkBase {
 // Main driver.
 //
 
-main() {
+void main() {
   final benchmarks = [
     () => PointerInt8(),
     () => PointerUint8(),
@@ -425,5 +461,7 @@ main() {
     () => PointerDouble(),
     () => PointerPointer(),
   ];
-  benchmarks.forEach((benchmark) => benchmark().report());
+  for (final benchmark in benchmarks) {
+    benchmark().report();
+  }
 }

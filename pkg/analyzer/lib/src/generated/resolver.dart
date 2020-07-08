@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/element/member.dart'
     show ConstructorMember, Member;
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/binary_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
@@ -49,15 +50,14 @@ import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/type_promotion_manager.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:meta/meta.dart';
 
 export 'package:analyzer/dart/element/type_provider.dart';
 export 'package:analyzer/src/dart/constant/constant_verifier.dart';
+export 'package:analyzer/src/dart/element/type_system.dart';
 export 'package:analyzer/src/dart/resolver/exit_detector.dart';
 export 'package:analyzer/src/dart/resolver/scope.dart';
-export 'package:analyzer/src/generated/type_system.dart';
 
 /// Maintains and manages contextual type information used for
 /// inferring types.

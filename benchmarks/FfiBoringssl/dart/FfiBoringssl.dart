@@ -71,30 +71,33 @@ final hashAlgorithm = EVP_sha512();
 
 // Hash of generated data of `L` bytes with `hashAlgorithm`.
 const String expectedHash =
-    "bNLtqb+cBZcSkCmwBUuB5DP2uLe0madetwXv10usGUFJg1sdGhTEi+aW5NWIRW1RKiLq56obV74rVurn014Iyw==";
+    'bNLtqb+cBZcSkCmwBUuB5DP2uLe0madetwXv10usGUFJg1sdGhTEi+aW5NWIRW1RKiLq56obV74rVurn014Iyw==';
 
 /// This benchmark runs a digest algorithm on data residing in C memory.
 ///
 /// This benchmark is intended as macro benchmark with a realistic workload.
 class DigestCMemory extends BenchmarkBase {
-  DigestCMemory() : super("FfiBoringssl.DigestCMemory");
+  DigestCMemory() : super('FfiBoringssl.DigestCMemory');
 
-  Pointer<Data> data; // Data in C memory that we want to digest.
+  Pointer<Data> data = nullptr; // Data in C memory that we want to digest.
 
+  @override
   void setup() {
     data = allocate<Uint8>(count: L).cast();
     copyFromUint8ListToTarget(inventData(L), data.ref);
     hash(data, L, hashAlgorithm);
   }
 
+  @override
   void teardown() {
     free(data);
   }
 
+  @override
   void run() {
     final String result = hash(data, L, hashAlgorithm);
     if (result != expectedHash) {
-      throw Exception("$name: Unexpected result: $result");
+      throw Exception('$name: Unexpected result: $result');
     }
   }
 }
@@ -103,10 +106,11 @@ class DigestCMemory extends BenchmarkBase {
 ///
 /// This benchmark is intended as macro benchmark with a realistic workload.
 class DigestDartMemory extends BenchmarkBase {
-  DigestDartMemory() : super("FfiBoringssl.DigestDartMemory");
+  DigestDartMemory() : super('FfiBoringssl.DigestDartMemory');
 
-  Uint8List data; // Data in C memory that we want to digest.
+  Uint8List data = Uint8List(0); // Data in C memory that we want to digest.
 
+  @override
   void setup() {
     data = inventData(L);
     final Pointer<Data> dataInC = allocate<Uint8>(count: L).cast();
@@ -115,15 +119,17 @@ class DigestDartMemory extends BenchmarkBase {
     free(dataInC);
   }
 
+  @override
   void teardown() {}
 
+  @override
   void run() {
     final Pointer<Data> dataInC = allocate<Uint8>(count: L).cast();
     copyFromUint8ListToTarget(data, dataInC.ref);
     final String result = hash(dataInC, L, hashAlgorithm);
     free(dataInC);
     if (result != expectedHash) {
-      throw Exception("$name: Unexpected result: $result");
+      throw Exception('$name: Unexpected result: $result');
     }
   }
 }
@@ -132,10 +138,12 @@ class DigestDartMemory extends BenchmarkBase {
 // Main driver.
 //
 
-main() {
+void main() {
   final benchmarks = [
     () => DigestCMemory(),
     () => DigestDartMemory(),
   ];
-  benchmarks.forEach((benchmark) => benchmark().report());
+  for (final benchmark in benchmarks) {
+    benchmark().report();
+  }
 }

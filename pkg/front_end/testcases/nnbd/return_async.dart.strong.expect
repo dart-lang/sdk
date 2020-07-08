@@ -1,0 +1,33 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+import "dart:async";
+
+static method throwSync() → asy::Future<void> {
+  throw "";
+}
+static method allYield() → asy::Future<void> async {
+  await 0;
+  await self::allYield2();
+}
+static method allYield2() → asy::Future<void> async {
+  await 0;
+  await self::allYield3();
+}
+static method allYield3() → asy::Future<void> async {
+  await 0;
+  self::throwSync();
+}
+static method customErrorZone() → asy::Future<void> async {
+  final asy::Completer<void> completer = asy::Completer::•<void>();
+  asy::runZonedGuarded<asy::Future<core::Null?>>(() → asy::Future<core::Null?> async {
+    await self::allYield();
+    completer.{asy::Completer::complete}(null);
+  }, (core::Object e, core::StackTrace s) → core::Null? {
+    completer.{asy::Completer::completeError}(e, s);
+  });
+  return completer.{asy::Completer::future};
+}
+static method main() → dynamic {}

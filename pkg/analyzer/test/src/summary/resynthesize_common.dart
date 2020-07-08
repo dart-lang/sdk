@@ -20,11 +20,9 @@ import 'package:test/test.dart';
 import 'element_text.dart';
 import 'test_strategies.dart';
 
-/**
- * Abstract base class for resynthesizing and comparing elements.
- *
- * The return type separator: →
- */
+/// Abstract base class for resynthesizing and comparing elements.
+///
+/// The return type separator: →
 abstract class AbstractResynthesizeTest with ResourceProviderMixin {
   DeclaredVariables declaredVariables = DeclaredVariables();
   SourceFactory sourceFactory;
@@ -34,10 +32,8 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
   Source testSource;
   Set<Source> otherLibrarySources = <Source>{};
 
-  /**
-   * Tests may set this to `true` to indicate that a missing file at the time of
-   * summary resynthesis shouldn't trigger an error.
-   */
+  /// Tests may set this to `true` to indicate that a missing file at the time
+  /// of summary resynthesis shouldn't trigger an error.
   bool allowMissingFiles = false;
 
   AbstractResynthesizeTest() {
@@ -6939,6 +6935,15 @@ class B extends A {
 ''');
     var typeA = library.definingCompilationUnit.getType('B').supertype;
     expect(typeA.element.source.shortName, 'foo_html.dart');
+  }
+
+  test_import_dartCore_implicit() async {
+    var library = await checkLibrary('''
+import 'dart:math';
+''');
+    expect(library.imports, hasLength(2));
+    expect(library.imports[0].uri, 'dart:math');
+    expect(library.imports[1].uri, 'dart:core');
   }
 
   test_import_deferred() async {

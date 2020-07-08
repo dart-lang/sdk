@@ -44,7 +44,7 @@ testTypeErrors() {
   }
 
   check('constant type error', () {
-    assert(null, 'Mumble');
+    assert(null as dynamic, 'Mumble');
   });
   check('variable type error', () {
     assert(confuse(null), 'Mumble');

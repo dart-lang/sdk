@@ -147,9 +147,7 @@ class DuplicateDefinitionVerifier {
     _checkClassMembers(node.declaredElement, node.members);
   }
 
-  /**
-   * Check that all of the parameters have unique names.
-   */
+  /// Check that all of the parameters have unique names.
   void checkParameters(FormalParameterList node) {
     Map<String, Element> definedNames = HashMap<String, Element>();
     for (FormalParameter parameter in node.parameters) {

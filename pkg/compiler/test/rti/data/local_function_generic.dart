@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 
 method1() {
   /*spec.direct,explicit=[local.T*],needsArgs,needsSignature*/
-  /*prod.needsSignature*/
+  /*prod.needsArgs,needsSignature*/
   T local<T>(T t) => t;
   return local;
 }

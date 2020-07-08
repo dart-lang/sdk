@@ -85,83 +85,107 @@ class EnableString {
 
 class ExperimentalFeatures {
   static const constant_update_2018 = ExperimentalFeature(
-      0,
-      EnableString.constant_update_2018,
-      IsEnabledByDefault.constant_update_2018,
-      IsExpired.constant_update_2018,
-      'Enhanced constant expressions',
-      firstSupportedVersion: '2.4.1');
+    index: 0,
+    enableString: EnableString.constant_update_2018,
+    isEnabledByDefault: IsEnabledByDefault.constant_update_2018,
+    isExpired: IsExpired.constant_update_2018,
+    documentation: 'Enhanced constant expressions',
+    firstSupportedVersion: '2.4.1',
+  );
 
   static const control_flow_collections = ExperimentalFeature(
-      1,
-      EnableString.control_flow_collections,
-      IsEnabledByDefault.control_flow_collections,
-      IsExpired.control_flow_collections,
-      'Control Flow Collections',
-      firstSupportedVersion: '2.2.2');
+    index: 1,
+    enableString: EnableString.control_flow_collections,
+    isEnabledByDefault: IsEnabledByDefault.control_flow_collections,
+    isExpired: IsExpired.control_flow_collections,
+    documentation: 'Control Flow Collections',
+    firstSupportedVersion: '2.2.2',
+  );
 
   static const extension_methods = ExperimentalFeature(
-      2,
-      EnableString.extension_methods,
-      IsEnabledByDefault.extension_methods,
-      IsExpired.extension_methods,
-      'Extension Methods',
-      firstSupportedVersion: '2.6.0');
+    index: 2,
+    enableString: EnableString.extension_methods,
+    isEnabledByDefault: IsEnabledByDefault.extension_methods,
+    isExpired: IsExpired.extension_methods,
+    documentation: 'Extension Methods',
+    firstSupportedVersion: '2.6.0',
+  );
 
   static const non_nullable = ExperimentalFeature(
-      3,
-      EnableString.non_nullable,
-      IsEnabledByDefault.non_nullable,
-      IsExpired.non_nullable,
-      'Non Nullable by default');
+    index: 3,
+    enableString: EnableString.non_nullable,
+    isEnabledByDefault: IsEnabledByDefault.non_nullable,
+    isExpired: IsExpired.non_nullable,
+    documentation: 'Non Nullable by default',
+    firstSupportedVersion: null,
+  );
 
   static const nonfunction_type_aliases = ExperimentalFeature(
-      4,
-      EnableString.nonfunction_type_aliases,
-      IsEnabledByDefault.nonfunction_type_aliases,
-      IsExpired.nonfunction_type_aliases,
-      'Type aliases define a <type>, not just a <functionType>.');
+    index: 4,
+    enableString: EnableString.nonfunction_type_aliases,
+    isEnabledByDefault: IsEnabledByDefault.nonfunction_type_aliases,
+    isExpired: IsExpired.nonfunction_type_aliases,
+    documentation: 'Type aliases define a <type>, not just a <functionType>',
+    firstSupportedVersion: null,
+  );
 
-  static const set_literals = ExperimentalFeature(5, EnableString.set_literals,
-      IsEnabledByDefault.set_literals, IsExpired.set_literals, 'Set Literals',
-      firstSupportedVersion: '2.2.0');
+  static const set_literals = ExperimentalFeature(
+    index: 5,
+    enableString: EnableString.set_literals,
+    isEnabledByDefault: IsEnabledByDefault.set_literals,
+    isExpired: IsExpired.set_literals,
+    documentation: 'Set Literals',
+    firstSupportedVersion: '2.2.0',
+  );
 
   static const spread_collections = ExperimentalFeature(
-      6,
-      EnableString.spread_collections,
-      IsEnabledByDefault.spread_collections,
-      IsExpired.spread_collections,
-      'Spread Collections',
-      firstSupportedVersion: '2.2.2');
+    index: 6,
+    enableString: EnableString.spread_collections,
+    isEnabledByDefault: IsEnabledByDefault.spread_collections,
+    isExpired: IsExpired.spread_collections,
+    documentation: 'Spread Collections',
+    firstSupportedVersion: '2.2.2',
+  );
 
   static const triple_shift = ExperimentalFeature(
-      7,
-      EnableString.triple_shift,
-      IsEnabledByDefault.triple_shift,
-      IsExpired.triple_shift,
-      'Triple-shift operator');
+    index: 7,
+    enableString: EnableString.triple_shift,
+    isEnabledByDefault: IsEnabledByDefault.triple_shift,
+    isExpired: IsExpired.triple_shift,
+    documentation: 'Triple-shift operator',
+    firstSupportedVersion: null,
+  );
 
-  static const variance = ExperimentalFeature(8, EnableString.variance,
-      IsEnabledByDefault.variance, IsExpired.variance, 'Sound variance.');
+  static const variance = ExperimentalFeature(
+    index: 8,
+    enableString: EnableString.variance,
+    isEnabledByDefault: IsEnabledByDefault.variance,
+    isExpired: IsExpired.variance,
+    documentation: 'Sound variance',
+    firstSupportedVersion: null,
+  );
 
   @deprecated
   static const bogus_disabled = ExperimentalFeature(
-      9,
-      // ignore: deprecated_member_use_from_same_package
-      EnableString.bogus_disabled,
-      IsEnabledByDefault.bogus_disabled,
-      IsExpired.bogus_disabled,
-      null);
+    index: 9,
+    // ignore: deprecated_member_use_from_same_package
+    enableString: EnableString.bogus_disabled,
+    isEnabledByDefault: IsEnabledByDefault.bogus_disabled,
+    isExpired: IsExpired.bogus_disabled,
+    documentation: null,
+    firstSupportedVersion: null,
+  );
 
   @deprecated
   static const bogus_enabled = ExperimentalFeature(
-      10,
-      // ignore: deprecated_member_use_from_same_package
-      EnableString.bogus_enabled,
-      IsEnabledByDefault.bogus_enabled,
-      IsExpired.bogus_enabled,
-      null,
-      firstSupportedVersion: '1.0.0');
+    index: 10,
+    // ignore: deprecated_member_use_from_same_package
+    enableString: EnableString.bogus_enabled,
+    isEnabledByDefault: IsEnabledByDefault.bogus_enabled,
+    isExpired: IsExpired.bogus_enabled,
+    documentation: null,
+    firstSupportedVersion: '1.0.0',
+  );
 }
 
 /// Constant bools indicating whether each experimental flag is currently

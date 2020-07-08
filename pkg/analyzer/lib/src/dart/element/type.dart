@@ -17,9 +17,9 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 
@@ -44,18 +44,12 @@ List<T> _transformOrShare<T>(List<T> list, T Function(T) transform) {
   return list;
 }
 
-/**
- * The [Type] representing the type `dynamic`.
- */
-class DynamicTypeImpl extends TypeImpl {
-  /**
-   * The unique instance of this class.
-   */
+/// The [Type] representing the type `dynamic`.
+class DynamicTypeImpl extends TypeImpl implements DynamicType {
+  /// The unique instance of this class.
   static final DynamicTypeImpl instance = DynamicTypeImpl._();
 
-  /**
-   * Prevent the creation of instances of this class.
-   */
+  /// Prevent the creation of instances of this class.
   DynamicTypeImpl._() : super(DynamicElementImpl());
 
   @override
@@ -109,9 +103,7 @@ class DynamicTypeImpl extends TypeImpl {
   }
 }
 
-/**
- * The type of a function, method, constructor, getter, or setter.
- */
+/// The type of a function, method, constructor, getter, or setter.
 class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   final DartType returnType;
@@ -378,21 +370,19 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
   }
 
-  /**
-   * Compares two function types [t] and [s] to see if their corresponding
-   * parameter types match [parameterRelation], return types match
-   * [returnRelation], and type parameter bounds match [boundsRelation].
-   *
-   * Used for the various relations on function types which have the same
-   * structural rules for handling optional parameters and arity, but use their
-   * own relation for comparing corresponding parameters or return types.
-   *
-   * If [parameterRelation] is omitted, uses [returnRelation] for both. This
-   * is convenient for Dart 1 type system methods.
-   *
-   * If [boundsRelation] is omitted, uses [returnRelation]. This is for
-   * backwards compatibility, and convenience for Dart 1 type system methods.
-   */
+  /// Compares two function types [t] and [s] to see if their corresponding
+  /// parameter types match [parameterRelation], return types match
+  /// [returnRelation], and type parameter bounds match [boundsRelation].
+  ///
+  /// Used for the various relations on function types which have the same
+  /// structural rules for handling optional parameters and arity, but use their
+  /// own relation for comparing corresponding parameters or return types.
+  ///
+  /// If [parameterRelation] is omitted, uses [returnRelation] for both. This
+  /// is convenient for Dart 1 type system methods.
+  ///
+  /// If [boundsRelation] is omitted, uses [returnRelation]. This is for
+  /// backwards compatibility, and convenience for Dart 1 type system methods.
   static bool relate(FunctionType t, DartType other,
       bool Function(DartType t, DartType s) returnRelation,
       {bool Function(ParameterElement t, ParameterElement s) parameterRelation,
@@ -542,17 +532,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return true;
   }
 
-  /**
-   * Given two functions [f1] and [f2] where f1 and f2 are known to be
-   * generic function types (both have type formals), this checks that they
-   * have the same number of formals, and that those formals have bounds
-   * (e.g. `<T extends LowerBound>`) that satisfy [relation].
-   *
-   * The return value will be a new list of fresh type variables, that can be
-   * used to instantiate both function types, allowing further comparison.
-   * For example, given `<T>T -> T` and `<U>U -> U` we can instantiate them with
-   * `F` to get `F -> F` and `F -> F`, which we can see are equal.
-   */
+  /// Given two functions [f1] and [f2] where f1 and f2 are known to be
+  /// generic function types (both have type formals), this checks that they
+  /// have the same number of formals, and that those formals have bounds
+  /// (e.g. `<T extends LowerBound>`) that satisfy [relation].
+  ///
+  /// The return value will be a new list of fresh type variables, that can be
+  /// used to instantiate both function types, allowing further comparison.
+  /// For example, given `<T>T -> T` and `<U>U -> U` we can instantiate them
+  /// with `F` to get `F -> F` and `F -> F`, which we can see are equal.
   static List<DartType> relateTypeFormals(
       FunctionType f1,
       FunctionType f2,
@@ -680,9 +668,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 }
 
-/**
- * A concrete implementation of an [InterfaceType].
- */
+/// A concrete implementation of an [InterfaceType].
 class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   final List<DartType> typeArguments;
@@ -690,19 +676,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   final NullabilitySuffix nullabilitySuffix;
 
-  /**
-   * Cached [ConstructorElement]s - members or raw elements.
-   */
+  /// Cached [ConstructorElement]s - members or raw elements.
   List<ConstructorElement> _constructors;
 
-  /**
-   * Cached [PropertyAccessorElement]s - members or raw elements.
-   */
+  /// Cached [PropertyAccessorElement]s - members or raw elements.
   List<PropertyAccessorElement> _accessors;
 
-  /**
-   * Cached [MethodElement]s - members or raw elements.
-   */
+  /// Cached [MethodElement]s - members or raw elements.
   List<MethodElement> _methods;
 
   InterfaceTypeImpl({
@@ -898,22 +878,20 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     builder.writeInterfaceType(this);
   }
 
-  /**
-   * Return either this type or a supertype of this type that is defined by the
-   * [targetElement], or `null` if such a type does not exist. If this type
-   * inherits from the target element along multiple paths, then the returned type
-   * is arbitrary.
-   *
-   * For example, given the following definitions
-   * ```
-   * class A<E> {}
-   * class B<E> implements A<E> {}
-   * class C implements A<String> {}
-   * ```
-   * Asking the type `B<int>` for the type associated with `A` will return the
-   * type `A<int>`. Asking the type `C` for the type associated with `A` will
-   * return the type `A<String>`.
-   */
+  /// Return either this type or a supertype of this type that is defined by the
+  /// [targetElement], or `null` if such a type does not exist. If this type
+  /// inherits from the target element along multiple paths, then the returned
+  /// type is arbitrary.
+  ///
+  /// For example, given the following definitions
+  /// ```
+  /// class A<E> {}
+  /// class B<E> implements A<E> {}
+  /// class C implements A<String> {}
+  /// ```
+  /// Asking the type `B<int>` for the type associated with `A` will return the
+  /// type `A<int>`. Asking the type `C` for the type associated with `A` will
+  /// return the type `A<String>`.
   InterfaceType asInstanceOf(ClassElement targetElement) {
     if (element == targetElement) {
       return this;
@@ -1462,10 +1440,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return result;
   }
 
-  /**
-   * If there is a single type which is at least as specific as all of the
-   * types in [types], return it.  Otherwise return `null`.
-   */
+  /// If there is a single type which is at least as specific as all of the
+  /// types in [types], return it.  Otherwise return `null`.
   static DartType findMostSpecificType(
       List<DartType> types, TypeSystemImpl typeSystem) {
     // The << relation ("more specific than") is a partial ordering on types,
@@ -1518,14 +1494,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return null;
   }
 
-  /**
-   * Returns a "smart" version of the "least upper bound" of the given types.
-   *
-   * If these types have the same element and differ only in terms of the type
-   * arguments, attempts to find a compatible set of type arguments.
-   *
-   * Otherwise, calls [DartType.getLeastUpperBound].
-   */
+  /// Returns a "smart" version of the "least upper bound" of the given types.
+  ///
+  /// If these types have the same element and differ only in terms of the type
+  /// arguments, attempts to find a compatible set of type arguments.
+  ///
+  /// Otherwise, calls [DartType.getLeastUpperBound].
   static InterfaceType getSmartLeastUpperBound(
       InterfaceType first, InterfaceType second) {
     // TODO(paulberry): this needs to be deprecated and replaced with a method
@@ -1538,15 +1512,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return typeSystem.getLeastUpperBound(first, second);
   }
 
-  /**
-   * Return the "least upper bound" of the given types under the assumption that
-   * the types have the same element and differ only in terms of the type
-   * arguments.
-   *
-   * The resulting type is composed by comparing the corresponding type
-   * arguments, keeping those that are the same, and using 'dynamic' for those
-   * that are different.
-   */
+  /// Return the "least upper bound" of the given types under the assumption
+  /// that the types have the same element and differ only in terms of the type
+  /// arguments.
+  ///
+  /// The resulting type is composed by comparing the corresponding type
+  /// arguments, keeping those that are the same, and using 'dynamic' for those
+  /// that are different.
   static InterfaceType _leastUpperBound(
       InterfaceType firstType, InterfaceType secondType) {
     ClassElement firstElement = firstType.element;
@@ -1656,45 +1628,35 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 }
 
-/**
- * The type `Never` represents the uninhabited bottom type.
- */
-class NeverTypeImpl extends TypeImpl {
-  /**
-   * The unique instance of this class, nullable.
-   *
-   * This behaves equivalently to the `Null` type, but we distinguish it for two
-   * reasons: (1) there are circumstances where we need access to this type, but
-   * we don't have access to the type provider, so using `Never?` is a
-   * convenient solution.  (2) we may decide that the distinction is convenient
-   * in diagnostic messages (this is TBD).
-   */
+/// The type `Never` represents the uninhabited bottom type.
+class NeverTypeImpl extends TypeImpl implements NeverType {
+  /// The unique instance of this class, nullable.
+  ///
+  /// This behaves equivalently to the `Null` type, but we distinguish it for
+  /// two reasons: (1) there are circumstances where we need access to this
+  /// type, but we don't have access to the type provider, so using `Never?` is
+  /// a convenient solution.  (2) we may decide that the distinction is
+  /// convenient in diagnostic messages (this is TBD).
   static final NeverTypeImpl instanceNullable =
       NeverTypeImpl._(NullabilitySuffix.question);
 
-  /**
-   * The unique instance of this class, starred.
-   *
-   * This behaves like a version of the Null* type that could be conceivably
-   * migrated to be of type Never. Therefore, it's the bottom of all legacy
-   * types, and also assignable to the true bottom. Note that Never? and Never*
-   * are not the same type, as Never* is a subtype of Never, while Never? is
-   * not.
-   */
+  /// The unique instance of this class, starred.
+  ///
+  /// This behaves like a version of the Null* type that could be conceivably
+  /// migrated to be of type Never. Therefore, it's the bottom of all legacy
+  /// types, and also assignable to the true bottom. Note that Never? and Never*
+  /// are not the same type, as Never* is a subtype of Never, while Never? is
+  /// not.
   static final NeverTypeImpl instanceLegacy =
       NeverTypeImpl._(NullabilitySuffix.star);
 
-  /**
-   * The unique instance of this class, non-nullable.
-   */
+  /// The unique instance of this class, non-nullable.
   static final NeverTypeImpl instance = NeverTypeImpl._(NullabilitySuffix.none);
 
   @override
   final NullabilitySuffix nullabilitySuffix;
 
-  /**
-   * Prevent the creation of instances of this class.
-   */
+  /// Prevent the creation of instances of this class.
   NeverTypeImpl._(this.nullabilitySuffix) : super(NeverElementImpl());
 
   @override
@@ -1759,20 +1721,14 @@ class NeverTypeImpl extends TypeImpl {
   }
 }
 
-/**
- * The abstract class `TypeImpl` implements the behavior common to objects
- * representing the declared type of elements in the element model.
- */
+/// The abstract class `TypeImpl` implements the behavior common to objects
+/// representing the declared type of elements in the element model.
 abstract class TypeImpl implements DartType {
-  /**
-   * The element representing the declaration of this type, or `null` if the
-   * type has not, or cannot, be associated with an element.
-   */
+  /// The element representing the declaration of this type, or `null` if the
+  /// type has not, or cannot, be associated with an element.
   final Element _element;
 
-  /**
-   * Initialize a newly created type to be declared by the given [element].
-   */
+  /// Initialize a newly created type to be declared by the given [element].
   TypeImpl(this._element);
 
   @deprecated
@@ -1848,9 +1804,7 @@ abstract class TypeImpl implements DartType {
   @override
   NullabilitySuffix get nullabilitySuffix;
 
-  /**
-   * Append a textual representation of this type to the given [builder].
-   */
+  /// Append a textual representation of this type to the given [builder].
   void appendTo(ElementDisplayStringBuilder builder);
 
   @override
@@ -1877,10 +1831,8 @@ abstract class TypeImpl implements DartType {
   @override
   DartType resolveToBound(DartType objectType) => this;
 
-  /**
-   * Return the type resulting from substituting the given [argumentTypes] for
-   * the given [parameterTypes] in this type.
-   */
+  /// Return the type resulting from substituting the given [argumentTypes] for
+  /// the given [parameterTypes] in this type.
   @override
   @deprecated
   DartType substitute2(
@@ -1891,24 +1843,20 @@ abstract class TypeImpl implements DartType {
     return getDisplayString(withNullability: false);
   }
 
-  /**
-   * Return the same type, but with the given [nullabilitySuffix].
-   *
-   * If the nullability of `this` already matches [nullabilitySuffix], `this`
-   * is returned.
-   *
-   * Note: this method just does low-level manipulations of the underlying type,
-   * so it is what you want if you are constructing a fresh type and want it to
-   * have the correct nullability suffix, but it is generally *not* what you
-   * want if you're manipulating existing types.  For manipulating existing
-   * types, please use the methods in [TypeSystemImpl].
-   */
+  /// Return the same type, but with the given [nullabilitySuffix].
+  ///
+  /// If the nullability of `this` already matches [nullabilitySuffix], `this`
+  /// is returned.
+  ///
+  /// Note: this method just does low-level manipulations of the underlying
+  /// type, so it is what you want if you are constructing a fresh type and want
+  /// it to have the correct nullability suffix, but it is generally *not* what
+  /// you want if you're manipulating existing types.  For manipulating existing
+  /// types, please use the methods in [TypeSystemImpl].
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix);
 
-  /**
-   * Return `true` if corresponding elements of the [first] and [second] lists
-   * of type arguments are all equal.
-   */
+  /// Return `true` if corresponding elements of the [first] and [second] lists
+  /// of type arguments are all equal.
   static bool equalArrays(List<DartType> first, List<DartType> second) {
     if (first.length != second.length) {
       return false;
@@ -1930,10 +1878,9 @@ abstract class TypeImpl implements DartType {
     return true;
   }
 
-  /**
-   * Return a list containing the results of using the given [argumentTypes] and
-   * [parameterTypes] to perform a substitution on all of the given [types].
-   */
+  /// Return a list containing the results of using the given [argumentTypes]
+  /// and [parameterTypes] to perform a substitution on all of the given
+  /// [types].
   @deprecated
   static List<DartType> substitute(List<DartType> types,
       List<DartType> argumentTypes, List<DartType> parameterTypes) {
@@ -1949,9 +1896,7 @@ abstract class TypeImpl implements DartType {
   }
 }
 
-/**
- * A concrete implementation of a [TypeParameterType].
- */
+/// A concrete implementation of a [TypeParameterType].
 class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @override
   final NullabilitySuffix nullabilitySuffix;
@@ -1962,10 +1907,8 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   /// is therefore the same as the bound of [element].
   final DartType promotedBound;
 
-  /**
-   * Initialize a newly created type parameter type to be declared by the given
-   * [element] and to have the given name.
-   */
+  /// Initialize a newly created type parameter type to be declared by the given
+  /// [element] and to have the given name.
   TypeParameterTypeImpl({
     @required TypeParameterElement element,
     @required this.nullabilitySuffix,
@@ -2053,7 +1996,8 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       if (parameterType is TypeParameterTypeImpl && parameterType == this) {
         TypeImpl argumentType = argumentTypes[i];
 
-        // TODO(scheglov) It should not happen, but sometimes arguments are null.
+        // TODO(scheglov) It should not happen, but sometimes arguments are
+        //  null.
         if (argumentType == null) {
           return argumentType;
         }
@@ -2101,10 +2045,8 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     );
   }
 
-  /**
-   * Return a list containing the type parameter types defined by the given
-   * array of type parameter elements ([typeParameters]).
-   */
+  /// Return a list containing the type parameter types defined by the given
+  /// array of type parameter elements ([typeParameters]).
   @deprecated
   static List<TypeParameterType> getTypes(
       List<TypeParameterElement> typeParameters) {
@@ -2120,28 +2062,12 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 }
 
-/**
- * The type `void`.
- */
-abstract class VoidType implements DartType {
-  @override
-  @deprecated
-  VoidType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes);
-}
-
-/**
- * A concrete implementation of a [VoidType].
- */
+/// A concrete implementation of a [VoidType].
 class VoidTypeImpl extends TypeImpl implements VoidType {
-  /**
-   * The unique instance of this class, with indeterminate nullability.
-   */
+  /// The unique instance of this class, with indeterminate nullability.
   static final VoidTypeImpl instance = VoidTypeImpl._();
 
-  /**
-   * Prevent the creation of instances of this class.
-   */
+  /// Prevent the creation of instances of this class.
   VoidTypeImpl._() : super(null);
 
   @override

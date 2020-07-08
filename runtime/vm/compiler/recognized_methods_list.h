@@ -444,8 +444,11 @@ namespace dart {
 //  result-cid, fingerprint).
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
   V(_ListFactory, _List, ., kArrayCid, 0x03ddbd3a)                             \
+  V(_ListFilledFactory, _List, .filled, kArrayCid, 0x0)                        \
   V(_GrowableListWithData, _GrowableList, ._withData, kGrowableObjectArrayCid, \
     0x5cfd6a7f)                                                                \
+  V(_GrowableListFilledFactory, _GrowableList, .filled,                        \
+    kGrowableObjectArrayCid, 0x0)                                              \
   V(_GrowableListFactory, _GrowableList, ., kGrowableObjectArrayCid,           \
     0x3eed680b)                                                                \
   V(_Int8ArrayFactory, Int8List, ., kTypedDataInt8ArrayCid, 0x6ce2f102)        \

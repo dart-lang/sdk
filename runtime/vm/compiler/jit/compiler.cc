@@ -106,6 +106,8 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_reorder_basic_blocks = true;
     FLAG_use_field_guards = false;
     FLAG_use_cha_deopt = false;
+    FLAG_causal_async_stacks = false;
+    FLAG_lazy_async_stacks = true;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     // Set flags affecting runtime accordingly for gen_snapshot.
@@ -658,12 +660,11 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         //
         thread()->isolate_group()->RunWithStoppedMutators(
             install_code_fun, install_code_fun, /*use_force_growth=*/true);
-
-        // We notify code observers after finalizing the code in order to be
-        // outside a [SafepointOperationScope].
-        Code::NotifyCodeObservers(function, *result, optimized());
       }
       if (!result->IsNull()) {
+        // Must be called outside of safepoint.
+        Code::NotifyCodeObservers(function, *result, optimized());
+
 #if !defined(PRODUCT)
         if (!function.HasOptimizedCode()) {
           isolate()->debugger()->NotifyCompilation(function);

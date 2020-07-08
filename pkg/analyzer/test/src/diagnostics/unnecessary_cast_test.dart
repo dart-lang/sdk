@@ -5,11 +5,13 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/constant/potentially_constant_test.dart';
 import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryCastTest);
+    defineReflectiveTests(UnnecessaryCastTestWithNullSafety);
   });
 }
 
@@ -96,24 +98,54 @@ void f(a) {
 ''');
   }
 
-  test_function() async {
+  test_function_toSubtype_viaParameter() async {
     await assertNoErrorsInCode(r'''
-void f() {
-  Function(Null) a = (String x) {};
-  (a as Function(int))(3);
+void f(void Function(int) a) {
+  (a as void Function(num))(3);
 }
 ''');
   }
 
-  test_function2() async {
+  test_function_toSubtype_viaReturnType() async {
     await assertNoErrorsInCode(r'''
-class A {}
-
-class B<T extends A> {
-  void foo() {
-    T Function(T) f;
-    f as A Function(A);
+void f(num Function() a) {
+  (a as int Function())();
+}
+''');
   }
+
+  test_function_toSupertype_viaParameter() async {
+    await assertErrorsInCode(r'''
+void f(void Function(num) a) {
+  (a as void Function(int))(3);
+}
+''', [
+      error(HintCode.UNNECESSARY_CAST, 34, 23),
+    ]);
+  }
+
+  test_function_toSupertype_viaReturnType() async {
+    await assertErrorsInCode(r'''
+void f(int Function() a) {
+  (a as num Function())();
+}
+''', [
+      error(HintCode.UNNECESSARY_CAST, 30, 19),
+    ]);
+  }
+
+  test_function_toUnrelated() async {
+    await assertNoErrorsInCode(r'''
+void f(num Function(num) a) {
+  (a as int Function(int))(3);
+}
+''');
+  }
+
+  test_function_toUnrelated_generic() async {
+    await assertNoErrorsInCode(r'''
+void f<T extends num>(T Function(T) a) {
+  (a as int Function(int))(3);
 }
 ''');
   }
@@ -178,6 +210,44 @@ void f<T extends num>(T a) {
     await assertNoErrorsInCode(r'''
 void f<T>(T a) {
   a as num;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class UnnecessaryCastTestWithNullSafety extends UnnecessaryCastTest
+    with WithNullSafetyMixin {
+  test_interfaceType_star_toNone() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+int a = 0;
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+
+void f() {
+  var b = a as int;
+  b;
+}
+''', [
+      error(HintCode.UNNECESSARY_CAST, 39, 8),
+    ]);
+  }
+
+  test_interfaceType_star_toQuestion() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+int a = 0;
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart';
+
+void f() {
+  var b = a as int?;
+  b;
 }
 ''');
   }

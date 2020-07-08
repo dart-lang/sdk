@@ -12,6 +12,7 @@ import 'package:kernel/kernel.dart' hide MapEntry;
 import 'package:kernel/library_index.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
+import 'package:kernel/src/dart_type_equivalence.dart';
 import 'package:source_span/source_span.dart' show SourceLocation;
 import 'package:path/path.dart' as p;
 
@@ -3125,7 +3126,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var gen = emitGeneratorFn((_) => []);
     // Return type of an async body is `Future<flatten(T)>`, where T is the
     // declared return type.
-    var returnType = _types.unfutureType(function
+    var returnType = _types.flatten(function
         .computeThisFunctionType(_currentLibrary.nonNullable)
         .returnType);
     return js.call('#.async(#, #)',
@@ -5331,7 +5332,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     if (!isTypeError &&
-        from.withDeclaredNullability(Nullability.nonNullable) == to &&
+        DartTypeEquivalence(_coreTypes, ignoreTopLevelNullability: true)
+            .areEqual(from, to) &&
         _mustBeNonNullable(to)) {
       // If the underlying type is the same, we only need a null check.
       return runtimeCall('nullCast(#, #)', [jsFrom, _emitType(to)]);

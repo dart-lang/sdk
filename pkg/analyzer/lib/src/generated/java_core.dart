@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Inserts the given arguments into [pattern].
- *
- *     format('Hello, {0}!', 'John') = 'Hello, John!'
- *     format('{0} are you {1}ing?', 'How', 'do') = 'How are you doing?'
- *     format('{0} are you {1}ing?', 'What', 'read') = 'What are you reading?'
- */
+/// Inserts the given arguments into [pattern].
+///
+///     format('Hello, {0}!', 'John') = 'Hello, John!'
+///     format('{0} are you {1}ing?', 'How', 'do') = 'How are you doing?'
+///     format('{0} are you {1}ing?', 'What', 'read') = 'What are you reading?'
 String format(String pattern,
     [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7]) {
   // TODO(rnystrom): This is not used by analyzer, but is called by
@@ -16,13 +14,12 @@ String format(String pattern,
   return formatList(pattern, [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7]);
 }
 
-/**
- * Inserts the given [arguments] into [pattern].
- *
- *     format('Hello, {0}!', ['John']) = 'Hello, John!'
- *     format('{0} are you {1}ing?', ['How', 'do']) = 'How are you doing?'
- *     format('{0} are you {1}ing?', ['What', 'read']) = 'What are you reading?'
- */
+/// Inserts the given [arguments] into [pattern].
+///
+///     format('Hello, {0}!', ['John']) = 'Hello, John!'
+///     format('{0} are you {1}ing?', ['How', 'do']) = 'How are you doing?'
+///     format('{0} are you {1}ing?', ['What', 'read']) =
+///         'What are you reading?'
 String formatList(String pattern, List<Object> arguments) {
   if (arguments == null || arguments.isEmpty) {
     assert(!pattern.contains(RegExp(r'\{(\d+)\}')),
@@ -38,9 +35,7 @@ String formatList(String pattern, List<Object> arguments) {
   });
 }
 
-/**
- * Very limited printf implementation, supports only %s and %d.
- */
+/// Very limited printf implementation, supports only %s and %d.
 String _printf(String fmt, List args) {
   StringBuffer sb = StringBuffer();
   bool markFound = false;

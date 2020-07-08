@@ -9,7 +9,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for [MethodInvocation]s into [InstanceCreationExpression] to support
 /// the optional `new` and `const` feature, or [ExtensionOverride].
