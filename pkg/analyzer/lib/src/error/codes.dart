@@ -3033,6 +3033,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "inconsistency.");
 
   /**
+   * It is a compile-time error if a part file has a different language version
+   * override than its library.
+   *
+   * https://github.com/dart-lang/language/blob/master/accepted/
+   * future-releases/language-versioning/feature-specification.md
+   * #individual-library-language-version-override
+   */
+  static const CompileTimeErrorCode INCONSISTENT_LANGUAGE_VERSION_OVERRIDE =
+      CompileTimeErrorCode(
+          'INCONSISTENT_LANGUAGE_VERSION_OVERRIDE',
+          "Parts must have exactly the same language version override as "
+              "the library.");
+
+  /**
    * Parameters:
    * 0: the name of the initializing formal that is not an instance variable in
    *    the immediately enclosing class

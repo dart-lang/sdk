@@ -191,6 +191,8 @@ import 'inconsistent_case_expression_types_test.dart'
 import 'inconsistent_inheritance_getter_and_method_test.dart'
     as inconsistent_inheritance_getter_and_method;
 import 'inconsistent_inheritance_test.dart' as inconsistent_inheritance;
+import 'inconsistent_language_version_override_test.dart'
+    as inconsistent_language_version_override;
 import 'inference_failure_on_collection_literal_test.dart'
     as inference_failure_on_collection_literal;
 import 'inference_failure_on_function_return_type_test.dart'
@@ -663,6 +665,7 @@ main() {
     inconsistent_case_expression_types.main();
     inconsistent_inheritance_getter_and_method.main();
     inconsistent_inheritance.main();
+    inconsistent_language_version_override.main();
     inference_failure_on_collection_literal.main();
     inference_failure_on_function_return_type.main();
     inference_failure_on_uninitialized_variable.main();

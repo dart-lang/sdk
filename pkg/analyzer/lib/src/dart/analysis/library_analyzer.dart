@@ -185,6 +185,8 @@ class LibraryAnalyzer {
 
     assert(units.values.every(LegacyTypeAsserter.assertLegacyTypes));
 
+    _checkForInconsistentLanguageVersionOverride(units);
+
     timerLibraryAnalyzerVerify.stop();
 
     // Return full results.
@@ -196,6 +198,44 @@ class LibraryAnalyzer {
     });
     timerLibraryAnalyzer.stop();
     return results;
+  }
+
+  void _checkForInconsistentLanguageVersionOverride(
+    Map<FileState, CompilationUnit> units,
+  ) {
+    var libraryUnit = units.values.first;
+    var libraryOverrideToken = libraryUnit.languageVersionToken;
+
+    for (var partEntry in units.entries.skip(1)) {
+      var partUnit = partEntry.value;
+      var partOverrideToken = partUnit.languageVersionToken;
+      if (libraryOverrideToken != null) {
+        if (partOverrideToken != null) {
+          if (partOverrideToken.major != libraryOverrideToken.major ||
+              partOverrideToken.minor != libraryOverrideToken.minor) {
+            _getErrorReporter(partEntry.key).reportErrorForToken(
+              CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE,
+              partOverrideToken,
+            );
+          }
+        } else {
+          var partDirectives = partUnit.directives;
+          for (var partOf in partDirectives.whereType<PartOfDirective>()) {
+            var partOffset = partOf.partKeyword.offset;
+            _getErrorReporter(partEntry.key).reportErrorForOffset(
+              CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE,
+              partOffset,
+              partOf.ofKeyword.end - partOffset,
+            );
+          }
+        }
+      } else if (partOverrideToken != null) {
+        _getErrorReporter(partEntry.key).reportErrorForToken(
+          CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE,
+          partOverrideToken,
+        );
+      }
+    }
   }
 
   void _computeConstantErrors(
