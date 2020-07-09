@@ -34,8 +34,9 @@ void defineTests() {
           'test/_data/unnecessary_lambdas',
           '--rules=unnecessary_lambdas',
         ], LinterOptions());
-        expect(collectingOut.trim(),
-            contains('2 files analyzed, 0 issues found, in'));
+        expect(
+            collectingOut.trim(), contains('2 files analyzed, 1 issue found'));
+        expect(collectingOut.trim(), contains('core.print'));
       });
     });
 
