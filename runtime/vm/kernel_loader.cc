@@ -279,11 +279,19 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
       if (pair != NULL) {
         // At least two entries with content. Unless the content is the same
         // that's not valid.
-        if (pair->sources->CompareTo(script_source) != 0 ||
-            !pair->line_starts->CanonicalizeEquals(line_starts)) {
-          FATAL(
+        const bool src_differ = pair->sources->CompareTo(script_source) != 0;
+        const bool line_starts_differ =
+            !pair->line_starts->CanonicalizeEquals(line_starts);
+        if (src_differ || line_starts_differ) {
+          FATAL3(
               "Invalid kernel binary: Contains at least two source entries "
-              "that do not agree.");
+              "that do not agree. URI '%s', difference: %s. Subprogram count: "
+              "%" Pd ".",
+              uri_string.ToCString(),
+              src_differ && line_starts_differ
+                  ? "src and line starts"
+                  : (src_differ ? "src" : "line starts"),
+              subprogram_count);
         }
       } else {
         UriToSourceTableEntry* tmp = new UriToSourceTableEntry();
@@ -544,7 +552,7 @@ void KernelLoader::AnnotateNativeProcedures() {
     for (intptr_t j = 0; j < annotation_count; ++j) {
       const intptr_t tag = helper_.PeekTag();
       if (tag == kConstantExpression) {
-        helper_.ReadByte();  // Skip the tag.
+        helper_.ReadByte();      // Skip the tag.
         helper_.ReadPosition();  // Skip fileOffset.
         helper_.SkipDartType();  // Skip type.
 
@@ -675,7 +683,7 @@ void KernelLoader::LoadNativeExtensionLibraries() {
 
         const intptr_t tag = helper_.PeekTag();
         if (tag == kConstantExpression) {
-          helper_.ReadByte();  // Skip the tag.
+          helper_.ReadByte();      // Skip the tag.
           helper_.ReadPosition();  // Skip fileOffset.
           helper_.SkipDartType();  // Skip type.
 
@@ -1874,7 +1882,7 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
         // TODO(sjindel): Refactor `ExternalName` handling to do this as well
         // and avoid the "potential natives" list.
 
-        helper_.ReadByte();  // Skip the tag.
+        helper_.ReadByte();      // Skip the tag.
         helper_.ReadPosition();  // Skip fileOffset.
         helper_.SkipDartType();  // Skip type.
         const intptr_t offset_in_constant_table = helper_.ReadUInt();
