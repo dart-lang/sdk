@@ -12135,6 +12135,7 @@ void Library::DropDependenciesAndCaches() const {
   StorePointer(&raw_ptr()->resolved_names_, Array::null());
   StorePointer(&raw_ptr()->exported_names_, Array::null());
   StorePointer(&raw_ptr()->loaded_scripts_, Array::null());
+  StorePointer(&raw_ptr()->dependencies_, Array::null());
 }
 
 void Library::AddImport(const Namespace& ns) const {
