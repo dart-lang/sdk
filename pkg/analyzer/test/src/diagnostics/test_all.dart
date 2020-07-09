@@ -310,6 +310,7 @@ import 'mixin_super_class_constraint_non_interface_test.dart'
     as mixin_super_class_constraint_non_interface;
 import 'mixin_with_non_class_superclass_test.dart'
     as mixin_with_non_class_superclass;
+import 'mixins_super_class_test.dart' as mixins_super_class;
 import 'must_be_a_native_function_type_test.dart'
     as must_be_a_native_function_type;
 import 'must_be_a_subtype_test.dart' as must_be_a_subtype;
@@ -744,6 +745,7 @@ main() {
     mixin_on_sealed_class.main();
     mixin_super_class_constraint_non_interface.main();
     mixin_with_non_class_superclass.main();
+    mixins_super_class.main();
     must_be_a_native_function_type.main();
     must_be_a_subtype.main();
     must_be_immutable.main();

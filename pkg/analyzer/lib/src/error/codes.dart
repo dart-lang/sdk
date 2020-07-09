@@ -4263,6 +4263,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Mixin can only be applied to class.");
 
   /**
+   * Technically this is [IMPLEMENTS_SUPER_CLASS].
+   * See https://github.com/dart-lang/sdk/issues/25765#issuecomment-307422593
+   *
+   * Parameters:
+   * 0: the name of the class that appears in both "extends" and "with" clauses
+   */
+  static const CompileTimeErrorCode MIXINS_SUPER_CLASS = CompileTimeErrorCode(
+      'MIXINS_SUPER_CLASS',
+      "'{0}' can't be used in both 'extends' and 'with' clauses.",
+      correction: "Try removing one of the occurrences.");
+
+  /**
    * 7.6.1 Generative Constructors: A generative constructor may be redirecting,
    * in which case its only action is to invoke another generative constructor.
    */

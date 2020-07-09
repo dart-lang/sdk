@@ -1248,6 +1248,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForRepeatedType(implementsClause?.interfaces,
           CompileTimeErrorCode.IMPLEMENTS_REPEATED);
       _checkImplementsSuperClass(implementsClause);
+      _checkMixinsSuperClass(withClause);
       _checkMixinInference(node, withClause);
       _checkForMixinWithConflictingPrivateMember(withClause, superclass);
       _checkForConflictingGenerics(node);
@@ -4626,27 +4627,27 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Verify that the given class [declaration] does not have the same class in
-  /// the 'extends' and 'implements' clauses.
+  /// Verify that the current class does not have the same class in the
+  /// 'extends' and 'implements' clauses.
   ///
   /// See [CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS].
   void _checkImplementsSuperClass(ImplementsClause implementsClause) {
-    // prepare super type
-    InterfaceType superType = _enclosingClass.supertype;
-    if (superType == null) {
-      return;
-    }
-    // prepare interfaces
     if (implementsClause == null) {
       return;
     }
-    // check interfaces
-    for (TypeName interfaceNode in implementsClause.interfaces) {
-      if (interfaceNode.type == superType) {
+
+    var superElement = _enclosingClass.supertype?.element;
+    if (superElement == null) {
+      return;
+    }
+
+    for (var interfaceNode in implementsClause.interfaces) {
+      if (interfaceNode.type.element == superElement) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS,
-            interfaceNode,
-            [superType]);
+          CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS,
+          interfaceNode,
+          [superElement],
+        );
       }
     }
   }
@@ -4717,6 +4718,31 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         CompileTimeErrorCode.IMPLEMENTS_REPEATED,
       );
       _checkForConflictingGenerics(node);
+    }
+  }
+
+  /// Verify that the current class does not have the same class in the
+  /// 'extends' and 'with' clauses.
+  ///
+  /// See [CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS].
+  void _checkMixinsSuperClass(WithClause withClause) {
+    if (withClause == null) {
+      return;
+    }
+
+    var superElement = _enclosingClass.supertype?.element;
+    if (superElement == null) {
+      return;
+    }
+
+    for (var mixinNode in withClause.mixinTypes) {
+      if (mixinNode.type.element == superElement) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.MIXINS_SUPER_CLASS,
+          mixinNode,
+          [superElement],
+        );
+      }
     }
   }
 

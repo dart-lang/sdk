@@ -147,22 +147,6 @@ class C extends A with B {}
     ]);
   }
 
-  test_class_superclassAndMixin_same() async {
-    newFile('/test/lib/a.dart', content: r'''
-class A {
-  void _foo() {}
-}
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-class C extends A with A {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 41, 1),
-    ]);
-  }
-
   test_class_superclassAndMixin_sameLibrary() async {
     await assertErrorsInCode('''
 class A {
@@ -256,26 +240,6 @@ class B {
 import 'a.dart';
 
 class C = A with B;
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 35, 1),
-    ]);
-  }
-
-  test_classTypeAlias_superclassAndMixin_same() async {
-    newFile('/test/lib/a.dart', content: r'''
-class A {
-  void _foo() {}
-}
-
-class B {
-  void _foo() {}
-}
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-class C = A with A;
 ''', [
       error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 35, 1),
     ]);
