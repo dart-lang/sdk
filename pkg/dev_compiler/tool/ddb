@@ -347,7 +347,7 @@ try {
   if ($nnbd) {
     dart.nullSafety($soundNullSafety);
     dart.weakNullSafetyWarnings(!$soundNullSafety);
-    sdk.dart.nonNullAsserts($nonNullAsserts);
+    dart.nonNullAsserts($nonNullAsserts);
   }
   _isolate_helper.startRootIsolate(() => {}, []);
   main();
