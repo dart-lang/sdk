@@ -135,9 +135,11 @@ abstract class Compiler {
     options.deriveOptions();
     options.validate();
 
-    abstractValueStrategy = options.useTrivialAbstractValueDomain
-        ? const TrivialAbstractValueStrategy()
-        : const TypeMaskStrategy();
+    abstractValueStrategy = options.experimentalPowersets
+        ? throw UnimplementedError('Powerset abstract value domain')
+        : options.useTrivialAbstractValueDomain
+            ? const TrivialAbstractValueStrategy()
+            : const TypeMaskStrategy();
     CompilerTask kernelFrontEndTask;
     selfTask = new GenericTask('self', measurer);
     _outputProvider = new _CompilerOutput(this, outputProvider);
