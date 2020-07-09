@@ -1,4 +1,4 @@
-## 1.2.0-nnbd
+## 1.3.0-nullsafety
 
 * Opt into null safety.
 * Introduce `@doNotStore` to annotate methods, getters and functions to
