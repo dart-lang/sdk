@@ -197,6 +197,7 @@ const Map<String, ValueSpecification> optionSpecification =
   Flags.verbose: const BoolValue(false),
   Flags.verify: const BoolValue(false),
   Flags.linkDependencies: const UriListValue(),
+  Flags.noDeps: const BoolValue(false),
   "-D": const DefineValue(),
   "-h": const AliasValue(Flags.help),
   "--out": const AliasValue(Flags.output),
@@ -255,6 +256,8 @@ ProcessedOptions analyzeCommandLine(String programName,
   }
 
   final bool noDefines = options[Flags.noDefines];
+
+  final bool noDeps = options[Flags.noDeps];
 
   final bool verify = options[Flags.verify];
 
@@ -341,7 +344,8 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..experimentalFlags = experimentalFlags
     ..environmentDefines = noDefines ? null : parsedArguments.defines
     ..nnbdMode = nnbdMode
-    ..additionalDills = linkDependencies;
+    ..additionalDills = linkDependencies
+    ..emitDeps = !noDeps;
 
   if (programName == "compile_platform") {
     if (arguments.length != 5) {
