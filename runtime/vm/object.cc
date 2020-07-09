@@ -9153,7 +9153,7 @@ void Function::SetDeoptReasonForAll(intptr_t deopt_id,
   }
 }
 
-bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
+bool Function::CheckSourceFingerprint(int32_t fp) const {
   if (Isolate::Current()->obfuscate() || FLAG_precompiled_mode ||
       (Dart::vm_snapshot_kind() != Snapshot::kNone)) {
     return true;  // The kernel structure has been altered, skip checking.
@@ -9165,12 +9165,6 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
     return true;
   }
 
-#if 1
-  // The non-nullable experiment changes the fingerprints, we only track
-  // one fingerprint set, until we unfork and settle on a single snapshot
-  // version this check has to be bypassed.
-  // TODO(36376) - Restore checking fingerprints of recognized methods.
-#else
   if (SourceFingerprint() != fp) {
     const bool recalculatingFingerprints = false;
     if (recalculatingFingerprints) {
@@ -9189,7 +9183,6 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
       return false;
     }
   }
-#endif
   return true;
 }
 
@@ -13520,7 +13513,7 @@ void Library::CheckFunctionFingerprints() {
     has_errors = true;                                                         \
     OS::PrintErr("Function not found %s.%s\n", #class_name, #function_name);   \
   } else {                                                                     \
-    CHECK_FINGERPRINT3(func, class_name, function_name, dest, fp);             \
+    ASSERT(func.CheckSourceFingerprint(fp));                                   \
   }
 
 #define CHECK_FINGERPRINTS2(class_name, function_name, dest, fp)               \
@@ -13563,7 +13556,7 @@ void Library::CheckFunctionFingerprints() {
     has_errors = true;                                                         \
     OS::PrintErr("Function not found %s.%s\n", #class_name, #factory_name);    \
   } else {                                                                     \
-    CHECK_FINGERPRINT2(func, symbol, cid, fp);                                 \
+    ASSERT(func.CheckSourceFingerprint(fp));                                   \
   }
 
   all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));

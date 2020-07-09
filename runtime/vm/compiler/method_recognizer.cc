@@ -204,10 +204,7 @@ void MethodRecognizer::InitializeState() {
     func = Library::GetFunction(libs, recognized_methods[i].class_name,
                                 recognized_methods[i].function_name);
     if (!func.IsNull()) {
-      CHECK_FINGERPRINT3(func, recognized_methods[i].class_name,
-                         recognized_methods[i].function_name,
-                         recognized_methods[i].enum_name,
-                         recognized_methods[i].fp);
+      ASSERT(func.CheckSourceFingerprint(recognized_methods[i].fp));
       func.set_recognized_kind(kind);
       switch (kind) {
 #define RECOGNIZE_METHOD(class_name, function_name, enum_name, fp)             \
@@ -228,7 +225,7 @@ void MethodRecognizer::InitializeState() {
 #define SET_FUNCTION_BIT(class_name, function_name, dest, fp, setter, value)   \
   func = Library::GetFunction(libs, #class_name, #function_name);              \
   if (!func.IsNull()) {                                                        \
-    CHECK_FINGERPRINT3(func, class_name, function_name, dest, fp);             \
+    ASSERT(func.CheckSourceFingerprint(fp));                                   \
     func.setter(value);                                                        \
   } else if (!FLAG_precompiled_mode) {                                         \
     OS::PrintErr("Missing %s::%s\n", #class_name, #function_name);             \

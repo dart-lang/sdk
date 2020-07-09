@@ -1160,7 +1160,7 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
                is_new_group ? nullptr : group, isolate_data));
     if (error_obj.IsNull()) {
 #if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
-      if (FLAG_check_function_fingerprints && source->kernel_buffer == NULL) {
+      if (FLAG_check_function_fingerprints && !FLAG_precompiled_mode) {
         Library::CheckFunctionFingerprints();
       }
 #endif  // defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME).
