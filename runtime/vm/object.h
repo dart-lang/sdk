@@ -516,6 +516,7 @@ class Object {
   static ClassPtr icdata_class() { return icdata_class_; }
   static ClassPtr megamorphic_cache_class() { return megamorphic_cache_class_; }
   static ClassPtr subtypetestcache_class() { return subtypetestcache_class_; }
+  static ClassPtr loadingunit_class() { return loadingunit_class_; }
   static ClassPtr weak_serialization_reference_class() {
     return weak_serialization_reference_class_;
   }
@@ -808,6 +809,7 @@ class Object {
   static ClassPtr icdata_class_;             // Class of ICData.
   static ClassPtr megamorphic_cache_class_;  // Class of MegamorphiCache.
   static ClassPtr subtypetestcache_class_;   // Class of SubtypeTestCache.
+  static ClassPtr loadingunit_class_;        // Class of LoadingUnit.
   static ClassPtr api_error_class_;          // Class of ApiError.
   static ClassPtr language_error_class_;     // Class of LanguageError.
   static ClassPtr unhandled_exception_class_;  // Class of UnhandledException.
@@ -4606,6 +4608,9 @@ class Library : public Object {
   }
   void SetLoaded() const;
 
+  LoadingUnitPtr loading_unit() const { return raw_ptr()->loading_unit_; }
+  void set_loading_unit(const LoadingUnit& value) const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(LibraryLayout));
   }
@@ -6964,6 +6969,41 @@ class SubtypeTestCache : public Object {
   friend class Class;
   friend class Serializer;
   friend class Deserializer;
+};
+
+class LoadingUnit : public Object {
+ public:
+  static const intptr_t kIllegalId = 0;
+  static const intptr_t kRootId = 1;
+
+  static LoadingUnitPtr New();
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(LoadingUnitLayout));
+  }
+
+  LoadingUnitPtr parent() const;
+  void set_parent(const LoadingUnit& value) const;
+
+  ArrayPtr base_objects() const;
+  void set_base_objects(const Array& value) const;
+
+  intptr_t id() const { return raw_ptr()->id_; }
+  void set_id(intptr_t id) { StoreNonPointer(&raw_ptr()->id_, id); }
+
+  // True once the VM deserializes this unit's snapshot.
+  bool loaded() const { return raw_ptr()->loaded_; }
+  void set_loaded(bool value) { StoreNonPointer(&raw_ptr()->loaded_, value); }
+
+  // True once the VM invokes the embedder's deferred load callback.
+  bool load_issued() const { return raw_ptr()->load_issued_; }
+  void set_load_issued(bool value) {
+    StoreNonPointer(&raw_ptr()->load_issued_, value);
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(LoadingUnit, Object);
+  friend class Class;
 };
 
 class Error : public Object {

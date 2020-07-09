@@ -173,6 +173,7 @@ ClassPtr Object::monomorphicsmiablecall_class_ =
 ClassPtr Object::icdata_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::megamorphic_cache_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::subtypetestcache_class_ = static_cast<ClassPtr>(RAW_NULL);
+ClassPtr Object::loadingunit_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::api_error_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::language_error_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::unhandled_exception_class_ = static_cast<ClassPtr>(RAW_NULL);
@@ -890,6 +891,9 @@ void Object::Init(Isolate* isolate) {
   cls = Class::New<SubtypeTestCache, RTN::SubtypeTestCache>(isolate);
   subtypetestcache_class_ = cls.raw();
 
+  cls = Class::New<LoadingUnit, RTN::LoadingUnit>(isolate);
+  loadingunit_class_ = cls.raw();
+
   cls = Class::New<ApiError, RTN::ApiError>(isolate);
   api_error_class_ = cls.raw();
 
@@ -1286,6 +1290,7 @@ void Object::Cleanup() {
   icdata_class_ = static_cast<ClassPtr>(RAW_NULL);
   megamorphic_cache_class_ = static_cast<ClassPtr>(RAW_NULL);
   subtypetestcache_class_ = static_cast<ClassPtr>(RAW_NULL);
+  loadingunit_class_ = static_cast<ClassPtr>(RAW_NULL);
   api_error_class_ = static_cast<ClassPtr>(RAW_NULL);
   language_error_class_ = static_cast<ClassPtr>(RAW_NULL);
   unhandled_exception_class_ = static_cast<ClassPtr>(RAW_NULL);
@@ -1388,6 +1393,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(icdata, ICData);
   SET_CLASS_NAME(megamorphic_cache, MegamorphicCache);
   SET_CLASS_NAME(subtypetestcache, SubtypeTestCache);
+  SET_CLASS_NAME(loadingunit, LoadingUnit);
   SET_CLASS_NAME(api_error, ApiError);
   SET_CLASS_NAME(language_error, LanguageError);
   SET_CLASS_NAME(unhandled_exception, UnhandledException);
@@ -4676,6 +4682,8 @@ const char* Class::GenerateUserVisibleName() const {
       return Symbols::MegamorphicCache().ToCString();
     case kSubtypeTestCacheCid:
       return Symbols::SubtypeTestCache().ToCString();
+    case kLoadingUnitCid:
+      return Symbols::LoadingUnit().ToCString();
     case kApiErrorCid:
       return Symbols::ApiError().ToCString();
     case kLanguageErrorCid:
@@ -11133,6 +11141,10 @@ void Library::set_kernel_data(const ExternalTypedData& data) const {
   StorePointer(&raw_ptr()->kernel_data_, data.raw());
 }
 
+void Library::set_loading_unit(const LoadingUnit& value) const {
+  StorePointer(&raw_ptr()->loading_unit_, value.raw());
+}
+
 void Library::SetName(const String& name) const {
   // Only set name once.
   ASSERT(!Loaded());
@@ -17138,6 +17150,41 @@ void SubtypeTestCache::Reset() const {
 
 const char* SubtypeTestCache::ToCString() const {
   return "SubtypeTestCache";
+}
+
+LoadingUnitPtr LoadingUnit::New() {
+  ASSERT(Object::loadingunit_class() != Class::null());
+  LoadingUnit& result = LoadingUnit::Handle();
+  {
+    // LoadingUnit objects are long living objects, allocate them in the
+    // old generation.
+    ObjectPtr raw = Object::Allocate(LoadingUnit::kClassId,
+                                     LoadingUnit::InstanceSize(), Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+  }
+  result.set_id(kIllegalId);
+  result.set_loaded(false);
+  result.set_load_issued(false);
+  return result.raw();
+}
+
+LoadingUnitPtr LoadingUnit::parent() const {
+  return raw_ptr()->parent_;
+}
+void LoadingUnit::set_parent(const LoadingUnit& value) const {
+  StorePointer(&raw_ptr()->parent_, value.raw());
+}
+
+ArrayPtr LoadingUnit::base_objects() const {
+  return raw_ptr()->base_objects_;
+}
+void LoadingUnit::set_base_objects(const Array& value) const {
+  StorePointer(&raw_ptr()->base_objects_, value.raw());
+}
+
+const char* LoadingUnit::ToCString() const {
+  return "LoadingUnit";
 }
 
 const char* Error::ToErrorCString() const {

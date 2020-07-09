@@ -1030,6 +1030,20 @@ void SubtypeTestCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_cache", Array::Handle(cache()));
 }
 
+void LoadingUnit::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("_parent", LoadingUnit::Handle(parent()));
+  jsobj.AddProperty("_baseObjects", Array::Handle(base_objects()));
+  jsobj.AddProperty("_id", static_cast<intptr_t>(id()));
+  jsobj.AddProperty("_loaded", loaded());
+  jsobj.AddProperty("_load_united", load_issued());
+}
+
 void Error::PrintJSONImpl(JSONStream* stream, bool ref) const {
   UNREACHABLE();
 }

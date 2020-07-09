@@ -1029,6 +1029,20 @@ class ObfuscationProhibitionsMetadataHelper : public MetadataHelper {
   DISALLOW_COPY_AND_ASSIGN(ObfuscationProhibitionsMetadataHelper);
 };
 
+class LoadingUnitsMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.loading-units.metadata"; }
+
+  explicit LoadingUnitsMetadataHelper(KernelReaderHelper* helper);
+
+  void ReadLoadingUnits() { ReadMetadata(0); }
+
+ private:
+  void ReadMetadata(intptr_t node_offset);
+
+  DISALLOW_COPY_AND_ASSIGN(LoadingUnitsMetadataHelper);
+};
+
 struct CallSiteAttributesMetadata {
   const AbstractType* receiver_type = nullptr;
 };
@@ -1267,6 +1281,7 @@ class KernelReaderHelper {
   friend class UnboxingInfoMetadataHelper;
   friend class VariableDeclarationHelper;
   friend class ObfuscationProhibitionsMetadataHelper;
+  friend class LoadingUnitsMetadataHelper;
   friend bool NeedsDynamicInvocationForwarder(const Function& function);
 
  private:

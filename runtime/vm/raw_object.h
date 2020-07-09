@@ -1303,6 +1303,7 @@ class LibraryLayout : public ObjectLayout {
   GrowableObjectArrayPtr metadata_;  // Metadata on classes, methods etc.
   ClassPtr toplevel_class_;          // Class containing top-level elements.
   GrowableObjectArrayPtr used_scripts_;
+  LoadingUnitPtr loading_unit_;
   ArrayPtr imports_;  // List of Namespaces imported without prefix.
   ArrayPtr exports_;  // List of re-exported Namespaces.
   ArrayPtr dependencies_;
@@ -2052,6 +2053,17 @@ class SubtypeTestCacheLayout : public ObjectLayout {
   VISIT_FROM(ObjectPtr, cache_);
   ArrayPtr cache_;
   VISIT_TO(ObjectPtr, cache_);
+};
+
+class LoadingUnitLayout : public ObjectLayout {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LoadingUnit);
+  VISIT_FROM(ObjectPtr, parent_);
+  LoadingUnitPtr parent_;
+  ArrayPtr base_objects_;
+  VISIT_TO(ObjectPtr, base_objects_);
+  int32_t id_;
+  bool load_issued_;
+  bool loaded_;
 };
 
 class ErrorLayout : public ObjectLayout {

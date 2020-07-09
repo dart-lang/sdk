@@ -2927,6 +2927,73 @@ class SubtypeTestCacheDeserializationCluster : public DeserializationCluster {
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+class LoadingUnitSerializationCluster : public SerializationCluster {
+ public:
+  LoadingUnitSerializationCluster() : SerializationCluster("LoadingUnit") {}
+  ~LoadingUnitSerializationCluster() {}
+
+  void Trace(Serializer* s, ObjectPtr object) {
+    LoadingUnitPtr unit = LoadingUnit::RawCast(object);
+    objects_.Add(unit);
+    s->Push(unit->ptr()->parent_);
+  }
+
+  void WriteAlloc(Serializer* s) {
+    s->WriteCid(kLoadingUnitCid);
+    const intptr_t count = objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      LoadingUnitPtr unit = objects_[i];
+      s->AssignRef(unit);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    const intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      LoadingUnitPtr unit = objects_[i];
+      AutoTraceObject(unit);
+      WriteField(unit, parent_);
+      s->Write<int32_t>(unit->ptr()->id_);
+    }
+  }
+
+ private:
+  GrowableArray<LoadingUnitPtr> objects_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class LoadingUnitDeserializationCluster : public DeserializationCluster {
+ public:
+  LoadingUnitDeserializationCluster() {}
+  ~LoadingUnitDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) {
+    start_index_ = d->next_index();
+    PageSpace* old_space = d->heap()->old_space();
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      d->AssignRef(
+          AllocateUninitialized(old_space, LoadingUnit::InstanceSize()));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d) {
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      LoadingUnitPtr unit = static_cast<LoadingUnitPtr>(d->Ref(id));
+      Deserializer::InitializeHeader(unit, kLoadingUnitCid,
+                                     LoadingUnit::InstanceSize());
+      unit->ptr()->parent_ = static_cast<LoadingUnitPtr>(d->ReadRef());
+      unit->ptr()->base_objects_ = Array::null();
+      unit->ptr()->id_ = d->Read<int32_t>();
+      unit->ptr()->loaded_ = false;
+      unit->ptr()->load_issued_ = false;
+    }
+  }
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class LanguageErrorSerializationCluster : public SerializationCluster {
  public:
   LanguageErrorSerializationCluster() : SerializationCluster("LanguageError") {}
@@ -5058,6 +5125,8 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) MegamorphicCacheSerializationCluster();
     case kSubtypeTestCacheCid:
       return new (Z) SubtypeTestCacheSerializationCluster();
+    case kLoadingUnitCid:
+      return new (Z) LoadingUnitSerializationCluster();
     case kLanguageErrorCid:
       return new (Z) LanguageErrorSerializationCluster();
     case kUnhandledExceptionCid:
@@ -5934,6 +6003,8 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) MegamorphicCacheDeserializationCluster();
     case kSubtypeTestCacheCid:
       return new (Z) SubtypeTestCacheDeserializationCluster();
+    case kLoadingUnitCid:
+      return new (Z) LoadingUnitDeserializationCluster();
     case kLanguageErrorCid:
       return new (Z) LanguageErrorDeserializationCluster();
     case kUnhandledExceptionCid:

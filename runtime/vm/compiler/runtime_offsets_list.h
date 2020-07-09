@@ -337,6 +337,7 @@
   SIZEOF(StackTrace, InstanceSize, StackTraceLayout)                           \
   SIZEOF(String, InstanceSize, StringLayout)                                   \
   SIZEOF(SubtypeTestCache, InstanceSize, SubtypeTestCacheLayout)               \
+  SIZEOF(LoadingUnit, InstanceSize, LoadingUnitLayout)                         \
   SIZEOF(TransferableTypedData, InstanceSize, TransferableTypedDataLayout)     \
   SIZEOF(TwoByteString, InstanceSize, TwoByteStringLayout)                     \
   SIZEOF(Type, InstanceSize, TypeLayout)                                       \

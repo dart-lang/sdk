@@ -231,6 +231,11 @@ void KernelLoader::ReadObfuscationProhibitions() {
   helper.ReadProhibitions();
 }
 
+void KernelLoader::ReadLoadingUnits() {
+  LoadingUnitsMetadataHelper helper(&helper_);
+  helper.ReadLoadingUnits();
+}
+
 Object& KernelLoader::LoadEntireProgram(Program* program,
                                         bool process_pending_classes) {
   Thread* thread = Thread::Current();

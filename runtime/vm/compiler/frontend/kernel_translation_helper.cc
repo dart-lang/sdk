@@ -1798,6 +1798,56 @@ void ObfuscationProhibitionsMetadataHelper::ReadMetadata(intptr_t node_offset) {
   return;
 }
 
+LoadingUnitsMetadataHelper::LoadingUnitsMetadataHelper(
+    KernelReaderHelper* helper)
+    : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
+
+void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
+  intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
+  if (md_offset < 0) {
+    return;
+  }
+
+  AlternativeReadingScopeWithNewData alt(&helper_->reader_,
+                                         &H.metadata_payloads(), md_offset);
+
+  Thread* T = Thread::Current();
+  Zone* Z = T->zone();
+  intptr_t unit_count = helper_->ReadUInt();
+  Array& loading_units = Array::Handle(Z, Array::New(unit_count + 1));
+  LoadingUnit& unit = LoadingUnit::Handle(Z);
+  LoadingUnit& parent = LoadingUnit::Handle(Z);
+  Library& lib = Library::Handle(Z);
+
+  for (int i = 0; i < unit_count; i++) {
+    intptr_t id = helper_->ReadUInt();
+    unit = LoadingUnit::New();
+    unit.set_id(id);
+
+    intptr_t parent_id = helper_->ReadUInt();
+    parent ^= loading_units.At(parent_id);
+    ASSERT(parent.IsNull() == (parent_id == 0));
+    unit.set_parent(parent);
+
+    intptr_t library_count = helper_->ReadUInt();
+    for (intptr_t j = 0; j < library_count; j++) {
+      const String& uri =
+          translation_helper_.DartSymbolPlain(helper_->ReadStringReference());
+      lib = Library::LookupLibrary(T, uri);
+      if (lib.IsNull()) {
+        FATAL1("Missing library: %s\n", uri.ToCString());
+      }
+      lib.set_loading_unit(unit);
+    }
+
+    loading_units.SetAt(id, unit);
+  }
+
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  ASSERT(object_store->loading_units() == Array::null());
+  object_store->set_loading_units(loading_units);
+}
+
 CallSiteAttributesMetadataHelper::CallSiteAttributesMetadataHelper(
     KernelReaderHelper* helper,
     TypeTranslator* type_translator)

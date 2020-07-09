@@ -151,6 +151,7 @@ class ObjectPointerVisitor;
   RW(Library, wasm_library)                                                    \
   RW(GrowableObjectArray, libraries)                                           \
   RW(Array, libraries_map)                                                     \
+  RW(Array, loading_units)                                                     \
   RW(GrowableObjectArray, closure_functions)                                   \
   RW(GrowableObjectArray, pending_classes)                                     \
   RW(Instance, stack_overflow)                                                 \

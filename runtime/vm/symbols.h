@@ -269,6 +269,7 @@ class ObjectPointerVisitor;
   V(Struct, "Struct")                                                          \
   V(StructFromPointer, "#fromPointer")                                         \
   V(SubtypeTestCache, "SubtypeTestCache")                                      \
+  V(LoadingUnit, "LoadingUnit")                                                \
   V(SwitchExpr, ":switch_expr")                                                \
   V(Symbol, "Symbol")                                                          \
   V(SymbolCtor, "Symbol.")                                                     \
