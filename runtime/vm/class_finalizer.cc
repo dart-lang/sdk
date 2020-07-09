@@ -1170,7 +1170,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     RemoveCHAOptimizedCode(cls, cids);
   }
 
-  if (FLAG_use_cha_deopt) {
+  if (FLAG_use_cha_deopt && !cls.IsTopLevel()) {
     Zone* zone = thread->zone();
     ClassTable* class_table = thread->isolate()->class_table();
     auto& interface_class = Class::Handle(zone);
@@ -1482,7 +1482,12 @@ class CidRewriteVisitor : public ObjectVisitor {
   void VisitObject(ObjectPtr obj) {
     if (obj->IsClass()) {
       ClassPtr cls = Class::RawCast(obj);
-      cls->ptr()->id_ = Map(cls->ptr()->id_);
+      const classid_t old_cid = cls->ptr()->id_;
+      if (ClassTable::IsTopLevelCid(old_cid)) {
+        // We don't remap cids of top level classes.
+        return;
+      }
+      cls->ptr()->id_ = Map(old_cid);
     } else if (obj->IsField()) {
       FieldPtr field = Field::RawCast(obj);
       field->ptr()->guarded_cid_ = Map(field->ptr()->guarded_cid_);

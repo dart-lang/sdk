@@ -451,6 +451,7 @@ class Serializer : public ThreadStackResource {
   SerializationCluster** clusters_by_cid_;
   GrowableArray<ObjectPtr> stack_;
   intptr_t num_cids_;
+  intptr_t num_tlc_cids_;
   intptr_t num_base_objects_;
   intptr_t num_written_objects_;
   intptr_t next_ref_index_;

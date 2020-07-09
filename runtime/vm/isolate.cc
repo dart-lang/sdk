@@ -889,7 +889,11 @@ void Isolate::RegisterClass(const Class& cls) {
     return;
   }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  class_table()->Register(cls);
+  if (cls.IsTopLevel()) {
+    class_table()->RegisterTopLevel(cls);
+  } else {
+    class_table()->Register(cls);
+  }
 }
 
 #if defined(DEBUG)

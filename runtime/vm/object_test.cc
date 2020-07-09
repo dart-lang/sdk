@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <limits>
+
 #include "include/dart_api.h"
 
 #include "bin/builtin.h"
@@ -149,6 +151,88 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   EXPECT(!function.IsNull());
   EXPECT_EQ(kNumFixedParameters, function.num_fixed_parameters());
   EXPECT_EQ(kNumOptionalParameters, function.NumOptionalParameters());
+}
+
+ISOLATE_UNIT_TEST_CASE(SixtyThousandDartClasses) {
+  auto zone = thread->zone();
+  auto isolate = thread->isolate();
+  auto class_table = isolate->class_table();
+
+  const intptr_t start_cid = class_table->NumCids();
+  const intptr_t num_classes = std::numeric_limits<uint16_t>::max() - start_cid;
+
+  const Script& script = Script::Handle(zone);
+  String& name = String::Handle(zone);
+  Class& cls = Class::Handle(zone);
+  Field& field = Field::Handle(zone);
+  Array& fields = Array::Handle(zone);
+  Instance& instance = Instance::Handle(zone);
+  Instance& instance2 = Instance::Handle(zone);
+
+  const auto& instances =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+
+  // Create many top-level classes - they should not consume 16-bit range.
+  for (intptr_t i = 0; i < (1 << 16); ++i) {
+    cls = CreateDummyClass(Symbols::TopLevel(), script);
+    cls.Finalize();
+    EXPECT(cls.id() > std::numeric_limits<uint16_t>::max());
+  }
+
+  // Create many concrete classes - they should occupy the entire 16-bit space.
+  for (intptr_t i = 0; i < num_classes; ++i) {
+    name = Symbols::New(thread, OS::SCreate(zone, "MyClass%" Pd "", i));
+    cls = CreateDummyClass(name, script);
+    EXPECT_EQ(start_cid + i, cls.id());
+
+    const intptr_t num_fields = (i % 10);
+    fields = Array::New(num_fields);
+    for (intptr_t f = 0; f < num_fields; ++f) {
+      name =
+          Symbols::New(thread, OS::SCreate(zone, "myField_%" Pd "_%" Pd, i, f));
+      field = Field::New(name, false, false, false, true, false, cls,
+                         Object::dynamic_type(), TokenPosition::kMinSource,
+                         TokenPosition::kMinSource);
+      fields.SetAt(f, field);
+    }
+
+    cls.set_interfaces(Array::empty_array());
+    cls.SetFunctions(Array::empty_array());
+    cls.SetFields(fields);
+    cls.Finalize();
+
+    instance = Instance::New(cls);
+    for (intptr_t f = 0; f < num_fields; ++f) {
+      field ^= fields.At(f);
+      name = Symbols::New(thread,
+                          OS::SCreate(zone, "myFieldValue_%" Pd "_%" Pd, i, f));
+      instance.SetField(field, name);
+    }
+    instances.Add(instance);
+  }
+  EXPECT_EQ((1 << 16) - 1, class_table->NumCids());
+
+  // Ensure GC runs and can recognize all those new instances.
+  isolate->heap()->CollectAllGarbage();
+
+  // Ensure the instances are what we expect.
+  for (intptr_t i = 0; i < num_classes; ++i) {
+    instance ^= instances.At(i);
+    cls = instance.clazz();
+    fields = cls.fields();
+
+    name = cls.Name();
+    EXPECT(strstr(name.ToCString(), OS::SCreate(zone, "MyClass%" Pd "", i)) !=
+           0);
+    EXPECT_EQ((i % 10), fields.Length());
+
+    for (intptr_t f = 0; f < fields.Length(); ++f) {
+      field ^= fields.At(f);
+      instance2 ^= instance.GetField(field);
+      EXPECT(strstr(instance2.ToCString(),
+                    OS::SCreate(zone, "myFieldValue_%" Pd "_%" Pd, i, f)) != 0);
+    }
+  }
 }
 
 ISOLATE_UNIT_TEST_CASE(TypeArguments) {

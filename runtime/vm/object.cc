@@ -745,7 +745,7 @@ void Object::Init(Isolate* isolate) {
     cls.set_num_type_arguments(0);
     cls.set_num_native_fields(0);
     cls.InitEmptyFields();
-    isolate->RegisterClass(cls);
+    isolate->class_table()->Register(cls);
   }
 
   // Allocate and initialize the null class.
@@ -2015,7 +2015,7 @@ ErrorPtr Object::Init(Isolate* isolate,
                                               /*register_class=*/false);
     cls.set_instance_size(0, 0);
     cls.set_next_field_offset(-kWordSize, -compiler::target::kWordSize);
-    isolate->RegisterClass(cls);
+    isolate->class_table()->Register(cls);
     RegisterPrivateClass(cls, Symbols::_ByteBuffer(), lib);
     pending_classes.Add(cls);
 
@@ -2464,7 +2464,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     cls = Class::New<Instance, RTN::Instance>(kByteBufferCid, isolate,
                                               /*register_isolate=*/false);
     cls.set_instance_size_in_words(0, 0);
-    isolate->RegisterClass(cls);
+    isolate->class_table()->Register(cls);
 
     cls = Class::New<Integer, RTN::Integer>(isolate);
     object_store->set_integer_implementation_class(cls);
@@ -2857,7 +2857,7 @@ ClassPtr Class::New(Isolate* isolate, bool register_class) {
   NOT_IN_PRECOMPILED(result.set_binary_declaration_offset(0));
   result.InitEmptyFields();
   if (register_class) {
-    isolate->RegisterClass(result);
+    isolate->class_table()->Register(result);
   }
   return result.raw();
 }
@@ -3784,7 +3784,7 @@ void Class::Finalize() const {
     if (raw() == isolate->class_table()->At(id())) {
       // Sets the new size in the class table.
       isolate->class_table()->SetAt(id(), raw());
-      if (FLAG_precompiled_mode) {
+      if (FLAG_precompiled_mode && !ClassTable::IsTopLevelCid(id())) {
         isolate->group()->shared_class_table()->SetUnboxedFieldsMapAt(
             id(), host_bitmap);
       }
@@ -4353,7 +4353,7 @@ ClassPtr Class::New(intptr_t index,
     result.set_is_abstract();
   }
   if (register_class) {
-    isolate->RegisterClass(result);
+    isolate->class_table()->Register(result);
   }
   return result.raw();
 }
@@ -4451,7 +4451,7 @@ ClassPtr Class::NewStringClass(intptr_t class_id, Isolate* isolate) {
   result.set_next_field_offset(host_next_field_offset,
                                target_next_field_offset);
   result.set_is_prefinalized();
-  isolate->RegisterClass(result);
+  isolate->class_table()->Register(result);
   return result.raw();
 }
 
@@ -4469,7 +4469,7 @@ ClassPtr Class::NewTypedDataClass(intptr_t class_id, Isolate* isolate) {
   result.set_next_field_offset(host_next_field_offset,
                                target_next_field_offset);
   result.set_is_prefinalized();
-  isolate->RegisterClass(result);
+  isolate->class_table()->Register(result);
   return result.raw();
 }
 
@@ -4488,7 +4488,7 @@ ClassPtr Class::NewTypedDataViewClass(intptr_t class_id, Isolate* isolate) {
   result.set_next_field_offset(host_next_field_offset,
                                target_next_field_offset);
   result.set_is_prefinalized();
-  isolate->RegisterClass(result);
+  isolate->class_table()->Register(result);
   return result.raw();
 }
 
@@ -4507,7 +4507,7 @@ ClassPtr Class::NewExternalTypedDataClass(intptr_t class_id, Isolate* isolate) {
   result.set_next_field_offset(host_next_field_offset,
                                target_next_field_offset);
   result.set_is_prefinalized();
-  isolate->RegisterClass(result);
+  isolate->class_table()->Register(result);
   return result.raw();
 }
 
@@ -4528,7 +4528,7 @@ ClassPtr Class::NewPointerClass(intptr_t class_id, Isolate* isolate) {
   result.set_next_field_offset(host_next_field_offset,
                                target_next_field_offset);
   result.set_is_prefinalized();
-  isolate->RegisterClass(result);
+  isolate->class_table()->Register(result);
   return result.raw();
 }
 

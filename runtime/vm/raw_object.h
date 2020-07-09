@@ -138,7 +138,7 @@ class ObjectLayout {
   // See Object::MakeUnusedSpaceTraversable.
   COMPILE_ASSERT(kCardRememberedBit == 0);
 
-  COMPILE_ASSERT(kClassIdTagSize == (sizeof(classid_t) * kBitsPerByte));
+  COMPILE_ASSERT(8 * sizeof(uint16_t) == kClassIdTagSize);
 
   // Encodes the object size in the tag in units of object alignment.
   class SizeTag {
@@ -1186,9 +1186,9 @@ class FieldLayout : public ObjectLayout {
 #endif
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
-  classid_t guarded_cid_;
-  classid_t is_nullable_;  // kNullCid if field can contain null value and
-                           // kInvalidCid otherwise.
+  uint16_t guarded_cid_;
+  uint16_t is_nullable_;  // kNullCid if field can contain null value and
+                          // kInvalidCid otherwise.
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
@@ -1214,6 +1214,9 @@ class FieldLayout : public ObjectLayout {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class CidRewriteVisitor;
+  friend class GuardFieldClassInstr;     // For sizeof(guarded_cid_/...)
+  friend class LoadFieldInstr;           // For sizeof(guarded_cid_/...)
+  friend class StoreInstanceFieldInstr;  // For sizeof(guarded_cid_/...)
 };
 
 class ScriptLayout : public ObjectLayout {
@@ -1390,7 +1393,7 @@ class WeakSerializationReferenceLayout : public ObjectLayout {
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   VISIT_NOTHING();
-  classid_t cid_;
+  uint16_t cid_;
 #else
   VISIT_FROM(ObjectPtr, target_);
   ObjectPtr target_;
@@ -1976,8 +1979,8 @@ class SingleTargetCacheLayout : public ObjectLayout {
   CodePtr target_;
   VISIT_TO(ObjectPtr, target_);
   uword entry_point_;
-  classid_t lower_limit_;
-  classid_t upper_limit_;
+  uint16_t lower_limit_;
+  uint16_t upper_limit_;
 };
 
 class MonomorphicSmiableCallLayout : public ObjectLayout {
@@ -2245,7 +2248,7 @@ class TypeParameterLayout : public AbstractTypeLayout {
   AbstractTypePtr bound_;  // ObjectType if no explicit bound specified.
   FunctionPtr parameterized_function_;
   VISIT_TO(ObjectPtr, parameterized_function_)
-  classid_t parameterized_class_id_;
+  uint16_t parameterized_class_id_;
   TokenPosition token_pos_;
   int16_t index_;
   uint8_t flags_;

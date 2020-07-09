@@ -1119,6 +1119,7 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   Class& toplevel_class =
       Class::Handle(Z, Class::New(library, Symbols::TopLevel(), script,
                                   TokenPosition::kNoSource, register_class));
+  toplevel_class.set_is_abstract();
   toplevel_class.set_is_declaration_loaded();
   toplevel_class.set_is_type_finalized();
   library.set_toplevel_class(toplevel_class);

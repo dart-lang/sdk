@@ -1978,7 +1978,6 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
   ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
   ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
-  ASSERT(sizeof(classid_t) == sizeof(uint16_t));
   Lsr(result, tags, Operand(target::ObjectLayout::kClassIdTagPos), AL);
 }
 

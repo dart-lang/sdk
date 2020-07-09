@@ -224,7 +224,7 @@ class ClassSerializationCluster : public SerializationCluster {
     s->Write<uint32_t>(cls->ptr()->state_bits_);
 
     // In AOT, the bitmap of unboxed fields should also be serialized
-    if (FLAG_precompiled_mode) {
+    if (FLAG_precompiled_mode && !ClassTable::IsTopLevelCid(class_id)) {
       s->WriteUnsigned64(
           CalculateTargetUnboxedFieldsBitmap(s, class_id).Value());
     }
@@ -391,7 +391,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
       table->AllocateIndex(class_id);
       table->SetAt(class_id, cls);
 
-      if (FLAG_precompiled_mode) {
+      if (FLAG_precompiled_mode && !ClassTable::IsTopLevelCid(class_id)) {
         const UnboxedFieldBitmap unboxed_fields_map(d->ReadUnsigned64());
         shared_class_table->SetUnboxedFieldsMapAt(class_id, unboxed_fields_map);
       }
@@ -4861,6 +4861,7 @@ Serializer::Serializer(Thread* thread,
       clusters_by_cid_(NULL),
       stack_(),
       num_cids_(0),
+      num_tlc_cids_(0),
       num_base_objects_(0),
       num_written_objects_(0),
       next_ref_index_(1),
@@ -4878,6 +4879,7 @@ Serializer::Serializer(Thread* thread,
 #endif
 {
   num_cids_ = thread->isolate()->class_table()->NumCids();
+  num_tlc_cids_ = thread->isolate()->class_table()->NumTopLevelCids();
   clusters_by_cid_ = new SerializationCluster*[num_cids_];
   for (intptr_t i = 0; i < num_cids_; i++) {
     clusters_by_cid_[i] = NULL;
@@ -5076,7 +5078,7 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
 
   switch (cid) {
     case kClassCid:
-      return new (Z) ClassSerializationCluster(num_cids_);
+      return new (Z) ClassSerializationCluster(num_cids_ + num_tlc_cids_);
     case kTypeArgumentsCid:
       return new (Z) TypeArgumentsSerializationCluster();
     case kPatchClassCid:

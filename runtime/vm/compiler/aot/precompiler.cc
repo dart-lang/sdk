@@ -2198,7 +2198,7 @@ void Precompiler::DropLibraries() {
     } else {
       toplevel_class = lib.toplevel_class();
 
-      I->class_table()->Unregister(toplevel_class.id());
+      I->class_table()->UnregisterTopLevel(toplevel_class.id());
       toplevel_class.set_id(kIllegalCid);  // We check this when serializing.
 
       dropped_library_count_++;

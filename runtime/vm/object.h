@@ -9,6 +9,7 @@
 #error "Should not include runtime"
 #endif
 
+#include <limits>
 #include <tuple>
 
 #include "include/dart_api.h"
@@ -1022,7 +1023,7 @@ class Class : public Object {
   }
   intptr_t id() const { return raw_ptr()->id_; }
   void set_id(intptr_t value) const {
-    ASSERT(is_valid_id(value));
+    ASSERT(value >= 0 && value < std::numeric_limits<classid_t>::max());
     StoreNonPointer(&raw_ptr()->id_, value);
   }
   static intptr_t id_offset() { return OFFSET_OF(ClassLayout, id_); }
@@ -4799,6 +4800,8 @@ class Library : public Object {
 
   intptr_t index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const {
+    ASSERT(value == -1 ||
+           value >= 0 && value < std::numeric_limits<classid_t>::max());
     StoreNonPointer(&raw_ptr()->index_, value);
   }
 
