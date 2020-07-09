@@ -547,6 +547,10 @@ class BuildMode with HasContextMixin {
   }
 
   void _setAnalysisDriverAnalysisContext(String rootPath) {
+    if (rootPath == null) {
+      return;
+    }
+
     var apiContextRoots = api.ContextLocator(
       resourceProvider: resourceProvider,
     ).locateRoots(

@@ -38,6 +38,23 @@ void main() {
 }
 
 class AbstractBuildModeTest extends BaseTest {
+  List<String> get _sdkSummaryArguments {
+    var sdkPath = path.dirname(
+      path.dirname(
+        Platform.resolvedExecutable,
+      ),
+    );
+
+    var dartSdkSummaryPath = path.join(
+      sdkPath,
+      'lib',
+      '_internal',
+      'strong.sum',
+    );
+
+    return ['--dart-sdk-summary', dartSdkSummaryPath];
+  }
+
   Future<void> _doDrive(
     String filePath, {
     String sourceArgument,
@@ -54,24 +71,7 @@ class AbstractBuildModeTest extends BaseTest {
     args.add('--build-mode');
     args.add('--format=machine');
 
-    {
-      var sdkPath = path.dirname(
-        path.dirname(
-          Platform.resolvedExecutable,
-        ),
-      );
-
-      var dartSdkSummaryPath = path.join(
-        sdkPath,
-        'lib',
-        '_internal',
-        'strong.sum',
-      );
-
-      args.add('--dart-sdk-summary');
-      args.add(dartSdkSummaryPath);
-    }
-
+    args.addAll(_sdkSummaryArguments);
     args.addAll(additionalArgs);
 
     if (sourceArgument == null) {
@@ -585,6 +585,25 @@ var b = new B();
   Future<void> test_fail_whenHasError() async {
     await _doDrive(path.join('data', 'file_with_error.dart'));
     expect(exitCode, isNot(0));
+  }
+
+  Future<void> test_noInputs() async {
+    await withTempDirAsync((tempDir) async {
+      var outputPath = path.join(tempDir, 'test.sum');
+
+      await driveMany([], args: [
+        '--build-mode',
+        '--format=machine',
+        ..._sdkSummaryArguments,
+        '--build-summary-only',
+        '--build-summary-output=$outputPath',
+      ]);
+
+      var output = File(outputPath);
+      expect(output.existsSync(), isTrue);
+
+      expect(exitCode, 0);
+    });
   }
 
   Future<void> test_noStatistics() async {
