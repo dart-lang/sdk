@@ -326,7 +326,7 @@ EOF
     DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/precompiler2 --packages=.packages hello.dart blob.bin
     DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/dart_precompiled_runtime2 --profile-period=10000 blob.bin
     DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/precompiler2 --sound-null-safety --enable-experiment=non-nullable --packages=.packages hello.dart blob.bin
-    DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/dart_precompiled_runtime2 --sound-null-safety --profile-period=10000 blob.bin
+    DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/dart_precompiled_runtime2 --profile-period=10000 blob.bin
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages --optimization-counter-threshold=-1 hello.dart
     out/ReleaseX64/dart-sdk/bin/dart2js --packages=.packages --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
