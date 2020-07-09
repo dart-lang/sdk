@@ -45,10 +45,11 @@ class LspSocketServer implements AbstractSocketServer {
   /// given serverChannel.
   void createAnalysisServer(LspServerCommunicationChannel serverChannel) {
     if (analysisServer != null) {
-      ResponseError error = ResponseError<void>(
-          ServerErrorCodes.ServerAlreadyStarted,
-          'Server already started',
-          null);
+      final error = ResponseError(
+        ServerErrorCodes.ServerAlreadyStarted,
+        'Server already started',
+        null,
+      );
       serverChannel.sendNotification(NotificationMessage(
         Method.window_showMessage,
         ShowMessageParams(MessageType.Error, error.message),

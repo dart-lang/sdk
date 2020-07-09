@@ -17,34 +17,50 @@ final DartFormatter formatter = DartFormatter();
 /// changes into account, this will also apply the edits to [oldContent].
 ErrorOr<Pair<String, List<plugin.SourceEdit>>> applyAndConvertEditsToServer(
   String oldContent,
-  List<TextDocumentContentChangeEvent> changes, {
+  List<
+          Either2<TextDocumentContentChangeEvent1,
+              TextDocumentContentChangeEvent2>>
+      changes, {
   failureIsCritical = false,
 }) {
   var newContent = oldContent;
   final serverEdits = <server.SourceEdit>[];
 
   for (var change in changes) {
-    if (change.range == null && change.rangeLength == null) {
-      serverEdits
-        ..clear()
-        ..add(server.SourceEdit(0, newContent.length, change.text));
-      newContent = change.text;
-    } else {
-      final lines = LineInfo.fromContent(newContent);
-      final offsetStart = toOffset(lines, change.range.start,
-          failureIsCritial: failureIsCritical);
-      final offsetEnd = toOffset(lines, change.range.end,
-          failureIsCritial: failureIsCritical);
-      if (offsetStart.isError) {
-        return ErrorOr.error(offsetStart.error);
-      }
-      if (offsetEnd.isError) {
-        return ErrorOr.error(offsetEnd.error);
-      }
-      newContent = newContent.replaceRange(
-          offsetStart.result, offsetEnd.result, change.text);
-      serverEdits.add(server.SourceEdit(offsetStart.result,
-          offsetEnd.result - offsetStart.result, change.text));
+    // Change is a union that may/may not include a range. If no range
+    // is provided (t2 of the union) the whole document should be replaced.
+    final result = change.map(
+      // TextDocumentContentChangeEvent1
+      // {range, text}
+      (change) {
+        final lines = LineInfo.fromContent(newContent);
+        final offsetStart = toOffset(lines, change.range.start,
+            failureIsCritial: failureIsCritical);
+        final offsetEnd = toOffset(lines, change.range.end,
+            failureIsCritial: failureIsCritical);
+        if (offsetStart.isError) {
+          return ErrorOr.error(offsetStart.error);
+        }
+        if (offsetEnd.isError) {
+          return ErrorOr.error(offsetEnd.error);
+        }
+        newContent = newContent.replaceRange(
+            offsetStart.result, offsetEnd.result, change.text);
+        serverEdits.add(server.SourceEdit(offsetStart.result,
+            offsetEnd.result - offsetStart.result, change.text));
+      },
+      // TextDocumentContentChangeEvent2
+      // {text}
+      (change) {
+        serverEdits
+          ..clear()
+          ..add(server.SourceEdit(0, newContent.length, change.text));
+        newContent = change.text;
+      },
+    );
+    // If any change fails, immediately return the error.
+    if (result?.isError ?? false) {
+      return ErrorOr.error(result.error);
     }
   }
   return ErrorOr.success(Pair(newContent, serverEdits));

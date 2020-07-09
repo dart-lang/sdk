@@ -377,7 +377,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   }
 
   void publishDiagnostics(String path, List<Diagnostic> errors) {
-    final params = PublishDiagnosticsParams(Uri.file(path).toString(), errors);
+    final params =
+        PublishDiagnosticsParams(Uri.file(path).toString(), null, errors);
     final message = NotificationMessage(
       Method.textDocument_publishDiagnostics,
       params,

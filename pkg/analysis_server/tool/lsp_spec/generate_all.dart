@@ -69,7 +69,7 @@ final Uri specLicenseUri = Uri.parse(
 /// The URI of the version of the spec to generate from. This should be periodically updated as
 /// there's no longer a stable URI for the latest published version.
 final Uri specUri = Uri.parse(
-    'https://raw.githubusercontent.com/microsoft/language-server-protocol/gh-pages/_specifications/specification-3-14.md');
+    'https://raw.githubusercontent.com/microsoft/language-server-protocol/gh-pages/_specifications/specification-3-15.md');
 
 /// Pattern to extract inline types from the `result: {xx, yy }` notes in the spec.
 /// Doesn't parse past full stops as some of these have english sentences tagged on

@@ -175,7 +175,7 @@ lsp.SymbolKind declarationKindToSymbolKind(
 }
 
 lsp.CompletionItem declarationToCompletionItem(
-  lsp.TextDocumentClientCapabilitiesCompletion completionCapabilities,
+  lsp.CompletionClientCapabilities completionCapabilities,
   HashSet<lsp.CompletionItemKind> supportedCompletionItemKinds,
   String file,
   int offset,
@@ -243,6 +243,7 @@ lsp.CompletionItem declarationToCompletionItem(
   return lsp.CompletionItem(
     label,
     completionKind,
+    null, // TODO(dantup): CompletionItemTags
     getDeclarationCompletionDetail(declaration, completionKind, useDeprecated),
     null, // documentation - will be added during resolve.
     useDeprecated && declaration.isDeprecated ? true : null,
@@ -573,6 +574,7 @@ lsp.Diagnostic pluginToDiagnostic(
     error.code,
     languageSourceName,
     message,
+    null, // TODO(dantup): DiagnosticTags
     relatedInformation,
   );
 }
@@ -692,7 +694,7 @@ CodeActionKind toCodeActionKind(String id, lsp.CodeActionKind fallback) {
 }
 
 lsp.CompletionItem toCompletionItem(
-  lsp.TextDocumentClientCapabilitiesCompletion completionCapabilities,
+  lsp.CompletionClientCapabilities completionCapabilities,
   HashSet<lsp.CompletionItemKind> supportedCompletionItemKinds,
   server.LineInfo lineInfo,
   server.CompletionSuggestion suggestion,
@@ -749,6 +751,7 @@ lsp.CompletionItem toCompletionItem(
   return lsp.CompletionItem(
     label,
     completionKind,
+    null, // TODO(dantup): CompletionItemTags
     getCompletionDetail(suggestion, completionKind, useDeprecated),
     asStringOrMarkupContent(formats, cleanDartdoc(suggestion.docComplete)),
     useDeprecated && suggestion.isDeprecated ? true : null,
@@ -801,6 +804,7 @@ lsp.Diagnostic toDiagnostic(
     errorCode.name.toLowerCase(),
     languageSourceName,
     message,
+    null, // TODO(dantup): DiagnosticTags
     relatedInformation,
   );
 }
@@ -1060,7 +1064,7 @@ lsp.TextEdit toTextEdit(server.LineInfo lineInfo, server.SourceEdit edit) {
 }
 
 lsp.WorkspaceEdit toWorkspaceEdit(
-  lsp.WorkspaceClientCapabilities capabilities,
+  lsp.ClientCapabilitiesWorkspace capabilities,
   List<FileEditInformation> edits,
 ) {
   final clientSupportsTextDocumentEdits =

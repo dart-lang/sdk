@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -26,11 +27,12 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     // to alert the user to something failing.
     final error = await expectErrorNotification<ShowMessageParams>(() async {
       await changeFile(222, mainFileUri, [
-        TextDocumentContentChangeEvent(
+        Either2<TextDocumentContentChangeEvent1,
+            TextDocumentContentChangeEvent2>.t1(TextDocumentContentChangeEvent1(
           Range(Position(999, 999), Position(999, 999)),
           null,
           '   ',
-        )
+        ))
       ]);
     });
 
@@ -58,11 +60,12 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, initialContent);
     await changeFile(222, mainFileUri, [
       // Replace line1:5-1:8 with spaces.
-      TextDocumentContentChangeEvent(
+      Either2<TextDocumentContentChangeEvent1,
+          TextDocumentContentChangeEvent2>.t1(TextDocumentContentChangeEvent1(
         Range(Position(1, 5), Position(1, 8)),
         null,
         '   ',
-      )
+      ))
     ]);
     expect(_getOverlay(mainFilePath), equals(expectedUpdatedContent));
 
@@ -74,11 +77,12 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     // It's not valid for a client to send a request to modify a file that it
     // has not opened, but Visual Studio has done it in the past so we should
     // ensure it generates an obvious error that the user can understand.
-    final simpleEdit = TextDocumentContentChangeEvent(
+    final simpleEdit = Either2<TextDocumentContentChangeEvent1,
+        TextDocumentContentChangeEvent2>.t1(TextDocumentContentChangeEvent1(
       Range(Position(1, 1), Position(1, 1)),
       null,
       'test',
-    );
+    ));
     await initialize();
     final notificationParams = await expectErrorNotification<ShowMessageParams>(
       () => changeFile(222, mainFileUri, [simpleEdit]),

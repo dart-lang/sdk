@@ -128,45 +128,65 @@ class ServerCapabilitiesComputer {
                 false,
                 null,
               )),
-        dynamicRegistrations.hover ? null : true, // hoverProvider
         dynamicRegistrations.completion
             ? null
             : CompletionOptions(
-                true, // resolveProvider
                 dartCompletionTriggerCharacters,
-              ),
+                null, // allCommitCharacters
+                true, // resolveProvider
+                null, // workDoneProgress
+              ), // completionProvider
+        dynamicRegistrations.hover
+            ? null
+            : Either2<bool, HoverOptions>.t1(true), // hoverProvider
         dynamicRegistrations.signatureHelp
             ? null
             : SignatureHelpOptions(
                 dartSignatureHelpTriggerCharacters,
+                null, // retriggerCharacters
+                null, // workDoneProgress
               ),
-        dynamicRegistrations.definition ? null : true, // definitionProvider
+        null, // declarationProvider
+        dynamicRegistrations.definition
+            ? null
+            : Either2<bool, DefinitionOptions>.t1(true), // definitionProvider
         null,
         dynamicRegistrations.implementation
             ? null
-            : true, // implementationProvider
-        dynamicRegistrations.references ? null : true, // referencesProvider
+            : Either3<bool, ImplementationOptions,
+                ImplementationRegistrationOptions>.t1(
+                true,
+              ), // implementationProvider
+        dynamicRegistrations.references
+            ? null
+            : Either2<bool, ReferenceOptions>.t1(true), // referencesProvider
         dynamicRegistrations.documentHighlights
             ? null
-            : true, // documentHighlightProvider
+            : Either2<bool, DocumentHighlightOptions>.t1(
+                true), // documentHighlightProvider
         dynamicRegistrations.documentSymbol
             ? null
-            : true, // documentSymbolProvider
-        true, // workspaceSymbolProvider
+            : Either2<bool, DocumentSymbolOptions>.t1(
+                true), // documentSymbolProvider
         // "The `CodeActionOptions` return type is only valid if the client
         // signals code action literal support via the property
         // `textDocument.codeAction.codeActionLiteralSupport`."
         dynamicRegistrations.codeActions
             ? null
             : codeActionLiteralSupport != null
-                ? Either2<bool, CodeActionOptions>.t2(
-                    CodeActionOptions(DartCodeActionKind.serverSupportedKinds))
+                ? Either2<bool, CodeActionOptions>.t2(CodeActionOptions(
+                    DartCodeActionKind.serverSupportedKinds,
+                    null, // workDoneProgress
+                  ))
                 : Either2<bool, CodeActionOptions>.t1(true),
-        null,
+        null, // codeLensProvider
+        null, // documentLinkProvider
+        null, // colorProvider
         dynamicRegistrations.formatting
             ? null
-            : enableFormatter, // documentFormattingProvider
-        false, // documentRangeFormattingProvider
+            : Either2<bool, DocumentFormattingOptions>.t1(
+                enableFormatter), // documentFormattingProvider
+        null, // documentRangeFormattingProvider
         dynamicRegistrations.typeFormatting
             ? null
             : enableFormatter
@@ -177,15 +197,24 @@ class ServerCapabilitiesComputer {
         dynamicRegistrations.rename
             ? null
             : renameOptionsSupport
-                ? Either2<bool, RenameOptions>.t2(RenameOptions(true))
+                ? Either2<bool, RenameOptions>.t2(RenameOptions(true, null))
                 : Either2<bool, RenameOptions>.t1(true),
-        null,
-        null,
-        dynamicRegistrations.folding ? null : true, // foldingRangeProvider
-        null, // declarationProvider
-        ExecuteCommandOptions(Commands.serverSupportedCommands),
-        ServerCapabilitiesWorkspace(
-            ServerCapabilitiesWorkspaceFolders(true, true)),
+        dynamicRegistrations.folding
+            ? null
+            : Either3<bool, FoldingRangeOptions,
+                FoldingRangeRegistrationOptions>.t1(
+                true,
+              ),
+        ExecuteCommandOptions(
+          Commands.serverSupportedCommands,
+          null, // workDoneProgress
+        ),
+        null, // selectionRangeProvider
+        true, // workspaceSymbolProvider
+        ServerCapabilitiesWorkspace(WorkspaceFoldersServerCapabilities(
+          true,
+          Either2<String, bool>.t2(true),
+        )),
         null);
   }
 
@@ -257,10 +286,11 @@ class ServerCapabilitiesComputer {
       dynamicRegistrations.completion,
       Method.textDocument_completion,
       CompletionRegistrationOptions(
+        allTypes,
         dartCompletionTriggerCharacters,
         null,
         true,
-        allTypes,
+        null,
       ),
     );
     register(
@@ -272,7 +302,11 @@ class ServerCapabilitiesComputer {
       dynamicRegistrations.signatureHelp,
       Method.textDocument_signatureHelp,
       SignatureHelpRegistrationOptions(
-          dartSignatureHelpTriggerCharacters, allTypes),
+        allTypes,
+        dartSignatureHelpTriggerCharacters,
+        null,
+        null,
+      ),
     );
     register(
       dynamicRegistrations.references,
@@ -298,9 +332,9 @@ class ServerCapabilitiesComputer {
       enableFormatter && dynamicRegistrations.typeFormatting,
       Method.textDocument_onTypeFormatting,
       DocumentOnTypeFormattingRegistrationOptions(
+        [dartFiles], // This one is currently Dart-specific
         dartTypeFormattingCharacters.first,
         dartTypeFormattingCharacters.skip(1).toList(),
-        [dartFiles], // This one is currently Dart-specific
       ),
     );
     register(
@@ -317,12 +351,15 @@ class ServerCapabilitiesComputer {
       dynamicRegistrations.codeActions,
       Method.textDocument_codeAction,
       CodeActionRegistrationOptions(
-          allTypes, DartCodeActionKind.serverSupportedKinds),
+        allTypes,
+        DartCodeActionKind.serverSupportedKinds,
+        null,
+      ),
     );
     register(
       dynamicRegistrations.rename,
       Method.textDocument_rename,
-      RenameRegistrationOptions(true, allTypes),
+      RenameRegistrationOptions(allTypes, true, null),
     );
     register(
       dynamicRegistrations.folding,

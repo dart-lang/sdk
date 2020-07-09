@@ -89,7 +89,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   ) {
     return clientSupportsLiteralCodeActions
         ? Either2<Command, CodeAction>.t2(
-            CodeAction(command.title, kind, null, null, command),
+            CodeAction(command.title, kind, null, false, null, command),
           )
         : Either2<Command, CodeAction>.t1(command);
   }
@@ -103,6 +103,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       assist.change.message,
       toCodeActionKind(assist.change.id, CodeActionKind.Refactor),
       const [],
+      false,
       createWorkspaceEdit(server, assist.change.edits),
       null,
     );
@@ -117,6 +118,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       fix.change.message,
       toCodeActionKind(fix.change.id, CodeActionKind.QuickFix),
       [diagnostic],
+      false,
       createWorkspaceEdit(server, fix.change.edits),
       null,
     );
@@ -141,6 +143,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           first.kind,
           // Merge diagnostics from all of the CodeActions.
           groups[edit].expand((r) => r.diagnostics).toList(),
+          false,
           first.edit,
           first.command);
     }).toList();

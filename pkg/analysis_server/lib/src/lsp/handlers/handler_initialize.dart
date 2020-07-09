@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
@@ -55,6 +57,18 @@ class InitializeMessageHandler
 
     server.capabilities = server.capabilitiesComputer
         .computeServerCapabilities(params.capabilities);
-    return success(InitializeResult(server.capabilities));
+
+    var sdkVersion = Platform.version;
+    if (sdkVersion.contains(' ')) {
+      sdkVersion = sdkVersion.substring(0, sdkVersion.indexOf(' '));
+    }
+
+    return success(InitializeResult(
+      server.capabilities,
+      InitializeResultServerInfo(
+        'Dart SDK LSP Analysis Server',
+        sdkVersion,
+      ),
+    ));
   }
 }

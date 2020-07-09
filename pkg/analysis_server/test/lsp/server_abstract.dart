@@ -166,9 +166,10 @@ mixin ClientCapabilitiesHelperMixin {
       null,
       null,
       null,
+      null,
       null);
 
-  final emptyWorkspaceClientCapabilities = WorkspaceClientCapabilities(
+  final emptyWorkspaceClientCapabilities = ClientCapabilitiesWorkspace(
       null, null, null, null, null, null, null, null);
 
   TextDocumentClientCapabilities extendTextDocumentCapabilities(
@@ -189,8 +190,8 @@ mixin ClientCapabilitiesHelperMixin {
     return TextDocumentClientCapabilities.fromJson(json);
   }
 
-  WorkspaceClientCapabilities extendWorkspaceCapabilities(
-    WorkspaceClientCapabilities source,
+  ClientCapabilitiesWorkspace extendWorkspaceCapabilities(
+    ClientCapabilitiesWorkspace source,
     Map<String, dynamic> workspaceCapabilities,
   ) {
     // TODO(dantup): As above - it seems like this round trip should be
@@ -201,7 +202,7 @@ mixin ClientCapabilitiesHelperMixin {
         json[key] = workspaceCapabilities[key];
       });
     }
-    return WorkspaceClientCapabilities.fromJson(json);
+    return ClientCapabilitiesWorkspace.fromJson(json);
   }
 
   TextDocumentClientCapabilities withAllSupportedDynamicRegistrations(
@@ -228,8 +229,8 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  WorkspaceClientCapabilities withApplyEditSupport(
-    WorkspaceClientCapabilities source,
+  ClientCapabilitiesWorkspace withApplyEditSupport(
+    ClientCapabilitiesWorkspace source,
   ) {
     return extendWorkspaceCapabilities(source, {'applyEdit': true});
   }
@@ -280,22 +281,22 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  WorkspaceClientCapabilities withConfigurationSupport(
-    WorkspaceClientCapabilities source,
+  ClientCapabilitiesWorkspace withConfigurationSupport(
+    ClientCapabilitiesWorkspace source,
   ) {
     return extendWorkspaceCapabilities(source, {'configuration': true});
   }
 
-  WorkspaceClientCapabilities withDidChangeConfigurationDynamicRegistration(
-    WorkspaceClientCapabilities source,
+  ClientCapabilitiesWorkspace withDidChangeConfigurationDynamicRegistration(
+    ClientCapabilitiesWorkspace source,
   ) {
     return extendWorkspaceCapabilities(source, {
       'didChangeConfiguration': {'dynamicRegistration': true}
     });
   }
 
-  WorkspaceClientCapabilities withDocumentChangesSupport(
-    WorkspaceClientCapabilities source,
+  ClientCapabilitiesWorkspace withDocumentChangesSupport(
+    ClientCapabilitiesWorkspace source,
   ) {
     return extendWorkspaceCapabilities(source, {
       'workspaceEdit': {'documentChanges': true}
@@ -514,7 +515,10 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future changeFile(
     int newVersion,
     Uri uri,
-    List<TextDocumentContentChangeEvent> changes,
+    List<
+            Either2<TextDocumentContentChangeEvent1,
+                TextDocumentContentChangeEvent2>>
+        changes,
   ) async {
     var notification = makeNotification(
       Method.textDocument_didChange,
@@ -553,6 +557,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       ExecuteCommandParams(
         command.command,
         command.arguments,
+        null,
       ),
     );
     return expectSuccessfulResponseTo(request);
@@ -647,7 +652,9 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       Method.textDocument_formatting,
       DocumentFormattingParams(
         TextDocumentIdentifier(fileUri),
-        FormattingOptions(2, true), // These currently don't do anything
+        FormattingOptions(
+            2, true, false, false, false), // These currently don't do anything
+        null,
       ),
     );
     return expectSuccessfulResponseTo(request);
@@ -658,10 +665,11 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_onTypeFormatting,
       DocumentOnTypeFormattingParams(
+        character,
+        FormattingOptions(
+            2, true, false, false, false), // These currently don't do anything
         TextDocumentIdentifier(fileUri),
         pos,
-        character,
-        FormattingOptions(2, true), // These currently don't do anything
       ),
     );
     return expectSuccessfulResponseTo(request);
@@ -675,12 +683,15 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_codeAction,
       CodeActionParams(
-          TextDocumentIdentifier(fileUri),
-          range ?? beginningOfDocument,
-          // TODO(dantup): We may need to revise the tests/implementation when
-          // it's clear how we're supposed to handle diagnostics:
-          // https://github.com/Microsoft/language-server-protocol/issues/583
-          CodeActionContext([], kinds)),
+        TextDocumentIdentifier(fileUri),
+        range ?? beginningOfDocument,
+        // TODO(dantup): We may need to revise the tests/implementation when
+        // it's clear how we're supposed to handle diagnostics:
+        // https://github.com/Microsoft/language-server-protocol/issues/583
+        CodeActionContext([], kinds),
+        null,
+        null,
+      ),
     );
     return expectSuccessfulResponseTo(request);
   }
@@ -693,6 +704,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         context,
         TextDocumentIdentifier(uri.toString()),
         pos,
+        null,
+        null,
       ),
     );
     return expectSuccessfulResponseTo<List<CompletionItem>>(request);
@@ -734,6 +747,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       Method.textDocument_documentSymbol,
       DocumentSymbolParams(
         TextDocumentIdentifier(fileUri),
+        null,
+        null,
       ),
     );
     return expectSuccessfulResponseTo(request);
@@ -742,7 +757,11 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future<List<FoldingRange>> getFoldingRegions(Uri uri) {
     final request = makeRequest(
       Method.textDocument_foldingRange,
-      FoldingRangeParams(TextDocumentIdentifier(uri.toString())),
+      FoldingRangeParams(
+        TextDocumentIdentifier(uri.toString()),
+        null,
+        null,
+      ),
     );
     return expectSuccessfulResponseTo<List<FoldingRange>>(request);
   }
@@ -781,6 +800,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         ReferenceContext(includeDeclarations),
         TextDocumentIdentifier(uri.toString()),
         pos,
+        null,
+        null,
       ),
     );
     return expectSuccessfulResponseTo<List<Location>>(request);
@@ -814,7 +835,11 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future<List<SymbolInformation>> getWorkspaceSymbols(String query) {
     final request = makeRequest(
       Method.workspace_symbol,
-      WorkspaceSymbolParams(query),
+      WorkspaceSymbolParams(
+        query,
+        null,
+        null,
+      ),
     );
     return expectSuccessfulResponseTo(request);
   }
@@ -872,7 +897,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     Uri rootUri,
     List<Uri> workspaceFolders,
     TextDocumentClientCapabilities textDocumentCapabilities,
-    WorkspaceClientCapabilities workspaceCapabilities,
+    ClientCapabilitiesWorkspace workspaceCapabilities,
+    ClientCapabilitiesWindow windowCapabilities,
     Map<String, Object> initializationOptions,
     bool throwOnFailure = true,
   }) async {
@@ -884,17 +910,21 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
         Method.initialize,
         InitializeParams(
+          null,
+          null,
+          rootPath,
+          rootUri?.toString(),
+          initializationOptions,
+          ClientCapabilities(
+            workspaceCapabilities,
+            textDocumentCapabilities,
+            windowCapabilities,
             null,
-            rootPath,
-            rootUri?.toString(),
-            initializationOptions,
-            ClientCapabilities(
-              workspaceCapabilities,
-              textDocumentCapabilities,
-              null,
-            ),
-            null,
-            workspaceFolders?.map(toWorkspaceFolder)?.toList()));
+          ),
+          null,
+          workspaceFolders?.map(toWorkspaceFolder)?.toList(),
+          null,
+        ));
     final response = await sendRequestToServer(request);
     expect(response.id, equals(request.id));
 
@@ -922,7 +952,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         : TextDocumentIdentifier(uri.toString());
     final request = makeRequest(
       Method.textDocument_rename,
-      RenameParams(docIdentifier, pos, newName),
+      RenameParams(newName, docIdentifier, pos, null),
     );
     return request;
   }
@@ -1090,7 +1120,11 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return changeFile(
       newVersion,
       uri,
-      [TextDocumentContentChangeEvent(null, null, content)],
+      [
+        Either2<TextDocumentContentChangeEvent1,
+                TextDocumentContentChangeEvent2>.t2(
+            TextDocumentContentChangeEvent2(content))
+      ],
     );
   }
 

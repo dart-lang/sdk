@@ -17,10 +17,12 @@ void main() {
     });
 
     test('with list fields can be checked for equality', () {
-      final a = TextDocumentClientCapabilitiesCodeActionKind(
-          [CodeActionKind.QuickFix]);
-      final b = TextDocumentClientCapabilitiesCodeActionKind(
-          [CodeActionKind.QuickFix]);
+      final a = CodeActionClientCapabilitiesCodeActionKind(
+        [CodeActionKind.QuickFix],
+      );
+      final b = CodeActionClientCapabilitiesCodeActionKind(
+        [CodeActionKind.QuickFix],
+      );
 
       expect(a, equals(b));
       expect(a.hashCode, equals(b.hashCode));

@@ -292,6 +292,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     final item = res.singleWhere((c) => c.label == 'abcdefghij');
+    // ignore: deprecated_member_use_from_same_package
     expect(item.deprecated, isNull);
     // If the does not say it supports the deprecated flag, we should show
     // '(deprecated)' in the details.
@@ -317,6 +318,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     final item = res.singleWhere((c) => c.label == 'abcdefghij');
+    // ignore: deprecated_member_use_from_same_package
     expect(item.deprecated, isTrue);
     // If the client says it supports the deprecated flag, we should not show
     // deprecated in the details.

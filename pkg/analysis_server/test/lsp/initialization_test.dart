@@ -45,6 +45,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // static registrations for them.
     // https://github.com/dart-lang/sdk/issues/38490
     InitializeResult initResult = initResponse.result;
+    expect(initResult.serverInfo.name, 'Dart SDK LSP Analysis Server');
+    expect(initResult.serverInfo.version, isNotNull);
     expect(initResult.capabilities, isNotNull);
     expect(initResult.capabilities.textDocumentSync, isNull);
 

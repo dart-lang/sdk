@@ -36,6 +36,8 @@ main() {
         null,
         TextDocumentIdentifier(mainFileUri.toString()),
         positionFromMarker(content),
+        null,
+        null,
       ),
     );
     // And a request to cancel it.

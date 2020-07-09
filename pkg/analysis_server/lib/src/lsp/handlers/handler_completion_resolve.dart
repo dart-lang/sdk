@@ -148,11 +148,15 @@ class CompletionResolveHandler
         return success(CompletionItem(
           item.label,
           item.kind,
+          null, // TODO(dantup): CompletionItemTags (eg. deprecated)
           data.displayUri != null && thisFilesChanges.isNotEmpty
               ? "Auto import from '${data.displayUri}'\n\n${item.detail ?? ''}"
                   .trim()
               : item.detail,
           documentation,
+          // The deprecated field is deprecated, but we should still supply it
+          // for clients that have not adopted CompletionItemTags.
+          // ignore: deprecated_member_use_from_same_package
           item.deprecated,
           item.preselect,
           item.sortText,

@@ -296,9 +296,10 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     final request = makeRequest(
       Method.textDocument_rename,
       RenameParams(
+        'Object2',
         TextDocumentIdentifier(mainFileUri.toString()),
         positionFromMarker(content),
-        'Object2',
+        null,
       ),
     );
     final response = await channel.sendRequestToServer(request);

@@ -47,6 +47,7 @@ void main() {
         'test_err',
         '/tmp/source.dart',
         'err!!',
+        null,
         [DiagnosticRelatedInformation(location, 'message')],
       );
       final output = json.encode(codeAction.toJson());
@@ -244,7 +245,7 @@ void main() {
 
     test('ResponseMessage does not include a result for an error', () {
       final id = Either2<num, String>.t1(1);
-      final error = ResponseError<String>(ErrorCodes.ParseError, 'Error', null);
+      final error = ResponseError(ErrorCodes.ParseError, 'Error', null);
       final resp = ResponseMessage(id, null, error, jsonRpcVersion);
       final jsonMap = resp.toJson();
       expect(jsonMap, contains('error'));
@@ -254,7 +255,7 @@ void main() {
     test('ResponseMessage throws if both result and error are non-null', () {
       final id = Either2<num, String>.t1(1);
       final result = 'my result';
-      final error = ResponseError<String>(ErrorCodes.ParseError, 'Error', null);
+      final error = ResponseError(ErrorCodes.ParseError, 'Error', null);
       final resp = ResponseMessage(id, result, error, jsonRpcVersion);
       expect(resp.toJson, throwsA(TypeMatcher<String>()));
     });
@@ -315,11 +316,20 @@ void main() {
   });
 
   test('objects with lists can round-trip through to json and back', () {
-    final obj = InitializeParams(1, '!root', null, null,
-        ClientCapabilities(null, null, null), '!trace', [
-      WorkspaceFolder('!uri1', '!name1'),
-      WorkspaceFolder('!uri2', '!name2'),
-    ]);
+    final obj = InitializeParams(
+      1,
+      InitializeParamsClientInfo('server name', '1.2.3'),
+      '!root',
+      null,
+      null,
+      ClientCapabilities(null, null, null, null),
+      '!trace',
+      [
+        WorkspaceFolder('!uri1', '!name1'),
+        WorkspaceFolder('!uri2', '!name2'),
+      ],
+      null,
+    );
     final json = jsonEncode(obj);
     final restoredObj = InitializeParams.fromJson(jsonDecode(json));
 
