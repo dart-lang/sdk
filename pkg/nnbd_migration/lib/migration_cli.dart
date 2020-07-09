@@ -168,9 +168,6 @@ class DependencyChecker {
       _logger.stderr('');
       _logger.stderr('Visit https://dart.dev/tools/pub/cmd/pub-outdated for '
           'more information.');
-      _logger.stderr('');
-      _logger.stderr('You can force migration with '
-          "'--${CommandLineOptions.skipPubOutdatedFlag}' (not recommended).");
       return false;
     }
     return true;
