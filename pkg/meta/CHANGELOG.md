@@ -1,6 +1,24 @@
 ## 1.3.0-nullsafety
 
 * Opt into null safety.
+
+## 1.2.2
+
+* Removed `unawaited` because the attempt to move it from `package:pedantic`
+  caused too many issues. If you see errors about `unawaited` being declared in
+  two places, please update the version constraints for `meta` to `1.2.2` or
+  later.
+
+## 1.2.1
+
+* Fixed a bug by adding an import of dart:async so that the code really is
+  compatible with the lower bound of the SDK constraints.
+
+## 1.2.0
+
+* Introduce `unawaited` to mark invocations that return a `Future` where it's
+  intentional that the future is not being awaited. (Moved from
+  `package:pedantic`.)
 * Introduce `@doNotStore` to annotate methods, getters and functions to
   indicate that values obtained by invoking them should not be stored in a
   field or top-level variable.
