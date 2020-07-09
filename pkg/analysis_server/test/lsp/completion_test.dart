@@ -108,8 +108,9 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     final invalidTriggerKind = CompletionTriggerKind.fromJson(-1);
     final request = getCompletion(
       mainFileUri,
-      Position(0, 0),
-      context: CompletionContext(invalidTriggerKind, 'A'),
+      Position(line: 0, character: 0),
+      context: CompletionContext(
+          triggerKind: invalidTriggerKind, triggerCharacter: 'A'),
     );
 
     await expectLater(
@@ -365,7 +366,9 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(item.textEdit.newText, equals(r'one: ${1:}'));
     expect(
       item.textEdit.range,
-      equals(Range(positionFromMarker(content), positionFromMarker(content))),
+      equals(Range(
+          start: positionFromMarker(content),
+          end: positionFromMarker(content))),
     );
   }
 
@@ -852,7 +855,7 @@ main() {
         // When the server sends the edit back, just keep a copy and say we
         // applied successfully (it'll be verified below).
         editParams = edit;
-        return ApplyWorkspaceEditResponse(true, null);
+        return ApplyWorkspaceEditResponse(applied: true);
       },
     );
     // Successful edits return an empty success() response.

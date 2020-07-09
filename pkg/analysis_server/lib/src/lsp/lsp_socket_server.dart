@@ -46,19 +46,19 @@ class LspSocketServer implements AbstractSocketServer {
   void createAnalysisServer(LspServerCommunicationChannel serverChannel) {
     if (analysisServer != null) {
       final error = ResponseError(
-        ServerErrorCodes.ServerAlreadyStarted,
-        'Server already started',
-        null,
+        code: ServerErrorCodes.ServerAlreadyStarted,
+        message: 'Server already started',
       );
       serverChannel.sendNotification(NotificationMessage(
-        Method.window_showMessage,
-        ShowMessageParams(MessageType.Error, error.message),
-        jsonRpcVersion,
+        method: Method.window_showMessage,
+        params:
+            ShowMessageParams(type: MessageType.Error, message: error.message),
+        jsonrpc: jsonRpcVersion,
       ));
       serverChannel.listen((Message message) {
         if (message is RequestMessage) {
-          serverChannel.sendResponse(
-              ResponseMessage(message.id, null, error, jsonRpcVersion));
+          serverChannel.sendResponse(ResponseMessage(
+              id: message.id, error: error, jsonrpc: jsonRpcVersion));
         }
       });
       return;

@@ -27,7 +27,10 @@ class ServerTest extends AbstractLspAnalysisServerTest {
         Either2<TextDocumentContentChangeEvent1,
                 TextDocumentContentChangeEvent2>.t1(
             TextDocumentContentChangeEvent1(
-                Range(Position(99, 99), Position(99, 99)), null, ' ')),
+                range: Range(
+                    start: Position(line: 99, character: 99),
+                    end: Position(line: 99, character: 99)),
+                text: ' ')),
       ]);
     });
 

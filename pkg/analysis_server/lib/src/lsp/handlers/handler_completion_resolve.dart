@@ -135,7 +135,9 @@ class CompletionResolveHandler
         if (otherFilesChanges.isNotEmpty) {
           final workspaceEdit = createWorkspaceEdit(server, otherFilesChanges);
           command = Command(
-              'Add import', Commands.sendWorkspaceEdit, [workspaceEdit]);
+              title: 'Add import',
+              command: Commands.sendWorkspaceEdit,
+              arguments: [workspaceEdit]);
         }
 
         // Documentation is added on during resolve for LSP.
@@ -146,36 +148,36 @@ class CompletionResolveHandler
         final documentation = asStringOrMarkupContent(formats, dartDoc);
 
         return success(CompletionItem(
-          item.label,
-          item.kind,
-          null, // TODO(dantup): CompletionItemTags (eg. deprecated)
-          data.displayUri != null && thisFilesChanges.isNotEmpty
+          label: item.label,
+          kind: item.kind,
+          tags: null, // TODO(dantup): CompletionItemTags (eg. deprecated)
+          detail: data.displayUri != null && thisFilesChanges.isNotEmpty
               ? "Auto import from '${data.displayUri}'\n\n${item.detail ?? ''}"
                   .trim()
               : item.detail,
-          documentation,
+          documentation: documentation,
           // The deprecated field is deprecated, but we should still supply it
           // for clients that have not adopted CompletionItemTags.
           // ignore: deprecated_member_use_from_same_package
-          item.deprecated,
-          item.preselect,
-          item.sortText,
-          item.filterText,
-          newInsertText,
-          item.insertTextFormat,
-          TextEdit(
+          deprecated: item.deprecated,
+          preselect: item.preselect,
+          sortText: item.sortText,
+          filterText: item.filterText,
+          insertText: newInsertText,
+          insertTextFormat: item.insertTextFormat,
+          textEdit: TextEdit(
             // TODO(dantup): If `clientSupportsSnippets == true` then we should map
             // `selection` in to a snippet (see how Dart Code does this).
-            toRange(lineInfo, item.data.rOffset, item.data.rLength),
-            newInsertText,
+            range: toRange(lineInfo, item.data.rOffset, item.data.rLength),
+            newText: newInsertText,
           ),
-          thisFilesChanges
+          additionalTextEdits: thisFilesChanges
               .expand((change) =>
                   change.edits.map((edit) => toTextEdit(lineInfo, edit)))
               .toList(),
-          item.commitCharacters,
-          command ?? item.command,
-          item.data,
+          commitCharacters: item.commitCharacters,
+          command: command ?? item.command,
+          data: item.data,
         ));
       } on InconsistentAnalysisException {
         // Loop around to try again.

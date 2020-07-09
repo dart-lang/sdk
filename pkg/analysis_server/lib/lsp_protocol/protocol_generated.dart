@@ -22,6 +22,7 @@ import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart'
     show listEqual, mapEqual;
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:meta/meta.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
@@ -29,7 +30,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       ApplyWorkspaceEditParams.canParse, ApplyWorkspaceEditParams.fromJson);
 
-  ApplyWorkspaceEditParams(this.label, this.edit) {
+  ApplyWorkspaceEditParams({this.label, @required this.edit}) {
     if (edit == null) {
       throw 'edit is required but was not provided';
     }
@@ -38,7 +39,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
     final label = json['label'];
     final edit =
         json['edit'] != null ? WorkspaceEdit.fromJson(json['edit']) : null;
-    return ApplyWorkspaceEditParams(label, edit);
+    return ApplyWorkspaceEditParams(label: label, edit: edit);
   }
 
   /// The edits to apply.
@@ -117,7 +118,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       ApplyWorkspaceEditResponse.canParse, ApplyWorkspaceEditResponse.fromJson);
 
-  ApplyWorkspaceEditResponse(this.applied, this.failureReason) {
+  ApplyWorkspaceEditResponse({@required this.applied, this.failureReason}) {
     if (applied == null) {
       throw 'applied is required but was not provided';
     }
@@ -125,7 +126,8 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
   static ApplyWorkspaceEditResponse fromJson(Map<String, dynamic> json) {
     final applied = json['applied'];
     final failureReason = json['failureReason'];
-    return ApplyWorkspaceEditResponse(applied, failureReason);
+    return ApplyWorkspaceEditResponse(
+        applied: applied, failureReason: failureReason);
   }
 
   /// Indicates whether the edit was applied or not.
@@ -208,7 +210,7 @@ class CancelParams implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CancelParams.canParse, CancelParams.fromJson);
 
-  CancelParams(this.id) {
+  CancelParams({@required this.id}) {
     if (id == null) {
       throw 'id is required but was not provided';
     }
@@ -219,7 +221,7 @@ class CancelParams implements ToJsonable {
         : (json['id'] is String
             ? Either2<num, String>.t2(json['id'])
             : (throw '''${json['id']} was not one of (num, String)'''));
-    return CancelParams(id);
+    return CancelParams(id: id);
   }
 
   /// The request id to cancel.
@@ -281,7 +283,7 @@ class ClientCapabilities implements ToJsonable {
       LspJsonHandler(ClientCapabilities.canParse, ClientCapabilities.fromJson);
 
   ClientCapabilities(
-      this.workspace, this.textDocument, this.window, this.experimental);
+      {this.workspace, this.textDocument, this.window, this.experimental});
   static ClientCapabilities fromJson(Map<String, dynamic> json) {
     final workspace = json['workspace'] != null
         ? ClientCapabilitiesWorkspace.fromJson(json['workspace'])
@@ -293,7 +295,11 @@ class ClientCapabilities implements ToJsonable {
         ? ClientCapabilitiesWindow.fromJson(json['window'])
         : null;
     final experimental = json['experimental'];
-    return ClientCapabilities(workspace, textDocument, window, experimental);
+    return ClientCapabilities(
+        workspace: workspace,
+        textDocument: textDocument,
+        window: window,
+        experimental: experimental);
   }
 
   /// Experimental client capabilities.
@@ -407,10 +413,10 @@ class ClientCapabilitiesWindow implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       ClientCapabilitiesWindow.canParse, ClientCapabilitiesWindow.fromJson);
 
-  ClientCapabilitiesWindow(this.workDoneProgress);
+  ClientCapabilitiesWindow({this.workDoneProgress});
   static ClientCapabilitiesWindow fromJson(Map<String, dynamic> json) {
     final workDoneProgress = json['workDoneProgress'];
-    return ClientCapabilitiesWindow(workDoneProgress);
+    return ClientCapabilitiesWindow(workDoneProgress: workDoneProgress);
   }
 
   /// Whether client supports handling progress notifications. If set servers
@@ -473,14 +479,14 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
       ClientCapabilitiesWorkspace.fromJson);
 
   ClientCapabilitiesWorkspace(
-      this.applyEdit,
+      {this.applyEdit,
       this.workspaceEdit,
       this.didChangeConfiguration,
       this.didChangeWatchedFiles,
       this.symbol,
       this.executeCommand,
       this.workspaceFolders,
-      this.configuration);
+      this.configuration});
   static ClientCapabilitiesWorkspace fromJson(Map<String, dynamic> json) {
     final applyEdit = json['applyEdit'];
     final workspaceEdit = json['workspaceEdit'] != null
@@ -503,14 +509,14 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
     final workspaceFolders = json['workspaceFolders'];
     final configuration = json['configuration'];
     return ClientCapabilitiesWorkspace(
-        applyEdit,
-        workspaceEdit,
-        didChangeConfiguration,
-        didChangeWatchedFiles,
-        symbol,
-        executeCommand,
-        workspaceFolders,
-        configuration);
+        applyEdit: applyEdit,
+        workspaceEdit: workspaceEdit,
+        didChangeConfiguration: didChangeConfiguration,
+        didChangeWatchedFiles: didChangeWatchedFiles,
+        symbol: symbol,
+        executeCommand: executeCommand,
+        workspaceFolders: workspaceFolders,
+        configuration: configuration);
   }
 
   /// The client supports applying batch edits to the workspace by supporting
@@ -714,8 +720,13 @@ class CodeAction implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CodeAction.canParse, CodeAction.fromJson);
 
-  CodeAction(this.title, this.kind, this.diagnostics, this.isPreferred,
-      this.edit, this.command) {
+  CodeAction(
+      {@required this.title,
+      this.kind,
+      this.diagnostics,
+      this.isPreferred,
+      this.edit,
+      this.command}) {
     if (title == null) {
       throw 'title is required but was not provided';
     }
@@ -733,7 +744,13 @@ class CodeAction implements ToJsonable {
         json['edit'] != null ? WorkspaceEdit.fromJson(json['edit']) : null;
     final command =
         json['command'] != null ? Command.fromJson(json['command']) : null;
-    return CodeAction(title, kind, diagnostics, isPreferred, edit, command);
+    return CodeAction(
+        title: title,
+        kind: kind,
+        diagnostics: diagnostics,
+        isPreferred: isPreferred,
+        edit: edit,
+        command: command);
   }
 
   /// A command this code action executes. If a code action provides an edit and
@@ -897,8 +914,10 @@ class CodeActionClientCapabilities implements ToJsonable {
       CodeActionClientCapabilities.canParse,
       CodeActionClientCapabilities.fromJson);
 
-  CodeActionClientCapabilities(this.dynamicRegistration,
-      this.codeActionLiteralSupport, this.isPreferredSupport);
+  CodeActionClientCapabilities(
+      {this.dynamicRegistration,
+      this.codeActionLiteralSupport,
+      this.isPreferredSupport});
   static CodeActionClientCapabilities fromJson(Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final codeActionLiteralSupport = json['codeActionLiteralSupport'] != null
@@ -907,7 +926,9 @@ class CodeActionClientCapabilities implements ToJsonable {
         : null;
     final isPreferredSupport = json['isPreferredSupport'];
     return CodeActionClientCapabilities(
-        dynamicRegistration, codeActionLiteralSupport, isPreferredSupport);
+        dynamicRegistration: dynamicRegistration,
+        codeActionLiteralSupport: codeActionLiteralSupport,
+        isPreferredSupport: isPreferredSupport);
   }
 
   /// The client supports code action literals as a valid response of the
@@ -1007,7 +1028,7 @@ class CodeActionClientCapabilitiesCodeActionKind implements ToJsonable {
       CodeActionClientCapabilitiesCodeActionKind.canParse,
       CodeActionClientCapabilitiesCodeActionKind.fromJson);
 
-  CodeActionClientCapabilitiesCodeActionKind(this.valueSet) {
+  CodeActionClientCapabilitiesCodeActionKind({@required this.valueSet}) {
     if (valueSet == null) {
       throw 'valueSet is required but was not provided';
     }
@@ -1018,7 +1039,7 @@ class CodeActionClientCapabilitiesCodeActionKind implements ToJsonable {
         ?.map((item) => item != null ? CodeActionKind.fromJson(item) : null)
         ?.cast<CodeActionKind>()
         ?.toList();
-    return CodeActionClientCapabilitiesCodeActionKind(valueSet);
+    return CodeActionClientCapabilitiesCodeActionKind(valueSet: valueSet);
   }
 
   /// The code action kind values the client supports. When this property exists
@@ -1090,7 +1111,8 @@ class CodeActionClientCapabilitiesCodeActionLiteralSupport
       CodeActionClientCapabilitiesCodeActionLiteralSupport.canParse,
       CodeActionClientCapabilitiesCodeActionLiteralSupport.fromJson);
 
-  CodeActionClientCapabilitiesCodeActionLiteralSupport(this.codeActionKind) {
+  CodeActionClientCapabilitiesCodeActionLiteralSupport(
+      {@required this.codeActionKind}) {
     if (codeActionKind == null) {
       throw 'codeActionKind is required but was not provided';
     }
@@ -1101,7 +1123,8 @@ class CodeActionClientCapabilitiesCodeActionLiteralSupport
         ? CodeActionClientCapabilitiesCodeActionKind.fromJson(
             json['codeActionKind'])
         : null;
-    return CodeActionClientCapabilitiesCodeActionLiteralSupport(codeActionKind);
+    return CodeActionClientCapabilitiesCodeActionLiteralSupport(
+        codeActionKind: codeActionKind);
   }
 
   /// The code action kind is supported with the following value set.
@@ -1170,7 +1193,7 @@ class CodeActionContext implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CodeActionContext.canParse, CodeActionContext.fromJson);
 
-  CodeActionContext(this.diagnostics, this.only) {
+  CodeActionContext({@required this.diagnostics, this.only}) {
     if (diagnostics == null) {
       throw 'diagnostics is required but was not provided';
     }
@@ -1184,7 +1207,7 @@ class CodeActionContext implements ToJsonable {
         ?.map((item) => item != null ? CodeActionKind.fromJson(item) : null)
         ?.cast<CodeActionKind>()
         ?.toList();
-    return CodeActionContext(diagnostics, only);
+    return CodeActionContext(diagnostics: diagnostics, only: only);
   }
 
   /// An array of diagnostics known on the client side overlapping the range
@@ -1351,7 +1374,7 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CodeActionOptions.canParse, CodeActionOptions.fromJson);
 
-  CodeActionOptions(this.codeActionKinds, this.workDoneProgress);
+  CodeActionOptions({this.codeActionKinds, this.workDoneProgress});
   static CodeActionOptions fromJson(Map<String, dynamic> json) {
     if (CodeActionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return CodeActionRegistrationOptions.fromJson(json);
@@ -1361,7 +1384,8 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
         ?.cast<CodeActionKind>()
         ?.toList();
     final workDoneProgress = json['workDoneProgress'];
-    return CodeActionOptions(codeActionKinds, workDoneProgress);
+    return CodeActionOptions(
+        codeActionKinds: codeActionKinds, workDoneProgress: workDoneProgress);
   }
 
   /// CodeActionKinds that this server may return.
@@ -1442,8 +1466,12 @@ class CodeActionParams
   static const jsonHandler =
       LspJsonHandler(CodeActionParams.canParse, CodeActionParams.fromJson);
 
-  CodeActionParams(this.textDocument, this.range, this.context,
-      this.workDoneToken, this.partialResultToken) {
+  CodeActionParams(
+      {@required this.textDocument,
+      @required this.range,
+      @required this.context,
+      this.workDoneToken,
+      this.partialResultToken}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -1477,7 +1505,11 @@ class CodeActionParams
                 ? null
                 : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
     return CodeActionParams(
-        textDocument, range, context, workDoneToken, partialResultToken);
+        textDocument: textDocument,
+        range: range,
+        context: context,
+        workDoneToken: workDoneToken,
+        partialResultToken: partialResultToken);
   }
 
   /// Context carrying additional information.
@@ -1629,7 +1661,7 @@ class CodeActionRegistrationOptions
       CodeActionRegistrationOptions.fromJson);
 
   CodeActionRegistrationOptions(
-      this.documentSelector, this.codeActionKinds, this.workDoneProgress);
+      {this.documentSelector, this.codeActionKinds, this.workDoneProgress});
   static CodeActionRegistrationOptions fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
@@ -1641,7 +1673,9 @@ class CodeActionRegistrationOptions
         ?.toList();
     final workDoneProgress = json['workDoneProgress'];
     return CodeActionRegistrationOptions(
-        documentSelector, codeActionKinds, workDoneProgress);
+        documentSelector: documentSelector,
+        codeActionKinds: codeActionKinds,
+        workDoneProgress: workDoneProgress);
   }
 
   /// CodeActionKinds that this server may return.
@@ -1751,7 +1785,7 @@ class CodeLens implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CodeLens.canParse, CodeLens.fromJson);
 
-  CodeLens(this.range, this.command, this.data) {
+  CodeLens({@required this.range, this.command, this.data}) {
     if (range == null) {
       throw 'range is required but was not provided';
     }
@@ -1761,7 +1795,7 @@ class CodeLens implements ToJsonable {
     final command =
         json['command'] != null ? Command.fromJson(json['command']) : null;
     final data = json['data'];
-    return CodeLens(range, command, data);
+    return CodeLens(range: range, command: command, data: data);
   }
 
   /// The command this code lens represents.
@@ -1860,10 +1894,10 @@ class CodeLensClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       CodeLensClientCapabilities.canParse, CodeLensClientCapabilities.fromJson);
 
-  CodeLensClientCapabilities(this.dynamicRegistration);
+  CodeLensClientCapabilities({this.dynamicRegistration});
   static CodeLensClientCapabilities fromJson(Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return CodeLensClientCapabilities(dynamicRegistration);
+    return CodeLensClientCapabilities(dynamicRegistration: dynamicRegistration);
   }
 
   /// Whether code lens supports dynamic registration.
@@ -1920,14 +1954,15 @@ class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CodeLensOptions.canParse, CodeLensOptions.fromJson);
 
-  CodeLensOptions(this.resolveProvider, this.workDoneProgress);
+  CodeLensOptions({this.resolveProvider, this.workDoneProgress});
   static CodeLensOptions fromJson(Map<String, dynamic> json) {
     if (CodeLensRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return CodeLensRegistrationOptions.fromJson(json);
     }
     final resolveProvider = json['resolveProvider'];
     final workDoneProgress = json['workDoneProgress'];
-    return CodeLensOptions(resolveProvider, workDoneProgress);
+    return CodeLensOptions(
+        resolveProvider: resolveProvider, workDoneProgress: workDoneProgress);
   }
 
   /// Code lens has a resolve provider as well.
@@ -2002,7 +2037,9 @@ class CodeLensParams
       LspJsonHandler(CodeLensParams.canParse, CodeLensParams.fromJson);
 
   CodeLensParams(
-      this.textDocument, this.workDoneToken, this.partialResultToken) {
+      {@required this.textDocument,
+      this.workDoneToken,
+      this.partialResultToken}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -2025,7 +2062,10 @@ class CodeLensParams
             : (json['partialResultToken'] == null
                 ? null
                 : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
-    return CodeLensParams(textDocument, workDoneToken, partialResultToken);
+    return CodeLensParams(
+        textDocument: textDocument,
+        workDoneToken: workDoneToken,
+        partialResultToken: partialResultToken);
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -2130,7 +2170,7 @@ class CodeLensRegistrationOptions
       CodeLensRegistrationOptions.fromJson);
 
   CodeLensRegistrationOptions(
-      this.documentSelector, this.resolveProvider, this.workDoneProgress);
+      {this.documentSelector, this.resolveProvider, this.workDoneProgress});
   static CodeLensRegistrationOptions fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
@@ -2139,7 +2179,9 @@ class CodeLensRegistrationOptions
     final resolveProvider = json['resolveProvider'];
     final workDoneProgress = json['workDoneProgress'];
     return CodeLensRegistrationOptions(
-        documentSelector, resolveProvider, workDoneProgress);
+        documentSelector: documentSelector,
+        resolveProvider: resolveProvider,
+        workDoneProgress: workDoneProgress);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -2237,7 +2279,11 @@ class CodeLensRegistrationOptions
 class Color implements ToJsonable {
   static const jsonHandler = LspJsonHandler(Color.canParse, Color.fromJson);
 
-  Color(this.red, this.green, this.blue, this.alpha) {
+  Color(
+      {@required this.red,
+      @required this.green,
+      @required this.blue,
+      @required this.alpha}) {
     if (red == null) {
       throw 'red is required but was not provided';
     }
@@ -2256,7 +2302,7 @@ class Color implements ToJsonable {
     final green = json['green'];
     final blue = json['blue'];
     final alpha = json['alpha'];
-    return Color(red, green, blue, alpha);
+    return Color(red: red, green: green, blue: blue, alpha: alpha);
   }
 
   /// The alpha component of this color in the range [0-1].
@@ -2387,7 +2433,7 @@ class ColorInformation implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ColorInformation.canParse, ColorInformation.fromJson);
 
-  ColorInformation(this.range, this.color) {
+  ColorInformation({@required this.range, @required this.color}) {
     if (range == null) {
       throw 'range is required but was not provided';
     }
@@ -2398,7 +2444,7 @@ class ColorInformation implements ToJsonable {
   static ColorInformation fromJson(Map<String, dynamic> json) {
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final color = json['color'] != null ? Color.fromJson(json['color']) : null;
-    return ColorInformation(range, color);
+    return ColorInformation(range: range, color: color);
   }
 
   /// The actual color value for this color range.
@@ -2481,7 +2527,8 @@ class ColorPresentation implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ColorPresentation.canParse, ColorPresentation.fromJson);
 
-  ColorPresentation(this.label, this.textEdit, this.additionalTextEdits) {
+  ColorPresentation(
+      {@required this.label, this.textEdit, this.additionalTextEdits}) {
     if (label == null) {
       throw 'label is required but was not provided';
     }
@@ -2494,7 +2541,10 @@ class ColorPresentation implements ToJsonable {
         ?.map((item) => item != null ? TextEdit.fromJson(item) : null)
         ?.cast<TextEdit>()
         ?.toList();
-    return ColorPresentation(label, textEdit, additionalTextEdits);
+    return ColorPresentation(
+        label: label,
+        textEdit: textEdit,
+        additionalTextEdits: additionalTextEdits);
   }
 
   /// An optional array of additional text edits ([TextEdit]) that are applied
@@ -2602,8 +2652,12 @@ class ColorPresentationParams
   static const jsonHandler = LspJsonHandler(
       ColorPresentationParams.canParse, ColorPresentationParams.fromJson);
 
-  ColorPresentationParams(this.textDocument, this.color, this.range,
-      this.workDoneToken, this.partialResultToken) {
+  ColorPresentationParams(
+      {@required this.textDocument,
+      @required this.color,
+      @required this.range,
+      this.workDoneToken,
+      this.partialResultToken}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -2635,7 +2689,11 @@ class ColorPresentationParams
                 ? null
                 : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
     return ColorPresentationParams(
-        textDocument, color, range, workDoneToken, partialResultToken);
+        textDocument: textDocument,
+        color: color,
+        range: range,
+        workDoneToken: workDoneToken,
+        partialResultToken: partialResultToken);
   }
 
   /// The color information to request presentations for.
@@ -2783,7 +2841,7 @@ class ColorPresentationParams
 class Command implements ToJsonable {
   static const jsonHandler = LspJsonHandler(Command.canParse, Command.fromJson);
 
-  Command(this.title, this.command, this.arguments) {
+  Command({@required this.title, @required this.command, this.arguments}) {
     if (title == null) {
       throw 'title is required but was not provided';
     }
@@ -2796,7 +2854,7 @@ class Command implements ToJsonable {
     final command = json['command'];
     final arguments =
         json['arguments']?.map((item) => item)?.cast<dynamic>()?.toList();
-    return Command(title, command, arguments);
+    return Command(title: title, command: command, arguments: arguments);
   }
 
   /// Arguments that the command handler should be invoked with.
@@ -2903,8 +2961,11 @@ class CompletionClientCapabilities implements ToJsonable {
       CompletionClientCapabilities.canParse,
       CompletionClientCapabilities.fromJson);
 
-  CompletionClientCapabilities(this.dynamicRegistration, this.completionItem,
-      this.completionItemKind, this.contextSupport);
+  CompletionClientCapabilities(
+      {this.dynamicRegistration,
+      this.completionItem,
+      this.completionItemKind,
+      this.contextSupport});
   static CompletionClientCapabilities fromJson(Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final completionItem = json['completionItem'] != null
@@ -2916,8 +2977,11 @@ class CompletionClientCapabilities implements ToJsonable {
             json['completionItemKind'])
         : null;
     final contextSupport = json['contextSupport'];
-    return CompletionClientCapabilities(dynamicRegistration, completionItem,
-        completionItemKind, contextSupport);
+    return CompletionClientCapabilities(
+        dynamicRegistration: dynamicRegistration,
+        completionItem: completionItem,
+        completionItemKind: completionItemKind,
+        contextSupport: contextSupport);
   }
 
   /// The client supports the following `CompletionItem` specific capabilities.
@@ -3033,12 +3097,12 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       CompletionClientCapabilitiesCompletionItem.fromJson);
 
   CompletionClientCapabilitiesCompletionItem(
-      this.snippetSupport,
+      {this.snippetSupport,
       this.commitCharactersSupport,
       this.documentationFormat,
       this.deprecatedSupport,
       this.preselectSupport,
-      this.tagSupport);
+      this.tagSupport});
   static CompletionClientCapabilitiesCompletionItem fromJson(
       Map<String, dynamic> json) {
     final snippetSupport = json['snippetSupport'];
@@ -3053,12 +3117,12 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
         ? CompletionClientCapabilitiesTagSupport.fromJson(json['tagSupport'])
         : null;
     return CompletionClientCapabilitiesCompletionItem(
-        snippetSupport,
-        commitCharactersSupport,
-        documentationFormat,
-        deprecatedSupport,
-        preselectSupport,
-        tagSupport);
+        snippetSupport: snippetSupport,
+        commitCharactersSupport: commitCharactersSupport,
+        documentationFormat: documentationFormat,
+        deprecatedSupport: deprecatedSupport,
+        preselectSupport: preselectSupport,
+        tagSupport: tagSupport);
   }
 
   /// Client supports commit characters on a completion item.
@@ -3222,14 +3286,14 @@ class CompletionClientCapabilitiesCompletionItemKind implements ToJsonable {
       CompletionClientCapabilitiesCompletionItemKind.canParse,
       CompletionClientCapabilitiesCompletionItemKind.fromJson);
 
-  CompletionClientCapabilitiesCompletionItemKind(this.valueSet);
+  CompletionClientCapabilitiesCompletionItemKind({this.valueSet});
   static CompletionClientCapabilitiesCompletionItemKind fromJson(
       Map<String, dynamic> json) {
     final valueSet = json['valueSet']
         ?.map((item) => item != null ? CompletionItemKind.fromJson(item) : null)
         ?.cast<CompletionItemKind>()
         ?.toList();
-    return CompletionClientCapabilitiesCompletionItemKind(valueSet);
+    return CompletionClientCapabilitiesCompletionItemKind(valueSet: valueSet);
   }
 
   /// The completion item kind values the client supports. When this property
@@ -3298,7 +3362,7 @@ class CompletionClientCapabilitiesTagSupport implements ToJsonable {
       CompletionClientCapabilitiesTagSupport.canParse,
       CompletionClientCapabilitiesTagSupport.fromJson);
 
-  CompletionClientCapabilitiesTagSupport(this.valueSet) {
+  CompletionClientCapabilitiesTagSupport({@required this.valueSet}) {
     if (valueSet == null) {
       throw 'valueSet is required but was not provided';
     }
@@ -3309,7 +3373,7 @@ class CompletionClientCapabilitiesTagSupport implements ToJsonable {
         ?.map((item) => item != null ? CompletionItemTag.fromJson(item) : null)
         ?.cast<CompletionItemTag>()
         ?.toList();
-    return CompletionClientCapabilitiesTagSupport(valueSet);
+    return CompletionClientCapabilitiesTagSupport(valueSet: valueSet);
   }
 
   /// The tags supported by the client.
@@ -3379,7 +3443,7 @@ class CompletionContext implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CompletionContext.canParse, CompletionContext.fromJson);
 
-  CompletionContext(this.triggerKind, this.triggerCharacter) {
+  CompletionContext({@required this.triggerKind, this.triggerCharacter}) {
     if (triggerKind == null) {
       throw 'triggerKind is required but was not provided';
     }
@@ -3389,7 +3453,8 @@ class CompletionContext implements ToJsonable {
         ? CompletionTriggerKind.fromJson(json['triggerKind'])
         : null;
     final triggerCharacter = json['triggerCharacter'];
-    return CompletionContext(triggerKind, triggerCharacter);
+    return CompletionContext(
+        triggerKind: triggerKind, triggerCharacter: triggerCharacter);
   }
 
   /// The trigger character (a single character) that has trigger code complete.
@@ -3472,7 +3537,7 @@ class CompletionItem implements ToJsonable {
       LspJsonHandler(CompletionItem.canParse, CompletionItem.fromJson);
 
   CompletionItem(
-      this.label,
+      {@required this.label,
       this.kind,
       this.tags,
       this.detail,
@@ -3487,7 +3552,7 @@ class CompletionItem implements ToJsonable {
       this.additionalTextEdits,
       this.commitCharacters,
       this.command,
-      this.data) {
+      this.data}) {
     if (label == null) {
       throw 'label is required but was not provided';
     }
@@ -3532,22 +3597,22 @@ class CompletionItem implements ToJsonable {
         ? CompletionItemResolutionInfo.fromJson(json['data'])
         : null;
     return CompletionItem(
-        label,
-        kind,
-        tags,
-        detail,
-        documentation,
-        deprecated,
-        preselect,
-        sortText,
-        filterText,
-        insertText,
-        insertTextFormat,
-        textEdit,
-        additionalTextEdits,
-        commitCharacters,
-        command,
-        data);
+        label: label,
+        kind: kind,
+        tags: tags,
+        detail: detail,
+        documentation: documentation,
+        deprecated: deprecated,
+        preselect: preselect,
+        sortText: sortText,
+        filterText: filterText,
+        insertText: insertText,
+        insertTextFormat: insertTextFormat,
+        textEdit: textEdit,
+        additionalTextEdits: additionalTextEdits,
+        commitCharacters: commitCharacters,
+        command: command,
+        data: data);
   }
 
   /// An optional array of additional text edits that are applied when selecting
@@ -3999,7 +4064,7 @@ class CompletionList implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CompletionList.canParse, CompletionList.fromJson);
 
-  CompletionList(this.isIncomplete, this.items) {
+  CompletionList({@required this.isIncomplete, @required this.items}) {
     if (isIncomplete == null) {
       throw 'isIncomplete is required but was not provided';
     }
@@ -4013,7 +4078,7 @@ class CompletionList implements ToJsonable {
         ?.map((item) => item != null ? CompletionItem.fromJson(item) : null)
         ?.cast<CompletionItem>()
         ?.toList();
-    return CompletionList(isIncomplete, items);
+    return CompletionList(isIncomplete: isIncomplete, items: items);
   }
 
   /// This list it not complete. Further typing should result in recomputing
@@ -4104,8 +4169,11 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CompletionOptions.canParse, CompletionOptions.fromJson);
 
-  CompletionOptions(this.triggerCharacters, this.allCommitCharacters,
-      this.resolveProvider, this.workDoneProgress);
+  CompletionOptions(
+      {this.triggerCharacters,
+      this.allCommitCharacters,
+      this.resolveProvider,
+      this.workDoneProgress});
   static CompletionOptions fromJson(Map<String, dynamic> json) {
     if (CompletionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return CompletionRegistrationOptions.fromJson(json);
@@ -4120,8 +4188,11 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
         ?.toList();
     final resolveProvider = json['resolveProvider'];
     final workDoneProgress = json['workDoneProgress'];
-    return CompletionOptions(triggerCharacters, allCommitCharacters,
-        resolveProvider, workDoneProgress);
+    return CompletionOptions(
+        triggerCharacters: triggerCharacters,
+        allCommitCharacters: allCommitCharacters,
+        resolveProvider: resolveProvider,
+        workDoneProgress: workDoneProgress);
   }
 
   /// The list of all possible characters that commit a completion. This field
@@ -4257,8 +4328,12 @@ class CompletionParams
   static const jsonHandler =
       LspJsonHandler(CompletionParams.canParse, CompletionParams.fromJson);
 
-  CompletionParams(this.context, this.textDocument, this.position,
-      this.workDoneToken, this.partialResultToken) {
+  CompletionParams(
+      {this.context,
+      @required this.textDocument,
+      @required this.position,
+      this.workDoneToken,
+      this.partialResultToken}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -4290,7 +4365,11 @@ class CompletionParams
                 ? null
                 : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
     return CompletionParams(
-        context, textDocument, position, workDoneToken, partialResultToken);
+        context: context,
+        textDocument: textDocument,
+        position: position,
+        workDoneToken: workDoneToken,
+        partialResultToken: partialResultToken);
   }
 
   /// The completion context. This is only available if the client specifies to
@@ -4438,8 +4517,12 @@ class CompletionRegistrationOptions
       CompletionRegistrationOptions.canParse,
       CompletionRegistrationOptions.fromJson);
 
-  CompletionRegistrationOptions(this.documentSelector, this.triggerCharacters,
-      this.allCommitCharacters, this.resolveProvider, this.workDoneProgress);
+  CompletionRegistrationOptions(
+      {this.documentSelector,
+      this.triggerCharacters,
+      this.allCommitCharacters,
+      this.resolveProvider,
+      this.workDoneProgress});
   static CompletionRegistrationOptions fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
@@ -4455,8 +4538,12 @@ class CompletionRegistrationOptions
         ?.toList();
     final resolveProvider = json['resolveProvider'];
     final workDoneProgress = json['workDoneProgress'];
-    return CompletionRegistrationOptions(documentSelector, triggerCharacters,
-        allCommitCharacters, resolveProvider, workDoneProgress);
+    return CompletionRegistrationOptions(
+        documentSelector: documentSelector,
+        triggerCharacters: triggerCharacters,
+        allCommitCharacters: allCommitCharacters,
+        resolveProvider: resolveProvider,
+        workDoneProgress: workDoneProgress);
   }
 
   /// The list of all possible characters that commit a completion. This field
@@ -4652,11 +4739,11 @@ class ConfigurationItem implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ConfigurationItem.canParse, ConfigurationItem.fromJson);
 
-  ConfigurationItem(this.scopeUri, this.section);
+  ConfigurationItem({this.scopeUri, this.section});
   static ConfigurationItem fromJson(Map<String, dynamic> json) {
     final scopeUri = json['scopeUri'];
     final section = json['section'];
-    return ConfigurationItem(scopeUri, section);
+    return ConfigurationItem(scopeUri: scopeUri, section: section);
   }
 
   /// The scope to get the configuration section for.
@@ -4727,7 +4814,7 @@ class ConfigurationParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       ConfigurationParams.canParse, ConfigurationParams.fromJson);
 
-  ConfigurationParams(this.items) {
+  ConfigurationParams({@required this.items}) {
     if (items == null) {
       throw 'items is required but was not provided';
     }
@@ -4737,7 +4824,7 @@ class ConfigurationParams implements ToJsonable {
         ?.map((item) => item != null ? ConfigurationItem.fromJson(item) : null)
         ?.cast<ConfigurationItem>()
         ?.toList();
-    return ConfigurationParams(items);
+    return ConfigurationParams(items: items);
   }
 
   final List<ConfigurationItem> items;
@@ -4803,7 +4890,7 @@ class CreateFile implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CreateFile.canParse, CreateFile.fromJson);
 
-  CreateFile(this.kind, this.uri, this.options) {
+  CreateFile({@required this.kind, @required this.uri, this.options}) {
     if (kind == null) {
       throw 'kind is required but was not provided';
     }
@@ -4817,7 +4904,7 @@ class CreateFile implements ToJsonable {
     final options = json['options'] != null
         ? CreateFileOptions.fromJson(json['options'])
         : null;
-    return CreateFile(kind, uri, options);
+    return CreateFile(kind: kind, uri: uri, options: options);
   }
 
   /// A create
@@ -4921,11 +5008,12 @@ class CreateFileOptions implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CreateFileOptions.canParse, CreateFileOptions.fromJson);
 
-  CreateFileOptions(this.overwrite, this.ignoreIfExists);
+  CreateFileOptions({this.overwrite, this.ignoreIfExists});
   static CreateFileOptions fromJson(Map<String, dynamic> json) {
     final overwrite = json['overwrite'];
     final ignoreIfExists = json['ignoreIfExists'];
-    return CreateFileOptions(overwrite, ignoreIfExists);
+    return CreateFileOptions(
+        overwrite: overwrite, ignoreIfExists: ignoreIfExists);
   }
 
   /// Ignore if exists.
@@ -4999,11 +5087,12 @@ class DeclarationClientCapabilities implements ToJsonable {
       DeclarationClientCapabilities.canParse,
       DeclarationClientCapabilities.fromJson);
 
-  DeclarationClientCapabilities(this.dynamicRegistration, this.linkSupport);
+  DeclarationClientCapabilities({this.dynamicRegistration, this.linkSupport});
   static DeclarationClientCapabilities fromJson(Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final linkSupport = json['linkSupport'];
-    return DeclarationClientCapabilities(dynamicRegistration, linkSupport);
+    return DeclarationClientCapabilities(
+        dynamicRegistration: dynamicRegistration, linkSupport: linkSupport);
   }
 
   /// Whether declaration supports dynamic registration. If this is set to
@@ -5080,13 +5169,13 @@ class DeclarationOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler =
       LspJsonHandler(DeclarationOptions.canParse, DeclarationOptions.fromJson);
 
-  DeclarationOptions(this.workDoneProgress);
+  DeclarationOptions({this.workDoneProgress});
   static DeclarationOptions fromJson(Map<String, dynamic> json) {
     if (DeclarationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DeclarationRegistrationOptions.fromJson(json);
     }
     final workDoneProgress = json['workDoneProgress'];
-    return DeclarationOptions(workDoneProgress);
+    return DeclarationOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool workDoneProgress;
@@ -5147,8 +5236,11 @@ class DeclarationParams
   static const jsonHandler =
       LspJsonHandler(DeclarationParams.canParse, DeclarationParams.fromJson);
 
-  DeclarationParams(this.textDocument, this.position, this.workDoneToken,
-      this.partialResultToken) {
+  DeclarationParams(
+      {@required this.textDocument,
+      @required this.position,
+      this.workDoneToken,
+      this.partialResultToken}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -5177,7 +5269,10 @@ class DeclarationParams
                 ? null
                 : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
     return DeclarationParams(
-        textDocument, position, workDoneToken, partialResultToken);
+        textDocument: textDocument,
+        position: position,
+        workDoneToken: workDoneToken,
+        partialResultToken: partialResultToken);
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -5310,7 +5405,7 @@ class DeclarationRegistrationOptions
       DeclarationRegistrationOptions.fromJson);
 
   DeclarationRegistrationOptions(
-      this.workDoneProgress, this.documentSelector, this.id);
+      {this.workDoneProgress, this.documentSelector, this.id});
   static DeclarationRegistrationOptions fromJson(Map<String, dynamic> json) {
     final workDoneProgress = json['workDoneProgress'];
     final documentSelector = json['documentSelector']
@@ -5319,7 +5414,9 @@ class DeclarationRegistrationOptions
         ?.toList();
     final id = json['id'];
     return DeclarationRegistrationOptions(
-        workDoneProgress, documentSelector, id);
+        workDoneProgress: workDoneProgress,
+        documentSelector: documentSelector,
+        id: id);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -5418,11 +5515,12 @@ class DefinitionClientCapabilities implements ToJsonable {
       DefinitionClientCapabilities.canParse,
       DefinitionClientCapabilities.fromJson);
 
-  DefinitionClientCapabilities(this.dynamicRegistration, this.linkSupport);
+  DefinitionClientCapabilities({this.dynamicRegistration, this.linkSupport});
   static DefinitionClientCapabilities fromJson(Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final linkSupport = json['linkSupport'];
-    return DefinitionClientCapabilities(dynamicRegistration, linkSupport);
+    return DefinitionClientCapabilities(
+        dynamicRegistration: dynamicRegistration, linkSupport: linkSupport);
   }
 
   /// Whether definition supports dynamic registration.
@@ -5498,13 +5596,13 @@ class DefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler =
       LspJsonHandler(DefinitionOptions.canParse, DefinitionOptions.fromJson);
 
-  DefinitionOptions(this.workDoneProgress);
+  DefinitionOptions({this.workDoneProgress});
   static DefinitionOptions fromJson(Map<String, dynamic> json) {
     if (DefinitionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DefinitionRegistrationOptions.fromJson(json);
     }
     final workDoneProgress = json['workDoneProgress'];
-    return DefinitionOptions(workDoneProgress);
+    return DefinitionOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool workDoneProgress;
@@ -5564,8 +5662,11 @@ class DefinitionParams
   static const jsonHandler =
       LspJsonHandler(DefinitionParams.canParse, DefinitionParams.fromJson);
 
-  DefinitionParams(this.textDocument, this.position, this.workDoneToken,
-      this.partialResultToken) {
+  DefinitionParams(
+      {@required this.textDocument,
+      @required this.position,
+      this.workDoneToken,
+      this.partialResultToken}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -5594,7 +5695,10 @@ class DefinitionParams
                 ? null
                 : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
     return DefinitionParams(
-        textDocument, position, workDoneToken, partialResultToken);
+        textDocument: textDocument,
+        position: position,
+        workDoneToken: workDoneToken,
+        partialResultToken: partialResultToken);
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -5722,14 +5826,15 @@ class DefinitionRegistrationOptions
       DefinitionRegistrationOptions.canParse,
       DefinitionRegistrationOptions.fromJson);
 
-  DefinitionRegistrationOptions(this.documentSelector, this.workDoneProgress);
+  DefinitionRegistrationOptions({this.documentSelector, this.workDoneProgress});
   static DefinitionRegistrationOptions fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     final workDoneProgress = json['workDoneProgress'];
-    return DefinitionRegistrationOptions(documentSelector, workDoneProgress);
+    return DefinitionRegistrationOptions(
+        documentSelector: documentSelector, workDoneProgress: workDoneProgress);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -5810,7 +5915,7 @@ class DeleteFile implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(DeleteFile.canParse, DeleteFile.fromJson);
 
-  DeleteFile(this.kind, this.uri, this.options) {
+  DeleteFile({@required this.kind, @required this.uri, this.options}) {
     if (kind == null) {
       throw 'kind is required but was not provided';
     }
@@ -5824,7 +5929,7 @@ class DeleteFile implements ToJsonable {
     final options = json['options'] != null
         ? DeleteFileOptions.fromJson(json['options'])
         : null;
-    return DeleteFile(kind, uri, options);
+    return DeleteFile(kind: kind, uri: uri, options: options);
   }
 
   /// A delete
@@ -5928,11 +6033,12 @@ class DeleteFileOptions implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(DeleteFileOptions.canParse, DeleteFileOptions.fromJson);
 
-  DeleteFileOptions(this.recursive, this.ignoreIfNotExists);
+  DeleteFileOptions({this.recursive, this.ignoreIfNotExists});
   static DeleteFileOptions fromJson(Map<String, dynamic> json) {
     final recursive = json['recursive'];
     final ignoreIfNotExists = json['ignoreIfNotExists'];
-    return DeleteFileOptions(recursive, ignoreIfNotExists);
+    return DeleteFileOptions(
+        recursive: recursive, ignoreIfNotExists: ignoreIfNotExists);
   }
 
   /// Ignore the operation if the file doesn't exist.
@@ -6006,8 +6112,14 @@ class Diagnostic implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(Diagnostic.canParse, Diagnostic.fromJson);
 
-  Diagnostic(this.range, this.severity, this.code, this.source, this.message,
-      this.tags, this.relatedInformation) {
+  Diagnostic(
+      {@required this.range,
+      this.severity,
+      this.code,
+      this.source,
+      @required this.message,
+      this.tags,
+      this.relatedInformation}) {
     if (range == null) {
       throw 'range is required but was not provided';
     }
@@ -6033,7 +6145,13 @@ class Diagnostic implements ToJsonable {
         ?.cast<DiagnosticRelatedInformation>()
         ?.toList();
     return Diagnostic(
-        range, severity, code, source, message, tags, relatedInformation);
+        range: range,
+        severity: severity,
+        code: code,
+        source: source,
+        message: message,
+        tags: tags,
+        relatedInformation: relatedInformation);
   }
 
   /// The diagnostic's code, which might appear in the user interface.
@@ -6226,7 +6344,8 @@ class DiagnosticRelatedInformation implements ToJsonable {
       DiagnosticRelatedInformation.canParse,
       DiagnosticRelatedInformation.fromJson);
 
-  DiagnosticRelatedInformation(this.location, this.message) {
+  DiagnosticRelatedInformation(
+      {@required this.location, @required this.message}) {
     if (location == null) {
       throw 'location is required but was not provided';
     }
@@ -6238,7 +6357,7 @@ class DiagnosticRelatedInformation implements ToJsonable {
     final location =
         json['location'] != null ? Location.fromJson(json['location']) : null;
     final message = json['message'];
-    return DiagnosticRelatedInformation(location, message);
+    return DiagnosticRelatedInformation(location: location, message: message);
   }
 
   /// The location of this related diagnostic information.
@@ -6392,11 +6511,12 @@ class DidChangeConfigurationClientCapabilities implements ToJsonable {
       DidChangeConfigurationClientCapabilities.canParse,
       DidChangeConfigurationClientCapabilities.fromJson);
 
-  DidChangeConfigurationClientCapabilities(this.dynamicRegistration);
+  DidChangeConfigurationClientCapabilities({this.dynamicRegistration});
   static DidChangeConfigurationClientCapabilities fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return DidChangeConfigurationClientCapabilities(dynamicRegistration);
+    return DidChangeConfigurationClientCapabilities(
+        dynamicRegistration: dynamicRegistration);
   }
 
   /// Did change configuration notification supports dynamic registration.
@@ -6455,10 +6575,10 @@ class DidChangeConfigurationParams implements ToJsonable {
       DidChangeConfigurationParams.canParse,
       DidChangeConfigurationParams.fromJson);
 
-  DidChangeConfigurationParams(this.settings);
+  DidChangeConfigurationParams({this.settings});
   static DidChangeConfigurationParams fromJson(Map<String, dynamic> json) {
     final settings = json['settings'];
-    return DidChangeConfigurationParams(settings);
+    return DidChangeConfigurationParams(settings: settings);
   }
 
   /// The actual changed settings
@@ -6517,7 +6637,8 @@ class DidChangeTextDocumentParams implements ToJsonable {
       DidChangeTextDocumentParams.canParse,
       DidChangeTextDocumentParams.fromJson);
 
-  DidChangeTextDocumentParams(this.textDocument, this.contentChanges) {
+  DidChangeTextDocumentParams(
+      {@required this.textDocument, @required this.contentChanges}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -6545,7 +6666,8 @@ class DidChangeTextDocumentParams implements ToJsonable {
                 : (throw '''${item} was not one of (TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2)''')))
         ?.cast<Either2<TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2>>()
         ?.toList();
-    return DidChangeTextDocumentParams(textDocument, contentChanges);
+    return DidChangeTextDocumentParams(
+        textDocument: textDocument, contentChanges: contentChanges);
   }
 
   /// The actual content changes. The content changes describe single state
@@ -6666,11 +6788,12 @@ class DidChangeWatchedFilesClientCapabilities implements ToJsonable {
       DidChangeWatchedFilesClientCapabilities.canParse,
       DidChangeWatchedFilesClientCapabilities.fromJson);
 
-  DidChangeWatchedFilesClientCapabilities(this.dynamicRegistration);
+  DidChangeWatchedFilesClientCapabilities({this.dynamicRegistration});
   static DidChangeWatchedFilesClientCapabilities fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return DidChangeWatchedFilesClientCapabilities(dynamicRegistration);
+    return DidChangeWatchedFilesClientCapabilities(
+        dynamicRegistration: dynamicRegistration);
   }
 
   /// Did change watched files notification supports dynamic registration.
@@ -6731,7 +6854,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
       DidChangeWatchedFilesParams.canParse,
       DidChangeWatchedFilesParams.fromJson);
 
-  DidChangeWatchedFilesParams(this.changes) {
+  DidChangeWatchedFilesParams({@required this.changes}) {
     if (changes == null) {
       throw 'changes is required but was not provided';
     }
@@ -6741,7 +6864,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
         ?.map((item) => item != null ? FileEvent.fromJson(item) : null)
         ?.cast<FileEvent>()
         ?.toList();
-    return DidChangeWatchedFilesParams(changes);
+    return DidChangeWatchedFilesParams(changes: changes);
   }
 
   /// The actual file events.
@@ -6810,7 +6933,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
       DidChangeWatchedFilesRegistrationOptions.canParse,
       DidChangeWatchedFilesRegistrationOptions.fromJson);
 
-  DidChangeWatchedFilesRegistrationOptions(this.watchers) {
+  DidChangeWatchedFilesRegistrationOptions({@required this.watchers}) {
     if (watchers == null) {
       throw 'watchers is required but was not provided';
     }
@@ -6821,7 +6944,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
         ?.map((item) => item != null ? FileSystemWatcher.fromJson(item) : null)
         ?.cast<FileSystemWatcher>()
         ?.toList();
-    return DidChangeWatchedFilesRegistrationOptions(watchers);
+    return DidChangeWatchedFilesRegistrationOptions(watchers: watchers);
   }
 
   /// The watchers to register.
@@ -6890,7 +7013,7 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
       DidChangeWorkspaceFoldersParams.canParse,
       DidChangeWorkspaceFoldersParams.fromJson);
 
-  DidChangeWorkspaceFoldersParams(this.event) {
+  DidChangeWorkspaceFoldersParams({@required this.event}) {
     if (event == null) {
       throw 'event is required but was not provided';
     }
@@ -6899,7 +7022,7 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
     final event = json['event'] != null
         ? WorkspaceFoldersChangeEvent.fromJson(json['event'])
         : null;
-    return DidChangeWorkspaceFoldersParams(event);
+    return DidChangeWorkspaceFoldersParams(event: event);
   }
 
   /// The actual workspace folder change event.
@@ -6961,7 +7084,7 @@ class DidCloseTextDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       DidCloseTextDocumentParams.canParse, DidCloseTextDocumentParams.fromJson);
 
-  DidCloseTextDocumentParams(this.textDocument) {
+  DidCloseTextDocumentParams({@required this.textDocument}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -6970,7 +7093,7 @@ class DidCloseTextDocumentParams implements ToJsonable {
     final textDocument = json['textDocument'] != null
         ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
-    return DidCloseTextDocumentParams(textDocument);
+    return DidCloseTextDocumentParams(textDocument: textDocument);
   }
 
   /// The document that was closed.
@@ -7033,7 +7156,7 @@ class DidOpenTextDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       DidOpenTextDocumentParams.canParse, DidOpenTextDocumentParams.fromJson);
 
-  DidOpenTextDocumentParams(this.textDocument) {
+  DidOpenTextDocumentParams({@required this.textDocument}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -7042,7 +7165,7 @@ class DidOpenTextDocumentParams implements ToJsonable {
     final textDocument = json['textDocument'] != null
         ? TextDocumentItem.fromJson(json['textDocument'])
         : null;
-    return DidOpenTextDocumentParams(textDocument);
+    return DidOpenTextDocumentParams(textDocument: textDocument);
   }
 
   /// The document that was opened.
@@ -7105,7 +7228,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       DidSaveTextDocumentParams.canParse, DidSaveTextDocumentParams.fromJson);
 
-  DidSaveTextDocumentParams(this.textDocument, this.text) {
+  DidSaveTextDocumentParams({@required this.textDocument, this.text}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -7115,7 +7238,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
         ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
     final text = json['text'];
-    return DidSaveTextDocumentParams(textDocument, text);
+    return DidSaveTextDocumentParams(textDocument: textDocument, text: text);
   }
 
   /// Optional the content when saved. Depends on the includeText value when the
@@ -7196,10 +7319,11 @@ class DocumentColorClientCapabilities implements ToJsonable {
       DocumentColorClientCapabilities.canParse,
       DocumentColorClientCapabilities.fromJson);
 
-  DocumentColorClientCapabilities(this.dynamicRegistration);
+  DocumentColorClientCapabilities({this.dynamicRegistration});
   static DocumentColorClientCapabilities fromJson(Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return DocumentColorClientCapabilities(dynamicRegistration);
+    return DocumentColorClientCapabilities(
+        dynamicRegistration: dynamicRegistration);
   }
 
   /// Whether document color supports dynamic registration.
@@ -7256,13 +7380,13 @@ class DocumentColorOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
       DocumentColorOptions.canParse, DocumentColorOptions.fromJson);
 
-  DocumentColorOptions(this.workDoneProgress);
+  DocumentColorOptions({this.workDoneProgress});
   static DocumentColorOptions fromJson(Map<String, dynamic> json) {
     if (DocumentColorRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DocumentColorRegistrationOptions.fromJson(json);
     }
     final workDoneProgress = json['workDoneProgress'];
-    return DocumentColorOptions(workDoneProgress);
+    return DocumentColorOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool workDoneProgress;
@@ -7320,7 +7444,9 @@ class DocumentColorParams
       DocumentColorParams.canParse, DocumentColorParams.fromJson);
 
   DocumentColorParams(
-      this.textDocument, this.workDoneToken, this.partialResultToken) {
+      {@required this.textDocument,
+      this.workDoneToken,
+      this.partialResultToken}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -7343,7 +7469,10 @@ class DocumentColorParams
             : (json['partialResultToken'] == null
                 ? null
                 : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
-    return DocumentColorParams(textDocument, workDoneToken, partialResultToken);
+    return DocumentColorParams(
+        textDocument: textDocument,
+        workDoneToken: workDoneToken,
+        partialResultToken: partialResultToken);
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -7453,7 +7582,7 @@ class DocumentColorRegistrationOptions
       DocumentColorRegistrationOptions.fromJson);
 
   DocumentColorRegistrationOptions(
-      this.documentSelector, this.id, this.workDoneProgress);
+      {this.documentSelector, this.id, this.workDoneProgress});
   static DocumentColorRegistrationOptions fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
@@ -7462,7 +7591,9 @@ class DocumentColorRegistrationOptions
     final id = json['id'];
     final workDoneProgress = json['workDoneProgress'];
     return DocumentColorRegistrationOptions(
-        documentSelector, id, workDoneProgress);
+        documentSelector: documentSelector,
+        id: id,
+        workDoneProgress: workDoneProgress);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -7560,12 +7691,12 @@ class DocumentFilter implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(DocumentFilter.canParse, DocumentFilter.fromJson);
 
-  DocumentFilter(this.language, this.scheme, this.pattern);
+  DocumentFilter({this.language, this.scheme, this.pattern});
   static DocumentFilter fromJson(Map<String, dynamic> json) {
     final language = json['language'];
     final scheme = json['scheme'];
     final pattern = json['pattern'];
-    return DocumentFilter(language, scheme, pattern);
+    return DocumentFilter(language: language, scheme: scheme, pattern: pattern);
   }
 
   /// A language id, like `typescript`.
@@ -7668,11 +7799,12 @@ class DocumentFormattingClientCapabilities implements ToJsonable {
       DocumentFormattingClientCapabilities.canParse,
       DocumentFormattingClientCapabilities.fromJson);
 
-  DocumentFormattingClientCapabilities(this.dynamicRegistration);
+  DocumentFormattingClientCapabilities({this.dynamicRegistration});
   static DocumentFormattingClientCapabilities fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return DocumentFormattingClientCapabilities(dynamicRegistration);
+    return DocumentFormattingClientCapabilities(
+        dynamicRegistration: dynamicRegistration);
   }
 
   /// Whether formatting supports dynamic registration.
@@ -7730,14 +7862,14 @@ class DocumentFormattingOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
       DocumentFormattingOptions.canParse, DocumentFormattingOptions.fromJson);
 
-  DocumentFormattingOptions(this.workDoneProgress);
+  DocumentFormattingOptions({this.workDoneProgress});
   static DocumentFormattingOptions fromJson(Map<String, dynamic> json) {
     if (DocumentFormattingRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
       return DocumentFormattingRegistrationOptions.fromJson(json);
     }
     final workDoneProgress = json['workDoneProgress'];
-    return DocumentFormattingOptions(workDoneProgress);
+    return DocumentFormattingOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool workDoneProgress;
@@ -7794,7 +7926,9 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
       DocumentFormattingParams.canParse, DocumentFormattingParams.fromJson);
 
   DocumentFormattingParams(
-      this.textDocument, this.options, this.workDoneToken) {
+      {@required this.textDocument,
+      @required this.options,
+      this.workDoneToken}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -7816,7 +7950,10 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
             : (json['workDoneToken'] == null
                 ? null
                 : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    return DocumentFormattingParams(textDocument, options, workDoneToken);
+    return DocumentFormattingParams(
+        textDocument: textDocument,
+        options: options,
+        workDoneToken: workDoneToken);
   }
 
   /// The format options.
@@ -7929,7 +8066,7 @@ class DocumentFormattingRegistrationOptions
       DocumentFormattingRegistrationOptions.fromJson);
 
   DocumentFormattingRegistrationOptions(
-      this.documentSelector, this.workDoneProgress);
+      {this.documentSelector, this.workDoneProgress});
   static DocumentFormattingRegistrationOptions fromJson(
       Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
@@ -7938,7 +8075,7 @@ class DocumentFormattingRegistrationOptions
         ?.toList();
     final workDoneProgress = json['workDoneProgress'];
     return DocumentFormattingRegistrationOptions(
-        documentSelector, workDoneProgress);
+        documentSelector: documentSelector, workDoneProgress: workDoneProgress);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -8022,7 +8159,7 @@ class DocumentHighlight implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(DocumentHighlight.canParse, DocumentHighlight.fromJson);
 
-  DocumentHighlight(this.range, this.kind) {
+  DocumentHighlight({@required this.range, this.kind}) {
     if (range == null) {
       throw 'range is required but was not provided';
     }
@@ -8032,7 +8169,7 @@ class DocumentHighlight implements ToJsonable {
     final kind = json['kind'] != null
         ? DocumentHighlightKind.fromJson(json['kind'])
         : null;
-    return DocumentHighlight(range, kind);
+    return DocumentHighlight(range: range, kind: kind);
   }
 
   /// The highlight kind, default is DocumentHighlightKind.Text.
@@ -8111,11 +8248,12 @@ class DocumentHighlightClientCapabilities implements ToJsonable {
       DocumentHighlightClientCapabilities.canParse,
       DocumentHighlightClientCapabilities.fromJson);
 
-  DocumentHighlightClientCapabilities(this.dynamicRegistration);
+  DocumentHighlightClientCapabilities({this.dynamicRegistration});
   static DocumentHighlightClientCapabilities fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return DocumentHighlightClientCapabilities(dynamicRegistration);
+    return DocumentHighlightClientCapabilities(
+        dynamicRegistration: dynamicRegistration);
   }
 
   /// Whether document highlight supports dynamic registration.
@@ -8205,14 +8343,14 @@ class DocumentHighlightOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
       DocumentHighlightOptions.canParse, DocumentHighlightOptions.fromJson);
 
-  DocumentHighlightOptions(this.workDoneProgress);
+  DocumentHighlightOptions({this.workDoneProgress});
   static DocumentHighlightOptions fromJson(Map<String, dynamic> json) {
     if (DocumentHighlightRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
       return DocumentHighlightRegistrationOptions.fromJson(json);
     }
     final workDoneProgress = json['workDoneProgress'];
-    return DocumentHighlightOptions(workDoneProgress);
+    return DocumentHighlightOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool workDoneProgress;
@@ -8273,8 +8411,11 @@ class DocumentHighlightParams
   static const jsonHandler = LspJsonHandler(
       DocumentHighlightParams.canParse, DocumentHighlightParams.fromJson);
 
-  DocumentHighlightParams(this.textDocument, this.position, this.workDoneToken,
-      this.partialResultToken) {
+  DocumentHighlightParams(
+      {@required this.textDocument,
+      @required this.position,
+      this.workDoneToken,
+      this.partialResultToken}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -8303,7 +8444,10 @@ class DocumentHighlightParams
                 ? null
                 : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
     return DocumentHighlightParams(
-        textDocument, position, workDoneToken, partialResultToken);
+        textDocument: textDocument,
+        position: position,
+        workDoneToken: workDoneToken,
+        partialResultToken: partialResultToken);
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -8436,7 +8580,7 @@ class DocumentHighlightRegistrationOptions
       DocumentHighlightRegistrationOptions.fromJson);
 
   DocumentHighlightRegistrationOptions(
-      this.documentSelector, this.workDoneProgress);
+      {this.documentSelector, this.workDoneProgress});
   static DocumentHighlightRegistrationOptions fromJson(
       Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
@@ -8445,7 +8589,7 @@ class DocumentHighlightRegistrationOptions
         ?.toList();
     final workDoneProgress = json['workDoneProgress'];
     return DocumentHighlightRegistrationOptions(
-        documentSelector, workDoneProgress);
+        documentSelector: documentSelector, workDoneProgress: workDoneProgress);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -8528,7 +8672,7 @@ class DocumentLink implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(DocumentLink.canParse, DocumentLink.fromJson);
 
-  DocumentLink(this.range, this.target, this.tooltip, this.data) {
+  DocumentLink({@required this.range, this.target, this.tooltip, this.data}) {
     if (range == null) {
       throw 'range is required but was not provided';
     }
@@ -8538,7 +8682,8 @@ class DocumentLink implements ToJsonable {
     final target = json['target'];
     final tooltip = json['tooltip'];
     final data = json['data'];
-    return DocumentLink(range, target, tooltip, data);
+    return DocumentLink(
+        range: range, target: target, tooltip: tooltip, data: data);
   }
 
   /// A data entry field that is preserved on a document link between a
@@ -8659,11 +8804,14 @@ class DocumentLinkClientCapabilities implements ToJsonable {
       DocumentLinkClientCapabilities.canParse,
       DocumentLinkClientCapabilities.fromJson);
 
-  DocumentLinkClientCapabilities(this.dynamicRegistration, this.tooltipSupport);
+  DocumentLinkClientCapabilities(
+      {this.dynamicRegistration, this.tooltipSupport});
   static DocumentLinkClientCapabilities fromJson(Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final tooltipSupport = json['tooltipSupport'];
-    return DocumentLinkClientCapabilities(dynamicRegistration, tooltipSupport);
+    return DocumentLinkClientCapabilities(
+        dynamicRegistration: dynamicRegistration,
+        tooltipSupport: tooltipSupport);
   }
 
   /// Whether document link supports dynamic registration.
@@ -8739,14 +8887,15 @@ class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
       DocumentLinkOptions.canParse, DocumentLinkOptions.fromJson);
 
-  DocumentLinkOptions(this.resolveProvider, this.workDoneProgress);
+  DocumentLinkOptions({this.resolveProvider, this.workDoneProgress});
   static DocumentLinkOptions fromJson(Map<String, dynamic> json) {
     if (DocumentLinkRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DocumentLinkRegistrationOptions.fromJson(json);
     }
     final resolveProvider = json['resolveProvider'];
     final workDoneProgress = json['workDoneProgress'];
-    return DocumentLinkOptions(resolveProvider, workDoneProgress);
+    return DocumentLinkOptions(
+        resolveProvider: resolveProvider, workDoneProgress: workDoneProgress);
   }
 
   /// Document links have a resolve provider as well.
@@ -8822,7 +8971,9 @@ class DocumentLinkParams
       LspJsonHandler(DocumentLinkParams.canParse, DocumentLinkParams.fromJson);
 
   DocumentLinkParams(
-      this.textDocument, this.workDoneToken, this.partialResultToken) {
+      {@required this.textDocument,
+      this.workDoneToken,
+      this.partialResultToken}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -8845,7 +8996,10 @@ class DocumentLinkParams
             : (json['partialResultToken'] == null
                 ? null
                 : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
-    return DocumentLinkParams(textDocument, workDoneToken, partialResultToken);
+    return DocumentLinkParams(
+        textDocument: textDocument,
+        workDoneToken: workDoneToken,
+        partialResultToken: partialResultToken);
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -8954,7 +9108,7 @@ class DocumentLinkRegistrationOptions
       DocumentLinkRegistrationOptions.fromJson);
 
   DocumentLinkRegistrationOptions(
-      this.documentSelector, this.resolveProvider, this.workDoneProgress);
+      {this.documentSelector, this.resolveProvider, this.workDoneProgress});
   static DocumentLinkRegistrationOptions fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
@@ -8963,7 +9117,9 @@ class DocumentLinkRegistrationOptions
     final resolveProvider = json['resolveProvider'];
     final workDoneProgress = json['workDoneProgress'];
     return DocumentLinkRegistrationOptions(
-        documentSelector, resolveProvider, workDoneProgress);
+        documentSelector: documentSelector,
+        resolveProvider: resolveProvider,
+        workDoneProgress: workDoneProgress);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -9062,11 +9218,12 @@ class DocumentOnTypeFormattingClientCapabilities implements ToJsonable {
       DocumentOnTypeFormattingClientCapabilities.canParse,
       DocumentOnTypeFormattingClientCapabilities.fromJson);
 
-  DocumentOnTypeFormattingClientCapabilities(this.dynamicRegistration);
+  DocumentOnTypeFormattingClientCapabilities({this.dynamicRegistration});
   static DocumentOnTypeFormattingClientCapabilities fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return DocumentOnTypeFormattingClientCapabilities(dynamicRegistration);
+    return DocumentOnTypeFormattingClientCapabilities(
+        dynamicRegistration: dynamicRegistration);
   }
 
   /// Whether on type formatting supports dynamic registration.
@@ -9126,7 +9283,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
       DocumentOnTypeFormattingOptions.fromJson);
 
   DocumentOnTypeFormattingOptions(
-      this.firstTriggerCharacter, this.moreTriggerCharacter) {
+      {@required this.firstTriggerCharacter, this.moreTriggerCharacter}) {
     if (firstTriggerCharacter == null) {
       throw 'firstTriggerCharacter is required but was not provided';
     }
@@ -9142,7 +9299,8 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
         ?.cast<String>()
         ?.toList();
     return DocumentOnTypeFormattingOptions(
-        firstTriggerCharacter, moreTriggerCharacter);
+        firstTriggerCharacter: firstTriggerCharacter,
+        moreTriggerCharacter: moreTriggerCharacter);
   }
 
   /// A character on which formatting should be triggered, like `}`.
@@ -9230,7 +9388,10 @@ class DocumentOnTypeFormattingParams
       DocumentOnTypeFormattingParams.fromJson);
 
   DocumentOnTypeFormattingParams(
-      this.ch, this.options, this.textDocument, this.position) {
+      {@required this.ch,
+      @required this.options,
+      @required this.textDocument,
+      @required this.position}) {
     if (ch == null) {
       throw 'ch is required but was not provided';
     }
@@ -9254,7 +9415,11 @@ class DocumentOnTypeFormattingParams
         : null;
     final position =
         json['position'] != null ? Position.fromJson(json['position']) : null;
-    return DocumentOnTypeFormattingParams(ch, options, textDocument, position);
+    return DocumentOnTypeFormattingParams(
+        ch: ch,
+        options: options,
+        textDocument: textDocument,
+        position: position);
   }
 
   /// The character that has been typed.
@@ -9394,8 +9559,10 @@ class DocumentOnTypeFormattingRegistrationOptions
       DocumentOnTypeFormattingRegistrationOptions.canParse,
       DocumentOnTypeFormattingRegistrationOptions.fromJson);
 
-  DocumentOnTypeFormattingRegistrationOptions(this.documentSelector,
-      this.firstTriggerCharacter, this.moreTriggerCharacter) {
+  DocumentOnTypeFormattingRegistrationOptions(
+      {this.documentSelector,
+      @required this.firstTriggerCharacter,
+      this.moreTriggerCharacter}) {
     if (firstTriggerCharacter == null) {
       throw 'firstTriggerCharacter is required but was not provided';
     }
@@ -9412,7 +9579,9 @@ class DocumentOnTypeFormattingRegistrationOptions
         ?.cast<String>()
         ?.toList();
     return DocumentOnTypeFormattingRegistrationOptions(
-        documentSelector, firstTriggerCharacter, moreTriggerCharacter);
+        documentSelector: documentSelector,
+        firstTriggerCharacter: firstTriggerCharacter,
+        moreTriggerCharacter: moreTriggerCharacter);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -9523,11 +9692,12 @@ class DocumentRangeFormattingClientCapabilities implements ToJsonable {
       DocumentRangeFormattingClientCapabilities.canParse,
       DocumentRangeFormattingClientCapabilities.fromJson);
 
-  DocumentRangeFormattingClientCapabilities(this.dynamicRegistration);
+  DocumentRangeFormattingClientCapabilities({this.dynamicRegistration});
   static DocumentRangeFormattingClientCapabilities fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return DocumentRangeFormattingClientCapabilities(dynamicRegistration);
+    return DocumentRangeFormattingClientCapabilities(
+        dynamicRegistration: dynamicRegistration);
   }
 
   /// Whether formatting supports dynamic registration.
@@ -9587,14 +9757,14 @@ class DocumentRangeFormattingOptions
       DocumentRangeFormattingOptions.canParse,
       DocumentRangeFormattingOptions.fromJson);
 
-  DocumentRangeFormattingOptions(this.workDoneProgress);
+  DocumentRangeFormattingOptions({this.workDoneProgress});
   static DocumentRangeFormattingOptions fromJson(Map<String, dynamic> json) {
     if (DocumentRangeFormattingRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
       return DocumentRangeFormattingRegistrationOptions.fromJson(json);
     }
     final workDoneProgress = json['workDoneProgress'];
-    return DocumentRangeFormattingOptions(workDoneProgress);
+    return DocumentRangeFormattingOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool workDoneProgress;
@@ -9653,7 +9823,10 @@ class DocumentRangeFormattingParams
       DocumentRangeFormattingParams.fromJson);
 
   DocumentRangeFormattingParams(
-      this.textDocument, this.range, this.options, this.workDoneToken) {
+      {@required this.textDocument,
+      @required this.range,
+      @required this.options,
+      this.workDoneToken}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -9680,7 +9853,10 @@ class DocumentRangeFormattingParams
                 ? null
                 : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
     return DocumentRangeFormattingParams(
-        textDocument, range, options, workDoneToken);
+        textDocument: textDocument,
+        range: range,
+        options: options,
+        workDoneToken: workDoneToken);
   }
 
   /// The format options
@@ -9816,7 +9992,7 @@ class DocumentRangeFormattingRegistrationOptions
       DocumentRangeFormattingRegistrationOptions.fromJson);
 
   DocumentRangeFormattingRegistrationOptions(
-      this.documentSelector, this.workDoneProgress);
+      {this.documentSelector, this.workDoneProgress});
   static DocumentRangeFormattingRegistrationOptions fromJson(
       Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
@@ -9825,7 +10001,7 @@ class DocumentRangeFormattingRegistrationOptions
         ?.toList();
     final workDoneProgress = json['workDoneProgress'];
     return DocumentRangeFormattingRegistrationOptions(
-        documentSelector, workDoneProgress);
+        documentSelector: documentSelector, workDoneProgress: workDoneProgress);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -9910,8 +10086,14 @@ class DocumentSymbol implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(DocumentSymbol.canParse, DocumentSymbol.fromJson);
 
-  DocumentSymbol(this.name, this.detail, this.kind, this.deprecated, this.range,
-      this.selectionRange, this.children) {
+  DocumentSymbol(
+      {@required this.name,
+      this.detail,
+      @required this.kind,
+      this.deprecated,
+      @required this.range,
+      @required this.selectionRange,
+      this.children}) {
     if (name == null) {
       throw 'name is required but was not provided';
     }
@@ -9940,7 +10122,13 @@ class DocumentSymbol implements ToJsonable {
         ?.cast<DocumentSymbol>()
         ?.toList();
     return DocumentSymbol(
-        name, detail, kind, deprecated, range, selectionRange, children);
+        name: name,
+        detail: detail,
+        kind: kind,
+        deprecated: deprecated,
+        range: range,
+        selectionRange: selectionRange,
+        children: children);
   }
 
   /// Children of this symbol, e.g. properties of a class.
@@ -10134,8 +10322,10 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
       DocumentSymbolClientCapabilities.canParse,
       DocumentSymbolClientCapabilities.fromJson);
 
-  DocumentSymbolClientCapabilities(this.dynamicRegistration, this.symbolKind,
-      this.hierarchicalDocumentSymbolSupport);
+  DocumentSymbolClientCapabilities(
+      {this.dynamicRegistration,
+      this.symbolKind,
+      this.hierarchicalDocumentSymbolSupport});
   static DocumentSymbolClientCapabilities fromJson(Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final symbolKind = json['symbolKind'] != null
@@ -10145,7 +10335,9 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
     final hierarchicalDocumentSymbolSupport =
         json['hierarchicalDocumentSymbolSupport'];
     return DocumentSymbolClientCapabilities(
-        dynamicRegistration, symbolKind, hierarchicalDocumentSymbolSupport);
+        dynamicRegistration: dynamicRegistration,
+        symbolKind: symbolKind,
+        hierarchicalDocumentSymbolSupport: hierarchicalDocumentSymbolSupport);
   }
 
   /// Whether document symbol supports dynamic registration.
@@ -10246,14 +10438,14 @@ class DocumentSymbolClientCapabilitiesSymbolKind implements ToJsonable {
       DocumentSymbolClientCapabilitiesSymbolKind.canParse,
       DocumentSymbolClientCapabilitiesSymbolKind.fromJson);
 
-  DocumentSymbolClientCapabilitiesSymbolKind(this.valueSet);
+  DocumentSymbolClientCapabilitiesSymbolKind({this.valueSet});
   static DocumentSymbolClientCapabilitiesSymbolKind fromJson(
       Map<String, dynamic> json) {
     final valueSet = json['valueSet']
         ?.map((item) => item != null ? SymbolKind.fromJson(item) : null)
         ?.cast<SymbolKind>()
         ?.toList();
-    return DocumentSymbolClientCapabilitiesSymbolKind(valueSet);
+    return DocumentSymbolClientCapabilitiesSymbolKind(valueSet: valueSet);
   }
 
   /// The symbol kind values the client supports. When this property exists the
@@ -10320,13 +10512,13 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
       DocumentSymbolOptions.canParse, DocumentSymbolOptions.fromJson);
 
-  DocumentSymbolOptions(this.workDoneProgress);
+  DocumentSymbolOptions({this.workDoneProgress});
   static DocumentSymbolOptions fromJson(Map<String, dynamic> json) {
     if (DocumentSymbolRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DocumentSymbolRegistrationOptions.fromJson(json);
     }
     final workDoneProgress = json['workDoneProgress'];
-    return DocumentSymbolOptions(workDoneProgress);
+    return DocumentSymbolOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool workDoneProgress;
@@ -10384,7 +10576,9 @@ class DocumentSymbolParams
       DocumentSymbolParams.canParse, DocumentSymbolParams.fromJson);
 
   DocumentSymbolParams(
-      this.textDocument, this.workDoneToken, this.partialResultToken) {
+      {@required this.textDocument,
+      this.workDoneToken,
+      this.partialResultToken}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -10408,7 +10602,9 @@ class DocumentSymbolParams
                 ? null
                 : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
     return DocumentSymbolParams(
-        textDocument, workDoneToken, partialResultToken);
+        textDocument: textDocument,
+        workDoneToken: workDoneToken,
+        partialResultToken: partialResultToken);
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -10517,7 +10713,7 @@ class DocumentSymbolRegistrationOptions
       DocumentSymbolRegistrationOptions.fromJson);
 
   DocumentSymbolRegistrationOptions(
-      this.documentSelector, this.workDoneProgress);
+      {this.documentSelector, this.workDoneProgress});
   static DocumentSymbolRegistrationOptions fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
@@ -10525,7 +10721,7 @@ class DocumentSymbolRegistrationOptions
         ?.toList();
     final workDoneProgress = json['workDoneProgress'];
     return DocumentSymbolRegistrationOptions(
-        documentSelector, workDoneProgress);
+        documentSelector: documentSelector, workDoneProgress: workDoneProgress);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -10642,10 +10838,11 @@ class ExecuteCommandClientCapabilities implements ToJsonable {
       ExecuteCommandClientCapabilities.canParse,
       ExecuteCommandClientCapabilities.fromJson);
 
-  ExecuteCommandClientCapabilities(this.dynamicRegistration);
+  ExecuteCommandClientCapabilities({this.dynamicRegistration});
   static ExecuteCommandClientCapabilities fromJson(Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return ExecuteCommandClientCapabilities(dynamicRegistration);
+    return ExecuteCommandClientCapabilities(
+        dynamicRegistration: dynamicRegistration);
   }
 
   /// Execute command supports dynamic registration.
@@ -10702,7 +10899,7 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
       ExecuteCommandOptions.canParse, ExecuteCommandOptions.fromJson);
 
-  ExecuteCommandOptions(this.commands, this.workDoneProgress) {
+  ExecuteCommandOptions({@required this.commands, this.workDoneProgress}) {
     if (commands == null) {
       throw 'commands is required but was not provided';
     }
@@ -10714,7 +10911,8 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
     final commands =
         json['commands']?.map((item) => item)?.cast<String>()?.toList();
     final workDoneProgress = json['workDoneProgress'];
-    return ExecuteCommandOptions(commands, workDoneProgress);
+    return ExecuteCommandOptions(
+        commands: commands, workDoneProgress: workDoneProgress);
   }
 
   /// The commands to be executed on the server
@@ -10796,7 +10994,8 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
       ExecuteCommandParams.canParse, ExecuteCommandParams.fromJson);
 
-  ExecuteCommandParams(this.command, this.arguments, this.workDoneToken) {
+  ExecuteCommandParams(
+      {@required this.command, this.arguments, this.workDoneToken}) {
     if (command == null) {
       throw 'command is required but was not provided';
     }
@@ -10812,7 +11011,8 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
             : (json['workDoneToken'] == null
                 ? null
                 : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    return ExecuteCommandParams(command, arguments, workDoneToken);
+    return ExecuteCommandParams(
+        command: command, arguments: arguments, workDoneToken: workDoneToken);
   }
 
   /// Arguments that the command should be invoked with.
@@ -10918,7 +11118,8 @@ class ExecuteCommandRegistrationOptions
       ExecuteCommandRegistrationOptions.canParse,
       ExecuteCommandRegistrationOptions.fromJson);
 
-  ExecuteCommandRegistrationOptions(this.commands, this.workDoneProgress) {
+  ExecuteCommandRegistrationOptions(
+      {@required this.commands, this.workDoneProgress}) {
     if (commands == null) {
       throw 'commands is required but was not provided';
     }
@@ -10927,7 +11128,8 @@ class ExecuteCommandRegistrationOptions
     final commands =
         json['commands']?.map((item) => item)?.cast<String>()?.toList();
     final workDoneProgress = json['workDoneProgress'];
-    return ExecuteCommandRegistrationOptions(commands, workDoneProgress);
+    return ExecuteCommandRegistrationOptions(
+        commands: commands, workDoneProgress: workDoneProgress);
   }
 
   /// The commands to be executed on the server
@@ -11088,7 +11290,7 @@ class FileEvent implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(FileEvent.canParse, FileEvent.fromJson);
 
-  FileEvent(this.uri, this.type) {
+  FileEvent({@required this.uri, @required this.type}) {
     if (uri == null) {
       throw 'uri is required but was not provided';
     }
@@ -11099,7 +11301,7 @@ class FileEvent implements ToJsonable {
   static FileEvent fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final type = json['type'];
-    return FileEvent(uri, type);
+    return FileEvent(uri: uri, type: type);
   }
 
   /// The change type.
@@ -11182,7 +11384,7 @@ class FileSystemWatcher implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(FileSystemWatcher.canParse, FileSystemWatcher.fromJson);
 
-  FileSystemWatcher(this.globPattern, this.kind) {
+  FileSystemWatcher({@required this.globPattern, this.kind}) {
     if (globPattern == null) {
       throw 'globPattern is required but was not provided';
     }
@@ -11190,7 +11392,7 @@ class FileSystemWatcher implements ToJsonable {
   static FileSystemWatcher fromJson(Map<String, dynamic> json) {
     final globPattern = json['globPattern'];
     final kind = json['kind'] != null ? WatchKind.fromJson(json['kind']) : null;
-    return FileSystemWatcher(globPattern, kind);
+    return FileSystemWatcher(globPattern: globPattern, kind: kind);
   }
 
   /// The  glob pattern to watch.
@@ -11283,8 +11485,12 @@ class FoldingRange implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(FoldingRange.canParse, FoldingRange.fromJson);
 
-  FoldingRange(this.startLine, this.startCharacter, this.endLine,
-      this.endCharacter, this.kind) {
+  FoldingRange(
+      {@required this.startLine,
+      this.startCharacter,
+      @required this.endLine,
+      this.endCharacter,
+      this.kind}) {
     if (startLine == null) {
       throw 'startLine is required but was not provided';
     }
@@ -11299,7 +11505,12 @@ class FoldingRange implements ToJsonable {
     final endCharacter = json['endCharacter'];
     final kind =
         json['kind'] != null ? FoldingRangeKind.fromJson(json['kind']) : null;
-    return FoldingRange(startLine, startCharacter, endLine, endCharacter, kind);
+    return FoldingRange(
+        startLine: startLine,
+        startCharacter: startCharacter,
+        endLine: endLine,
+        endCharacter: endCharacter,
+        kind: kind);
   }
 
   /// The zero-based character offset before the folded range ends. If not
@@ -11445,13 +11656,15 @@ class FoldingRangeClientCapabilities implements ToJsonable {
       FoldingRangeClientCapabilities.fromJson);
 
   FoldingRangeClientCapabilities(
-      this.dynamicRegistration, this.rangeLimit, this.lineFoldingOnly);
+      {this.dynamicRegistration, this.rangeLimit, this.lineFoldingOnly});
   static FoldingRangeClientCapabilities fromJson(Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final rangeLimit = json['rangeLimit'];
     final lineFoldingOnly = json['lineFoldingOnly'];
     return FoldingRangeClientCapabilities(
-        dynamicRegistration, rangeLimit, lineFoldingOnly);
+        dynamicRegistration: dynamicRegistration,
+        rangeLimit: rangeLimit,
+        lineFoldingOnly: lineFoldingOnly);
   }
 
   /// Whether implementation supports dynamic registration for folding range
@@ -11582,13 +11795,13 @@ class FoldingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
       FoldingRangeOptions.canParse, FoldingRangeOptions.fromJson);
 
-  FoldingRangeOptions(this.workDoneProgress);
+  FoldingRangeOptions({this.workDoneProgress});
   static FoldingRangeOptions fromJson(Map<String, dynamic> json) {
     if (FoldingRangeRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return FoldingRangeRegistrationOptions.fromJson(json);
     }
     final workDoneProgress = json['workDoneProgress'];
-    return FoldingRangeOptions(workDoneProgress);
+    return FoldingRangeOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool workDoneProgress;
@@ -11646,7 +11859,9 @@ class FoldingRangeParams
       LspJsonHandler(FoldingRangeParams.canParse, FoldingRangeParams.fromJson);
 
   FoldingRangeParams(
-      this.textDocument, this.workDoneToken, this.partialResultToken) {
+      {@required this.textDocument,
+      this.workDoneToken,
+      this.partialResultToken}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -11669,7 +11884,10 @@ class FoldingRangeParams
             : (json['partialResultToken'] == null
                 ? null
                 : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
-    return FoldingRangeParams(textDocument, workDoneToken, partialResultToken);
+    return FoldingRangeParams(
+        textDocument: textDocument,
+        workDoneToken: workDoneToken,
+        partialResultToken: partialResultToken);
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -11779,7 +11997,7 @@ class FoldingRangeRegistrationOptions
       FoldingRangeRegistrationOptions.fromJson);
 
   FoldingRangeRegistrationOptions(
-      this.documentSelector, this.workDoneProgress, this.id);
+      {this.documentSelector, this.workDoneProgress, this.id});
   static FoldingRangeRegistrationOptions fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
@@ -11788,7 +12006,9 @@ class FoldingRangeRegistrationOptions
     final workDoneProgress = json['workDoneProgress'];
     final id = json['id'];
     return FoldingRangeRegistrationOptions(
-        documentSelector, workDoneProgress, id);
+        documentSelector: documentSelector,
+        workDoneProgress: workDoneProgress,
+        id: id);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -11888,11 +12108,11 @@ class FormattingOptions implements ToJsonable {
       LspJsonHandler(FormattingOptions.canParse, FormattingOptions.fromJson);
 
   FormattingOptions(
-      this.tabSize,
-      this.insertSpaces,
+      {@required this.tabSize,
+      @required this.insertSpaces,
       this.trimTrailingWhitespace,
       this.insertFinalNewline,
-      this.trimFinalNewlines) {
+      this.trimFinalNewlines}) {
     if (tabSize == null) {
       throw 'tabSize is required but was not provided';
     }
@@ -11906,8 +12126,12 @@ class FormattingOptions implements ToJsonable {
     final trimTrailingWhitespace = json['trimTrailingWhitespace'];
     final insertFinalNewline = json['insertFinalNewline'];
     final trimFinalNewlines = json['trimFinalNewlines'];
-    return FormattingOptions(tabSize, insertSpaces, trimTrailingWhitespace,
-        insertFinalNewline, trimFinalNewlines);
+    return FormattingOptions(
+        tabSize: tabSize,
+        insertSpaces: insertSpaces,
+        trimTrailingWhitespace: trimTrailingWhitespace,
+        insertFinalNewline: insertFinalNewline,
+        trimFinalNewlines: trimFinalNewlines);
   }
 
   /// Insert a newline character at the end of the file if one does not exist.
@@ -12051,7 +12275,7 @@ class FormattingOptions implements ToJsonable {
 class Hover implements ToJsonable {
   static const jsonHandler = LspJsonHandler(Hover.canParse, Hover.fromJson);
 
-  Hover(this.contents, this.range) {
+  Hover({@required this.contents, this.range}) {
     if (contents == null) {
       throw 'contents is required but was not provided';
     }
@@ -12065,7 +12289,7 @@ class Hover implements ToJsonable {
                 : null)
             : (throw '''${json['contents']} was not one of (String, MarkupContent)'''));
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
-    return Hover(contents, range);
+    return Hover(contents: contents, range: range);
   }
 
   /// The hover's content
@@ -12146,14 +12370,15 @@ class HoverClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       HoverClientCapabilities.canParse, HoverClientCapabilities.fromJson);
 
-  HoverClientCapabilities(this.dynamicRegistration, this.contentFormat);
+  HoverClientCapabilities({this.dynamicRegistration, this.contentFormat});
   static HoverClientCapabilities fromJson(Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final contentFormat = json['contentFormat']
         ?.map((item) => item != null ? MarkupKind.fromJson(item) : null)
         ?.cast<MarkupKind>()
         ?.toList();
-    return HoverClientCapabilities(dynamicRegistration, contentFormat);
+    return HoverClientCapabilities(
+        dynamicRegistration: dynamicRegistration, contentFormat: contentFormat);
   }
 
   /// Client supports the follow content formats for the content property. The
@@ -12233,13 +12458,13 @@ class HoverOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler =
       LspJsonHandler(HoverOptions.canParse, HoverOptions.fromJson);
 
-  HoverOptions(this.workDoneProgress);
+  HoverOptions({this.workDoneProgress});
   static HoverOptions fromJson(Map<String, dynamic> json) {
     if (HoverRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return HoverRegistrationOptions.fromJson(json);
     }
     final workDoneProgress = json['workDoneProgress'];
-    return HoverOptions(workDoneProgress);
+    return HoverOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool workDoneProgress;
@@ -12295,7 +12520,10 @@ class HoverParams
   static const jsonHandler =
       LspJsonHandler(HoverParams.canParse, HoverParams.fromJson);
 
-  HoverParams(this.textDocument, this.position, this.workDoneToken) {
+  HoverParams(
+      {@required this.textDocument,
+      @required this.position,
+      this.workDoneToken}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -12316,7 +12544,10 @@ class HoverParams
             : (json['workDoneToken'] == null
                 ? null
                 : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    return HoverParams(textDocument, position, workDoneToken);
+    return HoverParams(
+        textDocument: textDocument,
+        position: position,
+        workDoneToken: workDoneToken);
   }
 
   /// The position inside the text document.
@@ -12423,14 +12654,15 @@ class HoverRegistrationOptions
   static const jsonHandler = LspJsonHandler(
       HoverRegistrationOptions.canParse, HoverRegistrationOptions.fromJson);
 
-  HoverRegistrationOptions(this.documentSelector, this.workDoneProgress);
+  HoverRegistrationOptions({this.documentSelector, this.workDoneProgress});
   static HoverRegistrationOptions fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     final workDoneProgress = json['workDoneProgress'];
-    return HoverRegistrationOptions(documentSelector, workDoneProgress);
+    return HoverRegistrationOptions(
+        documentSelector: documentSelector, workDoneProgress: workDoneProgress);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -12511,11 +12743,13 @@ class ImplementationClientCapabilities implements ToJsonable {
       ImplementationClientCapabilities.canParse,
       ImplementationClientCapabilities.fromJson);
 
-  ImplementationClientCapabilities(this.dynamicRegistration, this.linkSupport);
+  ImplementationClientCapabilities(
+      {this.dynamicRegistration, this.linkSupport});
   static ImplementationClientCapabilities fromJson(Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final linkSupport = json['linkSupport'];
-    return ImplementationClientCapabilities(dynamicRegistration, linkSupport);
+    return ImplementationClientCapabilities(
+        dynamicRegistration: dynamicRegistration, linkSupport: linkSupport);
   }
 
   /// Whether implementation supports dynamic registration. If this is set to
@@ -12593,13 +12827,13 @@ class ImplementationOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
       ImplementationOptions.canParse, ImplementationOptions.fromJson);
 
-  ImplementationOptions(this.workDoneProgress);
+  ImplementationOptions({this.workDoneProgress});
   static ImplementationOptions fromJson(Map<String, dynamic> json) {
     if (ImplementationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return ImplementationRegistrationOptions.fromJson(json);
     }
     final workDoneProgress = json['workDoneProgress'];
-    return ImplementationOptions(workDoneProgress);
+    return ImplementationOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool workDoneProgress;
@@ -12660,8 +12894,11 @@ class ImplementationParams
   static const jsonHandler = LspJsonHandler(
       ImplementationParams.canParse, ImplementationParams.fromJson);
 
-  ImplementationParams(this.textDocument, this.position, this.workDoneToken,
-      this.partialResultToken) {
+  ImplementationParams(
+      {@required this.textDocument,
+      @required this.position,
+      this.workDoneToken,
+      this.partialResultToken}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -12690,7 +12927,10 @@ class ImplementationParams
                 ? null
                 : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
     return ImplementationParams(
-        textDocument, position, workDoneToken, partialResultToken);
+        textDocument: textDocument,
+        position: position,
+        workDoneToken: workDoneToken,
+        partialResultToken: partialResultToken);
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -12824,7 +13064,7 @@ class ImplementationRegistrationOptions
       ImplementationRegistrationOptions.fromJson);
 
   ImplementationRegistrationOptions(
-      this.documentSelector, this.workDoneProgress, this.id);
+      {this.documentSelector, this.workDoneProgress, this.id});
   static ImplementationRegistrationOptions fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
@@ -12833,7 +13073,9 @@ class ImplementationRegistrationOptions
     final workDoneProgress = json['workDoneProgress'];
     final id = json['id'];
     return ImplementationRegistrationOptions(
-        documentSelector, workDoneProgress, id);
+        documentSelector: documentSelector,
+        workDoneProgress: workDoneProgress,
+        id: id);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -12932,15 +13174,15 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       LspJsonHandler(InitializeParams.canParse, InitializeParams.fromJson);
 
   InitializeParams(
-      this.processId,
+      {this.processId,
       this.clientInfo,
       this.rootPath,
       this.rootUri,
       this.initializationOptions,
-      this.capabilities,
+      @required this.capabilities,
       this.trace,
       this.workspaceFolders,
-      this.workDoneToken) {
+      this.workDoneToken}) {
     if (capabilities == null) {
       throw 'capabilities is required but was not provided';
     }
@@ -12969,15 +13211,15 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
                 ? null
                 : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
     return InitializeParams(
-        processId,
-        clientInfo,
-        rootPath,
-        rootUri,
-        initializationOptions,
-        capabilities,
-        trace,
-        workspaceFolders,
-        workDoneToken);
+        processId: processId,
+        clientInfo: clientInfo,
+        rootPath: rootPath,
+        rootUri: rootUri,
+        initializationOptions: initializationOptions,
+        capabilities: capabilities,
+        trace: trace,
+        workspaceFolders: workspaceFolders,
+        workDoneToken: workDoneToken);
   }
 
   /// The capabilities provided by the client (editor or tool)
@@ -13199,7 +13441,7 @@ class InitializeParamsClientInfo implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       InitializeParamsClientInfo.canParse, InitializeParamsClientInfo.fromJson);
 
-  InitializeParamsClientInfo(this.name, this.version) {
+  InitializeParamsClientInfo({@required this.name, this.version}) {
     if (name == null) {
       throw 'name is required but was not provided';
     }
@@ -13207,7 +13449,7 @@ class InitializeParamsClientInfo implements ToJsonable {
   static InitializeParamsClientInfo fromJson(Map<String, dynamic> json) {
     final name = json['name'];
     final version = json['version'];
-    return InitializeParamsClientInfo(name, version);
+    return InitializeParamsClientInfo(name: name, version: version);
   }
 
   /// The name of the client as defined by the client.
@@ -13285,7 +13527,7 @@ class InitializeResult implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(InitializeResult.canParse, InitializeResult.fromJson);
 
-  InitializeResult(this.capabilities, this.serverInfo) {
+  InitializeResult({@required this.capabilities, this.serverInfo}) {
     if (capabilities == null) {
       throw 'capabilities is required but was not provided';
     }
@@ -13297,7 +13539,7 @@ class InitializeResult implements ToJsonable {
     final serverInfo = json['serverInfo'] != null
         ? InitializeResultServerInfo.fromJson(json['serverInfo'])
         : null;
-    return InitializeResult(capabilities, serverInfo);
+    return InitializeResult(capabilities: capabilities, serverInfo: serverInfo);
   }
 
   /// The capabilities the language server provides.
@@ -13380,7 +13622,7 @@ class InitializeResultServerInfo implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       InitializeResultServerInfo.canParse, InitializeResultServerInfo.fromJson);
 
-  InitializeResultServerInfo(this.name, this.version) {
+  InitializeResultServerInfo({@required this.name, this.version}) {
     if (name == null) {
       throw 'name is required but was not provided';
     }
@@ -13388,7 +13630,7 @@ class InitializeResultServerInfo implements ToJsonable {
   static InitializeResultServerInfo fromJson(Map<String, dynamic> json) {
     final name = json['name'];
     final version = json['version'];
-    return InitializeResultServerInfo(name, version);
+    return InitializeResultServerInfo(name: name, version: version);
   }
 
   /// The name of the server as defined by the server.
@@ -13545,7 +13787,7 @@ class Location implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(Location.canParse, Location.fromJson);
 
-  Location(this.uri, this.range) {
+  Location({@required this.uri, @required this.range}) {
     if (uri == null) {
       throw 'uri is required but was not provided';
     }
@@ -13556,7 +13798,7 @@ class Location implements ToJsonable {
   static Location fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
-    return Location(uri, range);
+    return Location(uri: uri, range: range);
   }
 
   final Range range;
@@ -13636,8 +13878,11 @@ class LocationLink implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(LocationLink.canParse, LocationLink.fromJson);
 
-  LocationLink(this.originSelectionRange, this.targetUri, this.targetRange,
-      this.targetSelectionRange) {
+  LocationLink(
+      {this.originSelectionRange,
+      @required this.targetUri,
+      @required this.targetRange,
+      @required this.targetSelectionRange}) {
     if (targetUri == null) {
       throw 'targetUri is required but was not provided';
     }
@@ -13660,7 +13905,10 @@ class LocationLink implements ToJsonable {
         ? Range.fromJson(json['targetSelectionRange'])
         : null;
     return LocationLink(
-        originSelectionRange, targetUri, targetRange, targetSelectionRange);
+        originSelectionRange: originSelectionRange,
+        targetUri: targetUri,
+        targetRange: targetRange,
+        targetSelectionRange: targetSelectionRange);
   }
 
   /// Span of the origin of this link.
@@ -13797,7 +14045,7 @@ class LogMessageParams implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(LogMessageParams.canParse, LogMessageParams.fromJson);
 
-  LogMessageParams(this.type, this.message) {
+  LogMessageParams({@required this.type, @required this.message}) {
     if (type == null) {
       throw 'type is required but was not provided';
     }
@@ -13809,7 +14057,7 @@ class LogMessageParams implements ToJsonable {
     final type =
         json['type'] != null ? MessageType.fromJson(json['type']) : null;
     final message = json['message'];
-    return LogMessageParams(type, message);
+    return LogMessageParams(type: type, message: message);
   }
 
   /// The actual message
@@ -13915,7 +14163,7 @@ class MarkupContent implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(MarkupContent.canParse, MarkupContent.fromJson);
 
-  MarkupContent(this.kind, this.value) {
+  MarkupContent({@required this.kind, @required this.value}) {
     if (kind == null) {
       throw 'kind is required but was not provided';
     }
@@ -13927,7 +14175,7 @@ class MarkupContent implements ToJsonable {
     final kind =
         json['kind'] != null ? MarkupKind.fromJson(json['kind']) : null;
     final value = json['value'];
-    return MarkupContent(kind, value);
+    return MarkupContent(kind: kind, value: value);
   }
 
   /// The type of the Markup
@@ -14046,7 +14294,7 @@ class MarkupKind {
 class Message implements ToJsonable {
   static const jsonHandler = LspJsonHandler(Message.canParse, Message.fromJson);
 
-  Message(this.jsonrpc) {
+  Message({@required this.jsonrpc}) {
     if (jsonrpc == null) {
       throw 'jsonrpc is required but was not provided';
     }
@@ -14062,7 +14310,7 @@ class Message implements ToJsonable {
       return NotificationMessage.fromJson(json);
     }
     final jsonrpc = json['jsonrpc'];
-    return Message(jsonrpc);
+    return Message(jsonrpc: jsonrpc);
   }
 
   final String jsonrpc;
@@ -14123,14 +14371,14 @@ class MessageActionItem implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(MessageActionItem.canParse, MessageActionItem.fromJson);
 
-  MessageActionItem(this.title) {
+  MessageActionItem({@required this.title}) {
     if (title == null) {
       throw 'title is required but was not provided';
     }
   }
   static MessageActionItem fromJson(Map<String, dynamic> json) {
     final title = json['title'];
-    return MessageActionItem(title);
+    return MessageActionItem(title: title);
   }
 
   /// A short title like 'Retry', 'Open Log' etc.
@@ -14428,7 +14676,8 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
   static const jsonHandler = LspJsonHandler(
       NotificationMessage.canParse, NotificationMessage.fromJson);
 
-  NotificationMessage(this.method, this.params, this.jsonrpc) {
+  NotificationMessage(
+      {@required this.method, this.params, @required this.jsonrpc}) {
     if (method == null) {
       throw 'method is required but was not provided';
     }
@@ -14441,7 +14690,8 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
         json['method'] != null ? Method.fromJson(json['method']) : null;
     final params = json['params'];
     final jsonrpc = json['jsonrpc'];
-    return NotificationMessage(method, params, jsonrpc);
+    return NotificationMessage(
+        method: method, params: params, jsonrpc: jsonrpc);
   }
 
   final String jsonrpc;
@@ -14546,7 +14796,7 @@ class ParameterInformation implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       ParameterInformation.canParse, ParameterInformation.fromJson);
 
-  ParameterInformation(this.label, this.documentation) {
+  ParameterInformation({@required this.label, this.documentation}) {
     if (label == null) {
       throw 'label is required but was not provided';
     }
@@ -14562,7 +14812,7 @@ class ParameterInformation implements ToJsonable {
             : (json['documentation'] == null
                 ? null
                 : (throw '''${json['documentation']} was not one of (String, MarkupContent)''')));
-    return ParameterInformation(label, documentation);
+    return ParameterInformation(label: label, documentation: documentation);
   }
 
   /// The human-readable doc-comment of this parameter. Will be shown in the UI
@@ -14655,7 +14905,7 @@ class PartialResultParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       PartialResultParams.canParse, PartialResultParams.fromJson);
 
-  PartialResultParams(this.partialResultToken);
+  PartialResultParams({this.partialResultToken});
   static PartialResultParams fromJson(Map<String, dynamic> json) {
     if (WorkspaceSymbolParams.canParse(json, nullLspJsonReporter)) {
       return WorkspaceSymbolParams.fromJson(json);
@@ -14712,7 +14962,7 @@ class PartialResultParams implements ToJsonable {
             : (json['partialResultToken'] == null
                 ? null
                 : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
-    return PartialResultParams(partialResultToken);
+    return PartialResultParams(partialResultToken: partialResultToken);
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -14771,7 +15021,7 @@ class Position implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(Position.canParse, Position.fromJson);
 
-  Position(this.line, this.character) {
+  Position({@required this.line, @required this.character}) {
     if (line == null) {
       throw 'line is required but was not provided';
     }
@@ -14782,7 +15032,7 @@ class Position implements ToJsonable {
   static Position fromJson(Map<String, dynamic> json) {
     final line = json['line'];
     final character = json['character'];
-    return Position(line, character);
+    return Position(line: line, character: character);
   }
 
   /// Character offset on a line in a document (zero-based). Assuming that the
@@ -14871,7 +15121,7 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
       PrepareRenameParams.canParse, PrepareRenameParams.fromJson);
 
-  PrepareRenameParams(this.textDocument, this.position) {
+  PrepareRenameParams({@required this.textDocument, @required this.position}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -14885,7 +15135,7 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
         : null;
     final position =
         json['position'] != null ? Position.fromJson(json['position']) : null;
-    return PrepareRenameParams(textDocument, position);
+    return PrepareRenameParams(textDocument: textDocument, position: position);
   }
 
   /// The position inside the text document.
@@ -14973,7 +15223,7 @@ class ProgressParams<T> implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ProgressParams.canParse, ProgressParams.fromJson);
 
-  ProgressParams(this.token, this.value) {
+  ProgressParams({@required this.token, @required this.value}) {
     if (token == null) {
       throw 'token is required but was not provided';
     }
@@ -14988,7 +15238,7 @@ class ProgressParams<T> implements ToJsonable {
             ? Either2<num, String>.t2(json['token'])
             : (throw '''${json['token']} was not one of (num, String)'''));
     final value = json['value'];
-    return ProgressParams<T>(token, value);
+    return ProgressParams<T>(token: token, value: value);
   }
 
   /// The progress token provided by the client or server.
@@ -15073,7 +15323,7 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
       PublishDiagnosticsClientCapabilities.fromJson);
 
   PublishDiagnosticsClientCapabilities(
-      this.relatedInformation, this.tagSupport, this.versionSupport);
+      {this.relatedInformation, this.tagSupport, this.versionSupport});
   static PublishDiagnosticsClientCapabilities fromJson(
       Map<String, dynamic> json) {
     final relatedInformation = json['relatedInformation'];
@@ -15083,7 +15333,9 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
         : null;
     final versionSupport = json['versionSupport'];
     return PublishDiagnosticsClientCapabilities(
-        relatedInformation, tagSupport, versionSupport);
+        relatedInformation: relatedInformation,
+        tagSupport: tagSupport,
+        versionSupport: versionSupport);
   }
 
   /// Whether the clients accepts diagnostics with related information.
@@ -15184,7 +15436,7 @@ class PublishDiagnosticsClientCapabilitiesTagSupport implements ToJsonable {
       PublishDiagnosticsClientCapabilitiesTagSupport.canParse,
       PublishDiagnosticsClientCapabilitiesTagSupport.fromJson);
 
-  PublishDiagnosticsClientCapabilitiesTagSupport(this.valueSet) {
+  PublishDiagnosticsClientCapabilitiesTagSupport({@required this.valueSet}) {
     if (valueSet == null) {
       throw 'valueSet is required but was not provided';
     }
@@ -15195,7 +15447,7 @@ class PublishDiagnosticsClientCapabilitiesTagSupport implements ToJsonable {
         ?.map((item) => item != null ? DiagnosticTag.fromJson(item) : null)
         ?.cast<DiagnosticTag>()
         ?.toList();
-    return PublishDiagnosticsClientCapabilitiesTagSupport(valueSet);
+    return PublishDiagnosticsClientCapabilitiesTagSupport(valueSet: valueSet);
   }
 
   /// The tags supported by the client.
@@ -15263,7 +15515,8 @@ class PublishDiagnosticsParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       PublishDiagnosticsParams.canParse, PublishDiagnosticsParams.fromJson);
 
-  PublishDiagnosticsParams(this.uri, this.version, this.diagnostics) {
+  PublishDiagnosticsParams(
+      {@required this.uri, this.version, @required this.diagnostics}) {
     if (uri == null) {
       throw 'uri is required but was not provided';
     }
@@ -15278,7 +15531,8 @@ class PublishDiagnosticsParams implements ToJsonable {
         ?.map((item) => item != null ? Diagnostic.fromJson(item) : null)
         ?.cast<Diagnostic>()
         ?.toList();
-    return PublishDiagnosticsParams(uri, version, diagnostics);
+    return PublishDiagnosticsParams(
+        uri: uri, version: version, diagnostics: diagnostics);
   }
 
   /// An array of diagnostic information items.
@@ -15386,7 +15640,7 @@ class PublishDiagnosticsParams implements ToJsonable {
 class Range implements ToJsonable {
   static const jsonHandler = LspJsonHandler(Range.canParse, Range.fromJson);
 
-  Range(this.start, this.end) {
+  Range({@required this.start, @required this.end}) {
     if (start == null) {
       throw 'start is required but was not provided';
     }
@@ -15398,7 +15652,7 @@ class Range implements ToJsonable {
     final start =
         json['start'] != null ? Position.fromJson(json['start']) : null;
     final end = json['end'] != null ? Position.fromJson(json['end']) : null;
-    return Range(start, end);
+    return Range(start: start, end: end);
   }
 
   /// The range's end position.
@@ -15481,7 +15735,7 @@ class RangeAndPlaceholder implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       RangeAndPlaceholder.canParse, RangeAndPlaceholder.fromJson);
 
-  RangeAndPlaceholder(this.range, this.placeholder) {
+  RangeAndPlaceholder({@required this.range, @required this.placeholder}) {
     if (range == null) {
       throw 'range is required but was not provided';
     }
@@ -15492,7 +15746,7 @@ class RangeAndPlaceholder implements ToJsonable {
   static RangeAndPlaceholder fromJson(Map<String, dynamic> json) {
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final placeholder = json['placeholder'];
-    return RangeAndPlaceholder(range, placeholder);
+    return RangeAndPlaceholder(range: range, placeholder: placeholder);
   }
 
   final String placeholder;
@@ -15575,10 +15829,11 @@ class ReferenceClientCapabilities implements ToJsonable {
       ReferenceClientCapabilities.canParse,
       ReferenceClientCapabilities.fromJson);
 
-  ReferenceClientCapabilities(this.dynamicRegistration);
+  ReferenceClientCapabilities({this.dynamicRegistration});
   static ReferenceClientCapabilities fromJson(Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return ReferenceClientCapabilities(dynamicRegistration);
+    return ReferenceClientCapabilities(
+        dynamicRegistration: dynamicRegistration);
   }
 
   /// Whether references supports dynamic registration.
@@ -15635,14 +15890,14 @@ class ReferenceContext implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ReferenceContext.canParse, ReferenceContext.fromJson);
 
-  ReferenceContext(this.includeDeclaration) {
+  ReferenceContext({@required this.includeDeclaration}) {
     if (includeDeclaration == null) {
       throw 'includeDeclaration is required but was not provided';
     }
   }
   static ReferenceContext fromJson(Map<String, dynamic> json) {
     final includeDeclaration = json['includeDeclaration'];
-    return ReferenceContext(includeDeclaration);
+    return ReferenceContext(includeDeclaration: includeDeclaration);
   }
 
   /// Include the declaration of the current symbol.
@@ -15704,13 +15959,13 @@ class ReferenceOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ReferenceOptions.canParse, ReferenceOptions.fromJson);
 
-  ReferenceOptions(this.workDoneProgress);
+  ReferenceOptions({this.workDoneProgress});
   static ReferenceOptions fromJson(Map<String, dynamic> json) {
     if (ReferenceRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return ReferenceRegistrationOptions.fromJson(json);
     }
     final workDoneProgress = json['workDoneProgress'];
-    return ReferenceOptions(workDoneProgress);
+    return ReferenceOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool workDoneProgress;
@@ -15770,8 +16025,12 @@ class ReferenceParams
   static const jsonHandler =
       LspJsonHandler(ReferenceParams.canParse, ReferenceParams.fromJson);
 
-  ReferenceParams(this.context, this.textDocument, this.position,
-      this.workDoneToken, this.partialResultToken) {
+  ReferenceParams(
+      {@required this.context,
+      @required this.textDocument,
+      @required this.position,
+      this.workDoneToken,
+      this.partialResultToken}) {
     if (context == null) {
       throw 'context is required but was not provided';
     }
@@ -15806,7 +16065,11 @@ class ReferenceParams
                 ? null
                 : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
     return ReferenceParams(
-        context, textDocument, position, workDoneToken, partialResultToken);
+        context: context,
+        textDocument: textDocument,
+        position: position,
+        workDoneToken: workDoneToken,
+        partialResultToken: partialResultToken);
   }
 
   final ReferenceContext context;
@@ -15957,14 +16220,15 @@ class ReferenceRegistrationOptions
       ReferenceRegistrationOptions.canParse,
       ReferenceRegistrationOptions.fromJson);
 
-  ReferenceRegistrationOptions(this.documentSelector, this.workDoneProgress);
+  ReferenceRegistrationOptions({this.documentSelector, this.workDoneProgress});
   static ReferenceRegistrationOptions fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
     final workDoneProgress = json['workDoneProgress'];
-    return ReferenceRegistrationOptions(documentSelector, workDoneProgress);
+    return ReferenceRegistrationOptions(
+        documentSelector: documentSelector, workDoneProgress: workDoneProgress);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -16045,7 +16309,8 @@ class Registration implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(Registration.canParse, Registration.fromJson);
 
-  Registration(this.id, this.method, this.registerOptions) {
+  Registration(
+      {@required this.id, @required this.method, this.registerOptions}) {
     if (id == null) {
       throw 'id is required but was not provided';
     }
@@ -16057,7 +16322,8 @@ class Registration implements ToJsonable {
     final id = json['id'];
     final method = json['method'];
     final registerOptions = json['registerOptions'];
-    return Registration(id, method, registerOptions);
+    return Registration(
+        id: id, method: method, registerOptions: registerOptions);
   }
 
   /// The id used to register the request. The id can be used to deregister the
@@ -16160,7 +16426,7 @@ class RegistrationParams implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(RegistrationParams.canParse, RegistrationParams.fromJson);
 
-  RegistrationParams(this.registrations) {
+  RegistrationParams({@required this.registrations}) {
     if (registrations == null) {
       throw 'registrations is required but was not provided';
     }
@@ -16170,7 +16436,7 @@ class RegistrationParams implements ToJsonable {
         ?.map((item) => item != null ? Registration.fromJson(item) : null)
         ?.cast<Registration>()
         ?.toList();
-    return RegistrationParams(registrations);
+    return RegistrationParams(registrations: registrations);
   }
 
   final List<Registration> registrations;
@@ -16236,11 +16502,13 @@ class RenameClientCapabilities implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       RenameClientCapabilities.canParse, RenameClientCapabilities.fromJson);
 
-  RenameClientCapabilities(this.dynamicRegistration, this.prepareSupport);
+  RenameClientCapabilities({this.dynamicRegistration, this.prepareSupport});
   static RenameClientCapabilities fromJson(Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final prepareSupport = json['prepareSupport'];
-    return RenameClientCapabilities(dynamicRegistration, prepareSupport);
+    return RenameClientCapabilities(
+        dynamicRegistration: dynamicRegistration,
+        prepareSupport: prepareSupport);
   }
 
   /// Whether rename supports dynamic registration.
@@ -16318,7 +16586,11 @@ class RenameFile implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(RenameFile.canParse, RenameFile.fromJson);
 
-  RenameFile(this.kind, this.oldUri, this.newUri, this.options) {
+  RenameFile(
+      {@required this.kind,
+      @required this.oldUri,
+      @required this.newUri,
+      this.options}) {
     if (kind == null) {
       throw 'kind is required but was not provided';
     }
@@ -16336,7 +16608,8 @@ class RenameFile implements ToJsonable {
     final options = json['options'] != null
         ? RenameFileOptions.fromJson(json['options'])
         : null;
-    return RenameFile(kind, oldUri, newUri, options);
+    return RenameFile(
+        kind: kind, oldUri: oldUri, newUri: newUri, options: options);
   }
 
   /// A rename
@@ -16463,11 +16736,12 @@ class RenameFileOptions implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(RenameFileOptions.canParse, RenameFileOptions.fromJson);
 
-  RenameFileOptions(this.overwrite, this.ignoreIfExists);
+  RenameFileOptions({this.overwrite, this.ignoreIfExists});
   static RenameFileOptions fromJson(Map<String, dynamic> json) {
     final overwrite = json['overwrite'];
     final ignoreIfExists = json['ignoreIfExists'];
-    return RenameFileOptions(overwrite, ignoreIfExists);
+    return RenameFileOptions(
+        overwrite: overwrite, ignoreIfExists: ignoreIfExists);
   }
 
   /// Ignores if target exists.
@@ -16540,14 +16814,15 @@ class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler =
       LspJsonHandler(RenameOptions.canParse, RenameOptions.fromJson);
 
-  RenameOptions(this.prepareProvider, this.workDoneProgress);
+  RenameOptions({this.prepareProvider, this.workDoneProgress});
   static RenameOptions fromJson(Map<String, dynamic> json) {
     if (RenameRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return RenameRegistrationOptions.fromJson(json);
     }
     final prepareProvider = json['prepareProvider'];
     final workDoneProgress = json['workDoneProgress'];
-    return RenameOptions(prepareProvider, workDoneProgress);
+    return RenameOptions(
+        prepareProvider: prepareProvider, workDoneProgress: workDoneProgress);
   }
 
   /// Renames should be checked and tested before being executed.
@@ -16622,7 +16897,10 @@ class RenameParams
       LspJsonHandler(RenameParams.canParse, RenameParams.fromJson);
 
   RenameParams(
-      this.newName, this.textDocument, this.position, this.workDoneToken) {
+      {@required this.newName,
+      @required this.textDocument,
+      @required this.position,
+      this.workDoneToken}) {
     if (newName == null) {
       throw 'newName is required but was not provided';
     }
@@ -16647,7 +16925,11 @@ class RenameParams
             : (json['workDoneToken'] == null
                 ? null
                 : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    return RenameParams(newName, textDocument, position, workDoneToken);
+    return RenameParams(
+        newName: newName,
+        textDocument: textDocument,
+        position: position,
+        workDoneToken: workDoneToken);
   }
 
   /// The new name of the symbol. If the given name is not valid the request
@@ -16780,7 +17062,7 @@ class RenameRegistrationOptions
       RenameRegistrationOptions.canParse, RenameRegistrationOptions.fromJson);
 
   RenameRegistrationOptions(
-      this.documentSelector, this.prepareProvider, this.workDoneProgress);
+      {this.documentSelector, this.prepareProvider, this.workDoneProgress});
   static RenameRegistrationOptions fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
@@ -16789,7 +17071,9 @@ class RenameRegistrationOptions
     final prepareProvider = json['prepareProvider'];
     final workDoneProgress = json['workDoneProgress'];
     return RenameRegistrationOptions(
-        documentSelector, prepareProvider, workDoneProgress);
+        documentSelector: documentSelector,
+        prepareProvider: prepareProvider,
+        workDoneProgress: workDoneProgress);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -16887,7 +17171,11 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
   static const jsonHandler =
       LspJsonHandler(RequestMessage.canParse, RequestMessage.fromJson);
 
-  RequestMessage(this.id, this.method, this.params, this.jsonrpc) {
+  RequestMessage(
+      {@required this.id,
+      @required this.method,
+      this.params,
+      @required this.jsonrpc}) {
     if (id == null) {
       throw 'id is required but was not provided';
     }
@@ -16908,7 +17196,8 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
         json['method'] != null ? Method.fromJson(json['method']) : null;
     final params = json['params'];
     final jsonrpc = json['jsonrpc'];
-    return RequestMessage(id, method, params, jsonrpc);
+    return RequestMessage(
+        id: id, method: method, params: params, jsonrpc: jsonrpc);
   }
 
   /// The request id.
@@ -17069,7 +17358,7 @@ class ResponseError implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ResponseError.canParse, ResponseError.fromJson);
 
-  ResponseError(this.code, this.message, this.data) {
+  ResponseError({@required this.code, @required this.message, this.data}) {
     if (code == null) {
       throw 'code is required but was not provided';
     }
@@ -17082,7 +17371,7 @@ class ResponseError implements ToJsonable {
         json['code'] != null ? ErrorCodes.fromJson(json['code']) : null;
     final message = json['message'];
     final data = json['data'];
-    return ResponseError(code, message, data);
+    return ResponseError(code: code, message: message, data: data);
   }
 
   /// A number indicating the error type that occurred.
@@ -17186,7 +17475,7 @@ class ResponseMessage implements Message, ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ResponseMessage.canParse, ResponseMessage.fromJson);
 
-  ResponseMessage(this.id, this.result, this.error, this.jsonrpc) {
+  ResponseMessage({this.id, this.result, this.error, @required this.jsonrpc}) {
     if (jsonrpc == null) {
       throw 'jsonrpc is required but was not provided';
     }
@@ -17203,7 +17492,8 @@ class ResponseMessage implements Message, ToJsonable {
     final error =
         json['error'] != null ? ResponseError.fromJson(json['error']) : null;
     final jsonrpc = json['jsonrpc'];
-    return ResponseMessage(id, result, error, jsonrpc);
+    return ResponseMessage(
+        id: id, result: result, error: error, jsonrpc: jsonrpc);
   }
 
   /// The error object in case a request fails.
@@ -17320,10 +17610,10 @@ class SaveOptions implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(SaveOptions.canParse, SaveOptions.fromJson);
 
-  SaveOptions(this.includeText);
+  SaveOptions({this.includeText});
   static SaveOptions fromJson(Map<String, dynamic> json) {
     final includeText = json['includeText'];
-    return SaveOptions(includeText);
+    return SaveOptions(includeText: includeText);
   }
 
   /// The client is supposed to include the content on save.
@@ -17378,7 +17668,7 @@ class SelectionRange implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(SelectionRange.canParse, SelectionRange.fromJson);
 
-  SelectionRange(this.range, this.parent) {
+  SelectionRange({@required this.range, this.parent}) {
     if (range == null) {
       throw 'range is required but was not provided';
     }
@@ -17387,7 +17677,7 @@ class SelectionRange implements ToJsonable {
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final parent =
         json['parent'] != null ? SelectionRange.fromJson(json['parent']) : null;
-    return SelectionRange(range, parent);
+    return SelectionRange(range: range, parent: parent);
   }
 
   /// The parent selection range containing this range. Therefore `parent.range`
@@ -17467,10 +17757,11 @@ class SelectionRangeClientCapabilities implements ToJsonable {
       SelectionRangeClientCapabilities.canParse,
       SelectionRangeClientCapabilities.fromJson);
 
-  SelectionRangeClientCapabilities(this.dynamicRegistration);
+  SelectionRangeClientCapabilities({this.dynamicRegistration});
   static SelectionRangeClientCapabilities fromJson(Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return SelectionRangeClientCapabilities(dynamicRegistration);
+    return SelectionRangeClientCapabilities(
+        dynamicRegistration: dynamicRegistration);
   }
 
   /// Whether implementation supports dynamic registration for selection range
@@ -17530,13 +17821,13 @@ class SelectionRangeOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
       SelectionRangeOptions.canParse, SelectionRangeOptions.fromJson);
 
-  SelectionRangeOptions(this.workDoneProgress);
+  SelectionRangeOptions({this.workDoneProgress});
   static SelectionRangeOptions fromJson(Map<String, dynamic> json) {
     if (SelectionRangeRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return SelectionRangeRegistrationOptions.fromJson(json);
     }
     final workDoneProgress = json['workDoneProgress'];
-    return SelectionRangeOptions(workDoneProgress);
+    return SelectionRangeOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool workDoneProgress;
@@ -17593,8 +17884,11 @@ class SelectionRangeParams
   static const jsonHandler = LspJsonHandler(
       SelectionRangeParams.canParse, SelectionRangeParams.fromJson);
 
-  SelectionRangeParams(this.textDocument, this.positions, this.workDoneToken,
-      this.partialResultToken) {
+  SelectionRangeParams(
+      {@required this.textDocument,
+      @required this.positions,
+      this.workDoneToken,
+      this.partialResultToken}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -17625,7 +17919,10 @@ class SelectionRangeParams
                 ? null
                 : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
     return SelectionRangeParams(
-        textDocument, positions, workDoneToken, partialResultToken);
+        textDocument: textDocument,
+        positions: positions,
+        workDoneToken: workDoneToken,
+        partialResultToken: partialResultToken);
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -17762,7 +18059,7 @@ class SelectionRangeRegistrationOptions
       SelectionRangeRegistrationOptions.fromJson);
 
   SelectionRangeRegistrationOptions(
-      this.workDoneProgress, this.documentSelector, this.id);
+      {this.workDoneProgress, this.documentSelector, this.id});
   static SelectionRangeRegistrationOptions fromJson(Map<String, dynamic> json) {
     final workDoneProgress = json['workDoneProgress'];
     final documentSelector = json['documentSelector']
@@ -17771,7 +18068,9 @@ class SelectionRangeRegistrationOptions
         ?.toList();
     final id = json['id'];
     return SelectionRangeRegistrationOptions(
-        workDoneProgress, documentSelector, id);
+        workDoneProgress: workDoneProgress,
+        documentSelector: documentSelector,
+        id: id);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -17870,7 +18169,7 @@ class ServerCapabilities implements ToJsonable {
       LspJsonHandler(ServerCapabilities.canParse, ServerCapabilities.fromJson);
 
   ServerCapabilities(
-      this.textDocumentSync,
+      {this.textDocumentSync,
       this.completionProvider,
       this.hoverProvider,
       this.signatureHelpProvider,
@@ -17894,7 +18193,7 @@ class ServerCapabilities implements ToJsonable {
       this.selectionRangeProvider,
       this.workspaceSymbolProvider,
       this.workspace,
-      this.experimental);
+      this.experimental});
   static ServerCapabilities fromJson(Map<String, dynamic> json) {
     final textDocumentSync = TextDocumentSyncOptions.canParse(
             json['textDocumentSync'], nullLspJsonReporter)
@@ -18149,31 +18448,31 @@ class ServerCapabilities implements ToJsonable {
         : null;
     final experimental = json['experimental'];
     return ServerCapabilities(
-        textDocumentSync,
-        completionProvider,
-        hoverProvider,
-        signatureHelpProvider,
-        declarationProvider,
-        definitionProvider,
-        typeDefinitionProvider,
-        implementationProvider,
-        referencesProvider,
-        documentHighlightProvider,
-        documentSymbolProvider,
-        codeActionProvider,
-        codeLensProvider,
-        documentLinkProvider,
-        colorProvider,
-        documentFormattingProvider,
-        documentRangeFormattingProvider,
-        documentOnTypeFormattingProvider,
-        renameProvider,
-        foldingRangeProvider,
-        executeCommandProvider,
-        selectionRangeProvider,
-        workspaceSymbolProvider,
-        workspace,
-        experimental);
+        textDocumentSync: textDocumentSync,
+        completionProvider: completionProvider,
+        hoverProvider: hoverProvider,
+        signatureHelpProvider: signatureHelpProvider,
+        declarationProvider: declarationProvider,
+        definitionProvider: definitionProvider,
+        typeDefinitionProvider: typeDefinitionProvider,
+        implementationProvider: implementationProvider,
+        referencesProvider: referencesProvider,
+        documentHighlightProvider: documentHighlightProvider,
+        documentSymbolProvider: documentSymbolProvider,
+        codeActionProvider: codeActionProvider,
+        codeLensProvider: codeLensProvider,
+        documentLinkProvider: documentLinkProvider,
+        colorProvider: colorProvider,
+        documentFormattingProvider: documentFormattingProvider,
+        documentRangeFormattingProvider: documentRangeFormattingProvider,
+        documentOnTypeFormattingProvider: documentOnTypeFormattingProvider,
+        renameProvider: renameProvider,
+        foldingRangeProvider: foldingRangeProvider,
+        executeCommandProvider: executeCommandProvider,
+        selectionRangeProvider: selectionRangeProvider,
+        workspaceSymbolProvider: workspaceSymbolProvider,
+        workspace: workspace,
+        experimental: experimental);
   }
 
   /// The server provides code actions. The `CodeActionOptions` return type is
@@ -18751,12 +19050,12 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
       ServerCapabilitiesWorkspace.canParse,
       ServerCapabilitiesWorkspace.fromJson);
 
-  ServerCapabilitiesWorkspace(this.workspaceFolders);
+  ServerCapabilitiesWorkspace({this.workspaceFolders});
   static ServerCapabilitiesWorkspace fromJson(Map<String, dynamic> json) {
     final workspaceFolders = json['workspaceFolders'] != null
         ? WorkspaceFoldersServerCapabilities.fromJson(json['workspaceFolders'])
         : null;
-    return ServerCapabilitiesWorkspace(workspaceFolders);
+    return ServerCapabilitiesWorkspace(workspaceFolders: workspaceFolders);
   }
 
   /// The server supports workspace folder.
@@ -18816,7 +19115,7 @@ class ShowMessageParams implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ShowMessageParams.canParse, ShowMessageParams.fromJson);
 
-  ShowMessageParams(this.type, this.message) {
+  ShowMessageParams({@required this.type, @required this.message}) {
     if (type == null) {
       throw 'type is required but was not provided';
     }
@@ -18828,7 +19127,7 @@ class ShowMessageParams implements ToJsonable {
     final type =
         json['type'] != null ? MessageType.fromJson(json['type']) : null;
     final message = json['message'];
-    return ShowMessageParams(type, message);
+    return ShowMessageParams(type: type, message: message);
   }
 
   /// The actual message.
@@ -18912,7 +19211,8 @@ class ShowMessageRequestParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       ShowMessageRequestParams.canParse, ShowMessageRequestParams.fromJson);
 
-  ShowMessageRequestParams(this.type, this.message, this.actions) {
+  ShowMessageRequestParams(
+      {@required this.type, @required this.message, this.actions}) {
     if (type == null) {
       throw 'type is required but was not provided';
     }
@@ -18928,7 +19228,8 @@ class ShowMessageRequestParams implements ToJsonable {
         ?.map((item) => item != null ? MessageActionItem.fromJson(item) : null)
         ?.cast<MessageActionItem>()
         ?.toList();
-    return ShowMessageRequestParams(type, message, actions);
+    return ShowMessageRequestParams(
+        type: type, message: message, actions: actions);
   }
 
   /// The message action items to present.
@@ -19038,7 +19339,8 @@ class SignatureHelp implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(SignatureHelp.canParse, SignatureHelp.fromJson);
 
-  SignatureHelp(this.signatures, this.activeSignature, this.activeParameter) {
+  SignatureHelp(
+      {@required this.signatures, this.activeSignature, this.activeParameter}) {
     if (signatures == null) {
       throw 'signatures is required but was not provided';
     }
@@ -19051,7 +19353,10 @@ class SignatureHelp implements ToJsonable {
         ?.toList();
     final activeSignature = json['activeSignature'];
     final activeParameter = json['activeParameter'];
-    return SignatureHelp(signatures, activeSignature, activeParameter);
+    return SignatureHelp(
+        signatures: signatures,
+        activeSignature: activeSignature,
+        activeParameter: activeParameter);
   }
 
   /// The active parameter of the active signature. If omitted or the value lies
@@ -19169,7 +19474,9 @@ class SignatureHelpClientCapabilities implements ToJsonable {
       SignatureHelpClientCapabilities.fromJson);
 
   SignatureHelpClientCapabilities(
-      this.dynamicRegistration, this.signatureInformation, this.contextSupport);
+      {this.dynamicRegistration,
+      this.signatureInformation,
+      this.contextSupport});
   static SignatureHelpClientCapabilities fromJson(Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final signatureInformation = json['signatureInformation'] != null
@@ -19178,7 +19485,9 @@ class SignatureHelpClientCapabilities implements ToJsonable {
         : null;
     final contextSupport = json['contextSupport'];
     return SignatureHelpClientCapabilities(
-        dynamicRegistration, signatureInformation, contextSupport);
+        dynamicRegistration: dynamicRegistration,
+        signatureInformation: signatureInformation,
+        contextSupport: contextSupport);
   }
 
   /// The client supports to send additional context information for a
@@ -19281,12 +19590,13 @@ class SignatureHelpClientCapabilitiesParameterInformation
       SignatureHelpClientCapabilitiesParameterInformation.canParse,
       SignatureHelpClientCapabilitiesParameterInformation.fromJson);
 
-  SignatureHelpClientCapabilitiesParameterInformation(this.labelOffsetSupport);
+  SignatureHelpClientCapabilitiesParameterInformation(
+      {this.labelOffsetSupport});
   static SignatureHelpClientCapabilitiesParameterInformation fromJson(
       Map<String, dynamic> json) {
     final labelOffsetSupport = json['labelOffsetSupport'];
     return SignatureHelpClientCapabilitiesParameterInformation(
-        labelOffsetSupport);
+        labelOffsetSupport: labelOffsetSupport);
   }
 
   /// The client supports processing label offsets instead of a simple label
@@ -19350,7 +19660,7 @@ class SignatureHelpClientCapabilitiesSignatureInformation
       SignatureHelpClientCapabilitiesSignatureInformation.fromJson);
 
   SignatureHelpClientCapabilitiesSignatureInformation(
-      this.documentationFormat, this.parameterInformation);
+      {this.documentationFormat, this.parameterInformation});
   static SignatureHelpClientCapabilitiesSignatureInformation fromJson(
       Map<String, dynamic> json) {
     final documentationFormat = json['documentationFormat']
@@ -19362,7 +19672,8 @@ class SignatureHelpClientCapabilitiesSignatureInformation
             json['parameterInformation'])
         : null;
     return SignatureHelpClientCapabilitiesSignatureInformation(
-        documentationFormat, parameterInformation);
+        documentationFormat: documentationFormat,
+        parameterInformation: parameterInformation);
   }
 
   /// Client supports the follow content formats for the documentation property.
@@ -19450,8 +19761,11 @@ class SignatureHelpContext implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       SignatureHelpContext.canParse, SignatureHelpContext.fromJson);
 
-  SignatureHelpContext(this.triggerKind, this.triggerCharacter,
-      this.isRetrigger, this.activeSignatureHelp) {
+  SignatureHelpContext(
+      {@required this.triggerKind,
+      this.triggerCharacter,
+      @required this.isRetrigger,
+      this.activeSignatureHelp}) {
     if (triggerKind == null) {
       throw 'triggerKind is required but was not provided';
     }
@@ -19469,7 +19783,10 @@ class SignatureHelpContext implements ToJsonable {
         ? SignatureHelp.fromJson(json['activeSignatureHelp'])
         : null;
     return SignatureHelpContext(
-        triggerKind, triggerCharacter, isRetrigger, activeSignatureHelp);
+        triggerKind: triggerKind,
+        triggerCharacter: triggerCharacter,
+        isRetrigger: isRetrigger,
+        activeSignatureHelp: activeSignatureHelp);
   }
 
   /// The currently active `SignatureHelp`.
@@ -19605,7 +19922,9 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
       SignatureHelpOptions.canParse, SignatureHelpOptions.fromJson);
 
   SignatureHelpOptions(
-      this.triggerCharacters, this.retriggerCharacters, this.workDoneProgress);
+      {this.triggerCharacters,
+      this.retriggerCharacters,
+      this.workDoneProgress});
   static SignatureHelpOptions fromJson(Map<String, dynamic> json) {
     if (SignatureHelpRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return SignatureHelpRegistrationOptions.fromJson(json);
@@ -19620,7 +19939,9 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
         ?.toList();
     final workDoneProgress = json['workDoneProgress'];
     return SignatureHelpOptions(
-        triggerCharacters, retriggerCharacters, workDoneProgress);
+        triggerCharacters: triggerCharacters,
+        retriggerCharacters: retriggerCharacters,
+        workDoneProgress: workDoneProgress);
   }
 
   /// List of characters that re-trigger signature help.
@@ -19723,7 +20044,10 @@ class SignatureHelpParams
       SignatureHelpParams.canParse, SignatureHelpParams.fromJson);
 
   SignatureHelpParams(
-      this.context, this.textDocument, this.position, this.workDoneToken) {
+      {this.context,
+      @required this.textDocument,
+      @required this.position,
+      this.workDoneToken}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -19747,7 +20071,11 @@ class SignatureHelpParams
             : (json['workDoneToken'] == null
                 ? null
                 : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    return SignatureHelpParams(context, textDocument, position, workDoneToken);
+    return SignatureHelpParams(
+        context: context,
+        textDocument: textDocument,
+        position: position,
+        workDoneToken: workDoneToken);
   }
 
   /// The signature help context. This is only available if the client specifies
@@ -19880,8 +20208,11 @@ class SignatureHelpRegistrationOptions
       SignatureHelpRegistrationOptions.canParse,
       SignatureHelpRegistrationOptions.fromJson);
 
-  SignatureHelpRegistrationOptions(this.documentSelector,
-      this.triggerCharacters, this.retriggerCharacters, this.workDoneProgress);
+  SignatureHelpRegistrationOptions(
+      {this.documentSelector,
+      this.triggerCharacters,
+      this.retriggerCharacters,
+      this.workDoneProgress});
   static SignatureHelpRegistrationOptions fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
@@ -19896,8 +20227,11 @@ class SignatureHelpRegistrationOptions
         ?.cast<String>()
         ?.toList();
     final workDoneProgress = json['workDoneProgress'];
-    return SignatureHelpRegistrationOptions(documentSelector, triggerCharacters,
-        retriggerCharacters, workDoneProgress);
+    return SignatureHelpRegistrationOptions(
+        documentSelector: documentSelector,
+        triggerCharacters: triggerCharacters,
+        retriggerCharacters: retriggerCharacters,
+        workDoneProgress: workDoneProgress);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -20058,7 +20392,8 @@ class SignatureInformation implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       SignatureInformation.canParse, SignatureInformation.fromJson);
 
-  SignatureInformation(this.label, this.documentation, this.parameters) {
+  SignatureInformation(
+      {@required this.label, this.documentation, this.parameters}) {
     if (label == null) {
       throw 'label is required but was not provided';
     }
@@ -20079,7 +20414,8 @@ class SignatureInformation implements ToJsonable {
             (item) => item != null ? ParameterInformation.fromJson(item) : null)
         ?.cast<ParameterInformation>()
         ?.toList();
-    return SignatureInformation(label, documentation, parameters);
+    return SignatureInformation(
+        label: label, documentation: documentation, parameters: parameters);
   }
 
   /// The human-readable doc-comment of this signature. Will be shown in the UI
@@ -20185,7 +20521,7 @@ class StaticRegistrationOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       StaticRegistrationOptions.canParse, StaticRegistrationOptions.fromJson);
 
-  StaticRegistrationOptions(this.id);
+  StaticRegistrationOptions({this.id});
   static StaticRegistrationOptions fromJson(Map<String, dynamic> json) {
     if (DeclarationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DeclarationRegistrationOptions.fromJson(json);
@@ -20206,7 +20542,7 @@ class StaticRegistrationOptions implements ToJsonable {
       return SelectionRangeRegistrationOptions.fromJson(json);
     }
     final id = json['id'];
-    return StaticRegistrationOptions(id);
+    return StaticRegistrationOptions(id: id);
   }
 
   /// The id used to register the request. The id can be used to deregister the
@@ -20265,8 +20601,12 @@ class SymbolInformation implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(SymbolInformation.canParse, SymbolInformation.fromJson);
 
-  SymbolInformation(this.name, this.kind, this.deprecated, this.location,
-      this.containerName) {
+  SymbolInformation(
+      {@required this.name,
+      @required this.kind,
+      this.deprecated,
+      @required this.location,
+      this.containerName}) {
     if (name == null) {
       throw 'name is required but was not provided';
     }
@@ -20285,7 +20625,12 @@ class SymbolInformation implements ToJsonable {
     final location =
         json['location'] != null ? Location.fromJson(json['location']) : null;
     final containerName = json['containerName'];
-    return SymbolInformation(name, kind, deprecated, location, containerName);
+    return SymbolInformation(
+        name: name,
+        kind: kind,
+        deprecated: deprecated,
+        location: location,
+        containerName: containerName);
   }
 
   /// The name of the symbol containing this symbol. This information is for
@@ -20492,7 +20837,8 @@ class TextDocumentChangeRegistrationOptions
       TextDocumentChangeRegistrationOptions.canParse,
       TextDocumentChangeRegistrationOptions.fromJson);
 
-  TextDocumentChangeRegistrationOptions(this.syncKind, this.documentSelector) {
+  TextDocumentChangeRegistrationOptions(
+      {@required this.syncKind, this.documentSelector}) {
     if (syncKind == null) {
       throw 'syncKind is required but was not provided';
     }
@@ -20506,7 +20852,8 @@ class TextDocumentChangeRegistrationOptions
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return TextDocumentChangeRegistrationOptions(syncKind, documentSelector);
+    return TextDocumentChangeRegistrationOptions(
+        syncKind: syncKind, documentSelector: documentSelector);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -20599,7 +20946,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
       TextDocumentClientCapabilities.fromJson);
 
   TextDocumentClientCapabilities(
-      this.synchronization,
+      {this.synchronization,
       this.completion,
       this.hover,
       this.signatureHelp,
@@ -20620,7 +20967,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
       this.rename,
       this.publishDiagnostics,
       this.foldingRange,
-      this.selectionRange);
+      this.selectionRange});
   static TextDocumentClientCapabilities fromJson(Map<String, dynamic> json) {
     final synchronization = json['synchronization'] != null
         ? TextDocumentSyncClientCapabilities.fromJson(json['synchronization'])
@@ -20693,28 +21040,28 @@ class TextDocumentClientCapabilities implements ToJsonable {
         ? SelectionRangeClientCapabilities.fromJson(json['selectionRange'])
         : null;
     return TextDocumentClientCapabilities(
-        synchronization,
-        completion,
-        hover,
-        signatureHelp,
-        declaration,
-        definition,
-        typeDefinition,
-        implementation,
-        references,
-        documentHighlight,
-        documentSymbol,
-        codeAction,
-        codeLens,
-        documentLink,
-        colorProvider,
-        formatting,
-        rangeFormatting,
-        onTypeFormatting,
-        rename,
-        publishDiagnostics,
-        foldingRange,
-        selectionRange);
+        synchronization: synchronization,
+        completion: completion,
+        hover: hover,
+        signatureHelp: signatureHelp,
+        declaration: declaration,
+        definition: definition,
+        typeDefinition: typeDefinition,
+        implementation: implementation,
+        references: references,
+        documentHighlight: documentHighlight,
+        documentSymbol: documentSymbol,
+        codeAction: codeAction,
+        codeLens: codeLens,
+        documentLink: documentLink,
+        colorProvider: colorProvider,
+        formatting: formatting,
+        rangeFormatting: rangeFormatting,
+        onTypeFormatting: onTypeFormatting,
+        rename: rename,
+        publishDiagnostics: publishDiagnostics,
+        foldingRange: foldingRange,
+        selectionRange: selectionRange);
   }
 
   /// Capabilities specific to the `textDocument/codeAction` request.
@@ -21191,7 +21538,8 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
       TextDocumentContentChangeEvent1.canParse,
       TextDocumentContentChangeEvent1.fromJson);
 
-  TextDocumentContentChangeEvent1(this.range, this.rangeLength, this.text) {
+  TextDocumentContentChangeEvent1(
+      {@required this.range, this.rangeLength, @required this.text}) {
     if (range == null) {
       throw 'range is required but was not provided';
     }
@@ -21203,7 +21551,8 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final rangeLength = json['rangeLength'];
     final text = json['text'];
-    return TextDocumentContentChangeEvent1(range, rangeLength, text);
+    return TextDocumentContentChangeEvent1(
+        range: range, rangeLength: rangeLength, text: text);
   }
 
   /// The range of the document that changed.
@@ -21309,14 +21658,14 @@ class TextDocumentContentChangeEvent2 implements ToJsonable {
       TextDocumentContentChangeEvent2.canParse,
       TextDocumentContentChangeEvent2.fromJson);
 
-  TextDocumentContentChangeEvent2(this.text) {
+  TextDocumentContentChangeEvent2({@required this.text}) {
     if (text == null) {
       throw 'text is required but was not provided';
     }
   }
   static TextDocumentContentChangeEvent2 fromJson(Map<String, dynamic> json) {
     final text = json['text'];
-    return TextDocumentContentChangeEvent2(text);
+    return TextDocumentContentChangeEvent2(text: text);
   }
 
   /// The new text of the whole document.
@@ -21378,7 +21727,7 @@ class TextDocumentEdit implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(TextDocumentEdit.canParse, TextDocumentEdit.fromJson);
 
-  TextDocumentEdit(this.textDocument, this.edits) {
+  TextDocumentEdit({@required this.textDocument, @required this.edits}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -21394,7 +21743,7 @@ class TextDocumentEdit implements ToJsonable {
         ?.map((item) => item != null ? TextEdit.fromJson(item) : null)
         ?.cast<TextEdit>()
         ?.toList();
-    return TextDocumentEdit(textDocument, edits);
+    return TextDocumentEdit(textDocument: textDocument, edits: edits);
   }
 
   /// The edits to be applied.
@@ -21484,7 +21833,7 @@ class TextDocumentIdentifier implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       TextDocumentIdentifier.canParse, TextDocumentIdentifier.fromJson);
 
-  TextDocumentIdentifier(this.uri) {
+  TextDocumentIdentifier({@required this.uri}) {
     if (uri == null) {
       throw 'uri is required but was not provided';
     }
@@ -21494,7 +21843,7 @@ class TextDocumentIdentifier implements ToJsonable {
       return VersionedTextDocumentIdentifier.fromJson(json);
     }
     final uri = json['uri'];
-    return TextDocumentIdentifier(uri);
+    return TextDocumentIdentifier(uri: uri);
   }
 
   /// The text document's URI.
@@ -21556,7 +21905,11 @@ class TextDocumentItem implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(TextDocumentItem.canParse, TextDocumentItem.fromJson);
 
-  TextDocumentItem(this.uri, this.languageId, this.version, this.text) {
+  TextDocumentItem(
+      {@required this.uri,
+      @required this.languageId,
+      @required this.version,
+      @required this.text}) {
     if (uri == null) {
       throw 'uri is required but was not provided';
     }
@@ -21575,7 +21928,8 @@ class TextDocumentItem implements ToJsonable {
     final languageId = json['languageId'];
     final version = json['version'];
     final text = json['text'];
-    return TextDocumentItem(uri, languageId, version, text);
+    return TextDocumentItem(
+        uri: uri, languageId: languageId, version: version, text: text);
   }
 
   /// The text document's language identifier.
@@ -21709,7 +22063,8 @@ class TextDocumentPositionParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       TextDocumentPositionParams.canParse, TextDocumentPositionParams.fromJson);
 
-  TextDocumentPositionParams(this.textDocument, this.position) {
+  TextDocumentPositionParams(
+      {@required this.textDocument, @required this.position}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -21759,7 +22114,8 @@ class TextDocumentPositionParams implements ToJsonable {
         : null;
     final position =
         json['position'] != null ? Position.fromJson(json['position']) : null;
-    return TextDocumentPositionParams(textDocument, position);
+    return TextDocumentPositionParams(
+        textDocument: textDocument, position: position);
   }
 
   /// The position inside the text document.
@@ -21849,7 +22205,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
       TextDocumentRegistrationOptions.canParse,
       TextDocumentRegistrationOptions.fromJson);
 
-  TextDocumentRegistrationOptions(this.documentSelector);
+  TextDocumentRegistrationOptions({this.documentSelector});
   static TextDocumentRegistrationOptions fromJson(Map<String, dynamic> json) {
     if (TextDocumentChangeRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
@@ -21927,7 +22283,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return TextDocumentRegistrationOptions(documentSelector);
+    return TextDocumentRegistrationOptions(documentSelector: documentSelector);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -22026,7 +22382,8 @@ class TextDocumentSaveRegistrationOptions
       TextDocumentSaveRegistrationOptions.canParse,
       TextDocumentSaveRegistrationOptions.fromJson);
 
-  TextDocumentSaveRegistrationOptions(this.includeText, this.documentSelector);
+  TextDocumentSaveRegistrationOptions(
+      {this.includeText, this.documentSelector});
   static TextDocumentSaveRegistrationOptions fromJson(
       Map<String, dynamic> json) {
     final includeText = json['includeText'];
@@ -22034,7 +22391,8 @@ class TextDocumentSaveRegistrationOptions
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return TextDocumentSaveRegistrationOptions(includeText, documentSelector);
+    return TextDocumentSaveRegistrationOptions(
+        includeText: includeText, documentSelector: documentSelector);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -22117,8 +22475,11 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
       TextDocumentSyncClientCapabilities.canParse,
       TextDocumentSyncClientCapabilities.fromJson);
 
-  TextDocumentSyncClientCapabilities(this.dynamicRegistration, this.willSave,
-      this.willSaveWaitUntil, this.didSave);
+  TextDocumentSyncClientCapabilities(
+      {this.dynamicRegistration,
+      this.willSave,
+      this.willSaveWaitUntil,
+      this.didSave});
   static TextDocumentSyncClientCapabilities fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
@@ -22126,7 +22487,10 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
     final willSaveWaitUntil = json['willSaveWaitUntil'];
     final didSave = json['didSave'];
     return TextDocumentSyncClientCapabilities(
-        dynamicRegistration, willSave, willSaveWaitUntil, didSave);
+        dynamicRegistration: dynamicRegistration,
+        willSave: willSave,
+        willSaveWaitUntil: willSaveWaitUntil,
+        didSave: didSave);
   }
 
   /// The client supports did save notifications.
@@ -22272,8 +22636,12 @@ class TextDocumentSyncOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       TextDocumentSyncOptions.canParse, TextDocumentSyncOptions.fromJson);
 
-  TextDocumentSyncOptions(this.openClose, this.change, this.willSave,
-      this.willSaveWaitUntil, this.save);
+  TextDocumentSyncOptions(
+      {this.openClose,
+      this.change,
+      this.willSave,
+      this.willSaveWaitUntil,
+      this.save});
   static TextDocumentSyncOptions fromJson(Map<String, dynamic> json) {
     final openClose = json['openClose'];
     final change = json['change'] != null
@@ -22291,7 +22659,11 @@ class TextDocumentSyncOptions implements ToJsonable {
                 ? null
                 : (throw '''${json['save']} was not one of (bool, SaveOptions)''')));
     return TextDocumentSyncOptions(
-        openClose, change, willSave, willSaveWaitUntil, save);
+        openClose: openClose,
+        change: change,
+        willSave: willSave,
+        willSaveWaitUntil: willSaveWaitUntil,
+        save: save);
   }
 
   /// Change notifications are sent to the server. See
@@ -22427,7 +22799,7 @@ class TextEdit implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(TextEdit.canParse, TextEdit.fromJson);
 
-  TextEdit(this.range, this.newText) {
+  TextEdit({@required this.range, @required this.newText}) {
     if (range == null) {
       throw 'range is required but was not provided';
     }
@@ -22438,7 +22810,7 @@ class TextEdit implements ToJsonable {
   static TextEdit fromJson(Map<String, dynamic> json) {
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final newText = json['newText'];
-    return TextEdit(range, newText);
+    return TextEdit(range: range, newText: newText);
   }
 
   /// The string to be inserted. For delete operations use an empty string.
@@ -22524,11 +22896,13 @@ class TypeDefinitionClientCapabilities implements ToJsonable {
       TypeDefinitionClientCapabilities.canParse,
       TypeDefinitionClientCapabilities.fromJson);
 
-  TypeDefinitionClientCapabilities(this.dynamicRegistration, this.linkSupport);
+  TypeDefinitionClientCapabilities(
+      {this.dynamicRegistration, this.linkSupport});
   static TypeDefinitionClientCapabilities fromJson(Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final linkSupport = json['linkSupport'];
-    return TypeDefinitionClientCapabilities(dynamicRegistration, linkSupport);
+    return TypeDefinitionClientCapabilities(
+        dynamicRegistration: dynamicRegistration, linkSupport: linkSupport);
   }
 
   /// Whether implementation supports dynamic registration. If this is set to
@@ -22606,13 +22980,13 @@ class TypeDefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
       TypeDefinitionOptions.canParse, TypeDefinitionOptions.fromJson);
 
-  TypeDefinitionOptions(this.workDoneProgress);
+  TypeDefinitionOptions({this.workDoneProgress});
   static TypeDefinitionOptions fromJson(Map<String, dynamic> json) {
     if (TypeDefinitionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return TypeDefinitionRegistrationOptions.fromJson(json);
     }
     final workDoneProgress = json['workDoneProgress'];
-    return TypeDefinitionOptions(workDoneProgress);
+    return TypeDefinitionOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool workDoneProgress;
@@ -22673,8 +23047,11 @@ class TypeDefinitionParams
   static const jsonHandler = LspJsonHandler(
       TypeDefinitionParams.canParse, TypeDefinitionParams.fromJson);
 
-  TypeDefinitionParams(this.textDocument, this.position, this.workDoneToken,
-      this.partialResultToken) {
+  TypeDefinitionParams(
+      {@required this.textDocument,
+      @required this.position,
+      this.workDoneToken,
+      this.partialResultToken}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -22703,7 +23080,10 @@ class TypeDefinitionParams
                 ? null
                 : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
     return TypeDefinitionParams(
-        textDocument, position, workDoneToken, partialResultToken);
+        textDocument: textDocument,
+        position: position,
+        workDoneToken: workDoneToken,
+        partialResultToken: partialResultToken);
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -22837,7 +23217,7 @@ class TypeDefinitionRegistrationOptions
       TypeDefinitionRegistrationOptions.fromJson);
 
   TypeDefinitionRegistrationOptions(
-      this.documentSelector, this.workDoneProgress, this.id);
+      {this.documentSelector, this.workDoneProgress, this.id});
   static TypeDefinitionRegistrationOptions fromJson(Map<String, dynamic> json) {
     final documentSelector = json['documentSelector']
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
@@ -22846,7 +23226,9 @@ class TypeDefinitionRegistrationOptions
     final workDoneProgress = json['workDoneProgress'];
     final id = json['id'];
     return TypeDefinitionRegistrationOptions(
-        documentSelector, workDoneProgress, id);
+        documentSelector: documentSelector,
+        workDoneProgress: workDoneProgress,
+        id: id);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -22945,7 +23327,7 @@ class Unregistration implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(Unregistration.canParse, Unregistration.fromJson);
 
-  Unregistration(this.id, this.method) {
+  Unregistration({@required this.id, @required this.method}) {
     if (id == null) {
       throw 'id is required but was not provided';
     }
@@ -22956,7 +23338,7 @@ class Unregistration implements ToJsonable {
   static Unregistration fromJson(Map<String, dynamic> json) {
     final id = json['id'];
     final method = json['method'];
-    return Unregistration(id, method);
+    return Unregistration(id: id, method: method);
   }
 
   /// The id used to unregister the request or notification. Usually an id
@@ -23040,7 +23422,7 @@ class UnregistrationParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       UnregistrationParams.canParse, UnregistrationParams.fromJson);
 
-  UnregistrationParams(this.unregisterations) {
+  UnregistrationParams({@required this.unregisterations}) {
     if (unregisterations == null) {
       throw 'unregisterations is required but was not provided';
     }
@@ -23050,7 +23432,7 @@ class UnregistrationParams implements ToJsonable {
         ?.map((item) => item != null ? Unregistration.fromJson(item) : null)
         ?.cast<Unregistration>()
         ?.toList();
-    return UnregistrationParams(unregisterations);
+    return UnregistrationParams(unregisterations: unregisterations);
   }
 
   /// This should correctly be named `unregistrations`. However changing this //
@@ -23121,7 +23503,7 @@ class VersionedTextDocumentIdentifier
       VersionedTextDocumentIdentifier.canParse,
       VersionedTextDocumentIdentifier.fromJson);
 
-  VersionedTextDocumentIdentifier(this.version, this.uri) {
+  VersionedTextDocumentIdentifier({this.version, @required this.uri}) {
     if (uri == null) {
       throw 'uri is required but was not provided';
     }
@@ -23129,7 +23511,7 @@ class VersionedTextDocumentIdentifier
   static VersionedTextDocumentIdentifier fromJson(Map<String, dynamic> json) {
     final version = json['version'];
     final uri = json['uri'];
-    return VersionedTextDocumentIdentifier(version, uri);
+    return VersionedTextDocumentIdentifier(version: version, uri: uri);
   }
 
   /// The text document's URI.
@@ -23247,7 +23629,8 @@ class WillSaveTextDocumentParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       WillSaveTextDocumentParams.canParse, WillSaveTextDocumentParams.fromJson);
 
-  WillSaveTextDocumentParams(this.textDocument, this.reason) {
+  WillSaveTextDocumentParams(
+      {@required this.textDocument, @required this.reason}) {
     if (textDocument == null) {
       throw 'textDocument is required but was not provided';
     }
@@ -23260,7 +23643,8 @@ class WillSaveTextDocumentParams implements ToJsonable {
         ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
     final reason = json['reason'];
-    return WillSaveTextDocumentParams(textDocument, reason);
+    return WillSaveTextDocumentParams(
+        textDocument: textDocument, reason: reason);
   }
 
   /// The 'TextDocumentSaveReason'.
@@ -23348,7 +23732,11 @@ class WorkDoneProgressBegin implements ToJsonable {
       WorkDoneProgressBegin.canParse, WorkDoneProgressBegin.fromJson);
 
   WorkDoneProgressBegin(
-      this.kind, this.title, this.cancellable, this.message, this.percentage) {
+      {@required this.kind,
+      @required this.title,
+      this.cancellable,
+      this.message,
+      this.percentage}) {
     if (kind == null) {
       throw 'kind is required but was not provided';
     }
@@ -23362,7 +23750,12 @@ class WorkDoneProgressBegin implements ToJsonable {
     final cancellable = json['cancellable'];
     final message = json['message'];
     final percentage = json['percentage'];
-    return WorkDoneProgressBegin(kind, title, cancellable, message, percentage);
+    return WorkDoneProgressBegin(
+        kind: kind,
+        title: title,
+        cancellable: cancellable,
+        message: message,
+        percentage: percentage);
   }
 
   /// Controls if a cancel button should show to allow the user to cancel the
@@ -23512,7 +23905,7 @@ class WorkDoneProgressCancelParams implements ToJsonable {
       WorkDoneProgressCancelParams.canParse,
       WorkDoneProgressCancelParams.fromJson);
 
-  WorkDoneProgressCancelParams(this.token) {
+  WorkDoneProgressCancelParams({@required this.token}) {
     if (token == null) {
       throw 'token is required but was not provided';
     }
@@ -23523,7 +23916,7 @@ class WorkDoneProgressCancelParams implements ToJsonable {
         : (json['token'] is String
             ? Either2<num, String>.t2(json['token'])
             : (throw '''${json['token']} was not one of (num, String)'''));
-    return WorkDoneProgressCancelParams(token);
+    return WorkDoneProgressCancelParams(token: token);
   }
 
   /// The token to be used to report progress.
@@ -23586,7 +23979,7 @@ class WorkDoneProgressCreateParams implements ToJsonable {
       WorkDoneProgressCreateParams.canParse,
       WorkDoneProgressCreateParams.fromJson);
 
-  WorkDoneProgressCreateParams(this.token) {
+  WorkDoneProgressCreateParams({@required this.token}) {
     if (token == null) {
       throw 'token is required but was not provided';
     }
@@ -23597,7 +23990,7 @@ class WorkDoneProgressCreateParams implements ToJsonable {
         : (json['token'] is String
             ? Either2<num, String>.t2(json['token'])
             : (throw '''${json['token']} was not one of (num, String)'''));
-    return WorkDoneProgressCreateParams(token);
+    return WorkDoneProgressCreateParams(token: token);
   }
 
   /// The token to be used to report progress.
@@ -23659,7 +24052,7 @@ class WorkDoneProgressEnd implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       WorkDoneProgressEnd.canParse, WorkDoneProgressEnd.fromJson);
 
-  WorkDoneProgressEnd(this.kind, this.message) {
+  WorkDoneProgressEnd({@required this.kind, this.message}) {
     if (kind == null) {
       throw 'kind is required but was not provided';
     }
@@ -23667,7 +24060,7 @@ class WorkDoneProgressEnd implements ToJsonable {
   static WorkDoneProgressEnd fromJson(Map<String, dynamic> json) {
     final kind = json['kind'];
     final message = json['message'];
-    return WorkDoneProgressEnd(kind, message);
+    return WorkDoneProgressEnd(kind: kind, message: message);
   }
 
   final String kind;
@@ -23745,7 +24138,7 @@ class WorkDoneProgressOptions implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       WorkDoneProgressOptions.canParse, WorkDoneProgressOptions.fromJson);
 
-  WorkDoneProgressOptions(this.workDoneProgress);
+  WorkDoneProgressOptions({this.workDoneProgress});
   static WorkDoneProgressOptions fromJson(Map<String, dynamic> json) {
     if (WorkspaceSymbolOptions.canParse(json, nullLspJsonReporter)) {
       return WorkspaceSymbolOptions.fromJson(json);
@@ -23811,7 +24204,7 @@ class WorkDoneProgressOptions implements ToJsonable {
       return SelectionRangeOptions.fromJson(json);
     }
     final workDoneProgress = json['workDoneProgress'];
-    return WorkDoneProgressOptions(workDoneProgress);
+    return WorkDoneProgressOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool workDoneProgress;
@@ -23867,7 +24260,7 @@ class WorkDoneProgressParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       WorkDoneProgressParams.canParse, WorkDoneProgressParams.fromJson);
 
-  WorkDoneProgressParams(this.workDoneToken);
+  WorkDoneProgressParams({this.workDoneToken});
   static WorkDoneProgressParams fromJson(Map<String, dynamic> json) {
     if (InitializeParams.canParse(json, nullLspJsonReporter)) {
       return InitializeParams.fromJson(json);
@@ -23945,7 +24338,7 @@ class WorkDoneProgressParams implements ToJsonable {
             : (json['workDoneToken'] == null
                 ? null
                 : (throw '''${json['workDoneToken']} was not one of (num, String)''')));
-    return WorkDoneProgressParams(workDoneToken);
+    return WorkDoneProgressParams(workDoneToken: workDoneToken);
   }
 
   /// An optional token that a server can use to report work done progress.
@@ -24004,7 +24397,7 @@ class WorkDoneProgressReport implements ToJsonable {
       WorkDoneProgressReport.canParse, WorkDoneProgressReport.fromJson);
 
   WorkDoneProgressReport(
-      this.kind, this.cancellable, this.message, this.percentage) {
+      {@required this.kind, this.cancellable, this.message, this.percentage}) {
     if (kind == null) {
       throw 'kind is required but was not provided';
     }
@@ -24014,7 +24407,11 @@ class WorkDoneProgressReport implements ToJsonable {
     final cancellable = json['cancellable'];
     final message = json['message'];
     final percentage = json['percentage'];
-    return WorkDoneProgressReport(kind, cancellable, message, percentage);
+    return WorkDoneProgressReport(
+        kind: kind,
+        cancellable: cancellable,
+        message: message,
+        percentage: percentage);
   }
 
   /// Controls enablement state of a cancel button. This property is only valid
@@ -24139,7 +24536,7 @@ class WorkspaceEdit implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(WorkspaceEdit.canParse, WorkspaceEdit.fromJson);
 
-  WorkspaceEdit(this.changes, this.documentChanges);
+  WorkspaceEdit({this.changes, this.documentChanges});
   static WorkspaceEdit fromJson(Map<String, dynamic> json) {
     final changes = json['changes']
         ?.map((key, value) => MapEntry(
@@ -24167,7 +24564,7 @@ class WorkspaceEdit implements ToJsonable {
                 ?.cast<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>()
                 ?.toList())
             : (json['documentChanges'] == null ? null : (throw '''${json['documentChanges']} was not one of (List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>)''')));
-    return WorkspaceEdit(changes, documentChanges);
+    return WorkspaceEdit(changes: changes, documentChanges: documentChanges);
   }
 
   /// Holds changes to existing resources.
@@ -24276,7 +24673,7 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
       WorkspaceEditClientCapabilities.fromJson);
 
   WorkspaceEditClientCapabilities(
-      this.documentChanges, this.resourceOperations, this.failureHandling);
+      {this.documentChanges, this.resourceOperations, this.failureHandling});
   static WorkspaceEditClientCapabilities fromJson(Map<String, dynamic> json) {
     final documentChanges = json['documentChanges'];
     final resourceOperations = json['resourceOperations']
@@ -24288,7 +24685,9 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
         ? FailureHandlingKind.fromJson(json['failureHandling'])
         : null;
     return WorkspaceEditClientCapabilities(
-        documentChanges, resourceOperations, failureHandling);
+        documentChanges: documentChanges,
+        resourceOperations: resourceOperations,
+        failureHandling: failureHandling);
   }
 
   /// The client supports versioned document changes in `WorkspaceEdit`s
@@ -24389,7 +24788,7 @@ class WorkspaceFolder implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(WorkspaceFolder.canParse, WorkspaceFolder.fromJson);
 
-  WorkspaceFolder(this.uri, this.name) {
+  WorkspaceFolder({@required this.uri, @required this.name}) {
     if (uri == null) {
       throw 'uri is required but was not provided';
     }
@@ -24400,7 +24799,7 @@ class WorkspaceFolder implements ToJsonable {
   static WorkspaceFolder fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final name = json['name'];
-    return WorkspaceFolder(uri, name);
+    return WorkspaceFolder(uri: uri, name: name);
   }
 
   /// The name of the workspace folder. Used to refer to this workspace folder
@@ -24486,7 +24885,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
       WorkspaceFoldersChangeEvent.canParse,
       WorkspaceFoldersChangeEvent.fromJson);
 
-  WorkspaceFoldersChangeEvent(this.added, this.removed) {
+  WorkspaceFoldersChangeEvent({@required this.added, @required this.removed}) {
     if (added == null) {
       throw 'added is required but was not provided';
     }
@@ -24503,7 +24902,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
         ?.map((item) => item != null ? WorkspaceFolder.fromJson(item) : null)
         ?.cast<WorkspaceFolder>()
         ?.toList();
-    return WorkspaceFoldersChangeEvent(added, removed);
+    return WorkspaceFoldersChangeEvent(added: added, removed: removed);
   }
 
   /// The array of added workspace folders
@@ -24597,7 +24996,8 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
       WorkspaceFoldersServerCapabilities.canParse,
       WorkspaceFoldersServerCapabilities.fromJson);
 
-  WorkspaceFoldersServerCapabilities(this.supported, this.changeNotifications);
+  WorkspaceFoldersServerCapabilities(
+      {this.supported, this.changeNotifications});
   static WorkspaceFoldersServerCapabilities fromJson(
       Map<String, dynamic> json) {
     final supported = json['supported'];
@@ -24608,7 +25008,8 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
             : (json['changeNotifications'] == null
                 ? null
                 : (throw '''${json['changeNotifications']} was not one of (String, bool)''')));
-    return WorkspaceFoldersServerCapabilities(supported, changeNotifications);
+    return WorkspaceFoldersServerCapabilities(
+        supported: supported, changeNotifications: changeNotifications);
   }
 
   /// Whether the server wants to receive workspace folder change notifications.
@@ -24691,14 +25092,16 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
       WorkspaceSymbolClientCapabilities.canParse,
       WorkspaceSymbolClientCapabilities.fromJson);
 
-  WorkspaceSymbolClientCapabilities(this.dynamicRegistration, this.symbolKind);
+  WorkspaceSymbolClientCapabilities(
+      {this.dynamicRegistration, this.symbolKind});
   static WorkspaceSymbolClientCapabilities fromJson(Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final symbolKind = json['symbolKind'] != null
         ? WorkspaceSymbolClientCapabilitiesSymbolKind.fromJson(
             json['symbolKind'])
         : null;
-    return WorkspaceSymbolClientCapabilities(dynamicRegistration, symbolKind);
+    return WorkspaceSymbolClientCapabilities(
+        dynamicRegistration: dynamicRegistration, symbolKind: symbolKind);
   }
 
   /// Symbol request supports dynamic registration.
@@ -24778,14 +25181,14 @@ class WorkspaceSymbolClientCapabilitiesSymbolKind implements ToJsonable {
       WorkspaceSymbolClientCapabilitiesSymbolKind.canParse,
       WorkspaceSymbolClientCapabilitiesSymbolKind.fromJson);
 
-  WorkspaceSymbolClientCapabilitiesSymbolKind(this.valueSet);
+  WorkspaceSymbolClientCapabilitiesSymbolKind({this.valueSet});
   static WorkspaceSymbolClientCapabilitiesSymbolKind fromJson(
       Map<String, dynamic> json) {
     final valueSet = json['valueSet']
         ?.map((item) => item != null ? SymbolKind.fromJson(item) : null)
         ?.cast<SymbolKind>()
         ?.toList();
-    return WorkspaceSymbolClientCapabilitiesSymbolKind(valueSet);
+    return WorkspaceSymbolClientCapabilitiesSymbolKind(valueSet: valueSet);
   }
 
   /// The symbol kind values the client supports. When this property exists the
@@ -24852,14 +25255,14 @@ class WorkspaceSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
   static const jsonHandler = LspJsonHandler(
       WorkspaceSymbolOptions.canParse, WorkspaceSymbolOptions.fromJson);
 
-  WorkspaceSymbolOptions(this.workDoneProgress);
+  WorkspaceSymbolOptions({this.workDoneProgress});
   static WorkspaceSymbolOptions fromJson(Map<String, dynamic> json) {
     if (WorkspaceSymbolRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
       return WorkspaceSymbolRegistrationOptions.fromJson(json);
     }
     final workDoneProgress = json['workDoneProgress'];
-    return WorkspaceSymbolOptions(workDoneProgress);
+    return WorkspaceSymbolOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool workDoneProgress;
@@ -24918,7 +25321,7 @@ class WorkspaceSymbolParams
       WorkspaceSymbolParams.canParse, WorkspaceSymbolParams.fromJson);
 
   WorkspaceSymbolParams(
-      this.query, this.workDoneToken, this.partialResultToken) {
+      {@required this.query, this.workDoneToken, this.partialResultToken}) {
     if (query == null) {
       throw 'query is required but was not provided';
     }
@@ -24939,7 +25342,10 @@ class WorkspaceSymbolParams
             : (json['partialResultToken'] == null
                 ? null
                 : (throw '''${json['partialResultToken']} was not one of (num, String)''')));
-    return WorkspaceSymbolParams(query, workDoneToken, partialResultToken);
+    return WorkspaceSymbolParams(
+        query: query,
+        workDoneToken: workDoneToken,
+        partialResultToken: partialResultToken);
   }
 
   /// An optional token that a server can use to report partial results (e.g.
@@ -25044,11 +25450,12 @@ class WorkspaceSymbolRegistrationOptions
       WorkspaceSymbolRegistrationOptions.canParse,
       WorkspaceSymbolRegistrationOptions.fromJson);
 
-  WorkspaceSymbolRegistrationOptions(this.workDoneProgress);
+  WorkspaceSymbolRegistrationOptions({this.workDoneProgress});
   static WorkspaceSymbolRegistrationOptions fromJson(
       Map<String, dynamic> json) {
     final workDoneProgress = json['workDoneProgress'];
-    return WorkspaceSymbolRegistrationOptions(workDoneProgress);
+    return WorkspaceSymbolRegistrationOptions(
+        workDoneProgress: workDoneProgress);
   }
 
   final bool workDoneProgress;

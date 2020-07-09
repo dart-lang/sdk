@@ -139,7 +139,7 @@ void f() {
 
     // Send a request for a hover.
     await initialize();
-    await getHover(dotFolderFileUri, Position(0, 0));
+    await getHover(dotFolderFileUri, Position(line: 0, character: 0));
 
     // Ensure that as part of responding to getHover, diagnostics were not
     // transmitted.

@@ -258,9 +258,13 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
     return;
   }
   buffer
-    ..writeIndented('${interface.name}(')
-    ..write(allFields.map((field) => 'this.${field.name}').join(', '))
-    ..write(')');
+    ..writeIndented('${interface.name}({')
+    ..write(allFields.map((field) {
+      final annotation =
+          !field.allowsNull && !field.allowsUndefined ? '@required' : '';
+      return '$annotation this.${field.name}';
+    }).join(', '))
+    ..write('})');
   final fieldsWithValidation =
       allFields.where((f) => !f.allowsNull && !f.allowsUndefined).toList();
   if (fieldsWithValidation.isNotEmpty) {
@@ -522,7 +526,7 @@ void _writeFromJsonConstructor(
   }
   buffer
     ..writeIndented('return ${interface.nameWithTypeArgs}(')
-    ..write(allFields.map((field) => '${field.name}').join(', '))
+    ..write(allFields.map((field) => '${field.name}: ${field.name}').join(', '))
     ..writeln(');')
     ..outdent()
     ..writeIndented('}');

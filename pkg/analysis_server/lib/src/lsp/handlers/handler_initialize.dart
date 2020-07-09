@@ -64,10 +64,10 @@ class InitializeMessageHandler
     }
 
     return success(InitializeResult(
-      server.capabilities,
-      InitializeResultServerInfo(
-        'Dart SDK LSP Analysis Server',
-        sdkVersion,
+      capabilities: server.capabilities,
+      serverInfo: InitializeResultServerInfo(
+        name: 'Dart SDK LSP Analysis Server',
+        version: sdkVersion,
       ),
     ));
   }

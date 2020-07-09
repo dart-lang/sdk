@@ -29,9 +29,10 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
       await changeFile(222, mainFileUri, [
         Either2<TextDocumentContentChangeEvent1,
             TextDocumentContentChangeEvent2>.t1(TextDocumentContentChangeEvent1(
-          Range(Position(999, 999), Position(999, 999)),
-          null,
-          '   ',
+          range: Range(
+              start: Position(line: 999, character: 999),
+              end: Position(line: 999, character: 999)),
+          text: '   ',
         ))
       ]);
     });
@@ -62,9 +63,10 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
       // Replace line1:5-1:8 with spaces.
       Either2<TextDocumentContentChangeEvent1,
           TextDocumentContentChangeEvent2>.t1(TextDocumentContentChangeEvent1(
-        Range(Position(1, 5), Position(1, 8)),
-        null,
-        '   ',
+        range: Range(
+            start: Position(line: 1, character: 5),
+            end: Position(line: 1, character: 8)),
+        text: '   ',
       ))
     ]);
     expect(_getOverlay(mainFilePath), equals(expectedUpdatedContent));
@@ -79,9 +81,10 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     // ensure it generates an obvious error that the user can understand.
     final simpleEdit = Either2<TextDocumentContentChangeEvent1,
         TextDocumentContentChangeEvent2>.t1(TextDocumentContentChangeEvent1(
-      Range(Position(1, 1), Position(1, 1)),
-      null,
-      'test',
+      range: Range(
+          start: Position(line: 1, character: 1),
+          end: Position(line: 1, character: 1)),
+      text: 'test',
     ));
     await initialize();
     final notificationParams = await expectErrorNotification<ShowMessageParams>(

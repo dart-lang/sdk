@@ -17,7 +17,7 @@ ErrorOr<R> cancelled<R>([R t]) =>
     error(ErrorCodes.RequestCancelled, 'Request was cancelled', null);
 
 ErrorOr<R> error<R>(ErrorCodes code, String message, [String data]) =>
-    ErrorOr<R>.error(ResponseError(code, message, data));
+    ErrorOr<R>.error(ResponseError(code: code, message: message, data: data));
 
 ErrorOr<R> failure<R>(ErrorOr<dynamic> error) => ErrorOr<R>.error(error.error);
 

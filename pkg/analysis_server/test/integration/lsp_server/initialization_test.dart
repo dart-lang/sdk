@@ -20,10 +20,10 @@ class InitializationTest extends AbstractLspAnalysisServerIntegrationTest {
   Future<void> test_initialize_invalidParams() async {
     final params = {'processId': 'invalid'};
     final request = RequestMessage(
-      Either2<num, String>.t1(1),
-      Method.initialize,
-      params,
-      jsonRpcVersion,
+      id: Either2<num, String>.t1(1),
+      method: Method.initialize,
+      params: params,
+      jsonrpc: jsonRpcVersion,
     );
     final response = await sendRequestToServer(request);
     expect(response.id, equals(request.id));

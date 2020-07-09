@@ -33,11 +33,11 @@ class LspNotificationManager extends AbstractNotificationManager {
         .toList();
 
     final params = PublishDiagnosticsParams(
-        Uri.file(filePath).toString(), null, diagnostics);
+        uri: Uri.file(filePath).toString(), diagnostics: diagnostics);
     final message = NotificationMessage(
-      Method.textDocument_publishDiagnostics,
-      params,
-      jsonRpcVersion,
+      method: Method.textDocument_publishDiagnostics,
+      params: params,
+      jsonrpc: jsonRpcVersion,
     );
 
     channel.sendNotification(message);

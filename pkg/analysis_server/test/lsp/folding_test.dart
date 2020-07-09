@@ -28,11 +28,10 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     final range1 = rangeFromMarkers(content);
     final expectedRegions = [
       FoldingRange(
-        range1.start.line,
-        range1.start.character,
-        range1.end.line,
-        range1.end.character,
-        null,
+        startLine: range1.start.line,
+        startCharacter: range1.start.character,
+        endLine: range1.end.line,
+        endCharacter: range1.end.character,
       )
     ];
 
@@ -53,11 +52,11 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     final range1 = rangeFromMarkers(content);
     final expectedRegions = [
       FoldingRange(
-        range1.start.line,
-        range1.start.character,
-        range1.end.line,
-        range1.end.character,
-        FoldingRangeKind.Comment,
+        startLine: range1.start.line,
+        startCharacter: range1.start.character,
+        endLine: range1.end.line,
+        endCharacter: range1.end.character,
+        kind: FoldingRangeKind.Comment,
       )
     ];
 
@@ -91,11 +90,10 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     final ranges = rangesFromMarkers(content);
     final expectedRegions = ranges
         .map((range) => FoldingRange(
-              range.start.line,
-              range.start.character,
-              range.end.line,
-              range.end.character,
-              null,
+              startLine: range.start.line,
+              startCharacter: range.start.character,
+              endLine: range.end.line,
+              endCharacter: range.end.character,
             ))
         .toList();
 
@@ -219,11 +217,10 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     final ranges = rangesFromMarkers(content);
     final expectedRegions = ranges
         .map((range) => FoldingRange(
-              range.start.line,
-              range.start.character,
-              range.end.line,
-              range.end.character,
-              null,
+              startLine: range.start.line,
+              startCharacter: range.start.character,
+              endLine: range.end.line,
+              endCharacter: range.end.character,
             ))
         .toList();
 
@@ -265,11 +262,10 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     final ranges = rangesFromMarkers(content);
     final expectedRegions = ranges
         .map((range) => FoldingRange(
-              range.start.line,
-              range.start.character,
-              range.end.line,
-              range.end.character,
-              null,
+              startLine: range.start.line,
+              startCharacter: range.start.character,
+              endLine: range.end.line,
+              endCharacter: range.end.character,
             ))
         .toList();
 
@@ -282,11 +278,11 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
   FoldingRange _toFoldingRange(Range range, FoldingRangeKind kind) {
     return FoldingRange(
-      range.start.line,
-      range.start.character,
-      range.end.line,
-      range.end.character,
-      kind,
+      startLine: range.start.line,
+      startCharacter: range.start.character,
+      endLine: range.end.line,
+      endCharacter: range.end.character,
+      kind: kind,
     );
   }
 }

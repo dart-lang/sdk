@@ -91,8 +91,9 @@ List<TextEdit> generateEditsForFormatting(String unformattedSource) {
   final end = lineInfo.getLocation(unformattedSource.length);
   return [
     TextEdit(
-      Range(Position(0, 0), toPosition(end)),
-      formattedSource,
+      range:
+          Range(start: Position(line: 0, character: 0), end: toPosition(end)),
+      newText: formattedSource,
     )
   ];
 }

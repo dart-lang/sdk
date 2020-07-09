@@ -32,15 +32,17 @@ class Bar {
     await changeFile(2, mainFileUri, [
       Either2<TextDocumentContentChangeEvent1,
           TextDocumentContentChangeEvent2>.t1(TextDocumentContentChangeEvent1(
-        Range(Position(0, 6), Position(0, 9)),
-        0,
-        'Bar',
+        range: Range(
+            start: Position(line: 0, character: 6),
+            end: Position(line: 0, character: 9)),
+        text: 'Bar',
       )),
       Either2<TextDocumentContentChangeEvent1,
           TextDocumentContentChangeEvent2>.t1(TextDocumentContentChangeEvent1(
-        Range(Position(1, 21), Position(1, 24)),
-        0,
-        'updated',
+        range: Range(
+            start: Position(line: 1, character: 21),
+            end: Position(line: 1, character: 24)),
+        text: 'updated',
       )),
     ]);
 
@@ -58,15 +60,17 @@ class Bar {
     await changeFile(2, mainFileUri, [
       Either2<TextDocumentContentChangeEvent1,
           TextDocumentContentChangeEvent2>.t1(TextDocumentContentChangeEvent1(
-        Range(Position(0, 6), Position(0, 9)),
-        0,
-        'Bar',
+        range: Range(
+            start: Position(line: 0, character: 6),
+            end: Position(line: 0, character: 9)),
+        text: 'Bar',
       )),
       Either2<TextDocumentContentChangeEvent1,
           TextDocumentContentChangeEvent2>.t1(TextDocumentContentChangeEvent1(
-        Range(Position(1, 21), Position(1, 24)),
-        0,
-        'updated',
+        range: Range(
+            start: Position(line: 1, character: 21),
+            end: Position(line: 1, character: 24)),
+        text: 'updated',
       )),
     ]);
 

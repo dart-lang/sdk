@@ -33,9 +33,9 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
         (arguments[5] != null && arguments[5] is! Map<String, dynamic>)) {
       // length
       return ErrorOr.error(ResponseError(
-        ServerErrorCodes.InvalidCommandArguments,
-        '$commandName requires 6 parameters: RefactoringKind, docVersion, filePath, offset, length, options (optional)',
-        null,
+        code: ServerErrorCodes.InvalidCommandArguments,
+        message:
+            '$commandName requires 6 parameters: RefactoringKind, docVersion, filePath, offset, length, options (optional)',
       ));
     }
 

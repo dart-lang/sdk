@@ -21,9 +21,9 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
   Future<ErrorOr<void>> handle(List<dynamic> arguments) async {
     if (arguments == null || arguments.length != 1 || arguments[0] is! String) {
       return ErrorOr.error(ResponseError(
-        ServerErrorCodes.InvalidCommandArguments,
-        '$commandName requires a single String parameter containing the path of a Dart file',
-        null,
+        code: ServerErrorCodes.InvalidCommandArguments,
+        message:
+            '$commandName requires a single String parameter containing the path of a Dart file',
       ));
     }
 
@@ -37,9 +37,8 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
     final result = await driver?.parseFile(path);
     if (result == null) {
       return ErrorOr.error(ResponseError(
-        ServerErrorCodes.FileNotAnalyzed,
-        '$commandName is only available for analyzed files',
-        null,
+        code: ServerErrorCodes.FileNotAnalyzed,
+        message: '$commandName is only available for analyzed files',
       ));
     }
     final code = result.content;
@@ -47,9 +46,10 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
 
     if (hasScanParseErrors(result.errors)) {
       return ErrorOr.error(ResponseError(
-        ServerErrorCodes.FileHasErrors,
-        'Unable to $commandName because the file contains parse errors',
-        path,
+        code: ServerErrorCodes.FileHasErrors,
+        message:
+            'Unable to $commandName because the file contains parse errors',
+        data: path,
       ));
     }
 

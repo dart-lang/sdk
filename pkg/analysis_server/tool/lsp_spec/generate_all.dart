@@ -176,6 +176,7 @@ import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart'
     show listEqual, mapEqual;
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:meta/meta.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
