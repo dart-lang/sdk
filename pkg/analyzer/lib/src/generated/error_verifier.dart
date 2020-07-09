@@ -1155,6 +1155,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitTypeName(TypeName node) {
     _typeArgumentsVerifier.checkTypeName(node);
+    _checkForTypeNamePrefixShadowedByLocal(node);
     super.visitTypeName(node);
   }
 
@@ -4085,6 +4086,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (type is TypeName && type.isDeferred) {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS, type, [type.name]);
+    }
+  }
+
+  void _checkForTypeNamePrefixShadowedByLocal(TypeName node) {
+    var name = node.name;
+    if (name is PrefixedIdentifier &&
+        name.staticElement is TypeDefiningElement) {
+      var prefix = name.prefix;
+      var prefixElement = prefix.staticElement;
+      if (prefixElement != null && prefixElement is! PrefixElement) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION,
+            prefix,
+            [prefix.name]);
+      }
     }
   }
 

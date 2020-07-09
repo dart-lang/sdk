@@ -11,6 +11,8 @@ import "../library10.dart" as lib10;
 class P<T> {
   test() {
     new T.Library10(10);
+    //  ^
+    // [analyzer] COMPILE_TIME_ERROR.PREFIX_SHADOWED_BY_LOCAL_DECLARATION
     //    ^
     // [cfe] Method not found: 'T.Library10'.
   }

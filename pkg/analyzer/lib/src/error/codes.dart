@@ -5590,6 +5590,24 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
+   * From the `Static Types` section of the spec:
+   *
+   *     A type T is malformed if:
+   *     - T has the form id or the form prefix.id, and in the enclosing lexical
+   *       scope, the name id (respectively prefix.id) does not denote a type.
+   *
+   * In particular, this means that if an import prefix is shadowed by a local
+   * declaration, it is an error to try to use it as a prefix for a type name.
+   */
+  static const CompileTimeErrorCode PREFIX_SHADOWED_BY_LOCAL_DECLARATION =
+      CompileTimeErrorCode(
+          'PREFIX_SHADOWED_BY_LOCAL_DECLARATION',
+          "The prefix '{0}' can't be used here because it is shadowed by a "
+              "local declaration.",
+          correction:
+              "Try renaming either the prefix or the local declaration.");
+
+  /**
    * It is an error for a mixin to add a private name that conflicts with a
    * private name added by a superclass or another mixin.
    */

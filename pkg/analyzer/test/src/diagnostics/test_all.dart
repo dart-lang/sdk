@@ -394,6 +394,8 @@ import 'prefix_collides_with_top_level_member_test.dart'
     as prefix_collides_with_top_level_member;
 import 'prefix_identifier_not_followed_by_dot_test.dart'
     as prefix_identifier_not_followed_by_dot;
+import 'prefix_shadowed_by_local_declaration_test.dart'
+    as prefix_shadowed_by_local_declaration;
 import 'private_collision_in_mixin_application_test.dart'
     as private_collision_in_mixin_application;
 import 'private_optional_parameter_test.dart' as private_optional_parameter;
@@ -804,6 +806,7 @@ main() {
     part_of_non_part.main();
     prefix_collides_with_top_level_member.main();
     prefix_identifier_not_followed_by_dot.main();
+    prefix_shadowed_by_local_declaration.main();
     private_collision_in_mixin_application.main();
     private_optional_parameter.main();
     private_setter.main();
