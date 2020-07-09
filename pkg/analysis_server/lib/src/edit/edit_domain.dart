@@ -9,6 +9,7 @@ import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
+import 'package:analyzer/src/exception/exception.dart';
 import 'package:analysis_server/src/computer/import_elements_computer.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/edit/edit_dartfix.dart' show EditDartFix;
@@ -41,8 +42,6 @@ import 'package:analyzer/file_system/file_system.dart';
 // ignore: deprecated_member_use
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/analysis/library_context.dart'
-    show LibraryCycleLinkException;
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
@@ -619,8 +618,7 @@ offset: $offset
 error: $error
 error.errorCode: ${error.errorCode}
 ''';
-            // TODO(scheglov) Use CaughtExceptionWithFiles when patch changed.
-            throw LibraryCycleLinkException(exception, stackTrace, {
+            throw CaughtExceptionWithFiles(exception, stackTrace, {
               file: result.content,
               'parameters': parametersFile,
             });
