@@ -5608,6 +5608,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('PRIVATE_OPTIONAL_PARAMETER',
           "Named optional parameters can't start with an underscore.");
 
+  static const CompileTimeErrorCode PRIVATE_SETTER = CompileTimeErrorCode(
+      'PRIVATE_SETTER',
+      "The setter '{0}' is private and can't be accessed outside of the "
+          "library that declares it.",
+      correction: "Try making it public.");
+
   /**
    * 12.1 Constants: It is a compile-time error if the value of a compile-time
    * constant expression depends on itself.

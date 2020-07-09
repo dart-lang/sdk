@@ -1334,8 +1334,15 @@ class ElementResolver extends SimpleAstVisitor<void> {
         ExecutableElement element;
 
         var setter = typeReference.getSetter(propertyName.name);
-        if (setter != null && setter.isAccessibleIn(_definingLibrary)) {
+        if (setter != null) {
           element = setter;
+          if (!setter.isAccessibleIn(_definingLibrary)) {
+            _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.PRIVATE_SETTER,
+              propertyName,
+              [propertyName.name, typeReference.name],
+            );
+          }
         }
 
         if (element != null) {

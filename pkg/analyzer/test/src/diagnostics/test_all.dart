@@ -397,6 +397,7 @@ import 'prefix_identifier_not_followed_by_dot_test.dart'
 import 'private_collision_in_mixin_application_test.dart'
     as private_collision_in_mixin_application;
 import 'private_optional_parameter_test.dart' as private_optional_parameter;
+import 'private_setter_test.dart' as private_setter;
 import 'receiver_of_type_never_test.dart' as receiver_of_type_never;
 import 'recursive_compile_time_constant_test.dart'
     as recursive_compile_time_constant;
@@ -805,6 +806,7 @@ main() {
     prefix_identifier_not_followed_by_dot.main();
     private_collision_in_mixin_application.main();
     private_optional_parameter.main();
+    private_setter.main();
     receiver_of_type_never.main();
     recursive_compile_time_constant.main();
     recursive_constructor_redirect.main();
