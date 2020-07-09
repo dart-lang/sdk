@@ -622,25 +622,15 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
         ASSERT(STRING_STARTS_WITH(format, "sz"));
         const int sz = instr->SzField();
         char const* sz_str;
-        bool signed_extend_required = instr->Bits(23, 1) == 1;
         switch (sz) {
           case 0:
-            if (signed_extend_required)
-              sz_str = "sb";
-            else
-              sz_str = "b";
+            sz_str = "b";
             break;
           case 1:
-            if (signed_extend_required)
-              sz_str = "sh";
-            else
-              sz_str = "h";
+            sz_str = "h";
             break;
           case 2:
-            if (signed_extend_required)
-              sz_str = "sw";
-            else
-              sz_str = "w";
+            sz_str = "w";
             break;
           case 3:
             sz_str = "x";
@@ -721,6 +711,8 @@ void ARM64Decoder::DecodeLoadStoreReg(Instr* instr) {
     // Integer src/dst.
     if (instr->Bits(22, 2) == 0) {
       Format(instr, "str'sz 'rt, 'memop");
+    } else if (instr->Bits(23, 1) == 1) {
+      Format(instr, "ldrs'sz 'rt, 'memop");
     } else {
       Format(instr, "ldr'sz 'rt, 'memop");
     }
