@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0
+
+- `compare` command now prints difference breakdown by node type when this
+information is available.
+
 ## 0.4.0
 
 - Add `buildComparisonTreemap` for constructing treemap representing the diff

@@ -144,9 +144,32 @@ precisely based on their source position (which is included in their name).
     print('Comparing ${oldJson.path} (old) to ${newJson.path} (new)');
     print('Old   : ${totalOld} bytes.');
     print('New   : ${totalNew} bytes.');
-    print('Change: ${totalDiff > 0 ? '+' : ''}${totalDiff} bytes.');
+    print('Change: ${totalDiff > 0 ? '+' : ''}${totalDiff}'
+        ' (${formatPercent(totalDiff, totalOld, withSign: true)}) bytes.');
 
     if (oldSizes.snapshotInfo != null) {
+      print(bucketLegend);
+      print('\nBreakdown by object type:');
+      final oldTypeHistogram =
+          computeHistogram(oldSizes, HistogramType.byNodeType);
+      final newTypeHistogram =
+          computeHistogram(newSizes, HistogramType.byNodeType);
+
+      final diffTypeHistogram = Histogram.fromIterable(
+          Set<String>()
+            ..addAll(oldTypeHistogram.buckets.keys)
+            ..addAll(newTypeHistogram.buckets.keys),
+          sizeOf: (bucket) =>
+              (newTypeHistogram.buckets[bucket] ?? 0) -
+              (oldTypeHistogram.buckets[bucket] ?? 0),
+          bucketFor: (bucket) => bucket,
+          bucketInfo: oldTypeHistogram.bucketInfo);
+
+      printHistogram(oldSizes, diffTypeHistogram,
+          prefix: diffTypeHistogram.bySize
+              .where((bucket) => diffTypeHistogram.buckets[bucket] != 0),
+          maxWidth: maxWidth);
+
       print(bucketLegend);
     }
   }

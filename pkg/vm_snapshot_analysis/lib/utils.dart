@@ -47,6 +47,12 @@ Future<Map<String, dynamic>> buildComparisonTreemap(File oldJson, File newJson,
   return treemapFromInfo(diff, format: format);
 }
 
+String formatPercent(int value, int total, {bool withSign = false}) {
+  final p = value / total * 100.0;
+  final sign = (withSign && value > 0) ? '+' : '';
+  return '${sign}${p.toStringAsFixed(2)}%';
+}
+
 void printHistogram(ProgramInfo info, Histogram histogram,
     {Iterable<String> prefix = const [],
     Iterable<String> suffix = const [],
@@ -61,10 +67,14 @@ void printHistogram(ProgramInfo info, Histogram histogram,
     if (wasFiltered) Text.right('Of total'),
   ], maxWidth: maxWidth);
 
-  String formatPercent(int value, int total) {
-    final p = value / total * 100.0;
-    return p.toStringAsFixed(2) + "%";
-  }
+  final visibleRows = [prefix, suffix].expand((l) => l).toList();
+  final visibleSize =
+      visibleRows.fold(0, (sum, key) => sum + histogram.buckets[key]);
+  final numRestRows = histogram.length - (suffix.length + prefix.length);
+  final hiddenRows = Set<String>.from(histogram.bySize)
+      .difference(Set<String>.from(visibleRows));
+  final interestingHiddenRows =
+      hiddenRows.any((k) => histogram.buckets[k] != 0);
 
   if (prefix.isNotEmpty) {
     for (var key in prefix) {
@@ -76,15 +86,10 @@ void printHistogram(ProgramInfo info, Histogram histogram,
         if (wasFiltered) formatPercent(size, totalSize),
       ]);
     }
-    table.addSeparator(
-        prefix.length < histogram.length ? Separator.Wave : Separator.Line);
+    table.addSeparator(interestingHiddenRows ? Separator.Wave : Separator.Line);
   }
 
-  final visibleSize = [prefix, suffix]
-      .expand((l) => l)
-      .fold(0, (sum, key) => sum + histogram.buckets[key]);
-  final numRestRows = histogram.length - (suffix.length + prefix.length);
-  if (numRestRows > 0) {
+  if (interestingHiddenRows) {
     final totalRestBytes = histogram.totalSize - visibleSize;
     table.addTextSeparator(
         '$numRestRows more rows accounting for ${totalRestBytes}'
