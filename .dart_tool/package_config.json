@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-06-29T11:21:54.984521",
+  "generated": "2020-07-09T13:10:41.742079",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -83,7 +83,7 @@
       "name": "bazel_worker",
       "rootUri": "../third_party/pkg/bazel_worker",
       "packageUri": "lib/",
-      "languageVersion": "2.1"
+      "languageVersion": "2.3"
     },
     {
       "name": "benchmark_harness",
@@ -663,6 +663,12 @@
       "rootUri": "../third_party/pkg/usage",
       "packageUri": "lib/",
       "languageVersion": "2.0"
+    },
+    {
+      "name": "vector_math",
+      "rootUri": "../third_party/pkg/vector_math",
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
     },
     {
       "name": "vm",

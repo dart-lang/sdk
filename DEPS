@@ -154,6 +154,7 @@ vars = {
   "tflite_native_rev": "3c777c40608a2a9f1427bfe0028ab48e7116b4c1",
   "typed_data_tag": "0c369b73a9b7ebf042c06512951bfe5b52b84a5f",
   "usage_tag": "3.4.0",
+  "vector_math_rev": "90631fbb609f61d42f28621253c0ec9fc6a326d2",
   "watcher_rev": "fc3c9aae5d31d707b3013b42634dde8d8a1161b4",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "490061ef0e22d3c8460ad2802f9948219365ad6b",
@@ -434,6 +435,9 @@ deps = {
       Var("dart_git") + "typed_data.git" + "@" + Var("typed_data_tag"),
   Var("dart_root") + "/third_party/pkg/usage":
       Var("dart_git") + "usage.git" + "@" + Var("usage_tag"),
+  Var("dart_root") + "/third_party/pkg/vector_math":
+      Var("dart_git") + "external/github.com/google/vector_math.dart.git" +
+      "@" + Var("vector_math_rev"),
   Var("dart_root") + "/third_party/pkg/watcher":
       Var("dart_git") + "watcher.git" + "@" + Var("watcher_rev"),
   Var("dart_root") + "/third_party/pkg/web_components":

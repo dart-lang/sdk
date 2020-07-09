@@ -110,6 +110,7 @@ testing:pkg/testing/lib
 tflite_native:third_party/pkg/tflite_native/lib
 typed_data:third_party/pkg/typed_data/lib
 usage:third_party/pkg/usage/lib
+vector_math:third_party/pkg/vector_math/lib
 vm:pkg/vm/lib
 vm_service:pkg/vm_service/lib
 vm_snapshot_analysis:pkg/vm_snapshot_analysis/lib
