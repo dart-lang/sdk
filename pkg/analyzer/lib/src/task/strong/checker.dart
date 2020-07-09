@@ -174,7 +174,7 @@ class CodeChecker extends RecursiveAstVisitor {
       checkAssignment(element.expression, expressionCastType);
 
       var exprType = element.expression.staticType;
-      var asIterableType = exprType is InterfaceTypeImpl
+      var asIterableType = exprType is InterfaceType
           ? exprType.asInstanceOf(typeProvider.iterableElement)
           : null;
       var elementType =
@@ -213,7 +213,7 @@ class CodeChecker extends RecursiveAstVisitor {
       checkAssignment(element.expression, expressionCastType);
 
       var exprType = element.expression.staticType;
-      var asMapType = exprType is InterfaceTypeImpl
+      var asMapType = exprType is InterfaceType
           ? exprType.asInstanceOf(typeProvider.mapElement)
           : null;
 
@@ -845,7 +845,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
   DartType _getInstanceTypeArgument(
       DartType expressionType, ClassElement instanceType) {
-    if (expressionType is InterfaceTypeImpl) {
+    if (expressionType is InterfaceType) {
       var asInstanceType = expressionType.asInstanceOf(instanceType);
       if (asInstanceType != null) {
         return asInstanceType.typeArguments[0];

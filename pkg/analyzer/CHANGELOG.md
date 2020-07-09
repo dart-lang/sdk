@@ -3,6 +3,7 @@
 * Added `DynamicType`, `NeverType`, and `VoidType` interfaces.
 * Added `TypeVisitor` and `DartType.accept(TypeVisitor)`.
 * Changed `ConstructorElement.returnType` to `InterfaceType`.
+* Added `InterfaceType.asInstanceOf(ClassElement)`.
 
 ## 0.39.12
 * Deprecated `canUseSummaries` in `DartSdkManager` constructor.

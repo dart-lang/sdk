@@ -295,6 +295,20 @@ abstract class InterfaceType implements ParameterizedType {
   /// represent a mixin declaration.
   List<InterfaceType> get superclassConstraints;
 
+  /// Return the canonical interface that this type implements for [element],
+  /// or `null` if such an interface does not exist.
+  ///
+  /// For example, given the following definitions
+  /// ```
+  /// class A<E> {}
+  /// class B<E> implements A<E> {}
+  /// class C implements A<String> {}
+  /// ```
+  /// Asking the type `B<int>` for the type associated with `A` will return the
+  /// type `A<int>`. Asking the type `C` for the type associated with `A` will
+  /// return the type `A<String>`.
+  InterfaceType asInstanceOf(ClassElement element);
+
   /// Return the element representing the getter with the given [name] that is
   /// declared in this class, or `null` if this class does not declare a getter
   /// with the given name.

@@ -2228,7 +2228,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     DartType sequenceElementType;
-    if (iterableType is InterfaceTypeImpl) {
+    if (iterableType is InterfaceType) {
       var sequenceElement = awaitKeyword != null
           ? _typeProvider.streamElement
           : _typeProvider.iterableElement;

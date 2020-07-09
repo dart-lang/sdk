@@ -178,7 +178,7 @@ class TypedLiteralResolver {
       var expressionType = element.expression.staticType;
       if (expressionType.isDynamic) {
         return expressionType;
-      } else if (expressionType is InterfaceTypeImpl) {
+      } else if (expressionType is InterfaceType) {
         if (expressionType.isDartCoreNull) {
           if (element.isNullAware) {
             return expressionType;
@@ -336,16 +336,16 @@ class TypedLiteralResolver {
       if (!isNull && expressionType is InterfaceType) {
         if (_typeSystem.isSubtypeOf2(
             expressionType, _typeProvider.iterableForSetMapDisambiguation)) {
-          InterfaceType iterableType = (expressionType as InterfaceTypeImpl)
-              .asInstanceOf(_typeProvider.iterableElement);
+          InterfaceType iterableType =
+              expressionType.asInstanceOf(_typeProvider.iterableElement);
           return _InferredCollectionElementTypeInformation(
               elementType: iterableType.typeArguments[0],
               keyType: null,
               valueType: null);
         } else if (_typeSystem.isSubtypeOf2(
             expressionType, _typeProvider.mapForSetMapDisambiguation)) {
-          InterfaceType mapType = (expressionType as InterfaceTypeImpl)
-              .asInstanceOf(_typeProvider.mapElement);
+          InterfaceType mapType =
+              expressionType.asInstanceOf(_typeProvider.mapElement);
           List<DartType> typeArguments = mapType.typeArguments;
           return _InferredCollectionElementTypeInformation(
               elementType: null,

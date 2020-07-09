@@ -894,20 +894,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     builder.writeInterfaceType(this);
   }
 
-  /// Return either this type or a supertype of this type that is defined by the
-  /// [targetElement], or `null` if such a type does not exist. If this type
-  /// inherits from the target element along multiple paths, then the returned
-  /// type is arbitrary.
-  ///
-  /// For example, given the following definitions
-  /// ```
-  /// class A<E> {}
-  /// class B<E> implements A<E> {}
-  /// class C implements A<String> {}
-  /// ```
-  /// Asking the type `B<int>` for the type associated with `A` will return the
-  /// type `A<int>`. Asking the type `C` for the type associated with `A` will
-  /// return the type `A<String>`.
+  @override
   InterfaceType asInstanceOf(ClassElement targetElement) {
     if (element == targetElement) {
       return this;

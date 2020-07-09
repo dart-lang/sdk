@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 
@@ -145,7 +144,7 @@ class LiteralElementVerifier {
     expressionType = typeSystem.resolveToBound(expressionType);
 
     InterfaceType iterableType;
-    if (expressionType is InterfaceTypeImpl) {
+    if (expressionType is InterfaceType) {
       iterableType = expressionType.asInstanceOf(typeProvider.iterableElement);
     }
 
@@ -188,7 +187,7 @@ class LiteralElementVerifier {
     expressionType = typeSystem.resolveToBound(expressionType);
 
     InterfaceType mapType;
-    if (expressionType is InterfaceTypeImpl) {
+    if (expressionType is InterfaceType) {
       mapType = expressionType.asInstanceOf(typeProvider.mapElement);
     }
 

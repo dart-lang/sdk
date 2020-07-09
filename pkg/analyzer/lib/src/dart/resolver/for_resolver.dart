@@ -58,7 +58,7 @@ class ForResolver {
         ? _resolver.typeProvider.streamElement
         : _resolver.typeProvider.iterableElement;
 
-    InterfaceType iteratedType = iterableType is InterfaceTypeImpl
+    InterfaceType iteratedType = iterableType is InterfaceType
         ? iterableType.asInstanceOf(iteratedElement)
         : null;
 

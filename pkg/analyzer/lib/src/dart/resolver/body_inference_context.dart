@@ -138,7 +138,7 @@ class BodyInferenceContext {
   }
 
   static DartType _argumentOf(DartType type, ClassElement element) {
-    if (type is InterfaceTypeImpl) {
+    if (type is InterfaceType) {
       var elementType = type.asInstanceOf(element);
       if (elementType != null) {
         return elementType.typeArguments[0];
