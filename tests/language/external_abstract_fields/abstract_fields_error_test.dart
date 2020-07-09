@@ -60,9 +60,9 @@ abstract class Abstract2 {
   }
 }
 
-class Concrete2 implements Abstract2 {
-  final int x;
-  String y;
+class Concrete2 extends Abstract2 {
+  final int x = 0;
+  String y = '';
 }
 
 void main() {
