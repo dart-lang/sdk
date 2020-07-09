@@ -88,15 +88,20 @@ DEFINE_FLAG_HANDLER(DeterministicModeHandler,
                     deterministic,
                     "Enable deterministic mode.");
 
-int FLAG_null_safety = kNullSafetyOptionUnspecified;
-static void NullSafetyHandler(bool value) {
-  FLAG_null_safety = value ? kNullSafetyOptionStrong : kNullSafetyOptionWeak;
+int FLAG_sound_null_safety = kNullSafetyOptionUnspecified;
+static void SoundNullSafetyHandler(bool value) {
+  FLAG_sound_null_safety =
+      value ? kNullSafetyOptionStrong : kNullSafetyOptionWeak;
 }
 
-DEFINE_FLAG_HANDLER(
-    NullSafetyHandler,
-    null_safety,
-    "Respect the nullability of types in casts and instance checks.");
+DEFINE_FLAG_HANDLER(SoundNullSafetyHandler,
+                    sound_null_safety,
+                    "Respect the nullability of types at runtime.");
+
+// TODO(alexmarkov) Remove obsolete --null-safety option.
+DEFINE_FLAG_HANDLER(SoundNullSafetyHandler,
+                    null_safety,
+                    "Respect the nullability of types at runtime.");
 
 DEFINE_FLAG(bool,
             disable_thread_pool_limit,

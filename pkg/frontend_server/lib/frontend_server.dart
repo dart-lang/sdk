@@ -154,9 +154,12 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       help: 'Include only bytecode into the output file', defaultsTo: true)
   ..addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false)
+  ..addFlag('sound-null-safety',
+      help: 'Respect the nullability of types at runtime.', defaultsTo: null)
+  // TODO(alexmarkov) Remove obsolete --null-safety option.
   ..addFlag('null-safety',
-      help:
-          'Respect the nullability of types at runtime in casts and instance checks.',
+      help: 'Deprecated. Please use --sound-null-safety instead.',
+      hide: true,
       defaultsTo: null)
   ..addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features, eg set-literals.',
@@ -407,6 +410,8 @@ class FrontendCompiler implements CompilerInterface {
     final String platformKernelDill =
         options['platform'] ?? 'platform_strong.dill';
     final String packagesOption = _options['packages'];
+    final bool nullSafety =
+        _options['sound-null-safety'] ?? _options['null-safety'];
     final CompilerOptions compilerOptions = CompilerOptions()
       ..sdkRoot = sdkRoot
       ..fileSystem = _fileSystem
@@ -418,8 +423,7 @@ class FrontendCompiler implements CompilerInterface {
       ..experimentalFlags = parseExperimentalFlags(
           parseExperimentalArguments(options['enable-experiment']),
           onError: (msg) => errors.add(msg))
-      ..nnbdMode =
-          (options['null-safety'] == true) ? NnbdMode.Strong : NnbdMode.Weak
+      ..nnbdMode = (nullSafety == true) ? NnbdMode.Strong : NnbdMode.Weak
       ..onDiagnostic = _onDiagnostic;
 
     if (options.wasParsed('libraries-spec')) {
@@ -469,7 +473,7 @@ class FrontendCompiler implements CompilerInterface {
       }
     }
 
-    if (options['null-safety'] == null &&
+    if (nullSafety == null &&
         compilerOptions.experimentalFlags[ExperimentalFlag.nonNullable]) {
       await autoDetectNullSafetyMode(_mainSource, compilerOptions);
     }

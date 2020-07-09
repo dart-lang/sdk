@@ -5335,7 +5335,7 @@ TEST_CASE(DartAPI_NewListOf) {
     EXPECT_STREQ("null", str);
   } else {
     EXPECT_ERROR(string_list,
-                 "Cannot use legacy types with --null-safety enabled. "
+                 "Cannot use legacy types with --sound-null-safety enabled. "
                  "Use Dart_NewListOfType or Dart_NewListOfTypeFilled instead.");
   }
 
@@ -5356,7 +5356,7 @@ TEST_CASE(DartAPI_NewListOf) {
     EXPECT_STREQ("null", str);
   } else {
     EXPECT_ERROR(int_list,
-                 "Cannot use legacy types with --null-safety enabled. "
+                 "Cannot use legacy types with --sound-null-safety enabled. "
                  "Use Dart_NewListOfType or Dart_NewListOfTypeFilled instead.");
   }
 }
@@ -6222,7 +6222,7 @@ TEST_CASE(DartAPI_TypeToNullability) {
   if (Dart_IsError(type)) {
     EXPECT_ERROR(
         type,
-        "Cannot use legacy types with --null-safety enabled. "
+        "Cannot use legacy types with --sound-null-safety enabled. "
         "Use Dart_GetNullableType or Dart_GetNonNullableType instead.");
 
     nonNullableType = Dart_GetNonNullableType(lib, name, 0, nullptr);

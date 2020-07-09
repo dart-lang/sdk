@@ -711,11 +711,11 @@
           "non-nullable"
         ],
 	"gen-kernel-options": [
-          "--no-null-safety"
+          "--no-sound-null-safety"
         ],
         "enable-asserts": true,
 	"vm-options": [
-          "--no-null-safety"
+          "--no-sound-null-safety"
         ],
         "builder-tag": "vm_nnbd"
       }
@@ -726,12 +726,12 @@
           "non-nullable"
         ],
 	"gen-kernel-options": [
-          "--no-null-safety"
+          "--no-sound-null-safety"
         ],
         "enable-asserts": true,
         "use-elf": true,
 	"vm-options": [
-          "--no-null-safety"
+          "--no-sound-null-safety"
         ],
         "builder-tag": "vm_nnbd"
       }
@@ -743,7 +743,7 @@
         ],
         "enable-asserts": true,
 	"vm-options": [
-          "--no-null-safety"
+          "--no-sound-null-safety"
         ],
         "builder-tag": "vm_nnbd"
       }
@@ -754,7 +754,7 @@
           "non-nullable"
         ],
         "vm-options": [
-          "--null-safety"
+          "--sound-null-safety"
         ],
         "builder-tag": "vm_nnbd"
       }
@@ -765,10 +765,10 @@
           "non-nullable"
         ],
         "gen-kernel-options": [
-          "--null-safety"
+          "--sound-null-safety"
         ],
         "vm-options": [
-          "--null-safety"
+          "--sound-null-safety"
         ],
         "builder-tag": "vm_nnbd"
       }
@@ -780,10 +780,10 @@
           "non-nullable"
         ],
         "gen-kernel-options": [
-          "--null-safety"
+          "--sound-null-safety"
         ],
         "vm-options": [
-          "--null-safety"
+          "--sound-null-safety"
         ],
         "builder-tag": "vm_nnbd"
       }

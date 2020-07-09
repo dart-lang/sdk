@@ -20,8 +20,8 @@ Future<void> runSplitAOTKernelGenerationTest(Uri testScriptUri) async {
     final extraGenKernelOptions = Platform.executableArguments
         .where((arg) =>
             arg.startsWith('--enable-experiment=') ||
-            arg == '--null-safety' ||
-            arg == '--no-null-safety')
+            arg == '--sound-null-safety' ||
+            arg == '--no-sound-null-safety')
         .toList();
 
     await runGenKernel('BUILD INTERMEDIATE DILL FILE', [

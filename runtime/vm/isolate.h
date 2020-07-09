@@ -99,7 +99,7 @@ class WeakTable;
 constexpr int kNullSafetyOptionUnspecified = 0;
 constexpr int kNullSafetyOptionWeak = 1;
 constexpr int kNullSafetyOptionStrong = 2;
-extern int FLAG_null_safety;
+extern int FLAG_sound_null_safety;
 
 class PendingLazyDeopt {
  public:

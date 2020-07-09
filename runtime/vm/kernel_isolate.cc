@@ -777,7 +777,7 @@ class KernelCompilationRequest : public ValueObject {
     null_safety.value.as_int32 =
         (isolate != NULL) ? (isolate->null_safety() ? kNullSafetyOptionStrong
                                                     : kNullSafetyOptionWeak)
-                          : FLAG_null_safety;
+                          : FLAG_sound_null_safety;
 
     intptr_t num_experimental_flags = experimental_flags->length();
     Dart_CObject** experimental_flags_array =

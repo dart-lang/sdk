@@ -1045,15 +1045,17 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
       library_helper.GetNonNullableByDefaultCompiledMode();
   if (!I->null_safety() && mode == NNBDCompiledMode::kStrong) {
     H.ReportError(
-        "Library '%s' was compiled with null safety (in strong mode) and it "
-        "requires --null-safety option at runtime",
+        "Library '%s' was compiled with sound null safety (in strong mode) and "
+        "it "
+        "requires --sound-null-safety option at runtime",
         String::Handle(library.url()).ToCString());
   }
   if (I->null_safety() && (mode == NNBDCompiledMode::kWeak ||
                            mode == NNBDCompiledMode::kDisabled)) {
     H.ReportError(
-        "Library '%s' was compiled without null safety (in weak mode) and it "
-        "cannot be used with --null-safety at runtime",
+        "Library '%s' was compiled without sound null safety (in weak mode) "
+        "and it "
+        "cannot be used with --sound-null-safety at runtime",
         String::Handle(library.url()).ToCString());
   }
   library.set_nnbd_compiled_mode(mode);

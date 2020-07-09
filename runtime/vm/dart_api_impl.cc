@@ -3051,7 +3051,7 @@ DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
   DARTSCOPE(Thread::Current());
   if (T->isolate()->null_safety() && element_type_id != Dart_CoreType_Dynamic) {
     return Api::NewError(
-        "Cannot use legacy types with --null-safety enabled. "
+        "Cannot use legacy types with --sound-null-safety enabled. "
         "Use Dart_NewListOfType or Dart_NewListOfTypeFilled instead.");
   }
   CHECK_LENGTH(length, Array::kMaxElements);
@@ -5599,7 +5599,7 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
                                      Dart_Handle* type_arguments) {
   if (Thread::Current()->isolate()->null_safety()) {
     return Api::NewError(
-        "Cannot use legacy types with --null-safety enabled. "
+        "Cannot use legacy types with --sound-null-safety enabled. "
         "Use Dart_GetNullableType or Dart_GetNonNullableType instead.");
   }
   return GetTypeCommon(library, class_name, number_of_type_arguments,
@@ -6033,16 +6033,16 @@ DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
                                        const uint8_t* kernel_buffer,
                                        intptr_t kernel_buffer_size) {
 #if defined(DART_PRECOMPILED_RUNTIME)
-  ASSERT(FLAG_null_safety != kNullSafetyOptionUnspecified);
-  return (FLAG_null_safety == kNullSafetyOptionStrong);
+  ASSERT(FLAG_sound_null_safety != kNullSafetyOptionUnspecified);
+  return (FLAG_sound_null_safety == kNullSafetyOptionStrong);
 #else
   bool null_safety;
-  if (FLAG_null_safety == kNullSafetyOptionUnspecified) {
+  if (FLAG_sound_null_safety == kNullSafetyOptionUnspecified) {
     null_safety = Dart::DetectNullSafety(
         script_uri, snapshot_data, snapshot_instructions, kernel_buffer,
         kernel_buffer_size, package_config, original_working_directory);
   } else {
-    null_safety = (FLAG_null_safety == kNullSafetyOptionStrong);
+    null_safety = (FLAG_sound_null_safety == kNullSafetyOptionStrong);
   }
   return null_safety;
 #endif  // defined(DART_PRECOMPILED_RUNTIME)

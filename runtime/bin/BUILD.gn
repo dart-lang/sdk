@@ -551,7 +551,7 @@ gen_snapshot_action("generate_snapshot_bin") {
   ]
   args = [
     "--enable-experiment=non-nullable",
-    "--null-safety",
+    "--sound-null-safety",
     "--deterministic",
     "--snapshot_kind=" + dart_core_snapshot_kind,
     "--vm_snapshot_data=" + rebase_path(vm_snapshot_data, root_build_dir),

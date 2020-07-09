@@ -908,8 +908,7 @@ enum class TypeEquality {
 };
 
 // The NNBDMode reflects the opted-in status of libraries.
-// Note that the weak or strong testing mode is not reflected in NNBDMode, but
-// imposed globally by the value of --null-safety.
+// Note that the weak or strong checking mode is not reflected in NNBDMode.
 enum class NNBDMode {
   // Status of the library:
   kLegacyLib = 0,   // Library is legacy.

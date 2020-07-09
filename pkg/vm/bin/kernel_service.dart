@@ -84,10 +84,10 @@ bool allowDartInternalImport = false;
 // Null Safety command line options
 //
 // Note: The values of these constants must match the
-// values of flag null_safety in ../../../../runtime/vm/flag_list.h.
-// 0 - No null_safety option specified on the command line.
-// 1 - '--no-null-safety' specified on the command line.
-// 2 - '--null-safety' option specified on the command line.
+// values of flag sound_null_safety in ../../../../runtime/vm/flag_list.h.
+// 0 - No --[no-]sound-null-safety option specified on the command line.
+// 1 - '--no-sound-null-safety' specified on the command line.
+// 2 - '--sound-null-safety' option specified on the command line.
 const int kNullSafetyOptionUnspecified = 0;
 const int kNullSafetyOptionWeak = 1;
 const int kNullSafetyOptionStrong = 2;

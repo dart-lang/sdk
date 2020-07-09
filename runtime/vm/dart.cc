@@ -763,7 +763,7 @@ bool Dart::DetectNullSafety(const char* script_uri,
   //   generating the kernel file
   // - if loading from an appJIT, based on the mode used
   //   when generating the snapshot.
-  ASSERT(FLAG_null_safety == kNullSafetyOptionUnspecified);
+  ASSERT(FLAG_sound_null_safety == kNullSafetyOptionUnspecified);
 
   // If snapshot is an appJIT/AOT snapshot we will figure out the mode by
   // sniffing the feature string in the snapshot.
@@ -1025,7 +1025,7 @@ const char* Dart::FeaturesString(Isolate* isolate,
         buffer.AddString(" no-null-safety");
       }
     } else {
-      if (FLAG_null_safety == kNullSafetyOptionStrong) {
+      if (FLAG_sound_null_safety == kNullSafetyOptionStrong) {
         buffer.AddString(" null-safety");
       } else {
         buffer.AddString(" no-null-safety");

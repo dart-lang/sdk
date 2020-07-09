@@ -574,7 +574,7 @@ class Run extends Step<ComponentResult, int, FastaContext> {
           if (experimentalFlags[ExperimentalFlag.nonNullable]) {
             args.add("--enable-experiment=non-nullable");
             if (!context.weak) {
-              args.add("--null-safety");
+              args.add("--sound-null-safety");
             }
           }
           args.add(generated.path);
