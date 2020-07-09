@@ -262,8 +262,10 @@ class SourceLoader extends Loader {
             enableNonNullable: library.isNonNullableByDefault),
         languageVersionChanged:
             (Scanner scanner, LanguageVersionToken version) {
-      library.setLanguageVersion(new Version(version.major, version.minor),
-          offset: version.offset, length: version.length, explicit: true);
+      if (!suppressLexicalErrors) {
+        library.setLanguageVersion(new Version(version.major, version.minor),
+            offset: version.offset, length: version.length, explicit: true);
+      }
       scanner.configuration = new ScannerConfiguration(
           enableTripleShift: library.enableTripleShiftInLibrary,
           enableExtensionMethods: library.enableExtensionMethodsInLibrary,
@@ -290,6 +292,7 @@ class SourceLoader extends Loader {
           importUri, library.fileUri, result.lineStarts, source);
     }
     library.issuePostponedProblems();
+    library.markLanguageVersionFinal();
     while (token is ErrorToken) {
       if (!suppressLexicalErrors) {
         ErrorToken error = token;
@@ -354,7 +357,7 @@ class SourceLoader extends Loader {
           // Part was included in multiple libraries. Skip it here.
           continue;
         }
-        Token tokens = await tokenize(part);
+        Token tokens = await tokenize(part, suppressLexicalErrors: true);
         if (tokens != null) {
           listener.uri = part.fileUri;
           parser.parseUnit(tokens);

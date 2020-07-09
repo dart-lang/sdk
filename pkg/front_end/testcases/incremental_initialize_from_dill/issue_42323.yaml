@@ -1,0 +1,33 @@
+# Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# This is not actually an incremental compiler test as much as a compiler test.
+# Test what happens when running a package file as strong NNBD (and it's marked
+# with a matching language version) in a package that's with a lower language
+# version (nothing should really happen --- it should just work).
+# See https://github.com/dart-lang/sdk/issues/42323.
+
+type: newworld
+worlds:
+  - entry: bin/runMe.dart
+    experiments: non-nullable
+    nnbdMode: strong
+    enableStringReplacement: true
+    sources:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "issue42323",
+              "rootUri": "../",
+              "packageUri": "lib/",
+              "languageVersion": "2.8"
+            }
+          ]
+        }
+      bin/runMe.dart: |
+        // @dart = %NNBD_VERSION_MARKER%
+        main() {}
+    expectedLibraryCount: 1
