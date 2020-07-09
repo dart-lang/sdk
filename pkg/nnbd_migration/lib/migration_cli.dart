@@ -44,7 +44,6 @@ String _removePeriod(String value) {
 
 /// Data structure recording command-line options for the migration tool that
 /// have been passed in by the client.
-@visibleForTesting
 class CommandLineOptions {
   static const applyChangesFlag = 'apply-changes';
   static const helpFlag = 'help';
