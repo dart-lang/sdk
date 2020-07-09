@@ -200,9 +200,12 @@ class IsolateGroupSource {
         flags(flags),
         script_kernel_buffer(nullptr),
         script_kernel_size(-1),
-        hot_reload_blobs_(nullptr),
-        num_hot_reloads_(0) {}
+        loaded_blobs_(nullptr),
+        num_blob_loads_(0) {}
   ~IsolateGroupSource() { free(name); }
+
+  void add_loaded_blob(Zone* zone_,
+                       const ExternalTypedData& external_typed_data);
 
   // The arguments used for spawning in
   // `Dart_CreateIsolateGroupFromKernel` / `Dart_CreateIsolate`.
@@ -223,9 +226,9 @@ class IsolateGroupSource {
   // Any newly spawned isolates need to use this permutation map.
   std::unique_ptr<intptr_t[]> cid_permutation_map;
 
-  // List of weak pointers to external typed data for hot reload blobs.
-  ArrayPtr hot_reload_blobs_;
-  intptr_t num_hot_reloads_;
+  // List of weak pointers to external typed data for loaded blobs.
+  ArrayPtr loaded_blobs_;
+  intptr_t num_blob_loads_;
 };
 
 // Tracks idle time and notifies heap when idle time expired.

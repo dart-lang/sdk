@@ -5774,6 +5774,9 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
       kernel::KernelLoader::LoadEntireProgram(program.get(), false);
   program.reset();
 
+  IsolateGroupSource* source = Isolate::Current()->source();
+  source->add_loaded_blob(Z, td);
+
   return Api::NewHandle(T, result.raw());
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }

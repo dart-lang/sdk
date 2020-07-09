@@ -2834,9 +2834,12 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
     return true;
   }
 
+  const uint8_t* kernel_buffer = Service::dart_library_kernel();
+  const intptr_t kernel_buffer_len = Service::dart_library_kernel_length();
+
   Dart_KernelCompilationResult compilation_result =
       KernelIsolate::CompileExpressionToKernel(
-          js->LookupParam("expression"),
+          kernel_buffer, kernel_buffer_len, js->LookupParam("expression"),
           Array::Handle(Array::MakeFixedLength(params)),
           Array::Handle(Array::MakeFixedLength(type_params)),
           js->LookupParam("libraryUri"), js->LookupParam("klass"), is_static);

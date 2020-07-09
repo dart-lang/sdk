@@ -153,6 +153,63 @@ static InstancePtr DeserializeMessage(Thread* thread, Message* message) {
   }
 }
 
+void IsolateGroupSource::add_loaded_blob(
+    Zone* zone,
+    const ExternalTypedData& external_typed_data) {
+  Array& loaded_blobs = Array::Handle();
+  bool saved_external_typed_data = false;
+  if (loaded_blobs_ != nullptr) {
+    loaded_blobs = loaded_blobs_;
+
+    // Walk the array, and (if stuff was removed) compact and reuse the space.
+    // Note that the space has to be compacted as the ordering is important.
+    WeakProperty& weak_property = WeakProperty::Handle();
+    WeakProperty& weak_property_tmp = WeakProperty::Handle();
+    ExternalTypedData& existing_entry = ExternalTypedData::Handle(zone);
+    intptr_t next_entry_index = 0;
+    for (intptr_t i = 0; i < loaded_blobs.Length(); i++) {
+      weak_property ^= loaded_blobs.At(i);
+      if (weak_property.key() != ExternalTypedData::null()) {
+        if (i != next_entry_index) {
+          existing_entry = ExternalTypedData::RawCast(weak_property.key());
+          weak_property_tmp ^= loaded_blobs.At(next_entry_index);
+          weak_property_tmp.set_key(existing_entry);
+        }
+        next_entry_index++;
+      }
+    }
+    if (next_entry_index < loaded_blobs.Length()) {
+      // There's now space to re-use.
+      weak_property ^= loaded_blobs.At(next_entry_index);
+      weak_property.set_key(external_typed_data);
+      next_entry_index++;
+      saved_external_typed_data = true;
+    }
+    if (next_entry_index < loaded_blobs.Length()) {
+      ExternalTypedData& nullExternalTypedData =
+          ExternalTypedData::Handle(zone);
+      while (next_entry_index < loaded_blobs.Length()) {
+        // Null out any extra spaces.
+        weak_property ^= loaded_blobs.At(next_entry_index);
+        weak_property.set_key(nullExternalTypedData);
+        next_entry_index++;
+      }
+    }
+  }
+  if (!saved_external_typed_data) {
+    const WeakProperty& weak_property =
+        WeakProperty::Handle(WeakProperty::New(Heap::kOld));
+    weak_property.set_key(external_typed_data);
+
+    intptr_t length = loaded_blobs.IsNull() ? 0 : loaded_blobs.Length();
+    Array& new_array =
+        Array::Handle(Array::Grow(loaded_blobs, length + 1, Heap::kOld));
+    new_array.SetAt(length, weak_property);
+    loaded_blobs_ = new_array.raw();
+  }
+  num_blob_loads_++;
+}
+
 void IdleTimeHandler::InitializeWithHeap(Heap* heap) {
   MutexLocker ml(&mutex_);
   ASSERT(heap_ == nullptr && heap != nullptr);
@@ -2676,9 +2733,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&deoptimized_code_array_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
   if (isolate_group_ != nullptr) {
-    if (isolate_group_->source()->hot_reload_blobs_ != nullptr) {
+    if (isolate_group_->source()->loaded_blobs_ != nullptr) {
       visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(
-          &(isolate_group_->source()->hot_reload_blobs_)));
+          &(isolate_group_->source()->loaded_blobs_)));
     }
   }
 #if !defined(PRODUCT)

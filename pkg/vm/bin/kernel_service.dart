@@ -363,7 +363,8 @@ class IncrementalCompilerWrapper extends Compiler {
         suppressWarnings: suppressWarnings,
         enableAsserts: enableAsserts,
         experimentalFlags: experimentalFlags,
-        bytecode: bytecode);
+        bytecode: bytecode,
+        packageConfig: packageConfig);
     result.generator = new IncrementalCompiler.forExpressionCompilationOnly(
         component,
         result.options,
@@ -538,19 +539,20 @@ void invalidateSources(IncrementalCompilerWrapper compiler, List sourceFiles) {
 Future _processExpressionCompilationRequest(request) async {
   final SendPort port = request[1];
   final int isolateId = request[2];
-  final String expression = request[3];
-  final List<String> definitions = request[4].cast<String>();
-  final List<String> typeDefinitions = request[5].cast<String>();
-  final String libraryUri = request[6];
-  final String klass = request[7]; // might be null
-  final bool isStatic = request[8];
-  final List dillData = request[9];
-  final int hotReloadCount = request[10];
-  final bool suppressWarnings = request[11];
-  final bool enableAsserts = request[12];
+  final dynamic dart_platform_kernel = request[3];
+  final String expression = request[4];
+  final List<String> definitions = request[5].cast<String>();
+  final List<String> typeDefinitions = request[6].cast<String>();
+  final String libraryUri = request[7];
+  final String klass = request[8]; // might be null
+  final bool isStatic = request[9];
+  final List dillData = request[10];
+  final int blobLoadCount = request[11];
+  final bool suppressWarnings = request[12];
+  final bool enableAsserts = request[13];
   final List<String> experimentalFlags =
-      request[13] != null ? request[13].cast<String>() : null;
-  final bool bytecode = request[14];
+      request[14] != null ? request[14].cast<String>() : null;
+  final bool bytecode = request[15];
 
   IncrementalCompilerWrapper compiler = isolateCompilers[isolateId];
 
@@ -558,7 +560,7 @@ Future _processExpressionCompilationRequest(request) async {
       isolateLoadNotifies[isolateId];
   if (isolateLoadDillData != null) {
     // Check if we can reuse the compiler.
-    if (isolateLoadDillData.hotReloadCount != hotReloadCount ||
+    if (isolateLoadDillData.blobLoadCount != blobLoadCount ||
         isolateLoadDillData.prevDillCount != dillData.length) {
       compiler = isolateCompilers[isolateId] = null;
     }
@@ -571,22 +573,52 @@ Future _processExpressionCompilationRequest(request) async {
       }
       isolateLoadNotifies[isolateId] =
           new _ExpressionCompilationFromDillSettings(
-              hotReloadCount, dillData.length);
-
-      Uri platformUri =
-          computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
-
-      List<List<int>> data = [];
-      data.add(new File.fromUri(platformUri).readAsBytesSync());
-      for (int i = 0; i < dillData.length; i++) {
-        data.add(dillData[i]);
-      }
+              blobLoadCount, dillData.length);
 
       // Create Component initialized from the bytes.
       Component component = new Component();
-      for (List<int> bytes in data) {
+
+      // First try to just load all "dillData". This *might* include the
+      // platform (and we might have the (same) platform both here and in
+      // dart_platform_kernel).
+      for (List<int> bytes in dillData) {
         // TODO(jensj): There might be an issue if main has changed.
         new BinaryBuilderWithMetadata(bytes, alwaysCreateNewNamedNodes: true)
+            .readComponent(component);
+      }
+
+      // Check if the loaded component has the platform.
+      // If it does not, try to load from dart_platform_kernel or from file.
+      bool foundDartCore = false;
+      for (Library library in component.libraries) {
+        if (library.importUri.scheme == "dart" &&
+            library.importUri.path == "core" &&
+            !library.isSynthetic) {
+          foundDartCore = true;
+          break;
+        }
+      }
+      if (!foundDartCore) {
+        List<int> platformKernel = null;
+        if (dart_platform_kernel is List<int>) {
+          platformKernel = dart_platform_kernel;
+        } else {
+          final Uri platformUri = computePlatformBinariesLocation()
+              .resolve('vm_platform_strong.dill');
+          final File platformFile = new File.fromUri(platformUri);
+          if (platformFile.existsSync()) {
+            platformKernel = platformFile.readAsBytesSync();
+          } else {
+            port.send(new CompilationResult.errors(
+                    ["No platform found to initialize incremental compiler."],
+                    null)
+                .toResponse());
+            return;
+          }
+        }
+
+        new BinaryBuilderWithMetadata(platformKernel,
+                alwaysCreateNewNamedNodes: true)
             .readComponent(component);
       }
 
@@ -597,17 +629,26 @@ Future _processExpressionCompilationRequest(request) async {
       // destroyed when corresponding isolate is shut down. To achieve that
       // kernel isolate needs to receive a message indicating that particular
       // isolate was shut down. Message should be handled here in this script.
-      compiler = new IncrementalCompilerWrapper.forExpressionCompilationOnly(
-          component, isolateId, fileSystem, null,
-          suppressWarnings: suppressWarnings,
-          enableAsserts: enableAsserts,
-          experimentalFlags: experimentalFlags,
-          bytecode: bytecode,
-          packageConfig: dotPackagesFile);
-      isolateCompilers[isolateId] = compiler;
-      await compiler.compile(
-          component.mainMethod?.enclosingLibrary?.importUri ??
-              component.libraries.last.importUri);
+      try {
+        compiler = new IncrementalCompilerWrapper.forExpressionCompilationOnly(
+            component, isolateId, fileSystem, null,
+            suppressWarnings: suppressWarnings,
+            enableAsserts: enableAsserts,
+            experimentalFlags: experimentalFlags,
+            bytecode: bytecode,
+            packageConfig: dotPackagesFile);
+        isolateCompilers[isolateId] = compiler;
+        await compiler.compile(
+            component.mainMethod?.enclosingLibrary?.importUri ??
+                component.libraries.last.importUri);
+      } catch (e) {
+        port.send(new CompilationResult.errors([
+          "Error when trying to create a compiler for expression compilation: "
+              "'$e'."
+        ], null)
+            .toResponse());
+        return;
+      }
     }
   }
 
@@ -1179,9 +1220,9 @@ void _debugDumpKernel(Uint8List bytes) {
 }
 
 class _ExpressionCompilationFromDillSettings {
-  int hotReloadCount;
+  int blobLoadCount;
   int prevDillCount;
 
   _ExpressionCompilationFromDillSettings(
-      this.hotReloadCount, this.prevDillCount);
+      this.blobLoadCount, this.prevDillCount);
 }

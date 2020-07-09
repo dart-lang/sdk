@@ -630,6 +630,7 @@ Dart_Handle TestCase::EvaluateExpression(const Library& lib,
   } else {
     Dart_KernelCompilationResult compilation_result =
         KernelIsolate::CompileExpressionToKernel(
+            /* platform_kernel= */ nullptr, /* platform_kernel_size= */ 0,
             expr.ToCString(), param_names, Array::empty_array(),
             String::Handle(lib.url()).ToCString(), /* klass=*/nullptr,
             /* is_static= */ true);
