@@ -1642,12 +1642,20 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       stackTrace = state.stackTrace;
       contextKey = state.contextKey;
     }
+
     CaughtException caught = CaughtException(exception, stackTrace);
-    String fileContent = _fsState.getFileForPath(path).content;
+
+    var fileContentMap = <String, String>{};
+    var libraryFile = _fsState.getFileForPath(path);
+    for (var file in libraryFile.libraryFiles) {
+      fileContentMap[file.path] = file.content;
+    }
+
     _exceptionController.add(
       ExceptionResult(
         filePath: path,
-        fileContent: fileContent,
+        fileContentMap: fileContentMap,
+        fileContent: libraryFile.content,
         exception: caught,
         contextKey: contextKey,
       ),
@@ -2140,15 +2148,19 @@ class ErrorEncoding {
 
 /// Exception that happened during analysis.
 class ExceptionResult {
-  /// The path of the file being analyzed when the [exception] happened.
+  /// The path of the library being analyzed when the [exception] happened.
   ///
   /// Absolute and normalized.
   final String filePath;
 
+  /// The content of the library and its parts.
+  final Map<String, String> fileContentMap;
+
   /// The path of the file being analyzed when the [exception] happened.
+  @Deprecated('Use fileContentMap instead')
   final String fileContent;
 
-  /// The exception during analysis of the file with the [path].
+  /// The exception during analysis of the file with the [filePath].
   final CaughtException exception;
 
   /// If the exception happened during a file analysis, and the context in which
@@ -2159,6 +2171,7 @@ class ExceptionResult {
 
   ExceptionResult({
     @required this.filePath,
+    @required this.fileContentMap,
     @required this.fileContent,
     @required this.exception,
     @required this.contextKey,
