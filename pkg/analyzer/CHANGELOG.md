@@ -4,6 +4,7 @@
 * Added `TypeVisitor` and `DartType.accept(TypeVisitor)`.
 * Changed `ConstructorElement.returnType` to `InterfaceType`.
 * Added `InterfaceType.asInstanceOf(ClassElement)`.
+* Removed deprecated internal `bogus-disabled` and `bogus-enabled`.
 
 ## 0.39.12
 * Deprecated `canUseSummaries` in `DartSdkManager` constructor.

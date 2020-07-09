@@ -23,11 +23,6 @@ const _knownFeatures = <String, ExperimentalFeature>{
   EnableString.spread_collections: ExperimentalFeatures.spread_collections,
   EnableString.triple_shift: ExperimentalFeatures.triple_shift,
   EnableString.variance: ExperimentalFeatures.variance,
-
-  // ignore: deprecated_member_use_from_same_package
-  EnableString.bogus_disabled: ExperimentalFeatures.bogus_disabled,
-  // ignore: deprecated_member_use_from_same_package
-  EnableString.bogus_enabled: ExperimentalFeatures.bogus_enabled,
 };
 
 List<bool> _buildExperimentalFlagsArray() => <bool>[
@@ -40,8 +35,6 @@ List<bool> _buildExperimentalFlagsArray() => <bool>[
       true, // spread-collections
       IsEnabledByDefault.triple_shift,
       IsEnabledByDefault.variance,
-      false, // bogus-disabled
-      true, // bogus-enabled
     ];
 
 /// Constant strings for enabling each of the currently known experimental
@@ -73,14 +66,6 @@ class EnableString {
 
   /// String to enable the experiment "variance"
   static const String variance = 'variance';
-
-  /// String to enable the experiment "bogus-disabled"
-  @deprecated
-  static const String bogus_disabled = 'bogus-disabled';
-
-  /// String to enable the experiment "bogus-enabled"
-  @deprecated
-  static const String bogus_enabled = 'bogus-enabled';
 }
 
 class ExperimentalFeatures {
@@ -164,28 +149,6 @@ class ExperimentalFeatures {
     documentation: 'Sound variance',
     firstSupportedVersion: null,
   );
-
-  @deprecated
-  static const bogus_disabled = ExperimentalFeature(
-    index: 9,
-    // ignore: deprecated_member_use_from_same_package
-    enableString: EnableString.bogus_disabled,
-    isEnabledByDefault: IsEnabledByDefault.bogus_disabled,
-    isExpired: IsExpired.bogus_disabled,
-    documentation: null,
-    firstSupportedVersion: null,
-  );
-
-  @deprecated
-  static const bogus_enabled = ExperimentalFeature(
-    index: 10,
-    // ignore: deprecated_member_use_from_same_package
-    enableString: EnableString.bogus_enabled,
-    isEnabledByDefault: IsEnabledByDefault.bogus_enabled,
-    isExpired: IsExpired.bogus_enabled,
-    documentation: null,
-    firstSupportedVersion: '1.0.0',
-  );
 }
 
 /// Constant bools indicating whether each experimental flag is currently
@@ -217,14 +180,6 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "variance"
   static const bool variance = false;
-
-  /// Default state of the experiment "bogus-disabled"
-  @deprecated
-  static const bool bogus_disabled = false;
-
-  /// Default state of the experiment "bogus-enabled"
-  @deprecated
-  static const bool bogus_enabled = true;
 }
 
 /// Constant bools indicating whether each experimental flag is currently
@@ -257,23 +212,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "variance"
   static const bool variance = false;
-
-  /// Expiration status of the experiment "bogus-disabled"
-  static const bool bogus_disabled = true;
-
-  /// Expiration status of the experiment "bogus-enabled"
-  static const bool bogus_enabled = true;
 }
 
 mixin _CurrentState {
-  /// Current state for the flag "bogus-disabled"
-  @deprecated
-  bool get bogus_disabled => isEnabled(ExperimentalFeatures.bogus_disabled);
-
-  /// Current state for the flag "bogus-enabled"
-  @deprecated
-  bool get bogus_enabled => isEnabled(ExperimentalFeatures.bogus_enabled);
-
   /// Current state for the flag "constant-update-2018"
   bool get constant_update_2018 =>
       isEnabled(ExperimentalFeatures.constant_update_2018);
