@@ -2714,7 +2714,10 @@
             "--arch=x64",
             "--mode=release",
             "create_sdk"
-          ]
+          ],
+          "environment": {
+            "DART_GN_ARGS": "mac_use_goma_rbe=true"
+          }
         },
         {
           "name": "upload sdk",
