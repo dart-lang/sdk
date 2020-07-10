@@ -12,6 +12,8 @@ import 'package:analysis_server/src/collections.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analysis_server/src/computer/import_elements_computer.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
+import 'package:analysis_server/src/edit/edit_bulk_fixes.dart'
+    show EditBulkFixes;
 import 'package:analysis_server/src/edit/edit_dartfix.dart' show EditDartFix;
 import 'package:analysis_server/src/edit/fix/dartfix_info.dart' show allFixes;
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
@@ -90,6 +92,21 @@ class EditDomainHandler extends AbstractRequestHandler {
     refactoringWorkspace =
         RefactoringWorkspace(server.driverMap.values, searchEngine);
     _newRefactoringManager();
+  }
+
+  Future bulkFixes(Request request) async {
+    //
+    // Compute fixes
+    //
+    try {
+      var bulkFix = EditBulkFixes(server, request);
+      var response = await bulkFix.compute();
+
+      server.sendResponse(response);
+    } catch (exception, stackTrace) {
+      server.sendServerErrorNotification('Exception while getting bulk fixes',
+          CaughtException(exception, stackTrace), stackTrace);
+    }
   }
 
   Future dartfix(Request request) async {
@@ -356,6 +373,9 @@ class EditDomainHandler extends AbstractRequestHandler {
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS) {
         return _getAvailableRefactorings(request);
+      } else if (requestName == EDIT_REQUEST_BULK_FIXES) {
+        bulkFixes(request);
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_GET_DARTFIX_INFO) {
         return getDartfixInfo(request);
       } else if (requestName == EDIT_REQUEST_GET_FIXES) {

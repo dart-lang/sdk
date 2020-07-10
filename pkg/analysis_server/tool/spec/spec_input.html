@@ -2160,6 +2160,44 @@
       </field>
     </result>
   </request>
+  <request method="bulkFixes" experimental="true">
+    <p>
+      Analyze the specified sources for fixes that can be applied in bulk
+      and return a set of suggested edits for those sources.
+      These edits may include changes to sources outside the set
+      of specified sources if a change in a specified source requires it.
+    </p>
+    <params>
+      <field name="included">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          A list of the files and directories for which edits should be
+          suggested.
+        </p>
+        <p>
+          If a request is made with a path that is invalid, e.g. is not absolute
+          and normalized, an error of type <tt>INVALID_FILE_PATH_FORMAT</tt>
+          will be generated. If a request is made for a file which does not
+          exist, or which is not currently subject to analysis (e.g. because it
+          is not associated with any analysis root specified to
+          analysis.setAnalysisRoots), an error of type
+          <tt>FILE_NOT_ANALYZED</tt> will be generated.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="edits">
+        <list>
+          <ref>SourceFileEdit</ref>
+        </list>
+        <p>
+          A list of source edits to apply the recommended changes.
+        </p>
+      </field>
+    </result>
+  </request>
   <request method="dartfix" experimental="true">
     <p>
       Analyze the specified sources for recommended changes
