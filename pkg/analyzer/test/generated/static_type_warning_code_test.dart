@@ -380,6 +380,14 @@ SubStream<int> f() async* {}
     ]);
   }
 
+  test_illegalAsyncGeneratorReturnType_function_void() async {
+    await assertErrorsInCode('''
+void f() async* {}
+''', [
+      error(StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 4),
+    ]);
+  }
+
   test_illegalAsyncGeneratorReturnType_method_nonStream() async {
     await assertErrorsInCode('''
 class C {
@@ -402,6 +410,16 @@ class C {
     ]);
   }
 
+  test_illegalAsyncGeneratorReturnType_method_void() async {
+    await assertErrorsInCode('''
+class C {
+  void f() async* {}
+}
+''', [
+      error(StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 12, 4),
+    ]);
+  }
+
   test_illegalSyncGeneratorReturnType_function_nonIterator() async {
     await assertErrorsInCode('''
 int f() sync* {}
@@ -416,6 +434,14 @@ abstract class SubIterator<T> implements Iterator<T> {}
 SubIterator<int> f() sync* {}
 ''', [
       error(StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 56, 16),
+    ]);
+  }
+
+  test_illegalSyncGeneratorReturnType_function_void() async {
+    await assertErrorsInCode('''
+void f() sync* {}
+''', [
+      error(StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 0, 4),
     ]);
   }
 
@@ -437,6 +463,16 @@ class C {
 }
 ''', [
       error(StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 68, 16),
+    ]);
+  }
+
+  test_illegalSyncGeneratorReturnType_method_void() async {
+    await assertErrorsInCode('''
+class C {
+  void f() sync* {}
+}
+''', [
+      error(StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 12, 4),
     ]);
   }
 

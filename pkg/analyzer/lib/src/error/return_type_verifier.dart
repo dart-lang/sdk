@@ -89,9 +89,23 @@ class ReturnTypeVerifier {
       ClassElement expectedElement,
       StaticTypeWarningCode errorCode,
     ) {
-      if (!_isLegalReturnType(expectedElement)) {
+      void reportError() {
         enclosingExecutable.hasLegalReturnType = false;
         _errorReporter.reportErrorForNode(errorCode, returnType);
+      }
+
+      // It is a compile-time error if the declared return type of
+      // a function marked `sync*` or `async*` is `void`.
+      if (enclosingExecutable.isGenerator) {
+        if (enclosingExecutable.returnType.isVoid) {
+          return reportError();
+        }
+      }
+
+      // It is a compile-time error if the declared return type of
+      // a function marked `...` is not a supertype of `...`.
+      if (!_isLegalReturnType(expectedElement)) {
+        return reportError();
       }
     }
 
