@@ -1,0 +1,235 @@
+# Copyright 2019 The Fuchsia Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# compiler ---------------------------------------------------------------------
+#
+# Base compiler configuration.
+#
+# See also "runtime_library" below for related stuff and a discussion about
+# where stuff should go. Put warning related stuff in the "warnings" config.
+
+import("//build/fuchsia/config/clang/clang.gni")
+
+config("compiler") {
+  asmflags = []
+  cflags = []
+  cflags_c = []
+  cflags_cc = []
+  cflags_objc = []
+  cflags_objcc = []
+  ldflags = []
+  defines = []
+  configs = []
+
+  # System-specific flags. If your compiler flags apply to one of the
+  # categories here, add it to the associated file to keep this shared config
+  # smaller.
+
+  cflags += [ "-fno-strict-aliasing" ]  # See http://crbug.com/32204
+  cflags += [ "-fcolor-diagnostics" ]
+  cflags += [ "-fmerge-all-constants" ]
+  cflags += [ "-fcomplete-member-pointers" ]
+
+  cflags += [
+    "-Xclang",
+    "-mllvm",
+    "-Xclang",
+    "-instcombine-lower-dbg-declare=0",
+  ]
+
+  asmflags += [ "-fPIC" ]
+  cflags += [ "-fPIC" ]
+  ldflags += [ "-fPIC" ]
+
+  ldflags += [
+    "-Wl,-z,noexecstack",
+    "-Wl,-z,relro",
+  ]
+
+  ldflags += [ "-Wl,-z,now" ]
+
+  # Compiler instrumentation can introduce dependencies in DSOs to symbols in
+  # the executable they are loaded into, so they are unresolved at link-time.
+  ldflags += [
+    "-Wl,-z,defs",
+    "-Wl,--as-needed",
+  ]
+
+  if (is_debug) {
+    # Allow comparing the address of references and 'this' against 0
+    # in debug builds. Technically, these can never be null in
+    # well-defined C/C++ and Clang can optimize such checks away in
+    # release builds, but they may be used in asserts in debug builds.
+    cflags_cc += [
+      "-Wno-undefined-bool-conversion",
+      "-Wno-tautological-undefined-compare",
+    ]
+  }
+
+  cflags_c += [ "-std=c11" ]
+  cflags_cc += [ "-std=c++14" ]
+
+  # Pass the same C/C++ flags to the objective C/C++ compiler.
+  cflags_objc += cflags_c
+  cflags_objcc += cflags_cc
+}
+
+config("c++") {
+  cflags_cc = [ "-isystem" + rebase_path(clang_base_path, root_build_dir) ]
+}
+
+config("assembler_debug_dir") {
+  asmflags = [ "-Wa,-fdebug-compilation-dir,." ]
+}
+
+# This config causes functions not to be automatically exported from shared
+# libraries. By default, all symbols are exported but this means there are
+# lots of exports that slow everything down. In general we explicitly mark
+# which functions we want to export from components.
+#
+# Some third_party code assumes all functions are exported so this is separated
+# into its own config so such libraries can remove this config to make symbols
+# public again.
+#
+# See http://gcc.gnu.org/wiki/Visibility
+config("symbol_visibility_hidden") {
+  cflags = [ "-fvisibility=hidden" ]
+  cflags_cc = [ "-fvisibility-inlines-hidden" ]
+  cflags_objcc = cflags_cc
+}
+
+config("compiler_arm_fpu") {
+  if (current_cpu == "arm") {
+    cflags = [ "-mfpu=$arm_fpu" ]
+    asmflags = cflags
+  }
+}
+
+# export_dynamic ---------------------------------------------------------------
+#
+# Ensures all exported symbols are added to the dynamic symbol table.  This is
+# necessary to expose Chrome's custom operator new() and operator delete() (and
+# other memory-related symbols) to libraries.  Otherwise, they might
+# (de)allocate memory on a different heap, which would spell trouble if pointers
+# to heap-allocated memory are passed over shared library boundaries.
+config("export_dynamic") {
+}
+
+# default_include_dirs ---------------------------------------------------------
+#
+# This is a separate config so that third_party code (which would not use the
+# source root and might have conflicting versions of some headers) can remove
+# this and specify their own include paths.
+config("default_include_dirs") {
+  include_dirs = [
+    "//",
+    root_gen_dir,
+  ]
+}
+
+config("default_stack_frames") {
+  cflags = [ "-fomit-frame-pointer" ]
+}
+
+# The default optimization applied to all targets. This will be equivalent to
+# either "optimize" or "no_optimize", depending on the build flags.
+config("default_optimization") {
+  if (is_debug) {
+    configs = [ ":no_optimize" ]
+  } else {
+    configs = [ ":optimize" ]
+  }
+}
+
+config("optimize") {
+  cflags = [
+    "-O2",
+    "-fno-ident",
+    "-fdata-sections",
+    "-ffunction-sections",
+  ]
+  ldflags = [
+    "-Wl,-O2",
+    "-Wl,--gc-sections",
+  ]
+}
+
+# Turn off optimizations.
+config("no_optimize") {
+  cflags = [ "-O0" ]
+  ldflags = []
+}
+
+# Full symbols.
+config("symbols") {
+  cflags = []
+  if (current_cpu == "arm") {
+    cflags += [ "-gdwarf-3" ]
+  }
+  cflags += [ "-g2" ]
+
+  asmflags = cflags
+  ldflags = []
+
+  cflags += [ "-ggnu-pubnames" ]
+}
+
+# No symbols.
+config("no_symbols") {
+  cflags = [ "-g0" ]
+  asmflags = cflags
+}
+
+# Default symbols.
+config("default_symbols") {
+  if (is_debug) {
+    configs = [ ":symbols" ]
+  } else {
+    configs = [ ":no_symbols" ]
+  }
+}
+
+config("no_exceptions") {
+  cflags_cc = [ "-fno-exceptions" ]
+  cflags_objcc = cflags_cc
+}
+
+config("exceptions") {
+  cflags_cc = [ "-fexceptions" ]
+  cflags_objcc = cflags_cc
+}
+
+config("no_rtti") {
+  cflags_cc = [ "-fno-rtti" ]
+  cflags_objcc = cflags_cc
+}
+
+config("rtti") {
+  cflags_cc = [ "-frtti" ]
+  cflags_objcc = cflags_cc
+}
+
+config("runtime_library") {
+  libs = [ "pthread" ]
+}
+
+# Enables some extra Clang-specific warnings. Some third-party code won't
+# compile with these so may want to remove this config.
+config("extra_warnings") {
+  cflags = [
+    "-Wheader-hygiene",
+
+    # Warns when a const char[] is converted to bool.
+    "-Wstring-conversion",
+
+    "-Wtautological-overlap-compare",
+  ]
+}
+
+# Settings for executables.
+config("executable_config") {
+  configs = []
+  ldflags = [ "-pie" ]
+  ldflags += [ "-Wl,--disable-new-dtags" ]
+}

@@ -1,0 +1,40 @@
+# Copyright 2019 The Fuchsia Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# ==============================================================================
+# TEST SETUP
+# ==============================================================================
+
+# Define a test as an executable with the "testonly" flag
+# set.
+# Variable:
+template("test") {
+  executable(target_name + "_exe") {
+    forward_variables_from(invoker, "*")
+    if (!defined(deps)) {
+      deps = []
+    }
+
+    testonly = true
+    metadata = {
+      if (current_toolchain == default_toolchain) {
+        host_test_name = [ "./" + target_name + "_exe" ]
+      } else {
+        host_test_name = [ get_label_info(current_toolchain, "name") + "/" +
+                           target_name + "_exe" ]
+      }
+    }
+  }
+  group(target_name) {
+    testonly = true
+    deps = [
+      ":" + target_name + "_exe($host_toolchain)",
+    ]
+  }
+}
+
+# Test defaults.
+set_defaults("test") {
+  configs = default_executable_configs
+}

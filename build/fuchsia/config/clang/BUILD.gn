@@ -1,0 +1,31 @@
+# Copyright 2019 The Fuchsia Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/fuchsia/config/clang/clang.gni")
+
+# This adds the runtime deps for C++ for usage when cross compiling.
+group("c++-runtime-deps") {
+  data_deps = [
+    ":clang-runtime-libs",
+  ]
+}
+
+copy("clang-runtime-libs") {
+  if (target_cpu == "arm64") {
+    arch = "aarch64"
+  } else if (target_cpu == "x64") {
+    arch = "x86_64"
+  }
+  vendor = "unknown"
+
+  sys = target_os
+  sources = [
+    "${clang_base_path}/lib/${arch}-${vendor}-${sys}/c++/libc++.so.2.0",
+    "${clang_base_path}/lib/${arch}-${vendor}-${sys}/c++/libc++abi.so.1.0",
+    "${clang_base_path}/lib/${arch}-${vendor}-${sys}/c++/libunwind.so.1.0",
+  ]
+  outputs = [
+    "${root_out_dir}/lib/{{source_name_part}}",
+  ]
+}

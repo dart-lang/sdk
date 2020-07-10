@@ -228,6 +228,8 @@ library_for_all_configs("libdart") {
   if (is_fuchsia) {
     if (using_fuchsia_gn_sdk) {
       extra_deps += [
+        "//build/fuchsia/config/clang:c++-runtime-deps",
+        "$fuchsia_sdk_root/build/config:runtime_library_group",
         "$fuchsia_sdk_root/pkg/fdio",
         "$fuchsia_sdk_root/pkg/trace-engine",
       ]

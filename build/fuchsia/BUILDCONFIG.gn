@@ -1,0 +1,162 @@
+# Copyright 2019 The Fuchsia Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+if (target_os == "") {
+  target_os = host_os
+}
+
+if (target_cpu == "") {
+  target_cpu = host_cpu
+}
+
+if (current_cpu == "") {
+  current_cpu = target_cpu
+}
+if (current_os == "") {
+  current_os = target_os
+}
+
+is_fuchsia = current_os == "fuchsia"
+is_linux = current_os == "linux"
+
+declare_args() {
+  is_debug = true
+}
+
+# Set the host_toolchain
+declare_args() {
+  host_toolchain = ""
+}
+
+# ==============================================================================
+# TOOLCHAIN SETUP
+# ==============================================================================
+#
+# Here we set the default toolchain, as well as the variable host_toolchain
+# which will identify the toolchain corresponding to the local system when
+# doing cross-compiles. When not cross-compiling, this will be the same as the
+# default toolchain.
+#
+# We do this before anything else to make sure we complain about any
+# unsupported os/cpu combinations as early as possible.
+
+if (host_toolchain == "") {
+  # This should only happen in the top-level context.
+  # In a specific toolchain context, the toolchain_args()
+  # block should have propagated a value down.
+
+  if (host_os == "linux") {
+    host_toolchain = "//build/fuchsia/toolchain/linux:clang_$host_cpu"
+  } else if (host_os == "mac") {
+    host_toolchain = "//build/fuchsia/toolchain/mac:$host_cpu"
+  } else {
+    assert(false, "Unsupported host_os: $host_os")
+  }
+}
+
+# Set toolchain based on target_os and target_cpu
+_default_toolchain = ""
+
+if (target_os == "linux") {
+  _default_toolchain = "//build/fuchsia/toolchain/linux:clang_$target_cpu"
+} else if (target_os == "fuchsia") {
+  _default_toolchain = "//build/fuchsia/toolchain/fuchsia:$target_cpu"
+} else {
+  assert(false, "Unsupported target_os: $target_os")
+}
+
+set_default_toolchain(_default_toolchain)
+
+# Set compiler defaults
+
+# Holds all configs used for running the compiler.
+default_compiler_configs = [
+  "//build/fuchsia:compiler_defaults",
+  "//build/fuchsia/config/compiler:assembler_debug_dir",
+  "//build/fuchsia/config/compiler:compiler",
+  "//build/fuchsia/config/compiler:compiler_arm_fpu",
+  "//build/fuchsia/config/compiler:c++",
+  "//build/fuchsia/config/compiler:default_include_dirs",
+  "//build/fuchsia/config/compiler:default_optimization",
+  "//build/fuchsia/config/compiler:default_symbols",
+  "//build/fuchsia/config/compiler:no_exceptions",
+  "//build/fuchsia/config/compiler:no_rtti",
+  "//build/fuchsia/config/compiler:runtime_library",
+  "//build/fuchsia/config/compiler:extra_warnings",
+  "//build/fuchsia/config/compiler:symbol_visibility_hidden",
+]
+
+if (is_fuchsia) {
+  default_compiler_configs += [
+    "//third_party/fuchsia-sdk/build/config:compiler",
+    "//third_party/fuchsia-sdk/build/config:runtime_library",
+  ]
+
+  # these are additional flags recommended
+  default_compiler_configs += [ "//build/fuchsia/config/compiler:default_stack_frames" ]
+}
+
+# Debug/release-related defines.
+if (is_debug) {
+  default_compiler_configs += [ "//build/fuchsia/config:debug" ]
+} else {
+  default_compiler_configs += [ "//build/fuchsia/config:release" ]
+}
+
+# Static libraries and source sets use only the compiler ones.
+set_defaults("static_library") {
+  configs = default_compiler_configs
+}
+set_defaults("source_set") {
+  configs = default_compiler_configs
+}
+
+# Executable defaults.
+default_executable_configs = default_compiler_configs + [
+                               "//build/fuchsia:executable_ldconfig",
+                               "//build/fuchsia/config:default_libs",
+                             ]
+set_defaults("executable") {
+  configs = default_executable_configs
+}
+
+# Shared library and loadable module defaults (also for components in component
+# mode).
+default_shared_library_configs =
+    default_compiler_configs + [ "//build/fuchsia/config:default_libs" ]
+
+set_defaults("shared_library") {
+  configs = default_shared_library_configs
+}
+set_defaults("loadable_module") {
+  configs = default_shared_library_configs
+}
+
+if (is_fuchsia) {
+  # Sets default dependencies for executable and shared_library targets.
+  #
+  # Variables
+  #   no_default_deps: If true, no standard dependencies will be added.
+  foreach(_target_type,
+          [
+            "executable",
+            "shared_library",
+          ]) {
+    template(_target_type) {
+      target(_target_type, target_name) {
+        forward_variables_from(invoker, "*", [ "no_default_deps" ])
+        if (!defined(deps)) {
+          deps = []
+        }
+        if (!defined(data_deps)) {
+          data_deps = []
+        }
+        if (!defined(invoker.no_default_deps) || !invoker.no_default_deps) {
+          data_deps += [ "//build/fuchsia/config/clang:c++-runtime-deps" ]
+          deps += [ "//third_party/fuchsia-sdk/build/config:runtime_library_group" ]
+        }
+      }
+    }
+  }
+}

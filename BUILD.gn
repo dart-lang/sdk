@@ -149,3 +149,21 @@ group("observatory_archive") {
 group("compressed_observatory_archive") {
   deps = [ "runtime/observatory:copy_compressed_observatory_archive" ]
 }
+
+if (is_fuchsia) {
+  import("third_party/fuchsia/sdk/linux/build/component.gni")
+  import("third_party/fuchsia/sdk/linux/build/package.gni")
+
+  fuchsia_component("dart_sdk_fuchsia_test_component") {
+    testonly = true
+    data_deps = [
+      "runtime/bin:dart",
+    ]
+    manifest = "build/fuchsia/tests.cmx"
+  }
+
+  fuchsia_package("dart_sdk_fuchsia_test_package") {
+    testonly = true
+    deps = [ ":dart_sdk_fuchsia_test_component" ]
+  }
+}

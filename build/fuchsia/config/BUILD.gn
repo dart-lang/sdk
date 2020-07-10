@@ -1,0 +1,37 @@
+# Copyright 2019 The Fuchsia Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# Debug/release ----------------------------------------------------------------
+
+config("debug") {
+  defines = [
+    "_DEBUG",
+    "DYNAMIC_ANNOTATIONS_ENABLED=1",
+    "WTF_USE_DYNAMIC_ANNOTATIONS=1",
+  ]
+
+  if (current_cpu == "x64") {
+    # Enable libstdc++ debugging facilities to help catch problems early.
+    defines += [ "_GLIBCXX_DEBUG=1" ]
+  }
+}
+
+config("release") {
+  defines = [ "NDEBUG" ]
+  defines += [ "NVALGRIND" ]
+  defines += [ "DYNAMIC_ANNOTATIONS_ENABLED=0" ]
+}
+
+# Default libraries ------------------------------------------------------------
+
+# This config defines the default libraries applied to all targets.
+config("default_libs") {
+  if (is_linux) {
+    libs = [
+      "dl",
+      "pthread",
+      "rt",
+    ]
+  }
+}
