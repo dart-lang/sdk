@@ -2278,7 +2278,7 @@ class _DiscoverAvailableFilesTask {
 
 /// Information about an exception and its context.
 class _ExceptionState {
-  final exception;
+  final Object exception;
   final StackTrace stackTrace;
 
   /// The key under which the context of the exception was stored, or `null`

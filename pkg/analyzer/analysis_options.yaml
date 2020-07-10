@@ -18,5 +18,6 @@ linter:
   rules:
     - avoid_unused_constructor_parameters
     - empty_statements
+    - prefer_typing_uninitialized_variables
     - unnecessary_brace_in_string_interps
     - unnecessary_parenthesis

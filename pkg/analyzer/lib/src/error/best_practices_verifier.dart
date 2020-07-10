@@ -1526,9 +1526,9 @@ class _InvalidAccessVerifier {
     }
     AstNode grandparent = parent?.parent;
 
-    var element;
-    var name;
-    var node;
+    Element element;
+    String name;
+    AstNode node;
 
     if (grandparent is ConstructorName) {
       element = grandparent.staticElement;
