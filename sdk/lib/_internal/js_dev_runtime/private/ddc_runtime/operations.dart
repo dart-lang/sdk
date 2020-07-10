@@ -474,7 +474,9 @@ asInt(obj) {
 
 asNullableInt(obj) => obj == null ? null : asInt(obj);
 
-/// Checks that `x` is not null or undefined.
+/// Checks for null or undefined and returns [x].
+///
+/// Throws [NoSuchMethodError] when it is null or undefined.
 //
 // TODO(jmesserly): inline this, either by generating it as a function into
 // the module, or via some other pattern such as:
@@ -487,12 +489,13 @@ _notNull(x) {
   return x;
 }
 
-/// Checks that `x` is not null or undefined.
+/// Checks for null or undefined and returns [x].
 ///
-/// Unlike `_notNull`, this throws a `CastError` (under strict checking)
-/// or emits a runtime warning (otherwise).  This is only used by the
-/// compiler when casting from nullable to non-nullable variants of the
-/// same type.
+/// Throws a [TypeError] when [x] is null or undefined (under sound null safety
+/// mode) or emits a runtime warning (otherwise).
+///
+/// This is only used by the compiler when casting from nullable to non-nullable
+/// variants of the same type.
 nullCast(x, type) {
   if (x == null) {
     if (!strictNullSafety) {
@@ -501,6 +504,16 @@ nullCast(x, type) {
       castError(x, type);
     }
   }
+  return x;
+}
+
+/// Checks for null or undefined and returns [x].
+///
+/// Throws a [TypeError] when [x] is null or undefined.
+///
+/// This is only used by the compiler for the runtime null check operator `!`.
+nullCheck(x) {
+  if (x == null) throw TypeErrorImpl("Unexpected null value.");
   return x;
 }
 
