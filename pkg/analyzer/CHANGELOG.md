@@ -3,6 +3,7 @@
 * Added `DynamicType`, `NeverType`, and `VoidType` interfaces.
 * Added `TypeVisitor` and `DartType.accept(TypeVisitor)`.
 * Changed `ConstructorElement.returnType` to `InterfaceType`.
+* Added `InterfaceType.allSupertypes`.
 * Added `InterfaceType.asInstanceOf(ClassElement)`.
 * Removed deprecated internal `bogus-disabled` and `bogus-enabled`.
 

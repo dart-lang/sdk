@@ -261,6 +261,10 @@ abstract class InterfaceType implements ParameterizedType {
   /// declared in this type.
   List<PropertyAccessorElement> get accessors;
 
+  /// Return all the super-interfaces implemented by this interface. This
+  /// includes superclasses, mixins, interfaces, and superclass constraints.
+  List<InterfaceType> get allSupertypes;
+
   /// Return a list containing all of the constructors declared in this type.
   List<ConstructorElement> get constructors;
 

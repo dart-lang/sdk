@@ -717,6 +717,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  List<InterfaceType> get allSupertypes {
+    var substitution = Substitution.fromInterfaceType(this);
+    return element.allSupertypes.map(substitution.substituteType).toList();
+  }
+
+  @override
   List<ConstructorElement> get constructors {
     if (_constructors == null) {
       List<ConstructorElement> constructors = element.constructors;
