@@ -1129,9 +1129,10 @@ int main() {
         var k = Key('t');
         MyClass c = MyClass(0);
         int p = 1;
+        const t = 1;
 
         /* evaluation placeholder */
-        print('\$c, \$k');
+        print('\$c, \$k, \$t');
       }
       ''';
 
@@ -1158,7 +1159,7 @@ int main() {
           ''');
     });
 
-    test('evaluate const expression', () async {
+    test('evaluate new const expression', () async {
       await driver.check(
           scope: <String, String>{'p': '1'},
           expression: 'const MyClass(1)',
@@ -1171,6 +1172,20 @@ int main() {
           ''');
     });
 
+    test('evaluate optimized const expression', () async {
+      await driver.check(
+          scope: <String, String>{},
+          expression: 't',
+          expectedResult: '''
+          (function() {
+            return 1;
+          }(
+          ))
+          ''');
+    },
+        skip:
+            'Cannot compile constants optimized away by the frontend'); // https://github.com/dart-lang/sdk/issues/41999
+
     test('evaluate factory constructor call', () async {
       await driver.check(
           scope: <String, String>{'p': '1'},
@@ -1182,9 +1197,7 @@ int main() {
           1
           ))
           ''');
-    },
-        skip:
-            'Incorrect kernel for factory constructor call'); // https://github.com/dart-lang/sdk/issues/41976
+    });
 
     test('evaluate const factory constructor call', () async {
       await driver.check(
@@ -1192,14 +1205,12 @@ int main() {
           expression: "const Key('t')",
           expectedResult: '''
           (function(p) {
-            return dart.const(new foo.ValueKey.new("t"));
+            return C0 || CT.C0;
           }(
           1
           ))
           ''');
-    },
-        skip:
-            'Incorrect kernel for factory constructor call'); // https://github.com/dart-lang/sdk/issues/41976
+    });
   });
 
   return 0;
