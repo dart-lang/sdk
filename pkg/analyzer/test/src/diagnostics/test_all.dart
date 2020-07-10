@@ -265,6 +265,8 @@ import 'invalid_visibility_annotation_test.dart'
     as invalid_visibility_annotation;
 import 'invocation_of_extension_without_call_test.dart'
     as invocation_of_extension_without_call;
+import 'invocation_of_non_function_expression_test.dart'
+    as invocation_of_non_function_expression;
 import 'is_double_test.dart' as is_double;
 import 'is_int_test.dart' as is_int;
 import 'is_not_double_test.dart' as is_not_double;
@@ -347,6 +349,7 @@ import 'non_generative_constructor_test.dart' as non_generative_constructor;
 import 'non_native_function_type_argument_to_pointer_test.dart'
     as non_native_function_type_argument_to_pointer;
 import 'non_null_opt_out_test.dart' as non_null_opt_out;
+import 'non_type_as_type_argument_test.dart' as non_type_as_type_argument;
 import 'non_type_in_catch_clause_test.dart' as non_type_in_catch_clause;
 import 'non_void_return_for_operator_test.dart' as non_void_return_for_operator;
 import 'non_void_return_for_setter_test.dart' as non_void_return_for_setter;
@@ -485,6 +488,8 @@ import 'type_check_is_not_null_test.dart' as type_check_is_not_null;
 import 'type_check_is_null_test.dart' as type_check_is_null;
 import 'type_parameter_referenced_by_static_test.dart'
     as type_parameter_referenced_by_static;
+import 'type_parameter_supertype_of_its_bound_test.dart'
+    as type_parameter_supertype_of_its_bound;
 import 'type_test_with_non_type_test.dart' as type_test_with_non_type;
 import 'type_test_with_undefined_name_test.dart'
     as type_test_with_undefined_name;
@@ -516,6 +521,8 @@ import 'unnecessary_non_null_assertion_test.dart'
     as unnecessary_non_null_assertion;
 import 'unnecessary_null_comparison_test.dart' as unnecessary_null_comparison;
 import 'unnecessary_type_check_test.dart' as unnecessary_type_check;
+import 'unqualified_reference_to_non_local_static_member_test.dart'
+    as unqualified_reference_to_non_local_static_member;
 import 'unqualified_reference_to_static_member_of_extended_type_test.dart'
     as unqualified_reference_to_static_member_of_extended_type;
 import 'unused_catch_clause_test.dart' as unused_catch_clause;
@@ -716,6 +723,7 @@ main() {
     invalid_use_of_visible_for_testing_member.main();
     invalid_visibility_annotation.main();
     invocation_of_extension_without_call.main();
+    invocation_of_non_function_expression.main();
     is_double.main();
     is_int.main();
     is_not_double.main();
@@ -776,6 +784,7 @@ main() {
     non_generative_constructor.main();
     non_native_function_type_argument_to_pointer.main();
     non_null_opt_out.main();
+    non_type_as_type_argument.main();
     non_type_in_catch_clause.main();
     non_void_return_for_operator.main();
     non_void_return_for_setter.main();
@@ -865,6 +874,7 @@ main() {
     type_check_is_not_null.main();
     type_check_is_null.main();
     type_parameter_referenced_by_static.main();
+    type_parameter_supertype_of_its_bound.main();
     type_test_with_non_type.main();
     type_test_with_undefined_name.main();
     undefined_annotation.main();
@@ -893,6 +903,7 @@ main() {
     unnecessary_non_null_assertion.main();
     unnecessary_null_comparison.main();
     unnecessary_type_check.main();
+    unqualified_reference_to_non_local_static_member.main();
     unqualified_reference_to_static_member_of_extended_type.main();
     unused_catch_clause.main();
     unused_catch_stack.main();

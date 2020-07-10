@@ -190,36 +190,6 @@ void main() {
     ]);
   }
 
-  test_expectedOneListTypeArgument() async {
-    await assertErrorsInCode(r'''
-main() {
-  <int, int> [];
-}
-''', [
-      error(StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS, 11, 10),
-    ]);
-  }
-
-  test_expectedOneSetTypeArgument() async {
-    await assertErrorsInCode(r'''
-main() {
-  <int, int, int>{2, 3};
-}
-''', [
-      error(StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS, 11, 15),
-    ]);
-  }
-
-  test_expectedTwoMapTypeArguments_three() async {
-    await assertErrorsInCode(r'''
-main() {
-  <int, int, int> {};
-}
-''', [
-      error(StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, 11, 15),
-    ]);
-  }
-
   test_forIn_declaredVariableRightType() async {
     await assertErrorsInCode('''
 f() {
@@ -476,106 +446,9 @@ class C {
     ]);
   }
 
-  test_instanceAccessToStaticMember_method_reference() async {
-    await assertErrorsInCode(r'''
-class A {
-  static m() {}
-}
-main(A a) {
-  a.m;
-}
-''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 44, 1),
-    ]);
-  }
-
-  test_instanceAccessToStaticMember_propertyAccess_field() async {
-    await assertErrorsInCode(r'''
-class A {
-  static var f;
-}
-main(A a) {
-  a.f;
-}
-''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 44, 1),
-    ]);
-  }
-
-  test_instanceAccessToStaticMember_propertyAccess_getter() async {
-    await assertErrorsInCode(r'''
-class A {
-  static get f => 42;
-}
-main(A a) {
-  a.f;
-}
-''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 50, 1),
-    ]);
-  }
-
-  test_instanceAccessToStaticMember_propertyAccess_setter() async {
-    await assertErrorsInCode(r'''
-class A {
-  static set f(x) {}
-}
-main(A a) {
-  a.f = 42;
-}
-''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 49, 1),
-    ]);
-  }
-
-  test_invocationOfNonFunctionExpression_literal() async {
-    await assertErrorsInCode(r'''
-f() {
-  3(5);
-}
-''', [
-      error(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 8, 1),
-    ]);
-  }
-
-  test_nonTypeAsTypeArgument_notAType() async {
-    await assertErrorsInCode(r'''
-int A;
-class B<E> {}
-f(B<A> b) {}
-''', [
-      error(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, 25, 1),
-    ]);
-  }
-
-  test_nonTypeAsTypeArgument_undefinedIdentifier() async {
-    await assertErrorsInCode(r'''
-class B<E> {}
-f(B<A> b) {}
-''', [
-      error(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, 18, 1),
-    ]);
-  }
-
-  test_typeParameterSupertypeOfItsBound_1of1() async {
-    await assertErrorsInCode(r'''
-class A<T extends T> {
-}
-''', [
-      error(StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 11),
-    ]);
-  }
-
-  test_typeParameterSupertypeOfItsBound_2of3() async {
-    await assertErrorsInCode(r'''
-class A<T1 extends T3, T2, T3 extends T1> {
-}
-''', [
-      error(StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 13),
-      error(
-          StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 27, 13),
-    ]);
-  }
+  // TODO(srawlins) Figure out what to do with the rest of these tests.
+  //  The names do not correspond to diagnostic codes, so it isn't clear what
+  //  they're testing.
 
   test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_mutated() async {
     await assertErrorsInCode(r'''
@@ -820,64 +693,6 @@ main(A<V> p) {
 }
 ''', [
       error(StaticTypeWarningCode.UNDEFINED_GETTER, 112, 1),
-    ]);
-  }
-
-  test_unqualifiedReferenceToNonLocalStaticMember_getter() async {
-    await assertErrorsInCode(r'''
-class A {
-  static int get a => 0;
-}
-class B extends A {
-  int b() {
-    return a;
-  }
-}
-''', [
-      error(
-          StaticTypeWarningCode
-              .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
-          80,
-          1),
-    ]);
-  }
-
-  test_unqualifiedReferenceToNonLocalStaticMember_getter_invokeTarget() async {
-    await assertErrorsInCode(r'''
-class A {
-  static int foo;
-}
-
-class B extends A {
-  static bar() {
-    foo.abs();
-  }
-}
-''', [
-      error(
-          StaticTypeWarningCode
-              .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
-          72,
-          3),
-    ]);
-  }
-
-  test_unqualifiedReferenceToNonLocalStaticMember_setter() async {
-    await assertErrorsInCode(r'''
-class A {
-  static set a(x) {}
-}
-class B extends A {
-  b(y) {
-    a = y;
-  }
-}
-''', [
-      error(
-          StaticTypeWarningCode
-              .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
-          66,
-          1),
     ]);
   }
 
