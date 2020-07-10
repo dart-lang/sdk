@@ -1609,18 +1609,7 @@ class _InvalidAccessVerifier {
     if (element == null) {
       return false;
     }
-    if (element == superElement) {
-      return true;
-    }
-    // TODO(scheglov) `allSupertypes` is very expensive
-    var allSupertypes = element.allSupertypes;
-    for (var i = 0; i < allSupertypes.length; i++) {
-      var supertype = allSupertypes[i];
-      if (supertype.element == superElement) {
-        return true;
-      }
-    }
-    return false;
+    return element.thisType.asInstanceOf(superElement) != null;
   }
 
   bool _hasVisibleForTemplate(Element element) {
