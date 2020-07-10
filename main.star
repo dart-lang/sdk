@@ -90,6 +90,7 @@ HIGH = 30  # Used for try-jobs.
 HIGHEST = 25  # Used for shards in the recipes, included here for completeness.
 
 CHROME = {"custom_vars": {"download_chrome": True}}
+FIREFOX = {"custom_vars": {"download_firefox": True}}
 
 def to_location_regexp(paths):
     return [".+/[+]/%s" % path for path in paths]
@@ -425,7 +426,7 @@ def dart_try_builder(
         name = builder,
         build_numbers = True,
         bucket = bucket,
-        caches = [swarming.cache("browsers")],
+        caches = [swarming.cache("third_party/browsers", name = "browsers")],
         dimensions = dimensions,
         executable = dart_recipe(recipe),
         execution_timeout = execution_timeout,
@@ -1003,35 +1004,42 @@ dart_ci_sandbox_builder(
     "dart2js-strong-linux-x64-chrome",
     category = "dart2js|chrome|l",
     location_regexp = to_location_regexp(DART2JS_PATHS),
+    properties = CHROME,
 )
 dart_ci_sandbox_builder(
     "dart2js-csp-minified-linux-x64-chrome",
     category = "dart2js|chrome|csp",
+    properties = CHROME,
 )
 dart_ci_sandbox_builder(
     "dart2js-strong-mac-x64-chrome",
     category = "dart2js|chrome|m",
     dimensions = mac(),
+    properties = CHROME,
 )
 dart_ci_sandbox_builder(
     "dart2js-strong-win-x64-chrome",
     category = "dart2js|chrome|w",
     dimensions = windows(),
+    properties = CHROME,
 )
 dart_ci_sandbox_builder(
     "dart2js-nnbd-linux-x64-chrome",
     category = "dart2js|chrome|nn",
     location_regexp = to_location_regexp(DART2JS_PATHS),
+    properties = CHROME,
 )
 dart_ci_sandbox_builder(
     "dart2js-strong-linux-x64-firefox",
     category = "dart2js|firefox|l",
+    properties = FIREFOX,
 )
 dart_ci_sandbox_builder(
     "dart2js-strong-win-x64-firefox",
     category = "dart2js|firefox|w",
     dimensions = windows(),
     enabled = False,
+    properties = FIREFOX,
 )
 dart_ci_sandbox_builder(
     "dart2js-strong-mac-x64-safari",
@@ -1114,24 +1122,32 @@ dart_ci_sandbox_builder(
     "ddc-linux-release-chrome",
     category = "ddc|l",
     location_regexp = to_location_regexp(DDC_PATHS),
+    properties = CHROME,
 )
 dart_ci_sandbox_builder(
     "ddc-nnbd-linux-release-chrome",
     category = "ddc|nn",
     channels = ["try"],
     location_regexp = to_location_regexp(DDC_PATHS),
+    properties = CHROME,
 )
 dart_ci_sandbox_builder(
     "ddc-mac-release-chrome",
     category = "ddc|m",
     dimensions = mac(),
+    properties = CHROME,
 )
 dart_ci_sandbox_builder(
     "ddc-win-release-chrome",
     category = "ddc|w",
     dimensions = windows(),
+    properties = CHROME,
 )
-dart_ci_sandbox_builder("ddk-linux-release-firefox", category = "ddc|fl")
+dart_ci_sandbox_builder(
+    "ddk-linux-release-firefox",
+    category = "ddc|fl",
+    properties = FIREFOX,
+)
 
 # misc
 dart_ci_sandbox_builder("gclient", recipe = "dart/gclient", category = "misc|g")
