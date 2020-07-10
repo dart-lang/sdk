@@ -58,11 +58,11 @@ static method main() → void {
   new self::B::•("hi");
   self::C<core::num*>* c = new self::D::•();
   exp::Expect::throws<dynamic>(() → core::Null? {
-    [@vm.call-site-attributes.metadata=receiverType:InterfaceType(C<num*>*)] [@vm.direct-call.metadata=D.bar] c.{self::C::bar} = 3.14;
+    [@vm.call-site-attributes.metadata=receiverType:#lib::C<dart.core::num*>*] [@vm.direct-call.metadata=#lib::D.bar] c.{self::C::bar} = 3.14;
   });
   self::E* e = new self::F::•();
-  exp::Expect::equals(42, [@vm.direct-call.metadata=F.bar] [@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] e.{self::E::bar});
+  exp::Expect::equals(42, [@vm.direct-call.metadata=#lib::F.bar] [@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] e.{self::E::bar});
   exp::Expect::isTrue(![@vm.inferred-type.metadata=dart.core::bool] core::identical(#C2, #C4));
-  [@vm.direct-call.metadata=I.foo] [@vm.inferred-type.metadata=!? (skip check)] new self::I::•().{self::I::foo}();
+  [@vm.direct-call.metadata=#lib::I.foo] [@vm.inferred-type.metadata=!? (skip check)] new self::I::•().{self::I::foo}();
   5;
 }

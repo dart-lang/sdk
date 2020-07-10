@@ -7,19 +7,18 @@
 // Test that we emit the relation between B and A even when B is only live
 // as a type argument through the supertype of D.
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: A:checkedTypeArgument,checks=[],typeArgument*/
+/*spec.class: A:checkedTypeArgument,checks=[],typeArgument*/
 class A {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: B:checks=[$isA],typeArgument*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: B:checks=[],typeArgument*/
+/*spec.class: B:checks=[$isA],typeArgument*/
+/*prod.class: B:checks=[],typeArgument*/
 class B implements A {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: C:checkedInstance*/
-/*prod:nnbd-off.class: C:*/
+/*spec.class: C:checkedInstance*/
 class C<T> {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: D:checks=[$isC],instance*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: D:checks=[],instance*/
+/*spec.class: D:checks=[$isC],instance*/
+/*prod.class: D:checks=[],instance*/
 class D implements C<B> {}
 
 main() {

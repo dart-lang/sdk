@@ -109,6 +109,10 @@ class Thread;
     StubCode::NullArgErrorSharedWithoutFPURegs().raw(), nullptr)               \
   V(CodePtr, null_arg_error_shared_with_fpu_regs_stub_,                        \
     StubCode::NullArgErrorSharedWithFPURegs().raw(), nullptr)                  \
+  V(CodePtr, null_cast_error_shared_without_fpu_regs_stub_,                    \
+    StubCode::NullCastErrorSharedWithoutFPURegs().raw(), nullptr)              \
+  V(CodePtr, null_cast_error_shared_with_fpu_regs_stub_,                       \
+    StubCode::NullCastErrorSharedWithFPURegs().raw(), nullptr)                 \
   V(CodePtr, range_error_shared_without_fpu_regs_stub_,                        \
     StubCode::RangeErrorSharedWithoutFPURegs().raw(), nullptr)                 \
   V(CodePtr, range_error_shared_with_fpu_regs_stub_,                           \
@@ -349,6 +353,22 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, ffi_callback_code_);
   }
 
+  // Tag state is maintained on transitions.
+  enum {
+    // Always true in generated state.
+    kDidNotExit = 0,
+    // The VM did exit the generated state through FFI.
+    // This can be true in both native and VM state.
+    kExitThroughFfi = 1,
+    // The VM exited the generated state through FFI.
+    // This can be true in both native and VM state.
+    kExitThroughRuntimeCall = 2,
+  };
+
+  static intptr_t exit_through_ffi_offset() {
+    return OFFSET_OF(Thread, exit_through_ffi_);
+  }
+
   TaskKind task_kind() const { return task_kind_; }
 
   // Retrieves and clears the stack overflow flags.  These are set by
@@ -386,6 +406,9 @@ class Thread : public ThreadState {
   // are allocated.
   ApiLocalScope* api_top_scope() const { return api_top_scope_; }
   void set_api_top_scope(ApiLocalScope* value) { api_top_scope_ = value; }
+  static intptr_t api_top_scope_offset() {
+    return OFFSET_OF(Thread, api_top_scope_);
+  }
 
   void EnterApiScope();
   void ExitApiScope();
@@ -401,7 +424,8 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, field_table_values_);
   }
 
-  bool IsMutatorThread() const;
+  bool IsMutatorThread() const { return is_mutator_thread_; }
+
   bool CanCollectGarbage() const;
 
   // Offset of Dart TimelineStream object.
@@ -941,6 +965,8 @@ class Thread : public ThreadState {
   uword execution_state_;
   std::atomic<uword> safepoint_state_;
   GrowableObjectArrayPtr ffi_callback_code_;
+  uword exit_through_ffi_ = 0;
+  ApiLocalScope* api_top_scope_;
 
   // ---- End accessed from generated code. ----
 
@@ -954,7 +980,6 @@ class Thread : public ThreadState {
   IsolateGroup* isolate_group_ = nullptr;
   mutable Monitor thread_lock_;
   ApiLocalScope* api_reusable_scope_;
-  ApiLocalScope* api_top_scope_;
   int32_t no_callback_scope_depth_;
 #if defined(DEBUG)
   int32_t no_safepoint_scope_depth_;

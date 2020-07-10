@@ -17,8 +17,8 @@ class Class1 {
   /*member: Class1.noSuchMethod:[exact=JSUInt31]*/
   noSuchMethod(
           Invocation
-              /*spec:nnbd-off|spec:nnbd-sdk.[null|subclass=Object]*/
-              /*prod:nnbd-off|prod:nnbd-sdk.[null|exact=JSInvocationMirror]*/
+              /*spec.[null|subclass=Object]*/
+              /*prod.[null|exact=JSInvocationMirror]*/
               _) =>
       42;
 
@@ -41,8 +41,8 @@ class Class2 {
   /*member: Class2.noSuchMethod:[exact=JSUInt31]*/
   noSuchMethod(
           Invocation
-              /*spec:nnbd-off|spec:nnbd-sdk.[null|subclass=Object]*/
-              /*prod:nnbd-off|prod:nnbd-sdk.[null|exact=JSInvocationMirror]*/
+              /*spec.[null|subclass=Object]*/
+              /*prod.[null|exact=JSInvocationMirror]*/
               _) =>
       42;
 
@@ -65,8 +65,8 @@ class Class3 {
   /*member: Class3.noSuchMethod:[null|subclass=Object]*/
   noSuchMethod(
       Invocation
-          /*spec:nnbd-off|spec:nnbd-sdk.[null|subclass=Object]*/
-          /*prod:nnbd-off|prod:nnbd-sdk.[null|exact=JSInvocationMirror]*/
+          /*spec.[null|subclass=Object]*/
+          /*prod.[null|exact=JSInvocationMirror]*/
           invocation) {
     return invocation
         .
@@ -101,8 +101,8 @@ class Class4 {
   /*member: Class4.noSuchMethod:[null]*/
   noSuchMethod(
       Invocation
-          /*spec:nnbd-off|spec:nnbd-sdk.[null|subclass=Object]*/
-          /*prod:nnbd-off|prod:nnbd-sdk.[null|exact=JSInvocationMirror]*/
+          /*spec.[null|subclass=Object]*/
+          /*prod.[null|exact=JSInvocationMirror]*/
           invocation) {
     this. /*update: [exact=Class4]*/ field = invocation
         .

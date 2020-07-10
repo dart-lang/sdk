@@ -276,6 +276,14 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
   }
 
   @override
+  void visitFutureOrType(FutureOrType node, StringBuffer sb) {
+    sb.write("FutureOr<");
+    node.typeArgument.accept1(this, sb);
+    sb.write(">");
+    writeNullability(node.declaredNullability, sb);
+  }
+
+  @override
   void visitFunctionType(FunctionType node, StringBuffer sb) {
     writeTypeParameters(node.typeParameters, sb);
     sb.write("(");

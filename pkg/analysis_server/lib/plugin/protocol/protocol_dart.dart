@@ -49,6 +49,9 @@ ElementKind convertElementKind(engine.ElementKind kind) {
   if (kind == engine.ElementKind.CONSTRUCTOR) {
     return ElementKind.CONSTRUCTOR;
   }
+  if (kind == engine.ElementKind.ENUM) {
+    return ElementKind.ENUM;
+  }
   if (kind == engine.ElementKind.EXTENSION) {
     return ElementKind.EXTENSION;
   }

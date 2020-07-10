@@ -24,6 +24,7 @@ import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
@@ -82,6 +83,8 @@ class CompoundAssignmentReadNullable implements Problem {
 /// actually make the changes; it simply reports what changes are necessary
 /// through abstract methods.
 class FixBuilder {
+  final DecoratedClassHierarchy _decoratedClassHierarchy;
+
   /// The type provider providing non-nullable types.
   final TypeProvider typeProvider;
 
@@ -145,7 +148,7 @@ class FixBuilder {
   }
 
   FixBuilder._(
-      DecoratedClassHierarchy decoratedClassHierarchy,
+      this._decoratedClassHierarchy,
       this._typeSystem,
       this._variables,
       this.source,
@@ -157,7 +160,6 @@ class FixBuilder {
       this._graph)
       : typeProvider = _typeSystem.typeProvider {
     migrationResolutionHooks._fixBuilder = this;
-    // TODO(paulberry): make use of decoratedClassHierarchy
     assert(_typeSystem.isNonNullableByDefault);
     assert((typeProvider as TypeProviderImpl).isNonNullableByDefault);
     var inheritanceManager = InheritanceManager3();
@@ -292,7 +294,9 @@ class FixReason_NullCheckHint implements SimpleFixReasonInfo {
 
 /// Implementation of [MigrationResolutionHooks] that interfaces with
 /// [FixBuilder].
-class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
+class MigrationResolutionHooksImpl
+    with ResolutionUtils
+    implements MigrationResolutionHooks {
   FixBuilder _fixBuilder;
 
   final Expando<List<CollectionElement>> _collectionElements = Expando();
@@ -305,11 +309,24 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       _flowAnalysis;
 
+  TypeProvider get typeProvider => _fixBuilder.typeProvider;
+
   @override
   void freshTypeParameterCreated(TypeParameterElement newTypeParameter,
       TypeParameterElement oldTypeParameter) {
     DecoratedTypeParameterBounds.current.put(newTypeParameter,
         DecoratedTypeParameterBounds.current.get(oldTypeParameter));
+  }
+
+  @override
+  List<InterfaceType> getClassInterfaces(ClassElementImpl element) {
+    return _wrapExceptions(
+        _fixBuilder.unit,
+        () => element.interfacesInternal,
+        () => [
+              for (var interface in element.interfacesInternal)
+                _getClassInterface(element, interface.element)
+            ]);
   }
 
   @override
@@ -366,6 +383,15 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
       });
 
   @override
+  DartType getExtendedType(ExtensionElementImpl element) {
+    return _wrapExceptions(
+        _fixBuilder.unit,
+        () => element.extendedTypeInternal,
+        () => _fixBuilder._variables
+            .toFinalType(_fixBuilder._variables.decoratedElementType(element)));
+  }
+
+  @override
   DartType getFieldType(PropertyInducingElementImpl element) =>
       _wrapExceptions(_fixBuilder.unit, () => element.typeInternal, () {
         assert(!element.isSynthetic);
@@ -420,6 +446,12 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
     // Null-aware index expressions weren't supported prior to NNBD.
     assert(!node.isNullAware);
     return false;
+  }
+
+  @override
+  bool isLibraryNonNullableByDefault(LibraryElementImpl element) {
+    return _fixBuilder._graph.isBeingMigrated(element.source) ||
+        element.isNonNullableByDefaultInternal;
   }
 
   @override
@@ -521,6 +553,14 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
     }
   }
 
+  InterfaceType _getClassInterface(
+      ClassElement class_, ClassElement superclass) {
+    var decoratedSupertype = _fixBuilder._decoratedClassHierarchy
+        .getDecoratedSupertype(class_, superclass);
+    var finalType = _fixBuilder._variables.toFinalType(decoratedSupertype);
+    return finalType as InterfaceType;
+  }
+
   DartType _modifyRValueType(Expression node, DartType type,
       {DartType context}) {
     var hint =
@@ -559,6 +599,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
 
   bool _needsNullCheckDueToStructure(Expression node) {
     var parent = node.parent;
+
     if (parent is BinaryExpression) {
       if (identical(node, parent.leftOperand)) {
         var operatorType = parent.operator.type;
@@ -571,16 +612,22 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
         }
       }
     } else if (parent is PrefixedIdentifier) {
-      // TODO(paulberry): ok for toString etc. if the shape is correct
+      if (isDeclaredOnObject(parent.identifier.name)) {
+        return false;
+      }
       return identical(node, parent.prefix);
     } else if (parent is PropertyAccess) {
+      if (isDeclaredOnObject(parent.propertyName.name)) {
+        return false;
+      }
       // TODO(paulberry): what about cascaded?
-      // TODO(paulberry): ok for toString etc. if the shape is correct
       return parent.operator.type == TokenType.PERIOD &&
           identical(node, parent.target);
     } else if (parent is MethodInvocation) {
+      if (isDeclaredOnObject(parent.methodName.name)) {
+        return false;
+      }
       // TODO(paulberry): what about cascaded?
-      // TODO(paulberry): ok for toString etc. if the shape is correct
       return parent.operator.type == TokenType.PERIOD &&
           identical(node, parent.target);
     } else if (parent is IndexExpression) {
@@ -989,7 +1036,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
         .decoratedTypeAnnotation(_fixBuilder.source, node);
     if (!typeIsNonNullableByContext(node)) {
       var type = decoratedType.type;
-      if (!type.isDynamic && !type.isVoid) {
+      if (!type.isDynamic && !type.isVoid && !type.isDartCoreNull) {
         _makeTypeNameNullable(node, decoratedType);
       }
     }

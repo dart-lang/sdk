@@ -316,11 +316,15 @@ class NullErrorSlowPath : public ThrowErrorSlowPathCode {
 
   NullErrorSlowPath(CheckNullInstr* instruction, intptr_t try_index)
       : ThrowErrorSlowPathCode(instruction,
-                               kNullErrorRuntimeEntry,
+                               GetRuntimeEntry(instruction->exception_type()),
                                kNumberOfArguments,
                                try_index) {}
 
-  const char* name() override { return "check null (nsm)"; }
+  CheckNullInstr::ExceptionType exception_type() const {
+    return instruction()->AsCheckNull()->exception_type();
+  }
+
+  const char* name() override;
 
   void EmitSharedStubCall(FlowGraphCompiler* compiler,
                           bool save_fpu_registers) override;
@@ -329,27 +333,14 @@ class NullErrorSlowPath : public ThrowErrorSlowPathCode {
     CheckNullInstr::AddMetadataForRuntimeCall(instruction()->AsCheckNull(),
                                               compiler);
   }
-};
 
-class NullArgErrorSlowPath : public ThrowErrorSlowPathCode {
- public:
-  static const intptr_t kNumberOfArguments = 0;
+  static CodePtr GetStub(FlowGraphCompiler* compiler,
+                         CheckNullInstr::ExceptionType exception_type,
+                         bool save_fpu_registers);
 
-  NullArgErrorSlowPath(CheckNullInstr* instruction, intptr_t try_index)
-      : ThrowErrorSlowPathCode(instruction,
-                               kArgumentNullErrorRuntimeEntry,
-                               kNumberOfArguments,
-                               try_index) {}
-
-  const char* name() override { return "check null (arg)"; }
-
-  void EmitSharedStubCall(FlowGraphCompiler* compiler,
-                          bool save_fpu_registers) override;
-
-  void AddMetadataForRuntimeCall(FlowGraphCompiler* compiler) override {
-    CheckNullInstr::AddMetadataForRuntimeCall(instruction()->AsCheckNull(),
-                                              compiler);
-  }
+ private:
+  static const RuntimeEntry& GetRuntimeEntry(
+      CheckNullInstr::ExceptionType exception_type);
 };
 
 class RangeErrorSlowPath : public ThrowErrorSlowPathCode {
@@ -960,7 +951,6 @@ class FlowGraphCompiler : public ValueObject {
   friend class BoxInt64Instr;            // For AddPcRelativeCallStubTarget().
   friend class CheckNullInstr;           // For AddPcRelativeCallStubTarget().
   friend class NullErrorSlowPath;        // For AddPcRelativeCallStubTarget().
-  friend class NullArgErrorSlowPath;     // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowInstr;  // For AddPcRelativeCallStubTarget().
   friend class StoreIndexedInstr;        // For AddPcRelativeCallStubTarget().
   friend class StoreInstanceFieldInstr;  // For AddPcRelativeCallStubTarget().

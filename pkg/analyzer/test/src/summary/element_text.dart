@@ -16,25 +16,17 @@ import 'package:test/test.dart';
 
 import 'resolved_ast_printer.dart';
 
-/**
- * Set this path to automatically replace expectations in invocations of
- * [checkElementText] with the new actual texts.
- */
+/// Set this path to automatically replace expectations in invocations of
+/// [checkElementText] with the new actual texts.
 const String _testPath = null;
 
-/**
- * The list of replacements that update expectations.
- */
+/// The list of replacements that update expectations.
 final List<_Replacement> _replacements = [];
 
-/**
- * The cached content of the file with the [_testPath].
- */
+/// The cached content of the file with the [_testPath].
 String _testCode;
 
-/**
- * The cache line information for the [_testPath] file.
- */
+/// The cache line information for the [_testPath] file.
 LineInfo _testCodeLines;
 
 void applyCheckElementTextReplacements() {
@@ -49,11 +41,9 @@ void applyCheckElementTextReplacements() {
   }
 }
 
-/**
- * Write the given [library] elements into the canonical text presentation
- * taking into account the specified 'withX' options. Then compare the
- * actual text with the given [expected] one.
- */
+/// Write the given [library] elements into the canonical text presentation
+/// taking into account the specified 'withX' options. Then compare the
+/// actual text with the given [expected] one.
 void checkElementText(
   LibraryElement library,
   String expected, {
@@ -135,9 +125,7 @@ void checkElementText(
   expect(actualText, expected);
 }
 
-/**
- * Writes the canonical text presentation of elements.
- */
+/// Writes the canonical text presentation of elements.
 class _ElementWriter {
   final String selfUriStr;
   final bool withCodeRanges;
@@ -545,6 +533,7 @@ class _ElementWriter {
 
     writeName(e);
     writeCodeRange(e);
+    writeTypeInferenceError(e);
 
     writeTypeParameterElements(e.typeParameters);
     writeParameterElements(e.parameters);
@@ -857,8 +846,6 @@ class _ElementWriter {
       buffer.write('*/');
     }
 
-    writeVariableTypeInferenceError(e);
-
     if (defaultValue != null) {
       buffer.write(defaultValueSeparator);
       writeNode(defaultValue);
@@ -992,7 +979,7 @@ class _ElementWriter {
     writeName(e);
     writeCodeRange(e);
 
-    writeVariableTypeInferenceError(e);
+    writeTypeInferenceError(e);
 
     if (withFullyResolvedAst) {
       buffer.writeln(';');
@@ -1033,6 +1020,23 @@ class _ElementWriter {
   void writeType2(DartType type) {
     writeType(type);
     buffer.write(' ');
+  }
+
+  void writeTypeInferenceError(Element e) {
+    TopLevelInferenceError inferenceError;
+    if (e is MethodElementImpl) {
+      inferenceError = e.typeInferenceError;
+    } else if (e is NonParameterVariableElementImpl) {
+      inferenceError = e.typeInferenceError;
+    }
+
+    if (inferenceError != null) {
+      String kindName = inferenceError.kind.toString();
+      if (kindName.startsWith('TopLevelInferenceErrorKind.')) {
+        kindName = kindName.substring('TopLevelInferenceErrorKind.'.length);
+      }
+      buffer.write('/*error: $kindName*/');
+    }
   }
 
   void writeTypeParameterElement(TypeParameterElement e) {
@@ -1088,19 +1092,6 @@ class _ElementWriter {
       buffer.write('\'$uriStr\'');
     } else {
       buffer.write('\'<unresolved>\'');
-    }
-  }
-
-  void writeVariableTypeInferenceError(VariableElement e) {
-    if (e is VariableElementImpl) {
-      TopLevelInferenceError inferenceError = e.typeInferenceError;
-      if (inferenceError != null) {
-        String kindName = inferenceError.kind.toString();
-        if (kindName.startsWith('TopLevelInferenceErrorKind.')) {
-          kindName = kindName.substring('TopLevelInferenceErrorKind.'.length);
-        }
-        buffer.write('/*error: $kindName*/');
-      }
     }
   }
 

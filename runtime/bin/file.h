@@ -15,6 +15,7 @@
 #include "bin/namespace.h"
 #include "bin/reference_counting.h"
 #include "platform/syslog.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -210,6 +211,9 @@ class File : public ReferenceCounted<File> {
   // Same as [File::Open], but attempts to convert uri to path before opening
   // the file. If conversion fails, uri is treated as a path.
   static File* OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode);
+
+  // Attempts to convert the given [uri] to a file path.
+  static Utils::CStringUniquePtr UriToPath(const char* uri);
 
   // Create a file object for the specified stdio file descriptor
   // (stdin, stout or stderr).

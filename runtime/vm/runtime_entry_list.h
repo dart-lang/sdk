@@ -40,6 +40,7 @@ namespace dart {
   V(RangeError)                                                                \
   V(NullError)                                                                 \
   V(NullErrorWithSelector)                                                     \
+  V(NullCastError)                                                             \
   V(ArgumentNullError)                                                         \
   V(ArgumentError)                                                             \
   V(ArgumentErrorUnboxedInt64)                                                 \
@@ -62,7 +63,6 @@ namespace dart {
 // values like ObjectPtr.
 
 #define LEAF_RUNTIME_ENTRY_LIST(V)                                             \
-  V(void, PrintStopMessage, const char*)                                       \
   V(intptr_t, DeoptimizeCopyFrame, uword, uword)                               \
   V(void, DeoptimizeFillFrame, uword)                                          \
   V(void, StoreBufferBlockProcess, Thread*)                                    \
@@ -88,7 +88,10 @@ namespace dart {
   V(uword /*BoolPtr*/, CaseInsensitiveCompareUTF16, uword /*StringPtr*/,       \
     uword /*SmiPtr*/, uword /*SmiPtr*/, uword /*SmiPtr*/)                      \
   V(void, EnterSafepoint)                                                      \
-  V(void, ExitSafepoint)
+  V(void, ExitSafepoint)                                                       \
+  V(ApiLocalScope*, EnterHandleScope, Thread*)                                 \
+  V(void, ExitHandleScope, Thread*)                                            \
+  V(LocalHandle*, AllocateHandle, ApiLocalScope*)
 
 }  // namespace dart
 

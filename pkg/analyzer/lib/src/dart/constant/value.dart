@@ -11,8 +11,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 
 /// The state of an object representing a boolean value.
@@ -260,10 +260,6 @@ class DartObjectImpl implements DartObject {
   DartObjectImpl castToType(
       TypeSystemImpl typeSystem, DartObjectImpl castType) {
     _assertType(castType);
-    if (isNull) {
-      return this;
-    }
-
     var resultType = (castType._state as TypeState)._type;
 
     // We don't know the actual value of a type parameter.

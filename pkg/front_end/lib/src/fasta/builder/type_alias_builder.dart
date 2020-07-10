@@ -17,9 +17,11 @@ import 'package:kernel/ast.dart'
         getAsTypeArguments;
 
 import 'package:kernel/type_algebra.dart'
-    show FreshTypeParameters, getFreshTypeParameters, substitute;
-
-import 'package:kernel/src/future_or.dart';
+    show
+        FreshTypeParameters,
+        getFreshTypeParameters,
+        substitute,
+        uniteNullabilities;
 
 import '../fasta_codes.dart'
     show
@@ -79,7 +81,7 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
   bool get fromDill => false;
 
   Typedef build(SourceLibraryBuilder libraryBuilder) {
-    typedef..type ??= buildThisType();
+    typedef.type ??= buildThisType();
 
     TypeBuilder type = this.type;
     if (type is FunctionTypeBuilder) {
@@ -250,8 +252,6 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
       [bool notInstanceContext]) {
     DartType thisType = buildThisType();
     if (thisType is InvalidType) return thisType;
-    // TODO(dmitryas): Remove the following comment when FutureOr has its own
-    // encoding and isn't represented as an InterfaceType.
 
     // The following won't work if the right-hand side of the typedef is a
     // FutureOr.
@@ -266,7 +266,7 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
       nullability = nullabilityBuilder.build(library);
     } else {
       nullability = uniteNullabilities(
-          thisType.nullability, nullabilityBuilder.build(library));
+          thisType.declaredNullability, nullabilityBuilder.build(library));
     }
     if (typedef.typeParameters.isEmpty && arguments == null) {
       return thisType.withDeclaredNullability(nullability);

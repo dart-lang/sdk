@@ -12,6 +12,7 @@ import 'add_diagnostic_property_reference_test.dart'
     as add_diagnostic_property_reference;
 import 'add_explicit_cast_test.dart' as add_explicit_cast;
 import 'add_field_formal_parameters_test.dart' as add_field_formal_parameters;
+import 'add_late_test.dart' as add_late;
 import 'add_missing_enum_case_clauses_test.dart'
     as add_missing_enum_case_clauses;
 import 'add_missing_parameter_named_test.dart' as add_missing_parameter_named;
@@ -90,6 +91,7 @@ import 'make_field_not_final_test.dart' as make_field_not_final;
 import 'make_final_test.dart' as make_final;
 import 'make_variable_not_final_test.dart' as make_variable_not_final;
 import 'move_type_arguments_to_class_test.dart' as move_type_arguments_to_class;
+import 'organize_imports_test.dart' as organize_imports;
 import 'qualify_reference_test.dart' as qualify_reference;
 import 'remove_annotation_test.dart' as remove_annotation;
 import 'remove_argument_test.dart' as remove_argument;
@@ -140,6 +142,7 @@ import 'replace_with_conditional_assignment_test.dart'
     as replace_with_conditional_assignment;
 import 'replace_with_eight_digit_hex_test.dart' as replace_with_eight_digit_hex;
 import 'replace_with_extension_name_test.dart' as replace_with_extension_name;
+import 'replace_with_filled_test.dart' as replace_with_filled;
 import 'replace_with_identifier_test.dart' as replace_with_identifier;
 import 'replace_with_interpolation_test.dart' as replace_with_interpolation;
 import 'replace_with_is_empty_test.dart' as replace_with_is_empty;
@@ -148,7 +151,6 @@ import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'replace_with_var_test.dart' as replace_with_var;
 import 'sort_child_property_last_test.dart' as sort_properties_last;
-import 'sort_directives_test.dart' as sort_directives;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
 import 'use_const_test.dart' as use_const;
 import 'use_effective_integer_division_test.dart'
@@ -169,6 +171,7 @@ void main() {
     add_diagnostic_property_reference.main();
     add_explicit_cast.main();
     add_field_formal_parameters.main();
+    add_late.main();
     add_missing_enum_case_clauses.main();
     add_missing_parameter_named.main();
     add_missing_parameter_positional.main();
@@ -237,6 +240,7 @@ void main() {
     make_final.main();
     make_variable_not_final.main();
     move_type_arguments_to_class.main();
+    organize_imports.main();
     qualify_reference.main();
     remove_annotation.main();
     remove_argument.main();
@@ -283,6 +287,7 @@ void main() {
     replace_with_conditional_assignment.main();
     replace_with_eight_digit_hex.main();
     replace_with_extension_name.main();
+    replace_with_filled.main();
     replace_with_identifier.main();
     replace_with_interpolation.main();
     replace_with_is_empty.main();
@@ -290,7 +295,6 @@ void main() {
     replace_with_null_aware.main();
     replace_with_tear_off.main();
     replace_with_var.main();
-    sort_directives.main();
     sort_properties_last.main();
     update_sdk_constraints.main();
     use_const.main();

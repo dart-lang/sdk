@@ -414,6 +414,7 @@ void ProgramVisitor::BindStaticCalls(Zone* zone, Isolate* isolate) {
   WalkProgram(zone, isolate, &visitor);
 }
 
+DECLARE_FLAG(charp, trace_precompiler_to);
 DECLARE_FLAG(charp, write_v8_snapshot_profile_to);
 
 void ProgramVisitor::ShareMegamorphicBuckets(Zone* zone, Isolate* isolate) {
@@ -913,7 +914,8 @@ void ProgramVisitor::DedupUnlinkedCalls(Zone* zone, Isolate* isolate) {
   // implicit and go through global object pool). This information is needed
   // to produce more informative snapshot profile.
   if (!FLAG_use_bare_instructions ||
-      FLAG_write_v8_snapshot_profile_to != nullptr) {
+      FLAG_write_v8_snapshot_profile_to != nullptr ||
+      FLAG_trace_precompiler_to != nullptr) {
     WalkProgram(zone, isolate, &deduper);
   }
 }
@@ -1274,6 +1276,25 @@ void ProgramVisitor::Dedup(Thread* thread) {
 
   // Reduces binary size but obfuscates profiler results.
   if (FLAG_dedup_instructions) {
+    // In non-bare mode (unused atm) dedupping instructions would cause us to
+    // loose the ability to uniquely map a PC to a given UnlinkedCall object,
+    // since two code objects might point to the same deduped instructions
+    // object but might have two different UnlinkedCall objects in their pool.
+    //
+    // In bare mode this cannot happen because different UnlinkedCall objects
+    // would get different indices into the (global) object pool, therefore
+    // making the instructions different.
+    //
+    // (When transitioning the switchable call site we loose track of the args
+    // descriptor. Since we need it for further transitions we currently save it
+    // via a PC -> UnlinkedCall mapping).
+    //
+    // We therfore disable the instruction deduplication in product-non-bare
+    // mode (which is unused atm).
+#if defined(PRODUCT)
+    if (FLAG_precompiled_mode && !FLAG_use_bare_instructions) return;
+#endif
+
     DedupInstructions(zone, isolate);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

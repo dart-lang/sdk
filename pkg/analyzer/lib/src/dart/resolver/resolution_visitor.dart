@@ -19,7 +19,6 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/type_name_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 
@@ -85,7 +84,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   /// The flag specifying if currently visited class references 'super'
   /// expression.
-  /// TODO(scheglov) put into summary
   bool _hasReferenceToSuper = false;
 
   factory ResolutionVisitor({
@@ -1113,10 +1111,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * For each [Annotation] found in [annotations], create a new
-   * [ElementAnnotation] object and set the [Annotation] to point to it.
-   */
+  /// For each [Annotation] found in [annotations], create a new
+  /// [ElementAnnotation] object and set the [Annotation] to point to it.
   List<ElementAnnotation> _createElementAnnotations(
       List<Annotation> annotations) {
     if (annotations.isEmpty) {

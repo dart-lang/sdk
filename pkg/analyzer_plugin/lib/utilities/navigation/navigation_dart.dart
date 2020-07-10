@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation.dart';
 
@@ -143,6 +144,24 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     for (var node in nodes) {
       node.accept(this);
     }
+  }
+
+  @override
+  void visitConfiguration(Configuration node) {
+    var source = node.uriSource;
+    if (source != null) {
+      if (resourceProvider.getResource(source.fullName).exists) {
+        // TODO(brianwilkerson) If the analyzer ever resolves the URI to a
+        //  library, use that library element to create the region.
+        var uriNode = node.uri;
+        computer.collector.addRegion(
+            uriNode.offset,
+            uriNode.length,
+            protocol.ElementKind.LIBRARY,
+            protocol.Location(source.fullName, 0, 0, 0, 0));
+      }
+    }
+    super.visitConfiguration(node);
   }
 
   @override

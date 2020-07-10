@@ -16,6 +16,7 @@ import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
 import 'package:kernel/ast.dart'
     show
         Arguments,
+        AsyncMarker,
         Class,
         Constructor,
         ConstructorInvocation,
@@ -65,8 +66,6 @@ import 'package:kernel/src/bounds_checks.dart'
         findTypeArgumentIssues,
         findTypeArgumentIssuesForInvocation,
         getGenericTypeName;
-
-import 'package:kernel/src/future_or.dart';
 
 import 'package:kernel/type_algebra.dart' show substitute;
 
@@ -190,6 +189,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   final Uri fileUri;
 
+  final Uri _packageUri;
+
+  Uri get packageUriForTesting => _packageUri;
+
   final List<ImplementationInfo> implementationBuilders =
       <ImplementationInfo>[];
 
@@ -283,6 +286,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   SourceLibraryBuilder.internal(
       SourceLoader loader,
       Uri fileUri,
+      Uri packageUri,
       Scope scope,
       SourceLibraryBuilder actualOrigin,
       Library library,
@@ -292,6 +296,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       : this.fromScopes(
             loader,
             fileUri,
+            packageUri,
             new TypeParameterScopeBuilder.library(),
             scope ?? new Scope.top(),
             actualOrigin,
@@ -302,6 +307,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   SourceLibraryBuilder.fromScopes(
       this.loader,
       this.fileUri,
+      this._packageUri,
       this.libraryDeclaration,
       this.importScope,
       this.actualOrigin,
@@ -314,6 +320,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             referencesFrom == null ? null : new IndexedLibrary(referencesFrom),
         super(
             fileUri, libraryDeclaration.toScope(importScope), new Scope.top()) {
+    assert(
+        _packageUri == null ||
+            importUri.scheme != 'package' ||
+            importUri.path.startsWith(_packageUri.path),
+        "Foreign package uri '$_packageUri' set on library with import uri "
+        "'${importUri}'.");
+    assert(
+        importUri.scheme != 'dart' || _packageUri == null,
+        "Package uri '$_packageUri' set on dart: library with import uri "
+        "'${importUri}'.");
     updateLibraryNNBDSettings();
   }
 
@@ -323,26 +339,27 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool _enableTripleShiftInLibrary;
   bool _enableExtensionMethodsInLibrary;
 
-  bool get enableVarianceInLibrary => _enableVarianceInLibrary ??= loader.target
-      .isExperimentEnabledInLibrary(ExperimentalFlag.variance, importUri);
+  bool get enableVarianceInLibrary =>
+      _enableVarianceInLibrary ??= loader.target.isExperimentEnabledInLibrary(
+          ExperimentalFlag.variance, _packageUri ?? importUri);
 
   bool get enableNonfunctionTypeAliasesInLibrary =>
       _enableNonfunctionTypeAliasesInLibrary ??= loader.target
-          .isExperimentEnabledInLibrary(
-              ExperimentalFlag.nonfunctionTypeAliases, importUri);
+          .isExperimentEnabledInLibrary(ExperimentalFlag.nonfunctionTypeAliases,
+              _packageUri ?? importUri);
 
-  bool get enableNonNullableInLibrary => _enableNonNullableInLibrary ??= loader
-      .target
-      .isExperimentEnabledInLibrary(ExperimentalFlag.nonNullable, importUri);
+  bool get enableNonNullableInLibrary => _enableNonNullableInLibrary ??=
+      loader.target.isExperimentEnabledInLibrary(
+          ExperimentalFlag.nonNullable, _packageUri ?? importUri);
 
-  bool get enableTripleShiftInLibrary => _enableTripleShiftInLibrary ??= loader
-      .target
-      .isExperimentEnabledInLibrary(ExperimentalFlag.tripleShift, importUri);
+  bool get enableTripleShiftInLibrary => _enableTripleShiftInLibrary ??=
+      loader.target.isExperimentEnabledInLibrary(
+          ExperimentalFlag.tripleShift, _packageUri ?? importUri);
 
   bool get enableExtensionMethodsInLibrary =>
       _enableExtensionMethodsInLibrary ??= loader.target
           .isExperimentEnabledInLibrary(
-              ExperimentalFlag.extensionMethods, importUri);
+              ExperimentalFlag.extensionMethods, _packageUri ?? importUri);
 
   void updateLibraryNNBDSettings() {
     library.isNonNullableByDefault = isNonNullableByDefault;
@@ -367,8 +384,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  SourceLibraryBuilder(
-      Uri uri, Uri fileUri, Loader loader, SourceLibraryBuilder actualOrigin,
+  SourceLibraryBuilder(Uri uri, Uri fileUri, Uri packageUri, Loader loader,
+      SourceLibraryBuilder actualOrigin,
       {Scope scope,
       Library target,
       Library nameOrigin,
@@ -377,6 +394,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       : this.internal(
             loader,
             fileUri,
+            packageUri,
             scope,
             actualOrigin,
             target ??
@@ -424,7 +442,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   static const List<String> optOutTestPaths = [
     'co19_2/',
-    'compiler/dart2js_native/',
     'corelib_2/',
     'dart2js_2/',
     'ffi_2',
@@ -2104,6 +2121,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charOpenParenOffset,
       int charEndOffset,
       String nativeMethodName,
+      AsyncMarker asyncModifier,
       {bool isTopLevel}) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
     if (returnType == null) {
@@ -2178,6 +2196,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         charEndOffset,
         referenceFrom,
         tearOffReferenceFrom,
+        asyncModifier,
         nativeMethodName);
     metadataCollector?.setDocumentationComment(
         procedureBuilder.procedure, documentationComment);
@@ -2200,7 +2219,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
-      String nativeMethodName) {
+      String nativeMethodName,
+      AsyncMarker asyncModifier) {
     TypeBuilder returnType = addNamedType(
         currentTypeParameterScopeBuilder.parent.name,
         const NullabilityBuilder.omitted(),
@@ -2262,6 +2282,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           charEndOffset,
           referenceFrom,
           null,
+          asyncModifier,
           nativeMethodName);
     }
 
@@ -3047,7 +3068,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           !fieldBuilder.isLate &&
           !fieldBuilder.isExternal &&
           fieldType is! InvalidType &&
-          isPotentiallyNonNullable(fieldType, typeEnvironment.futureOrClass) &&
+          fieldType.isPotentiallyNonNullable &&
           !fieldBuilder.hasInitializer) {
         addProblem(
             templateFieldNonNullableWithoutInitializerError.withArguments(
@@ -3070,8 +3091,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       bool isOptionalNamed = !formal.isNamedRequired && formal.isNamed;
       bool isOptional = isOptionalPositional || isOptionalNamed;
       if (isOptional &&
-          isPotentiallyNonNullable(
-              formal.variable.type, typeEnvironment.futureOrClass) &&
+          formal.variable.type.isPotentiallyNonNullable &&
           !formal.hasDeclaredInitializer) {
         addProblem(
             templateOptionalNonNullableWithoutInitializerError.withArguments(

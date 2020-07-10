@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:html';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 
 enum ProfileTreeMode {
   code,
@@ -19,9 +19,6 @@ class StackTraceTreeConfigChangedEvent {
 }
 
 class StackTraceTreeConfigElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<StackTraceTreeConfigElement>('stack-trace-tree-config');
-
   RenderingScheduler<StackTraceTreeConfigElement> _r;
 
   Stream<RenderedEvent<StackTraceTreeConfigElement>> get onRendered =>
@@ -89,7 +86,7 @@ class StackTraceTreeConfigElement extends CustomElement implements Renderable {
     return e;
   }
 
-  StackTraceTreeConfigElement.created() : super.created(tag);
+  StackTraceTreeConfigElement.created() : super.created('stack-trace-tree-config');
 
   @override
   void attached() {

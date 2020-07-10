@@ -11,6 +11,8 @@ compiler_sources = [
   "aot/dispatch_table_generator.h",
   "aot/precompiler.cc",
   "aot/precompiler.h",
+  "aot/precompiler_tracer.cc",
+  "aot/precompiler_tracer.h",
   "asm_intrinsifier.cc",
   "asm_intrinsifier.h",
   "asm_intrinsifier_arm.cc",

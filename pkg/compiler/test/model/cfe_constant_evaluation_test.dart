@@ -20,7 +20,6 @@ import 'package:compiler/src/ir/constants.dart';
 import 'package:compiler/src/ir/visitors.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
-import 'package:compiler/src/options.dart';
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:kernel/ast.dart' as ir;
@@ -34,19 +33,9 @@ class TestData {
   final String declarations;
 
   /// Tested constants.
-  final List<ConstantData> constantsCommon;
-  final List<ConstantData> constantsPreNnbd;
-  final List<ConstantData> constantsNnbdWeak;
-  List<ConstantData> get constants =>
-      constantsCommon +
-      (isDart2jsNnbd && constantsNnbdWeak.isNotEmpty
-          ? constantsNnbdWeak
-          : constantsPreNnbd);
+  final List<ConstantData> constants;
 
-  const TestData(this.name, this.declarations,
-      {this.constantsCommon: const [],
-      this.constantsPreNnbd: const [],
-      this.constantsNnbdWeak: const []});
+  const TestData(this.name, this.declarations, this.constants);
 }
 
 class ConstantData {
@@ -66,102 +55,84 @@ class ConstantData {
   const ConstantData(this.code, this.expectedResults, {this.expectedErrors});
 }
 
-const List<TestData> DATA = const [
-  const TestData('simple', '', constantsCommon: const [
-    const ConstantData('null', 'NullConstant'),
-    const ConstantData('false', 'BoolConstant(false)'),
-    const ConstantData('true', 'BoolConstant(true)'),
-    const ConstantData('0', 'IntConstant(0)'),
-    const ConstantData('0.0', 'IntConstant(0)'),
-    const ConstantData('"foo"', 'StringConstant("foo")'),
-    const ConstantData('1 + 2', 'IntConstant(3)'),
-    const ConstantData('-(1)', 'IntConstant(-1)'),
-    const ConstantData('1 == 2', 'BoolConstant(false)'),
-    const ConstantData('1 != 2', 'BoolConstant(true)'),
-    const ConstantData('1 / 0', 'DoubleConstant(Infinity)'),
-    const ConstantData('0 / 0', 'DoubleConstant(NaN)'),
-    const ConstantData('1 << 0', 'IntConstant(1)'),
-    const ConstantData('1 >> 0', 'IntConstant(1)'),
-    const ConstantData('"foo".length', 'IntConstant(3)'),
-    const ConstantData('identical(0, 1)', 'BoolConstant(false)'),
-    const ConstantData('"a" "b"', 'StringConstant("ab")'),
-    const ConstantData(r'"${null}"', 'StringConstant("null")'),
-    const ConstantData('identical', 'FunctionConstant(identical)'),
-    const ConstantData('true ? 0 : 1', 'IntConstant(0)'),
-    const ConstantData('proxy', 'ConstructedConstant(_Proxy())'),
-    const ConstantData('const [] == null', 'BoolConstant(false)'),
-    const ConstantData('proxy == null', 'BoolConstant(false)'),
-    const ConstantData('proxy != null', 'BoolConstant(true)'),
-    const ConstantData('null == proxy', 'BoolConstant(false)'),
-    const ConstantData('null != proxy', 'BoolConstant(true)'),
-    const ConstantData('true == proxy', 'BoolConstant(false)'),
-    const ConstantData('true != proxy', 'BoolConstant(true)'),
-    const ConstantData('0 == proxy', 'BoolConstant(false)'),
-    const ConstantData('0 != proxy', 'BoolConstant(true)'),
-    const ConstantData('0.5 == proxy', 'BoolConstant(false)'),
-    const ConstantData('0.5 != proxy', 'BoolConstant(true)'),
-    const ConstantData('"" == proxy', 'BoolConstant(false)'),
-    const ConstantData('"" != proxy', 'BoolConstant(true)'),
-    const ConstantData('Object', 'TypeConstant(Object)'),
-    const ConstantData('null ?? 0', 'IntConstant(0)'),
-    const ConstantData('const <int, int>{0: 1, 0: 2}', 'NonConstant',
+const List<TestData> DATA = [
+  TestData('simple', '', [
+    ConstantData('null', 'NullConstant'),
+    ConstantData('false', 'BoolConstant(false)'),
+    ConstantData('true', 'BoolConstant(true)'),
+    ConstantData('0', 'IntConstant(0)'),
+    ConstantData('0.0', 'IntConstant(0)'),
+    ConstantData('"foo"', 'StringConstant("foo")'),
+    ConstantData('1 + 2', 'IntConstant(3)'),
+    ConstantData('-(1)', 'IntConstant(-1)'),
+    ConstantData('1 == 2', 'BoolConstant(false)'),
+    ConstantData('1 != 2', 'BoolConstant(true)'),
+    ConstantData('1 / 0', 'DoubleConstant(Infinity)'),
+    ConstantData('0 / 0', 'DoubleConstant(NaN)'),
+    ConstantData('1 << 0', 'IntConstant(1)'),
+    ConstantData('1 >> 0', 'IntConstant(1)'),
+    ConstantData('"foo".length', 'IntConstant(3)'),
+    ConstantData('identical(0, 1)', 'BoolConstant(false)'),
+    ConstantData('"a" "b"', 'StringConstant("ab")'),
+    ConstantData(r'"${null}"', 'StringConstant("null")'),
+    ConstantData('identical', 'FunctionConstant(identical)'),
+    ConstantData('true ? 0 : 1', 'IntConstant(0)'),
+    ConstantData('proxy', 'ConstructedConstant(_Proxy())'),
+    ConstantData('const [] == null', 'BoolConstant(false)'),
+    ConstantData('proxy == null', 'BoolConstant(false)'),
+    ConstantData('proxy != null', 'BoolConstant(true)'),
+    ConstantData('null == proxy', 'BoolConstant(false)'),
+    ConstantData('null != proxy', 'BoolConstant(true)'),
+    ConstantData('true == proxy', 'BoolConstant(false)'),
+    ConstantData('true != proxy', 'BoolConstant(true)'),
+    ConstantData('0 == proxy', 'BoolConstant(false)'),
+    ConstantData('0 != proxy', 'BoolConstant(true)'),
+    ConstantData('0.5 == proxy', 'BoolConstant(false)'),
+    ConstantData('0.5 != proxy', 'BoolConstant(true)'),
+    ConstantData('"" == proxy', 'BoolConstant(false)'),
+    ConstantData('"" != proxy', 'BoolConstant(true)'),
+    ConstantData('Object', 'TypeConstant(Object)'),
+    ConstantData('null ?? 0', 'IntConstant(0)'),
+    ConstantData('const <int, int>{0: 1, 0: 2}', 'NonConstant',
         expectedErrors: 'ConstEvalDuplicateKey'),
-    const ConstantData(
+    ConstantData(
         'const bool.fromEnvironment("foo", defaultValue: false)',
-        const <Map<String, String>, String>{
-          const {}: 'BoolConstant(false)',
-          const {'foo': 'true'}: 'BoolConstant(true)'
+        <Map<String, String>, String>{
+          {}: 'BoolConstant(false)',
+          {'foo': 'true'}: 'BoolConstant(true)'
         }),
-    const ConstantData(
+    ConstantData(
         'const int.fromEnvironment("foo", defaultValue: 42)',
-        const <Map<String, String>, String>{
-          const {}: 'IntConstant(42)',
-          const {'foo': '87'}: 'IntConstant(87)'
+        <Map<String, String>, String>{
+          {}: 'IntConstant(42)',
+          {'foo': '87'}: 'IntConstant(87)'
         }),
-    const ConstantData(
+    ConstantData(
         'const String.fromEnvironment("foo", defaultValue: "bar")',
-        const <Map<String, String>, String>{
-          const {}: 'StringConstant("bar")',
-          const {'foo': 'foo'}: 'StringConstant("foo")'
+        <Map<String, String>, String>{
+          {}: 'StringConstant("bar")',
+          {'foo': 'foo'}: 'StringConstant("foo")'
         }),
-  ], constantsPreNnbd: const [
-    const ConstantData(
-        'const [0, 1]', 'ListConstant(<int>[IntConstant(0), IntConstant(1)])'),
-    const ConstantData('const <int>[0, 1]',
-        'ListConstant(<int>[IntConstant(0), IntConstant(1)])'),
-    const ConstantData(
-        'const {0, 1}', 'SetConstant(<int>{IntConstant(0), IntConstant(1)})'),
-    const ConstantData('const <int>{0, 1}',
-        'SetConstant(<int>{IntConstant(0), IntConstant(1)})'),
-    const ConstantData(
-        'const {0: 1, 2: 3}',
-        'MapConstant(<int, int>{IntConstant(0): IntConstant(1), '
-            'IntConstant(2): IntConstant(3)})'),
-    const ConstantData(
-        'const <int, int>{0: 1, 2: 3}',
-        'MapConstant(<int, int>{IntConstant(0): IntConstant(1), '
-            'IntConstant(2): IntConstant(3)})'),
-  ], constantsNnbdWeak: const [
-    const ConstantData(
+    ConstantData(
         'const [0, 1]', 'ListConstant(<int*>[IntConstant(0), IntConstant(1)])'),
-    const ConstantData('const <int>[0, 1]',
+    ConstantData('const <int>[0, 1]',
         'ListConstant(<int*>[IntConstant(0), IntConstant(1)])'),
-    const ConstantData(
+    ConstantData(
         'const {0, 1}', 'SetConstant(<int*>{IntConstant(0), IntConstant(1)})'),
-    const ConstantData('const <int>{0, 1}',
+    ConstantData('const <int>{0, 1}',
         'SetConstant(<int*>{IntConstant(0), IntConstant(1)})'),
-    const ConstantData(
+    ConstantData(
         'const {0: 1, 2: 3}',
         'MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), '
             'IntConstant(2): IntConstant(3)})'),
-    const ConstantData(
+    ConstantData(
         'const <int, int>{0: 1, 2: 3}',
         'MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), '
             'IntConstant(2): IntConstant(3)})'),
   ]),
-  const TestData('env', '''
-const a = const bool.fromEnvironment("foo", defaultValue: true);
-const b = const int.fromEnvironment("bar", defaultValue: 42);
+  TestData('env', '''
+const a = bool.fromEnvironment("foo", defaultValue: true);
+const b = int.fromEnvironment("bar", defaultValue: 42);
 
 class A {
   const A();
@@ -179,48 +150,46 @@ class D extends C {
   final field3 = 99;
   const D(a, b) : super(field2: a, field1: b);
 }
-''', constantsCommon: const [
-    const ConstantData('const Object()', 'ConstructedConstant(Object())'),
-    const ConstantData('const A()', 'ConstructedConstant(A())'),
-    const ConstantData(
-        'const B(0)', 'ConstructedConstant(B(field1=IntConstant(0)))'),
-    const ConstantData('const B(const A())',
+''', [
+    ConstantData('const Object()', 'ConstructedConstant(Object())'),
+    ConstantData('const A()', 'ConstructedConstant(A())'),
+    ConstantData('const B(0)', 'ConstructedConstant(B(field1=IntConstant(0)))'),
+    ConstantData('const B(A())',
         'ConstructedConstant(B(field1=ConstructedConstant(A())))'),
-    const ConstantData(
+    ConstantData(
         'const C()',
         'ConstructedConstant(C(field1=IntConstant(42),'
             'field2=BoolConstant(false)))'),
-    const ConstantData(
+    ConstantData(
         'const C(field1: 87)',
         'ConstructedConstant(C(field1=IntConstant(87),'
             'field2=BoolConstant(false)))'),
-    const ConstantData(
+    ConstantData(
         'const C(field2: true)',
         'ConstructedConstant(C(field1=IntConstant(42),'
             'field2=BoolConstant(true)))'),
-    const ConstantData(
+    ConstantData(
         'const C.named()',
         'ConstructedConstant(C(field1=BoolConstant(false),'
             'field2=BoolConstant(false)))'),
-    const ConstantData(
+    ConstantData(
         'const C.named(87)',
         'ConstructedConstant(C(field1=IntConstant(87),'
             'field2=IntConstant(87)))'),
-    const ConstantData(
-        'const C(field1: a, field2: b)', const <Map<String, String>, String>{
-      const {}: 'ConstructedConstant(C(field1=BoolConstant(true),'
+    ConstantData('const C(field1: a, field2: b)', <Map<String, String>, String>{
+      {}: 'ConstructedConstant(C(field1=BoolConstant(true),'
           'field2=IntConstant(42)))',
-      const {'foo': 'false', 'bar': '87'}:
+      {'foo': 'false', 'bar': '87'}:
           'ConstructedConstant(C(field1=BoolConstant(false),'
               'field2=IntConstant(87)))',
     }),
-    const ConstantData(
+    ConstantData(
         'const D(42, 87)',
         'ConstructedConstant(D(field1=IntConstant(87),'
             'field2=IntConstant(42),'
             'field3=IntConstant(99)))'),
   ]),
-  const TestData('redirect', '''
+  TestData('redirect', '''
 class A<T> implements B<Null> {
   final field1;
   const A({this.field1:42});
@@ -232,39 +201,25 @@ class B<S> implements C<Null> {
 class C<U> {
   const factory C({field1}) = A<B<double>>;
 }
-''', constantsCommon: const [
-    const ConstantData(
+''', [
+    ConstantData(
         'const A()', 'ConstructedConstant(A<dynamic>(field1=IntConstant(42)))'),
-  ], constantsPreNnbd: const [
-    const ConstantData('const A<int>(field1: 87)',
-        'ConstructedConstant(A<int>(field1=IntConstant(87)))'),
-    const ConstantData('const B()',
-        'ConstructedConstant(A<B<dynamic>>(field1=IntConstant(42)))'),
-    const ConstantData('const B<int>()',
-        'ConstructedConstant(A<B<int>>(field1=IntConstant(42)))'),
-    const ConstantData('const B<int>(field1: 87)',
-        'ConstructedConstant(A<B<int>>(field1=IntConstant(87)))'),
-    const ConstantData('const C<int>(field1: 87)',
-        'ConstructedConstant(A<B<double>>(field1=IntConstant(87)))'),
-    const ConstantData('const B<int>.named()',
-        'ConstructedConstant(A<int>(field1=IntConstant(42)))'),
-  ], constantsNnbdWeak: const [
-    const ConstantData('const A<int>(field1: 87)',
+    ConstantData('const A<int>(field1: 87)',
         'ConstructedConstant(A<int*>(field1=IntConstant(87)))'),
-    const ConstantData('const B()',
+    ConstantData('const B()',
         'ConstructedConstant(A<B<dynamic>*>(field1=IntConstant(42)))'),
-    const ConstantData('const B<int>()',
+    ConstantData('const B<int>()',
         'ConstructedConstant(A<B<int*>*>(field1=IntConstant(42)))'),
-    const ConstantData('const B<int>(field1: 87)',
+    ConstantData('const B<int>(field1: 87)',
         'ConstructedConstant(A<B<int*>*>(field1=IntConstant(87)))'),
-    const ConstantData('const C<int>(field1: 87)',
+    ConstantData('const C<int>(field1: 87)',
         'ConstructedConstant(A<B<double*>*>(field1=IntConstant(87)))'),
-    const ConstantData('const B<int>.named()',
+    ConstantData('const B<int>.named()',
         'ConstructedConstant(A<int*>(field1=IntConstant(42)))'),
   ]),
-  const TestData('env2', '''
-const c = const int.fromEnvironment("foo", defaultValue: 5);
-const d = const int.fromEnvironment("bar", defaultValue: 10);
+  TestData('env2', '''
+const c = int.fromEnvironment("foo", defaultValue: 5);
+const d = int.fromEnvironment("bar", defaultValue: 10);
 
 class A {
   final field;
@@ -274,18 +229,18 @@ class A {
 class B extends A {
   const B(a) : super(a, a * 2);
 }
-''', constantsCommon: const [
-    const ConstantData('const A(c, d)', const <Map<String, String>, String>{
-      const {}: 'ConstructedConstant(A(field=IntConstant(15)))',
-      const {'foo': '7', 'bar': '11'}:
+''', [
+    ConstantData('const A(c, d)', <Map<String, String>, String>{
+      {}: 'ConstructedConstant(A(field=IntConstant(15)))',
+      {'foo': '7', 'bar': '11'}:
           'ConstructedConstant(A(field=IntConstant(18)))',
     }),
-    const ConstantData('const B(d)', const <Map<String, String>, String>{
-      const {}: 'ConstructedConstant(B(field=IntConstant(30)))',
-      const {'bar': '42'}: 'ConstructedConstant(B(field=IntConstant(126)))',
+    ConstantData('const B(d)', <Map<String, String>, String>{
+      {}: 'ConstructedConstant(B(field=IntConstant(30)))',
+      {'bar': '42'}: 'ConstructedConstant(B(field=IntConstant(126)))',
     }),
   ]),
-  const TestData('construct', '''
+  TestData('construct', '''
  class A {
    final x;
    final y;
@@ -296,8 +251,8 @@ class B extends A {
    const A.named(z, this.t) : y = 400 + z, this.z = z, x = 3;
    const A.named2(t, z, y, x) : x = t, y = z, z = y, t = x;
  }
- ''', constantsCommon: const [
-    const ConstantData(
+ ''', [
+    ConstantData(
         'const A.named(99, 100)',
         'ConstructedConstant(A('
             't=IntConstant(100),'
@@ -305,7 +260,7 @@ class B extends A {
             'x=IntConstant(3),'
             'y=IntConstant(499),'
             'z=IntConstant(99)))'),
-    const ConstantData(
+    ConstantData(
         'const A(99, 100)',
         'ConstructedConstant(A('
             't=IntConstant(100),'
@@ -314,16 +269,16 @@ class B extends A {
             'y=IntConstant(499),'
             'z=IntConstant(99)))'),
   ]),
-  const TestData('errors', r'''
- const dynamic null_ = const bool.fromEnvironment('x') ? null : null;
- const dynamic zero = const bool.fromEnvironment('x') ? null : 0;
- const dynamic minus_one = const bool.fromEnvironment('x') ? null : -1;
- const dynamic false_ = const bool.fromEnvironment('x') ? null : false;
- const dynamic integer = const int.fromEnvironment("foo", defaultValue: 5);
- const dynamic string = const String.fromEnvironment("bar", defaultValue: "baz");
- const dynamic boolean = const bool.fromEnvironment("baz", defaultValue: false);
+  TestData('errors', r'''
+ const dynamic null_ = bool.fromEnvironment('x') ? null : null;
+ const dynamic zero = bool.fromEnvironment('x') ? null : 0;
+ const dynamic minus_one = bool.fromEnvironment('x') ? null : -1;
+ const dynamic false_ = bool.fromEnvironment('x') ? null : false;
+ const dynamic integer = int.fromEnvironment("foo", defaultValue: 5);
+ const dynamic string = String.fromEnvironment("bar", defaultValue: "baz");
+ const dynamic boolean = bool.fromEnvironment("baz", defaultValue: false);
  const dynamic not_string =
-    const bool.fromEnvironment("not_string", defaultValue: false) ? '' : 0;
+    bool.fromEnvironment("not_string", defaultValue: false) ? '' : 0;
  class Class1 {
     final field;
     const Class1() : field = not_string.length;
@@ -360,98 +315,96 @@ class B extends A {
     final int field = string;
     const Class10();
  }
- ''', constantsCommon: const [
-    const ConstantData(
+ ''', [
+    ConstantData(
         r'"$integer $string $boolean"', 'StringConstant("5 baz false")'),
-    const ConstantData('integer ? true : false', 'NonConstant',
+    ConstantData('integer ? true : false', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
-    const ConstantData(r'"${proxy}"', 'NonConstant',
+    ConstantData(r'"${proxy}"', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidStringInterpolationOperand'),
-    const ConstantData('0 + string', 'NonConstant',
+    ConstantData('0 + string', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
-    const ConstantData('string + 0', 'NonConstant',
+    ConstantData('string + 0', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidBinaryOperandType'),
-    const ConstantData('boolean + string', 'NonConstant',
+    ConstantData('boolean + string', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidMethodInvocation'),
-    const ConstantData('boolean + false', 'NonConstant',
+    ConstantData('boolean + false', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidMethodInvocation'),
-    const ConstantData('0 * string', 'NonConstant',
+    ConstantData('0 * string', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
-    const ConstantData('0 % string', 'NonConstant',
+    ConstantData('0 % string', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
-    const ConstantData('0 << string', 'NonConstant',
+    ConstantData('0 << string', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
-    const ConstantData('1 ~/ zero', 'NonConstant',
+    ConstantData('1 ~/ zero', 'NonConstant',
         expectedErrors: 'ConstEvalZeroDivisor'),
-    const ConstantData('1 % zero', 'NonConstant',
+    ConstantData('1 % zero', 'NonConstant',
         expectedErrors: 'ConstEvalZeroDivisor'),
-    const ConstantData('1 << minus_one', 'NonConstant',
+    ConstantData('1 << minus_one', 'NonConstant',
         expectedErrors: 'ConstEvalNegativeShift'),
-    const ConstantData('1 >> minus_one', 'NonConstant',
+    ConstantData('1 >> minus_one', 'NonConstant',
         expectedErrors: 'ConstEvalNegativeShift'),
-    const ConstantData('const bool.fromEnvironment(integer)', 'NonConstant',
+    ConstantData('const bool.fromEnvironment(integer)', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
-    const ConstantData(
-        'const bool.fromEnvironment("baz", defaultValue: integer)',
+    ConstantData('const bool.fromEnvironment("baz", defaultValue: integer)',
         'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
-    const ConstantData('const int.fromEnvironment(integer)', 'NonConstant',
+    ConstantData('const int.fromEnvironment(integer)', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
-    const ConstantData(
+    ConstantData(
         'const int.fromEnvironment("baz", defaultValue: string)', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
-    const ConstantData('const String.fromEnvironment(integer)', 'NonConstant',
+    ConstantData('const String.fromEnvironment(integer)', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
-    const ConstantData(
-        'const String.fromEnvironment("baz", defaultValue: integer)',
+    ConstantData('const String.fromEnvironment("baz", defaultValue: integer)',
         'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
-    const ConstantData('false || integer', 'NonConstant',
+    ConstantData('false || integer', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
-    const ConstantData('integer || true', 'NonConstant',
+    ConstantData('integer || true', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
-    const ConstantData('integer && true', 'NonConstant',
+    ConstantData('integer && true', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
-    const ConstantData('!integer', 'NonConstant',
+    ConstantData('!integer', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
-    const ConstantData('!string', 'NonConstant',
+    ConstantData('!string', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
-    const ConstantData('-(string)', 'NonConstant',
+    ConstantData('-(string)', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidMethodInvocation'),
-    const ConstantData('not_string.length', 'NonConstant',
+    ConstantData('not_string.length', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidPropertyGet'),
-    const ConstantData('const Class1()', 'NonConstant',
+    ConstantData('const Class1()', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidPropertyGet'),
-    const ConstantData('const Class2()', 'NonConstant',
+    ConstantData('const Class2()', 'NonConstant',
         expectedErrors: 'ConstEvalFailedAssertion'),
-    const ConstantData('const Class2.redirect()', 'NonConstant',
+    ConstantData('const Class2.redirect()', 'NonConstant',
         expectedErrors: 'ConstEvalFailedAssertion'),
-    const ConstantData('const Class3()', 'NonConstant',
+    ConstantData('const Class3()', 'NonConstant',
         expectedErrors: 'ConstEvalFailedAssertionWithMessage'),
-    const ConstantData('const Class3.fact()', 'NonConstant',
+    ConstantData('const Class3.fact()', 'NonConstant',
         expectedErrors: 'ConstEvalFailedAssertion'),
-    const ConstantData('const Class4()', 'NonConstant',
+    ConstantData('const Class4()', 'NonConstant',
         expectedErrors: 'ConstEvalFailedAssertion'),
-    const ConstantData('const Class5(0)', 'NonConstant',
+    ConstantData('const Class5(0)', 'NonConstant',
         expectedErrors: 'ConstEvalFailedAssertionWithMessage'),
-    const ConstantData('const Class5(1)', 'ConstructedConstant(Class5())'),
-    const ConstantData('const Class6(1)', 'NonConstant',
+    ConstantData('const Class5(1)', 'ConstructedConstant(Class5())'),
+    ConstantData('const Class6(1)', 'NonConstant',
         expectedErrors: 'ConstEvalFailedAssertionWithMessage'),
-    const ConstantData('const Class6(2)', 'ConstructedConstant(Class6())'),
-    const ConstantData('const Class7()', 'ConstructedConstant(Class7())'),
-    const ConstantData('const Class7() == const Class7()', 'NonConstant',
+    ConstantData('const Class6(2)', 'ConstructedConstant(Class6())'),
+    ConstantData('const Class7()', 'ConstructedConstant(Class7())'),
+    ConstantData('const Class7() == const Class7()', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidEqualsOperandType'),
-    const ConstantData('const Class7() != const Class7()', 'NonConstant',
+    ConstantData('const Class7() != const Class7()', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidEqualsOperandType'),
-    const ConstantData('const Class8(not_string.length)', 'NonConstant',
+    ConstantData('const Class8(not_string.length)', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidPropertyGet'),
-    const ConstantData(
+    ConstantData(
         'const Class9()', 'ConstructedConstant(Class9(field=NullConstant))'),
-    const ConstantData('const Class10()', 'NonConstant',
+    ConstantData('const Class10()', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
   ]),
-  const TestData('assert', '''
-    const true_ = const bool.fromEnvironment('x') ? null : true;
+  TestData('assert', '''
+    const true_ = bool.fromEnvironment('x') ? null : true;
     class A {
       const A() : assert(true);
     }
@@ -469,14 +422,14 @@ class B extends A {
     class E {
       const E() : assert(true_);
     }
-  ''', constantsCommon: const [
-    const ConstantData(r'const A()', 'ConstructedConstant(A())'),
-    const ConstantData(r'const B()', 'ConstructedConstant(B())'),
-    const ConstantData(r'const D(0)',
+  ''', [
+    ConstantData(r'const A()', 'ConstructedConstant(A())'),
+    ConstantData(r'const B()', 'ConstructedConstant(B())'),
+    ConstantData(r'const D(0)',
         'ConstructedConstant(D(a=IntConstant(1),b=IntConstant(2)))'),
-    const ConstantData(r'const E()', 'ConstructedConstant(E())'),
+    ConstantData(r'const E()', 'ConstructedConstant(E())'),
   ]),
-  const TestData('instantiations', '''
+  TestData('instantiations', '''
 T identity<T>(T t) => t;
 class C<T> {
   final T defaultValue;
@@ -484,58 +437,39 @@ class C<T> {
 
   const C(this.defaultValue, this.identityFunction);
 }
-  ''', constantsCommon: [
-    const ConstantData('identity', 'FunctionConstant(identity)'),
-  ], constantsPreNnbd: const <ConstantData>[
-    const ConstantData(
-        'const C<int>(0, identity)',
-        'ConstructedConstant(C<int>(defaultValue=IntConstant(0),'
-            'identityFunction=InstantiationConstant([int],'
-            'FunctionConstant(identity))))'),
-    const ConstantData(
-        'const C<double>(0.5, identity)',
-        'ConstructedConstant(C<double>(defaultValue=DoubleConstant(0.5),'
-            'identityFunction=InstantiationConstant([double],'
-            'FunctionConstant(identity))))'),
-  ], constantsNnbdWeak: const <ConstantData>[
-    const ConstantData(
+  ''', [
+    ConstantData('identity', 'FunctionConstant(identity)'),
+    ConstantData(
         'const C<int>(0, identity)',
         'ConstructedConstant(C<int*>(defaultValue=IntConstant(0),'
             'identityFunction=InstantiationConstant([int*],'
             'FunctionConstant(identity))))'),
-    const ConstantData(
+    ConstantData(
         'const C<double>(0.5, identity)',
         'ConstructedConstant(C<double*>(defaultValue=DoubleConstant(0.5),'
             'identityFunction=InstantiationConstant([double*],'
             'FunctionConstant(identity))))'),
   ]),
-  const TestData('generic class', '''
+  TestData('generic class', '''
 class C<T> {
   const C.generative();
   const C.redirect() : this.generative();
 }
-  ''', constantsPreNnbd: const <ConstantData>[
-    const ConstantData(
-        'const C<int>.generative()', 'ConstructedConstant(C<int>())'),
-    const ConstantData(
-        'const C<int>.redirect()', 'ConstructedConstant(C<int>())'),
-  ], constantsNnbdWeak: const <ConstantData>[
-    const ConstantData(
-        'const C<int>.generative()', 'ConstructedConstant(C<int*>())'),
-    const ConstantData(
-        'const C<int>.redirect()', 'ConstructedConstant(C<int*>())'),
+  ''', <ConstantData>[
+    ConstantData('const C<int>.generative()', 'ConstructedConstant(C<int*>())'),
+    ConstantData('const C<int>.redirect()', 'ConstructedConstant(C<int*>())'),
   ]),
-  const TestData('instance', '''
-const dynamic zero_ = const bool.fromEnvironment("x") ? null : 0;
+  TestData('instance', '''
+const dynamic zero_ = bool.fromEnvironment("x") ? null : 0;
 class Class9 {
   final field = zero_;
   const Class9();
 }
-''', constantsCommon: const <ConstantData>[
-    const ConstantData(
+''', <ConstantData>[
+    ConstantData(
         'const Class9()', 'ConstructedConstant(Class9(field=IntConstant(0)))'),
   ]),
-  const TestData('type-variables', '''
+  TestData('type-variables', '''
 class A {
   const A();
 }
@@ -551,22 +485,15 @@ class C2<T> {
   final T Function(T) a;
   const C2(dynamic t) : a = id; // implicit partial instantiation
 }
-''', constantsPreNnbd: const <ConstantData>[
-    const ConstantData('const C1<A>(const A())',
-        'ConstructedConstant(C1<A>(a=ConstructedConstant(A())))'),
-    const ConstantData(
-        'const C2<A>(id)',
-        'ConstructedConstant(C2<A>(a='
-            'InstantiationConstant([A],FunctionConstant(id))))'),
-  ], constantsNnbdWeak: const <ConstantData>[
-    const ConstantData('const C1<A>(const A())',
+''', <ConstantData>[
+    ConstantData('const C1<A>(A())',
         'ConstructedConstant(C1<A*>(a=ConstructedConstant(A())))'),
-    const ConstantData(
+    ConstantData(
         'const C2<A>(id)',
         'ConstructedConstant(C2<A*>(a='
             'InstantiationConstant([A*],FunctionConstant(id))))'),
   ]),
-  const TestData('unused-arguments', '''
+  TestData('unused-arguments', '''
 class A {
   const A();
 
@@ -590,31 +517,20 @@ class Class<T extends A> {
 class Subclass<T extends A> extends Class<T> {
   const Subclass(dynamic t) : super(t);
 }
-''', constantsCommon: [
-    const ConstantData('const Class<B>.redirect(const C())', 'NonConstant',
+''', [
+    ConstantData('const Class<B>.redirect(C())', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
-    const ConstantData('const Class<A>.method(const A())', 'NonConstant',
+    ConstantData('const Class<A>.method(A())', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidMethodInvocation'),
-    const ConstantData('const Subclass<B>(const C())', 'NonConstant',
+    ConstantData('const Subclass<B>(C())', 'NonConstant',
         expectedErrors: 'ConstEvalInvalidType'),
-  ], constantsPreNnbd: const <ConstantData>[
-    const ConstantData(
-        'const Class<A>(const A())', 'ConstructedConstant(Class<A>())'),
-    const ConstantData('const Class<B>.redirect(const B())',
-        'ConstructedConstant(Class<B>())'),
-    const ConstantData(
-        'const Subclass<A>(const A())', 'ConstructedConstant(Subclass<A>())'),
-    const ConstantData(
-        'const Subclass<B>(const B())', 'ConstructedConstant(Subclass<B>())'),
-  ], constantsNnbdWeak: const <ConstantData>[
-    const ConstantData(
-        'const Class<A>(const A())', 'ConstructedConstant(Class<A*>())'),
-    const ConstantData('const Class<B>.redirect(const B())',
-        'ConstructedConstant(Class<B*>())'),
-    const ConstantData(
-        'const Subclass<A>(const A())', 'ConstructedConstant(Subclass<A*>())'),
-    const ConstantData(
-        'const Subclass<B>(const B())', 'ConstructedConstant(Subclass<B*>())'),
+    ConstantData('const Class<A>(A())', 'ConstructedConstant(Class<A*>())'),
+    ConstantData(
+        'const Class<B>.redirect(B())', 'ConstructedConstant(Class<B*>())'),
+    ConstantData(
+        'const Subclass<A>(A())', 'ConstructedConstant(Subclass<A*>())'),
+    ConstantData(
+        'const Subclass<B>(B())', 'ConstructedConstant(Subclass<B*>())'),
   ]),
 ];
 
@@ -637,7 +553,7 @@ Future testData(TestData data) async {
     names.add(name);
     // Encode the constants as part of a from-environment conditional to force
     // CFE to create unevaluated constants.
-    sb.writeln('const $name = const bool.fromEnvironment("x") ? '
+    sb.writeln('const $name = bool.fromEnvironment("x") ? '
         'null : ${constantData.code};');
     constants[name] = constantData;
   });
@@ -691,10 +607,9 @@ Future testData(TestData data) async {
           },
                   environment: environment,
                   supportReevaluationForTesting: true,
-                  evaluationMode:
-                      compiler.options.nullSafetyMode == NullSafetyMode.sound
-                          ? ir.EvaluationMode.strong
-                          : ir.EvaluationMode.weak);
+                  evaluationMode: compiler.options.useLegacySubtyping
+                      ? ir.EvaluationMode.weak
+                      : ir.EvaluationMode.strong);
           ir.Constant evaluatedConstant = evaluator.evaluate(
               new ir.StaticTypeContext(node, typeEnvironment), initializer);
 

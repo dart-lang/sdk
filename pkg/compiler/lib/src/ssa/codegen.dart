@@ -25,7 +25,6 @@ import '../js_backend/backend.dart' show CodegenInputs;
 import '../js_backend/checked_mode_helpers.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/namer.dart' show ModularNamer;
-import '../js_backend/runtime_types.dart';
 import '../js_backend/runtime_types_codegen.dart';
 import '../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoding, indexTypeVariable;
@@ -117,9 +116,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
           this,
           _options,
           emitter,
-          codegen.checkedModeHelpers,
           codegen.rtiSubstitutions,
-          codegen.rtiEncoder,
           codegen.rtiRecipeEncoder,
           namer,
           codegen.tracer,
@@ -147,9 +144,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
           this,
           _options,
           emitter,
-          codegen.checkedModeHelpers,
           codegen.rtiSubstitutions,
-          codegen.rtiEncoder,
           codegen.rtiRecipeEncoder,
           namer,
           codegen.tracer,
@@ -185,9 +180,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final CompilerTask _codegenTask;
   final CompilerOptions _options;
   final ModularEmitter _emitter;
-  final CheckedModeHelpers _checkedModeHelpers;
   final RuntimeTypesSubstitutions _rtiSubstitutions;
-  final RuntimeTypesEncoder _rtiEncoder;
   final RecipeEncoder _rtiRecipeEncoder;
   final ModularNamer _namer;
   final Tracer _tracer;
@@ -240,9 +233,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       this._codegenTask,
       this._options,
       this._emitter,
-      this._checkedModeHelpers,
       this._rtiSubstitutions,
-      this._rtiEncoder,
       this._rtiRecipeEncoder,
       this._namer,
       this._tracer,
@@ -704,8 +695,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // argument.
     bool needsAssignment = true;
     if (instruction is HCheck) {
-      if (instruction is HTypeConversion ||
-          instruction is HPrimitiveCheck ||
+      if (instruction is HPrimitiveCheck ||
           instruction is HAsCheck ||
           instruction is HAsCheckSimple ||
           instruction is HBoolConversion ||
@@ -2094,11 +2084,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
 
-    if (element == _commonElements.jsAllowInterop) {
+    if (element == _commonElements.jsAllowInterop1 ||
+        element == _commonElements.jsAllowInterop2) {
       _nativeData.registerAllowInterop();
     }
 
-    if (element == _commonElements.checkConcurrentModificationError) {
+    if (_commonElements.isCheckConcurrentModificationError(element)) {
       // Manually inline the [checkConcurrentModificationError] function.  This
       // function is only called from a for-loop update.  Ideally we would just
       // generate the conditionalcontrol flow in the builder but it adds basic
@@ -2521,11 +2512,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     bool handledBySpecialCase = false;
     if (isGenerateAtUseSite(input)) {
       handledBySpecialCase = true;
-      if (input is HIs) {
-        emitIs(input, '!==', sourceInformation);
-      } else if (input is HIsViaInterceptor) {
-        emitIsViaInterceptor(input, sourceInformation, negative: true);
-      } else if (input is HIsTestSimple) {
+      if (input is HIsTestSimple) {
         _emitIsTestSimple(input, negative: true);
       } else if (input is HNot) {
         use(input.inputs[0]);
@@ -2864,21 +2851,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(new js.Binary(cmp, left, or0));
   }
 
-  void checkBigInt(
-      HInstruction input, String cmp, SourceInformation sourceInformation) {
-    use(input);
-    js.Expression left = pop();
-    use(input);
-    js.Expression right = pop();
-    // TODO(4984): Deal with infinity and -0.0.
-    js.Expression mathFloorCall = js.js('Math.floor(#)',
-        <js.Expression>[left]).withSourceInformation(sourceInformation);
-    push(js.js('# $cmp #', <js.Expression>[
-      mathFloorCall,
-      right
-    ]).withSourceInformation(sourceInformation));
-  }
-
   void checkTypeOf(HInstruction input, String cmp, String typeName,
       SourceInformation sourceInformation) {
     use(input);
@@ -2892,355 +2864,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return checkTypeOf(input, cmp, 'number', sourceInformation);
   }
 
-  void checkDouble(
-      HInstruction input, String cmp, SourceInformation sourceInformation) {
-    return checkNum(input, cmp, sourceInformation);
-  }
-
-  void checkString(
-      HInstruction input, String cmp, SourceInformation sourceInformation) {
-    return checkTypeOf(input, cmp, 'string', sourceInformation);
-  }
-
   void checkBool(
       HInstruction input, String cmp, SourceInformation sourceInformation) {
     return checkTypeOf(input, cmp, 'boolean', sourceInformation);
-  }
-
-  void checkObject(
-      HInstruction input, String cmp, SourceInformation sourceInformation) {
-    assert(NullConstantValue.JsNull == 'null');
-    if (cmp == "===") {
-      checkTypeOf(input, '===', 'object', sourceInformation);
-      js.Expression left = pop();
-      use(input);
-      js.Expression notNull = new js.Binary("!==", pop(), new js.LiteralNull());
-      push(new js.Binary("&&", left, notNull)
-          .withSourceInformation(sourceInformation));
-    } else {
-      assert(cmp == "!==");
-      checkTypeOf(input, '!==', 'object', sourceInformation);
-      js.Expression left = pop();
-      use(input);
-      js.Expression eqNull = new js.Binary("===", pop(), new js.LiteralNull());
-      push(new js.Binary("||", left, eqNull)
-          .withSourceInformation(sourceInformation));
-    }
-  }
-
-  void checkArray(HInstruction input, String cmp) {
-    use(input);
-    js.PropertyAccess constructor =
-        new js.PropertyAccess.field(pop(), 'constructor');
-    push(new js.Binary(cmp, constructor, new js.VariableUse('Array')));
-  }
-
-  void checkFieldExists(HInstruction input, String fieldName) {
-    use(input);
-    js.PropertyAccess field = new js.PropertyAccess.field(pop(), fieldName);
-    // Double negate to boolify the result.
-    push(new js.Prefix('!', new js.Prefix('!', field)));
-  }
-
-  void checkFieldDoesNotExist(HInstruction input, String fieldName) {
-    use(input);
-    js.PropertyAccess field = new js.PropertyAccess.field(pop(), fieldName);
-    push(new js.Prefix('!', field));
-  }
-
-  void checkImmutableArray(HInstruction input) {
-    checkFieldExists(input, 'immutable\$list');
-  }
-
-  void checkMutableArray(HInstruction input) {
-    checkFieldDoesNotExist(input, 'immutable\$list');
-  }
-
-  void checkExtendableArray(HInstruction input) {
-    checkFieldDoesNotExist(input, 'fixed\$length');
-  }
-
-  void checkFixedArray(HInstruction input) {
-    checkFieldExists(input, 'fixed\$length');
-  }
-
-  void checkNull(HInstruction input) {
-    use(input);
-    push(new js.Binary('==', pop(), new js.LiteralNull()));
-  }
-
-  void checkNonNull(HInstruction input) {
-    use(input);
-    push(new js.Binary('!=', pop(), new js.LiteralNull()));
-  }
-
-  void checkType(HInstruction input, HInstruction interceptor, DartType type,
-      SourceInformation sourceInformation,
-      {bool negative: false}) {
-    if (type is InterfaceType) {
-      InterfaceType interfaceType = type;
-      ClassEntity element = interfaceType.element;
-      if (element == _commonElements.jsArrayClass) {
-        checkArray(input, negative ? '!==' : '===');
-        return;
-      } else if (element == _commonElements.jsMutableArrayClass) {
-        if (negative) {
-          checkImmutableArray(input);
-        } else {
-          checkMutableArray(input);
-        }
-        return;
-      } else if (element == _commonElements.jsExtendableArrayClass) {
-        if (negative) {
-          checkFixedArray(input);
-        } else {
-          checkExtendableArray(input);
-        }
-        return;
-      } else if (element == _commonElements.jsFixedArrayClass) {
-        if (negative) {
-          checkExtendableArray(input);
-        } else {
-          checkFixedArray(input);
-        }
-        return;
-      } else if (element == _commonElements.jsUnmodifiableArrayClass) {
-        if (negative) {
-          checkMutableArray(input);
-        } else {
-          checkImmutableArray(input);
-        }
-        return;
-      }
-    }
-    if (interceptor != null) {
-      checkTypeViaProperty(interceptor, type, sourceInformation,
-          negative: negative);
-    } else {
-      checkTypeViaProperty(input, type, sourceInformation, negative: negative);
-    }
-  }
-
-  void checkTypeViaProperty(
-      HInstruction input, DartType type, SourceInformation sourceInformation,
-      {bool negative: false}) {
-    _registry.registerTypeUse(new TypeUse.isCheck(type));
-
-    use(input);
-
-    js.PropertyAccess field =
-        new js.PropertyAccess(pop(), _namer.operatorIsType(type))
-            .withSourceInformation(sourceInformation);
-    // We always negate at least once so that the result is boolified.
-    push(new js.Prefix('!', field).withSourceInformation(sourceInformation));
-    // If the result is not negated, put another '!' in front.
-    if (!negative) {
-      push(new js.Prefix('!', pop()).withSourceInformation(sourceInformation));
-    }
-  }
-
-  void checkTypeViaInstanceof(HInstruction input, InterfaceType type,
-      SourceInformation sourceInformation,
-      {bool negative: false}) {
-    _registry.registerTypeUse(new TypeUse.instanceConstructor(type));
-
-    use(input);
-
-    js.Expression jsClassReference = _emitter.constructorAccess(type.element);
-    push(js.js('# instanceof #',
-        [pop(), jsClassReference]).withSourceInformation(sourceInformation));
-    if (negative) {
-      push(new js.Prefix('!', pop()).withSourceInformation(sourceInformation));
-    }
-  }
-
-  void handleNumberOrStringSupertypeCheck(
-      HInstruction input,
-      HInstruction interceptor,
-      InterfaceType type,
-      SourceInformation sourceInformation,
-      {bool negative: false}) {
-    assert(!identical(type.element, _commonElements.listClass) &&
-        !_commonElements.isListSupertype(type.element) &&
-        !_commonElements.isStringOnlySupertype(type.element));
-    String relation = negative ? '!==' : '===';
-    checkNum(input, relation, sourceInformation);
-    js.Expression numberTest = pop();
-    checkString(input, relation, sourceInformation);
-    js.Expression stringTest = pop();
-    checkObject(input, relation, sourceInformation);
-    js.Expression objectTest = pop();
-    checkType(input, interceptor, type, sourceInformation, negative: negative);
-    String combiner = negative ? '&&' : '||';
-    String combiner2 = negative ? '||' : '&&';
-    push(new js.Binary(
-            combiner,
-            new js.Binary(combiner, numberTest, stringTest)
-                .withSourceInformation(sourceInformation),
-            new js.Binary(combiner2, objectTest, pop())
-                .withSourceInformation(sourceInformation))
-        .withSourceInformation(sourceInformation));
-  }
-
-  void handleStringSupertypeCheck(HInstruction input, HInstruction interceptor,
-      InterfaceType type, SourceInformation sourceInformation,
-      {bool negative: false}) {
-    assert(!identical(type.element, _commonElements.listClass) &&
-        !_commonElements.isListSupertype(type.element) &&
-        !_commonElements.isNumberOrStringSupertype(type.element));
-    String relation = negative ? '!==' : '===';
-    checkString(input, relation, sourceInformation);
-    js.Expression stringTest = pop();
-    checkObject(input, relation, sourceInformation);
-    js.Expression objectTest = pop();
-    checkType(input, interceptor, type, sourceInformation, negative: negative);
-    String combiner = negative ? '||' : '&&';
-    push(new js.Binary(negative ? '&&' : '||', stringTest,
-        new js.Binary(combiner, objectTest, pop())));
-  }
-
-  void handleListOrSupertypeCheck(HInstruction input, HInstruction interceptor,
-      InterfaceType type, SourceInformation sourceInformation,
-      {bool negative: false}) {
-    assert(!identical(type.element, _commonElements.stringClass) &&
-        !_commonElements.isStringOnlySupertype(type.element) &&
-        !_commonElements.isNumberOrStringSupertype(type.element));
-    String relation = negative ? '!==' : '===';
-    checkObject(input, relation, sourceInformation);
-    js.Expression objectTest = pop();
-    checkArray(input, relation);
-    js.Expression arrayTest = pop();
-    checkType(input, interceptor, type, sourceInformation, negative: negative);
-    String combiner = negative ? '&&' : '||';
-    push(new js.Binary(negative ? '||' : '&&', objectTest,
-            new js.Binary(combiner, arrayTest, pop()))
-        .withSourceInformation(sourceInformation));
-  }
-
-  @override
-  void visitIs(HIs node) {
-    emitIs(node, "===", node.sourceInformation);
-  }
-
-  @override
-  void visitIsViaInterceptor(HIsViaInterceptor node) {
-    emitIsViaInterceptor(node, node.sourceInformation, negative: false);
-  }
-
-  void emitIs(HIs node, String relation, SourceInformation sourceInformation) {
-    DartType type = node.typeExpression;
-    _registry.registerTypeUse(new TypeUse.isCheck(type));
-    HInstruction input = node.expression;
-
-    // If this is changed to single == there are several places below that must
-    // be changed to match.
-    assert(relation == '===' || relation == '!==');
-    bool negative = relation == '!==';
-
-    if (node.isVariableCheck || node.isCompoundCheck) {
-      use(node.checkCall);
-      if (negative) push(new js.Prefix('!', pop()));
-    } else {
-      assert(node.isRawCheck);
-      HInstruction interceptor = node.interceptor;
-      InterfaceType interfaceType = type;
-      ClassEntity element = interfaceType.element;
-      if (element == _commonElements.nullClass) {
-        if (negative) {
-          checkNonNull(input);
-        } else {
-          checkNull(input);
-        }
-      } else if (element == _commonElements.objectClass /* || type.isTop*/) {
-        // The constant folder also does this optimization, but we make
-        // it safe by assuming it may have not run.
-        push(newLiteralBool(!negative, sourceInformation));
-      } else if (element == _commonElements.stringClass) {
-        checkString(input, relation, sourceInformation);
-      } else if (element == _commonElements.doubleClass) {
-        checkDouble(input, relation, sourceInformation);
-      } else if (element == _commonElements.numClass) {
-        checkNum(input, relation, sourceInformation);
-      } else if (element == _commonElements.boolClass) {
-        checkBool(input, relation, sourceInformation);
-      } else if (element == _commonElements.intClass) {
-        // The is check in the code tells us that it might not be an
-        // int. So we do a typeof first to avoid possible
-        // deoptimizations on the JS engine due to the Math.floor check.
-        checkNum(input, relation, sourceInformation);
-        js.Expression numTest = pop();
-        checkBigInt(input, relation, sourceInformation);
-        push(new js.Binary(negative ? '||' : '&&', numTest, pop())
-            .withSourceInformation(sourceInformation));
-      } else if (node.useInstanceOf) {
-        assert(interceptor == null);
-        checkTypeViaInstanceof(input, type, sourceInformation,
-            negative: negative);
-      } else if (_commonElements.isNumberOrStringSupertype(element)) {
-        handleNumberOrStringSupertypeCheck(
-            input, interceptor, type, sourceInformation,
-            negative: negative);
-      } else if (_commonElements.isStringOnlySupertype(element)) {
-        handleStringSupertypeCheck(input, interceptor, type, sourceInformation,
-            negative: negative);
-      } else if (element == _commonElements.listClass ||
-          _commonElements.isListSupertype(element)) {
-        handleListOrSupertypeCheck(input, interceptor, type, sourceInformation,
-            negative: negative);
-      } else if (type is FunctionType) {
-        checkType(input, interceptor, type, sourceInformation,
-            negative: negative);
-      } else if ((input.isPrimitive(_abstractValueDomain).isPotentiallyTrue &&
-              input.isPrimitiveArray(_abstractValueDomain).isDefinitelyFalse) ||
-          input.isNull(_abstractValueDomain).isPotentiallyTrue) {
-        checkObject(input, relation, node.sourceInformation);
-        js.Expression objectTest = pop();
-        checkType(input, interceptor, type, sourceInformation,
-            negative: negative);
-        push(new js.Binary(negative ? '||' : '&&', objectTest, pop())
-            .withSourceInformation(sourceInformation));
-      } else {
-        checkType(input, interceptor, type, sourceInformation,
-            negative: negative);
-      }
-    }
-  }
-
-  void emitIsViaInterceptor(
-      HIsViaInterceptor node, SourceInformation sourceInformation,
-      {bool negative: false}) {
-    checkTypeViaProperty(
-        node.interceptor, node.typeExpression, sourceInformation,
-        negative: negative);
-  }
-
-  @override
-  void visitTypeConversion(HTypeConversion node) {
-    assert(node.isTypeCheck || node.isCastCheck);
-    DartType type = node.typeExpression;
-    assert(type is! DynamicType);
-    assert(type is! VoidType);
-    if (type is FunctionType) {
-      // TODO(5022): We currently generate $isFunction checks for
-      // function types.
-      _registry
-          .registerTypeUse(new TypeUse.isCheck(_commonElements.functionType));
-    }
-    _registry.registerTypeUse(new TypeUse.isCheck(type));
-
-    CheckedModeHelper helper = _checkedModeHelpers.getCheckedModeHelper(
-        type, _closedWorld.commonElements,
-        typeCast: node.isCastCheck);
-
-    StaticUse staticUse = helper.getStaticUse(_closedWorld.commonElements);
-    _registry.registerStaticUse(staticUse);
-    List<js.Expression> arguments = <js.Expression>[];
-    use(node.checkedInput);
-    arguments.add(pop());
-    helper.generateAdditionalArguments(this, _namer, node, arguments);
-    push(
-        new js.Call(_emitter.staticFunctionAccess(staticUse.element), arguments)
-            .withSourceInformation(node.sourceInformation));
   }
 
   @override
@@ -3322,129 +2948,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitTypeKnown(HTypeKnown node) {
     // [HTypeKnown] instructions are removed before generating code.
     assert(false);
-  }
-
-  @override
-  void visitTypeInfoReadRaw(HTypeInfoReadRaw node) {
-    use(node.inputs[0]);
-    js.Expression receiver = pop();
-    push(js.js(r'#.#', [receiver, _namer.rtiFieldJsName]));
-  }
-
-  @override
-  void visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
-    TypeVariableEntity element = node.variable.element;
-    int index = element.index;
-
-    js.Expression interceptor;
-    if (node.isIntercepted) {
-      use(node.interceptor);
-      interceptor = pop();
-    }
-    HInstruction object = node.object;
-    use(object);
-    js.Expression receiver = pop();
-
-    if (typeVariableAccessNeedsSubstitution(element, object.instructionType)) {
-      js.Expression typeName =
-          js.quoteName(_namer.runtimeTypeName(element.typeDeclaration));
-      if (node.isIntercepted) {
-        FunctionEntity helperElement =
-            _commonElements.getRuntimeTypeArgumentIntercepted;
-        _registry.registerStaticUse(
-            new StaticUse.staticInvoke(helperElement, CallStructure.FOUR_ARGS));
-        js.Expression helper = _emitter.staticFunctionAccess(helperElement);
-        push(js.js(r'#(#, #, #, #)', [
-          helper,
-          interceptor,
-          receiver,
-          typeName,
-          js.js.number(index)
-        ]).withSourceInformation(node.sourceInformation));
-      } else {
-        FunctionEntity helperElement = _commonElements.getRuntimeTypeArgument;
-        _registry.registerStaticUse(new StaticUse.staticInvoke(
-            helperElement, CallStructure.THREE_ARGS));
-        js.Expression helper = _emitter.staticFunctionAccess(helperElement);
-        push(js.js(r'#(#, #, #)', [
-          helper,
-          receiver,
-          typeName,
-          js.js.number(index)
-        ]).withSourceInformation(node.sourceInformation));
-      }
-    } else {
-      FunctionEntity helperElement = _commonElements.getTypeArgumentByIndex;
-      _registry.registerStaticUse(
-          new StaticUse.staticInvoke(helperElement, CallStructure.TWO_ARGS));
-      js.Expression helper = _emitter.staticFunctionAccess(helperElement);
-      push(js.js(r'#(#, #)', [
-        helper,
-        receiver,
-        js.js.number(index)
-      ]).withSourceInformation(node.sourceInformation));
-    }
-  }
-
-  @override
-  void visitTypeInfoExpression(HTypeInfoExpression node) {
-    DartType type = node.dartType;
-    if (node.isTypeVariableReplacement) {
-      _registry.registerTypeUse(new TypeUse.typeArgument(type));
-    }
-
-    List<js.Expression> arguments = <js.Expression>[];
-    for (HInstruction input in node.inputs) {
-      use(input);
-      arguments.add(pop());
-    }
-
-    switch (node.kind) {
-      case TypeInfoExpressionKind.COMPLETE:
-        int index = 0;
-        js.Expression result = _rtiEncoder.getTypeRepresentation(
-            _emitter, type, (TypeVariableType variable) => arguments[index++]);
-        assert(
-            index == node.inputs.length,
-            "Not all input is read for type ${type}: "
-            "$index of ${node.inputs}.");
-        push(result);
-        return;
-
-      case TypeInfoExpressionKind.INSTANCE:
-        // We expect only flat types for the INSTANCE representation.
-        assert(
-            (type as InterfaceType).typeArguments.length == arguments.length);
-        _registry
-            // ignore:deprecated_member_use_from_same_package
-            .registerInstantiatedClass(_commonElements.listClass);
-        push(new js.ArrayInitializer(arguments)
-            .withSourceInformation(node.sourceInformation));
-    }
-  }
-
-  bool typeVariableAccessNeedsSubstitution(
-      TypeVariableEntity element, AbstractValue receiverMask) {
-    ClassEntity cls = element.typeDeclaration;
-
-    // See if the receiver type narrows the set of classes to ones that can be
-    // indexed.
-    // TODO(sra): Currently the only convenient query is [singleClass]. We
-    // should iterate over all the concrete classes in [receiverMask].
-    ClassEntity receiverClass =
-        _abstractValueDomain.getExactClass(receiverMask);
-    if (receiverClass != null) {
-      if (_rtiSubstitutions.isTrivialSubstitution(receiverClass, cls)) {
-        return false;
-      }
-    }
-
-    if (_closedWorld.isUsedAsMixin(cls)) return true;
-
-    return _closedWorld.classHierarchy.anyStrictSubclassOf(cls,
-        (ClassEntity subclass) {
-      return !_rtiSubstitutions.isTrivialSubstitution(subclass, cls);
-    });
   }
 
   @override

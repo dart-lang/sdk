@@ -24,7 +24,7 @@ class B extends self::A {
 }
 static method f<T extends core::Object* = dynamic>() → self::f::T*
   ;
-static method test() → dynamic
+static method test() → dynamic async 
   ;
 static method main() → dynamic
   ;

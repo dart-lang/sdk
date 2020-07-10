@@ -27,6 +27,7 @@
 #include "vm/symbols.h"
 #include "vm/timeline.h"
 #include "vm/version.h"
+#include "vm/zone_text_buffer.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/backend/code_statistics.h"
@@ -198,6 +199,7 @@ class ClassSerializationCluster : public SerializationCluster {
     }
   }
 
+ private:
   void WriteClass(Serializer* s, ClassPtr cls) {
     AutoTraceObjectName(cls, cls->ptr()->name_);
     WriteFromTo(cls);
@@ -228,7 +230,6 @@ class ClassSerializationCluster : public SerializationCluster {
     }
   }
 
- private:
   GrowableArray<ClassPtr> predefined_;
   GrowableArray<ClassPtr> objects_;
 
@@ -602,7 +603,7 @@ class FunctionSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       FunctionPtr func = objects_[i];
-      AutoTraceObjectName(func, func->ptr()->name_);
+      AutoTraceObjectName(func, MakeDisambiguatedFunctionName(s, func));
       WriteFromTo(func);
       if (kind == Snapshot::kFull) {
         NOT_IN_PRECOMPILED(WriteField(func, bytecode_));
@@ -624,6 +625,22 @@ class FunctionSerializationCluster : public SerializationCluster {
       s->Write<uint32_t>(func->ptr()->packed_fields_);
       s->Write<uint32_t>(func->ptr()->kind_tag_);
     }
+  }
+
+  static const char* MakeDisambiguatedFunctionName(Serializer* s,
+                                                   FunctionPtr f) {
+    if (s->profile_writer() == nullptr) {
+      return nullptr;
+    }
+
+    REUSABLE_FUNCTION_HANDLESCOPE(s->thread());
+    Function& fun = reused_function_handle.Handle();
+    fun = f;
+    ZoneTextBuffer printer(s->thread()->zone());
+    fun.PrintName(NameFormattingParams::DisambiguatedUnqualified(
+                      Object::NameVisibility::kInternalName),
+                  &printer);
+    return printer.buffer();
   }
 
  private:
@@ -1561,7 +1578,7 @@ class CodeSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       CodePtr code = objects_[i];
-      AutoTraceObject(code);
+      AutoTraceObjectName(code, MakeDisambiguatedCodeName(s, code));
 
       intptr_t pointer_offsets_length =
           Code::PtrOffBits::decode(code->ptr()->state_bits_);
@@ -1652,6 +1669,19 @@ class CodeSerializationCluster : public SerializationCluster {
   }
 
  private:
+  static const char* MakeDisambiguatedCodeName(Serializer* s, CodePtr c) {
+    if (s->profile_writer() == nullptr) {
+      return nullptr;
+    }
+
+    REUSABLE_CODE_HANDLESCOPE(s->thread());
+    Code& code = reused_code_handle.Handle();
+    code = c;
+    return code.QualifiedName(
+        NameFormattingParams::DisambiguatedWithoutClassName(
+            Object::NameVisibility::kInternalName));
+  }
+
   GrowableArray<CodePtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -3248,6 +3278,7 @@ class LibraryPrefixDeserializationCluster : public DeserializationCluster {
       ReadFromTo(prefix);
       prefix->ptr()->num_imports_ = d->Read<uint16_t>();
       prefix->ptr()->is_deferred_load_ = d->Read<bool>();
+      prefix->ptr()->is_loaded_ = !prefix->ptr()->is_deferred_load_;
     }
   }
 };
@@ -3498,19 +3529,28 @@ class TypeRefDeserializationCluster : public DeserializationCluster {
 class TypeParameterSerializationCluster : public SerializationCluster {
  public:
   TypeParameterSerializationCluster() : SerializationCluster("TypeParameter") {}
-
   ~TypeParameterSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
     TypeParameterPtr type = TypeParameter::RawCast(object);
-    objects_.Add(type);
-    ASSERT(!type->ptr()->IsCanonical());
+    if (type->ptr()->IsCanonical()) {
+      canonical_objects_.Add(type);
+    } else {
+      objects_.Add(type);
+    }
+
     PushFromTo(type);
   }
 
   void WriteAlloc(Serializer* s) {
     s->WriteCid(kTypeParameterCid);
-    const intptr_t count = objects_.length();
+    intptr_t count = canonical_objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      TypeParameterPtr type = canonical_objects_[i];
+      s->AssignRef(type);
+    }
+    count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       TypeParameterPtr type = objects_[i];
@@ -3519,23 +3559,31 @@ class TypeParameterSerializationCluster : public SerializationCluster {
   }
 
   void WriteFill(Serializer* s) {
-    const intptr_t count = objects_.length();
+    intptr_t count = canonical_objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      TypeParameterPtr type = objects_[i];
-      AutoTraceObject(type);
-      WriteFromTo(type);
-      s->Write<int32_t>(type->ptr()->parameterized_class_id_);
-      s->WriteTokenPosition(type->ptr()->token_pos_);
-      s->Write<int16_t>(type->ptr()->index_);
-      const uint8_t combined =
-          (type->ptr()->flags_ << 4) | type->ptr()->nullability_;
-      ASSERT(type->ptr()->flags_ == (combined >> 4));
-      ASSERT(type->ptr()->nullability_ == (combined & 0xf));
-      s->Write<uint8_t>(combined);
+      WriteTypeParameter(s, canonical_objects_[i]);
+    }
+    count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      WriteTypeParameter(s, objects_[i]);
     }
   }
 
  private:
+  void WriteTypeParameter(Serializer* s, TypeParameterPtr type) {
+    AutoTraceObject(type);
+    WriteFromTo(type);
+    s->Write<int32_t>(type->ptr()->parameterized_class_id_);
+    s->WriteTokenPosition(type->ptr()->token_pos_);
+    s->Write<int16_t>(type->ptr()->index_);
+    const uint8_t combined =
+        (type->ptr()->flags_ << 4) | type->ptr()->nullability_;
+    ASSERT(type->ptr()->flags_ == (combined >> 4));
+    ASSERT(type->ptr()->nullability_ == (combined & 0xf));
+    s->Write<uint8_t>(combined);
+  }
+
+  GrowableArray<TypeParameterPtr> canonical_objects_;
   GrowableArray<TypeParameterPtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -3546,9 +3594,17 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
   ~TypeParameterDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) {
-    start_index_ = d->next_index();
+    canonical_start_index_ = d->next_index();
     PageSpace* old_space = d->heap()->old_space();
-    const intptr_t count = d->ReadUnsigned();
+    intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      d->AssignRef(
+          AllocateUninitialized(old_space, TypeParameter::InstanceSize()));
+    }
+    canonical_stop_index_ = d->next_index();
+
+    start_index_ = d->next_index();
+    count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       d->AssignRef(
           AllocateUninitialized(old_space, TypeParameter::InstanceSize()));
@@ -3557,17 +3613,15 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
+    for (intptr_t id = canonical_start_index_; id < canonical_stop_index_;
+         id++) {
+      TypeParameterPtr type = static_cast<TypeParameterPtr>(d->Ref(id));
+      ReadTypeParameter(d, type, /* is_canonical = */ true);
+    }
+
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       TypeParameterPtr type = static_cast<TypeParameterPtr>(d->Ref(id));
-      Deserializer::InitializeHeader(type, kTypeParameterCid,
-                                     TypeParameter::InstanceSize());
-      ReadFromTo(type);
-      type->ptr()->parameterized_class_id_ = d->Read<int32_t>();
-      type->ptr()->token_pos_ = d->ReadTokenPosition();
-      type->ptr()->index_ = d->Read<int16_t>();
-      const uint8_t combined = d->Read<uint8_t>();
-      type->ptr()->flags_ = combined >> 4;
-      type->ptr()->nullability_ = combined & 0xf;
+      ReadTypeParameter(d, type, /* is_canonical = */ false);
     }
   }
 
@@ -3576,6 +3630,13 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
     Code& stub = Code::Handle(zone);
 
     if (Snapshot::IncludesCode(kind)) {
+      for (intptr_t id = canonical_start_index_; id < canonical_stop_index_;
+           id++) {
+        type_param ^= refs.At(id);
+        stub = type_param.type_test_stub();
+        type_param.SetTypeTestingStub(
+            stub);  // Update type_test_stub_entry_point_
+      }
       for (intptr_t id = start_index_; id < stop_index_; id++) {
         type_param ^= refs.At(id);
         stub = type_param.type_test_stub();
@@ -3583,6 +3644,12 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
             stub);  // Update type_test_stub_entry_point_
       }
     } else {
+      for (intptr_t id = canonical_start_index_; id < canonical_stop_index_;
+           id++) {
+        type_param ^= refs.At(id);
+        stub = TypeTestingStubGenerator::DefaultCodeForType(type_param);
+        type_param.SetTypeTestingStub(stub);
+      }
       for (intptr_t id = start_index_; id < stop_index_; id++) {
         type_param ^= refs.At(id);
         stub = TypeTestingStubGenerator::DefaultCodeForType(type_param);
@@ -3590,6 +3657,24 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
       }
     }
   }
+
+ private:
+  void ReadTypeParameter(Deserializer* d,
+                         TypeParameterPtr type,
+                         bool is_canonical) {
+    Deserializer::InitializeHeader(type, kTypeParameterCid,
+                                   TypeParameter::InstanceSize(), is_canonical);
+    ReadFromTo(type);
+    type->ptr()->parameterized_class_id_ = d->Read<int32_t>();
+    type->ptr()->token_pos_ = d->ReadTokenPosition();
+    type->ptr()->index_ = d->Read<int16_t>();
+    const uint8_t combined = d->Read<uint8_t>();
+    type->ptr()->flags_ = combined >> 4;
+    type->ptr()->nullability_ = combined & 0xf;
+  }
+
+  intptr_t canonical_start_index_;
+  intptr_t canonical_stop_index_;
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -4757,6 +4842,22 @@ void Serializer::TraceStartWritingObject(const char* type,
                                          StringPtr name) {
   if (profile_writer_ == nullptr) return;
 
+  const char* name_str = nullptr;
+  if (name != nullptr) {
+    REUSABLE_STRING_HANDLESCOPE(thread());
+    String& str = reused_string_handle.Handle();
+    str = name;
+    name_str = str.ToCString();
+  }
+
+  TraceStartWritingObject(type, obj, name_str);
+}
+
+void Serializer::TraceStartWritingObject(const char* type,
+                                         ObjectPtr obj,
+                                         const char* name) {
+  if (profile_writer_ == nullptr) return;
+
   intptr_t cid = -1;
   intptr_t id = 0;
   if (obj->IsHeapObject()) {
@@ -4771,20 +4872,13 @@ void Serializer::TraceStartWritingObject(const char* type,
   }
   ASSERT(IsAllocatedReference(id));
 
-  const char* name_str = nullptr;
-  if (name != nullptr) {
-    String& str = thread()->StringHandle();
-    str = name;
-    name_str = str.ToCString();
-  }
-
   FlushBytesWrittenToRoot();
   object_currently_writing_.object_ = obj;
   object_currently_writing_.id_ = id;
   object_currently_writing_.stream_start_ = stream_.Position();
   object_currently_writing_.cid_ = cid;
   profile_writer_->SetObjectTypeAndName(
-      {V8SnapshotProfileWriter::kSnapshot, id}, type, name_str);
+      {V8SnapshotProfileWriter::kSnapshot, id}, type, name);
 }
 
 void Serializer::TraceEndWritingObject() {
@@ -4798,6 +4892,7 @@ void Serializer::TraceEndWritingObject() {
   }
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 bool Serializer::CreateArtificalNodeIfNeeded(ObjectPtr obj) {
   ASSERT(profile_writer() != nullptr);
 
@@ -4812,14 +4907,16 @@ bool Serializer::CreateArtificalNodeIfNeeded(ObjectPtr obj) {
   id = AssignArtificialRef(obj);
 
   const char* type = nullptr;
-  StringPtr name = nullptr;
+  StringPtr name_string = nullptr;
+  const char* name = nullptr;
   ObjectPtr owner = nullptr;
   const char* owner_ref_name = nullptr;
   switch (obj->GetClassId()) {
     case kFunctionCid: {
       FunctionPtr func = static_cast<FunctionPtr>(obj);
       type = "Function";
-      name = func->ptr()->name_;
+      name = FunctionSerializationCluster::MakeDisambiguatedFunctionName(this,
+                                                                         func);
       owner_ref_name = "owner_";
       owner = func->ptr()->owner_;
       break;
@@ -4827,7 +4924,7 @@ bool Serializer::CreateArtificalNodeIfNeeded(ObjectPtr obj) {
     case kClassCid: {
       ClassPtr cls = static_cast<ClassPtr>(obj);
       type = "Class";
-      name = cls->ptr()->name_;
+      name_string = cls->ptr()->name_;
       owner_ref_name = "library_";
       owner = cls->ptr()->library_;
       break;
@@ -4842,11 +4939,18 @@ bool Serializer::CreateArtificalNodeIfNeeded(ObjectPtr obj) {
     case kLibraryCid: {
       LibraryPtr lib = static_cast<LibraryPtr>(obj);
       type = "Library";
-      name = lib->ptr()->url_;
+      name_string = lib->ptr()->url_;
       break;
     }
     default:
       UNREACHABLE();
+  }
+
+  if (name_string != nullptr) {
+    REUSABLE_STRING_HANDLESCOPE(thread());
+    String& str = reused_string_handle.Handle();
+    str = name_string;
+    name = str.ToCString();
   }
 
   TraceStartWritingObject(type, obj, name);
@@ -4858,6 +4962,7 @@ bool Serializer::CreateArtificalNodeIfNeeded(ObjectPtr obj) {
   TraceEndWritingObject();
   return true;
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 const char* Serializer::ReadOnlyObjectType(intptr_t cid) {
   switch (cid) {
@@ -5228,7 +5333,7 @@ void Serializer::Serialize() {
 
   intptr_t code_order_length = 0;
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
-  if (kind_ == Snapshot::kFullAOT) {
+  if ((kind_ == Snapshot::kFullAOT) && FLAG_use_bare_instructions) {
     auto code_objects =
         static_cast<CodeSerializationCluster*>(clusters_by_cid_[kCodeCid])
             ->discovered_objects();
@@ -6029,7 +6134,7 @@ char* SnapshotHeaderReader::ReadFeatures(const char** features,
 }
 
 char* SnapshotHeaderReader::BuildError(const char* message) {
-  return strdup(message);
+  return Utils::StrDup(message);
 }
 
 ApiErrorPtr FullSnapshotReader::ConvertToApiError(char* message) {
@@ -6608,6 +6713,7 @@ char* SnapshotHeaderReader::InitializeGlobalVMFlagsFromSnapshot(
 #undef CHECK_FLAG
 #undef SET_FLAG
 
+#if defined(DART_PRECOMPILED_RUNTIME)
     if (FLAG_null_safety == kNullSafetyOptionUnspecified) {
       if (strncmp(cursor, "null-safety", end - cursor) == 0) {
         FLAG_null_safety = kNullSafetyOptionStrong;
@@ -6620,11 +6726,52 @@ char* SnapshotHeaderReader::InitializeGlobalVMFlagsFromSnapshot(
         continue;
       }
     }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
     cursor = end;
   }
 
   return nullptr;
+}
+
+bool SnapshotHeaderReader::NullSafetyFromSnapshot(const Snapshot* snapshot) {
+  bool null_safety = false;
+  SnapshotHeaderReader header_reader(snapshot);
+  const char* features = nullptr;
+  intptr_t features_length = 0;
+
+  char* error = header_reader.ReadFeatures(&features, &features_length);
+  if (error != nullptr) {
+    return false;
+  }
+
+  ASSERT(features[features_length] == '\0');
+  const char* cursor = features;
+  while (*cursor != '\0') {
+    while (*cursor == ' ') {
+      cursor++;
+    }
+
+    const char* end = strstr(cursor, " ");
+    if (end == nullptr) {
+      end = features + features_length;
+    }
+
+    if (strncmp(cursor, "null-safety", end - cursor) == 0) {
+      cursor = end;
+      null_safety = true;
+      continue;
+    }
+    if (strncmp(cursor, "no-null-safety", end - cursor) == 0) {
+      cursor = end;
+      null_safety = false;
+      continue;
+    }
+
+    cursor = end;
+  }
+
+  return null_safety;
 }
 
 ApiErrorPtr FullSnapshotReader::ReadVMSnapshot() {

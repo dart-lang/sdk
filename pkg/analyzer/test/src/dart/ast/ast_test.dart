@@ -31,6 +31,15 @@ class CompilationUnitImplTest extends ParserTestCase {
     testUnit = parseCompilationUnit(source);
   }
 
+  test_languageVersionComment_firstComment() {
+    parse('''
+// @dart=2.6
+void main() {}
+''');
+    expect(
+        testUnit.languageVersionToken, testUnit.beginToken.precedingComments);
+  }
+
   test_languageVersionComment_none() {
     parse('''
 void main() {}
@@ -44,15 +53,6 @@ void main() {}
 void main() {}
 ''');
     expect(testUnit.languageVersionToken, null);
-  }
-
-  test_languageVersionComment_firstComment() {
-    parse('''
-// @dart=2.6
-void main() {}
-''');
-    expect(
-        testUnit.languageVersionToken, testUnit.beginToken.precedingComments);
   }
 
   test_languageVersionComment_secondComment() {

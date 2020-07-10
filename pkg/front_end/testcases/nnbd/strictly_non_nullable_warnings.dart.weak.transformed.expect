@@ -150,9 +150,9 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
   } =>#t5;
   core::Set<core::String> a = block {
     final core::Set<core::String> #t8 = col::LinkedHashSet::•<core::String>();
-    final core::Iterable<core::String>? #t9 = l;
+    final core::Iterable<dynamic>? #t9 = l;
     if(!#t9.{core::Object::==}(null)) {
-      core::Iterator<core::String> :sync-for-iterator = #t9{core::Iterable<core::String>}.{core::Iterable::iterator};
+      core::Iterator<dynamic> :sync-for-iterator = #t9{core::Iterable<dynamic>}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t10 = :sync-for-iterator.{core::Iterator::current};
         {

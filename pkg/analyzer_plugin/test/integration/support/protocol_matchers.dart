@@ -301,6 +301,7 @@ final Matcher isFilePath = isString;
 ///
 /// enum {
 ///   ANNOTATIONS
+///   BLOCK
 ///   CLASS_BODY
 ///   DIRECTIVES
 ///   DOCUMENTATION_COMMENT
@@ -311,6 +312,7 @@ final Matcher isFilePath = isString;
 /// }
 final Matcher isFoldingKind = MatchesEnum('FoldingKind', [
   'ANNOTATIONS',
+  'BLOCK',
   'CLASS_BODY',
   'DIRECTIVES',
   'DOCUMENTATION_COMMENT',

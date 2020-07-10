@@ -226,6 +226,7 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
       int charEndOffset,
       Procedure referenceFrom,
       this._tearOffReferenceFrom,
+      AsyncMarker asyncModifier,
       [String nativeMethodName])
       : super(
             metadata,
@@ -241,7 +242,9 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
             charOpenParenOffset,
             charEndOffset,
             referenceFrom,
-            nativeMethodName);
+            nativeMethodName) {
+    this.asyncModifier = asyncModifier;
+  }
 
   bool _typeEnsured = false;
   Set<ClassMember> _overrideDependencies;

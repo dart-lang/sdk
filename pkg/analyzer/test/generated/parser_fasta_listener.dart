@@ -3,32 +3,30 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart' show MessageCode;
-import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart';
+import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:test/test.dart';
 
-/**
- * Proxy implementation of the fasta parser listener that
- * asserts begin/end pairs of events and forwards all events
- * to the specified listener.
- *
- * When `parseUnit` is called, then all events are generated as expected.
- * When "lower level" parse methods are called, then some "higher level"
- * begin/end event pairs will not be generated. In this case,
- * construct a new listener and call `begin('higher-level-event')`
- * before calling the "lower level" parse method. Once the parse method returns,
- * call `end('higher-level-event')` to assert that the stack is in the
- * expected state.
- *
- * For example, when calling `parseTopLevelDeclaration`, the
- * [beginCompilationUnit] and [endCompilationUnit] event pair is not generated.
- * In this case, call `begin('CompilationUnit')` before calling
- * `parseTopLevelDeclaration`, and call `end('CompilationUnit')` afterward.
- *
- * When calling `parseUnit`, do not call `begin` or `end`,
- * but call `expectEmpty` after `parseUnit` returns.
- */
+/// Proxy implementation of the fasta parser listener that
+/// asserts begin/end pairs of events and forwards all events
+/// to the specified listener.
+///
+/// When `parseUnit` is called, then all events are generated as expected.
+/// When "lower level" parse methods are called, then some "higher level"
+/// begin/end event pairs will not be generated. In this case,
+/// construct a new listener and call `begin('higher-level-event')`
+/// before calling the "lower level" parse method. Once the parse method
+/// returns, call `end('higher-level-event')` to assert that the stack is in the
+/// expected state.
+///
+/// For example, when calling `parseTopLevelDeclaration`, the
+/// [beginCompilationUnit] and [endCompilationUnit] event pair is not generated.
+/// In this case, call `begin('CompilationUnit')` before calling
+/// `parseTopLevelDeclaration`, and call `end('CompilationUnit')` afterward.
+///
+/// When calling `parseUnit`, do not call `begin` or `end`,
+/// but call `expectEmpty` after `parseUnit` returns.
 class ForwardingTestListener extends ForwardingListener {
   final _stack = <String>[];
 
@@ -181,15 +179,15 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginExtensionDeclarationPrelude(Token extensionKeyword) {
-    super.beginExtensionDeclarationPrelude(extensionKeyword);
-    begin('ExtensionDeclarationPrelude');
-  }
-
-  @override
   void beginExtensionDeclaration(Token extensionKeyword, Token name) {
     super.beginExtensionDeclaration(extensionKeyword, name);
     begin('ExtensionDeclaration');
+  }
+
+  @override
+  void beginExtensionDeclarationPrelude(Token extensionKeyword) {
+    super.beginExtensionDeclarationPrelude(extensionKeyword);
+    begin('ExtensionDeclarationPrelude');
   }
 
   @override

@@ -7,7 +7,7 @@ import 'dart:html';
 import 'dart:math' as math;
 import 'package:observatory/src/elements/containers/search_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 
 typedef HtmlElement VirtualCollectionCreateCallback();
 typedef List<HtmlElement> VirtualCollectionHeaderCallback();
@@ -16,9 +16,6 @@ typedef void VirtualCollectionUpdateCallback(
 typedef bool VirtualCollectionSearchCallback(Pattern pattern, dynamic item);
 
 class VirtualCollectionElement extends CustomElement implements Renderable {
-  static const tag = const Tag<VirtualCollectionElement>('virtual-collection',
-      dependencies: const [SearchBarElement.tag]);
-
   RenderingScheduler<VirtualCollectionElement> _r;
 
   Stream<RenderedEvent<VirtualCollectionElement>> get onRendered =>
@@ -63,7 +60,7 @@ class VirtualCollectionElement extends CustomElement implements Renderable {
     return e;
   }
 
-  VirtualCollectionElement.created() : super.created(tag);
+  VirtualCollectionElement.created() : super.created('virtual-collection');
 
   @override
   attached() {

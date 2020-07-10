@@ -4,10 +4,10 @@
 
 import 'package:kernel/ast.dart'
     show
-        Class,
         DartType,
         DynamicType,
         FunctionType,
+        FutureOrType,
         InterfaceType,
         Library,
         NamedType,
@@ -106,14 +106,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
   TypeSchemaEnvironment(CoreTypes coreTypes, this.hierarchy)
       : super(coreTypes, hierarchy);
-
-  Class get functionClass => coreTypes.functionClass;
-
-  Class get futureClass => coreTypes.futureClass;
-
-  Class get futureOrClass => coreTypes.futureOrClass;
-
-  Class get objectClass => coreTypes.objectClass;
 
   InterfaceType get objectNonNullableRawType {
     return coreTypes.objectNonNullableRawType;
@@ -230,14 +222,14 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
                     : objectLegacyRawType)
             .substituteType(returnContextType);
       }
-      gatherer.trySubtypeMatch(declaredReturnType, returnContextType);
+      gatherer.tryConstrainUpper(declaredReturnType, returnContextType);
     }
 
     if (formalTypes != null) {
       for (int i = 0; i < formalTypes.length; i++) {
         // Try to pass each argument to each parameter, recording any type
         // parameter bounds that were implied by this assignment.
-        gatherer.trySubtypeMatch(actualTypes[i], formalTypes[i]);
+        gatherer.tryConstrainLower(formalTypes[i], actualTypes[i]);
       }
     }
 
@@ -361,10 +353,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       DartType subtype, DartType supertype) {
     if (subtype is UnknownType) return const IsSubtypeOf.always();
     DartType unwrappedSupertype = supertype;
-    while (unwrappedSupertype is InterfaceType &&
-        unwrappedSupertype.classNode == futureOrClass) {
-      unwrappedSupertype =
-          (unwrappedSupertype as InterfaceType).typeArguments.single;
+    while (unwrappedSupertype is FutureOrType) {
+      unwrappedSupertype = (unwrappedSupertype as FutureOrType).typeArgument;
     }
     if (unwrappedSupertype is UnknownType) {
       return const IsSubtypeOf.always();

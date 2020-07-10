@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:math' as math;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 
 class SearchResultSelected {
   final SearchBarElement element;
@@ -17,8 +17,6 @@ class SearchResultSelected {
 typedef Iterable<dynamic> SearchBarSearchCallback(Pattern pattern);
 
 class SearchBarElement extends CustomElement implements Renderable {
-  static const tag = const Tag<SearchBarElement>('search-bar');
-
   RenderingScheduler<SearchBarElement> _r;
 
   StreamController<SearchResultSelected> _onSearchResultSelected =
@@ -66,7 +64,7 @@ class SearchBarElement extends CustomElement implements Renderable {
     return e;
   }
 
-  SearchBarElement.created() : super.created(tag);
+  SearchBarElement.created() : super.created('search-bar');
 
   @override
   attached() {

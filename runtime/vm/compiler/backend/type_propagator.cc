@@ -1139,9 +1139,13 @@ CompileType ParameterInstr::ComputeType() const {
     }
     // If parameter type was checked by caller, then use Dart type annotation,
     // plus non-nullability from inferred type if known.
-    if (param->was_type_checked_by_caller() ||
-        (is_unchecked_entry_param &&
-         !param->is_explicit_covariant_parameter())) {
+    // Do not trust static parameter type of 'operator ==' as it is a
+    // non-nullable Object but VM handles comparison with null in
+    // the callee, so 'operator ==' can take null as an argument.
+    if ((function.name() != Symbols::EqualOperator().raw()) &&
+        (param->was_type_checked_by_caller() ||
+         (is_unchecked_entry_param &&
+          !param->is_explicit_covariant_parameter()))) {
       const bool is_nullable =
           (inferred_type == NULL) || inferred_type->is_nullable();
       TraceStrongModeType(this, param->type());

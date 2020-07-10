@@ -14,9 +14,10 @@ import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
+import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart' show HintCode, StrongModeCode;
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:meta/meta.dart';
 
 /// Tracks upper and lower type bounds for a set of type parameters.
@@ -257,6 +258,7 @@ class GenericInferrer {
       }
     }
 
+    _nonNullifyTypes(result);
     return result;
   }
 
@@ -461,6 +463,14 @@ class GenericInferrer {
     return t;
   }
 
+  void _nonNullifyTypes(List<DartType> types) {
+    if (_typeSystem.isNonNullableByDefault) {
+      for (var i = 0; i < types.length; i++) {
+        types[i] = nonNullifyType(_typeSystem, types[i]);
+      }
+    }
+  }
+
   /// If in a legacy library, return the legacy version of the [type].
   /// Otherwise, return the original type.
   DartType _toLegacyType(DartType type) {
@@ -548,7 +558,7 @@ class _TypeConstraintFromArgument extends _TypeConstraintOrigin {
       : super(isNonNullableByDefault: isNonNullableByDefault);
 
   @override
-  formatError() {
+  List<String> formatError() {
     // TODO(jmesserly): we should highlight the span. That would be more useful.
     // However in summary code it doesn't look like the AST node with span is
     // available.
@@ -582,7 +592,7 @@ class _TypeConstraintFromExtendsClause extends _TypeConstraintOrigin {
       : super(isNonNullableByDefault: isNonNullableByDefault);
 
   @override
-  formatError() {
+  List<String> formatError() {
     return [
       "Type parameter '${typeParam.name}'",
       "declared to extend '${_typeStr(extendsType)}'."
@@ -599,7 +609,7 @@ class _TypeConstraintFromFunctionContext extends _TypeConstraintOrigin {
       : super(isNonNullableByDefault: isNonNullableByDefault);
 
   @override
-  formatError() {
+  List<String> formatError() {
     return [
       "Function type",
       "declared as '${_typeStr(functionType)}'",
@@ -617,7 +627,7 @@ class _TypeConstraintFromReturnType extends _TypeConstraintOrigin {
       : super(isNonNullableByDefault: isNonNullableByDefault);
 
   @override
-  formatError() {
+  List<String> formatError() {
     return [
       "Return type",
       "declared as '${_typeStr(declaredType)}'",

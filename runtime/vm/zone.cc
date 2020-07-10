@@ -16,6 +16,8 @@
 
 namespace dart {
 
+RelaxedAtomic<intptr_t> Zone::total_size_ = {0};
+
 // Zone segments represent chunks of memory: They have starting
 // address encoded in the this pointer and a size in bytes. They are
 // chained together to form the backing storage for an expanding zone.
@@ -86,6 +88,7 @@ Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
   }
   if (memory == nullptr) {
     memory = VirtualMemory::Allocate(size, false, "dart-zone");
+    total_size_.fetch_add(size);
   }
   if (memory == nullptr) {
     OUT_OF_MEMORY();
@@ -128,7 +131,10 @@ void Zone::Segment::DeleteSegmentList(Segment* head) {
         memory = nullptr;
       }
     }
-    delete memory;
+    if (memory != nullptr) {
+      total_size_.fetch_sub(size);
+      delete memory;
+    }
     current = next;
   }
 }

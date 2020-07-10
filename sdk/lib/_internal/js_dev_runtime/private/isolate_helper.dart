@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 library dart._isolate_helper;
 
 import 'dart:_runtime' as dart;
@@ -36,7 +34,7 @@ final global = dart.global_;
 
 class TimerImpl implements Timer {
   final bool _once;
-  int _handle;
+  int? _handle;
   int _tick = 0;
 
   TimerImpl(int milliseconds, void callback()) : _once = true {

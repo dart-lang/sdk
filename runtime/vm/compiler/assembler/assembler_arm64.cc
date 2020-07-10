@@ -1405,19 +1405,23 @@ void Assembler::EnterSafepoint(Register state) {
 
 void Assembler::TransitionGeneratedToNative(Register destination,
                                             Register new_exit_frame,
-                                            Register state,
+                                            Register new_exit_through_ffi,
                                             bool enter_safepoint) {
   // Save exit frame information to enable stack walking.
   StoreToOffset(new_exit_frame, THR,
                 target::Thread::top_exit_frame_info_offset());
 
+  StoreToOffset(new_exit_through_ffi, THR,
+                target::Thread::exit_through_ffi_offset());
+  Register tmp = new_exit_through_ffi;
+
   // Mark that the thread is executing native code.
   StoreToOffset(destination, THR, target::Thread::vm_tag_offset());
-  LoadImmediate(state, target::Thread::native_execution_state());
-  StoreToOffset(state, THR, target::Thread::execution_state_offset());
+  LoadImmediate(tmp, target::Thread::native_execution_state());
+  StoreToOffset(tmp, THR, target::Thread::execution_state_offset());
 
   if (enter_safepoint) {
-    EnterSafepoint(state);
+    EnterSafepoint(tmp);
   }
 }
 
@@ -1476,8 +1480,10 @@ void Assembler::TransitionNativeToGenerated(Register state,
   LoadImmediate(state, target::Thread::generated_execution_state());
   StoreToOffset(state, THR, target::Thread::execution_state_offset());
 
-  // Reset exit frame information in Isolate structure.
+  // Reset exit frame information in Isolate's mutator thread structure.
   StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
+  LoadImmediate(state, 0);
+  StoreToOffset(state, THR, target::Thread::exit_through_ffi_offset());
 }
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_size) {
@@ -1548,6 +1554,15 @@ void Assembler::EnterStubFrame() {
 
 void Assembler::LeaveStubFrame() {
   LeaveDartFrame();
+}
+
+void Assembler::EnterCFrame(intptr_t frame_space) {
+  EnterFrame(0);
+  ReserveAlignedFrameSpace(frame_space);
+}
+
+void Assembler::LeaveCFrame() {
+  LeaveFrame();
 }
 
 // R0 receiver, R5 ICData entries array

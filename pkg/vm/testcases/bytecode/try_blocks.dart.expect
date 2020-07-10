@@ -1033,7 +1033,7 @@ ConstantPool {
           y = 3;
         }
       }
-      [@vm.call-site-attributes.metadata=receiverType:FunctionType(void Function()*)] foo.call();
+      [@vm.call-site-attributes.metadata=receiverType:void Function()*] foo.call();
       dart.core::print(y);
     }
     on dynamic catch(final dynamic e, final dart.core::StackTrace* st) {
@@ -1099,7 +1099,7 @@ ConstantPool {
                 dart.core::print(x);
                 dart.core::print(y);
               }
-              [@vm.call-site-attributes.metadata=receiverType:FunctionType(void Function()*)] foo.call();
+              [@vm.call-site-attributes.metadata=receiverType:void Function()*] foo.call();
               continue #L4;
             }
             finally {
@@ -1143,7 +1143,7 @@ ConstantPool {
     }
     finally {
       dart.core::print(x);
-      [@vm.call-site-attributes.metadata=receiverType:DynamicType(dynamic)] y.call();
+      [@vm.call-site-attributes.metadata=receiverType:dynamic] y.call();
     }
   }
   static method testTryCatchFinally() → dynamic {

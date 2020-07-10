@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_demotion.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
@@ -51,15 +52,13 @@ class FunctionExpressionResolver {
     }
 
     var contextType = InferenceContext.getContext(node);
-    contextType = nonNullifyType(_resolver.definingLibrary, contextType);
-
     if (contextType is FunctionType) {
-      contextType = _matchFunctionTypeParameters(
+      contextType = _matchTypeParameters(
         node.typeParameters,
         contextType,
       );
       if (contextType is FunctionType) {
-        _inferFormalParameterList(node.parameters, contextType);
+        _inferFormalParameters(node.parameters, contextType);
         InferenceContext.setType(body, contextType.returnType);
       }
     }
@@ -83,58 +82,66 @@ class FunctionExpressionResolver {
     }
   }
 
-  /// Given a formal parameter list and a function type use the function type
-  /// to infer types for any of the parameters which have implicit (missing)
-  /// types.  Returns true if inference has occurred.
-  bool _inferFormalParameterList(
-      FormalParameterList node, DartType functionType) {
-    bool inferred = false;
-    if (node != null && functionType is FunctionType) {
-      void inferType(ParameterElementImpl p, DartType inferredType) {
-        // Check that there is no declared type, and that we have not already
-        // inferred a type in some fashion.
-        if (p.hasImplicitType && (p.type == null || p.type.isDynamic)) {
-          inferredType = _typeSystem.greatestClosure(inferredType);
-          if (inferredType.isDartCoreNull || inferredType is NeverTypeImpl) {
-            inferredType = _isNonNullableByDefault
-                ? _typeSystem.objectQuestion
-                : _typeSystem.objectStar;
-          }
-          if (_migrationResolutionHooks != null) {
-            inferredType = _migrationResolutionHooks
-                .modifyInferredParameterType(p, inferredType);
-          }
-          if (!inferredType.isDynamic) {
-            p.type = inferredType;
-            inferred = true;
-          }
-        }
-      }
+  /// Infer types of implicitly typed formal parameters.
+  void _inferFormalParameters(
+    FormalParameterList node,
+    FunctionType contextType,
+  ) {
+    if (node == null) {
+      return;
+    }
 
-      List<ParameterElement> parameters = node.parameterElements;
-      {
-        Iterator<ParameterElement> positional =
-            parameters.where((p) => p.isPositional).iterator;
-        Iterator<ParameterElement> fnPositional =
-            functionType.parameters.where((p) => p.isPositional).iterator;
-        while (positional.moveNext() && fnPositional.moveNext()) {
-          inferType(positional.current, fnPositional.current.type);
-        }
-      }
+    void inferType(ParameterElementImpl p, DartType inferredType) {
+      // Check that there is no declared type, and that we have not already
+      // inferred a type in some fashion.
+      if (p.hasImplicitType && (p.type == null || p.type.isDynamic)) {
+        // If no type is declared for a parameter and there is a
+        // corresponding parameter in the context type schema with type
+        // schema `K`, the parameter is given an inferred type `T` where `T`
+        // is derived from `K` as follows.
+        inferredType = _typeSystem.greatestClosure(inferredType);
 
-      {
-        Map<String, DartType> namedParameterTypes =
-            functionType.namedParameterTypes;
-        Iterable<ParameterElement> named = parameters.where((p) => p.isNamed);
-        for (ParameterElementImpl p in named) {
-          if (!namedParameterTypes.containsKey(p.name)) {
-            continue;
-          }
-          inferType(p, namedParameterTypes[p.name]);
+        // If the greatest closure of `K` is `S` and `S` is a subtype of
+        // `Null`, then `T` is `Object?`. Otherwise, `T` is `S`.
+        if (_typeSystem.isSubtypeOf2(inferredType, _typeSystem.nullNone)) {
+          inferredType = _isNonNullableByDefault
+              ? _typeSystem.objectQuestion
+              : _typeSystem.objectStar;
+        }
+        if (_migrationResolutionHooks != null) {
+          inferredType = _migrationResolutionHooks.modifyInferredParameterType(
+              p, inferredType);
+        } else {
+          inferredType = nonNullifyType(_typeSystem, inferredType);
+        }
+        if (!inferredType.isDynamic) {
+          p.type = inferredType;
         }
       }
     }
-    return inferred;
+
+    List<ParameterElement> parameters = node.parameterElements;
+    {
+      Iterator<ParameterElement> positional =
+          parameters.where((p) => p.isPositional).iterator;
+      Iterator<ParameterElement> fnPositional =
+          contextType.parameters.where((p) => p.isPositional).iterator;
+      while (positional.moveNext() && fnPositional.moveNext()) {
+        inferType(positional.current, fnPositional.current.type);
+      }
+    }
+
+    {
+      Map<String, DartType> namedParameterTypes =
+          contextType.namedParameterTypes;
+      Iterable<ParameterElement> named = parameters.where((p) => p.isNamed);
+      for (ParameterElementImpl p in named) {
+        if (!namedParameterTypes.containsKey(p.name)) {
+          continue;
+        }
+        inferType(p, namedParameterTypes[p.name]);
+      }
+    }
   }
 
   /// Infers the return type of a local function, either a lambda or
@@ -144,44 +151,27 @@ class FunctionExpressionResolver {
     return InferenceContext.getContext(body) ?? DynamicTypeImpl.instance;
   }
 
-  /// Given a downward inference type [fnType], and the declared
-  /// [typeParameterList] for a function expression, determines if we can enable
-  /// downward inference and if so, returns the function type to use for
-  /// inference.
+  /// Given the downward inference [type], return the function type expressed
+  /// in terms of the type parameters from [typeParameterList].
   ///
-  /// This will return null if inference is not possible. This happens when
-  /// there is no way we can find a subtype of the function type, given the
-  /// provided type parameter list.
-  FunctionType _matchFunctionTypeParameters(
-      TypeParameterList typeParameterList, FunctionType fnType) {
+  /// Return `null` is the number of element in [typeParameterList] is not
+  /// the same as the number of type parameters in the [type].
+  FunctionType _matchTypeParameters(
+      TypeParameterList typeParameterList, FunctionType type) {
     if (typeParameterList == null) {
-      if (fnType.typeFormals.isEmpty) {
-        return fnType;
+      if (type.typeFormals.isEmpty) {
+        return type;
       }
-
-      // A non-generic function cannot be a subtype of a generic one.
       return null;
     }
 
-    NodeList<TypeParameter> typeParameters = typeParameterList.typeParameters;
-    if (fnType.typeFormals.isEmpty) {
-      // TODO(jmesserly): this is a legal subtype. We don't currently infer
-      // here, but we could.  This is similar to
-      // Dart2TypeSystem.inferFunctionTypeInstantiation, but we don't
-      // have the FunctionType yet for the current node, so it's not quite
-      // straightforward to apply.
+    var typeParameters = typeParameterList.typeParameters;
+    if (typeParameters.length != type.typeFormals.length) {
       return null;
     }
 
-    if (fnType.typeFormals.length != typeParameters.length) {
-      // A subtype cannot have different number of type formals.
-      return null;
-    }
-
-    // Same number of type formals. Instantiate the function type so its
-    // parameter and return type are in terms of the surrounding context.
-    return fnType.instantiate(typeParameters.map((TypeParameter t) {
-      return t.declaredElement.instantiate(
+    return type.instantiate(typeParameters.map((typeParameter) {
+      return typeParameter.declaredElement.instantiate(
         nullabilitySuffix: _resolver.noneOrStarSuffix,
       );
     }).toList());

@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class ImageStreamCompleter extends core::Object {
+  synthetic constructor •() → self::ImageStreamCompleter
+    ;
+  abstract method addListener() → void;
+}
+class _LiveImage extends core::Object {
+  static factory •(self::ImageStreamCompleter a) → self::_LiveImage
+    ;
+}
+abstract class Foo extends core::Object {
+  synthetic constructor •() → self::Foo
+    ;
+  abstract get _pendingImages() → dynamic;
+  method putIfAbsent(core::Object key, () → self::ImageStreamCompleter loader) → self::ImageStreamCompleter?
+    ;
+}
+static method main() → dynamic
+  ;

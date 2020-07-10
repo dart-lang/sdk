@@ -11,6 +11,7 @@
 #include <fcntl.h>     // NOLINT
 #include <io.h>        // NOLINT
 #include <Shlwapi.h>   // NOLINT
+#undef StrDup  // defined in Shlwapi.h as StrDupW
 #include <stdio.h>     // NOLINT
 #include <string.h>    // NOLINT
 #include <sys/stat.h>  // NOLINT
@@ -55,9 +56,9 @@ void File::Close() {
     int fd = _open("NUL", _O_WRONLY);
     ASSERT(fd >= 0);
     _dup2(fd, closing_fd);
-    close(fd);
+    Utils::Close(fd);
   } else {
-    int err = close(closing_fd);
+    int err = Utils::Close(closing_fd);
     if (err != 0) {
       Syslog::PrintErr("%s\n", strerror(errno));
     }
@@ -141,7 +142,7 @@ void MappedMemory::Unmap() {
 
 int64_t File::Read(void* buffer, int64_t num_bytes) {
   ASSERT(handle_->fd() >= 0);
-  return read(handle_->fd(), buffer, num_bytes);
+  return Utils::Read(handle_->fd(), buffer, num_bytes);
 }
 
 int64_t File::Write(const void* buffer, int64_t num_bytes) {
@@ -302,22 +303,35 @@ File* File::Open(Namespace* namespc, const char* path, FileOpenMode mode) {
   return file;
 }
 
-File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
+Utils::CStringUniquePtr File::UriToPath(const char* uri) {
   UriDecoder uri_decoder(uri);
-  if (uri_decoder.decoded() == NULL) {
+  if (uri_decoder.decoded() == nullptr) {
     SetLastError(ERROR_INVALID_NAME);
-    return NULL;
+    return Utils::CreateCStringUniquePtr(nullptr);
   }
 
   Utf8ToWideScope uri_w(uri_decoder.decoded());
   if (!UrlIsFileUrlW(uri_w.wide())) {
-    return FileOpenW(uri_w.wide(), mode);
+    return Utils::CreateCStringUniquePtr(Utils::StrDup(uri_decoder.decoded()));
   }
   wchar_t filename_w[MAX_PATH];
   DWORD filename_len = MAX_PATH;
-  HRESULT result = PathCreateFromUrlW(uri_w.wide(),
-      filename_w, &filename_len, /* dwFlags= */ NULL);
-  return (result == S_OK) ? FileOpenW(filename_w, mode) : NULL;
+  HRESULT result = PathCreateFromUrlW(uri_w.wide(), filename_w, &filename_len,
+                                      /* dwFlags= */ 0);
+  if (result != S_OK) {
+    return Utils::CreateCStringUniquePtr(nullptr);
+  }
+
+  WideToUtf8Scope utf8_path(filename_w);
+  return utf8_path.release();
+}
+
+File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
+  auto path = UriToPath(uri);
+  if (path == nullptr) {
+    return nullptr;
+  }
+  return Open(namespc, path.get(), mode);
 }
 
 File* File::OpenStdio(int fd) {
@@ -369,7 +383,7 @@ bool File::Create(Namespace* namespc, const char* name) {
   if (fd < 0) {
     return false;
   }
-  return (close(fd) == 0);
+  return (Utils::Close(fd) == 0);
 }
 
 // This structure is needed for creating and reading Junctions.

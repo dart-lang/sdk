@@ -1905,7 +1905,6 @@ int _g() => 1;
     visitSubexpression(findNode.methodInvocation('_g();'), 'int');
   }
 
-  @FailingTest(reason: 'TODO(paulberry)')
   Future<void> test_methodInvocation_toString() async {
     await analyze('''
 abstract class _C {}
@@ -2379,7 +2378,6 @@ _f(_C c) => c.x;
     visitSubexpression(findNode.prefixed('c.x'), 'int?');
   }
 
-  @FailingTest(reason: 'TODO(paulberry)')
   Future<void> test_prefixedIdentifier_object_getter() async {
     await analyze('''
 class _C {}
@@ -2388,7 +2386,6 @@ _f(_C/*?*/ c) => c.hashCode;
     visitSubexpression(findNode.prefixed('c.hashCode'), 'int');
   }
 
-  @FailingTest(reason: 'TODO(paulberry)')
   Future<void> test_prefixedIdentifier_object_tearoff() async {
     await analyze('''
 class _C {}
@@ -2730,7 +2727,6 @@ _f(_C/*?*/ c) => c?.hashCode;
     visitSubexpression(findNode.propertyAccess('c?.hashCode'), 'int?');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40475')
   Future<void> test_propertyAccess_nullAware_object_tearoff() async {
     await analyze('''
 class _C {}
@@ -2785,7 +2781,6 @@ _f(_C<int>/*?*/ c) => c?.x;
     visitSubexpression(findNode.propertyAccess('c?.x'), 'List<int>?');
   }
 
-  @FailingTest(reason: 'TODO(paulberry)')
   Future<void> test_propertyAccess_object_getter() async {
     await analyze('''
 class _C {}
@@ -2794,7 +2789,6 @@ _f(_C/*?*/ c) => (c).hashCode;
     visitSubexpression(findNode.propertyAccess('(c).hashCode'), 'int');
   }
 
-  @FailingTest(reason: 'TODO(paulberry)')
   Future<void> test_propertyAccess_object_tearoff() async {
     await analyze('''
 class _C {}

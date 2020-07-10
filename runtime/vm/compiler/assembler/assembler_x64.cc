@@ -179,10 +179,15 @@ void Assembler::EnterSafepoint() {
 
 void Assembler::TransitionGeneratedToNative(Register destination_address,
                                             Register new_exit_frame,
+                                            Register new_exit_through_ffi,
                                             bool enter_safepoint) {
   // Save exit frame information to enable stack walking.
   movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
        new_exit_frame);
+
+  movq(compiler::Address(THR,
+                         compiler::target::Thread::exit_through_ffi_offset()),
+       new_exit_through_ffi);
 
   movq(Assembler::VMTagAddress(), destination_address);
   movq(Address(THR, target::Thread::execution_state_offset()),
@@ -248,9 +253,12 @@ void Assembler::TransitionNativeToGenerated(bool leave_safepoint) {
   movq(Address(THR, target::Thread::execution_state_offset()),
        Immediate(target::Thread::generated_execution_state()));
 
-  // Reset exit frame information in Isolate structure.
+  // Reset exit frame information in Isolate's mutator thread structure.
   movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
        Immediate(0));
+  movq(compiler::Address(THR,
+                         compiler::target::Thread::exit_through_ffi_offset()),
+       compiler::Immediate(0));
 }
 
 void Assembler::EmitQ(int reg,
@@ -384,11 +392,14 @@ void Assembler::movq(const Address& dst, const Immediate& imm) {
   }
 }
 
-void Assembler::EmitSimple(int opcode, int opcode2) {
+void Assembler::EmitSimple(int opcode, int opcode2, int opcode3) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(opcode);
   if (opcode2 != -1) {
     EmitUint8(opcode2);
+    if (opcode3 != -1) {
+      EmitUint8(opcode3);
+    }
   }
 }
 
@@ -1670,6 +1681,13 @@ void Assembler::CallCFunction(Register reg) {
   }
   call(reg);
 }
+void Assembler::CallCFunction(Address address) {
+  // Reserve shadow space for outgoing arguments.
+  if (CallingConventions::kShadowSpaceBytes != 0) {
+    subq(RSP, Immediate(CallingConventions::kShadowSpaceBytes));
+  }
+  call(address);
+}
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,
                             intptr_t argument_count) {
@@ -1773,6 +1791,15 @@ void Assembler::EnterStubFrame() {
 
 void Assembler::LeaveStubFrame() {
   LeaveDartFrame();
+}
+
+void Assembler::EnterCFrame(intptr_t frame_space) {
+  EnterFrame(0);
+  ReserveAlignedFrameSpace(frame_space);
+}
+
+void Assembler::LeaveCFrame() {
+  LeaveFrame();
 }
 
 // RDX receiver, RBX ICData entries array

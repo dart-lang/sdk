@@ -309,6 +309,19 @@ void Assembler::rep_movsb() {
   EmitUint8(0xA4);
 }
 
+void Assembler::rep_movsw() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF3);
+  EmitUint8(0x66);
+  EmitUint8(0xA5);
+}
+
+void Assembler::rep_movsl() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF3);
+  EmitUint8(0xA5);
+}
+
 void Assembler::movss(XmmRegister dst, const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF3);
@@ -766,7 +779,7 @@ void Assembler::negatepd(XmmRegister dst) {
   static const struct ALIGN16 {
     uint64_t a;
     uint64_t b;
-  } double_negate_constant = {0x8000000000000000LL, 0x8000000000000000LL};
+  } double_negate_constant = {0x8000000000000000LLU, 0x8000000000000000LLU};
   xorpd(dst,
         Address::Absolute(reinterpret_cast<uword>(&double_negate_constant)));
 }
@@ -1000,6 +1013,14 @@ void Assembler::movmskps(Register dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x0F);
   EmitUint8(0x50);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+void Assembler::pmovmskb(Register dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0xD7);
   EmitXmmRegisterOperand(dst, src);
 }
 
@@ -2054,7 +2075,7 @@ void Assembler::DoubleNegate(XmmRegister d) {
   static const struct ALIGN16 {
     uint64_t a;
     uint64_t b;
-  } double_negate_constant = {0x8000000000000000LL, 0x8000000000000000LL};
+  } double_negate_constant = {0x8000000000000000LLU, 0x8000000000000000LLU};
   xorpd(d, Address::Absolute(reinterpret_cast<uword>(&double_negate_constant)));
 }
 
@@ -2197,11 +2218,16 @@ void Assembler::EnterSafepoint(Register scratch) {
 
 void Assembler::TransitionGeneratedToNative(Register destination_address,
                                             Register new_exit_frame,
-                                            Register scratch,
+                                            Register new_exit_through_ffi,
                                             bool enter_safepoint) {
   // Save exit frame information to enable stack walking.
   movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
        new_exit_frame);
+
+  movl(compiler::Address(THR,
+                         compiler::target::Thread::exit_through_ffi_offset()),
+       new_exit_through_ffi);
+  Register scratch = new_exit_through_ffi;
 
   // Mark that the thread is executing native code.
   movl(VMTagAddress(), destination_address);
@@ -2214,6 +2240,7 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
 }
 
 void Assembler::ExitSafepoint(Register scratch) {
+  ASSERT(scratch != EAX);
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterSafepoint.
 
@@ -2266,9 +2293,12 @@ void Assembler::TransitionNativeToGenerated(Register scratch,
   movl(Address(THR, target::Thread::execution_state_offset()),
        Immediate(target::Thread::generated_execution_state()));
 
-  // Reset exit frame information in Isolate structure.
+  // Reset exit frame information in Isolate's mutator thread structure.
   movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
        Immediate(0));
+  movl(compiler::Address(THR,
+                         compiler::target::Thread::exit_through_ffi_offset()),
+       compiler::Immediate(0));
 }
 
 static const intptr_t kNumberOfVolatileCpuRegisters = 3;
@@ -2535,6 +2565,15 @@ void Assembler::EnterStubFrame() {
 }
 
 void Assembler::LeaveStubFrame() {
+  LeaveFrame();
+}
+
+void Assembler::EnterCFrame(intptr_t frame_space) {
+  EnterFrame(0);
+  ReserveAlignedFrameSpace(frame_space);
+}
+
+void Assembler::LeaveCFrame() {
   LeaveFrame();
 }
 

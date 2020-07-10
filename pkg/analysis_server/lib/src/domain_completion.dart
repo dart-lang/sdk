@@ -21,6 +21,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
@@ -63,6 +64,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   /// [results]. Subclasses should override this method, append at least one
   /// result to the [controller], and close the controller stream once complete.
   Future<CompletionResult> computeSuggestions(
+    OperationPerformanceImpl perf,
     CompletionRequestImpl request,
     CompletionGetSuggestionsParams params,
     Set<ElementKind> includedElementKinds,
@@ -88,34 +90,41 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     var suggestions = <CompletionSuggestion>[];
     if (request.result != null) {
       const COMPUTE_SUGGESTIONS_TAG = 'computeSuggestions';
-      performance.logStartTime(COMPUTE_SUGGESTIONS_TAG);
+      await perf.runAsync(COMPUTE_SUGGESTIONS_TAG, (perf) async {
+        var manager = DartCompletionManager(
+          dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(
+            request.result,
+          ),
+          includedElementKinds: includedElementKinds,
+          includedElementNames: includedElementNames,
+          includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
+        );
 
-      var manager = DartCompletionManager(
-        dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(request.result),
-        includedElementKinds: includedElementKinds,
-        includedElementNames: includedElementNames,
-        includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
-      );
-
-      var contributorTag = 'computeSuggestions - ${manager.runtimeType}';
-      performance.logStartTime(contributorTag);
-      try {
-        suggestions.addAll(await manager.computeSuggestions(request));
-      } on AbortCompletion {
-        suggestions.clear();
-      }
-      performance.logElapseTime(contributorTag);
-      performance.logElapseTime(COMPUTE_SUGGESTIONS_TAG);
+        var contributorTag = 'computeSuggestions - ${manager.runtimeType}';
+        await perf.runAsync(contributorTag, (performance) async {
+          try {
+            suggestions.addAll(
+              await manager.computeSuggestions(
+                performance,
+                request,
+                enableUriContributor: true,
+              ),
+            );
+          } on AbortCompletion {
+            suggestions.clear();
+          }
+        });
+      });
     }
     // TODO (danrubel) if request is obsolete (processAnalysisRequest returns
     // false) then send empty results
 
     //
-    // Add the fixes produced by plugins to the server-generated fixes.
+    // Add the completions produced by plugins to the server-generated list.
     //
     if (pluginFutures != null) {
       var responses = await waitForResponses(pluginFutures,
-          requestParameters: requestParams);
+          requestParameters: requestParams, timeout: 100);
       for (var response in responses) {
         var result =
             plugin.CompletionGetSuggestionsResult.fromResponse(response);
@@ -284,95 +293,95 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   Future<void> processRequest(Request request) async {
     performance = CompletionPerformance();
 
-    // extract and validate params
-    var params = CompletionGetSuggestionsParams.fromRequest(request);
-    var file = params.file;
-    var offset = params.offset;
+    await performance.runRequestOperation((perf) async {
+      // extract and validate params
+      var params = CompletionGetSuggestionsParams.fromRequest(request);
+      var file = params.file;
+      var offset = params.offset;
 
-    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
-
-    var resolvedUnit = await server.getResolvedUnit(file);
-    server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
-    if (resolvedUnit?.state == ResultState.VALID) {
-      if (offset < 0 || offset > resolvedUnit.content.length) {
-        server.sendResponse(Response.invalidParameter(
-            request,
-            'params.offset',
-            'Expected offset between 0 and source length inclusive,'
-                ' but found $offset'));
+      if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
         return;
       }
 
-      recordRequest(performance, file, resolvedUnit.content, offset);
-    }
-    var completionRequest = CompletionRequestImpl(
-        resolvedUnit, offset, server.options.useNewRelevance, performance);
+      var resolvedUnit = await server.getResolvedUnit(file);
+      server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
+      if (resolvedUnit?.state == ResultState.VALID) {
+        if (offset < 0 || offset > resolvedUnit.content.length) {
+          server.sendResponse(Response.invalidParameter(
+              request,
+              'params.offset',
+              'Expected offset between 0 and source length inclusive,'
+                  ' but found $offset'));
+          return;
+        }
 
-    var completionId = (_nextCompletionId++).toString();
+        recordRequest(performance, file, resolvedUnit.content, offset);
+      }
+      var completionRequest = CompletionRequestImpl(
+          resolvedUnit, offset, server.options.useNewRelevance, performance);
 
-    setNewRequest(completionRequest);
+      var completionId = (_nextCompletionId++).toString();
 
-    // initial response without results
-    server.sendResponse(
-        CompletionGetSuggestionsResult(completionId).toResponse(request.id));
+      setNewRequest(completionRequest);
 
-    // If the client opted into using available suggestion sets,
-    // create the kinds set, so signal the completion manager about opt-in.
-    Set<ElementKind> includedElementKinds;
-    Set<String> includedElementNames;
-    List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
-    if (subscriptions.contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
-      includedElementKinds = <ElementKind>{};
-      includedElementNames = <String>{};
-      includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
-    }
+      // initial response without results
+      server.sendResponse(
+          CompletionGetSuggestionsResult(completionId).toResponse(request.id));
 
-    // Compute suggestions in the background
-    computeSuggestions(
-      completionRequest,
-      params,
-      includedElementKinds,
-      includedElementNames,
-      includedSuggestionRelevanceTags,
-    ).then((CompletionResult result) {
-      String libraryFile;
-      var includedSuggestionSets = <IncludedSuggestionSet>[];
-      if (includedElementKinds != null && resolvedUnit != null) {
-        libraryFile = resolvedUnit.libraryElement.source.fullName;
-        server.sendNotification(
-          createExistingImportsNotification(resolvedUnit),
-        );
-        computeIncludedSetList(
-          server.declarationsTracker,
-          resolvedUnit,
-          includedSuggestionSets,
-          includedElementNames,
-        );
+      // If the client opted into using available suggestion sets,
+      // create the kinds set, so signal the completion manager about opt-in.
+      Set<ElementKind> includedElementKinds;
+      Set<String> includedElementNames;
+      List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
+      if (subscriptions.contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
+        includedElementKinds = <ElementKind>{};
+        includedElementNames = <String>{};
+        includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
       }
 
-      const SEND_NOTIFICATION_TAG = 'send notification';
-      performance.logStartTime(SEND_NOTIFICATION_TAG);
-      sendCompletionNotification(
-        completionId,
-        result.replacementOffset,
-        result.replacementLength,
-        result.suggestions,
-        libraryFile,
-        includedSuggestionSets,
-        includedElementKinds?.toList(),
-        includedSuggestionRelevanceTags,
-      );
-      performance.logElapseTime(SEND_NOTIFICATION_TAG);
+      // Compute suggestions in the background
+      try {
+        var result = await computeSuggestions(
+          perf,
+          completionRequest,
+          params,
+          includedElementKinds,
+          includedElementNames,
+          includedSuggestionRelevanceTags,
+        );
+        String libraryFile;
+        var includedSuggestionSets = <IncludedSuggestionSet>[];
+        if (includedElementKinds != null && resolvedUnit != null) {
+          libraryFile = resolvedUnit.libraryElement.source.fullName;
+          server.sendNotification(
+            createExistingImportsNotification(resolvedUnit),
+          );
+          computeIncludedSetList(
+            server.declarationsTracker,
+            resolvedUnit,
+            includedSuggestionSets,
+            includedElementNames,
+          );
+        }
 
-      performance.notificationCount = 1;
-      performance.logFirstNotificationComplete('notification 1 complete');
-      performance.suggestionCountFirst = result.suggestions.length;
-      performance.suggestionCountLast = result.suggestions.length;
-      performance.complete();
-    }).whenComplete(() {
-      ifMatchesRequestClear(completionRequest);
+        const SEND_NOTIFICATION_TAG = 'send notification';
+        perf.run(SEND_NOTIFICATION_TAG, (_) {
+          sendCompletionNotification(
+            completionId,
+            result.replacementOffset,
+            result.replacementLength,
+            result.suggestions,
+            libraryFile,
+            includedSuggestionSets,
+            includedElementKinds?.toList(),
+            includedSuggestionRelevanceTags,
+          );
+        });
+
+        performance.suggestionCount = result.suggestions.length;
+      } finally {
+        ifMatchesRequestClear(completionRequest);
+      }
     });
   }
 

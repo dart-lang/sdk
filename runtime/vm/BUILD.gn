@@ -58,18 +58,31 @@ config("libdart_vm_config") {
     if (!is_android) {
       libs += [ "pthread" ]
     }
-    if (is_linux) {
-      libs += [ "rt" ]
-    }
   }
 }
 
 library_for_all_configs("libdart_vm") {
   target_type = "source_set"
-  extra_deps = [ "//third_party/icu" ]
+  extra_product_deps = [
+    "//third_party/icu:icui18n_hidden_visibility",
+    "//third_party/icu:icuuc_hidden_visibility",
+  ]
+  extra_nonproduct_deps = [
+    "//third_party/icu:icui18n",
+    "//third_party/icu:icuuc",
+  ]
   if (is_fuchsia) {
-    if (using_fuchsia_sdk) {
-      extra_deps += [
+    if (using_fuchsia_gn_sdk) {
+      extra_deps = [
+        "$fuchsia_sdk_root/fidl/fuchsia.deprecatedtimezone",
+        "$fuchsia_sdk_root/pkg/inspect",
+        "$fuchsia_sdk_root/pkg/inspect_service_cpp",
+        "$fuchsia_sdk_root/pkg/sys_cpp",
+        "$fuchsia_sdk_root/pkg/sys_inspect_cpp",
+        "$fuchsia_sdk_root/pkg/trace-engine",
+      ]
+    } else if (using_fuchsia_sdk) {
+      extra_deps = [
         "$fuchsia_sdk_root/fidl:fuchsia.deprecatedtimezone",
         "$fuchsia_sdk_root/pkg:inspect",
         "$fuchsia_sdk_root/pkg:inspect_service_cpp",
@@ -78,7 +91,7 @@ library_for_all_configs("libdart_vm") {
         "$fuchsia_sdk_root/pkg:trace-engine",
       ]
     } else {
-      extra_deps += [
+      extra_deps = [
         # TODO(US-399): Remove time_service specific code when it is no longer
         # necessary.
         "//sdk/fidl/fuchsia.deprecatedtimezone",
@@ -110,7 +123,9 @@ library_for_all_configs_with_compiler("libdart_compiler") {
   sources = rebase_path(compiler_sources, ".", "./compiler/")
   include_dirs = [ ".." ]
   if (is_fuchsia) {
-    if (using_fuchsia_sdk) {
+    if (using_fuchsia_gn_sdk) {
+      extra_deps = [ "$fuchsia_sdk_root/pkg/trace-engine" ]
+    } else if (using_fuchsia_sdk) {
       extra_deps = [ "$fuchsia_sdk_root/pkg:trace-engine" ]
     } else {
       extra_deps = [
@@ -124,7 +139,9 @@ library_for_all_configs_with_compiler("libdart_compiler") {
 library_for_all_configs("libdart_lib") {
   target_type = "source_set"
   if (is_fuchsia) {
-    if (using_fuchsia_sdk) {
+    if (using_fuchsia_gn_sdk) {
+      extra_deps = [ "$fuchsia_sdk_root/pkg/trace-engine" ]
+    } else if (using_fuchsia_sdk) {
       extra_deps = [ "$fuchsia_sdk_root/pkg:trace-engine" ]
     } else {
       extra_deps = [
@@ -150,6 +167,10 @@ library_for_all_configs("libdart_lib") {
 template("gen_vm_platform") {
   assert(defined(invoker.output_postfix),
          "Must define output postfix (e.g., '_strong'")
+  is_product_flag = dart_runtime_mode == "release"
+  if (defined(invoker.product_mode)) {
+    is_product_flag = invoker.product_mode
+  }
   compile_platform(target_name) {
     output_postfix = invoker.output_postfix
     if (defined(invoker.add_implicit_vm_platform_dependency)) {
@@ -158,28 +179,20 @@ template("gen_vm_platform") {
     }
     single_root_scheme = "org-dartlang-sdk"
     single_root_base = rebase_path("../../")
-    if (!dont_use_nnbd) {
-      libraries_specification_uri =
-          "org-dartlang-sdk:///sdk_nnbd/lib/libraries.json"
-    } else {
-      libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
-    }
+    libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
     outputs = [
       "$root_out_dir/vm_platform" + output_postfix + ".dill",
       "$root_out_dir/vm_outline" + output_postfix + ".dill",
     ]
     args = [ "dart:core" ]
-    is_product_flag = dart_runtime_mode == "release"
     allow_causal_async_stacks = !is_product_flag
     args += [
       "-Ddart.vm.product=$is_product_flag",
       "-Ddart.developer.causal_async_stacks=$allow_causal_async_stacks",
       "-Ddart.isVM=true",
+      "--enable-experiment=non-nullable",
+      "--nnbd-agnostic",
     ]
-    if (!dont_use_nnbd) {
-      args += [ "--enable-experiment=non-nullable" ]
-      args += [ "--nnbd-agnostic" ]
-    }
     if (defined(invoker.exclude_source) && invoker.exclude_source) {
       args += [ "--exclude-source" ]
     }
@@ -194,6 +207,16 @@ gen_vm_platform("vm_platform") {
   add_implicit_vm_platform_dependency = false
   exclude_source = false
   output_postfix = "_strong"
+}
+
+gen_vm_platform("vm_platform_product") {
+  add_implicit_vm_platform_dependency = false
+  exclude_source = false
+  output_postfix = "_strong_product"
+
+  # In Debug mode we use debug binaries for dart2native.
+  # (see also the "dart_product_config" config)
+  product_mode = !is_debug
 }
 
 gen_vm_platform("vm_platform_stripped") {

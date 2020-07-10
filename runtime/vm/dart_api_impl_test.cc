@@ -1557,12 +1557,13 @@ TEST_CASE(DartAPI_MalformedStringToUTF8) {
   Dart_Handle result = Dart_StringToUTF8(str1, &utf8_encoded, &utf8_length);
   EXPECT_VALID(result);
   EXPECT_EQ(3, utf8_length);
-  EXPECT_EQ(237, static_cast<intptr_t>(utf8_encoded[0]));
-  EXPECT_EQ(180, static_cast<intptr_t>(utf8_encoded[1]));
-  EXPECT_EQ(158, static_cast<intptr_t>(utf8_encoded[2]));
+  // Unpaired surrogate is encoded as replacement character.
+  EXPECT_EQ(239, static_cast<intptr_t>(utf8_encoded[0]));
+  EXPECT_EQ(191, static_cast<intptr_t>(utf8_encoded[1]));
+  EXPECT_EQ(189, static_cast<intptr_t>(utf8_encoded[2]));
 
   Dart_Handle str2 = Dart_NewStringFromUTF8(utf8_encoded, utf8_length);
-  EXPECT_VALID(str2);  // Standalone low surrogate, but still valid
+  EXPECT_VALID(str2);  // Replacement character, but still valid
 
   Dart_Handle reversed = Dart_Invoke(lib, NewString("reversed"), 0, NULL);
   EXPECT_VALID(reversed);  // This is also allowed.
@@ -1572,7 +1573,8 @@ TEST_CASE(DartAPI_MalformedStringToUTF8) {
                              &utf8_length_reversed);
   EXPECT_VALID(result);
   EXPECT_EQ(6, utf8_length_reversed);
-  uint8_t expected[6] = {237, 180, 158, 237, 160, 180};
+  // Two unpaired surrogates are encoded as two replacement characters.
+  uint8_t expected[6] = {239, 191, 189, 239, 191, 189};
   for (int i = 0; i < 6; i++) {
     EXPECT_EQ(expected[i], utf8_encoded_reversed[i]);
   }
@@ -6917,7 +6919,8 @@ static void UnreachableFinalizer(void* isolate_callback_data,
 }
 
 TEST_CASE(DartAPI_PostCObject_DoesNotRunFinalizerOnFailure) {
-  char* my_str = strdup("Ownership of this memory remains with the caller");
+  char* my_str =
+      Utils::StrDup("Ownership of this memory remains with the caller");
 
   Dart_CObject message;
   message.type = Dart_CObject_kExternalTypedData;

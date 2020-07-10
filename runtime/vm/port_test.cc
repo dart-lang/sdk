@@ -134,7 +134,7 @@ TEST_CASE(PortMap_PostMessage) {
   intptr_t message_len = strlen(message) + 1;
 
   EXPECT(PortMap::PostMessage(
-      Message::New(port, reinterpret_cast<uint8_t*>(strdup(message)),
+      Message::New(port, reinterpret_cast<uint8_t*>(Utils::StrDup(message)),
                    message_len, nullptr, Message::kNormalPriority)));
 
   // Check that the message notify callback was called.
@@ -178,7 +178,7 @@ TEST_CASE(PortMap_PostMessageClosedPort) {
   intptr_t message_len = strlen(message) + 1;
 
   EXPECT(!PortMap::PostMessage(
-      Message::New(port, reinterpret_cast<uint8_t*>(strdup(message)),
+      Message::New(port, reinterpret_cast<uint8_t*>(Utils::StrDup(message)),
                    message_len, nullptr, Message::kNormalPriority)));
 }
 

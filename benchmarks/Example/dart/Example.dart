@@ -5,18 +5,21 @@
 import 'package:benchmark_harness/benchmark_harness.dart';
 
 class Example extends BenchmarkBase {
-  const Example() : super("Example");
+  const Example() : super('Example');
 
   // The benchmark code.
+  @override
   void run() {}
 
   // Not measured setup code executed prior to the benchmark runs.
+  @override
   void setup() {}
 
   // Not measures teardown code executed after the benchark runs.
+  @override
   void teardown() {}
 }
 
-main() {
+void main() {
   const Example().report();
 }

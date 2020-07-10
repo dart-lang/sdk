@@ -139,47 +139,7 @@ class ForwardingConstructorClass = ForwardingConstructorSuperClass
 testForwardingConstructor() => new ForwardingConstructorClass(null);
 
 class ForwardingConstructorTypedSuperClass {
-  /*spec:nnbd-off.member: ForwardingConstructorTypedSuperClass.:
-   static=[
-    Object.(0),
-    Rti._bind(1),
-    Rti._eval(1),
-    _arrayInstanceType(1),
-    _asBool(1),
-    _asBoolQ(1),
-    _asBoolS(1),
-    _asDouble(1),
-    _asDoubleQ(1),
-    _asDoubleS(1),
-    _asInt(1),
-    _asIntQ(1),
-    _asIntS(1),
-    _asNum(1),
-    _asNumQ(1),
-    _asNumS(1),
-    _asObject(1),
-    _asString(1),
-    _asStringQ(1),
-    _asStringS(1),
-    _asTop(1),
-    _generalAsCheckImplementation(1),
-    _generalIsTestImplementation(1),
-    _installSpecializedIsTest(1),
-    _instanceType(1),
-    _isBool(1),
-    _isInt(1),
-    _isNum(1),
-    _isObject(1),
-    _isString(1),
-    _isTop(1),
-    findType(1),
-    instanceType(1)],
-   type=[
-    inst:Closure,
-    inst:JSBool,
-    param:int]
-  */
-  /*spec:nnbd-sdk.member: ForwardingConstructorTypedSuperClass.:
+  /*member: ForwardingConstructorTypedSuperClass.:
    static=[
     Object.(0),
     Rti._bind(1),
@@ -235,59 +195,7 @@ class ForwardingConstructorTypedClass = ForwardingConstructorTypedSuperClass
 testForwardingConstructorTyped() => new ForwardingConstructorTypedClass(null);
 
 class ForwardingConstructorGenericSuperClass<T> {
-  /*spec:nnbd-off.member: ForwardingConstructorGenericSuperClass.:
-   static=[
-    Object.(0),
-    Rti._bind(1),
-    Rti._eval(1),
-    _arrayInstanceType(1),
-    _asBool(1),
-    _asBoolQ(1),
-    _asBoolS(1),
-    _asDouble(1),
-    _asDoubleQ(1),
-    _asDoubleS(1),
-    _asInt(1),
-    _asIntQ(1),
-    _asIntS(1),
-    _asNum(1),
-    _asNumQ(1),
-    _asNumS(1),
-    _asObject(1),
-    _asString(1),
-    _asStringQ(1),
-    _asStringS(1),
-    _asTop(1),
-    _generalAsCheckImplementation(1),
-    _generalIsTestImplementation(1),
-    _installSpecializedIsTest(1),
-    _instanceType(1),
-    _isBool(1),
-    _isInt(1),
-    _isNum(1),
-    _isObject(1),
-    _isString(1),
-    _isTop(1),
-    checkSubtype(4),
-    checkSubtypeOfRuntimeType(2),
-    findType(1),
-    getRuntimeTypeArgument(3),
-    getRuntimeTypeArgumentIntercepted(4),
-    getRuntimeTypeInfo(1),
-    getTypeArgumentByIndex(2),
-    instanceType(1),
-    setRuntimeTypeInfo(2)],
-   type=[
-    inst:Closure,
-    inst:JSArray<dynamic>,
-    inst:JSBool,
-    inst:JSExtendableArray<dynamic>,
-    inst:JSFixedArray<dynamic>,
-    inst:JSMutableArray<dynamic>,
-    inst:JSUnmodifiableArray<dynamic>,
-    param:ForwardingConstructorGenericSuperClass.T]
-  */
-  /*spec:nnbd-sdk.member: ForwardingConstructorGenericSuperClass.:
+  /*member: ForwardingConstructorGenericSuperClass.:
    static=[
     Object.(0),
     Rti._bind(1),
@@ -323,13 +231,7 @@ class ForwardingConstructorGenericSuperClass<T> {
     _isObject(1),
     _isString(1),
     _isTop(1),
-    checkSubtype(4),
-    checkSubtypeOfRuntimeType(2),
     findType(1),
-    getRuntimeTypeArgument(3),
-    getRuntimeTypeArgumentIntercepted(4),
-    getRuntimeTypeInfo(1),
-    getTypeArgumentByIndex(2),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -348,7 +250,12 @@ class ForwardingConstructorGenericSuperClass<T> {
 class ForwardingConstructorGenericClass<
     S> = ForwardingConstructorGenericSuperClass<S> with EmptyMixin;
 
-/*member: testForwardingConstructorGeneric:static=[ForwardingConstructorGenericClass.(1),checkTypeBound(4),throwTypeError(1)],type=[inst:JSNull]*/
+/*member: testForwardingConstructorGeneric:
+ static=[
+  ForwardingConstructorGenericClass.(1),
+  checkTypeBound(4)],
+ type=[inst:JSNull]
+*/
 testForwardingConstructorGeneric() {
   new ForwardingConstructorGenericClass<int>(null);
 }
@@ -371,60 +278,7 @@ enum Enum { A }
 */
 testEnum() => Enum.A;
 
-/*spec:nnbd-off.member: staticGenericMethod:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  checkSubtype(4),
-  checkSubtypeOfRuntimeType(2),
-  findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
-  getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
- type=[
-  inst:Closure,
-  inst:JSArray<dynamic>,
-  inst:JSBool,
-  inst:JSExtendableArray<dynamic>,
-  inst:JSFixedArray<dynamic>,
-  inst:JSMutableArray<dynamic>,
-  inst:JSUnmodifiableArray<dynamic>,
-  inst:List<staticGenericMethod.T>,
-  param:Object,
-  param:staticGenericMethod.T]
-*/
-/*spec:nnbd-sdk.member: staticGenericMethod:
+/*member: staticGenericMethod:
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -459,13 +313,7 @@ testEnum() => Enum.A;
   _isObject(1),
   _isString(1),
   _isTop(1),
-  checkSubtype(4),
-  checkSubtypeOfRuntimeType(2),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
-  getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -482,11 +330,7 @@ testEnum() => Enum.A;
 */
 List<T> staticGenericMethod<T>(T arg) => [arg];
 
-/*spec:nnbd-off.member: testStaticGenericMethod:
-  static=[staticGenericMethod<bool>(1)],
-  type=[inst:JSBool]
-*/
-/*spec:nnbd-sdk.member: testStaticGenericMethod:
+/*member: testStaticGenericMethod:
  static=[staticGenericMethod<bool*>(1)],
  type=[inst:JSBool]
 */
@@ -494,13 +338,11 @@ testStaticGenericMethod() {
   staticGenericMethod<bool>(true);
 }
 
-/*spec:nnbd-off.member: testInstanceGenericMethod:dynamic=[exact:GenericClass.genericMethod<bool>(1)],static=[GenericClass.generative(0),checkTypeBound(4),throwTypeError(1)],type=[inst:JSBool]*/
-/*spec:nnbd-sdk.member: testInstanceGenericMethod:
+/*member: testInstanceGenericMethod:
  dynamic=[exact:GenericClass.genericMethod<bool*>(1)],
  static=[
   GenericClass.generative(0),
-  checkTypeBound(4),
-  throwTypeError(1)],
+  checkTypeBound(4)],
  type=[inst:JSBool]
 */
 testInstanceGenericMethod() {
@@ -524,10 +366,14 @@ testMixinInstantiation() => new Sub();
 /*member: testNamedMixinInstantiation:static=[NamedMixin.(0)]*/
 testNamedMixinInstantiation() => new NamedMixin();
 
-/*member: testGenericMixinInstantiation:static=[GenericSub.(0),checkTypeBound(4),throwTypeError(1)]*/
+/*member: testGenericMixinInstantiation:static=[
+  GenericSub.(0),
+  checkTypeBound(4)]*/
 testGenericMixinInstantiation() => new GenericSub<int, String>();
 
-/*member: testGenericNamedMixinInstantiation:static=[GenericNamedMixin.(0),checkTypeBound(4),throwTypeError(1)]*/
+/*member: testGenericNamedMixinInstantiation:static=[
+  GenericNamedMixin.(0),
+  checkTypeBound(4)]*/
 testGenericNamedMixinInstantiation() => new GenericNamedMixin<int, String>();
 
 class Class {
@@ -538,61 +384,7 @@ class Class {
 class GenericClass<X, Y> {
   const GenericClass.generative();
 
-  /*spec:nnbd-off.member: GenericClass.genericMethod:
-   static=[
-    Rti._bind(1),
-    Rti._eval(1),
-    _arrayInstanceType(1),
-    _asBool(1),
-    _asBoolQ(1),
-    _asBoolS(1),
-    _asDouble(1),
-    _asDoubleQ(1),
-    _asDoubleS(1),
-    _asInt(1),
-    _asIntQ(1),
-    _asIntS(1),
-    _asNum(1),
-    _asNumQ(1),
-    _asNumS(1),
-    _asObject(1),
-    _asString(1),
-    _asStringQ(1),
-    _asStringS(1),
-    _asTop(1),
-    _generalAsCheckImplementation(1),
-    _generalIsTestImplementation(1),
-    _installSpecializedIsTest(1),
-    _instanceType(1),
-    _isBool(1),
-    _isInt(1),
-    _isNum(1),
-    _isObject(1),
-    _isString(1),
-    _isTop(1),
-    checkSubtype(4),
-    checkSubtypeOfRuntimeType(2),
-    findType(1),
-    getRuntimeTypeArgument(3),
-    getRuntimeTypeArgumentIntercepted(4),
-    getRuntimeTypeInfo(1),
-    getTypeArgumentByIndex(2),
-    instanceType(1),
-    setRuntimeTypeInfo(2)],
-   type=[
-    inst:Closure,
-    inst:JSArray<dynamic>,
-    inst:JSBool,
-    inst:JSExtendableArray<dynamic>,
-    inst:JSFixedArray<dynamic>,
-    inst:JSMutableArray<dynamic>,
-    inst:JSNull,
-    inst:JSUnmodifiableArray<dynamic>,
-    inst:Map<GenericClass.X,genericMethod.T>,
-    param:Object,
-    param:genericMethod.T]
-  */
-  /*spec:nnbd-sdk.member: GenericClass.genericMethod:
+  /*member: GenericClass.genericMethod:
    static=[
     Rti._bind(1),
     Rti._eval(1),
@@ -627,13 +419,7 @@ class GenericClass<X, Y> {
     _isObject(1),
     _isString(1),
     _isTop(1),
-    checkSubtype(4),
-    checkSubtypeOfRuntimeType(2),
     findType(1),
-    getRuntimeTypeArgument(3),
-    getRuntimeTypeArgumentIntercepted(4),
-    getRuntimeTypeInfo(1),
-    getTypeArgumentByIndex(2),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[

@@ -37,6 +37,7 @@ main() {
   });
 
   String outputDill() => new File('${tempDir.path}/foo.dill').path;
+  String outputManifest() => new File('${tempDir.path}/foo.manifest').path;
 
   test('compile-simple', () async {
     await testCompile([
@@ -91,6 +92,10 @@ main() {
       '--output',
       outputDill(),
       '--split-output-by-packages',
+      '--manifest',
+      outputManifest(),
+      '--component-name',
+      'foo_component',
       '$sdkDir/$mainScript',
     ]);
   }, timeout: Timeout.none);
@@ -120,6 +125,10 @@ main() {
       '--gen-bytecode',
       '--drop-ast',
       '--split-output-by-packages',
+      '--manifest',
+      outputManifest(),
+      '--component-name',
+      'foo_component',
       '$sdkDir/$mainScript',
     ]);
   }, timeout: Timeout.none);

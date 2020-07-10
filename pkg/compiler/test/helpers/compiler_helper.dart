@@ -40,7 +40,6 @@ Future<String> compile(String code,
     bool trustJSInteropTypeAnnotations: false,
     bool disableTypeInference: true,
     bool omitImplicitChecks: true,
-    bool newRti: false,
     bool enableVariance: false,
     void check(String generatedEntry),
     bool returnAll: false}) async {
@@ -63,9 +62,6 @@ Future<String> compile(String code,
   }
   if (disableInlining) {
     options.add(Flags.disableInlining);
-  }
-  if (newRti) {
-    options.add(Flags.experimentNewRti);
   }
   if (enableVariance) {
     options.add('${Flags.enableLanguageExperiments}=variance');

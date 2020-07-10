@@ -19,7 +19,6 @@ class ExtendsDisallowedClassTest extends DriverResolutionTest {
     await assertErrorsInCode('''
 class A extends bool {}
 ''', [
-      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, 6, 1),
       error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 16, 4),
     ]);
   }
@@ -63,7 +62,6 @@ class A<T> extends FutureOr<T> {}
     await assertErrorsInCode('''
 class A extends int {}
 ''', [
-      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, 6, 1),
       error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 16, 3),
     ]);
   }
@@ -72,7 +70,6 @@ class A extends int {}
     await assertErrorsInCode('''
 class A extends Null {}
 ''', [
-      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, 6, 1),
       error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 16, 4),
     ]);
   }
@@ -89,7 +86,6 @@ class A extends num {}
     await assertErrorsInCode('''
 class A extends String {}
 ''', [
-      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, 6, 1),
       error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 16, 6),
     ]);
   }

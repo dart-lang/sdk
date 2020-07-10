@@ -192,7 +192,7 @@ class IsolateGroupSource {
                      intptr_t kernel_buffer_size,
                      Dart_IsolateFlags flags)
       : script_uri(script_uri),
-        name(strdup(name)),
+        name(Utils::StrDup(name)),
         snapshot_data(snapshot_data),
         snapshot_instructions(snapshot_instructions),
         kernel_buffer(kernel_buffer),
@@ -369,6 +369,14 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return &type_arguments_canonicalization_mutex_;
   }
   Mutex* subtype_test_cache_mutex() { return &subtype_test_cache_mutex_; }
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  Mutex* unlinked_call_map_mutex() { return &unlinked_call_map_mutex_; }
+#endif
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Mutex* initializer_functions_mutex() { return &initializer_functions_mutex_; }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   static inline IsolateGroup* Current() {
     Thread* thread = Thread::Current();
@@ -641,6 +649,14 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Mutex type_canonicalization_mutex_;
   Mutex type_arguments_canonicalization_mutex_;
   Mutex subtype_test_cache_mutex_;
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  Mutex unlinked_call_map_mutex_;
+#endif
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Mutex initializer_functions_mutex_;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   // Allow us to ensure the number of active mutators is limited by a maximum.
   std::unique_ptr<Monitor> active_mutators_monitor_;
@@ -1227,11 +1243,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
   bool null_safety() const {
-    // TODO(asiva) : We return false when the null safety mode is not yet set
-    // instead of just asserting as some code runs during bootstrapping that
-    // requires the mode to be set. Once all of that is resolved this could
-    // turn into just an assert.
-    if (null_safety_not_set()) return false;
     ASSERT(!null_safety_not_set());
     return NullSafetyBit::decode(isolate_flags_);
   }
@@ -1291,6 +1302,14 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   void RememberLiveTemporaries();
   void DeferredMarkLiveTemporaries();
+
+  std::unique_ptr<VirtualMemory> TakeRegexpBacktrackStack() {
+    return std::move(regexp_backtracking_stack_cache_);
+  }
+
+  void CacheRegexpBacktrackStack(std::unique_ptr<VirtualMemory> stack) {
+    regexp_backtracking_stack_cache_ = std::move(stack);
+  }
 
  private:
   friend class Dart;                  // Init, InitOnce, Shutdown.
@@ -1524,6 +1543,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   // send a kill message).
   // This is protected by [isolate_creation_monitor_].
   bool accepts_messages_ = false;
+
+  std::unique_ptr<VirtualMemory> regexp_backtracking_stack_cache_ = nullptr;
 
   static Dart_IsolateGroupCreateCallback create_group_callback_;
   static Dart_InitializeIsolateCallback initialize_callback_;

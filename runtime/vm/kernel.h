@@ -95,9 +95,6 @@ class Program {
   intptr_t library_count() { return library_count_; }
   NNBDCompiledMode compilation_mode() const { return compilation_mode_; }
 
-  // Detect null-safety mode from this program if it was not set yet.
-  void AutoDetectNullSafety(Isolate* isolate);
-
  private:
   Program() : typed_data_(NULL), kernel_data_(NULL), kernel_data_size_(-1) {}
 
@@ -142,8 +139,6 @@ class KernelLineStartsReader {
   int32_t DeltaAt(intptr_t index) const {
     return helper_->At(line_starts_data_, index);
   }
-
-  intptr_t LineNumberForPosition(intptr_t position) const;
 
   void LocationForPosition(intptr_t position,
                            intptr_t* line,

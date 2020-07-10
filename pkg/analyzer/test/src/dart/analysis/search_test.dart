@@ -541,10 +541,10 @@ main() {
 
   test_searchReferences_ImportElement_noPrefix() async {
     await _resolveTestUnit('''
-import 'dart:math' show max, PI, Random hide min;
-export 'dart:math' show max, PI, Random hide min;
+import 'dart:math' show max, pi, Random hide min;
+export 'dart:math' show max, pi, Random hide min;
 main() {
-  print(PI);
+  print(pi);
   print(new Random());
   print(max(1, 2));
 }
@@ -555,7 +555,7 @@ Random bar() => null;
     var bar = findElement.function('bar');
     var kind = SearchResultKind.REFERENCE;
     var expected = [
-      _expectId(main, kind, 'PI);', length: 0),
+      _expectId(main, kind, 'pi);', length: 0),
       _expectId(main, kind, 'Random()', length: 0),
       _expectId(main, kind, 'max(', length: 0),
       _expectId(bar, kind, 'Random bar()', length: 0),
@@ -566,10 +566,10 @@ Random bar() => null;
   test_searchReferences_ImportElement_noPrefix_inPackage() async {
     testFile = convertPath('/aaa/lib/a.dart');
     await _resolveTestUnit('''
-import 'dart:math' show max, PI, Random hide min;
-export 'dart:math' show max, PI, Random hide min;
+import 'dart:math' show max, pi, Random hide min;
+export 'dart:math' show max, pi, Random hide min;
 main() {
-  PI;
+  pi;
   new Random();
   max(1, 2);
 }
@@ -580,7 +580,7 @@ Random bar() => null;
     var bar = findElement.function('bar');
     var kind = SearchResultKind.REFERENCE;
     var expected = [
-      _expectId(main, kind, 'PI;', length: 0),
+      _expectId(main, kind, 'pi;', length: 0),
       _expectId(main, kind, 'Random();', length: 0),
       _expectId(main, kind, 'max(1, 2);', length: 0),
       _expectId(bar, kind, 'Random bar()', length: 0),
@@ -590,10 +590,10 @@ Random bar() => null;
 
   test_searchReferences_ImportElement_withPrefix() async {
     await _resolveTestUnit('''
-import 'dart:math' as math show max, PI, Random hide min;
-export 'dart:math' show max, PI, Random hide min;
+import 'dart:math' as math show max, pi, Random hide min;
+export 'dart:math' show max, pi, Random hide min;
 main() {
-  print(math.PI);
+  print(math.pi);
   print(new math.Random());
   print(math.max(1, 2));
 }
@@ -605,7 +605,7 @@ math.Random bar() => null;
     var kind = SearchResultKind.REFERENCE;
     var length = 'math.'.length;
     var expected = [
-      _expectId(main, kind, 'math.PI);', length: length),
+      _expectId(main, kind, 'math.pi);', length: length),
       _expectId(main, kind, 'math.Random()', length: length),
       _expectId(main, kind, 'math.max(', length: length),
       _expectId(bar, kind, 'math.Random bar()', length: length),
@@ -1728,19 +1728,19 @@ class A {} // A
 class B = Object with A;
 mixin C {}
 typedef D();
-e() {}
-var f = null;
+f() {}
+var g = null;
 class NoMatchABCDEF {}
 ''');
     var a = findElement.class_('A');
     var b = findElement.class_('B');
     var c = findElement.mixin('C');
     var d = findElement.functionTypeAlias('D');
-    var e = findElement.function('e');
-    var f = findElement.topVar('f');
-    RegExp regExp = RegExp(r'^[ABCDef]$');
+    var f = findElement.function('f');
+    var g = findElement.topVar('g');
+    RegExp regExp = RegExp(r'^[ABCDfg]$');
     expect(await driver.search.topLevelElements(regExp),
-        unorderedEquals([a, b, c, d, e, f]));
+        unorderedEquals([a, b, c, d, f, g]));
   }
 
   ExpectedResult _expectId(
@@ -1752,18 +1752,14 @@ class NoMatchABCDEF {}
         isResolved: isResolved, isQualified: isQualified);
   }
 
-  /**
-   * Create [ExpectedResult] for a qualified and resolved match.
-   */
+  /// Create [ExpectedResult] for a qualified and resolved match.
   ExpectedResult _expectIdQ(
       Element element, SearchResultKind kind, String search,
       {int length, bool isResolved = true}) {
     return _expectId(element, kind, search, isQualified: true, length: length);
   }
 
-  /**
-   * Create [ExpectedResult] for a qualified and unresolved match.
-   */
+  /// Create [ExpectedResult] for a qualified and unresolved match.
   ExpectedResult _expectIdQU(
       Element element, SearchResultKind kind, String search,
       {int length}) {
@@ -1771,9 +1767,7 @@ class NoMatchABCDEF {}
         isQualified: true, isResolved: false, length: length);
   }
 
-  /**
-   * Create [ExpectedResult] for a unqualified and unresolved match.
-   */
+  /// Create [ExpectedResult] for a unqualified and unresolved match.
   ExpectedResult _expectIdU(
       Element element, SearchResultKind kind, String search,
       {int length}) {

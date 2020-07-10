@@ -6,17 +6,14 @@
 
 import 'dart:async';
 
-/*spec:nnbd-off|prod:nnbd-off.class: global#Future:deps=[A],implicit=[Future<B<A.T>>],indirect,needsArgs*/
-/*spec:nnbd-sdk|prod:nnbd-sdk.class: global#Future:deps=[A],implicit=[Future<B<A.T*>*>],indirect,needsArgs*/
+/*spec.class: global#Future:deps=[A],implicit=[Future<B<A.T*>*>],indirect,needsArgs*/
 
-/*spec:nnbd-off|prod:nnbd-off.class: A:explicit=[FutureOr<B<A.T>>],implicit=[B<A.T>,Future<B<A.T>>],indirect,needsArgs*/
-/*spec:nnbd-sdk|prod:nnbd-sdk.class: A:explicit=[FutureOr<B<A.T*>*>*],implicit=[B<A.T*>,Future<B<A.T*>*>],indirect,needsArgs*/
+/*class: A:explicit=[FutureOr<B<A.T*>*>*],implicit=[B<A.T*>,Future<B<A.T*>*>],indirect,needsArgs*/
 class A<T> {
   m(o) => o is FutureOr<B<T>>;
 }
 
-/*spec:nnbd-off|prod:nnbd-off.class: B:deps=[A],explicit=[FutureOr<B<A.T>>],implicit=[B<A.T>,Future<B<A.T>>],needsArgs*/
-/*spec:nnbd-sdk|prod:nnbd-sdk.class: B:deps=[A],explicit=[FutureOr<B<A.T*>*>*],implicit=[B<A.T*>,Future<B<A.T*>*>],needsArgs*/
+/*class: B:deps=[A],explicit=[FutureOr<B<A.T*>*>*],implicit=[B<A.T*>,Future<B<A.T*>*>],needsArgs*/
 class B<T> {}
 
 /*class: C:implicit=[C]*/

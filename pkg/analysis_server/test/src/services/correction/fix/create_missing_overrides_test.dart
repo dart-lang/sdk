@@ -423,6 +423,33 @@ class X implements B<bool> {
 ''');
   }
 
+  Future<void> test_method_namedParameter() async {
+    await resolveTestUnit('''
+abstract class A {
+  foo({int i});
+}
+
+class B extends A {
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  foo({int i});
+}
+
+class B extends A {
+  @override
+  foo({int i}) {
+    // TODO: implement foo
+    throw UnimplementedError();
+  }
+}
+''');
+    // One edit group for the parameter type. The name shouldn't have a group
+    // because it isn't valid to change it.
+    expect(change.linkedEditGroups, hasLength(1));
+  }
+
   Future<void> test_method_notEmptyClassBody() async {
     await resolveTestUnit('''
 abstract class A {
@@ -447,6 +474,40 @@ class B extends A {
   }
 }
 ''');
+  }
+
+  Future<void> test_methods_reverseOrder() async {
+    await resolveTestUnit('''
+abstract class A {
+  foo(int i);
+  bar(String bar);
+}
+
+class B extends A {
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  foo(int i);
+  bar(String bar);
+}
+
+class B extends A {
+  @override
+  bar(String bar) {
+    // TODO: implement bar
+    throw UnimplementedError();
+  }
+
+  @override
+  foo(int i) {
+    // TODO: implement foo
+    throw UnimplementedError();
+  }
+}
+''');
+    // One edit group for the names and types of each parameter.
+    expect(change.linkedEditGroups, hasLength(4));
   }
 
   Future<void> test_operator() async {

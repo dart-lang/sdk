@@ -12,9 +12,9 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/resolver.dart' show TypeSystem;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/services/lint.dart';
@@ -216,9 +216,6 @@ class AnalysisErrorInfoImpl implements AnalysisErrorInfo {
 /// A set of analysis options used to control the behavior of an analysis
 /// context.
 abstract class AnalysisOptions {
-  /// The length of the list returned by [signature].
-  static const int signatureLength = 4;
-
   /// Function that returns `true` if analysis is to parse and analyze function
   /// bodies for a given source.
   @deprecated
@@ -383,8 +380,8 @@ abstract class AnalysisOptions {
 
   /// Determine whether two signatures returned by [signature] are equal.
   static bool signaturesEqual(Uint32List a, Uint32List b) {
-    assert(a.length == signatureLength);
-    assert(b.length == signatureLength);
+    assert(a.length == AnalysisOptionsImpl.signatureLength);
+    assert(b.length == AnalysisOptionsImpl.signatureLength);
     if (a.length != b.length) {
       return false;
     }
@@ -400,15 +397,15 @@ abstract class AnalysisOptions {
 /// A set of analysis options used to control the behavior of an analysis
 /// context.
 class AnalysisOptionsImpl implements AnalysisOptions {
+  /// The length of the list returned by `signature` getters.
+  static const int signatureLength = 4;
+
   /// DEPRECATED: The maximum number of sources for which data should be kept in
   /// the cache.
   ///
   /// This constant no longer has any effect.
   @deprecated
   static const int DEFAULT_CACHE_SIZE = 64;
-
-  /// The length of the list returned by [unlinkedSignature].
-  static const int unlinkedSignatureLength = 4;
 
   /// A predicate indicating whether analysis is to parse and analyze function
   /// bodies.
@@ -421,6 +418,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   /// The cached [signature].
   Uint32List _signature;
+
+  /// The cached [signatureForElements].
+  Uint32List _signatureForElements;
 
   @override
   VersionConstraint sdkVersionConstraint;
@@ -768,6 +768,23 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       _signature = Uint8List.fromList(bytes).buffer.asUint32List();
     }
     return _signature;
+  }
+
+  Uint32List get signatureForElements {
+    if (_signatureForElements == null) {
+      ApiSignature buffer = ApiSignature();
+
+      // Append features.
+      buffer.addInt(ExperimentStatus.knownFeatures.length);
+      for (var feature in ExperimentStatus.knownFeatures.values) {
+        buffer.addBool(contextFeatures.isEnabled(feature));
+      }
+
+      // Hash and convert to Uint32List.
+      List<int> bytes = buffer.toByteList();
+      _signatureForElements = Uint8List.fromList(bytes).buffer.asUint32List();
+    }
+    return _signatureForElements;
   }
 
   @override

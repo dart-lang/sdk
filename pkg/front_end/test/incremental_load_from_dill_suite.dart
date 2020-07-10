@@ -62,12 +62,13 @@ import 'package:kernel/kernel.dart'
         Member,
         Name,
         Procedure,
-        Supertype;
+        Supertype,
+        TreeNode;
 
 import 'package:kernel/target/targets.dart'
     show NoneTarget, Target, TargetFlags;
 
-import 'package:kernel/text/ast_to_text.dart' show componentToString;
+import 'package:kernel/text/ast_to_text.dart' show Printer, componentToString;
 
 import "package:testing/testing.dart"
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
@@ -468,6 +469,9 @@ class NewWorldTest {
         options.fileSystem = fs;
         options.sdkRoot = null;
         options.sdkSummary = sdkSummaryUri;
+        if (world["badSdk"] == true) {
+          options.sdkSummary = sdkSummaryUri.resolve("nonexisting.dill");
+        }
         options.omitPlatform = omitPlatform != false;
         if (world["experiments"] != null) {
           Map<ExperimentalFlag, bool> experimentalFlags =
@@ -485,8 +489,12 @@ class NewWorldTest {
       final Set<String> formattedErrors = Set<String>();
       bool gotWarning = false;
       final Set<String> formattedWarnings = Set<String>();
+      final Set<String> seenDiagnosticCodes = Set<String>();
 
       options.onDiagnostic = (DiagnosticMessage message) {
+        String code = getMessageCodeObject(message)?.name;
+        if (code != null) seenDiagnosticCodes.add(code);
+
         String stringId = message.ansiFormatted.join("\n");
         if (message is FormattedMessage) {
           stringId = message.toJsonString();
@@ -540,11 +548,6 @@ class NewWorldTest {
         }
       }
 
-      compiler.useExperimentalInvalidation = false;
-      if (world["useExperimentalInvalidation"] == true) {
-        compiler.useExperimentalInvalidation = true;
-      }
-
       List<Uri> invalidated = new List<Uri>();
       if (world["invalidate"] != null) {
         for (String filename in world["invalidate"]) {
@@ -585,6 +588,27 @@ class NewWorldTest {
       }
       performErrorAndWarningCheck(
           world, gotError, formattedErrors, gotWarning, formattedWarnings);
+      if (world["expectInitializationError"] != null) {
+        Set<String> seenInitializationError = seenDiagnosticCodes.intersection({
+          "InitializeFromDillNotSelfContainedNoDump",
+          "InitializeFromDillNotSelfContained",
+          "InitializeFromDillUnknownProblem",
+          "InitializeFromDillUnknownProblemNoDump",
+        });
+        if (world["expectInitializationError"] == true) {
+          if (seenInitializationError.isEmpty) {
+            throw "Expected to see an initialization error but didn't.";
+          }
+        } else if (world["expectInitializationError"] == false) {
+          if (seenInitializationError.isNotEmpty) {
+            throw "Expected not to see an initialization error but did: "
+                "$seenInitializationError.";
+          }
+        } else {
+          throw "Unsupported value for 'expectInitializationError': "
+              "${world["expectInitializationError"]}";
+        }
+      }
       util.throwOnEmptyMixinBodies(component);
       await util.throwOnInsufficientUriToSource(component,
           fileSystem: gotError ? null : fs);
@@ -643,7 +667,7 @@ class NewWorldTest {
         }
       }
 
-      checkExpectFile(data, worldNum, context, actualSerialized);
+      checkExpectFile(data, worldNum, "", context, actualSerialized);
       checkClassHierarchy(compiler, component, data, worldNum, context);
 
       int nonSyntheticLibraries = countNonSyntheticLibraries(component);
@@ -777,13 +801,15 @@ class NewWorldTest {
         } else {
           compilations = [world["expressionCompilation"]];
         }
+        int expressionCompilationNum = 0;
         for (Map compilation in compilations) {
+          expressionCompilationNum++;
           clearPrevErrorsEtc();
           bool expectErrors = compilation["errors"] ?? false;
           bool expectWarnings = compilation["warnings"] ?? false;
           Uri uri = base.resolve(compilation["uri"]);
           String expression = compilation["expression"];
-          await compiler.compileExpression(
+          Procedure procedure = await compiler.compileExpression(
               expression, {}, [], "debugExpr", uri);
           if (gotError && !expectErrors) {
             throw "Got error(s) on expression compilation: ${formattedErrors}.";
@@ -796,6 +822,12 @@ class NewWorldTest {
           } else if (!gotWarning && expectWarnings) {
             throw "Didn't get any warnings.";
           }
+          checkExpectFile(
+              data,
+              worldNum,
+              ".expression.$expressionCompilationNum",
+              context,
+              nodeToString(procedure));
         }
       }
 
@@ -876,10 +908,10 @@ class NewWorldTest {
   }
 }
 
-void checkExpectFile(
-    TestData data, int worldNum, Context context, String actualSerialized) {
-  Uri uri = data.loadedFrom
-      .resolve(data.loadedFrom.pathSegments.last + ".world.$worldNum.expect");
+void checkExpectFile(TestData data, int worldNum, String extraUriString,
+    Context context, String actualSerialized) {
+  Uri uri = data.loadedFrom.resolve(data.loadedFrom.pathSegments.last +
+      ".world.$worldNum${extraUriString}.expect");
   String expected;
   File file = new File.fromUri(uri);
   if (file.existsSync()) {
@@ -1274,6 +1306,12 @@ void checkNeededDillLibraries(
   }
 }
 
+String nodeToString(TreeNode node) {
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: new NameSystem()).writeNode(node);
+  return '$buffer';
+}
+
 String componentToStringSdkFiltered(Component node) {
   Component c = new Component();
   List<Uri> dartUris = new List<Uri>();
@@ -1583,6 +1621,11 @@ class TestIncrementalCompiler extends IncrementalCompiler {
       doSimulateTransformer(result);
     }
     return result;
+  }
+
+  void recordTemporaryFileForTesting(Uri uri) {
+    File f = new File.fromUri(uri);
+    if (f.existsSync()) f.deleteSync();
   }
 }
 

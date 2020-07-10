@@ -11,57 +11,45 @@ import 'package:analyzer/src/plugin/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
-/**
- * A hint code indicating reference to a deprecated lint.
- *
- * Parameters:
- * 0: the rule name
- */
+/// A hint code indicating reference to a deprecated lint.
+///
+/// Parameters:
+/// 0: the rule name
 const AnalysisOptionsHintCode DEPRECATED_LINT_HINT = AnalysisOptionsHintCode(
     'DEPRECATED_LINT_HINT',
     "'{0}' is a deprecated lint rule and should not be used");
 
-/**
- * Duplicate rules.
- *
- * Parameters:
- * 0: the rule name
- */
+/// Duplicate rules.
+///
+/// Parameters:
+/// 0: the rule name
 const AnalysisOptionsHintCode DUPLICATE_RULE_HINT = AnalysisOptionsHintCode(
     'DUPLICATE_RULE',
     "The rule {0} is already specified and doesn't need to be specified again.",
     correction: "Try removing all but one specification of the rule.");
 
-/**
- * An error code indicating an incompatible rule.
- *
- * Parameters:
- * 0: the rule name
- * 1: the incompatible rule
- */
+/// An error code indicating an incompatible rule.
+///
+/// Parameters:
+/// 0: the rule name
+/// 1: the incompatible rule
 const AnalysisOptionsWarningCode INCOMPATIBLE_LINT_WARNING =
     AnalysisOptionsWarningCode('INCOMPATIBLE_LINT_WARNING',
         "The rule '{0}' is incompatible with the rule '{1}'",
         correction: "Try removing one of the incompatible rules.");
 
-/**
- * An error code indicating an undefined lint rule.
- *
- * Parameters:
- * 0: the rule name
- */
+/// An error code indicating an undefined lint rule.
+///
+/// Parameters:
+/// 0: the rule name
 const AnalysisOptionsWarningCode UNDEFINED_LINT_WARNING =
     AnalysisOptionsWarningCode(
         'UNDEFINED_LINT_WARNING', "'{0}' is not a recognized lint rule");
 
-/**
- * Rule provider.
- */
+/// Rule provider.
 typedef LintRuleProvider = Iterable<LintRule> Function();
 
-/**
- * Validates `linter` rule configurations.
- */
+/// Validates `linter` rule configurations.
 class LinterRuleOptionsValidator extends OptionsValidator {
   static const linter = 'linter';
   static const rulesKey = 'rules';
@@ -85,7 +73,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     return errors;
   }
 
-  validateRules(YamlNode rules, ErrorReporter reporter) {
+  void validateRules(YamlNode rules, ErrorReporter reporter) {
     if (rules is YamlList) {
       final seenRules = <String>{};
 

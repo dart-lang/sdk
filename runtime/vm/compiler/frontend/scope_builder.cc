@@ -420,9 +420,10 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
                                             : Object::dynamic_type().raw()));
         scope_->InsertParameterAt(i, variable);
       }
-      // Callbacks need try/catch variables.
+      // Callbacks and calls with handles need try/catch variables.
       if (function.IsFfiTrampoline() &&
-          function.FfiCallbackTarget() != Function::null()) {
+          (function.FfiCallbackTarget() != Function::null() ||
+           function.FfiCSignatureContainsHandles())) {
         current_function_async_marker_ = FunctionNodeHelper::kSync;
         ++depth_.try_;
         AddTryVariables();
@@ -815,8 +816,8 @@ void ScopeBuilder::VisitExpression() {
       if (translation_helper_.info().kernel_binary_version() >= 38) {
         helper_.ReadFlags();  // read flags.
       }
-      VisitExpression();       // read operand.
-      VisitDartType();         // read type.
+      VisitExpression();  // read operand.
+      VisitDartType();    // read type.
       return;
     case kAsExpression:
       helper_.ReadPosition();  // read position.

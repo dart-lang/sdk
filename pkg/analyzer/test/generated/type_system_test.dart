@@ -10,8 +10,8 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/least_upper_bound.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -441,9 +441,7 @@ class AssignabilityTest extends AbstractTypeSystemTest {
   }
 }
 
-/**
- * Base class for testing LUB and GLB in spec and strong mode.
- */
+/// Base class for testing LUB and GLB in spec and strong mode.
 abstract class BoundTestBase extends AbstractTypeSystemTest {
   void _checkLeastUpperBound(DartType T1, DartType T2, DartType expected) {
     var expectedStr = _typeString(expected);

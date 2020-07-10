@@ -63,15 +63,15 @@ void f(p.C c) {
     await resolveTestUnit('''
 import 'dart:math' as pref;
 main() {
-  print(pref.E);
-  print(PI);
+  print(pref.e);
+  print(pi);
 }
 ''');
     await assertHasFix('''
 import 'dart:math' as pref;
 main() {
-  print(pref.E);
-  print(pref.PI);
+  print(pref.e);
+  print(pref.pi);
 }
 ''');
   }

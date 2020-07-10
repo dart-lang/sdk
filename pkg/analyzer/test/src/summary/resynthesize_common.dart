@@ -20,11 +20,9 @@ import 'package:test/test.dart';
 import 'element_text.dart';
 import 'test_strategies.dart';
 
-/**
- * Abstract base class for resynthesizing and comparing elements.
- *
- * The return type separator: →
- */
+/// Abstract base class for resynthesizing and comparing elements.
+///
+/// The return type separator: →
 abstract class AbstractResynthesizeTest with ResourceProviderMixin {
   DeclaredVariables declaredVariables = DeclaredVariables();
   SourceFactory sourceFactory;
@@ -34,10 +32,8 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
   Source testSource;
   Set<Source> otherLibrarySources = <Source>{};
 
-  /**
-   * Tests may set this to `true` to indicate that a missing file at the time of
-   * summary resynthesis shouldn't trigger an error.
-   */
+  /// Tests may set this to `true` to indicate that a missing file at the time
+  /// of summary resynthesis shouldn't trigger an error.
   bool allowMissingFiles = false;
 
   AbstractResynthesizeTest() {
@@ -280,6 +276,30 @@ class E {
 ''');
   }
 
+  test_class_alias_with_const_constructors() async {
+    addLibrarySource('/a.dart', '''
+class Base {
+  const Base._priv();
+  const Base();
+  const Base.named();
+}
+''');
+    var library = await checkLibrary('''
+import "a.dart";
+class M {}
+class MixinApp = Base with M;
+''');
+    checkElementText(library, r'''
+import 'a.dart';
+class M {
+}
+class alias MixinApp extends Base with M {
+  synthetic const MixinApp() = Base;
+  synthetic const MixinApp.named() = Base.named;
+}
+''');
+  }
+
   test_class_alias_with_forwarding_constructors() async {
     addLibrarySource('/a.dart', '''
 class Base {
@@ -308,8 +328,6 @@ class alias MixinApp extends Base with M {
   synthetic MixinApp.requiredArg(dynamic x) = Base.requiredArg;
   synthetic MixinApp.positionalArg([bool x = true]) = Base.positionalArg;
   synthetic MixinApp.namedArg({int x: 42}) = Base.namedArg;
-  synthetic MixinApp.fact() = Base.fact;
-  synthetic MixinApp.fact2() = Base.fact2;
 }
 ''');
   }
@@ -1856,33 +1874,33 @@ class A/*codeOffset=0, codeLength=10*/ {
 class B/*codeOffset=12, codeLength=10*/ {
 }
 class alias Raw/*codeOffset=28, codeLength=29*/ extends Object with A, B {
-  synthetic Raw() = Object;
+  synthetic const Raw() = Object;
 }
 /// Comment 1.
 /// Comment 2.
 class alias HasDocComment/*codeOffset=59, codeLength=69*/ extends Object with A, B {
-  synthetic HasDocComment() = Object;
+  synthetic const HasDocComment() = Object;
 }
 @Object()
 class alias HasAnnotation/*codeOffset=130, codeLength=49*/ extends Object with A, B {
-  synthetic HasAnnotation() = Object;
+  synthetic const HasAnnotation() = Object;
 }
 /// Comment 1.
 /// Comment 2.
 @Object()
 class alias AnnotationThenComment/*codeOffset=181, codeLength=87*/ extends Object with A, B {
-  synthetic AnnotationThenComment() = Object;
+  synthetic const AnnotationThenComment() = Object;
 }
 /// Comment 1.
 /// Comment 2.
 @Object()
 class alias CommentThenAnnotation/*codeOffset=270, codeLength=87*/ extends Object with A, B {
-  synthetic CommentThenAnnotation() = Object;
+  synthetic const CommentThenAnnotation() = Object;
 }
 /// Comment 2.
 @Object()
 class alias CommentAroundAnnotation/*codeOffset=374, codeLength=74*/ extends Object with A, B {
-  synthetic CommentAroundAnnotation() = Object;
+  synthetic const CommentAroundAnnotation() = Object;
 }
 ''',
         withCodeRanges: true,
@@ -3974,6 +3992,24 @@ const Symbol vSymbol = #aaa.bbb.ccc;
 ''');
   }
 
+  test_const_topLevel_nullSafe_nullAware_propertyAccess() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+const String? a = '';
+
+const List<int?> b = [
+  a?.length,
+];
+''');
+    // TODO(scheglov) include fully resolved AST, when types with suffixes
+    checkElementText(library, r'''
+const String a = '';
+const List<int> b = [
+        a/*location: test.dart;a?*/.
+        length/*location: dart:core;String;length?*/];
+''');
+  }
+
   test_const_topLevel_parenthesis() async {
     var library = await checkLibrary(r'''
 const int v1 = (1 + 2) * 3;
@@ -5560,7 +5596,7 @@ class C extends Object with M {
   dynamic foo() {}
 }
 class alias D extends Object with M {
-  synthetic D() = Object;
+  synthetic const D() = Object;
 }
 ''');
   }
@@ -6218,6 +6254,50 @@ class C {
 ''');
   }
 
+  test_field_type_inferred_Never() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+class C {
+  var a = throw 42;
+}
+''');
+
+    checkElementText(
+        library,
+        r'''
+class C {
+  Never a;
+}
+''',
+        annotateNullability: true);
+  }
+
+  test_field_type_inferred_nonNullify() async {
+    featureSet = enableNnbd;
+
+    addSource('/a.dart', '''
+// @dart = 2.7
+var a = 0;
+''');
+
+    var library = await checkLibrary(r'''
+import 'a.dart';
+class C {
+  var b = a;
+}
+''');
+
+    checkElementText(
+        library,
+        r'''
+import 'a.dart';
+class C {
+  int b;
+}
+''',
+        annotateNullability: true);
+  }
+
   test_field_typed() async {
     var library = await checkLibrary('class C { int x = 0; }');
     checkElementText(library, r'''
@@ -6855,6 +6935,15 @@ class B extends A {
 ''');
     var typeA = library.definingCompilationUnit.getType('B').supertype;
     expect(typeA.element.source.shortName, 'foo_html.dart');
+  }
+
+  test_import_dartCore_implicit() async {
+    var library = await checkLibrary('''
+import 'dart:math';
+''');
+    expect(library.imports, hasLength(2));
+    expect(library.imports[0].uri, 'dart:math');
+    expect(library.imports[1].uri, 'dart:core');
   }
 
   test_import_deferred() async {
@@ -11519,6 +11608,52 @@ unit: b.dart
 
 int get x {}
 ''');
+  }
+
+  test_variable_type_inferred_Never() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+var a = throw 42;
+''');
+
+    checkElementText(
+        library,
+        r'''
+Never a;
+''',
+        annotateNullability: true);
+  }
+
+  test_variable_type_inferred_noInitializer() async {
+    var library = await checkLibrary(r'''
+var a;
+''');
+
+    checkElementText(library, r'''
+dynamic a;
+''');
+  }
+
+  test_variable_type_inferred_nonNullify() async {
+    featureSet = enableNnbd;
+
+    addSource('/a.dart', '''
+// @dart = 2.7
+var a = 0;
+''');
+
+    var library = await checkLibrary(r'''
+import 'a.dart';
+var b = a;
+''');
+
+    checkElementText(
+        library,
+        r'''
+import 'a.dart';
+int b;
+''',
+        annotateNullability: true);
   }
 
   test_variableInitializer_contextType_after_astRewrite() async {

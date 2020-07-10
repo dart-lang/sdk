@@ -220,7 +220,8 @@ Future<KernelTarget> outline(List<String> arguments) async {
       }
       CompileTask task =
           new CompileTask(c, new Ticker(isVerbose: c.options.verbose));
-      return await task.buildOutline(output: c.options.output);
+      return await task.buildOutline(
+          output: c.options.output, omitPlatform: c.options.omitPlatform);
     });
   });
 }
@@ -293,7 +294,9 @@ class CompileTask {
   }
 
   Future<KernelTarget> buildOutline(
-      {Uri output, bool supportAdditionalDills: true}) async {
+      {Uri output,
+      bool omitPlatform: false,
+      bool supportAdditionalDills: true}) async {
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     ticker.logMs("Read packages file");
     DillTarget dillTarget = createDillTarget(uriTranslator);
@@ -324,6 +327,21 @@ class CompileTask {
       printComponentText(outline, libraryFilter: kernelTarget.isSourceLibrary);
     }
     if (output != null) {
+      if (omitPlatform) {
+        outline.computeCanonicalNames();
+        Component userCode = new Component(
+            nameRoot: outline.root,
+            uriToSource: new Map<Uri, Source>.from(outline.uriToSource));
+        userCode.setMainMethodAndMode(
+            outline.mainMethodName, true, outline.mode);
+        for (Library library in outline.libraries) {
+          if (library.importUri.scheme != "dart") {
+            userCode.libraries.add(library);
+          }
+        }
+        outline = userCode;
+      }
+
       await writeComponentToFile(outline, output);
       ticker.logMs("Wrote outline to ${output.toFilePath()}");
     }

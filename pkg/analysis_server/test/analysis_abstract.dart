@@ -121,7 +121,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
         serverChannel,
         resourceProvider,
         options,
-        DartSdkManager(resourceProvider.convertPath('/sdk'), true),
+        DartSdkManager(resourceProvider.convertPath('/sdk')),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);
   }

@@ -13,14 +13,14 @@ IsolateGroupData::IsolateGroupData(const char* url,
                                    const char* packages_file,
                                    AppSnapshot* app_snapshot,
                                    bool isolate_run_app_snapshot)
-    : script_url((url != NULL) ? strdup(url) : NULL),
+    : script_url((url != NULL) ? Utils::StrDup(url) : NULL),
       app_snapshot_(app_snapshot),
       resolved_packages_config_(NULL),
       kernel_buffer_(NULL),
       kernel_buffer_size_(0),
       isolate_run_app_snapshot_(isolate_run_app_snapshot) {
   if (packages_file != NULL) {
-    packages_file_ = strdup(packages_file);
+    packages_file_ = Utils::StrDup(packages_file);
   }
 }
 
@@ -40,7 +40,7 @@ IsolateData::IsolateData(IsolateGroupData* isolate_group_data)
       loader_(nullptr),
       packages_file_(nullptr) {
   if (isolate_group_data->packages_file_ != nullptr) {
-    packages_file_ = strdup(isolate_group_data->packages_file_);
+    packages_file_ = Utils::StrDup(isolate_group_data->packages_file_);
   }
 }
 

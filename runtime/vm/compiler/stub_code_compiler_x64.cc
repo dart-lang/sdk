@@ -6,6 +6,7 @@
 #include "vm/globals.h"
 
 // For `AllocateObjectInstr::WillAllocateNewOrRemembered`
+// For `GenericCheckBoundInstr::UseUnboxedRepresentation`
 #include "vm/compiler/backend/il.h"
 
 #define SHOULD_NOT_INCLUDE_RUNTIME
@@ -87,6 +88,10 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   // to transition to Dart VM C++ code.
   __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()), RBP);
 
+  // Mark that the thread exited generated code through a runtime call.
+  __ movq(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(target::Thread::exit_through_runtime_call()));
+
 #if defined(DEBUG)
   {
     Label ok;
@@ -134,7 +139,11 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Mark that the thread is executing Dart code.
   __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
-  // Reset exit frame information in Isolate structure.
+  // Mark that the thread has not exited generated Dart code.
+  __ movq(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(0));
+
+  // Reset exit frame information in Isolate's mutator thread structure.
   __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
           Immediate(0));
 
@@ -155,13 +164,12 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ ret();
 }
 
-void GenerateSharedStub(
+static void GenerateSharedStubGeneric(
     Assembler* assembler,
     bool save_fpu_registers,
-    const RuntimeEntry* target,
     intptr_t self_code_stub_offset_from_thread,
     bool allow_return,
-    std::initializer_list<Register> runtime_call_arguments) {
+    std::function<void()> perform_runtime_call) {
   // We want the saved registers to appear like part of the caller's frame, so
   // we push them before calling EnterStubFrame.
   __ PushRegisters(kDartAvailableCpuRegs,
@@ -169,30 +177,22 @@ void GenerateSharedStub(
 
   const intptr_t kSavedCpuRegisterSlots =
       Utils::CountOneBitsWord(kDartAvailableCpuRegs);
-
   const intptr_t kSavedFpuRegisterSlots =
       save_fpu_registers
           ? kNumberOfFpuRegisters * kFpuRegisterSize / target::kWordSize
           : 0;
-
   const intptr_t kAllSavedRegistersSlots =
       kSavedCpuRegisterSlots + kSavedFpuRegisterSlots;
 
   // Copy down the return address so the stack layout is correct.
   __ pushq(Address(RSP, kAllSavedRegistersSlots * target::kWordSize));
-
   __ movq(CODE_REG, Address(THR, self_code_stub_offset_from_thread));
-
   __ EnterStubFrame();
-  for (Register argument_reg : runtime_call_arguments) {
-    __ PushRegister(argument_reg);
-  }
-  __ CallRuntime(*target, /*argument_count=*/runtime_call_arguments.size());
+  perform_runtime_call();
   if (!allow_return) {
     __ Breakpoint();
     return;
   }
-  __ Drop(runtime_call_arguments.size());
   __ LeaveStubFrame();
 
   // Drop "official" return address -- we can just use the one stored above the
@@ -203,6 +203,19 @@ void GenerateSharedStub(
                   save_fpu_registers ? kAllFpuRegistersList : 0);
 
   __ ret();
+}
+
+static void GenerateSharedStub(Assembler* assembler,
+                               bool save_fpu_registers,
+                               const RuntimeEntry* target,
+                               intptr_t self_code_stub_offset_from_thread,
+                               bool allow_return) {
+  auto perform_runtime_call = [&]() {
+    __ CallRuntime(*target, /*argument_count=*/0);
+  };
+  GenerateSharedStubGeneric(assembler, save_fpu_registers,
+                            self_code_stub_offset_from_thread, allow_return,
+                            perform_runtime_call);
 }
 
 void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
@@ -255,7 +268,9 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
 //   RBX, R12 clobbered
 void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
     Assembler* assembler) {
-  __ TransitionGeneratedToNative(RBX, FPREG, /*enter_safepoint=*/true);
+  __ movq(R12, compiler::Immediate(target::Thread::exit_through_ffi()));
+  __ TransitionGeneratedToNative(RBX, FPREG, R12,
+                                 /*enter_safepoint=*/true);
 
   __ popq(R12);
   __ CallCFunction(RBX);
@@ -474,7 +489,7 @@ void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub(
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/false, &kNullErrorRuntimeEntry,
       target::Thread::null_error_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/false, {});
+      /*allow_return=*/false);
 }
 
 void StubCodeCompiler::GenerateNullErrorSharedWithFPURegsStub(
@@ -482,7 +497,7 @@ void StubCodeCompiler::GenerateNullErrorSharedWithFPURegsStub(
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/true, &kNullErrorRuntimeEntry,
       target::Thread::null_error_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/false, {});
+      /*allow_return=*/false);
 }
 
 void StubCodeCompiler::GenerateNullArgErrorSharedWithoutFPURegsStub(
@@ -490,7 +505,7 @@ void StubCodeCompiler::GenerateNullArgErrorSharedWithoutFPURegsStub(
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/false, &kArgumentNullErrorRuntimeEntry,
       target::Thread::null_arg_error_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/false, {});
+      /*allow_return=*/false);
 }
 
 void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub(
@@ -498,25 +513,82 @@ void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub(
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/true, &kArgumentNullErrorRuntimeEntry,
       target::Thread::null_arg_error_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/false, {});
+      /*allow_return=*/false);
+}
+
+void StubCodeCompiler::GenerateNullCastErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/false, &kNullCastErrorRuntimeEntry,
+      target::Thread::null_cast_error_shared_without_fpu_regs_stub_offset(),
+      /*allow_return=*/false);
+}
+
+void StubCodeCompiler::GenerateNullCastErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/true, &kNullCastErrorRuntimeEntry,
+      target::Thread::null_cast_error_shared_with_fpu_regs_stub_offset(),
+      /*allow_return=*/false);
+}
+
+static void GenerateRangeError(Assembler* assembler, bool with_fpu_regs) {
+  auto perform_runtime_call = [&]() {
+    // If the generated code has unboxed index/length we need to box them before
+    // calling the runtime entry.
+    if (GenericCheckBoundInstr::UseUnboxedRepresentation()) {
+      Label length, smi_case;
+
+      // The user-controlled index might not fit into a Smi.
+      __ addq(RangeErrorABI::kIndexReg, RangeErrorABI::kIndexReg);
+      __ BranchIf(NO_OVERFLOW, &length);
+      {
+        // Allocate a mint, reload the two registers and popualte the mint.
+        __ PushImmediate(Immediate(0));
+        __ CallRuntime(kAllocateMintRuntimeEntry, /*argument_count=*/0);
+        __ PopRegister(RangeErrorABI::kIndexReg);
+        __ movq(
+            TMP,
+            Address(RBP, target::kWordSize *
+                             StubCodeCompiler::WordOffsetFromFpToCpuRegister(
+                                 RangeErrorABI::kIndexReg)));
+        __ movq(FieldAddress(RangeErrorABI::kIndexReg,
+                             target::Mint::value_offset()),
+                TMP);
+        __ movq(
+            RangeErrorABI::kLengthReg,
+            Address(RBP, target::kWordSize *
+                             StubCodeCompiler::WordOffsetFromFpToCpuRegister(
+                                 RangeErrorABI::kLengthReg)));
+      }
+
+      // Length is guaranteed to be in positive Smi range (it comes from a load
+      // of a vm recognized array).
+      __ Bind(&length);
+      __ SmiTag(RangeErrorABI::kLengthReg);
+    }
+    __ PushRegister(RangeErrorABI::kLengthReg);
+    __ PushRegister(RangeErrorABI::kIndexReg);
+    __ CallRuntime(kRangeErrorRuntimeEntry, /*argument_count=*/2);
+    __ Breakpoint();
+  };
+
+  GenerateSharedStubGeneric(
+      assembler, /*save_fpu_registers=*/with_fpu_regs,
+      with_fpu_regs
+          ? target::Thread::range_error_shared_with_fpu_regs_stub_offset()
+          : target::Thread::range_error_shared_without_fpu_regs_stub_offset(),
+      /*allow_return=*/false, perform_runtime_call);
 }
 
 void StubCodeCompiler::GenerateRangeErrorSharedWithoutFPURegsStub(
     Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/false, &kRangeErrorRuntimeEntry,
-      target::Thread::range_error_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/false,
-      {RangeErrorABI::kLengthReg, RangeErrorABI::kIndexReg});
+  GenerateRangeError(assembler, /*with_fpu_regs=*/false);
 }
 
 void StubCodeCompiler::GenerateRangeErrorSharedWithFPURegsStub(
     Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/true, &kRangeErrorRuntimeEntry,
-      target::Thread::range_error_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/false,
-      {RangeErrorABI::kLengthReg, RangeErrorABI::kIndexReg});
+  GenerateRangeError(assembler, /*with_fpu_regs=*/true);
 }
 
 void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub(
@@ -524,7 +596,7 @@ void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub(
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/false, &kStackOverflowRuntimeEntry,
       target::Thread::stack_overflow_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/true, {});
+      /*allow_return=*/true);
 }
 
 void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
@@ -532,22 +604,7 @@ void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/true, &kStackOverflowRuntimeEntry,
       target::Thread::stack_overflow_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/true, {});
-}
-
-// Input parameters:
-//   RSP : points to return address.
-//   RDI : stop message (const char*).
-// Must preserve all registers.
-void StubCodeCompiler::GeneratePrintStopMessageStub(Assembler* assembler) {
-  __ EnterCallRuntimeFrame(0);
-// Call the runtime leaf function. RDI already contains the parameter.
-#if defined(TARGET_OS_WINDOWS)
-  __ movq(CallingConventions::kArg1Reg, RDI);
-#endif
-  __ CallRuntime(kPrintStopMessageRuntimeEntry, 1);
-  __ LeaveCallRuntimeFrame();
-  __ ret();
+      /*allow_return=*/true);
 }
 
 // Input parameters:
@@ -573,6 +630,10 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
   __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()), RBP);
+
+  // Mark that the thread exited generated code through a runtime call.
+  __ movq(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(target::Thread::exit_through_runtime_call()));
 
 #if defined(DEBUG)
   {
@@ -619,7 +680,11 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   // Mark that the thread is executing Dart code.
   __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
-  // Reset exit frame information in Isolate structure.
+  // Mark that the thread has not exited generated Dart code.
+  __ movq(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(0));
+
+  // Reset exit frame information in Isolate's mutator thread structure.
   __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
           Immediate(0));
 
@@ -1238,6 +1303,12 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movq(RAX, Address(THR, target::Thread::top_resource_offset()));
   __ pushq(RAX);
   __ movq(Address(THR, target::Thread::top_resource_offset()), Immediate(0));
+
+  __ movq(RAX, Address(THR, target::Thread::exit_through_ffi_offset()));
+  __ pushq(RAX);
+  __ movq(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(0));
+
   __ movq(RAX, Address(THR, target::Thread::top_exit_frame_info_offset()));
   __ pushq(RAX);
 
@@ -1308,6 +1379,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore the saved top exit frame info and top resource back into the
   // Isolate structure.
   __ popq(Address(THR, target::Thread::top_exit_frame_info_offset()));
+  __ popq(Address(THR, target::Thread::exit_through_ffi_offset()));
   __ popq(Address(THR, target::Thread::top_resource_offset()));
 
   // Restore the current VMTag from the stack.
@@ -1391,6 +1463,12 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   __ movq(RAX, Address(THR, target::Thread::top_resource_offset()));
   __ pushq(RAX);
   __ movq(Address(THR, target::Thread::top_resource_offset()), Immediate(0));
+
+  __ movq(RAX, Address(THR, target::Thread::exit_through_ffi_offset()));
+  __ pushq(RAX);
+  __ movq(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(0));
+
   __ movq(RAX, Address(THR, target::Thread::top_exit_frame_info_offset()));
   __ pushq(RAX);
   __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
@@ -1467,6 +1545,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   // Restore the saved top exit frame info and top resource back into the
   // Isolate structure.
   __ popq(Address(THR, target::Thread::top_exit_frame_info_offset()));
+  __ popq(Address(THR, target::Thread::exit_through_ffi_offset()));
   __ popq(Address(THR, target::Thread::top_resource_offset()));
 
   // Restore the current VMTag from the stack.
@@ -2805,10 +2884,10 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
     __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
 
-  __ movq(CallingConventions::kArg1Reg, RAX);         // Function.
-  __ movq(CallingConventions::kArg2Reg, R10);         // Arguments descriptor.
-  __ movq(CallingConventions::kArg3Reg, R11);         // Negative argc.
-  __ movq(CallingConventions::kArg4Reg, R12);         // Argv.
+  __ movq(CallingConventions::kArg1Reg, RAX);  // Function.
+  __ movq(CallingConventions::kArg2Reg, R10);  // Arguments descriptor.
+  __ movq(CallingConventions::kArg3Reg, R11);  // Negative argc.
+  __ movq(CallingConventions::kArg4Reg, R12);  // Argv.
 
 #if defined(TARGET_OS_WINDOWS)
   __ movq(Address(RSP, 0 * target::kWordSize), THR);  // Thread.
@@ -2818,6 +2897,10 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
   __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()), RBP);
+
+  // Mark that the thread exited generated code through a runtime call.
+  __ movq(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(target::Thread::exit_through_runtime_call()));
 
   // Mark that the thread is executing VM code.
   __ movq(RAX,
@@ -2829,7 +2912,11 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
   // Mark that the thread is executing Dart code.
   __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
 
-  // Reset exit frame information in Isolate structure.
+  // Mark that the thread has not exited generated Dart code.
+  __ movq(Address(THR, target::Thread::exit_through_ffi_offset()),
+          Immediate(0));
+
+  // Reset exit frame information in Isolate's mutator thread structure.
   __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
           Immediate(0));
 
@@ -3292,6 +3379,15 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
 #if defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
+  Label exit_through_non_ffi;
+  // Check if we exited generated from FFI. If so do transition.
+  __ cmpq(compiler::Address(
+              THR, compiler::target::Thread::exit_through_ffi_offset()),
+          compiler::Immediate(target::Thread::exit_through_ffi()));
+  __ j(NOT_EQUAL, &exit_through_non_ffi, compiler::Assembler::kNearJump);
+  __ TransitionNativeToGenerated(/*leave_safepoint=*/true);
+  __ Bind(&exit_through_non_ffi);
+
   // Set the tag.
   __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
   // Clear top exit frame.

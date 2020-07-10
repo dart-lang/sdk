@@ -52,4 +52,4 @@ DART_ROOT="$(cd "${SDK_DIR}/.." ; pwd -P)"
 
 DART2JS="package:compiler/src/dart2js.dart"
 
-exec "$DART" "--packages=$DART_ROOT/.packages" "${EXTRA_VM_OPTIONS[@]}" "$DART2JS" "${EXTRA_OPTIONS[@]}" "$@"
+exec "$DART" "--packages=$DART_ROOT/.packages" --enable-experiment=non-nullable "${EXTRA_VM_OPTIONS[@]}" "$DART2JS" "${EXTRA_OPTIONS[@]}" "$@"

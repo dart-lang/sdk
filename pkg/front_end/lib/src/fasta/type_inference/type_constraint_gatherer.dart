@@ -2,31 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:kernel/ast.dart'
-    show
-        Class,
-        DartType,
-        DynamicType,
-        FunctionType,
-        InterfaceType,
-        Library,
-        Member,
-        Name,
-        NamedType,
-        Nullability,
-        Procedure,
-        TypeParameter,
-        TypeParameterType,
-        Variance,
-        VoidType;
+import 'package:kernel/ast.dart' hide MapEntry;
 
 import 'package:kernel/core_types.dart';
 
-import 'package:kernel/type_algebra.dart' show substitute, Substitution;
+import 'package:kernel/type_algebra.dart';
+
+import 'package:kernel/src/replacement_visitor.dart';
 
 import 'package:kernel/type_environment.dart';
-
-import 'package:kernel/src/future_or.dart';
 
 import 'type_schema.dart' show UnknownType;
 
@@ -39,7 +23,7 @@ import 'type_schema_environment.dart';
 /// Creates a collection of [TypeConstraint]s corresponding to type parameters,
 /// based on an attempt to make one type schema a subtype of another.
 abstract class TypeConstraintGatherer {
-  final _protoConstraints = <_ProtoConstraint>[];
+  final List<_ProtoConstraint> _protoConstraints = [];
 
   final List<TypeParameter> _parametersToConstrain;
 
@@ -57,13 +41,7 @@ abstract class TypeConstraintGatherer {
         environment, typeParameters, currentLibrary);
   }
 
-  Class get objectClass;
-
-  Class get functionClass;
-
-  Class get futureOrClass;
-
-  Class get nullClass;
+  CoreTypes get coreTypes;
 
   void addUpperBound(
       TypeConstraint constraint, DartType upper, Library clientLibrary);
@@ -100,25 +78,82 @@ abstract class TypeConstraintGatherer {
     return result;
   }
 
+  /// Tries to constrain type parameters in [type], so that [bound] <: [type].
+  ///
+  /// Doesn't change the already accumulated set of constraints if [bound] isn't
+  /// a subtype of [type] under any set of constraints.
+  bool tryConstrainLower(DartType type, DartType bound) {
+    if (_currentLibrary.isNonNullableByDefault) {
+      return _tryNullabilityAwareSubtypeMatch(bound, type,
+          constrainSupertype: true);
+    } else {
+      return _tryNullabilityObliviousSubtypeMatch(bound, type);
+    }
+  }
+
+  /// Tries to constrain type parameters in [type], so that [type] <: [bound].
+  ///
+  /// Doesn't change the already accumulated set of constraints if [type] isn't
+  /// a subtype of [bound] under any set of constraints.
+  bool tryConstrainUpper(DartType type, DartType bound) {
+    if (_currentLibrary.isNonNullableByDefault) {
+      return _tryNullabilityAwareSubtypeMatch(type, bound,
+          constrainSupertype: false);
+    } else {
+      return _tryNullabilityObliviousSubtypeMatch(type, bound);
+    }
+  }
+
   /// Tries to match [subtype] against [supertype].
   ///
-  /// If the match succeeds, the resulting type constraints are recorded for
-  /// later use by [computeConstraints].  If the match fails, the set of type
+  /// If the match succeeds, the member returns true, and the resulting type
+  /// constraints are recorded for later use by [computeConstraints].  If the
+  /// match fails, the member returns false, and the set of type
   /// constraints is unchanged.
-  bool trySubtypeMatch(DartType subtype, DartType supertype) {
-    int oldProtoConstraintsLength = _protoConstraints.length;
-    bool isMatch = _isSubtypeMatch(subtype, supertype);
+  bool _tryNullabilityObliviousSubtypeMatch(
+      DartType subtype, DartType supertype) {
+    int baseConstraintCount = _protoConstraints.length;
+    bool isMatch = _isNullabilityObliviousSubtypeMatch(subtype, supertype);
     if (!isMatch) {
-      _protoConstraints.length = oldProtoConstraintsLength;
+      _protoConstraints.length = baseConstraintCount;
     }
     return isMatch;
   }
 
-  void _constrainLower(TypeParameter parameter, DartType lower) {
+  /// Tries to match [subtype] against [supertype].
+  ///
+  /// If the match succeeds, the member returns true, and the resulting type
+  /// constraints are recorded for later use by [computeConstraints].  If the
+  /// match fails, the member returns false, and the set of type constraints is
+  /// unchanged.
+  ///
+  /// In contrast with [_tryNullabilityObliviousSubtypeMatch], this method
+  /// distinguishes between cases when the type parameters to constraint occur
+  /// in [subtype] and in [supertype].  If [constrainSupertype] is true, the
+  /// type parameters to constrain occur in [supertype]; otherwise, they occur
+  /// in [subtype].  If one type contains the type parameters to constrain, the
+  /// other one isn't allowed to contain them.  The type that contains the type
+  /// parameters isn't allowed to also contain [UnknownType], that is, to be a
+  /// type schema.
+  bool _tryNullabilityAwareSubtypeMatch(DartType subtype, DartType supertype,
+      {bool constrainSupertype}) {
+    assert(constrainSupertype != null);
+    int baseConstraintCount = _protoConstraints.length;
+    bool isMatch = _isNullabilityAwareSubtypeMatch(subtype, supertype,
+        constrainSupertype: constrainSupertype);
+    if (!isMatch) {
+      _protoConstraints.length = baseConstraintCount;
+    }
+    return isMatch;
+  }
+
+  /// Add constraint: [lower] <: [parameter] <: TOP.
+  void _constrainParameterLower(TypeParameter parameter, DartType lower) {
     _protoConstraints.add(new _ProtoConstraint.lower(parameter, lower));
   }
 
-  void _constrainUpper(TypeParameter parameter, DartType upper) {
+  /// Add constraint: BOTTOM <: [parameter] <: [upper].
+  void _constrainParameterUpper(TypeParameter parameter, DartType upper) {
     _protoConstraints.add(new _ProtoConstraint.upper(parameter, upper));
   }
 
@@ -170,7 +205,8 @@ abstract class TypeConstraintGatherer {
 
     // Test the return types.
     if (supertype.returnType is! VoidType &&
-        !_isSubtypeMatch(subtype.returnType, supertype.returnType)) {
+        !_isNullabilityObliviousSubtypeMatch(
+            subtype.returnType, supertype.returnType)) {
       return false;
     }
 
@@ -179,7 +215,8 @@ abstract class TypeConstraintGatherer {
       DartType supertypeParameter = supertype.positionalParameters[i];
       DartType subtypeParameter = subtype.positionalParameters[i];
       // Termination: Both types shrink in size.
-      if (!_isSubtypeMatch(supertypeParameter, subtypeParameter)) {
+      if (!_isNullabilityObliviousSubtypeMatch(
+          supertypeParameter, subtypeParameter)) {
         return false;
       }
     }
@@ -193,7 +230,8 @@ abstract class TypeConstraintGatherer {
       if (subtypeNameIndex == subtype.namedParameters.length) return false;
       NamedType subtypeParameter = subtype.namedParameters[subtypeNameIndex];
       // Termination: Both types shrink in size.
-      if (!_isSubtypeMatch(supertypeParameter.type, subtypeParameter.type)) {
+      if (!_isNullabilityObliviousSubtypeMatch(
+          supertypeParameter.type, subtypeParameter.type)) {
         return false;
       }
     }
@@ -229,19 +267,21 @@ abstract class TypeConstraintGatherer {
       // Generate constraints and subtype match with respect to variance.
       int parameterVariance = supertype.classNode.typeParameters[i].variance;
       if (parameterVariance == Variance.contravariant) {
-        if (!_isSubtypeMatch(supertype.typeArguments[i],
+        if (!_isNullabilityObliviousSubtypeMatch(supertype.typeArguments[i],
             matchingSupertypeOfSubtypeArguments[i])) {
           return false;
         }
       } else if (parameterVariance == Variance.invariant) {
-        if (!_isSubtypeMatch(supertype.typeArguments[i],
+        if (!_isNullabilityObliviousSubtypeMatch(supertype.typeArguments[i],
                 matchingSupertypeOfSubtypeArguments[i]) ||
-            !_isSubtypeMatch(matchingSupertypeOfSubtypeArguments[i],
+            !_isNullabilityObliviousSubtypeMatch(
+                matchingSupertypeOfSubtypeArguments[i],
                 supertype.typeArguments[i])) {
           return false;
         }
       } else {
-        if (!_isSubtypeMatch(matchingSupertypeOfSubtypeArguments[i],
+        if (!_isNullabilityObliviousSubtypeMatch(
+            matchingSupertypeOfSubtypeArguments[i],
             supertype.typeArguments[i])) {
           return false;
         }
@@ -255,7 +295,583 @@ abstract class TypeConstraintGatherer {
     // it return `true` for both Null and bottom types?  Revisit this once
     // enough functionality is implemented that we can compare the behavior with
     // the old analyzer-based implementation.
-    return type is InterfaceType && identical(type.classNode, nullClass);
+    return type == coreTypes.nullType;
+  }
+
+  /// Computes [type] as if declared without nullability markers.
+  ///
+  /// The algorithm implemented by [_isNullabilityAwareSubtypeMatch] uses the
+  /// notion of the nullable and the legacy type constructors, that is, int? and
+  /// int* are applications of the nullable and the legacy type constructors to
+  /// type int correspondingly.  The algorithm requires the ability to peel off
+  /// the two type constructors from the underlying types, which is done by
+  /// [_computeRawType].
+  DartType _computeRawType(DartType type) {
+    if (type is TypeParameterType) {
+      if (type.promotedBound == null) {
+        // The default nullability for library is used when there are no
+        // nullability markers on the type.
+        return new TypeParameterType.withDefaultNullabilityForLibrary(
+            type.parameter, _currentLibrary);
+      } else {
+        // Intersection types can't be arguments to the nullable and the legacy
+        // type constructors, so nothing can be peeled off.
+        return type;
+      }
+    } else if (type == coreTypes.nullType) {
+      return type;
+    } else {
+      // For most types, peeling off the nullability constructors means that
+      // they become non-nullable.
+      return type.withDeclaredNullability(Nullability.nonNullable);
+    }
+  }
+
+  /// Returns true if [type] is declared without nullability markers.
+  ///
+  /// The algorithm implemented by [_isNullabilityAwareSubtypeMatch] uses the
+  /// notion of the nullable and the legacy type constructors, that is, int? and
+  /// int* are applications of the nullable and the legacy type constructors to
+  /// type int correspondingly.  The algorithm requires the ability to detect if
+  /// a type is raw, that is, if it is declared without any of the two
+  /// constructors.  Method [_isRawTypeParameterType] implements that check for
+  /// [TypeParameterType]s.  For most types, comparing their
+  /// [DartType.declaredNullability] is enough, but the case of
+  /// [TypeParameterType]s is more complex for two reasons: (1) intersection
+  /// types are encoded as [TypeParameterType]s, and they can't be arguments of
+  /// the nullability constructors, and (2) if a [TypeParameterType] is declared
+  /// raw, its semantic nullability can be anything from
+  /// [Nullability.nonNullable], [Nullability.undetermined], and
+  /// [Nullability.legacy], depending on the bound.  [_isRawTypeParameterType]
+  /// checks if [type] has the same nullability as if it was declared without
+  /// any nullability markers by the programmer.
+  bool _isRawTypeParameterType(TypeParameterType type) {
+    // The default nullability for library is used when there are no nullability
+    // markers on the type.
+    return type.promotedBound == null &&
+        type.declaredNullability ==
+            new TypeParameterType.withDefaultNullabilityForLibrary(
+                    type.parameter, _currentLibrary)
+                .declaredNullability;
+  }
+
+  /// Returns true if [type] is an application of the nullable type constructor.
+  ///
+  /// The algorithm implemented by [_isNullabilityAwareSubtypeMatch] uses the
+  /// notion of the nullable type constructor, that is, int? is an application
+  /// of the nullable type constructor to type int.  The algorithm requires the
+  /// ability to detect if a type is an application of the nullable constructor
+  /// to another type, which is done by [_isNullableTypeConstructorApplication].
+  bool _isNullableTypeConstructorApplication(DartType type) {
+    return type.declaredNullability == Nullability.nullable &&
+        type is! DynamicType &&
+        type is! VoidType &&
+        type != coreTypes.nullType;
+  }
+
+  /// Returns true if [type] is an application of the legacy type constructor.
+  ///
+  /// The algorithm implemented by [_isNullabilityAwareSubtypeMatch] uses the
+  /// notion of the legacy type constructor, that is, int* is an application of
+  /// the legacy type constructor to type int.  The algorithm requires the
+  /// ability to detect if a type is an application of the nullable constructor
+  /// to another type, which is done by [_isNullableTypeConstructorApplication].
+  bool _isLegacyTypeConstructorApplication(DartType type) {
+    if (type is TypeParameterType) {
+      if (type.promotedBound == null) {
+        // The legacy nullability is considered an application of the legacy
+        // nullability constructor if it doesn't match the default nullability
+        // of the type-parameter type for the library.
+        return type.declaredNullability == Nullability.legacy &&
+            type.declaredNullability !=
+                new TypeParameterType.withDefaultNullabilityForLibrary(
+                        type.parameter, _currentLibrary)
+                    .declaredNullability;
+      } else {
+        return false;
+      }
+    } else if (type is InvalidType) {
+      return false;
+    } else {
+      return type.declaredNullability == Nullability.legacy;
+    }
+  }
+
+  /// Matches [p] against [q] as a subtype against supertype.
+  ///
+  /// Returns true if [p] is a subtype of [q] under some constraints, and false
+  /// otherwise.  The constraints making the relation possible are recorded to
+  /// [_protoConstraints].  It is the responsibility of the caller to cleanup
+  /// [_protoConstraints] in case [p] can't be a subtype of [q].
+  ///
+  /// If [constrainSupertype] is true, the type parameters to constrain occur in
+  /// [supertype]; otherwise, they occur in [subtype].  If one type contains the
+  /// type parameters to constrain, the other one isn't allowed to contain them.
+  /// The type that contains the type parameters isn't allowed to also contain
+  /// [UnknownType], that is, to be a type schema.
+  bool _isNullabilityAwareSubtypeMatch(DartType p, DartType q,
+      {bool constrainSupertype}) {
+    assert(p != null);
+    assert(q != null);
+    assert(constrainSupertype != null);
+
+    // If the type parameters being constrained occur in the supertype (that is,
+    // [q]), the subtype (that is, [p]) is not allowed to contain them.  To
+    // check that, the assert below uses the equivalence of the following: X ->
+    // Y  <=>  !X || Y.
+    assert(
+        !constrainSupertype ||
+            !containsTypeVariable(p, _parametersToConstrain.toSet(),
+                unhandledTypeHandler: (DartType type, ignored) =>
+                    type is UnknownType
+                        ? false
+                        : throw new UnsupportedError(
+                            "Unsupported type '${type.runtimeType}'.")),
+        "Failed implication check: "
+        "constrainSupertype -> !containsTypeVariable(q)");
+
+    // If the type parameters being constrained occur in the supertype (that is,
+    // [q]), the supertype is not allowed to contain [UnknownType] as its part,
+    // that is, the supertype should be fully known.  To check that, the assert
+    // below uses the equivalence of the following: X -> Y  <=>  !X || Y.
+    assert(
+        !constrainSupertype || isKnown(q),
+        "Failed implication check: "
+        "constrainSupertype -> isKnown(q)");
+
+    // If the type parameters being constrained occur in the subtype (that is,
+    // [p]), the subtype is not allowed to contain [UnknownType] as its part,
+    // that is, the subtype should be fully known.  To check that, the assert
+    // below uses the equivalence of the following: X -> Y  <=>  !X || Y.
+    assert(
+        constrainSupertype || isKnown(p),
+        "Failed implication check: "
+        "!constrainSupertype -> isKnown(p)");
+
+    // If the type parameters being constrained occur in the subtype (that is,
+    // [p]), the supertype (that is, [q]) is not allowed to contain them.  To
+    // check that, the assert below uses the equivalence of the following: X ->
+    // Y  <=>  !X || Y.
+    assert(
+        constrainSupertype ||
+            !containsTypeVariable(q, _parametersToConstrain.toSet(),
+                unhandledTypeHandler: (DartType type, ignored) =>
+                    type is UnknownType
+                        ? false
+                        : throw new UnsupportedError(
+                            "Unsupported type '${type.runtimeType}'.")),
+        "Failed implication check: "
+        "!constrainSupertype -> !containsTypeVariable(q)");
+
+    if (p is InvalidType || q is InvalidType) return false;
+
+    // If P is _ then the match holds with no constraints.
+    if (p is UnknownType) return true;
+
+    // If Q is _ then the match holds with no constraints.
+    if (q is UnknownType) return true;
+
+    // If P is a type variable X in L, then the match holds:
+    //
+    // Under constraint _ <: X <: Q.
+    if (p is TypeParameterType &&
+        _isRawTypeParameterType(p) &&
+        _parametersToConstrain.contains(p.parameter)) {
+      _constrainParameterUpper(p.parameter, q);
+      return true;
+    }
+
+    // If Q is a type variable X in L, then the match holds:
+    //
+    // Under constraint P <: X <: _.
+    if (q is TypeParameterType &&
+        _isRawTypeParameterType(q) &&
+        _parametersToConstrain.contains(q.parameter)) {
+      _constrainParameterLower(q.parameter, p);
+      return true;
+    }
+
+    // If P and Q are identical types, then the subtype match holds under no
+    // constraints.
+    //
+    // We're only checking primitive types for equality, because the algorithm
+    // will recurse over non-primitive types anyway.
+    if (identical(p, q) ||
+        isPrimitiveDartType(p) && isPrimitiveDartType(q) && p == q) {
+      return true;
+    }
+
+    // If P is a legacy type P0* then the match holds under constraint set C:
+    //
+    // Only if P0 is a subtype match for Q under constraint set C.
+    if (_isLegacyTypeConstructorApplication(p)) {
+      return _isNullabilityAwareSubtypeMatch(_computeRawType(p), q,
+          constrainSupertype: constrainSupertype);
+    }
+
+    // If Q is a legacy type Q0* then the match holds under constraint set C:
+    //
+    // Only if P is a subtype match for Q? under constraint set C.
+    if (_isLegacyTypeConstructorApplication(q)) {
+      return _isNullabilityAwareSubtypeMatch(
+          p, q.withDeclaredNullability(Nullability.nullable),
+          constrainSupertype: constrainSupertype);
+    }
+
+    // If Q is FutureOr<Q0> the match holds under constraint set C:
+    //
+    // If P is FutureOr<P0> and P0 is a subtype match for Q0 under constraint
+    // set C.  Or if P is a subtype match for Future<Q0> under non-empty
+    // constraint set C.  Or if P is a subtype match for Q0 under constraint set
+    // C.  Or if P is a subtype match for Future<Q0> under empty constraint set
+    // C.
+    if (q is FutureOrType) {
+      final int baseConstraintCount = _protoConstraints.length;
+
+      if (p is FutureOrType &&
+          _isNullabilityAwareSubtypeMatch(p.typeArgument, q.typeArgument,
+              constrainSupertype: constrainSupertype)) {
+        return true;
+      }
+      _protoConstraints.length = baseConstraintCount;
+
+      bool isMatchWithFuture = _isNullabilityAwareSubtypeMatch(
+          p, futureType(q.typeArgument, Nullability.nonNullable),
+          constrainSupertype: constrainSupertype);
+      bool matchWithFutureAddsConstraints =
+          _protoConstraints.length != baseConstraintCount;
+      if (isMatchWithFuture && matchWithFutureAddsConstraints) {
+        return true;
+      }
+      _protoConstraints.length = baseConstraintCount;
+
+      if (_isNullabilityAwareSubtypeMatch(p, q.typeArgument,
+          constrainSupertype: constrainSupertype)) {
+        return true;
+      }
+      _protoConstraints.length = baseConstraintCount;
+
+      if (isMatchWithFuture && !matchWithFutureAddsConstraints) {
+        return true;
+      }
+      _protoConstraints.length = baseConstraintCount;
+    }
+
+    // If Q is Q0? the match holds under constraint set C:
+    //
+    // If P is P0? and P0 is a subtype match for Q0 under constraint set C.
+    // Or if P is a subtype match for Q0 under non-empty constraint set C.
+    // Or if P is a subtype match for Null under constraint set C.
+    // Or if P is a subtype match for Q0 under empty constraint set C.
+    if (_isNullableTypeConstructorApplication(q)) {
+      final int baseConstraintCount = _protoConstraints.length;
+      final DartType rawP = _computeRawType(p);
+      final DartType rawQ = _computeRawType(q);
+
+      if (_isNullableTypeConstructorApplication(p) &&
+          _isNullabilityAwareSubtypeMatch(rawP, rawQ,
+              constrainSupertype: constrainSupertype)) {
+        return true;
+      }
+      _protoConstraints.length = baseConstraintCount;
+
+      bool isMatchWithRawQ = _isNullabilityAwareSubtypeMatch(p, rawQ,
+          constrainSupertype: constrainSupertype);
+      bool matchWithRawQAddsConstraints =
+          _protoConstraints.length != baseConstraintCount;
+      if (isMatchWithRawQ && matchWithRawQAddsConstraints) {
+        return true;
+      }
+      _protoConstraints.length = baseConstraintCount;
+
+      if (_isNullabilityAwareSubtypeMatch(p, coreTypes.nullType,
+          constrainSupertype: constrainSupertype)) {
+        return true;
+      }
+      _protoConstraints.length = baseConstraintCount;
+
+      if (isMatchWithRawQ && !matchWithRawQAddsConstraints) {
+        return true;
+      }
+      _protoConstraints.length = baseConstraintCount;
+    }
+
+    // If P is FutureOr<P0> the match holds under constraint set C1 + C2:
+    //
+    // If Future<P0> is a subtype match for Q under constraint set C1.
+    // And if P0 is a subtype match for Q under constraint set C2.
+    if (p is FutureOrType) {
+      final int baseConstraintCount = _protoConstraints.length;
+      if (_isNullabilityAwareSubtypeMatch(
+              futureType(p.typeArgument, Nullability.nonNullable), q,
+              constrainSupertype: constrainSupertype) &&
+          _isNullabilityAwareSubtypeMatch(p.typeArgument, q,
+              constrainSupertype: constrainSupertype)) {
+        return true;
+      }
+      _protoConstraints.length = baseConstraintCount;
+    }
+
+    // If P is P0? the match holds under constraint set C1 + C2:
+    //
+    // If P0 is a subtype match for Q under constraint set C1.
+    // And if Null is a subtype match for Q under constraint set C2.
+    if (_isNullableTypeConstructorApplication(p)) {
+      final int baseConstraintCount = _protoConstraints.length;
+      if (_isNullabilityAwareSubtypeMatch(_computeRawType(p), q,
+              constrainSupertype: constrainSupertype) &&
+          _isNullabilityAwareSubtypeMatch(coreTypes.nullType, q,
+              constrainSupertype: constrainSupertype)) {
+        return true;
+      }
+      _protoConstraints.length = baseConstraintCount;
+    }
+
+    // If Q is dynamic, Object?, or void then the match holds under no
+    // constraints.
+    if (q is DynamicType ||
+        q is VoidType ||
+        q == coreTypes.objectNullableRawType) {
+      return true;
+    }
+
+    // If P is Never then the match holds under no constraints.
+    if (p is NeverType && p.declaredNullability == Nullability.nonNullable) {
+      return true;
+    }
+
+    // If Q is Object, then the match holds under no constraints:
+    //
+    // Only if P is non-nullable.
+    if (q == coreTypes.objectNonNullableRawType) {
+      return p.nullability == Nullability.nonNullable;
+    }
+
+    // If P is Null, then the match holds under no constraints:
+    //
+    // Only if Q is nullable.
+    if (p == coreTypes.nullType) {
+      return q.nullability == Nullability.nullable;
+    }
+
+    // If P is a type variable X with bound B (or a promoted type variable X &
+    // B), the match holds with constraint set C:
+    //
+    // If B is a subtype match for Q with constraint set C.  Note that we have
+    // already eliminated the case that X is a variable in L.
+    if (p is TypeParameterType) {
+      final int baseConstraintCount = _protoConstraints.length;
+      if (_isNullabilityAwareSubtypeMatch(p.bound, q,
+          constrainSupertype: constrainSupertype)) {
+        return true;
+      }
+      _protoConstraints.length = baseConstraintCount;
+    }
+
+    // If P is C<M0, ..., Mk> and Q is C<N0, ..., Nk>, then the match holds
+    // under constraints C0 + ... + Ck:
+    //
+    // If Mi is a subtype match for Ni with respect to L under constraints Ci.
+    if (p is InterfaceType &&
+        q is InterfaceType &&
+        p.classNode == q.classNode) {
+      assert(p.typeArguments.length == q.typeArguments.length);
+
+      final int baseConstraintCount = _protoConstraints.length;
+      bool isMatch = true;
+      for (int i = 0; isMatch && i < p.typeArguments.length; ++i) {
+        isMatch = isMatch &&
+            _isNullabilityAwareSubtypeMatch(
+                p.typeArguments[i], q.typeArguments[i],
+                constrainSupertype: constrainSupertype);
+      }
+      if (isMatch) return true;
+      _protoConstraints.length = baseConstraintCount;
+    }
+
+    // If P is C0<M0, ..., Mk> and Q is C1<N0, ..., Nj> then the match holds
+    // with respect to L under constraints C:
+    //
+    // If C1<B0, ..., Bj> is a superinterface of C0<M0, ..., Mk> and C1<B0, ...,
+    // Bj> is a subtype match for C1<N0, ..., Nj> with respect to L under
+    // constraints C.
+    if (p is InterfaceType && q is InterfaceType) {
+      final List<DartType> sArguments =
+          getTypeArgumentsAsInstanceOf(p, q.classNode);
+      if (sArguments != null) {
+        assert(sArguments.length == q.typeArguments.length);
+
+        final int baseConstraintCount = _protoConstraints.length;
+        bool isMatch = true;
+        for (int i = 0; isMatch && i < sArguments.length; ++i) {
+          isMatch = isMatch &&
+              _isNullabilityAwareSubtypeMatch(sArguments[i], q.typeArguments[i],
+                  constrainSupertype: constrainSupertype);
+        }
+        if (isMatch) return true;
+        _protoConstraints.length = baseConstraintCount;
+      }
+    }
+
+    // If Q is Function then the match holds under no constraints:
+    //
+    // If P is a function type.
+    if (q == coreTypes.functionNonNullableRawType && p is FunctionType) {
+      return true;
+    }
+
+    // A function type (M0,..., Mn, [M{n+1}, ..., Mm]) -> R0 is a subtype match
+    // for a function type (N0,..., Nk, [N{k+1}, ..., Nr]) -> R1 with respect to
+    // L under constraints C0 + ... + Cr + C
+    //
+    // If R0 is a subtype match for a type R1 with respect to L under
+    // constraints C.  If n <= k and r <= m.  And for i in 0...r, Ni is a
+    // subtype match for Mi with respect to L under constraints Ci.
+    if (p is FunctionType &&
+        q is FunctionType &&
+        p.typeParameters.isEmpty &&
+        q.typeParameters.isEmpty &&
+        p.namedParameters.isEmpty &&
+        q.namedParameters.isEmpty &&
+        p.requiredParameterCount <= q.requiredParameterCount &&
+        p.positionalParameters.length >= q.positionalParameters.length) {
+      final int baseConstraintCount = _protoConstraints.length;
+
+      if (_isNullabilityAwareSubtypeMatch(p.returnType, q.returnType,
+          constrainSupertype: constrainSupertype)) {
+        bool isMatch = true;
+        for (int i = 0; isMatch && i < q.positionalParameters.length; ++i) {
+          isMatch = isMatch &&
+              _isNullabilityAwareSubtypeMatch(
+                  q.positionalParameters[i], p.positionalParameters[i],
+                  constrainSupertype: !constrainSupertype);
+        }
+        if (isMatch) return true;
+      }
+      _protoConstraints.length = baseConstraintCount;
+    }
+
+    // Function types with named parameters are treated analogously to the
+    // positional parameter case above.
+    if (p is FunctionType &&
+        q is FunctionType &&
+        p.typeParameters.isEmpty &&
+        q.typeParameters.isEmpty &&
+        p.positionalParameters.length == p.requiredParameterCount &&
+        q.positionalParameters.length == q.requiredParameterCount &&
+        p.requiredParameterCount == q.requiredParameterCount &&
+        (p.namedParameters.isNotEmpty || q.namedParameters.isNotEmpty)) {
+      final int baseConstraintCount = _protoConstraints.length;
+
+      if (_isNullabilityAwareSubtypeMatch(p.returnType, q.returnType,
+          constrainSupertype: constrainSupertype)) {
+        bool isMatch = true;
+        for (int i = 0; isMatch && i < p.positionalParameters.length; ++i) {
+          isMatch = isMatch &&
+              _isNullabilityAwareSubtypeMatch(
+                  q.positionalParameters[i], p.positionalParameters[i],
+                  constrainSupertype: !constrainSupertype);
+        }
+        Map<String, DartType> pNamedTypes = {};
+        for (int i = 0; isMatch && i < p.namedParameters.length; ++i) {
+          pNamedTypes[p.namedParameters[i].name] = p.namedParameters[i].type;
+        }
+        for (int i = 0; isMatch && i < q.namedParameters.length; ++i) {
+          isMatch =
+              isMatch && pNamedTypes.containsKey(q.namedParameters[i].name);
+          isMatch = isMatch &&
+              _isNullabilityAwareSubtypeMatch(q.namedParameters[i].type,
+                  pNamedTypes[q.namedParameters[i].name],
+                  constrainSupertype: !constrainSupertype);
+        }
+        if (isMatch) return true;
+      }
+      _protoConstraints.length = baseConstraintCount;
+    }
+
+    // A generic function type <T0 extends B00, ..., Tn extends B0n>F0 is a
+    // subtype match for a generic function type <S0 extends B10, ..., Sn
+    // extends B1n>F1 with respect to L under constraint set C2
+    //
+    // If B0i is a subtype match for B1i with constraint set Ci0.  And B1i is a
+    // subtype match for B0i with constraint set Ci1.  And Ci2 is Ci0 + Ci1.
+    //
+    // And Z0...Zn are fresh variables with bounds B20, ..., B2n, Where B2i is
+    // B0i[Z0/T0, ..., Zn/Tn] if P is a type schema.  Or B2i is B1i[Z0/S0, ...,
+    // Zn/Sn] if Q is a type schema.  In other words, we choose the bounds for
+    // the fresh variables from whichever of the two generic function types is a
+    // type schema and does not contain any variables from L.
+    //
+    // And F0[Z0/T0, ..., Zn/Tn] is a subtype match for F1[Z0/S0, ..., Zn/Sn]
+    // with respect to L under constraints C0.  And C1 is C02 + ... + Cn2 + C0.
+    // And C2 is C1 with each constraint replaced with its closure with respect
+    // to [Z0, ..., Zn].
+    if (p is FunctionType &&
+        q is FunctionType &&
+        p.typeParameters.isNotEmpty &&
+        q.typeParameters.isNotEmpty &&
+        p.typeParameters.length == q.typeParameters.length) {
+      final int baseConstraintCount = _protoConstraints.length;
+
+      bool isMatch = true;
+      for (int i = 0; isMatch && i < p.typeParameters.length; ++i) {
+        isMatch = isMatch &&
+            _isNullabilityAwareSubtypeMatch(
+                p.typeParameters[i].bound, q.typeParameters[i].bound,
+                constrainSupertype: constrainSupertype) &&
+            _isNullabilityAwareSubtypeMatch(
+                q.typeParameters[i].bound, p.typeParameters[i].bound,
+                constrainSupertype: !constrainSupertype);
+      }
+      if (isMatch) {
+        FreshTypeParameters freshTypeParameters = getFreshTypeParameters(
+            constrainSupertype ? p.typeParameters : q.typeParameters);
+        Substitution substitutionForBound = freshTypeParameters.substitution;
+        FunctionType constrainedType = constrainSupertype ? q : p;
+        Map<TypeParameter, DartType> substitutionMapForConstrainedType = {};
+        for (int i = 0; i < constrainedType.typeParameters.length; ++i) {
+          substitutionMapForConstrainedType[constrainedType.typeParameters[i]] =
+              new TypeParameterType.forAlphaRenaming(
+                  constrainedType.typeParameters[i],
+                  freshTypeParameters.freshTypeParameters[i]);
+        }
+        Substitution substitutionForConstrainedType =
+            Substitution.fromMap(substitutionMapForConstrainedType);
+        Substitution substitutionForP = constrainSupertype
+            ? substitutionForBound
+            : substitutionForConstrainedType;
+        Substitution substitutionForQ = constrainSupertype
+            ? substitutionForConstrainedType
+            : substitutionForBound;
+        if (_isNullabilityAwareSubtypeMatch(
+            substitutionForP.substituteType(p.withoutTypeParameters),
+            substitutionForQ.substituteType(q.withoutTypeParameters),
+            constrainSupertype: constrainSupertype)) {
+          List<_ProtoConstraint> constraints =
+              _protoConstraints.sublist(baseConstraintCount);
+          _protoConstraints.length = baseConstraintCount;
+          _NullabilityAwareTypeVariableEliminator eliminator =
+              new _NullabilityAwareTypeVariableEliminator(
+                  freshTypeParameters.freshTypeParameters.toSet(),
+                  const NeverType(Nullability.nonNullable),
+                  coreTypes.objectNullableRawType,
+                  coreTypes.functionNonNullableRawType);
+          for (_ProtoConstraint constraint in constraints) {
+            if (constraint.isUpper) {
+              _constrainParameterUpper(constraint.parameter,
+                  eliminator.eliminateToLeast(constraint.bound));
+            } else {
+              _constrainParameterLower(constraint.parameter,
+                  eliminator.eliminateToGreatest(constraint.bound));
+            }
+          }
+          return true;
+        }
+      }
+      _protoConstraints.length = baseConstraintCount;
+    }
+
+    return false;
   }
 
   /// Attempts to match [subtype] as a subtype of [supertype], gathering any
@@ -267,7 +883,8 @@ abstract class TypeConstraintGatherer {
   /// In the case where `false` is returned, some bogus constraints may have
   /// been added to [_protoConstraints].  It is the caller's responsibility to
   /// discard them if necessary.
-  bool _isSubtypeMatch(DartType subtype, DartType supertype) {
+  bool _isNullabilityObliviousSubtypeMatch(
+      DartType subtype, DartType supertype) {
     // The unknown type `?` is a subtype match for any type `Q` with no
     // constraints.
     if (subtype is UnknownType) return true;
@@ -278,14 +895,14 @@ abstract class TypeConstraintGatherer {
     // - Under constraint `T <: Q`.
     if (subtype is TypeParameterType &&
         _parametersToConstrain.contains(subtype.parameter)) {
-      _constrainUpper(subtype.parameter, supertype);
+      _constrainParameterUpper(subtype.parameter, supertype);
       return true;
     }
     // A type schema `Q` is a subtype match for a type variable `T` in `L`:
     // - Under constraint `Q <: T`.
     if (supertype is TypeParameterType &&
         _parametersToConstrain.contains(supertype.parameter)) {
-      _constrainLower(supertype.parameter, subtype);
+      _constrainParameterLower(supertype.parameter, subtype);
       return true;
     }
     // Any two equal types `P` and `Q` are subtype matches under no constraints.
@@ -295,17 +912,15 @@ abstract class TypeConstraintGatherer {
     if (identical(subtype, supertype)) return true;
 
     // Handle FutureOr<T> union type.
-    if (subtype is InterfaceType &&
-        identical(subtype.classNode, futureOrClass)) {
-      DartType subtypeArg = subtype.typeArguments[0];
-      if (supertype is InterfaceType &&
-          identical(supertype.classNode, futureOrClass)) {
+    if (subtype is FutureOrType) {
+      DartType subtypeArg = subtype.typeArgument;
+      if (supertype is FutureOrType) {
         // `FutureOr<P>` is a subtype match for `FutureOr<Q>` with respect to
         // `L` under constraints `C`:
         // - If `P` is a subtype match for `Q` with respect to `L` under
         //   constraints `C`.
-        DartType supertypeArg = supertype.typeArguments[0];
-        return _isSubtypeMatch(subtypeArg, supertypeArg);
+        DartType supertypeArg = supertype.typeArgument;
+        return _isNullabilityObliviousSubtypeMatch(subtypeArg, supertypeArg);
       }
 
       // `FutureOr<P>` is a subtype match for `Q` with respect to `L` under
@@ -316,15 +931,13 @@ abstract class TypeConstraintGatherer {
       //   constraints `C1`.
       InterfaceType subtypeFuture =
           futureType(subtypeArg, _currentLibrary.nonNullable);
-      return _isSubtypeMatch(subtypeFuture, supertype) &&
-          _isSubtypeMatch(subtypeArg, supertype) &&
-          new IsSubtypeOf.basedSolelyOnNullabilities(
-                  subtype, supertype, futureOrClass)
+      return _isNullabilityObliviousSubtypeMatch(subtypeFuture, supertype) &&
+          _isNullabilityObliviousSubtypeMatch(subtypeArg, supertype) &&
+          new IsSubtypeOf.basedSolelyOnNullabilities(subtype, supertype)
               .isSubtypeWhenUsingNullabilities();
     }
 
-    if (supertype is InterfaceType &&
-        identical(supertype.classNode, futureOrClass)) {
+    if (supertype is FutureOrType) {
       // `P` is a subtype match for `FutureOr<Q>` with respect to `L` under
       // constraints `C`:
       // - If `P` is a subtype match for `Future<Q>` with respect to `L` under
@@ -346,10 +959,9 @@ abstract class TypeConstraintGatherer {
       // should be united.  Also, computeNullability is used to fetch the
       // nullability of the argument because it can be a FutureOr itself.
       Nullability unitedNullability = uniteNullabilities(
-          computeNullability(supertype.typeArguments[0], futureOrClass),
-          supertype.nullability);
+          supertype.typeArgument.nullability, supertype.nullability);
       DartType supertypeArg =
-          supertype.typeArguments[0].withDeclaredNullability(unitedNullability);
+          supertype.typeArgument.withDeclaredNullability(unitedNullability);
       DartType supertypeFuture = futureType(supertypeArg, unitedNullability);
 
       // The match against FutureOr<X> succeeds if the match against either
@@ -357,10 +969,11 @@ abstract class TypeConstraintGatherer {
       // constraints should be preferred.  If both matches against Future<X> and
       // X add new constraints, the former should be preferred over the latter.
       int oldProtoConstraintsLength = _protoConstraints.length;
-      bool matchesFuture = trySubtypeMatch(subtype, supertypeFuture);
+      bool matchesFuture =
+          _tryNullabilityObliviousSubtypeMatch(subtype, supertypeFuture);
       bool matchesArg = oldProtoConstraintsLength != _protoConstraints.length
           ? false
-          : _isSubtypeMatch(subtype, supertypeArg);
+          : _isNullabilityObliviousSubtypeMatch(subtype, supertypeArg);
       return matchesFuture || matchesArg;
     }
 
@@ -390,15 +1003,16 @@ abstract class TypeConstraintGatherer {
       // type `Q` with respect to `L` under constraints `C`:
       // - If `P` is a subtype match for `Q` with respect to `L` under
       //   constraints `C`.
-      return _isSubtypeMatch(subtype.parameter.bound, supertype);
+      return _isNullabilityObliviousSubtypeMatch(
+          subtype.parameter.bound, supertype);
     }
     if (subtype is InterfaceType && supertype is InterfaceType) {
       return _isInterfaceSubtypeMatch(subtype, supertype);
     }
     if (subtype is FunctionType) {
       if (supertype is InterfaceType) {
-        return identical(supertype.classNode, functionClass) ||
-            identical(supertype.classNode, objectClass);
+        return supertype == coreTypes.functionLegacyRawType ||
+            supertype == coreTypes.objectLegacyRawType;
       } else if (supertype is FunctionType) {
         return _isFunctionSubtypeMatch(subtype, supertype);
       }
@@ -421,7 +1035,7 @@ abstract class TypeConstraintGatherer {
           // S.  However, explicitly tearing off that call method will work and
           // insert an explicit instantiation, so the implicit tear off should
           // work as well.  Figure out how to support this case.
-          return _isSubtypeMatch(callType, supertype);
+          return _isNullabilityObliviousSubtypeMatch(callType, supertype);
         }
       }
     }
@@ -431,7 +1045,7 @@ abstract class TypeConstraintGatherer {
   bool _isTop(DartType type) =>
       type is DynamicType ||
       type is VoidType ||
-      (type is InterfaceType && identical(type.classNode, objectClass));
+      type == coreTypes.objectLegacyRawType;
 
   /// Given two lists of function type formal parameters, checks that their
   /// bounds are compatible.
@@ -461,7 +1075,7 @@ abstract class TypeConstraintGatherer {
       DartType bound1 = substitute(params1[i].bound, substitution1);
       DartType bound2 = substitute(params2[i].bound, substitution2);
       pFresh.bound = bound2;
-      if (!_isSubtypeMatch(bound2, bound1)) return false;
+      if (!_isNullabilityObliviousSubtypeMatch(bound2, bound1)) return false;
     }
     return true;
   }
@@ -475,16 +1089,7 @@ class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
       : super.subclassing(typeParameters, currentLibrary);
 
   @override
-  Class get objectClass => environment.coreTypes.objectClass;
-
-  @override
-  Class get functionClass => environment.coreTypes.functionClass;
-
-  @override
-  Class get futureOrClass => environment.coreTypes.futureOrClass;
-
-  @override
-  Class get nullClass => environment.coreTypes.nullClass;
+  CoreTypes get coreTypes => environment.coreTypes;
 
   @override
   void addUpperBound(
@@ -543,5 +1148,87 @@ class _ProtoConstraint {
     return isUpper
         ? "${parameter.name} <: $bound"
         : "$bound <: ${parameter.name}";
+  }
+}
+
+/// Eliminates specified free type parameters in a type.
+///
+/// The algorithm for elimination of type variables is described in
+/// https://github.com/dart-lang/language/pull/957
+class _NullabilityAwareTypeVariableEliminator extends ReplacementVisitor {
+  final DartType bottomType;
+  final DartType topType;
+  final DartType topFunctionType;
+  final Set<TypeParameter> eliminationTargets;
+  bool isLeastClosure;
+  bool isCovariant = true;
+
+  _NullabilityAwareTypeVariableEliminator(this.eliminationTargets,
+      this.bottomType, this.topType, this.topFunctionType);
+
+  /// Returns a subtype of [type] for all values of [eliminationTargets].
+  DartType eliminateToLeast(DartType type) {
+    isCovariant = true;
+    isLeastClosure = true;
+    return type.accept(this) ?? type;
+  }
+
+  /// Returns a supertype of [type] for all values of [eliminationTargets].
+  DartType eliminateToGreatest(DartType type) {
+    isCovariant = true;
+    isLeastClosure = false;
+    return type.accept(this) ?? type;
+  }
+
+  DartType get typeParameterReplacement {
+    return isLeastClosure && isCovariant || (!isLeastClosure && !isCovariant)
+        ? bottomType
+        : topType;
+  }
+
+  DartType get functionReplacement {
+    return isLeastClosure && isCovariant || (!isLeastClosure && !isCovariant)
+        ? bottomType
+        : topFunctionType;
+  }
+
+  @override
+  void changeVariance() {
+    isCovariant = !isCovariant;
+  }
+
+  @override
+  DartType visitFunctionType(FunctionType node) {
+    // - if `S` is
+    //   `T Function<X0 extends B0, ...., Xk extends Bk>(T0 x0, ...., Tn xn,
+    //       [Tn+1 xn+1, ..., Tm xm])`
+    //   or `T Function<X0 extends B0, ...., Xk extends Bk>(T0 x0, ...., Tn xn,
+    //       {Tn+1 xn+1, ..., Tm xm})`
+    //   and `L` contains any free type variables from any of the `Bi`:
+    //  - The least closure of `S` with respect to `L` is `Never`
+    //  - The greatest closure of `S` with respect to `L` is `Function`
+    if (node.typeParameters.isNotEmpty) {
+      for (TypeParameter typeParameter in node.typeParameters) {
+        if (containsTypeVariable(typeParameter.bound, eliminationTargets,
+            unhandledTypeHandler: (DartType type, ignored) =>
+                type is UnknownType
+                    ? false
+                    : throw new UnsupportedError(
+                        "Unsupported type '${type.runtimeType}'."))) {
+          return functionReplacement;
+        }
+      }
+    }
+    return super.visitFunctionType(node);
+  }
+
+  @override
+  DartType visitTypeParameterType(TypeParameterType node) {
+    if (eliminationTargets.contains(node.parameter)) {
+      return typeParameterReplacement.withDeclaredNullability(
+          uniteNullabilities(
+              typeParameterReplacement.nullability, node.nullability));
+    }
+    return super.visitTypeParameterType(node);
   }
 }

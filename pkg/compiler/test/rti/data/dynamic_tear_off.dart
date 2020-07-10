@@ -4,8 +4,7 @@
 
 // @dart = 2.7
 
-/*spec:nnbd-off|prod:nnbd-off.member: staticMethod:direct,explicit=[staticMethod.T],needsArgs,selectors=[Selector(call, call, arity=1, types=1)]*/
-/*spec:nnbd-sdk|prod:nnbd-sdk.member: staticMethod:direct,explicit=[staticMethod.T*],needsArgs,selectors=[Selector(call, call, arity=1, types=1)]*/
+/*member: staticMethod:direct,explicit=[staticMethod.T*],needsArgs,selectors=[Selector(call, call, arity=1, types=1)]*/
 staticMethod<T>(t) => t is T;
 
 main() {

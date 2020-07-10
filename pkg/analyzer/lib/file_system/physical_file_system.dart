@@ -12,19 +12,15 @@ import 'package:analyzer/src/source/source_resource.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
 
-/**
- * The name of the directory containing plugin specific subfolders used to store
- * data across sessions.
- */
+/// The name of the directory containing plugin specific subfolders used to
+/// store data across sessions.
 const String _SERVER_DIR = ".dartServer";
 
-/**
- * Returns the path to default state location.
- *
- * Generally this is ~/.dartServer. It can be overridden via the
- * ANALYZER_STATE_LOCATION_OVERRIDE environment variable, in which case this
- * method will return the contents of that environment variable.
- */
+/// Returns the path to default state location.
+///
+/// Generally this is ~/.dartServer. It can be overridden via the
+/// ANALYZER_STATE_LOCATION_OVERRIDE environment variable, in which case this
+/// method will return the contents of that environment variable.
 String _getStandardStateLocation() {
   final Map<String, String> env = io.Platform.environment;
   if (env.containsKey('ANALYZER_STATE_LOCATION_OVERRIDE')) {
@@ -37,14 +33,12 @@ String _getStandardStateLocation() {
       : null;
 }
 
-/**
- * Return modification times for every file path in [paths].
- *
- * If a path is `null`, the modification time is also `null`.
- *
- * If any exception happens, the file is considered as a not existing and
- * `-1` is its modification time.
- */
+/// Return modification times for every file path in [paths].
+///
+/// If a path is `null`, the modification time is also `null`.
+///
+/// If any exception happens, the file is considered as a not existing and
+/// `-1` is its modification time.
 List<int> _pathsToTimes(List<String> paths) {
   return paths.map((path) {
     if (path != null) {
@@ -60,9 +54,7 @@ List<int> _pathsToTimes(List<String> paths) {
   }).toList();
 }
 
-/**
- * A `dart:io` based implementation of [ResourceProvider].
- */
+/// A `dart:io` based implementation of [ResourceProvider].
 class PhysicalResourceProvider implements ResourceProvider {
   static final String Function(String) NORMALIZE_EOL_ALWAYS =
       (String string) => string.replaceAll(RegExp('\r\n?'), '\n');
@@ -70,9 +62,7 @@ class PhysicalResourceProvider implements ResourceProvider {
   static final PhysicalResourceProvider INSTANCE =
       PhysicalResourceProvider(null);
 
-  /**
-   * The path to the base folder where state is stored.
-   */
+  /// The path to the base folder where state is stored.
   final String _stateLocation;
 
   PhysicalResourceProvider(String Function(String) fileReadMode,
@@ -124,10 +114,8 @@ class PhysicalResourceProvider implements ResourceProvider {
     return null;
   }
 
-  /**
-   * The file system abstraction supports only absolute and normalized paths.
-   * This method is used to validate any input paths to prevent errors later.
-   */
+  /// The file system abstraction supports only absolute and normalized paths.
+  /// This method is used to validate any input paths to prevent errors later.
   void _ensureAbsoluteAndNormalized(String path) {
     assert(() {
       if (!pathContext.isAbsolute(path)) {
@@ -141,9 +129,7 @@ class PhysicalResourceProvider implements ResourceProvider {
   }
 }
 
-/**
- * A `dart:io` based implementation of [File].
- */
+/// A `dart:io` based implementation of [File].
 class _PhysicalFile extends _PhysicalResource implements File {
   _PhysicalFile(io.File file) : super(file);
 
@@ -168,9 +154,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
     }
   }
 
-  /**
-   * Return the underlying file being represented by this wrapper.
-   */
+  /// Return the underlying file being represented by this wrapper.
   io.File get _file => _entry as io.File;
 
   @override
@@ -251,9 +235,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
   }
 }
 
-/**
- * A `dart:io` based implementation of [Folder].
- */
+/// A `dart:io` based implementation of [Folder].
 class _PhysicalFolder extends _PhysicalResource implements Folder {
   _PhysicalFolder(io.Directory directory) : super(directory);
 
@@ -267,9 +249,7 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
               !error.message
                   .startsWith("Directory watcher closed unexpectedly"));
 
-  /**
-   * Return the underlying file being represented by this wrapper.
-   */
+  /// Return the underlying file being represented by this wrapper.
   io.Directory get _directory => _entry as io.Directory;
 
   @override
@@ -361,9 +341,7 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
   Uri toUri() => Uri.directory(path);
 }
 
-/**
- * A `dart:io` based implementation of [Resource].
- */
+/// A `dart:io` based implementation of [Resource].
 abstract class _PhysicalResource implements Resource {
   final io.FileSystemEntity _entry;
 
@@ -379,7 +357,7 @@ abstract class _PhysicalResource implements Resource {
   }
 
   @override
-  get hashCode => path.hashCode;
+  int get hashCode => path.hashCode;
 
   @override
   Folder get parent {
@@ -393,9 +371,7 @@ abstract class _PhysicalResource implements Resource {
   @override
   String get path => _entry.path;
 
-  /**
-   * Return the path context used by this resource provider.
-   */
+  /// Return the path context used by this resource provider.
   Context get pathContext => io.Platform.isWindows ? windows : posix;
 
   @override
@@ -421,12 +397,10 @@ abstract class _PhysicalResource implements Resource {
   @override
   String toString() => path;
 
-  /**
-   * If the operating system is Windows and the resource references one of the
-   * device drivers, throw a [FileSystemException].
-   *
-   * https://support.microsoft.com/en-us/kb/74496
-   */
+  /// If the operating system is Windows and the resource references one of the
+  /// device drivers, throw a [FileSystemException].
+  ///
+  /// https://support.microsoft.com/en-us/kb/74496
   void _throwIfWindowsDeviceDriver() {
     if (io.Platform.isWindows) {
       String shortName = this.shortName.toUpperCase();

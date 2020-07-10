@@ -9,9 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 /// Abstract IR visitor for computing data corresponding to a node or element,
 /// and record it with a generic [Id]
-/// TODO(paulberry): if I try to extend GeneralizingAstVisitor<void>, the VM
-/// crashes.
-abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
+abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
     with DataRegistry<T> {
   final Uri uri;
 
@@ -23,6 +21,14 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
   NodeId computeDefaultNodeId(AstNode node) =>
       NodeId(_nodeOffset(node), IdKind.node);
 
+  T computeElementValue(Id id, Element element) => null;
+
+  void computeForClass(Declaration node, Id id) {
+    if (id == null) return;
+    T value = computeNodeValue(id, node);
+    registerValue(uri, node.offset, id, value, node);
+  }
+
   void computeForCollectionElement(CollectionElement node, NodeId id) {
     if (id == null) return;
     T value = computeNodeValue(id, node);
@@ -33,12 +39,6 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
     if (id == null) return;
     T value = computeElementValue(id, library);
     registerValue(uri, 0, id, value, library);
-  }
-
-  void computeForClass(Declaration node, Id id) {
-    if (id == null) return;
-    T value = computeNodeValue(id, node);
-    registerValue(uri, node.offset, id, value, node);
   }
 
   void computeForMember(Declaration node, Id id) {
@@ -58,7 +58,10 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
   /// If `null` is returned, [node] has no associated data.
   T computeNodeValue(Id id, AstNode node);
 
-  T computeElementValue(Id id, Element element) => null;
+  Id createClassId(Declaration node) {
+    var element = node.declaredElement;
+    return ClassId(element.name);
+  }
 
   Id createLibraryId(LibraryElement node) {
     Uri uri = node.source.uri;
@@ -67,11 +70,6 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
       uri = Uri(scheme: uri.scheme, path: uri.path.substring(3));
     }
     return LibraryId(uri);
-  }
-
-  Id createClassId(Declaration node) {
-    var element = node.declaredElement;
-    return ClassId(element.name);
   }
 
   Id createMemberId(Declaration node) {
@@ -110,46 +108,46 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
   }
 
   @override
-  visitCompilationUnit(CompilationUnit node) {
-    var library = node.declaredElement.library;
-    computeForLibrary(library, createLibraryId(library));
-    return super.visitCompilationUnit(node);
-  }
-
-  @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     computeForClass(node, createClassId(node));
-    return super.visitClassDeclaration(node);
+    super.visitClassDeclaration(node);
   }
 
   @override
-  visitCollectionElement(CollectionElement node) {
+  void visitCollectionElement(CollectionElement node) {
     computeForCollectionElement(node, computeDefaultNodeId(node));
     super.visitCollectionElement(node);
   }
 
   @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
-    computeForMember(node, createMemberId(node));
-    return super.visitConstructorDeclaration(node);
+  void visitCompilationUnit(CompilationUnit node) {
+    var library = node.declaredElement.library;
+    computeForLibrary(library, createLibraryId(library));
+    super.visitCompilationUnit(node);
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    computeForMember(node, createMemberId(node));
+    super.visitConstructorDeclaration(node);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     if (node.parent is CompilationUnit) {
       computeForMember(node, createMemberId(node));
     }
-    return super.visitFunctionDeclaration(node);
+    super.visitFunctionDeclaration(node);
   }
 
   @override
-  visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     computeForMember(node, createMemberId(node));
-    return super.visitMethodDeclaration(node);
+    super.visitMethodDeclaration(node);
   }
 
   @override
-  visitStatement(Statement node) {
+  void visitStatement(Statement node) {
     computeForStatement(
         node,
         node is ExpressionStatement
@@ -159,13 +157,13 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     if (node.parent.parent is TopLevelVariableDeclaration) {
       computeForMember(node, createMemberId(node));
     } else if (node.parent.parent is FieldDeclaration) {
       computeForMember(node, createMemberId(node));
     }
-    return super.visitVariableDeclaration(node);
+    super.visitVariableDeclaration(node);
   }
 
   int _nodeOffset(AstNode node) {

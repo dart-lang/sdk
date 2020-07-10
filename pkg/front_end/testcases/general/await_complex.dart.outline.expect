@@ -43,27 +43,27 @@ static set topLevelSetter(dynamic val) → void
   ;
 static method dummy() → dynamic
   ;
-static method staticMembers() → dynamic
+static method staticMembers() → dynamic async 
   ;
-static method topLevelMembers() → dynamic
+static method topLevelMembers() → dynamic async 
   ;
-static method instanceMembers() → dynamic
+static method instanceMembers() → dynamic async 
   ;
-static method others() → dynamic
+static method others() → dynamic async 
   ;
-static method conditionals() → dynamic
+static method conditionals() → dynamic async 
   ;
-static method asserts() → dynamic
+static method asserts() → dynamic async 
   ;
-static method controlFlow() → dynamic
+static method controlFlow() → dynamic async 
   ;
-static method future<T extends core::Object* = dynamic>(self::future::T* value) → asy::FutureOr<self::future::T*>*
+static method future<T extends core::Object* = dynamic>(self::future::T* value) → FutureOr<self::future::T*>* async 
   ;
-static method id<T extends core::Object* = dynamic>(self::id::T* value) → asy::FutureOr<self::id::T*>*
+static method id<T extends core::Object* = dynamic>(self::id::T* value) → FutureOr<self::id::T*>*
   ;
-static method intStream() → asy::Stream<core::int*>*
+static method intStream() → asy::Stream<core::int*>* async* 
   ;
-static method main() → dynamic
+static method main() → dynamic async 
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;

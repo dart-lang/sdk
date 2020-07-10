@@ -13,25 +13,22 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
-/**
- * The class `ElementFactory` defines utility methods used to create elements for testing
- * purposes. The elements that are created are complete in the sense that as much of the element
- * model as can be created, given the provided information, has been created.
- */
+/// The class `ElementFactory` defines utility methods used to create elements
+/// for testing purposes. The elements that are created are complete in the
+/// sense that as much of the element model as can be created, given the
+/// provided information, has been created.
 class ElementFactory {
-  /**
-   * The element representing the class 'Object'.
-   */
+  /// The element representing the class 'Object'.
   static ClassElementImpl _objectElement;
   static InterfaceType _objectType;
 
@@ -82,7 +79,8 @@ class ElementFactory {
     return element;
   }
 
-  static classTypeAlias(String typeName, InterfaceType superclassType,
+  static ClassElementImpl classTypeAlias(
+      String typeName, InterfaceType superclassType,
       [List<String> parameterNames]) {
     ClassElementImpl element =
         classElement(typeName, superclassType, parameterNames);
@@ -254,11 +252,9 @@ class ElementFactory {
           Identifier name) =>
       FieldFormalParameterElementImpl(name.name, name.offset);
 
-  /**
-   * Destroy any static state retained by [ElementFactory].  This should be
-   * called from the `setUp` method of any tests that use [ElementFactory], in
-   * order to ensure that state is not shared between multiple tests.
-   */
+  /// Destroy any static state retained by [ElementFactory].  This should be
+  /// called from the `setUp` method of any tests that use [ElementFactory], in
+  /// order to ensure that state is not shared between multiple tests.
   static void flushStaticState() {
     _objectElement = null;
   }

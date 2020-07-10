@@ -17,7 +17,6 @@ namespace dart {
   V(WriteBarrier)                                                              \
   V(WriteBarrierWrappers)                                                      \
   V(ArrayWriteBarrier)                                                         \
-  V(PrintStopMessage)                                                          \
   V(AllocateArray)                                                             \
   V(AllocateMintSharedWithFPURegs)                                             \
   V(AllocateMintSharedWithoutFPURegs)                                          \
@@ -25,6 +24,7 @@ namespace dart {
   V(AllocateObject)                                                            \
   V(AllocateObjectParameterized)                                               \
   V(AllocateObjectSlow)                                                        \
+  V(AllocateUnhandledException)                                                \
   V(CloneContext)                                                              \
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \
@@ -81,6 +81,8 @@ namespace dart {
   V(NullErrorSharedWithoutFPURegs)                                             \
   V(NullArgErrorSharedWithFPURegs)                                             \
   V(NullArgErrorSharedWithoutFPURegs)                                          \
+  V(NullCastErrorSharedWithFPURegs)                                            \
+  V(NullCastErrorSharedWithoutFPURegs)                                         \
   V(RangeErrorSharedWithFPURegs)                                               \
   V(RangeErrorSharedWithoutFPURegs)                                            \
   V(StackOverflowSharedWithFPURegs)                                            \

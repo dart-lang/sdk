@@ -26,10 +26,6 @@ import 'package:yaml/yaml.dart';
 /// and determines whether the associated variable or parameter can be null
 /// then adds or removes a '?' trailing the named type as appropriate.
 class NonNullableFix {
-  /// TODO(paulberry): stop using permissive mode once the migration logic is
-  /// mature enough.
-  static const bool _usePermissiveMode = true;
-
   // TODO(srawlins): Refactor to use
   //  `Feature.non_nullable.firstSupportedVersion` when this becomes non-null.
   static const String _intendedMinimumSdkVersion = '2.9.0';
@@ -42,6 +38,11 @@ class NonNullableFix {
 
   static final List<HttpPreviewServer> _allServers = [];
 
+  /// The internet address the server should bind to.  Should be suitable for
+  /// passing to HttpServer.bind, i.e. either a [String] or an
+  /// [InternetAddress].
+  final Object bindAddress;
+
   final int preferredPort;
 
   final DartFixListener listener;
@@ -53,9 +54,6 @@ class NonNullableFix {
   /// which all included paths share.
   final String includedRoot;
 
-  /// Indicates whether the web preview of migration results should be launched.
-  final bool enablePreview;
-
   /// If non-null, the path to which a machine-readable summary of migration
   /// results should be written.
   final String summaryPath;
@@ -66,10 +64,6 @@ class NonNullableFix {
 
   /// The HTTP server that serves the preview tool.
   HttpPreviewServer _server;
-
-  /// The port on which preview pages should be served, or `null` if no preview
-  /// server should be started.
-  int port;
 
   String authToken;
 
@@ -89,41 +83,40 @@ class NonNullableFix {
   /// A list of the URLs corresponding to the included roots.
   List<String> previewUrls;
 
-  NonNullableFix(this.listener, this.resourceProvider, this._getLineInfo,
-      {List<String> included = const [],
-      this.preferredPort,
-      this.enablePreview = true,
-      this.summaryPath})
+  NonNullableFix(
+      this.listener, this.resourceProvider, this._getLineInfo, this.bindAddress,
+      {List<String> included = const [], this.preferredPort, this.summaryPath})
       : includedRoot =
             _getIncludedRoot(included, listener.server.resourceProvider) {
     reset();
   }
 
-  int get numPhases => 3;
+  bool get isPreviewServerRunning => _server != null;
 
-  Future<void> finish() async {
+  InstrumentationListener createInstrumentationListener(
+          {MigrationSummary migrationSummary}) =>
+      InstrumentationListener(migrationSummary: migrationSummary);
+
+  Future<void> finalizeUnit(ResolvedUnitResult result) async {
+    if (!_packageIsNNBD) {
+      return;
+    }
+    migration.finalizeInput(result);
+  }
+
+  Future<MigrationState> finish() async {
     migration.finish();
     final state = MigrationState(
         migration, includedRoot, listener, instrumentationListener);
     await state.refresh();
+    return state;
+  }
 
-    if (enablePreview && _server == null) {
-      _server = HttpPreviewServer(state, rerun, preferredPort);
-      _server.serveHttp();
-      _allServers.add(_server);
-      port = await _server.boundPort;
-      authToken = await _server.authToken;
-
-      previewUrls = [
-        // TODO(jcollins-g): Change protocol to only return a single string.
-        Uri(
-            scheme: 'http',
-            host: 'localhost',
-            port: port,
-            path: state.pathMapper.map(includedRoot),
-            queryParameters: {'authToken': authToken}).toString()
-      ];
+  Future<void> prepareUnit(ResolvedUnitResult result) async {
+    if (!_packageIsNNBD) {
+      return;
     }
+    migration.prepareInput(result);
   }
 
   /// Processes the non-source files of the package rooted at [pkgFolder].
@@ -159,23 +152,11 @@ class NonNullableFix {
     }
   }
 
-  Future<void> processUnit(int phase, ResolvedUnitResult result) async {
+  Future<void> processUnit(ResolvedUnitResult result) async {
     if (!_packageIsNNBD) {
       return;
     }
-    switch (phase) {
-      case 0:
-        migration.prepareInput(result);
-        break;
-      case 1:
-        migration.processInput(result);
-        break;
-      case 2:
-        migration.finalizeInput(result);
-        break;
-      default:
-        throw ArgumentError('Unsupported phase $phase');
-    }
+    migration.processInput(result);
   }
 
   Future<MigrationState> rerun() async {
@@ -188,18 +169,39 @@ class NonNullableFix {
   }
 
   void reset() {
-    instrumentationListener = InstrumentationListener(
+    instrumentationListener = createInstrumentationListener(
         migrationSummary: summaryPath == null
             ? null
             : MigrationSummary(summaryPath, resourceProvider, includedRoot));
     adapter = NullabilityMigrationAdapter(listener);
     migration = NullabilityMigration(adapter, _getLineInfo,
-        permissive: _usePermissiveMode,
-        instrumentation: instrumentationListener);
+        permissive: true, instrumentation: instrumentationListener);
   }
 
   void shutdownServer() {
     _server?.close();
+    _server = null;
+  }
+
+  Future<void> startPreviewServer(MigrationState state) async {
+    if (_server == null) {
+      _server = HttpPreviewServer(state, rerun, bindAddress, preferredPort);
+      _server.serveHttp();
+      _allServers.add(_server);
+      var serverHostname = await _server.boundHostname;
+      var serverPort = await _server.boundPort;
+      authToken = await _server.authToken;
+
+      previewUrls = [
+        // TODO(jcollins-g): Change protocol to only return a single string.
+        Uri(
+            scheme: 'http',
+            host: serverHostname,
+            port: serverPort,
+            path: state.pathMapper.map(includedRoot),
+            queryParameters: {'authToken': authToken}).toString()
+      ];
+    }
   }
 
   /// Updates the Package Config file to specify a minimum Dart SDK version
@@ -444,7 +446,7 @@ class NullabilityMigrationAdapter implements NullabilityMigrationListener {
   @override
   void reportException(
       Source source, AstNode node, Object exception, StackTrace stackTrace) {
-    listener.addDetail('''
+    listener.reportException('''
 $exception
 
 $stackTrace''');

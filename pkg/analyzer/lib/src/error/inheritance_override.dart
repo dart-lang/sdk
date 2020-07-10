@@ -13,11 +13,11 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
-import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
-import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:meta/meta.dart';
 
 class InheritanceOverrideVerifier {
@@ -174,6 +174,11 @@ class _ClassVerifier {
           _checkDeclaredMember(field.name, libraryUri, fieldElement.setter);
         }
       } else if (member is MethodDeclaration) {
+        var hasError = _reportNoCombinedSuperSignature(member);
+        if (hasError) {
+          continue;
+        }
+
         _checkDeclaredMember(member.name, libraryUri, member.declaredElement,
             methodParameterNodes: member.parameters?.parameters);
       }
@@ -698,6 +703,26 @@ class _ClassVerifier {
         ],
       );
     }
+  }
+
+  bool _reportNoCombinedSuperSignature(MethodDeclaration node) {
+    var element = node.declaredElement;
+    if (element is MethodElementImpl) {
+      var inferenceError = element.typeInferenceError;
+      if (inferenceError?.kind ==
+          TopLevelInferenceErrorKind.overrideNoCombinedSuperSignature) {
+        reporter.reportErrorForNode(
+          CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE,
+          node.name,
+          [
+            classElement.name,
+            inferenceError.arguments[0],
+          ],
+        );
+        return true;
+      }
+    }
+    return false;
   }
 
   static bool _constantValuesEqual(DartObject x, DartObject y) {

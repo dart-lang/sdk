@@ -671,6 +671,8 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
                                    nullability, TokenPosition::kNoSource);
     parameter.set_index(offset + i);
     parameter.SetIsFinalized();
+    parameter.SetCanonical();
+    parameter.SetDeclaration(true);
     type_parameters.SetTypeAt(i, parameter);
   }
 
@@ -909,14 +911,12 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
       case ConstantPoolTag::kDynamicCall: {
         name ^= ReadObject();
         ASSERT(name.IsSymbol());
-        // Do not mangle == or call:
+        // Do not mangle ==:
         //   * operator == takes an Object so it is either not checked or
         //     checked at the entry because the parameter is marked covariant,
-        //     neither of those cases require a dynamic invocation forwarder;
-        //   * we assume that all closures are entered in a checked way.
+        //     neither of those cases require a dynamic invocation forwarder
         if (!Field::IsGetterName(name) &&
-            (name.raw() != Symbols::EqualOperator().raw()) &&
-            (name.raw() != Symbols::Call().raw())) {
+            (name.raw() != Symbols::EqualOperator().raw())) {
           name = Function::CreateDynamicInvocationForwarderName(name);
         }
         // DynamicCall constant occupies 2 entries: selector and arguments

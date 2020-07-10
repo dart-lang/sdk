@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // part of "core_patch.dart";
 
 @patch
@@ -16,7 +14,7 @@ class RegExp {
       bool dotAll: false}) {
     _RegExpHashKey key =
         new _RegExpHashKey(source, multiLine, caseSensitive, unicode, dotAll);
-    _RegExpHashValue value = _cache[key];
+    _RegExpHashValue? value = _cache[key];
 
     if (value == null) {
       if (_cache.length > _MAX_CACHE_SIZE) {
@@ -163,7 +161,7 @@ class _RegExpMatch implements RegExpMatch {
     return _match[(groupIdx * _MATCH_PAIR) + 1];
   }
 
-  String group(int groupIdx) {
+  String? group(int groupIdx) {
     if (groupIdx < 0 || groupIdx > _regexp._groupCount) {
       throw new RangeError.value(groupIdx);
     }
@@ -176,12 +174,12 @@ class _RegExpMatch implements RegExpMatch {
     return input._substringUnchecked(startIndex, endIndex);
   }
 
-  String operator [](int groupIdx) {
+  String? operator [](int groupIdx) {
     return this.group(groupIdx);
   }
 
-  List<String> groups(List<int> groupsSpec) {
-    var groupsList = new List<String>(groupsSpec.length);
+  List<String?> groups(List<int> groupsSpec) {
+    var groupsList = new List<String?>.filled(groupsSpec.length, null);
     for (int i = 0; i < groupsSpec.length; i++) {
       groupsList[i] = group(groupsSpec[i]);
     }
@@ -192,7 +190,7 @@ class _RegExpMatch implements RegExpMatch {
 
   Pattern get pattern => _regexp;
 
-  String namedGroup(String name) {
+  String? namedGroup(String name) {
     var idx = _regexp._groupNameIndex(name);
     if (idx < 0) {
       throw ArgumentError("Not a capture group name: ${name}");
@@ -218,9 +216,10 @@ class _RegExp implements RegExp {
       bool unicode: false,
       bool dotAll: false}) native "RegExp_factory";
 
-  RegExpMatch firstMatch(String input) {
+  RegExpMatch? firstMatch(String input) {
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
     if (input == null) throw new ArgumentError.notNull('input');
-    List match = _ExecuteMatch(input, 0);
+    final match = _ExecuteMatch(input, 0);
     if (match == null) {
       return null;
     }
@@ -228,7 +227,8 @@ class _RegExp implements RegExp {
   }
 
   Iterable<RegExpMatch> allMatches(String string, [int start = 0]) {
-    if (string == null) throw new ArgumentError.notNull('input');
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
+    if (string == null) throw new ArgumentError.notNull('string');
     if (start == null) throw new ArgumentError.notNull('start');
     if (0 > start || start > string.length) {
       throw new RangeError.range(start, 0, string.length);
@@ -236,26 +236,29 @@ class _RegExp implements RegExp {
     return new _AllMatchesIterable(this, string, start);
   }
 
-  RegExpMatch matchAsPrefix(String string, [int start = 0]) {
+  RegExpMatch? matchAsPrefix(String string, [int start = 0]) {
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
     if (string == null) throw new ArgumentError.notNull('string');
     if (start == null) throw new ArgumentError.notNull('start');
     if (start < 0 || start > string.length) {
       throw new RangeError.range(start, 0, string.length);
     }
-    List list = _ExecuteMatchSticky(string, start);
+    final list = _ExecuteMatchSticky(string, start);
     if (list == null) return null;
     return new _RegExpMatch._(this, string, list);
   }
 
   bool hasMatch(String input) {
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
     if (input == null) throw new ArgumentError.notNull('input');
-    List match = _ExecuteMatch(input, 0);
+    List? match = _ExecuteMatch(input, 0);
     return (match == null) ? false : true;
   }
 
-  String stringMatch(String input) {
+  String? stringMatch(String input) {
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
     if (input == null) throw new ArgumentError.notNull('input');
-    List match = _ExecuteMatch(input, 0);
+    List? match = _ExecuteMatch(input, 0);
     if (match == null) {
       return null;
     }
@@ -281,7 +284,7 @@ class _RegExp implements RegExp {
   /// [String] is the name of a capture group and the following
   /// [int] is that capture group's index.
   /// Returns `null` if there are no group names.
-  List get _groupNameList native "RegExp_getGroupNameMap";
+  List? get _groupNameList native "RegExp_getGroupNameMap";
 
   Iterable<String> get _groupNames sync* {
     final nameList = _groupNameList;
@@ -347,9 +350,10 @@ class _RegExp implements RegExp {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   ];
 
-  List _ExecuteMatch(String str, int start_index) native "RegExp_ExecuteMatch";
+  List<int>? _ExecuteMatch(String str, int start_index)
+      native "RegExp_ExecuteMatch";
 
-  List _ExecuteMatchSticky(String str, int start_index)
+  List<int>? _ExecuteMatchSticky(String str, int start_index)
       native "RegExp_ExecuteMatchSticky";
 }
 
@@ -367,12 +371,12 @@ class _AllMatchesIterable extends IterableBase<RegExpMatch> {
 class _AllMatchesIterator implements Iterator<RegExpMatch> {
   final String _str;
   int _nextIndex;
-  _RegExp _re;
-  RegExpMatch _current;
+  _RegExp? _re;
+  RegExpMatch? _current;
 
   _AllMatchesIterator(this._re, this._str, this._nextIndex);
 
-  RegExpMatch get current => _current;
+  RegExpMatch get current => _current!;
 
   static bool _isLeadSurrogate(int c) {
     return c >= 0xd800 && c <= 0xdbff;
@@ -383,17 +387,19 @@ class _AllMatchesIterator implements Iterator<RegExpMatch> {
   }
 
   bool moveNext() {
-    if (_re == null) return false; // Cleared after a failed match.
+    final re = _re;
+    if (re == null) return false; // Cleared after a failed match.
     if (_nextIndex <= _str.length) {
-      var match = _re._ExecuteMatch(_str, _nextIndex);
+      final match = re._ExecuteMatch(_str, _nextIndex);
       if (match != null) {
-        _current = new _RegExpMatch._(_re, _str, match);
-        _nextIndex = _current.end;
-        if (_nextIndex == _current.start) {
+        var current = new _RegExpMatch._(re, _str, match);
+        _current = current;
+        _nextIndex = current.end;
+        if (_nextIndex == current.start) {
           // Zero-width match. Advance by one more, unless the regexp
           // is in unicode mode and it would put us within a surrogate
           // pair. In that case, advance past the code point as a whole.
-          if (_re.isUnicode &&
+          if (re.isUnicode &&
               _nextIndex + 1 < _str.length &&
               _isLeadSurrogate(_str.codeUnitAt(_nextIndex)) &&
               _isTrailSurrogate(_str.codeUnitAt(_nextIndex + 1))) {

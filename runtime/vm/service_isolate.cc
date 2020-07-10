@@ -110,7 +110,7 @@ void ServiceIsolate::SetServerAddress(const char* address) {
   if (address == NULL) {
     return;
   }
-  server_address_ = strdup(address);
+  server_address_ = Utils::StrDup(address);
 }
 
 bool ServiceIsolate::NameEquals(const char* name) {
@@ -192,10 +192,10 @@ bool ServiceIsolate::SendServiceRpc(uint8_t* request_json,
                              "Service isolate failed to start up: %s.",
                              startup_failure_reason_);
       } else {
-        *error = strdup("No service isolate port was found.");
+        *error = Utils::StrDup("No service isolate port was found.");
       }
     } else {
-      *error = strdup("Was unable to post message to service isolate.");
+      *error = Utils::StrDup("Was unable to post message to service isolate.");
     }
   }
 
@@ -488,7 +488,7 @@ void ServiceIsolate::Run() {
   create_group_callback_ = Isolate::CreateGroupCallback();
   if (create_group_callback_ == NULL) {
     ServiceIsolate::InitializingFailed(
-        strdup("The 'create_group' callback was not provided"));
+        Utils::StrDup("The 'create_group' callback was not provided"));
     return;
   }
   bool task_started = Dart::thread_pool()->Run<RunServiceTask>();

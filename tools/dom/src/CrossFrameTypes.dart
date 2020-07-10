@@ -61,7 +61,7 @@ abstract class WindowBase implements EventTarget {
    *     WindowBase otherWindow = thisWindow.open('http://www.example.com/', 'foo');
    *     print(otherWindow.opener == thisWindow); // 'true'
    */
-  WindowBase get opener;
+  WindowBase? get opener;
 
   /**
    * A reference to the parent of this window.
@@ -75,7 +75,7 @@ abstract class WindowBase implements EventTarget {
    *
    *     print(window.parent == window) // 'true'
    */
-  WindowBase get parent;
+  WindowBase? get parent;
 
   /**
    * A reference to the topmost window in the window hierarchy.
@@ -96,7 +96,7 @@ abstract class WindowBase implements EventTarget {
    *
    *     print(window.top == window) // 'true'
    */
-  WindowBase get top;
+  WindowBase? get top;
 
   // Methods.
   /**
@@ -142,7 +142,7 @@ abstract class WindowBase implements EventTarget {
    *   from WHATWG.
    */
   void postMessage(var message, String targetOrigin,
-      [List<MessagePort> messagePorts]);
+      [List<MessagePort>? messagePorts]);
 }
 
 abstract class LocationBase {

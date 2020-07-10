@@ -53,12 +53,14 @@ arises
 arising
 arity
 artifact
+artifacts
 artificial
 asgerf
 askesc
 aspx
 assigning
 assigns
+association
 ast
 asy
 async
@@ -73,11 +75,14 @@ awaiting
 b
 b0i
 b0m
+b0n
 b1i
 b1m
+b1n
 b23d3b125e9d246e07a2b43b61740759a0dace
 b2i
 b2m
+b2n
 backping
 badly
 bang
@@ -105,6 +110,7 @@ binds
 bit1
 bit2
 bj
+bk
 blob
 blocking
 bmp
@@ -178,6 +184,7 @@ class6a
 class6b
 clazz
 cli
+clock
 cls
 cn
 cnt
@@ -226,6 +233,7 @@ core
 core's
 corelib
 corrected
+corrections
 cosmetic
 counters
 cr
@@ -237,6 +245,7 @@ cryptic
 crypto
 csslib
 ctx
+customized
 cut
 cwd
 cyclically
@@ -305,6 +314,7 @@ disallow
 disambiguator
 disjoint
 dispatched
+distribute
 divided
 dmitryas
 doc
@@ -317,6 +327,7 @@ downloaded
 downloading
 dq
 dquote
+dsdk
 dst
 dummy
 dupdate
@@ -340,6 +351,7 @@ emits
 emitted
 emitting
 en
+encapsulation
 enforce
 enforced
 enforces
@@ -409,6 +421,7 @@ fn
 fo
 foo
 foobar
+foreign
 formed
 former
 fortunately
@@ -423,14 +436,17 @@ fuller
 function's
 fuse
 futured
+futureor
 g
 gardening
+gen
 generation
 gets
 getter1a
 getter1b
 getting
 gft
+git
 github
 glb
 glob
@@ -603,6 +619,7 @@ mangled
 manipulation
 markdown
 masking
+master
 matcher
 mb
 md
@@ -878,9 +895,11 @@ remedy
 removal
 remover
 reparse
+repeating
 replacements
 replacer
 replaces
+replicated
 repo
 repositories
 requirement
@@ -960,6 +979,7 @@ size
 sizes
 sj
 sk
+sky
 slash
 slb
 slots
@@ -1156,6 +1176,7 @@ universally
 unlinked
 unlower
 unmark
+unneeded
 unordered
 unpaired
 unparsed
@@ -1173,6 +1194,7 @@ url
 urls
 usage
 usr
+usual
 usually
 utf16
 utf8
@@ -1186,6 +1208,7 @@ variant
 variants
 vary
 vb
+vector
 vegorov
 versa
 vice
@@ -1259,6 +1282,7 @@ xdc
 xdfff
 xef
 xi
+xk
 xm
 xn
 xnon

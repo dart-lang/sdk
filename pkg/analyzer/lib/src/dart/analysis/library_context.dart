@@ -31,15 +31,14 @@ var timerInputLibraries = Stopwatch();
 var timerLinking = Stopwatch();
 var timerLoad2 = Stopwatch();
 
-/**
- * Context information necessary to analyze one or more libraries within an
- * [AnalysisDriver].
- *
- * Currently this is implemented as a wrapper around [AnalysisContext].
- */
+/// Context information necessary to analyze one or more libraries within an
+/// [AnalysisDriver].
+///
+/// Currently this is implemented as a wrapper around [AnalysisContext].
 class LibraryContext {
   static const _maxLinkedDataInBytes = 64 * 1024 * 1024;
 
+  final LibraryContextTestView testView;
   final PerformanceLog logger;
   final ByteStore byteStore;
   final AnalysisSessionImpl analysisSession;
@@ -57,6 +56,7 @@ class LibraryContext {
   Set<LibraryCycle> loadedBundles = Set<LibraryCycle>.identity();
 
   LibraryContext({
+    @required this.testView,
     @required AnalysisSessionImpl session,
     @required PerformanceLog logger,
     @required ByteStore byteStore,
@@ -76,9 +76,7 @@ class LibraryContext {
     load2(targetLibrary);
   }
 
-  /**
-   * Computes a [CompilationUnitElement] for the given library/unit pair.
-   */
+  /// Computes a [CompilationUnitElement] for the given library/unit pair.
   CompilationUnitElement computeUnitElement(FileState library, FileState unit) {
     var reference = elementFactory.rootReference
         .getChild(library.uriStr)
@@ -87,16 +85,12 @@ class LibraryContext {
     return elementFactory.elementOfReference(reference);
   }
 
-  /**
-   * Get the [LibraryElement] for the given library.
-   */
+  /// Get the [LibraryElement] for the given library.
   LibraryElement getLibraryElement(FileState library) {
     return elementFactory.libraryOfUri(library.uriStr);
   }
 
-  /**
-   * Return `true` if the given [uri] is known to be a library.
-   */
+  /// Return `true` if the given [uri] is known to be a library.
   bool isLibraryUri(Uri uri) {
     String uriStr = uri.toString();
     return elementFactory.isLibraryUri(uriStr);
@@ -127,6 +121,10 @@ class LibraryContext {
 
       if (bytes == null) {
         librariesLinkedTimer.start();
+
+        testView.linkedCycles.add(
+          cycle.libraries.map((e) => e.path).toSet(),
+        );
 
         timerInputLibraries.start();
         inputsTimer.start();
@@ -318,6 +316,10 @@ class LibraryContext {
     }
     throw LibraryCycleLinkException(exception, stackTrace, fileContentMap);
   }
+}
+
+class LibraryContextTestView {
+  final List<Set<String>> linkedCycles = [];
 }
 
 /// TODO(scheglov) replace in the internal patch

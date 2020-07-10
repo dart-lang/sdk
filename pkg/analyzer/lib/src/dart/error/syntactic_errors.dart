@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// It is hard to visually separate each code's _doc comment_ from its published
+// _documentation comment_ when each is written as an end-of-line comment.
+// ignore_for_file: slash_for_doc_comments
+
 /**
  * The errors produced during syntactic analysis (scanning and parsing).
  */

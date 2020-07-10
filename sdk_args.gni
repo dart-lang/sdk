@@ -5,12 +5,6 @@
 _dart_root = get_path_info(".", "abspath")
 
 declare_args() {
-  # Whether to build a Legacy SDK using Legacy core libraries.
-  # TODO(38701): Remove dont_use_nnbd once the NNBD SDK is stable/performant
-  # and there is no need to build a legacy version of the SDK for comparison
-  # purposes.
-  dont_use_nnbd = false
-
   # Absolute path to the .git folder.
   #
   # This is used in rules that need to refer to `.git/logs/HEAD` to include
@@ -25,4 +19,22 @@ declare_args() {
   # to out/ReleaseX64/args.gn. The path above can be extracted from the `.git`
   # file under the git worktree folder.
   default_git_folder = "$_dart_root/.git"
+
+  # Whether to enable the SDK hash check that will prevent loading a kernel
+  # into a VM which was built with a different SDK.
+  verify_sdk_hash = true
+}
+
+# The SDK hash to build into VM and kernels.
+# The value 0000000000 signifies no hash is set, which will disable the check.
+if (verify_sdk_hash) {
+  sdk_hash = exec_script("$_dart_root/tools/make_version.py",
+                         [ "--format={{GIT_HASH}}" ],
+                         "trim string",
+                         [
+                           "$_dart_root/tools/VERSION",
+                           "$_dart_root/tools/utils.py",
+                         ])
+} else {
+  sdk_hash = "0000000000"
 }

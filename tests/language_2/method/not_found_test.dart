@@ -13,7 +13,7 @@ class A {
   // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
   // [cfe] Method not found: 'B'.
   //                         ^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   // [cfe] Can't access 'this' in a field initializer to read 'B'.
 }
 

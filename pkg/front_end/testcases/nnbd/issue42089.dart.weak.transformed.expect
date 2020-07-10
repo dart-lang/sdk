@@ -1,0 +1,30 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue42089.dart:7:16: Error: A value of type 'X?' can't be assigned to a variable of type 'Object'.
+//  - 'Object' is from 'dart:core'.
+//     Object o = x;
+//                ^
+//
+// pkg/front_end/testcases/nnbd/issue42089.dart:8:9: Error: A value of type 'X?' can't be assigned to a variable of type 'Object'.
+//  - 'Object' is from 'dart:core'.
+//     o = x;
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test<X extends core::Object? = dynamic>(self::test::X? x) → dynamic {
+  if(x is{ForNonNullableByDefault} core::String?) {
+    core::Object o = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue42089.dart:7:16: Error: A value of type 'X?' can't be assigned to a variable of type 'Object'.
+ - 'Object' is from 'dart:core'.
+    Object o = x;
+               ^" in x{self::test::X? & core::String? /* '?' & '?' = '?' */};
+    o = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/issue42089.dart:8:9: Error: A value of type 'X?' can't be assigned to a variable of type 'Object'.
+ - 'Object' is from 'dart:core'.
+    o = x;
+        ^" in x{self::test::X? & core::String? /* '?' & '?' = '?' */};
+  }
+}
+static method main() → dynamic {}

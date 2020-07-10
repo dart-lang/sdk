@@ -99,7 +99,7 @@ static Dart_Handle CreateRuntimeOptions(CommandLineOptions* options) {
 }
 
 #define SAVE_ERROR_AND_EXIT(result)                                            \
-  *error = strdup(Dart_GetError(result));                                      \
+  *error = Utils::StrDup(Dart_GetError(result));                               \
   if (Dart_IsCompilationError(result)) {                                       \
     *exit_code = kCompilationErrorExitCode;                                    \
   } else if (Dart_IsApiError(result)) {                                        \
@@ -278,7 +278,7 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
   return *error == nullptr;
 
 failed:
-  *error = strdup(Dart_GetError(result));
+  *error = Utils::StrDup(Dart_GetError(result));
   Dart_ExitScope();
   return false;
 }
@@ -368,7 +368,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
           &resolved_script_uri);
       CHECK_RESULT(result);
       ASSERT(app_script_uri == NULL);
-      app_script_uri = strdup(resolved_script_uri);
+      app_script_uri = Utils::StrDup(resolved_script_uri);
     }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   } else {
@@ -515,16 +515,20 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
                                                  char** error,
                                                  int* exit_code) {
 #if !defined(PRODUCT)
-  ASSERT(script_uri != NULL);
-  Dart_Isolate isolate = NULL;
+  ASSERT(script_uri != nullptr);
+  Dart_Isolate isolate = nullptr;
   auto isolate_group_data =
       new IsolateGroupData(script_uri, packages_config, nullptr, false);
+  ASSERT(flags != nullptr);
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   // AOT: All isolates start from the app snapshot.
   const uint8_t* isolate_snapshot_data = app_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       app_isolate_snapshot_instructions;
+  flags->null_safety =
+      Dart_DetectNullSafety(nullptr, nullptr, nullptr, isolate_snapshot_data,
+                            isolate_snapshot_instructions, nullptr, -1);
   isolate = Dart_CreateIsolateGroup(
       script_uri, DART_VM_SERVICE_ISOLATE_NAME, isolate_snapshot_data,
       isolate_snapshot_instructions, flags, isolate_group_data,
@@ -533,7 +537,6 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   // JIT: Service isolate uses the core libraries snapshot.
 
   // Set flag to load and retain the vmservice library.
-  ASSERT(flags != NULL);
   flags->load_vmservice_library = true;
   const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
@@ -559,7 +562,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
           Options::vm_service_dev_mode(), Options::vm_service_auth_disabled(),
           Options::vm_write_service_info_filename(), Options::trace_loading(),
           Options::deterministic(), Options::enable_service_port_fallback())) {
-    *error = strdup(VmService::GetErrorMessage());
+    *error = Utils::StrDup(VmService::GetErrorMessage());
     return NULL;
   }
   if (Options::compile_all()) {
@@ -599,6 +602,9 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   const uint8_t* isolate_snapshot_data = app_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       app_isolate_snapshot_instructions;
+  flags->null_safety =
+      Dart_DetectNullSafety(nullptr, nullptr, nullptr, isolate_snapshot_data,
+                            isolate_snapshot_instructions, nullptr, -1);
 #else
   // JIT: Main isolate starts from the app snapshot, if any. Other isolates
   // use the core libraries snapshot.
@@ -635,6 +641,13 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   if (kernel_buffer == NULL && !isolate_run_app_snapshot) {
     dfe.ReadScript(script_uri, &kernel_buffer, &kernel_buffer_size);
   }
+  PathSanitizer script_uri_sanitizer(script_uri);
+  PathSanitizer packages_config_sanitizer(packages_config);
+  flags->null_safety = Dart_DetectNullSafety(
+      script_uri_sanitizer.sanitized_uri(),
+      packages_config_sanitizer.sanitized_uri(),
+      DartUtils::original_working_directory, isolate_snapshot_data,
+      isolate_snapshot_instructions, kernel_buffer, kernel_buffer_size);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   auto isolate_group_data = new IsolateGroupData(
@@ -837,12 +850,6 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   int exit_code = 0;
   Dart_IsolateFlags flags;
   Dart_IsolateFlagsInitialize(&flags);
-
-  if (Options::package_root() != nullptr) {
-    Syslog::PrintErr(
-        "Warning: The --package-root option is deprecated (was: %s)\n",
-        Options::package_root());
-  }
 
   Dart_Isolate isolate = CreateIsolateGroupAndSetupHelper(
       is_main_isolate, script_name, "main", Options::packages_file(), &flags,

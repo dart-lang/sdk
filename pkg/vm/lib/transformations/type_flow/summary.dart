@@ -192,7 +192,7 @@ class Join extends Statement {
   void accept(StatementVisitor visitor) => visitor.visitJoin(this);
 
   @override
-  String dump() => "$label = _Join [${staticType.toTypeText(verbose: true)}]"
+  String dump() => "$label = _Join [${nodeToText(staticType)}]"
       " (${values.join(", ")})";
 
   @override
@@ -372,8 +372,8 @@ class Extract extends Statement {
   void accept(StatementVisitor visitor) => visitor.visitExtract(this);
 
   @override
-  String dump() =>
-      "$label = _Extract ($arg[$referenceClass/$paramIndex]${nullability.suffix})";
+  String dump() => "$label = _Extract ($arg[${nodeToText(referenceClass)}"
+      "/$paramIndex]${nullability.suffix})";
 
   @override
   Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
@@ -480,7 +480,7 @@ class CreateRuntimeType extends Statement {
   void accept(StatementVisitor visitor) => visitor.visitCreateRuntimeType(this);
 
   @override
-  String dump() => "$label = _CreateRuntimeType ($klass @ "
+  String dump() => "$label = _CreateRuntimeType (${nodeToText(klass)} @ "
       "${flattenedTypeArgs.take(klass.typeParameters.length)}"
       "${nullability.suffix})";
 
@@ -494,7 +494,13 @@ class CreateRuntimeType extends Statement {
       if (computed is UnknownType) return const UnknownType();
       types[i] = computed;
     }
-    return new RuntimeType(new InterfaceType(klass, nullability), types);
+    DartType dartType;
+    if (klass == typeHierarchy.coreTypes.deprecatedFutureOrClass) {
+      dartType = new FutureOrType(const DynamicType(), nullability);
+    } else {
+      dartType = new InterfaceType(klass, nullability);
+    }
+    return new RuntimeType(dartType, types);
   }
 }
 
@@ -535,7 +541,7 @@ class TypeCheck extends Statement {
   @override
   String dump() {
     String result = "$label = _TypeCheck ($arg against $type)";
-    result += " (for ${node})";
+    result += " (for ${nodeToText(node)})";
     return result;
   }
 

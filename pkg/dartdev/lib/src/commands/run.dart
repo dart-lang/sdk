@@ -11,12 +11,17 @@ import 'package:dds/dds.dart';
 import 'package:path/path.dart';
 
 import '../core.dart';
+import '../experiments.dart';
 import '../sdk.dart';
 import '../utils.dart';
 
 class RunCommand extends DartdevCommand<int> {
+  @override
   final ArgParser argParser = ArgParser.allowAnything();
+
+  @override
   final bool verbose;
+
   RunCommand({this.verbose = false}) : super('run', '''
 Run a Dart file.''');
 
@@ -53,7 +58,7 @@ Run a Dart file.''');
   @override
   FutureOr<int> run() async {
     // The command line arguments after 'run'
-    final args = argResults.arguments.toList();
+    var args = argResults.arguments.toList();
 
     var argsContainFileOrHelp = false;
     for (var arg in args) {
@@ -68,6 +73,7 @@ Run a Dart file.''');
     }
 
     final cwd = Directory.current;
+
     if (!argsContainFileOrHelp && cwd.existsSync()) {
       var foundImplicitFileToRun = false;
       var cwdName = cwd.name;
@@ -88,10 +94,22 @@ Run a Dart file.''');
           break;
         }
       }
+
       if (!foundImplicitFileToRun) {
         log.stderr(
-            'Could not find the implicit file to run: bin$separator$cwdName.dart.');
+          'Could not find the implicit file to run: '
+          'bin$separator$cwdName.dart.',
+        );
       }
+    }
+
+    // Pass any --enable-experiment options along.
+    if (args.isNotEmpty && wereExperimentsSpecified) {
+      List<String> experimentIds = specifiedExperiments;
+      args = [
+        '--$experimentFlagName=${experimentIds.join(',')}',
+        ...args,
+      ];
     }
 
     // If the user wants to start a debugging session we need to do some extra
@@ -99,17 +117,18 @@ Run a Dart file.''');
     // service intermediary which implements the VM service protocol and
     // provides non-VM specific extensions (e.g., log caching, client
     // synchronization).
-    if (args.any((element) => (element.startsWith('--observe') ||
-        element.startsWith('--enable-vm-service')))) {
+    if (args.any((element) =>
+        element.startsWith('--observe') ||
+        element.startsWith('--enable-vm-service'))) {
       return await _DebuggingSession(this, args).start();
+    } else {
+      // Starting in ProcessStartMode.inheritStdio mode means the child process
+      // can detect support for ansi chars.
+      final process = await Process.start(
+          sdk.dart, ['--disable-dart-dev', ...args],
+          mode: ProcessStartMode.inheritStdio);
+      return process.exitCode;
     }
-
-    // Starting in ProcessStartMode.inheritStdio mode means the child process
-    // can detect support for ansi chars.
-    final process = await Process.start(
-        sdk.dart, ['--disable-dart-dev', ...args],
-        mode: ProcessStartMode.inheritStdio);
-    return process.exitCode;
   }
 }
 
@@ -137,8 +156,8 @@ class _DebuggingSession {
             try {
               _bindAddress = Uri.http(observatoryBindInfo[1], '');
             } on FormatException {
-              // TODO(bkonyi): log invalid parse? The VM service just ignores bad
-              // input flags.
+              // TODO(bkonyi): log invalid parse? The VM service just ignores
+              // bad input flags.
               // Ignore.
             }
           }
@@ -165,9 +184,10 @@ class _DebuggingSession {
     // Strip --observe and --write-service-info from the arguments as we'll be
     // providing our own.
     _args.removeWhere(
-      (arg) => (arg.startsWith('--observe') ||
+      (arg) =>
+          arg.startsWith('--observe') ||
           arg.startsWith('--enable-vm-service') ||
-          arg.startsWith('--write-service-info')),
+          arg.startsWith('--write-service-info'),
     );
   }
 
@@ -195,8 +215,7 @@ class _DebuggingSession {
 
     // Start DDS once the VM service has finished starting up.
     await Future.any([
-      _waitForRemoteServiceUri(serviceInfoFile)
-          .then((serviceUri) => _startDDS(serviceUri)),
+      _waitForRemoteServiceUri(serviceInfoFile).then(_startDDS),
       _process.exitCode,
     ]);
 
@@ -214,7 +233,7 @@ class _DebuggingSession {
 
   Future<Uri> _waitForRemoteServiceUri(File serviceInfoFile) async {
     // Wait for VM service to write its connection info to disk.
-    while ((await serviceInfoFile.length() <= 5)) {
+    while (await serviceInfoFile.length() <= 5) {
       await Future.delayed(const Duration(milliseconds: 50));
     }
     final serviceInfoStr = await serviceInfoFile.readAsString();
@@ -263,14 +282,14 @@ class _DebuggingSession {
     // to ensure we don't let any unfiltered messages slip through.
     // TODO(bkonyi): consider filtering on bytes rather than decoding the UTF8.
     _stderrDone = process.stderr
-        .transform(Utf8Decoder(allowMalformed: true))
+        .transform(const Utf8Decoder(allowMalformed: true))
         .listen((event) async {
       await _waitForDDS();
       stderr.write(filterObservatoryUri(event));
     }).asFuture();
 
     _stdoutDone = process.stdout
-        .transform(Utf8Decoder(allowMalformed: true))
+        .transform(const Utf8Decoder(allowMalformed: true))
         .listen((event) async {
       await _waitForDDS();
       stdout.write(filterObservatoryUri(event));

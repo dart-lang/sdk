@@ -8,12 +8,10 @@
 
 library generic_methods_dynamic_test;
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: A:checkedInstance,checks=[],typeArgument*/
-/*prod:nnbd-off.class: A:*/
+/*spec.class: A:checkedInstance,checks=[],typeArgument*/
 class A {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: B:checks=[],instance*/
-/*prod:nnbd-off.class: B:*/
+/*spec.class: B:checks=[],instance*/
 class B {}
 
 /*class: C:*/

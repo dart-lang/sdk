@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart'
     show
         Arguments,
         AsExpression,
+        AsyncMarker,
         Class,
         Constructor,
         DartType,
@@ -16,6 +17,7 @@ import 'package:kernel/ast.dart'
         Field,
         FunctionNode,
         FunctionType,
+        FutureOrType,
         InterfaceType,
         InvalidType,
         Member,
@@ -552,11 +554,19 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  InterfaceType buildTypesWithBuiltArguments(LibraryBuilder library,
+  DartType buildTypesWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments) {
     assert(arguments == null || cls.typeParameters.length == arguments.length);
     if (isNullClass) {
       nullability = Nullability.nullable;
+    }
+    if (name == "FutureOr") {
+      LibraryBuilder parentLibrary = parent;
+      if (parentLibrary.importUri.scheme == "dart" &&
+          parentLibrary.importUri.path == "async") {
+        assert(arguments != null && arguments.length == 1);
+        return new FutureOrType(arguments.single, nullability);
+      }
     }
     return arguments == null
         ? rawType(nullability)
@@ -607,7 +617,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  InterfaceType buildType(LibraryBuilder library,
+  DartType buildType(LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
       [bool notInstanceContext]) {
     return buildTypesWithBuiltArguments(
@@ -682,9 +692,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       } else if (decl is NeverTypeBuilder) {
         fail(superClassType, messageExtendsNever, aliasBuilder);
       } else if (decl is ClassBuilder) {
-        if (decl.cls == coreTypes.futureOrClass) {
-          fail(superClassType, messageExtendsFutureOr, aliasBuilder);
-        }
         superClass = decl;
       }
     }
@@ -713,6 +720,10 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
                 templateImplementsSuperClass.withArguments(interface.name),
                 this.charOffset,
                 noLength);
+          } else if (interface.cls.name == "FutureOr" &&
+              interface.cls.enclosingLibrary.importUri.scheme == "dart" &&
+              interface.cls.enclosingLibrary.importUri.path == "async") {
+            addProblem(messageImplementsFutureOr, this.charOffset, noLength);
           } else if (implemented.contains(interface)) {
             // Aggregate repetitions.
             problems ??= new Map<ClassBuilder, int>();
@@ -720,8 +731,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
             problems[interface] += 1;
             problemsOffsets ??= new Map<ClassBuilder, int>();
             problemsOffsets[interface] ??= charOffset;
-          } else if (interface.cls == coreTypes.futureOrClass) {
-            fail(type, messageImplementsFutureOr, aliasBuilder);
           } else {
             implemented.add(interface);
           }
@@ -865,6 +874,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     procedure.function.body = new ReturnStatement(result)
       ..fileOffset = procedure.fileOffset;
     procedure.function.body.parent = procedure.function;
+    procedure.function.asyncMarker = AsyncMarker.Sync;
+    procedure.function.dartAsyncMarker = AsyncMarker.Sync;
 
     procedure.isAbstract = false;
     procedure.isNoSuchMethodForwarder = true;
@@ -1244,7 +1255,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           declaredParameter.isCovariant,
           declaredParameter,
           isInterfaceCheck);
-      if (declaredParameter.isRequired &&
+      if (declaredMember.isNonNullableByDefault &&
+          declaredParameter.isRequired &&
+          interfaceMember.isNonNullableByDefault &&
           !interfaceNamedParameters.current.isRequired) {
         reportInvalidOverride(
             isInterfaceCheck,

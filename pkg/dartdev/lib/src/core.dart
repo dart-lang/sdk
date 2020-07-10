@@ -9,10 +9,11 @@ import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 
+import 'experiments.dart';
 import 'utils.dart';
 
 Logger log;
-bool isVerbose = false;
+bool isDiagnostics = false;
 
 abstract class DartdevCommand<int> extends Command {
   final String _name;
@@ -20,7 +21,10 @@ abstract class DartdevCommand<int> extends Command {
 
   Project _project;
 
-  DartdevCommand(this._name, this._description);
+  @override
+  final bool hidden;
+
+  DartdevCommand(this._name, this._description, {this.hidden = false});
 
   @override
   String get name => _name;
@@ -28,7 +32,20 @@ abstract class DartdevCommand<int> extends Command {
   @override
   String get description => _description;
 
-  Project get project => (_project ??= Project());
+  Project get project => _project ??= Project();
+
+  /// Return whether commands should emit verbose output.
+  bool get verbose => globalResults['verbose'];
+
+  /// Return whether the tool should emit diagnostic output.
+  bool get diagnosticsEnabled => globalResults['diagnostics'];
+
+  /// Return whether any Dart experiments were specified by the user.
+  bool get wereExperimentsSpecified =>
+      globalResults.wasParsed(experimentFlagName);
+
+  /// Return the list of Dart experiment flags specified by the user.
+  List<String> get specifiedExperiments => globalResults[experimentFlagName];
 }
 
 /// A utility method to start the given executable as a process, optionally
@@ -45,9 +62,9 @@ Future<Process> startProcess(
 void routeToStdout(
   Process process, {
   bool logToTrace = false,
-  void listener(String str),
+  void Function(String str) listener,
 }) {
-  if (isVerbose) {
+  if (isDiagnostics) {
     _streamLineTransform(process.stdout, (String line) {
       logToTrace ? log.trace(line.trimRight()) : log.stdout(line.trimRight());
       if (listener != null) listener(line);
@@ -69,7 +86,10 @@ void routeToStdout(
   }
 }
 
-void _streamLineTransform(Stream<List<int>> stream, handler(String line)) {
+void _streamLineTransform(
+  Stream<List<int>> stream,
+  Function(String line) handler,
+) {
   stream
       .transform(utf8.decoder)
       .transform(const LineSplitter())
@@ -116,7 +136,6 @@ class PackageConfig {
     return _packages.map<Map<String, dynamic>>(castStringKeyedMap).toList();
   }
 
-  bool hasDependency(String packageName) {
-    return packages.any((element) => element['name'] == packageName);
-  }
+  bool hasDependency(String packageName) =>
+      packages.any((element) => element['name'] == packageName);
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.core;
 
 // Exceptions are thrown either by the VM or from Dart code.
@@ -26,11 +24,12 @@ abstract class Exception {
 
 /** Default implementation of [Exception] which carries a message. */
 class _Exception implements Exception {
-  final message;
+  final dynamic message;
 
   _Exception([this.message]);
 
   String toString() {
+    Object? message = this.message;
     if (message == null) return "Exception";
     return "Exception: $message";
   }
@@ -54,7 +53,7 @@ class FormatException implements Exception {
    *
    * The source is `null` if omitted or unknown.
    */
-  final source;
+  final dynamic source;
 
   /**
    * The offset in [source] where the error was detected.
@@ -69,7 +68,7 @@ class FormatException implements Exception {
    *
    * May be omitted. If present, [source] should also be present if possible.
    */
-  final int offset;
+  final int? offset;
 
   /**
    * Creates a new FormatException with an optional error [message].
@@ -97,13 +96,13 @@ class FormatException implements Exception {
    */
   String toString() {
     String report = "FormatException";
+    Object? message = this.message;
     if (message != null && "" != message) {
       report = "$report: $message";
     }
-    int offset = this.offset;
-    Object objectSource = this.source;
-    if (objectSource is String) {
-      String source = objectSource;
+    int? offset = this.offset;
+    Object? source = this.source;
+    if (source is String) {
       if (offset != null && (offset < 0 || offset > source.length)) {
         offset = null;
       }

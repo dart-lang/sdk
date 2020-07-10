@@ -564,6 +564,10 @@ void SemiSpace::Cleanup() {
   page_cache_mutex = nullptr;
 }
 
+intptr_t SemiSpace::CachedSize() {
+  return page_cache_size * kNewPageSize;
+}
+
 NewPage* NewPage::Allocate() {
   const intptr_t size = kNewPageSize;
   VirtualMemory* memory = nullptr;
@@ -671,6 +675,19 @@ void SemiSpace::AddList(NewPage* head, NewPage* tail) {
   }
   tail_->set_next(head);
   tail_ = tail;
+}
+
+void SemiSpace::MergeFrom(SemiSpace* donor) {
+  for (NewPage* page = donor->head_; page != nullptr; page = page->next()) {
+    page->Release();
+  }
+
+  AddList(donor->head_, donor->tail_);
+  capacity_in_words_ += donor->capacity_in_words_;
+
+  donor->head_ = nullptr;
+  donor->tail_ = nullptr;
+  donor->capacity_in_words_ = 0;
 }
 
 // The initial estimate of how many words we can scavenge per microsecond (usage
@@ -932,9 +949,23 @@ bool Scavenger::ShouldPerformIdleScavenge(int64_t deadline) {
 
   // TODO(rmacnak): Investigate collecting a history of idle period durations.
   intptr_t used_in_words = UsedInWords();
-  if (used_in_words < idle_scavenge_threshold_in_words_) {
+  // Normal reason: new space is getting full.
+  bool for_new_space = used_in_words >= idle_scavenge_threshold_in_words_;
+  // New-space objects are roots during old-space GC. This means that even
+  // unreachable new-space objects prevent old-space objects they reference
+  // from being collected during an old-space GC. Normally this is not an
+  // issue because new-space GCs run much more frequently than old-space GCs.
+  // If new-space allocation is low and direct old-space allocation is high,
+  // which can happen in a program that allocates large objects and little
+  // else, old-space can fill up with unreachable objects until the next
+  // new-space GC. This check is the idle equivalent to the
+  // new-space GC before synchronous-marking in CollectMostGarbage.
+  bool for_old_space = heap_->last_gc_was_old_space_ &&
+                       heap_->old_space()->ReachedIdleThreshold();
+  if (!for_new_space && !for_old_space) {
     return false;
   }
+
   int64_t estimated_scavenge_completion =
       OS::GetCurrentMonotonicMicros() +
       used_in_words / scavenge_words_per_micro_;
@@ -1562,6 +1593,15 @@ void Scavenger::Evacuate() {
   // It is possible for objects to stay in the new space
   // if the VM cannot create more pages for these objects.
   ASSERT((UsedInWords() == 0) || failed_to_promote_);
+}
+
+void Scavenger::MergeFrom(Scavenger* donor) {
+  MutexLocker ml(&space_lock_);
+  MutexLocker ml2(&donor->space_lock_);
+  to_->MergeFrom(donor->to_);
+
+  external_size_ += donor->external_size_;
+  donor->external_size_ = 0;
 }
 
 }  // namespace dart

@@ -17,7 +17,7 @@ export 'dart:js' show allowInterop, allowInteropCaptureThis;
 /// dart name is used. It is not valid to specify a custom [name] for class
 /// instance members.
 class JS {
-  final String name;
+  final String? name;
   const JS([this.name]);
 }
 
@@ -32,4 +32,4 @@ class _Anonymous {
 /// with no positional arguments, only named arguments. Invoking the constructor
 /// desugars to creating a JavaScript object literal with name-value pairs
 /// corresponding to the parameter names and values.
-const _Anonymous anonymous = const _Anonymous();
+const _Anonymous anonymous = _Anonymous();

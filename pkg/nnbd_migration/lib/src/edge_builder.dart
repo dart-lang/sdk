@@ -127,7 +127,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _flowAnalysis;
 
   /// If we are visiting a function body or initializer, assigned variable
-  /// information  used in flow analysis.  Otherwise `null`.
+  /// information used in flow analysis.  Otherwise `null`.
   AssignedVariables<AstNode, PromotableElement> _assignedVariables;
 
   /// The [DecoratedType] of the innermost function or method being visited, or
@@ -236,7 +236,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       } else {
         assert(enclosingElement is ExtensionElement);
         final extensionElement = enclosingElement as ExtensionElement;
-        final extendedType = extensionElement.extendedType;
+        final extendedType =
+            _typeSystem.resolveToBound(extensionElement.extendedType);
         if (extendedType is InterfaceType) {
           if (extensionElement.typeParameters.isNotEmpty) {
             substitution = _decoratedClassHierarchy
@@ -278,6 +279,32 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else {
       return decoratedBaseType;
     }
+  }
+
+  @override
+  // TODO(srawlins): Theoretically, edges should be connected between arguments
+  // and parameters, as in an instance creation. It is quite rare though, to
+  // declare a class and use it as an annotation in the same package.
+  DecoratedType visitAnnotation(Annotation node) {
+    var previousFlowAnalysis = _flowAnalysis;
+    var previousAssignedVariables = _assignedVariables;
+    if (_flowAnalysis == null) {
+      _assignedVariables = AssignedVariables();
+      _flowAnalysis = FlowAnalysis<AstNode, Statement, Expression,
+              PromotableElement, DecoratedType>(
+          DecoratedTypeOperations(_typeSystem, _variables, _graph),
+          _assignedVariables);
+    }
+    try {
+      _dispatch(node.name);
+      _dispatch(node.constructorName);
+      _dispatchList(node.arguments?.arguments);
+    } finally {
+      _flowAnalysis = previousFlowAnalysis;
+      _assignedVariables = previousAssignedVariables;
+    }
+    annotationVisited(node);
+    return null;
   }
 
   @override
@@ -743,8 +770,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   DecoratedType visitExtensionDeclaration(ExtensionDeclaration node) {
     visitClassOrMixinOrExtensionDeclaration(node);
+    _dispatch(node.typeParameters);
     _dispatch(node.extendedType);
     return null;
+  }
+
+  @override
+  DecoratedType visitExtensionOverride(ExtensionOverride node) {
+    return _dispatch(node.argumentList.arguments.single);
   }
 
   @override
@@ -1040,6 +1073,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitIsExpression(IsExpression node) {
+    var expression = node.expression;
+    var expressionNode = _dispatch(expression).node;
     var type = node.type;
     _dispatch(type);
     var decoratedType = _variables.decoratedTypeAnnotation(source, type);
@@ -1048,6 +1083,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // Making it nullable could change runtime behavior.
       _graph.makeNonNullable(
           decoratedType.node, IsCheckMainTypeOrigin(source, type));
+      _conditionInfo = _ConditionInfo(node,
+          isPure: expression is SimpleIdentifier,
+          postDominatingIntent:
+              _postDominatedLocals.isReferenceInScope(expression),
+          trueDemonstratesNonNullIntent: expressionNode);
+      if (node.notOperator != null) {
+        _conditionInfo = _conditionInfo.not(node);
+      }
       if (!_assumeNonNullabilityInCasts) {
         // TODO(mfairhurst): wire this to handleDowncast if we do not assume
         // nullability.
@@ -1057,8 +1100,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // TODO(brianwilkerson)
       _unimplemented(node, 'Is expression with GenericFunctionType');
     }
-    var expression = node.expression;
-    _dispatch(expression);
     _flowAnalysis.isExpression_end(
         node, expression, node.notOperator != null, decoratedType);
     return _makeNonNullableBoolType(node);
@@ -1334,7 +1375,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitReturnStatement(ReturnStatement node) {
     DecoratedType returnType = _currentFunctionType.returnType;
     Expression returnValue = node.expression;
-    final isAsync = node.thisOrAncestorOfType<FunctionBody>().isAsynchronous;
+    var functionBody = node.thisOrAncestorOfType<FunctionBody>();
+    if (functionBody.isGenerator) {
+      // Do not connect the return value to the return type.
+      return _dispatch(returnValue);
+    }
+    final isAsync = functionBody.isAsynchronous;
     if (returnValue == null) {
       var target =
           NullabilityNodeTarget.text('implicit null return').withCodeRef(node);
@@ -1828,9 +1874,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           '(${expression.toSource()}) offset=${expression.offset}');
     }
     var origin = _makeEdgeOrigin(sourceType, expression);
+    var hard = _postDominatedLocals.isReferenceInScope(expression) ||
+        expression.unParenthesized is AsExpression;
     var edge = _graph.makeNonNullable(sourceType.node, origin,
-        hard: _postDominatedLocals.isReferenceInScope(expression),
-        guards: _guards);
+        hard: hard, guards: _guards);
     if (origin is ExpressionChecksOrigin) {
       origin.checks.edges[FixReasonTarget.root] = edge;
     }
@@ -2135,6 +2182,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       }
       if (destinationLocalVariable != null) {
+        _dispatch(destinationExpression);
         destinationType = getOrComputeElementType(destinationLocalVariable);
       } else {
         destinationType = _dispatch(destinationExpression);
@@ -2917,6 +2965,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                     NullabilityNode.forInferredType(
                         target.typeArgument(index++))))
                 .toList());
+      } else if (type is TypeParameterType) {
+        return DecoratedType(type, NullabilityNode.forInferredType(target));
       } else {
         _unimplemented(node, 'extension of $type (${type.runtimeType}');
       }
@@ -2925,16 +2975,18 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @alwaysThrows
   void _unimplemented(AstNode node, String message) {
-    CompilationUnit unit = node.root as CompilationUnit;
     StringBuffer buffer = StringBuffer();
     buffer.write(message);
-    buffer.write(' in "');
-    buffer.write(node.toSource());
-    buffer.write('" on line ');
-    buffer.write(unit.lineInfo.getLocation(node.offset).lineNumber);
-    buffer.write(' of "');
-    buffer.write(unit.declaredElement.source.fullName);
-    buffer.write('"');
+    if (node != null) {
+      CompilationUnit unit = node.root as CompilationUnit;
+      buffer.write(' in "');
+      buffer.write(node.toSource());
+      buffer.write('" on line ');
+      buffer.write(unit.lineInfo.getLocation(node.offset).lineNumber);
+      buffer.write(' of "');
+      buffer.write(unit.declaredElement.source.fullName);
+      buffer.write('"');
+    }
     throw UnimplementedError(buffer.toString());
   }
 

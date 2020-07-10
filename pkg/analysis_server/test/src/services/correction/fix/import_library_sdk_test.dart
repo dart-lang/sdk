@@ -47,6 +47,28 @@ main(p) {
 ''');
   }
 
+  Future<void> test_withClass_extends() async {
+    await resolveTestUnit('''
+class MyCompleter extends Completer<String> {}
+''');
+    await assertHasFix('''
+import 'dart:async';
+
+class MyCompleter extends Completer<String> {}
+''');
+  }
+
+  Future<void> test_withClass_implements() async {
+    await resolveTestUnit('''
+class MyCompleter implements Completer<String> {}
+''');
+    await assertHasFix('''
+import 'dart:async';
+
+class MyCompleter implements Completer<String> {}
+''');
+  }
+
   Future<void> test_withClass_instanceCreation_explicitNew() async {
     await resolveTestUnit('''
 class C {
@@ -242,31 +264,42 @@ main() {
 ''');
   }
 
+  Future<void> test_withClass_with() async {
+    await resolveTestUnit('''
+class MyCompleter with Completer<String> {}
+''');
+    await assertHasFix('''
+import 'dart:async';
+
+class MyCompleter with Completer<String> {}
+''');
+  }
+
   Future<void> test_withTopLevelVariable() async {
     await resolveTestUnit('''
 main() {
-  print(PI);
+  print(pi);
 }
 ''');
     await assertHasFix('''
 import 'dart:math';
 
 main() {
-  print(PI);
+  print(pi);
 }
 ''');
   }
 
   Future<void> test_withTopLevelVariable_annotation() async {
     await resolveTestUnit('''
-@PI
+@pi
 main() {
 }
 ''');
     await assertHasFix('''
 import 'dart:math';
 
-@PI
+@pi
 main() {
 }
 ''');

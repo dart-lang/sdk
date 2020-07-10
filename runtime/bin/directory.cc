@@ -260,7 +260,7 @@ void Directory::SetSystemTemp(const char* path) {
     system_temp_path_override_ = NULL;
   }
   if (path != NULL) {
-    system_temp_path_override_ = strdup(path);
+    system_temp_path_override_ = Utils::StrDup(path);
   }
 }
 

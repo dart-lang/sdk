@@ -13,6 +13,7 @@ import 'context_root_test.dart' as context_root;
 import 'crc32_test.dart' as crc32_test;
 import 'defined_names_test.dart' as defined_names;
 import 'dependency/test_all.dart' as dependency_test;
+import 'driver_caching_test.dart' as driver_caching;
 import 'driver_resolution_test.dart' as driver_resolution;
 import 'driver_test.dart' as driver;
 import 'experiments_test.dart' as experiments_test;
@@ -42,6 +43,7 @@ main() {
     defined_names.main();
     dependency_test.main();
     driver.main();
+    driver_caching.main();
     driver_resolution.main();
     experiments_test.main();
     feature_set_provider.main();

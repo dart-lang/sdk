@@ -16,14 +16,15 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
-// If the client does not provide capabilities.completion.completionItemKind.valueSet
-// then we must never send a kind that's not in this list.
+/// If the client does not provide capabilities.completion.completionItemKind.valueSet
+/// then we must never send a kind that's not in this list.
 final defaultSupportedCompletionKinds = HashSet<CompletionItemKind>.of([
   CompletionItemKind.Text,
   CompletionItemKind.Method,
@@ -88,26 +89,36 @@ class CompletionHandler
     final offset =
         await lineInfo.mapResult((lineInfo) => toOffset(lineInfo, pos));
 
-    return offset.mapResult((offset) {
-      if (unit.isError) {
-        return _getItemsFromPluginsOnly(
-          completionCapabilities,
-          clientSupportedCompletionKinds,
-          lineInfo.result,
-          path.result,
-          offset,
-          token,
-        );
-      } else {
-        return _getItems(
-          completionCapabilities,
-          clientSupportedCompletionKinds,
-          includeSuggestionSets,
-          unit.result,
-          offset,
-          token,
-        );
-      }
+    return offset.mapResult((offset) async {
+      // For server results we need a valid unit, but if we don't have one
+      // we shouldn't consider this an error when merging with plugin results.
+      final serverResultsFuture = unit.isError
+          ? Future.value(success(const <CompletionItem>[]))
+          : _getServerItems(
+              completionCapabilities,
+              clientSupportedCompletionKinds,
+              includeSuggestionSets,
+              unit.result,
+              offset,
+              token,
+            );
+
+      final pluginResultsFuture = _getPluginResults(completionCapabilities,
+          clientSupportedCompletionKinds, lineInfo.result, path.result, offset);
+
+      // Await both server + plugin results together to allow async/IO to
+      // overlap.
+      final serverAndPluginResults =
+          await Future.wait([serverResultsFuture, pluginResultsFuture]);
+      final serverResults = serverAndPluginResults[0];
+      final pluginResults = serverAndPluginResults[1];
+
+      if (serverResults.isError) return serverResults;
+      if (pluginResults.isError) return pluginResults;
+
+      return success(
+        serverResults.result.followedBy(pluginResults.result).toList(),
+      );
     });
   }
 
@@ -142,7 +153,30 @@ class CompletionHandler
   String _createImportedSymbolKey(String name, Uri declaringUri) =>
       '$name/$declaringUri';
 
-  Future<ErrorOr<List<CompletionItem>>> _getItems(
+  Future<ErrorOr<List<CompletionItem>>> _getPluginResults(
+    TextDocumentClientCapabilitiesCompletion completionCapabilities,
+    HashSet<CompletionItemKind> clientSupportedCompletionKinds,
+    LineInfo lineInfo,
+    String path,
+    int offset,
+  ) async {
+    final requestParams = plugin.CompletionGetSuggestionsParams(path, offset);
+    final pluginResponses =
+        await requestFromPlugins(path, requestParams, timeout: 100);
+
+    final pluginResults = pluginResponses
+        .map((e) => plugin.CompletionGetSuggestionsResult.fromResponse(e))
+        .toList();
+
+    return success(_pluginResultsToItems(
+      completionCapabilities,
+      clientSupportedCompletionKinds,
+      lineInfo,
+      pluginResults,
+    ).toList());
+  }
+
+  Future<ErrorOr<List<CompletionItem>>> _getServerItems(
     TextDocumentClientCapabilitiesCompletion completionCapabilities,
     HashSet<CompletionItemKind> clientSupportedCompletionKinds,
     bool includeSuggestionSets,
@@ -155,186 +189,154 @@ class CompletionHandler
     performance.setContentsAndOffset(unit.content, offset);
     server.performanceStats.completion.add(performance);
 
-    final completionRequest = CompletionRequestImpl(
-        unit, offset, server.options.useNewRelevance, performance);
+    return await performance.runRequestOperation((perf) async {
+      final completionRequest = CompletionRequestImpl(
+          unit, offset, server.options.useNewRelevance, performance);
+      final directiveInfo =
+          server.getDartdocDirectiveInfoFor(completionRequest.result);
+      final dartCompletionRequest = await DartCompletionRequestImpl.from(
+          perf, completionRequest, directiveInfo);
 
-    Set<ElementKind> includedElementKinds;
-    Set<String> includedElementNames;
-    List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
-    if (includeSuggestionSets) {
-      includedElementKinds = <ElementKind>{};
-      includedElementNames = <String>{};
-      includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
-    }
-
-    try {
-      CompletionContributor contributor = DartCompletionManager(
-        dartdocDirectiveInfo:
-            server.getDartdocDirectiveInfoFor(completionRequest.result),
-        includedElementKinds: includedElementKinds,
-        includedElementNames: includedElementNames,
-        includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
-      );
-
-      final suggestions = await Future.wait([
-        contributor.computeSuggestions(completionRequest),
-        _getPluginSuggestions(unit.path, offset),
-      ]);
-      final serverSuggestions = suggestions[0];
-      final pluginSuggestions = suggestions[1];
-
-      if (token.isCancellationRequested) {
-        return cancelled();
+      Set<ElementKind> includedElementKinds;
+      Set<String> includedElementNames;
+      List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
+      if (includeSuggestionSets) {
+        includedElementKinds = <ElementKind>{};
+        includedElementNames = <String>{};
+        includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
       }
 
-      final results = serverSuggestions
-          .map(
-            (item) => toCompletionItem(
-              completionCapabilities,
-              clientSupportedCompletionKinds,
-              unit.lineInfo,
-              item,
-              completionRequest.replacementOffset,
-              completionRequest.replacementLength,
-            ),
-          )
-          .followedBy(
-            _pluginResultsToItems(
-              completionCapabilities,
-              clientSupportedCompletionKinds,
-              unit.lineInfo,
-              pluginSuggestions,
-            ),
-          )
-          .toList();
-
-      // Now compute items in suggestion sets.
-      var includedSuggestionSets = <IncludedSuggestionSet>[];
-      if (includedElementKinds != null && unit != null) {
-        computeIncludedSetList(
-          server.declarationsTracker,
-          unit,
-          includedSuggestionSets,
-          includedElementNames,
+      try {
+        var contributor = DartCompletionManager(
+          dartdocDirectiveInfo: directiveInfo,
+          includedElementKinds: includedElementKinds,
+          includedElementNames: includedElementNames,
+          includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
         );
-      }
 
-      // Build a fast lookup for imported symbols so that we can filter out
-      // duplicates.
-      final alreadyImportedSymbols = _buildLookupOfImportedSymbols(unit);
+        final serverSuggestions = await contributor.computeSuggestions(
+          perf,
+          completionRequest,
+          enableUriContributor: true,
+        );
 
-      includedSuggestionSets.forEach((includedSet) {
-        final library = server.declarationsTracker.getLibrary(includedSet.id);
-        if (library == null) {
-          return;
+        if (token.isCancellationRequested) {
+          return cancelled();
         }
 
-        // Make a fast lookup for tag relevance.
-        final tagBoosts = <String, int>{};
-        includedSuggestionRelevanceTags
-            .forEach((t) => tagBoosts[t.tag] = t.relevanceBoost);
-
-        // Only specific types of child declarations should be included.
-        // This list matches what's in _protocolAvailableSuggestion in
-        // the DAS implementation.
-        bool shouldIncludeChild(Declaration child) =>
-            child.kind == DeclarationKind.CONSTRUCTOR ||
-            child.kind == DeclarationKind.ENUM_CONSTANT ||
-            (child.kind == DeclarationKind.GETTER && child.isStatic) ||
-            (child.kind == DeclarationKind.FIELD && child.isStatic);
-
-        // Collect declarations and their children.
-        final allDeclarations = library.declarations
-            .followedBy(library.declarations
-                .expand((decl) => decl.children.where(shouldIncludeChild)))
+        final results = serverSuggestions
+            .map(
+              (item) => toCompletionItem(
+                completionCapabilities,
+                clientSupportedCompletionKinds,
+                unit.lineInfo,
+                item,
+                completionRequest.replacementOffset,
+                completionRequest.replacementLength,
+              ),
+            )
             .toList();
 
-        final setResults = allDeclarations
-            // Filter to only the kinds we should return.
-            .where((item) =>
-                includedElementKinds.contains(protocolElementKind(item.kind)))
-            .where((item) {
-          // Check existing imports to ensure we don't already import
-          // this element (this exact element from its declaring
-          // library, not just something with the same name). If we do
-          // we'll want to skip it.
-          final declaringUri = item.parent != null
-              ? item.parent.locationLibraryUri
-              : item.locationLibraryUri;
+        // Now compute items in suggestion sets.
+        var includedSuggestionSets = <IncludedSuggestionSet>[];
+        if (includedElementKinds != null && unit != null) {
+          computeIncludedSetList(
+            server.declarationsTracker,
+            unit,
+            includedSuggestionSets,
+            includedElementNames,
+          );
+        }
 
-          // For enums and named constructors, only the parent enum/class is in
-          // the list of imported symbols so we use the parents name.
-          final nameKey = item.kind == DeclarationKind.ENUM_CONSTANT ||
-                  item.kind == DeclarationKind.CONSTRUCTOR
-              ? item.parent.name
-              : item.name;
-          final key = _createImportedSymbolKey(nameKey, declaringUri);
-          final importingUris = alreadyImportedSymbols[key];
+        // Build a fast lookup for imported symbols so that we can filter out
+        // duplicates.
+        final alreadyImportedSymbols = _buildLookupOfImportedSymbols(unit);
 
-          // Keep it only if there are either:
-          // - no URIs importing it
-          // - the URIs importing it include this one
-          return importingUris == null ||
-              importingUris.contains('${library.uri}');
-        }).map((item) => declarationToCompletionItem(
-                  completionCapabilities,
-                  clientSupportedCompletionKinds,
-                  unit.path,
-                  offset,
-                  includedSet,
-                  library,
-                  tagBoosts,
-                  unit.lineInfo,
-                  item,
-                  completionRequest.replacementOffset,
-                  completionRequest.replacementLength,
-                ));
-        results.addAll(setResults);
-      });
+        includedSuggestionSets.forEach((includedSet) {
+          final library = server.declarationsTracker.getLibrary(includedSet.id);
+          if (library == null) {
+            return;
+          }
 
-      performance.notificationCount = 1;
-      performance.suggestionCountFirst = results.length;
-      performance.suggestionCountLast = results.length;
-      performance.complete();
+          // Make a fast lookup for tag relevance.
+          final tagBoosts = <String, int>{};
+          includedSuggestionRelevanceTags
+              .forEach((t) => tagBoosts[t.tag] = t.relevanceBoost);
 
-      return success(results);
-    } on AbortCompletion {
-      return success([]);
-    }
-  }
+          // Only specific types of child declarations should be included.
+          // This list matches what's in _protocolAvailableSuggestion in
+          // the DAS implementation.
+          bool shouldIncludeChild(Declaration child) =>
+              child.kind == DeclarationKind.CONSTRUCTOR ||
+              child.kind == DeclarationKind.ENUM_CONSTANT ||
+              (child.kind == DeclarationKind.GETTER && child.isStatic) ||
+              (child.kind == DeclarationKind.FIELD && child.isStatic);
 
-  Future<ErrorOr<List<CompletionItem>>> _getItemsFromPluginsOnly(
-    TextDocumentClientCapabilitiesCompletion completionCapabilities,
-    HashSet<CompletionItemKind> clientSupportedCompletionKinds,
-    LineInfo lineInfo,
-    String path,
-    int offset,
-    CancellationToken token,
-  ) async {
-    final pluginResults = await _getPluginSuggestions(path, offset);
+          // Collect declarations and their children.
+          final allDeclarations = library.declarations
+              .followedBy(library.declarations
+                  .expand((decl) => decl.children.where(shouldIncludeChild)))
+              .toList();
 
-    if (token.isCancellationRequested) {
-      return cancelled();
-    }
+          final setResults = allDeclarations
+              // Filter to only the kinds we should return.
+              .where((item) =>
+                  includedElementKinds.contains(protocolElementKind(item.kind)))
+              .where((item) {
+            // Check existing imports to ensure we don't already import
+            // this element (this exact element from its declaring
+            // library, not just something with the same name). If we do
+            // we'll want to skip it.
+            final declaringUri = item.parent != null
+                ? item.parent.locationLibraryUri
+                : item.locationLibraryUri;
 
-    return success(_pluginResultsToItems(
-      completionCapabilities,
-      clientSupportedCompletionKinds,
-      lineInfo,
-      pluginResults,
-    ).toList());
-  }
+            // For enums and named constructors, only the parent enum/class is in
+            // the list of imported symbols so we use the parents name.
+            final nameKey = item.kind == DeclarationKind.ENUM_CONSTANT ||
+                    item.kind == DeclarationKind.CONSTRUCTOR
+                ? item.parent.name
+                : item.name;
+            final key = _createImportedSymbolKey(nameKey, declaringUri);
+            final importingUris = alreadyImportedSymbols[key];
 
-  Future<List<plugin.CompletionGetSuggestionsResult>> _getPluginSuggestions(
-    String path,
-    int offset,
-  ) async {
-    final requestParams = plugin.CompletionGetSuggestionsParams(path, offset);
-    final responses = await requestFromPlugins(path, requestParams);
+            // Keep it only if there are either:
+            // - no URIs importing it
+            // - the URIs importing it include this one
+            return importingUris == null ||
+                importingUris.contains('${library.uri}');
+          }).map((item) => declarationToCompletionItem(
+                    completionCapabilities,
+                    clientSupportedCompletionKinds,
+                    unit.path,
+                    offset,
+                    includedSet,
+                    library,
+                    tagBoosts,
+                    unit.lineInfo,
+                    item,
+                    completionRequest.replacementOffset,
+                    completionRequest.replacementLength,
+                  ));
+          results.addAll(setResults);
+        });
 
-    return responses
-        .map((e) => plugin.CompletionGetSuggestionsResult.fromResponse(e))
-        .toList();
+        // Perform fuzzy matching based on the identifier in front of the caret to
+        // reduce the size of the payload.
+        final fuzzyPattern = dartCompletionRequest.targetPrefix;
+        final fuzzyMatcher =
+            FuzzyMatcher(fuzzyPattern, matchStyle: MatchStyle.TEXT);
+
+        final matchingResults =
+            results.where((e) => fuzzyMatcher.score(e.label) > 0).toList();
+
+        performance.suggestionCount = results.length;
+
+        return success(matchingResults);
+      } on AbortCompletion {
+        return success([]);
+      }
+    });
   }
 
   Iterable<CompletionItem> _pluginResultsToItems(

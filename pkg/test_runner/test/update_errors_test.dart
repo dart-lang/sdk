@@ -287,6 +287,17 @@ someBadCode();
 /\/ [cfe] Wrong 1.
 """);
 
+  // Don't crash with RangeError.
+  expectUpdate("""
+x
+// [error line 1, column 1, length 0]
+// [cfe] Whatever""", errors: [
+    makeError(line: 1, column: 1, length: 0, cfeError: "Foo"),
+  ], expected: """
+x
+// [error line 1, column 1, length 0]
+// [cfe] Foo""");
+
   regression();
 }
 

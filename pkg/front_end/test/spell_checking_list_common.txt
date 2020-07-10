@@ -103,6 +103,7 @@ allocation
 allow
 allowed
 allowing
+allowlisted
 allows
 almost
 alone
@@ -242,6 +243,7 @@ awaiter
 aware
 awareness
 away
+axiom
 back
 backend
 backends
@@ -296,7 +298,6 @@ bit
 bits
 bitwise
 black
-blacklisted
 block
 blocks
 blogs
@@ -510,6 +511,7 @@ common
 commonly
 compact
 comparable
+comparator
 compare
 comparing
 comparison
@@ -660,6 +662,7 @@ correctness
 correspond
 correspondence
 corresponding
+correspondingly
 corresponds
 cost
 could
@@ -685,6 +688,7 @@ created
 creates
 creating
 creation
+creations
 crossed
 curly
 current
@@ -771,6 +775,8 @@ denote
 denoted
 denotes
 denoting
+deny
+denylisted
 depend
 dependence
 dependencies
@@ -866,6 +872,7 @@ distance
 distinct
 distinction
 distinguish
+distinguishes
 divide
 division
 divisor
@@ -933,7 +940,9 @@ elapsed
 element
 elements
 eligible
+eliminate
 eliminated
+eliminates
 elimination
 eliminator
 else
@@ -997,6 +1006,7 @@ environment
 equal
 equality
 equals
+equate
 equivalence
 equivalent
 equivalents
@@ -1074,6 +1084,7 @@ experimentally
 experiments
 expired
 explanation
+explain
 explicit
 explicitly
 exponent
@@ -1392,6 +1403,7 @@ implement
 implementation
 implementations
 implemented
+implementer
 implementing
 implements
 implication
@@ -1543,6 +1555,7 @@ interpreted
 interpreter
 interpreting
 intersect
+intersecting
 intersection
 intertwined
 into
@@ -1767,7 +1780,6 @@ markers
 marking
 marks
 mask
-master
 match
 matched
 matcher
@@ -2099,6 +2111,9 @@ patching
 paths
 pattern
 peek
+peel
+peeled
+peeling
 pending
 percent
 percolate
@@ -2218,6 +2233,7 @@ previous
 previously
 primary
 primitive
+primitiveness
 principle
 print
 printed
@@ -2268,6 +2284,7 @@ proper
 properly
 properties
 property
+proposition
 prototype
 proves
 provide
@@ -2359,6 +2376,7 @@ recurse
 recursing
 recursive
 recursively
+recursor
 redirect
 redirected
 redirecting
@@ -2379,6 +2397,7 @@ referred
 refers
 refine
 refinement
+refinements
 reflecting
 regardless
 region
@@ -2413,6 +2432,7 @@ rely
 relying
 remain
 remainder
+remained
 remaining
 remains
 remember
@@ -2897,6 +2917,7 @@ targeted
 targeting
 targets
 task
+tasks
 tear
 tearing
 technically
@@ -3247,7 +3268,6 @@ whether
 which
 while
 white
-whitelisted
 whitespace
 whole
 whose

@@ -9,7 +9,6 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:expect/expect.dart';
-import '../helpers/memory_compiler.dart';
 import '../helpers/type_test_helper.dart';
 
 main() {
@@ -114,8 +113,8 @@ main() {
     futureOrT.forEachTypeVariable((t) => Expect.equals(T, t));
 
     DartType returnVoid = getFunctionType('returnVoid', 'void Function()');
-    DartType returnFutureNull = getFunctionType('futureOrNull',
-        isDart2jsNnbd ? 'Future<Null>? Function()' : 'Future<Null> Function()');
+    DartType returnFutureNull =
+        getFunctionType('futureOrNull', 'Future<Null>? Function()');
 
     List<DartType> all = [
       Object_,

@@ -5,6 +5,8 @@
 // Check that passing `null` for a boolean typed parameter will still cause
 // a boolean conversion error when used in a condition.
 
+// [NNBD non-migrated]: This file is migrated to condition_strong_test.dart and
+// condition_weak_test.dart.
 import 'package:expect/expect.dart';
 
 @pragma('dart2js:noInline')

@@ -459,7 +459,12 @@ void maybeScrollToAndHighlight(int offset, int lineNumber) {
   } else {
     // If no offset is given, this is likely a navigation link, and we need to
     // scroll back to the top of the page.
-    maybeScrollIntoView(unitName);
+    var lines = document.querySelectorAll('.line-no');
+    if (lines.isEmpty) {
+      // I don't see how this could happen, but return anyhow.
+      return;
+    }
+    maybeScrollIntoView(lines.first);
   }
 }
 
@@ -673,12 +678,12 @@ void writeNavigationSubtree(
       arrow.innerHtml = '&#x25BC;';
       Element icon = document.createElement('span');
       li.append(icon);
-      icon.innerHtml = '&#x1F4C1;';
+      icon.innerHtml = '<span class="material-icons">folder_open</span>';
       li.append(Text(entity.name));
       writeNavigationSubtree(li, entity.subtree);
       addArrowClickHandler(arrow);
     } else {
-      li.innerHtml = '&#x1F4C4;';
+      li.innerHtml = '<span class="material-icons">insert_drive_file</span>';
       Element a = document.createElement('a');
       li.append(a);
       a.classes.add('nav-link');

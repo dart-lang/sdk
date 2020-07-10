@@ -4,9 +4,8 @@
 
 // @dart = 2.7
 
-/*spec:nnbd-off.class: Class:direct,explicit=[Class.T],implicit=[Class.T],needsArgs*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: Class:needsArgs*/
-/*spec:nnbd-sdk.class: Class:direct,explicit=[Class.T*],implicit=[Class.T],needsArgs*/
+/*spec.class: Class:direct,explicit=[Class.T*],implicit=[Class.T],needsArgs*/
+/*prod.class: Class:needsArgs*/
 class Class<T> {
   method() {
     var list = <T>[];

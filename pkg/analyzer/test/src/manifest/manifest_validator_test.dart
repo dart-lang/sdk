@@ -22,10 +22,8 @@ main() {
 class ManifestValidatorTest with ResourceProviderMixin {
   ManifestValidator validator;
 
-  /**
-   * Assert that when the validator is used on the given [content] the
-   * [expectedErrorCodes] are produced.
-   */
+  /// Assert that when the validator is used on the given [content] the
+  /// [expectedErrorCodes] are produced.
   void assertErrors(String content, List<ErrorCode> expectedErrorCodes) {
     List<AnalysisError> errors = validator.validate(content, true);
     GatheringErrorListener listener = GatheringErrorListener();
@@ -33,10 +31,8 @@ class ManifestValidatorTest with ResourceProviderMixin {
     listener.assertErrorsWithCodes(expectedErrorCodes);
   }
 
-  /**
-   * Assert that when the validator is used on the given [content] no errors are
-   * produced.
-   */
+  /// Assert that when the validator is used on the given [content] no errors
+  /// are produced.
   void assertNoErrors(String content) {
     assertErrors(content, []);
   }
@@ -45,42 +41,6 @@ class ManifestValidatorTest with ResourceProviderMixin {
     File ManifestFile = getFile('/sample/Manifest.xml');
     Source source = ManifestFile.createSource();
     validator = ManifestValidator(source);
-  }
-
-  test_hardwareNotSupported_error() {
-    assertErrors('''
-<manifest
-    xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
-    <uses-feature android:name="android.software.home_screen" />
-</manifest>
-''', [ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE]);
-  }
-
-  test_noTouchScreen_error() {
-    assertErrors('''
-<manifest
-    xmlns:android="http://schemas.android.com/apk/res/android">
-</manifest>
-''', [ManifestWarningCode.NO_TOUCHSCREEN_FEATURE]);
-  }
-
-  test_touchScreenNotSupported_error() {
-    assertErrors('''
-<manifest
-    xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-feature android:name="android.hardware.touchscreen" android:required="true"/>
-</manifest>
-''', [ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE]);
-  }
-
-  test_featureNotSupported_error() {
-    assertErrors('''
-<manifest
-    xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-feature android:name="android.hardware.touchscreen" />
-</manifest>
-''', [ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE]);
   }
 
   test_cameraPermissions_error() {
@@ -93,19 +53,44 @@ class ManifestValidatorTest with ResourceProviderMixin {
 ''', [ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE]);
   }
 
-  test_screenOrientation_error() {
+  test_featureNotSupported_error() {
+    assertErrors('''
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-feature android:name="android.hardware.touchscreen" />
+</manifest>
+''', [ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE]);
+  }
+
+  test_hardwareNotSupported_error() {
+    assertErrors('''
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <uses-feature android:name="android.software.home_screen" />
+</manifest>
+''', [ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE]);
+  }
+
+  test_no_errors() {
     assertErrors('''
 <manifest
      xmlns:android="http://schemas.android.com/apk/res/android">
   <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
-  <application android:label="@string/app_name">
-    <activity android:name="testActivity"
-      android:screenOrientation="landscape"
-      android:exported="false">
-    </activity>
-  </application>
+  <activity android:name="testActivity"
+    android:resizeableActivity="true"
+    android:exported="false">
+  </activity>
 </manifest>
-''', [ManifestWarningCode.SETTING_ORIENTATION_ON_ACTIVITY]);
+''', []);
+  }
+
+  test_noTouchScreen_error() {
+    assertErrors('''
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android">
+</manifest>
+''', [ManifestWarningCode.NO_TOUCHSCREEN_FEATURE]);
   }
 
   test_resizeableactivity_error() {
@@ -123,16 +108,27 @@ class ManifestValidatorTest with ResourceProviderMixin {
 ''', [ManifestWarningCode.NON_RESIZABLE_ACTIVITY]);
   }
 
-  test_no_errors() {
+  test_screenOrientation_error() {
     assertErrors('''
 <manifest
      xmlns:android="http://schemas.android.com/apk/res/android">
   <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
-  <activity android:name="testActivity"
-    android:resizeableActivity="true"
-    android:exported="false">
-  </activity>
+  <application android:label="@string/app_name">
+    <activity android:name="testActivity"
+      android:screenOrientation="landscape"
+      android:exported="false">
+    </activity>
+  </application>
 </manifest>
-''', []);
+''', [ManifestWarningCode.SETTING_ORIENTATION_ON_ACTIVITY]);
+  }
+
+  test_touchScreenNotSupported_error() {
+    assertErrors('''
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-feature android:name="android.hardware.touchscreen" android:required="true"/>
+</manifest>
+''', [ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE]);
   }
 }

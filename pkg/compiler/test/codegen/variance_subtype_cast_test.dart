@@ -117,7 +117,6 @@ main() {
       return compile(test,
           entry: 'foo',
           check: checkerForAbsentPresent(test),
-          newRti: true,
           enableVariance: true);
     }
 

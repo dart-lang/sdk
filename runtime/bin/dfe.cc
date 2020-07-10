@@ -4,8 +4,6 @@
 
 #include "bin/dfe.h"
 
-#include <memory>
-
 #include "bin/abi_version.h"
 #include "bin/dartutils.h"
 #include "bin/directory.h"
@@ -191,53 +189,54 @@ bool DFE::CanUseDartFrontend() const {
          (KernelServiceDillAvailable() || (frontend_filename() != nullptr));
 }
 
-class WindowsPathSanitizer {
- public:
-  explicit WindowsPathSanitizer(const char* path) {
-    // For Windows we need to massage the paths a bit according to
-    // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
-    //
-    // Convert
-    // C:\one\two\three
-    // to
-    // /C:/one/two/three
-    //
-    // (see builtin.dart#_sanitizeWindowsPath)
-    intptr_t len = strlen(path);
-    sanitized_uri_ = reinterpret_cast<char*>(malloc(len + 1 + 1));
-    if (sanitized_uri_ == nullptr) {
-      OUT_OF_MEMORY();
-    }
-    char* s = sanitized_uri_;
-    if (len > 2 && path[1] == ':') {
-      *s++ = '/';
-    }
-    for (const char* p = path; *p != '\0'; ++p, ++s) {
-      *s = *p == '\\' ? '/' : *p;
-    }
-    *s = '\0';
+PathSanitizer::PathSanitizer(const char* path) {
+#if defined(HOST_OS_WINDOWS)
+  // For Windows we need to massage the paths a bit according to
+  // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
+  //
+  // Convert
+  // C:\one\two\three
+  // to
+  // /C:/one/two/three
+  //
+  // (see builtin.dart#_sanitizeWindowsPath)
+  if (path == nullptr) {
+    return;
   }
-  ~WindowsPathSanitizer() { free(sanitized_uri_); }
+  intptr_t len = strlen(path);
+  char* uri = reinterpret_cast<char*>(new char[len + 1 + 1]);
+  if (uri == nullptr) {
+    OUT_OF_MEMORY();
+  }
+  char* s = uri;
+  if (len > 2 && path[1] == ':') {
+    *s++ = '/';
+  }
+  for (const char* p = path; *p != '\0'; ++p, ++s) {
+    *s = *p == '\\' ? '/' : *p;
+  }
+  *s = '\0';
+  sanitized_uri_ = std::unique_ptr<char[]>(uri);
+#else
+  sanitized_uri_ = path;
+#endif  // defined(HOST_OS_WINDOWS)
+}
 
-  const char* sanitized_uri() { return sanitized_uri_; }
-
- private:
-  char* sanitized_uri_;
-
-  DISALLOW_COPY_AND_ASSIGN(WindowsPathSanitizer);
-};
+const char* PathSanitizer::sanitized_uri() const {
+#if defined(HOST_OS_WINDOWS)
+  return sanitized_uri_.get();
+#else
+  return sanitized_uri_;
+#endif  // defined(HOST_OS_WINDOWS)
+}
 
 Dart_KernelCompilationResult DFE::CompileScript(const char* script_uri,
                                                 bool incremental,
                                                 const char* package_config) {
   // TODO(aam): When Frontend is ready, VM should be passing vm_outline.dill
   // instead of vm_platform.dill to Frontend for compilation.
-#if defined(HOST_OS_WINDOWS)
-  WindowsPathSanitizer path_sanitizer(script_uri);
+  PathSanitizer path_sanitizer(script_uri);
   const char* sanitized_uri = path_sanitizer.sanitized_uri();
-#else
-  const char* sanitized_uri = script_uri;
-#endif
 
   return Dart_CompileToKernel(
       sanitized_uri, platform_strong_dill_for_compilation_,
@@ -440,7 +439,7 @@ static bool TryReadKernelListBuffer(const char* script_uri,
 
     StringPointer resolved_filename(
         File::IsAbsolutePath(filename)
-            ? strdup(filename)
+            ? Utils::StrDup(filename)
             : Utils::SCreate("%s%s", kernel_list_dirname, filename));
     if (!TryReadFile(resolved_filename.c_str(), &this_buffer,
                      &this_kernel_size)) {

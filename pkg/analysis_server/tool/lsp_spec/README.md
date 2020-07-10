@@ -5,13 +5,14 @@
 ## Using the Dart LSP server in editors
 
 - [Using LSP with Dart-Vim](https://github.com/dart-lang/dart-vim-plugin/blob/master/README.md#how-do-i-configure-an-lsp-plugin-to-start-the-analysis-server)
+- [Using LSP with Emacs](https://emacs-lsp.github.io/lsp-dart)
 
 ## Running the Server
 
-The analysis server snapshot is included in the `bin/snapshots` folder of the Dart SDK. Pass the `--lsp` flag to start the server in LSP mode:
+The analysis server snapshot is included in the `bin/snapshots` folder of the Dart SDK. Pass the `--lsp` flag to start the server in LSP mode and the `--client-id` and `--client-version` flags to identify your editor/plugin and version:
 
 ```
-dart bin/snapshots/analysis_server.dart.snapshot --lsp
+dart bin/snapshots/analysis_server.dart.snapshot --lsp --client-id my-editor.my-plugin --client-version 1.2
 ```
 
 Note: In LSP the client makes the first request so there is no obvious confirmation that the server is working correctly until the client sends an `initialize` request. Unlike standard JSON RPC, [LSP requires that headers are sent](https://microsoft.github.io/language-server-protocol/specification).
@@ -37,64 +38,65 @@ Below is a list of LSP methods and their implementation status.
 - Method: The LSP method name
 - Basic Impl: This method has an implementation but may assume some client capabilities
 - Capabilities: Only types from the original spec or as advertised in client capabilities are returned
+- Plugins: This functionality works with server plugins
 - Tests: Has automated tests
 - Tested Client: Has been manually tested in at least one LSP client editor
 
-| Method | Basic Impl | Capabilities | Tests | Tested Client | Notes |
-| - | - | - | - | - | - |
-| initialize | ✅ | ✅ | ✅ | ✅ | trace and other options NYI
-| initialized | ✅ | ✅ | ✅ | ✅ |
-| shutdown | ✅ | ✅ | ✅ | ✅ | supported but does nothing |
-| exit | ✅ | ✅ | ✅ | ✅ |
-| $/cancelRequest | ✅ | ✅ | ✅ | ✅ |
-| window/showMessage | ✅ | | | |
-| window/showMessageRequest | | | | |
-| window/logMessage | ✅ | | | |
-| telemetry/event | | | | |
-| client/registerCapability | ✅ | ✅ | ✅ | ✅ |
-| client/unregisterCapability | ✅ | ✅ | ✅ | ✅ |
-| workspace/workspaceFolders | | | | |
-| workspace/didChangeWorkspaceFolders | ✅ | ✅ | ✅ | ✅ |
-| workspace/didChangeConfiguration | ✅ | ✅ | ✅ | ✅ |
-| workspace/configuration | ✅ | ✅ | ✅ | ✅ |
-| workspace/didChangeWatchedFiles | | | | | unused, server does own watching |
-| workspace/symbol | ✅ | ✅ | ✅ | ✅ |
-| workspace/executeCommand | ✅ | ✅ | ✅ | ✅ |
-| workspace/applyEdit | ✅ | ✅ | ✅ | ✅ |
-| textDocument/didOpen | ✅ | ✅ | ✅ | ✅ |
-| textDocument/didChange | ✅ | ✅ | ✅ | ✅ |
-| textDocument/willSave | | | | |
-| textDocument/willSaveWaitUntil | | | | |
-| textDocument/didClose | ✅ | ✅ | ✅ | ✅ |
-| textDocument/publishDiagnostics | ✅ | ✅ | ✅ | ✅ |
-| textDocument/completion | ✅ | ✅ | ✅ | ✅ |
-| completionItem/resolve | ✅ | ✅ | ✅ | ✅ |
-| textDocument/hover | ✅ | ✅ | ✅ | ✅ |
-| textDocument/signatureHelp | ✅ | ✅ | ✅ | ✅ | trigger character handling outstanding
-| textDocument/declaration | | | | |
-| textDocument/definition | ✅ | ✅ | ✅ | ✅ |
-| textDocument/typeDefinition | | | | |
-| textDocument/implementation | ✅ | ✅ | ✅ | ✅ |
-| textDocument/references | ✅ | ✅ | ✅ | ✅ |
-| textDocument/documentHighlight | ✅ | ✅ | ✅ | ✅ |
-| textDocument/documentSymbol | ✅ | ✅ | ✅ | ✅ |
-| textDocument/codeAction (sortMembers) | ✅ | ✅ | ✅ | ✅ |
-| textDocument/codeAction (organiseImports) | ✅ | ✅ | ✅ | ✅ |
-| textDocument/codeAction (refactors) | ✅ | ✅ | ✅ | ✅ |
-| textDocument/codeAction (assists) | ✅ | ✅ | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `Refactor`
-| textDocument/codeAction (fixes) | ✅ | ✅ | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `QuickFix`
-| textDocument/codeLens | | | | |
-| codeLens/resolve | | | | |
-| textDocument/documentLink | | | | |
-| documentLink/resolve | | | | |
-| textDocument/documentColor | | | | |
-| textDocument/colorPresentation | | | | |
-| textDocument/formatting | ✅ | ✅ | ✅ | ✅ |
-| textDocument/rangeFormatting | | | | | requires support from dart_style?
-| textDocument/onTypeFormatting | ✅ | ✅ | ✅ | ✅ |
-| textDocument/rename | ✅ | ✅ | ✅ | ✅ |
-| textDocument/prepareRename | ✅ | ✅ | ✅ | ✅ |
-| textDocument/foldingRange | ✅ | ✅ | ✅ | ✅ |
+| Method | Basic Impl | Capabilities | Plugins | Tests | Tested Client | Notes |
+| - | - | - | - | - | - | - |
+| initialize | ✅ | ✅ | N/A | ✅ | ✅ | trace and other options NYI
+| initialized | ✅ | ✅ | N/A | ✅ | ✅ |
+| shutdown | ✅ | ✅ | N/A | ✅ | ✅ | supported but does nothing |
+| exit | ✅ | ✅ | N/A | ✅ | ✅ |
+| $/cancelRequest | ✅ | ✅ | | ✅ | ✅ |
+| window/showMessage | ✅ | | | | |
+| window/showMessageRequest | | | | | |
+| window/logMessage | ✅ | | | | |
+| telemetry/event | | | | | |
+| client/registerCapability | ✅ | ✅ | ✅ | ✅ | ✅ |
+| client/unregisterCapability | ✅ | ✅ | ✅ | ✅ | ✅ |
+| workspace/workspaceFolders | | | | | |
+| workspace/didChangeWorkspaceFolders | ✅ | ✅ | ✅ | ✅ | ✅ |
+| workspace/didChangeConfiguration | ✅ | ✅ | | ✅ | ✅ |
+| workspace/configuration | ✅ | ✅ | | ✅ | ✅ |
+| workspace/didChangeWatchedFiles | | | | | | unused, server does own watching |
+| workspace/symbol | ✅ | ✅ | | ✅ | ✅ |
+| workspace/executeCommand | ✅ | ✅ | | ✅ | ✅ |
+| workspace/applyEdit | ✅ | ✅ | | ✅ | ✅ |
+| textDocument/didOpen | ✅ | ✅ | ✅ | ✅ | ✅ |
+| textDocument/didChange | ✅ | ✅ | ✅ | ✅ | ✅ |
+| textDocument/willSave | | | | | |
+| textDocument/willSaveWaitUntil | | | | | |
+| textDocument/didClose | ✅ | ✅ | ✅ | ✅ | ✅ |
+| textDocument/publishDiagnostics | ✅ | ✅ | ✅ | ✅ | ✅ |
+| textDocument/completion | ✅ | ✅ | ✅ | ✅ | ✅ |
+| completionItem/resolve | ✅ | ✅ | ✅ | ✅ | ✅ |
+| textDocument/hover | ✅ | ✅ | | ✅ | ✅ |
+| textDocument/signatureHelp | ✅ | ✅ | | ✅ | ✅ | trigger character handling outstanding
+| textDocument/declaration | | | | | |
+| textDocument/definition | ✅ | ✅ | ✅ | ✅ | ✅ |
+| textDocument/typeDefinition | | | | | |
+| textDocument/implementation | ✅ | ✅ | | ✅ | ✅ |
+| textDocument/references | ✅ | ✅ | | ✅ | ✅ |
+| textDocument/documentHighlight | ✅ | ✅ | | ✅ | ✅ |
+| textDocument/documentSymbol | ✅ | ✅ | | ✅ | ✅ |
+| textDocument/codeAction (sortMembers) | ✅ | ✅ | | ✅ | ✅ |
+| textDocument/codeAction (organiseImports) | ✅ | ✅ | | ✅ | ✅ |
+| textDocument/codeAction (refactors) | ✅ | ✅ | | ✅ | ✅ |
+| textDocument/codeAction (assists) | ✅ | ✅ | | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `Refactor`
+| textDocument/codeAction (fixes) | ✅ | ✅ | | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `QuickFix`
+| textDocument/codeLens | | | | | |
+| codeLens/resolve | | | | | |
+| textDocument/documentLink | | | | | |
+| documentLink/resolve | | | | | |
+| textDocument/documentColor | | | | | |
+| textDocument/colorPresentation | | | | | |
+| textDocument/formatting | ✅ | ✅ | | ✅ | ✅ |
+| textDocument/rangeFormatting | | | | | | requires support from dart_style?
+| textDocument/onTypeFormatting | ✅ | ✅ | | ✅ | ✅ |
+| textDocument/rename | ✅ | ✅ | | ✅ | ✅ |
+| textDocument/prepareRename | ✅ | ✅ | | ✅ | ✅ |
+| textDocument/foldingRange | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ## Custom Methods
 

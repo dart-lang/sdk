@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: camel_case_types
+
 import 'dart:ffi';
 
 /// digest algorithm.
@@ -14,12 +16,12 @@ class EVP_MD_CTX extends Struct {}
 class Data extends Struct {
   static Data fromUint8Pointer(Pointer<Uint8> p) => p.cast<Data>().ref;
 
-  Pointer<Uint8> asUint8Pointer() => this.addressOf.cast();
+  Pointer<Uint8> asUint8Pointer() => addressOf.cast();
 }
 
 /// Type for `uint8_t*` used to represent byte data.
 class Bytes extends Struct {
   static Data fromUint8Pointer(Pointer<Uint8> p) => p.cast<Data>().ref;
 
-  Pointer<Uint8> asUint8Pointer() => this.addressOf.cast();
+  Pointer<Uint8> asUint8Pointer() => addressOf.cast();
 }

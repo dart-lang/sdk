@@ -693,10 +693,6 @@ void ARMDecoder::DecodeType01(Instr* instr) {
             break;
           }
           case 3: {
-            if (TargetCPUFeatures::arm_version() != ARMv7) {
-              Unknown(instr);
-              return;
-            }
             // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
             Format(instr, "mls'cond's 'rn, 'rm, 'rs, 'rd");
             break;
@@ -742,11 +738,7 @@ void ARMDecoder::DecodeType01(Instr* instr) {
       // 16-bit immediate loads, msr (immediate), and hints
       switch (instr->Bits(20, 5)) {
         case 16: {
-          if (TargetCPUFeatures::arm_version() == ARMv7) {
-            Format(instr, "movw'cond 'rd, #'imm4_12");
-          } else {
-            Unknown(instr);
-          }
+          Format(instr, "movw'cond 'rd, #'imm4_12");
           break;
         }
         case 18: {
@@ -758,11 +750,7 @@ void ARMDecoder::DecodeType01(Instr* instr) {
           break;
         }
         case 20: {
-          if (TargetCPUFeatures::arm_version() == ARMv7) {
-            Format(instr, "movt'cond 'rd, #'imm4_12");
-          } else {
-            Unknown(instr);
-          }
+          Format(instr, "movt'cond 'rd, #'imm4_12");
           break;
         }
         default: {

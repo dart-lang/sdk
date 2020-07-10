@@ -38,6 +38,9 @@ isolate/deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not
 js/instanceof_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/parameters_test: SkipByDesign # Issue 42085.
 
+[ $compiler != dart2js && $compiler != dartdevk ]
+web/*: SkipByDesign
+
 [ $runtime == chrome && $system == linux ]
 mirrors/native_class_test: Slow, Pass
 
@@ -79,6 +82,8 @@ isolate/count_test: Skip # Isolate.spawnUri
 isolate/cross_isolate_message_test: Skip # Isolate.spawnUri
 isolate/deferred_in_isolate2_test: Skip # Isolate.spawnUri
 isolate/deferred_in_isolate_test: Skip # Isolate.spawnUri
+isolate/detect_nullsafety_1_test: Skip # Tests Source, Kernel, appJIT modes
+isolate/detect_nullsafety_2_test: Skip # Tests Source, Kernel, appJIT modes
 isolate/error_at_spawnuri_test: Skip # Isolate.spawnUri
 isolate/error_exit_at_spawnuri_test: Skip # Isolate.spawnUri
 isolate/exit_at_spawnuri_test: Skip # Isolate.spawnUri
@@ -95,8 +100,12 @@ isolate/message_test: Skip # Isolate.spawnUri
 isolate/mint_maker_test: Skip # Isolate.spawnUri
 isolate/nested_spawn2_test: Skip # Isolate.spawnUri
 isolate/nested_spawn_test: Skip # Isolate.spawnUri
-isolate/nnbd_spawn_autodetect_test: Skip # Auto detect not for precompiled.
-isolate/nnbd_spawnuri_autodetect_test: Skip # Auto detect not for precompiled.
+isolate/nnbd_spawn_autodetect_1_test: Skip # Tests Source, Kernel, appJIT modes
+isolate/nnbd_spawn_autodetect_2_test: Skip # Tests Source, Kernel, appJIT modes
+isolate/nnbd_spawnuri_autodetect_1_test: Skip # Uses Isolate.spawnUri
+isolate/nnbd_spawnuri_autodetect_2_test: Skip # Uses Isolate.spawnUri
+isolate/nnbd_spawnuri_autodetect_3_test: Skip # Uses Isolate.spawnUri
+isolate/nnbd_spawnuri_autodetect_4_test: Skip # Uses Isolate.spawnUri
 isolate/no_package_test: Skip # Isolate.spawnUri
 isolate/package_config_test: Skip # Isolate.spawnUri
 isolate/raw_port_test: Skip # Isolate.spawnUri

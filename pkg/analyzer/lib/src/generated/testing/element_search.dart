@@ -6,9 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
-/**
- * Search the [unit] for the [Element]s with the given [name].
- */
+/// Search the [unit] for the [Element]s with the given [name].
 List<Element> findElementsByName(CompilationUnit unit, String name) {
   var finder = _ElementsByNameFinder(name);
   unit.accept(finder);
@@ -22,7 +20,7 @@ class _ElementsByNameFinder extends RecursiveAstVisitor<void> {
   _ElementsByNameFinder(this.name);
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.name == name && node.inDeclarationContext()) {
       elements.add(node.staticElement);
     }

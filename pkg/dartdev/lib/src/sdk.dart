@@ -45,8 +45,10 @@ class Sdk {
   // if the SDK isn't completely built.
   String get dart => Platform.resolvedExecutable;
 
-  String get analysis_server_snapshot => path.absolute(
+  String get analysisServerSnapshot => path.absolute(
       sdkPath, 'bin', 'snapshots', 'analysis_server.dart.snapshot');
+
+  String get dart2js => path.absolute(sdkPath, 'bin', _binName('dart2js'));
 
   String get dartfmt => path.absolute(sdkPath, 'bin', _binName('dartfmt'));
 
@@ -54,7 +56,4 @@ class Sdk {
 
   static String _binName(String base) =>
       Platform.isWindows ? '$base.bat' : base;
-
-  static String _exeName(String base) =>
-      Platform.isWindows ? '$base.exe' : base;
 }

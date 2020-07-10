@@ -4,6 +4,8 @@
 
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
+#include "include/dart_version.h"
+#include "include/internal/dart_api_dl_impl.h"
 #include "platform/globals.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
@@ -495,21 +497,41 @@ DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
   return Pointer::New(type_arg, entry_point);
 }
 
-DEFINE_NATIVE_ENTRY(NativeApiFunctionPointer, 0, 1) {
+DEFINE_NATIVE_ENTRY(DartNativeApiFunctionPointer, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, name_dart, arguments->NativeArgAt(0));
   const char* name = name_dart.ToCString();
 
-  if (strcmp(name, "Dart_PostCObject") == 0) {
-    return Integer::New(reinterpret_cast<int64_t>(Dart_PostCObject));
-  } else if (strcmp(name, "Dart_NewNativePort") == 0) {
-    return Integer::New(reinterpret_cast<int64_t>(Dart_NewNativePort));
-  } else if (strcmp(name, "Dart_CloseNativePort") == 0) {
-    return Integer::New(reinterpret_cast<int64_t>(Dart_CloseNativePort));
+#define RETURN_FUNCTION_ADDRESS(function_name)                                 \
+  if (strcmp(name, #function_name) == 0) {                                     \
+    return Integer::New(reinterpret_cast<intptr_t>(function_name));            \
   }
+  DART_NATIVE_API_DL_SYMBOLS(RETURN_FUNCTION_ADDRESS)
+#undef RETURN_FUNCTION_ADDRESS
 
   const String& error = String::Handle(
       String::NewFormatted("Unknown dart_native_api.h symbol: %s.", name));
   Exceptions::ThrowArgumentError(error);
+}
+
+DEFINE_NATIVE_ENTRY(DartApiDLMajorVersion, 0, 0) {
+  return Integer::New(DART_API_DL_MAJOR_VERSION);
+}
+
+DEFINE_NATIVE_ENTRY(DartApiDLMinorVersion, 0, 0) {
+  return Integer::New(DART_API_DL_MINOR_VERSION);
+}
+
+static const DartApiEntry dart_api_entries[] = {
+#define ENTRY(name) DartApiEntry{#name, reinterpret_cast<void (*)()>(name)},
+    DART_API_ALL_DL_SYMBOLS(ENTRY)
+#undef ENTRY
+        DartApiEntry{nullptr, nullptr}};
+
+static const DartApi dart_api_data = {
+    DART_API_DL_MAJOR_VERSION, DART_API_DL_MINOR_VERSION, dart_api_entries};
+
+DEFINE_NATIVE_ENTRY(DartApiDLInitializeData, 0, 0) {
+  return Integer::New(reinterpret_cast<intptr_t>(&dart_api_data));
 }
 
 }  // namespace dart

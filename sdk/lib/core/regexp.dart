@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.core;
 
 /**
@@ -90,7 +88,7 @@ abstract class RegExp implements Pattern {
    * Searches for the first match of the regular expression
    * in the string [input]. Returns `null` if there is no match.
    */
-  RegExpMatch firstMatch(String input);
+  RegExpMatch? firstMatch(String input);
 
   /**
    * Returns an iterable of the matches of the regular expression on [input].
@@ -107,7 +105,7 @@ abstract class RegExp implements Pattern {
   /**
    * Returns the first substring match of this regular expression in [input].
    */
-  String stringMatch(String input);
+  String? stringMatch(String input);
 
   /**
    * The source regular expression string used to create this `RegExp`.
@@ -154,7 +152,7 @@ abstract class RegExp implements Pattern {
    * character is a line terminator. When true, then the "." character will
    * match any single character including line terminators.
    *
-   * This feature is distinct from [isMultiLine], as they affect the behavior
+   * This feature is distinct from [isMultiline], as they affect the behavior
    * of different pattern characters, and so they can be used together or
    * separately.
    */
@@ -182,7 +180,7 @@ abstract class RegExpMatch implements Match {
    * expression creating this match (that is, the name must be in
    * [groupNames]).
    */
-  String namedGroup(String name);
+  String? namedGroup(String name);
 
   /**
    * The names of the captured groups in the match.

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart._internal;
 
 // Casting wrappers for asynchronous classes.
@@ -13,8 +11,8 @@ class CastStream<S, T> extends Stream<T> {
   CastStream(this._source);
   bool get isBroadcast => _source.isBroadcast;
 
-  StreamSubscription<T> listen(void onData(T data),
-      {Function onError, void onDone(), bool cancelOnError}) {
+  StreamSubscription<T> listen(void Function(T data)? onData,
+      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
     return new CastStreamSubscription<S, T>(
         _source.listen(null, onDone: onDone, cancelOnError: cancelOnError))
       ..onData(onData)
@@ -30,12 +28,11 @@ class CastStreamSubscription<S, T> implements StreamSubscription<T> {
   /// Zone where listen was called.
   final Zone _zone = Zone.current;
 
-  /// User's data handler. May be null.
-  void Function(T) _handleData;
+  /// User's data handler.
+  void Function(T)? _handleData;
 
   /// Copy of _source's handleError so we can report errors in onData.
-  /// May be null.
-  Function _handleError;
+  Function? _handleError;
 
   CastStreamSubscription(this._source) {
     _source.onData(_onData);
@@ -43,25 +40,28 @@ class CastStreamSubscription<S, T> implements StreamSubscription<T> {
 
   Future cancel() => _source.cancel();
 
-  void onData(void handleData(T data)) {
+  void onData(void Function(T data)? handleData) {
     _handleData = handleData == null
         ? null
         : _zone.registerUnaryCallback<dynamic, T>(handleData);
   }
 
-  void onError(Function handleError) {
+  void onError(Function? handleError) {
     _source.onError(handleError);
     if (handleError == null) {
       _handleError = null;
-    } else if (handleError is Function(Null, Null)) {
+    } else if (handleError is void Function(Object, StackTrace)) {
       _handleError = _zone
           .registerBinaryCallback<dynamic, Object, StackTrace>(handleError);
-    } else {
+    } else if (handleError is void Function(Object)) {
       _handleError = _zone.registerUnaryCallback<dynamic, Object>(handleError);
+    } else {
+      throw ArgumentError("handleError callback must take either an Object "
+          "(the error), or both an Object (the error) and a StackTrace.");
     }
   }
 
-  void onDone(void handleDone()) {
+  void onDone(void handleDone()?) {
     _source.onDone(handleDone);
   }
 
@@ -71,19 +71,21 @@ class CastStreamSubscription<S, T> implements StreamSubscription<T> {
     try {
       targetData = data as T;
     } catch (error, stack) {
-      if (_handleError == null) {
+      var handleError = _handleError;
+      if (handleError == null) {
         _zone.handleUncaughtError(error, stack);
-      } else if (_handleError is Function(Null, Null)) {
-        _zone.runBinaryGuarded(_handleError, error, stack);
+      } else if (handleError is void Function(Object, StackTrace)) {
+        _zone.runBinaryGuarded<Object, StackTrace>(handleError, error, stack);
       } else {
-        _zone.runUnaryGuarded(_handleError, error);
+        _zone.runUnaryGuarded<Object>(
+            handleError as void Function(Object), error);
       }
       return;
     }
-    _zone.runUnaryGuarded(_handleData, targetData);
+    _zone.runUnaryGuarded(_handleData!, targetData);
   }
 
-  void pause([Future resumeSignal]) {
+  void pause([Future? resumeSignal]) {
     _source.pause(resumeSignal);
   }
 
@@ -93,7 +95,7 @@ class CastStreamSubscription<S, T> implements StreamSubscription<T> {
 
   bool get isPaused => _source.isPaused;
 
-  Future<E> asFuture<E>([E futureValue]) => _source.asFuture<E>(futureValue);
+  Future<E> asFuture<E>([E? futureValue]) => _source.asFuture<E>(futureValue);
 }
 
 class CastStreamTransformer<SS, ST, TS, TT>

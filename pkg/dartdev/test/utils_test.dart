@@ -90,7 +90,7 @@ void main() {
   });
 }
 
-final String _packageData = '''{
+const String _packageData = '''{
   "configVersion": 2,
   "packages": [
     {

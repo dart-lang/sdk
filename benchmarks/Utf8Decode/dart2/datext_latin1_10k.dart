@@ -7,7 +7,7 @@
 // The material is licensed under the Creative Commons Attribution-Share-Alike
 // License 3.0: https://creativecommons.org/licenses/by-sa/3.0/
 
-const String da = """
+const String da = '''
 Anders And
 
 Anders Fauntleroy And er en berømt figur i Disneys tegnefilm og tegneserier. Selv om han ikke er særligt populær i USA, optræder han i mange ugeblade i Europa: I Norge, Tyskland, Sverige, Danmark, Holland, Italien med flere. Hans første optræden var i tegnefilmen "The Wise Little Hen" (Den kloge lille høne) fra 9. juni 1934. Hans karakteristiske stemme blev indtalt af radiokomikeren Clarence Nash, der siden fast lagde stemme til.
@@ -59,4 +59,4 @@ En mængde temaer var ofte i centrum for historierne, bl.a. tidsrejser og Tidspo
 Serien fik en fornyelse i 2001, hvilket ændrede markant på historierne. Everett Ducklair vender tilbage, slukker Globus, smider Stålanden ud af Ducklair Tower og genopretter sit gamle imperium. Undervejs bliver Ducklair's to døtre afsløret. De hader begge Everett af grunde, der ikke bliver afsløret til fulde, selvom det bliver antydet, at Everett skilte sig af med deres mor på en eller anden måde.
 Denne fornyelse holdt 18 numre, før serien blev afsluttet, dog uden at historierne fik en slutning.
 
-Barks-historien "Anders And og den gyldne hjelm" fra 1954 kom i 2006 med i """;
+Barks-historien "Anders And og den gyldne hjelm" fra 1954 kom i 2006 med i ''';

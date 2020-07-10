@@ -146,22 +146,31 @@ abstract class Loader {
       }
       bool hasPackageSpecifiedLanguageVersion = false;
       Version version;
-      if (packageForLanguageVersion != null &&
-          packageForLanguageVersion.languageVersion != null) {
-        hasPackageSpecifiedLanguageVersion = true;
-        if (packageForLanguageVersion.languageVersion
-            is! InvalidLanguageVersion) {
-          version = new Version(packageForLanguageVersion.languageVersion.major,
-              packageForLanguageVersion.languageVersion.minor);
+      Uri packageUri;
+      if (packageForLanguageVersion != null) {
+        Uri importUri = origin?.importUri ?? uri;
+        if (importUri.scheme != 'dart' &&
+            importUri.scheme != 'package' &&
+            packageForLanguageVersion.name != null) {
+          packageUri =
+              new Uri(scheme: 'package', path: packageForLanguageVersion.name);
+        }
+        if (packageForLanguageVersion.languageVersion != null) {
+          hasPackageSpecifiedLanguageVersion = true;
+          if (packageForLanguageVersion.languageVersion
+              is! InvalidLanguageVersion) {
+            version = new Version(
+                packageForLanguageVersion.languageVersion.major,
+                packageForLanguageVersion.languageVersion.minor);
+          }
         }
       }
-      LibraryBuilder library = target.createLibraryBuilder(
-          uri, fileUri, origin, referencesFrom, referenceIsPartOwner);
+      LibraryBuilder library = target.createLibraryBuilder(uri, fileUri,
+          packageUri, origin, referencesFrom, referenceIsPartOwner);
       if (library == null) {
         throw new StateError("createLibraryBuilder for uri $uri, "
             "fileUri $fileUri returned null.");
       }
-
       if (hasPackageSpecifiedLanguageVersion) {
         library.setLanguageVersion(version, explicit: false);
       }

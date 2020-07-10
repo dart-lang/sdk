@@ -1299,8 +1299,8 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   } else {
 #ifndef PRODUCT
     if (!Isolate::IsVMInternalIsolate(I)) {
-      // Mark all the user isolates as white-listed for the simplified timeline
-      // page of Observatory. The internal isolates will be filtered out from
+      // Mark all the user isolates as using a simplified timeline page of
+      // Observatory. The internal isolates will be filtered out from
       // the Timeline due to absence of this argument. We still send them in
       // order to maintain the original behavior of the full timeline and allow
       // the developer to download complete dump files.
@@ -1455,6 +1455,7 @@ void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
   api_flags->entry_points = NULL;
   api_flags->load_vmservice_library = false;
   api_flags->copy_parent_code = false;
+  api_flags->null_safety = false;
 }
 
 void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
@@ -1466,6 +1467,7 @@ void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
   api_flags->entry_points = NULL;
   api_flags->load_vmservice_library = should_load_vmservice();
   api_flags->copy_parent_code = false;
+  api_flags->null_safety = null_safety();
 }
 
 void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
@@ -1495,6 +1497,7 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
 #undef SET_FROM_FLAG
 
   set_should_load_vmservice(api_flags.load_vmservice_library);
+  set_null_safety(api_flags.null_safety);
 
   // Copy entry points list.
   ASSERT(embedder_entry_points_ == NULL);
@@ -1505,11 +1508,11 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
     embedder_entry_points_ = new Dart_QualifiedFunctionName[count + 1];
     for (intptr_t i = 0; i < count; i++) {
       embedder_entry_points_[i].library_uri =
-          strdup(api_flags.entry_points[i].library_uri);
+          Utils::StrDup(api_flags.entry_points[i].library_uri);
       embedder_entry_points_[i].class_name =
-          strdup(api_flags.entry_points[i].class_name);
+          Utils::StrDup(api_flags.entry_points[i].class_name);
       embedder_entry_points_[i].function_name =
-          strdup(api_flags.entry_points[i].function_name);
+          Utils::StrDup(api_flags.entry_points[i].function_name);
     }
     memset(&embedder_entry_points_[count], 0,
            sizeof(Dart_QualifiedFunctionName));
@@ -1757,26 +1760,12 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   isolate_group->RegisterIsolate(result);
 
   if (ServiceIsolate::NameEquals(name_prefix)) {
-    // For now the service isolate always runs in weak mode.
-    result->set_null_safety(false);
     ASSERT(!ServiceIsolate::Exists());
     ServiceIsolate::SetServiceIsolate(result);
 #if !defined(DART_PRECOMPILED_RUNTIME)
   } else if (KernelIsolate::NameEquals(name_prefix)) {
-    // For now the kernel isolate always runs in weak mode.
-    result->set_null_safety(false);
     ASSERT(!KernelIsolate::Exists());
     KernelIsolate::SetKernelIsolate(result);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  } else if (FLAG_null_safety != kNullSafetyOptionUnspecified) {
-    // If the null-safety option is specified on the command line then
-    // use the value specified on the command line, if the dill file being
-    // loaded is in a different mode than that specified on the command line
-    // we will get an error during kernel file loading.
-    result->set_null_safety(FLAG_null_safety == kNullSafetyOptionStrong);
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  } else if (!KernelIsolate::GetExperimentalFlag("non-nullable")) {
-    result->set_null_safety(false);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 
@@ -1841,7 +1830,7 @@ void Isolate::ScheduleInterrupts(uword interrupt_bits) {
 
 void Isolate::set_name(const char* name) {
   free(name_);
-  name_ = strdup(name);
+  name_ = Utils::StrDup(name);
 }
 
 int64_t IsolateGroup::UptimeMicros() const {
@@ -1895,7 +1884,7 @@ void Isolate::BuildName(const char* name_prefix) {
   if (name_prefix == nullptr) {
     name_ = OS::SCreate(nullptr, "isolate-%" Pd64 "", main_port());
   } else {
-    name_ = strdup(name_prefix);
+    name_ = Utils::StrDup(name_prefix);
   }
 }
 

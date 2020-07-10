@@ -6,6 +6,7 @@ import "dart:developer";
 import 'dart:io' show Platform;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 
 import 'package:kernel/kernel.dart'
@@ -175,9 +176,10 @@ class Dart2jsTester {
     stopwatch.start();
     Uri input = Platform.script.resolve("../../compiler/bin/dart2js.dart");
     CompilerOptions options = helper.getOptions();
+    options.experimentalFlags[ExperimentalFlag
+        .alternativeInvalidationStrategy] = useExperimentalInvalidation;
     helper.TestIncrementalCompiler compiler =
         new helper.TestIncrementalCompiler(options, input);
-    compiler.useExperimentalInvalidation = useExperimentalInvalidation;
     Component c = await compiler.computeDelta();
     print("Compiled dart2js to Component with ${c.libraries.length} libraries "
         "in ${stopwatch.elapsedMilliseconds} ms.");

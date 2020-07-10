@@ -6,12 +6,12 @@
 
 import 'package:expect/expect.dart';
 
-/*spec:nnbd-off|spec:nnbd-sdk.member: method:implicit=[method.T],indirect,needsArgs*/
-/*prod:nnbd-off|prod:nnbd-sdk.member: method:needsArgs*/
-/*spec:nnbd-off.class: global#JSArray:deps=[ArrayIterator,List],direct,explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],needsArgs*/
-/*prod:nnbd-off.class: global#JSArray:deps=[List],explicit=[JSArray],needsArgs*/
+/*spec.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],indirect,needsArgs*/
+/*prod.class: global#JSArray:deps=[List],needsArgs*/
 
 @pragma('dart2js:noInline')
+/*spec.member: method:implicit=[method.T],indirect,needsArgs*/
+/*prod.member: method:needsArgs*/
 method<T>() {
   return () => <T>[];
 }

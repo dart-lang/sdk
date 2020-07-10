@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart._interceptors;
 
 /**
@@ -37,7 +35,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     return allMatchesInStringUnchecked(this, string, start);
   }
 
-  Match matchAsPrefix(@nullCheck String string, [@nullCheck int start = 0]) {
+  Match? matchAsPrefix(@nullCheck String string, [@nullCheck int start = 0]) {
     int stringLength = JS('!', '#.length', string);
     if (start < 0 || start > stringLength) {
       throw RangeError.range(start, 0, stringLength);
@@ -71,13 +69,13 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   }
 
   @notNull
-  String replaceAllMapped(Pattern from, String convert(Match match)) {
+  String replaceAllMapped(Pattern from, String Function(Match) convert) {
     return this.splitMapJoin(from, onMatch: convert);
   }
 
   @notNull
   String splitMapJoin(Pattern from,
-      {String onMatch(Match match), String onNonMatch(String nonMatch)}) {
+      {String Function(Match)? onMatch, String Function(String)? onNonMatch}) {
     return stringReplaceAllFuncUnchecked(this, from, onMatch, onNonMatch);
   }
 
@@ -110,9 +108,9 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
 
   @notNull
   String replaceRange(
-      @nullCheck int start, int end, @nullCheck String replacement) {
-    end = RangeError.checkValidRange(start, end, this.length);
-    return stringReplaceRangeUnchecked(this, start, end, replacement);
+      @nullCheck int start, int? end, @nullCheck String replacement) {
+    var e = RangeError.checkValidRange(start, end, this.length);
+    return stringReplaceRangeUnchecked(this, start, e, replacement);
   }
 
   @notNull
@@ -166,7 +164,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   }
 
   @notNull
-  String substring(@nullCheck int startIndex, [int _endIndex]) {
+  String substring(@nullCheck int startIndex, [int? _endIndex]) {
     var length = this.length;
     final endIndex = _endIndex ?? length;
     if (startIndex < 0) throw RangeError.value(startIndex);
@@ -418,7 +416,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     }
     if (pattern is JSSyntaxRegExp) {
       JSSyntaxRegExp re = pattern;
-      Match match = firstMatchAfter(re, this, start);
+      Match? match = firstMatchAfter(re, this, start);
       return (match == null) ? -1 : match.start;
     }
     var length = this.length;
@@ -429,7 +427,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   }
 
   @notNull
-  int lastIndexOf(@nullCheck Pattern pattern, [int _start]) {
+  int lastIndexOf(@nullCheck Pattern pattern, [int? _start]) {
     var length = this.length;
     var start = _start ?? length;
     if (start < 0 || start > length) {
@@ -497,7 +495,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   Type get runtimeType => String;
 
   @notNull
-  final int length;
+  int get length native;
 
   @notNull
   String operator [](@nullCheck int index) {

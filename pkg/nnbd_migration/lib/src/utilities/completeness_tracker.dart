@@ -19,11 +19,15 @@ mixin CompletenessTracker<T> on AstVisitor<T>, PermissiveModeVisitor<T> {
 
   @override
   T visitAnnotation(Annotation node) {
+    annotationVisited(node);
+    return super.visitAnnotation(node);
+  }
+
+  void annotationVisited(Annotation node) {
     assert(() {
       _annotationTracker.nodeVisited(node);
       return true;
     }());
-    return super.visitAnnotation(node);
   }
 
   void typeNameVisited(TypeName node) {

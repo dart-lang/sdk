@@ -623,8 +623,7 @@ void f(Object o) {
     assertEdge(decoratedTypeAnnotation('Object o').node,
         decoratedTypeAnnotation('dynamic').node,
         hard: true);
-    // TODO(mfairhurst): these should probably be hard edges.
-    assertEdge(decoratedTypeAnnotation('dynamic').node, never, hard: false);
+    assertEdge(decoratedTypeAnnotation('dynamic').node, never, hard: true);
   }
 
   Future<void> test_as_int() async {
@@ -636,8 +635,7 @@ void f(Object o) {
     assertEdge(decoratedTypeAnnotation('Object o').node,
         decoratedTypeAnnotation('int').node,
         hard: true);
-    // TODO(mfairhurst): these should probably be hard edges.
-    assertEdge(decoratedTypeAnnotation('int').node, never, hard: false);
+    assertEdge(decoratedTypeAnnotation('int').node, never, hard: true);
     expect(
         variables.wasUnnecessaryCast(testSource, findNode.as_('o as')), false);
   }
@@ -666,8 +664,7 @@ void f(int i) {
     assertEdge(decoratedTypeAnnotation('int i').node,
         decoratedTypeAnnotation('int)').node,
         hard: true);
-    // TODO(mfairhurst): these should probably be hard edges.
-    assertEdge(decoratedTypeAnnotation('int)').node, never, hard: false);
+    assertEdge(decoratedTypeAnnotation('int)').node, never, hard: true);
     expect(
         variables.wasUnnecessaryCast(testSource, findNode.as_('i as')), true);
   }
@@ -729,6 +726,18 @@ class C {
 ''');
 
     assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
+  }
+
+  Future<void> test_assert_is_demonstrates_non_null_intent() async {
+    // Note, this could also be handled via improved flow analysis rather than a
+    // hard edge.
+    await analyze('''
+void f(dynamic i) {
+  assert(i is int);
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('dynamic i').node, never, hard: true);
   }
 
   Future<void> test_assign_bound_to_type_parameter() async {
@@ -6225,8 +6234,8 @@ C<int> f(C<int> c) {
   Future<void> test_prefixedIdentifier_bangHint() async {
     await analyze('''
 import 'dart:math' as m;
-double f1() => m.PI;
-double f2() => m.PI/*!*/;
+double f1() => m.pi;
+double f2() => m.pi/*!*/;
 ''');
     expect(
         assertEdge(anyNode, decoratedTypeAnnotation('double f1').node,
@@ -6238,7 +6247,7 @@ double f2() => m.PI/*!*/;
                 hard: false)
             .sourceNode,
         never);
-    expect(hasNullCheckHint(findNode.prefixed('m.PI/*!*/')), isTrue);
+    expect(hasNullCheckHint(findNode.prefixed('m.pi/*!*/')), isTrue);
   }
 
   Future<void> test_prefixedIdentifier_field_type() async {
@@ -6834,6 +6843,26 @@ int f() {
         inSet(alwaysPlus), decoratedTypeAnnotation('int').node,
         hard: false);
     expect(edge.sourceNode.displayName, 'implicit null return (test.dart:2:3)');
+  }
+
+  Future<void> test_return_in_asyncStar() async {
+    await analyze('''
+Stream<int> f() async* {
+  yield 1;
+  return;
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Stream<int>').node);
+  }
+
+  Future<void> test_return_in_syncStar() async {
+    await analyze('''
+Iterable<int> f() sync* {
+  yield 1;
+  return;
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Iterable<int>').node);
   }
 
   Future<void> test_return_null() async {
@@ -7506,6 +7535,16 @@ int f() {
     assertNoUpstreamNullability(intNode);
     var edge = assertEdge(anyNode, intNode, hard: false);
     expect(edge.sourceNode.displayName, 'throw expression (test.dart:2:10)');
+  }
+
+  Future<void> test_top_level_annotation_begins_flow_analysis() async {
+    await analyze('''
+class C {
+  const C(bool x);
+}
+@C(true)
+int x;
+''');
   }
 
   Future<void> test_topLevelSetter() async {

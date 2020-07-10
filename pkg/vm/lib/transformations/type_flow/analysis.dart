@@ -18,6 +18,7 @@ import 'package:kernel/type_environment.dart';
 
 import 'calls.dart';
 import 'native_code.dart';
+import 'protobuf_handler.dart' show ProtobufHandler;
 import 'summary.dart';
 import 'summary_collector.dart';
 import 'types.dart';
@@ -835,7 +836,10 @@ class _FieldValue extends _DependencyTracker {
   Type getValue(TypeFlowAnalysis typeFlowAnalysis, Type receiverType) {
     ensureInitialized(typeFlowAnalysis, receiverType);
     addDependentInvocation(typeFlowAnalysis.currentInvocation);
-    return value;
+    return (typeGuardSummary != null)
+        ? typeGuardSummary.apply(Args([receiverType, value]),
+            typeFlowAnalysis.hierarchyCache, typeFlowAnalysis)
+        : value;
   }
 
   void setValue(
@@ -1060,7 +1064,6 @@ class _ClassHierarchyCache extends TypeHierarchy {
 
   ConcreteType addAllocatedClass(Class cl) {
     assertx(!cl.isAbstract);
-    assertx(cl != coreTypes.futureOrClass);
     assertx(!_sealed);
 
     final _TFClassImpl classImpl = getTFClass(cl);
@@ -1097,11 +1100,6 @@ class _ClassHierarchyCache extends TypeHierarchy {
       return true;
     }
 
-    // TODO(alexmarkov): handle FutureOr more precisely.
-    if (sup == coreTypes.futureOrClass) {
-      return true;
-    }
-
     _TFClassImpl subClassData = getTFClass(sub);
     _TFClassImpl superClassData = getTFClass(sup);
 
@@ -1118,10 +1116,7 @@ class _ClassHierarchyCache extends TypeHierarchy {
     // TODO(alexmarkov): consider approximating type if number of allocated
     // subtypes is too large
 
-    // TODO(alexmarkov): handle FutureOr more precisely.
-
-    if (baseClass.classNode == coreTypes.objectClass ||
-        baseClass.classNode == coreTypes.futureOrClass) {
+    if (baseClass.classNode == coreTypes.objectClass) {
       return const AnyType();
     }
 
@@ -1231,8 +1226,34 @@ class _WorkList {
     enqueueInvocation(invocation);
   }
 
+  bool invalidateProtobufFields() {
+    if (_typeFlowAnalysis.protobufHandler == null) {
+      return false;
+    }
+    final fields = _typeFlowAnalysis.protobufHandler.getInvalidatedFields();
+    if (fields.isEmpty) {
+      return false;
+    }
+    // Protobuf handler replaced contents of static field initializers.
+    for (var field in fields) {
+      assertx(field.isStatic);
+      // Reset summary in order to rebuild it.
+      _typeFlowAnalysis._summaries[field] = null;
+      // Invalidate (and enqueue) field initializer invocation.
+      final initializerInvocation = _typeFlowAnalysis._invocationsCache
+          .getInvocation(
+              DirectSelector(field, callKind: CallKind.FieldInitializer),
+              Args<Type>(const <Type>[]));
+      invalidateInvocation(initializerInvocation);
+    }
+    return true;
+  }
+
   void process() {
-    while (pending.isNotEmpty) {
+    for (;;) {
+      if (pending.isEmpty && !invalidateProtobufFields()) {
+        break;
+      }
       assertx(callStack.isEmpty && processing.isEmpty);
       Statistics.iterationsOverInvocationsWorkList++;
       processInvocation(pending.first);
@@ -1329,6 +1350,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   final TypeEnvironment environment;
   final LibraryIndex libraryIndex;
   final PragmaAnnotationParser annotationMatcher;
+  final ProtobufHandler protobufHandler;
   NativeCodeOracle nativeCodeOracle;
   _ClassHierarchyCache hierarchyCache;
   SummaryCollector summaryCollector;
@@ -1352,14 +1374,22 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
       this._genericInterfacesInfo,
       this.environment,
       this.libraryIndex,
-      {PragmaAnnotationParser matcher})
+      this.protobufHandler,
+      PragmaAnnotationParser matcher)
       : annotationMatcher =
             matcher ?? new ConstantPragmaAnnotationParser(coreTypes) {
     nativeCodeOracle = new NativeCodeOracle(libraryIndex, annotationMatcher);
     hierarchyCache = new _ClassHierarchyCache(this, hierarchy,
         _genericInterfacesInfo, environment, target.flags.enableNullSafety);
-    summaryCollector = new SummaryCollector(target, environment, hierarchy,
-        this, hierarchyCache, nativeCodeOracle, hierarchyCache);
+    summaryCollector = new SummaryCollector(
+        target,
+        environment,
+        hierarchy,
+        this,
+        hierarchyCache,
+        nativeCodeOracle,
+        hierarchyCache,
+        protobufHandler);
     _invocationsCache = new _InvocationsCache(this);
     workList = new _WorkList(this);
 
@@ -1374,13 +1404,17 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   }
 
   _FieldValue getFieldValue(Field field) {
-    Summary setterSummary = null;
-    if (field.isGenericCovariantImpl) {
-      setterSummary = summaryCollector.createSummary(field,
-          fieldSummaryType: FieldSummaryType.kFieldGuard);
+    _FieldValue fieldValue = _fieldValues[field];
+    if (fieldValue == null) {
+      Summary typeGuardSummary = null;
+      if (field.isGenericCovariantImpl) {
+        typeGuardSummary = summaryCollector.createSummary(field,
+            fieldSummaryType: FieldSummaryType.kFieldGuard);
+      }
+      fieldValue = _FieldValue(field, typeGuardSummary, hierarchyCache);
+      _fieldValues[field] = fieldValue;
     }
-    return _fieldValues[field] ??=
-        new _FieldValue(field, setterSummary, hierarchyCache);
+    return fieldValue;
   }
 
   void process() {

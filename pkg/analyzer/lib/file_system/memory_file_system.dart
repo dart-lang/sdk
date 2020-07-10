@@ -13,10 +13,8 @@ import 'package:analyzer/src/source/source_resource.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart';
 
-/**
- * An in-memory implementation of [ResourceProvider].
- * Use `/` as a path separator.
- */
+/// An in-memory implementation of [ResourceProvider].
+/// Use `/` as a path separator.
 class MemoryResourceProvider implements ResourceProvider {
   final Map<String, _MemoryResource> _pathToResource =
       HashMap<String, _MemoryResource>();
@@ -40,12 +38,10 @@ class MemoryResourceProvider implements ResourceProvider {
   @override
   pathos.Context get pathContext => _pathContext;
 
-  /**
-   * Convert the given posix [path] to conform to this provider's path context.
-   *
-   * This is a utility method for testing; paths passed in to other methods in
-   * this class are never converted automatically.
-   */
+  /// Convert the given posix [path] to conform to this provider's path context.
+  ///
+  /// This is a utility method for testing; paths passed in to other methods in
+  /// this class are never converted automatically.
   String convertPath(String path) {
     if (pathContext.style == pathos.windows.style) {
       if (path.startsWith(pathos.posix.separator)) {
@@ -56,9 +52,7 @@ class MemoryResourceProvider implements ResourceProvider {
     return path;
   }
 
-  /**
-   * Delete the file with the given path.
-   */
+  /// Delete the file with the given path.
   void deleteFile(String path) {
     _checkFileAtPath(path);
     _pathToResource.remove(path);
@@ -67,10 +61,8 @@ class MemoryResourceProvider implements ResourceProvider {
     _notifyWatchers(path, ChangeType.REMOVE);
   }
 
-  /**
-   * Delete the folder with the given path
-   * and recursively delete nested files and folders.
-   */
+  /// Delete the folder with the given path
+  /// and recursively delete nested files and folders.
   void deleteFolder(String path) {
     _checkFolderAtPath(path);
     _MemoryFolder folder = _pathToResource[path];
@@ -128,10 +120,8 @@ class MemoryResourceProvider implements ResourceProvider {
     _notifyWatchers(path, ChangeType.MODIFY);
   }
 
-  /**
-   * Create a resource representing a dummy link (that is, a File object which
-   * appears in its parent directory, but whose `exists` property is false)
-   */
+  /// Create a resource representing a dummy link (that is, a File object which
+  /// appears in its parent directory, but whose `exists` property is false)
   File newDummyLink(String path) {
     _ensureAbsoluteAndNormalized(path);
     newFolder(pathContext.dirname(path));
@@ -197,9 +187,7 @@ class MemoryResourceProvider implements ResourceProvider {
     return file;
   }
 
-  /**
-   * Write a representation of the file system on the given [sink].
-   */
+  /// Write a representation of the file system on the given [sink].
   void writeOn(StringSink sink) {
     List<String> paths = _pathToResource.keys.toList();
     paths.sort();
@@ -229,10 +217,8 @@ class MemoryResourceProvider implements ResourceProvider {
     }
   }
 
-  /**
-   * The file system abstraction supports only absolute and normalized paths.
-   * This method is used to validate any input paths to prevent errors later.
-   */
+  /// The file system abstraction supports only absolute and normalized paths.
+  /// This method is used to validate any input paths to prevent errors later.
   void _ensureAbsoluteAndNormalized(String path) {
     if (!pathContext.isAbsolute(path)) {
       throw ArgumentError("Path must be absolute : $path");
@@ -242,9 +228,7 @@ class MemoryResourceProvider implements ResourceProvider {
     }
   }
 
-  /**
-   * Create a new [_MemoryFile] without any content.
-   */
+  /// Create a new [_MemoryFile] without any content.
   _MemoryFile _newFile(String path) {
     String folderPath = pathContext.dirname(path);
     _MemoryResource folder = _pathToResource[folderPath];
@@ -301,10 +285,8 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 }
 
-/**
- * An in-memory implementation of [File] which acts like a symbolic link to a
- * non-existent file.
- */
+/// An in-memory implementation of [File] which acts like a symbolic link to a
+/// non-existent file.
 class _MemoryDummyLink extends _MemoryResource implements File {
   _MemoryDummyLink(MemoryResourceProvider provider, String path)
       : super(provider, path);
@@ -382,9 +364,7 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   }
 }
 
-/**
- * An in-memory implementation of [File].
- */
+/// An in-memory implementation of [File].
 class _MemoryFile extends _MemoryResource implements File {
   _MemoryFile(MemoryResourceProvider provider, String path)
       : super(provider, path);
@@ -467,9 +447,7 @@ class _MemoryFile extends _MemoryResource implements File {
   }
 }
 
-/**
- * An in-memory implementation of [Folder].
- */
+/// An in-memory implementation of [Folder].
 class _MemoryFolder extends _MemoryResource implements Folder {
   _MemoryFolder(MemoryResourceProvider provider, String path)
       : super(provider, path);
@@ -566,9 +544,7 @@ class _MemoryFolder extends _MemoryResource implements Folder {
   Uri toUri() => _provider.pathContext.toUri(path + '/');
 }
 
-/**
- * An in-memory implementation of [Resource].
- */
+/// An in-memory implementation of [Resource].
 abstract class _MemoryResource implements Resource {
   final MemoryResourceProvider _provider;
   @override
@@ -593,7 +569,7 @@ abstract class _MemoryResource implements Resource {
   }
 
   @override
-  get hashCode => path.hashCode;
+  int get hashCode => path.hashCode;
 
   @override
   Folder get parent {

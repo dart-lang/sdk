@@ -4,7 +4,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Downloads the ia32 and x64 Debian wheezy sysroot that chromium uses,
+# Downloads the ia32 and x64 Debian jessie sysroot that chromium uses,
 # Only tested and used on Ubuntu trusty linux. Used to keep glibc version low.
 # Creates directories called "build" and "tools" in the current directory.
 # After running this, source set_ia32_sysroot.sh or set_x64_sysroot.sh, in 

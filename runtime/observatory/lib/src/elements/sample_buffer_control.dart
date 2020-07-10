@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:html';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/utils.dart';
 
 class SampleBufferControlChangedElement {
@@ -15,9 +15,6 @@ class SampleBufferControlChangedElement {
 }
 
 class SampleBufferControlElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<SampleBufferControlElement>('sample-buffer-control');
-
   RenderingScheduler<SampleBufferControlElement> _r;
 
   Stream<RenderedEvent<SampleBufferControlElement>> get onRendered =>
@@ -67,7 +64,7 @@ class SampleBufferControlElement extends CustomElement implements Renderable {
     return e;
   }
 
-  SampleBufferControlElement.created() : super.created(tag);
+  SampleBufferControlElement.created() : super.created('sample-buffer-control');
 
   @override
   void attached() {

@@ -8,6 +8,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/aot/aot_call_specializer.h"
+#include "vm/compiler/aot/precompiler_tracer.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
@@ -50,6 +51,7 @@
 #include "vm/type_table.h"
 #include "vm/type_testing_stubs.h"
 #include "vm/version.h"
+#include "vm/zone_text_buffer.h"
 
 namespace dart {
 
@@ -173,6 +175,7 @@ Precompiler::Precompiler(Thread* thread)
       classes_to_retain_(),
       typeargs_to_retain_(),
       types_to_retain_(),
+      typeparams_to_retain_(),
       consts_to_retain_(),
       seen_table_selectors_(),
       error_(Error::Handle()),
@@ -267,6 +270,8 @@ void Precompiler::DoCompileAll() {
         }
       }
 
+      tracer_ = PrecompilerTracer::StartTracingIfRequested(this);
+
       // All stubs have already been generated, all of them share the same pool.
       // We use that pool to initialize our global object pool, to guarantee
       // stubs as well as code compiled from here on will have the same pool.
@@ -297,8 +302,11 @@ void Precompiler::DoCompileAll() {
       CollectDynamicFunctionNames();
 
       // Start with the allocations and invocations that happen from C++.
-      AddRoots();
-      AddAnnotatedRoots();
+      {
+        TracingScope scope(this);
+        AddRoots();
+        AddAnnotatedRoots();
+      }
 
       // With the nnbd experiment enabled, these non-nullable type arguments may
       // not be retained, although they will be used and expected to be
@@ -376,6 +384,11 @@ void Precompiler::DoCompileAll() {
         }
       }
 
+      if (tracer_ != nullptr) {
+        tracer_->Finalize();
+        tracer_ = nullptr;
+      }
+
       TraceForRetainedFunctions();
       FinalizeDispatchTable();
       ReplaceFunctionPCRelativeCallEntries();
@@ -384,6 +397,7 @@ void Precompiler::DoCompileAll() {
       DropFields();
       TraceTypesFromRetainedClasses();
       DropTypes();
+      DropTypeParameters();
       DropTypeArguments();
 
       // Clear these before dropping classes as they may hold onto otherwise
@@ -609,38 +623,27 @@ void Precompiler::ProcessFunction(const Function& function) {
   const intptr_t gop_offset =
       FLAG_use_bare_instructions ? global_object_pool_builder()->CurrentLength()
                                  : 0;
+  RELEASE_ASSERT(!function.HasCode());
 
-  if (!function.HasCode()) {
-    function_count_++;
+  TracingScope tracing_scope(this);
+  function_count_++;
 
-    if (FLAG_trace_precompiler) {
-      THR_Print("Precompiling %" Pd " %s (%s, %s)\n", function_count_,
-                function.ToLibNamePrefixedQualifiedCString(),
-                function.token_pos().ToCString(),
-                Function::KindToCString(function.kind()));
-    }
-
-    ASSERT(!function.is_abstract());
-    ASSERT(!function.IsRedirectingFactory());
-
-    error_ = CompileFunction(this, thread_, zone_, function);
-    if (!error_.IsNull()) {
-      Jump(error_);
-    }
-    // Used in the JIT to save type-feedback across compilations.
-    function.ClearICDataArray();
-  } else {
-    if (FLAG_trace_precompiler) {
-      // This function was compiled from somewhere other than Precompiler,
-      // such as const constructors compiled by the parser.
-      THR_Print("Already has code: %s (%s, %s)\n",
-                function.ToLibNamePrefixedQualifiedCString(),
-                function.token_pos().ToCString(),
-                Function::KindToCString(function.kind()));
-    }
+  if (FLAG_trace_precompiler) {
+    THR_Print("Precompiling %" Pd " %s (%s, %s)\n", function_count_,
+              function.ToLibNamePrefixedQualifiedCString(),
+              function.token_pos().ToCString(),
+              Function::KindToCString(function.kind()));
   }
 
-  ASSERT(function.HasCode());
+  ASSERT(!function.is_abstract());
+  ASSERT(!function.IsRedirectingFactory());
+
+  error_ = CompileFunction(this, thread_, zone_, function);
+  if (!error_.IsNull()) {
+    Jump(error_);
+  }
+  // Used in the JIT to save type-feedback across compilations.
+  function.ClearICDataArray();
   AddCalleesOf(function, gop_offset);
 }
 
@@ -674,7 +677,11 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
 #endif
 
   String& selector = String::Handle(Z);
-  if (FLAG_use_bare_instructions) {
+  // When tracing we want to scan the object pool attached to the code object
+  // rather than scanning global object pool - because we want to include
+  // *all* outgoing references into the trace. Scanning GOP would exclude
+  // references that have been deduplicated.
+  if (FLAG_use_bare_instructions && !is_tracing()) {
     for (intptr_t i = gop_offset;
          i < global_object_pool_builder()->CurrentLength(); i++) {
       const auto& wrapper_entry = global_object_pool_builder()->EntryAt(i);
@@ -703,6 +710,11 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
   }
 }
 
+static bool IsPotentialClosureCall(const String& selector) {
+  return selector.raw() == Symbols::Call().raw() ||
+         selector.raw() == Symbols::DynamicCall().raw();
+}
+
 void Precompiler::AddCalleesOfHelper(const Object& entry,
                                      String* temp_selector,
                                      Class* temp_cls) {
@@ -711,22 +723,20 @@ void Precompiler::AddCalleesOfHelper(const Object& entry,
     // A dynamic call.
     *temp_selector = call_site.target_name();
     AddSelector(*temp_selector);
-    if (temp_selector->raw() == Symbols::Call().raw()) {
-      // Potential closure call.
+    if (IsPotentialClosureCall(*temp_selector)) {
       const Array& arguments_descriptor =
-          Array::Handle(Z, call_site.args_descriptor());
-      AddClosureCall(arguments_descriptor);
+          Array::Handle(Z, call_site.arguments_descriptor());
+      AddClosureCall(*temp_selector, arguments_descriptor);
     }
   } else if (entry.IsMegamorphicCache()) {
     // A dynamic call.
     const auto& cache = MegamorphicCache::Cast(entry);
     *temp_selector = cache.target_name();
     AddSelector(*temp_selector);
-    if (temp_selector->raw() == Symbols::Call().raw()) {
-      // Potential closure call.
+    if (IsPotentialClosureCall(*temp_selector)) {
       const Array& arguments_descriptor =
           Array::Handle(Z, cache.arguments_descriptor());
-      AddClosureCall(arguments_descriptor);
+      AddClosureCall(*temp_selector, arguments_descriptor);
     }
   } else if (entry.IsField()) {
     // Potential need for field initializer.
@@ -779,6 +789,8 @@ void Precompiler::AddTypesOf(const Function& function) {
   ASSERT(!function.IsRedirectingFactory());
   functions_to_retain_.Insert(function);
 
+  AddTypeArguments(TypeArguments::Handle(Z, function.type_parameters()));
+
   AbstractType& type = AbstractType::Handle(Z);
   type = function.result_type();
   AddType(type);
@@ -823,6 +835,23 @@ void Precompiler::AddTypesOf(const Function& function) {
 void Precompiler::AddType(const AbstractType& abstype) {
   if (abstype.IsNull()) return;
 
+  if (abstype.IsTypeParameter()) {
+    if (typeparams_to_retain_.HasKey(&TypeParameter::Cast(abstype))) return;
+    typeparams_to_retain_.Insert(
+        &TypeParameter::ZoneHandle(Z, TypeParameter::Cast(abstype).raw()));
+
+    const AbstractType& type =
+        AbstractType::Handle(Z, TypeParameter::Cast(abstype).bound());
+    AddType(type);
+    const auto& function = Function::Handle(
+        Z, TypeParameter::Cast(abstype).parameterized_function());
+    AddTypesOf(function);
+    const Class& cls =
+        Class::Handle(Z, TypeParameter::Cast(abstype).parameterized_class());
+    AddTypesOf(cls);
+    return;
+  }
+
   if (types_to_retain_.HasKey(&abstype)) return;
   types_to_retain_.Insert(&AbstractType::ZoneHandle(Z, abstype.raw()));
 
@@ -840,16 +869,6 @@ void Precompiler::AddType(const AbstractType& abstype) {
     AbstractType& type = AbstractType::Handle(Z);
     type = TypeRef::Cast(abstype).type();
     AddType(type);
-  } else if (abstype.IsTypeParameter()) {
-    const AbstractType& type =
-        AbstractType::Handle(Z, TypeParameter::Cast(abstype).bound());
-    AddType(type);
-    const auto& function = Function::Handle(
-        Z, TypeParameter::Cast(abstype).parameterized_function());
-    AddTypesOf(function);
-    const Class& cls =
-        Class::Handle(Z, TypeParameter::Cast(abstype).parameterized_class());
-    AddTypesOf(cls);
   }
 }
 
@@ -867,8 +886,8 @@ void Precompiler::AddTypeArguments(const TypeArguments& args) {
 }
 
 void Precompiler::AddConstObject(const class Instance& instance) {
-  // Types and type arguments require special handling.
-  if (instance.IsAbstractType()) {
+  // Types, type parameters, and type arguments require special handling.
+  if (instance.IsAbstractType()) {  // Includes type parameter.
     AddType(AbstractType::Cast(instance));
     return;
   } else if (instance.IsTypeArguments()) {
@@ -941,18 +960,23 @@ void Precompiler::AddConstObject(const class Instance& instance) {
   instance.raw()->ptr()->VisitPointers(&visitor);
 }
 
-void Precompiler::AddClosureCall(const Array& arguments_descriptor) {
+void Precompiler::AddClosureCall(const String& call_selector,
+                                 const Array& arguments_descriptor) {
   const Class& cache_class =
       Class::Handle(Z, I->object_store()->closure_class());
   const Function& dispatcher =
       Function::Handle(Z, cache_class.GetInvocationDispatcher(
-                              Symbols::Call(), arguments_descriptor,
+                              call_selector, arguments_descriptor,
                               FunctionLayout::kInvokeFieldDispatcher,
                               true /* create_if_absent */));
   AddFunction(dispatcher);
 }
 
 void Precompiler::AddField(const Field& field) {
+  if (is_tracing()) {
+    tracer_->WriteFieldRef(field);
+  }
+
   if (fields_to_retain_.HasKey(&field)) return;
 
   fields_to_retain_.Insert(&Field::ZoneHandle(Z, field.raw()));
@@ -1008,6 +1032,10 @@ bool Precompiler::MustRetainFunction(const Function& function) {
 }
 
 void Precompiler::AddFunction(const Function& function, bool retain) {
+  if (is_tracing()) {
+    tracer_->WriteFunctionRef(function);
+  }
+
   if (possibly_retained_functions_.ContainsKey(function)) return;
   if (retain || MustRetainFunction(function)) {
     possibly_retained_functions_.Insert(function);
@@ -1027,8 +1055,11 @@ bool Precompiler::IsSent(const String& selector) {
 }
 
 void Precompiler::AddSelector(const String& selector) {
-  ASSERT(!selector.IsNull());
+  if (is_tracing()) {
+    tracer_->WriteSelectorRef(selector);
+  }
 
+  ASSERT(!selector.IsNull());
   if (!IsSent(selector)) {
     sent_selectors_.Insert(&String::ZoneHandle(Z, selector.raw()));
     selector_count_++;
@@ -1043,6 +1074,10 @@ void Precompiler::AddSelector(const String& selector) {
 
 void Precompiler::AddTableSelector(const compiler::TableSelector* selector) {
   ASSERT(FLAG_use_bare_instructions && FLAG_use_table_dispatch);
+
+  if (is_tracing()) {
+    tracer_->WriteTableSelectorRef(selector->id);
+  }
 
   if (seen_table_selectors_.HasKey(selector->id)) return;
 
@@ -1061,6 +1096,10 @@ bool Precompiler::IsHitByTableSelector(const Function& function) {
 }
 
 void Precompiler::AddInstantiatedClass(const Class& cls) {
+  if (is_tracing()) {
+    tracer_->WriteClassInstantiationRef(cls);
+  }
+
   if (cls.is_allocated()) return;
 
   class_count_++;
@@ -1251,9 +1290,14 @@ void Precompiler::CheckForNewDynamicFunctions() {
         kernel::ProcedureAttributesMetadata metadata;
 
         // Handle the implicit call type conversions.
-        if (Field::IsGetterName(selector)) {
+        if (Field::IsGetterName(selector) &&
+            (function.kind() != FunctionLayout::kMethodExtractor)) {
           // Call-through-getter.
           // Function is get:foo and somewhere foo (or dyn:foo) is called.
+          // Note that we need to skip method extractors (which were potentially
+          // created by DispatchTableGenerator): call of foo will never
+          // hit method extractor get:foo, because it will hit an existing
+          // method foo first.
           selector2 = Field::NameFromGetter(selector);
           selector3 = Symbols::Lookup(thread(), selector2);
           if (IsSent(selector3)) {
@@ -1781,6 +1825,48 @@ void Precompiler::DropTypes() {
     ASSERT(!present);
   }
   object_store->set_canonical_types(types_table.Release());
+}
+
+void Precompiler::DropTypeParameters() {
+  ObjectStore* object_store = I->object_store();
+  GrowableObjectArray& retained_typeparams =
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  Array& typeparams_array = Array::Handle(Z);
+  TypeParameter& typeparam = TypeParameter::Handle(Z);
+  // First drop all the type parameters that are not referenced.
+  // Note that we only visit 'free-floating' type parameters and not
+  // declarations of type parameters contained in the 'type_parameters'
+  // array in generic classes and functions.
+  {
+    CanonicalTypeParameterSet typeparams_table(
+        Z, object_store->canonical_type_parameters());
+    typeparams_array = HashTables::ToArray(typeparams_table, false);
+    for (intptr_t i = 0; i < typeparams_array.Length(); i++) {
+      typeparam ^= typeparams_array.At(i);
+      bool retain = typeparams_to_retain_.HasKey(&typeparam);
+      if (retain) {
+        retained_typeparams.Add(typeparam);
+      } else {
+        typeparam.ClearCanonical();
+        dropped_typeparam_count_++;
+      }
+    }
+    typeparams_table.Release();
+  }
+
+  // Now construct a new type parameter table and save in the object store.
+  const intptr_t dict_size =
+      Utils::RoundUpToPowerOfTwo(retained_typeparams.Length() * 4 / 3);
+  typeparams_array =
+      HashTables::New<CanonicalTypeParameterSet>(dict_size, Heap::kOld);
+  CanonicalTypeParameterSet typeparams_table(Z, typeparams_array.raw());
+  bool present;
+  for (intptr_t i = 0; i < retained_typeparams.Length(); i++) {
+    typeparam ^= retained_typeparams.At(i);
+    present = typeparams_table.Insert(typeparam);
+    ASSERT(!present);
+  }
+  object_store->set_canonical_type_parameters(typeparams_table.Release());
 }
 
 void Precompiler::DropTypeArguments() {
@@ -2636,6 +2722,10 @@ ErrorPtr Precompiler::CompileFunction(Precompiler* precompiler,
   ASSERT(CompilerState::Current().is_aot());
   const bool optimized = function.IsOptimizable();  // False for natives.
   DartCompilationPipeline pipeline;
+  if (precompiler->is_tracing()) {
+    precompiler->tracer_->WriteCompileFunctionEvent(function);
+  }
+
   return PrecompileFunctionHelper(precompiler, &pipeline, function, optimized);
 }
 
@@ -2912,83 +3002,6 @@ StringPtr Obfuscator::ObfuscationState::BuildRename(const String& name,
   } else {
     return NewAtomicRename(is_private);
   }
-}
-
-void Obfuscator::ObfuscateSymbolInstance(Thread* thread,
-                                         const Instance& symbol) {
-  // Note: this must match dart:internal.Symbol declaration.
-  const intptr_t kSymbolNameOffset = kWordSize;
-
-  Object& name_value = String::Handle();
-  name_value = symbol.RawGetFieldAtOffset(kSymbolNameOffset);
-  if (!name_value.IsString()) {
-    // dart:internal.Symbol constructor does not validate its input.
-    return;
-  }
-
-  String& name = String::Handle();
-  name ^= name_value.raw();
-
-  // TODO(vegorov) it is quite wasteful to create an obfuscator per-symbol.
-  Obfuscator obfuscator(thread, /*private_key=*/String::Handle());
-
-  // Symbol can be a sequence of identifiers separated by dots.
-  // We split such symbols into components and obfuscate individual identifiers
-  // separately.
-  String& component = String::Handle();
-  GrowableHandlePtrArray<const String> renamed(thread->zone(), 2);
-
-  const intptr_t length = name.Length();
-  intptr_t i = 0, start = 0;
-  while (i < length) {
-    // First look for a '.' in the symbol.
-    start = i;
-    while (i < length && name.CharAt(i) != '.') {
-      i++;
-    }
-    const intptr_t end = i;
-    if (end == length) {
-      break;
-    }
-
-    if (start != end) {
-      component = Symbols::New(thread, name, start, end - start);
-      component = obfuscator.Rename(component, /*atomic=*/true);
-      renamed.Add(component);
-    }
-
-    renamed.Add(Symbols::Dot());
-    i++;  // Skip '.'
-  }
-
-  // Handle the last component [start, length).
-  // If symbol ends up at = and it is not one of '[]=', '==', '<=' or
-  // '>=' then we treat it as a setter symbol and follow the rule:
-  //
-  //              Rename('ident=') = Rename('ident') '='
-  //
-  const bool is_setter = (length - start) > 1 &&
-                         name.CharAt(length - 1) == '=' &&
-                         !(name.Equals(Symbols::AssignIndexToken()) ||
-                           name.Equals(Symbols::EqualOperator()) ||
-                           name.Equals(Symbols::GreaterEqualOperator()) ||
-                           name.Equals(Symbols::LessEqualOperator()));
-  const intptr_t end = length - (is_setter ? 1 : 0);
-
-  if ((start == 0) && (end == length) && name.IsSymbol()) {
-    component = name.raw();
-  } else {
-    component = Symbols::New(thread, name, start, end - start);
-  }
-  component = obfuscator.Rename(component, /*atomic=*/true);
-  renamed.Add(component);
-
-  if (is_setter) {
-    renamed.Add(Symbols::Equals());
-  }
-
-  name = Symbols::FromConcatAll(thread, renamed);
-  symbol.RawSetFieldAtOffset(kSymbolNameOffset, name);
 }
 
 void Obfuscator::Deobfuscate(Thread* thread,

@@ -77,7 +77,9 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_Inlining) {
   }
 
   EXPECT(load_field->InputAt(0)->definition()->IsParameter());
-  EXPECT(bounds_check->InputAt(0)->definition() == load_field);
+  EXPECT(bounds_check->length()
+             ->definition()
+             ->OriginalDefinitionIgnoreBoxingAndConstraints() == load_field);
   EXPECT(load_untagged->InputAt(0)->definition()->IsParameter());
   EXPECT(load_indexed->InputAt(0)->definition() == load_untagged);
 }

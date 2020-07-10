@@ -533,7 +533,7 @@ class CodeAction implements ToJsonable {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, title.hashCode);
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, diagnostics.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(diagnostics));
     hash = JenkinsSmiHash.combine(hash, edit.hashCode);
     hash = JenkinsSmiHash.combine(hash, command.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -640,8 +640,8 @@ class CodeActionContext implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, diagnostics.hashCode);
-    hash = JenkinsSmiHash.combine(hash, only.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(diagnostics));
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(only));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -786,7 +786,7 @@ class CodeActionOptions implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, codeActionKinds.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(codeActionKinds));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -1015,8 +1015,8 @@ class CodeActionRegistrationOptions
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
-    hash = JenkinsSmiHash.combine(hash, codeActionKinds.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentSelector));
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(codeActionKinds));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -1353,7 +1353,7 @@ class CodeLensRegistrationOptions
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
-    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentSelector));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -1717,7 +1717,7 @@ class ColorPresentation implements ToJsonable {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, textEdit.hashCode);
-    hash = JenkinsSmiHash.combine(hash, additionalTextEdits.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(additionalTextEdits));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -2004,7 +2004,7 @@ class Command implements ToJsonable {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, title.hashCode);
     hash = JenkinsSmiHash.combine(hash, command.hashCode);
-    hash = JenkinsSmiHash.combine(hash, arguments.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(arguments));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -2516,8 +2516,8 @@ class CompletionItem implements ToJsonable {
     hash = JenkinsSmiHash.combine(hash, insertText.hashCode);
     hash = JenkinsSmiHash.combine(hash, insertTextFormat.hashCode);
     hash = JenkinsSmiHash.combine(hash, textEdit.hashCode);
-    hash = JenkinsSmiHash.combine(hash, additionalTextEdits.hashCode);
-    hash = JenkinsSmiHash.combine(hash, commitCharacters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(additionalTextEdits));
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(commitCharacters));
     hash = JenkinsSmiHash.combine(hash, command.hashCode);
     hash = JenkinsSmiHash.combine(hash, data.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -2673,7 +2673,7 @@ class CompletionList implements ToJsonable {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, isIncomplete.hashCode);
-    hash = JenkinsSmiHash.combine(hash, items.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(items));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -2759,7 +2759,7 @@ class CompletionOptions implements ToJsonable {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
-    hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(triggerCharacters));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -3040,10 +3040,10 @@ class CompletionRegistrationOptions
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
-    hash = JenkinsSmiHash.combine(hash, allCommitCharacters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(triggerCharacters));
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(allCommitCharacters));
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
-    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentSelector));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -3233,7 +3233,7 @@ class ConfigurationParams implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, items.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(items));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -3816,7 +3816,7 @@ class Diagnostic implements ToJsonable {
     hash = JenkinsSmiHash.combine(hash, code.hashCode);
     hash = JenkinsSmiHash.combine(hash, source.hashCode);
     hash = JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = JenkinsSmiHash.combine(hash, relatedInformation.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(relatedInformation));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -4132,7 +4132,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
-    hash = JenkinsSmiHash.combine(hash, contentChanges.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(contentChanges));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -4210,7 +4210,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, changes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(changes));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -4291,7 +4291,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, watchers.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(watchers));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -5262,7 +5262,7 @@ class DocumentLinkRegistrationOptions
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
-    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentSelector));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -5362,7 +5362,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, firstTriggerCharacter.hashCode);
-    hash = JenkinsSmiHash.combine(hash, moreTriggerCharacter.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(moreTriggerCharacter));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -5652,8 +5652,8 @@ class DocumentOnTypeFormattingRegistrationOptions
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, firstTriggerCharacter.hashCode);
-    hash = JenkinsSmiHash.combine(hash, moreTriggerCharacter.hashCode);
-    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(moreTriggerCharacter));
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentSelector));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -6011,7 +6011,7 @@ class DocumentSymbol implements ToJsonable {
     hash = JenkinsSmiHash.combine(hash, deprecated.hashCode);
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, selectionRange.hashCode);
-    hash = JenkinsSmiHash.combine(hash, children.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(children));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -6194,7 +6194,7 @@ class ExecuteCommandOptions implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, commands.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(commands));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -6287,7 +6287,7 @@ class ExecuteCommandParams implements ToJsonable {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, command.hashCode);
-    hash = JenkinsSmiHash.combine(hash, arguments.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(arguments));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -6363,7 +6363,7 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, commands.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(commands));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -7347,7 +7347,7 @@ class InitializeParams implements ToJsonable {
     hash = JenkinsSmiHash.combine(hash, initializationOptions.hashCode);
     hash = JenkinsSmiHash.combine(hash, capabilities.hashCode);
     hash = JenkinsSmiHash.combine(hash, trace.hashCode);
-    hash = JenkinsSmiHash.combine(hash, workspaceFolders.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(workspaceFolders));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -8793,7 +8793,7 @@ class PublishDiagnosticsParams implements ToJsonable {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
-    hash = JenkinsSmiHash.combine(hash, diagnostics.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(diagnostics));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -9371,7 +9371,7 @@ class RegistrationParams implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, registrations.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(registrations));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -9874,7 +9874,7 @@ class RenameRegistrationOptions
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, prepareProvider.hashCode);
-    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentSelector));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -11362,7 +11362,7 @@ class ShowMessageRequestParams implements ToJsonable {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, type.hashCode);
     hash = JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = JenkinsSmiHash.combine(hash, actions.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(actions));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -11487,7 +11487,7 @@ class SignatureHelp implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, signatures.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(signatures));
     hash = JenkinsSmiHash.combine(hash, activeSignature.hashCode);
     hash = JenkinsSmiHash.combine(hash, activeParameter.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -11556,7 +11556,7 @@ class SignatureHelpOptions implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(triggerCharacters));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -11653,8 +11653,8 @@ class SignatureHelpRegistrationOptions
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
-    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(triggerCharacters));
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentSelector));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -11782,7 +11782,7 @@ class SignatureInformation implements ToJsonable {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentation.hashCode);
-    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(parameters));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -12176,7 +12176,7 @@ class TextDocumentChangeRegistrationOptions
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, syncKind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentSelector));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -12943,7 +12943,7 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, valueSet.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(valueSet));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -13443,7 +13443,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, snippetSupport.hashCode);
     hash = JenkinsSmiHash.combine(hash, commitCharactersSupport.hashCode);
-    hash = JenkinsSmiHash.combine(hash, documentationFormat.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentationFormat));
     hash = JenkinsSmiHash.combine(hash, deprecatedSupport.hashCode);
     hash = JenkinsSmiHash.combine(hash, preselectSupport.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -13521,7 +13521,7 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, valueSet.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(valueSet));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -14198,7 +14198,7 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
-    hash = JenkinsSmiHash.combine(hash, contentFormat.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(contentFormat));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -14880,7 +14880,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, documentationFormat.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentationFormat));
     hash = JenkinsSmiHash.combine(hash, parameterInformation.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -14956,7 +14956,7 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, valueSet.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(valueSet));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -15384,7 +15384,7 @@ class TextDocumentEdit implements ToJsonable {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
-    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(edits));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -15818,7 +15818,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentSelector));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -15943,7 +15943,7 @@ class TextDocumentSaveRegistrationOptions
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, includeText.hashCode);
-    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentSelector));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -16391,7 +16391,7 @@ class UnregistrationParams implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, unregisterations.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(unregisterations));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -17216,7 +17216,7 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, valueSet.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(valueSet));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -17330,7 +17330,7 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, documentChanges.hashCode);
-    hash = JenkinsSmiHash.combine(hash, resourceOperations.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(resourceOperations));
     hash = JenkinsSmiHash.combine(hash, failureHandling.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -17465,7 +17465,7 @@ class WorkspaceEdit implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, changes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(changes));
     hash = JenkinsSmiHash.combine(hash, documentChanges.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -17672,8 +17672,8 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, added.hashCode);
-    hash = JenkinsSmiHash.combine(hash, removed.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(added));
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(removed));
     return JenkinsSmiHash.finish(hash);
   }
 

@@ -17,7 +17,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:http/http.dart' as http;
 
-void usage(ArgParser parser) {
+void usage(ArgParser parser, {exitCode = 0}) {
   print('''
 Usage: post_results_to_pubsub.dart [OPTIONS]
 Posts Dart CI results as messages to Google Cloud Pub/Sub
@@ -25,12 +25,15 @@ Posts Dart CI results as messages to Google Cloud Pub/Sub
 The options are as follows:
 
 ${parser.usage}''');
-  exit(1);
+  exit(exitCode);
 }
 
 const resultsPerMessage = 100;
-const postUrl =
-    'https://pubsub.googleapis.com/v1/projects/dart-ci/topics/results:publish';
+
+String getPostUrl(String project) {
+  return 'https://pubsub.googleapis.com/v1/projects/$project'
+      '/topics/results:publish';
+}
 
 main(List<String> args) async {
   final parser = new ArgParser();
@@ -42,11 +45,25 @@ main(List<String> args) async {
       abbr: 'f', help: 'File containing the results to send');
   parser.addOption('id', abbr: 'i', help: 'Buildbucket ID of this build');
   parser.addOption('base_revision', help: 'A try build\'s patch base');
+  parser.addFlag('staging',
+      abbr: 's', help: 'Publish to the staging system', defaultsTo: false);
 
   final options = parser.parse(args);
   if (options['help']) {
     usage(parser);
   }
+
+  if (options['result_file'] == null) {
+    print('Error: option "result_file" is required.\n');
+    usage(parser, exitCode: 1);
+  }
+
+  if (options['auth_token'] == null) {
+    print('Error: option "auth_token" is required.\n');
+    usage(parser, exitCode: 1);
+  }
+
+  final project = options['staging'] ? "dart-ci-staging" : "dart-ci";
 
   final client = http.Client();
 
@@ -58,6 +75,8 @@ main(List<String> args) async {
     print('No results in input file');
     return;
   }
+
+  // TODO(karlklose): parse and validate data before sending it.
 
   final changedPattern = '"changed":true';
   List<String> changedResults =
@@ -95,6 +114,7 @@ main(List<String> args) async {
       ]
     });
     final headers = {'Authorization': 'Bearer $token'};
+    final postUrl = getPostUrl(project);
     final response =
         await client.post(postUrl, headers: headers, body: jsonMessage);
 

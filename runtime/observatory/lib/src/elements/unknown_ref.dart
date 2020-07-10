@@ -6,12 +6,10 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M show IsolateRef, UnknownObjectRef;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class UnknownObjectRefElement extends CustomElement implements Renderable {
-  static const tag = const Tag<UnknownObjectRefElement>('unknown-ref');
-
   RenderingScheduler<UnknownObjectRefElement> _r;
 
   Stream<RenderedEvent<UnknownObjectRefElement>> get onRendered =>
@@ -34,7 +32,7 @@ class UnknownObjectRefElement extends CustomElement implements Renderable {
     return e;
   }
 
-  UnknownObjectRefElement.created() : super.created(tag);
+  UnknownObjectRefElement.created() : super.created('unknown-ref');
 
   @override
   void attached() {

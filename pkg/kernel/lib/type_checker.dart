@@ -423,7 +423,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitAwaitExpression(AwaitExpression node) {
-    return environment.unfutureType(visitExpression(node.operand));
+    return environment.flatten(visitExpression(node.operand));
   }
 
   @override
@@ -993,7 +993,7 @@ class TypeCheckingVisitor
       } else {
         var type = visitExpression(node.expression);
         if (currentAsyncMarker == AsyncMarker.Async) {
-          type = environment.unfutureType(type);
+          type = environment.flatten(type);
         }
         checkAssignable(node.expression, type, currentReturnType);
       }

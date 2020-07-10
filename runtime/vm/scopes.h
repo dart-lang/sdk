@@ -124,7 +124,7 @@ class LocalVariable : public ZoneAllocated {
   // Variables marked as forced to stack are skipped and not captured by
   // CaptureLocalVariables - which iterates scope chain between two scopes
   // and indiscriminately marks all variables as captured.
-  // TODO(27590) remove the hardcoded blacklist from CaptureLocalVariables
+  // TODO(27590) remove the hardcoded list of names from CaptureLocalVariables
   bool is_forced_stack() const { return is_forced_stack_; }
   void set_is_forced_stack() { is_forced_stack_ = true; }
 
@@ -499,9 +499,9 @@ class LocalScope : public ZoneAllocated {
   LocalScope* parent_;
   LocalScope* child_;
   LocalScope* sibling_;
-  int function_level_;         // Reflects the nesting level of local functions.
-  int loop_level_;             // Reflects the loop nesting level.
-  int context_level_;          // Reflects the level of the runtime context.
+  int function_level_;  // Reflects the nesting level of local functions.
+  int loop_level_;      // Reflects the loop nesting level.
+  int context_level_;   // Reflects the level of the runtime context.
   TokenPosition begin_token_pos_;  // Token index of beginning of scope.
   TokenPosition end_token_pos_;    // Token index of end of scope.
   GrowableArray<LocalVariable*> variables_;

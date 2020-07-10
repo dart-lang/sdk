@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 library dart._http;
 
 import "dart:async";
@@ -14,7 +12,11 @@ import "dart:io";
 import "dart:isolate";
 import "dart:math";
 import "dart:typed_data";
+
 import "package:expect/expect.dart";
+
+import "../../../sdk/lib/internal/internal.dart"
+    show Since, valueOfNonNullableParamWithDefault, HttpStatus;
 
 part "../../../sdk/lib/_http/crypto.dart";
 part "../../../sdk/lib/_http/embedder_config.dart";
@@ -36,26 +38,25 @@ class HttpParserTest {
       String request, String expectedMethod, String expectedUri,
       {int expectedTransferLength: 0,
       int expectedBytesReceived: 0,
-      Map<String, String> expectedHeaders: null,
+      Map<String, String>? expectedHeaders: null,
       bool chunked: false,
       bool upgrade: false,
       int unparsedLength: 0,
       bool connectionClose: false,
       String expectedVersion: "1.1"}) {
-    StreamController<Uint8List> controller;
+    late StreamController<Uint8List> controller;
     void reset() {
       _HttpParser httpParser = new _HttpParser.requestParser();
       controller = new StreamController(sync: true);
       var port1 = new ReceivePort();
       var port2 = new ReceivePort();
 
-      String method;
-      Uri uri;
-      _HttpHeaders headers;
-      int contentLength;
-      int bytesReceived;
-      int unparsedBytesReceived;
-      bool upgraded;
+      String? method = null;
+      Uri? uri = null;
+      _HttpHeaders? headers = null;
+      int bytesReceived = 0;
+      int unparsedBytesReceived = 0;
+      bool upgraded = false;
 
       httpParser.listenToStream(controller.stream);
       var subscription = httpParser.listen((incoming) {
@@ -72,7 +73,7 @@ class HttpParserTest {
         }
         if (expectedHeaders != null) {
           expectedHeaders.forEach((String name, String value) =>
-              Expect.equals(value, headers[name][0]));
+              Expect.equals(value, headers![name]![0]));
         }
         incoming.listen((List<int> data) {
           Expect.isFalse(upgraded);
@@ -81,7 +82,7 @@ class HttpParserTest {
           port2.close();
           Expect.equals(expectedMethod, method);
           Expect.stringEquals(expectedUri, uri.toString());
-          Expect.equals(expectedVersion, headers.protocolVersion);
+          Expect.equals(expectedVersion, headers!.protocolVersion);
           if (upgrade) {
             Expect.equals(0, bytesReceived);
             // port1 is closed by the listener on the detached data.
@@ -104,13 +105,6 @@ class HttpParserTest {
           port1.close();
         });
       });
-
-      method = null;
-      uri = null;
-      headers = null;
-      bytesReceived = 0;
-      unparsedBytesReceived = 0;
-      upgraded = false;
     }
 
     void testWrite(List<int> requestData, [int chunkSize = -1]) {
@@ -118,7 +112,7 @@ class HttpParserTest {
       reset();
       for (int pos = 0; pos < requestData.length; pos += chunkSize) {
         int end = min(requestData.length, pos + chunkSize);
-        controller.add(requestData.sublist(pos, end));
+        controller.add(requestData.sublist(pos, end) as Uint8List);
       }
       controller.close();
     }
@@ -135,7 +129,7 @@ class HttpParserTest {
       String request, String expectedMethod, String expectedUri,
       {int expectedTransferLength: 0,
       int expectedBytesReceived: 0,
-      Map<String, String> expectedHeaders: null,
+      Map<String, String>? expectedHeaders: null,
       bool chunked: false,
       bool upgrade: false,
       int unparsedLength: 0,
@@ -164,8 +158,8 @@ class HttpParserTest {
 
   static void _testParseInvalidRequest(String request) {
     _HttpParser httpParser;
-    bool errorCalled;
-    StreamController<Uint8List> controller;
+    bool errorCalled = false;
+    late StreamController<Uint8List> controller;
 
     void reset() {
       httpParser = new _HttpParser.requestParser();
@@ -192,7 +186,7 @@ class HttpParserTest {
           pos < requestData.length && !errorCalled;
           pos += chunkSize) {
         int end = min(requestData.length, pos + chunkSize);
-        controller.add(requestData.sublist(pos, end));
+        controller.add(requestData.sublist(pos, end) as Uint8List);
       }
       controller.close();
     }
@@ -209,27 +203,27 @@ class HttpParserTest {
       String response, int expectedStatusCode, String expectedReasonPhrase,
       {int expectedTransferLength: 0,
       int expectedBytesReceived: 0,
-      Map<String, String> expectedHeaders: null,
+      Map<String, String>? expectedHeaders: null,
       bool chunked: false,
       bool close: false,
-      String responseToMethod: null,
+      String? responseToMethod: null,
       bool connectionClose: false,
       bool upgrade: false,
       int unparsedLength: 0,
       String expectedVersion: "1.1"}) {
-    StreamController<Uint8List> controller;
+    late StreamController<Uint8List> controller;
     bool upgraded;
 
     void reset() {
       _HttpParser httpParser;
-      bool headersCompleteCalled;
-      bool dataEndCalled;
-      bool dataEndClose;
-      int statusCode;
-      String reasonPhrase;
-      _HttpHeaders headers;
-      int contentLength;
-      int bytesReceived;
+      bool headersCompleteCalled = false;
+      bool dataEndCalled = false;
+      bool? dataEndClose = null;
+      int statusCode = -1;
+      String? reasonPhrase = null;
+      _HttpHeaders? headers = null;
+      int bytesReceived = 0;
+
       httpParser = new _HttpParser.responseParser();
       controller = new StreamController(sync: true);
       var port = new ReceivePort();
@@ -240,7 +234,7 @@ class HttpParserTest {
       void whenDone() {
         doneCallCount++;
         if (doneCallCount < 2) return;
-        Expect.equals(expectedVersion, headers.protocolVersion);
+        Expect.equals(expectedVersion, headers!.protocolVersion);
         Expect.equals(expectedStatusCode, statusCode);
         Expect.equals(expectedReasonPhrase, reasonPhrase);
         Expect.isTrue(headersCompleteCalled);
@@ -254,7 +248,7 @@ class HttpParserTest {
 
       var subscription = httpParser.listen((incoming) {
         port.close();
-        statusCode = incoming.statusCode;
+        statusCode = incoming.statusCode!;
         reasonPhrase = incoming.reasonPhrase;
         headers = incoming.headers;
         Expect.isFalse(headersCompleteCalled);
@@ -265,7 +259,7 @@ class HttpParserTest {
         }
         if (expectedHeaders != null) {
           expectedHeaders.forEach((String name, String value) {
-            Expect.equals(value, headers[name][0]);
+            Expect.equals(value, headers![name]![0]);
           });
         }
         Expect.equals(upgrade, httpParser.upgrade);
@@ -279,14 +273,6 @@ class HttpParserTest {
           whenDone();
         });
       }, onDone: whenDone);
-
-      headersCompleteCalled = false;
-      dataEndCalled = false;
-      dataEndClose = null;
-      statusCode = -1;
-      reasonPhrase = null;
-      headers = null;
-      bytesReceived = 0;
     }
 
     void testWrite(List<int> requestData, [int chunkSize = -1]) {
@@ -294,7 +280,7 @@ class HttpParserTest {
       reset();
       for (int pos = 0; pos < requestData.length; pos += chunkSize) {
         int end = min(requestData.length, pos + chunkSize);
-        controller.add(requestData.sublist(pos, end));
+        controller.add(requestData.sublist(pos, end) as Uint8List);
       }
       if (close) controller.close();
     }
@@ -337,7 +323,7 @@ class HttpParserTest {
           pos < requestData.length && !errorCalled;
           pos += chunkSize) {
         int end = min(requestData.length, pos + chunkSize);
-        controller.add(requestData.sublist(pos, end));
+        controller.add(requestData.sublist(pos, end) as Uint8List);
       }
       controller.close();
     }

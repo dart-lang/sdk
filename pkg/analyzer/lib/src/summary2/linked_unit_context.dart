@@ -446,12 +446,8 @@ class LinkedUnitContext {
     }
   }
 
-  int getLanguageVersionMajor(CompilationUnit node) {
-    return LazyCompilationUnit.getLanguageVersionMajor(node);
-  }
-
-  int getLanguageVersionMinor(CompilationUnit node) {
-    return LazyCompilationUnit.getLanguageVersionMinor(node);
+  LibraryLanguageVersion getLanguageVersion(CompilationUnit node) {
+    return LazyCompilationUnit.getLanguageVersion(node);
   }
 
   Comment getLibraryDocumentationComment(CompilationUnit unit) {
@@ -644,6 +640,8 @@ class LinkedUnitContext {
   TopLevelInferenceError getTypeInferenceError(AstNode node) {
     if (node is DefaultFormalParameter) {
       return getTypeInferenceError(node.parameter);
+    } else if (node is MethodDeclaration) {
+      return LazyMethodDeclaration.getTypeInferenceError(node);
     } else if (node is SimpleFormalParameter) {
       return LazyFormalParameter.getTypeInferenceError(node);
     } else if (node is VariableDeclaration) {

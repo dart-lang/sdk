@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.convert;
 
 // Character constants.
@@ -27,8 +25,12 @@ class LineSplitter extends StreamTransformerBase<String, String> {
   /// `lines.substring(start, end)`. The [start] and [end] values must
   /// specify a valid sub-range of [lines]
   /// (`0 <= start <= end <= lines.length`).
-  static Iterable<String> split(String lines, [int start = 0, int end]) sync* {
+  static Iterable<String> split(String lines, [int start = 0, int? end]) sync* {
     end = RangeError.checkValidRange(start, end, lines.length);
+    // TODO(38725): Remove workaround when assignment promotion is implemented
+    if (end == null) {
+      throw RangeError("Invalid range");
+    }
     var sliceStart = start;
     var char = 0;
     for (var i = start; i < end; i++) {
@@ -92,7 +94,7 @@ class _LineSplitterSink extends StringConversionSinkBase {
   ///
   /// If the previous slice ended in a line without a line terminator,
   /// then the next slice may continue the line.
-  String _carry;
+  String? _carry;
 
   /// Whether to skip a leading LF character from the next slice.
   ///
@@ -112,9 +114,10 @@ class _LineSplitterSink extends StringConversionSinkBase {
       if (isLast) close();
       return;
     }
-    if (_carry != null) {
+    String? carry = _carry;
+    if (carry != null) {
       assert(!_skipLeadingLF);
-      chunk = _carry + chunk.substring(start, end);
+      chunk = carry + chunk.substring(start, end);
       start = 0;
       end = chunk.length;
       _carry = null;
@@ -130,7 +133,7 @@ class _LineSplitterSink extends StringConversionSinkBase {
 
   void close() {
     if (_carry != null) {
-      _sink.add(_carry);
+      _sink.add(_carry!);
       _carry = null;
     }
     _sink.close();
@@ -168,7 +171,7 @@ class _LineSplitterEventSink extends _LineSplitterSink
       : _eventSink = eventSink,
         super(StringConversionSink.from(eventSink));
 
-  void addError(Object o, [StackTrace stackTrace]) {
+  void addError(Object o, [StackTrace? stackTrace]) {
     _eventSink.addError(o, stackTrace);
   }
 }

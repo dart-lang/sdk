@@ -7,15 +7,11 @@ import 'dart:async';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/utils.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/isolate/counter_chart.dart';
 
 class IsolateSharedSummaryElement extends CustomElement implements Renderable {
-  static const tag = const Tag<IsolateSharedSummaryElement>(
-      'isolate-shared-summary',
-      dependencies: const [IsolateCounterChartElement.tag]);
-
   RenderingScheduler<IsolateSharedSummaryElement> _r;
 
   Stream<RenderedEvent<IsolateSharedSummaryElement>> get onRendered =>
@@ -37,7 +33,7 @@ class IsolateSharedSummaryElement extends CustomElement implements Renderable {
     return e;
   }
 
-  IsolateSharedSummaryElement.created() : super.created(tag);
+  IsolateSharedSummaryElement.created() : super.created('isolate-shared-summary');
 
   @override
   void attached() {

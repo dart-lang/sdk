@@ -118,42 +118,17 @@ uword InstructionPattern::DecodeLoadWordImmediate(uword end,
   uword start = end - Instr::kInstrSize;
   int32_t instr = Instr::At(start)->InstructionBits();
   intptr_t imm = 0;
-  const ARMVersion version = TargetCPUFeatures::arm_version();
-  if (version == ARMv6) {
-    ASSERT((instr & 0xfff00000) == 0xe3800000);  // orr rd, rd, byte0
-    imm |= (instr & 0x000000ff);
-
+  if ((instr & 0xfff00000) == 0xe3400000) {  // movt reg, #imm_hi
+    imm |= (instr & 0xf0000) << 12;
+    imm |= (instr & 0xfff) << 16;
     start -= Instr::kInstrSize;
     instr = Instr::At(start)->InstructionBits();
-    ASSERT((instr & 0xfff00000) == 0xe3800c00);  // orr rd, rd, (byte1 rot 12)
-    imm |= (instr & 0x000000ff);
-
-    start -= Instr::kInstrSize;
-    instr = Instr::At(start)->InstructionBits();
-    ASSERT((instr & 0xfff00f00) == 0xe3800800);  // orr rd, rd, (byte2 rot 8)
-    imm |= (instr & 0x000000ff);
-
-    start -= Instr::kInstrSize;
-    instr = Instr::At(start)->InstructionBits();
-    ASSERT((instr & 0xffff0f00) == 0xe3a00400);  // mov rd, (byte3 rot 4)
-    imm |= (instr & 0x000000ff);
-
-    *reg = static_cast<Register>((instr & 0x0000f000) >> 12);
-    *value = imm;
-  } else {
-    ASSERT(version == ARMv7);
-    if ((instr & 0xfff00000) == 0xe3400000) {  // movt reg, #imm_hi
-      imm |= (instr & 0xf0000) << 12;
-      imm |= (instr & 0xfff) << 16;
-      start -= Instr::kInstrSize;
-      instr = Instr::At(start)->InstructionBits();
-    }
-    ASSERT((instr & 0xfff00000) == 0xe3000000);  // movw reg, #imm_lo
-    imm |= (instr & 0xf0000) >> 4;
-    imm |= instr & 0xfff;
-    *reg = static_cast<Register>((instr & 0xf000) >> 12);
-    *value = imm;
   }
+  ASSERT((instr & 0xfff00000) == 0xe3000000);  // movw reg, #imm_lo
+  imm |= (instr & 0xf0000) >> 4;
+  imm |= instr & 0xfff;
+  *reg = static_cast<Register>((instr & 0xf000) >> 12);
+  *value = imm;
   return start;
 }
 
@@ -368,14 +343,7 @@ bool ReturnPattern::IsValid() const {
   int32_t instruction = (static_cast<int32_t>(AL) << kConditionShift) | B24 |
                         B21 | (0xfff << 8) | B4 |
                         (static_cast<int32_t>(LR) << kRmShift);
-  const ARMVersion version = TargetCPUFeatures::arm_version();
-  if (version == ARMv6) {
-    return bx_lr->InstructionBits() == instruction;
-  } else {
-    ASSERT(version == ARMv7);
-    return bx_lr->InstructionBits() == instruction;
-  }
-  return false;
+  return bx_lr->InstructionBits() == instruction;
 }
 
 bool PcRelativeCallPattern::IsValid() const {

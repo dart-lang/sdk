@@ -32,17 +32,10 @@ static const intptr_t kMaxSamplesPerTick = 16;
 
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 
-#if defined(TARGET_ARCH_ARM_6)
-DEFINE_FLAG(int,
-            profile_period,
-            10000,
-            "Time between profiler samples in microseconds. Minimum 50.");
-#else
 DEFINE_FLAG(int,
             profile_period,
             1000,
             "Time between profiler samples in microseconds. Minimum 50.");
-#endif
 DEFINE_FLAG(int,
             max_profile_depth,
             kSampleSize* kMaxSamplesPerTick,

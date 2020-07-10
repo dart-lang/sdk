@@ -71,7 +71,7 @@ void format() {
 
   test('unknown file', () {
     p = project(mainSrc: 'int get foo => 1;\n');
-    var unknownFilePath = p.relativeFilePath + '-unknown-file.dart';
+    var unknownFilePath = '${p.relativeFilePath}-unknown-file.dart';
     ProcessResult result = p.runSync('format', [unknownFilePath]);
     expect(result.exitCode, 0);
     expect(result.stderr,

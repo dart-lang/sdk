@@ -25,13 +25,10 @@ class Error;
 class Field;
 class Function;
 class GrowableObjectArray;
-class SequenceNode;
 class String;
-class ParsedJSONObject;
-class ParsedJSONArray;
 class Precompiler;
 class FlowGraph;
-class PrecompilerEntryPointsPrinter;
+class PrecompilerTracer;
 
 class TableSelectorKeyValueTrait {
  public:
@@ -149,6 +146,26 @@ class AbstractTypeKeyValueTrait {
 
 typedef DirectChainedHashMap<AbstractTypeKeyValueTrait> AbstractTypeSet;
 
+class TypeParameterKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const TypeParameter* Key;
+  typedef const TypeParameter* Value;
+  typedef const TypeParameter* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->raw() == key->raw();
+  }
+};
+
+typedef DirectChainedHashMap<TypeParameterKeyValueTrait> TypeParameterSet;
+
 class TypeArgumentsKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -229,8 +246,26 @@ class Precompiler : public ValueObject {
 
   Phase phase() const { return phase_; }
 
+  bool is_tracing() const { return is_tracing_; }
+
  private:
   static Precompiler* singleton_;
+
+  // Scope which activates machine readable precompiler tracing if tracer
+  // is available.
+  class TracingScope : public ValueObject {
+   public:
+    explicit TracingScope(Precompiler* precompiler)
+        : precompiler_(precompiler), was_tracing_(precompiler->is_tracing_) {
+      precompiler->is_tracing_ = (precompiler->tracer_ != nullptr);
+    }
+
+    ~TracingScope() { precompiler_->is_tracing_ = was_tracing_; }
+
+   private:
+    Precompiler* const precompiler_;
+    const bool was_tracing_;
+  };
 
   explicit Precompiler(Thread* thread);
   ~Precompiler();
@@ -249,7 +284,8 @@ class Precompiler : public ValueObject {
                           String* temp_selector,
                           Class* temp_cls);
   void AddConstObject(const class Instance& instance);
-  void AddClosureCall(const Array& arguments_descriptor);
+  void AddClosureCall(const String& selector,
+                      const Array& arguments_descriptor);
   void AddFunction(const Function& function, bool retain = true);
   void AddInstantiatedClass(const Class& cls);
   void AddSelector(const String& selector);
@@ -270,6 +306,7 @@ class Precompiler : public ValueObject {
   void DropFields();
   void TraceTypesFromRetainedClasses();
   void DropTypes();
+  void DropTypeParameters();
   void DropTypeArguments();
   void DropMetadata();
   void DropLibraryEntries();
@@ -309,6 +346,7 @@ class Precompiler : public ValueObject {
   intptr_t dropped_class_count_;
   intptr_t dropped_typearg_count_;
   intptr_t dropped_type_count_;
+  intptr_t dropped_typeparam_count_;
   intptr_t dropped_library_count_;
 
   compiler::ObjectPoolBuilder global_object_pool_builder_;
@@ -322,6 +360,7 @@ class Precompiler : public ValueObject {
   ClassSet classes_to_retain_;
   TypeArgumentsSet typeargs_to_retain_;
   AbstractTypeSet types_to_retain_;
+  TypeParameterSet typeparams_to_retain_;
   InstanceSet consts_to_retain_;
   TableSelectorSet seen_table_selectors_;
   Error& error_;
@@ -332,6 +371,8 @@ class Precompiler : public ValueObject {
   void* il_serialization_stream_;
 
   Phase phase_ = Phase::kPreparation;
+  PrecompilerTracer* tracer_ = nullptr;
+  bool is_tracing_ = false;
 };
 
 class FunctionsTraits {
@@ -421,10 +462,6 @@ class Obfuscator : public ValueObject {
 
     return state_->RenameImpl(name, atomic);
   }
-
-  // Given a constant |instance| of dart:internal.Symbol rename it by updating
-  // its |name| field.
-  static void ObfuscateSymbolInstance(Thread* thread, const Instance& instance);
 
   // Given a sequence of obfuscated identifiers deobfuscate it.
   //
@@ -562,8 +599,6 @@ class Obfuscator {
   }
 
   void PreventRenaming(const String& name) {}
-  static void ObfuscateSymbolInstance(Thread* thread,
-                                      const Instance& instance) {}
 
   static void Deobfuscate(Thread* thread, const GrowableObjectArray& pieces) {}
 };

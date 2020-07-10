@@ -10,13 +10,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/error/best_practices_verifier.dart';
-import 'package:analyzer/src/error/dart2js_verifier.dart';
-import 'package:analyzer/src/error/dead_code_verifier.dart';
-import 'package:analyzer/src/error/language_version_override_verifier.dart';
-import 'package:analyzer/src/error/override_verifier.dart';
-import 'package:analyzer/src/error/todo_finder.dart';
-import 'package:analyzer/src/error/unused_local_elements_verifier.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -28,13 +21,22 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart' show LibraryScope;
+import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/dart2js_verifier.dart';
+import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/imports_verifier.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
+import 'package:analyzer/src/error/language_version_override_verifier.dart';
+import 'package:analyzer/src/error/override_verifier.dart';
+import 'package:analyzer/src/error/todo_finder.dart';
+import 'package:analyzer/src/error/unused_local_elements_verifier.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
@@ -58,9 +60,7 @@ var timerLibraryAnalyzerResolve = Stopwatch();
 var timerLibraryAnalyzerSplicer = Stopwatch();
 var timerLibraryAnalyzerVerify = Stopwatch();
 
-/**
- * Analyzer of a single library.
- */
+/// Analyzer of a single library.
 class LibraryAnalyzer {
   /// A marker object used to prevent the initialization of
   /// [_versionConstraintFromPubspec] when the previous initialization attempt
@@ -108,18 +108,14 @@ class LibraryAnalyzer {
 
   TypeSystemImpl get _typeSystem => _libraryElement.typeSystem;
 
-  /**
-   * Compute analysis results for all units of the library.
-   */
+  /// Compute analysis results for all units of the library.
   Map<FileState, UnitAnalysisResult> analyze() {
     return PerformanceStatistics.analysis.makeCurrentWhile(() {
       return analyzeSync();
     });
   }
 
-  /**
-   * Compute analysis results for all units of the library.
-   */
+  /// Compute analysis results for all units of the library.
   Map<FileState, UnitAnalysisResult> analyzeSync() {
     timerLibraryAnalyzer.start();
     Map<FileState, CompilationUnit> units = {};
@@ -215,9 +211,7 @@ class LibraryAnalyzer {
     unit.accept(constantVerifier);
   }
 
-  /**
-   * Compute [_constants] in all units.
-   */
+  /// Compute [_constants] in all units.
   void _computeConstants() {
     computeConstants(_typeProvider, _typeSystem, _declaredVariables,
         _constants.toList(), _analysisOptions.experimentStatus);
@@ -390,10 +384,8 @@ class LibraryAnalyzer {
     unit.accept(FfiVerifier(_typeSystem, errorReporter));
   }
 
-  /**
-   * Return a subset of the given [errors] that are not marked as ignored in
-   * the [file].
-   */
+  /// Return a subset of the given [errors] that are not marked as ignored in
+  /// the [file].
   List<AnalysisError> _filterIgnoredErrors(
       FileState file, List<AnalysisError> errors) {
     if (errors.isEmpty) {
@@ -504,10 +496,8 @@ class LibraryAnalyzer {
     return workspace?.findPackageFor(libraryPath);
   }
 
-  /**
-   * Return the name of the library that the given part is declared to be a
-   * part of, or `null` if the part does not contain a part-of directive.
-   */
+  /// Return the name of the library that the given part is declared to be a
+  /// part of, or `null` if the part does not contain a part-of directive.
   _NameOrSource _getPartLibraryNameOrUri(Source partSource,
       CompilationUnit partUnit, List<Directive> directivesToResolve) {
     for (Directive directive in partUnit.directives) {
@@ -539,16 +529,12 @@ class LibraryAnalyzer {
     return source == _library.source;
   }
 
-  /**
-   * Return `true` if the given [source] is a library.
-   */
+  /// Return `true` if the given [source] is a library.
   bool _isLibrarySource(Source source) {
     return _isLibraryUri(source.uri);
   }
 
-  /**
-   * Return a new parsed unresolved [CompilationUnit].
-   */
+  /// Return a new parsed unresolved [CompilationUnit].
   CompilationUnit _parse(FileState file) {
     AnalysisErrorListener errorListener = _getErrorListener(file);
     String content = file.content;
@@ -734,10 +720,8 @@ class LibraryAnalyzer {
         featureSet: unit.featureSet, flowAnalysisHelper: flowAnalysisHelper));
   }
 
-  /**
-   * Return the result of resolve the given [uriContent], reporting errors
-   * against the [uriLiteral].
-   */
+  /// Return the result of resolve the given [uriContent], reporting errors
+  /// against the [uriLiteral].
   Source _resolveUri(FileState file, bool isImport, StringLiteral uriLiteral,
       String uriContent) {
     UriValidationCode code =
@@ -780,6 +764,13 @@ class LibraryAnalyzer {
           _library.source,
           relativeUri,
         );
+        for (var configuration in directive.configurations) {
+          var uriLiteral = configuration.uri;
+          String uriContent = uriLiteral.stringValue?.trim();
+          Source defaultSource = _resolveUri(
+              file, directive is ImportDirective, uriLiteral, uriContent);
+          configuration.uriSource = defaultSource;
+        }
       }
     }
   }
@@ -804,10 +795,8 @@ class LibraryAnalyzer {
     }
   }
 
-  /**
-   * Check the given [directive] to see if the referenced source exists and
-   * report an error if it does not.
-   */
+  /// Check the given [directive] to see if the referenced source exists and
+  /// report an error if it does not.
   void _validateUriBasedDirective(
       FileState file, UriBasedDirectiveImpl directive) {
     String uriContent;
@@ -839,10 +828,8 @@ class LibraryAnalyzer {
         .reportErrorForNode(errorCode, uriLiteral, [uriContent]);
   }
 
-  /**
-   * Check each directive in the given [unit] to see if the referenced source
-   * exists and report an error if it does not.
-   */
+  /// Check each directive in the given [unit] to see if the referenced source
+  /// exists and report an error if it does not.
   void _validateUriBasedDirectives(FileState file, CompilationUnit unit) {
     for (Directive directive in unit.directives) {
       if (directive is UriBasedDirective) {
@@ -851,10 +838,8 @@ class LibraryAnalyzer {
     }
   }
 
-  /**
-   * Return `true` if the given [source] refers to a file that is assumed to be
-   * generated.
-   */
+  /// Return `true` if the given [source] refers to a file that is assumed to be
+  /// generated.
   static bool _isGenerated(Source source) {
     if (source == null) {
       return false;
@@ -878,9 +863,7 @@ class LibraryAnalyzer {
   }
 }
 
-/**
- * Analysis result for single file.
- */
+/// Analysis result for single file.
 class UnitAnalysisResult {
   final FileState file;
   final CompilationUnit unit;
@@ -889,9 +872,7 @@ class UnitAnalysisResult {
   UnitAnalysisResult(this.file, this.unit, this.errors);
 }
 
-/**
- * Either the name or the source associated with a part-of directive.
- */
+/// Either the name or the source associated with a part-of directive.
 class _NameOrSource {
   final String name;
   final Source source;

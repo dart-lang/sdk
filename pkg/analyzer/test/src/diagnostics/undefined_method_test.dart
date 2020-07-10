@@ -179,6 +179,25 @@ f() { A?.m(); }
 ''');
   }
 
+  test_static_mixinApplication_superConstructorIsFactory() async {
+    await assertErrorsInCode(r'''
+mixin M {}
+
+class A {
+  A();
+  factory A.named() = A;
+}
+
+class B = A with M;
+
+void main() {
+  B.named();
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 96, 5),
+    ]);
+  }
+
   test_withExtension() async {
     await assertErrorsInCode(r'''
 class C {}

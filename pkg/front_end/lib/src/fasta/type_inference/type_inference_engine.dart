@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart'
         DartTypeVisitor,
         Field,
         FunctionType,
+        FutureOrType,
         InterfaceType,
         Member,
         NamedType,
@@ -92,6 +93,11 @@ class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
     }
     _variance = oldVariance;
     return false;
+  }
+
+  @override
+  bool visitFutureOrType(FutureOrType node) {
+    return node.typeArgument.accept(this);
   }
 
   @override
@@ -252,8 +258,7 @@ class FlowAnalysisResult {
 }
 
 /// CFE-specific implementation of [TypeOperations].
-class TypeOperationsCfe
-    implements TypeOperations<VariableDeclaration, DartType> {
+class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
   final TypeEnvironment typeEnvironment;
 
   TypeOperationsCfe(this.typeEnvironment);

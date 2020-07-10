@@ -4,12 +4,12 @@
 
 // @dart = 2.7
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: A:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: A:checkedTypeArgument,checks=[],typeArgument*/
+/*spec.class: A:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
+/*prod.class: A:checkedTypeArgument,checks=[],typeArgument*/
 class A {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: B:checkedInstance,checks=[$isA],typeArgument*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: B:checks=[$isA],typeArgument*/
+/*spec.class: B:checkedInstance,checks=[$isA],typeArgument*/
+/*prod.class: B:checks=[$isA],typeArgument*/
 class B implements A {}
 
 /*class: C:checks=[],indirectInstance*/
@@ -24,7 +24,7 @@ class D extends C<B> {}
 main() {
   C<A> c = new D();
   c.method(
-      /*spec:nnbd-off|spec:nnbd-sdk.checks=[$signature],instance*/
-      /*prod:nnbd-off|prod:nnbd-sdk.checks=[],instance*/
+      /*spec.checks=[$signature],instance*/
+      /*prod.checks=[],instance*/
       (A a) {});
 }

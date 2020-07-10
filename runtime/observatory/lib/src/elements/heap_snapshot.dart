@@ -19,7 +19,7 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
@@ -46,8 +46,6 @@ enum HeapSnapshotTreeMode {
   ownershipTreeMap,
   ownershipTreeMapDiff,
   predecessors,
-  process,
-  processDiff,
   successors,
 }
 
@@ -64,7 +62,6 @@ const viewModes = [
   HeapSnapshotTreeMode.classesTable,
   HeapSnapshotTreeMode.successors,
   HeapSnapshotTreeMode.predecessors,
-  HeapSnapshotTreeMode.process,
 ];
 
 const diffModes = [
@@ -74,26 +71,7 @@ const diffModes = [
   HeapSnapshotTreeMode.ownershipTableDiff,
   HeapSnapshotTreeMode.classesTreeMapDiff,
   HeapSnapshotTreeMode.classesTableDiff,
-  HeapSnapshotTreeMode.processDiff,
 ];
-
-abstract class NormalTreeMap<T> extends TreeMap<T> {
-  int getSize(T node);
-  String getName(T node);
-  String getType(T node);
-
-  int getArea(T node) => getSize(node);
-  String getLabel(T node) {
-    String name = getName(node);
-    String size = Utils.formatSize(getSize(node));
-    return "$name [$size]";
-  }
-
-  String getBackground(T node) {
-    int hue = getType(node).hashCode % 360;
-    return "hsl($hue,60%,60%)";
-  }
-}
 
 abstract class DiffTreeMap<T> extends TreeMap<T> {
   int getSizeA(T node);
@@ -371,114 +349,6 @@ class ClassesOwnershipDiffTreeMap extends DiffTreeMap<SnapshotClassDiff> {
   }
 }
 
-class ProcessTreeMap extends NormalTreeMap<String> {
-  static const String root = "RSS";
-  HeapSnapshotElement element;
-  SnapshotGraph snapshot;
-
-  ProcessTreeMap(this.element, this.snapshot);
-
-  int getSize(String node) => snapshot.processPartitions[node];
-  String getType(String node) => node;
-  String getName(String node) => node;
-  String getParent(String node) => node == root ? null : root;
-  Iterable<String> getChildren(String node) {
-    if (node == root) {
-      var children = snapshot.processPartitions.keys.toList();
-      children.remove(root);
-      return children;
-    }
-    return <String>[];
-  }
-
-  void onSelect(String node) {}
-  void onDetails(String node) {}
-}
-
-class ProcessDiffTreeMap extends DiffTreeMap<PartitionDiff> {
-  HeapSnapshotElement element;
-
-  ProcessDiffTreeMap(this.element);
-
-  int getSizeA(PartitionDiff node) => node.sizeA;
-  int getSizeB(PartitionDiff node) => node.sizeB;
-  int getGain(PartitionDiff node) => node.sizeGain;
-  int getLoss(PartitionDiff node) => node.sizeLoss;
-  int getCommon(PartitionDiff node) => node.sizeCommon;
-  String getType(PartitionDiff node) => node.name;
-  String getName(PartitionDiff node) => node.name;
-  PartitionDiff getParent(PartitionDiff node) => node.parent;
-  Iterable<PartitionDiff> getChildren(PartitionDiff node) => node.children;
-  void onSelect(PartitionDiff node) {}
-  void onDetails(PartitionDiff node) {}
-}
-
-class PartitionDiff {
-  String name;
-  int sizeA = 0;
-  int sizeB = 0;
-  int sizeGain = -1;
-  int sizeLoss = -1;
-  int sizeCommon = -1;
-
-  PartitionDiff parent;
-  List<PartitionDiff> children;
-
-  static PartitionDiff from(SnapshotGraph graphA, SnapshotGraph graphB) {
-    var partitions = new Set<String>();
-    partitions.addAll(graphA.processPartitions.keys);
-    partitions.addAll(graphB.processPartitions.keys);
-
-    var root = ProcessTreeMap.root;
-    var rootDiff = new PartitionDiff();
-    rootDiff.name = root;
-    rootDiff.sizeA = graphA.processPartitions[root] ?? 0;
-    rootDiff.sizeB = graphB.processPartitions[root] ?? 0;
-    rootDiff.children = <PartitionDiff>[];
-    partitions.remove(root);
-
-    var childrenA = 0;
-    var childrenB = 0;
-    for (var partition in partitions) {
-      var partitionDiff = new PartitionDiff();
-      partitionDiff.name = partition;
-      partitionDiff.sizeA = graphA.processPartitions[partition] ?? 0;
-      partitionDiff.sizeB = graphB.processPartitions[partition] ?? 0;
-      partitionDiff.parent = rootDiff;
-      partitionDiff.children = const <PartitionDiff>[];
-      if (partitionDiff.sizeB > partitionDiff.sizeA) {
-        partitionDiff.sizeGain = partitionDiff.sizeB - partitionDiff.sizeA;
-        partitionDiff.sizeCommon = partitionDiff.sizeA;
-        partitionDiff.sizeLoss = 0;
-      } else {
-        partitionDiff.sizeGain = 0;
-        partitionDiff.sizeCommon = partitionDiff.sizeB;
-        partitionDiff.sizeLoss = partitionDiff.sizeA - partitionDiff.sizeB;
-      }
-      childrenA += partitionDiff.sizeA;
-      childrenB += partitionDiff.sizeB;
-      rootDiff.sizeGain += partitionDiff.sizeGain;
-      rootDiff.sizeCommon += partitionDiff.sizeCommon;
-      rootDiff.sizeLoss += partitionDiff.sizeLoss;
-      rootDiff.children.add(partitionDiff);
-    }
-
-    var shallowA = rootDiff.sizeA - childrenA;
-    var shallowB = rootDiff.sizeB - childrenB;
-    if (shallowB > shallowA) {
-      rootDiff.sizeGain += shallowB - shallowA;
-      rootDiff.sizeCommon += shallowA;
-      rootDiff.sizeLoss += 0;
-    } else {
-      rootDiff.sizeGain += 0;
-      rootDiff.sizeCommon += shallowB;
-      rootDiff.sizeLoss += shallowA - shallowB;
-    }
-
-    return rootDiff;
-  }
-}
-
 class SnapshotClassDiff {
   SnapshotClass _a;
   SnapshotClass _b;
@@ -658,17 +528,6 @@ class MergedDominatorDiff {
 }
 
 class HeapSnapshotElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<HeapSnapshotElement>('heap-snapshot', dependencies: const [
-    ClassRefElement.tag,
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-    VirtualTreeElement.tag,
-  ]);
-
   RenderingScheduler<HeapSnapshotElement> _r;
 
   Stream<RenderedEvent<HeapSnapshotElement>> get onRendered => _r.onRendered;
@@ -719,7 +578,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     return e;
   }
 
-  HeapSnapshotElement.created() : super.created(tag);
+  HeapSnapshotElement.created() : super.created('heap-snapshot');
 
   @override
   attached() {
@@ -927,7 +786,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     switch (_mode) {
       case HeapSnapshotTreeMode.dominatorTree:
         if (selection == null) {
-          selection = List.from(_snapshotA.root.objects);
+          selection = List.from(_snapshotA.extendedRoot.objects);
         }
         _tree = new VirtualTreeElement(
             _createDominator, _updateDominator, _getChildrenDominator,
@@ -950,16 +809,16 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         break;
       case HeapSnapshotTreeMode.dominatorTreeMap:
         if (selection == null) {
-          selection = List.from(_snapshotA.root.objects);
+          selection = List.from(_snapshotA.extendedRoot.objects);
         }
         _createTreeMap(report, new DominatorTreeMap(this), selection.first);
         break;
       case HeapSnapshotTreeMode.mergedDominatorTree:
         _tree = new VirtualTreeElement(_createMergedDominator,
             _updateMergedDominator, _getChildrenMergedDominator,
-            items: _getChildrenMergedDominator(_snapshotA.mergedRoot),
+            items: _getChildrenMergedDominator(_snapshotA.extendedMergedRoot),
             queue: _r.queue);
-        _tree.expand(_snapshotA.mergedRoot);
+        _tree.expand(_snapshotA.extendedMergedRoot);
         final text = 'A heap dominator tree, where siblings with the same class'
             ' have been merged into a single node.';
         report.addAll([
@@ -987,7 +846,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         break;
       case HeapSnapshotTreeMode.mergedDominatorTreeMap:
         if (mergedSelection == null) {
-          mergedSelection = _snapshotA.mergedRoot;
+          mergedSelection = _snapshotA.extendedMergedRoot;
         }
         _createTreeMap(
             report, new MergedDominatorTreeMap(this), mergedSelection);
@@ -1110,14 +969,6 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         final items = SnapshotClassDiff.from(_snapshotA, _snapshotB);
         _createTreeMap(
             report, new ClassesShallowDiffTreeMap(this, items), null);
-        break;
-      case HeapSnapshotTreeMode.process:
-        _createTreeMap(
-            report, new ProcessTreeMap(this, _snapshotA), ProcessTreeMap.root);
-        break;
-      case HeapSnapshotTreeMode.processDiff:
-        final root = PartitionDiff.from(_snapshotA, _snapshotB);
-        _createTreeMap(report, new ProcessDiffTreeMap(this), root);
         break;
       default:
         break;
@@ -1598,9 +1449,6 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         return 'Successors / outgoing references';
       case HeapSnapshotTreeMode.predecessors:
         return 'Predecessors / incoming references';
-      case HeapSnapshotTreeMode.process:
-      case HeapSnapshotTreeMode.processDiff:
-        return 'Process memory usage';
     }
     throw new Exception('Unknown HeapSnapshotTreeMode: $mode');
   }
@@ -1630,7 +1478,9 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
 
   String snapshotToString(snapshot) {
     if (snapshot == null) return "None";
-    return snapshot.description + " " + Utils.formatSize(snapshot.size);
+    return snapshot.description +
+        " " +
+        Utils.formatSize(snapshot.capacity + snapshot.externalSize);
   }
 
   List<Element> _createSnapshotSelectA() {

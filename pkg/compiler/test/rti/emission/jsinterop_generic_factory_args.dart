@@ -14,10 +14,10 @@ library foo;
 import 'package:expect/expect.dart';
 import 'package:js/js.dart';
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: A:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: A:checkedTypeArgument,checks=[],typeArgument*/
 @JS()
 @anonymous
+/*spec.class: A:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
+/*prod.class: A:checkedTypeArgument,checks=[],typeArgument*/
 class A<T> {
   external factory A();
 }

@@ -21,11 +21,7 @@ test<Q>() {
   var toString = '${local1.runtimeType}';
   if ('$Object' == 'Object') {
     // `true` if non-minified.
-    if (JS_GET_FLAG('USE_NEW_RTI')) {
-      Expect.equals("Closure", toString);
-    } else {
-      Expect.equals("test_local1", toString);
-    }
+    Expect.equals("Closure", toString);
   }
   print(toString);
   local2(0);

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: avoid_function_literals_in_foreach_calls
+
 import 'package:benchmark_harness/benchmark_harness.dart';
 import 'package:fixnum/fixnum.dart';
 
@@ -38,23 +40,25 @@ class ParseBigIntBenchmark extends BenchmarkBase {
       : seed = (BigInt.one << bits) - BigInt.one,
         super(name);
 
+  @override
   void setup() {
-    BigInt b = seed;
-    int totalLength = 0;
+    var b = seed;
+    var totalLength = 0;
     while (totalLength < requiredDigits) {
       if (b.bitLength < bits) {
         b = seed;
       }
-      String string = b.toString();
+      final string = b.toString();
       strings.add(string);
       totalLength += string.length;
       b = b - (b >> 8);
     }
   }
 
+  @override
   void run() {
-    for (String s in strings) {
-      BigInt b = BigInt.parse(s);
+    for (final s in strings) {
+      final b = BigInt.parse(s);
       sink1 = s;
       sink2 = b;
     }
@@ -73,23 +77,25 @@ class ParseInt64Benchmark extends BenchmarkBase {
       : seed = (Int64.ONE << bits) - Int64.ONE,
         super(name);
 
+  @override
   void setup() {
-    Int64 b = seed;
-    int totalLength = 0;
+    var b = seed;
+    var totalLength = 0;
     while (totalLength < requiredDigits) {
       if (int64UnsignedBitLength(b) < bits) {
         b = seed;
       }
-      String string = b.toStringUnsigned();
+      final string = b.toStringUnsigned();
       strings.add(string);
       totalLength += string.length;
       b = b - b.shiftRightUnsigned(8);
     }
   }
 
+  @override
   void run() {
-    for (String s in strings) {
-      Int64 b = Int64.parseInt(s);
+    for (final s in strings) {
+      final b = Int64.parseInt(s);
       sink1 = s;
       sink2 = b;
     }
@@ -109,14 +115,15 @@ class ParseJsBigIntBenchmark extends BenchmarkBase {
             nativeBigInt.one),
         super(name);
 
+  @override
   void setup() {
-    Object b = seed;
-    int totalLength = 0;
+    var b = seed;
+    var totalLength = 0;
     while (totalLength < requiredDigits) {
       if (nativeBigInt.bitLength(b) < bits) {
         b = seed;
       }
-      String string = nativeBigInt.toStringMethod(b);
+      final string = nativeBigInt.toStringMethod(b);
       strings.add(string);
       totalLength += string.length;
       b = nativeBigInt.subtract(
@@ -124,9 +131,10 @@ class ParseJsBigIntBenchmark extends BenchmarkBase {
     }
   }
 
+  @override
   void run() {
-    for (String s in strings) {
-      Object b = nativeBigInt.parse(s);
+    for (final s in strings) {
+      final b = nativeBigInt.parse(s);
       sink1 = s;
       sink2 = b;
     }
@@ -143,26 +151,29 @@ class FormatBigIntBenchmark extends BenchmarkBase {
       : seed = (BigInt.one << bits) - BigInt.one,
         super(name);
 
+  @override
   void setup() {
-    BigInt b = seed;
-    int totalLength = 0;
+    var b = seed;
+    var totalLength = 0;
     while (totalLength < requiredDigits) {
       if (b.bitLength < bits) {
         b = seed;
       }
-      String string = b.toString();
+      final string = b.toString();
       values.add(b - BigInt.one); // We add 'one' back later.
       totalLength += string.length;
       b = b - (b >> 8);
     }
   }
 
+  @override
   void run() {
-    for (BigInt b0 in values) {
+    final one = BigInt.one;
+    for (final b0 in values) {
       // Instances might cache `toString()`, so use arithmetic to create a new
       // instance to try to protect against measuring a cached string.
-      BigInt b = b0 + BigInt.one;
-      String s = b.toString();
+      final b = b0 + one;
+      final s = b.toString();
       sink1 = s;
       sink2 = b;
     }
@@ -179,26 +190,29 @@ class FormatInt64Benchmark extends BenchmarkBase {
       : seed = (Int64.ONE << bits) - Int64.ONE,
         super(name);
 
+  @override
   void setup() {
-    Int64 b = seed;
-    int totalLength = 0;
+    var b = seed;
+    var totalLength = 0;
     while (totalLength < requiredDigits) {
       if (int64UnsignedBitLength(b) < bits) {
         b = seed;
       }
-      String string = b.toStringUnsigned();
+      final string = b.toStringUnsigned();
       values.add(b - Int64.ONE);
       totalLength += string.length;
       b = b - b.shiftRightUnsigned(8);
     }
   }
 
+  @override
   void run() {
-    for (Int64 b0 in values) {
+    final one = Int64.ONE;
+    for (final b0 in values) {
       // Instances might cache `toString()`, so use arithmetic to create a new
       // instance to try to protect against measuring a cached string.
-      Int64 b = b0 + Int64.ONE;
-      String s = b.toStringUnsigned();
+      final b = b0 + one;
+      final s = b.toStringUnsigned();
       sink1 = s;
       sink2 = b;
     }
@@ -218,15 +232,16 @@ class FormatJsBigIntBenchmark extends BenchmarkBase {
             nativeBigInt.one),
         super(name);
 
+  @override
   void setup() {
     final one = nativeBigInt.one;
-    Object b = seed;
-    int totalLength = 0;
+    var b = seed;
+    var totalLength = 0;
     while (totalLength < requiredDigits) {
       if (nativeBigInt.bitLength(b) < bits) {
         b = seed;
       }
-      String string = nativeBigInt.toStringMethod(b);
+      final string = nativeBigInt.toStringMethod(b);
       values.add(nativeBigInt.subtract(b, one)); // We add 'one' back later.
       totalLength += string.length;
       b = nativeBigInt.subtract(
@@ -234,13 +249,14 @@ class FormatJsBigIntBenchmark extends BenchmarkBase {
     }
   }
 
+  @override
   void run() {
     final one = nativeBigInt.one;
-    for (Object b0 in values) {
+    for (final b0 in values) {
       // Instances might cache `toString()`, so use arithmetic to create a new
       // instance to try to protect against measuring a cached string.
-      Object b = nativeBigInt.add(b0, one);
-      String s = nativeBigInt.toStringMethod(b);
+      final b = nativeBigInt.add(b0, one);
+      final s = nativeBigInt.toStringMethod(b);
       sink1 = s;
       sink2 = b;
     }
@@ -251,6 +267,7 @@ class FormatJsBigIntBenchmark extends BenchmarkBase {
 /// [DummyBenchmark] instantly returns a fixed 'slow' result.
 class DummyBenchmark extends BenchmarkBase {
   DummyBenchmark(String name) : super(name);
+  @override
   double measure() => 2000 * 1000 * 1.0; // A rate of one run per 2s.
 }
 
@@ -274,7 +291,7 @@ BenchmarkBase Function() selectFormatNativeBigIntBenchmark(
       : () => DummyBenchmark(name);
 }
 
-main() {
+void main() {
   final benchmarks = [
     () => ParseInt64Benchmark('Int64.parse.0009.bits', 9),
     () => ParseInt64Benchmark('Int64.parse.0032.bits', 32),

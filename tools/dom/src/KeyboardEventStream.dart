@@ -22,7 +22,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   final String _type;
 
   /** The element we are watching for events to happen on. */
-  final EventTarget _target;
+  final EventTarget? _target;
 
   // The distance to shift from upper case alphabet Roman letters to lower case.
   static final int _ROMAN_ALPHABET_OFFSET = "a".codeUnits[0] - "A".codeUnits[0];
@@ -65,7 +65,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
 
   /** Return a stream for KeyEvents for the specified target. */
   // Note: this actually functions like a factory constructor.
-  CustomStream<KeyEvent> forTarget(EventTarget e, {bool useCapture: false}) {
+  CustomStream<KeyEvent> forTarget(EventTarget? e, {bool useCapture: false}) {
     var handler =
         new _KeyboardEventHandler.initializeAllEventListeners(_type, e);
     return handler._stream;
@@ -85,7 +85,8 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
    * and charcodes when they are not provided.
    */
   _KeyboardEventHandler.initializeAllEventListeners(this._type, this._target)
-      : super(_EVENT_TYPE) {
+      : _stream = new _CustomKeyEventStreamImpl(_type),
+        super(_EVENT_TYPE) {
     Element.keyDownEvent
         .forTarget(_target, useCapture: true)
         .listen(processKeyDown);
@@ -95,7 +96,6 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
     Element.keyUpEvent
         .forTarget(_target, useCapture: true)
         .listen(processKeyUp);
-    _stream = new _CustomKeyEventStreamImpl(_type);
   }
 
   /** Determine if caps lock is one of the currently depressed keys. */
@@ -337,7 +337,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
         _keyIdentifier.containsKey(e._shadowKeyIdentifier)) {
       // This is needed for Safari Windows because it currently doesn't give a
       // keyCode/which for non printable keys.
-      e._shadowKeyCode = _keyIdentifier[e._shadowKeyIdentifier];
+      e._shadowKeyCode = _keyIdentifier[e._shadowKeyIdentifier]!;
     }
     e._shadowAltKey = _keyDownList.any((var element) => element.altKey);
     _stream.add(e);
@@ -346,7 +346,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   /** Handle keyup events. */
   void processKeyUp(KeyboardEvent event) {
     var e = new KeyEvent.wrap(event);
-    KeyboardEvent toRemove = null;
+    KeyboardEvent? toRemove = null;
     for (var key in _keyDownList) {
       if (key.keyCode == e.keyCode) {
         toRemove = key;

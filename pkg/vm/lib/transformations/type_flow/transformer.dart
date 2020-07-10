@@ -17,6 +17,7 @@ import 'package:kernel/external_name.dart';
 
 import 'analysis.dart';
 import 'calls.dart';
+import 'protobuf_handler.dart' show ProtobufHandler;
 import 'summary.dart';
 import 'table_selector.dart';
 import 'types.dart';
@@ -40,20 +41,31 @@ Component transformComponent(
     Target target, CoreTypes coreTypes, Component component,
     {PragmaAnnotationParser matcher,
     bool treeShakeSignatures: true,
-    bool treeShakeWriteOnlyFields: true}) {
+    bool treeShakeWriteOnlyFields: true,
+    bool treeShakeProtobufs: false}) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(component, coreTypes,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final types = new TypeEnvironment(coreTypes, hierarchy);
   final libraryIndex = new LibraryIndex.all(component);
   final genericInterfacesInfo = new GenericInterfacesInfoImpl(hierarchy);
+  final protobufHandler = treeShakeProtobufs
+      ? ProtobufHandler.forComponent(component, coreTypes)
+      : null;
 
   Statistics.reset();
   final analysisStopWatch = new Stopwatch()..start();
 
-  final typeFlowAnalysis = new TypeFlowAnalysis(target, component, coreTypes,
-      hierarchy, genericInterfacesInfo, types, libraryIndex,
-      matcher: matcher);
+  final typeFlowAnalysis = new TypeFlowAnalysis(
+      target,
+      component,
+      coreTypes,
+      hierarchy,
+      genericInterfacesInfo,
+      types,
+      libraryIndex,
+      protobufHandler,
+      matcher);
 
   Procedure main = component.mainMethod;
 
@@ -151,7 +163,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
         _procedureAttributesMetadata =
             new ProcedureAttributesMetadataRepository(),
         _tableSelectorMetadata = new TableSelectorMetadataRepository(),
-        _tableSelectorAssigner = new TableSelectorAssigner(),
+        _tableSelectorAssigner = new TableSelectorAssigner(component),
         _unboxingInfoMetadata = new UnboxingInfoMetadataRepository(),
         _intClass = _typeFlowAnalysis.environment.coreTypes.intClass {
     component.addMetadataRepository(_inferredTypeMetadata);
@@ -1464,7 +1476,9 @@ class _TreeShakerPass2 extends Transformer {
   Class visitClass(Class node) {
     if (!shaker.isClassUsed(node)) {
       debugPrint('Dropped class ${node.name}');
-      node.canonicalName?.unbind();
+      // Ensure that kernel file writer will not be able to
+      // write a dangling reference to the deleted class.
+      node.reference.canonicalName = null;
       Statistics.classesDropped++;
       return null; // Remove the class.
     }
@@ -1532,7 +1546,9 @@ class _TreeShakerPass2 extends Transformer {
   @override
   Member defaultMember(Member node) {
     if (!shaker.isMemberUsed(node) && !_preserveSpecialMember(node)) {
-      node.canonicalName?.unbind();
+      // Ensure that kernel file writer will not be able to
+      // write a dangling reference to the deleted member.
+      node.reference.canonicalName = null;
       Statistics.membersDropped++;
       return null;
     }

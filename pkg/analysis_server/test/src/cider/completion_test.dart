@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/cider/completion.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
-    show CompletionSuggestion, ElementKind;
+    show CompletionSuggestion, CompletionSuggestionKind, ElementKind;
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -25,6 +25,8 @@ class CiderCompletionComputerTest extends CiderServiceTest {
   CiderCompletionComputer _computer;
   CiderCompletionResult _completionResult;
   List<CompletionSuggestion> _suggestions;
+
+  Future<void> test_limitedResolution_;
 
   @override
   void setUp() {
@@ -50,6 +52,40 @@ main(int b) {
     _assertHasClass(text: 'String');
 
     _assertNoClass(text: 'Random');
+  }
+
+  Future<void> test_compute_performance_operations() async {
+    await _compute(r'''
+main() {
+  ^
+}
+''');
+
+    _assertHasOperationPerformance(['resolution']);
+    _assertHasOperationPerformance(['suggestions']);
+    _assertHasOperationPerformance([
+      'suggestions',
+      'DartCompletionManager - KeywordContributor',
+    ]);
+  }
+
+  Future<void> test_compute_performance_timers() async {
+    await _compute(r'''
+main() {
+  ^
+}
+''');
+
+    void assertTimerNotEmpty(Duration duration) {
+      expect(duration, isNotNull);
+      expect(duration, isNot(Duration.zero));
+    }
+
+    var performance = _completionResult.performance;
+    assertTimerNotEmpty(performance.file);
+    assertTimerNotEmpty(performance.imports);
+    assertTimerNotEmpty(performance.resolution);
+    assertTimerNotEmpty(performance.suggestions);
   }
 
   Future<void> test_compute_prefixStart_hasPrefix() async {
@@ -128,6 +164,14 @@ var a = ^;
     _assertComputedImportedLibraries([aPath]);
     _assertHasClass(text: 'A');
     _assertHasClass(text: 'String');
+  }
+
+  Future<void> test_compute_uriContributor_disabled() async {
+    newFile('/workspace/dart/test/lib/a.dart', content: '');
+    await _compute(r'''
+import '^';
+''');
+    expect(_suggestions, isEmpty);
   }
 
   Future<void> test_filterSort_byPattern_excludeNotMatching() async {
@@ -214,6 +258,32 @@ var a = Fo^;
     ]);
   }
 
+  Future<void> test_filterSort_namedArgument_hasPrefix() async {
+    await _compute(r'''
+void foo({int aaa, int bbb});
+
+void f() {
+  foo(a^);
+}
+''');
+
+    _assertHasNamedArgument(name: 'aaa');
+    _assertNoNamedArgument(name: 'bbb');
+  }
+
+  Future<void> test_filterSort_namedArgument_noPrefix() async {
+    await _compute(r'''
+void foo({int aaa, int bbb});
+
+void f() {
+  foo(^);
+}
+''');
+
+    _assertHasNamedArgument(name: 'aaa');
+    _assertHasNamedArgument(name: 'bbb');
+  }
+
   Future<void> test_filterSort_preferLocal() async {
     await _compute(r'''
 var a = 0;
@@ -242,6 +312,82 @@ main() {
       _assertHasLocalVariable(text: 'a'),
       _assertHasLocalVariable(text: 'b'),
     ]);
+  }
+
+  Future<void> test_limitedResolution_class_method() async {
+    await _compute(r'''
+class A<T> {
+  void foo() {}
+
+  void bar<U>(int a) {
+    ^
+  }
+}
+
+class B {}
+
+enum E { e }
+''');
+
+    _assertHasClass(text: 'A');
+    _assertHasClass(text: 'B');
+    _assertHasClass(text: 'String');
+    _assertHasConstructor(text: 'A');
+    _assertHasConstructor(text: 'B');
+    _assertHasEnumConstant(text: 'E.e');
+    _assertHasMethod(text: 'foo');
+    _assertHasMethod(text: 'bar');
+    _assertHasParameter(text: 'a');
+    _assertHasTypeParameter(text: 'T');
+    _assertHasTypeParameter(text: 'U');
+  }
+
+  Future<void> test_limitedResolution_unit_function() async {
+    await _compute(r'''
+void foo() {}
+
+void bar(int a) {
+  ^
+}
+''');
+
+    _assertHasFunction(text: 'foo');
+    _assertHasParameter(text: 'a');
+  }
+
+  Future<void> test_localTypeInference() async {
+    await _compute(r'''
+void foo() {
+  var a = 0;
+  a.^
+}
+''');
+
+    _assertHasGetter(text: 'isEven');
+  }
+
+  Future<void> test_warmUp_cachesImportedLibraries() async {
+    var aPath = convertPath('/workspace/dart/test/lib/a.dart');
+    newFile(aPath, content: r'''
+class A {}
+''');
+
+    var bPath = convertPath('/workspace/dart/test/lib/b.dart');
+    newFile(bPath, content: r'''
+import 'a.dart';
+''');
+
+    // Pre-cache `a.dart` using import in `b.dart`
+    await _newComputer().warmUp([bPath]);
+    _assertComputedImportedLibraries([aPath], hasCore: true);
+
+    // Now we complete in `test.dart`, and `a.dart` is already cached.
+    await _compute(r'''
+import 'a.dart';
+^
+''');
+    _assertComputedImportedLibraries([]);
+    _assertHasClass(text: 'A');
   }
 
   void _assertComputedImportedLibraries(
@@ -275,6 +421,42 @@ main() {
     expect(matching, hasLength(1), reason: 'Expected exactly one completion');
   }
 
+  CompletionSuggestion _assertHasConstructor({@required String text}) {
+    var matching = _matchingCompletions(
+      text: text,
+      elementKind: ElementKind.CONSTRUCTOR,
+    );
+    expect(matching, hasLength(1), reason: 'Expected exactly one completion');
+    return matching.single;
+  }
+
+  CompletionSuggestion _assertHasEnumConstant({@required String text}) {
+    var matching = _matchingCompletions(
+      text: text,
+      elementKind: ElementKind.ENUM_CONSTANT,
+    );
+    expect(matching, hasLength(1), reason: 'Expected exactly one completion');
+    return matching.single;
+  }
+
+  CompletionSuggestion _assertHasFunction({@required String text}) {
+    var matching = _matchingCompletions(
+      text: text,
+      elementKind: ElementKind.FUNCTION,
+    );
+    expect(matching, hasLength(1), reason: 'Expected exactly one completion');
+    return matching.single;
+  }
+
+  CompletionSuggestion _assertHasGetter({@required String text}) {
+    var matching = _matchingCompletions(
+      text: text,
+      elementKind: ElementKind.GETTER,
+    );
+    expect(matching, hasLength(1), reason: 'Expected exactly one completion');
+    return matching.single;
+  }
+
   CompletionSuggestion _assertHasLocalVariable({@required String text}) {
     var matching = _matchingCompletions(
       text: text,
@@ -285,6 +467,39 @@ main() {
       hasLength(1),
       reason: 'Expected exactly one completion in $_suggestions',
     );
+    return matching.single;
+  }
+
+  CompletionSuggestion _assertHasMethod({@required String text}) {
+    var matching = _matchingCompletions(
+      text: text,
+      elementKind: ElementKind.METHOD,
+    );
+    expect(matching, hasLength(1), reason: 'Expected exactly one completion');
+    return matching.single;
+  }
+
+  CompletionSuggestion _assertHasNamedArgument({@required String name}) {
+    var matching = _matchingNamedArgumentSuggestions(name: name);
+    expect(matching, hasLength(1), reason: 'Expected exactly one completion');
+    return matching.single;
+  }
+
+  void _assertHasOperationPerformance(List<String> path) {
+    var current = _completionResult.performance.operations;
+    for (var name in path) {
+      var child = current.getChild(name);
+      expect(child, isNotNull, reason: "No '$name' in $current");
+      current = child;
+    }
+  }
+
+  CompletionSuggestion _assertHasParameter({@required String text}) {
+    var matching = _matchingCompletions(
+      text: text,
+      elementKind: ElementKind.PARAMETER,
+    );
+    expect(matching, hasLength(1), reason: 'Expected exactly one completion');
     return matching.single;
   }
 
@@ -301,11 +516,25 @@ main() {
     return matching.single;
   }
 
+  CompletionSuggestion _assertHasTypeParameter({@required String text}) {
+    var matching = _matchingCompletions(
+      text: text,
+      elementKind: ElementKind.TYPE_PARAMETER,
+    );
+    expect(matching, hasLength(1), reason: 'Expected exactly one completion');
+    return matching.single;
+  }
+
   void _assertNoClass({@required String text}) {
     var matching = _matchingCompletions(
       text: text,
       elementKind: ElementKind.CLASS,
     );
+    expect(matching, isEmpty, reason: 'Expected zero completions');
+  }
+
+  void _assertNoNamedArgument({@required String name}) {
+    var matching = _matchingNamedArgumentSuggestions(name: name);
     expect(matching, isEmpty, reason: 'Expected zero completions');
   }
 
@@ -345,6 +574,22 @@ main() {
       }
 
       if (elementKind != null && e.element.kind != elementKind) {
+        return false;
+      }
+
+      return true;
+    }).toList();
+  }
+
+  List<CompletionSuggestion> _matchingNamedArgumentSuggestions({
+    @required String name,
+  }) {
+    return _suggestions.where((e) {
+      if (e.kind != CompletionSuggestionKind.NAMED_ARGUMENT) {
+        return false;
+      }
+
+      if (!e.completion.startsWith('$name:')) {
         return false;
       }
 

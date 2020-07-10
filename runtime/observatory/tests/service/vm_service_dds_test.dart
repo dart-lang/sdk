@@ -15,15 +15,20 @@ final tests = <DDSTest>[
         dds.remoteVmServiceWsUri.toString(),
       ),
     );
-    expect(client.wasOrIsConnected, false);
-    try {
-      await client.load();
-      fail(
-          'When DDS is connected, direct connections to the VM service should fail.');
-    } on NetworkRpcException catch (e) {
-      expect(e.message, 'WebSocket closed due to error');
+    final result = await client.invokeRpcNoUpgrade('getSupportedProtocols', {});
+    final protocols = result['protocols'];
+    expect(protocols.length, 2);
+    bool supportsVmProtocol = false;
+    bool supportsDdsProtocol = false;
+    for (final protocol in protocols) {
+      if (protocol['protocolName'] == 'VM Service') {
+        supportsVmProtocol = true;
+      } else if (protocol['protocolName'] == 'DDS') {
+        supportsDdsProtocol = true;
+      }
     }
-    expect(client.wasOrIsConnected, false);
+    expect(supportsVmProtocol, true);
+    expect(supportsDdsProtocol, true);
   }
 ];
 

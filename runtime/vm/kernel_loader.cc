@@ -297,7 +297,11 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
     reader.set_raw_buffer(program->kernel_data() + subprogram_start);
     reader.set_size(subprogram_end - subprogram_start);
     reader.set_offset(0);
-    std::unique_ptr<Program> subprogram = Program::ReadFrom(&reader);
+    const char* error = nullptr;
+    std::unique_ptr<Program> subprogram = Program::ReadFrom(&reader, &error);
+    if (subprogram == nullptr) {
+      FATAL1("Failed to load kernel file: %s", error);
+    }
     ASSERT(subprogram->is_single_program());
     KernelLoader loader(subprogram.get(), &uri_to_source_table);
     Object& load_result = Object::Handle(loader.LoadProgram(false));
@@ -894,7 +898,11 @@ void KernelLoader::FindModifiedLibraries(Program* program,
       reader.set_raw_buffer(program->kernel_data() + subprogram_start);
       reader.set_size(subprogram_end - subprogram_start);
       reader.set_offset(0);
-      std::unique_ptr<Program> subprogram = Program::ReadFrom(&reader);
+      const char* error = nullptr;
+      std::unique_ptr<Program> subprogram = Program::ReadFrom(&reader, &error);
+      if (subprogram == nullptr) {
+        FATAL1("Failed to load kernel file: %s", error);
+      }
       ASSERT(subprogram->is_single_program());
       KernelLoader loader(subprogram.get(), /*uri_to_source_table=*/nullptr);
       loader.walk_incremental_kernel(modified_libs, is_empty_program,
@@ -1305,6 +1313,7 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
   LibraryPrefix& library_prefix = LibraryPrefix::Handle(Z);
 
   const intptr_t deps_count = helper_.ReadListLength();
+  const Array& deps = Array::Handle(Array::New(deps_count));
   for (intptr_t dep = 0; dep < deps_count; ++dep) {
     LibraryDependencyHelper dependency_helper(&helper_);
 
@@ -1388,12 +1397,21 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
         }
       }
     }
+
     if (FLAG_enable_mirrors && dependency_helper.annotation_count_ > 0) {
       ASSERT(annotations_kernel_offset > 0);
       ns.AddMetadata(toplevel_class, TokenPosition::kNoSource,
                      annotations_kernel_offset);
     }
+
+    if (prefix.IsNull()) {
+      deps.SetAt(dep, ns);
+    } else {
+      deps.SetAt(dep, library_prefix);
+    }
   }
+
+  library->set_dependencies(deps);
 }
 
 void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,

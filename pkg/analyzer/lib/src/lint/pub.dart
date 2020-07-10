@@ -128,7 +128,7 @@ abstract class Pubspec {
   PSEntry get homepage;
   PSEntry get name;
   PSEntry get version;
-  accept(PubspecVisitor visitor);
+  void accept(PubspecVisitor visitor);
 }
 
 abstract class PubspecVisitor<T> {
@@ -238,7 +238,7 @@ class _PSDependencyList extends PSDependencyList {
   @override
   Iterator<PSDependency> get iterator => dependencies.iterator;
 
-  add(PSDependency dependency) {
+  void add(PSDependency dependency) {
     if (dependency != null) {
       dependencies.add(dependency);
     }
@@ -388,7 +388,7 @@ class _Pubspec implements Pubspec {
     return sb.toString();
   }
 
-  _parse(String src, {Uri sourceUrl}) {
+  void _parse(String src, {Uri sourceUrl}) {
     var yaml = loadYamlNode(src, sourceUrl: sourceUrl);
     if (yaml is! YamlMap) {
       return;
@@ -439,7 +439,7 @@ class _StringBuilder {
   StringBuffer buffer = StringBuffer();
   @override
   String toString() => buffer.toString();
-  writelin(Object value) {
+  void writelin(Object value) {
     if (value != null) {
       buffer.writeln(value);
     }

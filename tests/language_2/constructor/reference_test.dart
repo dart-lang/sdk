@@ -13,7 +13,7 @@ main() {
   new Foo.bar();
   new Foo.bar.baz();
   //  ^^^^^^^
-  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
+  // [analyzer] STATIC_WARNING.CREATION_WITH_NON_TYPE
   //          ^
   // [cfe] Method not found: 'Foo.bar.baz'.
   new Foo<int>();
@@ -34,12 +34,12 @@ main() {
   //      ^
   // [cfe] A constructor invocation can't have type arguments on the constructor name.
   //  ^^^^^^^
-  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
+  // [analyzer] STATIC_WARNING.CREATION_WITH_NON_TYPE
   //               ^
   // [cfe] Method not found: 'Foo.bar.baz'.
   new Foo.bar.baz<int>();
   //  ^^^^^^^
-  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
+  // [analyzer] STATIC_WARNING.CREATION_WITH_NON_TYPE
   //          ^^^
   // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   // [cfe] A constructor invocation can't have type arguments on the constructor name.
@@ -50,7 +50,7 @@ main() {
   const Foo.bar();
   const Foo.bar.baz();
   //    ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   //            ^
   // [cfe] Method not found: 'Foo.bar.baz'.
   const Foo<int>();
@@ -71,12 +71,12 @@ main() {
   //        ^
   // [cfe] A constructor invocation can't have type arguments on the constructor name.
   //    ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   //                 ^
   // [cfe] Method not found: 'Foo.bar.baz'.
   const Foo.bar.baz<int>();
   //    ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   //            ^^^
   // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   // [cfe] A constructor invocation can't have type arguments on the constructor name.
@@ -107,7 +107,7 @@ main() {
   //  ^
   // [cfe] A constructor invocation can't have type arguments on the constructor name.
 //^^^^^^^
-// [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
+// [analyzer] STATIC_WARNING.CREATION_WITH_NON_TYPE
   //           ^
   // [cfe] Method not found: 'Foo.bar.baz'.
   Foo.bar.baz<int>();

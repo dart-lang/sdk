@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.convert;
 
 /// The Unicode Replacement character `U+FFFD` (�).
@@ -56,10 +54,9 @@ class Utf8Codec extends Encoding {
   ///
   /// If [allowMalformed] is not given, it defaults to the `allowMalformed` that
   /// was used to instantiate `this`.
-  String decode(List<int> codeUnits, {bool allowMalformed}) {
-    allowMalformed ??= _allowMalformed;
+  String decode(List<int> codeUnits, {bool? allowMalformed}) {
     // Switch between const objects to avoid allocation.
-    Utf8Decoder decoder = allowMalformed
+    Utf8Decoder decoder = allowMalformed ?? _allowMalformed
         ? const Utf8Decoder(allowMalformed: true)
         : const Utf8Decoder(allowMalformed: false);
     return decoder.convert(codeUnits);
@@ -87,9 +84,13 @@ class Utf8Encoder extends Converter<String, List<int>> {
   ///
   /// Any unpaired surrogate character (`U+D800`-`U+DFFF`) in the input string
   /// is encoded as a Unicode Replacement character `U+FFFD` (�).
-  Uint8List convert(String string, [int start = 0, int end]) {
+  Uint8List convert(String string, [int start = 0, int? end]) {
     var stringLength = string.length;
     end = RangeError.checkValidRange(start, end, stringLength);
+    // TODO(38725): Remove workaround when assignment promotion is implemented
+    if (end == null) {
+      throw RangeError("Invalid range");
+    }
     var length = end - start;
     if (length == 0) return Uint8List(0);
     // Create a new encoder with a length that is guaranteed to be big enough.
@@ -309,7 +310,7 @@ class Utf8Decoder extends Converter<List<int>, String> {
   ///
   /// If the [codeUnits] start with the encoding of a
   /// [unicodeBomCharacterRune], that character is discarded.
-  String convert(List<int> codeUnits, [int start = 0, int end]) {
+  String convert(List<int> codeUnits, [int start = 0, int? end]) {
     // Allow the implementation to intercept and specialize based on the type
     // of codeUnits.
     var result = _convertIntercepted(_allowMalformed, codeUnits, start, end);
@@ -339,8 +340,8 @@ class Utf8Decoder extends Converter<List<int>, String> {
 
   external Converter<List<int>, T> fuse<T>(Converter<String, T> next);
 
-  external static String _convertIntercepted(
-      bool allowMalformed, List<int> codeUnits, int start, int end);
+  external static String? _convertIntercepted(
+      bool allowMalformed, List<int> codeUnits, int start, int? end);
 }
 
 // UTF-8 constants.
@@ -519,12 +520,12 @@ class _Utf8Decoder {
 
   external _Utf8Decoder(bool allowMalformed);
 
-  external String convertSingle(List<int> codeUnits, int start, int maybeEnd);
+  external String convertSingle(List<int> codeUnits, int start, int? maybeEnd);
 
-  external String convertChunked(List<int> codeUnits, int start, int maybeEnd);
+  external String convertChunked(List<int> codeUnits, int start, int? maybeEnd);
 
   String convertGeneral(
-      List<int> codeUnits, int start, int maybeEnd, bool single) {
+      List<int> codeUnits, int start, int? maybeEnd, bool single) {
     int end = RangeError.checkValidRange(start, maybeEnd, codeUnits.length);
 
     if (start == end) return "";

@@ -78,56 +78,56 @@ void main() {
 
   group('MeanReciprocalRankComputer', () {
     test('empty', () {
-      var mrrc = MeanReciprocalRankComputer('');
-      expect(mrrc.count, equals(0));
-      expect(mrrc.mrr, equals(0));
+      var computer = MeanReciprocalRankComputer('');
+      expect(computer.count, equals(0));
+      expect(computer.mrr, equals(0));
     });
 
     test('clear', () {
-      var mrrc = MeanReciprocalRankComputer('');
-      mrrc.addRank(2);
-      expect(mrrc.count, equals(1));
-      expect(mrrc.mrr, equals(1 / 2));
-      expect(mrrc.mrr_5, equals(1 / 2));
+      var computer = MeanReciprocalRankComputer('');
+      computer.addRank(2);
+      expect(computer.count, equals(1));
+      expect(computer.mrr, equals(1 / 2));
+      expect(computer.mrr_5, equals(1 / 2));
 
-      mrrc.clear();
-      expect(mrrc.count, equals(0));
-      expect(mrrc.mrr, equals(0));
-      expect(mrrc.mrr_5, equals(0));
+      computer.clear();
+      expect(computer.count, equals(0));
+      expect(computer.mrr, equals(0));
+      expect(computer.mrr_5, equals(0));
     });
 
-    test('mmr- single value', () {
-      var mrrc = MeanReciprocalRankComputer('');
-      mrrc.addRank(3);
-      mrrc.addRank(3);
-      mrrc.addRank(3);
-      mrrc.addRank(3);
-      mrrc.addRank(3);
-      expect(mrrc.count, equals(5));
-      expect(mrrc.mrr, doubleEquals(1 / 3));
-      expect(mrrc.mrr_5, doubleEquals(1 / 3));
+    test('mrr- single value', () {
+      var computer = MeanReciprocalRankComputer('');
+      computer.addRank(3);
+      computer.addRank(3);
+      computer.addRank(3);
+      computer.addRank(3);
+      computer.addRank(3);
+      expect(computer.count, equals(5));
+      expect(computer.mrr, doubleEquals(1 / 3));
+      expect(computer.mrr_5, doubleEquals(1 / 3));
     });
 
-    test('mmr- example', () {
-      var mrrc = MeanReciprocalRankComputer('');
-      mrrc.addRank(3);
-      mrrc.addRank(2);
-      mrrc.addRank(1);
-      expect(mrrc.count, equals(3));
-      expect(mrrc.mrr, doubleEquals(11 / 18));
-      expect(mrrc.mrr_5, doubleEquals(11 / 18));
+    test('mrr- example', () {
+      var computer = MeanReciprocalRankComputer('');
+      computer.addRank(3);
+      computer.addRank(2);
+      computer.addRank(1);
+      expect(computer.count, equals(3));
+      expect(computer.mrr, doubleEquals(11 / 18));
+      expect(computer.mrr_5, doubleEquals(11 / 18));
     });
 
-    test('mmr- max rank', () {
-      var mrrc = MeanReciprocalRankComputer('');
-      mrrc.addRank(6);
-      mrrc.addRank(5);
-      mrrc.addRank(4);
-      mrrc.addRank(3);
-      mrrc.addRank(2);
-      mrrc.addRank(1);
-      expect(mrrc.count, equals(6));
-      expect(mrrc.mrr, greaterThan(mrrc.mrr_5));
+    test('mrr- max rank', () {
+      var computer = MeanReciprocalRankComputer('');
+      computer.addRank(6);
+      computer.addRank(5);
+      computer.addRank(4);
+      computer.addRank(3);
+      computer.addRank(2);
+      computer.addRank(1);
+      expect(computer.count, equals(6));
+      expect(computer.mrr, greaterThan(computer.mrr_5));
     });
   });
 

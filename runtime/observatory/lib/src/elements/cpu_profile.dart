@@ -11,7 +11,7 @@ import 'package:observatory/src/elements/cpu_profile/virtual_tree.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
@@ -22,18 +22,6 @@ import 'package:observatory/src/elements/sample_buffer_control.dart';
 import 'package:observatory/src/elements/stack_trace_tree_config.dart';
 
 class CpuProfileElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<CpuProfileElement>('cpu-profile', dependencies: const [
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-    SampleBufferControlElement.tag,
-    StackTraceTreeConfigElement.tag,
-    CpuProfileVirtualTreeElement.tag,
-  ]);
-
   RenderingScheduler<CpuProfileElement> _r;
 
   Stream<RenderedEvent<CpuProfileElement>> get onRendered => _r.onRendered;
@@ -77,7 +65,7 @@ class CpuProfileElement extends CustomElement implements Renderable {
     return e;
   }
 
-  CpuProfileElement.created() : super.created(tag);
+  CpuProfileElement.created() : super.created('cpu-profile');
 
   @override
   attached() {

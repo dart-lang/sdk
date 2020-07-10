@@ -4,23 +4,16 @@
 
 import 'dart:io';
 
-import 'package:args/command_runner.dart';
 import 'package:dartdev/dartdev.dart';
+import 'package:pedantic/pedantic.dart' show unawaited;
 
 /// The entry point for dartdev.
-main(List<String> args) async {
-  final runner = DartdevRunner(args);
-  try {
-    dynamic result = await runner.run(args);
-    exit(result is int ? result : 0);
-  } catch (e, st) {
-    if (e is UsageException) {
-      stderr.writeln('$e');
-      exit(64);
-    } else {
-      stderr.writeln('$e');
-      stderr.writeln('$st');
-      exit(1);
-    }
-  }
+Future<void> main(List<String> args) async {
+  // Ignore SIGINT to ensure DartDev doesn't exit before any of its
+  // spawned children. Draining the stream returned by watch() effectively
+  // sends the signals to the void.
+  //
+  // See https://github.com/dart-lang/sdk/issues/42092 for context.
+  unawaited(ProcessSignal.sigint.watch().drain());
+  await runDartdev(args);
 }

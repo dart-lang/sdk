@@ -1,4 +1,4 @@
-include: package:pedantic/analysis_options.1.8.0.yaml
+include: package:pedantic/analysis_options.1.9.0.yaml
 
 analyzer:
   errors:
@@ -7,9 +7,59 @@ analyzer:
     unused_import: warning
     unnecessary_brace_in_string_interps: warning
 
+    # Ignore one pedantic lint
+    omit_local_variable_types: ignore
+
 linter:
   rules:
+    - avoid_function_literals_in_foreach_calls
+    - avoid_private_typedef_functions
+    - avoid_redundant_argument_values
+    - avoid_renaming_method_parameters
+    - avoid_returning_null_for_void
+    - avoid_void_async
+    - await_only_futures
+    - camel_case_types
+    - constant_identifier_names
     - directives_ordering
+    - empty_statements
+    - file_names
+    - iterable_contains_unrelated_type
+    - lines_longer_than_80_chars
+    - list_remove_unrelated_type
+    - missing_whitespace_between_adjacent_strings
+    - no_runtimeType_toString
+    - non_constant_identifier_names
+    - only_throw_errors
+    - overridden_fields
+    - package_names
+    - package_prefixed_library_names
+    - prefer_asserts_in_initializer_lists
+    - prefer_const_constructors
+    - prefer_const_declarations
+    - prefer_expression_function_bodies
+    - prefer_function_declarations_over_variables
+    - prefer_initializing_formals
+    - prefer_inlined_adds
+    - prefer_interpolation_to_compose_strings
+    - prefer_is_not_operator
+    - prefer_final_fields
+    - prefer_null_aware_operators
     - prefer_relative_imports
-    - prefer_single_quotes
+    - prefer_typing_uninitialized_variables
+    - prefer_void_to_null
+    - provide_deprecation_message
+    - sort_pub_dependencies
+    - test_types_in_equals
+    - throw_in_finally
+    - type_annotate_public_apis
     - unnecessary_brace_in_string_interps
+    - unnecessary_lambdas
+    - unnecessary_null_aware_assignments
+    - unnecessary_overrides
+    - unnecessary_parenthesis
+    - unnecessary_statements
+    - unnecessary_string_interpolations
+    - use_is_even_rather_than_modulo
+    - use_string_buffers
+    - void_checks

@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 import 'dart:async';
 
 class A {
-  Future/*<T>*/ foo/*<T>*/({/*=T*/ x}) async => x;
+  Future<T> foo<T>({T x}) async => x;
 }
 
 class B extends A {

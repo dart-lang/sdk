@@ -866,11 +866,11 @@ void filterOperators(Set<InterfaceType> allTypes) {
   }
 }
 
-// Filters methods based on a manually maintained blacklist.
+// Filters methods based on a manually maintained exclude list.
 //
-// Blacklisted methods should be associated with an issue number so they can be
+// Excluded methods should be associated with an issue number so they can be
 // re-enabled after the issue is resolved.
-bool isBlacklistedMethod(InterfaceType tp, MethodElement method) {
+bool isExcludedMethod(InterfaceType tp, MethodElement method) {
   // TODO(bkonyi): Enable operator / for these types after we resolve
   // https://github.com/dart-lang/sdk/issues/39890
   if (((tp.displayName == 'Float32x4') && (method.name == '/')) ||
@@ -888,8 +888,8 @@ bool isBlacklistedMethod(InterfaceType tp, MethodElement method) {
 // Does not recurse into interfaces and superclasses of tp.
 void getOperatorsForTyp(String typName, InterfaceType tp, fromLiteral) {
   for (MethodElement method in tp.methods) {
-    // If the method is manually blacklisted, skip it.
-    if (isBlacklistedMethod(tp, method)) continue;
+    // If the method is manually excluded, skip it.
+    if (isExcludedMethod(tp, method)) continue;
 
     // Detect whether tp can be parsed from a literal (dartfuzz.dart can
     // already handle that).
@@ -1035,7 +1035,7 @@ bool shouldFilterConstructor(InterfaceType tp, ConstructorElement cons) {
   if (cons.name.startsWith('_')) {
     return true;
   }
-  // Constructor blacklist
+  // Constructor exclude list
   // TODO(bkonyi): Enable Float32x4.fromInt32x4Bits after we resolve
   // https://github.com/dart-lang/sdk/issues/39890
   if ((tp.displayName == 'Float32x4') && (cons.name == 'fromInt32x4Bits')) {

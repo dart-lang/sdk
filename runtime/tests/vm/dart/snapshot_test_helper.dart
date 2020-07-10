@@ -48,6 +48,7 @@ final String executableSuffix = Platform.isWindows ? ".exe" : "";
 final String buildDir = p.dirname(Platform.executable);
 final String platformDill = p.join(buildDir, "vm_platform_strong.dill");
 final String genSnapshot = p.join(buildDir, "gen_snapshot${executableSuffix}");
+final String dart = p.join(buildDir, "dart${executableSuffix}");
 final String dartPrecompiledRuntime =
     p.join(buildDir, "dart_precompiled_runtime${executableSuffix}");
 final String genKernel = p.join("pkg", "vm", "bin", "gen_kernel.dart");
@@ -158,7 +159,11 @@ checkDeterministicSnapshot(String snapshotKind, String expectedStdout) async {
   });
 }
 
-runAppJitTest(Uri testScriptUri) async {
+runAppJitTest(Uri testScriptUri,
+    {Future<Result> Function(String snapshotPath)? runSnapshot}) async {
+  runSnapshot ??=
+      (snapshotPath) => runDart('RUN FROM SNAPSHOT', [snapshotPath]);
+
   await withTempDir((String temp) async {
     final snapshotPath = p.join(temp, 'app.jit');
     final testPath = testScriptUri.toFilePath();
@@ -170,7 +175,7 @@ runAppJitTest(Uri testScriptUri) async {
       '--train'
     ]);
     expectOutput("OK(Trained)", trainingResult);
-    final runResult = await runDart('RUN FROM SNAPSHOT', [snapshotPath]);
+    final runResult = await runSnapshot!(snapshotPath);
     expectOutput("OK(Run)", runResult);
   });
 }

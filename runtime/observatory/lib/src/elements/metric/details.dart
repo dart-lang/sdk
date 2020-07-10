@@ -6,11 +6,9 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 
 class MetricDetailsElement extends CustomElement implements Renderable {
-  static const tag = const Tag<MetricDetailsElement>('metric-details');
-
   RenderingScheduler<MetricDetailsElement> _r;
 
   Stream<RenderedEvent<MetricDetailsElement>> get onRendered => _r.onRendered;
@@ -36,7 +34,7 @@ class MetricDetailsElement extends CustomElement implements Renderable {
     return e;
   }
 
-  MetricDetailsElement.created() : super.created(tag);
+  MetricDetailsElement.created() : super.created('metric-details');
 
   @override
   void attached() {

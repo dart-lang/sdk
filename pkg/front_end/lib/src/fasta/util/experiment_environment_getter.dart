@@ -4,15 +4,8 @@
 
 import 'dart:io' show Platform;
 
-const String enableExperimentKeyInvalidation =
-    "DART_CFE_ENABLE_EXPERIMENTAL_INVALIDATION";
-
-const String enableExperimentKeyInvalidationSerialization =
-    "DART_CFE_ENABLE_EXPERIMENTAL_INVALIDATION_SERIALIZATION";
-
 const Set<String> _known = {
-  enableExperimentKeyInvalidation,
-  enableExperimentKeyInvalidationSerialization,
+  // Currently there's no live experiments.
 };
 
 Set<String> getExperimentEnvironment() {

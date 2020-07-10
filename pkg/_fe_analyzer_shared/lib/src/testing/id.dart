@@ -125,7 +125,9 @@ class IdValue {
   static const String stmtPrefix = "stmt: ";
   static const String errorPrefix = "error: ";
 
-  static IdValue decode(Uri sourceUri, Annotation annotation, String text) {
+  static IdValue decode(Uri sourceUri, Annotation annotation, String text,
+      {bool preserveWhitespaceInAnnotations: false,
+      bool preserveInfixWhitespace: false}) {
     int offset = annotation.offset;
     Id id;
     String expected;
@@ -182,8 +184,15 @@ class IdValue {
       id = new NodeId(offset, IdKind.node);
       expected = text;
     }
-    // Remove newlines.
-    expected = expected.replaceAll(new RegExp(r'\s*(\n\s*)+\s*'), '');
+    if (preserveWhitespaceInAnnotations) {
+      // Keep all whitespace.
+    } else if (preserveInfixWhitespace) {
+      // Remove heading and trailing whitespace.
+      expected = expected.trim();
+    } else {
+      // Remove unneeded whitespace.
+      expected = expected.replaceAll(new RegExp(r'\s*(\n\s*)+\s*'), '');
+    }
     return new IdValue(id, annotation, expected);
   }
 }

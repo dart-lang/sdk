@@ -356,6 +356,29 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_call_already_migrated_extension() async {
+    var content = '''
+import 'already_migrated.dart';
+void f() {
+  <int>[].g();
+}
+''';
+    var alreadyMigrated = '''
+extension Ext<T> on List<T> {
+  g() {}
+}
+''';
+    var expected = '''
+import 'already_migrated.dart';
+void f() {
+  <int>[].g();
+}
+''';
+    await _checkSingleFileChanges(content, expected, migratedInput: {
+      '/home/test/lib/already_migrated.dart': alreadyMigrated
+    });
+  }
+
   Future<void> test_call_generic_function_returns_generic_class() async {
     var content = '''
 class B<E> implements List<E/*?*/> {
@@ -376,6 +399,44 @@ class B<E> implements List<E?> {
 abstract class C {
   B<T> _castFrom<S, T>(B<S> source);
 }
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_call_migrated_base_class_method_non_nullable() async {
+    var content = '''
+abstract class M<V> implements Map<String, V> {}
+void f(bool b, M<int> m, int i) {
+  if (b) {
+    m['x'] = i;
+  }
+}
+void g(bool b, M<int> m) {
+  f(b, m, null);
+}
+''';
+    var expected = '''
+abstract class M<V> implements Map<String, V> {}
+void f(bool b, M<int?> m, int? i) {
+  if (b) {
+    m['x'] = i;
+  }
+}
+void g(bool b, M<int?> m) {
+  f(b, m, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_call_migrated_base_class_method_nullable() async {
+    var content = '''
+abstract class M<V> implements Map<String, V> {}
+int f(M<int> m) => m['x'];
+''';
+    var expected = '''
+abstract class M<V> implements Map<String, V> {}
+int? f(M<int> m) => m['x'];
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -1391,6 +1452,16 @@ int f(int i) {
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
+  Future<void> test_do_not_add_question_to_null_type() async {
+    var content = '''
+Null f() => null;
+''';
+    var expected = '''
+Null f() => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_do_not_propagate_non_null_intent_into_callback() async {
     var content = '''
 void f(int/*!*/ Function(int) callback) {
@@ -1952,7 +2023,39 @@ int f(int? i) => i!;
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
+  Future<void> test_extension_null_check_target() async {
+    var content = '''
+extension E on int/*!*/ {
+  int get plusOne => this + 1;
+}
+int f(int/*?*/ x) => x.plusOne;
+''';
+    var expected = '''
+extension E on int {
+  int get plusOne => this + 1;
+}
+int f(int? x) => x!.plusOne;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42529')
+  Future<void> test_extension_nullable_target() async {
+    var content = '''
+extension E on int {
+  int get one => 1;
+}
+int f(int/*?*/ x) => x.one;
+''';
+    var expected = '''
+extension E on int? {
+  int get one => 1;
+}
+int f(int? x) => x.one;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_extension_nullableOnType_addsNullCheckToThis() async {
     var content = '''
 extension E on String /*?*/ {
@@ -2004,7 +2107,6 @@ void g() => f([null]);
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
   Future<void> test_extension_nullableOnType_viaExplicitInvocation() async {
     var content = '''
 class C {}
@@ -2040,6 +2142,113 @@ extension E on C? {
 }
 void f(C? c) => c.m();
 void g() => f(null);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_on_type_param_implementation() async {
+    var content = '''
+abstract class C {
+  C _clone();
+}
+extension Cloner<T extends C> on T {
+  T clone() => _clone() as T;
+}
+''';
+    var expected = '''
+abstract class C {
+  C _clone();
+}
+extension Cloner<T extends C> on T {
+  T clone() => _clone() as T;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_on_type_param_usage() async {
+    var content = '''
+abstract class C {
+  C _clone();
+}
+extension Cloner<T extends C> on T {
+  T clone() => throw Exception();
+}
+C f(C c) => c.clone();
+''';
+    var expected = '''
+abstract class C {
+  C _clone();
+}
+extension Cloner<T extends C> on T {
+  T clone() => throw Exception();
+}
+C f(C c) => c.clone();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_override() async {
+    var content = '''
+extension E on int {
+  int get plusOne => this + 1;
+}
+int f(int x) => E(x).plusOne;
+''';
+    var expected = '''
+extension E on int {
+  int get plusOne => this + 1;
+}
+int f(int x) => E(x).plusOne;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_override_null_check_target() async {
+    var content = '''
+extension E on int/*!*/ {
+  int get plusOne => this + 1;
+}
+int f(int/*?*/ x) => E(x).plusOne;
+''';
+    var expected = '''
+extension E on int {
+  int get plusOne => this + 1;
+}
+int f(int? x) => E(x!).plusOne;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_override_nullable_result_type() async {
+    var content = '''
+extension E on int {
+  int get nullValue => null;
+}
+int f(int x) => E(x).nullValue;
+''';
+    var expected = '''
+extension E on int {
+  int? get nullValue => null;
+}
+int? f(int x) => E(x).nullValue;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42529')
+  Future<void> test_extension_override_nullable_target() async {
+    var content = '''
+extension E on int {
+  int get one => 1;
+}
+int f(int/*?*/ x) => E(x).one;
+''';
+    var expected = '''
+extension E on int? {
+  int get one => 1;
+}
+int f(int? x) => E(x).one;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -3447,6 +3656,26 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_issue_41397() async {
+    var content = '''
+void repro(){
+  List<dynamic> l = <dynamic>[];
+  for(final dynamic e in l) {
+    final List<String> a = (e['query'] as String).split('&');
+  }
+}
+''';
+    var expected = '''
+void repro(){
+  List<dynamic> l = <dynamic>[];
+  for(final dynamic e in l) {
+    final List<String> a = (e['query'] as String).split('&');
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_late_hint_instance_field_with_constructor() async {
     var content = '''
 class C {
@@ -4002,6 +4231,34 @@ void g() {
 T f<T>(T t) => t;
 void g() {
   int? x = f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_migrate_reference_to_never() async {
+    var content = '''
+import 'dart:io';
+int f() =>
+  exit(1); // this returns `Never` which used to cause a crash.
+''';
+    var expected = '''
+import 'dart:io';
+int f() =>
+  exit(1); // this returns `Never` which used to cause a crash.
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_migratedMethod_namedParameter() async {
+    var content = '''
+void f(Iterable<int> a) {
+  a.toList(growable: false);
+}
+''';
+    var expected = '''
+void f(Iterable<int> a) {
+  a.toList(growable: false);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -4864,6 +5121,90 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_promotion_conditional_variableRead() async {
+    var content = '''
+f({int i}) {
+  i = i == null ? 0 : i;
+  g(i);
+}
+
+g(int j) {}
+''';
+    var expected = '''
+f({int? i}) {
+  i = i == null ? 0 : i;
+  g(i);
+}
+
+g(int j) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_promotion_ifNull_variableRead() async {
+    var content = '''
+f({int i}) {
+  i ??= 3;
+  g(i);
+}
+
+g(int j) {}
+''';
+    var expected = '''
+f({int? i}) {
+  i ??= 3;
+  g(i);
+}
+
+g(int j) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_promotion_ifNull_variableRead_alreadyPromoted() async {
+    var content = '''
+f({num i}) {
+  if (i is int /*?*/) {
+    i ??= 3;
+    g(i);
+  }
+}
+
+g(int j) {}
+''';
+    var expected = '''
+f({num? i}) {
+  if (i is int?) {
+    i ??= 3;
+    g(i);
+  }
+}
+
+g(int j) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_promotion_ifNull_variableRead_subType() async {
+    var content = '''
+f({num i}) {
+  i ??= 3;
+  g(i);
+}
+
+g(int j) {}
+''';
+    var expected = '''
+f({num? i}) {
+  i ??= 3;
+  g(i as int);
+}
+
+g(int j) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_promotion_preserves_complex_types() async {
     var content = '''
 int/*!*/ f(List<int/*?*/>/*?*/ x) {
@@ -5071,6 +5412,34 @@ void f(Object o) { // parameter should not be made nullable
   List<dynamic> x = [o];
   // and make that type exact nullable
   x[0] = null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_regression_42374() async {
+    var content = '''
+class C<R> {
+  R m(dynamic x) {
+    assert(x is R);
+    return x as R;
+  }
+}
+
+void main() {
+  C<int/*!*/>().m(null!);
+}
+''';
+    var expected = '''
+class C<R> {
+  R m(dynamic x) {
+    assert(x is R);
+    return x as R;
+  }
+}
+
+void main() {
+  C<int>().m(null!);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -5904,6 +6273,33 @@ f() {
   }
 
   Future<void>
+      test_unconditional_assert_is_statement_implies_non_null_intent() async {
+    var content = '''
+void f(Object i) {
+  assert(i is int);
+}
+void g(bool b, int i) {
+  if (b) f(i);
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+void f(Object i) {
+  assert(i is int);
+}
+void g(bool b, int? i) {
+  if (b) f(i!);
+}
+main() {
+  g(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
       test_unconditional_assert_statement_implies_non_null_intent() async {
     var content = '''
 void f(int i) {
@@ -6391,6 +6787,6 @@ class _ProvisionalApiTestWithReset extends _ProvisionalApiTestBase
 
   @override
   void _betweenStages() {
-    driver.resetUriResolution();
+    driver.clearLibraryContext();
   }
 }

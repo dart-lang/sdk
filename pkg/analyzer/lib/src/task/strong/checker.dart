@@ -16,8 +16,8 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
 /// Given an [expression] and a corresponding [typeSystem] and [typeProvider],
@@ -1082,7 +1082,7 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
 
   void validateHasType(AstNode n, PropertyAccessorElement e) {
     if (e.hasImplicitReturnType) {
-      var variable = e.declaration.variable as VariableElementImpl;
+      var variable = e.declaration.variable as NonParameterVariableElementImpl;
       TopLevelInferenceError error = variable.typeInferenceError;
       if (error != null) {
         if (error.kind == TopLevelInferenceErrorKind.dependencyCycle) {

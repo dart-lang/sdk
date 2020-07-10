@@ -9,7 +9,7 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
-import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 class GreatestLowerBoundHelper {
@@ -257,12 +257,10 @@ class GreatestLowerBoundHelper {
     return NeverTypeImpl.instance;
   }
 
-  /**
-   * Compute the greatest lower bound of function types [f] and [g].
-   *
-   * https://github.com/dart-lang/language
-   * See `resources/type-system/upper-lower-bounds.md`
-   */
+  /// Compute the greatest lower bound of function types [f] and [g].
+  ///
+  /// https://github.com/dart-lang/language
+  /// See `resources/type-system/upper-lower-bounds.md`
   DartType _functionType(FunctionType f, FunctionType g) {
     var fTypeFormals = f.typeFormals;
     var gTypeFormals = g.typeFormals;

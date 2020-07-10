@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // All imports must be in all FFI patch files to not depend on the order
 // the patches are applied.
 import "dart:_internal" show patch;
@@ -37,9 +35,10 @@ class DynamicLibrary {
   int getHandle() native "Ffi_dl_getHandle";
 
   @patch
-  bool operator ==(other) {
-    if (other == null) return false;
-    return getHandle() == other.getHandle();
+  bool operator ==(Object other) {
+    if (other is! DynamicLibrary) return false;
+    DynamicLibrary otherLib = other;
+    return getHandle() == otherLib.getHandle();
   }
 
   @patch

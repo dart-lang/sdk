@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/src/printer.dart' as ir;
 import 'package:kernel/text/ast_to_text.dart' as ir show debugNodeToString;
 
 /// Collection of scope data collected for a single member.
@@ -418,6 +419,12 @@ class TypeVariableTypeWithContext implements ir.Node {
   String toStringInternal() =>
       'type=${type.toStringInternal()},context=${context.toStringInternal()},'
       'kind=$kind,typeDeclaration=${typeDeclaration.toStringInternal()}';
+
+  @override
+  String toText(ir.AstTextStrategy strategy) => type.toText(strategy);
+
+  @override
+  void toTextInternal(ir.AstPrinter printer) => type.toTextInternal(printer);
 
   @override
   String leakingDebugToString() => ir.debugNodeToString(this);

@@ -12,18 +12,15 @@ import '../sdk.dart';
 import '../utils.dart';
 import 'analyze_impl.dart';
 
+// TODO: Support enable-experiment for 'dart analyze'.
+
 class AnalyzeCommand extends DartdevCommand<int> {
-  AnalyzeCommand({bool verbose = false})
-      : super('analyze', "Analyze the project's Dart code.") {
+  AnalyzeCommand() : super('analyze', "Analyze the project's Dart code.") {
     argParser
       ..addFlag('fatal-infos',
-          help: 'Treat info level issues as fatal.',
-          defaultsTo: false,
-          negatable: false)
+          help: 'Treat info level issues as fatal.', negatable: false)
       ..addFlag('fatal-warnings',
-          help: 'Treat warning level issues as fatal.',
-          defaultsTo: true,
-          negatable: true);
+          help: 'Treat warning level issues as fatal.', defaultsTo: true);
   }
 
   @override
@@ -69,7 +66,7 @@ class AnalyzeCommand extends DartdevCommand<int> {
     await server.start();
     // Completing the future in the callback can't fail.
     //ignore: unawaited_futures
-    server.onExit.then<void>((int exitCode) {
+    server.onExit.then((int exitCode) {
       if (!analysisCompleter.isCompleted) {
         analysisCompleter.completeError('analysis server exited: $exitCode');
       }
@@ -105,6 +102,20 @@ class AnalyzeCommand extends DartdevCommand<int> {
           'at $filePath:${error.startLine}:${error.startColumn} $bullet '
           '(${error.code})',
         );
+
+        if (verbose) {
+          var padding = ' '.padLeft(error.severity.length + 2);
+          for (var message in error.contextMessages) {
+            log.stdout('$padding${message.message} '
+                'at ${message.filePath}:${message.line}:${message.column}');
+          }
+          if (error.correction != null) {
+            log.stdout('$padding${error.correction}');
+          }
+          if (error.url != null) {
+            log.stdout('$padding${error.url}');
+          }
+        }
 
         hasErrors |= error.isError;
         hasWarnings |= error.isWarning;

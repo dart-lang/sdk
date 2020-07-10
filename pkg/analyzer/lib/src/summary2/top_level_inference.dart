@@ -8,6 +8,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_demotion.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -21,13 +23,6 @@ import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
 import 'package:meta/meta.dart';
-
-DartType _dynamicIfNull(DartType type) {
-  if (type == null || type.isBottom || type.isDartCoreNull) {
-    return DynamicTypeImpl.instance;
-  }
-  return type;
-}
 
 AstNode _getLinkedNode(Element element) {
   return (element as ElementImpl).linkedNode;
@@ -99,6 +94,7 @@ class ConstantInitializersResolver {
             InferenceContext.setType(variable.initializer, typeNode.type);
             return variable.initializer;
           },
+          isTopLevelVariableInitializer: true,
         );
       }
     }
@@ -223,7 +219,7 @@ class _FunctionElementForLink_Initializer
   }
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _InferenceDependenciesCollector extends RecursiveAstVisitor<void> {
@@ -371,6 +367,7 @@ class _InitializerInference {
 class _VariableInferenceNode extends _InferenceNode {
   final _InferenceWalker _walker;
   final CompilationUnitElement _unitElement;
+  final TypeSystemImpl _typeSystem;
   final Scope _scope;
   final VariableDeclaration _node;
 
@@ -382,7 +379,7 @@ class _VariableInferenceNode extends _InferenceNode {
     this._unitElement,
     this._scope,
     this._node,
-  );
+  ) : _typeSystem = _unitElement.library.typeSystem;
 
   @override
   String get displayName {
@@ -432,7 +429,7 @@ class _VariableInferenceNode extends _InferenceNode {
 
     if (LazyAst.getType(_node) == null) {
       var initializerType = _node.initializer.staticType;
-      initializerType = _dynamicIfNull(initializerType);
+      initializerType = _refineType(initializerType);
       LazyAst.setType(_node, initializerType);
     }
 
@@ -457,6 +454,21 @@ class _VariableInferenceNode extends _InferenceNode {
     );
 
     isEvaluated = true;
+  }
+
+  DartType _refineType(DartType type) {
+    if (type == null || type.isDartCoreNull) {
+      return DynamicTypeImpl.instance;
+    }
+
+    if (_typeSystem.isNonNullableByDefault) {
+      return nonNullifyType(_typeSystem, type);
+    } else {
+      if (type.isBottom) {
+        return DynamicTypeImpl.instance;
+      }
+      return type;
+    }
   }
 
   void _resolveInitializer({@required bool forDependencies}) {

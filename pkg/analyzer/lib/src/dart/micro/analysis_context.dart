@@ -128,7 +128,7 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
   }
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   Workspace _buildWorkspace() {
     String path = contextRoot.root.path;
@@ -190,11 +190,11 @@ class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
 
   @override
   Future<ResolvedUnitResult> getResolvedUnit(String path) async {
-    return analysisContext.fileResolver.resolve(path);
+    return analysisContext.fileResolver.resolve(path: path);
   }
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _UriConverterImpl implements UriConverter {

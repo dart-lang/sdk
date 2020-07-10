@@ -2106,6 +2106,9 @@ abstract class ExtensionOverride implements Expression {
   /// Return the name of the extension being selected.
   Identifier get extensionName;
 
+  /// Whether this override is null aware (as opposed to non-null).
+  bool get isNullAware;
+
   /// Return the forced extension element.
   ///
   /// Return `null` if the AST structure has not been resolved.
@@ -2689,7 +2692,8 @@ abstract class FunctionExpression implements Expression {
 ///        [Expression] [TypeArgumentList]? [ArgumentList]
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class FunctionExpressionInvocation implements InvocationExpression {
+abstract class FunctionExpressionInvocation
+    implements NullShortableExpression, InvocationExpression {
   /// Set the list of arguments to the method to the given [argumentList].
   set argumentList(ArgumentList argumentList);
 
@@ -4024,7 +4028,7 @@ abstract class NodeList<E extends AstNode> implements List<E> {
   void operator []=(int index, E node);
 
   /// Use the given [visitor] to visit each of the nodes in this list.
-  accept(AstVisitor visitor);
+  void accept(AstVisitor visitor);
 }
 
 /// A formal parameter that is required (is not optional).

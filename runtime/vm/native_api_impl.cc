@@ -7,6 +7,7 @@
 #include "include/dart_native_api.h"
 
 #include "platform/assert.h"
+#include "platform/utils.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_message.h"
 #include "vm/dart_api_state.h"
@@ -141,7 +142,7 @@ DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
       ::Dart_NewNativePort("service-rpc", &Utils::HandleResponse, false);
   if (port == ILLEGAL_PORT) {
     if (error != nullptr) {
-      *error = strdup("Was unable to create native port.");
+      *error = ::dart::Utils::StrDup("Was unable to create native port.");
     }
     return false;
   }
@@ -179,7 +180,7 @@ DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
   }
 #else   // !defined(PRODUCT)
   if (error != nullptr) {
-    *error = strdup("VM Service is not supoorted in PRODUCT mode.");
+    *error = Utils::StrDup("VM Service is not supported in PRODUCT mode.");
   }
   return false;
 #endif  // !defined(PRODUCT)

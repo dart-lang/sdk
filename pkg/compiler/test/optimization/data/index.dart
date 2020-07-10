@@ -39,8 +39,8 @@ mutableListDynamicIndex(dynamic index) {
   return list[index]; // CFE inserts an implicit cast of the index.
 }
 
-/*spec:nnbd-off.member: mutableDynamicListDynamicIndex:Specializer=[!Index]*/
-/*prod:nnbd-off|prod:nnbd-sdk.member: mutableDynamicListDynamicIndex:Specializer=[Index]*/
+/*spec.member: mutableDynamicListDynamicIndex:Specializer=[!Index]*/
+/*prod.member: mutableDynamicListDynamicIndex:Specializer=[Index]*/
 @pragma('dart2js:noInline')
 @pragma('dart2js:disableFinal')
 mutableDynamicListDynamicIndex(dynamic index) {

@@ -437,9 +437,7 @@ enum TopLevelInferenceErrorKind : byte {
 
   overrideConflictFieldType,
 
-  overrideConflictReturnType,
-
-  overrideConflictParameterType
+  overrideNoCombinedSuperSignature
 }
 
 /// Enum of token types, corresponding to AST token types.
@@ -1065,6 +1063,18 @@ table DirectiveInfo {
   templateValues:[string] (id: 1);
 }
 
+table LinkedLanguageVersion {
+  major:uint (id: 0);
+
+  minor:uint (id: 1);
+}
+
+table LinkedLibraryLanguageVersion {
+  override2:LinkedLanguageVersion (id: 1);
+
+  package:LinkedLanguageVersion (id: 0);
+}
+
 /// Information about a linked AST node.
 table LinkedNode {
   /// The explicit or inferred return type of a function typed node.
@@ -1104,8 +1114,8 @@ table LinkedNode {
 
   variantField_3:[LinkedNode] (id: 3);
 
-  /// The minor component of the actual language version (not just override).
-  variantField_16:uint (id: 16);
+  /// The language version information.
+  variantField_40:LinkedLibraryLanguageVersion (id: 40);
 
   variantField_10:LinkedNode (id: 10);
 
@@ -1124,6 +1134,8 @@ table LinkedNode {
   variantField_1:string (id: 1);
 
   variantField_36:uint (id: 36);
+
+  variantField_16:uint (id: 16);
 
   variantField_30:string (id: 30);
 
@@ -1267,15 +1279,10 @@ table PackageBundleSdk {
 /// Summary information about a top-level type inference error.
 table TopLevelInferenceError {
   /// The [kind] specific arguments.
-  arguments:[string] (id: 2);
+  arguments:[string] (id: 1);
 
   /// The kind of the error.
-  kind:TopLevelInferenceErrorKind (id: 1);
-
-  /// The slot id (which is unique within the compilation unit) identifying the
-  /// target of type inference with which this [TopLevelInferenceError] is
-  /// associated.
-  slot:uint (id: 0);
+  kind:TopLevelInferenceErrorKind (id: 0);
 }
 
 table UnlinkedInformativeData {

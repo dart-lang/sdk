@@ -89,9 +89,30 @@ void main() {
 
       group('enable experiment', () {
         var knownFeatures = {
-          'a': ExperimentalFeature(0, 'a', false, false, 'a'),
-          'b': ExperimentalFeature(1, 'b', false, false, 'b'),
-          'c': ExperimentalFeature(2, 'c', false, false, 'c'),
+          'a': ExperimentalFeature(
+            index: 0,
+            enableString: 'a',
+            isEnabledByDefault: false,
+            isExpired: false,
+            documentation: 'a',
+            firstSupportedVersion: null,
+          ),
+          'b': ExperimentalFeature(
+            index: 1,
+            enableString: 'b',
+            isEnabledByDefault: false,
+            isExpired: false,
+            documentation: 'b',
+            firstSupportedVersion: null,
+          ),
+          'c': ExperimentalFeature(
+            index: 2,
+            enableString: 'c',
+            isEnabledByDefault: false,
+            isExpired: false,
+            documentation: 'c',
+            firstSupportedVersion: null,
+          ),
         };
 
         test('no values', () {

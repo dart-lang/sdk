@@ -747,7 +747,7 @@ class ProcessedOptions {
 }
 
 /// A [FileSystem] that only allows access to files that have been explicitly
-/// whitelisted.
+/// allowlisted.
 class HermeticFileSystem implements FileSystem {
   final Set<Uri> includedFiles;
   final FileSystem _realFileSystem;

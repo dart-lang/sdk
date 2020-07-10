@@ -367,9 +367,7 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
       : super._subclass(configuration);
 
   String computeCompilerPath() {
-    var prefix =
-        // TODO(38701): Cleanup after merging the forked SDK into mainline.
-        _configuration.nnbdMode == NnbdMode.legacy ? 'sdk/bin' : 'sdk_nnbd/bin';
+    var prefix = 'sdk/bin';
     var suffix = shellScriptExtension;
 
     if (_isHostChecked) {
@@ -461,9 +459,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       CommandArtifact artifact) {
     var sdk = _useSdk
         ? Uri.directory(_configuration.buildDirectory).resolve('dart-sdk/')
-        : Uri.directory(Repository.dir.toNativePath()).resolve(
-            // TODO(38701): Cleanup after merging the forked SDK into mainline.
-            _configuration.nnbdMode == NnbdMode.legacy ? 'sdk/' : 'sdk_nnbd/');
+        : Uri.directory(Repository.dir.toNativePath()).resolve('sdk/');
     var preambleDir = sdk.resolve('lib/_internal/js_runtime/lib/preambles/');
     return runtimeConfiguration.dart2jsPreambles(preambleDir)
       ..add(artifact.filename);
@@ -494,10 +490,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
   bool get useKernel => _configuration.compiler == Compiler.dartdevk;
 
   String computeCompilerPath() {
-    var dir = _useSdk
-        ? "${_configuration.buildDirectory}/dart-sdk"
-        // TODO(38701): Cleanup after merging the forked SDK into mainline.
-        : _configuration.nnbdMode == NnbdMode.legacy ? "sdk" : "sdk_nnbd";
+    var dir = _useSdk ? "${_configuration.buildDirectory}/dart-sdk" : "sdk";
     return "$dir/bin/dartdevc$shellScriptExtension";
   }
 
@@ -508,8 +501,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       ...testFile.ddcOptions,
-      if (_configuration.nnbdMode == NnbdMode.strong)
-        '--sound-null-safety',
+      if (_configuration.nnbdMode == NnbdMode.strong) '--sound-null-safety',
       // The file being compiled is the last argument.
       args.last
     ];
@@ -712,14 +704,11 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         "--snapshot-kind=app-aot-assembly",
         "--assembly=$tempDir/out.S"
       ],
-      if (_isAndroid && _isArm)
-        '--no-sim-use-hardfp',
-      if (_configuration.isMinified)
-        '--obfuscate',
+      if (_isAndroid && _isArm) '--no-sim-use-hardfp',
+      if (_configuration.isMinified) '--obfuscate',
       // The SIMARM precompiler assumes support for integer division, but the
       // Qemu arm cpus do not support integer division.
-      if (_configuration.useQemu)
-        '--no-use-integer-division',
+      if (_configuration.useQemu) '--no-use-integer-division',
       ..._replaceDartFiles(arguments, tempKernelFile(tempDir)),
     ];
 
@@ -936,9 +925,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
   int get timeoutMultiplier => 4;
 
   String computeCompilerPath() {
-    var prefix =
-        // TODO(38701): Cleanup after merging the forked SDK into mainline.
-        _configuration.nnbdMode == NnbdMode.legacy ? 'sdk/bin' : 'sdk_nnbd/bin';
+    var prefix = 'sdk/bin';
     if (_isHostChecked) {
       if (_useSdk) {
         throw "--host-checked and --use-sdk cannot be used together";

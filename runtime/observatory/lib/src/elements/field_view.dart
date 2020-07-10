@@ -13,7 +13,7 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/library_menu.dart';
@@ -27,23 +27,6 @@ import 'package:observatory/src/elements/source_link.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class FieldViewElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<FieldViewElement>('field-view', dependencies: const [
-    ClassRefElement.tag,
-    CurlyBlockElement.tag,
-    NavClassMenuElement.tag,
-    NavLibraryMenuElement.tag,
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-    ObjectCommonElement.tag,
-    ScriptInsetElement.tag,
-    SourceLinkElement.tag,
-    ViewFooterElement.tag
-  ]);
-
   RenderingScheduler<FieldViewElement> _r;
 
   Stream<RenderedEvent<FieldViewElement>> get onRendered => _r.onRendered;
@@ -117,7 +100,7 @@ class FieldViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  FieldViewElement.created() : super.created(tag);
+  FieldViewElement.created() : super.created('field-view');
 
   @override
   attached() {

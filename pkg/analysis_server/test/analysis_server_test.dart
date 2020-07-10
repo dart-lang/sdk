@@ -84,7 +84,7 @@ class AnalysisServerTest with ResourceProviderMixin {
         channel,
         resourceProvider,
         AnalysisServerOptions(),
-        DartSdkManager(convertPath('/sdk'), false),
+        DartSdkManager(convertPath('/sdk')),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);
   }

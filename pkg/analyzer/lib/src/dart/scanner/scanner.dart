@@ -13,74 +13,64 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
 
-/**
- * The class `Scanner` implements a scanner for Dart code.
- *
- * The lexical structure of Dart is ambiguous without knowledge of the context
- * in which a token is being scanned. For example, without context we cannot
- * determine whether source of the form "<<" should be scanned as a single
- * left-shift operator or as two left angle brackets. This scanner does not have
- * any context, so it always resolves such conflicts by scanning the longest
- * possible token.
- */
+/// The class `Scanner` implements a scanner for Dart code.
+///
+/// The lexical structure of Dart is ambiguous without knowledge of the context
+/// in which a token is being scanned. For example, without context we cannot
+/// determine whether source of the form "<<" should be scanned as a single
+/// left-shift operator or as two left angle brackets. This scanner does not
+/// have any context, so it always resolves such conflicts by scanning the
+/// longest possible token.
 class Scanner {
   final Source source;
 
-  /**
-   * The text to be scanned.
-   */
+  /// The text to be scanned.
   final String _contents;
 
-  /**
-   * The offset of the first character from the reader.
-   */
+  /// The offset of the first character from the reader.
   final int _readerOffset;
 
-  /**
-   * The error listener that will be informed of any errors that are found
-   * during the scan.
-   */
+  /// The error listener that will be informed of any errors that are found
+  /// during the scan.
   final AnalysisErrorListener _errorListener;
 
-  /**
-   * The flag specifying whether documentation comments should be parsed.
-   */
+  /// If the file has [fasta.LanguageVersionToken], it is allowed to use the
+  /// language version greater than the one specified in the package config.
+  /// So, we need to know the full feature set for the context.
+  FeatureSet _featureSetForOverriding;
+
+  /// The flag specifying whether documentation comments should be parsed.
   bool _preserveComments = true;
 
   final List<int> lineStarts = <int>[];
 
   Token firstToken;
 
-  /**
-   * A flag indicating whether the scanner should recognize the `>>>` operator
-   * and the `>>>=` operator.
-   *
-   * Use [configureFeatures] rather than this field.
-   */
+  /// A flag indicating whether the scanner should recognize the `>>>` operator
+  /// and the `>>>=` operator.
+  ///
+  /// Use [configureFeatures] rather than this field.
   bool enableGtGtGt = false;
 
-  /**
-   * A flag indicating whether the scanner should recognize the `late` and
-   * `required` keywords.
-   *
-   * Use [configureFeatures] rather than this field.
-   */
+  /// A flag indicating whether the scanner should recognize the `late` and
+  /// `required` keywords.
+  ///
+  /// Use [configureFeatures] rather than this field.
   bool enableNonNullable = false;
 
   fasta.LanguageVersionToken _languageVersion;
 
   FeatureSet _featureSet;
 
-  /**
-   * Initialize a newly created scanner to scan characters from the given
-   * [source]. The given character [reader] will be used to read the characters
-   * in the source. The given [_errorListener] will be informed of any errors
-   * that are found.
-   */
+  /// Initialize a newly created scanner to scan characters from the given
+  /// [source]. The given character [reader] will be used to read the characters
+  /// in the source. The given [_errorListener] will be informed of any errors
+  /// that are found.
   factory Scanner(Source source, CharacterReader reader,
           AnalysisErrorListener errorListener) =>
       Scanner.fasta(source, errorListener,
@@ -97,22 +87,18 @@ class Scanner {
     lineStarts.add(0);
   }
 
-  /**
-   * The features associated with this scanner.
-   *
-   * If a language version comment (e.g. '// @dart = 2.3') is detected
-   * when calling [tokenize] and this field is non-null, then this field
-   * will be updated to contain a downgraded feature set based upon the
-   * language version specified.
-   *
-   * Use [configureFeatures] to set the features.
-   */
+  /// The features associated with this scanner.
+  ///
+  /// If a language version comment (e.g. '// @dart = 2.3') is detected
+  /// when calling [tokenize] and this field is non-null, then this field
+  /// will be updated to contain a downgraded feature set based upon the
+  /// language version specified.
+  ///
+  /// Use [configureFeatures] to set the features.
   FeatureSet get featureSet => _featureSet;
 
-  /**
-   * The language version override specified for this compilation unit using a
-   * token like '// @dart = 2.7', or `null` if no override is specified.
-   */
+  /// The language version override specified for this compilation unit using a
+  /// token like '// @dart = 2.7', or `null` if no override is specified.
   fasta.LanguageVersionToken get languageVersion => _languageVersion;
 
   set preserveComments(bool preserveComments) {
@@ -124,7 +110,11 @@ class Scanner {
   /// TODO(paulberry): stop exposing `enableGtGtGt` and `enableNonNullable` so
   /// that callers are forced to use this API.  Note that this would be a
   /// breaking change.
-  void configureFeatures(FeatureSet featureSet) {
+  void configureFeatures({
+    @required FeatureSet featureSetForOverriding,
+    @required FeatureSet featureSet,
+  }) {
+    this._featureSetForOverriding = featureSetForOverriding;
     this._featureSet = featureSet;
     enableGtGtGt = featureSet.isEnabled(Feature.triple_shift);
     enableNonNullable = featureSet.isEnabled(Feature.non_nullable);
@@ -200,8 +190,9 @@ class Scanner {
     if (languageVersion.major >= 0 && languageVersion.minor >= 0) {
       _languageVersion = languageVersion;
       if (_featureSet != null) {
-        _featureSet = _featureSet.restrictToVersion(
-            Version(languageVersion.major, languageVersion.minor, 0));
+        _featureSet = _featureSetForOverriding.restrictToVersion(
+          Version(languageVersion.major, languageVersion.minor, 0),
+        );
         scanner.configuration = buildConfig(_featureSet);
       }
     }

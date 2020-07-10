@@ -245,6 +245,18 @@ Fragment BaseFlowGraphBuilder::IntConstant(int64_t value) {
       Constant(Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld))));
 }
 
+Fragment BaseFlowGraphBuilder::MemoryCopy(classid_t src_cid,
+                                          classid_t dest_cid) {
+  Value* length = Pop();
+  Value* dest_start = Pop();
+  Value* src_start = Pop();
+  Value* dest = Pop();
+  Value* src = Pop();
+  auto copy = new (Z) MemoryCopyInstr(src, dest, src_start, dest_start, length,
+                                      src_cid, dest_cid);
+  return Fragment(copy);
+}
+
 Fragment BaseFlowGraphBuilder::TailCall(const Code& code) {
   Value* arg_desc = Pop();
   return Fragment(new (Z) TailCallInstr(code, arg_desc));
@@ -563,6 +575,21 @@ Fragment BaseFlowGraphBuilder::ReachabilityFence() {
   Fragment instructions;
   instructions <<= new (Z) ReachabilityFenceInstr(Pop());
   return instructions;
+}
+
+Fragment BaseFlowGraphBuilder::Utf8Scan() {
+  Value* table = Pop();
+  Value* end = Pop();
+  Value* start = Pop();
+  Value* bytes = Pop();
+  Value* decoder = Pop();
+  const Field& scan_flags_field =
+      compiler::LookupConvertUtf8DecoderScanFlagsField();
+  auto scan = new (Z) Utf8ScanInstr(
+      decoder, bytes, start, end, table,
+      Slot::Get(MayCloneField(scan_flags_field), parsed_function_));
+  Push(scan);
+  return Fragment(scan);
 }
 
 Fragment BaseFlowGraphBuilder::StoreStaticField(TokenPosition position,
@@ -984,8 +1011,10 @@ Fragment BaseFlowGraphBuilder::CheckNull(TokenPosition position,
                                          bool clear_the_temp /* = true */) {
   Fragment instructions = LoadLocal(receiver);
 
-  CheckNullInstr* check_null =
-      new (Z) CheckNullInstr(Pop(), function_name, GetNextDeoptId(), position);
+  CheckNullInstr* check_null = new (Z)
+      CheckNullInstr(Pop(), function_name, GetNextDeoptId(), position,
+                     function_name.IsNull() ? CheckNullInstr::kCastError
+                                            : CheckNullInstr::kNoSuchMethod);
 
   // Does not use the redefinition, no `Push(check_null)`.
   instructions <<= check_null;

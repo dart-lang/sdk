@@ -649,7 +649,7 @@ class MergeIsolatesHeapsHandler : public MessageHandler {
     if (response_obj.IsString()) {
       String& response = String::Handle();
       response ^= response_obj.raw();
-      msg_.reset(strdup(response.ToCString()));
+      msg_.reset(Utils::StrDup(response.ToCString()));
     } else {
       ASSERT(response_obj.IsArray());
       Array& response_array = Array::Handle();
@@ -657,7 +657,7 @@ class MergeIsolatesHeapsHandler : public MessageHandler {
       ASSERT(response_array.Length() == 1);
       ExternalTypedData& response = ExternalTypedData::Handle();
       response ^= response_array.At(0);
-      msg_.reset(strdup(reinterpret_cast<char*>(response.DataAddr(0))));
+      msg_.reset(Utils::StrDup(reinterpret_cast<char*>(response.DataAddr(0))));
     }
 
     return kOK;

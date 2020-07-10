@@ -119,6 +119,13 @@ intptr_t Utf8::Encode(const String& src, char* dst, intptr_t len) {
     String::CodePointIterator it(src);
     while (it.Next()) {
       int32_t ch = it.Current();
+      ASSERT(!Utf::IsOutOfRange(ch));
+      if (Utf16::IsSurrogate(ch)) {
+        // Encode unpaired surrogates as replacement characters to ensure the
+        // output is valid UTF-8. Encoded size is the same (3), so the computed
+        // length is still valid.
+        ch = Utf::kReplacementChar;
+      }
       intptr_t num_bytes = Utf8::Length(ch);
       if (pos + num_bytes > len) {
         break;

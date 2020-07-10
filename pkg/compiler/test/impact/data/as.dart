@@ -11,47 +11,7 @@ main() {
   promoted(null);
 }
 
-/*spec:nnbd-off.member: explicitAs:
- dynamic=[String.length],
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  param:String]
-*/
-/*spec:nnbd-sdk.member: explicitAs:
+/*member: explicitAs:
  dynamic=[String.length],
  static=[
   Rti._bind(1),
@@ -100,47 +60,7 @@ explicitAs(String i) {
   return i as String;
 }
 
-/*spec:nnbd-off.member: implicitAs:
- dynamic=[String.length],
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  param:String]
-*/
-/*spec:nnbd-sdk.member: implicitAs:
+/*member: implicitAs:
  dynamic=[String.length],
  static=[
   Rti._bind(1),
@@ -190,48 +110,7 @@ String implicitAs(String i) {
   return j;
 }
 
-/*spec:nnbd-off.member: promoted:
- dynamic=[String.length],
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  inst:JSNull,
-  is:String]
-*/
-/*spec:nnbd-sdk.member: promoted:
+/*member: promoted:
  dynamic=[String.length],
  static=[
   Rti._bind(1),

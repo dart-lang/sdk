@@ -23,10 +23,8 @@ main() {
 class PubspecValidatorTest with ResourceProviderMixin {
   PubspecValidator validator;
 
-  /**
-   * Assert that when the validator is used on the given [content] the
-   * [expectedErrorCodes] are produced.
-   */
+  /// Assert that when the validator is used on the given [content] the
+  /// [expectedErrorCodes] are produced.
   void assertErrors(String content, List<ErrorCode> expectedErrorCodes) {
     YamlNode node = loadYamlNode(content);
     if (node is! YamlMap) {
@@ -39,10 +37,8 @@ class PubspecValidatorTest with ResourceProviderMixin {
     listener.assertErrorsWithCodes(expectedErrorCodes);
   }
 
-  /**
-   * Assert that when the validator is used on the given [content] no errors are
-   * produced.
-   */
+  /// Assert that when the validator is used on the given [content] no errors
+  /// are produced.
   void assertNoErrors(String content) {
     assertErrors(content, []);
   }

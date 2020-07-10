@@ -33,10 +33,11 @@ class Benchmark extends BenchmarkBase {
   Benchmark(String name, this.length, this.copy)
       : super('ListCopy.$name.$length');
 
+  @override
   void setup() {
     // Ensure setup() is idempotent.
     if (inputs.isNotEmpty) return;
-    List<num> base = List.generate(length, (i) => i + 1);
+    final List<num> base = List.generate(length, (i) => i + 1);
     List<Iterable<num>> makeVariants() {
       return [
         // Weight ordinary lists more.
@@ -54,7 +55,7 @@ class Benchmark extends BenchmarkBase {
     const elements = 10000;
     int totalLength = 0;
     while (totalLength < elements) {
-      var variants = makeVariants();
+      final variants = makeVariants();
       inputs.addAll(variants);
       totalLength +=
           variants.fold<int>(0, (sum, iterable) => sum + iterable.length);
@@ -69,6 +70,7 @@ class Benchmark extends BenchmarkBase {
     }
   }
 
+  @override
   void run() {
     for (var sample in inputs) {
       input = sample;
@@ -129,12 +131,21 @@ List<Benchmark> makeBenchmarks(int length) => [
         output = <num>[...input];
       }),
       Benchmark('spread.int', length, () {
-        output = <int>[...input];
+        output = <int>[...input as dynamic];
+      }),
+      Benchmark('spread.int.cast', length, () {
+        output = <int>[...input.cast<int>()];
+      }),
+      Benchmark('spread.int.map', length, () {
+        output = <int>[...input.map((x) => x as int)];
+      }),
+      Benchmark('for.int', length, () {
+        output = <int>[for (var n in input) n as int];
       }),
     ];
 
-main() {
-  var benchmarks = [...makeBenchmarks(2), ...makeBenchmarks(100)];
+void main() {
+  final benchmarks = [...makeBenchmarks(2), ...makeBenchmarks(100)];
 
   // Warmup all benchmarks to ensure JIT compilers see full polymorphism.
   for (var benchmark in benchmarks) {

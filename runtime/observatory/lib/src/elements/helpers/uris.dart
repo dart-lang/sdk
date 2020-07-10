@@ -40,6 +40,7 @@ abstract class Uris {
   static String metrics(M.IsolateRef isolate) =>
       _isolatePage('/metrics', isolate);
   static String nativeMemory() => '#/native-memory-profile';
+  static String processSnapshot() => '#/process-snapshot';
   static String objectStore(M.IsolateRef isolate) =>
       _isolatePage('/object-store', isolate);
   static String persistentHandles(M.IsolateRef isolate) =>

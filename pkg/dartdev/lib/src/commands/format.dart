@@ -8,8 +8,7 @@ import '../core.dart';
 import '../sdk.dart';
 
 class FormatCommand extends DartdevCommand {
-  FormatCommand({bool verbose = false})
-      : super('format', 'Format Dart source code.') {
+  FormatCommand() : super('format', 'Format Dart source code.') {
     // TODO(jwren) When https://github.com/dart-lang/dart_style/issues/889
     //  is resolved, have dart_style provide the ArgParser, instead of creating
     // one here.

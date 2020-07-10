@@ -810,7 +810,8 @@ void UnlinkedCall::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  jsobj.AddProperty("_argumentsDescriptor", Array::Handle(args_descriptor()));
+  jsobj.AddProperty("_argumentsDescriptor",
+                    Array::Handle(arguments_descriptor()));
 }
 
 void MonomorphicSmiableCall::PrintJSONImpl(JSONStream* stream, bool ref) const {
@@ -876,8 +877,8 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   AddCommonObjectProperties(&jsobj, "Code", ref);
   jsobj.AddFixedServiceId("code/%" Px64 "-%" Px "", compile_timestamp(),
                           PayloadStart());
-  const char* qualified_name =
-      QualifiedName(kUserVisibleName, NameDisambiguation::kNo);
+  const char* qualified_name = QualifiedName(
+      NameFormattingParams(kUserVisibleName, NameDisambiguation::kNo));
   const char* vm_name = Name();
   AddNameProperties(&jsobj, qualified_name, vm_name);
   const bool is_stub =

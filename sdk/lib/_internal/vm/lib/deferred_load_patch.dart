@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // part of "async_patch.dart";
 
 final Set<String> _loadedLibraries = new Set<String>();
@@ -14,7 +12,7 @@ class DeferredLibrary {
   Future<Null> load() {
     // Dummy implementation that should eventually be replaced by real
     // implementation.
-    Future future = new Future<Null>.value(null);
+    Future<Null> future = new Future<Null>.value(null);
     _loadedLibraries.add(libraryName);
     return future;
   }

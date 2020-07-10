@@ -2,16 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // part of "core_patch.dart";
 
 @pragma("vm:entry-point")
 class _List<E> extends FixedLengthListBase<E> {
-  @pragma(
-      "vm:exact-result-type", [_List, "result-type-uses-passed-type-arguments"])
+  @pragma("vm:exact-result-type",
+      <dynamic>[_List, "result-type-uses-passed-type-arguments"])
   @pragma("vm:prefer-inline")
   factory _List(length) native "List_allocate";
+
+  // Specialization of List.filled constructor for growable == false.
+  // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
+  factory _List.filled(int length, E fill) {
+    final result = _List<E>(length);
+    if (fill != null) {
+      for (int i = 0; i < result.length; i++) {
+        result[i] = fill;
+      }
+    }
+    return result;
+  }
 
   E operator [](int index) native "List_getIndexed";
 
@@ -26,7 +36,7 @@ class _List<E> extends FixedLengthListBase<E> {
   int get length native "List_getLength";
 
   @pragma("vm:prefer-inline")
-  List _slice(int start, int count, bool needsTypeArgument) {
+  _List _slice(int start, int count, bool needsTypeArgument) {
     if (count <= 64) {
       final result = needsTypeArgument ? new _List<E>(count) : new _List(count);
       for (int i = 0; i < result.length; i++) {
@@ -38,7 +48,7 @@ class _List<E> extends FixedLengthListBase<E> {
     }
   }
 
-  List _sliceInternal(int start, int count, bool needsTypeArgument)
+  _List _sliceInternal(int start, int count, bool needsTypeArgument)
       native "List_slice";
 
   // List interface.
@@ -54,12 +64,12 @@ class _List<E> extends FixedLengthListBase<E> {
     if (identical(this, iterable)) {
       Lists.copy(this, skipCount, this, start, length);
     } else if (ClassID.getID(iterable) == ClassID.cidArray) {
-      final _List<E> iterableAsList = iterable;
+      final _List<E> iterableAsList = unsafeCast<_List<E>>(iterable);
       Lists.copy(iterableAsList, skipCount, this, start, length);
     } else if (iterable is List<E>) {
       Lists.copy(iterable, skipCount, this, start, length);
     } else {
-      Iterator it = iterable.iterator;
+      Iterator<E> it = iterable.iterator;
       while (skipCount > 0) {
         if (!it.moveNext()) return;
         skipCount--;
@@ -79,7 +89,7 @@ class _List<E> extends FixedLengthListBase<E> {
     if (identical(this, iterable)) {
       iterableAsList = this;
     } else if (ClassID.getID(iterable) == ClassID.cidArray) {
-      iterableAsList = iterable;
+      iterableAsList = unsafeCast<_List<E>>(iterable);
     } else if (iterable is List<E>) {
       iterableAsList = iterable;
     } else {
@@ -95,9 +105,10 @@ class _List<E> extends FixedLengthListBase<E> {
     Lists.copy(iterableAsList, 0, this, index, length);
   }
 
-  List<E> sublist(int start, [int end]) {
-    end = RangeError.checkValidRange(start, end, this.length);
-    int length = end - start;
+  List<E> sublist(int start, [int? end]) {
+    final int listLength = this.length;
+    final int actualEnd = RangeError.checkValidRange(start, end, listLength);
+    int length = actualEnd - start;
     if (length == 0) return <E>[];
     var result = new _GrowableList<E>._withData(_slice(start, length, false));
     result._setLength(length);
@@ -138,11 +149,11 @@ class _List<E> extends FixedLengthListBase<E> {
   List<E> toList({bool growable: true}) {
     var length = this.length;
     if (length > 0) {
-      var result = _slice(0, length, !growable);
+      _List result = _slice(0, length, !growable);
       if (growable) {
-        result = new _GrowableList<E>._withData(result).._setLength(length);
+        return new _GrowableList<E>._withData(result).._setLength(length);
       }
-      return result;
+      return unsafeCast<_List<E>>(result);
     }
     // _GrowableList._withData must not be called with empty list.
     return growable ? <E>[] : new _List<E>(0);
@@ -172,15 +183,15 @@ class _ImmutableList<E> extends UnmodifiableListBase<E> {
   @pragma("vm:prefer-inline")
   int get length native "List_getLength";
 
-  List<E> sublist(int start, [int end]) {
-    end = RangeError.checkValidRange(start, end, this.length);
-    int length = end - start;
+  List<E> sublist(int start, [int? end]) {
+    final int actualEnd = RangeError.checkValidRange(start, end, this.length);
+    int length = actualEnd - start;
     if (length == 0) return <E>[];
-    List list = new _List(length);
+    final list = new _List(length);
     for (int i = 0; i < length; i++) {
       list[i] = this[start + i];
     }
-    var result = new _GrowableList<E>._withData(list);
+    final result = new _GrowableList<E>._withData(list);
     result._setLength(length);
     return result;
   }
@@ -217,16 +228,21 @@ class _ImmutableList<E> extends UnmodifiableListBase<E> {
   }
 
   List<E> toList({bool growable: true}) {
-    var length = this.length;
+    final int length = this.length;
     if (length > 0) {
-      List list = growable ? new _List(length) : new _List<E>(length);
-      for (int i = 0; i < length; i++) {
-        list[i] = this[i];
+      if (growable) {
+        final list = new _List(length);
+        for (int i = 0; i < length; i++) {
+          list[i] = this[i];
+        }
+        return _GrowableList<E>._withData(list).._setLength(length);
+      } else {
+        final list = new _List<E>(length);
+        for (int i = 0; i < length; i++) {
+          list[i] = this[i];
+        }
+        return list;
       }
-      if (!growable) return list;
-      var result = new _GrowableList<E>._withData(list);
-      result._setLength(length);
-      return result;
     }
     return growable ? <E>[] : new _List<E>(0);
   }
@@ -237,7 +253,7 @@ class _FixedSizeArrayIterator<E> implements Iterator<E> {
   final List<E> _array;
   final int _length; // Cache array length for faster access.
   int _index;
-  E _current;
+  E? _current;
 
   _FixedSizeArrayIterator(List<E> array)
       : _array = array,
@@ -246,7 +262,10 @@ class _FixedSizeArrayIterator<E> implements Iterator<E> {
     assert(array is _List<E> || array is _ImmutableList<E>);
   }
 
-  E get current => _current;
+  E get current {
+    final cur = _current;
+    return (cur != null) ? cur : cur as E;
+  }
 
   @pragma("vm:prefer-inline")
   bool moveNext() {

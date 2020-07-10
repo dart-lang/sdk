@@ -54,8 +54,7 @@ class ViewCardComponent2 extends AppView<CardComponent2> {
   }
 }
 
-/*spec:nnbd-off.member: main:*/
-/*prod:nnbd-off|prod:nnbd-sdk.member: main:FieldSet=[name=AppView.ctx,name=AppView.ctx]*/
+/*prod.member: main:FieldSet=[name=AppView.ctx]*/
 main() {
   var c1 = new ViewCardComponent();
   c1.ctx = new CardComponent();

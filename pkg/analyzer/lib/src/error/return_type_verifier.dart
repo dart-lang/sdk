@@ -9,9 +9,9 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:meta/meta.dart';
 
 class ReturnTypeVerifier {
@@ -140,24 +140,29 @@ class ReturnTypeVerifier {
     var S = getStaticType(expression);
 
     void reportTypeError() {
-      String displayName = enclosingExecutable.element.displayName;
-      if (displayName.isEmpty) {
+      if (enclosingExecutable.isClosure) {
         _errorReporter.reportErrorForNode(
           StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
           expression,
           [S, T],
         );
+      } else if (enclosingExecutable.isConstructor) {
+        _errorReporter.reportErrorForNode(
+          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
+          expression,
+          [S, T, enclosingExecutable.displayName],
+        );
+      } else if (enclosingExecutable.isFunction) {
+        _errorReporter.reportErrorForNode(
+          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          expression,
+          [S, T, enclosingExecutable.displayName],
+        );
       } else if (enclosingExecutable.isMethod) {
         _errorReporter.reportErrorForNode(
           StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
           expression,
-          [S, T, displayName],
-        );
-      } else {
-        _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
-          expression,
-          [S, T, displayName],
+          [S, T, enclosingExecutable.displayName],
         );
       }
     }
@@ -236,24 +241,29 @@ class ReturnTypeVerifier {
     var S = getStaticType(expression);
 
     void reportTypeError() {
-      String displayName = enclosingExecutable.element.displayName;
-      if (displayName.isEmpty) {
+      if (enclosingExecutable.isClosure) {
         _errorReporter.reportErrorForNode(
           StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
           expression,
           [S, T],
         );
+      } else if (enclosingExecutable.isConstructor) {
+        _errorReporter.reportErrorForNode(
+          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
+          expression,
+          [S, T, enclosingExecutable.displayName],
+        );
+      } else if (enclosingExecutable.isFunction) {
+        _errorReporter.reportErrorForNode(
+          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          expression,
+          [S, T, enclosingExecutable.displayName],
+        );
       } else if (enclosingExecutable.isMethod) {
         _errorReporter.reportErrorForNode(
           StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
           expression,
-          [S, T, displayName],
-        );
-      } else {
-        _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
-          expression,
-          [S, T, displayName],
+          [S, T, enclosingExecutable.displayName],
         );
       }
     }

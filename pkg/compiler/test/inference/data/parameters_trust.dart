@@ -18,8 +18,8 @@ main() {
 /*member: _trustParameters:[exact=JSUInt31]*/
 _trustParameters(
     int
-        /*spec:nnbd-off|spec:nnbd-sdk.Union([exact=JSString], [exact=JSUInt31])*/
-        /*prod:nnbd-off|prod:nnbd-sdk.[exact=JSUInt31]*/
+        /*spec.Union([exact=JSString], [exact=JSUInt31])*/
+        /*prod.[exact=JSUInt31]*/
         i) {
   return i;
 }

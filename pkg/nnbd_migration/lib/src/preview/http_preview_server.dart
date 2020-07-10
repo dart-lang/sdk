@@ -35,18 +35,29 @@ class HttpPreviewServer {
   // A function which allows the migration to be rerun, taking changed paths.
   final Future<MigrationState> Function() rerunFunction;
 
+  /// The internet address the server should bind to.  Should be suitable for
+  /// passing to HttpServer.bind, i.e. either a [String] or an
+  /// [InternetAddress].
+  final Object bindAddress;
+
   /// Integer for a port to run the preview server on.  If null or zero, allow
   /// [HttpServer.bind] to pick one.
   final int preferredPort;
 
   /// Initialize a newly created HTTP server.
-  HttpPreviewServer(
-      this.migrationState, this.rerunFunction, this.preferredPort);
+  HttpPreviewServer(this.migrationState, this.rerunFunction, this.bindAddress,
+      this.preferredPort)
+      : assert(bindAddress is String || bindAddress is InternetAddress);
 
   Future<String> get authToken async {
     await _serverFuture;
     previewSite ??= PreviewSite(migrationState, rerunFunction);
     return previewSite.serviceAuthToken;
+  }
+
+  /// Return the port this server is bound to.
+  Future<String> get boundHostname async {
+    return (await _serverFuture)?.address?.host;
   }
 
   /// Return the port this server is bound to.
@@ -67,9 +78,7 @@ class HttpPreviewServer {
     }
 
     try {
-      _serverFuture =
-          HttpServer.bind(InternetAddress.loopbackIPv4, preferredPort ?? 0);
-
+      _serverFuture = HttpServer.bind(bindAddress, preferredPort ?? 0);
       var server = await _serverFuture;
       _handleServer(server);
       return server.port;

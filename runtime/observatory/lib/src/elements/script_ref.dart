@@ -8,12 +8,10 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M show IsolateRef, ScriptRef;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class ScriptRefElement extends CustomElement implements Renderable {
-  static const tag = const Tag<ScriptRefElement>('script-ref');
-
   RenderingScheduler<ScriptRefElement> _r;
 
   Stream<RenderedEvent<ScriptRefElement>> get onRendered => _r.onRendered;
@@ -35,7 +33,7 @@ class ScriptRefElement extends CustomElement implements Renderable {
     return e;
   }
 
-  ScriptRefElement.created() : super.created(tag);
+  ScriptRefElement.created() : super.created('script-ref');
 
   @override
   void attached() {

@@ -16,6 +16,16 @@ main() {
 class DartdocDirectiveInfoTest {
   DartdocDirectiveInfo info = DartdocDirectiveInfo();
 
+  test_processDartdoc_animation_directive() {
+    String result = info.processDartdoc('''
+/// {@animation 464 192 https://flutter.github.io/assets-for-api-docs/assets/animation/curve_bounce_in.mp4}
+''');
+    expect(
+        result,
+        '[flutter.github.io/assets-for-api-docs/assets/animation/curve_bounce_in.mp4]'
+        '(https://flutter.github.io/assets-for-api-docs/assets/animation/curve_bounce_in.mp4)');
+  }
+
   test_processDartdoc_macro_defined() {
     info.extractTemplate('''
 /**
@@ -96,15 +106,5 @@ Comment without a macro.''');
 ''');
     expect(result,
         '{@youtube 560x315 https://www.youtube.com/watch?v=2uaoEDOgk_I}');
-  }
-
-  test_processDartdoc_animation_directive() {
-    String result = info.processDartdoc('''
-/// {@animation 464 192 https://flutter.github.io/assets-for-api-docs/assets/animation/curve_bounce_in.mp4}
-''');
-    expect(
-        result,
-        '[flutter.github.io/assets-for-api-docs/assets/animation/curve_bounce_in.mp4]'
-        '(https://flutter.github.io/assets-for-api-docs/assets/animation/curve_bounce_in.mp4)');
   }
 }

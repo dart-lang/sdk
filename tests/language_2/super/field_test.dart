@@ -4,7 +4,6 @@
 // Dart test for testing super field access.
 
 import "package:expect/expect.dart";
-import "package:meta/meta.dart" show virtual;
 
 class A {
   A() {
@@ -14,7 +13,6 @@ class A {
     return "Gruezi";
   }
 
-  @virtual
   String city;
 }
 

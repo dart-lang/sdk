@@ -381,7 +381,7 @@ abstract class Iterable<E> {
 
   Iterable<R> map<R>(R f(E e));
 
-  List<E> toList();
+  List<E> toList({bool growable = true});
 
   Set<E> toSet();
 
@@ -540,6 +540,7 @@ abstract class String implements Comparable<String>, Pattern {
   int indexOf(Pattern pattern, [int start = 0]);
   int lastIndexOf(Pattern pattern, [int? start]);
   bool startsWith(Pattern pattern, [int index = 0]);
+  List<String> split(Pattern pattern);
   String splitMapJoin(Pattern pattern,
       {String Function(Match)? onMatch, String Function(String)? onNonMatch});
   String substring(int startIndex, [int? endIndex]);
@@ -904,6 +905,8 @@ library dart.io;
 
 import 'dart:convert';
 
+Never exit(int code) => throw code;
+
 abstract class Directory implements FileSystemEntity {
   factory Directory(String path) {
     throw 0;
@@ -1017,9 +1020,9 @@ final MockSdkLibrary _LIB_MATH = MockSdkLibrary(
       '''
 library dart.math;
 
-const double E = 2.718281828459045;
-const double PI = 3.1415926535897932;
-const double LN10 = 2.302585092994046;
+const double e = 2.718281828459045;
+const double pi = 3.1415926535897932;
+const double ln10 = 2.302585092994046;
 
 T min<T extends num>(T a, T b) => throw 0;
 T max<T extends num>(T a, T b) => throw 0;

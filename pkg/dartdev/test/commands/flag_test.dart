@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dartdev/dartdev.dart';
 import 'package:test/test.dart';
@@ -17,7 +18,9 @@ void command() {
   // For each command description, assert that the values are not empty, don't
   // have trailing white space and end with a period.
   test('description formatting', () {
-    DartdevRunner([]).commands.forEach((String commandKey, Command command) {
+    DartdevRunner(['--disable-dartdev-analytics'])
+        .commands
+        .forEach((String commandKey, Command command) {
       expect(commandKey, isNotEmpty);
       expect(command.description, isNotEmpty);
       expect(command.description.split('\n').first, endsWith('.'));
@@ -27,11 +30,24 @@ void command() {
 
   // Assert that all found usageLineLengths are the same and null
   test('argParser usageLineLength isNull', () {
-    DartdevRunner([]).commands.forEach((String commandKey, Command command) {
+    DartdevRunner(['--disable-dartdev-analytics'])
+        .commands
+        .forEach((String commandKey, Command command) {
       if (command.argParser != null) {
         expect(command.argParser.usageLineLength, isNull);
       }
     });
+  });
+
+  test('enable experiments flag is supported', () {
+    final args = [
+      '--disable-dartdev-analytics',
+      '--enable-experiment=non-nullable'
+    ];
+    final runner = DartdevRunner(args);
+    ArgResults results = runner.parse(args);
+    expect(results['enable-experiment'], isNotEmpty);
+    expect(results['enable-experiment'].first, 'non-nullable');
   });
 }
 
@@ -53,6 +69,7 @@ void help() {
     expect(result.stdout, contains('Available commands:'));
     expect(result.stdout, contains('analyze '));
     expect(result.stdout, contains('create '));
+    expect(result.stdout, contains('compile '));
     expect(result.stdout, contains('format '));
     expect(result.stdout, contains('migrate '));
   });

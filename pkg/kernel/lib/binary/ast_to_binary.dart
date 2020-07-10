@@ -4,6 +4,7 @@
 library kernel.ast_to_binary;
 
 import 'dart:core' hide MapEntry;
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' show BytesBuilder;
 import 'dart:typed_data';
@@ -537,6 +538,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       final componentOffset = getBufferOffset();
       writeUInt32(Tag.ComponentFile);
       writeUInt32(Tag.BinaryFormatVersion);
+      writeBytes(ascii.encode(expectedSdkHash));
       writeListOfStrings(component.problemsAsJson);
       indexLinkTable(component);
       _collectMetadata(component);
@@ -2066,6 +2068,26 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeNonNullReference(node.className);
       writeNodeList(node.typeArguments);
     }
+  }
+
+  @override
+  void visitFutureOrType(FutureOrType node) {
+    // TODO(dmitryas): Remove special treatment of FutureOr when the VM supports
+    // the new encoding: just write the tag.
+    assert(_knownCanonicalNameNonRootTops != null &&
+        _knownCanonicalNameNonRootTops.isNotEmpty);
+    CanonicalName root = _knownCanonicalNameNonRootTops.first;
+    while (!root.isRoot) {
+      root = root.parent;
+    }
+    CanonicalName canonicalNameOfFutureOr =
+        root.getChild("dart:async").getChild("FutureOr");
+    writeByte(Tag.InterfaceType);
+    writeByte(node.declaredNullability.index);
+    checkCanonicalName(canonicalNameOfFutureOr);
+    writeUInt30(canonicalNameOfFutureOr.index + 1);
+    writeUInt30(1); // Type argument count.
+    writeNode(node.typeArgument);
   }
 
   @override

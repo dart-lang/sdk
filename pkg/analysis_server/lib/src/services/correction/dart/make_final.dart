@@ -16,8 +16,22 @@ class MakeFinal extends CorrectionProducer {
 
   @override
   Future<void> compute(DartChangeBuilder builder) async {
-    VariableDeclarationList list;
     var node = this.node;
+    if (node is SimpleIdentifier &&
+        node.parent is DeclaredIdentifier &&
+        node.parent.parent is ForEachPartsWithDeclaration) {
+      var declaration = node.parent as DeclaredIdentifier;
+      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+        if (declaration.keyword?.keyword == Keyword.VAR) {
+          builder.addSimpleReplacement(
+              range.token(declaration.keyword), 'final');
+        } else if (declaration.keyword == null) {
+          builder.addSimpleInsertion(declaration.offset, 'final ');
+        }
+      });
+      return;
+    }
+    VariableDeclarationList list;
     if (node is SimpleIdentifier &&
         node.parent is VariableDeclaration &&
         node.parent.parent is VariableDeclarationList) {
@@ -29,10 +43,12 @@ class MakeFinal extends CorrectionProducer {
     if (list != null) {
       if (list.variables.length == 1) {
         await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-          if (list.keyword == null) {
-            builder.addSimpleInsertion(list.offset, 'final ');
-          } else if (list.keyword.keyword == Keyword.VAR) {
+          if (list.keyword?.keyword == Keyword.VAR) {
             builder.addSimpleReplacement(range.token(list.keyword), 'final');
+          } else if (list.lateKeyword != null) {
+            builder.addSimpleInsertion(list.lateKeyword.end, ' final');
+          } else if (list.keyword == null) {
+            builder.addSimpleInsertion(list.offset, 'final ');
           }
         });
       }

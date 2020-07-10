@@ -1,5 +1,6 @@
 # Helper package for testing sourcemaps. Used by ddc and dart2js.
 name: sourcemap_testing
+# This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 
 environment:

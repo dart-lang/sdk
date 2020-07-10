@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.type_environment;
 
+import 'package:kernel/type_algebra.dart';
+
 import 'ast.dart';
 import 'class_hierarchy.dart';
 import 'core_types.dart';
 
-import 'src/future_or.dart';
 import 'src/hierarchy_based_type_environment.dart'
     show HierarchyBasedTypeEnvironment;
 import 'src/types.dart';
@@ -31,7 +32,6 @@ abstract class TypeEnvironment extends Types {
   Class get intClass => coreTypes.intClass;
   Class get numClass => coreTypes.numClass;
   Class get functionClass => coreTypes.functionClass;
-  Class get futureOrClass => coreTypes.futureOrClass;
   Class get objectClass => coreTypes.objectClass;
 
   InterfaceType get objectLegacyRawType => coreTypes.objectLegacyRawType;
@@ -81,25 +81,46 @@ abstract class TypeEnvironment extends Types {
         coreTypes.futureClass, nullability, <DartType>[type]);
   }
 
-  /// Removes a level of `Future<>` types wrapping a type.
-  ///
-  /// This implements the function `flatten` from the spec, which unwraps a
+  DartType _withDeclaredNullability(DartType type, Nullability nullability) {
+    if (type == nullType) return type;
+    return type.withDeclaredNullability(
+        uniteNullabilities(type.declaredNullability, nullability));
+  }
+
+  /// Returns the `flatten` of [type] as defined in the spec, which unwraps a
   /// layer of Future or FutureOr from a type.
-  DartType unfutureType(DartType type) {
-    if (type is InterfaceType) {
-      if (type.classNode == coreTypes.futureOrClass ||
-          type.classNode == coreTypes.futureClass) {
-        return type.typeArguments[0];
-      }
-      // It is a compile-time error to implement, extend, or mixin FutureOr so
-      // we aren't concerned with it.  If a class implements multiple
-      // instantiations of Future, getTypeAsInstanceOf is responsible for
-      // picking the least one in the sense required by the spec.
+  DartType flatten(DartType t) {
+    // if T is S? then flatten(T) = flatten(S)?
+    // otherwise if T is S* then flatten(T) = flatten(S)*
+    // -- this is preserve with the calls to [_withDeclaredNullability] below.
+
+    // otherwise if T is FutureOr<S> then flatten(T) = S
+    if (t is FutureOrType) {
+      return _withDeclaredNullability(t.typeArgument, t.declaredNullability);
+    }
+
+    // otherwise if T <: Future then let S be a type such that T <: Future<S>
+    //   and for all R, if T <: Future<R> then S <: R; then flatten(T) = S
+    DartType resolved = _resolveTypeParameterType(t);
+    if (resolved is InterfaceType) {
       List<DartType> futureArguments =
-          getTypeArgumentsAsInstanceOf(type, coreTypes.futureClass);
+          getTypeArgumentsAsInstanceOf(resolved, coreTypes.futureClass);
       if (futureArguments != null) {
-        return futureArguments[0];
+        return _withDeclaredNullability(
+            futureArguments.single, t.declaredNullability);
       }
+    }
+
+    // otherwise flatten(T) = T
+    return t;
+  }
+
+  /// Returns the non-type parameter type bound of [type].
+  DartType _resolveTypeParameterType(DartType type) {
+    while (type is TypeParameterType) {
+      TypeParameterType typeParameterType = type;
+      type =
+          typeParameterType.promotedBound ?? typeParameterType.parameter.bound;
     }
     return type;
   }
@@ -112,11 +133,7 @@ abstract class TypeEnvironment extends Types {
   DartType forInElementType(ForInStatement node, DartType iterableType) {
     // TODO(johnniwinther): Update this to use the type of
     //  `iterable.iterator.current` if inference is updated accordingly.
-    while (iterableType is TypeParameterType) {
-      TypeParameterType typeParameterType = iterableType;
-      iterableType =
-          typeParameterType.promotedBound ?? typeParameterType.parameter.bound;
-    }
+    iterableType = _resolveTypeParameterType(iterableType);
     if (node.isAsync) {
       List<DartType> typeArguments =
           getTypeArgumentsAsInstanceOf(iterableType, coreTypes.streamClass);
@@ -176,6 +193,9 @@ abstract class TypeEnvironment extends Types {
   /// the upper bound), then that type variable is returned.
   /// Otherwise `num` is returned.
   DartType getTypeOfOverloadedArithmetic(DartType type1, DartType type2) {
+    type1 = _resolveTypeParameterType(type1);
+    type2 = _resolveTypeParameterType(type2);
+
     if (type1 == type2) return type1;
 
     if (type1 is InterfaceType && type2 is InterfaceType) {
@@ -276,7 +296,7 @@ class IsSubtypeOf {
   /// `Rn` is the result of [IsSubtypeOf.basedSolelyOnNullabilities] on the
   /// types `List<int>?` and `List<num>*`.
   factory IsSubtypeOf.basedSolelyOnNullabilities(
-      DartType subtype, DartType supertype, Class futureOrClass) {
+      DartType subtype, DartType supertype) {
     if (subtype is InvalidType) {
       if (supertype is InvalidType) {
         return const IsSubtypeOf.always();
@@ -287,34 +307,24 @@ class IsSubtypeOf {
       return const IsSubtypeOf.onlyIfIgnoringNullabilities();
     }
 
-    if (isPotentiallyNullable(subtype, futureOrClass) &&
-        isPotentiallyNonNullable(supertype, futureOrClass)) {
+    if (subtype.isPotentiallyNullable && supertype.isPotentiallyNonNullable) {
       // It's a special case to test X% <: X%, FutureOr<X%> <: FutureOr<X%>,
       // FutureOr<FutureOr<X%>> <: FutureOr<FutureOr<X%>>, etc, where X is a
       // type parameter.  In that case, the nullabilities of the subtype and the
       // supertype are related, that is, they are both nullable or non-nullable
       // at run time.
-      if (computeNullability(subtype, futureOrClass) ==
-              Nullability.undetermined &&
-          computeNullability(supertype, futureOrClass) ==
-              Nullability.undetermined) {
+      if (subtype.nullability == Nullability.undetermined &&
+          supertype.nullability == Nullability.undetermined) {
         DartType unwrappedSubtype = subtype;
         DartType unwrappedSupertype = supertype;
-        while (unwrappedSubtype is InterfaceType &&
-            unwrappedSubtype.classNode == futureOrClass) {
-          unwrappedSubtype =
-              (unwrappedSubtype as InterfaceType).typeArguments.single;
+        while (unwrappedSubtype is FutureOrType) {
+          unwrappedSubtype = (unwrappedSubtype as FutureOrType).typeArgument;
         }
-        while (unwrappedSupertype is InterfaceType &&
-            unwrappedSupertype.classNode == futureOrClass) {
+        while (unwrappedSupertype is FutureOrType) {
           unwrappedSupertype =
-              (unwrappedSupertype as InterfaceType).typeArguments.single;
+              (unwrappedSupertype as FutureOrType).typeArgument;
         }
-        Nullability unwrappedSubtypeNullability =
-            computeNullability(unwrappedSubtype, futureOrClass);
-        Nullability unwrappedSupertypeNullability =
-            computeNullability(unwrappedSupertype, futureOrClass);
-        if (unwrappedSubtypeNullability == unwrappedSupertypeNullability) {
+        if (unwrappedSubtype.nullability == unwrappedSupertype.nullability) {
           // The relationship between the types must be established elsewhere.
           return const IsSubtypeOf.always();
         }

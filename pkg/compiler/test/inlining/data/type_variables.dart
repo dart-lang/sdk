@@ -9,14 +9,12 @@ main() {
   inlineTypeTests();
 }
 
-/*spec:nnbd-off|prod:nnbd-off.member: Mixin1.:[inlineTypeTests:Mixin1<int>]*/
-/*spec:nnbd-sdk|prod:nnbd-sdk.member: Mixin1.:[inlineTypeTests:Mixin1<int*>]*/
+/*member: Mixin1.:[inlineTypeTests:Mixin1<int*>]*/
 class Mixin1<S> {
   var field = /*[]*/ (S s) => null;
 }
 
-/*spec:nnbd-off|prod:nnbd-off.member: Class1.:[inlineTypeTests:Class1<int>]*/
-/*spec:nnbd-sdk|prod:nnbd-sdk.member: Class1.:[inlineTypeTests:Class1<int*>]*/
+/*member: Class1.:[inlineTypeTests:Class1<int*>]*/
 class Class1<T> extends Object with Mixin1<T> {}
 
 /*member: _inlineTypeTests:[inlineTypeTests]*/

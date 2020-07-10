@@ -607,8 +607,13 @@ class SuggestionBuilder {
   /// Add a suggestion for a [keyword]. The [offset] is the offset from the
   /// beginning of the keyword where the cursor will be left.
   void suggestKeyword(String keyword, {int offset, @required int relevance}) {
-    // TODO(brianwilkerson) Use the location at which the keyword is being
-    //  inserted to compute the relevance.
+    if (request.useNewRelevance) {
+      // TODO(brianwilkerson) The default value should probably be a constant.
+      relevance = toRelevance(
+          request.featureComputer
+              .keywordFeature(keyword, request.opType.completionLocation),
+          800);
+    }
     _add(CompletionSuggestion(CompletionSuggestionKind.KEYWORD, relevance,
         keyword, offset ?? keyword.length, 0, false, false));
   }
@@ -656,17 +661,19 @@ class SuggestionBuilder {
     var variableType = variable.type;
     int relevance;
     if (request.useNewRelevance) {
-      // TODO(brianwilkerson) Use the distance to the local variable as
-      //  another feature.
       var contextType = request.featureComputer
           .contextTypeFeature(request.contextType, variableType);
       var elementKind = _computeElementKind(variable);
       var isConstant = request.inConstantContext
           ? request.featureComputer.isConstantFeature(variable)
           : -1.0;
+      var localVariableDistance = request.featureComputer
+          .localVariableDistanceFeature(
+              request.target.containingNode, variable);
       relevance = toRelevance(
           weightedAverage(
-              [contextType, elementKind, isConstant], [1.0, 1.0, 1.0]),
+              [contextType, elementKind, isConstant, localVariableDistance],
+              [1.0, 1.0, 1.0, 1.0]),
           800);
       listener?.computedFeatures(contextType: contextType);
     } else {

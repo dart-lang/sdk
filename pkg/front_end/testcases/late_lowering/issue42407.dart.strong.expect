@@ -1,0 +1,50 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class A<T extends core::Object? = dynamic> extends core::Object {
+  generic-covariant-impl field self::A::T? _#A#x = null;
+  field core::bool _#A#x#isSet = false;
+  synthetic constructor •() → self::A<self::A::T%>
+    : super core::Object::•()
+    ;
+  get x() → self::A::T%
+    return this.{self::A::_#A#x#isSet} ?{self::A::T%} let final self::A::T? #t1 = this.{self::A::_#A#x} in #t1{self::A::T%} : throw new _in::LateInitializationErrorImpl::•("Field 'x' has not been initialized.");
+  set x(generic-covariant-impl self::A::T% #t2) → void {
+    this.{self::A::_#A#x#isSet} = true;
+    this.{self::A::_#A#x} = #t2;
+  }
+}
+class B<T extends core::Object? = dynamic> extends core::Object {
+  generic-covariant-impl field self::B::T? _y = null;
+  synthetic constructor •() → self::B<self::B::T%>
+    : super core::Object::•()
+    ;
+  get y() → self::B::T?
+    return this.{self::B::_y};
+  set y(generic-covariant-impl self::B::T? val) → void {
+    this.{self::B::_y} = val;
+  }
+}
+static method main() → dynamic {
+  self::A<core::num> a = new self::A::•<core::int>();
+  self::expect(42, a.{self::A::x} = 42);
+  self::throws(() → core::double => a.{self::A::x} = 0.5);
+  self::B<core::num> b = new self::B::•<core::int>();
+  self::expect(42, b.{self::B::y} = 42);
+  self::throws(() → core::double => b.{self::B::y} = 0.5);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → void f) → dynamic {
+  try {
+    f.call();
+  }
+  on core::Object catch(final core::Object _) {
+    return;
+  }
+  throw "Expected exception";
+}

@@ -153,10 +153,10 @@ import 'b.dart' show ^;
     assertNotSuggested('B');
   }
 
-  Future<void> test_Combinator_show_PI() async {
+  Future<void> test_Combinator_show_pi() async {
     addTestSource('import "dart:math" show ^;');
     await computeSuggestions();
-    assertSuggestTopLevelVar('PI', 'double',
+    assertSuggestTopLevelVar('pi', 'double',
         kind: CompletionSuggestionKind.IDENTIFIER);
   }
 

@@ -81,7 +81,7 @@ $checkout/tools/sdks/dart-sdk/bin/dart \
     --nnbd-agnostic \
     --single-root-scheme=org-dartlang-sdk \
     --single-root-base=$checkout/ \
-    org-dartlang-sdk:///sdk_nnbd/lib/libraries.json \
+    org-dartlang-sdk:///sdk/lib/libraries.json \
     vm_outline_strong.dill \
     vm_platform_strong.dill \
     vm_outline_strong.dill

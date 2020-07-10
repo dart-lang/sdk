@@ -5,6 +5,7 @@
 library vm.metadata.inferred_type;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/src/printer.dart';
 
 /// Metadata for annotating nodes with an inferred type information.
 class InferredType {
@@ -68,7 +69,7 @@ class InferredType {
   String toString() {
     final StringBuffer buf = new StringBuffer();
     if (concreteClass != null) {
-      buf.write(concreteClass);
+      buf.write(concreteClass.toText(astTextStrategyForTesting));
     } else if (isInt) {
       buf.write('int');
     } else {
@@ -79,15 +80,18 @@ class InferredType {
     }
     if (exactTypeArguments != null) {
       buf.write('<');
-      buf.write(
-          exactTypeArguments.map((t) => t != null ? "$t" : "?").join(", "));
+      buf.write(exactTypeArguments
+          .map(
+              (t) => t != null ? "${t.toText(astTextStrategyForTesting)}" : "?")
+          .join(", "));
       buf.write('>');
     }
     if (skipCheck) {
       buf.write(' (skip check)');
     }
     if (_constantValue != null) {
-      buf.write(' (value: $_constantValue)');
+      buf.write(
+          ' (value: ${_constantValue.toText(astTextStrategyForTesting)})');
     }
     if (receiverNotInt) {
       buf.write(' (receiver not int)');

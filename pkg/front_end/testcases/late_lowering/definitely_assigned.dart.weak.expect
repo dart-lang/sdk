@@ -61,7 +61,6 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
-import "dart:async" as asy;
 
 import "dart:async";
 
@@ -85,10 +84,10 @@ static field <T extends core::Object? = dynamic>(T%) → core::Null? fieldDirect
       return local4 = #t3;
     else
       throw new _in::LateInitializationErrorImpl::•("Local 'local4' has already been initialized.");
-  final asy::FutureOr<core::int>? local6;
-  function #local6#get() → asy::FutureOr<core::int>
-    return let final asy::FutureOr<core::int>? #t4 = local6 in #t4.==(null) ?{asy::FutureOr<core::int>} throw new _in::LateInitializationErrorImpl::•("Local 'local6' has not been initialized.") : #t4{asy::FutureOr<core::int>};
-  function #local6#set(asy::FutureOr<core::int> #t5) → dynamic
+  final FutureOr<core::int>? local6;
+  function #local6#get() → FutureOr<core::int>
+    return let final FutureOr<core::int>? #t4 = local6 in #t4.==(null) ?{FutureOr<core::int>} throw new _in::LateInitializationErrorImpl::•("Local 'local6' has not been initialized.") : #t4{FutureOr<core::int>};
+  function #local6#set(FutureOr<core::int>#t5) → dynamic
     if(local6.==(null))
       return local6 = #t5;
     else
@@ -126,10 +125,10 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → core::Null?
       return local4 = #t11;
     else
       throw new _in::LateInitializationErrorImpl::•("Local 'local4' has already been initialized.");
-  final asy::FutureOr<core::int>? local6;
-  function #local6#get() → asy::FutureOr<core::int>
-    return let final asy::FutureOr<core::int>? #t12 = local6 in #t12.==(null) ?{asy::FutureOr<core::int>} throw new _in::LateInitializationErrorImpl::•("Local 'local6' has not been initialized.") : #t12{asy::FutureOr<core::int>};
-  function #local6#set(asy::FutureOr<core::int> #t13) → dynamic
+  final FutureOr<core::int>? local6;
+  function #local6#get() → FutureOr<core::int>
+    return let final FutureOr<core::int>? #t12 = local6 in #t12.==(null) ?{FutureOr<core::int>} throw new _in::LateInitializationErrorImpl::•("Local 'local6' has not been initialized.") : #t12{FutureOr<core::int>};
+  function #local6#set(FutureOr<core::int>#t13) → dynamic
     if(local6.==(null))
       return local6 = #t13;
     else
@@ -186,10 +185,10 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
       return local4 = #t22;
     else
       throw new _in::LateInitializationErrorImpl::•("Local 'local4' has already been initialized.");
-  final asy::FutureOr<core::int>? local6;
-  function #local6#get() → asy::FutureOr<core::int>
-    return let final asy::FutureOr<core::int>? #t23 = local6 in #t23.==(null) ?{asy::FutureOr<core::int>} throw new _in::LateInitializationErrorImpl::•("Local 'local6' has not been initialized.") : #t23{asy::FutureOr<core::int>};
-  function #local6#set(asy::FutureOr<core::int> #t24) → dynamic
+  final FutureOr<core::int>? local6;
+  function #local6#get() → FutureOr<core::int>
+    return let final FutureOr<core::int>? #t23 = local6 in #t23.==(null) ?{FutureOr<core::int>} throw new _in::LateInitializationErrorImpl::•("Local 'local6' has not been initialized.") : #t23{FutureOr<core::int>};
+  function #local6#set(FutureOr<core::int>#t24) → dynamic
     if(local6.==(null))
       return local6 = #t24;
     else
@@ -227,10 +226,10 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
       return local4 = #t30;
     else
       throw new _in::LateInitializationErrorImpl::•("Local 'local4' has already been initialized.");
-  final asy::FutureOr<core::int>? local6;
-  function #local6#get() → asy::FutureOr<core::int>
-    return let final asy::FutureOr<core::int>? #t31 = local6 in #t31.==(null) ?{asy::FutureOr<core::int>} throw new _in::LateInitializationErrorImpl::•("Local 'local6' has not been initialized.") : #t31{asy::FutureOr<core::int>};
-  function #local6#set(asy::FutureOr<core::int> #t32) → dynamic
+  final FutureOr<core::int>? local6;
+  function #local6#get() → FutureOr<core::int>
+    return let final FutureOr<core::int>? #t31 = local6 in #t31.==(null) ?{FutureOr<core::int>} throw new _in::LateInitializationErrorImpl::•("Local 'local6' has not been initialized.") : #t31{FutureOr<core::int>};
+  function #local6#set(FutureOr<core::int>#t32) → dynamic
     if(local6.==(null))
       return local6 = #t32;
     else

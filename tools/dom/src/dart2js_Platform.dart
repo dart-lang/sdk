@@ -10,7 +10,7 @@ class Platform {
    * browser.  If false, using these types will generate a runtime
    * error.
    */
-  static final supportsTypedData = JS('bool', '!!(window.ArrayBuffer)');
+  static final bool supportsTypedData = JS('bool', '!!(window.ArrayBuffer)');
 
   /**
    * Returns true if SIMD types in dart:typed_data types are supported

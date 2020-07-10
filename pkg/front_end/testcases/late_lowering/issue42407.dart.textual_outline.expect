@@ -1,0 +1,12 @@
+class A<T> {
+  late T ;
+  x;
+}
+class B<T> {
+  T? _y;
+  T? get y => _y;
+  set y(T? val) { }
+}
+main() { }
+expect(expected, actual) { }
+throws(void Function() f) { }

@@ -23,7 +23,7 @@ class ErrorNotifier extends NoopInstrumentationService {
       exception = exception.rootCaughtException;
       // TODO(mfairhurst): Use the outermost message rather than the innermost
       // exception as its own message.
-      message = exception.exception;
+      message = exception.message;
     }
 
     server.sendServerErrorNotification(message, exception, stackTrace,

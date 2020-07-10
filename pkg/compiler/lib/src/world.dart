@@ -256,11 +256,16 @@ abstract class BuiltWorld {
   /// Static or top level methods that are closurized.
   Iterable<FunctionEntity> get closurizedStatics;
 
+  /// Properties (fields and getters) which can be called as generic functions.
+  Map<MemberEntity, DartType> get genericCallableProperties;
+
   /// Type variables used as type literals.
   Iterable<TypeVariableType> get typeVariableTypeLiterals;
 
   /// Live user-defined 'noSuchMethod' implementations.
   Iterable<FunctionEntity> get userNoSuchMethods;
+
+  AnnotationsData get annotationsData;
 
   /// Calls [f] for each live generic instance methods.
   void forEachGenericInstanceMethod(void Function(FunctionEntity) f);
@@ -306,6 +311,7 @@ abstract class KClosedWorld implements BuiltWorld {
   RuntimeTypesNeed get rtiNeed;
   NoSuchMethodData get noSuchMethodData;
 
+  @override
   AnnotationsData get annotationsData;
 
   /// Set of live closurized members whose signatures reference type variables.

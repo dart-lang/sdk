@@ -8,7 +8,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
-    show DartCompletionManager, DartCompletionRequestImpl;
+    show DartCompletionRequestImpl;
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
@@ -55,8 +55,8 @@ abstract class DartCompletionContributorTest
   Future<List<CompletionSuggestion>> computeContributedSuggestions(
       DartCompletionRequest request) async {
     var builder = SuggestionBuilder(request);
-    var suggestions = await contributor.computeSuggestions(request, builder);
-    return [...suggestions, ...builder.suggestions];
+    await contributor.computeSuggestions(request, builder);
+    return builder.suggestions.toList();
   }
 
   DartCompletionContributor createContributor();
@@ -65,35 +65,6 @@ abstract class DartCompletionContributorTest
   void setUp() {
     super.setUp();
     contributor = createContributor();
-  }
-}
-
-/// Base class for tests that validate [DartCompletionManager] suggestions.
-class DartCompletionManagerTest extends _BaseDartCompletionContributorTest {
-  DartCompletionManager completionManager;
-
-  @nonVirtual
-  @override
-  Future<List<CompletionSuggestion>> computeContributedSuggestions(
-      DartCompletionRequest request) async {
-    final baseRequest = CompletionRequestImpl(request.result, completionOffset,
-        useNewRelevance, CompletionPerformance());
-    return completionManager.computeSuggestions(baseRequest);
-  }
-
-  /// Display sorted suggestions.
-  void printSuggestions() {
-    suggestions.sort(completionComparator);
-    for (var s in suggestions) {
-      print(
-          '[${s.relevance}] ${s.completion} • ${s.element?.kind?.name ?? ""} ${s.kind.name} ${s.element?.location?.file ?? ""}');
-    }
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    completionManager = DartCompletionManager();
   }
 }
 
@@ -197,10 +168,14 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     }
   }
 
-  void assertNotSuggested(String completion) {
-    var suggestion = suggestions.firstWhere(
-        (CompletionSuggestion cs) => cs.completion == completion,
-        orElse: () => null);
+  void assertNotSuggested(String completion, {ElementKind elemKind}) {
+    var suggestion = suggestions.firstWhere((CompletionSuggestion cs) {
+      if (elemKind == null) {
+        return cs.completion == completion;
+      } else {
+        return cs.completion == completion && cs.element.kind == elemKind;
+      }
+    }, orElse: () => null);
     if (suggestion != null) {
       failedCompletion('did not expect completion: $completion\n  $suggestion');
     }
@@ -632,17 +607,21 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     var baseRequest = CompletionRequestImpl(resolveResult, completionOffset,
         useNewRelevance, CompletionPerformance());
 
-    // Build the request
-    var request =
-        await DartCompletionRequestImpl.from(baseRequest, dartdocInfo);
+    return await baseRequest.performance.runRequestOperation(
+      (performance) async {
+        // Build the request
+        var request = await DartCompletionRequestImpl.from(
+            performance, baseRequest, dartdocInfo);
 
-    var range = request.target.computeReplacementRange(request.offset);
-    replacementOffset = range.offset;
-    replacementLength = range.length;
+        var range = request.target.computeReplacementRange(request.offset);
+        replacementOffset = range.offset;
+        replacementLength = range.length;
 
-    // Request completions
-    suggestions = await computeContributedSuggestions(request);
-    expect(suggestions, isNotNull, reason: 'expected suggestions');
+        // Request completions
+        suggestions = await computeContributedSuggestions(request);
+        expect(suggestions, isNotNull, reason: 'expected suggestions');
+      },
+    );
   }
 
   void failedCompletion(String message,

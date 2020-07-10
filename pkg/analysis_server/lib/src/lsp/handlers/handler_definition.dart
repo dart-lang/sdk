@@ -92,7 +92,21 @@ class DefinitionHandler
           return navigationTargetToLocation(targetFilePath, target, lineInfo);
         }
 
-        return success(convert(mergedTargets, toLocation).toList());
+        final results = convert(mergedTargets, toLocation).toList();
+
+        // If we fetch navigation on a keyword like `var`, the results will include
+        // both the definition and also the variable name. This will cause the editor
+        // to show the user both options unnecessarily (the variable name is always
+        // adjacent to the var keyword, so providing navigation to it is not useful).
+        // To prevent this, filter the list to only those on different lines (or
+        // different files).
+        final otherResults = results
+            .where((element) =>
+                element.uri != params.textDocument.uri ||
+                element.range.start.line != pos.line)
+            .toList();
+
+        return success(otherResults.isNotEmpty ? otherResults : results);
       });
     });
   }

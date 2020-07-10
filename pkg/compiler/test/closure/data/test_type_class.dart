@@ -40,8 +40,8 @@ class Class2<T> {
 class Class3<T> {
   /*member: Class3.method3:hasThis*/
   method3(dynamic o) {
-    /*prod:nnbd-off|prod:nnbd-sdk.fields=[o],free=[o],hasThis*/
-    /*spec:nnbd-off|spec:nnbd-sdk.fields=[o,this],free=[o,this],hasThis*/
+    /*spec.fields=[o,this],free=[o,this],hasThis*/
+    /*prod.fields=[o],free=[o],hasThis*/
     T local() => o;
     return local;
   }

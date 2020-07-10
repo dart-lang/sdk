@@ -5,41 +5,29 @@
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-/**
- * The location of a character represented as a line and column pair.
- */
+/// The location of a character represented as a line and column pair.
 // ignore: deprecated_member_use_from_same_package
 class CharacterLocation extends LineInfo_Location {
   // TODO(brianwilkerson) Replace the body of this class with the body of
   // LineInfo_Location and remove LineInfo_Location.
-  /**
-   * Initialize a newly created location to represent the location of the
-   * character at the given [lineNumber] and [columnNumber].
-   */
+  /// Initialize a newly created location to represent the location of the
+  /// character at the given [lineNumber] and [columnNumber].
   CharacterLocation(int lineNumber, int columnNumber)
       : super(lineNumber, columnNumber);
 }
 
-/**
- * Information about line and column information within a source file.
- */
+/// Information about line and column information within a source file.
 class LineInfo {
-  /**
-   * A list containing the offsets of the first character of each line in the
-   * source code.
-   */
+  /// A list containing the offsets of the first character of each line in the
+  /// source code.
   final List<int> lineStarts;
 
-  /**
-   * The zero-based [lineStarts] index resulting from the last call to
-   * [getLocation].
-   */
+  /// The zero-based [lineStarts] index resulting from the last call to
+  /// [getLocation].
   int _previousLine = 0;
 
-  /**
-   * Initialize a newly created set of line information to represent the data
-   * encoded in the given list of [lineStarts].
-   */
+  /// Initialize a newly created set of line information to represent the data
+  /// encoded in the given list of [lineStarts].
   LineInfo(this.lineStarts) {
     if (lineStarts == null) {
       throw ArgumentError("lineStarts must be non-null");
@@ -48,25 +36,18 @@ class LineInfo {
     }
   }
 
-  /**
-   * Initialize a newly created set of line information corresponding to the
-   * given file [content].
-   */
+  /// Initialize a newly created set of line information corresponding to the
+  /// given file [content].
   factory LineInfo.fromContent(String content) =>
       LineInfo(StringUtilities.computeLineStarts(content));
 
-  /**
-   * The number of lines.
-   */
+  /// The number of lines.
   int get lineCount => lineStarts.length;
 
-  /**
-   * Return the location information for the character at the given [offset].
-   *
-   * A future version of this API will return a [CharacterLocation] rather than
-        // ignore: deprecated_member_use_from_same_package
-   * a [LineInfo_Location].
-   */
+  /// Return the location information for the character at the given [offset].
+  ///
+  /// A future version of this API will return a [CharacterLocation] rather than
+  /// a [LineInfo_Location]. // ignore: deprecated_member_use_from_same_package
   // ignore: deprecated_member_use_from_same_package
   LineInfo_Location getLocation(int offset) {
     var min = 0;
@@ -102,10 +83,8 @@ class LineInfo {
     return CharacterLocation(min + 1, offset - lineStarts[min] + 1);
   }
 
-  /**
-   * Return the offset of the first character on the line with the given
-   * [lineNumber].
-   */
+  /// Return the offset of the first character on the line with the given
+  /// [lineNumber].
   int getOffsetOfLine(int lineNumber) {
     if (lineNumber < 0 || lineNumber >= lineCount) {
       throw ArgumentError(
@@ -114,10 +93,8 @@ class LineInfo {
     return lineStarts[lineNumber];
   }
 
-  /**
-   * Return the offset of the first character on the line following the line
-   * containing the given [offset].
-   */
+  /// Return the offset of the first character on the line following the line
+  /// containing the given [offset].
   int getOffsetOfLineAfter(int offset) {
     return getOffsetOfLine(getLocation(offset).lineNumber);
   }

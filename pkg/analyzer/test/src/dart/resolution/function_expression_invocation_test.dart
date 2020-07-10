@@ -189,4 +189,54 @@ main(Never? x) {
 
     assertType(findNode.binary('1 + 2'), 'int');
   }
+
+  test_nullShorting() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  int Function() get foo;
+}
+
+class B {
+  void bar(A? a) {
+    a?.foo();
+  }
+}
+''');
+
+    assertFunctionExpressionInvocation(
+      findNode.functionExpressionInvocation('a?.foo()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'int Function()',
+      type: 'int?',
+    );
+  }
+
+  test_nullShorting_extends() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  int Function() get foo;
+}
+
+class B {
+  void bar(A? a) {
+    a?.foo().isEven;
+  }
+}
+''');
+
+    assertFunctionExpressionInvocation(
+      findNode.functionExpressionInvocation('a?.foo()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'int Function()',
+      type: 'int',
+    );
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('isEven'),
+      element: intElement.getGetter('isEven'),
+      type: 'bool?',
+    );
+  }
 }

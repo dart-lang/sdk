@@ -11,26 +11,19 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' as utils;
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/workspace/package_build.dart';
 
-/**
- * Instances of the class `SourceFactory` resolve possibly relative URI's
- * against an existing [Source].
- */
+/// Instances of the class `SourceFactory` resolve possibly relative URI's
+/// against an existing [Source].
 class SourceFactoryImpl implements SourceFactory {
-  /**
-   * The resolvers used to resolve absolute URI's.
-   */
+  /// The resolvers used to resolve absolute URI's.
   final List<UriResolver> resolvers;
 
-  /**
-   * Cache of mapping of absolute [Uri]s to [Source]s.
-   */
+  /// Cache of mapping of absolute [Uri]s to [Source]s.
   final HashMap<Uri, Source> _absoluteUriToSourceCache = HashMap<Uri, Source>();
 
-  /**
-   * Initialize a newly created source factory with the given absolute URI
-   * [resolvers].
-   */
+  /// Initialize a newly created source factory with the given absolute URI
+  /// [resolvers].
   SourceFactoryImpl(this.resolvers);
 
   @override
@@ -49,9 +42,15 @@ class SourceFactoryImpl implements SourceFactory {
 
   @override
   Map<String, List<Folder>> get packageMap {
-    PackageMapUriResolver resolver = resolvers
-        .firstWhere((r) => r is PackageMapUriResolver, orElse: () => null);
-    return resolver?.packageMap;
+    for (var resolver in resolvers) {
+      if (resolver is PackageMapUriResolver) {
+        return resolver.packageMap;
+      }
+      if (resolver is PackageBuildPackageUriResolver) {
+        return resolver.packageMap;
+      }
+    }
+    return null;
   }
 
   @override
@@ -141,18 +140,17 @@ class SourceFactoryImpl implements SourceFactory {
     return null;
   }
 
-  /**
-   * Return a source object representing the URI that results from resolving
-   * the given (possibly relative) contained URI against the URI associated
-   * with an existing source object, or `null` if the URI could not be resolved.
-   *
-   * @param containingSource the source containing the given URI
-   * @param containedUri the (possibly relative) URI to be resolved against the
-   *        containing source
-   * @return the source representing the contained URI
-   * @throws AnalysisException if either the contained URI is invalid or if it
-   *         cannot be resolved against the source object's URI
-   */
+  /// Return a source object representing the URI that results from resolving
+  /// the given (possibly relative) contained URI against the URI associated
+  /// with an existing source object, or `null` if the URI could not be
+  /// resolved.
+  ///
+  /// @param containingSource the source containing the given URI
+  /// @param containedUri the (possibly relative) URI to be resolved against the
+  ///        containing source
+  /// @return the source representing the contained URI
+  /// @throws AnalysisException if either the contained URI is invalid or if it
+  ///         cannot be resolved against the source object's URI
   Source _internalResolveUri(Source containingSource, Uri containedUri) {
     if (!containedUri.isAbsolute) {
       if (containingSource == null) {

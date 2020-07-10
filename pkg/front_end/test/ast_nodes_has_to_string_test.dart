@@ -72,7 +72,10 @@ main(List<String> args) async {
     print("OK");
     exitCode = 0;
   } else {
-    print("Missing toString() on $toGo classes!");
+    String classes = classMap.values
+        .map((list) => list.map((cls) => cls.name).join(', '))
+        .join(', ');
+    print("Missing toString() on $toGo class(es): ${classes}");
 
     if (args.length == 1 && args.single == "--interactive") {
       for (Uri uri in classMap.keys) {

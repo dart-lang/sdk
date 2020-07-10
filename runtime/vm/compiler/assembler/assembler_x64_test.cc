@@ -5556,14 +5556,16 @@ ASSEMBLER_TEST_GENERATE(TestRepMovsBytes, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(TestRepMovsBytes, test) {
-  const char* from = "0123456789";
-  const char* to = new char[10];
-  typedef void (*TestRepMovsBytes)(const char* from, const char* to, int count);
+  const char* from = "0123456789x";
+  char* to = new char[11]{0};
+  to[10] = 'y';
+  typedef void (*TestRepMovsBytes)(const char* from, char* to, int count);
   reinterpret_cast<TestRepMovsBytes>(test->entry())(from, to, 10);
   EXPECT_EQ(to[0], '0');
   for (int i = 0; i < 10; i++) {
     EXPECT_EQ(from[i], to[i]);
   }
+  EXPECT_EQ(to[10], 'y');
   delete[] to;
   EXPECT_DISASSEMBLY_NOT_WINDOWS(
       "push rsi\n"
@@ -5575,6 +5577,163 @@ ASSEMBLER_TEST_RUN(TestRepMovsBytes, test) {
       "movq rdi,[rsp+0x8]\n"
       "movq rcx,[rsp]\n"
       "rep movsb\n"
+      "pop rax\n"
+      "pop rax\n"
+      "pop rax\n"
+      "pop rdi\n"
+      "pop rsi\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(TestRepMovsWords, assembler) {
+  __ pushq(RSI);
+  __ pushq(RDI);
+  __ pushq(CallingConventions::kArg1Reg);             // from.
+  __ pushq(CallingConventions::kArg2Reg);             // to.
+  __ pushq(CallingConventions::kArg3Reg);             // count.
+  __ movq(RSI, Address(RSP, 2 * target::kWordSize));  // from.
+  __ movq(RDI, Address(RSP, 1 * target::kWordSize));  // to.
+  __ movq(RCX, Address(RSP, 0 * target::kWordSize));  // count.
+  __ rep_movsw();
+  // Remove saved arguments.
+  __ popq(RAX);
+  __ popq(RAX);
+  __ popq(RAX);
+  __ popq(RDI);
+  __ popq(RSI);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TestRepMovsWords, test) {
+  const uint16_t from[11] = {0x0123, 0x1234, 0x2345, 0x3456, 0x4567, 0x5678,
+                             0x6789, 0x789A, 0x89AB, 0x9ABC, 0xABCD};
+  uint16_t* to = new uint16_t[11]{0};
+  to[10] = 0xFEFE;
+  typedef void (*TestRepMovsWords)(const uint16_t* from, uint16_t* to,
+                                   int count);
+  reinterpret_cast<TestRepMovsWords>(test->entry())(from, to, 10);
+  EXPECT_EQ(to[0], 0x0123u);
+  for (int i = 0; i < 10; i++) {
+    EXPECT_EQ(from[i], to[i]);
+  }
+  EXPECT_EQ(to[10], 0xFEFEu);
+  delete[] to;
+  EXPECT_DISASSEMBLY_NOT_WINDOWS(
+      "push rsi\n"
+      "push rdi\n"
+      "push rdi\n"
+      "push rsi\n"
+      "push rdx\n"
+      "movq rsi,[rsp+0x10]\n"
+      "movq rdi,[rsp+0x8]\n"
+      "movq rcx,[rsp]\n"
+      "rep movsw\n"
+      "pop rax\n"
+      "pop rax\n"
+      "pop rax\n"
+      "pop rdi\n"
+      "pop rsi\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(TestRepMovsDwords, assembler) {
+  __ pushq(RSI);
+  __ pushq(RDI);
+  __ pushq(CallingConventions::kArg1Reg);             // from.
+  __ pushq(CallingConventions::kArg2Reg);             // to.
+  __ pushq(CallingConventions::kArg3Reg);             // count.
+  __ movq(RSI, Address(RSP, 2 * target::kWordSize));  // from.
+  __ movq(RDI, Address(RSP, 1 * target::kWordSize));  // to.
+  __ movq(RCX, Address(RSP, 0 * target::kWordSize));  // count.
+  __ rep_movsl();
+  // Remove saved arguments.
+  __ popq(RAX);
+  __ popq(RAX);
+  __ popq(RAX);
+  __ popq(RDI);
+  __ popq(RSI);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TestRepMovsDwords, test) {
+  const uint32_t from[11] = {0x01234567, 0x12345678, 0x23456789, 0x3456789A,
+                             0x456789AB, 0x56789ABC, 0x6789ABCD, 0x789ABCDE,
+                             0x89ABCDEF, 0x9ABCDEF0, 0xABCDEF01};
+  uint32_t* to = new uint32_t[11]{0};
+  to[10] = 0xFEFEFEFE;
+  typedef void (*TestRepMovsDwords)(const uint32_t* from, uint32_t* to,
+                                    int count);
+  reinterpret_cast<TestRepMovsDwords>(test->entry())(from, to, 10);
+  EXPECT_EQ(to[0], 0x01234567u);
+  for (int i = 0; i < 10; i++) {
+    EXPECT_EQ(from[i], to[i]);
+  }
+  EXPECT_EQ(to[10], 0xFEFEFEFEu);
+  delete[] to;
+  EXPECT_DISASSEMBLY_NOT_WINDOWS(
+      "push rsi\n"
+      "push rdi\n"
+      "push rdi\n"
+      "push rsi\n"
+      "push rdx\n"
+      "movq rsi,[rsp+0x10]\n"
+      "movq rdi,[rsp+0x8]\n"
+      "movq rcx,[rsp]\n"
+      "rep movsl\n"
+      "pop rax\n"
+      "pop rax\n"
+      "pop rax\n"
+      "pop rdi\n"
+      "pop rsi\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(TestRepMovsQwords, assembler) {
+  __ pushq(RSI);
+  __ pushq(RDI);
+  __ pushq(CallingConventions::kArg1Reg);             // from.
+  __ pushq(CallingConventions::kArg2Reg);             // to.
+  __ pushq(CallingConventions::kArg3Reg);             // count.
+  __ movq(RSI, Address(RSP, 2 * target::kWordSize));  // from.
+  __ movq(RDI, Address(RSP, 1 * target::kWordSize));  // to.
+  __ movq(RCX, Address(RSP, 0 * target::kWordSize));  // count.
+  __ rep_movsq();
+  // Remove saved arguments.
+  __ popq(RAX);
+  __ popq(RAX);
+  __ popq(RAX);
+  __ popq(RDI);
+  __ popq(RSI);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TestRepMovsQwords, test) {
+  const uint64_t from[11] = {
+      0x0123456789ABCDEF, 0x123456789ABCDEF0, 0x23456789ABCDEF01,
+      0x3456789ABCDEF012, 0x456789ABCDEF0123, 0x56789ABCDEF01234,
+      0x6789ABCDEF012345, 0x789ABCDEF0123456, 0x89ABCDEF01234567,
+      0x9ABCDEF012345678, 0xABCDEF0123456789};
+  uint64_t* to = new uint64_t[11]{0};
+  to[10] = 0xFEFEFEFEFEFEFEFE;
+  typedef void (*TestRepMovsQwords)(const uint64_t* from, uint64_t* to,
+                                    int count);
+  reinterpret_cast<TestRepMovsQwords>(test->entry())(from, to, 10);
+  EXPECT_EQ(to[0], 0x0123456789ABCDEFu);
+  for (int i = 0; i < 10; i++) {
+    EXPECT_EQ(from[i], to[i]);
+  }
+  EXPECT_EQ(to[10], 0xFEFEFEFEFEFEFEFEu);
+  delete[] to;
+  EXPECT_DISASSEMBLY_NOT_WINDOWS(
+      "push rsi\n"
+      "push rdi\n"
+      "push rdi\n"
+      "push rsi\n"
+      "push rdx\n"
+      "movq rsi,[rsp+0x10]\n"
+      "movq rdi,[rsp+0x8]\n"
+      "movq rcx,[rsp]\n"
+      "rep movsq\n"
       "pop rax\n"
       "pop rax\n"
       "pop rax\n"

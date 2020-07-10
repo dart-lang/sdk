@@ -157,7 +157,7 @@ static void PrintUsage() {
 "--help                                                                      \n"
 "  Display this message (add --verbose for information about all VM options).\n"
 "--version                                                                   \n"
-"  Print the VM version.                                                     \n"
+"  Print the SDK version.                                                    \n"
 "                                                                            \n"
 "To create a core snapshot:                                                  \n"
 "--snapshot_kind=core                                                        \n"
@@ -235,7 +235,7 @@ static int ParseArguments(int argc,
     PrintUsage();
     Platform::Exit(0);
   } else if (version) {
-    Syslog::PrintErr("Dart VM version: %s\n", Dart_VersionString());
+    Syslog::PrintErr("Dart SDK version: %s\n", Dart_VersionString());
     Platform::Exit(0);
   }
 
@@ -664,6 +664,9 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
 
   Dart_IsolateFlags isolate_flags;
   Dart_IsolateFlagsInitialize(&isolate_flags);
+  isolate_flags.null_safety =
+      Dart_DetectNullSafety(nullptr, nullptr, nullptr, nullptr, nullptr,
+                            kernel_buffer, kernel_buffer_size);
   if (IsSnapshottingForPrecompilation()) {
     isolate_flags.obfuscate = obfuscate;
     isolate_flags.entry_points = no_entry_points;

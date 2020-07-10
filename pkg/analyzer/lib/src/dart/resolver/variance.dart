@@ -72,6 +72,20 @@ class Variance {
     return unrelated;
   }
 
+  /// Return the variance associated with the string representation of variance.
+  factory Variance.fromKeywordString(String varianceString) {
+    if (varianceString == "in") {
+      return contravariant;
+    } else if (varianceString == "inout") {
+      return invariant;
+    } else if (varianceString == "out") {
+      return covariant;
+    } else if (varianceString == "unrelated") {
+      return unrelated;
+    }
+    throw ArgumentError('Invalid keyword string for variance: $varianceString');
+  }
+
   /// Initialize a newly created variance to have the given [encoding].
   const Variance._(this._encoding);
 
@@ -88,37 +102,6 @@ class Variance {
         return invariant;
     }
     throw ArgumentError('Invalid encoding for variance: $encoding');
-  }
-
-  /// Return the variance associated with the string representation of variance.
-  factory Variance.fromKeywordString(String varianceString) {
-    if (varianceString == "in") {
-      return contravariant;
-    } else if (varianceString == "inout") {
-      return invariant;
-    } else if (varianceString == "out") {
-      return covariant;
-    } else if (varianceString == "unrelated") {
-      return unrelated;
-    }
-    throw ArgumentError('Invalid keyword string for variance: $varianceString');
-  }
-
-  /// Returns the associated keyword lexeme.
-  String toKeywordString() {
-    switch (this) {
-      case contravariant:
-        return 'in';
-      case invariant:
-        return 'inout';
-      case covariant:
-        return 'out';
-      case unrelated:
-        return '';
-      default:
-        throw ArgumentError(
-            'Missing keyword lexeme representation for variance: $this');
-    }
   }
 
   /// Return `true` if this represents the case when `X` occurs free in `T`, and
@@ -174,18 +157,6 @@ class Variance {
     return this == other ? covariant : contravariant;
   }
 
-  /// Variance values form a lattice where unrelated is the top, invariant
-  /// is the bottom, and covariant and contravariant are incomparable.
-  /// [meet] calculates the meet of two elements of such lattice.  It can be
-  /// used, for example, to calculate the variance of a typedef type parameter
-  /// if it's encountered on the RHS of the typedef multiple times.
-  ///
-  ///       unrelated
-  /// covariant   contravariant
-  ///       invariant
-  Variance meet(Variance other) =>
-      Variance._fromEncoding(_encoding | other._encoding);
-
   /// Returns true if this variance is greater than (above) or equal to the
   /// [other] variance in the partial order induced by the variance lattice.
   ///
@@ -202,6 +173,35 @@ class Variance {
     } else {
       assert(isInvariant);
       return other.isInvariant;
+    }
+  }
+
+  /// Variance values form a lattice where unrelated is the top, invariant
+  /// is the bottom, and covariant and contravariant are incomparable.
+  /// [meet] calculates the meet of two elements of such lattice.  It can be
+  /// used, for example, to calculate the variance of a typedef type parameter
+  /// if it's encountered on the RHS of the typedef multiple times.
+  ///
+  ///       unrelated
+  /// covariant   contravariant
+  ///       invariant
+  Variance meet(Variance other) =>
+      Variance._fromEncoding(_encoding | other._encoding);
+
+  /// Returns the associated keyword lexeme.
+  String toKeywordString() {
+    switch (this) {
+      case contravariant:
+        return 'in';
+      case invariant:
+        return 'inout';
+      case covariant:
+        return 'out';
+      case unrelated:
+        return '';
+      default:
+        throw ArgumentError(
+            'Missing keyword lexeme representation for variance: $this');
     }
   }
 }

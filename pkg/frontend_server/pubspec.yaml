@@ -1,7 +1,7 @@
-# This package is not intended to be published.
 name: frontend_server
-# version: do-not-upload
 description: A resident kernel compiler
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
 
 environment:
   sdk: "^2.7.0"

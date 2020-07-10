@@ -130,6 +130,7 @@ class ObjectPointerVisitor;
   RW(Class, weak_property_class)                                               \
   RW(Array, symbol_table)                                                      \
   RW(Array, canonical_types)                                                   \
+  RW(Array, canonical_type_parameters)                                         \
   RW(Array, canonical_type_arguments)                                          \
   RW(Library, async_library)                                                   \
   RW(Library, builtin_library)                                                 \
@@ -179,6 +180,8 @@ class ObjectPointerVisitor;
   RW(Code, null_error_stub_without_fpu_regs_stub)                              \
   RW(Code, null_arg_error_stub_with_fpu_regs_stub)                             \
   RW(Code, null_arg_error_stub_without_fpu_regs_stub)                          \
+  RW(Code, null_cast_error_stub_with_fpu_regs_stub)                            \
+  RW(Code, null_cast_error_stub_without_fpu_regs_stub)                         \
   RW(Code, range_error_stub_with_fpu_regs_stub)                                \
   RW(Code, range_error_stub_without_fpu_regs_stub)                             \
   RW(Code, allocate_mint_with_fpu_regs_stub)                                   \
@@ -189,6 +192,7 @@ class ObjectPointerVisitor;
   RW(Code, allocate_context_stub)                                              \
   RW(Code, allocate_object_stub)                                               \
   RW(Code, allocate_object_parametrized_stub)                                  \
+  RW(Code, allocate_unhandled_exception_stub)                                  \
   RW(Code, clone_context_stub)                                                 \
   RW(Code, write_barrier_wrappers_stub)                                        \
   RW(Code, array_write_barrier_stub)                                           \
@@ -222,6 +226,9 @@ class ObjectPointerVisitor;
   DO(null_arg_error_stub_with_fpu_regs_stub, NullArgErrorSharedWithFPURegs)    \
   DO(null_arg_error_stub_without_fpu_regs_stub,                                \
      NullArgErrorSharedWithoutFPURegs)                                         \
+  DO(null_cast_error_stub_with_fpu_regs_stub, NullCastErrorSharedWithFPURegs)  \
+  DO(null_cast_error_stub_without_fpu_regs_stub,                               \
+     NullCastErrorSharedWithoutFPURegs)                                        \
   DO(range_error_stub_with_fpu_regs_stub, RangeErrorSharedWithFPURegs)         \
   DO(range_error_stub_without_fpu_regs_stub, RangeErrorSharedWithoutFPURegs)   \
   DO(allocate_mint_with_fpu_regs_stub, AllocateMintSharedWithFPURegs)          \
@@ -233,6 +240,7 @@ class ObjectPointerVisitor;
   DO(allocate_context_stub, AllocateContext)                                   \
   DO(allocate_object_stub, AllocateObject)                                     \
   DO(allocate_object_parametrized_stub, AllocateObjectParameterized)           \
+  DO(allocate_unhandled_exception_stub, AllocateUnhandledException)            \
   DO(clone_context_stub, CloneContext)                                         \
   DO(call_closure_no_such_method_stub, CallClosureNoSuchMethod)                \
   DO(default_tts_stub, DefaultTypeTest)                                        \

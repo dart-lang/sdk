@@ -60,6 +60,11 @@ import '../../js_backend/type_reference.dart'
         TypeReferenceFinalizer,
         TypeReferenceFinalizerImpl,
         TypeReferenceResource;
+import '../../js_backend/string_reference.dart'
+    show
+        StringReferenceFinalizer,
+        StringReferenceFinalizerImpl,
+        StringReferenceResource;
 import '../../options.dart';
 import '../../universe/class_hierarchy.dart' show ClassHierarchy;
 import '../../universe/codegen_world_builder.dart' show CodegenWorld;
@@ -113,7 +118,6 @@ class ModelEmitter {
       this._emitter,
       this._nativeEmitter,
       this._sourceInformationStrategy,
-      RuntimeTypesEncoder rtiEncoder,
       RecipeEncoder rtiRecipeEncoder,
       this._shouldGenerateSourceMap)
       : _constantOrdering = new ConstantOrdering(_closedWorld.sorter) {
@@ -122,7 +126,6 @@ class ModelEmitter {
         _closedWorld.commonElements,
         _closedWorld.elementEnvironment,
         _closedWorld.rtiNeed,
-        rtiEncoder,
         rtiRecipeEncoder,
         _closedWorld.fieldAnalysis,
         _emitter,

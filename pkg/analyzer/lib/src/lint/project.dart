@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/pub.dart';
@@ -121,7 +121,7 @@ class _ApiModel {
     return false;
   }
 
-  _calculate() async {
+  void _calculate() async {
     if (sources == null || sources.isEmpty) {
       return;
     }

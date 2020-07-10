@@ -6,12 +6,12 @@
 
 import 'package:expect/expect.dart';
 
-/*spec:nnbd-off.class: global#LinkedHashMap:deps=[Map],direct,explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],needsArgs*/
-/*prod:nnbd-off.class: global#LinkedHashMap:deps=[Map],needsArgs*/
+/*spec.class: global#LinkedHashMap:deps=[Map],direct,explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],needsArgs*/
+/*prod.class: global#LinkedHashMap:deps=[Map],needsArgs*/
 
-/*spec:nnbd-off|spec:nnbd-sdk.member: method:implicit=[method.T],indirect,needsArgs*/
-/*prod:nnbd-off|prod:nnbd-sdk.member: method:needsArgs*/
 @pragma('dart2js:noInline')
+/*spec.member: method:implicit=[method.T],indirect,needsArgs*/
+/*prod.member: method:needsArgs*/
 method<T>() {
   return () => <T, int>{};
 }

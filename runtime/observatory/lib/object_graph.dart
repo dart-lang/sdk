@@ -333,6 +333,36 @@ class _SnapshotObject implements SnapshotObject {
   }
 }
 
+class _SyntheticSnapshotObject implements SnapshotObject {
+  String _description;
+  SnapshotClass _klass;
+  int _internalSize;
+  int _externalSize;
+  int _retainedSize;
+  List<SnapshotObject> _successors;
+  List<SnapshotObject> _predecessors;
+  SnapshotObject _parent;
+  List<SnapshotObject> _children;
+
+  String get label => null;
+  String get description => _description;
+  SnapshotClass get klass => _klass;
+
+  int get shallowSize => internalSize + externalSize;
+  int get internalSize => _internalSize;
+  int get externalSize => _externalSize;
+  int get retainedSize => _retainedSize;
+
+  Iterable<SnapshotObject> get successors => _successors;
+  Iterable<SnapshotObject> get predecessors => _predecessors;
+  SnapshotObject get parent => _parent;
+  Iterable<SnapshotObject> get children => _children;
+
+  Iterable<SnapshotObject> get objects sync* {
+    yield this;
+  }
+}
+
 /// A set of sibling objects in the graph's dominator tree that have the same
 /// class.
 abstract class SnapshotMergedDominator {
@@ -387,7 +417,11 @@ class _SnapshotMergedDominator implements SnapshotMergedDominator {
 
   int get hashCode => _id ^ _graph.hashCode;
 
-  String get description => "$instanceCount instances of ${klass.name}";
+  String get description {
+    return _id == _ROOT
+        ? "Live Objects + External"
+        : "$instanceCount instances of ${klass.name}";
+  }
 
   SnapshotClass get klass => _graph._classes[_graph._cids[_id]];
 
@@ -465,6 +499,28 @@ class _SnapshotMergedDominator implements SnapshotMergedDominator {
   }
 }
 
+class _SyntheticSnapshotMergedDominator implements SnapshotMergedDominator {
+  String _description;
+  SnapshotClass _klass;
+  int _internalSize;
+  int _externalSize;
+  int _retainedSize;
+  List<SnapshotObject> _objects;
+  SnapshotMergedDominator _parent;
+  List<SnapshotMergedDominator> _children;
+
+  SnapshotClass get klass => _klass;
+  String get description => _description;
+  int get shallowSize => internalSize + externalSize;
+  int get internalSize => _internalSize;
+  int get externalSize => _externalSize;
+  int get retainedSize => _retainedSize;
+  int get instanceCount => _objects.length;
+  SnapshotMergedDominator get parent => _parent;
+  Iterable<SnapshotMergedDominator> get children => _children;
+  Iterable<SnapshotObject> get objects => _objects;
+}
+
 /// A class in a heap snapshot.
 abstract class SnapshotClass {
   String get name;
@@ -533,12 +589,13 @@ abstract class SnapshotGraph {
   Iterable<SnapshotObject> get objects;
 
   SnapshotObject get root;
+  SnapshotObject get extendedRoot;
   SnapshotMergedDominator get mergedRoot;
+  SnapshotMergedDominator get extendedMergedRoot;
 
   // TODO: Insist that the client remember the chunks if needed? Always keeping
   // this increasing the peak memory usage during analysis.
   List<Uint8List> get chunks;
-  Map<String, int> get processPartitions;
 }
 
 const _tagNone = 0;
@@ -552,7 +609,7 @@ const _tagLength = 7;
 const _tagName = 8;
 
 const _kSentinelName = "<omitted-object>";
-const _kRootName = "Root";
+const _kRootName = "Live Objects + External";
 const _kUnknownFieldName = "<unknown>";
 
 class _SnapshotGraph implements SnapshotGraph {
@@ -571,6 +628,97 @@ class _SnapshotGraph implements SnapshotGraph {
   SnapshotObject get root => _SnapshotObject._new(_ROOT, this, "Root");
   SnapshotMergedDominator get mergedRoot =>
       _SnapshotMergedDominator._new(_ROOT, this, null);
+
+  SnapshotObject _extendedRoot;
+  SnapshotObject get extendedRoot {
+    if (_extendedRoot == null) {
+      _createExtended();
+    }
+    return _extendedRoot;
+  }
+
+  SnapshotMergedDominator _extendedMergedRoot;
+  SnapshotMergedDominator get extendedMergedRoot {
+    if (_extendedMergedRoot == null) {
+      _createExtended();
+    }
+    return _extendedMergedRoot;
+  }
+
+  void _createExtended() {
+    var capacity = new _SyntheticSnapshotObject();
+    var uncollected = new _SyntheticSnapshotObject();
+    var fragmentation = new _SyntheticSnapshotObject();
+    var live = root;
+    var mcapacity = new _SyntheticSnapshotMergedDominator();
+    var muncollected = new _SyntheticSnapshotMergedDominator();
+    var mfragmentation = new _SyntheticSnapshotMergedDominator();
+    var mlive = mergedRoot;
+
+    capacity._description = "Capacity + External";
+    capacity._klass = live.klass;
+    capacity._internalSize = _capacity;
+    capacity._externalSize = _totalExternalSize;
+    capacity._retainedSize = capacity._internalSize + capacity._externalSize;
+    capacity._successors = <SnapshotObject>[live, uncollected, fragmentation];
+    capacity._predecessors = <SnapshotObject>[];
+    capacity._children = <SnapshotObject>[live, uncollected, fragmentation];
+
+    mcapacity._description = "Capacity + External";
+    mcapacity._klass = mlive.klass;
+    mcapacity._internalSize = _capacity;
+    mcapacity._externalSize = _totalExternalSize;
+    mcapacity._retainedSize = mcapacity._internalSize + mcapacity._externalSize;
+    mcapacity._children = <SnapshotMergedDominator>[
+      mlive,
+      muncollected,
+      mfragmentation
+    ];
+    mcapacity._objects = <SnapshotObject>[capacity];
+
+    uncollected._description = "Uncollected Garbage";
+    uncollected._klass = live.klass;
+    uncollected._internalSize = _totalInternalSize - _liveInternalSize;
+    uncollected._externalSize = _totalExternalSize - _liveExternalSize;
+    uncollected._retainedSize =
+        uncollected._internalSize + uncollected._externalSize;
+    uncollected._successors = <SnapshotObject>[];
+    uncollected._predecessors = <SnapshotObject>[capacity];
+    uncollected._parent = capacity;
+    uncollected._children = <SnapshotObject>[];
+
+    muncollected._description = "Uncollected Garbage";
+    muncollected._klass = mlive.klass;
+    muncollected._internalSize = _totalInternalSize - _liveInternalSize;
+    muncollected._externalSize = _totalExternalSize - _liveExternalSize;
+    muncollected._retainedSize =
+        muncollected._internalSize + muncollected._externalSize;
+    muncollected._parent = mcapacity;
+    muncollected._children = <SnapshotMergedDominator>[];
+    muncollected._objects = <SnapshotObject>[uncollected];
+
+    fragmentation._description = "Free";
+    fragmentation._klass = live.klass;
+    fragmentation._internalSize = _capacity - _totalInternalSize;
+    fragmentation._externalSize = 0;
+    fragmentation._retainedSize = fragmentation._internalSize;
+    fragmentation._successors = <SnapshotObject>[];
+    fragmentation._predecessors = <SnapshotObject>[capacity];
+    fragmentation._parent = capacity;
+    fragmentation._children = <SnapshotObject>[];
+
+    mfragmentation._description = "Free";
+    mfragmentation._klass = mlive.klass;
+    mfragmentation._internalSize = _capacity - _totalInternalSize;
+    mfragmentation._externalSize = 0;
+    mfragmentation._retainedSize = mfragmentation._internalSize;
+    mfragmentation._parent = mcapacity;
+    mfragmentation._children = <SnapshotMergedDominator>[];
+    mfragmentation._objects = <SnapshotObject>[fragmentation];
+
+    _extendedRoot = capacity;
+    _extendedMergedRoot = mcapacity;
+  }
 
   Iterable<SnapshotObject> get objects sync* {
     final N = _N;
@@ -627,8 +775,6 @@ class _SnapshotGraph implements SnapshotGraph {
     }
   }
 
-  final processPartitions = new Map<String, int>();
-
   Future<SnapshotGraph> _load(
       List<Uint8List> chunks, StreamController<String> onProgress) async {
     _chunks = chunks;
@@ -648,8 +794,6 @@ class _SnapshotGraph implements SnapshotGraph {
     onProgress.add("Loading external properties...");
     await new Future(() => _readExternalProperties(stream));
 
-    onProgress.add("Loading process partitions...");
-    await new Future(() => _readProcessPartitions(stream));
     stream = null;
 
     onProgress.add("Compute class table...");
@@ -879,17 +1023,6 @@ class _SnapshotGraph implements SnapshotGraph {
     }
 
     _externalSizes = externalSizes;
-  }
-
-  void _readProcessPartitions(_ReadStream stream) {
-    // So it isn't null when loading older saved snapshots.
-    processPartitions["RSS"] = 0;
-
-    while (!stream.atEnd()) {
-      final name = stream.readUtf8();
-      final size = stream.readUnsigned();
-      processPartitions[name] = size;
-    }
   }
 
   void _computeClassTable() {

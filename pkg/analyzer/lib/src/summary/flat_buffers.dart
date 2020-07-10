@@ -7,11 +7,9 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
-/**
- * Reader of lists of boolean values.
- *
- * The returned unmodifiable lists lazily read values on access.
- */
+/// Reader of lists of boolean values.
+///
+/// The returned unmodifiable lists lazily read values on access.
 class BoolListReader extends Reader<List<bool>> {
   const BoolListReader();
 
@@ -23,9 +21,7 @@ class BoolListReader extends Reader<List<bool>> {
       _FbBoolList(bc, bc.derefObject(offset));
 }
 
-/**
- * The reader of booleans.
- */
+/// The reader of booleans.
 class BoolReader extends Reader<bool> {
   const BoolReader() : super();
 
@@ -36,9 +32,7 @@ class BoolReader extends Reader<bool> {
   bool read(BufferContext bc, int offset) => bc._getInt8(offset) != 0;
 }
 
-/**
- * Buffer with data and some context about it.
- */
+/// Buffer with data and some context about it.
 class BufferContext {
   final ByteData _buffer;
 
@@ -69,10 +63,8 @@ class BufferContext {
 
   int _getUint8(int offset) => _buffer.getUint8(offset);
 
-  /**
-   * If the [byteList] is already a [Uint8List] return it.
-   * Otherwise return a [Uint8List] copy of the [byteList].
-   */
+  /// If the [byteList] is already a [Uint8List] return it.
+  /// Otherwise return a [Uint8List] copy of the [byteList].
   static Uint8List _asUint8List(List<int> byteList) {
     if (byteList is Uint8List) {
       return byteList;
@@ -82,46 +74,32 @@ class BufferContext {
   }
 }
 
-/**
- * Class that helps building flat buffers.
- */
+/// Class that helps building flat buffers.
 class Builder {
   final int initialSize;
 
-  /**
-   * The list of field tails, reused by [_VTable] instances.
-   */
+  /// The list of field tails, reused by [_VTable] instances.
   final Int32List _reusedFieldTails = Int32List(1024);
 
-  /**
-   * The list of field offsets, reused by [_VTable] instances.
-   */
+  /// The list of field offsets, reused by [_VTable] instances.
   final Int32List _reusedFieldOffsets = Int32List(1024);
 
-  /**
-   * The list of existing VTable(s).
-   */
+  /// The list of existing VTable(s).
   final List<_VTable> _vTables = <_VTable>[];
 
   ByteData _buf;
 
-  /**
-   * The maximum alignment that has been seen so far.  If [_buf] has to be
-   * reallocated in the future (to insert room at its start for more bytes) the
-   * reallocation will need to be a multiple of this many bytes.
-   */
+  /// The maximum alignment that has been seen so far.  If [_buf] has to be
+  /// reallocated in the future (to insert room at its start for more bytes) the
+  /// reallocation will need to be a multiple of this many bytes.
   int _maxAlign;
 
-  /**
-   * The number of bytes that have been written to the buffer so far.  The
-   * most recently written byte is this many bytes from the end of [_buf].
-   */
+  /// The number of bytes that have been written to the buffer so far.  The
+  /// most recently written byte is this many bytes from the end of [_buf].
   int _tail;
 
-  /**
-   * The location of the end of the current table, measured in bytes from the
-   * end of [_buf], or `null` if a table is not currently being built.
-   */
+  /// The location of the end of the current table, measured in bytes from the
+  /// end of [_buf], or `null` if a table is not currently being built.
   int _currentTableEndTail;
 
   _VTable _currentVTable;
@@ -134,11 +112,9 @@ class Builder {
     reset();
   }
 
-  /**
-   * Add the [field] with the given boolean [value].  The field is not added if
-   * the [value] is equal to [def].  Booleans are stored as 8-bit fields with
-   * `0` for `false` and `1` for `true`.
-   */
+  /// Add the [field] with the given boolean [value].  The field is not added if
+  /// the [value] is equal to [def].  Booleans are stored as 8-bit fields with
+  /// `0` for `false` and `1` for `true`.
   void addBool(int field, bool value, [bool def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
@@ -149,9 +125,7 @@ class Builder {
     }
   }
 
-  /**
-   * Add the [field] with the given 64-bit float [value].
-   */
+  /// Add the [field] with the given 64-bit float [value].
   void addFloat64(int field, double value, [double def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
@@ -162,10 +136,8 @@ class Builder {
     }
   }
 
-  /**
-   * Add the [field] with the given 32-bit signed integer [value].  The field is
-   * not added if the [value] is equal to [def].
-   */
+  /// Add the [field] with the given 32-bit signed integer [value].  The field
+  /// is not added if the [value] is equal to [def].
   void addInt32(int field, int value, [int def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
@@ -176,10 +148,8 @@ class Builder {
     }
   }
 
-  /**
-   * Add the [field] with the given 8-bit signed integer [value].  The field is
-   * not added if the [value] is equal to [def].
-   */
+  /// Add the [field] with the given 8-bit signed integer [value].  The field is
+  /// not added if the [value] is equal to [def].
   void addInt8(int field, int value, [int def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
@@ -190,9 +160,7 @@ class Builder {
     }
   }
 
-  /**
-   * Add the [field] referencing an object with the given [offset].
-   */
+  /// Add the [field] referencing an object with the given [offset].
   void addOffset(int field, Offset offset) {
     _ensureCurrentVTable();
     if (offset != null) {
@@ -202,10 +170,8 @@ class Builder {
     }
   }
 
-  /**
-   * Add the [field] with the given 32-bit unsigned integer [value].  The field
-   * is not added if the [value] is equal to [def].
-   */
+  /// Add the [field] with the given 32-bit unsigned integer [value].  The field
+  /// is not added if the [value] is equal to [def].
   void addUint32(int field, int value, [int def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
@@ -216,10 +182,8 @@ class Builder {
     }
   }
 
-  /**
-   * Add the [field] with the given 8-bit unsigned integer [value].  The field
-   * is not added if the [value] is equal to [def].
-   */
+  /// Add the [field] with the given 8-bit unsigned integer [value].  The field
+  /// is not added if the [value] is equal to [def].
   void addUint8(int field, int value, [int def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
@@ -230,9 +194,7 @@ class Builder {
     }
   }
 
-  /**
-   * End the current table and return its offset.
-   */
+  /// End the current table and return its offset.
   Offset endTable() {
     if (_currentVTable == null) {
       throw StateError('Start a table before ending it.');
@@ -271,13 +233,11 @@ class Builder {
     return Offset(tableTail);
   }
 
-  /**
-   * Finish off the creation of the buffer.  The given [offset] is used as the
-   * root object offset, and usually references directly or indirectly every
-   * written object.  If [fileIdentifier] is specified (and not `null`), it is
-   * interpreted as a 4-byte Latin-1 encoded string that should be placed at
-   * bytes 4-7 of the file.
-   */
+  /// Finish off the creation of the buffer.  The given [offset] is used as the
+  /// root object offset, and usually references directly or indirectly every
+  /// written object.  If [fileIdentifier] is specified (and not `null`), it is
+  /// interpreted as a 4-byte Latin-1 encoded string that should be placed at
+  /// bytes 4-7 of the file.
   Uint8List finish(Offset offset, [String fileIdentifier]) {
     _prepare(max(4, _maxAlign), fileIdentifier == null ? 1 : 2);
     int alignedTail = _tail + ((-_tail) % _maxAlign);
@@ -291,42 +251,32 @@ class Builder {
     return _buf.buffer.asUint8List(_buf.lengthInBytes - alignedTail);
   }
 
-  /**
-   * This is a low-level method, it should not be invoked by clients.
-   */
+  /// This is a low-level method, it should not be invoked by clients.
   Uint8List lowFinish() {
     int alignedTail = _tail + ((-_tail) % _maxAlign);
     return _buf.buffer.asUint8List(_buf.lengthInBytes - alignedTail);
   }
 
-  /**
-   * This is a low-level method, it should not be invoked by clients.
-   */
+  /// This is a low-level method, it should not be invoked by clients.
   void lowReset() {
     _buf = ByteData(initialSize);
     _maxAlign = 1;
     _tail = 0;
   }
 
-  /**
-   * This is a low-level method, it should not be invoked by clients.
-   */
+  /// This is a low-level method, it should not be invoked by clients.
   void lowWriteUint32(int value) {
     _prepare(4, 1);
     _setUint32AtTail(_buf, _tail, value);
   }
 
-  /**
-   * This is a low-level method, it should not be invoked by clients.
-   */
+  /// This is a low-level method, it should not be invoked by clients.
   void lowWriteUint8(int value) {
     _prepare(1, 1);
     _buf.setUint8(_buf.lengthInBytes - _tail, value);
   }
 
-  /**
-   * Reset the builder and make it ready for filling a new buffer.
-   */
+  /// Reset the builder and make it ready for filling a new buffer.
   void reset() {
     _buf = ByteData(initialSize);
     _maxAlign = 1;
@@ -334,9 +284,7 @@ class Builder {
     _currentVTable = null;
   }
 
-  /**
-   * Start a new table.  Must be finished with [endTable] invocation.
-   */
+  /// Start a new table.  Must be finished with [endTable] invocation.
   void startTable() {
     if (_currentVTable != null) {
       throw StateError('Inline tables are not supported.');
@@ -345,9 +293,7 @@ class Builder {
     _currentTableEndTail = _tail;
   }
 
-  /**
-   * Write the given list of [values].
-   */
+  /// Write the given list of [values].
   Offset writeList(List<Offset> values) {
     _ensureNoVTable();
     _prepare(4, 1 + values.length);
@@ -362,9 +308,7 @@ class Builder {
     return result;
   }
 
-  /**
-   * Write the given list of boolean [values].
-   */
+  /// Write the given list of boolean [values].
   Offset writeListBool(List<bool> values) {
     int bitLength = values.length;
     int padding = (-bitLength) % 8;
@@ -394,9 +338,7 @@ class Builder {
     return writeListUint8(bytes);
   }
 
-  /**
-   * Write the given list of 64-bit float [values].
-   */
+  /// Write the given list of 64-bit float [values].
   Offset writeListFloat64(List<double> values) {
     _ensureNoVTable();
     _prepare(8, 1 + values.length);
@@ -411,9 +353,7 @@ class Builder {
     return result;
   }
 
-  /**
-   * Write the given list of signed 32-bit integer [values].
-   */
+  /// Write the given list of signed 32-bit integer [values].
   Offset writeListInt32(List<int> values) {
     _ensureNoVTable();
     _prepare(4, 1 + values.length);
@@ -428,9 +368,7 @@ class Builder {
     return result;
   }
 
-  /**
-   * Write the given list of unsigned 32-bit integer [values].
-   */
+  /// Write the given list of unsigned 32-bit integer [values].
   Offset writeListUint32(List<int> values) {
     _ensureNoVTable();
     _prepare(4, 1 + values.length);
@@ -445,9 +383,7 @@ class Builder {
     return result;
   }
 
-  /**
-   * Write the given list of unsigned 8-bit integer [values].
-   */
+  /// Write the given list of unsigned 8-bit integer [values].
   Offset writeListUint8(List<int> values) {
     _ensureNoVTable();
     _prepare(4, 1, additionalBytes: values.length);
@@ -462,10 +398,8 @@ class Builder {
     return result;
   }
 
-  /**
-   * Write the given string [value] and return its [Offset], or `null` if
-   * the [value] is equal to [def].
-   */
+  /// Write the given string [value] and return its [Offset], or `null` if
+  /// the [value] is equal to [def].
   Offset<String> writeString(String value, [String def]) {
     _ensureNoVTable();
     if (value != def) {
@@ -486,18 +420,14 @@ class Builder {
     return null;
   }
 
-  /**
-   * Throw an exception if there is not currently a vtable.
-   */
+  /// Throw an exception if there is not currently a vtable.
   void _ensureCurrentVTable() {
     if (_currentVTable == null) {
       throw StateError('Start a table before adding values.');
     }
   }
 
-  /**
-   * Throw an exception if there is currently a vtable.
-   */
+  /// Throw an exception if there is currently a vtable.
   void _ensureNoVTable() {
     if (_currentVTable != null) {
       throw StateError(
@@ -505,11 +435,9 @@ class Builder {
     }
   }
 
-  /**
-   * Prepare for writing the given [count] of scalars of the given [size].
-   * Additionally allocate the specified [additionalBytes]. Update the current
-   * tail pointer to point at the allocated space.
-   */
+  /// Prepare for writing the given [count] of scalars of the given [size].
+  /// Additionally allocate the specified [additionalBytes]. Update the current
+  /// tail pointer to point at the allocated space.
   void _prepare(int size, int count, {int additionalBytes = 0}) {
     // Update the alignment.
     if (_maxAlign < size) {
@@ -538,9 +466,7 @@ class Builder {
     _tail += bufSize;
   }
 
-  /**
-   * Record the offset of the given [field].
-   */
+  /// Record the offset of the given [field].
   void _trackField(int field) {
     _currentVTable.addField(field, _tail);
   }
@@ -562,11 +488,9 @@ class Builder {
   }
 }
 
-/**
- * The reader of lists of 64-bit float values.
- *
- * The returned unmodifiable lists lazily read values on access.
- */
+/// The reader of lists of 64-bit float values.
+///
+/// The returned unmodifiable lists lazily read values on access.
 class Float64ListReader extends Reader<List<double>> {
   const Float64ListReader();
 
@@ -578,9 +502,7 @@ class Float64ListReader extends Reader<List<double>> {
       _FbFloat64List(bc, bc.derefObject(offset));
 }
 
-/**
- * The reader of 64-bit floats.
- */
+/// The reader of 64-bit floats.
 class Float64Reader extends Reader<double> {
   const Float64Reader() : super();
 
@@ -591,9 +513,7 @@ class Float64Reader extends Reader<double> {
   double read(BufferContext bc, int offset) => bc._getFloat64(offset);
 }
 
-/**
- * The reader of signed 32-bit integers.
- */
+/// The reader of signed 32-bit integers.
 class Int32Reader extends Reader<int> {
   const Int32Reader() : super();
 
@@ -604,9 +524,7 @@ class Int32Reader extends Reader<int> {
   int read(BufferContext bc, int offset) => bc._getInt32(offset);
 }
 
-/**
- * The reader of 8-bit signed integers.
- */
+/// The reader of 8-bit signed integers.
 class Int8Reader extends Reader<int> {
   const Int8Reader() : super();
 
@@ -617,11 +535,9 @@ class Int8Reader extends Reader<int> {
   int read(BufferContext bc, int offset) => bc._getInt8(offset);
 }
 
-/**
- * The reader of lists of objects.
- *
- * The returned unmodifiable lists lazily read objects on access.
- */
+/// The reader of lists of objects.
+///
+/// The returned unmodifiable lists lazily read objects on access.
 class ListReader<E> extends Reader<List<E>> {
   final Reader<E> _elementReader;
 
@@ -635,34 +551,25 @@ class ListReader<E> extends Reader<List<E>> {
       _FbGenericList<E>(_elementReader, bc, bc.derefObject(offset));
 }
 
-/**
- * The offset from the end of the buffer to a serialized object of the type [T].
- */
+/// The offset from the end of the buffer to a serialized object of the type
+/// [T].
 class Offset<T> {
   final int _tail;
 
   Offset(this._tail);
 }
 
-/**
- * Object that can read a value at a [BufferContext].
- */
+/// Object that can read a value at a [BufferContext].
 abstract class Reader<T> {
   const Reader();
 
-  /**
-   * The size of the value in bytes.
-   */
+  /// The size of the value in bytes.
   int get size;
 
-  /**
-   * Read the value at the given [offset] in [bc].
-   */
+  /// Read the value at the given [offset] in [bc].
   T read(BufferContext bc, int offset);
 
-  /**
-   * Read the value of the given [field] in the given [object].
-   */
+  /// Read the value of the given [field] in the given [object].
   T vTableGet(BufferContext object, int offset, int field, [T defaultValue]) {
     int vTableSOffset = object._getInt32(offset);
     int vTableOffset = offset - vTableSOffset;
@@ -679,9 +586,7 @@ abstract class Reader<T> {
   }
 }
 
-/**
- * The reader of string values.
- */
+/// The reader of string values.
 class StringReader extends Reader<String> {
   const StringReader() : super();
 
@@ -710,18 +615,14 @@ class StringReader extends Reader<String> {
   }
 }
 
-/**
- * An abstract reader for tables.
- */
+/// An abstract reader for tables.
 abstract class TableReader<T> extends Reader<T> {
   const TableReader();
 
   @override
   int get size => 4;
 
-  /**
-   * Return the object at [offset].
-   */
+  /// Return the object at [offset].
   T createObject(BufferContext bc, int offset);
 
   @override
@@ -731,11 +632,9 @@ abstract class TableReader<T> extends Reader<T> {
   }
 }
 
-/**
- * Reader of lists of unsigned 32-bit integer values.
- *
- * The returned unmodifiable lists lazily read values on access.
- */
+/// Reader of lists of unsigned 32-bit integer values.
+///
+/// The returned unmodifiable lists lazily read values on access.
 class Uint32ListReader extends Reader<List<int>> {
   const Uint32ListReader();
 
@@ -747,9 +646,7 @@ class Uint32ListReader extends Reader<List<int>> {
       _FbUint32List(bc, bc.derefObject(offset));
 }
 
-/**
- * The reader of unsigned 32-bit integers.
- */
+/// The reader of unsigned 32-bit integers.
 class Uint32Reader extends Reader<int> {
   const Uint32Reader() : super();
 
@@ -760,11 +657,9 @@ class Uint32Reader extends Reader<int> {
   int read(BufferContext bc, int offset) => bc._getUint32(offset);
 }
 
-/**
- * Reader of lists of unsigned 8-bit integer values.
- *
- * The returned unmodifiable lists lazily read values on access.
- */
+/// Reader of lists of unsigned 8-bit integer values.
+///
+/// The returned unmodifiable lists lazily read values on access.
 class Uint8ListReader extends Reader<List<int>> {
   const Uint8ListReader();
 
@@ -776,9 +671,7 @@ class Uint8ListReader extends Reader<List<int>> {
       _FbUint8List(bc, bc.derefObject(offset));
 }
 
-/**
- * The reader of unsigned 8-bit integers.
- */
+/// The reader of unsigned 8-bit integers.
 class Uint8Reader extends Reader<int> {
   const Uint8Reader() : super();
 
@@ -789,9 +682,7 @@ class Uint8Reader extends Reader<int> {
   int read(BufferContext bc, int offset) => bc._getUint8(offset);
 }
 
-/**
- * List of booleans backed by 8-bit unsigned integers.
- */
+/// List of booleans backed by 8-bit unsigned integers.
 class _FbBoolList with ListMixin<bool> implements List<bool> {
   final BufferContext bc;
   final int offset;
@@ -825,9 +716,7 @@ class _FbBoolList with ListMixin<bool> implements List<bool> {
   int _getByte(int index) => bc._getUint8(offset + 4 + index);
 }
 
-/**
- * The list backed by 64-bit values - Uint64 length and Float64.
- */
+/// The list backed by 64-bit values - Uint64 length and Float64.
 class _FbFloat64List extends _FbList<double> {
   _FbFloat64List(BufferContext bc, int offset) : super(bc, offset);
 
@@ -837,9 +726,7 @@ class _FbFloat64List extends _FbList<double> {
   }
 }
 
-/**
- * List backed by a generic object which may have any size.
- */
+/// List backed by a generic object which may have any size.
 class _FbGenericList<E> extends _FbList<E> {
   final Reader<E> elementReader;
 
@@ -860,9 +747,7 @@ class _FbGenericList<E> extends _FbList<E> {
   }
 }
 
-/**
- * The base class for immutable lists read from flat buffers.
- */
+/// The base class for immutable lists read from flat buffers.
 abstract class _FbList<E> with ListMixin<E> implements List<E> {
   final BufferContext bc;
   final int offset;
@@ -884,9 +769,7 @@ abstract class _FbList<E> with ListMixin<E> implements List<E> {
       throw StateError('Attempt to modify immutable list');
 }
 
-/**
- * List backed by 32-bit unsigned integers.
- */
+/// List backed by 32-bit unsigned integers.
 class _FbUint32List extends _FbList<int> {
   _FbUint32List(BufferContext bc, int offset) : super(bc, offset);
 
@@ -896,9 +779,7 @@ class _FbUint32List extends _FbList<int> {
   }
 }
 
-/**
- * List backed by 8-bit unsigned integers.
- */
+/// List backed by 8-bit unsigned integers.
 class _FbUint8List extends _FbList<int> {
   _FbUint8List(BufferContext bc, int offset) : super(bc, offset);
 
@@ -908,33 +789,23 @@ class _FbUint8List extends _FbList<int> {
   }
 }
 
-/**
- * Class that describes the structure of a table.
- */
+/// Class that describes the structure of a table.
 class _VTable {
   final Int32List _reusedFieldTails;
   final Int32List _reusedFieldOffsets;
 
-  /**
-   * The number of fields in [_reusedFieldTails].
-   */
+  /// The number of fields in [_reusedFieldTails].
   int _fieldCount = 0;
 
-  /**
-   * The private copy of [_reusedFieldOffsets], which is made only when we
-   * find that this table is unique.
-   */
+  /// The private copy of [_reusedFieldOffsets], which is made only when we
+  /// find that this table is unique.
   Int32List _fieldOffsets;
 
-  /**
-   * The size of the table that uses this VTable.
-   */
+  /// The size of the table that uses this VTable.
   int tableSize;
 
-  /**
-   * The tail of this VTable.  It is used to share the same VTable between
-   * multiple tables of identical structure.
-   */
+  /// The tail of this VTable.  It is used to share the same VTable between
+  /// multiple tables of identical structure.
   int tail;
 
   _VTable(this._reusedFieldTails, this._reusedFieldOffsets);
@@ -948,9 +819,7 @@ class _VTable {
     _reusedFieldTails[field] = offset;
   }
 
-  /**
-   * Return `true` if the [existing] VTable can be used instead of this.
-   */
+  /// Return `true` if the [existing] VTable can be used instead of this.
   bool canUseExistingVTable(_VTable existing) {
     assert(tail == null);
     assert(existing.tail != null);
@@ -966,9 +835,7 @@ class _VTable {
     return false;
   }
 
-  /**
-   * Fill the [_reusedFieldOffsets] field.
-   */
+  /// Fill the [_reusedFieldOffsets] field.
   void computeFieldOffsets(int tableTail) {
     for (int i = 0; i < _fieldCount; ++i) {
       int fieldTail = _reusedFieldTails[i];
@@ -976,10 +843,8 @@ class _VTable {
     }
   }
 
-  /**
-   * Outputs this VTable to [buf], which is is expected to be aligned to 16-bit
-   * and have at least [numOfUint16] 16-bit words available.
-   */
+  /// Outputs this VTable to [buf], which is is expected to be aligned to 16-bit
+  /// and have at least [numOfUint16] 16-bit words available.
   void output(ByteData buf, int bufOffset) {
     // VTable size.
     buf.setUint16(bufOffset, numOfUint16 * 2, Endian.little);
@@ -994,9 +859,7 @@ class _VTable {
     }
   }
 
-  /**
-   * Fill the [_fieldOffsets] field.
-   */
+  /// Fill the [_fieldOffsets] field.
   void takeFieldOffsets() {
     assert(_fieldOffsets == null);
     _fieldOffsets = Int32List(_fieldCount);

@@ -1,0 +1,137 @@
+library #lib;
+import self as self;
+import "generated/foo.pb.dart" as pb;
+import "dart:core" as core;
+import "package:test_core/test_core.dart" as tes;
+import "package:protobuf/protobuf.dart" as pro;
+import "package:test_api/src/frontend/expect.dart" as exp;
+import "package:test_api/src/frontend/throws_matcher.dart" as thr;
+import "package:matcher/src/type_matcher.dart" as typ;
+
+import "package:test/test.dart";
+import "file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart";
+
+static method main() → dynamic {
+  pb::FooKeep* foo = let final pb::FooKeep* #t1 = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep] pb::FooKeep::•() in block {
+    [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.barKeep] [@vm.inferred-type.metadata=!? (skip check)] #t1.{pb::FooKeep::barKeep} = let final pb::BarKeep* #t2 = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep] pb::BarKeep::•() in block {
+      [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep.aKeep] [@vm.inferred-type.metadata=!? (skip check)] #t2.{pb::BarKeep::aKeep} = 5;
+    } =>#t2;
+    [@vm.call-site-attributes.metadata=receiverType:dart.core::Map<dart.core::String*, library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep*>*] [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.mapKeep] [@vm.inferred-type.metadata=!] #t1.{pb::FooKeep::mapKeep}.{core::Map::[]=}("foo", let final pb::BarKeep* #t3 = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep] pb::BarKeep::•() in block {
+      [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep.aKeep] [@vm.inferred-type.metadata=!? (skip check)] #t3.{pb::BarKeep::aKeep} = 2;
+    } =>#t3);
+    [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.aKeep] [@vm.inferred-type.metadata=!? (skip check)] #t1.{pb::FooKeep::aKeep} = 43;
+  } =>#t1;
+  tes::test("Freezing a message works", () → core::Null? {
+    [@vm.direct-call.metadata=protobuf::GeneratedMessage.freeze] [@vm.inferred-type.metadata=!? (skip check)] foo.{pro::GeneratedMessage::freeze}();
+    exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep.aKeep??] [@vm.inferred-type.metadata=int] [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.barKeep] [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep?] foo.{pb::FooKeep::barKeep}.{pb::BarKeep::aKeep}, 5);
+    exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep.aKeep??] [@vm.inferred-type.metadata=int] [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep?] [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.mapKeep] [@vm.inferred-type.metadata=!] foo.{pb::FooKeep::mapKeep}.{core::Map::[]}("foo").{pb::BarKeep::aKeep}, 2);
+    exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.hasHasKeep] [@vm.inferred-type.metadata=dart.core::bool (skip check)] foo.{pb::FooKeep::hasHasKeep}(), false);
+    exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.aKeep] [@vm.inferred-type.metadata=int] foo.{pb::FooKeep::aKeep}, 43);
+    exp::expect(() → void => [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.clearClearKeep] [@vm.inferred-type.metadata=!? (skip check)] foo.{pb::FooKeep::clearClearKeep}(), [@vm.inferred-type.metadata=library package:test_api/src/frontend/throws_matcher.dart::Throws] thr::throwsA(#C2));
+  });
+}
+library foo.pb.dart;
+import self as self;
+import "package:protobuf/protobuf.dart" as pro;
+import "dart:core" as core;
+
+import "dart:core" as $core;
+import "package:protobuf/protobuf.dart" as $pb;
+
+class FooKeep extends pro::GeneratedMessage {
+[@vm.inferred-type.metadata=protobuf::BuilderInfo?]  static final field pro::BuilderInfo* _i = let final pro::BuilderInfo* #t1 = new pro::BuilderInfo::•("FooKeep", createEmptyInstance: #C1) in block {
+    [@vm.direct-call.metadata=protobuf::BuilderInfo.aOM] [@vm.inferred-type.metadata=!? (skip check)] #t1.{pro::BuilderInfo::aOM}<self::BarKeep*>(1, "barKeep", protoName: "barKeep", subBuilder: #C2);
+    [@vm.direct-call.metadata=protobuf::BuilderInfo.add] [@vm.inferred-type.metadata=!? (skip check)] #t1.{pro::BuilderInfo::add}<core::Null?>(0, null, null, null, null, null, null);
+    [@vm.direct-call.metadata=protobuf::BuilderInfo.m] [@vm.inferred-type.metadata=!? (skip check)] #t1.{pro::BuilderInfo::m}<core::String*, self::BarKeep*>(3, "mapKeep", protoName: "mapKeep", entryClassName: "FooKeep.MapKeepEntry", keyFieldType: #C3, valueFieldType: #C4, valueCreator: #C2);
+    [@vm.direct-call.metadata=protobuf::BuilderInfo.add] [@vm.inferred-type.metadata=!? (skip check)] #t1.{pro::BuilderInfo::add}<core::Null?>(0, null, null, null, null, null, null);
+    [@vm.direct-call.metadata=protobuf::BuilderInfo.a] [@vm.inferred-type.metadata=!? (skip check)] #t1.{pro::BuilderInfo::a}<core::int*>(5, "aKeep", #C5, protoName: "aKeep");
+    [@vm.direct-call.metadata=protobuf::BuilderInfo.aOM] [@vm.inferred-type.metadata=!? (skip check)] #t1.{pro::BuilderInfo::aOM}<self::HasKeep*>(6, "hasKeep", protoName: "hasKeep", subBuilder: #C6);
+    [@vm.direct-call.metadata=protobuf::BuilderInfo.aOM] [@vm.inferred-type.metadata=!? (skip check)] #t1.{pro::BuilderInfo::aOM}<self::ClearKeep*>(7, "clearKeep", protoName: "clearKeep", subBuilder: #C7);
+    [@vm.direct-call.metadata=protobuf::BuilderInfo.hasRequiredFields] [@vm.inferred-type.metadata=!? (skip check)] #t1.{pro::BuilderInfo::hasRequiredFields} = false;
+  } =>#t1;
+  constructor _() → self::FooKeep*
+    : super pro::GeneratedMessage::•()
+    ;
+  static factory •() → self::FooKeep*
+    return [@vm.inferred-type.metadata=foo.pb.dart::FooKeep] self::FooKeep::create();
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  get info_() → pro::BuilderInfo*
+    return [@vm.inferred-type.metadata=protobuf::BuilderInfo?] self::FooKeep::_i;
+  @#C10
+  static method create() → self::FooKeep*
+    return new self::FooKeep::_();
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  @#C12
+  get barKeep() → self::BarKeep*
+    return [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_getN] [@vm.inferred-type.metadata=foo.pb.dart::BarKeep? (skip check)] this.{pro::GeneratedMessage::$_getN}<self::BarKeep*>(0);
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  @#C12
+  set barKeep([@vm.inferred-type.metadata=foo.pb.dart::BarKeep] self::BarKeep* v) → void {
+    [@vm.direct-call.metadata=protobuf::GeneratedMessage.setField] [@vm.inferred-type.metadata=!? (skip check)] this.{pro::GeneratedMessage::setField}(1, v);
+  }
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:6]  @#C14
+  get mapKeep() → core::Map<core::String*, self::BarKeep*>*
+    return [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_getMap] [@vm.inferred-type.metadata=! (skip check)] this.{pro::GeneratedMessage::$_getMap}<core::String*, self::BarKeep*>(2);
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  @#C16
+  get aKeep() → core::int*
+    return [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_getIZ] [@vm.inferred-type.metadata=int (skip check)] this.{pro::GeneratedMessage::$_getIZ}(4);
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  @#C16
+  set aKeep([@vm.inferred-type.metadata=dart.core::_Smi (value: 43)] core::int* v) → void {
+    [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_setSignedInt32] [@vm.inferred-type.metadata=!? (skip check)] this.{pro::GeneratedMessage::$_setSignedInt32}(4, v);
+  }
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]  @#C18
+  method hasHasKeep() → core::bool*
+    return [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_has] [@vm.inferred-type.metadata=dart.core::bool (skip check)] this.{pro::GeneratedMessage::$_has}(5);
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]  @#C20
+  method clearClearKeep() → void
+    return [@vm.direct-call.metadata=protobuf::GeneratedMessage.clearField] [@vm.inferred-type.metadata=dart.core::Null? (skip check) (value: null)] this.{pro::GeneratedMessage::clearField}(7);
+}
+class BarKeep extends pro::GeneratedMessage {
+[@vm.inferred-type.metadata=protobuf::BuilderInfo?]  static final field pro::BuilderInfo* _i = let final pro::BuilderInfo* #t2 = new pro::BuilderInfo::•("BarKeep", createEmptyInstance: #C2) in block {
+    [@vm.direct-call.metadata=protobuf::BuilderInfo.a] [@vm.inferred-type.metadata=!? (skip check)] #t2.{pro::BuilderInfo::a}<core::int*>(1, "aKeep", #C5, protoName: "aKeep");
+    [@vm.direct-call.metadata=protobuf::BuilderInfo.add] [@vm.inferred-type.metadata=!? (skip check)] #t2.{pro::BuilderInfo::add}<core::Null?>(0, null, null, null, null, null, null);
+    [@vm.direct-call.metadata=protobuf::BuilderInfo.hasRequiredFields] [@vm.inferred-type.metadata=!? (skip check)] #t2.{pro::BuilderInfo::hasRequiredFields} = false;
+  } =>#t2;
+  constructor _() → self::BarKeep*
+    : super pro::GeneratedMessage::•()
+    ;
+  static factory •() → self::BarKeep*
+    return [@vm.inferred-type.metadata=foo.pb.dart::BarKeep] self::BarKeep::create();
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  get info_() → pro::BuilderInfo*
+    return [@vm.inferred-type.metadata=protobuf::BuilderInfo?] self::BarKeep::_i;
+  @#C10
+  static method create() → self::BarKeep*
+    return new self::BarKeep::_();
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:13,getterSelectorId:14]  @#C12
+  get aKeep() → core::int*
+    return [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_getIZ] [@vm.inferred-type.metadata=int (skip check)] this.{pro::GeneratedMessage::$_getIZ}(0);
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:13,getterSelectorId:14]  @#C12
+  set aKeep([@vm.inferred-type.metadata=dart.core::_Smi] core::int* v) → void {
+    [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_setSignedInt32] [@vm.inferred-type.metadata=!? (skip check)] this.{pro::GeneratedMessage::$_setSignedInt32}(0, v);
+  }
+}
+class HasKeep extends pro::GeneratedMessage {
+[@vm.inferred-type.metadata=protobuf::BuilderInfo?]  static final field pro::BuilderInfo* _i = let final pro::BuilderInfo* #t3 = new pro::BuilderInfo::•("HasKeep", createEmptyInstance: #C6) in block {
+    [@vm.direct-call.metadata=protobuf::BuilderInfo.add] [@vm.inferred-type.metadata=!? (skip check)] #t3.{pro::BuilderInfo::add}<core::Null?>(0, null, null, null, null, null, null);
+    [@vm.direct-call.metadata=protobuf::BuilderInfo.hasRequiredFields] [@vm.inferred-type.metadata=!? (skip check)] #t3.{pro::BuilderInfo::hasRequiredFields} = false;
+  } =>#t3;
+  constructor _() → self::HasKeep*
+    : super pro::GeneratedMessage::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  get info_() → pro::BuilderInfo*
+    return [@vm.inferred-type.metadata=protobuf::BuilderInfo?] self::HasKeep::_i;
+  @#C10
+  static method create() → self::HasKeep*
+    return new self::HasKeep::_();
+}
+class ClearKeep extends pro::GeneratedMessage {
+[@vm.inferred-type.metadata=protobuf::BuilderInfo?]  static final field pro::BuilderInfo* _i = let final pro::BuilderInfo* #t4 = new pro::BuilderInfo::•("ClearKeep", createEmptyInstance: #C7) in block {
+    [@vm.direct-call.metadata=protobuf::BuilderInfo.add] [@vm.inferred-type.metadata=!? (skip check)] #t4.{pro::BuilderInfo::add}<core::Null?>(0, null, null, null, null, null, null);
+    [@vm.direct-call.metadata=protobuf::BuilderInfo.hasRequiredFields] [@vm.inferred-type.metadata=!? (skip check)] #t4.{pro::BuilderInfo::hasRequiredFields} = false;
+  } =>#t4;
+  constructor _() → self::ClearKeep*
+    : super pro::GeneratedMessage::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  get info_() → pro::BuilderInfo*
+    return [@vm.inferred-type.metadata=protobuf::BuilderInfo?] self::ClearKeep::_i;
+  @#C10
+  static method create() → self::ClearKeep*
+    return new self::ClearKeep::_();
+}

@@ -1188,6 +1188,63 @@ class FlowModel<Variable, Type> {
     }());
   }
 
+  /// Updates the state to indicate that the given [writtenVariables] are no
+  /// longer promoted and are no longer definitely unassigned, and the given
+  /// [capturedVariables] have been captured by closures.
+  ///
+  /// This is used at the top of loops to conservatively cancel the promotion of
+  /// variables that are modified within the loop, so that we correctly analyze
+  /// code like the following:
+  ///
+  ///     if (x is int) {
+  ///       x.isEven; // OK, promoted to int
+  ///       while (true) {
+  ///         x.isEven; // ERROR: promotion lost
+  ///         x = 'foo';
+  ///       }
+  ///     }
+  ///
+  /// Note that a more accurate analysis would be to iterate to a fixed point,
+  /// and only remove promotions if it can be shown that they aren't restored
+  /// later in the loop body.  If we switch to a fixed point analysis, we should
+  /// be able to remove this method.
+  FlowModel<Variable, Type> conservativeJoin(
+      Iterable<Variable> writtenVariables,
+      Iterable<Variable> capturedVariables) {
+    Map<Variable, VariableModel<Variable, Type>> newVariableInfo;
+
+    for (Variable variable in writtenVariables) {
+      VariableModel<Variable, Type> info = infoFor(variable);
+      VariableModel<Variable, Type> newInfo =
+          info.discardPromotionsAndMarkNotUnassigned();
+      if (!identical(info, newInfo)) {
+        (newVariableInfo ??=
+            new Map<Variable, VariableModel<Variable, Type>>.from(
+                variableInfo))[variable] = newInfo;
+      }
+    }
+
+    for (Variable variable in capturedVariables) {
+      VariableModel<Variable, Type> info = variableInfo[variable];
+      if (info == null) {
+        (newVariableInfo ??=
+            new Map<Variable, VariableModel<Variable, Type>>.from(
+                variableInfo))[variable] = new VariableModel<Variable, Type>(
+            null, const [], false, false, true);
+      } else if (!info.writeCaptured) {
+        (newVariableInfo ??=
+            new Map<Variable, VariableModel<Variable, Type>>.from(
+                variableInfo))[variable] = info.writeCapture();
+      }
+    }
+
+    FlowModel<Variable, Type> result = newVariableInfo == null
+        ? this
+        : new FlowModel<Variable, Type>._(reachable, newVariableInfo);
+
+    return result;
+  }
+
   /// Register a declaration of the [variable].
   /// Should also be called for function parameters.
   ///
@@ -1207,12 +1264,9 @@ class FlowModel<Variable, Type> {
       variableInfo[variable] ?? _freshVariableInfo;
 
   /// Updates the state to indicate that variables that are not definitely
-  /// unassigned in the [other], or are [written], are also not definitely
-  /// unassigned in the result.
-  FlowModel<Variable, Type> joinUnassigned({
-    FlowModel<Variable, Type> other,
-    Iterable<Variable> written,
-  }) {
+  /// unassigned in the [other], are also not definitely unassigned in the
+  /// result.
+  FlowModel<Variable, Type> joinUnassigned(FlowModel<Variable, Type> other) {
     Map<Variable, VariableModel<Variable, Type>> newVariableInfo;
 
     void markNotUnassigned(Variable variable) {
@@ -1227,71 +1281,15 @@ class FlowModel<Variable, Type> {
               variableInfo))[variable] = newInfo;
     }
 
-    if (other != null) {
-      for (Variable variable in other.variableInfo.keys) {
-        VariableModel<Variable, Type> otherInfo = other.variableInfo[variable];
-        if (!otherInfo.unassigned) {
-          markNotUnassigned(variable);
-        }
-      }
-    }
-
-    if (written != null) {
-      for (Variable variable in written) {
+    for (Variable variable in other.variableInfo.keys) {
+      VariableModel<Variable, Type> otherInfo = other.variableInfo[variable];
+      if (!otherInfo.unassigned) {
         markNotUnassigned(variable);
       }
     }
 
     if (newVariableInfo == null) return this;
 
-    return new FlowModel<Variable, Type>._(reachable, newVariableInfo);
-  }
-
-  /// Updates the state to indicate that the given [writtenVariables] are no
-  /// longer promoted; they are presumed to have their declared types.
-  ///
-  /// This is used at the top of loops to conservatively cancel the promotion of
-  /// variables that are modified within the loop, so that we correctly analyze
-  /// code like the following:
-  ///
-  ///     if (x is int) {
-  ///       x.isEven; // OK, promoted to int
-  ///       while (true) {
-  ///         x.isEven; // ERROR: promotion lost
-  ///         x = 'foo';
-  ///       }
-  ///     }
-  ///
-  /// Note that a more accurate analysis would be to iterate to a fixed point,
-  /// and only remove promotions if it can be shown that they aren't restored
-  /// later in the loop body.  If we switch to a fixed point analysis, we should
-  /// be able to remove this method.
-  FlowModel<Variable, Type> removePromotedAll(
-      Iterable<Variable> writtenVariables,
-      Iterable<Variable> capturedVariables) {
-    Map<Variable, VariableModel<Variable, Type>> newVariableInfo;
-    for (Variable variable in writtenVariables) {
-      VariableModel<Variable, Type> info = infoFor(variable);
-      if (info.promotedTypes != null) {
-        (newVariableInfo ??=
-            new Map<Variable, VariableModel<Variable, Type>>.from(
-                variableInfo))[variable] = info.discardPromotions();
-      }
-    }
-    for (Variable variable in capturedVariables) {
-      VariableModel<Variable, Type> info = variableInfo[variable];
-      if (info == null) {
-        (newVariableInfo ??=
-            new Map<Variable, VariableModel<Variable, Type>>.from(
-                variableInfo))[variable] = new VariableModel<Variable, Type>(
-            null, const [], false, false, true);
-      } else if (!info.writeCaptured) {
-        (newVariableInfo ??=
-            new Map<Variable, VariableModel<Variable, Type>>.from(
-                variableInfo))[variable] = info.writeCapture();
-      }
-    }
-    if (newVariableInfo == null) return this;
     return new FlowModel<Variable, Type>._(reachable, newVariableInfo);
   }
 
@@ -1654,6 +1652,16 @@ abstract class TypeOperations<Variable, Type> {
   /// consideration by an instance check.
   Type factor(Type from, Type what);
 
+  /// Whether the possible promotion from [from] to [to] should be forced, given
+  /// the current [promotedTypes], and [newPromotedTypes] resulting from
+  /// possible demotion.
+  ///
+  /// It is not expected that any implementation would override this except for
+  /// the migration engine.
+  bool forcePromotion(Type to, Type from, List<Type> promotedTypes,
+          List<Type> newPromotedTypes) =>
+      false;
+
   /// Return `true` if the [variable] is a local variable (not a formal
   /// parameter), and it has no declared type (no explicit type, and not
   /// initializer).
@@ -1670,6 +1678,15 @@ abstract class TypeOperations<Variable, Type> {
   /// Note that some types don't have a non-nullable version (e.g.
   /// `FutureOr<int?>`), so [type] may be returned even if it is nullable.
   Type /*!*/ promoteToNonNull(Type type);
+
+  /// Performs refinements on the [promotedTypes] chain which resulted in
+  /// intersecting [chain1] and [chain2].
+  ///
+  /// It is not expected that any implementation would override this except for
+  /// the migration engine.
+  List<Type> refinePromotedTypes(
+          List<Type> chain1, List<Type> chain2, List<Type> promotedTypes) =>
+      promotedTypes;
 
   /// Tries to promote to the first type from the second type, and returns the
   /// promoted type if it succeeds, otherwise null.
@@ -1727,11 +1744,13 @@ class VariableModel<Variable, Type> {
         writeCaptured = false;
 
   /// Returns a new [VariableModel] in which any promotions present have been
-  /// dropped.
-  VariableModel<Variable, Type> discardPromotions() {
-    assert(promotedTypes != null, 'No promotions to discard');
+  /// dropped, and the variable has been marked as "not unassigned".
+  VariableModel<Variable, Type> discardPromotionsAndMarkNotUnassigned() {
+    if (promotedTypes == null && !unassigned) {
+      return this;
+    }
     return new VariableModel<Variable, Type>(
-        null, tested, assigned, unassigned, writeCaptured);
+        null, tested, assigned, false, writeCaptured);
   }
 
   /// Returns a new [VariableModel] reflecting the fact that the variable was
@@ -1928,7 +1947,7 @@ class VariableModel<Variable, Type> {
   /// returns an updated promotion chain; otherwise returns [promotedTypes]
   /// unchanged.
   ///
-  /// Note that since promotions chains are considered immutable, if promotion
+  /// Note that since promotion chains are considered immutable, if promotion
   /// is required, a new promotion chain will be created and returned.
   List<Type> _tryPromoteToTypeOfInterest(
       TypeOperations<Variable, Type> typeOperations,
@@ -1936,6 +1955,11 @@ class VariableModel<Variable, Type> {
       List<Type> promotedTypes,
       Type writtenType) {
     assert(!writeCaptured);
+
+    if (typeOperations.forcePromotion(
+        writtenType, declaredType, this.promotedTypes, promotedTypes)) {
+      return _addToPromotedTypes(promotedTypes, writtenType);
+    }
 
     // Figure out if we have any promotion candidates (types that are a
     // supertype of writtenType and a proper subtype of the currently-promoted
@@ -2040,6 +2064,8 @@ class VariableModel<Variable, Type> {
       VariableModel<Variable, Type> second) {
     List<Type> newPromotedTypes = joinPromotedTypes(
         first.promotedTypes, second.promotedTypes, typeOperations);
+    newPromotedTypes = typeOperations.refinePromotedTypes(
+        first.promotedTypes, second.promotedTypes, newPromotedTypes);
     bool newAssigned = first.assigned && second.assigned;
     bool newUnassigned = first.unassigned && second.unassigned;
     bool newWriteCaptured = first.writeCaptured || second.writeCaptured;
@@ -2358,7 +2384,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     _BranchTargetContext<Variable, Type> context =
         new _BranchTargetContext<Variable, Type>();
     _stack.add(context);
-    _current = _current.removePromotedAll(info._written, info._captured);
+    _current = _current.conservativeJoin(info._written, info._captured);
     _statementToContext[doStatement] = context;
   }
 
@@ -2428,13 +2454,11 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void for_conditionBegin(Node node) {
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(node);
-    _current = _current.removePromotedAll(info._written, info._captured);
+    _current = _current.conservativeJoin(info._written, info._captured);
   }
 
   @override
   void for_end() {
-    FlowModel<Variable, Type> afterUpdate = _current;
-
     _WhileContext<Variable, Type> context =
         _stack.removeLast() as _WhileContext<Variable, Type>;
     // Tail of the stack: falseCondition, break
@@ -2442,7 +2466,6 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     FlowModel<Variable, Type> falseCondition = context._conditionInfo.ifFalse;
 
     _current = _join(falseCondition, breakState);
-    _current = _current.joinUnassigned(other: afterUpdate);
   }
 
   @override
@@ -2459,7 +2482,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     _SimpleStatementContext<Variable, Type> context =
         new _SimpleStatementContext<Variable, Type>(_current);
     _stack.add(context);
-    _current = _current.removePromotedAll(info._written, info._captured);
+    _current = _current.conservativeJoin(info._written, info._captured);
     if (loopVariable != null) {
       _current = _current.write(loopVariable, writtenType, typeOperations);
     }
@@ -2477,13 +2500,10 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(node);
     ++_functionNestingLevel;
-    _current = _current.removePromotedAll(const [], info._written);
+    _current = _current.conservativeJoin(const [], info._written);
     _stack.add(new _SimpleContext(_current));
-    _current = _current.removePromotedAll(_assignedVariables._anywhere._written,
+    _current = _current.conservativeJoin(_assignedVariables._anywhere._written,
         _assignedVariables._anywhere._captured);
-    _current = _current.joinUnassigned(
-      written: _assignedVariables._anywhere._written,
-    );
   }
 
   @override
@@ -2494,7 +2514,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     _SimpleContext<Variable, Type> context =
         _stack.removeLast() as _SimpleContext<Variable, Type>;
     _current = context._previous;
-    _current = _current.joinUnassigned(other: afterBody);
+    _current = _current.joinUnassigned(afterBody);
   }
 
   @override
@@ -2707,7 +2727,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
         _stack.last as _SimpleStatementContext<Variable, Type>;
     if (hasLabel) {
       _current =
-          context._previous.removePromotedAll(info._written, info._captured);
+          context._previous.conservativeJoin(info._written, info._captured);
     } else {
       _current = context._previous;
     }
@@ -2744,15 +2764,19 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void tryCatchStatement_bodyEnd(Node body) {
-    AssignedVariablesNodeInfo<Variable> info =
-        _assignedVariables._getInfoForNode(body);
+    FlowModel<Variable, Type> afterBody = _current;
+
     _TryContext<Variable, Type> context =
         _stack.last as _TryContext<Variable, Type>;
     FlowModel<Variable, Type> beforeBody = context._previous;
+
+    AssignedVariablesNodeInfo<Variable> info =
+        _assignedVariables._getInfoForNode(body);
     FlowModel<Variable, Type> beforeCatch =
-        beforeBody.removePromotedAll(info._written, info._captured);
+        beforeBody.conservativeJoin(info._written, info._captured);
+
     context._beforeCatch = beforeCatch;
-    context._afterBodyAndCatches = _current;
+    context._afterBodyAndCatches = afterBody;
   }
 
   @override
@@ -2807,7 +2831,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
         _stack.last as _TryContext<Variable, Type>;
     context._afterBodyAndCatches = _current;
     _current = _join(_current,
-        context._previous.removePromotedAll(info._written, info._captured));
+        context._previous.conservativeJoin(info._written, info._captured));
   }
 
   @override
@@ -2831,16 +2855,14 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void whileStatement_conditionBegin(Node node) {
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(node);
-    _current = _current.removePromotedAll(info._written, info._captured);
+    _current = _current.conservativeJoin(info._written, info._captured);
   }
 
   @override
   void whileStatement_end() {
     _WhileContext<Variable, Type> context =
         _stack.removeLast() as _WhileContext<Variable, Type>;
-    FlowModel<Variable, Type> afterBody = _current;
     _current = _join(context._conditionInfo.ifFalse, context._breakModel);
-    _current = _current.joinUnassigned(other: afterBody);
   }
 
   @override

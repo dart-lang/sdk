@@ -2654,18 +2654,7 @@ TokenPosition KernelReaderHelper::ReadPosition() {
 }
 
 intptr_t KernelReaderHelper::SourceTableFieldCountFromFirstLibraryOffset() {
-  // translation_helper_.info() might not be initialized at this point so we
-  // can't use translation_helper_.info().kernel_binary_version().
-  SetOffset(KernelFormatVersionOffset);
-  uint32_t formatVersion = reader_.ReadUInt32();
-  intptr_t count_from_first_library_offset =
-      SourceTableFieldCountFromFirstLibraryOffsetPre41;
-  static_assert(kMinSupportedKernelFormatVersion < 41, "cleanup this code");
-  if (formatVersion >= 41) {
-    count_from_first_library_offset =
-        SourceTableFieldCountFromFirstLibraryOffset41Plus;
-  }
-  return count_from_first_library_offset;
+  return SourceTableFieldCountFromFirstLibraryOffset41Plus;
 }
 
 intptr_t KernelReaderHelper::SourceTableSize() {
@@ -3273,6 +3262,8 @@ void TypeTranslator::LoadAndSetupTypeParameters(
           H.DartIdentifier(lib, helper.name_index_),  // read ith name index.
           null_bound, helper.IsGenericCovariantImpl(), nullability,
           TokenPosition::kNoSource);
+      parameter.SetCanonical();
+      parameter.SetDeclaration(true);
       type_parameters.SetTypeAt(i, parameter);
     }
   }

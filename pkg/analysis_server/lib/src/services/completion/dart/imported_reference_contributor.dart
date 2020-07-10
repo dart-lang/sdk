@@ -4,26 +4,24 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestion;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show SuggestionBuilder;
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 
 /// A contributor for calculating suggestions for imported top level members.
 class ImportedReferenceContributor extends DartCompletionContributor {
   @override
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
     if (!request.includeIdentifiers) {
-      return const <CompletionSuggestion>[];
+      return;
     }
 
     var imports = request.libraryElement.imports;
     if (imports == null) {
-      return const <CompletionSuggestion>[];
+      return;
     }
 
     // Traverse imports including dart:core
@@ -34,7 +32,6 @@ class ImportedReferenceContributor extends DartCompletionContributor {
             prefix: importElement.prefix?.name);
       }
     }
-    return const <CompletionSuggestion>[];
   }
 
   void _buildSuggestions(DartCompletionRequest request,

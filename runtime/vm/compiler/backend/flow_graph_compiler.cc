@@ -2576,6 +2576,64 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+const char* NullErrorSlowPath::name() {
+  switch (exception_type()) {
+    case CheckNullInstr::kNoSuchMethod:
+      return "check null (nsm)";
+    case CheckNullInstr::kArgumentError:
+      return "check null (arg)";
+    case CheckNullInstr::kCastError:
+      return "check null (cast)";
+  }
+  UNREACHABLE();
+}
+
+const RuntimeEntry& NullErrorSlowPath::GetRuntimeEntry(
+    CheckNullInstr::ExceptionType exception_type) {
+  switch (exception_type) {
+    case CheckNullInstr::kNoSuchMethod:
+      return kNullErrorRuntimeEntry;
+    case CheckNullInstr::kArgumentError:
+      return kArgumentNullErrorRuntimeEntry;
+    case CheckNullInstr::kCastError:
+      return kNullCastErrorRuntimeEntry;
+  }
+  UNREACHABLE();
+}
+
+CodePtr NullErrorSlowPath::GetStub(FlowGraphCompiler* compiler,
+                                   CheckNullInstr::ExceptionType exception_type,
+                                   bool save_fpu_registers) {
+  auto object_store = compiler->isolate()->object_store();
+  switch (exception_type) {
+    case CheckNullInstr::kNoSuchMethod:
+      return save_fpu_registers
+                 ? object_store->null_error_stub_with_fpu_regs_stub()
+                 : object_store->null_error_stub_without_fpu_regs_stub();
+    case CheckNullInstr::kArgumentError:
+      return save_fpu_registers
+                 ? object_store->null_arg_error_stub_with_fpu_regs_stub()
+                 : object_store->null_arg_error_stub_without_fpu_regs_stub();
+    case CheckNullInstr::kCastError:
+      return save_fpu_registers
+                 ? object_store->null_cast_error_stub_with_fpu_regs_stub()
+                 : object_store->null_cast_error_stub_without_fpu_regs_stub();
+  }
+  UNREACHABLE();
+}
+
+void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
+                                           bool save_fpu_registers) {
+#if defined(TARGET_ARCH_IA32)
+  UNREACHABLE();
+#else
+  const auto& stub =
+      Code::ZoneHandle(compiler->zone(),
+                       GetStub(compiler, exception_type(), save_fpu_registers));
+  compiler->EmitCallToStub(stub);
+#endif
+}
+
 void FlowGraphCompiler::EmitNativeMove(
     const compiler::ffi::NativeLocation& destination,
     const compiler::ffi::NativeLocation& source,

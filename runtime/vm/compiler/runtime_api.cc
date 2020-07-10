@@ -8,6 +8,7 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/runtime_offsets_list.h"
+#include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/longjump.h"
 #include "vm/native_arguments.h"
@@ -224,6 +225,19 @@ const Field& LookupMathRandomStateFieldOffset() {
   return state_field;
 }
 
+const Field& LookupConvertUtf8DecoderScanFlagsField() {
+  const auto& convert_lib =
+      dart::Library::Handle(dart::Library::ConvertLibrary());
+  ASSERT(!convert_lib.IsNull());
+  const auto& _utf8decoder_class = dart::Class::Handle(
+      convert_lib.LookupClassAllowPrivate(dart::Symbols::_Utf8Decoder()));
+  ASSERT(!_utf8decoder_class.IsNull());
+  const auto& scan_flags_field = dart::Field::ZoneHandle(
+      _utf8decoder_class.LookupInstanceFieldAllowPrivate(
+          dart::Symbols::_scanFlags()));
+  return scan_flags_field;
+}
+
 word LookupFieldOffsetInBytes(const Field& field) {
   return field.TargetOffset();
 }
@@ -360,6 +374,8 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
       return TypedDataBase::InstanceSize();
     case kLinkedHashMapCid:
       return LinkedHashMap::InstanceSize();
+    case kUnhandledExceptionCid:
+      return UnhandledException::InstanceSize();
     case kByteBufferCid:
     case kByteDataViewCid:
     case kFfiPointerCid:
@@ -590,6 +606,14 @@ uword Thread::vm_execution_state() {
 
 uword Thread::vm_tag_compiled_id() {
   return dart::VMTag::kDartCompiledTagId;
+}
+
+uword Thread::exit_through_runtime_call() {
+  return dart::Thread::kExitThroughRuntimeCall;
+}
+
+uword Thread::exit_through_ffi() {
+  return dart::Thread::kExitThroughFfi;
 }
 
 word Thread::OffsetFromThread(const dart::Object& object) {

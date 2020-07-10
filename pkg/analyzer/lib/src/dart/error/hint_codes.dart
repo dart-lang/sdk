@@ -5,6 +5,10 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/analyzer_error_code.dart';
 
+// It is hard to visually separate each code's _doc comment_ from its published
+// _documentation comment_ when each is written as an end-of-line comment.
+// ignore_for_file: slash_for_doc_comments
+
 /**
  * The hints and coding recommendations for best practices which are not
  * mentioned in the Dart Language Specification.
@@ -85,11 +89,11 @@ class HintCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when a catch clause is found that
-  // can't be executed because it’s after a catch clause of the form `catch (e)`
-  // or `on Object catch (e)`. The first catch clause that matches the thrown
-  // object is selected, and both of those forms will match any object, so no
-  // catch clauses that follow them will be selected.
+  // The analyzer produces this diagnostic when a `catch` clause is found that
+  // can't be executed because it’s after a `catch` clause of the form
+  // `catch (e)` or `on Object catch (e)`. The first `catch` clause that matches
+  // the thrown object is selected, and both of those forms will match any
+  // object, so no `catch` clauses that follow them will be selected.
   //
   // #### Examples
   //
@@ -147,10 +151,10 @@ class HintCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when a catch clause is found that
-  // can't be executed because it is after a catch clause that catches either
-  // the same type or a supertype of the clause's type. The first catch clause
-  // that matches the thrown object is selected, and the earlier clause l always
+  // The analyzer produces this diagnostic when a `catch` clause is found that
+  // can't be executed because it is after a `catch` clause that catches either
+  // the same type or a supertype of the clause's type. The first `catch` clause
+  // that matches the thrown object is selected, and the earlier clause always
   // matches anything matchable by the highlighted clause, so the highlighted
   // clause will never be selected.
   //
@@ -373,17 +377,98 @@ class HintCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an element in a non-constant set
+  // is the same as a previous element in the same set. If two elements are the
+  // same, then the second value is ignored, which makes having both elements
+  // pointless and likely signals a bug.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the element `1` appears
+  // twice:
+  //
+  // ```dart
+  // const a = 1;
+  // const b = 1;
+  // var s = <int>{a, [!b!]};
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If both elements should be included in the set, then change one of the
+  // elements:
+  //
+  // ```dart
+  // const a = 1;
+  // const b = 2;
+  // var s = <int>{a, b};
+  // ```
+  //
+  // If only one of the elements is needed, then remove the one that isn't
+  // needed:
+  //
+  // ```dart
+  // const a = 1;
+  // var s = <int>{a};
+  // ```
+  //
+  // Note that literal sets preserve the order of their elements, so the choice
+  // of which element to remove might affect the order in which elements are
+  // returned by an iterator.
   static const HintCode EQUAL_ELEMENTS_IN_SET = HintCode(
       'EQUAL_ELEMENTS_IN_SET',
       "Two elements in a set literal shouldn't be equal.",
-      correction: "Change or remove the duplicate element.");
+      correction: "Change or remove the duplicate element.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a key in a non-constant map is
+  // the same as a previous key in the same map. If two keys are the same, then
+  // the second value overwrites the first value, which makes having both pairs
+  // pointless and likely signals a bug.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the keys `a` and `b`
+  // have the same value:
+  //
+  // ```dart
+  // const a = 1;
+  // const b = 1;
+  // var m = <int, String>{a: 'a', [!b!]: 'b'};
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If both entries should be included in the map, then change one of the keys:
+  //
+  // ```dart
+  // const a = 1;
+  // const b = 2;
+  // var m = <int, String>{a: 'a', b: 'b'};
+  // ```
+  //
+  // If only one of the entries is needed, then remove the one that isn't
+  // needed:
+  //
+  // ```dart
+  // const a = 1;
+  // var m = <int, String>{a: 'a'};
+  // ```
+  //
+  // Note that literal maps preserve the order of their entries, so the choice
+  // of which entry to remove might affect the order in which the keys and
+  // values are returned by an iterator.
   static const HintCode EQUAL_KEYS_IN_MAP = HintCode(
       'EQUAL_KEYS_IN_MAP', "Two keys in a map literal shouldn't be equal.",
-      correction: "Change or remove the duplicate key.");
+      correction: "Change or remove the duplicate key.",
+      hasPublishedDocs: true);
 
   /**
    * It is a bad practice for a source file in a package "lib" directory
@@ -520,7 +605,7 @@ class HintCode extends AnalyzerErrorCode {
   //
   // #### Examples
   //
-  // The following code produces this diagnostic because the constructor is not
+  // The following code produces this diagnostic because the constructor isn't
   // a `const` constructor:
   //
   // ```dart
@@ -741,6 +826,15 @@ class HintCode extends AnalyzerErrorCode {
               "an '=' character",
           correction: "Specify a Dart language version override with a comment "
               "like '// @dart = 2.0'.");
+
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER =
+      HintCodeWithUniqueName(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    'INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER',
+    "The language version override can't specify a version greater than the "
+        "latest known language version: {0}.{1}",
+    correction: "Try removing the language version override.",
+  );
 
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION =
       HintCodeWithUniqueName(
@@ -1035,8 +1129,8 @@ class HintCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // Add a return statement that makes the return value explicit, even if `null`
-  // is the appropriate value.
+  // Add a `return` statement that makes the return value explicit, even if
+  // `null` is the appropriate value.
   static const HintCode MISSING_RETURN = HintCode(
       'MISSING_RETURN',
       "This function has a return type of '{0}', but doesn't end with a "
@@ -1311,9 +1405,9 @@ class HintCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when the type following `on` in a
-  // catch clause is a nullable type. It isn't valid to specify a nullable type
-  // because it isn't possible to catch `null` (because it's a runtime error to
-  // throw `null`).
+  // `catch` clause is a nullable type. It isn't valid to specify a nullable
+  // type because it isn't possible to catch `null` (because it's a runtime
+  // error to throw `null`).
   //
   // #### Example
   //
@@ -1347,7 +1441,8 @@ class HintCode extends AnalyzerErrorCode {
       'NULLABLE_TYPE_IN_CATCH_CLAUSE',
       "A potentially nullable type can't be used in an 'on' clause because it "
           "isn't valid to throw a nullable expression.",
-      correction: "Try using a non-nullable type.");
+      correction: "Try using a non-nullable type.",
+      hasPublishedDocs: true);
 
   /**
    * Hint for classes that override equals, but not hashCode.
@@ -1543,10 +1638,10 @@ class HintCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when an as expression inside a
+  // The analyzer produces this diagnostic when an `as` expression inside a
   // [constant context](#constant-context) is found in code that has an SDK
-  // constraint whose lower bound is less than 2.3.2. Using an as expression in
-  // a [constant context](#constant-context) wasn't supported in earlier
+  // constraint whose lower bound is less than 2.3.2. Using an `as` expression
+  // in a [constant context](#constant-context) wasn't supported in earlier
   // versions, so this code won't be able to run against earlier versions of the
   // SDK.
   //
@@ -1580,8 +1675,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   //
   // If you need to support older versions of the SDK, then either rewrite the
-  // code to not use an as expression, or change the code so that the as
-  // expression is not in a [constant context](#constant-context).:
+  // code to not use an `as` expression, or change the code so that the `as`
+  // expression isn't in a [constant context](#constant-context):
   //
   // ```dart
   // num x = 3;
@@ -1600,7 +1695,7 @@ class HintCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when any use of the `&`, `|` or `^`
+  // The analyzer produces this diagnostic when any use of the `&`, `|`, or `^`
   // operators on the class `bool` inside a
   // [constant context](#constant-context) is found in code that has an SDK
   // constraint whose lower bound is less than 2.3.2. Using these operators in a
@@ -1639,7 +1734,7 @@ class HintCode extends AnalyzerErrorCode {
   //
   // If you need to support older versions of the SDK, then either rewrite the
   // code to not use these operators, or change the code so that the expression
-  // is not in a [constant context](#constant-context).:
+  // isn't in a [constant context](#constant-context):
   //
   // ```dart
   // const bool a = true;
@@ -1699,7 +1794,7 @@ class HintCode extends AnalyzerErrorCode {
   //
   // If you need to support older versions of the SDK, then either rewrite the
   // code to not use the `==` operator, or change the code so that the
-  // expression is not in a [constant context](#constant-context).:
+  // expression isn't in a [constant context](#constant-context):
   //
   // ```dart
   // class C {}
@@ -1838,10 +1933,10 @@ class HintCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when an is expression inside a
+  // The analyzer produces this diagnostic when an `is` expression inside a
   // [constant context](#constant-context) is found in code that has an SDK
-  // constraint whose lower bound is less than 2.3.2. Using an is expression in
-  // a [constant context](#constant-context) wasn't supported in earlier
+  // constraint whose lower bound is less than 2.3.2. Using an `is` expression
+  // in a [constant context](#constant-context) wasn't supported in earlier
   // versions, so this code won't be able to run against earlier versions of the
   // SDK.
   //
@@ -1875,9 +1970,9 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   //
   // If you need to support older versions of the SDK, then either rewrite the
-  // code to not use the is operator, or, if that's not possible, change the
-  // code so that the is expression is not in a
-  // [constant context](#constant-context).:
+  // code to not use the `is` operator, or, if that isn't possible, change the
+  // code so that the `is` expression isn't in a
+  // [constant context](#constant-context):
   //
   // ```dart
   // const x = 4;
@@ -1992,7 +2087,7 @@ class HintCode extends AnalyzerErrorCode {
       //    The type 'Never' wasn't supported until version 2.X.0, but this code
       //    is required to be able to run on earlier versions.
       'SDK_VERSION_NEVER',
-      "The type Never is not yet supported.");
+      "The type Never isn't yet supported.");
 
   /**
    * No parameters.
@@ -2103,8 +2198,8 @@ class HintCode extends AnalyzerErrorCode {
   // const b = [1, 2];
   // ```
   //
-  // If that's not possible, change the code so that the element is not in a
-  // [constant context](#constant-context).:
+  // If that isn't possible, change the code so that the element isn't in a
+  // [constant context](#constant-context):
   //
   // ```dart
   // const a = [1, 2];
@@ -2333,7 +2428,8 @@ class HintCode extends AnalyzerErrorCode {
           'UNNECESSARY_NULL_COMPARISON_FALSE',
           "The operand can't be null, so the condition is always false.",
           correction: "Try removing the condition, an enclosing condition, "
-              "or the whole conditional statement.");
+              "or the whole conditional statement.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -2343,7 +2439,8 @@ class HintCode extends AnalyzerErrorCode {
           'UNNECESSARY_NULL_COMPARISON',
           'UNNECESSARY_NULL_COMPARISON_TRUE',
           "The operand can't be null, so the condition is always true.",
-          correction: "Remove the condition.");
+          correction: "Remove the condition.",
+          hasPublishedDocs: true);
 
   /**
    * Unnecessary type checks, the result is always false.
@@ -2373,9 +2470,9 @@ class HintCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when a catch clause is found, and
+  // The analyzer produces this diagnostic when a `catch` clause is found, and
   // neither the exception parameter nor the optional stack trace parameter are
-  // used in the catch block.
+  // used in the `catch` block.
   //
   // #### Examples
   //
@@ -2393,7 +2490,7 @@ class HintCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // Remove the unused catch clause:
+  // Remove the unused `catch` clause:
   //
   // ```dart
   // void f() {
@@ -2421,7 +2518,7 @@ class HintCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when the stack trace parameter in a
-  // catch clause isn't referenced within the body of the catch block.
+  // `catch` clause isn't referenced within the body of the `catch` block.
   //
   // #### Examples
   //

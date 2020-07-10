@@ -36,7 +36,7 @@ class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
   }
 
   void setUp() {
-    dartfixListener = DartFixListener(null);
+    dartfixListener = DartFixListener(null, _exceptionReported);
     resourceProvider = MemoryResourceProvider();
     final migrationInfo = MigrationInfo({}, {}, null, null);
     state = MigrationState(null, null, dartfixListener, null);
@@ -165,6 +165,10 @@ void main(List args) {
     expect(file.readAsStringSync(), currentContent);
     expect(state.hasBeenApplied, false);
   }
+
+  void _exceptionReported(String detail) {
+    fail('Unexpected error during migration: $detail');
+  }
 }
 
 mixin PreviewSiteTestMixin {
@@ -186,7 +190,7 @@ class PreviewSiteWithEngineTest extends NnbdMigrationTestBase
   @override
   void setUp() {
     super.setUp();
-    dartfixListener = DartFixListener(null);
+    dartfixListener = DartFixListener(null, _exceptionReported);
     final migrationInfo = MigrationInfo({}, {}, null, null);
     state = MigrationState(null, null, dartfixListener, null);
     nodeMapper = state.nodeMapper;
@@ -216,55 +220,6 @@ int? y = x;
         unitInfo.regions[1].traces[0].entries[0].hintActions[0]);
     await site.performHintAction(
         unitInfo.regions[1].traces[0].entries[2].hintActions[0]);
-    expect(file.readAsStringSync(), '''
-int/*?*/ x;
-int/*?*/ y = x;
-''');
-    expect(unitInfo.content, '''
-int/*?*/? x;
-int/*?*/? y = x;
-''');
-    assertRegion(
-        region: unitInfo.regions[0], offset: unitInfo.content.indexOf('? x'));
-    assertRegion(
-        region: unitInfo.regions[1], offset: unitInfo.content.indexOf('? y'));
-    final targets = List<NavigationTarget>.from(unitInfo.targets);
-    assertInTargets(
-        targets: targets,
-        offset: unitInfo.content.indexOf('x'),
-        offsetMapper: unitInfo.offsetMapper);
-    assertInTargets(
-        targets: targets,
-        offset: unitInfo.content.indexOf('y'),
-        offsetMapper: unitInfo.offsetMapper);
-    var trace = unitInfo.regions[1].traces[0];
-    assertTraceEntry(unitInfo, trace.entries[0], 'y',
-        unitInfo.content.indexOf('int/*?*/? y'), contains('y (test.dart:2:1)'));
-    assertTraceEntry(unitInfo, trace.entries[1], 'y',
-        unitInfo.content.indexOf('= x;') + '= '.length, contains('data flow'));
-    expect(state.hasBeenApplied, false);
-    expect(state.needsRerun, true);
-  }
-
-  void test_performEdit_multiple() async {
-    final path = convertPath('/test.dart');
-    final file = getFile(path);
-    final content = r'''
-int x;
-int y = x;
-''';
-    file.writeAsStringSync(content);
-    final migratedContent = '''
-int? x;
-int? y = x;
-''';
-    final unitInfo = await buildInfoForSingleTestFile(content,
-        migratedContent: migratedContent);
-    site.unitInfoMap[path] = unitInfo;
-    final firstEditOffset = unitInfo.regions[0].edits[0].offset;
-    performEdit(path, firstEditOffset, '/*?*/');
-    final secondEditOffset = unitInfo.regions[1].edits[0].offset;
-    performEdit(path, secondEditOffset, '/*?*/');
     expect(file.readAsStringSync(), '''
 int/*?*/ x;
 int/*?*/ y = x;
@@ -332,5 +287,58 @@ int  y = x;
         offsetMapper: unitInfo.offsetMapper);
     expect(state.hasBeenApplied, false);
     expect(state.needsRerun, true);
+  }
+
+  void test_performEdit_multiple() async {
+    final path = convertPath('/test.dart');
+    final file = getFile(path);
+    final content = r'''
+int x;
+int y = x;
+''';
+    file.writeAsStringSync(content);
+    final migratedContent = '''
+int? x;
+int? y = x;
+''';
+    final unitInfo = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    site.unitInfoMap[path] = unitInfo;
+    final firstEditOffset = unitInfo.regions[0].edits[0].offset;
+    performEdit(path, firstEditOffset, '/*?*/');
+    final secondEditOffset = unitInfo.regions[1].edits[0].offset;
+    performEdit(path, secondEditOffset, '/*?*/');
+    expect(file.readAsStringSync(), '''
+int/*?*/ x;
+int/*?*/ y = x;
+''');
+    expect(unitInfo.content, '''
+int/*?*/? x;
+int/*?*/? y = x;
+''');
+    assertRegion(
+        region: unitInfo.regions[0], offset: unitInfo.content.indexOf('? x'));
+    assertRegion(
+        region: unitInfo.regions[1], offset: unitInfo.content.indexOf('? y'));
+    final targets = List<NavigationTarget>.from(unitInfo.targets);
+    assertInTargets(
+        targets: targets,
+        offset: unitInfo.content.indexOf('x'),
+        offsetMapper: unitInfo.offsetMapper);
+    assertInTargets(
+        targets: targets,
+        offset: unitInfo.content.indexOf('y'),
+        offsetMapper: unitInfo.offsetMapper);
+    var trace = unitInfo.regions[1].traces[0];
+    assertTraceEntry(unitInfo, trace.entries[0], 'y',
+        unitInfo.content.indexOf('int/*?*/? y'), contains('y (test.dart:2:1)'));
+    assertTraceEntry(unitInfo, trace.entries[1], 'y',
+        unitInfo.content.indexOf('= x;') + '= '.length, contains('data flow'));
+    expect(state.hasBeenApplied, false);
+    expect(state.needsRerun, true);
+  }
+
+  void _exceptionReported(String detail) {
+    fail('Unexpected error during migration: $detail');
   }
 }

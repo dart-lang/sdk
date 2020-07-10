@@ -1,2 +1,1 @@
-spec:nnbd-off=pkg/compiler/test/inference/inference_data_test.dart
-spec:nnbd-sdk=pkg/compiler/test/inference/inference_data_test.dart
+spec=pkg/compiler/test/inference/inference_data_test.dart

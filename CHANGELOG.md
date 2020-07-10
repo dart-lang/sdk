@@ -4,12 +4,11 @@
 
 ### Core libraries
 
-#### `dart:io`
+#### `dart:async`
 
-*   [#42006][]: The signature of `exit` has been changed to return the
-    `Never`type instead of `void`. since no code will run after it,
-
-[#42006]: https://github.com/dart-lang/sdk/issues/42006
+*   Adds `Stream.multi` constructor creating streams which can be
+    listened to more than once, and where each individual listener
+    can be controlled independently.
 
 #### `dart:convert`
 
@@ -22,6 +21,20 @@
 
 [#41100]: https://github.com/dart-lang/sdk/issues/41100
 [WHATWG encoding standard]: https://encoding.spec.whatwg.org/#utf-8-decoder
+
+#### `dart:io`
+
+*   [#42006][]: The signature of `exit` has been changed to return the
+    `Never`type instead of `void`. since no code will run after it,
+*   Class `OSError` now implements `Exception`. This change means `OSError` will
+    now be caught in catch clauses catching `Exception`s.
+*   Added `InternetAddress.tryParse`.
+*   [Abstract Unix Domain Socket][] is supported on Linux/Android now. Using an
+    `InternetAddress` with `address` starting with '@' and type being
+    `InternetAddressType.Unix` will create an abstract Unix Domain Socket.
+
+[#42006]: https://github.com/dart-lang/sdk/issues/42006
+[Abstract Unix Domain Socket]: http://man7.org/linux/man-pages/man7/unix.7.html
 
 #### `dart:html`
 
@@ -37,21 +50,13 @@
     `Future` is empty instead, it completes asynchronously, therefore
     potentially invalidating code that relied on the synchronous side-effect.
     This change will only affect code using sound null-safety. See issue
-    [41653][] for more details.
+    [#41653][] for more details.
 
-[41653]: https://github.com/dart-lang/sdk/issues/41653
+*   Methods in `Console` have been updated to better reflect the modern Console
+    specification. Particularly of interest are `dir` and `table` which take in
+    extra optional arguments.
 
-
-#### `dart:io`
-
-*   Class `OSError` now implements `Exception`. This change means `OSError` will
-    now be caught in catch clauses catching `Exception`s.
-*   Added `InternetAddress.tryParse`.
-*   [Abstract Unix Domain Socket][] is supported on Linux/Android now. Using an
-    `InternetAddress` with `address` starting with '@' and type being
-    `InternetAddressType.Unix` will create an abstract Unix Domain Socket.
-
-[Abstract Unix Domain Socket]: http://man7.org/linux/man-pages/man7/unix.7.html
+[#41653]: https://github.com/dart-lang/sdk/issues/41653
 
 ### Tools
 
@@ -68,23 +73,33 @@
 
 #### Linter
 
-Updated the Linter to `0.1.116`, which includes:
+Updated the Linter to `0.1.117`, which includes:
 
-* New lint: `no_default_cases` (experimental).
+* New lint: `do_not_use_environment`.
 * New lint: `exhaustive_cases`.
-* Updated `type_annotate_public_apis` to allow inferred types in final field assignments.
-* Updated `prefer_mixin` to allow "legacy" SDK abstract class mixins.
-* New lint: `use_is_even_rather_than_modulo`.
-* Updated `unsafe_html` to use a `SecurityLintCode` (making it un-ignorable).
-* Improved `sized_box_for_whitespace` to address false-positives.
-* Fixed `unsafe_html` to check attributes and methods on extensions.
-* Extended `unsafe_html` to include `Window.open`, `Element.html` and
-  `DocumentFragment.html` in unsafe API checks.
-* Improved docs for `sort_child_properties_last`.
-* (internal) `package:analyzer` API updates.
+* New lint: `no_default_cases` (experimental).
 * New lint: `sized_box_for_whitespace`.
+* New lint: `use_is_even_rather_than_modulo`.
+* Updated `directives_ordering` to remove third party package special-casing.
+* Updated `prefer_is_empty` to special-case assert initializers and const
+  contexts.
+* Updated `prefer_mixin` to allow "legacy" SDK abstract class mixins.
+* Updated `sized_box_for_whitespace` to address false-positives.
+* Updated `type_annotate_public_apis` to allow inferred types in final field
+  assignments.
+* Updated `unnecessary_lambdas` to check for tear-off assignability.
+* Updated `unsafe_html` to use a `SecurityLintCode` (making it un-ignorable) and
+  to include `Window.open`, `Element.html` and `DocumentFragment.html` in unsafe
+  API checks. Also added checks for attributes and methods on extensions.
 
 ### Dart VM
+
+*   **Breaking Change** [#41100][]: When printing a string using the `print`
+    function, the default implementation (used when not overridden by the
+    embedder or the current zone) will print any unpaired surrogates in the
+    string as replacement characters (`U+FFFD`). Similarly, the
+    `Dart_StringToUTF8` function in the Dart API will convert unpaired
+    surrogates into replacement characters.
 
 ### Pub
 * `pub run` and `pub global run` accepts a `--enable-experiment` flag enabling
@@ -97,7 +112,7 @@ Updated the Linter to `0.1.116`, which includes:
 * Warn at publishing first time a package version opts in to null-safety.
 * Preserve Windows line endings in pubspec.lock if they are already there (#2489)
 * Better terminal color-detection. Use colors in terminals on Windows.
-* `pub outdated`: If the current version of a dependency is a prerelease 
+* `pub outdated`: If the current version of a dependency is a prerelease
   version, use prereleases for latest if no newer stable.
 * `pub outdated` now works without a lockfile. In that case the 'Current'
   column will be empty.

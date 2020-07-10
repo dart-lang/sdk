@@ -8,7 +8,6 @@ library vm.transformations.type_flow.calls;
 import 'dart:core' hide Type;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/src/text_util.dart';
 
 import 'types.dart';
 import 'utils.dart';
@@ -118,7 +117,7 @@ class DirectSelector extends Selector {
 
   @override
   String toString() => 'direct ${_callKindPrefix}'
-      '[${qualifiedMemberNameToString(member, includeLibraryName: true)}]';
+      '[${nodeToText(member)}]';
 }
 
 /// Interface call via known interface target [member].
@@ -138,7 +137,7 @@ class InterfaceSelector extends Selector {
 
   @override
   String toString() => '${_callKindPrefix}'
-      '[${qualifiedMemberNameToString(member, includeLibraryName: true)}]';
+      '[${nodeToText(member)}]';
 }
 
 /// Virtual call (using 'this' as a receiver).
@@ -155,7 +154,7 @@ class VirtualSelector extends InterfaceSelector {
 
   @override
   String toString() => 'virtual ${_callKindPrefix}'
-      '[${qualifiedMemberNameToString(member, includeLibraryName: true)}]';
+      '[${nodeToText(member)}]';
 }
 
 /// Dynamic call.
@@ -179,7 +178,7 @@ class DynamicSelector extends Selector {
       other is DynamicSelector && super == (other) && other.name == name;
 
   @override
-  String toString() => 'dynamic ${_callKindPrefix}[$name]';
+  String toString() => 'dynamic ${_callKindPrefix}[${nodeToText(name)}]';
 }
 
 /// Arguments passed to a call, including implicit receiver argument.

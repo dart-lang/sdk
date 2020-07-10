@@ -48,7 +48,7 @@ static const int kLastParamSlotFromEntrySp = 1;  // Skip return address.
 static const int kSavedCallerPpSlotFromFp = kSavedCallerFpSlotFromFp;
 
 // Entry and exit frame layout.
-static const int kExitLinkSlotFromEntryFp = -7;
+static const int kExitLinkSlotFromEntryFp = -8;
 
 // All arguments are passed on the stack, so none need to be saved. Therefore
 // there is no frame for holding the saved arguments.

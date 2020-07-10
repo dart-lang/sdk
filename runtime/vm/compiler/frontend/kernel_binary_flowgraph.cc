@@ -988,7 +988,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
   // The RawParameter variables should be set to null to avoid retaining more
   // objects than necessary during GC.
   const Fragment body =
-      ClearRawParameters(dart_function) +
+      ClearRawParameters(dart_function) + B->BuildNullAssertions() +
       BuildFunctionBody(dart_function, first_parameter, is_constructor);
 
   auto extra_entry_point_style = ChooseEntryPointStyle(
@@ -1363,9 +1363,9 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
     case kInstantiation:
       return BuildPartialTearoffInstantiation(position);
     case kLoadLibrary:
+      return BuildLibraryPrefixAction(position, Symbols::LoadLibrary());
     case kCheckLibraryIsLoaded:
-      ReadUInt();  // skip library index
-      return BuildFutureNullValue(position);
+      return BuildLibraryPrefixAction(position, Symbols::CheckLoaded());
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
     case kConstListLiteral:
@@ -2989,14 +2989,13 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   }
 
   const String* mangled_name = &name;
-  // Do not mangle == or call:
+  // Do not mangle ==:
   //   * operator == takes an Object so its either not checked or checked
   //     at the entry because the parameter is marked covariant, neither of
-  //     those cases require a dynamic invocation forwarder;
-  //   * we assume that all closures are entered in a checked way.
+  //     those cases require a dynamic invocation forwarder.
   const Function* direct_call_target = &direct_call.target_;
-  if ((name.raw() != Symbols::EqualOperator().raw()) &&
-      (name.raw() != Symbols::Call().raw()) && H.IsRoot(itarget_name)) {
+  if (H.IsRoot(itarget_name) &&
+      (name.raw() != Symbols::EqualOperator().raw())) {
     mangled_name = &String::ZoneHandle(
         Z, Function::CreateDynamicInvocationForwarderName(name));
     if (!direct_call_target->IsNull()) {
@@ -4065,6 +4064,26 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
 
   instructions += DropTempsPreserveTop(1);  // Drop old closure.
 
+  return instructions;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildLibraryPrefixAction(
+    TokenPosition* position,
+    const String& selector) {
+  const intptr_t dependency_index = ReadUInt();
+  const Library& current_library = Library::Handle(
+      Z, Class::Handle(Z, parsed_function()->function().origin()).library());
+  const Array& dependencies = Array::Handle(Z, current_library.dependencies());
+  const LibraryPrefix& prefix =
+      LibraryPrefix::CheckedZoneHandle(Z, dependencies.At(dependency_index));
+  const Function& function =
+      Function::ZoneHandle(Z, Library::Handle(Z, Library::CoreLibrary())
+                                  .LookupFunctionAllowPrivate(selector));
+  ASSERT(!function.IsNull());
+  Fragment instructions;
+  instructions += Constant(prefix);
+  instructions +=
+      StaticCall(TokenPosition::kNoSource, function, 1, ICData::kStatic);
   return instructions;
 }
 

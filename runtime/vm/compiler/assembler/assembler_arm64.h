@@ -487,6 +487,9 @@ class Assembler : public AssemblerBase {
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     LoadFromOffset(dst, base, offset, kDoubleWord);
   }
+  void StoreMemoryValue(Register src, Register base, int32_t offset) {
+    StoreToOffset(src, base, offset, kDoubleWord);
+  }
   void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
     if (offset != 0) {
       AddImmediate(TMP2, address, offset);
@@ -1445,6 +1448,8 @@ class Assembler : public AssemblerBase {
     blr(LR);
   }
 
+  void CallCFunction(Address target) { Call(target); }
+
   void AddImmediate(Register dest, int64_t imm) {
     AddImmediate(dest, dest, imm);
   }
@@ -1627,7 +1632,7 @@ class Assembler : public AssemblerBase {
 
   void TransitionGeneratedToNative(Register destination_address,
                                    Register new_exit_frame,
-                                   Register scratch,
+                                   Register new_exit_through_ffi,
                                    bool enter_safepoint);
   void TransitionNativeToGenerated(Register scratch, bool exit_safepoint);
   void EnterSafepoint(Register scratch);
@@ -1654,6 +1659,13 @@ class Assembler : public AssemblerBase {
   // a stub frame.
   void EnterStubFrame();
   void LeaveStubFrame();
+
+  // Set up a frame for calling a C function.
+  // Automatically save the pinned registers in Dart which are not callee-
+  // saved in the native calling convention.
+  // Use together with CallCFunction.
+  void EnterCFrame(intptr_t frame_space);
+  void LeaveCFrame();
 
   void MonomorphicCheckedEntryJIT();
   void MonomorphicCheckedEntryAOT();

@@ -879,6 +879,7 @@ class DartTypeTagger extends DartTypeVisitor<String>
   String visitInterfaceType(InterfaceType _) => "interface";
   String visitNeverType(NeverType _) => "never";
   String visitTypedefType(TypedefType _) => "typedef";
+  String visitFutureOrType(FutureOrType _) => "futureor";
 }
 
 const TextSerializer<InvalidType> invalidTypeSerializer =
@@ -1007,6 +1008,17 @@ TypedefType wrapTypedefType(Tuple2<CanonicalName, List<DartType>> tuple) {
       tuple.first.reference, Nullability.legacy, tuple.second);
 }
 
+TextSerializer<FutureOrType> futureOrTypeSerializer =
+    new Wrapped(unwrapFutureOrType, wrapFutureOrType, dartTypeSerializer);
+
+DartType unwrapFutureOrType(FutureOrType node) {
+  return node.typeArgument;
+}
+
+FutureOrType wrapFutureOrType(DartType typeArgument) {
+  return new FutureOrType(typeArgument, Nullability.legacy);
+}
+
 Case<DartType> dartTypeSerializer =
     new Case.uninitialized(const DartTypeTagger());
 
@@ -1017,7 +1029,10 @@ class StatementTagger extends StatementVisitor<String>
   String tag(Statement statement) => statement.accept(this);
 
   String visitExpressionStatement(ExpressionStatement _) => "expr";
-  String visitReturnStatement(ReturnStatement _) => "ret";
+  String visitReturnStatement(ReturnStatement node) {
+    return node.expression == null ? "ret-void" : "ret";
+  }
+
   String visitYieldStatement(YieldStatement _) => "yield";
   String visitBlock(Block _) => "block";
   String visitVariableDeclaration(VariableDeclaration _) => "local";
@@ -1029,7 +1044,12 @@ class StatementTagger extends StatementVisitor<String>
   String visitWhileStatement(WhileStatement node) => "while";
   String visitDoStatement(DoStatement node) => "do-while";
   String visitForStatement(ForStatement node) => "for";
-  String visitForInStatement(ForInStatement node) => "for-in";
+  String visitForInStatement(ForInStatement node) {
+    return node.isAsync ? "await-for-in" : "for-in";
+  }
+
+  String visitAssertStatement(AssertStatement node) => "assert";
+  String visitAssertBlock(AssertBlock node) => "assert-block";
 }
 
 TextSerializer<ExpressionStatement> expressionStatementSerializer = new Wrapped(
@@ -1054,6 +1074,13 @@ ReturnStatement wrapReturnStatement(Expression expression) {
   return new ReturnStatement(expression);
 }
 
+TextSerializer<ReturnStatement> returnVoidStatementSerializer = new Wrapped(
+    unwrapReturnVoidStatement, wrapReturnVoidStatement, const Nothing());
+
+void unwrapReturnVoidStatement(void ignored) {}
+
+ReturnStatement wrapReturnVoidStatement(void ignored) => new ReturnStatement();
+
 TextSerializer<YieldStatement> yieldStatementSerializer =
     new Wrapped(unwrapYieldStatement, wrapYieldStatement, expressionSerializer);
 
@@ -1063,12 +1090,33 @@ YieldStatement wrapYieldStatement(Expression expression) {
   return new YieldStatement(expression);
 }
 
+TextSerializer<AssertStatement> assertStatementSerializer = new Wrapped(
+    unwrapAssertStatement,
+    wrapAssertStatement,
+    new Tuple2Serializer(expressionSerializer, expressionSerializer));
+
+Tuple2<Expression, Expression> unwrapAssertStatement(AssertStatement node) {
+  return new Tuple2<Expression, Expression>(node.condition, node.message);
+}
+
+AssertStatement wrapAssertStatement(Tuple2<Expression, Expression> tuple) {
+  return new AssertStatement(tuple.first, message: tuple.second);
+}
+
 TextSerializer<Block> blockSerializer =
     new Wrapped(unwrapBlock, wrapBlock, const BlockSerializer());
 
 List<Statement> unwrapBlock(Block node) => node.statements;
 
 Block wrapBlock(List<Statement> statements) => new Block(statements);
+
+TextSerializer<AssertBlock> assertBlockSerializer =
+    new Wrapped(unwrapAssertBlock, wrapAssertBlock, const BlockSerializer());
+
+List<Statement> unwrapAssertBlock(AssertBlock node) => node.statements;
+
+AssertBlock wrapAssertBlock(List<Statement> statements) =>
+    new AssertBlock(statements);
 
 /// Serializer for [Block]s.
 ///
@@ -1221,6 +1269,19 @@ ForInStatement wrapForInStatement(
     Tuple2<Expression, Tuple2<VariableDeclaration, Statement>> tuple) {
   return new ForInStatement(
       tuple.second.first, tuple.first, tuple.second.second);
+}
+
+TextSerializer<ForInStatement> awaitForInStatementSerializer = new Wrapped(
+    unwrapForInStatement,
+    wrapAwaitForInStatement,
+    new Tuple2Serializer(expressionSerializer,
+        new Bind(variableDeclarationSerializer, statementSerializer)));
+
+ForInStatement wrapAwaitForInStatement(
+    Tuple2<Expression, Tuple2<VariableDeclaration, Statement>> tuple) {
+  return new ForInStatement(
+      tuple.second.first, tuple.first, tuple.second.second,
+      isAsync: true);
 }
 
 Case<Statement> statementSerializer =
@@ -1529,10 +1590,12 @@ void initializeSerializers() {
     "interface": interfaceTypeSerializer,
     "never": neverTypeSerializer,
     "typedef": typedefTypeSerializer,
+    "futureor": futureOrTypeSerializer,
   });
   statementSerializer.registerTags({
     "expr": expressionStatementSerializer,
     "ret": returnStatementSerializer,
+    "ret-void": returnVoidStatementSerializer,
     "yield": yieldStatementSerializer,
     "block": blockSerializer,
     "local": variableDeclarationSerializer,
@@ -1543,6 +1606,9 @@ void initializeSerializers() {
     "do-while": doStatementSerializer,
     "for": forStatementSerializer,
     "for-in": forInStatementSerializer,
+    "await-for-in": awaitForInStatementSerializer,
+    "assert": assertStatementSerializer,
+    "assert-block": assertBlockSerializer,
   });
   functionNodeSerializer.registerTags({
     "sync": syncFunctionNodeSerializer,

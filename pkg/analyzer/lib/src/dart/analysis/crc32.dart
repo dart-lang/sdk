@@ -261,10 +261,8 @@ const List<int> _CRC32_TABLE = [
   0x2D02EF8D
 ];
 
-/**
- * Get the CRC-32 checksum of the given array. You can append bytes to an
- * already computed crc by specifying the previous [crc] value.
- */
+/// Get the CRC-32 checksum of the given array. You can append bytes to an
+/// already computed crc by specifying the previous [crc] value.
 int getCrc32(List<int> array, [int crc = 0]) {
   int len = array.length;
   crc = crc ^ 0xffffffff;

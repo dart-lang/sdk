@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /// Contains the names of globals that are embedded into the output by the
 /// compiler.
 ///
@@ -12,29 +10,6 @@
 ///
 /// This library is shared between the compiler and the runtime system.
 library dart2js._embedded_names;
-
-/// The name of the property that is used to mark a type as typedef.
-///
-/// Without reflection typedefs are removed (expanded to their function type)
-/// but with reflection an object is needed to have the typedef's name. The
-/// object is marked with this property.
-///
-/// This property name only lives on internal type-objects and is only used
-/// when reflection is enabled.
-const TYPEDEF_PREDICATE_PROPERTY_NAME = r"$$isTypedef";
-
-/// The name of the property that is used to find the function type of a
-/// typedef.
-///
-/// Without reflection typedefs are removed (expanded to their function type)
-/// but with reflection an object is needed to have the typedef's name.
-///
-/// The typedef's object contains a pointer to its function type (as an index
-/// into the embedded global [TYPES]) in this property.
-///
-/// This property name only lives on internal type-objects and is only used
-/// when reflection is enabled.
-const TYPEDEF_TYPE_PROPERTY_NAME = r"$typedefType";
 
 /// The name of the property that is used to find the native superclass of
 /// an extended class.
@@ -208,51 +183,6 @@ const DEFERRED_INITIALIZED = 'deferredInitialized';
 /// This embedded global is used for --experiment-new-rti.
 const RTI_UNIVERSE = 'typeUniverse';
 
-/// Returns a function that creates all precompiled functions (in particular
-/// constructors).
-///
-/// That is, the function returns the array that the full emitter would
-/// otherwise build dynamically when it finishes all classes.
-///
-/// This constant is only used in CSP mode.
-///
-/// This global is an emitter-internal embedded global, and not used by the
-/// runtime. The constant remains in this file to make sure that other embedded
-/// globals don't clash with it.
-const PRECOMPILED = 'precompiled';
-
-/// An emitter-internal embedded global. This global is not used by the runtime.
-const FINISHED_CLASSES = 'finishedClasses';
-
-/// A JavaScript object literal that maps the (minified) JavaScript constructor
-/// name (as given by [JsBuiltin.rawRtiToJsConstructorName] to the
-/// JavaScript constructor.
-///
-/// This embedded global is only used by reflection.
-const ALL_CLASSES = 'allClasses';
-
-/// A map from element to type information.
-///
-/// This embedded global is only used by reflection.
-const TYPE_INFORMATION = 'typeInformation';
-
-/// A map from statics to their descriptors.
-///
-/// This embedded global is only used by reflection.
-const STATICS = 'statics';
-
-/// An array of library descriptors.
-///
-/// The descriptor contains information such as name, uri, classes, ...
-///
-/// This embedded global is only used by reflection.
-const LIBRARIES = 'libraries';
-
-/// A map from lazy statics to their initializers.
-///
-/// This embedded global is only used by reflection.
-const LAZIES = 'lazies';
-
 /// Names that are supported by [JS_GET_NAME].
 // TODO(herhut): Make entries lower case (as in fields) and find a better name.
 enum JsGetName {
@@ -266,8 +196,6 @@ enum JsGetName {
   CALL_PREFIX4,
   CALL_PREFIX5,
   CALL_CATCH_ALL,
-  REFLECTABLE,
-  CLASS_DESCRIPTOR_PROPERTY,
   REQUIRED_PARAMETER_PROPERTY,
   DEFAULT_VALUES_PROPERTY,
   CALL_NAME_PROPERTY,
@@ -286,41 +214,6 @@ enum JsGetName {
   /// instances of parameterized classes.
   RTI_NAME,
 
-  /// Name used to tag a function type.
-  FUNCTION_TYPE_TAG,
-
-  /// Name used to tag bounds of a generic function type. If bounds are present,
-  /// the property value is an Array of bounds (the length gives the number of
-  /// type parameters). If absent, the type is not a generic function type.
-  FUNCTION_TYPE_GENERIC_BOUNDS_TAG,
-
-  /// Name used to tag void return in function type representations in
-  /// JavaScript.
-  FUNCTION_TYPE_VOID_RETURN_TAG,
-
-  /// Name used to tag return types in function type representations in
-  /// JavaScript.
-  FUNCTION_TYPE_RETURN_TYPE_TAG,
-
-  /// Name used to tag required parameters in function type representations
-  /// in JavaScript.
-  FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG,
-
-  /// Name used to tag optional parameters in function type representations
-  /// in JavaScript.
-  FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG,
-
-  /// Name used to tag named parameters in function type representations in
-  /// JavaScript.
-  FUNCTION_TYPE_NAMED_PARAMETERS_TAG,
-
-  /// Name used to tag a FutureOr type.
-  FUTURE_OR_TAG,
-
-  /// Name used to tag type arguments types in FutureOr type representations in
-  /// JavaScript.
-  FUTURE_OR_TYPE_ARGUMENT_TAG,
-
   /// String representation of the type of the Future class.
   FUTURE_CLASS_TYPE_NAME,
 
@@ -333,12 +226,6 @@ enum JsGetName {
 
   /// String representation of the type of the object class.
   OBJECT_CLASS_TYPE_NAME,
-
-  /// String representation of the type of the function class.
-  FUNCTION_CLASS_TYPE_NAME,
-
-  /// String representation of the type of the JavaScriptFunction class.
-  JS_FUNCTION_CLASS_TYPE_NAME,
 
   /// Property name for Rti._as field.
   RTI_FIELD_AS,
@@ -365,73 +252,11 @@ enum JsBuiltin {
   ///       ...
   dartClosureConstructor,
 
-  /// Returns the JavaScript-constructor name given an [isCheckProperty].
-  ///
-  /// This relies on a deterministic encoding of is-check properties (for
-  /// example `$isFoo` for a class `Foo`). In minified code the returned
-  /// classname is the minified name of the class.
-  ///
-  ///     JS_BUILTIN('returns:String;depends:none;effects:none',
-  ///                JsBuiltin.isCheckPropertyToJsConstructorName,
-  ///                isCheckProperty);
-  isCheckPropertyToJsConstructorName,
-
-  /// Returns true if the given type is a function type. Returns false for
-  /// the one `Function` type singleton. (See [isFunctionTypeSingleton]).
-  ///
-  ///     JS_BUILTIN('bool', JsBuiltin.isFunctionType, o)
-  isFunctionType,
-
-  /// Returns true if the given type is a FutureOr type.
-  ///
-  ///     JS_BUILTIN('bool', JsBuiltin.isFutureOrType, o)
-  isFutureOrType,
-
-  /// Returns true if the given type is the `void` type.
-  ///
-  ///     JS_BUILTIN('bool', JsBuiltin.isVoidType, o)
-  isVoidType,
-
-  /// Returns true if the given type is the `dynamic` type.
-  ///
-  ///     JS_BUILTIN('bool', JsBuiltin.isDynamicType, o)
-  isDynamicType,
-
   /// Returns true if the given type is a type argument of a js-interop class
   /// or a supertype of a js-interop class.
   ///
   ///     JS_BUILTIN('bool', JsBuiltin.isJsInteropTypeArgument, o)
   isJsInteropTypeArgument,
-
-  /// Returns the JavaScript-constructor name given an rti encoding.
-  ///
-  ///     JS_BUILTIN('String', JsBuiltin.rawRtiToJsConstructorName, rti)
-  rawRtiToJsConstructorName,
-
-  /// Returns the raw runtime type of the given object. The given argument
-  /// [o] should be the interceptor (for non-Dart objects).
-  ///
-  ///     JS_BUILTIN('', JsBuiltin.rawRuntimeType, o)
-  rawRuntimeType,
-
-  /// Returns whether the given type is a subtype of other.
-  ///
-  /// The argument `other` is the name of the potential supertype. It is
-  /// computed by `runtimeTypeToString`;
-  ///
-  /// *The `other` name must be passed in before the `type`.*
-  ///
-  ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
-  ///                JsBuiltin.isSubtype, other, type);
-  isSubtype,
-
-  /// Returns true if the given type equals the type given as second
-  /// argument. Use the JS_GET_NAME helpers to get the type representation
-  /// for various Dart classes.
-  ///
-  ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
-  ///                JsBuiltin.isFunctionTypeLiteral, type, name);
-  isGivenTypeRti,
 
   /// Returns the metadata of the given [index].
   ///

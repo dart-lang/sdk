@@ -9,10 +9,10 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/generated/resolver.dart' show TypeSystem;
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /// A consistent view of the results of analyzing one or more files.
@@ -57,6 +57,10 @@ abstract class AnalysisSession {
   /// a result state indicating the nature of the problem.
   Future<ErrorsResult> getErrors(String path);
 
+  /// Return information about the file at the given absolute, normalized
+  /// [path].
+  FileResult getFile(String path);
+
   /// Return a future that will complete with the library element representing
   /// the library with the given [uri].
   Future<LibraryElement> getLibraryByUri(String uri);
@@ -91,10 +95,6 @@ abstract class AnalysisSession {
   /// Return information about the results of parsing the file with the given
   /// absolute, normalized [path].
   ParsedUnitResult getParsedUnit(String path);
-
-  /// Return information about the file at the given absolute, normalized
-  /// [path].
-  FileResult getFile(String path);
 
   /// Return a future that will complete with information about the results of
   /// resolving the file with the given absolute, normalized [path].

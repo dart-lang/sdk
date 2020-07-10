@@ -51,11 +51,8 @@ def GetGNArgs(args):
     return args.split()
 
 
-# TODO(38701): Remove dont_use_nnbd once the NNBD SDK is stable/performant and
-# there is no need to build a legacy version of the SDK for comparison purposes.
-def GetOutDir(mode, arch, target_os, sanitizer, dont_use_nnbd):
-    return utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer,
-                              dont_use_nnbd)
+def GetOutDir(mode, arch, target_os, sanitizer):
+    return utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer)
 
 
 def ToCommandLine(gn_args):
@@ -122,15 +119,9 @@ def ParseStringMap(key, string_map):
             return l[1]
     return None
 
-
-def DontUseClang(args, target_os, host_cpu, target_cpu):
-    # We don't have clang on Windows.
-    return target_os == 'win'
-
-
 def UseSysroot(args, gn_args):
     # Don't try to use a Linux sysroot if we aren't on Linux.
-    if gn_args['target_os'] != 'linux':
+    if gn_args['target_os'] != 'linux' and HOST_OS != 'linux':
         return False
     # Don't use the sysroot if we're given another sysroot.
     if TargetSysroot(args):
@@ -145,9 +136,7 @@ def UseSysroot(args, gn_args):
     return True
 
 
-# TODO(38701): Remove dont_use_nnbd once the NNBD SDK is stable/performant and
-# there is no need to build a legacy version of the SDK for comparison purposes.
-def ToGnArgs(args, mode, arch, target_os, sanitizer, dont_use_nnbd):
+def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
     gn_args = {}
 
     host_os = HostOsForGn(HOST_OS)
@@ -214,9 +203,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, dont_use_nnbd):
 
     gn_args['exclude_kernel_service'] = args.exclude_kernel_service
 
-    dont_use_clang = DontUseClang(args, gn_args['target_os'],
-                                  gn_args['host_cpu'], gn_args['target_cpu'])
-    gn_args['is_clang'] = args.clang and not dont_use_clang
+    gn_args['is_clang'] = args.clang
 
     enable_code_coverage = args.code_coverage and gn_args['is_clang']
     gn_args['dart_vm_code_coverage'] = enable_code_coverage
@@ -226,15 +213,18 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, dont_use_nnbd):
     gn_args['is_msan'] = sanitizer == 'msan'
     gn_args['is_tsan'] = sanitizer == 'tsan'
     gn_args['is_ubsan'] = sanitizer == 'ubsan'
-    gn_args['include_dart2native'] = True
     gn_args['is_qemu'] = args.use_qemu
 
     if not args.platform_sdk and not gn_args['target_cpu'].startswith('arm'):
         gn_args['dart_platform_sdk'] = args.platform_sdk
-    gn_args['dart_stripped_binary'] = 'exe.stripped/dart'
-    gn_args[
-        'dart_precompiled_runtime_stripped_binary'] = 'exe.stripped/dart_precompiled_runtime'
-    gn_args['gen_snapshot_stripped_binary'] = 'exe.stripped/gen_snapshot'
+
+    # We don't support stripping on Windows
+    if host_os != 'win':
+        gn_args['dart_stripped_binary'] = 'exe.stripped/dart'
+        gn_args['dart_precompiled_runtime_stripped_binary'] = (
+            'exe.stripped/dart_precompiled_runtime_product')
+        gn_args['gen_snapshot_stripped_binary'] = (
+            'exe.stripped/gen_snapshot_product')
 
     # Setup the user-defined sysroot.
     if UseSysroot(args, gn_args):
@@ -268,7 +258,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, dont_use_nnbd):
         gn_args['dart_debug_optimization_level'] = args.debug_opt_level
         gn_args['debug_optimization_level'] = args.debug_opt_level
 
-    gn_args['dont_use_nnbd'] = dont_use_nnbd
+    gn_args['verify_sdk_hash'] = verify_sdk_hash
 
     return gn_args
 
@@ -285,7 +275,7 @@ def ProcessOptions(args):
     if args.mode == 'all':
         args.mode = 'debug,release,product'
     if args.os == 'all':
-        args.os = 'host,android'
+        args.os = 'host,android,fuchsia'
     if args.sanitizer == 'all':
         args.sanitizer = 'none,asan,lsan,msan,tsan,ubsan'
     args.mode = args.mode.split(',')
@@ -306,13 +296,12 @@ def ProcessOptions(args):
             return False
     oses = [ProcessOsOption(os_name) for os_name in args.os]
     for os_name in oses:
-        if not os_name in ['android', 'freebsd', 'linux', 'macos', 'win32']:
+        if not os_name in [
+                'android', 'freebsd', 'linux', 'macos', 'win32', 'fuchsia'
+        ]:
             print("Unknown os %s" % os_name)
             return False
-        if os_name != HOST_OS:
-            if os_name != 'android':
-                print("Unsupported target os %s" % os_name)
-                return False
+        if os_name == 'android':
             if not HOST_OS in ['linux', 'macos']:
                 print("Cross-compilation to %s is not supported on host os %s."
                       % (os_name, HOST_OS))
@@ -324,6 +313,19 @@ def ProcessOptions(args):
                     "Cross-compilation to %s is not supported for architecture %s."
                     % (os_name, arch))
                 return False
+        elif os_name == 'fuchsia':
+            if HOST_OS != 'linux':
+                print("Cross-compilation to %s is not supported on host os %s."
+                      % (os_name, HOST_OS))
+                return False
+            if arch != 'x64':
+                print(
+                    "Cross-compilation to %s is not supported for architecture %s."
+                    % (os_name, arch))
+                return False
+        elif os_name != HOST_OS:
+            print("Unsupported target os %s" % os_name)
+            return False
     if HOST_OS != 'win' and args.use_crashpad:
         print("Crashpad is only supported on Windows")
         return False
@@ -370,7 +372,7 @@ def parse_args(args):
         '--os',
         type=str,
         help='Target OSs (comma-separated).',
-        metavar='[all,host,android]',
+        metavar='[all,host,android,fuchsia]',
         default='host')
     common_group.add_argument(
         '--sanitizer',
@@ -378,14 +380,6 @@ def parse_args(args):
         help='Build variants (comma-separated).',
         metavar='[all,none,asan,lsan,msan,tsan,ubsan]',
         default='none')
-    # TODO(38701): Remove dont_use_nnbd once the NNBD SDK is stable/performant
-    # and there is no need to build a legacy version of the SDK for
-    # comparison purposes.
-    common_group.add_argument(
-        "--no-nnbd",
-        help='Use the NNBD fork of the SDK.',
-        default=False,
-        action='store_true')
     common_group.add_argument(
         "-v",
         "--verbose",
@@ -458,16 +452,6 @@ def parse_args(args):
         type=str,
         help='Comma-separated list of arch=/path/to/toolchain-prefix mappings')
     other_group.add_argument(
-        '--wheezy',
-        help='This flag is deprecated.',
-        default=True,
-        action='store_true')
-    other_group.add_argument(
-        '--no-wheezy',
-        help='This flag is deprecated',
-        dest='wheezy',
-        action='store_false')
-    other_group.add_argument(
         '--workers',
         '-w',
         type=int,
@@ -484,6 +468,10 @@ def parse_args(args):
         default=False,
         dest='use_qemu',
         action='store_true')
+    other_group.add_argument('--no-verify-sdk-hash',
+                             help='Disable SDK hash checks.',
+                             default=False,
+                             action='store_true')
 
     options = parser.parse_args(args)
     if not ProcessOptions(options):
@@ -518,15 +506,14 @@ def Main(argv):
         for mode in args.mode:
             for arch in args.arch:
                 for sanitizer in args.sanitizer:
-                    out_dir = GetOutDir(mode, arch, target_os, sanitizer,
-                                        args.no_nnbd)
+                    out_dir = GetOutDir(mode, arch, target_os, sanitizer)
                     # TODO(infra): Re-enable --check. Many targets fail to use
                     # public_deps to re-expose header files to their dependents.
                     # See dartbug.com/32364
                     command = [gn, 'gen', out_dir]
                     gn_args = ToCommandLine(
                         ToGnArgs(args, mode, arch, target_os, sanitizer,
-                                 args.no_nnbd))
+                                 not args.no_verify_sdk_hash))
                     gn_args += GetGNArgs(args)
                     if args.verbose:
                         print("gn gen --check in %s" % out_dir)

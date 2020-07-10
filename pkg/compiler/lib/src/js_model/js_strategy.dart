@@ -193,19 +193,12 @@ class JsBackendStrategy implements BackendStrategy {
   CodegenInputs onCodegenStart(
       GlobalTypeInferenceResults globalTypeInferenceResults) {
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
-    RuntimeTypeTags rtiTags = const RuntimeTypeTags();
     FixedNames fixedNames = _compiler.options.enableMinification
         ? const MinifiedFixedNames()
         : const FixedNames();
 
     Tracer tracer =
         new Tracer(closedWorld, _compiler.options, _compiler.outputProvider);
-    RuntimeTypesEncoder rtiEncoder = new RuntimeTypesEncoderImpl(
-        rtiTags,
-        closedWorld.nativeData,
-        closedWorld.elementEnvironment,
-        closedWorld.commonElements,
-        closedWorld.rtiNeed);
 
     RuntimeTypesSubstitutions rtiSubstitutions;
     if (_compiler.options.disableRtiOptimization) {
@@ -218,18 +211,11 @@ class JsBackendStrategy implements BackendStrategy {
       rtiSubstitutions = runtimeTypesImpl;
     }
 
-    RecipeEncoder rtiRecipeEncoder = _compiler.options.useNewRti
-        ? new RecipeEncoderImpl(
-            closedWorld,
-            rtiSubstitutions,
-            closedWorld.nativeData,
-            closedWorld.elementEnvironment,
-            closedWorld.commonElements,
-            closedWorld.rtiNeed)
-        : null;
+    RecipeEncoder rtiRecipeEncoder = new RecipeEncoderImpl(closedWorld,
+        rtiSubstitutions, closedWorld.nativeData, closedWorld.commonElements);
 
-    CodegenInputs codegen = new CodegenInputsImpl(rtiSubstitutions, rtiEncoder,
-        rtiRecipeEncoder, tracer, rtiTags, fixedNames);
+    CodegenInputs codegen = new CodegenInputsImpl(
+        rtiSubstitutions, rtiRecipeEncoder, tracer, fixedNames);
 
     functionCompiler.initialize(globalTypeInferenceResults, codegen);
     return codegen;
@@ -289,13 +275,12 @@ class JsBackendStrategy implements BackendStrategy {
       CodegenInputs codegen,
       OneShotInterceptorData oneShotInterceptorData) {
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
-    RuntimeTypeTags rtiTags = codegen.rtiTags;
     FixedNames fixedNames = codegen.fixedNames;
     _namer = _compiler.options.enableMinification
         ? _compiler.options.useFrequencyNamer
-            ? new FrequencyBasedNamer(closedWorld, rtiTags, fixedNames)
-            : new MinifyNamer(closedWorld, rtiTags, fixedNames)
-        : new Namer(closedWorld, rtiTags, fixedNames);
+            ? new FrequencyBasedNamer(closedWorld, fixedNames)
+            : new MinifyNamer(closedWorld, fixedNames)
+        : new Namer(closedWorld, fixedNames);
     _nativeCodegenEnqueuer = new NativeCodegenEnqueuer(
         _compiler.options,
         closedWorld.elementEnvironment,
@@ -509,7 +494,6 @@ class KernelSsaBuilder implements SsaBuilder {
           namer,
           emitter,
           codegen.tracer,
-          codegen.rtiEncoder,
           _sourceInformationStrategy,
           _inlineCache,
           _inlineDataCache);

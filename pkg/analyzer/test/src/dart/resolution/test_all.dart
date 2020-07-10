@@ -17,6 +17,7 @@ import 'enum_test.dart' as enum_resolution;
 import 'export_test.dart' as export_;
 import 'extension_method_test.dart' as extension_method;
 import 'extension_override_test.dart' as extension_override;
+import 'field_test.dart' as field;
 import 'for_element_test.dart' as for_element;
 import 'for_statement_test.dart' as for_in;
 import 'function_expression_invocation_test.dart'
@@ -49,6 +50,7 @@ import 'prefix_expression_test.dart' as prefix_expression;
 import 'prefixed_identifier_test.dart' as prefixed_identifier;
 import 'property_access_test.dart' as property_access;
 import 'simple_identifier_test.dart' as simple_identifier;
+import 'top_level_variable_test.dart' as top_level_variable;
 import 'top_type_inference_test.dart' as top_type_inference;
 import 'try_statement_test.dart' as try_statement;
 import 'type_inference/test_all.dart' as type_inference;
@@ -70,6 +72,7 @@ main() {
     export_.main();
     extension_method.main();
     extension_override.main();
+    field.main();
     for_element.main();
     for_in.main();
     function_expression_invocation.main();
@@ -99,6 +102,7 @@ main() {
     prefixed_identifier.main();
     property_access.main();
     simple_identifier.main();
+    top_level_variable.main();
     top_type_inference.main();
     try_statement.main();
     type_name.main();

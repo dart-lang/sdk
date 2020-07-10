@@ -38,12 +38,7 @@ application_snapshot("dartdevc") {
   inputs = [ sdk_outline_dill ]
 }
 
-# TODO(#38701) Cleanup after merging the forked SDK into mainline.
-if (dont_use_nnbd) {
-  sdk_root = "../../sdk"
-} else {
-  sdk_root = "../../sdk_nnbd"
-}
+sdk_root = "../../sdk"
 
 sdk_lib_files = exec_script("../../tools/list_dart_files.py",
                             [
@@ -87,6 +82,8 @@ template("dart2js_compile") {
 
     packages = "../../.packages"
 
+    vm_args = [ "-Dsdk_hash=$sdk_hash" ]
+
     args = [
       "$abs_main",
       "-m",
@@ -123,6 +120,8 @@ prebuilt_dart_action("dartdevc_patch_sdk") {
   # TODO(rnystrom): List the outputs more precisely?
   outputs = [ "$patched_sdk_dir/version" ]
 
+  vm_args = [ "-Dsdk_hash=$sdk_hash" ]
+
   args = [
     "--libraries",
     rebase_path("$sdk_root/lib/libraries.json"),
@@ -131,11 +130,6 @@ prebuilt_dart_action("dartdevc_patch_sdk") {
     "--out",
     rebase_path("$patched_sdk_dir/"),
   ]
-
-  # TODO(#38701) Cleanup after merging the forked SDK into mainline.
-  if (dont_use_nnbd) {
-    args += [ "--no-nnbd" ]
-  }
 }
 
 # Builds everything needed to run dartdevc tests using test.dart.
@@ -150,9 +144,7 @@ group("dartdevc_test") {
 
   # TODO(nshahan) Temporarily here until we decide if we are going to include
   # in the create_sdk target.
-  if (!dont_use_nnbd) {
-    deps += [ "../../sdk_nnbd:copy_dev_compiler_outline_sound" ]
-  }
+  deps += [ "../../sdk:copy_dev_compiler_outline_sound" ]
 }
 
 # Builds everything needed to run dartdevc tests locally using test.dart without
@@ -216,7 +208,7 @@ template("dartdevc_kernel_compile") {
   #     named `${name}_js` must exist.
   #   * args: additional args to pass to dartdevc
 
-  prebuilt_dart_action(target_name) {
+  dart_action(target_name) {
     script = "../../pkg/dev_compiler/bin/dartdevc.dart"
     module = invoker.package
     out_dir = rebase_path("$js_gen_dir")
@@ -242,6 +234,8 @@ template("dartdevc_kernel_compile") {
       "$js_gen_dir/$module.js",
     ]
 
+    vm_args = [ "-Dsdk_hash=$sdk_hash" ]
+
     args = [
       "-k",
       "--dart-sdk-summary=$sdk_path",
@@ -266,11 +260,7 @@ template("dartdevc_kernel_compile") {
       args += invoker.args
     }
 
-    # TODO(38701): Cleanup don't_use_nnbd clause after merging the forked SDK
-    # into mainline.
-    if (invoker.sound_null_safety || !dont_use_nnbd) {
-      args += [ "--enable-experiment=non-nullable" ]
-    }
+    args += [ "--enable-experiment=non-nullable" ]
 
     if (invoker.sound_null_safety) {
       args += [ "--sound-null-safety" ]
@@ -334,24 +324,17 @@ template("compile_dartdevc_platform") {
     args = [
       "--target=dartdevc",
       "dart:core",
+      "--enable-experiment=non-nullable",
     ]
 
     if (invoker.sound_null_safety) {
-      args += [
-        "--enable-experiment=non-nullable",
-        "--nnbd-strong",
-      ]
+      args += [ "--nnbd-strong" ]
 
       outputs = [
         sdk_full_sound_dill,
         sdk_outline_sound_dill,
       ]
     } else {
-      # TODO(38701): Cleanup after merging the forked SDK into mainline.
-      if (!dont_use_nnbd) {
-        args += [ "--enable-experiment=non-nullable" ]
-      }
-
       outputs = [
         sdk_full_dill,
         sdk_outline_dill,
@@ -407,7 +390,9 @@ template("dartdevc_sdk_js") {
       "$js_gen_dir/legacy/dart_sdk.js.map",
     ]
 
-    script = "../../pkg/dev_compiler/tool/compile_dartdevc_sdk.dart"
+    vm_args = [ "-Dsdk_hash=$sdk_hash" ]
+
+    script = "../../pkg/dev_compiler/bin/dartdevc.dart"
 
     args = [
       "--multi-root-scheme",
@@ -431,13 +416,8 @@ template("dartdevc_sdk_js") {
       "-o",
       rebase_path("$js_gen_dir/legacy/dart_sdk.js"),
       rebase_path("$platform_input"),
+      "--enable-experiment=non-nullable",
     ]
-
-    # TODO(38701): Cleanup don't_use_nnbd clause after merging the forked SDK
-    # into mainline.
-    if (invoker.sound_null_safety || !dont_use_nnbd) {
-      args += [ "--enable-experiment=non-nullable" ]
-    }
 
     if (invoker.sound_null_safety) {
       args += [ "--sound-null-safety" ]

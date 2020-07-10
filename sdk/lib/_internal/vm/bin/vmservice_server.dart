@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of vmservice_io;
 
-final bool silentObservatory = new bool.fromEnvironment('SILENT_OBSERVATORY');
+final bool silentObservatory = bool.fromEnvironment('SILENT_OBSERVATORY');
 
 void serverPrint(String s) {
   if (silentObservatory) {
@@ -17,10 +15,10 @@ void serverPrint(String s) {
 }
 
 class WebSocketClient extends Client {
-  static const int PARSE_ERROR_CODE = 4000;
-  static const int BINARY_MESSAGE_ERROR_CODE = 4001;
-  static const int NOT_MAP_ERROR_CODE = 4002;
-  static const int ID_ERROR_CODE = 4003;
+  static const int parseErrorCode = 4000;
+  static const int binaryMessageErrorCode = 4001;
+  static const int notMapErrorCode = 4002;
+  static const int idErrorCode = 4003;
   final WebSocket socket;
 
   WebSocketClient(this.socket, VMService service) : super(service) {
@@ -36,19 +34,19 @@ class WebSocketClient extends Client {
 
   void onWebSocketMessage(message) {
     if (message is String) {
-      var map;
+      Map map;
       try {
         map = json.decode(message);
       } catch (e) {
-        socket.close(PARSE_ERROR_CODE, 'Message parse error: $e');
+        socket.close(parseErrorCode, 'Message parse error: $e');
         return;
       }
       if (map is! Map) {
-        socket.close(NOT_MAP_ERROR_CODE, 'Message must be a JSON map.');
+        socket.close(notMapErrorCode, 'Message must be a JSON map.');
         return;
       }
       try {
-        final rpc = new Message.fromJsonRpc(this, map);
+        final rpc = Message.fromJsonRpc(this, map);
         switch (rpc.type) {
           case MessageType.Request:
             onRequest(rpc);
@@ -60,17 +58,17 @@ class WebSocketClient extends Client {
             onResponse(rpc);
             break;
         }
-      } catch (e) {
-        socket.close(ID_ERROR_CODE, e.message);
+      } on dynamic catch (e) {
+        socket.close(idErrorCode, e.message);
       }
     } else {
-      socket.close(BINARY_MESSAGE_ERROR_CODE, 'Message must be a string.');
+      socket.close(binaryMessageErrorCode, 'Message must be a string.');
     }
   }
 
-  void post(Response result) {
+  void post(Response? result) {
     if (result == null) {
-      // Do nothing.
+      // The result of a notification event. Do nothing.
       return;
     }
     try {
@@ -89,17 +87,16 @@ class WebSocketClient extends Client {
     }
   }
 
-  dynamic toJson() {
-    Map map = super.toJson();
-    map['type'] = 'WebSocketClient';
-    map['socket'] = '$socket';
-    return map;
-  }
+  Map<String, dynamic> toJson() => {
+        ...super.toJson(),
+        'type': 'WebSocketClient',
+        'socket': '$socket',
+      };
 }
 
 class HttpRequestClient extends Client {
-  static ContentType jsonContentType =
-      new ContentType("application", "json", charset: "utf-8");
+  static final jsonContentType =
+      ContentType('application', 'json', charset: 'utf-8');
   final HttpRequest request;
 
   HttpRequestClient(this.request, VMService service)
@@ -110,11 +107,14 @@ class HttpRequestClient extends Client {
     close();
   }
 
-  void post(Response result) {
+  void post(Response? result) {
     if (result == null) {
+      // The result of a notification event. Nothing to do other than close the
+      // connection.
       close();
       return;
     }
+
     HttpResponse response = request.response;
     // We closed the connection for bad origins earlier.
     response.headers.add('Access-Control-Allow-Origin', '*');
@@ -133,8 +133,8 @@ class HttpRequestClient extends Client {
     close();
   }
 
-  dynamic toJson() {
-    Map map = super.toJson();
+  Map<String, dynamic> toJson() {
+    final map = super.toJson();
     map['type'] = 'HttpRequestClient';
     map['request'] = '$request';
     return map;
@@ -150,21 +150,22 @@ class Server {
   final bool _originCheckDisabled;
   final bool _authCodesDisabled;
   final bool _enableServicePortFallback;
-  final String _serviceInfoFilename;
-  HttpServer _server;
+  final String? _serviceInfoFilename;
+  HttpServer? _server;
   bool get running => _server != null;
   bool acceptNewWebSocketConnections = true;
   int _port = -1;
 
   /// Returns the server address including the auth token.
-  Uri get serverAddress {
+  Uri? get serverAddress {
     if (!running) {
       return null;
     }
-    var ip = _server.address.address;
-    var port = _server.port;
-    var path = !_authCodesDisabled ? "$serviceAuthToken/" : "/";
-    return new Uri(scheme: 'http', host: ip, port: port, path: path);
+    final server = _server!;
+    final ip = server.address.address;
+    final port = server.port;
+    final path = !_authCodesDisabled ? '$serviceAuthToken/' : '/';
+    return Uri(scheme: 'http', host: ip, port: port, path: path);
   }
 
   // On Fuchsia, authentication codes are disabled by default. To enable, the authentication token
@@ -195,9 +196,10 @@ class Server {
       return true;
     }
 
-    if ((uri.port == _server.port) &&
-        ((uri.host == _server.address.address) ||
-            (uri.host == _server.address.host))) {
+    final server = _server!;
+    if ((uri.port == server.port) &&
+        ((uri.host == server.address.address) ||
+            (uri.host == server.address.host))) {
       return true;
     }
 
@@ -210,16 +212,16 @@ class Server {
       return true;
     }
     // First check the web-socket specific origin.
-    List<String> origins = request.headers["Sec-WebSocket-Origin"];
+    List<String>? origins = request.headers['Sec-WebSocket-Origin'];
     if (origins == null) {
       // Fall back to the general Origin field.
-      origins = request.headers["Origin"];
+      origins = request.headers['Origin'];
     }
     if (origins == null) {
       // No origin sent. This is a non-browser client or a same-origin request.
       return true;
     }
-    for (String origin in origins) {
+    for (final origin in origins) {
       if (_isAllowedOrigin(origin)) {
         return true;
       }
@@ -240,7 +242,7 @@ class Server {
       return null;
     }
     // Check that we were given the auth token.
-    final String authToken = requestPathSegments[0];
+    final authToken = requestPathSegments[0];
     if (authToken != serviceAuthToken) {
       // Malformed.
       return null;
@@ -249,7 +251,7 @@ class Server {
     // ROOT_REDIRECT_PATH correctly, otherwise the response is misinterpreted.
     if (requestPathSegments.length == 1) {
       // requestPathSegments is unmodifiable. Copy it.
-      final List<String> pathSegments = <String>[]..addAll(requestPathSegments);
+      final pathSegments = List<String>.from(requestPathSegments);
 
       // Adding an empty string to the path segments results in the path having
       // a trailing '/'.
@@ -267,7 +269,7 @@ class Server {
     if (!_originCheck(request)) {
       // This is a cross origin attempt to connect
       request.response.statusCode = HttpStatus.forbidden;
-      request.response.write("forbidden origin");
+      request.response.write('forbidden origin');
       request.response.close();
       return;
     }
@@ -275,22 +277,22 @@ class Server {
       // PUT requests are forwarded to DevFS for processing.
 
       List fsNameList;
-      List fsPathList;
-      List fsPathBase64List;
-      List fsUriBase64List;
-      Object fsName;
-      Object fsPath;
-      Object fsUri;
+      List? fsPathList;
+      List? fsPathBase64List;
+      List? fsUriBase64List;
+      Object? fsName;
+      Object? fsPath;
+      Uri? fsUri;
 
       try {
         // Extract the fs name and fs path from the request headers.
-        fsNameList = request.headers['dev_fs_name'];
+        fsNameList = request.headers['dev_fs_name']!;
         fsName = fsNameList[0];
 
         // Prefer Uri encoding first.
         fsUriBase64List = request.headers['dev_fs_uri_b64'];
         if ((fsUriBase64List != null) && (fsUriBase64List.length > 0)) {
-          String decodedFsUri = utf8.decode(base64.decode(fsUriBase64List[0]));
+          final decodedFsUri = utf8.decode(base64.decode(fsUriBase64List[0]));
           fsUri = Uri.parse(decodedFsUri);
         }
 
@@ -299,9 +301,9 @@ class Server {
           fsPathList = request.headers['dev_fs_path'];
           fsPathBase64List = request.headers['dev_fs_path_b64'];
           // If the 'dev_fs_path_b64' header field was sent, use that instead.
-          if ((fsPathBase64List != null) && (fsPathBase64List.length > 0)) {
+          if ((fsPathBase64List != null) && fsPathBase64List.isNotEmpty) {
             fsPath = utf8.decode(base64.decode(fsPathBase64List[0]));
-          } else {
+          } else if (fsPathList != null && fsPathList.isNotEmpty) {
             fsPath = fsPathList[0];
           }
         }
@@ -310,7 +312,7 @@ class Server {
       String result;
       try {
         result = await _service.devfs.handlePutStream(fsName, fsPath, fsUri,
-            request.cast<List<int>>().transform(GZIP.decoder));
+            request.cast<List<int>>().transform(gzip.decoder));
       } catch (e) {
         request.response.statusCode = HttpStatus.internalServerError;
         request.response.write(e);
@@ -329,25 +331,24 @@ class Server {
     if (request.method != 'GET') {
       // Not a GET request. Do nothing.
       request.response.statusCode = HttpStatus.methodNotAllowed;
-      request.response.write("method not allowed");
+      request.response.write('method not allowed');
       request.response.close();
       return;
     }
 
-    final dynamic result = _checkAuthTokenAndGetPath(request.uri);
+    final result = _checkAuthTokenAndGetPath(request.uri);
     if (result == null) {
       // Either no authentication code was provided when one was expected or an
       // incorrect authentication code was provided.
       request.response.statusCode = HttpStatus.forbidden;
-      request.response.write("missing or invalid authentication code");
+      request.response.write('missing or invalid authentication code');
       request.response.close();
       return;
     } else if (result is Uri) {
       // The URI contains the valid auth token but is missing a trailing '/'.
       // Redirect to the same URI with the trailing '/' to correctly serve
       // index.html.
-      request.response.redirect(result as Uri);
-      request.response.close();
+      request.response.redirect(result);
       return;
     }
 
@@ -357,25 +358,22 @@ class Server {
         WebSocketTransformer.upgrade(request,
                 compression: CompressionOptions.compressionOff)
             .then((WebSocket webSocket) {
-          new WebSocketClient(webSocket, _service);
+          WebSocketClient(webSocket, _service);
         });
       } else {
-        request.response.statusCode = HttpStatus.forbidden;
-        request.response.write('Cannot connect directly to the VM service as '
-            'a Dart Development Service (DDS) instance has taken control and '
-            'can be found at ${_service.ddsUri}.');
-        request.response.close();
+        // Forward the websocket connection request to DDS.
+        request.response.redirect(_service.ddsUri!);
       }
       return;
     }
 
     if (assets == null) {
-      request.response.headers.contentType = ContentType.TEXT;
-      request.response.write("This VM was built without the Observatory UI.");
+      request.response.headers.contentType = ContentType.text;
+      request.response.write('This VM was built without the Observatory UI.');
       request.response.close();
       return;
     }
-    Asset asset = assets[path];
+    final asset = assets[path];
     if (asset != null) {
       // Serving up a static asset (e.g. .css, .html, .png).
       request.response.headers.contentType = ContentType.parse(asset.mimeType);
@@ -384,21 +382,21 @@ class Server {
       return;
     }
     // HTTP based service request.
-    final client = new HttpRequestClient(request, _service);
-    final message = new Message.fromUri(
+    final client = HttpRequestClient(request, _service);
+    final message = Message.fromUri(
         client, Uri(path: path, queryParameters: request.uri.queryParameters));
     client.onRequest(message); // exception free, no need to try catch
   }
 
-  Future<void> _dumpServiceInfoToFile() async {
+  Future<void> _dumpServiceInfoToFile(String serviceInfoFilenameLocal) async {
     final serviceInfo = <String, dynamic>{
       'uri': serverAddress.toString(),
     };
-    final file = File.fromUri(Uri.parse(_serviceInfoFilename));
-    return file.writeAsString(json.encode(serviceInfo));
+    final file = File.fromUri(Uri.parse(serviceInfoFilenameLocal));
+    return file.writeAsString(json.encode(serviceInfo)) as Future<void>;
   }
 
-  Future startup() async {
+  Future<Server> startup() async {
     if (_server != null) {
       // Already running.
       return this;
@@ -412,9 +410,9 @@ class Server {
         var address;
         var addresses = await InternetAddress.lookup(_ip);
         // Prefer IPv4 addresses.
-        for (var i = 0; i < addresses.length; i++) {
+        for (int i = 0; i < addresses.length; i++) {
           address = addresses[i];
-          if (address.type == InternetAddressType.IP_V4) break;
+          if (address.type == InternetAddressType.IPv4) break;
         }
         _server = await HttpServer.bind(address, _port);
         return true;
@@ -427,14 +425,14 @@ class Server {
 
     // poll for the network for ~10 seconds.
     int attempts = 0;
-    final int maxAttempts = 10;
+    final maxAttempts = 10;
     while (!await poll()) {
       attempts++;
-      serverPrint("Observatory server failed to start after $attempts tries");
+      serverPrint('Observatory server failed to start after $attempts tries');
       if (attempts > maxAttempts) {
         serverPrint('Could not start Observatory HTTP server:\n'
             '$pollError\n$pollStack\n');
-        _notifyServerState("");
+        _notifyServerState('');
         onServerAddressChange(null);
         return this;
       }
@@ -442,7 +440,7 @@ class Server {
         _port = 0;
         serverPrint('Falling back to automatic port selection');
       }
-      await new Future<Null>.delayed(const Duration(seconds: 1));
+      await Future<void>.delayed(const Duration(seconds: 1));
     }
     if (_service.isExiting) {
       serverPrint('Observatory HTTP server exiting before listening as '
@@ -450,17 +448,20 @@ class Server {
       await shutdown(true);
       return this;
     }
-    _server.listen(_requestHandler, cancelOnError: true);
+    final server = _server!;
+    server.listen(_requestHandler, cancelOnError: true);
     serverPrint('Observatory listening on $serverAddress');
     if (Platform.isFuchsia) {
       // Create a file with the port number.
-      String tmp = Directory.systemTemp.path;
-      String path = "$tmp/dart.services/${_server.port}";
-      serverPrint("Creating $path");
-      new File(path)..createSync(recursive: true);
+      final tmp = Directory.systemTemp.path;
+      final path = '$tmp/dart.services/${server.port}';
+      serverPrint('Creating $path');
+      File(path)..createSync(recursive: true);
     }
-    if (_serviceInfoFilename != null && _serviceInfoFilename.isNotEmpty) {
-      await _dumpServiceInfoToFile();
+    final serviceInfoFilenameLocal = _serviceInfoFilename;
+    if (serviceInfoFilenameLocal != null &&
+        serviceInfoFilenameLocal.isNotEmpty) {
+      await _dumpServiceInfoToFile(serviceInfoFilenameLocal);
     }
     // Server is up and running.
     _notifyServerState(serverAddress.toString());
@@ -468,42 +469,43 @@ class Server {
     return this;
   }
 
-  Future cleanup(bool force) {
-    if (_server == null) {
-      return new Future.value(null);
+  Future<void> cleanup(bool force) {
+    final serverLocal = _server;
+    if (serverLocal == null) {
+      return Future.value();
     }
     if (Platform.isFuchsia) {
       // Remove the file with the port number.
-      String tmp = Directory.systemTemp.path;
-      String path = "$tmp/dart.services/${_server.port}";
-      serverPrint("Deleting $path");
-      new File(path)..deleteSync();
+      final tmp = Directory.systemTemp.path;
+      final path = '$tmp/dart.services/${serverLocal.port}';
+      serverPrint('Deleting $path');
+      File(path)..deleteSync();
     }
-    return _server.close(force: force);
+    return serverLocal.close(force: force);
   }
 
-  Future shutdown(bool forced) {
+  Future<Server> shutdown(bool forced) {
     if (_server == null) {
       // Not started.
-      return new Future.value(this);
+      return Future.value(this);
     }
 
     // Shutdown HTTP server and subscription.
-    Uri oldServerAddress = serverAddress;
+    Uri oldServerAddress = serverAddress!;
     return cleanup(forced).then((_) {
       serverPrint('Observatory no longer listening on $oldServerAddress');
       _server = null;
-      _notifyServerState("");
+      _notifyServerState('');
       onServerAddressChange(null);
       return this;
     }).catchError((e, st) {
       _server = null;
       serverPrint('Could not shutdown Observatory HTTP server:\n$e\n$st\n');
-      _notifyServerState("");
+      _notifyServerState('');
       onServerAddressChange(null);
       return this;
     });
   }
 }
 
-void _notifyServerState(String uri) native "VMServiceIO_NotifyServerState";
+void _notifyServerState(String uri) native 'VMServiceIO_NotifyServerState';

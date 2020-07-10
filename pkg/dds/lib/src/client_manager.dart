@@ -42,7 +42,8 @@ class _ClientManager {
   Future<void> shutdown() async {
     // Close all incoming websocket connections.
     final futures = <Future>[];
-    for (final client in clients) {
+    // Copy `clients` to guard against modification while iterating.
+    for (final client in clients.toList()) {
       futures.add(client.close());
     }
     await Future.wait(futures);
@@ -130,6 +131,16 @@ class _ClientManager {
         );
       }
     }
+  }
+
+  _DartDevelopmentServiceClient findFirstClientThatHandlesService(
+      String service) {
+    for (final client in clients) {
+      if (client.services.containsKey(service)) {
+        return client;
+      }
+    }
+    return null;
   }
 
   // Handles namespace generation for service extensions.

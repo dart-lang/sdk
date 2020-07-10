@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // Patch file for dart:collection classes.
 import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper'
@@ -30,9 +28,9 @@ const int _mask30 = 0x3fffffff; // Low 30 bits.
 class HashMap<K, V> {
   @patch
   factory HashMap(
-      {bool equals(K key1, K key2),
-      int hashCode(K key),
-      bool isValidKey(potentialKey)}) {
+      {bool equals(K key1, K key2)?,
+      int hashCode(K key)?,
+      bool isValidKey(potentialKey)?}) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -82,7 +80,7 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
   // list of all the keys. We cache that on the instance and clear the
   // the cache whenever the key set changes. This is also used to
   // guard against concurrent modifications.
-  List _keys;
+  List? _keys;
 
   _HashMap();
 
@@ -95,10 +93,10 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
   }
 
   Iterable<V> get values {
-    return new MappedIterable<K, V>(keys, (each) => this[each]);
+    return new MappedIterable<K, V>(keys, (each) => this[each] as V);
   }
 
-  bool containsKey(Object key) {
+  bool containsKey(Object? key) {
     if (_isStringKey(key)) {
       var strings = _strings;
       return (strings == null) ? false : _hasTableEntry(strings, key);
@@ -110,14 +108,14 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     }
   }
 
-  bool _containsKey(Object key) {
+  bool _containsKey(Object? key) {
     var rest = _rest;
     if (rest == null) return false;
     var bucket = _getBucket(rest, key);
     return _findBucketIndex(bucket, key) >= 0;
   }
 
-  bool containsValue(Object value) {
+  bool containsValue(Object? value) {
     return _computeKeys().any((each) => this[each] == value);
   }
 
@@ -127,7 +125,7 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     });
   }
 
-  V operator [](Object key) {
+  V? operator [](Object? key) {
     if (_isStringKey(key)) {
       var strings = _strings;
       return JS('', '#', strings == null ? null : _getTableEntry(strings, key));
@@ -139,7 +137,7 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     }
   }
 
-  V _get(Object key) {
+  V? _get(Object? key) {
     var rest = _rest;
     if (rest == null) return null;
     var bucket = _getBucket(rest, key);
@@ -183,13 +181,13 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
   }
 
   V putIfAbsent(K key, V ifAbsent()) {
-    if (containsKey(key)) return this[key];
+    if (containsKey(key)) return this[key] as V;
     V value = ifAbsent();
     this[key] = value;
     return value;
   }
 
-  V remove(Object key) {
+  V? remove(Object? key) {
     if (_isStringKey(key)) {
       return _removeHashTableEntry(_strings, key);
     } else if (_isNumericKey(key)) {
@@ -199,7 +197,7 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     }
   }
 
-  V _remove(Object key) {
+  V? _remove(Object? key) {
     var rest = _rest;
     if (rest == null) return null;
     var hash = _computeHashCode(key);
@@ -228,7 +226,7 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     List keys = _computeKeys();
     for (int i = 0, length = keys.length; i < length; i++) {
       var key = JS('var', '#[#]', keys, i);
-      action(key, this[key]);
+      action(key, this[key] as V);
       if (JS('bool', '# !== #', keys, _keys)) {
         throw new ConcurrentModificationError(this);
       }
@@ -236,8 +234,9 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
   }
 
   List _computeKeys() {
-    if (_keys != null) return _keys;
-    List result = new List(_length);
+    var result = _keys;
+    if (result != null) return result;
+    result = List.filled(_length, null);
     int index = 0;
 
     // Add all string keys to the list.
@@ -283,7 +282,8 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
       }
     }
     assert(index == _length);
-    return _keys = result;
+    _keys = result;
+    return result;
   }
 
   void _addHashTableEntry(var table, K key, V value) {
@@ -294,7 +294,7 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     _setTableEntry(table, key, value);
   }
 
-  V _removeHashTableEntry(var table, Object key) {
+  V? _removeHashTableEntry(var table, Object? key) {
     if (table != null && _hasTableEntry(table, key)) {
       V value = _getTableEntry(table, key);
       _deleteTableEntry(table, key);
@@ -408,10 +408,10 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
   final _Hasher<K> _hashCode;
   final _Predicate _validKey;
 
-  _CustomHashMap(this._equals, this._hashCode, bool validKey(potentialKey))
+  _CustomHashMap(this._equals, this._hashCode, bool validKey(potentialKey)?)
       : _validKey = (validKey != null) ? validKey : ((v) => v is K);
 
-  V operator [](Object key) {
+  V? operator [](Object? key) {
     if (!_validKey(key)) return null;
     return super._get(key);
   }
@@ -420,12 +420,12 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
     super._set(key, value);
   }
 
-  bool containsKey(Object key) {
+  bool containsKey(Object? key) {
     if (!_validKey(key)) return false;
     return super._containsKey(key);
   }
 
-  V remove(Object key) {
+  V? remove(Object? key) {
     if (!_validKey(key)) return null;
     return super._remove(key);
   }
@@ -458,7 +458,7 @@ class _HashMapKeyIterable<E> extends EfficientLengthIterable<E> {
     return new _HashMapKeyIterator<E>(_map, _map._computeKeys());
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     return _map.containsKey(element);
   }
 
@@ -477,11 +477,11 @@ class _HashMapKeyIterator<E> implements Iterator<E> {
   final _map;
   final List _keys;
   int _offset = 0;
-  E _current;
+  E? _current;
 
   _HashMapKeyIterator(this._map, this._keys);
 
-  E get current => _current;
+  E get current => _current as E;
 
   bool moveNext() {
     var keys = _keys;
@@ -506,9 +506,9 @@ class _HashMapKeyIterator<E> implements Iterator<E> {
 class LinkedHashMap<K, V> {
   @patch
   factory LinkedHashMap(
-      {bool equals(K key1, K key2),
-      int hashCode(K key),
-      bool isValidKey(potentialKey)}) {
+      {bool equals(K key1, K key2)?,
+      int hashCode(K key)?,
+      bool isValidKey(potentialKey)?}) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -613,11 +613,11 @@ class _Es6LinkedIdentityHashMap<K, V> extends _LinkedIdentityHashMap<K, V>
 
   Iterable<V> get values => new _Es6MapIterable<V>(this, false);
 
-  bool containsKey(Object key) {
+  bool containsKey(Object? key) {
     return JS('bool', '#.has(#)', _map, key);
   }
 
-  bool containsValue(Object value) {
+  bool containsValue(Object? value) {
     return values.any((each) => each == value);
   }
 
@@ -627,7 +627,7 @@ class _Es6LinkedIdentityHashMap<K, V> extends _LinkedIdentityHashMap<K, V>
     });
   }
 
-  V operator [](Object key) {
+  V? operator [](Object? key) {
     return JS('var', '#.get(#)', _map, key);
   }
 
@@ -637,14 +637,14 @@ class _Es6LinkedIdentityHashMap<K, V> extends _LinkedIdentityHashMap<K, V>
   }
 
   V putIfAbsent(K key, V ifAbsent()) {
-    if (containsKey(key)) return this[key];
+    if (containsKey(key)) return this[key] as V;
     V value = ifAbsent();
     this[key] = value;
     return value;
   }
 
-  V remove(Object key) {
-    V value = this[key];
+  V? remove(Object? key) {
+    V? value = this[key];
     JS('bool', '#.delete(#)', _map, key);
     _modified();
     return value;
@@ -693,7 +693,7 @@ class _Es6MapIterable<E> extends EfficientLengthIterable<E> {
   Iterator<E> get iterator =>
       new _Es6MapIterator<E>(_map, _map._modifications, _isKeys);
 
-  bool contains(Object element) => _map.containsKey(element);
+  bool contains(Object? element) => _map.containsKey(element);
 
   void forEach(void f(E element)) {
     var jsIterator;
@@ -722,8 +722,8 @@ class _Es6MapIterator<E> implements Iterator<E> {
   final bool _isKeys;
   var _jsIterator;
   var _next;
-  E _current;
-  bool _done;
+  E? _current;
+  bool _done = false;
 
   _Es6MapIterator(this._map, this._modifications, this._isKeys) {
     if (_isKeys) {
@@ -731,10 +731,9 @@ class _Es6MapIterator<E> implements Iterator<E> {
     } else {
       _jsIterator = JS('var', '#.values()', _map._map);
     }
-    _done = false;
   }
 
-  E get current => _current;
+  E get current => _current as E;
 
   bool moveNext() {
     if (_modifications != _map._modifications) {
@@ -761,10 +760,10 @@ class _LinkedCustomHashMap<K, V> extends JsLinkedHashMap<K, V> {
   final _Predicate _validKey;
 
   _LinkedCustomHashMap(
-      this._equals, this._hashCode, bool validKey(potentialKey))
+      this._equals, this._hashCode, bool validKey(potentialKey)?)
       : _validKey = (validKey != null) ? validKey : ((v) => v is K);
 
-  V operator [](Object key) {
+  V? operator [](Object? key) {
     if (!_validKey(key)) return null;
     return super.internalGet(key);
   }
@@ -773,12 +772,12 @@ class _LinkedCustomHashMap<K, V> extends JsLinkedHashMap<K, V> {
     super.internalSet(key, value);
   }
 
-  bool containsKey(Object key) {
+  bool containsKey(Object? key) {
     if (!_validKey(key)) return false;
     return super.internalContainsKey(key);
   }
 
-  V remove(Object key) {
+  V? remove(Object? key) {
     if (!_validKey(key)) return null;
     return super.internalRemove(key);
   }
@@ -805,9 +804,9 @@ class _LinkedCustomHashMap<K, V> extends JsLinkedHashMap<K, V> {
 class HashSet<E> {
   @patch
   factory HashSet(
-      {bool equals(E e1, E e2),
-      int hashCode(E e),
-      bool isValidKey(potentialKey)}) {
+      {bool equals(E e1, E e2)?,
+      int hashCode(E e)?,
+      bool isValidKey(potentialKey)?}) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -858,7 +857,7 @@ class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
   // list of all the elements. We cache that on the instance and clear
   // the cache whenever the set changes. This is also used to
   // guard against concurrent modifications.
-  List _elements;
+  List? _elements;
 
   _HashSet();
 
@@ -874,7 +873,7 @@ class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
   bool get isEmpty => _length == 0;
   bool get isNotEmpty => !isEmpty;
 
-  bool contains(Object object) {
+  bool contains(Object? object) {
     if (_isStringElement(object)) {
       var strings = _strings;
       return (strings == null) ? false : _hasTableEntry(strings, object);
@@ -886,21 +885,21 @@ class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
     }
   }
 
-  bool _contains(Object object) {
+  bool _contains(Object? object) {
     var rest = _rest;
     if (rest == null) return false;
     var bucket = _getBucket(rest, object);
     return _findBucketIndex(bucket, object) >= 0;
   }
 
-  E lookup(Object object) {
+  E? lookup(Object? object) {
     if (_isStringElement(object) || _isNumericElement(object)) {
-      return this.contains(object) ? object : null;
+      return this.contains(object) ? object as E : null;
     }
     return _lookup(object);
   }
 
-  E _lookup(Object object) {
+  E? _lookup(Object? object) {
     var rest = _rest;
     if (rest == null) return null;
     var bucket = _getBucket(rest, object);
@@ -947,7 +946,7 @@ class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
     }
   }
 
-  bool remove(Object object) {
+  bool remove(Object? object) {
     if (_isStringElement(object)) {
       return _removeHashTableEntry(_strings, object);
     } else if (_isNumericElement(object)) {
@@ -957,7 +956,7 @@ class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
     }
   }
 
-  bool _remove(Object object) {
+  bool _remove(Object? object) {
     var rest = _rest;
     if (rest == null) return false;
     var hash = _computeHashCode(object);
@@ -985,8 +984,9 @@ class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
   }
 
   List _computeElements() {
-    if (_elements != null) return _elements;
-    List result = new List(_length);
+    var result = _elements;
+    if (result != null) return result;
+    result = List.filled(_length, null);
     int index = 0;
 
     // Add all string elements to the list.
@@ -1031,7 +1031,8 @@ class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
       }
     }
     assert(index == _length);
-    return _elements = result;
+    _elements = result;
+    return result;
   }
 
   bool _addHashTableEntry(var table, E element) {
@@ -1042,7 +1043,7 @@ class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
     return true;
   }
 
-  bool _removeHashTableEntry(var table, Object element) {
+  bool _removeHashTableEntry(var table, Object? element) {
     if (table != null && _hasTableEntry(table, element)) {
       _deleteTableEntry(table, element);
       _length--;
@@ -1143,7 +1144,7 @@ class _CustomHashSet<E> extends _HashSet<E> {
   _Equality<E> _equality;
   _Hasher<E> _hasher;
   _Predicate _validKey;
-  _CustomHashSet(this._equality, this._hasher, bool validKey(potentialKey))
+  _CustomHashSet(this._equality, this._hasher, bool validKey(potentialKey)?)
       : _validKey = (validKey != null) ? validKey : ((x) => x is E);
 
   Set<E> _newSet() => new _CustomHashSet<E>(_equality, _hasher, _validKey);
@@ -1168,17 +1169,17 @@ class _CustomHashSet<E> extends _HashSet<E> {
 
   bool add(E object) => super._add(object);
 
-  bool contains(Object object) {
+  bool contains(Object? object) {
     if (!_validKey(object)) return false;
     return super._contains(object);
   }
 
-  E lookup(Object object) {
+  E? lookup(Object? object) {
     if (!_validKey(object)) return null;
     return super._lookup(object);
   }
 
-  bool remove(Object object) {
+  bool remove(Object? object) {
     if (!_validKey(object)) return false;
     return super._remove(object);
   }
@@ -1189,11 +1190,11 @@ class _HashSetIterator<E> implements Iterator<E> {
   final _set;
   final List _elements;
   int _offset = 0;
-  E _current;
+  E? _current;
 
   _HashSetIterator(this._set, this._elements);
 
-  E get current => _current;
+  E get current => _current as E;
 
   bool moveNext() {
     var elements = _elements;
@@ -1218,9 +1219,9 @@ class _HashSetIterator<E> implements Iterator<E> {
 class LinkedHashSet<E> {
   @patch
   factory LinkedHashSet(
-      {bool equals(E e1, E e2),
-      int hashCode(E e),
-      bool isValidKey(potentialKey)}) {
+      {bool equals(E e1, E e2)?,
+      int hashCode(E e)?,
+      bool isValidKey(potentialKey)?}) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -1293,8 +1294,8 @@ class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
 
   // The elements are stored in cells that are linked together
   // to form a double linked list.
-  _LinkedHashSetCell _first;
-  _LinkedHashSetCell _last;
+  _LinkedHashSetCell? _first;
+  _LinkedHashSetCell? _last;
 
   // We track the number of modifications done to the element set to
   // be able to throw when the set is modified while being iterated
@@ -1319,38 +1320,38 @@ class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
   bool get isEmpty => _length == 0;
   bool get isNotEmpty => !isEmpty;
 
-  bool contains(Object object) {
+  bool contains(Object? object) {
     if (_isStringElement(object)) {
       var strings = _strings;
       if (strings == null) return false;
-      _LinkedHashSetCell cell = _getTableEntry(strings, object);
+      _LinkedHashSetCell? cell = _getTableEntry(strings, object);
       return cell != null;
     } else if (_isNumericElement(object)) {
       var nums = _nums;
       if (nums == null) return false;
-      _LinkedHashSetCell cell = _getTableEntry(nums, object);
+      _LinkedHashSetCell? cell = _getTableEntry(nums, object);
       return cell != null;
     } else {
       return _contains(object);
     }
   }
 
-  bool _contains(Object object) {
+  bool _contains(Object? object) {
     var rest = _rest;
     if (rest == null) return false;
     var bucket = _getBucket(rest, object);
     return _findBucketIndex(bucket, object) >= 0;
   }
 
-  E lookup(Object object) {
+  E? lookup(Object? object) {
     if (_isStringElement(object) || _isNumericElement(object)) {
-      return this.contains(object) ? object : null;
+      return this.contains(object) ? object as E : null;
     } else {
       return _lookup(object);
     }
   }
 
-  E _lookup(Object object) {
+  E? _lookup(Object? object) {
     var rest = _rest;
     if (rest == null) return null;
     var bucket = _getBucket(rest, object);
@@ -1360,7 +1361,7 @@ class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
   }
 
   void forEach(void action(E element)) {
-    _LinkedHashSetCell cell = _first;
+    _LinkedHashSetCell? cell = _first;
     int modifications = _modifications;
     while (cell != null) {
       action(cell._element);
@@ -1372,13 +1373,15 @@ class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
   }
 
   E get first {
-    if (_first == null) throw new StateError("No elements");
-    return _first._element;
+    var first = _first;
+    if (first == null) throw new StateError("No elements");
+    return first._element;
   }
 
   E get last {
-    if (_last == null) throw new StateError("No elements");
-    return _last._element;
+    var last = _last;
+    if (last == null) throw new StateError("No elements");
+    return last._element;
   }
 
   // Collection.
@@ -1413,7 +1416,7 @@ class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
     return true;
   }
 
-  bool remove(Object object) {
+  bool remove(Object? object) {
     if (_isStringElement(object)) {
       return _removeHashTableEntry(_strings, object);
     } else if (_isNumericElement(object)) {
@@ -1423,7 +1426,7 @@ class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
     }
   }
 
-  bool _remove(Object object) {
+  bool _remove(Object? object) {
     var rest = _rest;
     if (rest == null) return false;
     var hash = _computeHashCode(object);
@@ -1448,10 +1451,10 @@ class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
   }
 
   void _filterWhere(bool test(E element), bool removeMatching) {
-    _LinkedHashSetCell cell = _first;
+    _LinkedHashSetCell? cell = _first;
     while (cell != null) {
       E element = cell._element;
-      _LinkedHashSetCell next = cell._next;
+      _LinkedHashSetCell? next = cell._next;
       int modifications = _modifications;
       bool shouldRemove = (removeMatching == test(element));
       if (modifications != _modifications) {
@@ -1471,15 +1474,15 @@ class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
   }
 
   bool _addHashTableEntry(var table, E element) {
-    _LinkedHashSetCell cell = _getTableEntry(table, element);
+    _LinkedHashSetCell? cell = _getTableEntry(table, element);
     if (cell != null) return false;
     _setTableEntry(table, element, _newLinkedCell(element));
     return true;
   }
 
-  bool _removeHashTableEntry(var table, Object element) {
+  bool _removeHashTableEntry(var table, Object? element) {
     if (table == null) return false;
-    _LinkedHashSetCell cell = _getTableEntry(table, element);
+    _LinkedHashSetCell? cell = _getTableEntry(table, element);
     if (cell == null) return false;
     _unlinkCell(cell);
     _deleteTableEntry(table, element);
@@ -1499,7 +1502,7 @@ class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
     if (_first == null) {
       _first = _last = cell;
     } else {
-      _LinkedHashSetCell last = _last;
+      _LinkedHashSetCell last = _last!;
       cell._previous = last;
       _last = last._next = cell;
     }
@@ -1510,8 +1513,8 @@ class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
 
   // Unlink the given cell from the linked list of cells.
   void _unlinkCell(_LinkedHashSetCell cell) {
-    _LinkedHashSetCell previous = cell._previous;
-    _LinkedHashSetCell next = cell._next;
+    _LinkedHashSetCell? previous = cell._previous;
+    _LinkedHashSetCell? next = cell._next;
     if (previous == null) {
       assert(cell == _first);
       _first = next;
@@ -1617,7 +1620,7 @@ class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
   _Hasher<E> _hasher;
   _Predicate _validKey;
   _LinkedCustomHashSet(
-      this._equality, this._hasher, bool validKey(potentialKey))
+      this._equality, this._hasher, bool validKey(potentialKey)?)
       : _validKey = (validKey != null) ? validKey : ((x) => x is E);
 
   Set<E> _newSet() =>
@@ -1644,30 +1647,30 @@ class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
 
   bool add(E element) => super._add(element);
 
-  bool contains(Object object) {
+  bool contains(Object? object) {
     if (!_validKey(object)) return false;
     return super._contains(object);
   }
 
-  E lookup(Object object) {
+  E? lookup(Object? object) {
     if (!_validKey(object)) return null;
     return super._lookup(object);
   }
 
-  bool remove(Object object) {
+  bool remove(Object? object) {
     if (!_validKey(object)) return false;
     return super._remove(object);
   }
 
-  bool containsAll(Iterable<Object> elements) {
-    for (Object element in elements) {
+  bool containsAll(Iterable<Object?> elements) {
+    for (Object? element in elements) {
       if (!_validKey(element) || !this.contains(element)) return false;
     }
     return true;
   }
 
-  void removeAll(Iterable<Object> elements) {
-    for (Object element in elements) {
+  void removeAll(Iterable<Object?> elements) {
+    for (Object? element in elements) {
       if (_validKey(element)) {
         super._remove(element);
       }
@@ -1678,8 +1681,8 @@ class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
 class _LinkedHashSetCell {
   final _element;
 
-  _LinkedHashSetCell _next;
-  _LinkedHashSetCell _previous;
+  _LinkedHashSetCell? _next;
+  _LinkedHashSetCell? _previous;
 
   _LinkedHashSetCell(this._element);
 }
@@ -1688,52 +1691,26 @@ class _LinkedHashSetCell {
 class _LinkedHashSetIterator<E> implements Iterator<E> {
   final _set;
   final int _modifications;
-  _LinkedHashSetCell _cell;
-  E _current;
+  _LinkedHashSetCell? _cell;
+  E? _current;
 
   _LinkedHashSetIterator(this._set, this._modifications) {
     _cell = _set._first;
   }
 
-  E get current => _current;
+  E get current => _current as E;
 
   bool moveNext() {
+    var cell = _cell;
     if (_modifications != _set._modifications) {
       throw new ConcurrentModificationError(_set);
-    } else if (_cell == null) {
+    } else if (cell == null) {
       _current = null;
       return false;
     } else {
-      _current = _cell._element;
-      _cell = _cell._next;
+      _current = cell._element;
+      _cell = cell._next;
       return true;
     }
-  }
-}
-
-@patch
-abstract class _SplayTree<K, Node extends _SplayTreeNode<K>> {
-  @patch
-  Node _splayMin(Node node) {
-    Node current = node;
-    while (current.left != null) {
-      Node left = current.left;
-      current.left = left.right;
-      left.right = current;
-      current = left;
-    }
-    return current;
-  }
-
-  @patch
-  Node _splayMax(Node node) {
-    Node current = node;
-    while (current.right != null) {
-      Node right = current.right;
-      current.right = right.left;
-      right.left = current;
-      current = right;
-    }
-    return current;
   }
 }

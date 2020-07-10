@@ -9,7 +9,7 @@ part 'experimental_flags_generated.dart';
 /// The set of experiments enabled for SDK and packages.
 ///
 /// This are derived from an `allowed_experiments.json` file whose default is
-/// located in `sdk_nnbd/lib/_internal/allowed_experiments.json`.
+/// located in `sdk/lib/_internal/allowed_experiments.json`.
 class AllowedExperimentalFlags {
   /// The set of experiments that are enabled for all SDK libraries other than
   /// for those which are specified in [sdkLibraryExperiments].
@@ -104,10 +104,13 @@ bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri canonicalUri,
       allowedFlags = allowedExperimentalFlags.forSdkLibrary(canonicalUri.path);
     } else if (canonicalUri.scheme == 'package') {
       int index = canonicalUri.path.indexOf('/');
+      String packageName;
       if (index >= 0) {
-        String packageName = canonicalUri.path.substring(0, index);
-        allowedFlags = allowedExperimentalFlags.forPackage(packageName);
+        packageName = canonicalUri.path.substring(0, index);
+      } else {
+        packageName = canonicalUri.path;
       }
+      allowedFlags = allowedExperimentalFlags.forPackage(packageName);
     }
     if (allowedFlags != null) {
       enabled = allowedFlags.contains(flag);

@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
@@ -389,6 +388,9 @@ class Variables {
     } else if (element is VariableElement) {
       decoratedType = _alreadyMigratedCodeDecorator.decorate(
           element.preMigrationType, element, target);
+    } else if (element is ExtensionElement) {
+      decoratedType = _alreadyMigratedCodeDecorator.decorate(
+          element.preMigrationExtendedType, element, target);
     } else {
       // TODO(paulberry)
       throw UnimplementedError('Decorating ${element.runtimeType}');
@@ -510,6 +512,18 @@ extension on VariableElement {
     try {
       ElementTypeProvider.current = const ElementTypeProvider();
       return type;
+    } finally {
+      ElementTypeProvider.current = previousElementTypeProvider;
+    }
+  }
+}
+
+extension on ExtensionElement {
+  DartType get preMigrationExtendedType {
+    var previousElementTypeProvider = ElementTypeProvider.current;
+    try {
+      ElementTypeProvider.current = const ElementTypeProvider();
+      return extendedType;
     } finally {
       ElementTypeProvider.current = previousElementTypeProvider;
     }

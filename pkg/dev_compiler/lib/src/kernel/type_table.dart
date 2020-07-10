@@ -7,14 +7,18 @@ import 'package:kernel/kernel.dart';
 import '../compiler/js_names.dart' as js_ast;
 import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
+import 'kernel_helpers.dart';
 
 Set<TypeParameter> freeTypeParameters(DartType t) {
+  assert(isKnownDartTypeImplementor(t));
   var result = <TypeParameter>{};
   void find(DartType t) {
     if (t is TypeParameterType) {
       result.add(t.parameter);
     } else if (t is InterfaceType) {
       t.typeArguments.forEach(find);
+    } else if (t is FutureOrType) {
+      find(t.typeArgument);
     } else if (t is TypedefType) {
       t.typeArguments.forEach(find);
     } else if (t is FunctionType) {
@@ -68,15 +72,21 @@ class _CacheTable {
   /// 'L' and 'N' are prepended to a type name to represent a legacy or nullable
   /// flavor of a type.
   String _typeString(DartType type, {bool flat = false}) {
-    var nullability = type.nullability == Nullability.legacy
+    var nullability = type.declaredNullability == Nullability.legacy
         ? 'L'
-        : type.nullability == Nullability.nullable ? 'N' : '';
+        : type.declaredNullability == Nullability.nullable ? 'N' : '';
+    assert(isKnownDartTypeImplementor(type));
     if (type is InterfaceType) {
       var name = '${type.classNode.name}$nullability';
       var typeArgs = type.typeArguments;
       if (typeArgs == null) return name;
       if (typeArgs.every((p) => p == const DynamicType())) return name;
       return "${name}Of${typeArgs.map(_typeString).join("\$")}";
+    }
+    if (type is FutureOrType) {
+      var name = 'FutureOr$nullability';
+      if (type.typeArgument == const DynamicType()) return name;
+      return '${name}Of${_typeString(type.typeArgument)}';
     }
     if (type is TypedefType) {
       var name = '${type.typedefNode.name}$nullability';

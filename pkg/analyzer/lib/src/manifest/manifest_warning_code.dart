@@ -4,54 +4,52 @@
 
 import 'package:analyzer/error/error.dart';
 
-/**
- * The error codes used for warnings in analysis options files. The convention
- * for this class is for the name of the error code to indicate the problem that
- * caused the error to be generated and for the error message to explain what is
- * wrong and, when appropriate, how the problem can be corrected.
- */
+/// The error codes used for warnings in analysis options files. The convention
+/// for this class is for the name of the error code to indicate the problem
+/// that caused the error to be generated and for the error message to explain
+/// what is wrong and, when appropriate, how the problem can be corrected.
 class ManifestWarningCode extends ErrorCode {
-  /**
-   * A code indicating that a specified hardware feature is not supported on Chrome OS.
-   */
+  /// A code indicating that a specified hardware feature is not supported on
+  /// Chrome OS.
   static const ManifestWarningCode UNSUPPORTED_CHROME_OS_HARDWARE =
-      ManifestWarningCode('UNSUPPORTED_CHROME_OS_HARDWARE',
-          "The feature {0} is not supported on Chrome OS, consider making it optional.",
+      ManifestWarningCode(
+          'UNSUPPORTED_CHROME_OS_HARDWARE',
+          'The feature {0} is not supported on Chrome OS, consider making it '
+              'optional.',
           correction:
-              "Try adding `android:required=\"false\"` for this feature.");
+              'Try adding `android:required="false"` for this feature.');
 
-  /**
-   * A code indicating that a specified feature is not supported on Chrome OS.
-   */
+  /// A code indicating that a specified feature is not supported on Chrome OS.
   static const ManifestWarningCode UNSUPPORTED_CHROME_OS_FEATURE =
-      ManifestWarningCode('UNSUPPORTED_CHROME_OS_FEATURE',
-          'The feature {0} is not supported on Chrome OS, consider making it optional.',
+      ManifestWarningCode(
+          'UNSUPPORTED_CHROME_OS_FEATURE',
+          'The feature {0} is not supported on Chrome OS, consider making it '
+              'optional.',
           correction: "Try changing to `android:required=\"false\"` for this "
               "feature.");
 
-  /**
-   * A code indicating that the touchscreen feature is not specified in the
-   * manifest.
-   */
+  /// A code indicating that the touchscreen feature is not specified in the
+  /// manifest.
   static const ManifestWarningCode NO_TOUCHSCREEN_FEATURE = ManifestWarningCode(
       'NO_TOUCHSCREEN_FEATURE',
-      "The default \"android.hardware.touchscreen\" needs to be optional for Chrome OS. ",
+      'The default "android.hardware.touchscreen" needs to be optional for '
+          'Chrome OS. ',
       correction: "Consider adding "
           "<uses-feature android:name=\"android.hardware.touchscreen\" android:required=\"false\" />"
           " to the manifest.");
 
-  /**
-   * A code indicating that a specified permission is not supported on Chrome OS.
-   */
+  /// A code indicating that a specified permission is not supported on Chrome
+  /// OS.
   static const ManifestWarningCode PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE =
-      ManifestWarningCode('PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
-          "Permission makes app incompatible for Chrome OS, consider adding optional {0} feature tag, ",
+      ManifestWarningCode(
+          'PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
+          'Permission makes app incompatible for Chrome OS, consider adding '
+              'optional {0} feature tag, ',
           correction: " Try adding `<uses-feature "
               "android:name=\"{0}\"  android:required=\"false\">`.");
 
-  /**
-   * A code indicating that the camera permissions is not supported on Chrome OS.
-   */
+  /// A code indicating that the camera permissions is not supported on Chrome
+  /// OS.
   static const ManifestWarningCode CAMERA_PERMISSIONS_INCOMPATIBLE = ManifestWarningCode(
       'CAMERA_PERMISSIONS_INCOMPATIBLE',
       "Camera permissions make app incompatible for Chrome OS, consider adding "
@@ -61,9 +59,7 @@ class ManifestWarningCode extends ErrorCode {
           "`<uses-feature "
           "android:name=\"android.hardware.camera.autofocus\"  android:required=\"false\">`.");
 
-  /**
-   * A code indicating that the activity is set to be non resizable.
-   */
+  /// A code indicating that the activity is set to be non resizable.
   static const ManifestWarningCode NON_RESIZABLE_ACTIVITY = ManifestWarningCode(
       'NON_RESIZABLE_ACTIVITY',
       "The `<activity>` element should be allowed to be resized to allow "
@@ -71,9 +67,7 @@ class ManifestWarningCode extends ErrorCode {
       correction: "Consider declaring the corresponding "
           "activity element with `resizableActivity=\"true\"` attribute.");
 
-  /**
-   * A code indicating that the activity is locked to an orientation.
-   */
+  /// A code indicating that the activity is locked to an orientation.
   static const ManifestWarningCode SETTING_ORIENTATION_ON_ACTIVITY =
       ManifestWarningCode(
           'SETTING_ORIENTATION_ON_ACTIVITY',
@@ -84,10 +78,8 @@ class ManifestWarningCode extends ErrorCode {
               "Consider declaring the corresponding activity element with"
               " `screenOrientation=\"unspecified\"` or `\"fullSensor\"` attribute.");
 
-  /**
-   * Initialize a newly created warning code to have the given [name], [message]
-   * and [correction].
-   */
+  /// Initialize a newly created warning code to have the given [name],
+  /// [message] and [correction].
   const ManifestWarningCode(String name, String message, {String correction})
       : super.temporary(name, message, correction: correction);
 

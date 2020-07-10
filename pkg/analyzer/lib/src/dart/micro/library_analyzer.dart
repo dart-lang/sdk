@@ -19,10 +19,12 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/dart2js_verifier.dart';
@@ -30,6 +32,7 @@ import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/imports_verifier.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/override_verifier.dart';
+import 'package:analyzer/src/error/todo_finder.dart';
 import 'package:analyzer/src/error/unused_local_elements_verifier.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -43,20 +46,12 @@ import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:analyzer/src/error/todo_finder.dart';
 
-var timerLibraryAnalyzer = Stopwatch();
-var timerLibraryAnalyzerConst = Stopwatch();
-var timerLibraryAnalyzerFreshUnit = Stopwatch();
-var timerLibraryAnalyzerResolve = Stopwatch();
-var timerLibraryAnalyzerSplicer = Stopwatch();
-var timerLibraryAnalyzerVerify = Stopwatch();
-
-/**
- * Analyzer of a single library.
- */
+/// Analyzer of a single library.
 class LibraryAnalyzer {
   /// A marker object used to prevent the initialization of
   /// [_versionConstraintFromPubspec] when the previous initialization attempt
@@ -84,11 +79,9 @@ class LibraryAnalyzer {
   final List<UsedImportedElements> _usedImportedElementsList = [];
   final List<UsedLocalElements> _usedLocalElementsList = [];
 
-  /**
-   * Constants in the current library.
-   *
-   * TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
-   */
+  /// Constants in the current library.
+  ///
+  /// TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
   final Set<ConstantEvaluationTarget> _libraryConstants = {};
 
   final Set<ConstantEvaluationTarget> _constants = {};
@@ -112,28 +105,23 @@ class LibraryAnalyzer {
 
   TypeSystemImpl get _typeSystem => _libraryElement.typeSystem;
 
-  /**
-   * Compute analysis results for all units of the library.
-   */
-  Map<FileState, UnitAnalysisResult> analyze() {
-    return PerformanceStatistics.analysis.makeCurrentWhile(() {
-      return analyzeSync();
-    });
-  }
-
-  /**
-   * Compute analysis results for all units of the library.
-   */
-  Map<FileState, UnitAnalysisResult> analyzeSync() {
-    timerLibraryAnalyzer.start();
-    Map<FileState, CompilationUnit> units = {};
+  /// Compute analysis results for all units of the library.
+  Map<FileState, UnitAnalysisResult> analyzeSync({
+    @required String completionPath,
+    @required int completionOffset,
+    @required OperationPerformanceImpl performance,
+  }) {
+    var forCompletion = completionPath != null;
+    var units = <FileState, CompilationUnit>{};
 
     // Parse all files.
-    timerLibraryAnalyzerFreshUnit.start();
-    for (FileState file in _library.libraryFiles) {
-      units[file] = _parse(file);
-    }
-    timerLibraryAnalyzerFreshUnit.stop();
+    performance.run('parse', (performance) {
+      for (FileState file in _library.libraryFiles) {
+        if (completionPath == null || file.path == completionPath) {
+          units[file] = _parse(file);
+        }
+      }
+    });
 
     // Resolve URIs in directives to corresponding sources.
     FeatureSet featureSet = units[_library].featureSet;
@@ -147,29 +135,84 @@ class LibraryAnalyzer {
 
     _libraryScope = LibraryScope(_libraryElement);
 
-    timerLibraryAnalyzerResolve.start();
-    _resolveDirectives(units);
-
-    units.forEach((file, unit) {
-      _resolveFile(file, unit);
+    performance.run('resolveDirectives', (performance) {
+      _resolveDirectives(units);
     });
-    timerLibraryAnalyzerResolve.stop();
 
-    timerLibraryAnalyzerConst.start();
-    units.values.forEach(_findConstants);
-    _clearConstantEvaluationResults();
-    _computeConstants();
-    timerLibraryAnalyzerConst.stop();
+    performance.run('resolveFiles', (performance) {
+      units.forEach((file, unit) {
+        _resolveFile(
+          completionOffset: completionOffset,
+          file: file,
+          unit: unit,
+        );
+      });
+    });
 
-    timerLibraryAnalyzerVerify.start();
-    PerformanceStatistics.errors.makeCurrentWhile(() {
+    if (!forCompletion) {
+      performance.run('computeConstants', (performance) {
+        units.values.forEach(_findConstants);
+        _clearConstantEvaluationResults();
+        _computeConstants();
+      });
+
+      _computeDiagnostics(performance: performance, units: units);
+    }
+
+    assert(units.values.every(LegacyTypeAsserter.assertLegacyTypes));
+
+    // Return full results.
+    Map<FileState, UnitAnalysisResult> results = {};
+    units.forEach((file, unit) {
+      List<AnalysisError> errors = _getErrorListener(file).errors;
+      errors = _filterIgnoredErrors(file, errors);
+      results[file] = UnitAnalysisResult(file, unit, errors);
+    });
+    return results;
+  }
+
+  /// Clear evaluation results for all constants before computing them again.
+  /// The reason is described in https://github.com/dart-lang/sdk/issues/35940
+  ///
+  /// Otherwise, we reuse results, including errors are recorded only when
+  /// we evaluate constants resynthesized from summaries.
+  ///
+  /// TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
+  void _clearConstantEvaluationResults() {
+    for (var constant in _libraryConstants) {
+      if (constant is ConstFieldElementImpl_ofEnum) continue;
+      if (constant is ConstVariableElement) {
+        constant.evaluationResult = null;
+      }
+    }
+  }
+
+  void _computeConstantErrors(
+      ErrorReporter errorReporter, CompilationUnit unit) {
+    ConstantVerifier constantVerifier = ConstantVerifier(
+        errorReporter, _libraryElement, _declaredVariables,
+        featureSet: unit.featureSet);
+    unit.accept(constantVerifier);
+  }
+
+  /// Compute [_constants] in all units.
+  void _computeConstants() {
+    computeConstants(_typeProvider, _typeSystem, _declaredVariables,
+        _constants.toList(), _analysisOptions.experimentStatus);
+  }
+
+  void _computeDiagnostics({
+    @required OperationPerformanceImpl performance,
+    @required Map<FileState, CompilationUnit> units,
+  }) {
+    performance.run('computeVerifyErrors', (performance) {
       units.forEach((file, unit) {
         _computeVerifyErrors(file, unit);
       });
     });
 
     if (_analysisOptions.hint) {
-      PerformanceStatistics.hints.makeCurrentWhile(() {
+      performance.run('computeHints', (performance) {
         units.forEach((file, unit) {
           {
             var visitor = GatherUsedLocalElementsVisitor(_libraryElement);
@@ -189,66 +232,16 @@ class LibraryAnalyzer {
     }
 
     if (_analysisOptions.lint) {
-      PerformanceStatistics.lints.makeCurrentWhile(() {
-        var allUnits = _library.libraryFiles.map(
-          (file) {
-            var content = _getFileContent(file.path);
-            return LinterContextUnit(content, units[file]);
-          },
-        ).toList();
+      performance.run('computeLints', (performance) {
+        var allUnits = _library.libraryFiles.map((file) {
+          var content = _getFileContent(file.path);
+          return LinterContextUnit(content, units[file]);
+        }).toList();
         for (int i = 0; i < allUnits.length; i++) {
           _computeLints(_library.libraryFiles[i], allUnits[i], allUnits);
         }
       });
     }
-
-    assert(units.values.every(LegacyTypeAsserter.assertLegacyTypes));
-
-    timerLibraryAnalyzerVerify.stop();
-
-    // Return full results.
-    Map<FileState, UnitAnalysisResult> results = {};
-    units.forEach((file, unit) {
-      List<AnalysisError> errors = _getErrorListener(file).errors;
-      errors = _filterIgnoredErrors(file, errors);
-      results[file] = UnitAnalysisResult(file, unit, errors);
-    });
-    timerLibraryAnalyzer.stop();
-    return results;
-  }
-
-  /**
-   * Clear evaluation results for all constants before computing them again.
-   * The reason is described in https://github.com/dart-lang/sdk/issues/35940
-   *
-   * Otherwise, we reuse results, including errors are recorded only when
-   * we evaluate constants resynthesized from summaries.
-   *
-   * TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
-   */
-  void _clearConstantEvaluationResults() {
-    for (var constant in _libraryConstants) {
-      if (constant is ConstFieldElementImpl_ofEnum) continue;
-      if (constant is ConstVariableElement) {
-        constant.evaluationResult = null;
-      }
-    }
-  }
-
-  void _computeConstantErrors(
-      ErrorReporter errorReporter, CompilationUnit unit) {
-    ConstantVerifier constantVerifier = ConstantVerifier(
-        errorReporter, _libraryElement, _declaredVariables,
-        featureSet: unit.featureSet);
-    unit.accept(constantVerifier);
-  }
-
-  /**
-   * Compute [_constants] in all units.
-   */
-  void _computeConstants() {
-    computeConstants(_typeProvider, _typeSystem, _declaredVariables,
-        _constants.toList(), _analysisOptions.experimentStatus);
   }
 
   void _computeHints(FileState file, CompilationUnit unit) {
@@ -369,23 +362,6 @@ class LibraryAnalyzer {
     }
   }
 
-  WorkspacePackage _getPackage(CompilationUnit unit) {
-    final libraryPath = _library.source.fullName;
-    Workspace workspace =
-        unit.declaredElement.session?.analysisContext?.workspace;
-
-    // If there is no driver setup (as in test environments), we need to create
-    // a workspace ourselves.
-    // todo (pq): fix tests or otherwise de-dup this logic shared w/ resolver.
-    if (workspace == null) {
-      final builder = ContextBuilder(
-          _resourceProvider, null /* sdkManager */, null /* contentCache */);
-      workspace = ContextBuilder.createWorkspace(
-          _resourceProvider, libraryPath, builder);
-    }
-    return workspace?.findPackageFor(libraryPath);
-  }
-
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {
     if (file.source == null) {
       return;
@@ -428,10 +404,8 @@ class LibraryAnalyzer {
     unit.accept(errorVerifier);
   }
 
-  /**
-   * Return a subset of the given [errors] that are not marked as ignored in
-   * the [file].
-   */
+  /// Return a subset of the given [errors] that are not marked as ignored in
+  /// the [file].
   List<AnalysisError> _filterIgnoredErrors(
       FileState file, List<AnalysisError> errors) {
     if (errors.isEmpty) {
@@ -476,10 +450,34 @@ class LibraryAnalyzer {
     });
   }
 
-  /**
-   * Return the name of the library that the given part is declared to be a
-   * part of, or `null` if the part does not contain a part-of directive.
-   */
+  /// Catch all exceptions from the `getFileContent` function.
+  String _getFileContent(String path) {
+    try {
+      return getFileContent(path);
+    } catch (_) {
+      return '';
+    }
+  }
+
+  WorkspacePackage _getPackage(CompilationUnit unit) {
+    final libraryPath = _library.source.fullName;
+    Workspace workspace =
+        unit.declaredElement.session?.analysisContext?.workspace;
+
+    // If there is no driver setup (as in test environments), we need to create
+    // a workspace ourselves.
+    // todo (pq): fix tests or otherwise de-dup this logic shared w/ resolver.
+    if (workspace == null) {
+      final builder = ContextBuilder(
+          _resourceProvider, null /* sdkManager */, null /* contentCache */);
+      workspace = ContextBuilder.createWorkspace(
+          _resourceProvider, libraryPath, builder);
+    }
+    return workspace?.findPackageFor(libraryPath);
+  }
+
+  /// Return the name of the library that the given part is declared to be a
+  /// part of, or `null` if the part does not contain a part-of directive.
   _NameOrSource _getPartLibraryNameOrUri(Source partSource,
       CompilationUnit partUnit, List<Directive> directivesToResolve) {
     for (Directive directive in partUnit.directives) {
@@ -510,16 +508,12 @@ class LibraryAnalyzer {
     return false;
   }
 
-  /**
-   * Return `true` if the given [source] is a library.
-   */
+  /// Return `true` if the given [source] is a library.
   bool _isLibrarySource(Source source) {
     return _isLibraryUri(source.uri);
   }
 
-  /**
-   * Return a  parsed unresolved [CompilationUnit].
-   */
+  /// Return a  parsed unresolved [CompilationUnit].
   CompilationUnit _parse(FileState file) {
     AnalysisErrorListener errorListener = _getErrorListener(file);
     String content = _getFileContent(file.path);
@@ -653,7 +647,11 @@ class LibraryAnalyzer {
     // TODO(scheglov) remove DirectiveResolver class
   }
 
-  void _resolveFile(FileState file, CompilationUnit unit) {
+  void _resolveFile({
+    @required int completionOffset,
+    @required FileState file,
+    @required CompilationUnit unit,
+  }) {
     Source source = file.source;
     if (source == null) {
       return;
@@ -697,15 +695,23 @@ class LibraryAnalyzer {
       flowAnalysisHelper = FlowAnalysisHelper(_typeSystem, false);
     }
 
-    unit.accept(ResolverVisitor(
+    var resolverVisitor = ResolverVisitor(
         _inheritance, _libraryElement, source, _typeProvider, errorListener,
-        featureSet: unit.featureSet, flowAnalysisHelper: flowAnalysisHelper));
+        featureSet: unit.featureSet, flowAnalysisHelper: flowAnalysisHelper);
+
+    if (completionOffset != null) {
+      var node = NodeLocator2(completionOffset).searchWithin(unit);
+      var enclosingExecutable = node?.thisOrAncestorMatching((e) {
+        return e.parent is ClassDeclaration || e.parent is CompilationUnit;
+      });
+      enclosingExecutable?.accept(resolverVisitor);
+    } else {
+      unit.accept(resolverVisitor);
+    }
   }
 
-  /**
-   * Return the result of resolve the given [uriContent], reporting errors
-   * against the [uriLiteral].
-   */
+  /// Return the result of resolve the given [uriContent], reporting errors
+  /// against the [uriLiteral].
   Source _resolveUri(FileState file, bool isImport, StringLiteral uriLiteral,
       String uriContent) {
     UriValidationCode code =
@@ -753,10 +759,8 @@ class LibraryAnalyzer {
     }
   }
 
-  /**
-   * Check the given [directive] to see if the referenced source exists and
-   * report an error if it does not.
-   */
+  /// Check the given [directive] to see if the referenced source exists and
+  /// report an error if it does not.
   void _validateUriBasedDirective(
       FileState file, UriBasedDirectiveImpl directive) {
     Source source = directive.uriSource;
@@ -780,10 +784,8 @@ class LibraryAnalyzer {
         .reportErrorForNode(errorCode, uriLiteral, [directive.uriContent]);
   }
 
-  /**
-   * Check each directive in the given [unit] to see if the referenced source
-   * exists and report an error if it does not.
-   */
+  /// Check each directive in the given [unit] to see if the referenced source
+  /// exists and report an error if it does not.
   void _validateUriBasedDirectives(FileState file, CompilationUnit unit) {
     for (Directive directive in unit.directives) {
       if (directive is UriBasedDirective) {
@@ -792,21 +794,8 @@ class LibraryAnalyzer {
     }
   }
 
-  /**
-   * Catch all exceptions from the `getFileContent` function.
-   */
-  String _getFileContent(String path) {
-    try {
-      return getFileContent(path);
-    } catch (_) {
-      return '';
-    }
-  }
-
-  /**
-   * Return `true` if the given [source] refers to a file that is assumed to be
-   * generated.
-   */
+  /// Return `true` if the given [source] refers to a file that is assumed to be
+  /// generated.
   static bool _isGenerated(Source source) {
     if (source == null) {
       return false;
@@ -830,9 +819,7 @@ class LibraryAnalyzer {
   }
 }
 
-/**
- * Analysis result for single file.
- */
+/// Analysis result for single file.
 class UnitAnalysisResult {
   final FileState file;
   final CompilationUnit unit;
@@ -841,9 +828,7 @@ class UnitAnalysisResult {
   UnitAnalysisResult(this.file, this.unit, this.errors);
 }
 
-/**
- * Either the name or the source associated with a part-of directive.
- */
+/// Either the name or the source associated with a part-of directive.
 class _NameOrSource {
   final String name;
   final Source source;

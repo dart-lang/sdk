@@ -5,10 +5,13 @@
 #ifndef RUNTIME_BIN_DFE_H_
 #define RUNTIME_BIN_DFE_H_
 
+#include <memory>
+
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -29,7 +32,7 @@ class DFE {
     if (frontend_filename_ != nullptr) {
       free(frontend_filename_);
     }
-    frontend_filename_ = strdup(name);
+    frontend_filename_ = Utils::StrDup(name);
     set_use_dfe();
   }
   void set_use_dfe(bool value = true) { use_dfe_ = value; }
@@ -119,6 +122,21 @@ class DFE {
   bool InitKernelServiceAndPlatformDills(int target_abi_version);
 
   DISALLOW_COPY_AND_ASSIGN(DFE);
+};
+
+class PathSanitizer {
+ public:
+  explicit PathSanitizer(const char* path);
+  const char* sanitized_uri() const;
+
+ private:
+#if defined(HOST_OS_WINDOWS)
+  std::unique_ptr<char[]> sanitized_uri_;
+#else
+  const char* sanitized_uri_;
+#endif  // defined(HOST_OS_WINDOWS)
+
+  DISALLOW_COPY_AND_ASSIGN(PathSanitizer);
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

@@ -263,8 +263,18 @@ abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
     return const DynamicType();
   }
 
+  static DartType elementTypeFromFutureOr(DartType type) {
+    if (type is FutureOrType) {
+      return type.typeArgument;
+    }
+    return const DynamicType();
+  }
+
   DartType elementTypeFromReturnType(Class expected) =>
       elementTypeFrom(expected, enclosingFunction.returnType);
+
+  DartType elementTypeFromAsyncReturnType() =>
+      elementTypeFromFutureOr(enclosingFunction.returnType);
 
   Statement createContinuationPoint([Expression value]) {
     if (value == null) value = new NullLiteral();
@@ -1290,10 +1300,10 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     // "FutureOr<T>".
     DartType valueType = elementTypeFromReturnType(helper.futureClass);
     if (valueType == const DynamicType()) {
-      valueType = elementTypeFromReturnType(helper.futureOrClass);
+      valueType = elementTypeFromAsyncReturnType();
     }
-    final DartType returnType = new InterfaceType(helper.futureOrClass,
-        staticTypeContext.nullable, <DartType>[valueType]);
+    final DartType returnType =
+        new FutureOrType(valueType, staticTypeContext.nullable);
     var completerTypeArguments = <DartType>[valueType];
 
     final completerType = new InterfaceType(helper.asyncAwaitCompleterClass,
@@ -1396,7 +1406,6 @@ class HelperNodes {
   final Library coreLibrary;
   final CoreTypes coreTypes;
   final Class futureClass;
-  final Class futureOrClass;
   final Class iterableClass;
   final Class streamClass;
   final Member streamIteratorCancel;
@@ -1437,7 +1446,6 @@ class HelperNodes {
       this.coreLibrary,
       this.coreTypes,
       this.futureClass,
-      this.futureOrClass,
       this.iterableClass,
       this.streamClass,
       this.streamIteratorCancel,
@@ -1478,7 +1486,6 @@ class HelperNodes {
         coreTypes.coreLibrary,
         coreTypes,
         coreTypes.futureClass,
-        coreTypes.futureOrClass,
         coreTypes.iterableClass,
         coreTypes.streamClass,
         coreTypes.streamIteratorCancel,

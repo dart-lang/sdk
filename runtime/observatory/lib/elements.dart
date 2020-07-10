@@ -29,6 +29,7 @@ export 'package:observatory/src/elements/function_view.dart';
 export 'package:observatory/src/elements/general_error.dart';
 export 'package:observatory/src/elements/heap_map.dart';
 export 'package:observatory/src/elements/heap_snapshot.dart';
+export 'package:observatory/src/elements/process_snapshot.dart';
 export 'package:observatory/src/elements/helpers/rendering_queue.dart';
 export 'package:observatory/src/elements/icdata_ref.dart';
 export 'package:observatory/src/elements/icdata_view.dart';

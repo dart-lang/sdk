@@ -146,9 +146,9 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
   } =>#t5;
   core::Set<core::String> a = block {
     final core::Set<core::String> #t8 = col::LinkedHashSet::•<core::String>();
-    final core::Iterable<core::String>? #t9 = l;
+    final core::Iterable<dynamic>? #t9 = l;
     if(!#t9.{core::Object::==}(null))
-      for (final dynamic #t10 in #t9{core::Iterable<core::String>}) {
+      for (final dynamic #t10 in #t9{core::Iterable<dynamic>}) {
         final core::String #t11 = #t10 as{TypeError,ForNonNullableByDefault} core::String;
         #t8.{core::Set::add}(#t11);
       }

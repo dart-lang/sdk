@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
@@ -14,9 +14,9 @@ import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edge_builder.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
+import 'package:nnbd_migration/src/exceptions.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
-import 'package:nnbd_migration/src/messages.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/postmortem_file.dart';
@@ -103,7 +103,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   @override
   void finalizeInput(ResolvedUnitResult result) {
-    _sanityCheck(result);
+    ExperimentStatusException.sanityCheck(result);
     if (!_propagated) {
       _propagated = true;
       _graph.propagate(_postmortemFileWriter);
@@ -112,6 +112,10 @@ class NullabilityMigrationImpl implements NullabilityMigration {
     var compilationUnit = unit.declaredElement;
     var library = compilationUnit.library;
     var source = compilationUnit.source;
+    // Hierarchies were created assuming the libraries being migrated are opted
+    // out, but the FixBuilder will analyze assuming they're opted in.  So we
+    // need to clear the hierarchies before we continue.
+    (result.session as AnalysisSessionImpl).clearHierarchies();
     var fixBuilder = FixBuilder(
         source,
         _decoratedClassHierarchy,
@@ -155,7 +159,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   }
 
   void prepareInput(ResolvedUnitResult result) {
-    _sanityCheck(result);
+    ExperimentStatusException.sanityCheck(result);
     if (_variables == null) {
       _variables = Variables(_graph, result.typeProvider, _getLineInfo,
           instrumentation: _instrumentation,
@@ -179,7 +183,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   }
 
   void processInput(ResolvedUnitResult result) {
-    _sanityCheck(result);
+    ExperimentStatusException.sanityCheck(result);
     var unit = result.unit;
     try {
       DecoratedTypeParameterBounds.current = _decoratedTypeParameterBounds;
@@ -200,26 +204,6 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   @override
   void update() {
     _graph.update(_postmortemFileWriter);
-  }
-
-  void _sanityCheck(ResolvedUnitResult result) {
-    final equalsParamType = result.typeProvider.objectType
-        .getMethod('==')
-        .parameters[0]
-        .type
-        .getDisplayString(withNullability: true);
-    if (equalsParamType == 'Object*') {
-      throw StateError(nnbdExperimentOff);
-    }
-
-    if (equalsParamType != 'Object') {
-      throw StateError(sdkNnbdOff);
-    }
-
-    if (result.unit.featureSet.isEnabled(Feature.non_nullable)) {
-      // TODO(jcollins-g): Allow for skipping already migrated compilation units.
-      throw StateError('$migratedAlready: ${result.path}');
-    }
   }
 
   static Location _computeLocation(

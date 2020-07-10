@@ -4,17 +4,17 @@
 
 // @dart = 2.7
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: A:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: A:checkedTypeArgument,checks=[],typeArgument*/
-/*spec:nnbd-off.class: global#JSArray:checkedInstance,checks=[$isIterable],instance*/
-/*prod:nnbd-off.class: global#JSArray:checks=[$isIterable],instance*/
+/*spec.class: global#JSArray:checkedInstance,checks=[$isIterable],instance*/
+/*prod.class: global#JSArray:checks=[$isIterable],instance*/
 
 /*class: global#Iterable:checkedInstance*/
 
+/*spec.class: A:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
+/*prod.class: A:checkedTypeArgument,checks=[],typeArgument*/
 class A {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: B:checkedInstance,checks=[],typeArgument*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: B:checks=[],typeArgument*/
+/*spec.class: B:checkedInstance,checks=[],typeArgument*/
+/*prod.class: B:checks=[],typeArgument*/
 class B {}
 
 @pragma('dart2js:noInline')

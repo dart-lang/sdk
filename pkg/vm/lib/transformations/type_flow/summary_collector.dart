@@ -18,6 +18,7 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 
 import 'calls.dart';
 import 'native_code.dart';
+import 'protobuf_handler.dart' show ProtobufHandler;
 import 'summary.dart';
 import 'types.dart';
 import 'utils.dart';
@@ -521,6 +522,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   final TypesBuilder _typesBuilder;
   final NativeCodeOracle _nativeCodeOracle;
   final GenericInterfacesInfo _genericInterfacesInfo;
+  final ProtobufHandler _protobufHandler;
 
   final Map<TreeNode, Call> callSites = <TreeNode, Call>{};
   final Map<AsExpression, TypeCheck> explicitCasts =
@@ -580,7 +582,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       this._entryPointsListener,
       this._typesBuilder,
       this._nativeCodeOracle,
-      this._genericInterfacesInfo) {
+      this._genericInterfacesInfo,
+      this._protobufHandler) {
     assertx(_genericInterfacesInfo != null);
     constantAllocationCollector = new ConstantAllocationCollector(this);
     _nullMethodsAndGetters.addAll(getSelectors(
@@ -597,6 +600,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         "===== ${member}${fieldSummaryType == FieldSummaryType.kFieldGuard ? " (guard)" : ""} =====");
     assertx(!member.isAbstract);
     assertx(!(member is Procedure && member.isRedirectingFactoryConstructor));
+
+    _protobufHandler?.beforeSummaryCreation(member);
 
     _staticTypeContext = new StaticTypeContext(member, _environment);
     _variablesInfo = new _VariablesInfoCollector(member);
@@ -625,7 +630,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       }
 
       _translator = new RuntimeTypeTranslatorImpl(
-          _summary, _receiver, null, _genericInterfacesInfo);
+          this, _summary, _receiver, null, _genericInterfacesInfo);
 
       if (fieldSummaryType == FieldSummaryType.kInitializer) {
         assertx(member.initializer != null);
@@ -666,7 +671,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       }
 
       _translator = new RuntimeTypeTranslatorImpl(
-          _summary, _receiver, _fnTypeVariables, _genericInterfacesInfo);
+          this, _summary, _receiver, _fnTypeVariables, _genericInterfacesInfo);
 
       // Handle forwarding stubs. We need to check types against the types of
       // the forwarding stub's target, [member.forwardingStubSuperTarget].
@@ -2218,14 +2223,16 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
   final Map<DartType, TypeExpr> typesCache = <DartType, TypeExpr>{};
   final TypeExpr receiver;
   final GenericInterfacesInfo genericInterfacesInfo;
+  final SummaryCollector summaryCollector;
 
-  RuntimeTypeTranslatorImpl(this.summary, this.receiver,
+  RuntimeTypeTranslatorImpl(this.summaryCollector, this.summary, this.receiver,
       this.functionTypeVariables, this.genericInterfacesInfo) {}
 
   // Create a type translator which can be used only for types with no free type
   // variables.
   RuntimeTypeTranslatorImpl.forClosedTypes(this.genericInterfacesInfo)
-      : summary = null,
+      : summaryCollector = null,
+        summary = null,
         functionTypeVariables = null,
         receiver = null {}
 
@@ -2327,6 +2334,24 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
     } else {
       final instantiate = new CreateRuntimeType(
           type.classNode, type.nullability, flattenedTypeExprs);
+      summary.add(instantiate);
+      return instantiate;
+    }
+  }
+
+  @override
+  visitFutureOrType(FutureOrType type) {
+    final typeArg = translate(type.typeArgument);
+    if (typeArg == const UnknownType()) return const UnknownType();
+    if (typeArg is RuntimeType) {
+      return new RuntimeType(
+          new FutureOrType(const DynamicType(), type.nullability),
+          <RuntimeType>[typeArg]);
+    } else {
+      final instantiate = new CreateRuntimeType(
+          summaryCollector._environment.coreTypes.deprecatedFutureOrClass,
+          type.nullability,
+          <TypeExpr>[typeArg]);
       summary.add(instantiate);
       return instantiate;
     }

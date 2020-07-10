@@ -205,12 +205,37 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // semantics of FFI argument translation.
   Fragment FfiConvertArgumentToNative(
       const compiler::ffi::BaseMarshaller& marshaller,
-      intptr_t arg_index);
+      intptr_t arg_index,
+      LocalVariable* api_local_scope);
 
   // Reverse of 'FfiConvertArgumentToNative'.
   Fragment FfiConvertArgumentToDart(
       const compiler::ffi::BaseMarshaller& marshaller,
       intptr_t arg_index);
+
+  // Generates a call to `Thread::EnterApiScope`.
+  Fragment EnterHandleScope();
+
+  // Generates a call to `Thread::api_top_scope`.
+  Fragment GetTopHandleScope();
+
+  // Generates a call to `Thread::ExitApiScope`.
+  Fragment ExitHandleScope();
+
+  // Leaves a `LocalHandle` on the stack.
+  Fragment AllocateHandle(LocalVariable* api_local_scope);
+
+  // Populates the base + offset with a tagged value.
+  Fragment RawStoreField(int32_t offset);
+
+  // Wraps an `Object` from the stack and leaves a `LocalHandle` on the stack.
+  Fragment WrapHandle(LocalVariable* api_local_scope);
+
+  // Unwraps a `LocalHandle` from the stack and leaves the object on the stack.
+  Fragment UnwrapHandle();
+
+  // Wrap the current exception and stacktrace in an unhandled exception.
+  Fragment UnhandledException();
 
   // Return from a native -> Dart callback. Can only be used in conjunction with
   // NativeEntry and NativeParameter are used.
@@ -234,6 +259,16 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                                Fragment* explicit_checks,
                                Fragment* implicit_checks,
                                Fragment* implicit_redefinitions);
+
+  // Returns true if null assertion is needed for
+  // a parameter of given type.
+  bool NeedsNullAssertion(const AbstractType& type);
+
+  // Builds null assertion for the given parameter.
+  Fragment NullAssertion(LocalVariable* variable);
+
+  // Builds null assertions for all parameters (if needed).
+  Fragment BuildNullAssertions();
 
   // Builds flow graph for noSuchMethod forwarder.
   //
@@ -381,6 +416,9 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   CatchBlock* catch_block_;
 
   ActiveClass active_class_;
+
+  // Cached _AssertionError._throwNewNullAssertion.
+  Function* throw_new_null_assertion_ = nullptr;
 
   friend class BreakableBlock;
   friend class CatchBlock;

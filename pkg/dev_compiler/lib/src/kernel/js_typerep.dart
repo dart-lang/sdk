@@ -7,6 +7,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/type_environment.dart';
 import '../compiler/js_typerep.dart';
+import 'kernel_helpers.dart';
 
 class JSTypeRep extends SharedJSTypeRep<DartType> {
   final TypeEnvironment types;
@@ -32,6 +33,8 @@ class JSTypeRep extends SharedJSTypeRep<DartType> {
       type = (type as TypeParameterType).parameter.bound;
     }
     if (type == null) return JSType.jsUnknown;
+    assert(isKnownDartTypeImplementor(type));
+
     // Note that this should be changed if Dart gets non-nullable types
     if (type == const BottomType()) return JSType.jsNull;
 
@@ -47,13 +50,13 @@ class JSTypeRep extends SharedJSTypeRep<DartType> {
       if (c == coreTypes.boolClass || c == _jsBool) return JSType.jsBoolean;
       if (c == coreTypes.stringClass || c == _jsString) return JSType.jsString;
       if (c == coreTypes.objectClass) return JSType.jsUnknown;
-      if (c == coreTypes.futureOrClass) {
-        var argumentRep = typeFor(type.typeArguments[0]);
-        if (argumentRep is JSObject || argumentRep is JSNull) {
-          return JSType.jsObject;
-        }
-        return JSType.jsUnknown;
+    }
+    if (type is FutureOrType) {
+      var argumentRep = typeFor(type.typeArgument);
+      if (argumentRep is JSObject || argumentRep is JSNull) {
+        return JSType.jsObject;
       }
+      return JSType.jsUnknown;
     }
     if (type == const DynamicType() || type == const VoidType()) {
       return JSType.jsUnknown;

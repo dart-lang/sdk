@@ -18,52 +18,30 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:yaml/yaml.dart';
 
-/**
- * An abstract implementation of a Dart SDK in which the available libraries are
- * stored in a library map. Subclasses are responsible for populating the
- * library map.
- */
+/// An abstract implementation of a Dart SDK in which the available libraries
+/// are stored in a library map. Subclasses are responsible for populating the
+/// library map.
 abstract class AbstractDartSdk implements DartSdk {
-  /**
-   * The resource provider used to access the file system.
-   */
+  /// The resource provider used to access the file system.
   ResourceProvider resourceProvider;
 
-  /**
-   * A mapping from Dart library URI's to the library represented by that URI.
-   */
+  /// A mapping from Dart library URI's to the library represented by that URI.
   LibraryMap libraryMap = LibraryMap();
 
-  /**
-   * The [AnalysisOptions] to use to create the [context].
-   */
+  /// The [AnalysisOptions] to use to create the [context].
   AnalysisOptions _analysisOptions;
 
-  /**
-   * The flag that specifies whether an SDK summary should be used. This is a
-   * temporary flag until summaries are enabled by default.
-   */
-  bool _useSummary = false;
-
-  /**
-   * The [AnalysisContext] which is used for all of the sources in this SDK.
-   */
+  /// The [AnalysisContext] which is used for all of the sources in this SDK.
   SdkAnalysisContext _analysisContext;
 
-  /**
-   * The mapping from Dart URI's to the corresponding sources.
-   */
+  /// The mapping from Dart URI's to the corresponding sources.
   final Map<String, Source> _uriToSourceMap = HashMap<String, Source>();
 
-  /**
-   * Return the analysis options for this SDK analysis context.
-   */
+  /// Return the analysis options for this SDK analysis context.
   AnalysisOptions get analysisOptions => _analysisOptions;
 
-  /**
-   * Set the [options] for this SDK analysis context.  Throw [StateError] if the
-   * context has been already created.
-   */
+  /// Set the [options] for this SDK analysis context.  Throw [StateError] if
+  /// the context has been already created.
   set analysisOptions(AnalysisOptions options) {
     if (_analysisContext != null) {
       throw StateError(
@@ -84,35 +62,15 @@ abstract class AbstractDartSdk implements DartSdk {
   @override
   List<SdkLibrary> get sdkLibraries => libraryMap.sdkLibraries;
 
-  /**
-   * Return the path separator used by the resource provider.
-   */
+  /// Return the path separator used by the resource provider.
   String get separator => resourceProvider.pathContext.separator;
 
   @override
   List<String> get uris => libraryMap.uris;
 
-  /**
-   * Return `true` if the SDK summary will be used when available.
-   */
-  bool get useSummary => _useSummary;
-
-  /**
-   * Specify whether SDK summary should be used.
-   */
-  set useSummary(bool use) {
-    if (_analysisContext != null) {
-      throw StateError(
-          'The "useSummary" flag cannot be changed after context creation.');
-    }
-    _useSummary = use;
-  }
-
-  /**
-   * Add the extensions from one or more sdk extension files to this sdk. The
-   * [extensions] should be a table mapping the names of extensions to the paths
-   * where those extensions can be found.
-   */
+  /// Add the extensions from one or more sdk extension files to this sdk. The
+  /// [extensions] should be a table mapping the names of extensions to the
+  /// paths where those extensions can be found.
   void addExtensions(Map<String, String> extensions) {
     extensions.forEach((String uri, String path) {
       SdkLibraryImpl library = SdkLibraryImpl(uri);
@@ -121,9 +79,7 @@ abstract class AbstractDartSdk implements DartSdk {
     });
   }
 
-  /**
-   * Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
-   */
+  /// Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
   Map<String, Object> debugInfo() {
     return <String, Object>{
       'runtimeType': '$runtimeType',
@@ -238,9 +194,7 @@ abstract class AbstractDartSdk implements DartSdk {
   }
 }
 
-/**
- * An SDK backed by URI mappings derived from an `_embedder.yaml` file.
- */
+/// An SDK backed by URI mappings derived from an `_embedder.yaml` file.
 class EmbedderSdk extends AbstractDartSdk {
   static const String _DART_COLON_PREFIX = 'dart:';
 
@@ -255,6 +209,17 @@ class EmbedderSdk extends AbstractDartSdk {
 
   @override
   String get allowedExperimentsJson {
+    var coreSource = mapDartUri('dart:core');
+    if (coreSource != null) {
+      var coreFile = resourceProvider.getFile(coreSource.fullName);
+      var embeddedFolder = coreFile.parent.parent;
+      try {
+        return embeddedFolder
+            .getChildAssumingFolder('_internal')
+            .getChildAssumingFile('allowed_experiments.json')
+            .readAsStringSync();
+      } catch (_) {}
+    }
     return null;
   }
 
@@ -262,9 +227,7 @@ class EmbedderSdk extends AbstractDartSdk {
   // TODO(danrubel) Determine SDK version
   String get sdkVersion => '0';
 
-  /**
-   * The url mappings for this SDK.
-   */
+  /// The url mappings for this SDK.
   Map<String, String> get urlMappings => _urlMappings;
 
   @override
@@ -310,9 +273,7 @@ class EmbedderSdk extends AbstractDartSdk {
     }
   }
 
-  /**
-   * Install the mapping from [name] to [libDir]/[file].
-   */
+  /// Install the mapping from [name] to [libDir]/[file].
   void _processEmbeddedLibs(String name, String file, Folder libDir) {
     if (!name.startsWith(_DART_COLON_PREFIX)) {
       // SDK libraries must begin with 'dart:'.
@@ -325,18 +286,16 @@ class EmbedderSdk extends AbstractDartSdk {
     libraryMap.setLibrary(name, library);
   }
 
-  /**
-   * Given the 'embedderYamls' from [EmbedderYamlLocator] check each one for the
-   * top level key 'embedded_libs'. Under the 'embedded_libs' key are key value
-   * pairs. Each key is a 'dart:' library uri and each value is a path
-   * (relative to the directory containing `_embedder.yaml`) to a dart script
-   * for the given library. For example:
-   *
-   * embedded_libs:
-   *   'dart:io': '../../sdk/io/io.dart'
-   *
-   * If a key doesn't begin with `dart:` it is ignored.
-   */
+  /// Given the 'embedderYamls' from [EmbedderYamlLocator] check each one for
+  /// the top level key 'embedded_libs'. Under the 'embedded_libs' key are key
+  /// value pairs. Each key is a 'dart:' library uri and each value is a path
+  /// (relative to the directory containing `_embedder.yaml`) to a dart script
+  /// for the given library. For example:
+  ///
+  /// embedded_libs:
+  ///   'dart:io': '../../sdk/io/io.dart'
+  ///
+  /// If a key doesn't begin with `dart:` it is ignored.
   void _processEmbedderYaml(Folder libDir, YamlMap map) {
     YamlNode embedded_libs = map[_EMBEDDED_LIB_MAP_KEY];
     if (embedded_libs is YamlMap) {
@@ -345,22 +304,20 @@ class EmbedderSdk extends AbstractDartSdk {
   }
 }
 
-/**
- * A Dart SDK installed in a specified directory. Typical Dart SDK layout is
- * something like...
- *
- *     dart-sdk/
- *        bin/
- *           dart[.exe]  <-- VM
- *        lib/
- *           core/
- *              core.dart
- *              ... other core library files ...
- *           ... other libraries ...
- *        util/
- *           ... Dart utilities ...
- *     Chromium/   <-- Dartium typically exists in a sibling directory
- */
+/// A Dart SDK installed in a specified directory. Typical Dart SDK layout is
+/// something like...
+///
+///     dart-sdk/
+///        bin/
+///           dart[.exe]  <-- VM
+///        lib/
+///           core/
+///              core.dart
+///              ... other core library files ...
+///           ... other libraries ...
+///        util/
+///           ... Dart utilities ...
+///     Chromium/   <-- Dartium typically exists in a sibling directory
 class FolderBasedDartSdk extends AbstractDartSdk {
   /// The name of the directory within the SDK directory that contains
   /// executables.
@@ -405,21 +362,15 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   /// The directory within the SDK directory that contains the libraries.
   Folder _libraryDirectory;
 
-  /**
-   * The revision number of this SDK, or `"0"` if the revision number cannot be
-   * discovered.
-   */
+  /// The revision number of this SDK, or `"0"` if the revision number cannot be
+  /// discovered.
   String _sdkVersion;
 
-  /**
-   * The file containing the pub executable.
-   */
+  /// The file containing the pub executable.
   File _pubExecutable;
 
-  /**
-   * Initialize a newly created SDK to represent the Dart SDK installed in the
-   * [sdkDirectory].
-   */
+  /// Initialize a newly created SDK to represent the Dart SDK installed in the
+  /// [sdkDirectory].
   FolderBasedDartSdk(ResourceProvider resourceProvider, Folder sdkDirectory)
       : _sdkDirectory = sdkDirectory {
     this.resourceProvider = resourceProvider;
@@ -439,28 +390,21 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     }
   }
 
-  /**
-   * Return the directory containing the SDK.
-   */
+  /// Return the directory containing the SDK.
   Folder get directory => _sdkDirectory;
 
-  /**
-   * Return the directory containing documentation for the SDK.
-   */
+  /// Return the directory containing documentation for the SDK.
   Folder get docDirectory =>
       _sdkDirectory.getChildAssumingFolder(_DOCS_DIRECTORY_NAME);
 
-  /**
-   * Return the directory within the SDK directory that contains the libraries.
-   */
+  /// Return the directory within the SDK directory that contains the libraries.
   Folder get libraryDirectory {
     return _libraryDirectory ??=
         _sdkDirectory.getChildAssumingFolder(_LIB_DIRECTORY_NAME);
   }
 
-  /**
-   * Return the file containing the Pub executable, or `null` if it does not exist.
-   */
+  /// Return the file containing the Pub executable, or `null` if it does not
+  /// exist.
   File get pubExecutable {
     return _pubExecutable ??= _sdkDirectory
         .getChildAssumingFolder(_BIN_DIRECTORY_NAME)
@@ -469,10 +413,8 @@ class FolderBasedDartSdk extends AbstractDartSdk {
             : _PUB_EXECUTABLE_NAME);
   }
 
-  /**
-   * Return the revision number of this SDK, or `"0"` if the revision number
-   * cannot be discovered.
-   */
+  /// Return the revision number of this SDK, or `"0"` if the revision number
+  /// cannot be discovered.
   @override
   String get sdkVersion {
     if (_sdkVersion == null) {
@@ -491,9 +433,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     return _sdkVersion;
   }
 
-  /**
-   * Determine the search order for trying to locate the [_LIBRARIES_FILE].
-   */
+  /// Determine the search order for trying to locate the [_LIBRARIES_FILE].
   Iterable<File> get _libraryMapLocations sync* {
     yield libraryDirectory
         .getChildAssumingFolder(_INTERNAL_DIR)
@@ -505,9 +445,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
         .getChildAssumingFile(_LIBRARIES_FILE);
   }
 
-  /**
-   * Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
-   */
+  /// Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
   @override
   Map<String, Object> debugInfo() {
     var result = super.debugInfo();
@@ -525,10 +463,8 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     return filePath.substring(libPath.length + 1);
   }
 
-  /**
-   * Read all of the configuration files to initialize the library maps.
-   * Return the initialized library map.
-   */
+  /// Read all of the configuration files to initialize the library maps.
+  /// Return the initialized library map.
   LibraryMap initialLibraryMap() {
     List<String> searchedPaths = <String>[];
     StackTrace lastStackTrace;
@@ -587,11 +523,9 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     }
   }
 
-  /**
-   * Return the default directory for the Dart SDK, or `null` if the directory
-   * cannot be determined (or does not exist). The default directory is provided
-   * by a system property named `com.google.dart.sdk`.
-   */
+  /// Return the default directory for the Dart SDK, or `null` if the directory
+  /// cannot be determined (or does not exist). The default directory is
+  /// provided by a system property named `com.google.dart.sdk`.
   static Folder defaultSdkDirectory(ResourceProvider resourceProvider) {
     // TODO(brianwilkerson) This is currently only being used in the analysis
     // server's Driver class to find the default SDK. The command-line analyzer
@@ -642,41 +576,35 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   }
 }
 
-/**
- * An object used to read and parse the libraries file
- * (dart-sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart) for information
- * about the libraries in an SDK. The library information is represented as a
- * Dart file containing a single top-level variable whose value is a const map.
- * The keys of the map are the names of libraries defined in the SDK and the
- * values in the map are info objects defining the library. For example, a
- * subset of a typical SDK might have a libraries file that looks like the
- * following:
- *
- *     final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
- *       // Used by VM applications
- *       "builtin" : const LibraryInfo(
- *         "builtin/builtin_runtime.dart",
- *         category: "Server",
- *         platforms: VM_PLATFORM),
- *
- *       "compiler" : const LibraryInfo(
- *         "compiler/compiler.dart",
- *         category: "Tools",
- *         platforms: 0),
- *     };
- */
+/// An object used to read and parse the libraries file
+/// (dart-sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart) for
+/// information about the libraries in an SDK. The library information is
+/// represented as a Dart file containing a single top-level variable whose
+/// value is a const map. The keys of the map are the names of libraries defined
+/// in the SDK and the values in the map are info objects defining the library.
+/// For example, a subset of a typical SDK might have a libraries file that
+/// looks like the following:
+///
+///     final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
+///       // Used by VM applications
+///       "builtin" : const LibraryInfo(
+///         "builtin/builtin_runtime.dart",
+///         category: "Server",
+///         platforms: VM_PLATFORM),
+///
+///       "compiler" : const LibraryInfo(
+///         "compiler/compiler.dart",
+///         category: "Tools",
+///         platforms: 0),
+///     };
 class SdkLibrariesReader {
-  /**
-   * Return the library map read from the given [file], given that the content
-   * of the file is already known to be [libraryFileContents].
-   */
+  /// Return the library map read from the given [file], given that the content
+  /// of the file is already known to be [libraryFileContents].
   LibraryMap readFromFile(File file, String libraryFileContents) =>
       readFromSource(file.createSource(), libraryFileContents);
 
-  /**
-   * Return the library map read from the given [source], given that the content
-   * of the file is already known to be [libraryFileContents].
-   */
+  /// Return the library map read from the given [source], given that the
+  /// content of the file is already known to be [libraryFileContents].
   LibraryMap readFromSource(Source source, String libraryFileContents) {
     // TODO(paulberry): initialize the feature set appropriately based on the
     // version of the SDK we are reading, and enable flags.

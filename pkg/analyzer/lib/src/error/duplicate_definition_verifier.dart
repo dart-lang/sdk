@@ -11,6 +11,14 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 class DuplicateDefinitionVerifier {
+  static final Set<String> _enumInstanceMembers = {
+    'hashCode',
+    'index',
+    'noSuchMethod',
+    'runtimeType',
+    'toString',
+  };
+
   final LibraryElement _currentLibrary;
   final ErrorReporter _errorReporter;
 
@@ -39,12 +47,9 @@ class DuplicateDefinitionVerifier {
   void checkEnum(EnumDeclaration node) {
     ClassElement element = node.declaredElement;
 
-    Map<String, Element> instanceGetters = HashMap<String, Element>();
-    Map<String, Element> staticGetters = HashMap<String, Element>();
-
-    instanceGetters['index'] = element.getGetter('index');
-    instanceGetters['toString'] = element.getMethod('toString');
-    staticGetters['values'] = element.getGetter('values');
+    Map<String, Element> staticGetters = {
+      'values': element.getGetter('values')
+    };
 
     for (EnumConstantDeclaration constant in node.constants) {
       _checkDuplicateIdentifier(staticGetters, constant.name);
@@ -59,7 +64,7 @@ class DuplicateDefinitionVerifier {
           CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING,
           identifier,
         );
-      } else if (instanceGetters.containsKey(name)) {
+      } else if (_enumInstanceMembers.contains(name)) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
           identifier,
@@ -142,9 +147,7 @@ class DuplicateDefinitionVerifier {
     _checkClassMembers(node.declaredElement, node.members);
   }
 
-  /**
-   * Check that all of the parameters have unique names.
-   */
+  /// Check that all of the parameters have unique names.
   void checkParameters(FormalParameterList node) {
     Map<String, Element> definedNames = HashMap<String, Element>();
     for (FormalParameter parameter in node.parameters) {

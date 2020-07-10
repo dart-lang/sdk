@@ -6,6 +6,10 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/analyzer_error_code.dart';
 import 'package:meta/meta.dart';
 
+// It is hard to visually separate each code's _doc comment_ from its published
+// _documentation comment_ when each is written as an end-of-line comment.
+// ignore_for_file: slash_for_doc_comments
+
 /// The diagnostic codes associated with `dart:ffi`.
 class FfiCode extends AnalyzerErrorCode {
   /**
@@ -61,7 +65,7 @@ class FfiCode extends AnalyzerErrorCode {
       message:
           "The method 'Pointer.fromFunction' must not have an exceptional return "
           "value (the second argument) when the return type of the function is "
-          "either 'void' or 'Pointer'.",
+          "either 'void', 'Handle' or 'Pointer'.",
       correction: "Try removing the exceptional return value.");
 
   /**
@@ -102,7 +106,7 @@ class FfiCode extends AnalyzerErrorCode {
       message:
           "The method 'Pointer.fromFunction' must have an exceptional return "
           "value (the second argument) when the return type of the function is "
-          "neither 'void' or 'Pointer'.",
+          "neither 'void', 'Handle' or 'Pointer'.",
       correction: "Try adding an exceptional return value.");
 
   /**

@@ -154,6 +154,8 @@ class DartFixKind {
       'dart.fix.add.fieldFormalParameters',
       70,
       'Add final field formal parameters');
+  static const ADD_LATE =
+      FixKind('dart.fix.add.late', 50, "Add 'late' modifier");
   static const ADD_MISSING_ENUM_CASE_CLAUSES = FixKind(
       'dart.fix.add.missingEnumCaseClauses', 50, 'Add missing case clauses');
   static const ADD_MISSING_PARAMETER_NAMED = FixKind(
@@ -163,7 +165,9 @@ class DartFixKind {
       69,
       'Add optional positional parameter');
   static const ADD_MISSING_PARAMETER_REQUIRED = FixKind(
-      'dart.fix.add.missingParameterRequired', 70, 'Add required parameter');
+      'dart.fix.add.missingParameterRequired',
+      70,
+      'Add required positional parameter');
   static const ADD_MISSING_REQUIRED_ARGUMENT = FixKind(
       'dart.fix.add.missingRequiredArgument',
       70,
@@ -312,6 +316,8 @@ class DartFixKind {
       'Move type arguments to after class name');
   static const MAKE_VARIABLE_NOT_FINAL = FixKind(
       'dart.fix.makeVariableNotFinal', 50, "Make variable '{0}' not final");
+  static const ORGANIZE_IMPORTS =
+      FixKind('dart.fix.organize.imports', 50, 'Organize Imports');
   static const QUALIFY_REFERENCE =
       FixKind('dart.fix.qualifyReference', 50, "Use '{0}'");
   static const REMOVE_ANNOTATION =
@@ -403,6 +409,8 @@ class DartFixKind {
       appliedTogetherMessage: "Replace all 'boolean' with 'bool' in file");
   static const REPLACE_COLON_WITH_EQUALS =
       FixKind('dart.fix.replace.colonWithEquals', 50, "Replace ':' with '='");
+  static const REPLACE_WITH_FILLED = FixKind(
+      'dart.fix.replace.finalWithListFilled', 50, "Replace with 'List.filled'");
   static const REPLACE_FINAL_WITH_CONST = FixKind(
       'dart.fix.replace.finalWithConst', 50, "Replace 'final' with 'const'");
   static const REPLACE_NEW_WITH_CONST = FixKind(
@@ -443,8 +451,6 @@ class DartFixKind {
       'dart.fix.sort.childPropertyLast',
       50,
       'Move child property to end of arguments');
-  static const SORT_DIRECTIVES =
-      FixKind('dart.fix.sort.directives', 50, 'Sort directives');
   static const UPDATE_SDK_CONSTRAINTS = FixKind(
       'dart.fix.updateSdkConstraints', 50, 'Update the SDK constraints');
   static const USE_CONST =

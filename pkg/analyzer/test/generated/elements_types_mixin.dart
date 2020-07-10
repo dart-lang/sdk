@@ -9,16 +9,14 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 
 mixin ElementsTypesMixin {
-  LibraryElementImpl get testLibrary => null;
-
   InterfaceType get boolNone {
     var element = typeProvider.boolElement;
     return interfaceTypeNone(element);
@@ -148,6 +146,8 @@ mixin ElementsTypesMixin {
     var element = typeProvider.stringType.element;
     return interfaceTypeStar(element);
   }
+
+  LibraryElementImpl get testLibrary => null;
 
   TypeProvider get typeProvider;
 

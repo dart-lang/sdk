@@ -83,6 +83,8 @@ typedef struct _Dart_CObject {
     } as_external_typed_data;
   } value;
 } Dart_CObject;
+// This struct is versioned by DART_API_DL_MAJOR_VERSION, bump the version when
+// changing this struct.
 
 /**
  * Posts a message on some port. The message will contain the Dart_CObject

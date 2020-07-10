@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // part of "core_patch.dart";
 
 @patch
 @pragma("vm:exact-result-type", bool)
-bool identical(Object a, Object b) native "Identical_comparison";
+bool identical(Object? a, Object? b) native "Identical_comparison";
 
 @patch
 @pragma("vm:entry-point", "call")
-int identityHashCode(Object object) => object._identityHashCode;
+int identityHashCode(Object? object) => object._identityHashCode;

@@ -6,7 +6,7 @@
 // except it still has to be within the range of the sdk. The library stays on
 // the .packages specified one (2.5) and an error is issued.
 
-/*error: LanguageVersionTooHigh*/
+/*error: errors=LanguageVersionTooHigh*/
 // @dart = 2.9
 
 /*library: languageVersion=2.5*/

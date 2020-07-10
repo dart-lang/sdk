@@ -43,7 +43,7 @@ p.A x;
     newFile('/test/lib/a.dart', content: r'''
 class A {}
 ''');
-    await _assertNotConst(r'''
+    await _assertNeverConst(r'''
 import 'a.dart' deferred as p;
 p.A x;
 ''');
@@ -56,7 +56,7 @@ List<int> x;
   }
 
   test_class_typeArguments_notConst() async {
-    await _assertNotConst(r'''
+    await _assertPotentiallyConst(r'''
 class A<T> {
   m() {
     List<T> x;
@@ -78,7 +78,7 @@ int Function<T extends num, U>(int, bool) x;
   }
 
   test_genericFunctionType_formalParameterType() async {
-    await _assertNotConst(r'''
+    await _assertPotentiallyConst(r'''
 class A<T> {
   m() {
     Function(T) x;
@@ -88,7 +88,7 @@ class A<T> {
   }
 
   test_genericFunctionType_returnType() async {
-    await _assertNotConst(r'''
+    await _assertPotentiallyConst(r'''
 class A<T> {
   m() {
     T Function() x;
@@ -98,7 +98,7 @@ class A<T> {
   }
 
   test_genericFunctionType_typeParameterBound() async {
-    await _assertNotConst(r'''
+    await _assertPotentiallyConst(r'''
 class A<T> {
   m() {
     Function<U extends T>() x;
@@ -108,7 +108,7 @@ class A<T> {
   }
 
   test_typeParameter() async {
-    await _assertNotConst(r'''
+    await _assertPotentiallyConst(r'''
 class A<T> {
   m() {
     T x;
@@ -129,7 +129,13 @@ void x;
     expect(isConstantTypeExpression(type), isTrue);
   }
 
-  Future<void> _assertNotConst(String code) async {
+  Future<void> _assertNeverConst(String code) async {
+    await resolveTestCode(code);
+    var type = findNode.variableDeclarationList('x;').type;
+    expect(isConstantTypeExpression(type), isFalse);
+  }
+
+  Future<void> _assertPotentiallyConst(String code) async {
     await resolveTestCode(code);
     var type = findNode.variableDeclarationList('x;').type;
     expect(isConstantTypeExpression(type), isFalse);
@@ -150,6 +156,16 @@ class A<T> {
 ''');
   }
 
+  test_typeParameter_nested() async {
+    await _assertConst(r'''
+class A<T> {
+  m() {
+    List<T> x;
+  }
+}
+''');
+  }
+
   @override
   Future<void> _assertConst(String code) async {
     await resolveTestCode(code);
@@ -158,10 +174,10 @@ class A<T> {
   }
 
   @override
-  Future<void> _assertNotConst(String code) async {
+  Future<void> _assertPotentiallyConst(String code) async {
     await resolveTestCode(code);
     var type = findNode.variableDeclarationList('x;').type;
-    expect(isPotentiallyConstantTypeExpression(type), isFalse);
+    expect(isPotentiallyConstantTypeExpression(type), isTrue);
   }
 }
 
@@ -919,6 +935,17 @@ class A<T> {
 ''', () => _xInitializer());
   }
 
+  test_asExpression_typeParameter_nested() async {
+    await _assertConst(r'''
+const a = 0;
+class A<T> {
+  m() {
+    var x = a as List<T>;
+  }
+}
+''', () => _xInitializer());
+  }
+
   @override
   test_isExpression_typeParameter() async {
     await _assertConst(r'''
@@ -926,6 +953,17 @@ const a = 0;
 class A<T> {
   m() {
     var x = a is T;
+  }
+}
+''', () => _xInitializer());
+  }
+
+  test_isExpression_typeParameter_nested() async {
+    await _assertConst(r'''
+const a = 0;
+class A<T> {
+  m() {
+    var x = a is List<T>;
   }
 }
 ''', () => _xInitializer());

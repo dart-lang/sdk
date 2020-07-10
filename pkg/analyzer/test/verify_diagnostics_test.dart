@@ -40,6 +40,10 @@ class DocumentationValidator {
   static const List<String> unverifiedDocs = [
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE',
+    // Produces two diagnostics when it should only produce one. We could get
+    // rid of the invalid error by adding a declaration of a top-level variable
+    // (such as `JSBool b;`), but that would complicate the example.
+    'CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.INVALID_URI',
     // Need a way to make auxiliary files that (a) are not included in the
@@ -51,6 +55,8 @@ class DocumentationValidator {
     'StaticWarningCode.AMBIGUOUS_IMPORT',
     // Produces two diagnostics when it should only produce one.
     'StaticWarningCode.INVALID_USE_OF_NULL_VALUE',
+    // Produces the diagnostic HintCode.UNUSED_LOCAL_VARIABLE when it shouldn't.
+    'StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT',
   ];
 
   /// The prefix used on directive lines to specify the experiments that should

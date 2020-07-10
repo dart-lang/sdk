@@ -257,8 +257,7 @@ class MatchExpectation
       component.adoptChildren();
     }
 
-    Uri uri =
-        component.uriToSource.keys.firstWhere((uri) => uri?.scheme == "file");
+    Uri uri = result.description.uri;
     Iterable<Library> libraries =
         componentToText.libraries.where(result.isUserLibrary);
     Uri base = uri.resolve(".");

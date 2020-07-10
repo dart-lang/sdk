@@ -52,10 +52,8 @@ A f(var p) {
   }
 }
 
-/**
- * A helper class used to collect the nodes that were visited and to preserve
- * the order in which they were visited.
- */
+/// A helper class used to collect the nodes that were visited and to preserve
+/// the order in which they were visited.
 class _BreadthFirstVisitorTestHelper extends BreadthFirstVisitor<void> {
   List<AstNode> nodes;
 

@@ -17,6 +17,8 @@ public class FoldingKind {
 
   public static final String ANNOTATIONS = "ANNOTATIONS";
 
+  public static final String BLOCK = "BLOCK";
+
   public static final String CLASS_BODY = "CLASS_BODY";
 
   public static final String DIRECTIVES = "DIRECTIVES";

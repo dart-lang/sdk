@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@deprecated
+/// This library is no longer supported, but most of the functionality it
+/// provides is available through supported analyzer APIs.  See specific methods
+/// below for more information about their supported replacements.
+@Deprecated('See package:analyzer/analyzer.dart file for details')
 library analyzer;
 
 import 'dart:io';
@@ -67,12 +70,12 @@ CompilationUnit parseCompilationUnit(String contents,
 /// If [parseFunctionBodies] is [false] then only function signatures will be
 /// parsed.  (Currently broken; function bodies are always parsed).
 ///
-/// Deprecated - please use the `parseFile2` function
+/// Deprecated - please use the `parseFile` function
 /// (from package:analyzer/dart/analysis/utilities.dart) instead.
 ///
-/// Note that `parseFile2` does not support the `parseFunctionBodies` option;
+/// Note that `parseFile` does not support the `parseFunctionBodies` option;
 /// callers that don't require function bodies should simply ignore them.
-@Deprecated('Please use parseFile2 instead')
+@Deprecated('Please use parseFile instead')
 CompilationUnit parseDartFile(String path,
     {bool suppressErrors = false,
     bool parseFunctionBodies = true,
@@ -122,7 +125,10 @@ CompilationUnit parseDirectives(String contents,
   var errorCollector = _ErrorCollector();
   var reader = CharSequenceReader(contents);
   var scanner = Scanner(source, reader, errorCollector)
-    ..configureFeatures(featureSet);
+    ..configureFeatures(
+      featureSetForOverriding: featureSet,
+      featureSet: featureSet,
+    );
   var token = scanner.tokenize();
   var parser = Parser(
     source,
@@ -149,7 +155,10 @@ CompilationUnit _parseSource(
   var reader = CharSequenceReader(contents);
   var errorCollector = _ErrorCollector();
   var scanner = Scanner(source, reader, errorCollector)
-    ..configureFeatures(featureSet);
+    ..configureFeatures(
+      featureSetForOverriding: featureSet,
+      featureSet: featureSet,
+    );
   var token = scanner.tokenize();
   var parser = Parser(
     source,

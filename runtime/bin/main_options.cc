@@ -13,6 +13,7 @@
 #include "bin/error_exit.h"
 #include "bin/options.h"
 #include "bin/platform.h"
+#include "bin/utils.h"
 #include "platform/syslog.h"
 #if !defined(DART_IO_SECURE_SOCKET_DISABLED)
 #include "bin/security_context.h"
@@ -34,8 +35,13 @@ static const char* kSnapshotKindNames[] = {
     NULL,
 };
 
+static const char* kEnableExperiment1 = "--enable-experiment";
+static const char* kEnableExperiment2 = "--enable_experiment";
+
 SnapshotKind Options::gen_snapshot_kind_ = kNone;
 bool Options::enable_vm_service_ = false;
+MallocGrowableArray<const char*> Options::enabled_experiments_ =
+    MallocGrowableArray<const char*>(4);
 
 #define OPTION_FIELD(variable) Options::variable##_
 
@@ -120,7 +126,7 @@ DEFINE_BOOL_OPTION_CB(hot_reload_rollback_test_mode,
                       hot_reload_rollback_test_mode_callback);
 
 void Options::PrintVersion() {
-  Syslog::PrintErr("Dart VM version: %s\n", Dart_VersionString());
+  Syslog::PrintErr("Dart SDK version: %s\n", Dart_VersionString());
 }
 
 // clang-format off
@@ -139,8 +145,6 @@ void Options::PrintUsage() {
 "--help or -h\n"
 "  Display this message (add -v or --verbose for information about\n"
 "  all VM options).\n"
-"--package-root=<path> or -p<path>\n"
-"  Where to find packages, that is, \"package:...\" imports.\n"
 "--packages=<path>\n"
 "  Where to find a package spec file.\n"
 "--observe[=<port>[/<bind-address>]]\n"
@@ -165,7 +169,7 @@ void Options::PrintUsage() {
 "                    kernel(default) or app-jit\n"
 "    <file_name> specifies the file into which the snapshot is written\n"
 "--version\n"
-"  Print the VM version.\n");
+"  Print the SDK version.\n");
   } else {
     Syslog::PrintErr(
 "Supported options:\n"
@@ -174,8 +178,6 @@ void Options::PrintUsage() {
 "--help or -h\n"
 "  Display this message (add -v or --verbose for information about\n"
 "  all VM options).\n"
-"--package-root=<path> or -p<path>\n"
-"  Where to find packages, that is, \"package:...\" imports.\n"
 "--packages=<path>\n"
 "  Where to find a package spec file.\n"
 "--observe[=<port>[/<bind-address>]]\n"
@@ -379,6 +381,28 @@ bool Options::ProcessAbiVersionOption(const char* arg,
   return true;
 }
 
+bool Options::ProcessEnableExperimentOption(const char* arg,
+                                            CommandLineOptions* vm_options) {
+  const char* value =
+      OptionProcessor::ProcessOption(arg, "--enable_experiment=");
+  if (value == nullptr) {
+    value = OptionProcessor::ProcessOption(arg, "--enable-experiment=");
+  }
+  if (value == nullptr) {
+    return false;
+  }
+  vm_options->AddArgument(arg);
+  Utils::CStringUniquePtr tmp = Utils::CreateCStringUniquePtr(
+      Utils::StrDup(value));
+  char* save_ptr;  // Needed for strtok_r.
+  char* token = strtok_r(const_cast<char*>(tmp.get()), ",", &save_ptr);
+  while (token != NULL) {
+    enabled_experiments_.Add(token);
+    token = strtok_r(NULL, ",", &save_ptr);
+  }
+  return true;
+}
+
 static void ResolveDartDevSnapshotPath(const char* script,
                                        char** snapshot_path) {
   if (!DartDevUtils::TryResolveDartDevSnapshotPath(snapshot_path)) {
@@ -503,7 +527,7 @@ int Options::ParseArguments(int argc,
     script_or_cmd_index = i;
     if (Options::disable_dart_dev() ||
         (is_potential_file_path && !enable_vm_service_)) {
-      *script_name = strdup(argv[i]);
+      *script_name = Utils::StrDup(argv[i]);
       run_script = true;
       i++;
     } else {
@@ -557,19 +581,61 @@ int Options::ParseArguments(int argc,
   } else if (i > 1) {
     // If we're running with DartDev, we're going to ignore the VM options for
     // this VM instance and print a warning.
-    Syslog::PrintErr(
-        "Warning: The following flags were passed as VM options and are being "
-        "ignored: ");
-    for (int j = 1; j < script_or_cmd_index; ++j) {
-      Syslog::PrintErr("%s", argv[j]);
-      if (j + 1 < script_or_cmd_index) {
-        Syslog::PrintErr(", ");
+
+    int num_experiment_flags = 0;
+    if (!enabled_experiments_.is_empty()) {
+      for (intptr_t j = 1; j < script_or_cmd_index; ++j) {
+        if ((strstr(argv[j], kEnableExperiment1) != nullptr) ||
+            (strstr(argv[j], kEnableExperiment2) != nullptr)) {
+          ++num_experiment_flags;
+        }
       }
     }
-    Syslog::PrintErr(
-        "\nThese flags should be passed after the dart command (e.g., 'dart "
-        "run --enable-asserts foo.dart' instead of 'dart --enable-asserts run "
-        "foo.dart').\n");
+    if (num_experiment_flags + 1 != script_or_cmd_index) {
+      Syslog::PrintErr(
+          "Warning: The following flags were passed as VM options and are "
+          "being "
+          "ignored:\n\n");
+      for (int j = 1; j < script_or_cmd_index; ++j) {
+        if ((strstr(argv[j], kEnableExperiment1) == nullptr) &&
+            (strstr(argv[j], kEnableExperiment2) == nullptr)) {
+          Syslog::PrintErr("  %s\n", argv[j]);
+        }
+      }
+      Syslog::PrintErr(
+          "\nThese flags should be passed after the dart command (e.g., 'dart "
+          "run --enable-asserts foo.dart' instead of 'dart --enable-asserts "
+          "run "
+          "foo.dart').\n\n");
+    }
+  }
+
+  if (!enabled_experiments_.is_empty() &&
+      !(Options::disable_dart_dev() || run_script)) {
+    intptr_t num_experiments = enabled_experiments_.length();
+    int option_size = strlen(kEnableExperiment1) + 1;
+    for (intptr_t i = 0; i < num_experiments; ++i) {
+      const char* flag = enabled_experiments_.At(i);
+      option_size += strlen(flag);
+      if (i + 1 != num_experiments) {
+        // Account for comma if there's more experiments to add.
+        ++option_size;
+      }
+    }
+    // Make room for null terminator
+    ++option_size;
+
+    char* enabled_experiments_arg = new char[option_size];
+    int offset = snprintf(enabled_experiments_arg, option_size,
+                          "%s=", kEnableExperiment1);
+    for (intptr_t i = 0; i < num_experiments; ++i) {
+      const char* flag = enabled_experiments_.At(i);
+      const char* kFormat = (i + 1 != num_experiments) ? "%s," : "%s";
+      offset += snprintf(enabled_experiments_arg + offset, option_size - offset,
+                         kFormat, flag);
+      ASSERT(offset < option_size);
+    }
+    dart_options->AddArgument(enabled_experiments_arg);
   }
 
   // Parse out options to be passed to dart main.
@@ -590,17 +656,6 @@ int Options::ParseArguments(int argc,
     snapshot_deps_filename_ = NULL;
   }
 
-  if ((Options::package_root() != NULL) && (packages_file_ != NULL)) {
-    Syslog::PrintErr(
-        "Specifying both a packages directory and a packages "
-        "file is invalid.\n");
-    return -1;
-  }
-  if ((Options::package_root() != NULL) &&
-      (strlen(Options::package_root()) == 0)) {
-    Syslog::PrintErr("Empty package root specified.\n");
-    return -1;
-  }
   if ((packages_file_ != NULL) && (strlen(packages_file_) == 0)) {
     Syslog::PrintErr("Empty package file name specified.\n");
     return -1;

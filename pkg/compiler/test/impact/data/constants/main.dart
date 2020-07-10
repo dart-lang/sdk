@@ -91,8 +91,7 @@ stringLiteral() {
 /*member: symbolLiteral:static=[Symbol.(1)],type=[inst:Symbol]*/
 symbolLiteral() => #foo;
 
-/*spec:nnbd-off.member: listLiteral:type=[inst:JSBool,inst:List<bool>]*/
-/*spec:nnbd-sdk.member: listLiteral:type=[
+/*member: listLiteral:type=[
   inst:JSBool,
   inst:List<bool*>]*/
 listLiteral() => const [true, false];
@@ -112,8 +111,7 @@ setLiteral() => const {true, false};
 */
 instanceConstant() => const Class(true, false);
 
-/*spec:nnbd-off.member: typeLiteral:static=[createRuntimeType(1),typeLiteral(1)],type=[inst:Type,inst:_Type,lit:String]*/
-/*spec:nnbd-sdk.member: typeLiteral:
+/*member: typeLiteral:
  static=[
   createRuntimeType(1),
   typeLiteral(1)],
@@ -163,8 +161,7 @@ stringLiteralRef() => stringLiteralField;
 /*member: symbolLiteralRef:static=[Symbol.(1)],type=[inst:Symbol]*/
 symbolLiteralRef() => symbolLiteralField;
 
-/*spec:nnbd-off.member: listLiteralRef:type=[inst:JSBool,inst:List<bool>]*/
-/*spec:nnbd-sdk.member: listLiteralRef:type=[
+/*member: listLiteralRef:type=[
   inst:JSBool,
   inst:List<bool*>]*/
 listLiteralRef() => listLiteralField;
@@ -184,8 +181,7 @@ setLiteralRef() => setLiteralField;
 */
 instanceConstantRef() => instanceConstantField;
 
-/*spec:nnbd-off.member: typeLiteralRef:static=[createRuntimeType(1),typeLiteral(1)],type=[inst:Type,inst:_Type,lit:String]*/
-/*spec:nnbd-sdk.member: typeLiteralRef:
+/*member: typeLiteralRef:
  static=[
   createRuntimeType(1),
   typeLiteral(1)],
@@ -225,8 +221,7 @@ stringLiteralDeferred() => defer.stringLiteralField;
 symbolLiteralDeferred() => defer.symbolLiteralField;
 
 // TODO(johnniwinther): Should we record that this is deferred?
-/*spec:nnbd-off.member: listLiteralDeferred:type=[inst:JSBool,inst:List<bool>]*/
-/*spec:nnbd-sdk.member: listLiteralDeferred:type=[
+/*member: listLiteralDeferred:type=[
   inst:JSBool,
   inst:List<bool*>]*/
 listLiteralDeferred() => defer.listLiteralField;
@@ -249,8 +244,7 @@ setLiteralDeferred() => defer.setLiteralField;
 */
 instanceConstantDeferred() => defer.instanceConstantField;
 
-/*spec:nnbd-off.member: typeLiteralDeferred:static=[createRuntimeType(1),typeLiteral(1)],type=[inst:Type,inst:_Type,lit:String{defer}]*/
-/*spec:nnbd-sdk.member: typeLiteralDeferred:
+/*member: typeLiteralDeferred:
  static=[
   createRuntimeType(1),
   typeLiteral(1)],

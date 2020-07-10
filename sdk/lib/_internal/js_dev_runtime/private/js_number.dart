@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart._interceptors;
 
 /**
@@ -55,14 +53,14 @@ class JSNumber extends Interceptor implements int, double {
 
   @notNull
   JSNumber remainder(@nullCheck num b) {
-    return JS<num>('!', r'# % #', this, b);
+    return JS<JSNumber>('!', r'# % #', this, b);
   }
 
   @notNull
-  JSNumber abs() => JS<num>('!', r'Math.abs(#)', this);
+  JSNumber abs() => JS<JSNumber>('!', r'Math.abs(#)', this);
 
   @notNull
-  JSNumber get sign => this > 0 ? 1 : this < 0 ? -1 : this;
+  JSNumber get sign => (this > 0 ? 1 : this < 0 ? -1 : this) as JSNumber;
 
   @notNull
   static const int _MIN_INT32 = -0x80000000;
@@ -112,17 +110,17 @@ class JSNumber extends Interceptor implements int, double {
   }
 
   @notNull
-  double ceilToDouble() => JS<num>('!', r'Math.ceil(#)', this);
+  double ceilToDouble() => JS<double>('!', r'Math.ceil(#)', this);
 
   @notNull
-  double floorToDouble() => JS<num>('!', r'Math.floor(#)', this);
+  double floorToDouble() => JS<double>('!', r'Math.floor(#)', this);
 
   @notNull
   double roundToDouble() {
     if (this < 0) {
-      return JS<num>('!', r'-Math.round(-#)', this);
+      return JS<double>('!', r'-Math.round(-#)', this);
     } else {
-      return JS<num>('!', r'Math.round(#)', this);
+      return JS<double>('!', r'Math.round(#)', this);
     }
   }
 
@@ -153,7 +151,7 @@ class JSNumber extends Interceptor implements int, double {
   }
 
   @notNull
-  String toStringAsExponential([int fractionDigits]) {
+  String toStringAsExponential([int? fractionDigits]) {
     String result;
     if (fractionDigits != null) {
       @notNull
@@ -196,7 +194,7 @@ class JSNumber extends Interceptor implements int, double {
   static String _handleIEtoString(String result) {
     // Result is probably IE's untraditional format for large numbers,
     // e.g., "8.0000000000008(e+15)" for 0x8000000000000800.toString(16).
-    var match = JS<List>(
+    var match = JS<List?>(
         '', r'/^([\da-z]+)(?:\.([\da-z]+))?\(e\+(\d+)\)$/.exec(#)', result);
     if (match == null) {
       // Then we don't know how to handle it at all.
@@ -258,38 +256,38 @@ class JSNumber extends Interceptor implements int, double {
   }
 
   @notNull
-  JSNumber operator -() => JS<num>('!', r'-#', this);
+  JSNumber operator -() => JS<JSNumber>('!', r'-#', this);
 
   @notNull
   JSNumber operator +(@nullCheck num other) {
-    return JS<num>('!', '# + #', this, other);
+    return JS<JSNumber>('!', '# + #', this, other);
   }
 
   @notNull
   JSNumber operator -(@nullCheck num other) {
-    return JS<num>('!', '# - #', this, other);
+    return JS<JSNumber>('!', '# - #', this, other);
   }
 
   @notNull
   double operator /(@nullCheck num other) {
-    return JS<num>('!', '# / #', this, other);
+    return JS<double>('!', '# / #', this, other);
   }
 
   @notNull
   JSNumber operator *(@nullCheck num other) {
-    return JS<num>('!', '# * #', this, other);
+    return JS<JSNumber>('!', '# * #', this, other);
   }
 
   @notNull
   JSNumber operator %(@nullCheck num other) {
     // Euclidean Modulo.
-    num result = JS<num>('!', r'# % #', this, other);
+    JSNumber result = JS<JSNumber>('!', r'# % #', this, other);
     if (result == 0) return (0 as JSNumber); // Make sure we don't return -0.0.
     if (result > 0) return result;
-    if (JS<num>('!', '#', other) < 0) {
-      return result - JS<num>('!', '#', other);
+    if (JS<JSNumber>('!', '#', other) < 0) {
+      return result - JS<JSNumber>('!', '#', other);
     } else {
-      return result + JS<num>('!', '#', other);
+      return result + JS<JSNumber>('!', '#', other);
     }
   }
 
@@ -308,7 +306,7 @@ class JSNumber extends Interceptor implements int, double {
 
   @notNull
   int _tdivSlow(num other) {
-    return (JS<num>('!', r'# / #', this, other)).toInt();
+    return JS<num>('!', r'# / #', this, other).toInt();
   }
 
   // TODO(ngeoffray): Move the bit operations below to [JSInt] and

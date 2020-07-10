@@ -2,23 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // part of "core_patch.dart";
 
 @patch
 class Expando<T> {
   @patch
-  Expando([String name])
+  Expando([String? name])
       : name = name,
-        _data = new List(_minSize),
+        _data = new List.filled(_minSize, null),
         _used = 0;
 
   static const _minSize = 8;
   static final _deletedEntry = new _WeakProperty(null, null);
 
   @patch
-  T operator [](Object object) {
+  T? operator [](Object object) {
     _checkType(object);
 
     var mask = _size - 1;
@@ -40,7 +38,7 @@ class Expando<T> {
   }
 
   @patch
-  void operator []=(Object object, T value) {
+  void operator []=(Object object, T? value) {
     _checkType(object);
 
     var mask = _size - 1;
@@ -118,7 +116,7 @@ class Expando<T> {
 
     // Reset the mappings to empty so that we can just add the existing
     // valid entries.
-    _data = new List(new_size);
+    _data = new List.filled(new_size, null);
     _used = 0;
 
     for (var i = 0; i < old_data.length; i++) {

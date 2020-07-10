@@ -104,5 +104,5 @@ abstract class ServerErrorCodes {
   ///   restart the server. However clients should be careful to not restart a
   ///   crashing server endlessly. VS Code for example doesn't restart a server
   ///   if it crashes 5 times in the last 180 seconds."
-  static const ClientServerInconsistentState = ErrorCodes(-32010);
+  static const ClientServerInconsistentState = ErrorCodes(-32099);
 }

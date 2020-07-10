@@ -94,10 +94,13 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
   CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
   CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS,
-  CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER,
+  CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION,
+  CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS,
+  CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION,
   CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION,
   CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
   CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
+  CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS,
   CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
   CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
   CompileTimeErrorCode.CONST_DEFERRED_CLASS,
@@ -232,7 +235,6 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.MIXIN_INSTANTIATE,
   CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
   CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
-  CompileTimeErrorCode.MIXIN_REFERENCES_SUPER,
   CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS,
   CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
   CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
@@ -240,6 +242,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS,
   CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS,
   CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS,
+  CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE,
   CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT,
   CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
   CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT,
@@ -387,6 +390,7 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.INVALID_IMMUTABLE_ANNOTATION,
   HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN,
   HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS,
+  HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER,
   HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION,
   HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE,
   HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER,
@@ -704,6 +708,7 @@ const List<ErrorCode> errorCodeValues = [
   // ignore: deprecated_member_use_from_same_package
   StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
   StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
+  StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
   StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
   StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
   StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
@@ -839,16 +844,12 @@ const List<ErrorCode> errorCodeValues = [
   TodoCode.TODO,
 ];
 
-/**
- * The lazy initialized map from [ErrorCode.uniqueName] to the [ErrorCode]
- * instance.
- */
+/// The lazy initialized map from [ErrorCode.uniqueName] to the [ErrorCode]
+/// instance.
 HashMap<String, ErrorCode> _uniqueNameToCodeMap;
 
-/**
- * Return the [ErrorCode] with the given [uniqueName], or `null` if not
- * found.
- */
+/// Return the [ErrorCode] with the given [uniqueName], or `null` if not
+/// found.
 ErrorCode errorCodeByUniqueName(String uniqueName) {
   if (_uniqueNameToCodeMap == null) {
     _uniqueNameToCodeMap = HashMap<String, ErrorCode>();
@@ -859,29 +860,21 @@ ErrorCode errorCodeByUniqueName(String uniqueName) {
   return _uniqueNameToCodeMap[uniqueName];
 }
 
-/**
- * An error discovered during the analysis of some Dart code.
- *
- * See [AnalysisErrorListener].
- */
+/// An error discovered during the analysis of some Dart code.
+///
+/// See [AnalysisErrorListener].
 class AnalysisError implements Diagnostic {
-  /**
-   * An empty array of errors used when no errors are expected.
-   */
+  /// An empty array of errors used when no errors are expected.
   static const List<AnalysisError> NO_ERRORS = <AnalysisError>[];
 
-  /**
-   * A [Comparator] that sorts by the name of the file that the [AnalysisError]
-   * was found.
-   */
+  /// A [Comparator] that sorts by the name of the file that the [AnalysisError]
+  /// was found.
   static Comparator<AnalysisError> FILE_COMPARATOR =
       (AnalysisError o1, AnalysisError o2) =>
           o1.source.shortName.compareTo(o2.source.shortName);
 
-  /**
-   * A [Comparator] that sorts error codes first by their severity (errors
-   * first, warnings second), and then by the error code type.
-   */
+  /// A [Comparator] that sorts error codes first by their severity (errors
+  /// first, warnings second), and then by the error code type.
   static Comparator<AnalysisError> ERROR_CODE_COMPARATOR =
       (AnalysisError o1, AnalysisError o2) {
     ErrorCode errorCode1 = o1.errorCode;
@@ -897,40 +890,28 @@ class AnalysisError implements Diagnostic {
     }
   };
 
-  /**
-   * The error code associated with the error.
-   */
+  /// The error code associated with the error.
   final ErrorCode errorCode;
 
-  /**
-   * The message describing the problem.
-   */
+  /// The message describing the problem.
   DiagnosticMessage _problemMessage;
 
-  /**
-   * The context messages associated with the problem. This list will be empty
-   * if there are no context messages.
-   */
+  /// The context messages associated with the problem. This list will be empty
+  /// if there are no context messages.
   List<DiagnosticMessage> _contextMessages;
 
-  /**
-   * The correction to be displayed for this error, or `null` if there is no
-   * correction information for this error.
-   */
+  /// The correction to be displayed for this error, or `null` if there is no
+  /// correction information for this error.
   String _correction;
 
-  /**
-   * The source in which the error occurred, or `null` if unknown.
-   */
+  /// The source in which the error occurred, or `null` if unknown.
   final Source source;
 
-  /**
-   * Initialize a newly created analysis error. The error is associated with the
-   * given [source] and is located at the given [offset] with the given
-   * [length]. The error will have the given [errorCode] and the list of
-   * [arguments] will be used to complete the message and correction. If any
-   * [contextMessages] are provided, they will be recorded with the error.
-   */
+  /// Initialize a newly created analysis error. The error is associated with
+  /// the given [source] and is located at the given [offset] with the given
+  /// [length]. The error will have the given [errorCode] and the list of
+  /// [arguments] will be used to complete the message and correction. If any
+  /// [contextMessages] are provided, they will be recorded with the error.
   AnalysisError(this.source, int offset, int length, this.errorCode,
       [List<Object> arguments,
       List<DiagnosticMessage> contextMessages = const []]) {
@@ -947,9 +928,7 @@ class AnalysisError implements Diagnostic {
     _contextMessages = contextMessages;
   }
 
-  /**
-   * Initialize a newly created analysis error with given values.
-   */
+  /// Initialize a newly created analysis error with given values.
   AnalysisError.forValues(this.source, int offset, int length, this.errorCode,
       String message, this._correction,
       {List<DiagnosticMessage> contextMessages = const []}) {
@@ -964,11 +943,9 @@ class AnalysisError implements Diagnostic {
   @override
   List<DiagnosticMessage> get contextMessages => _contextMessages;
 
-  /**
-   * Return the template used to create the correction to be displayed for this
-   * error, or `null` if there is no correction information for this error. The
-   * correction should indicate how the user can fix the error.
-   */
+  /// Return the template used to create the correction to be displayed for this
+  /// error, or `null` if there is no correction information for this error. The
+  /// correction should indicate how the user can fix the error.
   String get correction => _correction;
 
   @override
@@ -982,22 +959,16 @@ class AnalysisError implements Diagnostic {
     return hashCode;
   }
 
-  /**
-   * The number of characters from the offset to the end of the source which
-   * encompasses the compilation error.
-   */
+  /// The number of characters from the offset to the end of the source which
+  /// encompasses the compilation error.
   int get length => _problemMessage.length;
 
-  /**
-   * Return the message to be displayed for this error. The message should
-   * indicate what is wrong and why it is wrong.
-   */
+  /// Return the message to be displayed for this error. The message should
+  /// indicate what is wrong and why it is wrong.
   String get message => _problemMessage.message;
 
-  /**
-   * The character offset from the beginning of the source (zero based) where
-   * the error occurred.
-   */
+  /// The character offset from the beginning of the source (zero based) where
+  /// the error occurred.
   int get offset => _problemMessage.offset;
 
   @override
@@ -1058,10 +1029,8 @@ class AnalysisError implements Diagnostic {
     return buffer.toString();
   }
 
-  /**
-   * Merge all of the errors in the lists in the given list of [errorLists] into
-   * a single list of errors.
-   */
+  /// Merge all of the errors in the lists in the given list of [errorLists]
+  /// into a single list of errors.
   static List<AnalysisError> mergeLists(List<List<AnalysisError>> errorLists) {
     Set<AnalysisError> errors = HashSet<AnalysisError>();
     for (List<AnalysisError> errorList in errorLists) {

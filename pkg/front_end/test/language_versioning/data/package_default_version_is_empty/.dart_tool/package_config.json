@@ -1,4 +1,4 @@
-/*error: PackagesFileFormat*/
+/*error: errors=PackagesFileFormat*/
 {
     "configVersion": 2,
     "packages": [

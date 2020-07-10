@@ -126,7 +126,7 @@ FlowGraph* TestPipeline::RunPasses(
     BlockScheduler::AssignEdgeWeights(flow_graph_);
   }
 
-  SpeculativeInliningPolicy speculative_policy(/*enable_blacklist=*/false);
+  SpeculativeInliningPolicy speculative_policy(/*enable_suppression=*/false);
   pass_state_ = new CompilerPassState(thread, flow_graph_, &speculative_policy);
   pass_state_->reorder_blocks = reorder_blocks;
 
@@ -163,7 +163,7 @@ void TestPipeline::CompileGraphAndAttachFunction() {
   Zone* zone = thread_->zone();
   const bool optimized = true;
 
-  SpeculativeInliningPolicy speculative_policy(/*enable_blacklist=*/false);
+  SpeculativeInliningPolicy speculative_policy(/*enable_suppression=*/false);
 
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
   const bool use_far_branches = false;
@@ -234,6 +234,11 @@ bool ILMatcher::TryMatch(std::initializer_list<MatchCode> match_codes,
   Instruction* cursor = cursor_;
   for (size_t i = 0; i < qcodes.size(); ++i) {
     Instruction** capture = qcodes[i].capture_;
+    if (parallel_moves_handling_ == ParallelMovesHandling::kSkip) {
+      while (cursor->IsParallelMove()) {
+        cursor = cursor->next();
+      }
+    }
     if (trace_) {
       OS::PrintErr("  matching %30s @ %s\n",
                    MatchOpCodeToCString(qcodes[i].opcode()),
@@ -273,6 +278,9 @@ Instruction* ILMatcher::MatchInternal(std::vector<MatchCode> match_codes,
     auto branch = cursor->AsBranch();
     if (branch == nullptr) return nullptr;
     return branch->false_successor();
+  }
+  if (opcode == kNop) {
+    return cursor;
   }
   if (opcode == kMoveAny) {
     return cursor->next();
@@ -341,6 +349,9 @@ const char* ILMatcher::MatchOpCodeToCString(MatchOpCode opcode) {
   }
   if (opcode == kMatchAndMoveBranchFalse) {
     return "kMatchAndMoveBranchFalse";
+  }
+  if (opcode == kNop) {
+    return "kNop";
   }
   if (opcode == kMoveAny) {
     return "kMoveAny";

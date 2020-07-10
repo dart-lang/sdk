@@ -115,6 +115,8 @@ constexpr bool kDartUseBackgroundCompilation = true;
     "Dump megamorphic cache statistics")                                       \
   R(dump_symbol_stats, false, bool, false, "Dump symbol table statistics")     \
   R(enable_asserts, false, bool, false, "Enable assert statements.")           \
+  R(null_assertions, false, bool, false,                                       \
+    "Enable null assertions for parameters.")                                  \
   P(enable_kernel_expression_compilation, bool, true,                          \
     "Compile expressions with the Kernel front-end.")                          \
   P(enable_mirrors, bool, true,                                                \

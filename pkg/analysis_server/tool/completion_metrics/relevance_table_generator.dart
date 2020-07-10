@@ -122,33 +122,29 @@ bool validArguments(ArgParser parser, ArgResults result) {
 
 /// An object that records the data used to compute the tables.
 class RelevanceData {
-  /// A table mapping element kinds to counts by context.
-  Map<String, Map<String, int>> byElementKind = {};
-
-  /// A table mapping token types to counts by context.
-  Map<String, Map<String, int>> byTokenType = {};
+  /// A table mapping element kinds and keywords to counts by context.
+  Map<String, Map<_Kind, int>> byKind = {};
 
   /// Initialize a newly created set of relevance data to be empty.
   RelevanceData();
 
   /// Add the data from the given relevance [data] to this set of data.
   void addDataFrom(RelevanceData data) {
-    _addToMap(byElementKind, data.byElementKind);
-    _addToMap(byTokenType, data.byTokenType);
+    _addToMap(byKind, data.byKind);
   }
 
   /// Record that an element of the given [kind] was found in the given
   /// [context].
   void recordElementKind(String context, ElementKind kind) {
-    var contextMap = byElementKind.putIfAbsent(context, () => {});
-    var key = kind.name;
+    var contextMap = byKind.putIfAbsent(context, () => {});
+    var key = _ElementKind(kind);
     contextMap[key] = (contextMap[key] ?? 0) + 1;
   }
 
-  /// Record that a token of the given [type] was found in the given [context].
-  void recordTokenType(String context, TokenType type) {
-    var contextMap = byTokenType.putIfAbsent(context, () => {});
-    var key = type.name;
+  /// Record that the given [keyword] was found in the given [context].
+  void recordKeyword(String context, Keyword keyword) {
+    var contextMap = byKind.putIfAbsent(context, () => {});
+    var key = _Keyword(keyword);
     contextMap[key] = (contextMap[key] ?? 0) + 1;
   }
 
@@ -334,14 +330,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
-    _recordTokenType('BlockFunctionBody_start', node,
+    _recordKeyword('BlockFunctionBody_start', node,
         allowedKeywords: functionBodyKeywords);
     super.visitBlockFunctionBody(node);
   }
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
-    _recordTokenType('BooleanLiteral_start', node);
+    _recordKeyword('BooleanLiteral_start', node);
     super.visitBooleanLiteral(node);
   }
 
@@ -369,15 +365,15 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     var context = 'name';
     if (node.extendsClause != null) {
-      _recordTokenType('ClassDeclaration_$context', node.extendsClause,
+      _recordKeyword('ClassDeclaration_$context', node.extendsClause,
           allowedKeywords: [Keyword.EXTENDS]);
       context = 'extends';
     }
     if (node.withClause != null) {
-      _recordTokenType('ClassDeclaration_$context', node.withClause);
+      _recordKeyword('ClassDeclaration_$context', node.withClause);
       context = 'with';
     }
-    _recordTokenType('ClassDeclaration_$context', node.implementsClause,
+    _recordKeyword('ClassDeclaration_$context', node.implementsClause,
         allowedKeywords: [Keyword.IMPLEMENTS]);
 
     for (var member in node.members) {
@@ -392,10 +388,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     _recordDataForNode('ClassTypeAlias_superclass', node.superclass);
     var context = 'superclass';
     if (node.withClause != null) {
-      _recordTokenType('ClassTypeAlias_$context', node.withClause);
+      _recordKeyword('ClassTypeAlias_$context', node.withClause);
       context = 'with';
     }
-    _recordTokenType('ClassTypeAlias_$context', node.implementsClause);
+    _recordKeyword('ClassTypeAlias_$context', node.implementsClause);
     super.visitClassTypeAlias(node);
   }
 
@@ -420,7 +416,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     featureComputer = FeatureComputer(typeSystem, typeProvider);
 
     for (var directive in node.directives) {
-      _recordTokenType('CompilationUnit_directive', directive,
+      _recordKeyword('CompilationUnit_directive', directive,
           allowedKeywords: directiveKeywords);
     }
     for (var declaration in node.declarations) {
@@ -544,16 +540,16 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitExportDirective(ExportDirective node) {
     var context = 'uri';
     if (node.configurations.isNotEmpty) {
-      _recordTokenType('ImportDirective_$context', node.configurations[0],
+      _recordKeyword('ImportDirective_$context', node.configurations[0],
           allowedKeywords: exportKeywords);
       context = 'configurations';
     }
     if (node.combinators.isNotEmpty) {
-      _recordTokenType('ImportDirective_$context', node.combinators[0],
+      _recordKeyword('ImportDirective_$context', node.combinators[0],
           allowedKeywords: exportKeywords);
     }
     for (var combinator in node.combinators) {
-      _recordTokenType('ImportDirective_combinator', combinator,
+      _recordKeyword('ImportDirective_combinator', combinator,
           allowedKeywords: exportKeywords);
     }
     super.visitExportDirective(node);
@@ -561,7 +557,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    _recordTokenType('ExpressionFunctionBody_start', node,
+    _recordKeyword('ExpressionFunctionBody_start', node,
         allowedKeywords: functionBodyKeywords);
     _recordDataForNode('ExpressionFunctionBody_expression', node.expression,
         allowedKeywords: expressionKeywords);
@@ -763,25 +759,24 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitImportDirective(ImportDirective node) {
     var context = 'uri';
     if (node.deferredKeyword != null) {
-      data.recordTokenType(
-          'ImportDirective_$context', node.deferredKeyword.type);
+      data.recordKeyword('ImportDirective_$context', node.deferredKeyword.type);
       context = 'deferred';
     }
     if (node.asKeyword != null) {
-      data.recordTokenType('ImportDirective_$context', node.asKeyword.type);
+      data.recordKeyword('ImportDirective_$context', node.asKeyword.type);
       context = 'prefix';
     }
     if (node.configurations.isNotEmpty) {
-      _recordTokenType('ImportDirective_$context', node.configurations[0],
+      _recordKeyword('ImportDirective_$context', node.configurations[0],
           allowedKeywords: importKeywords);
       context = 'configurations';
     }
     if (node.combinators.isNotEmpty) {
-      _recordTokenType('ImportDirective_$context', node.combinators[0],
+      _recordKeyword('ImportDirective_$context', node.combinators[0],
           allowedKeywords: importKeywords);
     }
     for (var combinator in node.combinators) {
-      _recordTokenType('ImportDirective_combinator', combinator,
+      _recordKeyword('ImportDirective_combinator', combinator,
           allowedKeywords: importKeywords);
     }
     super.visitImportDirective(node);
@@ -885,11 +880,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitMixinDeclaration(MixinDeclaration node) {
     var context = 'name';
     if (node.onClause != null) {
-      _recordTokenType('MixinDeclaration_$context', node.onClause,
+      _recordKeyword('MixinDeclaration_$context', node.onClause,
           allowedKeywords: [Keyword.ON]);
       context = 'on';
     }
-    _recordTokenType('MixinDeclaration_$context', node.implementsClause,
+    _recordKeyword('MixinDeclaration_$context', node.implementsClause,
         allowedKeywords: [Keyword.IMPLEMENTS]);
 
     for (var member in node.members) {
@@ -993,9 +988,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitReturnStatement(ReturnStatement node) {
     _recordDataForNode('ReturnStatement_expression', node.expression,
         allowedKeywords: expressionKeywords);
-    if (node.expression == null) {
-      data.recordTokenType('ReturnStatement_expression', node.semicolon.type);
-    }
     super.visitReturnStatement(node);
   }
 
@@ -1115,12 +1107,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitTryStatement(TryStatement node) {
     var context = 'try';
     for (var clause in node.catchClauses) {
-      _recordTokenType('TryStatement_$context', clause,
+      _recordKeyword('TryStatement_$context', clause,
           allowedKeywords: [Keyword.ON]);
       context = 'catch';
     }
     if (node.finallyKeyword != null) {
-      data.recordTokenType('TryStatement_$context', node.finallyKeyword.type);
+      data.recordKeyword('TryStatement_$context', node.finallyKeyword.type);
     }
     super.visitTryStatement(node);
   }
@@ -1308,7 +1300,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void _recordDataForNode(String context, AstNode node,
       {List<Keyword> allowedKeywords = noKeywords}) {
     _recordElementKind(context, node);
-    _recordTokenType(context, node, allowedKeywords: allowedKeywords);
+    _recordKeyword(context, node, allowedKeywords: allowedKeywords);
   }
 
   /// Record the element kind of the element associated with the left-most
@@ -1327,27 +1319,25 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Record the token type of the left-most token that is a child of the
-  /// [node] in the given [context].
-  void _recordTokenType(String context, AstNode node,
+  /// If the left-most token of the [node] is a keyword, then record that it
+  /// occurred in the given [context].
+  void _recordKeyword(String context, AstNode node,
       {List<Keyword> allowedKeywords = noKeywords}) {
     if (node != null) {
       var token = _leftMostToken(node);
-      if (token != null) {
-        var type = token.type;
-        if (token.isKeyword && token.keyword.isBuiltInOrPseudo) {
-          // These keywords can be used as identifiers, so determine whether it
-          // is being used as a keyword or an identifier.
-          if (!allowedKeywords.contains(token.keyword)) {
-            type = TokenType.IDENTIFIER;
-          }
+      if (token.isKeyword) {
+        var keyword = token.type;
+        if (keyword == Keyword.NEW) {
+          // We don't suggest `new`, so we don't care about the frequency with
+          // which it is used.
+          return;
+        } else if (token.keyword.isBuiltInOrPseudo &&
+            !allowedKeywords.contains(token.keyword)) {
+          // These keywords can be used as identifiers, so determine whether
+          // it is being used as a keyword or an identifier.
+          return;
         }
-        data.recordTokenType(context, type);
-        if (node is Expression) {
-          data.recordTokenType('Expression', type);
-        } else if (node is Statement) {
-          data.recordTokenType('Statement', type);
-        }
+        data.recordKeyword(context, keyword);
       }
     }
   }
@@ -1452,20 +1442,13 @@ class RelevanceTableWriter {
 
   RelevanceTableWriter(this.sink);
 
-  int totalCount(Map<String, int> counts) {
-    return counts.values
-        .fold(0, (previousValue, value) => previousValue + value);
-  }
-
   void write(RelevanceData data) {
     writeFileHeader();
     writeElementKindTable(data);
+    writeKeywordTable(data);
   }
 
   void writeElementKindTable(RelevanceData data) {
-    var byTokenType = data.byTokenType;
-    var byElementKind = data.byElementKind;
-
     sink.writeln();
     sink.write('''
 /// A table keyed by completion location and element kind whose values are the
@@ -1473,46 +1456,39 @@ class RelevanceTableWriter {
 const elementKindRelevance = {
 ''');
 
-    var completionLocations = byElementKind.keys.toList()..sort();
+    var byKind = data.byKind;
+    var completionLocations = byKind.keys.toList()..sort();
     for (var completionLocation in completionLocations) {
-      var elementCounts = byElementKind[completionLocation];
-      var identifierPercent = 1.0;
-      var tokenCounts = byTokenType[completionLocation];
-      if (tokenCounts != null) {
-        var identifierCount = tokenCounts['IDENTIFIER'];
-        if (identifierCount != null) {
-          var totalTokenCount = totalCount(tokenCounts);
-          identifierPercent = identifierCount / totalTokenCount;
+      var counts = byKind[completionLocation];
+      if (_hasElementKind(counts)) {
+        var totalCount = _totalCount(counts);
+        // TODO(brianwilkerson) If two element kinds have the same count they
+        //  ought to have the same probability. This doesn't correctly do that.
+        var entries = counts.entries.toList()
+          ..sort((first, second) => first.value.compareTo(second.value));
+
+        sink.write("  '");
+        sink.write(completionLocation);
+        sink.writeln("': {");
+        var cumulativeCount = 0;
+        var lowerBound = 0.0;
+        for (var entry in entries) {
+          var kind = entry.key;
+          cumulativeCount += entry.value;
+          var upperBound = cumulativeCount / totalCount;
+          if (kind is _ElementKind) {
+            sink.write('    ElementKind.');
+            sink.write(kind.elementKind.name);
+            sink.write(': ProbabilityRange(lower: ');
+            sink.write(lowerBound.toStringAsFixed(3));
+            sink.write(', upper: ');
+            sink.write(upperBound.toStringAsFixed(3));
+            sink.writeln('),');
+          }
+          lowerBound = upperBound;
         }
+        sink.writeln('  },');
       }
-      // TODO(brianwilkerson) This incorrectly assumes that identifiers are
-      //  always the most common first token in a completion location.
-      var startOfBand = 1.0 - identifierPercent;
-      sink.write("  '");
-      sink.write(completionLocation);
-      sink.writeln("': {");
-      var totalElementCount = totalCount(elementCounts);
-      var cumulativeCount = 0;
-      // TODO(brianwilkerson) If two element kinds have the same count they
-      //  ought to have the same probability. This doesn't correctly do that.
-      var entries = elementCounts.entries.toList()
-        ..sort((first, second) => first.value.compareTo(second.value));
-      var lowerBound = 0.0;
-      for (var entry in entries) {
-        var elementKind = entry.key;
-        cumulativeCount += entry.value;
-        var percentInBand = cumulativeCount / totalElementCount;
-        var upperBound = (percentInBand * identifierPercent) + startOfBand;
-        sink.write('    ElementKind.');
-        sink.write(elementKind);
-        sink.write(': ProbabilityRange(lower: ');
-        sink.write(lowerBound.toStringAsFixed(3));
-        sink.write(', upper: ');
-        sink.write(upperBound.toStringAsFixed(3));
-        sink.writeln('),');
-        lowerBound = upperBound;
-      }
-      sink.writeln('  },');
     }
     sink.writeln('};');
   }
@@ -1533,25 +1509,107 @@ import 'package:analysis_server/src/services/completion/dart/probability_range.d
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 ''');
   }
-}
 
-class Timer {
-  Stopwatch stopwatch = Stopwatch();
+  void writeKeywordTable(RelevanceData data) {
+    sink.writeln();
+    sink.write('''
+/// A table keyed by completion location and keyword whose values are the
+/// ranges of the relevance of those keywords in those locations.
+const keywordRelevance = {
+''');
 
-  int count = 0;
+    var byKind = data.byKind;
+    var completionLocations = byKind.keys.toList()..sort();
+    for (var completionLocation in completionLocations) {
+      var counts = byKind[completionLocation];
+      if (_hasKeyword(counts)) {
+        var totalCount = _totalCount(counts);
+        // TODO(brianwilkerson) If two keywords have the same count they ought to
+        //  have the same probability. This doesn't correctly do that.
+        var entries = counts.entries.toList()
+          ..sort((first, second) => first.value.compareTo(second.value));
 
-  Timer();
-
-  double get averageTime => count == 0 ? 0 : totalTime / count;
-
-  int get totalTime => stopwatch.elapsedMilliseconds;
-
-  void start() {
-    stopwatch.start();
+        sink.write("  '");
+        sink.write(completionLocation);
+        sink.writeln("': {");
+        var cumulativeCount = 0;
+        var lowerBound = 0.0;
+        for (var entry in entries) {
+          var kind = entry.key;
+          cumulativeCount += entry.value;
+          var upperBound = cumulativeCount / totalCount;
+          if (kind is _Keyword) {
+            sink.write("    '");
+            sink.write(kind.keyword.lexeme);
+            sink.write("': ProbabilityRange(lower: ");
+            sink.write(lowerBound.toStringAsFixed(3));
+            sink.write(', upper: ');
+            sink.write(upperBound.toStringAsFixed(3));
+            sink.writeln('),');
+          }
+          lowerBound = upperBound;
+        }
+        sink.writeln('  },');
+      }
+    }
+    sink.writeln('};');
   }
 
-  void stop() {
-    stopwatch.stop();
-    count++;
+  /// Return `true` if the table of [counts] contains at least one key that is
+  /// an element kind.
+  bool _hasElementKind(Map<_Kind, int> counts) {
+    for (var kind in counts.keys) {
+      if (kind is _ElementKind) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Return `true` if the table of [counts] contains at least one key that is a
+  /// keyword.
+  bool _hasKeyword(Map<_Kind, int> counts) {
+    for (var kind in counts.keys) {
+      if (kind is _Keyword) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Return the total of the counts in the given table of [counts].
+  int _totalCount(Map<_Kind, int> counts) {
+    return counts.values
+        .fold(0, (previousValue, value) => previousValue + value);
   }
 }
+
+/// A wrapper for an element kind to allow keywords and element kinds to be used
+/// as keys in a single table.
+class _ElementKind extends _Kind {
+  static final Map<ElementKind, _ElementKind> instances = {};
+
+  final ElementKind elementKind;
+
+  factory _ElementKind(ElementKind elementKind) =>
+      instances.putIfAbsent(elementKind, () => _ElementKind._(elementKind));
+
+  _ElementKind._(this.elementKind);
+}
+
+/// A wrapper for a keyword to allow keywords and element kinds to be used as
+/// keys in a single table.
+class _Keyword extends _Kind {
+  static final Map<Keyword, _Keyword> instances = {};
+
+  final Keyword keyword;
+
+  factory _Keyword(Keyword keyword) =>
+      instances.putIfAbsent(keyword, () => _Keyword._(keyword));
+
+  _Keyword._(this.keyword);
+}
+
+/// A superclass for [_ElementKind] and [_Keyword] to allow keywords and element
+/// kinds to be used as keys in a single table.
+class _Kind {}

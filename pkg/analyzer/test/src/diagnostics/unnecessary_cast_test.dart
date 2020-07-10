@@ -5,119 +5,250 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/constant/potentially_constant_test.dart';
 import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryCastTest);
+    defineReflectiveTests(UnnecessaryCastTestWithNullSafety);
   });
 }
 
 @reflectiveTest
 class UnnecessaryCastTest extends DriverResolutionTest {
-  test_conditionalExpression() async {
+  test_conditionalExpression_changesResultType_left() async {
     await assertNoErrorsInCode(r'''
-abstract class I {}
-class A implements I {}
-class B implements I {}
-I m(A a, B b) {
-  return a == null ? b as I : a as I;
+class A {}
+class B extends A {}
+
+dynamic f(bool c, B x, B y) {
+  return c ? x as A : y;
 }
 ''');
+  }
+
+  test_conditionalExpression_changesResultType_right() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B extends A {}
+
+dynamic f(bool c, B x, B y) {
+  return c ? x : y as A;
+}
+''');
+  }
+
+  test_conditionalExpression_leftDynamic_rightUnnecessary() async {
+    await assertErrorsInCode(r'''
+dynamic f(bool c, int a, int b) {
+  return c ? a : b as int;
+}
+''', [
+      error(HintCode.UNNECESSARY_CAST, 51, 8),
+    ]);
+  }
+
+  test_conditionalExpression_leftUnnecessary() async {
+    await assertErrorsInCode(r'''
+dynamic f(bool c, int a, int b) {
+  return c ? a as int : b;
+}
+''', [
+      error(HintCode.UNNECESSARY_CAST, 47, 8),
+    ]);
+  }
+
+  test_conditionalExpression_leftUnnecessary_rightDynamic() async {
+    await assertErrorsInCode(r'''
+dynamic f(bool c, int a, dynamic b) {
+  return c ? a as int : b;
+}
+''', [
+      error(HintCode.UNNECESSARY_CAST, 51, 8),
+    ]);
+  }
+
+  test_conditionalExpression_leftUnnecessary_rightUnnecessary() async {
+    await assertErrorsInCode(r'''
+dynamic f(bool c, int a, int b) {
+  return c ? a as int : b as int;
+}
+''', [
+      error(HintCode.UNNECESSARY_CAST, 47, 8),
+      error(HintCode.UNNECESSARY_CAST, 58, 8),
+    ]);
+  }
+
+  test_conditionalExpression_rightUnnecessary() async {
+    await assertErrorsInCode(r'''
+dynamic f(bool c, int a, int b) {
+  return c ? a : b as int;
+}
+''', [
+      error(HintCode.UNNECESSARY_CAST, 51, 8),
+    ]);
   }
 
   test_dynamic_type() async {
-    await assertErrorsInCode(r'''
-m(v) {
-  var b = v as Object;
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-    ]);
-  }
-
-  test_function() async {
     await assertNoErrorsInCode(r'''
-void main() {
-  Function(Null) f = (String x) => x;
-  (f as Function(int))(3); 
+void f(a) {
+  a as Object;
 }
 ''');
   }
 
-  test_function2() async {
-    await assertErrorsInCode(r'''
-class A {}
-
-class B<T extends A> {
-  void foo() {
-    T Function(T) f;
-    A Function(A) g;
-    g = f as A Function(A);
-  }
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 89, 1),
-    ]);
-  }
-
-  test_generics() async {
-    // dartbug.com/18953
-    await assertErrorsInCode(r'''
-import 'dart:async';
-Future<int> f() => new Future.value(0);
-void g(bool c) {
-  (c ? f(): new Future.value(0) as Future<int>).then((int value) {});
-}
-''', [
-      error(HintCode.UNNECESSARY_CAST, 90, 34),
-    ]);
-  }
-
-  test_parameter_A() async {
-    // dartbug.com/13855, dartbug.com/13732
+  test_function_toSubtype_viaParameter() async {
     await assertNoErrorsInCode(r'''
-class A{
-  a() {}
+void f(void Function(int) a) {
+  (a as void Function(num))(3);
 }
-class B<E> {
-  E e;
-  m() {
-    (e as A).a();
+''');
   }
+
+  test_function_toSubtype_viaReturnType() async {
+    await assertNoErrorsInCode(r'''
+void f(num Function() a) {
+  (a as int Function())();
+}
+''');
+  }
+
+  test_function_toSupertype_viaParameter() async {
+    await assertErrorsInCode(r'''
+void f(void Function(num) a) {
+  (a as void Function(int))(3);
+}
+''', [
+      error(HintCode.UNNECESSARY_CAST, 34, 23),
+    ]);
+  }
+
+  test_function_toSupertype_viaReturnType() async {
+    await assertErrorsInCode(r'''
+void f(int Function() a) {
+  (a as num Function())();
+}
+''', [
+      error(HintCode.UNNECESSARY_CAST, 30, 19),
+    ]);
+  }
+
+  test_function_toUnrelated() async {
+    await assertNoErrorsInCode(r'''
+void f(num Function(num) a) {
+  (a as int Function(int))(3);
+}
+''');
+  }
+
+  test_function_toUnrelated_generic() async {
+    await assertNoErrorsInCode(r'''
+void f<T extends num>(T Function(T) a) {
+  (a as int Function(int))(3);
 }
 ''');
   }
 
   test_type_dynamic() async {
-    await assertErrorsInCode(r'''
-m(v) {
-  var b = Object as dynamic;
+    await assertNoErrorsInCode(r'''
+void f() {
+  Object as dynamic;
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-    ]);
+''');
   }
 
   test_type_supertype() async {
     await assertErrorsInCode(r'''
-m(int i) {
-  var b = i as Object;
+void f(int a) {
+  a as Object;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(HintCode.UNNECESSARY_CAST, 21, 11),
+      error(HintCode.UNNECESSARY_CAST, 18, 11),
     ]);
   }
 
   test_type_type() async {
     await assertErrorsInCode(r'''
-m(num i) {
-  var b = i as num;
+void f(num a) {
+  a as num;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(HintCode.UNNECESSARY_CAST, 21, 8),
+      error(HintCode.UNNECESSARY_CAST, 18, 8),
     ]);
+  }
+
+  test_typeParameter_hasBound_same() async {
+    await assertErrorsInCode(r'''
+void f<T extends num>(T a) {
+  a as num;
+}
+''', [
+      error(HintCode.UNNECESSARY_CAST, 31, 8),
+    ]);
+  }
+
+  test_typeParameter_hasBound_subtype() async {
+    await assertErrorsInCode(r'''
+void f<T extends int>(T a) {
+  a as num;
+}
+''', [
+      error(HintCode.UNNECESSARY_CAST, 31, 8),
+    ]);
+  }
+
+  test_typeParameter_hasBound_unrelated() async {
+    await assertNoErrorsInCode(r'''
+void f<T extends num>(T a) {
+  a as String;
+}
+''');
+  }
+
+  test_typeParameter_noBound() async {
+    await assertNoErrorsInCode(r'''
+void f<T>(T a) {
+  a as num;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class UnnecessaryCastTestWithNullSafety extends UnnecessaryCastTest
+    with WithNullSafetyMixin {
+  test_interfaceType_star_toNone() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+int a = 0;
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+
+void f() {
+  var b = a as int;
+  b;
+}
+''', [
+      error(HintCode.UNNECESSARY_CAST, 39, 8),
+    ]);
+  }
+
+  test_interfaceType_star_toQuestion() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+int a = 0;
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart';
+
+void f() {
+  var b = a as int?;
+  b;
+}
+''');
   }
 }

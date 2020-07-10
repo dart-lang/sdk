@@ -58,7 +58,7 @@ class NodeValidatorBuilder implements NodeValidator {
    * The UriPolicy can be used to restrict the locations the navigation elements
    * are allowed to direct to. By default this will use the default [UriPolicy].
    */
-  void allowNavigation([UriPolicy uriPolicy]) {
+  void allowNavigation([UriPolicy? uriPolicy]) {
     if (uriPolicy == null) {
       uriPolicy = new UriPolicy();
     }
@@ -71,7 +71,7 @@ class NodeValidatorBuilder implements NodeValidator {
    * The UriPolicy can be used to restrict the locations the images may be
    * loaded from. By default this will use the default [UriPolicy].
    */
-  void allowImages([UriPolicy uriPolicy]) {
+  void allowImages([UriPolicy? uriPolicy]) {
     if (uriPolicy == null) {
       uriPolicy = new UriPolicy();
     }
@@ -112,7 +112,7 @@ class NodeValidatorBuilder implements NodeValidator {
    * If [tagName] is not specified then this allows inline styles on all
    * elements. Otherwise tagName limits the styles to the specified elements.
    */
-  void allowInlineStyles({String tagName}) {
+  void allowInlineStyles({String? tagName}) {
     if (tagName == null) {
       tagName = '*';
     } else {
@@ -130,7 +130,7 @@ class NodeValidatorBuilder implements NodeValidator {
    * Common things which are not allowed are script elements, style attributes
    * and any script handlers.
    */
-  void allowHtml5({UriPolicy uriPolicy}) {
+  void allowHtml5({UriPolicy? uriPolicy}) {
     add(new _Html5NodeValidator(uriPolicy: uriPolicy));
   }
 
@@ -149,9 +149,9 @@ class NodeValidatorBuilder implements NodeValidator {
    * tag extensions.
    */
   void allowCustomElement(String tagName,
-      {UriPolicy uriPolicy,
-      Iterable<String> attributes,
-      Iterable<String> uriAttributes}) {
+      {UriPolicy? uriPolicy,
+      Iterable<String>? attributes,
+      Iterable<String>? uriAttributes}) {
     var tagNameUpper = tagName.toUpperCase();
     var attrs = attributes
         ?.map<String>((name) => '$tagNameUpper::${name.toLowerCase()}');
@@ -174,9 +174,9 @@ class NodeValidatorBuilder implements NodeValidator {
    * custom tags.
    */
   void allowTagExtension(String tagName, String baseName,
-      {UriPolicy uriPolicy,
-      Iterable<String> attributes,
-      Iterable<String> uriAttributes}) {
+      {UriPolicy? uriPolicy,
+      Iterable<String>? attributes,
+      Iterable<String>? uriAttributes}) {
     var baseNameUpper = baseName.toUpperCase();
     var tagNameUpper = tagName.toUpperCase();
     var attrs = attributes
@@ -192,9 +192,9 @@ class NodeValidatorBuilder implements NodeValidator {
   }
 
   void allowElement(String tagName,
-      {UriPolicy uriPolicy,
-      Iterable<String> attributes,
-      Iterable<String> uriAttributes}) {
+      {UriPolicy? uriPolicy,
+      Iterable<String>? attributes,
+      Iterable<String>? uriAttributes}) {
     allowCustomElement(tagName,
         uriPolicy: uriPolicy,
         attributes: attributes,
@@ -236,7 +236,7 @@ class _SimpleNodeValidator implements NodeValidator {
   final Set<String> allowedElements = new Set<String>();
   final Set<String> allowedAttributes = new Set<String>();
   final Set<String> allowedUriAttributes = new Set<String>();
-  final UriPolicy uriPolicy;
+  final UriPolicy? uriPolicy;
 
   factory _SimpleNodeValidator.allowNavigation(UriPolicy uriPolicy) {
     return new _SimpleNodeValidator(uriPolicy, allowedElements: const [
@@ -311,9 +311,9 @@ class _SimpleNodeValidator implements NodeValidator {
    * lowercase attribute name. For example `'IMG:src'`.
    */
   _SimpleNodeValidator(this.uriPolicy,
-      {Iterable<String> allowedElements,
-      Iterable<String> allowedAttributes,
-      Iterable<String> allowedUriAttributes}) {
+      {Iterable<String>? allowedElements,
+      Iterable<String>? allowedAttributes,
+      Iterable<String>? allowedUriAttributes}) {
     this.allowedElements.addAll(allowedElements ?? const []);
     allowedAttributes = allowedAttributes ?? const [];
     allowedUriAttributes = allowedUriAttributes ?? const [];
@@ -333,9 +333,9 @@ class _SimpleNodeValidator implements NodeValidator {
   bool allowsAttribute(Element element, String attributeName, String value) {
     var tagName = Element._safeTagName(element);
     if (allowedUriAttributes.contains('$tagName::$attributeName')) {
-      return uriPolicy.allowsUri(value);
+      return uriPolicy!.allowsUri(value);
     } else if (allowedUriAttributes.contains('*::$attributeName')) {
-      return uriPolicy.allowsUri(value);
+      return uriPolicy!.allowsUri(value);
     } else if (allowedAttributes.contains('$tagName::$attributeName')) {
       return true;
     } else if (allowedAttributes.contains('*::$attributeName')) {
@@ -356,8 +356,8 @@ class _CustomElementNodeValidator extends _SimpleNodeValidator {
   _CustomElementNodeValidator(
       UriPolicy uriPolicy,
       Iterable<String> allowedElements,
-      Iterable<String> allowedAttributes,
-      Iterable<String> allowedUriAttributes,
+      Iterable<String>? allowedAttributes,
+      Iterable<String>? allowedUriAttributes,
       bool allowTypeExtension,
       bool allowCustomTag)
       : this.allowTypeExtension = allowTypeExtension == true,

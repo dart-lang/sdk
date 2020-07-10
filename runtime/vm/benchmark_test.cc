@@ -13,6 +13,7 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/utils.h"
 
 #include "vm/clustered_snapshot.h"
 #include "vm/dart_api_impl.h"
@@ -63,7 +64,7 @@ BENCHMARK(CorelibCompileAll) {
 // which is depended on by run_vm_tests.
 static char* ComputeKernelServicePath(const char* arg) {
   char buffer[2048];
-  char* kernel_service_path = strdup(File::GetCanonicalPath(NULL, arg));
+  char* kernel_service_path = Utils::StrDup(File::GetCanonicalPath(NULL, arg));
   EXPECT(kernel_service_path != NULL);
   const char* compiler_path = "%s%sgen%skernel_service.dill";
   const char* path_separator = File::PathSeparator();
@@ -82,14 +83,14 @@ static char* ComputeKernelServicePath(const char* arg) {
   if (ptr == NULL) {
     return NULL;
   }
-  return strdup(buffer);
+  return Utils::StrDup(buffer);
 }
 
 // This file is created by the target //runtime/bin:gen_kernel_bytecode_dill
 // which is depended on by run_vm_tests.
 static char* ComputeGenKernelKernelPath(const char* arg) {
   char buffer[2048];
-  char* gen_kernel_path = strdup(File::GetCanonicalPath(NULL, arg));
+  char* gen_kernel_path = Utils::StrDup(File::GetCanonicalPath(NULL, arg));
   EXPECT(gen_kernel_path != NULL);
   const char* compiler_path = "%s%sgen_kernel_bytecode.dill";
   const char* path_separator = File::PathSeparator();
@@ -108,7 +109,7 @@ static char* ComputeGenKernelKernelPath(const char* arg) {
   if (ptr == NULL) {
     return NULL;
   }
-  return strdup(buffer);
+  return Utils::StrDup(buffer);
 }
 
 static int64_t GenKernelKernelBenchmark(const char* name,
@@ -180,7 +181,7 @@ BENCHMARK(GenKernelKernelCombined) {
                                /* benchmark_read_bytecode */ true));
 }
 
-BENCHMARK(GenKernelKernelMaxRSS) {
+BENCHMARK_MEMORY(GenKernelKernelMaxRSS) {
   GenKernelKernelBenchmark("GenKernelKernelMaxRSS benchmark",
                            /* benchmark_load */ false,
                            /* benchmark_read_bytecode */ true);

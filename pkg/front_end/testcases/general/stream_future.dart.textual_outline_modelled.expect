@@ -1,0 +1,12 @@
+import 'dart:async';
+
+Class returnClass() => new Class();
+Future<Class> returnFutureClass() async => new Class();
+Future<dynamic> returnFutureDynamic() async => new Class();
+Stream<FutureOr<Class>> error() async* {}
+Stream<FutureOr<Class>> stream() async* {}
+
+class Class {}
+
+dynamic returnDynamic() => new Class();
+main() async {}

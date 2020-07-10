@@ -12,9 +12,8 @@ import 'package:test/test.dart';
 /// invocation requires the VM to compile the entire dependency graph.
 const Timeout longTimeout = Timeout(Duration(minutes: 5));
 
-TestProject project({String mainSrc, String analysisOptions}) {
-  return TestProject(mainSrc: mainSrc, analysisOptions: analysisOptions);
-}
+TestProject project({String mainSrc, String analysisOptions}) =>
+    TestProject(mainSrc: mainSrc, analysisOptions: analysisOptions);
 
 class TestProject {
   static String get defaultProjectName => 'dartdev_temp';
@@ -64,6 +63,8 @@ class TestProject {
       ...?args,
     ];
 
+    arguments.add('--disable-dartdev-analytics');
+
     return Process.runSync(
       Platform.resolvedExecutable,
       arguments,
@@ -92,9 +93,8 @@ class TestProject {
     return _sdkRootPath;
   }
 
-  String get absolutePathToDartdevFile {
-    return path.join(sdkRootPath, 'pkg', 'dartdev', 'bin', 'dartdev.dart');
-  }
+  String get absolutePathToDartdevFile =>
+      path.join(sdkRootPath, 'pkg', 'dartdev', 'bin', 'dartdev.dart');
 
   File findFile(String name) {
     var file = File(path.join(dir.path, name));

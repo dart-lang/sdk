@@ -7,6 +7,6 @@ import 'dart:core' as prefix;
 main() {
   return new prefix();
   //         ^^^^^^
-  // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
+  // [analyzer] STATIC_WARNING.CREATION_WITH_NON_TYPE
   // [cfe] Method not found: 'prefix'.
 }

@@ -6,6 +6,7 @@ library fasta.incremental_compiler;
 
 import 'dart:async' show Future;
 
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
     show
         BinaryBuilderWithMetadata,
@@ -90,11 +91,7 @@ import 'source/source_class_builder.dart' show SourceClassBuilder;
 
 import 'util/error_reporter_file_copier.dart' show saveAsGzip;
 
-import 'util/experiment_environment_getter.dart'
-    show
-        getExperimentEnvironment,
-        enableExperimentKeyInvalidation,
-        enableExperimentKeyInvalidationSerialization;
+import 'util/experiment_environment_getter.dart' show getExperimentEnvironment;
 
 import 'util/textual_outline.dart' show textualOutline;
 
@@ -152,8 +149,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       new Map<Uri, List<DiagnosticMessageFromJson>>();
   List<Component> modulesToLoad;
   IncrementalSerializer incrementalSerializer;
-  bool useExperimentalInvalidation = false;
-  bool useExperimentalInvalidationSerialization = false;
 
   static final Uri debugExprUri =
       new Uri(scheme: "org-dartlang-debug", path: "synthetic_debug_expression");
@@ -191,18 +186,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         this.initializedForExpressionCompilationOnly = true {
     enableExperimentsBasedOnEnvironment();
   }
-  void enableExperimentsBasedOnEnvironment() {
+
+  void enableExperimentsBasedOnEnvironment({Set<String> enabledExperiments}) {
     // Note that these are all experimental. Use at your own risk.
-    Set<String> enabledExperiments = getExperimentEnvironment();
-    if (enabledExperiments.contains(enableExperimentKeyInvalidation)) {
-      useExperimentalInvalidation = true;
-    }
-    if (useExperimentalInvalidation) {
-      if (enabledExperiments
-          .contains(enableExperimentKeyInvalidationSerialization)) {
-        useExperimentalInvalidationSerialization = true;
-      }
-    }
+    enabledExperiments ??= getExperimentEnvironment();
+    // Currently there's no live experiments.
+  }
+
+  @override
+  void setExperimentalFeaturesForTesting(Set<String> features) {
+    enableExperimentsBasedOnEnvironment(enabledExperiments: features);
   }
 
   @override
@@ -484,17 +477,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<Library> compiledLibraries,
       Map<Uri, Source> uriToSource) {
     if (experimentalInvalidation != null) {
-      if (!useExperimentalInvalidationSerialization) {
-        // Make sure "compiledLibraries" contains what it would have, had we not
-        // only re-done the bodies, but invalidated everything.
-        experimentalInvalidation.originalNotReusedLibraries
-            .removeAll(experimentalInvalidation.rebuildBodies);
-        for (LibraryBuilder builder
-            in experimentalInvalidation.originalNotReusedLibraries) {
-          compiledLibraries.add(builder.library);
-        }
-      }
-
       // uriToSources are created in the outline stage which we skipped for
       // some of the libraries.
       for (Uri uri in experimentalInvalidation.missingSources) {
@@ -875,7 +857,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     Set<LibraryBuilder> originalNotReusedLibraries;
     Set<Uri> missingSources;
 
-    if (!useExperimentalInvalidation) return null;
+    if (!context.options.isExperimentEnabledGlobally(
+        ExperimentalFlag.alternativeInvalidationStrategy)) return null;
     if (modulesToLoad != null) return null;
     if (reusedResult.directlyInvalidated.isEmpty) return null;
     if (reusedResult.invalidatedBecauseOfPackageUpdate) return null;
@@ -1455,9 +1438,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     dillLoadedData = new DillTarget(ticker, uriTranslator, c.options.target);
     int bytesLength = 0;
 
+    data.component = c.options.target.configureComponent(new Component());
     if (summaryBytes != null) {
       ticker.logMs("Read ${c.options.sdkSummary}");
-      data.component = c.options.target.configureComponent(new Component());
       new BinaryBuilderWithMetadata(summaryBytes,
               disableLazyReading: false, disableLazyClassReading: true)
           .readComponent(data.component);
@@ -1606,6 +1589,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       SourceLibraryBuilder debugLibrary = new SourceLibraryBuilder(
         libraryUri,
         debugExprUri,
+        /*packageUri*/ null,
         userCode.loader,
         null,
         scope: libraryBuilder.scope.createNestedScope("expression"),

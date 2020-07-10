@@ -275,6 +275,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// The library containing the compilation unit being visited.
   LibraryElement enclosingLibrary;
 
+  /// A flag indicating whether we are currently in a context in which type
+  /// parameters are visible.
+  bool inGenericContext = false;
+
   /// The type provider associated with the current compilation unit.
   TypeProvider typeProvider;
 
@@ -433,6 +437,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     data.recordPercentage(
         'Classes with type parameters', node.typeParameters != null);
     var context = 'name';
@@ -453,10 +459,13 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           allowedKeywords: memberKeywords);
     }
     super.visitClassDeclaration(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     _recordDataForNode('ClassTypeAlias (superclass)', node.superclass);
     var context = 'superclass';
     if (node.withClause != null) {
@@ -465,6 +474,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     }
     _recordTokenType('ClassDeclaration ($context)', node.implementsClause);
     super.visitClassTypeAlias(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
@@ -660,6 +670,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     data.recordPercentage(
         'Extensions with type parameters', node.typeParameters != null);
     _recordDataForNode('ExtensionDeclaration (type)', node.extendedType);
@@ -668,6 +680,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           allowedKeywords: memberKeywords);
     }
     super.visitExtensionDeclaration(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
@@ -773,7 +786,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     // There are no completions.
-    var contextType = featureComputer.computeContextType(node);
+    var contextType = featureComputer.computeContextType(node, node.offset);
     if (contextType != null) {
       var memberType = _returnType(node.staticElement);
       if (memberType != null) {
@@ -787,8 +800,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     // There are no completions.
     super.visitFunctionTypeAlias(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
@@ -799,15 +815,21 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     // There are no completions.
     super.visitGenericFunctionType(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     _recordDataForNode('GenericTypeAlias (functionType)', node.functionType,
         allowedKeywords: [Keyword.FUNCTION]);
     super.visitGenericTypeAlias(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
@@ -957,6 +979,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     // There are no completions.
     data.recordPercentage(
         'Methods with type parameters', node.typeParameters != null);
@@ -976,6 +1000,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       }
     }
     super.visitMethodDeclaration(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
@@ -993,7 +1018,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       }
     }
     if (node.target != null) {
-      var contextType = featureComputer.computeContextType(node);
+      var contextType = featureComputer.computeContextType(node, node.offset);
       if (contextType != null) {
         var memberType = _returnType(member);
         if (memberType != null) {
@@ -1007,6 +1032,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     data.recordPercentage(
         'Mixins with type parameters', node.typeParameters != null);
     var context = 'name';
@@ -1023,6 +1050,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           allowedKeywords: memberKeywords);
     }
     super.visitMixinDeclaration(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
@@ -1111,7 +1139,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       }
     }
     if (!(member is PropertyAccessorElement && member.isSetter)) {
-      var contextType = featureComputer.computeContextType(node);
+      var contextType = featureComputer.computeContextType(node, node.offset);
       if (contextType != null) {
         var memberType = _returnType(member);
         if (memberType != null) {
@@ -1467,72 +1495,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     return null;
   }
 
-  /// Return the distance between the [reference] and the referenced local
-  /// [variable], where the distance is defined to be the number of variable
-  /// declarations between the local variable and the reference.
-  int _localVariableDistance(AstNode reference, LocalVariableElement variable) {
-    var distance = 0;
-    var node = reference;
-    while (node != null) {
-      if (node is ForStatement || node is ForElement) {
-        var loopParts = node is ForStatement
-            ? node.forLoopParts
-            : (node as ForElement).forLoopParts;
-        if (loopParts is ForPartsWithDeclarations) {
-          for (var declaredVariable in loopParts.variables.variables.reversed) {
-            if (declaredVariable.declaredElement == variable) {
-              return distance;
-            }
-            distance++;
-          }
-        } else if (loopParts is ForEachPartsWithDeclaration) {
-          if (loopParts.loopVariable.declaredElement == variable) {
-            return distance;
-          }
-          distance++;
-        }
-      } else if (node is VariableDeclarationStatement) {
-        for (var declaredVariable in node.variables.variables.reversed) {
-          if (declaredVariable.declaredElement == variable) {
-            return distance;
-          }
-          distance++;
-        }
-      } else if (node is CatchClause) {
-        if (node.exceptionParameter?.staticElement == variable ||
-            node.stackTraceParameter?.staticElement == variable) {
-          return distance;
-        }
-      }
-      if (node is Statement) {
-        var parent = node.parent;
-        var statements = const <Statement>[];
-        if (parent is Block) {
-          statements = parent.statements;
-        } else if (parent is SwitchCase) {
-          statements = parent.statements;
-        } else if (parent is SwitchDefault) {
-          statements = parent.statements;
-        }
-        var index = statements.indexOf(node);
-        for (var i = 0; i < index; i++) {
-          var statement = statements[i];
-          if (statement is VariableDeclarationStatement) {
-            for (var declaredVariable
-                in statement.variables.variables.reversed) {
-              if (declaredVariable.declaredElement == variable) {
-                return distance;
-              }
-              distance++;
-            }
-          }
-        }
-      }
-      node = node.parent;
-    }
-    return -1;
-  }
-
   /// Return the number of functions between the [reference] and the [function]
   /// in which the referenced parameter is declared.
   int _parameterReferenceDepth(AstNode reference, Element function) {
@@ -1573,11 +1535,16 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void _recordDataForNode(String context, AstNode node,
       {List<Keyword> allowedKeywords = noKeywords}) {
     _recordElementKind(context, node);
+    if (inGenericContext) {
+      _recordElementKind(context + ' - generic', node);
+    } else {
+      _recordElementKind(context + ' - non-generic', node);
+    }
     _recordReferenceDepth(node);
     _recordTokenDistance(node);
     _recordTokenType(context, node, allowedKeywords: allowedKeywords);
     if (node != null) {
-      var contextType = featureComputer.computeContextType(node);
+      var contextType = featureComputer.computeContextType(node, node.offset);
       _recordContextType(contextType);
       if (contextType != null) {
         var elementType = _returnType(_leftMostElement(node));
@@ -1745,10 +1712,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       //  additionally measuring the number of function boundaries that are
       //  crossed and then reporting the distance with a label such as
       //  'local variable ($boundaryCount)'.
-      var distance = _localVariableDistance(node, element);
-      if (distance < 0) {
-        DateTime.now();
-      }
+      var distance = featureComputer.localVariableDistance(node, element);
       _recordDistance('distance to local variable', distance);
     } else if (element != null) {
       // TODO(brianwilkerson) We might want to cross reference the depth of
@@ -1879,9 +1843,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         } else {
           distance = featureComputer.inheritanceDistance(
               argumentType.element, parameterType.element);
-        }
-        if (distance < 0) {
-          DateTime.now();
         }
         data.recordDistance('Subtype of context type ($descriptor)', distance);
         data.recordDistance('Subtype of context type (all)', distance);

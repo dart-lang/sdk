@@ -31,7 +31,7 @@ class FeatureSetProvider {
         _packageDefaultFeatureSet = packageDefaultFeatureSet,
         _nonPackageDefaultFeatureSet = nonPackageDefaultFeatureSet;
 
-  /// Return the [FeatureSet] for the Dart file with the given [uri].
+  /// Return the [FeatureSet] for the package that contains the file.
   FeatureSet getFeatureSet(String path, Uri uri) {
     if (uri.isScheme('dart')) {
       var pathSegments = uri.pathSegments;
@@ -44,29 +44,28 @@ class FeatureSetProvider {
       }
     }
 
-    if (uri.isScheme('package')) {
-      var pathSegments = uri.pathSegments;
-      if (pathSegments.isNotEmpty) {
-        var packageName = pathSegments.first;
-        var experiments = _allowedExperiments.forPackage(packageName);
-        if (experiments != null) {
-          return FeatureSet.fromEnableFlags(experiments);
-        }
-      }
-    }
-
     var package = _packages.packageForPath(path);
     if (package != null) {
-      var languageVersion = package.languageVersion;
-      languageVersion ??= ExperimentStatus.currentVersion;
-      return _packageDefaultFeatureSet.restrictToVersion(languageVersion);
+      var experiments = _allowedExperiments.forPackage(package.name);
+      if (experiments != null) {
+        return FeatureSet.fromEnableFlags(experiments);
+      }
+
+      return _packageDefaultFeatureSet;
     }
 
     return _nonPackageDefaultFeatureSet;
   }
 
-  /// Return the language version configured for the file.
+  /// Return the language version for the package that contains the file.
+  ///
+  /// Each individual file might use `// @dart` to override this version, to
+  /// be either lower, or higher than the package language version.
   Version getLanguageVersion(String path, Uri uri) {
+    if (uri.isScheme('dart')) {
+      return ExperimentStatus.currentVersion;
+    }
+
     var package = _packages.packageForPath(path);
     if (package != null) {
       var languageVersion = package.languageVersion;

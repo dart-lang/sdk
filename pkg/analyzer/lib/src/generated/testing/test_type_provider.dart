@@ -11,10 +11,8 @@ import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk_elements.dart';
 
-/**
- * A type provider that can be used by tests without creating the element model
- * for the core library.
- */
+/// A type provider that can be used by tests without creating the element model
+/// for the core library.
 class TestTypeProvider extends TypeProviderImpl {
   factory TestTypeProvider() {
     var analysisContext = _MockAnalysisContext();
@@ -41,7 +39,7 @@ class _MockAnalysisContext implements AnalysisContext {
   final SourceFactory sourceFactory = _MockSourceFactory();
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _MockAnalysisSession implements AnalysisSessionImpl {
@@ -49,7 +47,7 @@ class _MockAnalysisSession implements AnalysisSessionImpl {
   final ClassHierarchy classHierarchy = ClassHierarchy();
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _MockSource implements Source {
@@ -65,7 +63,7 @@ class _MockSource implements Source {
   String get fullName => uri.path;
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _MockSourceFactory implements SourceFactory {
@@ -76,5 +74,5 @@ class _MockSourceFactory implements SourceFactory {
   }
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

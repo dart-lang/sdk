@@ -32,6 +32,9 @@ class ElementTypeProvider {
   void freshTypeParameterCreated(TypeParameterElement newTypeParameter,
       TypeParameterElement oldTypeParameter) {}
 
+  List<InterfaceType> getClassInterfaces(ClassElementImpl element) =>
+      element.interfacesInternal;
+
   /// Queries the parameters of an executable element's signature.
   ///
   /// Equivalent to `getExecutableType(...).parameters`.
@@ -51,6 +54,9 @@ class ElementTypeProvider {
   FunctionType getExecutableType(ElementImplWithFunctionType element) =>
       element.typeInternal;
 
+  DartType getExtendedType(ExtensionElementImpl element) =>
+      element.extendedTypeInternal;
+
   /// Queries the type of a field.
   DartType getFieldType(PropertyInducingElementImpl element) =>
       element.typeInternal;
@@ -62,4 +68,8 @@ class ElementTypeProvider {
   /// Queries the type of a variable element.
   DartType getVariableType(VariableElementImpl variable) =>
       variable.typeInternal;
+
+  /// Queries whether NNBD is enabled for a library.
+  bool isLibraryNonNullableByDefault(LibraryElementImpl element) =>
+      element.isNonNullableByDefaultInternal;
 }

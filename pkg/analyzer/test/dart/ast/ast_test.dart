@@ -736,7 +736,10 @@ E f() => g;
       var source =
           StringSource(contents, 'PreviousTokenTest_findPrevious.dart');
       var scanner = Scanner.fasta(source, listener)
-        ..configureFeatures(featureSet);
+        ..configureFeatures(
+          featureSetForOverriding: featureSet,
+          featureSet: featureSet,
+        );
       Token tokens = scanner.tokenize();
       _unit = Parser(
         source,
@@ -788,7 +791,10 @@ E f() => g;
     GatheringErrorListener listener = GatheringErrorListener(checkRanges: true);
     var source = StringSource('missing', 'PreviousTokenTest_missing.dart');
     var scanner = Scanner.fasta(source, listener)
-      ..configureFeatures(featureSet);
+      ..configureFeatures(
+        featureSetForOverriding: featureSet,
+        featureSet: featureSet,
+      );
     Token missing = scanner.tokenize();
 
     expect(statement.findPrevious(missing), null);
@@ -1047,12 +1053,11 @@ class SimpleIdentifierTest extends ParserTestCase {
     return identifier;
   }
 
-  /**
-   * Return the top-most node in the AST structure containing the given identifier.
-   *
-   * @param identifier the identifier in the AST structure being traversed
-   * @return the root of the AST structure containing the identifier
-   */
+  /// Return the top-most node in the AST structure containing the given
+  /// identifier.
+  ///
+  /// @param identifier the identifier in the AST structure being traversed
+  /// @return the root of the AST structure containing the identifier
   AstNode _topMostNode(SimpleIdentifier identifier) {
     AstNode child = identifier;
     AstNode parent = identifier.parent;

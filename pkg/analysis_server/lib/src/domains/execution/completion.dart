@@ -10,7 +10,6 @@ import 'package:analysis_server/src/protocol_server.dart'
         RuntimeCompletionExpression,
         RuntimeCompletionVariable,
         SourceEdit;
-import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
@@ -82,7 +81,7 @@ class RuntimeCompletionComputer {
       targetResult = await analysisDriver.getResult(contextPath);
     });
 
-    CompletionContributor contributor = DartCompletionManager(
+    var contributor = DartCompletionManager(
         // dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(targetResult)
         );
     var request = CompletionRequestImpl(
@@ -91,7 +90,16 @@ class RuntimeCompletionComputer {
       false,
       CompletionPerformance(),
     );
-    var suggestions = await contributor.computeSuggestions(request);
+
+    var suggestions = await request.performance.runRequestOperation(
+      (performance) async {
+        return await contributor.computeSuggestions(
+          performance,
+          request,
+          enableUriContributor: true,
+        );
+      },
+    );
 
     // Remove completions with synthetic import prefixes.
     suggestions.removeWhere((s) => s.completion.startsWith('__prefix'));
