@@ -53,6 +53,11 @@ ${parser.usage}''');
   exit(1);
 }
 
+Future<String> readGcloudAuthToken(String path) async {
+  String token = await File(path).readAsString();
+  return token.split("\n").first;
+}
+
 main(List<String> args) async {
   final parser = new ArgParser();
   parser.addFlag('help', help: 'Show the program usage.', negatable: false);
@@ -72,7 +77,11 @@ main(List<String> args) async {
   builder = options['builder'];
   buildNumber = int.parse(options['build_number']);
   builderBase = builder.replaceFirst(RegExp('-try\$'), '');
-  token = await File(options['auth_token']).readAsString();
+  if (options['auth_token'] == null) {
+    print('Option "--auth_token (-a)" is required\n');
+    usage(parser);
+  }
+  token = await readGcloudAuthToken(options['auth_token']);
   client = http.Client();
   for (int count = 0; count < numAttempts; ++count) {
     if (count > 0) {
