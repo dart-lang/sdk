@@ -37,7 +37,6 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   final int length;
 
   CorrectionUtils utils;
-  Flutter flutter;
 
   ClassElement classBuildContext;
   ClassElement classKey;
@@ -78,7 +77,6 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       this.searchEngine, this.resolveResult, this.offset, this.length)
       : sessionHelper = AnalysisSessionHelper(resolveResult.session) {
     utils = CorrectionUtils(resolveResult);
-    flutter = Flutter.of(resolveResult);
   }
 
   @override
@@ -89,6 +87,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   FeatureSet get _featureSet {
     return resolveResult.unit.featureSet;
   }
+
+  Flutter get _flutter => Flutter.instance;
 
   bool get _isNonNullable => _featureSet.isEnabled(Feature.non_nullable);
 
@@ -184,8 +184,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     _enclosingClassElement = _enclosingClassNode?.declaredElement;
 
     // new MyWidget(...)
-    var newExpression = flutter.identifyNewExpression(node);
-    if (flutter.isWidgetCreation(newExpression)) {
+    var newExpression = _flutter.identifyNewExpression(node);
+    if (_flutter.isWidgetCreation(newExpression)) {
       _expression = newExpression;
       return RefactoringStatus();
     }
@@ -203,7 +203,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       if (statements.isNotEmpty) {
         var lastStatement = statements.last;
         if (lastStatement is ReturnStatement &&
-            flutter.isWidgetExpression(lastStatement.expression)) {
+            _flutter.isWidgetExpression(lastStatement.expression)) {
           _statements = statements;
           _statementsRange = range.startEnd(statements.first, statements.last);
           return RefactoringStatus();
@@ -221,7 +221,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       }
       if (node is MethodDeclaration) {
         var returnType = node.returnType?.type;
-        if (flutter.isWidgetType(returnType) && node.body != null) {
+        if (_flutter.isWidgetType(returnType) && node.body != null) {
           _method = node;
           return RefactoringStatus();
         }
@@ -238,10 +238,10 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     var result = RefactoringStatus();
 
     Future<ClassElement> getClass(String name) async {
-      var element = await sessionHelper.getClass(flutter.widgetsUri, name);
+      var element = await sessionHelper.getClass(_flutter.widgetsUri, name);
       if (element == null) {
         result.addFatalError(
-          "Unable to find '$name' in ${flutter.widgetsUri}",
+          "Unable to find '$name' in ${_flutter.widgetsUri}",
         );
       }
       return element;

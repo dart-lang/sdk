@@ -252,7 +252,6 @@ class CorrectionProducerContext {
   final String file;
 
   final TypeProvider typeProvider;
-  final Flutter flutter;
 
   final AnalysisSession session;
   final AnalysisSessionHelper sessionHelper;
@@ -272,7 +271,6 @@ class CorrectionProducerContext {
     this.selectionOffset = -1,
     this.selectionLength = 0,
   })  : file = resolvedResult.path,
-        flutter = Flutter.of(resolvedResult),
         session = resolvedResult.session,
         sessionHelper = AnalysisSessionHelper(resolvedResult.session),
         typeProvider = resolvedResult.typeProvider,
@@ -344,7 +342,7 @@ abstract class _AbstractCorrectionProducer {
 
   String get file => _context.file;
 
-  Flutter get flutter => _context.flutter;
+  Flutter get flutter => Flutter.instance;
 
   /// Return the library element for the library in which a correction is being
   /// produced.

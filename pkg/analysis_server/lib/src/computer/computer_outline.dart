@@ -16,10 +16,8 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 class DartUnitOutlineComputer {
   final ResolvedUnitResult resolvedUnit;
   final bool withBasicFlutter;
-  final Flutter flutter;
 
-  DartUnitOutlineComputer(this.resolvedUnit, {this.withBasicFlutter = false})
-      : flutter = Flutter.of(resolvedUnit);
+  DartUnitOutlineComputer(this.resolvedUnit, {this.withBasicFlutter = false});
 
   /// Returns the computed outline, not `null`.
   Outline compute() {
@@ -409,6 +407,8 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
 
   _FunctionBodyOutlinesVisitor(this.outlineComputer, this.contents);
 
+  Flutter get _flutter => Flutter.instance;
+
   /// Return `true` if the given [element] is the method 'group' defined in the
   /// test package.
   bool isGroup(engine.ExecutableElement element) {
@@ -438,13 +438,12 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (outlineComputer.withBasicFlutter &&
-        outlineComputer.flutter.isWidgetCreation(node)) {
+    if (outlineComputer.withBasicFlutter && _flutter.isWidgetCreation(node)) {
       var children = <Outline>[];
       node.argumentList
           .accept(_FunctionBodyOutlinesVisitor(outlineComputer, children));
 
-      var text = outlineComputer.flutter.getWidgetPresentationText(node);
+      var text = _flutter.getWidgetPresentationText(node);
       var element = Element(ElementKind.CONSTRUCTOR_INVOCATION, text, 0,
           location: outlineComputer._getLocationOffsetLength(node.offset, 0));
 
