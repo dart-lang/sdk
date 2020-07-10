@@ -27,6 +27,7 @@ import 'package:analysis_server/src/services/completion/dart/local_library_contr
 import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/override_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
@@ -242,9 +243,25 @@ class DartCompletionManager {
   }
 
   void _addIncludedSuggestionRelevanceTags(DartCompletionRequestImpl request) {
-    if (request.inConstantContext && request.useNewRelevance) {
-      includedSuggestionRelevanceTags.add(IncludedSuggestionRelevanceTag(
-          'isConst', RelevanceBoost.constInConstantContext));
+    if (request.useNewRelevance) {
+      var location = request.opType.completionLocation;
+      if (location != null) {
+        var locationTable = elementKindRelevance[location];
+        if (locationTable != null) {
+          var inConstantContext = request.inConstantContext;
+          for (var entry in locationTable.entries) {
+            var kind = entry.key.toString();
+            var elementBoost = (entry.value.upper * 100).floor();
+            includedSuggestionRelevanceTags
+                .add(IncludedSuggestionRelevanceTag(kind, elementBoost));
+            if (inConstantContext) {
+              includedSuggestionRelevanceTags.add(
+                  IncludedSuggestionRelevanceTag(
+                      '$kind+const', elementBoost + 100));
+            }
+          }
+        }
+      }
     }
 
     var type = request.contextType;
@@ -262,6 +279,12 @@ class DartCompletionManager {
           ),
         );
       } else {
+        // TODO(brianwilkerson) This was previously used to boost exact type
+        //  matches. For example, if the context type was `Foo`, then the class
+        //  `Foo` and it's constructors would be given this boost. Now this
+        //  boost will almost always be ignored because the element boost will
+        //  be bigger. Find a way to use this boost without negating the element
+        //  boost, which is how we get constructors to come before classes.
         var relevance = request.useNewRelevance
             ? RelevanceBoost.availableDeclaration
             : DART_RELEVANCE_BOOST_AVAILABLE_DECLARATION;
