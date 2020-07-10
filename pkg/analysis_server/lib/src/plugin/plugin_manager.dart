@@ -122,10 +122,7 @@ abstract class PluginInfo {
   /// currently being executed.
   PluginSession currentSession;
 
-  /// The exception that occurred that prevented the plugin from being started,
-  /// or `null` if there was no exception (possibly because no attempt has yet
-  /// been made to start the plugin).
-  CaughtException exception;
+  CaughtException _exception;
 
   /// Initialize the newly created information about a plugin.
   PluginInfo(this.notificationManager, this.instrumentationService);
@@ -139,6 +136,11 @@ abstract class PluginInfo {
   /// Return the data known about this plugin.
   PluginData get data =>
       PluginData(pluginId, currentSession?.name, currentSession?.version);
+
+  /// The exception that occurred that prevented the plugin from being started,
+  /// or `null` if there was no exception (possibly because no attempt has yet
+  /// been made to start the plugin).
+  CaughtException get exception => _exception;
 
   /// Return the id of this plugin, used to identify the plugin to users.
   String get pluginId;
@@ -184,6 +186,12 @@ abstract class PluginInfo {
     }
   }
 
+  void reportException(CaughtException exception) {
+    _exception = exception;
+    instrumentationService.logPluginException(
+        data, exception.exception, exception.stackTrace);
+  }
+
   /// If the plugin is currently running, send a request based on the given
   /// [params] to the plugin. If the plugin is not running, the request will
   /// silently be dropped.
@@ -209,7 +217,11 @@ abstract class PluginInfo {
   /// Request that the plugin shutdown.
   Future<void> stop() {
     if (currentSession == null) {
-      throw StateError('Cannot stop a plugin that is not running.');
+      if (_exception != null) {
+        // Plugin crashed, nothing to do.
+        return Future<void>.value(null);
+      }
+      throw StateError('Cannot stop a plugin that is not running. ');
     }
     var doneFuture = currentSession.stop();
     currentSession = null;
@@ -306,7 +318,7 @@ class PluginManager {
       } catch (exception, stackTrace) {
         plugin = DiscoveredPluginInfo(
             path, null, null, notificationManager, instrumentationService);
-        plugin.exception = CaughtException(exception, stackTrace);
+        plugin.reportException(CaughtException(exception, stackTrace));
         _pluginMap[path] = plugin;
         return;
       }
@@ -323,7 +335,7 @@ class PluginManager {
         } catch (exception, stackTrace) {
           // Record the exception (for debugging purposes) and record the fact
           // that we should not try to communicate with the plugin.
-          plugin.exception = CaughtException(exception, stackTrace);
+          plugin.reportException(CaughtException(exception, stackTrace));
           isNew = false;
         }
       }
@@ -459,7 +471,7 @@ class PluginManager {
       var pluginPath = path.join(hostPackageName, 'tools', 'analyzer_plugin');
       var plugin = DiscoveredPluginInfo(
           pluginPath, null, null, notificationManager, instrumentationService);
-      plugin.exception = CaughtException(exception, stackTrace);
+      plugin.reportException(CaughtException(exception, stackTrace));
       _pluginMap[pluginPath] = plugin;
     }
   }
@@ -843,9 +855,8 @@ class PluginSession {
   void handleOnError(dynamic error) {
     var errorPair = (error as List).cast<String>();
     var stackTrace = StackTrace.fromString(errorPair[1]);
-    info.exception = CaughtException(PluginException(errorPair[0]), stackTrace);
-    info.instrumentationService
-        .logPluginException(info.data, errorPair[0], stackTrace);
+    info.reportException(
+        CaughtException(PluginException(errorPair[0]), stackTrace));
   }
 
   /// Handle a [response] from the plugin by completing the future that was
@@ -903,13 +914,13 @@ class PluginSession {
       throw StateError('Missing byte store path');
     }
     if (!isCompatible) {
-      info.exception =
-          CaughtException(PluginException('Plugin is not compatible.'), null);
+      info.reportException(
+          CaughtException(PluginException('Plugin is not compatible.'), null));
       return false;
     }
     if (!info.canBeStarted) {
-      info.exception =
-          CaughtException(PluginException('Plugin cannot be started.'), null);
+      info.reportException(
+          CaughtException(PluginException('Plugin cannot be started.'), null));
       return false;
     }
     channel = info._createChannel();
@@ -920,8 +931,9 @@ class PluginSession {
     if (channel == null) {
       // If there is an error when starting the isolate, the channel will invoke
       // handleOnDone, which will cause `channel` to be set to `null`.
-      info.exception ??= CaughtException(
-          PluginException('Unrecorded error while starting the plugin.'), null);
+      info.reportException(CaughtException(
+          PluginException('Unrecorded error while starting the plugin.'),
+          null));
       return false;
     }
     var response = await sendRequest(PluginVersionCheckParams(
@@ -934,8 +946,8 @@ class PluginSession {
     version = result.version;
     if (!isCompatible) {
       sendRequest(PluginShutdownParams());
-      info.exception =
-          CaughtException(PluginException('Plugin is not compatible.'), null);
+      info.reportException(
+          CaughtException(PluginException('Plugin is not compatible.'), null));
       return false;
     }
     return true;
