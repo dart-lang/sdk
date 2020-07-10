@@ -246,10 +246,11 @@ $ dart2js_info library_size out.js.info.data
 
 
 Libraries can be grouped using regular expressions. You can
-specify what regular expressions to use by providing a `grouping.yaml` file:
+specify what regular expressions to use by providing a `grouping.yaml` file
+with the `--grouping` flag:
 
 ```console
-$ dart2js_info library_size out.js.info.data grouping.yaml
+$ dart2js_info library_size out.js.info.data --grouping grouping.yaml
 ```
 
 The format of the `grouping.yaml` file is as follows:
