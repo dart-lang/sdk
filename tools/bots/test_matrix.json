@@ -3323,7 +3323,8 @@
             "--mode=release",
             "--arch=ia32",
             "create_sdk",
-            "runtime"
+            "runtime",
+            "kernel-service.dart.snapshot"
           ]
         },
         {
@@ -3356,7 +3357,8 @@
             "create_sdk",
             "runtime",
             "gen_snapshot",
-            "dart_precompiled_runtime"
+            "dart_precompiled_runtime",
+            "kernel-service.dart.snapshot"
           ]
         },
         {

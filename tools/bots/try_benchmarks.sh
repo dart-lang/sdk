@@ -77,6 +77,7 @@ for command; do
     # NOTE: These are duplicated in tools/bots/test_matrix.json, keep in sync.
     ./tools/build.py --mode=release --arch=ia32 create_sdk
     ./tools/build.py --mode=release --arch=ia32 runtime
+    ./tools/build.py --mode=release --arch=ia32 kernel-service.dart.snapshot
   elif [ "$command" = linux-ia32-archive ]; then
     strip -w \
       -K 'kDartVmSnapshotData' \
@@ -151,6 +152,7 @@ for command; do
       out/ReleaseIA32/dart \
       out/ReleaseIA32/gen_snapshot \
       out/ReleaseIA32/gen_kernel_bytecode.dill \
+      out/ReleaseIA32/kernel-service.dart.snapshot \
       out/ReleaseIA32/run_vm_tests \
       sdk \
       samples-dev/swarm \
@@ -180,12 +182,14 @@ EOF
     out/ReleaseIA32/dart pkg/front_end/tool/fasta_perf.dart kernel_gen_e2e hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/fasta_perf.dart scan hello.dart
     out/ReleaseIA32/dart --print_metrics pkg/analyzer_cli/bin/analyzer.dart --dart-sdk=sdk hello.dart
-    out/ReleaseIA32/run_vm_tests InitialRSS
-    out/ReleaseIA32/run_vm_tests --sound-null-safety --enable-experiment=non-nullable InitialRSS
-    out/ReleaseIA32/run_vm_tests GenKernelKernelLoadKernel
-    out/ReleaseIA32/run_vm_tests --sound-null-safety --enable-experiment=non-nullable GenKernelKernelLoadKernel
-    out/ReleaseIA32/run_vm_tests KernelServiceCompileAll
-    out/ReleaseIA32/run_vm_tests --sound-null-safety --enable-experiment=non-nullable KernelServiceCompileAll
+    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot InitialRSS
+    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable InitialRSS
+    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot GenKernelKernelLoadKernel
+    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable GenKernelKernelLoadKernel
+    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot KernelServiceCompileAll
+    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable KernelServiceCompileAll
+    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot UseDartApi
+    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable UseDartApi
     out/ReleaseIA32/dart --profile-period=10000 --packages=.packages benchmarks/Example/dart2/Example.dart
     out/ReleaseIA32/dart --sound-null-safety --enable-experiment=non-nullable --profile-period=10000 --packages=.packages benchmarks/Example/dart/Example.dart
     out/ReleaseIA32/dart benchmarks/FfiBoringssl/dart2/FfiBoringssl.dart
@@ -204,6 +208,7 @@ EOF
     ./tools/build.py --mode=release --arch=x64 runtime
     ./tools/build.py --mode=release --arch=x64 gen_snapshot
     ./tools/build.py --mode=release --arch=x64 dart_precompiled_runtime
+    ./tools/build.py --mode=release --arch=x64 kernel-service.dart.snapshot
   elif [ "$command" = linux-x64-archive ]; then
     strip -w \
       -K 'kDartVmSnapshotData' \
@@ -296,6 +301,7 @@ EOF
       out/ReleaseX64/dart \
       out/ReleaseX64/gen_snapshot \
       out/ReleaseX64/gen_kernel_bytecode.dill \
+      out/ReleaseX64/kernel-service.dart.snapshot \
       out/ReleaseX64/run_vm_tests \
       third_party/d8/linux/x64 \
       third_party/firefox_jsshell/linux/ \
@@ -354,12 +360,14 @@ EOF
     out/ReleaseX64/dart --background-compilation=false --snapshot-kind=app-jit --snapshot=pkg/front_end/tool/incremental_perf.dart.appjit pkg/front_end/tool/incremental_perf.dart --target=vm --sdk-summary=out/ReleaseX64/vm_platform_strong.dill --sdk-library-specification=sdk/lib/libraries.json pkg/compiler/lib/src/dart2js.dart appjit_train_edits.json
     out/ReleaseX64/dart --background-compilation=false pkg/front_end/tool/incremental_perf.dart.appjit --target=vm --sdk-summary=out/ReleaseX64/vm_platform_strong.dill --sdk-library-specification=sdk/lib/libraries.json pkg/front_end/benchmarks/ikg/hello.dart pkg/front_end/benchmarks/ikg/hello.edits.json
     out/ReleaseX64/dart --packages=.packages pkg/kernel/test/binary_bench.dart --golem AstFromBinaryLazy out/ReleaseX64/vm_platform_strong.dill
-    out/ReleaseX64/run_vm_tests InitialRSS
-    out/ReleaseX64/run_vm_tests --sound-null-safety --enable-experiment=non-nullable InitialRSS
-    out/ReleaseX64/run_vm_tests GenKernelKernelLoadKernel
-    out/ReleaseX64/run_vm_tests --sound-null-safety --enable-experiment=non-nullable GenKernelKernelLoadKernel
-    out/ReleaseX64/run_vm_tests KernelServiceCompileAll
-    out/ReleaseX64/run_vm_tests --sound-null-safety --enable-experiment=non-nullable KernelServiceCompileAll
+    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot InitialRSS
+    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable InitialRSS
+    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot GenKernelKernelLoadKernel
+    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable GenKernelKernelLoadKernel
+    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot KernelServiceCompileAll
+    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable KernelServiceCompileAll
+    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot UseDartApi
+    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable UseDartApi
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages benchmarks/Example/dart2/Example.dart
     out/ReleaseX64/dart --sound-null-safety --enable-experiment=non-nullable --profile-period=10000 --packages=.packages benchmarks/Example/dart/Example.dart
     cd ..
