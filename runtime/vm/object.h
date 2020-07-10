@@ -3498,6 +3498,7 @@ class Function : public Object {
   FunctionPtr GetMethodExtractor(const String& getter_name) const;
 
   static bool IsDynamicInvocationForwarderName(const String& name);
+  static bool IsDynamicInvocationForwarderName(StringPtr name);
 
   static StringPtr DemangleDynamicInvocationForwarderName(const String& name);
 
@@ -8607,7 +8608,10 @@ class String : public Instance {
     DISALLOW_IMPLICIT_CONSTRUCTORS(CodePointIterator);
   };
 
-  intptr_t Length() const { return Smi::Value(raw_ptr()->length_); }
+  intptr_t Length() const { return LengthOf(raw()); }
+  static intptr_t LengthOf(StringPtr obj) {
+    return Smi::Value(obj->ptr()->length_);
+  }
   static intptr_t length_offset() { return OFFSET_OF(StringLayout, length_); }
 
   intptr_t Hash() const {
@@ -8644,7 +8648,8 @@ class String : public Instance {
 
   virtual ObjectPtr HashCode() const { return Integer::New(Hash()); }
 
-  uint16_t CharAt(intptr_t index) const;
+  uint16_t CharAt(intptr_t index) const { return CharAt(raw(), index); }
+  static uint16_t CharAt(StringPtr str, intptr_t index);
 
   intptr_t CharSize() const;
 
@@ -8682,7 +8687,11 @@ class String : public Instance {
 
   intptr_t CompareTo(const String& other) const;
 
-  bool StartsWith(const String& other) const;
+  bool StartsWith(const String& other) const {
+    NoSafepointScope no_safepoint;
+    return StartsWith(raw(), other.raw());
+  }
+  static bool StartsWith(StringPtr str, StringPtr prefix);
   bool EndsWith(const String& other) const;
 
   // Strings are canonicalized using the symbol table.
@@ -8895,9 +8904,15 @@ class String : public Instance {
 class OneByteString : public AllStatic {
  public:
   static uint16_t CharAt(const String& str, intptr_t index) {
-    ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsOneByteString());
-    return raw_ptr(str)->data()[index];
+    NoSafepointScope no_safepoint;
+    return OneByteString::CharAt(static_cast<OneByteStringPtr>(str.raw()),
+                                 index);
+  }
+
+  static uint16_t CharAt(OneByteStringPtr str, intptr_t index) {
+    ASSERT(index >= 0 && index < String::LengthOf(str));
+    return str->ptr()->data()[index];
   }
 
   static void SetCharAt(const String& str, intptr_t index, uint8_t code_unit) {
@@ -9037,9 +9052,15 @@ class OneByteString : public AllStatic {
 class TwoByteString : public AllStatic {
  public:
   static uint16_t CharAt(const String& str, intptr_t index) {
-    ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsTwoByteString());
-    return raw_ptr(str)->data()[index];
+    NoSafepointScope no_safepoint;
+    return TwoByteString::CharAt(static_cast<TwoByteStringPtr>(str.raw()),
+                                 index);
+  }
+
+  static uint16_t CharAt(TwoByteStringPtr str, intptr_t index) {
+    ASSERT(index >= 0 && index < String::LengthOf(str));
+    return str->ptr()->data()[index];
   }
 
   static void SetCharAt(const String& str, intptr_t index, uint16_t ch) {
@@ -9159,8 +9180,15 @@ class TwoByteString : public AllStatic {
 class ExternalOneByteString : public AllStatic {
  public:
   static uint16_t CharAt(const String& str, intptr_t index) {
+    ASSERT(str.IsExternalOneByteString());
     NoSafepointScope no_safepoint;
-    return *CharAddr(str, index);
+    return ExternalOneByteString::CharAt(
+        static_cast<ExternalOneByteStringPtr>(str.raw()), index);
+  }
+
+  static uint16_t CharAt(ExternalOneByteStringPtr str, intptr_t index) {
+    ASSERT(index >= 0 && index < String::LengthOf(str));
+    return str->ptr()->external_data_[index];
   }
 
   static void* GetPeer(const String& str) { return raw_ptr(str)->peer_; }
@@ -9250,8 +9278,15 @@ class ExternalOneByteString : public AllStatic {
 class ExternalTwoByteString : public AllStatic {
  public:
   static uint16_t CharAt(const String& str, intptr_t index) {
+    ASSERT(str.IsExternalTwoByteString());
     NoSafepointScope no_safepoint;
-    return *CharAddr(str, index);
+    return ExternalTwoByteString::CharAt(
+        static_cast<ExternalTwoByteStringPtr>(str.raw()), index);
+  }
+
+  static uint16_t CharAt(ExternalTwoByteStringPtr str, intptr_t index) {
+    ASSERT(index >= 0 && index < String::LengthOf(str));
+    return str->ptr()->external_data_[index];
   }
 
   static void* GetPeer(const String& str) { return raw_ptr(str)->peer_; }
@@ -11200,6 +11235,23 @@ inline void TypeArguments::SetHash(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
   StoreSmi(&raw_ptr()->hash_, Smi::New(value));
+}
+
+inline uint16_t String::CharAt(StringPtr str, intptr_t index) {
+  switch (str->GetClassId()) {
+    case kOneByteStringCid:
+      return OneByteString::CharAt(static_cast<OneByteStringPtr>(str), index);
+    case kTwoByteStringCid:
+      return TwoByteString::CharAt(static_cast<TwoByteStringPtr>(str), index);
+    case kExternalOneByteStringCid:
+      return ExternalOneByteString::CharAt(
+          static_cast<ExternalOneByteStringPtr>(str), index);
+    case kExternalTwoByteStringCid:
+      return ExternalTwoByteString::CharAt(
+          static_cast<ExternalTwoByteStringPtr>(str), index);
+  }
+  UNREACHABLE();
+  return 0;
 }
 
 // A view on an [Array] as a list of tuples, optionally starting at an offset.

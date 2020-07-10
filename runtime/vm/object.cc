@@ -3660,7 +3660,11 @@ bool Library::FindPragma(Thread* T,
 }
 
 bool Function::IsDynamicInvocationForwarderName(const String& name) {
-  return name.StartsWith(Symbols::DynamicPrefix());
+  return IsDynamicInvocationForwarderName(name.raw());
+}
+
+bool Function::IsDynamicInvocationForwarderName(StringPtr name) {
+  return String::StartsWith(name, Symbols::DynamicPrefix().raw());
 }
 
 StringPtr Function::DemangleDynamicInvocationForwarderName(const String& name) {
@@ -21288,22 +21292,6 @@ intptr_t String::Hash(const int32_t* characters, intptr_t len) {
   return HashImpl(characters, len);
 }
 
-uint16_t String::CharAt(intptr_t index) const {
-  intptr_t class_id = raw()->GetClassId();
-  ASSERT(IsStringClassId(class_id));
-  if (class_id == kOneByteStringCid) {
-    return OneByteString::CharAt(*this, index);
-  }
-  if (class_id == kTwoByteStringCid) {
-    return TwoByteString::CharAt(*this, index);
-  }
-  if (class_id == kExternalOneByteStringCid) {
-    return ExternalOneByteString::CharAt(*this, index);
-  }
-  ASSERT(class_id == kExternalTwoByteStringCid);
-  return ExternalTwoByteString::CharAt(*this, index);
-}
-
 intptr_t String::CharSize() const {
   intptr_t class_id = raw()->GetClassId();
   if (class_id == kOneByteStringCid || class_id == kExternalOneByteStringCid) {
@@ -21449,13 +21437,15 @@ intptr_t String::CompareTo(const String& other) const {
   return 0;
 }
 
-bool String::StartsWith(const String& other) const {
-  if (other.IsNull() || (other.Length() > this->Length())) {
-    return false;
-  }
-  intptr_t slen = other.Length();
-  for (int i = 0; i < slen; i++) {
-    if (this->CharAt(i) != other.CharAt(i)) {
+bool String::StartsWith(StringPtr str, StringPtr prefix) {
+  if (prefix == String::null()) return false;
+
+  const intptr_t length = String::LengthOf(str);
+  const intptr_t prefix_length = String::LengthOf(prefix);
+  if (prefix_length > length) return false;
+
+  for (intptr_t i = 0; i < prefix_length; i++) {
+    if (String::CharAt(str, i) != String::CharAt(prefix, i)) {
       return false;
     }
   }
