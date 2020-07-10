@@ -333,7 +333,6 @@ class VerificationState {
       node is Component ||
       node is Constructor ||
       node is Extension ||
-      node is Field ||
       node is FieldInitializer ||
       node is InvalidInitializer ||
       node is Library ||
@@ -474,8 +473,8 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
       makeRoundTrip<Arguments>(node, argumentsSerializer);
     } else if (node is FunctionNode) {
       makeRoundTrip<FunctionNode>(node, functionNodeSerializer);
-    } else if (node is Procedure) {
-      makeRoundTrip<Procedure>(node, procedureSerializer);
+    } else if (node is Member) {
+      makeRoundTrip<Member>(node, memberSerializer);
     } else if (node is TypeParameter) {
       makeRoundTrip<TypeParameter>(node, typeParameterSerializer);
     } else if (node is NamedType) {

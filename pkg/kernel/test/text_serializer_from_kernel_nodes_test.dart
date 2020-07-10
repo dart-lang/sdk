@@ -66,7 +66,7 @@ void test() {
           return new ExpressionStatement(new Let(x, new VariableGet(x)));
         }(),
         expectation: ''
-            '(expr (let "x^0" (var (dynamic) (int 42) ())'
+            '(expr (let "x^0" () (dynamic) (int 42) ()'
             ' (get-var "x^0" _)))',
         serializer: statementSerializer),
     new TestCase<Statement>(
@@ -80,8 +80,8 @@ void test() {
               new Let(innerLetVar, new VariableGet(outterLetVar))));
         }(),
         expectation: ''
-            '(expr (let "x^0" (var (dynamic) (int 42) ())'
-            ' (let "x^1" (var (bottom) (null) ())'
+            '(expr (let "x^0" () (dynamic) (int 42) ()'
+            ' (let "x^1" () (bottom) (null) ()'
             ' (get-var "x^0" _))))',
         serializer: statementSerializer),
     new TestCase<Statement>(
@@ -95,8 +95,8 @@ void test() {
               new Let(innerLetVar, new VariableGet(innerLetVar))));
         }(),
         expectation: ''
-            '(expr (let "x^0" (var (dynamic) (int 42) ())'
-            ' (let "x^1" (var (bottom) (null) ())'
+            '(expr (let "x^0" () (dynamic) (int 42) ()'
+            ' (let "x^1" () (bottom) (null) ()'
             ' (get-var "x^1" _))))',
         serializer: statementSerializer),
     () {
@@ -390,8 +390,8 @@ void test() {
               asyncMarker: AsyncMarker.Sync))),
           expectation: ''
               '(expr (fun (sync ("T^0") ((dynamic)) ((dynamic)) ("t1^1" '
-              '(var (par "T^0" _) _ ())) ("t2^2" (var (par "T^0" _) '
-              '_ ())) () (par "T^0" _) (ret (get-var "t1^1" _)))))',
+              '() (par "T^0" _) _ ()) ("t2^2" () (par "T^0" _) '
+              '_ ()) () (par "T^0" _) (ret (get-var "t1^1" _)))))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
           makeDeserializationState: () => new DeserializationState(
@@ -410,18 +410,18 @@ void test() {
           procedures: [foo]);
       Component component = Component(libraries: [library]);
       component.computeCanonicalNames();
-      return new TestCase<Procedure>(
+      return new TestCase<Member>(
           name: 'foo(x) => x;',
           node: foo,
           expectation: ''
-              '(static-method (public "foo")'
-              ' (sync () () () ("x^0" (var (dynamic) _ ())) () ()'
+              '(method (public "foo") ((static))'
+              ' (sync () () () ("x^0" () (dynamic) _ ()) () ()'
               ' (dynamic) (ret (get-var "x^0" _))))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
           makeDeserializationState: () => new DeserializationState(
               new DeserializationEnvironment(null), null),
-          serializer: procedureSerializer);
+          serializer: memberSerializer);
     }(),
     () {
       VariableDeclaration x1 = VariableDeclaration('x', type: DynamicType());
@@ -450,12 +450,12 @@ void test() {
           expectation: ''
               '(legacy "package:foo/bar.dart"'
               ''
-              ' ((static-method (public "foo")'
-              ' (sync () () () ("x^0" (var (dynamic) _ ())) () () (dynamic)'
+              ' ((method (public "foo") ((static))'
+              ' (sync () () () ("x^0" () (dynamic) _ ()) () () (dynamic)'
               ' (ret (get-var "x^0" _))))'
               ''
-              ' (static-method (public "bar")'
-              ' (sync () () () ("x^0" (var (dynamic) _ ())) () () (dynamic)'
+              ' (method (public "bar") ((static))'
+              ' (sync () () () ("x^0" () (dynamic) _ ()) () () (dynamic)'
               ' (ret (invoke-static "package:foo/bar.dart::@methods::foo"'
               ' () ((get-var "x^0" _)) ()))))))',
           makeSerializationState: () =>
@@ -481,7 +481,7 @@ void test() {
           node: library,
           expectation: ''
               '(legacy "package:foo/bar.dart"'
-              ' ((static-method (public "foo")'
+              ' ((method (public "foo") ((static))'
               ' (sync () () () () () ()'
               ' (interface "package:foo/bar.dart::A" ())'
               ' (ret (null))))))',
@@ -495,7 +495,7 @@ void test() {
       return new TestCase<Statement>(
           name: 'dynamic x;',
           node: VariableDeclaration('x', type: const DynamicType()),
-          expectation: '(local "x^0" (var (dynamic) _ ()))',
+          expectation: '(local "x^0" () (dynamic) _ ())',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
           makeDeserializationState: () => new DeserializationState(

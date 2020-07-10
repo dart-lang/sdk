@@ -799,76 +799,53 @@ Arguments wrapArguments(
   return new Arguments(tuple.second, types: tuple.first, named: tuple.third);
 }
 
-class VariableDeclarationTagger implements Tagger<VariableDeclaration> {
-  const VariableDeclarationTagger();
+const Map<int, String> variableDeclarationFlagToName = const {
+  VariableDeclaration.FlagFinal: "final",
+  VariableDeclaration.FlagConst: "const",
+  VariableDeclaration.FlagFieldFormal: "field-formal",
+  VariableDeclaration.FlagCovariant: "covariant",
+  VariableDeclaration.FlagInScope: "in-scope",
+  VariableDeclaration.FlagGenericCovariantImpl: "generic-covariant-impl",
+  VariableDeclaration.FlagLate: "late",
+  VariableDeclaration.FlagRequired: "required",
+};
 
-  String tag(VariableDeclaration decl) {
-    String prefix = "";
-    if (decl.isCovariant) {
-      prefix = "${prefix}covariant-";
-      if (decl.isFieldFormal) {
-        // Field formals can only be used in constructors,
-        // and "covariant" keyword doesn't make sense for them.
-        throw StateError("Encountered covariant field formal.");
-      }
-    }
-    if (decl.isFieldFormal) {
-      prefix = "${prefix}fieldformal-";
-    }
-
-    if (decl.isConst) {
-      // It's not clear what invariants we assume about const/final.  For now
-      // throw if we have both.
-      if (decl.isFinal) {
-        throw UnimplementedError(
-            "Encountered a variable that is both const and final.");
-      }
-      return "${prefix}const";
-    }
-    if (decl.isFinal) {
-      return "${prefix}final";
-    }
-    return "${prefix}var";
+class VariableDeclarationFlagTagger implements Tagger<IntLiteral> {
+  String tag(IntLiteral wrappedFlag) {
+    int flag = wrappedFlag.value;
+    return variableDeclarationFlagToName[flag] ??
+        (throw StateError("Unknown VariableDeclaration flag value: ${flag}."));
   }
 }
 
-TextSerializer<VariableDeclaration> makeVariableDeclarationSerializer(
-        {bool isFinal = false,
-        bool isConst = false,
-        bool isCovariant = false,
-        bool isFieldFormal = false}) =>
-    new Wrapped(
-        (w) => Tuple3(w.type, w.initializer, w.annotations),
-        (u) => u.third.fold(
-            VariableDeclaration(null,
-                type: u.first,
-                initializer: u.second,
-                isFinal: isFinal,
-                isConst: isConst,
-                isCovariant: isCovariant,
-                isFieldFormal: isFieldFormal),
-            (v, a) => v..addAnnotation(a)),
-        Tuple3Serializer(dartTypeSerializer, new Optional(expressionSerializer),
-            new ListSerializer(expressionSerializer)));
+TextSerializer<int> variableDeclarationFlagsSerializer = Wrapped(
+    (w) => List.generate(30, (i) => IntLiteral(w & (1 << i)))
+        .where((f) => f.value != 0)
+        .toList(),
+    (u) => u.fold(0, (fs, f) => fs |= f.value),
+    ListSerializer(Case(
+        VariableDeclarationFlagTagger(),
+        Map.fromIterable(variableDeclarationFlagToName.entries,
+            key: (e) => e.value,
+            value: (e) =>
+                Wrapped((_) => null, (_) => IntLiteral(e.key), Nothing())))));
 
 TextSerializer<VariableDeclaration> variableDeclarationSerializer = Wrapped(
     (v) => Tuple2(v.name, v),
     (t) => t.second..name = t.first,
-    Binder(Case(VariableDeclarationTagger(), {
-      "var": makeVariableDeclarationSerializer(),
-      "final": makeVariableDeclarationSerializer(isFinal: true),
-      "const": makeVariableDeclarationSerializer(isConst: true),
-      "covariant-var": makeVariableDeclarationSerializer(isCovariant: true),
-      "covariant-final":
-          makeVariableDeclarationSerializer(isCovariant: true, isFinal: true),
-      "covariant-const":
-          makeVariableDeclarationSerializer(isCovariant: true, isConst: true),
-      "fieldformal-var": makeVariableDeclarationSerializer(isFieldFormal: true),
-      "fieldformal-final":
-          makeVariableDeclarationSerializer(isFieldFormal: true, isFinal: true),
-      "fieldformal-const":
-          makeVariableDeclarationSerializer(isFieldFormal: true, isConst: true),
-    })));
+    Binder<VariableDeclaration>(
+      new Wrapped(
+          (w) => Tuple4(w.flags, w.type, w.initializer, w.annotations),
+          (u) => u.fourth.fold(
+              VariableDeclaration(null,
+                  flags: u.first, type: u.second, initializer: u.third),
+              (v, a) => v..addAnnotation(a)),
+          Tuple4Serializer(
+              variableDeclarationFlagsSerializer,
+              dartTypeSerializer,
+              new Optional(expressionSerializer),
+              new ListSerializer(expressionSerializer))),
+    ));
 
 TextSerializer<TypeParameter> typeParameterSerializer = Wrapped(
     (p) => Tuple2(p.name, p),
@@ -1593,36 +1570,112 @@ FunctionNode wrapSyncYieldingFunctionNode(
 Case<FunctionNode> functionNodeSerializer =
     new Case.uninitialized(const FunctionNodeTagger());
 
-class ProcedureTagger implements Tagger<Procedure> {
-  const ProcedureTagger();
+const Map<int, String> procedureFlagToName = const {
+  Procedure.FlagStatic: "static",
+  Procedure.FlagAbstract: "abstract",
+  Procedure.FlagExternal: "external",
+  Procedure.FlagConst: "const",
+  Procedure.FlagForwardingStub: "forwarding-stub",
+  Procedure.FlagForwardingSemiStub: "forwarding-semi-stub",
+  Procedure.FlagRedirectingFactoryConstructor:
+      "redirecting-factory-constructor",
+  Procedure.FlagNoSuchMethodForwarder: "no-such-method-forwarder",
+  Procedure.FlagExtensionMember: "extension-member",
+  Procedure.FlagMemberSignature: "member-signature",
+  Procedure.FlagNonNullableByDefault: "non-nullable-by-default",
+};
 
-  String tag(Procedure node) {
-    String prefix = node.isStatic ? "static-" : "";
-    switch (node.kind) {
-      case ProcedureKind.Method:
-        return "${prefix}method";
-      default:
-        throw new UnsupportedError("${node.kind}");
+class ProcedureFlagTagger implements Tagger<IntLiteral> {
+  const ProcedureFlagTagger();
+
+  String tag(IntLiteral wrappedFlag) {
+    int flag = wrappedFlag.value;
+    return procedureFlagToName[flag] ??
+        (throw StateError("Unknown Procedure flag value: ${flag}."));
+  }
+}
+
+TextSerializer<int> procedureFlagsSerializer = Wrapped(
+    (w) => List.generate(30, (i) => IntLiteral(w & (1 << i)))
+        .where((f) => f.value != 0)
+        .toList(),
+    (u) => u.fold(0, (fs, f) => fs |= f.value),
+    ListSerializer(Case(
+        ProcedureFlagTagger(),
+        Map.fromIterable(procedureFlagToName.entries,
+            key: (e) => e.value,
+            value: (e) =>
+                Wrapped((_) => null, (_) => IntLiteral(e.key), Nothing())))));
+
+const Map<int, String> fieldFlagToName = const {
+  Field.FlagFinal: "final",
+  Field.FlagConst: "const",
+  Field.FlagStatic: "static",
+  Field.FlagHasImplicitGetter: "has-implicit-getter",
+  Field.FlagHasImplicitSetter: "has-implicit-setter",
+  Field.FlagCovariant: "covariant",
+  Field.FlagGenericCovariantImpl: "generic-covariant-impl",
+  Field.FlagLate: "late",
+  Field.FlagExtensionMember: "extension-member",
+  Field.FlagNonNullableByDefault: "non-nullable-by-default",
+  Field.FlagInternalImplementation: "internal-implementation",
+};
+
+class FieldFlagTagger implements Tagger<IntLiteral> {
+  const FieldFlagTagger();
+
+  String tag(IntLiteral wrappedFlag) {
+    int flag = wrappedFlag.value;
+    return fieldFlagToName[flag] ??
+        (throw StateError("Unknown Field flag value: ${flag}."));
+  }
+}
+
+TextSerializer<int> fieldFlagsSerializer = Wrapped(
+    (w) => List.generate(30, (i) => IntLiteral(w & (1 << i)))
+        .where((f) => f.value != 0)
+        .toList(),
+    (u) => u.fold(0, (fs, f) => fs |= f.value),
+    ListSerializer(Case(
+        FieldFlagTagger(),
+        Map.fromIterable(fieldFlagToName.entries,
+            key: (e) => e.value,
+            value: (e) =>
+                Wrapped((_) => null, (_) => IntLiteral(e.key), Nothing())))));
+
+class MemberTagger implements Tagger<Member> {
+  const MemberTagger();
+
+  String tag(Member node) {
+    if (node is Field) {
+      return "field";
+    } else if (node is Procedure) {
+      switch (node.kind) {
+        case ProcedureKind.Method:
+          return "method";
+        default:
+          throw new UnsupportedError("${node.kind}");
+      }
+    } else {
+      throw UnimplementedError("MemberTagger.tag(${node.runtimeType})");
     }
   }
 }
 
-TextSerializer<Procedure> staticMethodSerializer = new Wrapped(
-    unwrapStaticMethod,
-    wrapStaticMethod,
-    new Tuple2Serializer(nameSerializer, functionNodeSerializer));
+TextSerializer<Field> fieldSerializer = Wrapped(
+    (w) => Tuple4(w.name, w.flags, w.type, w.initializer),
+    (u) =>
+        Field(u.first, type: u.third, initializer: u.fourth)..flags = u.second,
+    Tuple4Serializer(nameSerializer, fieldFlagsSerializer, dartTypeSerializer,
+        Optional(expressionSerializer)));
 
-Tuple2<Name, FunctionNode> unwrapStaticMethod(Procedure procedure) {
-  return new Tuple2(procedure.name, procedure.function);
-}
+TextSerializer<Procedure> methodSerializer = Wrapped(
+    (w) => Tuple3(w.name, w.flags, w.function),
+    (u) => Procedure(u.first, ProcedureKind.Method, u.third)..flags = u.second,
+    Tuple3Serializer(
+        nameSerializer, procedureFlagsSerializer, functionNodeSerializer));
 
-Procedure wrapStaticMethod(Tuple2<Name, FunctionNode> tuple) {
-  return new Procedure(tuple.first, ProcedureKind.Method, tuple.second,
-      isStatic: true);
-}
-
-Case<Procedure> procedureSerializer =
-    new Case.uninitialized(const ProcedureTagger());
+Case<Member> memberSerializer = new Case.uninitialized(const MemberTagger());
 
 class LibraryTagger implements Tagger<Library> {
   const LibraryTagger();
@@ -1633,19 +1686,13 @@ class LibraryTagger implements Tagger<Library> {
 }
 
 TextSerializer<Library> libraryContentsSerializer = new Wrapped(
-  unwrapLibraryNode,
-  wrapLibraryNode,
-  new Tuple2Serializer(
-      const UriSerializer(), new ListSerializer(procedureSerializer)),
+  (w) => Tuple2(w.importUri, [...w.fields, ...w.procedures]),
+  (u) => Library(u.first,
+      fields: u.second.where((m) => m is Field).cast<Field>().toList(),
+      procedures:
+          u.second.where((m) => m is Procedure).cast<Procedure>().toList()),
+  new Tuple2Serializer(const UriSerializer(), ListSerializer(memberSerializer)),
 );
-
-Tuple2<Uri, List<Procedure>> unwrapLibraryNode(Library library) {
-  return new Tuple2(library.importUri, library.procedures);
-}
-
-Library wrapLibraryNode(Tuple2<Uri, List<Procedure>> tuple) {
-  return new Library(tuple.first, procedures: tuple.second);
-}
 
 Case<Library> librarySerializer = new Case.uninitialized(const LibraryTagger());
 
@@ -1881,7 +1928,8 @@ void initializeSerializers() {
     "async-star": asyncStarFunctionNodeSerializer,
     "sync-yielding": syncYieldingStarFunctionNodeSerializer,
   });
-  procedureSerializer.registerTags({"static-method": staticMethodSerializer});
+  memberSerializer
+      .registerTags({"field": fieldSerializer, "method": methodSerializer});
   librarySerializer.registerTags({
     "legacy": libraryContentsSerializer,
     "null-safe": libraryContentsSerializer,

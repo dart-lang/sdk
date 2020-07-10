@@ -47,12 +47,12 @@ class TestRunner {
     test('(invoke-method (int 0) (public "foo") () ((int 1) (int 2)) ())');
     test('(invoke-method (int 0) (public "foo") ((dynamic) (void)) '
         '((int 1) (int 2)) ("others" (list (dynamic) ((int 3) (int 4)))))');
-    test('(let "x^0" (var (dynamic) (int 0) ()) (null))');
-    test('(let "x^0" (var (dynamic) _ ()) (null))');
-    test('(let "x^0" (const (dynamic) (int 0) ()) (null))');
-    test('(let "x^0" (const (dynamic) _ ()) (null))');
-    test('(let "x^0" (final (dynamic) (int 0) ()) (null))');
-    test('(let "x^0" (final (dynamic) _ ()) (null))');
+    test('(let "x^0" () (dynamic) (int 0) () (null))');
+    test('(let "x^0" () (dynamic) _ () (null))');
+    test('(let "x^0" ((const)) (dynamic) (int 0) () (null))');
+    test('(let "x^0" ((const)) (dynamic) _ () (null))');
+    test('(let "x^0" ((final)) (dynamic) (int 0) () (null))');
+    test('(let "x^0" ((final)) (dynamic) _ () (null))');
     test(r'''(string "Hello, 'string'!")''');
     test(r'''(string "Hello, \"string\"!")''');
     test(r'''(string "Yeah nah yeah, here is\nthis really long string haiku\n'''
