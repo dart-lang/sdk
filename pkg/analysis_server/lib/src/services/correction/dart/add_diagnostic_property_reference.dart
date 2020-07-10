@@ -188,25 +188,8 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
   }
 
   bool _isIterable(DartType type) {
-    if (type is! InterfaceType) {
-      return false;
-    }
-
-    ClassElement element = type.element;
-
-    bool isExactIterable(ClassElement element) {
-      return element?.name == 'Iterable' && element.library.isDartCore;
-    }
-
-    if (isExactIterable(element)) {
-      return true;
-    }
-    for (var type in element.allSupertypes) {
-      if (isExactIterable(type.element)) {
-        return true;
-      }
-    }
-    return false;
+    return type is InterfaceType &&
+        type.asInstanceOf(typeProvider.iterableElement) != null;
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
