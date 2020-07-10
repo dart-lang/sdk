@@ -11,7 +11,7 @@ import 'dart:ffi';
 import 'package:expect/expect.dart';
 
 import 'test_utils.dart';
-import '../../../../../tests/ffi_2/dylib_utils.dart';
+import '../../../../../tests/ffi/dylib_utils.dart';
 
 // This should be larger than max-new-space-size/tlab-size.
 const int threadCount = 200;
