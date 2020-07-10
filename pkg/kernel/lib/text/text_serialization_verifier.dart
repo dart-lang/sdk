@@ -328,21 +328,15 @@ class VerificationState {
       node is FunctionNode && node.body == null ||
       node is Procedure &&
           (!node.isStatic || node.kind != ProcedureKind.Method) ||
-      node is AssertInitializer ||
       node is Class ||
       node is Component ||
       node is Constructor ||
       node is Extension ||
-      node is FieldInitializer ||
-      node is InvalidInitializer ||
       node is Library ||
       node is LibraryPart ||
-      node is LocalInitializer ||
       node is MapEntry ||
       node is Name && node.isPrivate ||
       node is RedirectingFactoryConstructor ||
-      node is RedirectingInitializer ||
-      node is SuperInitializer ||
       node is Supertype ||
       node is Typedef;
 }
@@ -489,6 +483,8 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
       makeRoundTrip<Catch>(node, catchSerializer);
     } else if (node is SwitchCase) {
       makeRoundTrip<SwitchCase>(node, switchCaseSerializer);
+    } else if (node is Initializer) {
+      makeRoundTrip<Initializer>(node, initializerSerializer);
     } else {
       throw new StateError(
           "Don't know how to make a round trip for a supported node "

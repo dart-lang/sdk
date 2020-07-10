@@ -1826,6 +1826,59 @@ TextSerializer<InstanceConstant> instanceConstantSerializer =
 
 Case<Constant> constantSerializer = Case.uninitialized(ConstantTagger());
 
+class InitializerTagger implements Tagger<Initializer> {
+  const InitializerTagger();
+
+  String tag(Initializer node) {
+    if (node is AssertInitializer) {
+      return "assert";
+    } else if (node is FieldInitializer) {
+      return "field";
+    } else if (node is InvalidInitializer) {
+      return "invalid";
+    } else if (node is LocalInitializer) {
+      return "local";
+    } else if (node is RedirectingInitializer) {
+      return "redirecting";
+    } else if (node is SuperInitializer) {
+      return "super";
+    } else {
+      throw UnimplementedError("InitializerTagger.tag(${node.runtimeType}).");
+    }
+  }
+}
+
+TextSerializer<AssertInitializer> assertInitializerSerializer = Wrapped(
+    (w) => w.statement, (u) => AssertInitializer(u), statementSerializer);
+
+TextSerializer<FieldInitializer> fieldInitializerSerializer = Wrapped(
+    (w) => Tuple2(w.fieldReference.canonicalName, w.value),
+    (u) => FieldInitializer.byReference(u.first.getReference(), u.second),
+    Tuple2Serializer(CanonicalNameSerializer(), expressionSerializer));
+
+TextSerializer<InvalidInitializer> invalidInitializerSerializer =
+    Wrapped((_) => null, (_) => InvalidInitializer(), Nothing());
+
+TextSerializer<LocalInitializer> localInitializerSerializer = Wrapped(
+    (w) => w.variable,
+    (u) => LocalInitializer(u),
+    variableDeclarationSerializer);
+
+TextSerializer<RedirectingInitializer> redirectingInitializerSerializer =
+    Wrapped(
+        (w) => Tuple2(w.targetReference.canonicalName, w.arguments),
+        (u) => RedirectingInitializer.byReference(
+            u.first.getReference(), u.second),
+        Tuple2Serializer(CanonicalNameSerializer(), argumentsSerializer));
+
+TextSerializer<SuperInitializer> superInitializerSerializer = Wrapped(
+    (w) => Tuple2(w.targetReference.canonicalName, w.arguments),
+    (u) => SuperInitializer.byReference(u.first.getReference(), u.second),
+    Tuple2Serializer(CanonicalNameSerializer(), argumentsSerializer));
+
+Case<Initializer> initializerSerializer =
+    Case.uninitialized(InitializerTagger());
+
 void initializeSerializers() {
   expressionSerializer.registerTags({
     "string": stringLiteralSerializer,
@@ -1949,5 +2002,13 @@ void initializeSerializers() {
     "const-type": typeLiteralConstantSerializer,
     "const-expr": unevaluatedConstantSerializer,
     "const-object": instanceConstantSerializer,
+  });
+  initializerSerializer.registerTags({
+    "assert": assertInitializerSerializer,
+    "field": fieldInitializerSerializer,
+    "invalid": invalidInitializerSerializer,
+    "local": localInitializerSerializer,
+    "redirecting": redirectingInitializerSerializer,
+    "super": superInitializerSerializer,
   });
 }
