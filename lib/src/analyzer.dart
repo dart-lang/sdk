@@ -25,13 +25,10 @@ export 'package:analyzer/src/dart/constant/evaluation.dart'
 export 'package:analyzer/src/dart/constant/value.dart' show DartObjectImpl;
 export 'package:analyzer/src/dart/element/inheritance_manager3.dart'
     show InheritanceManager3, Name;
-export 'package:analyzer/src/dart/element/type_provider.dart'
-    show TypeProviderImpl;
 export 'package:analyzer/src/dart/error/lint_codes.dart';
+export 'package:analyzer/src/dart/resolver/exit_detector.dart';
 export 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisErrorInfo;
-export 'package:analyzer/src/generated/resolver.dart'
-    show ExitDetector, TypeProvider;
 export 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 export 'package:analyzer/src/lint/linter.dart'
     show
