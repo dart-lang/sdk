@@ -2138,9 +2138,8 @@ bool FlowGraphDeserializer::ParseCanonicalName(SExpSymbol* sym, Object* obj) {
       return false;
     }
     if (is_forwarder) {
-      // Go back four characters to start at the 'dyn:' we stripped earlier.
-      tmp_string_ = String::FromUTF8(
-          reinterpret_cast<const uint8_t*>(func_start - 4), name_len + 4);
+      tmp_string_ = name_function_.name();
+      tmp_string_ = Function::CreateDynamicInvocationForwarderName(tmp_string_);
       name_function_ =
           name_function_.GetDynamicInvocationForwarder(tmp_string_);
     }

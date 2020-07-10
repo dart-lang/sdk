@@ -9223,7 +9223,7 @@ bool Function::NeedsMonomorphicCheckedEntry(Zone* zone) const {
   // monomorphic entry).
   //
   // See runtime_entry.cc:DEFINE_RUNTIME_ENTRY(UnlinkedCall)
-  if (HasOptionalParameters() || IsGeneric()) {
+  if (PrologueNeedsArgumentsDescriptor()) {
     return false;
   }
 
@@ -9246,6 +9246,12 @@ bool Function::NeedsMonomorphicCheckedEntry(Zone* zone) const {
   UNREACHABLE();
   return true;
 #endif
+}
+
+bool Function::PrologueNeedsArgumentsDescriptor() const {
+  // The prologue of those functions need to examine the arg descriptor for
+  // various purposes.
+  return IsGeneric() || HasOptionalParameters();
 }
 
 bool Function::MayHaveUncheckedEntryPoint() const {

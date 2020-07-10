@@ -2896,6 +2896,7 @@ class Function : public Object {
   }
 
   bool NeedsMonomorphicCheckedEntry(Zone* zone) const;
+  bool PrologueNeedsArgumentsDescriptor() const;
 
   bool MayHaveUncheckedEntryPoint() const;
 

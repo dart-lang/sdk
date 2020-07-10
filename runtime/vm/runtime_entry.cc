@@ -1207,8 +1207,7 @@ static void TrySwitchInstanceCall(const ICData& ic_data,
     // A call site in the monomorphic state does not load the arguments
     // descriptor, so do not allow transition to this state if the callee
     // needs it.
-    if (target_function.HasOptionalParameters() ||
-        target_function.IsGeneric()) {
+    if (target_function.PrologueNeedsArgumentsDescriptor()) {
       return;
     }
 
@@ -1643,8 +1642,8 @@ void SwitchableCallHandler::DoUnlinkedCall(const UnlinkedCall& unlinked,
   //
   // Because of this we also don't generate monomorphic checks for those
   // functions.
-  if (!target_function.IsNull() && !target_function.HasOptionalParameters() &&
-      !target_function.IsGeneric()) {
+  if (!target_function.IsNull() &&
+      !target_function.PrologueNeedsArgumentsDescriptor()) {
     // Patch to monomorphic call.
     ASSERT(target_function.HasCode());
     const Code& target_code =
@@ -1896,8 +1895,7 @@ void SwitchableCallHandler::DoICDataMiss(const ICData& ic_data,
 
   if ((number_of_checks == 0) &&
       (!FLAG_precompiled_mode || ic_data.receiver_cannot_be_smi()) &&
-      !target_function.HasOptionalParameters() &&
-      !target_function.IsGeneric()) {
+      !target_function.PrologueNeedsArgumentsDescriptor()) {
     // This call site is unlinked: transition to a monomorphic direct call.
     // Note we cannot do this if the target has optional parameters because
     // the monomorphic direct call does not load the arguments descriptor.
