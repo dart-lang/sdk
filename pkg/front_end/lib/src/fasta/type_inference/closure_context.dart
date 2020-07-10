@@ -484,8 +484,8 @@ class _AsyncClosureContext implements ClosureContext {
           // flatten(S) is neither void, dynamic, Null.
           statement.expression = inferrer.helper.wrapInProblem(
               new NullLiteral()..fileOffset = statement.fileOffset,
-              templateInvalidReturnAsync.withArguments(expressionType,
-                  _declaredReturnType, inferrer.isNonNullableByDefault),
+              templateInvalidReturnAsync.withArguments(
+                  expressionType, returnType, inferrer.isNonNullableByDefault),
               statement.expression.fileOffset,
               noLength)
             ..parent = statement;
@@ -496,8 +496,8 @@ class _AsyncClosureContext implements ClosureContext {
           // nor dynamic, and flatten(S) is void.
           statement.expression = inferrer.helper.wrapInProblem(
               new NullLiteral()..fileOffset = statement.fileOffset,
-              templateInvalidReturnAsync.withArguments(expressionType,
-                  _declaredReturnType, inferrer.isNonNullableByDefault),
+              templateInvalidReturnAsync.withArguments(
+                  expressionType, returnType, inferrer.isNonNullableByDefault),
               statement.expression.fileOffset,
               noLength)
             ..parent = statement;
@@ -513,7 +513,7 @@ class _AsyncClosureContext implements ClosureContext {
               futureValueType, expressionType, statement.expression,
               fileOffset: statement.expression.fileOffset,
               runtimeCheckedType: _returnContext,
-              declaredContextType: _declaredReturnType,
+              declaredContextType: returnType,
               isVoidAllowed: false,
               errorTemplate: templateInvalidReturnAsync)
             ..parent = statement;

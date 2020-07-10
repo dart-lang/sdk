@@ -23,7 +23,7 @@ FutureOr<Null> Function() test2 = () async {
   return v;
   //     ^
   // [analyzer] unspecified
-  // [cfe] A value of type 'FutureOr<void>' can't be returned from an async function with return type 'FutureOr<Null>'.
+  // [cfe] A value of type 'FutureOr<void>' can't be returned from an async function with return type 'Future<Null>'.
 };
 
 void main() {
