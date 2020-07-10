@@ -230,7 +230,7 @@ class UriSerializer extends TextSerializer<Uri> {
 // They require a function mapping serializables to a tag string.  This is
 // implemented by Tagger visitors.
 // A tagged union of serializer/deserializers.
-class Case<T extends Node> extends TextSerializer<T> {
+class Case<T> extends TextSerializer<T> {
   final Tagger<T> tagger;
   final List<String> _tags;
   final List<TextSerializer<T>> _serializers;
