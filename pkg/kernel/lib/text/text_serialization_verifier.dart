@@ -322,18 +322,9 @@ class VerificationState {
     }
   }
 
-  static bool isStatementSupported(Statement node) =>
-      !isStatementNotSupported(node);
-
-  static bool isStatementNotSupported(Statement node) =>
-      node is VariableDeclaration &&
-          (node.parent is! Block || node.name == null) ||
-      node is FunctionDeclaration;
-
   static bool isSupported(Node node) => !isNotSupported(node);
 
   static bool isNotSupported(Node node) =>
-      node is Statement && isStatementNotSupported(node) ||
       node is FunctionNode && node.body == null ||
       node is Procedure &&
           (!node.isStatic || node.kind != ProcedureKind.Method) ||

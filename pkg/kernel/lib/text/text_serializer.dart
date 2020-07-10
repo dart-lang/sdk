@@ -803,82 +803,71 @@ class VariableDeclarationTagger implements Tagger<VariableDeclaration> {
   const VariableDeclarationTagger();
 
   String tag(VariableDeclaration decl) {
-    if (decl.isCovariant) throw UnimplementedError("Covariant declaration.");
-    if (decl.isFieldFormal) throw UnimplementedError("Initializing formal.");
+    String prefix = "";
+    if (decl.isCovariant) {
+      prefix = "${prefix}covariant-";
+      if (decl.isFieldFormal) {
+        // Field formals can only be used in constructors,
+        // and "covariant" keyword doesn't make sense for them.
+        throw StateError("Encountered covariant field formal.");
+      }
+    }
+    if (decl.isFieldFormal) {
+      prefix = "${prefix}fieldformal-";
+    }
+
     if (decl.isConst) {
       // It's not clear what invariants we assume about const/final.  For now
       // throw if we have both.
-      if (decl.isFinal) throw UnimplementedError("const and final");
-      return "const";
+      if (decl.isFinal) {
+        throw UnimplementedError(
+            "Encountered a variable that is both const and final.");
+      }
+      return "${prefix}const";
     }
     if (decl.isFinal) {
-      return "final";
+      return "${prefix}final";
     }
-    return "var";
+    return "${prefix}var";
   }
 }
 
-TextSerializer<VariableDeclaration> varDeclarationSerializer = new Wrapped(
-    unwrapVariableDeclaration,
-    wrapVarDeclaration,
-    Tuple3Serializer(dartTypeSerializer, new Optional(expressionSerializer),
-        new ListSerializer(expressionSerializer)));
-
-Tuple3<DartType, Expression, List<Expression>> unwrapVariableDeclaration(
-    VariableDeclaration declaration) {
-  return new Tuple3(
-      declaration.type, declaration.initializer, declaration.annotations);
-}
-
-VariableDeclaration wrapVarDeclaration(
-    Tuple3<DartType, Expression, List<Expression>> tuple) {
-  var result = new VariableDeclaration(null,
-      initializer: tuple.second, type: tuple.first);
-  for (int i = 0; i < tuple.third.length; ++i) {
-    result.addAnnotation(tuple.third[i]);
-  }
-  return result;
-}
-
-TextSerializer<VariableDeclaration> finalDeclarationSerializer = new Wrapped(
-    unwrapVariableDeclaration,
-    wrapFinalDeclaration,
-    Tuple3Serializer(dartTypeSerializer, new Optional(expressionSerializer),
-        new ListSerializer(expressionSerializer)));
-
-VariableDeclaration wrapFinalDeclaration(
-    Tuple3<DartType, Expression, List<Expression>> tuple) {
-  var result = new VariableDeclaration(null,
-      initializer: tuple.second, type: tuple.first, isFinal: true);
-  for (int i = 0; i < tuple.third.length; ++i) {
-    result.addAnnotation(tuple.third[i]);
-  }
-  return result;
-}
-
-TextSerializer<VariableDeclaration> constDeclarationSerializer = new Wrapped(
-    unwrapVariableDeclaration,
-    wrapConstDeclaration,
-    Tuple3Serializer(dartTypeSerializer, new Optional(expressionSerializer),
-        new ListSerializer(expressionSerializer)));
-
-VariableDeclaration wrapConstDeclaration(
-    Tuple3<DartType, Expression, List<Expression>> tuple) {
-  var result = new VariableDeclaration(null,
-      initializer: tuple.second, type: tuple.first, isConst: true);
-  for (int i = 0; i < tuple.third.length; ++i) {
-    result.addAnnotation(tuple.third[i]);
-  }
-  return result;
-}
+TextSerializer<VariableDeclaration> makeVariableDeclarationSerializer(
+        {bool isFinal = false,
+        bool isConst = false,
+        bool isCovariant = false,
+        bool isFieldFormal = false}) =>
+    new Wrapped(
+        (w) => Tuple3(w.type, w.initializer, w.annotations),
+        (u) => u.third.fold(
+            VariableDeclaration(null,
+                type: u.first,
+                initializer: u.second,
+                isFinal: isFinal,
+                isConst: isConst,
+                isCovariant: isCovariant,
+                isFieldFormal: isFieldFormal),
+            (v, a) => v..addAnnotation(a)),
+        Tuple3Serializer(dartTypeSerializer, new Optional(expressionSerializer),
+            new ListSerializer(expressionSerializer)));
 
 TextSerializer<VariableDeclaration> variableDeclarationSerializer = Wrapped(
     (v) => Tuple2(v.name, v),
     (t) => t.second..name = t.first,
     Binder(Case(VariableDeclarationTagger(), {
-      "var": varDeclarationSerializer,
-      "final": finalDeclarationSerializer,
-      "const": constDeclarationSerializer,
+      "var": makeVariableDeclarationSerializer(),
+      "final": makeVariableDeclarationSerializer(isFinal: true),
+      "const": makeVariableDeclarationSerializer(isConst: true),
+      "covariant-var": makeVariableDeclarationSerializer(isCovariant: true),
+      "covariant-final":
+          makeVariableDeclarationSerializer(isCovariant: true, isFinal: true),
+      "covariant-const":
+          makeVariableDeclarationSerializer(isCovariant: true, isConst: true),
+      "fieldformal-var": makeVariableDeclarationSerializer(isFieldFormal: true),
+      "fieldformal-final":
+          makeVariableDeclarationSerializer(isFieldFormal: true, isFinal: true),
+      "fieldformal-const":
+          makeVariableDeclarationSerializer(isFieldFormal: true, isConst: true),
     })));
 
 TextSerializer<TypeParameter> typeParameterSerializer = Wrapped(
@@ -1108,6 +1097,7 @@ class StatementTagger extends StatementVisitor<String>
   String visitSwitchStatement(SwitchStatement node) => "switch";
   String visitContinueSwitchStatement(ContinueSwitchStatement node) =>
       "continue";
+  String visitFunctionDeclaration(FunctionDeclaration node) => "local-fun";
 }
 
 TextSerializer<ExpressionStatement> expressionStatementSerializer = new Wrapped(
@@ -1282,27 +1272,13 @@ DoStatement wrapDoStatement(Tuple2<Statement, Expression> tuple) {
 }
 
 TextSerializer<ForStatement> forStatementSerializer = new Wrapped(
-    unwrapForStatement,
-    wrapForStatement,
+    (w) => Tuple2(w.variables, Tuple3(w.condition, w.updates, w.body)),
+    (u) =>
+        ForStatement(u.first, u.second.first, u.second.second, u.second.third),
     new Bind(
         ListSerializer(variableDeclarationSerializer),
-        new Tuple3Serializer(expressionSerializer,
+        new Tuple3Serializer(Optional(expressionSerializer),
             new ListSerializer(expressionSerializer), statementSerializer)));
-
-Tuple2<List<VariableDeclaration>,
-        Tuple3<Expression, List<Expression>, Statement>>
-    unwrapForStatement(ForStatement node) {
-  return new Tuple2(
-      node.variables, new Tuple3(node.condition, node.updates, node.body));
-}
-
-ForStatement wrapForStatement(
-    Tuple2<List<VariableDeclaration>,
-            Tuple3<Expression, List<Expression>, Statement>>
-        tuple) {
-  return new ForStatement(
-      tuple.first, tuple.second.first, tuple.second.second, tuple.second.third);
-}
 
 TextSerializer<ForInStatement> forInStatementSerializer = new Wrapped(
     unwrapForInStatement,
@@ -1370,13 +1346,15 @@ TextSerializer<TryCatch> tryCatchSerializer = Wrapped(
     Tuple2Serializer(statementSerializer, ListSerializer(catchSerializer)));
 
 TextSerializer<Catch> catchSerializer = Wrapped(
-    (w) => Tuple4(w.guard, w.exception, w.stackTrace, w.body),
-    (u) => Catch(u.second, u.fourth, stackTrace: u.third, guard: u.first),
-    Tuple4Serializer(
+    (w) => Tuple2(w.guard, Tuple2(Tuple2(w.exception, w.stackTrace), w.body)),
+    (u) => Catch(u.second.first.first, u.second.second,
+        stackTrace: u.second.first.second, guard: u.first),
+    Tuple2Serializer(
         dartTypeSerializer,
-        Optional(variableDeclarationSerializer),
-        Optional(variableDeclarationSerializer),
-        statementSerializer));
+        Bind(
+            Tuple2Serializer(Optional(variableDeclarationSerializer),
+                Optional(variableDeclarationSerializer)),
+            statementSerializer)));
 
 TextSerializer<SwitchStatement> switchStatementSerializer = Wrapped(
     (w) => Tuple2(w.expression, w.cases),
@@ -1416,6 +1394,11 @@ TextSerializer<SwitchCase> switchCaseSerializer = Case(SwitchCaseTagger(), {
 
 TextSerializer<ContinueSwitchStatement> continueSwitchStatementSerializer =
     Wrapped((w) => w.target, (u) => ContinueSwitchStatement(u), ScopedUse());
+
+TextSerializer<FunctionDeclaration> functionDeclarationSerializer = Wrapped(
+    (w) => Tuple2(w.variable, w.function),
+    (u) => FunctionDeclaration(u.first, u.second),
+    Bind(variableDeclarationSerializer, functionNodeSerializer));
 
 Case<Statement> statementSerializer =
     new Case.uninitialized(const StatementTagger());
@@ -1889,6 +1872,7 @@ void initializeSerializers() {
     "try-catch": tryCatchSerializer,
     "switch": switchStatementSerializer,
     "continue": continueSwitchStatementSerializer,
+    "local-fun": functionDeclarationSerializer,
   });
   functionNodeSerializer.registerTags({
     "sync": syncFunctionNodeSerializer,
