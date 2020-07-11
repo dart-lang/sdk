@@ -1,3 +1,6 @@
+## 0.3.0
+- Removed deprecated `Plugin.getResolveResult`. Use `getResolvedUnitResult`.
+
 ## 0.2.5
 - Change supported analyzer version to `^0.39.12`
 

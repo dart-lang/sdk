@@ -173,14 +173,6 @@ abstract class ServerPlugin {
     return result;
   }
 
-  /// Return the result of analyzing the file with the given [path].
-  ///
-  /// Throw a [RequestFailure] is the file cannot be analyzed or if the driver
-  /// associated with the file is not an [AnalysisDriver].
-  @deprecated
-  Future<ResolveResult> getResolveResult(String path) =>
-      getResolvedUnitResult(path);
-
   /// Handle an 'analysis.getNavigation' request.
   ///
   /// Throw a [RequestFailure] if the request could not be handled.
