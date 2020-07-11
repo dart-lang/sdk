@@ -206,9 +206,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  void assertElementNull(Expression node) {
-    Element actual = getNodeElement(node);
-    expect(actual, isNull);
+  void assertElementNull(Object nodeOrElement) {
+    Element element;
+    if (nodeOrElement is AstNode) {
+      element = getNodeElement(nodeOrElement);
+    } else {
+      element = nodeOrElement as Element;
+    }
+
+    expect(element, isNull);
   }
 
   void assertElementString(Element element, String expected) {

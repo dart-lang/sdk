@@ -6,6 +6,7 @@
 * Added `InterfaceType.allSupertypes`.
 * Added `InterfaceType.asInstanceOf(ClassElement)`.
 * Removed deprecated internal `bogus-disabled` and `bogus-enabled`.
+* Added `Scope` and `LibraryElement.scope`.
 
 ## 0.39.12
 * Deprecated `canUseSummaries` in `DartSdkManager` constructor.

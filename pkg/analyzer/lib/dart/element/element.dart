@@ -37,6 +37,7 @@
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -1374,6 +1375,10 @@ abstract class LibraryElement implements Element {
   /// The public [Namespace] of this library, `null` if it has not been
   /// computed yet.
   Namespace get publicNamespace;
+
+  /// Return the name lookup scope for this library. It consists of elements
+  /// that are either declared in the library, or imported into it.
+  Scope get scope;
 
   /// Return the top-level elements defined in each of the compilation units
   /// that are included in this library. This includes both public and private

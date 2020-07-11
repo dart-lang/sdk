@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -20,11 +21,13 @@ import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
+import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart'
+    show Namespace, NamespaceBuilder;
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
 import 'package:analyzer/src/generated/element_type_provider.dart';
@@ -5208,6 +5211,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// The cached list of prefixes.
   List<PrefixElement> _prefixes;
 
+  /// The scope of this library, `null` if it has not been created yet.
+  LibraryScope _scope;
+
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
   LibraryElementImpl(this.context, this.session, String name, int offset,
@@ -5579,6 +5585,11 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   set publicNamespace(Namespace publicNamespace) {
     _publicNamespace = publicNamespace;
+  }
+
+  @override
+  Scope get scope {
+    return _scope ??= LibraryScope(this);
   }
 
   @override
