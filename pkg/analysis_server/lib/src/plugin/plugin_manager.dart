@@ -221,7 +221,7 @@ abstract class PluginInfo {
         // Plugin crashed, nothing to do.
         return Future<void>.value(null);
       }
-      throw StateError('Cannot stop a plugin that is not running. ');
+      throw StateError('Cannot stop a plugin that is not running.');
     }
     var doneFuture = currentSession.stop();
     currentSession = null;
