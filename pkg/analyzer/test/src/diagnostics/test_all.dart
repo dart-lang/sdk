@@ -6,12 +6,14 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_super_member_reference_test.dart'
     as abstract_super_member_reference;
+import 'access_private_enum_field_test.dart' as access_private_enum_field;
 import 'ambiguous_export_test.dart' as ambiguous_export;
 import 'ambiguous_extension_member_access_test.dart'
     as ambiguous_extension_member_access;
 import 'ambiguous_import_test.dart' as ambiguous_import;
 import 'ambiguous_set_or_map_literal_test.dart' as ambiguous_set_or_map_literal;
 import 'annotation_on_pointer_field_test.dart' as annotation_on_pointer_field;
+import 'annotation_with_non_class_test.dart' as annotation_with_non_class;
 import 'argument_type_not_assignable_test.dart' as argument_type_not_assignable;
 import 'assert_in_redirecting_constructor_test.dart'
     as assert_in_redirecting_constructor;
@@ -23,10 +25,12 @@ import 'assignment_to_final_test.dart' as assignment_to_final;
 import 'assignment_to_function_test.dart' as assignment_to_function;
 import 'assignment_to_method_test.dart' as assignment_to_method;
 import 'assignment_to_type_test.dart' as assignment_to_type;
+import 'async_for_in_wrong_context_test.dart' as async_for_in_wrong_context;
 import 'async_keyword_used_as_identifier_test.dart'
     as async_keyword_used_as_identifier;
 import 'await_in_late_local_variable_initializer_test.dart'
     as await_in_late_local_variable_initializer;
+import 'await_in_wrong_context_test.dart' as await_in_wrong_context;
 import 'body_might_complete_normally_test.dart' as body_might_complete_normally;
 import 'built_in_identifier_as_extension_name_test.dart'
     as built_in_as_extension_name;
@@ -60,7 +64,17 @@ import 'const_constructor_with_field_initialized_by_non_const_test.dart'
     as const_constructor_with_field_initialized_by_non_const;
 import 'const_constructor_with_mixin_with_field_test.dart'
     as const_constructor_with_mixin_with_field;
+import 'const_constructor_with_non_const_super_test.dart'
+    as const_constructor_with_non_const_super;
+import 'const_constructor_with_non_final_field_test.dart'
+    as const_constructor_with_non_final_field;
+import 'const_deferred_class_test.dart' as const_deferred_class;
 import 'const_eval_throws_exception_test.dart' as const_eval_throws_exception;
+import 'const_eval_type_bool_num_string_test.dart'
+    as const_eval_type_bool_num_string;
+import 'const_eval_type_bool_test.dart' as const_eval_type_bool;
+import 'const_initialized_with_non_constant_value_test.dart'
+    as const_initialized_with_non_constant_value;
 import 'const_map_key_expression_type_implements_equals_test.dart'
     as const_map_key_expression_type_implements_equals;
 import 'const_not_initialized_test.dart' as const_not_initialized;
@@ -558,11 +572,13 @@ import 'yield_of_invalid_type_test.dart' as yield_of_invalid_type;
 main() {
   defineReflectiveSuite(() {
     abstract_super_member_reference.main();
+    access_private_enum_field.main();
     ambiguous_export.main();
     ambiguous_extension_member_access.main();
     ambiguous_import.main();
     ambiguous_set_or_map_literal.main();
     annotation_on_pointer_field.main();
+    annotation_with_non_class.main();
     argument_type_not_assignable.main();
     assert_in_redirecting_constructor.main();
     assignment_to_const.main();
@@ -572,8 +588,10 @@ main() {
     assignment_to_function.main();
     assignment_to_method.main();
     assignment_to_type.main();
+    async_for_in_wrong_context.main();
     async_keyword_used_as_identifier.main();
     await_in_late_local_variable_initializer.main();
+    await_in_wrong_context.main();
     body_might_complete_normally.main();
     built_in_as_extension_name.main();
     built_in_as_prefix_name.main();
@@ -593,7 +611,13 @@ main() {
     const_constructor_param_type_mismatch.main();
     const_constructor_with_field_initialized_by_non_const.main();
     const_constructor_with_mixin_with_field.main();
+    const_constructor_with_non_const_super.main();
+    const_constructor_with_non_final_field.main();
+    const_deferred_class.main();
     const_eval_throws_exception.main();
+    const_eval_type_bool_num_string.main();
+    const_eval_type_bool.main();
+    const_initialized_with_non_constant_value.main();
     const_map_key_expression_type_implements_equals.main();
     const_not_initialized.main();
     const_set_element_type_implements_equals.main();
