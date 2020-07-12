@@ -1579,6 +1579,11 @@ abstract class ParameterElement
 abstract class PrefixElement implements Element {
   @override
   LibraryElement get enclosingElement;
+
+  /// Return the name lookup scope for this import prefix. It consists of
+  /// elements imported into the enclosing library with this prefix. The
+  /// namespace combinators of the import directives are taken into account.
+  Scope get scope;
 }
 
 /// A variable that might be subject to type promotion.  This might be a local

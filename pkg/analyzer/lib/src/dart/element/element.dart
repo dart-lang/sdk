@@ -6958,6 +6958,9 @@ mixin ParameterElementMixin implements ParameterElement {
 
 /// A concrete implementation of a [PrefixElement].
 class PrefixElementImpl extends ElementImpl implements PrefixElement {
+  /// The scope of this prefix, `null` if it has not been created yet.
+  PrefixScope _scope;
+
   /// Initialize a newly created method element to have the given [name] and
   /// [nameOffset].
   PrefixElementImpl(String name, int nameOffset) : super(name, nameOffset);
@@ -6991,6 +6994,9 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
     }
     return super.nameOffset;
   }
+
+  @override
+  Scope get scope => _scope ??= PrefixScope(this);
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitPrefixElement(this);

@@ -666,6 +666,19 @@ class NamespaceBuilder {
     return Namespace(definedNames);
   }
 
+  /// Return elements imported with the given [element].
+  Iterable<Element> getImportedElements(ImportElement element) {
+    var importedLibrary = element.importedLibrary;
+
+    // If the URI is invalid.
+    if (importedLibrary == null) {
+      return [];
+    }
+
+    var map = _getExportMapping(importedLibrary);
+    return _applyCombinators(map, element.combinators).values;
+  }
+
   /// Add all of the names in the given [namespace] to the table of
   /// [definedNames].
   void _addAllFromNamespace(
