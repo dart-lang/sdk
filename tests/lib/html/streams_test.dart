@@ -15,7 +15,7 @@ class StreamHelper {
   }
 
   Element get element => _a;
-  Stream<Event?> get stream => _a.onFocus;
+  Stream<Event> get stream => _a.onFocus;
 
   // Causes an event on a to be fired.
   void pulse() {
@@ -193,7 +193,7 @@ main() {
   });
 
   test('reduce', () {
-    stream.reduce((a, b) => null).then((_) {});
+    stream.reduce((a, b) => a).then((_) {});
   });
 
   test('fold', () {
