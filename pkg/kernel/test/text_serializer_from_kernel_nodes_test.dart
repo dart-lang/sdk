@@ -448,7 +448,7 @@ void test() {
           name: 'foo(x) => x; bar(x) => foo(x);',
           node: library,
           expectation: ''
-              '(legacy "package:foo/bar.dart"'
+              '"package:foo/bar.dart" () ()'
               ''
               ' ((method (public "foo") ((static))'
               ' (sync) () () () ("x^0" () (dynamic) _ ()) () () (dynamic)'
@@ -460,7 +460,11 @@ void test() {
               ' (invoke-static "package:foo/bar.dart::@methods::foo"'
               ' () ((get-var "x^0" _)) ()))))'
               ''
-              ' ())',
+              ' ()'
+              ''
+              ' ()'
+              ''
+              ' ()',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
           makeDeserializationState: () => new DeserializationState(
@@ -483,13 +487,17 @@ void test() {
           name: 'class A{} A foo() => null;',
           node: library,
           expectation: ''
-              '(legacy "package:foo/bar.dart"'
+              '"package:foo/bar.dart" () ()'
               ''
               ' ((method (public "foo") ((static))'
               ' (sync) () () () () () () (interface "package:foo/bar.dart::A" ())'
               ' (ret (null))))'
               ''
-              ' ("A" () () () () _ _ () ()))',
+              ' ("A" () () () () _ _ () ())'
+              ''
+              ' ()'
+              ''
+              ' ()',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
           makeDeserializationState: () => new DeserializationState(

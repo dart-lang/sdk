@@ -517,6 +517,62 @@ class Tuple6<T1, T2, T3, T4, T5, T6> {
       this.first, this.second, this.third, this.fourth, this.fifth, this.sixth);
 }
 
+class Tuple7Serializer<T1, T2, T3, T4, T5, T6, T7>
+    extends TextSerializer<Tuple7<T1, T2, T3, T4, T5, T6, T7>> {
+  final TextSerializer<T1> first;
+  final TextSerializer<T2> second;
+  final TextSerializer<T3> third;
+  final TextSerializer<T4> fourth;
+  final TextSerializer<T5> fifth;
+  final TextSerializer<T6> sixth;
+  final TextSerializer<T7> seventh;
+
+  const Tuple7Serializer(this.first, this.second, this.third, this.fourth,
+      this.fifth, this.sixth, this.seventh);
+
+  Tuple7<T1, T2, T3, T4, T5, T6, T7> readFrom(
+      Iterator<Object> stream, DeserializationState state) {
+    return new Tuple7(
+        first.readFrom(stream, state),
+        second.readFrom(stream, state),
+        third.readFrom(stream, state),
+        fourth.readFrom(stream, state),
+        fifth.readFrom(stream, state),
+        sixth.readFrom(stream, state),
+        seventh.readFrom(stream, state));
+  }
+
+  void writeTo(StringBuffer buffer, Tuple7<T1, T2, T3, T4, T5, T6, T7> object,
+      SerializationState state) {
+    first.writeTo(buffer, object.first, state);
+    if (!second.isEmpty) buffer.write(' ');
+    second.writeTo(buffer, object.second, state);
+    if (!third.isEmpty) buffer.write(' ');
+    third.writeTo(buffer, object.third, state);
+    if (!fourth.isEmpty) buffer.write(' ');
+    fourth.writeTo(buffer, object.fourth, state);
+    if (!fifth.isEmpty) buffer.write(' ');
+    fifth.writeTo(buffer, object.fifth, state);
+    if (!sixth.isEmpty) buffer.write(' ');
+    sixth.writeTo(buffer, object.sixth, state);
+    if (!seventh.isEmpty) buffer.write(' ');
+    seventh.writeTo(buffer, object.seventh, state);
+  }
+}
+
+class Tuple7<T1, T2, T3, T4, T5, T6, T7> {
+  final T1 first;
+  final T2 second;
+  final T3 third;
+  final T4 fourth;
+  final T5 fifth;
+  final T6 sixth;
+  final T7 seventh;
+
+  const Tuple7(this.first, this.second, this.third, this.fourth, this.fifth,
+      this.sixth, this.seventh);
+}
+
 // A serializer/deserializer for lists.
 class ListSerializer<T> extends TextSerializer<List<T>> {
   final TextSerializer<T> elements;

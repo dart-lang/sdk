@@ -1471,7 +1471,7 @@ class Extension extends NamedNode implements FileUriNode {
       {this.name,
       List<TypeParameter> typeParameters,
       this.onType,
-      List<Reference> members,
+      List<ExtensionMemberDescriptor> members,
       this.fileUri,
       Reference reference})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],

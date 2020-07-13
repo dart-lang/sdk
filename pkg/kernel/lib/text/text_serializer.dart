@@ -20,25 +20,13 @@ class NameTagger implements Tagger<Name> {
   String tag(Name name) => name.isPrivate ? "private" : "public";
 }
 
-const TextSerializer<Name> publicName =
-    const Wrapped(unwrapPublicName, wrapPublicName, const DartString());
+TextSerializer<Name> publicName =
+    Wrapped((w) => w.name, (u) => Name(u), const DartString());
 
-String unwrapPublicName(Name name) => name.name;
-
-Name wrapPublicName(String name) => new Name(name);
-
-const TextSerializer<Name> privateName = const Wrapped(unwrapPrivateName,
-    wrapPrivateName, Tuple2Serializer(const DartString(), const DartString()));
-
-Tuple2<String, String> unwrapPrivateName(Name name) {
-  return new Tuple2(name.library.importUri.toString(), name.name);
-}
-
-Name wrapPrivateName(Tuple2<String, String> tuple) {
-  // We need a map from import URI to libraries.  More generally, we will need
-  // a way to map any 'named' node to the node's reference.
-  throw UnimplementedError('Deserialization of private names.');
-}
+TextSerializer<Name> privateName = Wrapped(
+    (w) => Tuple2(w.name, w.library.canonicalName),
+    (u) => Name.byReference(u.first, u.second.getReference()),
+    Tuple2Serializer(DartString(), CanonicalNameSerializer()));
 
 TextSerializer<Name> nameSerializer = new Case(
     const NameTagger(), {"public": publicName, "private": privateName});
@@ -1519,6 +1507,32 @@ TextSerializer<int> constructorFlagsSerializer = Wrapped(
             key: (e) => e.value,
             value: (e) => Wrapped((_) => null, (_) => e.key, Nothing())))));
 
+const Map<int, String> redirectingFactoryConstructorFlagToName = const {
+  RedirectingFactoryConstructor.FlagConst: "const",
+  RedirectingFactoryConstructor.FlagExternal: "external",
+  RedirectingFactoryConstructor.FlagNonNullableByDefault:
+      "non-nullable-by-default",
+};
+
+class RedirectingFactoryConstructorFlagTagger implements Tagger<int> {
+  const RedirectingFactoryConstructorFlagTagger();
+
+  String tag(int flag) {
+    return redirectingFactoryConstructorFlagToName[flag] ??
+        (throw StateError(
+            "Unknown RedirectingFactoryConstructor flag value: ${flag}."));
+  }
+}
+
+TextSerializer<int> redirectingFactoryConstructorFlagsSerializer = Wrapped(
+    (w) => List.generate(30, (i) => w & (1 << i)).where((f) => f != 0).toList(),
+    (u) => u.fold(0, (fs, f) => fs |= f),
+    ListSerializer(Case(
+        RedirectingFactoryConstructorFlagTagger(),
+        Map.fromIterable(redirectingFactoryConstructorFlagToName.entries,
+            key: (e) => e.value,
+            value: (e) => Wrapped((_) => null, (_) => e.key, Nothing())))));
+
 class MemberTagger implements Tagger<Member> {
   const MemberTagger();
 
@@ -1527,6 +1541,8 @@ class MemberTagger implements Tagger<Member> {
       return "field";
     } else if (node is Constructor) {
       return "constructor";
+    } else if (node is RedirectingFactoryConstructor) {
+      return "redirecting-factory-constructor";
     } else if (node is Procedure) {
       switch (node.kind) {
         case ProcedureKind.Method:
@@ -1593,7 +1609,50 @@ TextSerializer<Constructor> constructorSerializer = Wrapped(
     Tuple4Serializer(nameSerializer, constructorFlagsSerializer,
         ListSerializer(initializerSerializer), functionNodeSerializer));
 
+TextSerializer<RedirectingFactoryConstructor>
+    redirectingFactoryConstructorSerializer = Wrapped(
+        (w) => Tuple4(
+            w.name,
+            w.flags,
+            w.targetReference.canonicalName,
+            Tuple2(
+                w.typeParameters,
+                Tuple4(
+                    w.positionalParameters
+                        .take(w.requiredParameterCount)
+                        .toList(),
+                    w.positionalParameters
+                        .skip(w.requiredParameterCount)
+                        .toList(),
+                    w.namedParameters,
+                    w.typeArguments))),
+        (u) => RedirectingFactoryConstructor(u.third,
+            name: u.first,
+            typeParameters: u.fourth.first,
+            positionalParameters:
+                u.fourth.second.first + u.fourth.second.second,
+            requiredParameterCount: u.fourth.second.first.length,
+            namedParameters: u.fourth.second.third,
+            typeArguments: u.fourth.second.fourth)
+          ..flags = u.second,
+        Tuple4Serializer(
+            nameSerializer,
+            redirectingFactoryConstructorFlagsSerializer,
+            CanonicalNameSerializer(),
+            Bind(
+                typeParametersSerializer,
+                Tuple4Serializer(
+                    ListSerializer(variableDeclarationSerializer),
+                    ListSerializer(variableDeclarationSerializer),
+                    ListSerializer(variableDeclarationSerializer),
+                    ListSerializer(dartTypeSerializer)))));
+
 Case<Member> memberSerializer = new Case.uninitialized(const MemberTagger());
+
+TextSerializer<LibraryPart> libraryPartSerializer = Wrapped(
+    (w) => Tuple2(w.partUri, w.annotations),
+    (u) => LibraryPart(u.second, u.first),
+    Tuple2Serializer(DartString(), ListSerializer(expressionSerializer)));
 
 class LibraryTagger implements Tagger<Library> {
   const LibraryTagger();
@@ -1603,18 +1662,57 @@ class LibraryTagger implements Tagger<Library> {
   }
 }
 
-TextSerializer<Library> libraryContentsSerializer = new Wrapped(
-  (w) => Tuple3(w.importUri, [...w.fields, ...w.procedures], w.classes),
+const Map<int, String> libraryFlagToName = const {
+  Library.SyntheticFlag: "synthetic",
+  Library.NonNullableByDefaultFlag: "nnbd",
+  Library.NonNullableByDefaultModeBit1Weak: "nnbd-weak",
+  Library.NonNullableByDefaultModeBit2Strong: "nnbd-strong",
+};
+
+class LibraryFlagTagger implements Tagger<int> {
+  const LibraryFlagTagger();
+
+  String tag(int flag) {
+    return libraryFlagToName[flag] ??
+        (throw StateError("Unknown Library flag value: ${flag}."));
+  }
+}
+
+TextSerializer<int> libraryFlagsSerializer = Wrapped(
+    (w) => List.generate(30, (i) => w & (1 << i)).where((f) => f != 0).toList(),
+    (u) => u.fold(0, (fs, f) => fs |= f),
+    ListSerializer(Case(
+        LibraryFlagTagger(),
+        Map.fromIterable(libraryFlagToName.entries,
+            key: (e) => e.value,
+            value: (e) => Wrapped((_) => null, (_) => e.key, Nothing())))));
+
+TextSerializer<Library> librarySerializer = new Wrapped(
+  (w) => Tuple7(w.importUri, w.flags, w.parts, [...w.fields, ...w.procedures],
+      w.classes, w.typedefs, w.extensions),
   (u) => Library(u.first,
-      fields: u.second.where((m) => m is Field).cast<Field>().toList(),
+      parts: u.third,
+      fields: u.fourth.where((m) => m is Field).cast<Field>().toList(),
       procedures:
-          u.second.where((m) => m is Procedure).cast<Procedure>().toList(),
-      classes: u.third),
-  Tuple3Serializer(const UriSerializer(), ListSerializer(memberSerializer),
-      ListSerializer(classSerializer)),
+          u.fourth.where((m) => m is Procedure).cast<Procedure>().toList(),
+      classes: u.fifth,
+      typedefs: u.sixth,
+      extensions: u.seventh)
+    ..flags = u.second,
+  Tuple7Serializer(
+      UriSerializer(),
+      libraryFlagsSerializer,
+      ListSerializer(libraryPartSerializer),
+      ListSerializer(memberSerializer),
+      ListSerializer(classSerializer),
+      ListSerializer(typedefSerializer),
+      ListSerializer(extensionSerializer)),
 );
 
-Case<Library> librarySerializer = new Case.uninitialized(const LibraryTagger());
+TextSerializer<Component> componentSerializer = Wrapped(
+    (w) => w.libraries,
+    (u) => Component(nameRoot: CanonicalName.root(), libraries: u),
+    ListSerializer(librarySerializer));
 
 class ShowHideTagger implements Tagger<Combinator> {
   String tag(Combinator node) => node.isShow ? "show" : "hide";
@@ -1870,6 +1968,85 @@ TextSerializer<Class> classSerializer = Wrapped(
                 ListSerializer(supertypeSerializer),
                 ListSerializer(memberSerializer)))));
 
+TextSerializer<Typedef> typedefSerializer = Wrapped(
+    (w) => Tuple2(w.name, Tuple2(w.typeParameters, w.type)),
+    (u) => Typedef(u.first, u.second.second, typeParameters: u.second.first),
+    Tuple2Serializer(
+        DartString(), Bind(typeParametersSerializer, dartTypeSerializer)));
+
+const Map<int, String> extensionMemberDescriptorFlagToName = const {
+  ExtensionMemberDescriptor.FlagStatic: "static",
+};
+
+class ExtensionMemberDescriptorFlagTagger implements Tagger<int> {
+  const ExtensionMemberDescriptorFlagTagger();
+
+  String tag(int flag) {
+    return extensionMemberDescriptorFlagToName[flag] ??
+        (throw StateError(
+            "Unknown ExtensionMemberDescriptor flag value: ${flag}."));
+  }
+}
+
+TextSerializer<int> extensionMemberDescriptorFlagsSerializer = Wrapped(
+    (w) => List.generate(30, (i) => w & (1 << i)).where((f) => f != 0).toList(),
+    (u) => u.fold(0, (fs, f) => fs |= f),
+    ListSerializer(Case(
+        ExtensionMemberDescriptorFlagTagger(),
+        Map.fromIterable(extensionMemberDescriptorFlagToName.entries,
+            key: (e) => e.value,
+            value: (e) => Wrapped((_) => null, (_) => e.key, Nothing())))));
+
+const Map<ExtensionMemberKind, String> extensionMemberKindToName = const {
+  ExtensionMemberKind.Field: "field",
+  ExtensionMemberKind.Method: "method",
+  ExtensionMemberKind.Getter: "getter",
+  ExtensionMemberKind.Setter: "setter",
+  ExtensionMemberKind.Operator: "operator",
+  ExtensionMemberKind.TearOff: "tearOff",
+};
+
+class ExtensionMemberKindTagger implements Tagger<ExtensionMemberKind> {
+  const ExtensionMemberKindTagger();
+
+  String tag(ExtensionMemberKind kind) {
+    return extensionMemberKindToName[kind] ??
+        (throw StateError("Unknown ExtensionMemberKind flag value: ${kind}."));
+  }
+}
+
+TextSerializer<ExtensionMemberKind> extensionMemberKindSerializer = Case(
+    ExtensionMemberKindTagger(),
+    Map.fromIterable(extensionMemberKindToName.entries,
+        key: (e) => e.value,
+        value: (e) => Wrapped((_) => null, (_) => e.key, Nothing())));
+
+TextSerializer<ExtensionMemberDescriptor> extensionMemberDescriptorSerializer =
+    Wrapped(
+        (w) => Tuple4(w.name, w.kind, w.flags, w.member.canonicalName),
+        (u) => ExtensionMemberDescriptor()
+          ..name = u.first
+          ..kind = u.second
+          ..flags = u.third
+          ..member = u.fourth.getReference(),
+        Tuple4Serializer(
+            nameSerializer,
+            extensionMemberKindSerializer,
+            extensionMemberDescriptorFlagsSerializer,
+            CanonicalNameSerializer()));
+
+TextSerializer<Extension> extensionSerializer = Wrapped(
+    (w) => Tuple3(w.name, Tuple2(w.typeParameters, w.onType), w.members),
+    (u) => Extension(
+        name: u.first,
+        typeParameters: u.second.first,
+        onType: u.second.second,
+        members: u.third),
+    Tuple3Serializer(
+        DartString(),
+        Bind(typeParametersSerializer, dartTypeSerializer),
+        ListSerializer(extensionMemberDescriptorSerializer)));
+
 void initializeSerializers() {
   expressionSerializer.registerTags({
     "string": stringLiteralSerializer,
@@ -1973,10 +2150,7 @@ void initializeSerializers() {
     "operator": operatorSerializer,
     "factory": factorySerializer,
     "constructor": constructorSerializer,
-  });
-  librarySerializer.registerTags({
-    "legacy": libraryContentsSerializer,
-    "null-safe": libraryContentsSerializer,
+    "redirecting-factory-constructor": redirectingFactoryConstructorSerializer,
   });
   constantSerializer.registerTags({
     "const-bool": boolConstantSerializer,

@@ -1144,6 +1144,7 @@ tuple3
 tuple4
 tuple5
 tuple6
+tuple7
 type1
 type2
 typeref

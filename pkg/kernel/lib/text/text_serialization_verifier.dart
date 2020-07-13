@@ -29,9 +29,9 @@ abstract class RoundTripStatus implements Comparable<RoundTripStatus> {
   RoundTripStatus(this.node, {TreeNode context})
       : context = node is TreeNode && node.location != null ? node : context;
 
-  Uri get uri => context.location.file;
+  Uri get uri => context?.location?.file;
 
-  int get offset => context.fileOffset;
+  int get offset => context?.fileOffset;
 
   bool get isSuccess;
 
@@ -324,15 +324,7 @@ class VerificationState {
 
   static bool isSupported(Node node) => !isNotSupported(node);
 
-  static bool isNotSupported(Node node) =>
-      node is Component ||
-      node is Extension ||
-      node is Library ||
-      node is LibraryPart ||
-      node is MapEntry ||
-      node is Name && node.isPrivate ||
-      node is RedirectingFactoryConstructor ||
-      node is Typedef;
+  static bool isNotSupported(Node node) => false;
 }
 
 class TextSerializationVerifier extends RecursiveVisitor<void> {
@@ -483,6 +475,16 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
       makeRoundTrip<Supertype>(node, supertypeSerializer);
     } else if (node is Class) {
       makeRoundTrip<Class>(node, classSerializer);
+    } else if (node is Extension) {
+      makeRoundTrip<Extension>(node, extensionSerializer);
+    } else if (node is Typedef) {
+      makeRoundTrip<Typedef>(node, typedefSerializer);
+    } else if (node is LibraryPart) {
+      makeRoundTrip<LibraryPart>(node, libraryPartSerializer);
+    } else if (node is Library) {
+      makeRoundTrip<Library>(node, librarySerializer);
+    } else if (node is Component) {
+      makeRoundTrip<Component>(node, componentSerializer);
     } else {
       throw new StateError(
           "Don't know how to make a round trip for a supported node "
