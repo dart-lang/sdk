@@ -273,7 +273,10 @@ class FileResolver {
         var libraryFile = file.partOfLibrary ?? file;
 
         performance.run('libraryContext', (performance) {
-          libraryContext.load2(libraryFile);
+          libraryContext.load2(
+            targetLibrary: libraryFile,
+            performance: performance,
+          );
         });
 
         testView?.addResolvedFile(path);
@@ -546,23 +549,21 @@ class _LibraryContext {
   }
 
   /// Load data required to access elements of the given [targetLibrary].
-  void load2(FileState targetLibrary) {
+  void load2({
+    @required FileState targetLibrary,
+    @required OperationPerformanceImpl performance,
+  }) {
     var inputBundles = <LinkedNodeBundle>[];
 
-    var numCycles = 0;
-    var librariesTotal = 0;
-    var librariesLoaded = 0;
     var librariesLinked = 0;
     var librariesLinkedTimer = Stopwatch();
     var inputsTimer = Stopwatch();
-    var bytesGet = 0;
-    var bytesPut = 0;
 
     void loadBundle(LibraryCycle cycle) {
       if (!loadedBundles.add(cycle)) return;
 
-      numCycles++;
-      librariesTotal += cycle.libraries.length;
+      performance.getDataInt('cycleCount').increment();
+      performance.getDataInt('libraryCount').add(cycle.libraries.length);
 
       cycle.directDependencies.forEach(loadBundle);
 
@@ -582,10 +583,16 @@ class _LibraryContext {
           var partIndex = -1;
           for (var file in libraryFile.libraryFiles) {
             var isSynthetic = !file.exists;
+
             var content = '';
             try {
-              content = resourceProvider.getFile(file.path).readAsStringSync();
+              var resource = resourceProvider.getFile(file.path);
+              content = resource.readAsStringSync();
             } catch (_) {}
+
+            performance.getDataInt('parseCount').increment();
+            performance.getDataInt('parseLength').add(content.length);
+
             var unit = file.parse(
               AnalysisErrorListener.NULL_LISTENER,
               content,
@@ -619,13 +626,12 @@ class _LibraryContext {
         bytes = serializeBundle(cycle.signature, linkResult).toBuffer();
 
         byteStore.put(key, cycle.signature, bytes);
-        bytesPut += bytes.length;
+        performance.getDataInt('bytesPut').add(bytes.length);
 
         librariesLinkedTimer.stop();
       } else {
-        // TODO(scheglov) Take / clear parsed units in files.
-        bytesGet += bytes.length;
-        librariesLoaded += cycle.libraries.length;
+        performance.getDataInt('bytesGet').add(bytes.length);
+        performance.getDataInt('libraryLoadCount').add(cycle.libraries.length);
       }
 
       // We are about to load dart:core, but if we have just linked it, the
@@ -657,13 +663,9 @@ class _LibraryContext {
       var libraryCycle = targetLibrary.libraryCycle;
       loadBundle(libraryCycle);
       logger.writeln(
-        '[numCycles: $numCycles]'
-        '[librariesTotal: $librariesTotal]'
-        '[librariesLoaded: $librariesLoaded]'
         '[inputsTimer: ${inputsTimer.elapsedMilliseconds} ms]'
         '[librariesLinked: $librariesLinked]'
-        '[librariesLinkedTimer: ${librariesLinkedTimer.elapsedMilliseconds} ms]'
-        '[bytesGet: $bytesGet][bytesPut: $bytesPut]',
+        '[librariesLinkedTimer: ${librariesLinkedTimer.elapsedMilliseconds} ms]',
       );
     });
 

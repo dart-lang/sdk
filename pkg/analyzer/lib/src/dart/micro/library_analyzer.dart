@@ -118,7 +118,10 @@ class LibraryAnalyzer {
     performance.run('parse', (performance) {
       for (FileState file in _library.libraryFiles) {
         if (completionPath == null || file.path == completionPath) {
-          units[file] = _parse(file);
+          units[file] = _parse(
+            file: file,
+            performance: performance,
+          );
         }
       }
     });
@@ -514,10 +517,16 @@ class LibraryAnalyzer {
   }
 
   /// Return a  parsed unresolved [CompilationUnit].
-  CompilationUnit _parse(FileState file) {
-    AnalysisErrorListener errorListener = _getErrorListener(file);
+  CompilationUnit _parse({
+    @required FileState file,
+    @required OperationPerformanceImpl performance,
+  }) {
     String content = _getFileContent(file.path);
 
+    performance.getDataInt('count').increment();
+    performance.getDataInt('length').add(content.length);
+
+    AnalysisErrorListener errorListener = _getErrorListener(file);
     CompilationUnit unit = file.parse(errorListener, content);
 
     LineInfo lineInfo = unit.lineInfo;

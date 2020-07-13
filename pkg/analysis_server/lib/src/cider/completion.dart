@@ -109,6 +109,7 @@ class CiderCompletionComputer {
             );
           });
 
+          performance.getDataInt('count').add(result.length);
           return result;
         },
       );
@@ -139,7 +140,9 @@ class CiderCompletionComputer {
 
       performance.run('filter', (performance) {
         _logger.run('Filter suggestions', () {
+          performance.getDataInt('count').add(suggestions.length);
           suggestions = filter.perform();
+          performance.getDataInt('matchCount').add(suggestions.length);
         });
       });
 
@@ -195,6 +198,7 @@ class CiderCompletionComputer {
       );
       suggestions.addAll(importedSuggestions);
     }
+    performance.getDataInt('count').add(suggestions.length);
     return suggestions;
   }
 
