@@ -10,7 +10,7 @@ import 'dart:math' as math;
 
 import 'package:vm_snapshot_analysis/name.dart';
 import 'package:vm_snapshot_analysis/program_info.dart';
-import 'package:vm_snapshot_analysis/utils.dart';
+import 'package:vm_snapshot_analysis/src/config_specific/file.dart';
 
 /// Build [CallGraph] based on the trace written by `--trace-precompiler-to`
 /// flag.

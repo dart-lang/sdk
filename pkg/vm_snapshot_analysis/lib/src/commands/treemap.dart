@@ -18,8 +18,8 @@ import 'dart:isolate';
 import 'package:path/path.dart' as p;
 import 'package:args/command_runner.dart';
 
+import 'package:vm_snapshot_analysis/src/config_specific/file.dart';
 import 'package:vm_snapshot_analysis/treemap.dart';
-import 'package:vm_snapshot_analysis/utils.dart';
 
 class TreemapCommand extends Command<void> {
   @override

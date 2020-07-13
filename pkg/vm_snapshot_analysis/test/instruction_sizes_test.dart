@@ -9,6 +9,7 @@ import 'package:test/test.dart';
 import 'package:vm_snapshot_analysis/instruction_sizes.dart'
     as instruction_sizes;
 import 'package:vm_snapshot_analysis/program_info.dart';
+import 'package:vm_snapshot_analysis/src/config_specific/file.dart';
 import 'package:vm_snapshot_analysis/utils.dart';
 
 import 'utils.dart';
