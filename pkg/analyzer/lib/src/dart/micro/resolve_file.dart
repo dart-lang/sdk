@@ -218,8 +218,11 @@ class FileResolver {
     @required OperationPerformanceImpl performance,
   }) {
     return performance.run('fileContext', (performance) {
-      var analysisOptions = performance.run('analysisOptions', (_) {
-        return _getAnalysisOptions(path);
+      var analysisOptions = performance.run('analysisOptions', (performance) {
+        return _getAnalysisOptions(
+          path: path,
+          performance: performance,
+        );
       });
 
       performance.run('createContext', (_) {
@@ -419,45 +422,62 @@ class FileResolver {
   /// default options, if the file exists.
   ///
   /// Otherwise, return the default options.
-  AnalysisOptionsImpl _getAnalysisOptions(String path) {
+  AnalysisOptionsImpl _getAnalysisOptions({
+    @required String path,
+    @required OperationPerformanceImpl performance,
+  }) {
     YamlMap optionMap;
-    var folder = resourceProvider.getFile(path).parent;
-    var optionsFile = _findOptionsFile(folder);
-    if (optionsFile != null) {
-      try {
-        var optionsProvider = AnalysisOptionsProvider(sourceFactory);
-        optionMap = optionsProvider.getOptionsFromFile(optionsFile);
-      } catch (e) {
-        // ignored
-      }
-    } else {
-      Source source;
-      if (workspace is WorkspaceWithDefaultAnalysisOptions) {
-        var separator = resourceProvider.pathContext.separator;
-        if (path
-            .contains('${separator}third_party${separator}dart$separator')) {
-          source = sourceFactory
-              .forUri(WorkspaceWithDefaultAnalysisOptions.thirdPartyUri);
-        } else {
-          source =
-              sourceFactory.forUri(WorkspaceWithDefaultAnalysisOptions.uri);
-        }
-      }
 
-      if (source != null && source.exists()) {
+    var optionsFile = performance.run('findOptionsFile', (_) {
+      var folder = resourceProvider.getFile(path).parent;
+      return _findOptionsFile(folder);
+    });
+
+    if (optionsFile != null) {
+      performance.run('getOptionsFromFile', (_) {
         try {
           var optionsProvider = AnalysisOptionsProvider(sourceFactory);
-          optionMap = optionsProvider.getOptionsFromSource(source);
+          optionMap = optionsProvider.getOptionsFromFile(optionsFile);
         } catch (e) {
           // ignored
         }
+      });
+    } else {
+      var source = performance.run('defaultOptions', (_) {
+        if (workspace is WorkspaceWithDefaultAnalysisOptions) {
+          var separator = resourceProvider.pathContext.separator;
+          if (path
+              .contains('${separator}third_party${separator}dart$separator')) {
+            return sourceFactory.forUri(
+              WorkspaceWithDefaultAnalysisOptions.thirdPartyUri,
+            );
+          } else {
+            return sourceFactory.forUri(
+              WorkspaceWithDefaultAnalysisOptions.uri,
+            );
+          }
+        }
+        return null;
+      });
+
+      if (source != null && source.exists()) {
+        performance.run('getOptionsFromFile', (_) {
+          try {
+            var optionsProvider = AnalysisOptionsProvider(sourceFactory);
+            optionMap = optionsProvider.getOptionsFromSource(source);
+          } catch (e) {
+            // ignored
+          }
+        });
       }
     }
 
     var options = AnalysisOptionsImpl();
 
     if (optionMap != null) {
-      applyToAnalysisOptions(options, optionMap);
+      performance.run('applyToAnalysisOptions', (_) {
+        applyToAnalysisOptions(options, optionMap);
+      });
     }
 
     return options;
