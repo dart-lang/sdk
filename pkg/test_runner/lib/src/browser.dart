@@ -233,7 +233,6 @@ requirejs(["$testName", "dart_sdk", "async_helper"],
   };
 
   if ($isNnbd) {
-    sdk.dart.nullSafety($isNnbdStrong);
     sdk.dart.weakNullSafetyWarnings(!$isNnbdStrong);
     sdk.dart.nonNullAsserts($nonNullAsserts);
   }

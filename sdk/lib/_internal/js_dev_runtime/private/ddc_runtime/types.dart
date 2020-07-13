@@ -5,31 +5,16 @@
 /// This library defines the representation of runtime types.
 part of dart._runtime;
 
+/// Returns the state of [flag] that is determined at compile time.
+///
+/// The constant value itself is inlined by the compiler in place of the call
+/// to this method.
+@notNull
+external bool compileTimeFlag(String flag);
+
 _throwNullSafetyWarningError() => throw UnsupportedError(
     'Null safety errors cannot be shown as warnings when running with sound '
     'null safety.');
-
-@notNull
-bool _setNullSafety = false;
-
-@notNull
-bool strictNullSafety = false;
-
-/// Sets the mode of the runtime subtype checks.
-///
-/// Changing the mode after the application has started running is not
-/// supported.
-void nullSafety(bool soundNullSafety) {
-  if (_setNullSafety) {
-    throw UnsupportedError('The Null Safety mode can only be set once.');
-  }
-
-  if (soundNullSafety && _weakNullSafetyWarnings)
-    _throwNullSafetyWarningError();
-
-  strictNullSafety = soundNullSafety;
-  _setNullSafety = true;
-}
 
 @notNull
 bool _weakNullSafetyWarnings = false;
@@ -40,7 +25,9 @@ bool _weakNullSafetyWarnings = false;
 /// is enabled. Showing warnings while running with sound null safety is not
 /// supported (they will be errors).
 void weakNullSafetyWarnings(bool showWarnings) {
-  if (showWarnings && strictNullSafety) _throwNullSafetyWarningError();
+  if (showWarnings && compileTimeFlag('soundNullSafety')) {
+    _throwNullSafetyWarningError();
+  }
 
   _weakNullSafetyWarnings = showWarnings;
 }
@@ -910,7 +897,7 @@ class GenericFunctionTypeIdentifier extends AbstractFunctionType {
       var bound = typeBounds[i];
       if (_equalType(bound, dynamic) ||
           JS<bool>('!', '# === #', bound, nullable(unwrapType(Object))) ||
-          (!strictNullSafety && _equalType(bound, Object))) {
+          (!compileTimeFlag('soundNullSafety') && _equalType(bound, Object))) {
         // Do not print the bound when it is a top type. In weak mode the bounds
         // of Object and Object* will also be elided.
         continue;
@@ -1009,7 +996,8 @@ class GenericFunctionType extends AbstractFunctionType {
       // difference is rare.
       if (_equalType(type, dynamic)) return true;
       if (_jsInstanceOf(type, NullableType) ||
-          (!strictNullSafety && _jsInstanceOf(type, LegacyType))) {
+          (!compileTimeFlag('soundNullSafety') &&
+              _jsInstanceOf(type, LegacyType))) {
         return _equalType(JS('!', '#.type', type), Object);
       }
       return false;
@@ -1301,7 +1289,7 @@ bool isSubtypeOf(@notNull Object t1, @notNull Object t2) {
   if (JS('!', '# !== void 0', result)) return result;
 
   var validSubtype = _isSubtype(t1, t2, true);
-  if (!validSubtype && !strictNullSafety) {
+  if (!validSubtype && !compileTimeFlag('soundNullSafety')) {
     validSubtype = _isSubtype(t1, t2, false);
     if (validSubtype) {
       // TODO(nshahan) Need more information to be helpful here.
@@ -1757,7 +1745,7 @@ class _TypeInferrer {
     var supertypeRequiredNamed = supertype.getRequiredNamedParameters();
     var subtypeNamed = supertype.getNamedParameters();
     var subtypeRequiredNamed = supertype.getRequiredNamedParameters();
-    if (!strictNullSafety) {
+    if (!compileTimeFlag('soundNullSafety')) {
       // In weak mode, treat required named params as optional named params.
       supertypeNamed = {...supertypeNamed, ...supertypeRequiredNamed};
       subtypeNamed = {...subtypeNamed, ...subtypeRequiredNamed};

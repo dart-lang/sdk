@@ -276,7 +276,6 @@ void main(List<String> args) async {
         function(sdk, app) {
     'use strict';
     if ($nnbd) {
-      sdk.dart.nullSafety($soundNullSafety);
       sdk.dart.weakNullSafetyWarnings(!$soundNullSafety);
       sdk.dart.nonNullAsserts($nonNullAsserts);
     }
@@ -310,7 +309,6 @@ let sdk = require(\"dart_sdk\");
 let main = require(\"./$basename\").$libname.main;
 try {
   if ($nnbd) {
-    sdk.dart.nullSafety($soundNullSafety);
     sdk.dart.weakNullSafetyWarnings(!$soundNullSafety);
     sdk.dart.nonNullAsserts($nonNullAsserts);
   }
@@ -345,7 +343,6 @@ import { $libname } from '$basename.js';
 let main = $libname.main;
 try {
   if ($nnbd) {
-    dart.nullSafety($soundNullSafety);
     dart.weakNullSafetyWarnings(!$soundNullSafety);
     dart.nonNullAsserts($nonNullAsserts);
   }

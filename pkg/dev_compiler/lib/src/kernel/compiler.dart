@@ -4849,6 +4849,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         if (name == 'extensionSymbol' && firstArg is StringLiteral) {
           return getExtensionSymbolInternal(firstArg.value);
         }
+
+        if (name == 'compileTimeFlag' && firstArg is StringLiteral) {
+          var flagName = firstArg.value;
+          if (flagName == 'soundNullSafety') {
+            return js.boolean(_options.soundNullSafety);
+          }
+          throw UnsupportedError('Invalid flag in call to $name: $flagName');
+        }
       } else if (node.arguments.positional.length == 2) {
         var firstArg = node.arguments.positional[0];
         var secondArg = node.arguments.positional[1];

@@ -185,7 +185,7 @@ String? _argumentErrors(FunctionType type, List actuals, namedActuals) {
     if (missingRequired.isNotEmpty) {
       var error = "Dynamic call with missing required named arguments: "
           "${missingRequired.join(', ')}.";
-      if (!strictNullSafety) {
+      if (!compileTimeFlag('soundNullSafety')) {
         _nullWarn(error);
       } else {
         return error;
@@ -430,7 +430,7 @@ bool instanceOf(obj, type) {
 cast(obj, type) {
   // We hoist the common case where null is checked against another type here
   // for better performance.
-  if (obj == null && !strictNullSafety) {
+  if (obj == null && !compileTimeFlag('soundNullSafety')) {
     // Check the null comparison cache to avoid emitting repeated warnings.
     _nullWarnOnType(type);
     return obj;
@@ -450,7 +450,9 @@ bool test(bool? obj) {
 bool dtest(obj) {
   // Only throw an AssertionError in weak mode for compatibility. Strong mode
   // should throw a TypeError.
-  if (obj is! bool) booleanConversionFailed(strictNullSafety ? obj : test(obj));
+  if (obj is! bool)
+    booleanConversionFailed(
+        compileTimeFlag('soundNullSafety') ? obj : test(obj));
   return obj;
 }
 
@@ -462,7 +464,7 @@ void booleanConversionFailed(obj) {
 asInt(obj) {
   // Note: null (and undefined) will fail this test.
   if (JS('!', 'Math.floor(#) != #', obj, obj)) {
-    if (obj == null && !strictNullSafety) {
+    if (obj == null && !compileTimeFlag('soundNullSafety')) {
       _nullWarnOnType(JS('', '#', int));
       return null;
     } else {
@@ -498,7 +500,7 @@ _notNull(x) {
 /// variants of the same type.
 nullCast(x, type) {
   if (x == null) {
-    if (!strictNullSafety) {
+    if (!compileTimeFlag('soundNullSafety')) {
       _nullWarnOnType(type);
     } else {
       castError(x, type);
