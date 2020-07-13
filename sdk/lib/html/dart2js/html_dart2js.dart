@@ -11722,6 +11722,10 @@ class _ChildrenElementList extends ListBase<Element>
   Iterator<Element> get iterator => toList().iterator;
 
   void addAll(Iterable<Element> iterable) {
+    _addAll(_element, iterable);
+  }
+
+  static void _addAll(Element _element, Iterable<Element> iterable) {
     if (iterable is _ChildNodeListLazy) {
       iterable = new List.from(iterable);
     }
@@ -11775,6 +11779,10 @@ class _ChildrenElementList extends ListBase<Element>
   }
 
   bool remove(Object? object) {
+    return _remove(_element, object);
+  }
+
+  static bool _remove(Element _element, Object? object) {
     if (object is Element) {
       Element element = object;
       if (identical(element.parentNode, _element)) {
@@ -11823,7 +11831,10 @@ class _ChildrenElementList extends ListBase<Element>
     return result;
   }
 
-  Element get first {
+  Element get first => _first(_element);
+
+  @pragma('dart2js:noInline')
+  static Element _first(Element _element) {
     Element? result = _element._firstElementChild;
     if (result == null) throw new StateError("No elements");
     return result;
@@ -12964,6 +12975,16 @@ class Element extends Node
    *     }
    */
   List<Element> get children => new _ChildrenElementList._wrap(this);
+
+  List<Node> get _children =>
+      // Element.children always returns the same list-like object which is a
+      // live view on the underlying DOM tree. So we can GVN it and remove it if
+      // unused.
+      JS(
+          'returns:HtmlCollection;creates:HtmlCollection;'
+              'depends:none;effects:none;gvn:true',
+          '#.children',
+          this);
 
   set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
@@ -14823,11 +14844,6 @@ class Element extends Node
 
   @JSName('childElementCount')
   int get _childElementCount native;
-
-  @JSName('children')
-  @Returns('HtmlCollection')
-  @Creates('HtmlCollection')
-  List<Node> get _children native;
 
   @JSName('firstElementChild')
   Element? get _firstElementChild native;
