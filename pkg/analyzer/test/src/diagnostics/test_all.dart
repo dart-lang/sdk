@@ -73,8 +73,12 @@ import 'const_eval_throws_exception_test.dart' as const_eval_throws_exception;
 import 'const_eval_type_bool_num_string_test.dart'
     as const_eval_type_bool_num_string;
 import 'const_eval_type_bool_test.dart' as const_eval_type_bool;
+import 'const_formal_parameter_test.dart' as const_formal_parameter;
+import 'const_initialized_with_non_constant_value_from_deferred_library_test.dart'
+    as const_initialized_with_non_constant_value_from_deferred_library;
 import 'const_initialized_with_non_constant_value_test.dart'
     as const_initialized_with_non_constant_value;
+import 'const_instance_field_test.dart' as const_instance_field;
 import 'const_map_key_expression_type_implements_equals_test.dart'
     as const_map_key_expression_type_implements_equals;
 import 'const_not_initialized_test.dart' as const_not_initialized;
@@ -83,6 +87,7 @@ import 'const_set_element_type_implements_equals_test.dart'
 import 'const_spread_expected_list_or_set_test.dart'
     as const_spread_expected_list_or_set;
 import 'const_spread_expected_map_test.dart' as const_spread_expected_map;
+import 'const_with_non_const_test.dart' as const_with_non_const;
 import 'dead_code_test.dart' as dead_code;
 import 'dead_null_aware_expression_test.dart' as dead_null_aware_expression;
 import 'default_list_constructor_test.dart' as default_list_constructor;
@@ -617,12 +622,16 @@ main() {
     const_eval_throws_exception.main();
     const_eval_type_bool_num_string.main();
     const_eval_type_bool.main();
+    const_formal_parameter.main();
+    const_initialized_with_non_constant_value_from_deferred_library.main();
     const_initialized_with_non_constant_value.main();
+    const_instance_field.main();
     const_map_key_expression_type_implements_equals.main();
     const_not_initialized.main();
     const_set_element_type_implements_equals.main();
     const_spread_expected_list_or_set.main();
     const_spread_expected_map.main();
+    const_with_non_const.main();
     dead_code.main();
     dead_null_aware_expression.main();
     default_list_constructor.main();
