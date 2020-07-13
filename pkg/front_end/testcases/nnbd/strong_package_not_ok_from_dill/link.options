@@ -1,0 +1,5 @@
+package:opt_in_package/opt_in_lib.dart
+package:opt_in_package/opt_out_lib.dart
+package:opt_out_package/regular_lib1.dart
+package:opt_out_package/regular_lib2.dart
+--nnbd-weak

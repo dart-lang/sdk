@@ -7873,6 +7873,46 @@ const MessageCode messageStrongModeNNBDButOptOut = const MessageCode(
         r"""A library can't opt out of null safety by default, when using sound null safety.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        List<String>
+            _names)> templateStrongModeNNBDPackageOptOut = const Template<
+        Message Function(List<String> _names)>(
+    messageTemplate:
+        r"""Cannot run with sound null safety as one or more dependencies do not
+support null safety:
+
+#names
+
+Run 'pub outdated --mode=null-safety' to determine if versions of your
+dependencies supporting null safety are available.""",
+    withArguments: _withArgumentsStrongModeNNBDPackageOptOut);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(List<String> _names)>
+    codeStrongModeNNBDPackageOptOut =
+    const Code<Message Function(List<String> _names)>(
+  "StrongModeNNBDPackageOptOut",
+  templateStrongModeNNBDPackageOptOut,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsStrongModeNNBDPackageOptOut(List<String> _names) {
+  if (_names.isEmpty) throw 'No names provided';
+  String names = itemizeNames(_names);
+  return new Message(codeStrongModeNNBDPackageOptOut,
+      message:
+          """Cannot run with sound null safety as one or more dependencies do not
+support null safety:
+
+${names}
+
+Run 'pub outdated --mode=null-safety' to determine if versions of your
+dependencies supporting null safety are available.""",
+      arguments: {'names': _names});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperAsExpression = messageSuperAsExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

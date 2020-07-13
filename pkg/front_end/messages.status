@@ -5,9 +5,6 @@
 # Note that test/spelling: Status will have no effect. Spelling errors can
 # always be fixed by either spelling correctly or updating the dictionary.
 
-StrongModeNNBDButOptOut/analyzerCode: Fail
-StrongModeNNBDButOptOut/example: Fail
-
 AbstractClassInstantiation/example: Fail
 AbstractClassMember/part_wrapped_script5: Fail
 AbstractClassMember/part_wrapped_script6: Fail
@@ -638,6 +635,10 @@ SourceOutlineSummary/example: Fail
 SpreadMapEntryTypeMismatch/analyzerCode: Fail # There's no analyzer code for that error yet.
 SpreadTypeMismatch/analyzerCode: Fail # There's no analyzer code for that error yet.
 StackOverflow/example: Fail
+StrongModeNNBDButOptOut/analyzerCode: Fail
+StrongModeNNBDButOptOut/example: Fail
+StrongModeNNBDPackageOptOut/analyzerCode: Fail
+StrongModeNNBDPackageOptOut/example: Fail
 SuperAsExpression/example: Fail
 SuperAsIdentifier/example: Fail
 SuperclassHasNoDefaultConstructor/example: Fail

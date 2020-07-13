@@ -97,7 +97,6 @@ import '../messages.dart'
         messageConstConstructorNonFinalField,
         messageConstConstructorNonFinalFieldCause,
         messageConstConstructorRedirectionToNonConst,
-        messageStrongModeNNBDButOptOut,
         noLength,
         templateFieldNonNullableNotInitializedByConstructorError,
         templateFieldNonNullableWithoutInitializerError,
@@ -255,7 +254,7 @@ class KernelTarget extends TargetImplementation {
         if (loader.nnbdMode == NnbdMode.Strong ||
             loader.nnbdMode == NnbdMode.Agnostic) {
           if (!builder.isNonNullableByDefault) {
-            loader.addProblem(messageStrongModeNNBDButOptOut, -1, 1, fileUri);
+            loader.registerStrongOptOutLibrary(builder);
           }
         }
         return builder;

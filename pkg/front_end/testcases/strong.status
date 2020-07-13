@@ -177,6 +177,7 @@ nnbd/nullable_object_access: TypeCheckError
 nnbd/nullable_receiver: TypeCheckError
 nnbd/potentially_nullable_access: TypeCheckError
 nnbd/strong_lib_not_ok_from_dill/strong: RuntimeError
+nnbd/strong_package_not_ok_from_dill/strong: RuntimeError
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError

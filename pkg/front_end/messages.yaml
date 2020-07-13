@@ -1188,6 +1188,16 @@ Unspecified:
 StrongModeNNBDButOptOut:
   template: "A library can't opt out of null safety by default, when using sound null safety."
 
+StrongModeNNBDPackageOptOut:
+  template:  |
+    Cannot run with sound null safety as one or more dependencies do not
+    support null safety:
+
+    #names
+
+    Run 'pub outdated --mode=null-safety' to determine if versions of your
+    dependencies supporting null safety are available.
+
 AbstractNotSync:
   template: "Abstract methods can't use 'async', 'async*', or 'sync*'."
   analyzerCode: NON_SYNC_ABSTRACT_METHOD

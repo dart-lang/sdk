@@ -460,8 +460,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // In strong and agnostic mode, the language version is not allowed to
       // opt a library out of nnbd.
       if (!isNonNullableByDefault) {
-        addPostponedProblem(messageStrongModeNNBDButOptOut,
-            _languageVersion.charOffset, _languageVersion.charCount, fileUri);
+        if (_languageVersion.isExplicit) {
+          addPostponedProblem(messageStrongModeNNBDButOptOut,
+              _languageVersion.charOffset, _languageVersion.charCount, fileUri);
+        } else {
+          loader.registerStrongOptOutLibrary(this);
+        }
         _languageVersion = new InvalidLanguageVersion(
             fileUri,
             _languageVersion.charOffset,

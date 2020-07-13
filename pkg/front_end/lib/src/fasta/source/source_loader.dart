@@ -25,6 +25,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
         ScannerResult,
         Token,
         scan;
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 
 import 'package:kernel/ast.dart'
     show
@@ -52,6 +53,8 @@ import 'package:kernel/class_hierarchy.dart'
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
+
+import 'package:package_config/package_config.dart';
 
 import '../../api_prototype/file_system.dart';
 
@@ -90,6 +93,7 @@ import '../fasta_codes.dart'
         messageObjectImplements,
         messageObjectMixesIn,
         messagePartOrphan,
+        messageStrongModeNNBDButOptOut,
         messageTypedefCause,
         messageTypedefUnaliasedTypeCause,
         noLength,
@@ -107,6 +111,7 @@ import '../fasta_codes.dart'
         templateIllegalMixinDueToConstructorsCause,
         templateInternalProblemUriMissingScheme,
         templateSourceOutlineSummary,
+        templateStrongModeNNBDPackageOptOut,
         templateUntranslatableUri;
 
 import '../kernel/kernel_builder.dart'
@@ -323,6 +328,79 @@ class SourceLoader extends Loader {
 
       default:
         return utf8.encode(message == null ? "" : "/* ${message.message} */");
+    }
+  }
+
+  Set<LibraryBuilder> _strongOptOutLibraries;
+
+  void registerStrongOptOutLibrary(LibraryBuilder libraryBuilder) {
+    _strongOptOutLibraries ??= {};
+    _strongOptOutLibraries.add(libraryBuilder);
+  }
+
+  @override
+  Future<Null> buildOutlines() async {
+    await super.buildOutlines();
+
+    if (_strongOptOutLibraries != null) {
+      // We have libraries that are opted out in strong mode "non-explicitly",
+      // that is, either implicitly through the package version or loaded from
+      // .dill as opt out.
+      //
+      // To reduce the verbosity of the error messages we try to reduce the
+      // message to only include the package name once for packages that are
+      // opted out.
+      //
+      // We use the current package config to retrieve the package based
+      // language version to determine whether the package as a whole is opted
+      // out. If so, we only include the package name and not the library uri
+      // in the message. For package libraries with no corresponding package
+      // config we include each library uri in the message. For non-package
+      // libraries with no corresponding package config we generate a message
+      // per library.
+      Map<String, List<LibraryBuilder>> libraryByPackage = {};
+      for (LibraryBuilder libraryBuilder in _strongOptOutLibraries) {
+        Package package =
+            target.uriTranslator.getPackage(libraryBuilder.importUri);
+
+        if (package != null &&
+            package.languageVersion != null &&
+            package.languageVersion is! InvalidLanguageVersion) {
+          Version version = new Version(
+              package.languageVersion.major, package.languageVersion.minor);
+          if (version < enableNonNullableVersion) {
+            (libraryByPackage[package?.name] ??= []).add(libraryBuilder);
+            continue;
+          }
+        }
+        if (libraryBuilder.importUri.scheme == 'package') {
+          (libraryByPackage[null] ??= []).add(libraryBuilder);
+        } else {
+          // Emit a message that doesn't mention running 'pub'.
+          addProblem(messageStrongModeNNBDButOptOut, -1, noLength,
+              libraryBuilder.fileUri);
+        }
+      }
+      if (libraryByPackage.isNotEmpty) {
+        List<String> dependencies = [];
+        libraryByPackage.forEach((String name, List<LibraryBuilder> libraries) {
+          if (name != null) {
+            dependencies.add('package:$name');
+          } else {
+            for (LibraryBuilder libraryBuilder in libraries) {
+              dependencies.add(libraryBuilder.importUri.toString());
+            }
+          }
+        });
+        // Emit a message that suggests to run 'pub' to check for opted in
+        // versions of the packages.
+        addProblem(
+            templateStrongModeNNBDPackageOptOut.withArguments(dependencies),
+            -1,
+            -1,
+            null);
+        _strongOptOutLibraries = null;
+      }
     }
   }
 
