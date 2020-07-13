@@ -57,7 +57,7 @@ class Declaration {
   final String returnType;
   final String typeParameters;
 
-  final List<String> _relevanceTags;
+  List<String> _relevanceTags;
   Uri _locationLibraryUri;
 
   Declaration({
@@ -1687,6 +1687,7 @@ class _File {
     for (var declaration in declarations) {
       var tags = RelevanceTags._forDeclaration(uriStr, declaration);
       if (tags != null) {
+        declaration._relevanceTags ??= [];
         declaration._relevanceTags.addAll(tags);
       }
       _computeRelevanceTags(declaration.children);
