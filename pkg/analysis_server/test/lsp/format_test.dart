@@ -18,6 +18,13 @@ void main() {
 
 @reflectiveTest
 class FormatTest extends AbstractLspAnalysisServerTest {
+  Future<void> expectFormattedContents(
+      Uri uri, String original, String expected) async {
+    final formatEdits = await formatDocument(uri.toString());
+    final formattedContents = applyTextEdits(original, formatEdits);
+    expect(formattedContents, equals(expected));
+  }
+
   Future<void> test_alreadyFormatted() async {
     const contents = '''main() {
   print('test');
@@ -149,6 +156,32 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     expect(formatEdits, isNull);
   }
 
+  Future<void> test_lineLength() async {
+    const contents = '''
+    main() =>
+    print(
+    '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789'
+    );
+    ''';
+    final expectedDefault = '''main() => print(
+    '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789');\n''';
+    final expectedLongLines =
+        '''main() => print('123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789');\n''';
+
+    // Initialize with config support, supplying an empty config when requested.
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities: withDidChangeConfigurationDynamicRegistration(
+              withConfigurationSupport(emptyWorkspaceClientCapabilities))),
+      {}, // empty config
+    );
+    await openFile(mainFileUri, contents);
+
+    await expectFormattedContents(mainFileUri, contents, expectedDefault);
+    await updateConfig({'lineLength': 500});
+    await expectFormattedContents(mainFileUri, contents, expectedLongLines);
+  }
+
   Future<void> test_nonDartFile() async {
     await initialize();
     await openFile(pubspecFileUri, simplePubspecContent);
@@ -201,11 +234,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
-
-    final formatEdits = await formatDocument(mainFileUri.toString());
-    expect(formatEdits, isNotNull);
-    final formattedContents = applyTextEdits(contents, formatEdits);
-    expect(formattedContents, equals(expected));
+    await expectFormattedContents(mainFileUri, contents, expected);
   }
 
   Future<void> test_unopenFile() async {
@@ -222,10 +251,6 @@ class FormatTest extends AbstractLspAnalysisServerTest {
 ''';
     newFile(mainFilePath, content: contents);
     await initialize();
-
-    final formatEdits = await formatDocument(mainFileUri.toString());
-    expect(formatEdits, isNotNull);
-    final formattedContents = applyTextEdits(contents, formatEdits);
-    expect(formattedContents, equals(expected));
+    await expectFormattedContents(mainFileUri, contents, expected);
   }
 }

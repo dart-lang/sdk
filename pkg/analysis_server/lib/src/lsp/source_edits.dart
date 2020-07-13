@@ -8,7 +8,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/utilities/pair.dart';
 import 'package:dart_style/dart_style.dart';
 
-final DartFormatter formatter = DartFormatter();
+DartFormatter formatter = DartFormatter();
 
 /// Transforms a sequence of LSP document change events to a sequence of source
 /// edits used by analysis plugins.
@@ -66,12 +66,17 @@ ErrorOr<Pair<String, List<plugin.SourceEdit>>> applyAndConvertEditsToServer(
   return ErrorOr.success(Pair(newContent, serverEdits));
 }
 
-List<TextEdit> generateEditsForFormatting(String unformattedSource) {
+List<TextEdit> generateEditsForFormatting(
+    String unformattedSource, int lineLength) {
   final lineInfo = LineInfo.fromContent(unformattedSource);
   final code =
       SourceCode(unformattedSource, uri: null, isCompilationUnit: true);
   SourceCode formattedResult;
   try {
+    // If the lineLength has changed, recreate the formatter with the new setting.
+    if (lineLength != formatter.pageWidth) {
+      formatter = DartFormatter(pageWidth: lineLength);
+    }
     formattedResult = formatter.formatSource(code);
   } on FormatterException {
     // If the document fails to parse, just return no edits to avoid the the

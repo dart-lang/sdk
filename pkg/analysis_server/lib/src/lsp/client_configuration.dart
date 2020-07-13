@@ -8,6 +8,7 @@ class LspClientConfiguration {
   final Map<String, dynamic> _settings = <String, dynamic>{};
 
   bool get enableSdkFormatter => _settings['enableSdkFormatter'] ?? true;
+  int get lineLength => _settings['lineLength'];
 
   void replace(Map<String, dynamic> newConfig) {
     _settings
