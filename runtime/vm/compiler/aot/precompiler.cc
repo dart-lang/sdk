@@ -2404,8 +2404,6 @@ static void GenerateNecessaryAllocationStubs(FlowGraph* flow_graph) {
 }
 
 // Return false if bailed out.
-// If optimized_result_code is not NULL then it is caller's responsibility
-// to install code.
 bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   ASSERT(CompilerState::Current().is_aot());
   if (optimized() && !parsed_function()->function().IsOptimizable()) {

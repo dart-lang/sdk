@@ -704,7 +704,8 @@ class ClassLayout : public ObjectLayout {
   enum ClassFinalizedState {
     kAllocated = 0,  // Initial state.
     kPreFinalized,   // VM classes: size precomputed, but no checks done.
-    kFinalized,      // Class parsed, finalized and ready for use.
+    kFinalized,      // Class parsed, code compiled, not ready for allocation.
+    kAllocateFinalized,  // CHA invalidated, class is ready for allocation.
   };
   enum ClassLoadingState {
     // Class object is created, but it is not filled up.

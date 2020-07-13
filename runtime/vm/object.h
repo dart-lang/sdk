@@ -1371,9 +1371,17 @@ class Class : public Object {
 
   bool is_finalized() const {
     return ClassFinalizedBits::decode(raw_ptr()->state_bits_) ==
-           ClassLayout::kFinalized;
+               ClassLayout::kFinalized ||
+           ClassFinalizedBits::decode(raw_ptr()->state_bits_) ==
+               ClassLayout::kAllocateFinalized;
   }
   void set_is_finalized() const;
+
+  bool is_allocate_finalized() const {
+    return ClassFinalizedBits::decode(raw_ptr()->state_bits_) ==
+           ClassLayout::kAllocateFinalized;
+  }
+  void set_is_allocate_finalized() const;
 
   bool is_prefinalized() const {
     return ClassFinalizedBits::decode(raw_ptr()->state_bits_) ==
@@ -1528,6 +1536,7 @@ class Class : public Object {
   void EnsureDeclarationLoaded() const;
 
   ErrorPtr EnsureIsFinalized(Thread* thread) const;
+  ErrorPtr EnsureIsAllocateFinalized(Thread* thread) const;
 
   // Allocate a class used for VM internal objects.
   template <class FakeObject, class TargetFakeObject>

@@ -110,7 +110,7 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
 #if !defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
 #else
-    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    if (FLAG_use_bare_instructions) {
       Thread* thread = Thread::Current();
       thread->set_global_object_pool(
           thread->isolate()->object_store()->global_object_pool());

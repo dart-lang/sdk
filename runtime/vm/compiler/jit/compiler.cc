@@ -502,8 +502,6 @@ void CompileParsedFunctionHelper::CheckIfBackgroundCompilerIsBeingStopped(
 }
 
 // Return null if bailed out.
-// If optimized_result_code is not NULL then it is caller's responsibility
-// to install code.
 CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   ASSERT(!FLAG_precompiled_mode);
   const Function& function = parsed_function()->function();

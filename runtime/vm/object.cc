@@ -737,7 +737,7 @@ void Object::Init(Isolate* isolate) {
     cls.set_next_field_offset(host_next_field_offset, target_next_field_offset);
     cls.set_id(Class::kClassId);
     cls.set_state_bits(0);
-    cls.set_is_finalized();
+    cls.set_is_allocate_finalized();
     cls.set_is_declaration_loaded();
     cls.set_is_type_finalized();
     cls.set_type_arguments_field_offset_in_words(Class::kNoTypeArguments,
@@ -756,7 +756,7 @@ void Object::Init(Isolate* isolate) {
   // Allocate and initialize Never class.
   cls = Class::New<Instance, RTN::Instance>(kNeverCid, isolate);
   cls.set_num_type_arguments(0);
-  cls.set_is_finalized();
+  cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
   isolate->object_store()->set_never_class(cls);
@@ -766,7 +766,7 @@ void Object::Init(Isolate* isolate) {
       Class::New<FreeListElement::FakeInstance,
                  RTN::FreeListElement::FakeInstance>(kFreeListElement, isolate);
   cls.set_num_type_arguments(0);
-  cls.set_is_finalized();
+  cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
 
@@ -775,7 +775,7 @@ void Object::Init(Isolate* isolate) {
                    RTN::ForwardingCorpse::FakeInstance>(kForwardingCorpse,
                                                         isolate);
   cls.set_num_type_arguments(0);
-  cls.set_is_finalized();
+  cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
 
@@ -1061,20 +1061,20 @@ void Object::Init(Isolate* isolate) {
   cls = Class::New<Instance, RTN::Instance>(kDynamicCid, isolate);
   cls.set_is_abstract();
   cls.set_num_type_arguments(0);
-  cls.set_is_finalized();
+  cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
   dynamic_class_ = cls.raw();
 
   cls = Class::New<Instance, RTN::Instance>(kVoidCid, isolate);
   cls.set_num_type_arguments(0);
-  cls.set_is_finalized();
+  cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
   void_class_ = cls.raw();
 
   cls = Class::New<Type, RTN::Type>(isolate);
-  cls.set_is_finalized();
+  cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
 
@@ -1850,7 +1850,7 @@ ErrorPtr Object::Init(Isolate* isolate,
 
     cls = Class::New<Instance, RTN::Instance>(kNeverCid, isolate);
     cls.set_num_type_arguments(0);
-    cls.set_is_finalized();
+    cls.set_is_allocate_finalized();
     cls.set_is_declaration_loaded();
     cls.set_is_type_finalized();
     cls.set_name(Symbols::Never());
@@ -2847,7 +2847,7 @@ ClassPtr Class::New(Isolate* isolate, bool register_class) {
     // possible in this case.
     result.set_is_declaration_loaded();
     result.set_is_type_finalized();
-    result.set_is_finalized();
+    result.set_is_allocate_finalized();
   } else if (FakeObject::kClassId != kClosureCid) {
     // VM backed classes are almost ready: run checks and resolve class
     // references, but do not recompute size.
@@ -4222,6 +4222,32 @@ ErrorPtr Class::EnsureIsFinalized(Thread* thread) const {
   return error.raw();
 }
 
+// Ensure that code outdated by finalized class is cleaned up, new instance of
+// this class is ready to be allocated.
+ErrorPtr Class::EnsureIsAllocateFinalized(Thread* thread) const {
+  ASSERT(!IsNull());
+  // Finalized classes have already been parsed.
+  if (is_allocate_finalized()) {
+    return Error::null();
+  }
+  if (Compiler::IsBackgroundCompilation()) {
+    Compiler::AbortBackgroundCompilation(
+        DeoptId::kNone, "Class allocate finalization while compiling");
+  }
+  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread != NULL);
+  Error& error = Error::Handle(thread->zone(), EnsureIsFinalized(thread));
+  if (!error.IsNull()) {
+    ASSERT(thread == Thread::Current());
+    if (thread->long_jump_base() != NULL) {
+      Report::LongJump(error);
+      UNREACHABLE();
+    }
+  }
+  error ^= ClassFinalizer::AllocateFinalizeClass(*this);
+  return error.raw();
+}
+
 void Class::SetFields(const Array& value) const {
   ASSERT(!value.IsNull());
 #if defined(DEBUG)
@@ -4415,7 +4441,7 @@ ClassPtr Class::NewNativeWrapper(const Library& library,
         compiler::target::RoundedAllocationSize(target_instance_size));
     cls.set_next_field_offset(host_instance_size, target_instance_size);
     cls.set_num_native_fields(field_count);
-    cls.set_is_finalized();
+    cls.set_is_allocate_finalized();
     cls.set_is_declaration_loaded();
     cls.set_is_type_finalized();
     cls.set_is_synthesized_class();
@@ -4801,6 +4827,12 @@ void Class::set_is_loaded(bool value) const {
 void Class::set_is_finalized() const {
   ASSERT(!is_finalized());
   set_state_bits(ClassFinalizedBits::update(ClassLayout::kFinalized,
+                                            raw_ptr()->state_bits_));
+}
+
+void Class::set_is_allocate_finalized() const {
+  ASSERT(!is_allocate_finalized());
+  set_state_bits(ClassFinalizedBits::update(ClassLayout::kAllocateFinalized,
                                             raw_ptr()->state_bits_));
 }
 
