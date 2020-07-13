@@ -153,6 +153,10 @@ class _StreamManager {
     // Don't cancel streams DDS needs to function.
     if (listeners.isEmpty && !ddsCoreStreams.contains(stream)) {
       streamListeners.remove(stream);
+      // Ensure the VM service hasn't shutdown.
+      if (dds._vmServiceClient.isClosed) {
+        return;
+      }
       final result = await dds._vmServiceClient.sendRequest('streamCancel', {
         'streamId': stream,
       });

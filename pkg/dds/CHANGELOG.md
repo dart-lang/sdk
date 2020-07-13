@@ -1,3 +1,8 @@
+# 1.2.2
+
+- Fixed issue where a `StateError` could be raised within `DartDevelopmentService`
+  when a client disconnected after the target VM service has shutdown.
+
 # 1.2.1
 
 - Fixed issue where `evaluate` and `evaluateInFrame` were not invoking client
