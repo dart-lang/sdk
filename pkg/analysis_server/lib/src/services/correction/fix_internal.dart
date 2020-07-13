@@ -152,12 +152,16 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element, ElementKind;
+import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
 
 /// A function that can be executed to create a multi-correction producer.
 typedef MultiProducerGenerator = MultiCorrectionProducer Function();
+
+/// A function that can be executed to create a non-Dart correction producer.
+typedef NonDartProducerGenerator = NonDartCorrectionProducer Function();
 
 /// A function that can be executed to create a correction producer.
 typedef ProducerGenerator = CorrectionProducer Function();
@@ -571,6 +575,40 @@ class FixProcessor extends BaseProcessor {
   /// A map from error codes to a list of generators used to create the
   /// correction producers used to build fixes for those diagnostics. The
   /// generators used for lint rules are in the [lintProducerMap].
+  static const Map<ErrorCode, List<NonDartProducerGenerator>>
+      nonDartProducerMap = {
+    HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT: [
+      UpdateSdkConstraints.version_2_2_2,
+    ],
+    HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
+      UpdateSdkConstraints.version_2_1_0,
+    ],
+    HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT: [
+      UpdateSdkConstraints.version_2_2_2,
+    ],
+    HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT: [
+      UpdateSdkConstraints.version_2_2_2,
+    ],
+    HintCode.SDK_VERSION_EXTENSION_METHODS: [
+      UpdateSdkConstraints.version_2_6_0,
+    ],
+    HintCode.SDK_VERSION_GT_GT_GT_OPERATOR: [
+      UpdateSdkConstraints.version_2_2_2,
+    ],
+    HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT: [
+      UpdateSdkConstraints.version_2_2_2,
+    ],
+    HintCode.SDK_VERSION_SET_LITERAL: [
+      UpdateSdkConstraints.version_2_2_0,
+    ],
+    HintCode.SDK_VERSION_UI_AS_CODE: [
+      UpdateSdkConstraints.version_2_2_2,
+    ],
+  };
+
+  /// A map from error codes to a list of generators used to create the
+  /// correction producers used to build fixes for those diagnostics. The
+  /// generators used for lint rules are in the [lintProducerMap].
   static const Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {
     CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT: [
       AddAsync.newInstance,
@@ -757,33 +795,6 @@ class FixProcessor extends BaseProcessor {
     ],
     // TODO(brianwilkerson) Add a fix to normalize the path.
 //    HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT: [],
-    HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
-      UpdateSdkConstraints.version_2_1_0,
-    ],
-    HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    HintCode.SDK_VERSION_EXTENSION_METHODS: [
-      UpdateSdkConstraints.version_2_6_0,
-    ],
-    HintCode.SDK_VERSION_GT_GT_GT_OPERATOR: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    HintCode.SDK_VERSION_SET_LITERAL: [
-      UpdateSdkConstraints.version_2_2_0,
-    ],
-    HintCode.SDK_VERSION_UI_AS_CODE: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
     HintCode.TYPE_CHECK_IS_NOT_NULL: [
       UseNotEqNull.newInstance,
     ],
@@ -1050,6 +1061,14 @@ class FixProcessor extends BaseProcessor {
           args: producer.fixArguments);
     }
 
+    Future<void> computeNonDart(NonDartCorrectionProducer producer) async {
+      producer.configure(context);
+      var builder = ChangeBuilderImpl();
+      await producer.compute(builder);
+      _addFixFromBuilder(builder, producer.fixKind,
+          args: producer.fixArguments);
+    }
+
     var errorCode = error.errorCode;
     if (errorCode is LintCode) {
       var generators = lintProducerMap[errorCode.name];
@@ -1063,6 +1082,12 @@ class FixProcessor extends BaseProcessor {
       if (generators != null) {
         for (var generator in generators) {
           await compute(generator());
+        }
+      }
+      var nonDartGenerators = nonDartProducerMap[errorCode];
+      if (nonDartGenerators != null) {
+        for (var generator in nonDartGenerators) {
+          await computeNonDart(generator());
         }
       }
       var multiGenerators = nonLintMultiProducerMap[errorCode];

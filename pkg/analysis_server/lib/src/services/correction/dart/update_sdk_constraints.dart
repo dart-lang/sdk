@@ -7,10 +7,10 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class UpdateSdkConstraints extends CorrectionProducer {
+class UpdateSdkConstraints extends NonDartCorrectionProducer {
   /// The minimum version to which the SDK constraints should be updated.
   final String _minimumVersion;
 
@@ -22,7 +22,7 @@ class UpdateSdkConstraints extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.UPDATE_SDK_CONSTRAINTS;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var context = resourceProvider.pathContext;
     File pubspecFile;
     var folder = resourceProvider.getFolder(context.dirname(file));
