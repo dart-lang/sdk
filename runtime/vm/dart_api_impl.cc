@@ -4270,6 +4270,8 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
         CURRENT_FUNC);
   }
   Class& cls = Class::Handle(Z, type_obj.type_class());
+  CHECK_ERROR_HANDLE(cls.EnsureIsAllocateFinalized(T));
+
   TypeArguments& type_arguments =
       TypeArguments::Handle(Z, type_obj.arguments());
 

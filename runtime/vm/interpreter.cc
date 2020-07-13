@@ -232,9 +232,9 @@ class InterpreterHelpers {
     return false;
   }
 
-  DART_FORCE_INLINE static bool IsFinalized(ClassPtr cls) {
+  DART_FORCE_INLINE static bool IsAllocateFinalized(ClassPtr cls) {
     return Class::ClassFinalizedBits::decode(cls->ptr()->state_bits_) ==
-           ClassLayout::kFinalized;
+           ClassLayout::kAllocateFinalized;
   }
 };
 
@@ -2550,7 +2550,7 @@ SwitchDispatch:
   {
     BYTECODE(Allocate, D);
     ClassPtr cls = Class::RawCast(LOAD_CONSTANT(rD));
-    if (LIKELY(InterpreterHelpers::IsFinalized(cls))) {
+    if (LIKELY(InterpreterHelpers::IsAllocateFinalized(cls))) {
       const intptr_t class_id = cls->ptr()->id_;
       const intptr_t instance_size = cls->ptr()->host_instance_size_in_words_
                                      << kWordSizeLog2;
@@ -2580,7 +2580,7 @@ SwitchDispatch:
     BYTECODE(AllocateT, 0);
     ClassPtr cls = Class::RawCast(SP[0]);
     TypeArgumentsPtr type_args = TypeArguments::RawCast(SP[-1]);
-    if (LIKELY(InterpreterHelpers::IsFinalized(cls))) {
+    if (LIKELY(InterpreterHelpers::IsAllocateFinalized(cls))) {
       const intptr_t class_id = cls->ptr()->id_;
       const intptr_t instance_size = cls->ptr()->host_instance_size_in_words_
                                      << kWordSizeLog2;

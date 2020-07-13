@@ -303,12 +303,23 @@ static TokenPosition GetCallerLocation() {
   return caller_frame->GetTokenPos();
 }
 
+// Result of an invoke may be an unhandled exception, in which case we
+// rethrow it.
+static void ThrowIfError(const Object& result) {
+  if (!result.IsNull() && result.IsError()) {
+    Exceptions::PropagateError(Error::Cast(result));
+  }
+}
+
 // Allocate a new object.
 // Arg0: class of the object that needs to be allocated.
 // Arg1: type arguments of the object that needs to be allocated.
 // Return value: newly allocated object.
 DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
   const Class& cls = Class::CheckedHandle(zone, arguments.ArgAt(0));
+  const Error& error =
+      Error::Handle(zone, cls.EnsureIsAllocateFinalized(thread));
+  ThrowIfError(error);
   const Instance& instance =
       Instance::Handle(zone, Instance::New(cls, Heap::kNew));
 
@@ -499,14 +510,6 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
     cloned_ctx.SetAt(i, inst);
   }
   arguments.SetReturn(cloned_ctx);
-}
-
-// Result of an invoke may be an unhandled exception, in which case we
-// rethrow it.
-static void ThrowIfError(const Object& result) {
-  if (!result.IsNull() && result.IsError()) {
-    Exceptions::PropagateError(Error::Cast(result));
-  }
 }
 
 // Invoke field getter before dispatch.
