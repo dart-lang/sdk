@@ -366,6 +366,20 @@ void foo() {
     _assertHasGetter(text: 'isEven');
   }
 
+  Future<void> test_partialResolution_hasPart() async {
+    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+class A {}
+''');
+
+    await _compute(r'''
+part 'a.dart';
+^
+''');
+
+    _assertHasClass(text: 'int');
+    _assertHasClass(text: 'A');
+  }
+
   Future<void> test_warmUp_cachesImportedLibraries() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
     newFile(aPath, content: r'''

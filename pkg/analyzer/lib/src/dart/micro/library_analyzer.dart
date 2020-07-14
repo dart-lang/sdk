@@ -139,7 +139,7 @@ class LibraryAnalyzer {
     _libraryScope = LibraryScope(_libraryElement);
 
     performance.run('resolveDirectives', (performance) {
-      _resolveDirectives(units);
+      _resolveDirectives(units, forCompletion);
     });
 
     performance.run('resolveFiles', (performance) {
@@ -536,9 +536,16 @@ class LibraryAnalyzer {
     return unit;
   }
 
-  void _resolveDirectives(Map<FileState, CompilationUnit> units) {
+  void _resolveDirectives(
+    Map<FileState, CompilationUnit> units,
+    bool forCompletion,
+  ) {
     CompilationUnit definingCompilationUnit = units[_library];
     definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
+
+    if (forCompletion) {
+      return;
+    }
 
     bool matchNodeElement(Directive node, Element element) {
       return node.keyword.offset == element.nameOffset;
