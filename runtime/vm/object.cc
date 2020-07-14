@@ -18531,7 +18531,9 @@ AbstractTypePtr AbstractType::SetInstantiatedNullability(
 
 AbstractTypePtr AbstractType::NormalizeFutureOrType(Heap::Space space) const {
   if (IsFutureOrType()) {
-    const AbstractType& unwrapped_type = AbstractType::Handle(UnwrapFutureOr());
+    Zone* zone = Thread::Current()->zone();
+    const AbstractType& unwrapped_type =
+        AbstractType::Handle(zone, UnwrapFutureOr());
     const classid_t cid = unwrapped_type.type_class_id();
     if (cid == kDynamicCid || cid == kVoidCid) {
       return unwrapped_type.raw();
@@ -18549,38 +18551,14 @@ AbstractTypePtr AbstractType::NormalizeFutureOrType(Heap::Space space) const {
     }
     if (cid == kNeverCid && unwrapped_type.IsNonNullable()) {
       ObjectStore* object_store = Isolate::Current()->object_store();
-      if (object_store->non_nullable_future_never_type() == Type::null()) {
-        const Class& cls = Class::Handle(object_store->future_class());
-        ASSERT(!cls.IsNull());
-        const TypeArguments& type_args =
-            TypeArguments::Handle(TypeArguments::New(1));
-        type_args.SetTypeAt(0, Type::Handle(object_store->never_type()));
-        Type& type =
-            Type::Handle(Type::New(cls, type_args, TokenPosition::kNoSource,
-                                   Nullability::kNonNullable));
-        type.SetIsFinalized();
-        type ^= type.Canonicalize();
-        object_store->set_non_nullable_future_never_type(type);
-      }
       const Type& future_never_type =
-          Type::Handle(object_store->non_nullable_future_never_type());
+          Type::Handle(zone, object_store->non_nullable_future_never_type());
+      ASSERT(!future_never_type.IsNull());
       return future_never_type.ToNullability(nullability(), space);
     }
     if (cid == kNullCid) {
       ObjectStore* object_store = Isolate::Current()->object_store();
-      if (object_store->nullable_future_null_type() == Type::null()) {
-        const Class& cls = Class::Handle(object_store->future_class());
-        ASSERT(!cls.IsNull());
-        const TypeArguments& type_args =
-            TypeArguments::Handle(TypeArguments::New(1));
-        Type& type = Type::Handle(object_store->null_type());
-        type_args.SetTypeAt(0, type);
-        type = Type::New(cls, type_args, TokenPosition::kNoSource,
-                         Nullability::kNullable);
-        type.SetIsFinalized();
-        type ^= type.Canonicalize();
-        object_store->set_nullable_future_null_type(type);
-      }
+      ASSERT(object_store->nullable_future_null_type() != Type::null());
       return object_store->nullable_future_null_type();
     }
     if (IsNullable() && unwrapped_type.IsNullable()) {
