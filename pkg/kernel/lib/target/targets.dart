@@ -96,7 +96,7 @@ class ConstantsBackend {
   /// is the initializer of a [Field] or [VariableDeclaration] node.
   /// If this method returns `true`, the variable will be inlined at all
   /// points of reference and the variable itself removed (unless overridden
-  /// by the `keepFields` or `keepVariables` flag to the constant transformer).
+  /// by the `keepFields` or `keepLocals` properties).
   /// This method must be deterministic, i.e. it must always return the same
   /// value for the same constant value and place in the AST.
   bool shouldInlineConstant(ConstantExpression initializer) => true;
@@ -109,6 +109,18 @@ class ConstantsBackend {
   /// This defaults to `false` since it requires additional work for a backend
   /// to support unevaluated constants.
   bool get supportsUnevaluatedConstants => false;
+
+  /// If `true` constant [Field] declarations are not removed from the AST even
+  /// when use-sites are inlined.
+  ///
+  /// All use-sites will be rewritten based on [shouldInlineConstant].
+  bool get keepFields => true;
+
+  /// If `true` constant [VariableDeclaration]s are not removed from the AST
+  /// even when use-sites are inlined.
+  ///
+  /// All use-sites will be rewritten based on [shouldInlineConstant].
+  bool get keepLocals => false;
 }
 
 /// A target provides backend-specific options for generating kernel IR.

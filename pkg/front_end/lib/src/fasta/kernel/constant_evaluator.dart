@@ -76,13 +76,16 @@ Component transformComponent(
     Map<String, String> environmentDefines,
     ErrorReporter errorReporter,
     EvaluationMode evaluationMode,
-    {bool keepFields: true,
-    bool evaluateAnnotations: true,
-    bool desugarSets: false,
-    bool enableTripleShift: false,
-    bool errorOnUnevaluatedConstant: false,
+    {bool evaluateAnnotations,
+    bool desugarSets,
+    bool enableTripleShift,
+    bool errorOnUnevaluatedConstant,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy}) {
+  assert(evaluateAnnotations != null);
+  assert(desugarSets != null);
+  assert(enableTripleShift != null);
+  assert(errorOnUnevaluatedConstant != null);
   coreTypes ??= new CoreTypes(component);
   hierarchy ??= new ClassHierarchy(component, coreTypes);
 
@@ -91,7 +94,6 @@ Component transformComponent(
 
   transformLibraries(component.libraries, backend, environmentDefines,
       typeEnvironment, errorReporter, evaluationMode,
-      keepFields: keepFields,
       desugarSets: desugarSets,
       enableTripleShift: enableTripleShift,
       errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
@@ -106,15 +108,17 @@ void transformLibraries(
     TypeEnvironment typeEnvironment,
     ErrorReporter errorReporter,
     EvaluationMode evaluationMode,
-    {bool keepFields: true,
-    bool evaluateAnnotations: true,
-    bool desugarSets: false,
-    bool enableTripleShift: false,
-    bool errorOnUnevaluatedConstant: false}) {
+    {bool evaluateAnnotations,
+    bool desugarSets,
+    bool enableTripleShift,
+    bool errorOnUnevaluatedConstant}) {
+  assert(evaluateAnnotations != null);
+  assert(desugarSets != null);
+  assert(enableTripleShift != null);
+  assert(errorOnUnevaluatedConstant != null);
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
       environmentDefines,
-      keepFields,
       evaluateAnnotations,
       desugarSets,
       enableTripleShift,
@@ -134,15 +138,17 @@ void transformProcedure(
     TypeEnvironment typeEnvironment,
     ErrorReporter errorReporter,
     EvaluationMode evaluationMode,
-    {bool keepFields: true,
-    bool evaluateAnnotations: true,
+    {bool evaluateAnnotations: true,
     bool desugarSets: false,
     bool enableTripleShift: false,
     bool errorOnUnevaluatedConstant: false}) {
+  assert(evaluateAnnotations != null);
+  assert(desugarSets != null);
+  assert(enableTripleShift != null);
+  assert(errorOnUnevaluatedConstant != null);
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
       environmentDefines,
-      keepFields,
       evaluateAnnotations,
       desugarSets,
       enableTripleShift,
@@ -318,8 +324,6 @@ class ConstantsTransformer extends Transformer {
   final TypeEnvironment typeEnvironment;
   StaticTypeContext _staticTypeContext;
 
-  /// Whether to preserve constant [Field]s.  All use-sites will be rewritten.
-  final bool keepFields;
   final bool evaluateAnnotations;
   final bool desugarSets;
   final bool enableTripleShift;
@@ -328,7 +332,6 @@ class ConstantsTransformer extends Transformer {
   ConstantsTransformer(
       this.backend,
       Map<String, String> environmentDefines,
-      this.keepFields,
       this.evaluateAnnotations,
       this.desugarSets,
       this.enableTripleShift,
@@ -342,6 +345,13 @@ class ConstantsTransformer extends Transformer {
             enableTripleShift: enableTripleShift,
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
             evaluationMode: evaluationMode);
+
+  /// Whether to preserve constant [Field]s. All use-sites will be rewritten.
+  bool get keepFields => backend.keepFields;
+
+  /// Whether to preserve constant [VariableDeclaration]s. All use-sites will be
+  /// rewritten.
+  bool get keepLocals => backend.keepLocals;
 
   // Transform the library/class members:
 
@@ -515,7 +525,7 @@ class ConstantsTransformer extends Transformer {
           ..parent = node;
 
         // If this constant is inlined, remove it.
-        if (shouldInline(node.initializer)) {
+        if (!keepLocals && shouldInline(node.initializer)) {
           if (constant is! UnevaluatedConstant) {
             // If the constant is unevaluated we need to keep the expression,
             // so that, in the case the constant contains error but the local

@@ -1100,6 +1100,7 @@ class KernelTarget extends TargetImplementation {
         environment,
         new KernelConstantErrorReporter(loader),
         evaluationMode,
+        evaluateAnnotations: true,
         desugarSets: !backendTarget.supportsSetLiterals,
         enableTripleShift:
             isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
@@ -1132,6 +1133,7 @@ class KernelTarget extends TargetImplementation {
         environment,
         new KernelConstantErrorReporter(loader),
         evaluationMode,
+        evaluateAnnotations: true,
         desugarSets: !backendTarget.supportsSetLiterals,
         enableTripleShift:
             isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),

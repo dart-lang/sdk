@@ -101,7 +101,11 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
     case 'constants':
       final VmConstantsBackend backend = new VmConstantsBackend(coreTypes);
       component = constants.transformComponent(component, backend, defines,
-          const constants.SimpleErrorReporter(), constants.EvaluationMode.weak);
+          const constants.SimpleErrorReporter(), constants.EvaluationMode.weak,
+          desugarSets: false,
+          evaluateAnnotations: true,
+          enableTripleShift: false,
+          errorOnUnevaluatedConstant: false);
       break;
     case 'empty':
       component = empty.transformComponent(component);
