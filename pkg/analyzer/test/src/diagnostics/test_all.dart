@@ -229,6 +229,7 @@ import 'instance_access_to_static_member_test.dart'
 import 'instance_member_access_from_static_test.dart'
     as instance_member_access_from_static;
 import 'instantiate_abstract_class_test.dart' as instantiate_abstract_class;
+import 'integer_literal_out_of_range_test.dart' as integer_literal_out_of_range;
 import 'invalid_annotation_from_deferred_library_test.dart'
     as invalid_annotation_from_deferred_library;
 import 'invalid_annotation_getter_test.dart' as invalid_annotation_getter;
@@ -252,6 +253,7 @@ import 'invalid_language_override_test.dart' as invalid_language_override;
 import 'invalid_literal_annotation_test.dart' as invalid_literal_annotation;
 import 'invalid_modifier_on_constructor_test.dart'
     as invalid_modifier_on_constructor;
+import 'invalid_modifier_on_setter_test.dart' as invalid_modifier_on_setter;
 import 'invalid_non_virtual_annotation_test.dart'
     as invalid_non_virtual_annotation;
 import 'invalid_null_aware_operator_test.dart' as invalid_null_aware_operator;
@@ -336,14 +338,23 @@ import 'mixin_super_class_constraint_non_interface_test.dart'
 import 'mixin_with_non_class_superclass_test.dart'
     as mixin_with_non_class_superclass;
 import 'mixins_super_class_test.dart' as mixins_super_class;
+import 'multiple_redirecting_constructor_invocations_test.dart'
+    as multiple_redirecting_constructor_invocations;
+import 'multiple_super_initializers_test.dart' as multiple_super_initializers;
 import 'must_be_a_native_function_type_test.dart'
     as must_be_a_native_function_type;
 import 'must_be_a_subtype_test.dart' as must_be_a_subtype;
 import 'must_be_immutable_test.dart' as must_be_immutable;
 import 'must_call_super_test.dart' as must_call_super;
+import 'native_clause_in_non_sdk_code_test.dart'
+    as native_clause_in_non_sdk_code;
+import 'native_function_body_in_non_sdk_code_test.dart'
+    as native_function_body_in_non_sdk_code;
 import 'new_with_non_type_test.dart' as new_with_non_type;
 import 'new_with_undefined_constructor_test.dart'
     as new_with_undefined_constructor;
+import 'no_annotation_constructor_arguments_test.dart'
+    as no_annotation_constructor_arguments;
 import 'no_combined_super_signature_test.dart' as no_combined_super_signature;
 import 'no_default_super_constructor_test.dart' as no_default_super_constructor;
 import 'non_abstract_class_inherits_abstract_member_test.dart'
@@ -352,9 +363,13 @@ import 'non_bool_condition_test.dart' as non_bool_condition;
 import 'non_bool_expression_test.dart' as non_bool_expression;
 import 'non_bool_negation_expression_test.dart' as non_bool_negation_expression;
 import 'non_bool_operand_test.dart' as non_bool_operand;
+import 'non_constant_annotation_constructor_test.dart'
+    as non_constant_annotation_constructor;
 import 'non_constant_case_expression_from_deferred_library_test.dart'
     as non_constant_case_expression_from_deferred_library;
 import 'non_constant_case_expression_test.dart' as non_constant_case_expression;
+import 'non_constant_default_value_from_deferred_library_test.dart'
+    as non_constant_default_value_from_deferred_library;
 import 'non_constant_default_value_test.dart' as non_constant_default_value;
 import 'non_constant_list_element_from_deferred_library_test.dart'
     as non_constant_list_element_from_deferred_library;
@@ -723,6 +738,7 @@ main() {
     instance_access_to_static_member.main();
     instance_member_access_from_static.main();
     instantiate_abstract_class.main();
+    integer_literal_out_of_range.main();
     invalid_annotation.main();
     invalid_annotation_from_deferred_library.main();
     invalid_annotation_getter.main();
@@ -741,6 +757,7 @@ main() {
     invalid_language_override.main();
     invalid_literal_annotation.main();
     invalid_modifier_on_constructor.main();
+    invalid_modifier_on_setter.main();
     invalid_non_virtual_annotation.main();
     invalid_null_aware_operator.main();
     invalid_override_different_default_values_named.main();
@@ -796,12 +813,17 @@ main() {
     mixin_super_class_constraint_non_interface.main();
     mixin_with_non_class_superclass.main();
     mixins_super_class.main();
+    multiple_redirecting_constructor_invocations.main();
+    multiple_super_initializers.main();
     must_be_a_native_function_type.main();
     must_be_a_subtype.main();
     must_be_immutable.main();
     must_call_super.main();
+    native_clause_in_non_sdk_code.main();
+    native_function_body_in_non_sdk_code.main();
     new_with_non_type.main();
     new_with_undefined_constructor.main();
+    no_annotation_constructor_arguments.main();
     no_combined_super_signature.main();
     no_default_super_constructor.main();
     non_abstract_class_inherits_abstract_member.main();
@@ -809,9 +831,12 @@ main() {
     non_bool_expression.main();
     non_bool_negation_expression.main();
     non_bool_operand.main();
+    non_constant_annotation_constructor.main();
     non_constant_list_element.main();
     non_constant_case_expression_from_deferred_library.main();
     non_constant_case_expression.main();
+    non_constant_default_value_from_deferred_library.main();
+    non_constant_default_value.main();
     non_constant_list_element_from_deferred_library.main();
     non_constant_map_key.main();
     non_constant_map_key_from_deferred_library.main();
@@ -936,7 +961,6 @@ main() {
     undefined_prefixed_name.main();
     undefined_setter.main();
     undefined_shown_name.main();
-    non_constant_default_value.main();
     unnecessary_cast.main();
     unnecessary_no_such_method.main();
     unnecessary_non_null_assertion.main();
