@@ -70,7 +70,8 @@ void main() async {
     test('basic-parsing', () async {
       await withFlag('basic-parsing', testSource, '--trace_precompiler_to',
           (json) async {
-        final callGraph = await loadTrace(File(json));
+        final jsonRaw = await loadJson(File(json));
+        final callGraph = loadTrace(jsonRaw);
         callGraph.computeDominators();
 
         final main = callGraph.program

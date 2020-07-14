@@ -16,6 +16,8 @@ import 'package:vm_snapshot_analysis/program_info.dart';
 import 'package:vm_snapshot_analysis/utils.dart';
 import 'package:vm_snapshot_analysis/v8_profile.dart';
 
+import '../utils.dart';
+
 class CompareCommand extends Command<void> {
   @override
   final String name = 'compare';
@@ -107,9 +109,11 @@ precisely based on their source position (which is included in their name).
       {int maxWidth = 0,
       bool collapseAnonymousClosures = false,
       HistogramType granularity = HistogramType.bySymbol}) async {
-    final oldSizes = await loadProgramInfo(oldJson,
+    final oldJsonRaw = await loadJsonFromFile(oldJson);
+    final newJsonRaw = await loadJsonFromFile(newJson);
+    final oldSizes = loadProgramInfoFromJson(oldJsonRaw,
         collapseAnonymousClosures: collapseAnonymousClosures);
-    final newSizes = await loadProgramInfo(newJson,
+    final newSizes = loadProgramInfoFromJson(newJsonRaw,
         collapseAnonymousClosures: collapseAnonymousClosures);
 
     if ((oldSizes.snapshotInfo == null) != (newSizes.snapshotInfo == null)) {

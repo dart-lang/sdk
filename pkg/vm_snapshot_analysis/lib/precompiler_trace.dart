@@ -10,12 +10,10 @@ import 'dart:math' as math;
 
 import 'package:vm_snapshot_analysis/name.dart';
 import 'package:vm_snapshot_analysis/program_info.dart';
-import 'package:vm_snapshot_analysis/src/config_specific/file.dart';
 
 /// Build [CallGraph] based on the trace written by `--trace-precompiler-to`
 /// flag.
-Future<CallGraph> loadTrace(File input) async =>
-    _TraceReader(await loadJson(input)).readTrace();
+CallGraph loadTrace(Object inputJson) => _TraceReader(inputJson).readTrace();
 
 /// [CallGraphNode] represents a node of the call-graph. It can either be:
 ///

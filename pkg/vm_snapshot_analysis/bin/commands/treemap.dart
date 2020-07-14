@@ -17,9 +17,9 @@ import 'dart:isolate';
 
 import 'package:path/path.dart' as p;
 import 'package:args/command_runner.dart';
-
-import 'package:vm_snapshot_analysis/src/config_specific/file.dart';
 import 'package:vm_snapshot_analysis/treemap.dart';
+
+import '../utils.dart';
 
 class TreemapCommand extends Command<void> {
   @override
@@ -89,7 +89,7 @@ Future<void> generateTreeMap(File input, Directory outputDir,
     {TreemapFormat format = TreemapFormat.objectType}) async {
   // Load symbols data produced by the AOT compiler and convert it to
   // a tree.
-  final inputJson = await loadJson(input);
+  final inputJson = await loadJsonFromFile(input);
   final tree = treemapFromJson(inputJson, format: format);
 
   // Create output directory and copy all auxiliary files from binary_size tool.

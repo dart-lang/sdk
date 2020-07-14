@@ -7,18 +7,10 @@ import 'package:vm_snapshot_analysis/ascii_table.dart';
 import 'package:vm_snapshot_analysis/program_info.dart';
 import 'package:vm_snapshot_analysis/instruction_sizes.dart'
     as instruction_sizes;
-import 'package:vm_snapshot_analysis/src/config_specific/file.dart';
 import 'package:vm_snapshot_analysis/treemap.dart';
 import 'package:vm_snapshot_analysis/v8_profile.dart' as v8_profile;
 
-Future<ProgramInfo> loadProgramInfo(Object input,
-    {bool collapseAnonymousClosures = false}) async {
-  final json = await loadJson(input);
-  return _loadProgramInfoFromJson(json,
-      collapseAnonymousClosures: collapseAnonymousClosures);
-}
-
-ProgramInfo _loadProgramInfoFromJson(Object json,
+ProgramInfo loadProgramInfoFromJson(Object json,
     {bool collapseAnonymousClosures = false}) {
   if (v8_profile.Snapshot.isV8HeapSnapshot(json)) {
     return v8_profile.toProgramInfo(v8_profile.Snapshot.fromJson(json),
@@ -30,13 +22,12 @@ ProgramInfo _loadProgramInfoFromJson(Object json,
 }
 
 /// Compare two size profiles and return result of the comparison as a treemap.
-Future<Map<String, dynamic>> buildComparisonTreemap(
-    Object oldJson, Object newJson,
+Map<String, dynamic> buildComparisonTreemap(Object oldJson, Object newJson,
     {TreemapFormat format = TreemapFormat.collapsed,
-    bool collapseAnonymousClosures = false}) async {
-  final oldSizes = await _loadProgramInfoFromJson(oldJson,
+    bool collapseAnonymousClosures = false}) {
+  final oldSizes = loadProgramInfoFromJson(oldJson,
       collapseAnonymousClosures: collapseAnonymousClosures);
-  final newSizes = await _loadProgramInfoFromJson(newJson,
+  final newSizes = loadProgramInfoFromJson(newJson,
       collapseAnonymousClosures: collapseAnonymousClosures);
 
   final diff = computeDiff(oldSizes, newSizes);

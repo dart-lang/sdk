@@ -7,10 +7,10 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 
-import 'package:vm_snapshot_analysis/src/commands/compare.dart';
-import 'package:vm_snapshot_analysis/src/commands/explain.dart';
-import 'package:vm_snapshot_analysis/src/commands/summary.dart';
-import 'package:vm_snapshot_analysis/src/commands/treemap.dart';
+import 'commands/compare.dart';
+import 'commands/explain.dart';
+import 'commands/summary.dart';
+import 'commands/treemap.dart';
 
 final _executableName = () {
   // There is no reliable way to detect executable name across different modes

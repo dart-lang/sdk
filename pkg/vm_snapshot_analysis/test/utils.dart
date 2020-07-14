@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
@@ -72,4 +73,12 @@ Future withTempDir(String prefix, Future Function(String dir) f) async {
   } finally {
     tempDir.deleteSync(recursive: true);
   }
+}
+
+Future<Object> loadJson(File input) async {
+  return await input
+      .openRead()
+      .transform(utf8.decoder)
+      .transform(json.decoder)
+      .first;
 }
