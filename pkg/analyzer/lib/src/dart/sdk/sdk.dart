@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
-import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
@@ -15,7 +14,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:path/path.dart' as pathos;
 import 'package:yaml/yaml.dart';
 
 /// An abstract implementation of a Dart SDK in which the available libraries
@@ -521,58 +519,6 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     } on FormatException {
       return null;
     }
-  }
-
-  /// Return the default directory for the Dart SDK, or `null` if the directory
-  /// cannot be determined (or does not exist). The default directory is
-  /// provided by a system property named `com.google.dart.sdk`.
-  static Folder defaultSdkDirectory(ResourceProvider resourceProvider) {
-    // TODO(brianwilkerson) This is currently only being used in the analysis
-    // server's Driver class to find the default SDK. The command-line analyzer
-    // uses cli_utils to find the SDK. Not sure why they're different.
-    String sdkProperty = getSdkProperty(resourceProvider);
-    if (sdkProperty == null) {
-      return null;
-    }
-    Folder sdkDirectory = resourceProvider.getFolder(sdkProperty);
-    if (!sdkDirectory.exists) {
-      return null;
-    }
-    return sdkDirectory;
-  }
-
-  static String getSdkProperty(ResourceProvider resourceProvider) {
-    String exec = io.Platform.resolvedExecutable;
-    if (exec.isEmpty) {
-      return null;
-    }
-    pathos.Context pathContext = resourceProvider.pathContext;
-    if (pathContext.style != pathos.context.style) {
-      // This will only happen when running tests.
-      if (exec.startsWith(RegExp('[a-zA-Z]:'))) {
-        exec = exec.substring(2);
-      } else if (resourceProvider is MemoryResourceProvider) {
-        exec = resourceProvider.convertPath(exec);
-      }
-      exec = pathContext.fromUri(pathos.context.toUri(exec));
-    }
-    // Might be "xcodebuild/ReleaseIA32/dart" with "sdk" sibling
-    String outDir = pathContext.dirname(pathContext.dirname(exec));
-    String sdkPath = pathContext.join(pathContext.dirname(outDir), "sdk");
-    if (resourceProvider.getFolder(sdkPath).exists) {
-      // We are executing in the context of a test.  sdkPath is the path to the
-      // *source* files for the SDK.  But we want to test using the path to the
-      // *built* SDK if possible.
-      String builtSdkPath =
-          pathContext.join(pathContext.dirname(exec), 'dart-sdk');
-      if (resourceProvider.getFolder(builtSdkPath).exists) {
-        return builtSdkPath;
-      } else {
-        return sdkPath;
-      }
-    }
-    // probably be "dart-sdk/bin/dart"
-    return pathContext.dirname(pathContext.dirname(exec));
   }
 }
 

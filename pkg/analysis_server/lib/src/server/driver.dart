@@ -38,6 +38,7 @@ import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:args/args.dart';
+import 'package:cli_util/cli_util.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:path/path.dart' as path;
 import 'package:telemetry/crash_reporting.dart';
@@ -844,11 +845,7 @@ class Driver implements ServerStarter {
     if (args[SDK_OPTION] != null) {
       return args[SDK_OPTION];
     } else {
-      // No path to the SDK was provided.
-      // Use FolderBasedDartSdk.defaultSdkDirectory, which will make a guess.
-      return FolderBasedDartSdk.defaultSdkDirectory(
-        PhysicalResourceProvider.INSTANCE,
-      ).path;
+      return getSdkPath();
     }
   }
 
