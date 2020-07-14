@@ -2014,14 +2014,6 @@ Fragment StreamingFlowGraphBuilder::CheckArgumentType(
       type, variable->name(), AssertAssignableInstr::kParameterCheck);
 }
 
-Fragment StreamingFlowGraphBuilder::CheckTypeArgumentBound(
-    const AbstractType& parameter,
-    const AbstractType& bound,
-    const String& dst_name) {
-  return flow_graph_builder_->AssertSubtype(TokenPosition::kNoSource, parameter,
-                                            bound, dst_name);
-}
-
 Fragment StreamingFlowGraphBuilder::EnterScope(
     intptr_t kernel_offset,
     const LocalScope** scope /* = nullptr */) {
