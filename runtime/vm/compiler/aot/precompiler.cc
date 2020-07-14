@@ -1461,6 +1461,7 @@ void Precompiler::TraceForRetainedFunctions() {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
+  String& name = String::Handle(Z);
   Function& function = Function::Handle(Z);
   Function& function2 = Function::Handle(Z);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
@@ -1485,6 +1486,19 @@ void Precompiler::TraceForRetainedFunctions() {
         if (retain) {
           function.DropUncompiledImplicitClosureFunction();
           AddTypesOf(function);
+        }
+      }
+
+      {
+        functions = cls.invocation_dispatcher_cache();
+        InvocationDispatcherTable dispatchers(functions);
+        for (auto dispatcher : dispatchers) {
+          name = dispatcher.Get<Class::kInvocationDispatcherName>();
+          if (name.IsNull()) break;  // Reached last entry.
+          function = dispatcher.Get<Class::kInvocationDispatcherFunction>();
+          if (possibly_retained_functions_.ContainsKey(function)) {
+            AddTypesOf(function);
+          }
         }
       }
     }
@@ -1601,6 +1615,26 @@ void Precompiler::DropFunctions() {
   GrowableObjectArray& retained_functions = GrowableObjectArray::Handle(Z);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
 
+  auto drop_function = [&](const Function& function) {
+    if (function.HasCode()) {
+      code = function.CurrentCode();
+      function.ClearCode();
+      // Wrap the owner of the code object in case the code object will be
+      // serialized but the function object will not.
+      owner = code.owner();
+      owner = WeakSerializationReference::Wrap(Z, owner);
+      code.set_owner(owner);
+    }
+    dropped_function_count_++;
+    if (FLAG_trace_precompiler) {
+      THR_Print("Dropping function %s\n",
+                function.ToLibNamePrefixedQualifiedCString());
+    }
+  };
+
+  auto& dispatchers_array = Array::Handle(Z);
+  auto& name = String::Handle(Z);
+  auto& desc = Array::Handle(Z);
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
@@ -1610,26 +1644,12 @@ void Precompiler::DropFunctions() {
       retained_functions = GrowableObjectArray::New();
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
-        bool retain = functions_to_retain_.ContainsKey(function);
         function.DropUncompiledImplicitClosureFunction();
         function.ClearBytecode();
-        if (retain) {
+        if (functions_to_retain_.ContainsKey(function)) {
           retained_functions.Add(function);
         } else {
-          if (function.HasCode()) {
-            code = function.CurrentCode();
-            function.ClearCode();
-            // Wrap the owner of the code object in case the code object will be
-            // serialized but the function object will not.
-            owner = code.owner();
-            owner = WeakSerializationReference::Wrap(Z, owner);
-            code.set_owner(owner);
-          }
-          dropped_function_count_++;
-          if (FLAG_trace_precompiler) {
-            THR_Print("Dropping function %s\n",
-                      function.ToLibNamePrefixedQualifiedCString());
-          }
+          drop_function(function);
         }
       }
 
@@ -1639,6 +1659,35 @@ void Precompiler::DropFunctions() {
       } else {
         cls.SetFunctions(Object::empty_array());
       }
+
+      retained_functions = GrowableObjectArray::New();
+      {
+        dispatchers_array = cls.invocation_dispatcher_cache();
+        InvocationDispatcherTable dispatchers(dispatchers_array);
+        for (auto dispatcher : dispatchers) {
+          name = dispatcher.Get<Class::kInvocationDispatcherName>();
+          if (name.IsNull()) break;  // Reached last entry.
+          desc = dispatcher.Get<Class::kInvocationDispatcherArgsDesc>();
+          function = dispatcher.Get<Class::kInvocationDispatcherFunction>();
+          if (functions_to_retain_.ContainsKey(function)) {
+            retained_functions.Add(name);
+            retained_functions.Add(desc);
+            retained_functions.Add(function);
+          } else {
+            drop_function(function);
+          }
+        }
+      }
+      if (retained_functions.Length() > 0) {
+        // Last entry must be null.
+        retained_functions.Add(Object::null_object());
+        retained_functions.Add(Object::null_object());
+        retained_functions.Add(Object::null_object());
+        functions = Array::MakeFixedLength(retained_functions);
+      } else {
+        functions = Object::empty_array().raw();
+      }
+      cls.set_invocation_dispatcher_cache(functions);
     }
   }
 
@@ -1646,25 +1695,11 @@ void Precompiler::DropFunctions() {
   retained_functions = GrowableObjectArray::New();
   for (intptr_t j = 0; j < closures.Length(); j++) {
     function ^= closures.At(j);
-    bool retain = functions_to_retain_.ContainsKey(function);
     function.ClearBytecode();
-    if (retain) {
+    if (functions_to_retain_.ContainsKey(function)) {
       retained_functions.Add(function);
     } else {
-      if (function.HasCode()) {
-        code = function.CurrentCode();
-        function.ClearCode();
-        // Wrap the owner of the code object in case the code object will be
-        // serialized but the function object will not.
-        owner = code.owner();
-        owner = WeakSerializationReference::Wrap(Z, owner);
-        code.set_owner(owner);
-      }
-      dropped_function_count_++;
-      if (FLAG_trace_precompiler) {
-        THR_Print("Dropping function %s\n",
-                  function.ToLibNamePrefixedQualifiedCString());
-      }
+      drop_function(function);
     }
   }
   isolate()->object_store()->set_closure_functions(retained_functions);
