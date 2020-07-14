@@ -40,6 +40,7 @@ const subtract = const SubtractOperation();
 const truncatingDivide = const TruncatingDivideOperation();
 const codeUnitAt = const CodeUnitAtOperation();
 const round = const RoundOperation();
+const toInt = const ToIntOperation();
 const abs = const UnfoldedUnaryOperation('abs');
 
 /// Returns true if [value] will turn into NaN or infinity
@@ -955,6 +956,32 @@ class RoundOperation implements UnaryOperation {
       if (value.isInfinite) return null;
       return tryToRound(value);
     }
+    return null;
+  }
+}
+
+class ToIntOperation implements UnaryOperation {
+  @override
+  final String name = 'toInt';
+
+  const ToIntOperation();
+
+  @override
+  ConstantValue fold(ConstantValue constant) {
+    if (constant is IntConstantValue) {
+      double value = constant.doubleValue;
+      // The code below is written to work for any `double`, even though
+      // IntConstantValue uses `BigInt`.
+      // TODO(sra): IntConstantValue should wrap a `double` since we consider
+      // infinities and negative zero to be `is int`.
+      if (!value.isFinite) return null;
+      // Ensure `(-0.0).toInt()` --> `0`.
+      if (value == 0) return createIntFromInt(0);
+      return constant;
+    }
+    // TODO(sra): Handle doubles. Note that integral-valued doubles are
+    // canonicalized to IntConstantValue, so we are only missing `toInt()`
+    // operations that truncate.
     return null;
   }
 }
