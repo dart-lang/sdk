@@ -17,8 +17,8 @@ main() {
     test('ApplicationCache', () {
       var expectation = ApplicationCache.supported ? returnsNormally : throws;
       expect(() {
-        ApplicationCache appCache = window.applicationCache;
-        expect(cacheStatusToString(appCache.status), "UNCACHED");
+        ApplicationCache appCache = window.applicationCache!;
+        expect(cacheStatusToString(appCache.status!), "UNCACHED");
       }, expectation);
     });
   });

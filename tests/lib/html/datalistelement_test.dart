@@ -53,7 +53,7 @@ main() {
   test('options', () {
     try {
       var options =
-          (document.querySelector('#browsers') as DataListElement).options;
+          (document.querySelector('#browsers') as DataListElement).options!;
       expect(options.length, 5);
     } catch (e) {
       expect(DataListElement.supported, false);
