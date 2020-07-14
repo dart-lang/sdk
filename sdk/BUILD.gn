@@ -631,27 +631,32 @@ copy("copy_dart2js_dill_files") {
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
 
-# Copies DDC's SDK outline .dill to lib/_internal
-copy("copy_dev_compiler_outline") {
+# Copies DDC's SDK weak outline .dill to lib/_internal
+# TODO(nshahan) Fix the outline to be consistent and merge with below as a
+# breaking change.
+copy("copy_dev_compiler_weak_outline") {
   visibility = [ ":copy_dev_compiler_sdk" ]
   deps = [
     ":copy_libraries",
     "../utils/dartdevc:dartdevc_platform",
   ]
   sources = [ "$root_out_dir/ddc_outline.dill" ]
-
-  # TODO(nshahan) Fix the name here to be consistent and merge with below.
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/ddc_sdk.dill" ]
 }
 
-# Copies DDC's SDK outline .dill with sound null safety to lib/_internal
-copy("copy_dev_compiler_outline_sound") {
-  visibility = [ "../utils/dartdevc:dartdevc_test" ]
+# Copies DDC's SDK full and outline .dill files to lib/_internal.
+copy("copy_dev_compiler_dills") {
+  visibility = [ ":copy_dev_compiler_sdk" ]
   deps = [
     ":copy_libraries",
+    "../utils/dartdevc:dartdevc_platform",
     "../utils/dartdevc:dartdevc_platform_sound",
   ]
-  sources = [ "$root_out_dir/ddc_outline_sound.dill" ]
+  sources = [
+    "$root_out_dir/ddc_outline_sound.dill",
+    "$root_out_dir/ddc_platform.dill",
+    "$root_out_dir/ddc_platform_sound.dill",
+  ]
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
 
@@ -731,9 +736,10 @@ copy("copy_dev_compiler_tools") {
 group("copy_dev_compiler_sdk") {
   visibility = [ ":create_full_sdk" ]
   public_deps = [
+    ":copy_dev_compiler_dills",
     ":copy_dev_compiler_js",
-    ":copy_dev_compiler_outline",
     ":copy_dev_compiler_tools",
+    ":copy_dev_compiler_weak_outline",
   ]
 }
 
