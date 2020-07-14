@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/correction/selection_analyzer.dart'
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -138,7 +139,11 @@ class _FlutterWrapPadding extends _WrapSingleWidget {
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_PADDING;
 
   @override
-  List<String> get _leadingLines => ['padding: const EdgeInsets.all(8.0),'];
+  List<String> get _leadingLines {
+    var keyword =
+        (widgetExpr as ExpressionImpl).inConstantContext ? '' : ' const';
+    return ['padding:$keyword EdgeInsets.all(8.0),'];
+  }
 
   @override
   String get _parentClassName => 'Padding';
