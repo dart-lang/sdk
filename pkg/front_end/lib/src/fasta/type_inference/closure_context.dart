@@ -512,7 +512,8 @@ class _AsyncClosureContext implements ClosureContext {
           statement.expression = inferrer.ensureAssignable(
               futureValueType, expressionType, statement.expression,
               fileOffset: statement.expression.fileOffset,
-              runtimeCheckedType: _returnContext,
+              runtimeCheckedType:
+                  inferrer.computeGreatestClosure2(_returnContext),
               declaredContextType: returnType,
               isVoidAllowed: false,
               errorTemplate: templateInvalidReturnAsync)
@@ -551,7 +552,8 @@ class _AsyncClosureContext implements ClosureContext {
               statement.expression,
               fileOffset: statement.fileOffset,
               isVoidAllowed: true,
-              runtimeCheckedType: _returnContext);
+              runtimeCheckedType:
+                  inferrer.computeGreatestClosure(_returnContext));
           statement.expression = expression..parent = statement;
         }
 
