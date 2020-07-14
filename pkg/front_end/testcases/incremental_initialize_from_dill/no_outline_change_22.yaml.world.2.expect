@@ -424,14 +424,13 @@ library from "org-dartlang-test:///main.dart" as main {
     }
     method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ insert(dart.core::int index, generic-covariant-impl dart.core::int* element) → void {
       dart.core::ArgumentError::checkNotNull<dart.core::int>(index, "index");
-      dart.core::RangeError::checkValueInInterval(index, 0, this.{dart.core::List::length}, "index");
-      if(index.{dart.core::num::==}(this.{dart.core::List::length})) {
-        this.{dart.collection::ListMixin::add}(element);
-        return;
+      dart.core::int length = this.{dart.core::List::length};
+      dart.core::RangeError::checkValueInInterval(index, 0, length, "index");
+      this.{dart.collection::ListMixin::add}(element);
+      if(!index.{dart.core::num::==}(length)) {
+        this.{dart.collection::ListMixin::setRange}(index.{dart.core::num::+}(1), length.{dart.core::num::+}(1), this, index);
+        this.{dart.core::List::[]=}(index, element);
       }
-      this.{dart.core::List::length} = this.{dart.core::List::length}.{dart.core::num::+}(1);
-      this.{dart.collection::ListMixin::setRange}(index.{dart.core::num::+}(1), this.{dart.core::List::length}, this, index);
-      this.{dart.core::List::[]=}(index, element);
     }
     method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ removeAt(dart.core::int index) → dart.core::int* {
       dart.core::int* result = this.{dart.core::List::[]}(index);
