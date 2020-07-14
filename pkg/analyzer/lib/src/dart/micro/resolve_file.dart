@@ -281,8 +281,8 @@ class FileResolver {
 
         testView?.addResolvedFile(path);
 
+        var content = _getFileContent(path);
         var errorListener = RecordingErrorListener();
-        var content = resourceProvider.getFile(path).readAsStringSync();
         var unit = file.parse(errorListener, content);
 
         Map<FileState, UnitAnalysisResult> results;
@@ -484,6 +484,15 @@ class FileResolver {
     }
 
     return options;
+  }
+
+  /// Return the file content, the empty string if any exception.
+  String _getFileContent(String path) {
+    try {
+      return resourceProvider.getFile(path).readAsStringSync();
+    } catch (_) {
+      return '';
+    }
   }
 
   void _throwIfNotAbsoluteNormalizedPath(String path) {
