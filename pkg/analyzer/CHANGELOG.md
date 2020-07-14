@@ -1,4 +1,4 @@
-## 0.39.13-dev
+## 0.39.13
 * Added 'dart/sdk/build_sdk_summary.dart' with `buildSdkSummary`.
 * Added `DynamicType`, `NeverType`, and `VoidType` interfaces.
 * Added `TypeVisitor` and `DartType.accept(TypeVisitor)`.
@@ -7,6 +7,7 @@
 * Added `InterfaceType.asInstanceOf(ClassElement)`.
 * Removed deprecated internal `bogus-disabled` and `bogus-enabled`.
 * Added `Scope`, `LibraryElement.scope`, and `PrefixElement.scope`.
+* Bug fixes: #32192, #42620, #42256, #42605.
 
 ## 0.39.12
 * Deprecated `canUseSummaries` in `DartSdkManager` constructor.
