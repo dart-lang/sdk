@@ -1,0 +1,54 @@
+library;
+import self as self;
+import "issue42660_lib.dart" as iss;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue42660_lib.dart";
+
+static method main() → void {
+  iss::E|m(iss::f());
+  iss::E|m((#C1).call());
+  iss::E|m(iss::p);
+  iss::Class<dynamic>* c = new iss::Class::•<dynamic>();
+  iss::E|m(c.{iss::Class::f}());
+  iss::E|m(c.{iss::Class::f}.call());
+  iss::E|m(c.{iss::Class::p});
+  let final iss::Class<dynamic>* #t1 = c in block {
+    iss::E|m(#t1.{iss::Class::p});
+    iss::E|m(#t1.{iss::Class::f}());
+  } =>#t1;
+  let final iss::Class<dynamic>* #t2 = new iss::Class::•<dynamic>() in block {
+    iss::E|m(#t2.{iss::Class::p});
+    iss::E|m(#t2.{iss::Class::f}());
+  } =>#t2;
+}
+
+library /*isNonNullableByDefault*/;
+import self as iss;
+import "dart:core" as core;
+
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → iss::Class<iss::Class::T%>
+    : super core::Object::•()
+    ;
+  method f() → core::int?
+    return 4;
+  get p() → core::int?
+    return 4;
+}
+extension E on core::int {
+  method m = iss::E|m;
+  tearoff m = iss::E|get#m;
+}
+static method E|m(final core::int #this) → core::String
+  return "m";
+static method E|get#m(final core::int #this) → () → core::String
+  return () → core::String => iss::E|m(#this);
+static method f() → core::int?
+  return 4;
+static get p() → core::int?
+  return 4;
+
+constants  {
+  #C1 = tearoff iss::f
+}

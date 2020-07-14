@@ -2033,6 +2033,10 @@ class TypeInferrerImpl implements TypeInferrer {
         "Inferred return type $inferredType contains free variables."
         "Inferred function type: $calleeType.");
 
+    if (!isNonNullableByDefault) {
+      inferredType = legacyErasure(coreTypes, inferredType);
+    }
+
     return new SuccessfulInferenceResult(inferredType);
   }
 
