@@ -404,8 +404,10 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     //
     SimpleIdentifier array = AstTestFactory.identifier3("a");
     array.staticType = interfaceTypeStar(classD);
-    IndexExpression expression =
-        AstTestFactory.indexExpression(array, AstTestFactory.identifier3("i"));
+    IndexExpression expression = AstTestFactory.indexExpression(
+      target: array,
+      index: AstTestFactory.identifier3("i"),
+    );
     expect(_resolveIndexExpression(expression), same(operator));
     _listener.assertNoErrors();
   }

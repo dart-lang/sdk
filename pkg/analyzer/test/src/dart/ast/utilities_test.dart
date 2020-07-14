@@ -498,7 +498,9 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitIndexExpression() {
     IndexExpression fromNode = AstTestFactory.indexExpression(
-        AstTestFactory.identifier3("a"), AstTestFactory.integer(0));
+      target: AstTestFactory.identifier3("a"),
+      index: AstTestFactory.integer(0),
+    );
     MethodElement staticElement = ElementFactory.methodElement(
         "m", interfaceTypeStar(ElementFactory.classElement2('C')));
     AuxiliaryElements auxiliaryElements = AuxiliaryElements(staticElement);
@@ -507,7 +509,9 @@ class ResolutionCopierTest with ElementsTypesMixin {
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     IndexExpression toNode = AstTestFactory.indexExpression(
-        AstTestFactory.identifier3("a"), AstTestFactory.integer(0));
+      target: AstTestFactory.identifier3("a"),
+      index: AstTestFactory.integer(0),
+    );
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.auxiliaryElements, same(auxiliaryElements));
     expect(toNode.staticElement, same(staticElement));

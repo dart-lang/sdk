@@ -4240,9 +4240,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } else if (operator.type == TokenType.QUESTION_PERIOD_PERIOD) {
       errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
       arguments = [operator.lexeme, '..'];
-    } else if (operator.type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET) {
-      errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
-      arguments = [operator.lexeme, '['];
     } else if (operator.type == TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
       errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
       arguments = [operator.lexeme, '...'];

@@ -1615,10 +1615,10 @@ extension E on int {
 }
 
 f(int? a) {
-  a?.[0];
+  a?[0];
 }
 ''');
-    var index = findNode.index('a?.[0]');
+    var index = findNode.index('a?[0]');
     assertElement(index, findElement.method('[]'));
   }
 

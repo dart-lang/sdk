@@ -126,7 +126,6 @@ import 'a.dart';
 
 f() {
   x?[0];
-  x?.[0];
   x?..[0];
 }
 ''');
@@ -136,13 +135,11 @@ f() {
     await assertErrorsInCode('''
 f(List<int> x) {
   x?[0];
-  x?.[0];
   x?..[0];
 }
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 20, 2),
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 29, 3),
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 39, 3),
     ]);
   }
 
@@ -150,7 +147,6 @@ f(List<int> x) {
     await assertNoErrorsInCode('''
 f(List<int>? x) {
   x?[0];
-  x?.[0];
   x?..[0];
 }
 ''');

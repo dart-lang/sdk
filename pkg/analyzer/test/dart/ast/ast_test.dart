@@ -222,7 +222,9 @@ class FieldFormalParameterTest {
 class IndexExpressionTest {
   void test_inGetterContext_assignment_compound_left() {
     IndexExpression expression = AstTestFactory.indexExpression(
-        AstTestFactory.identifier3("a"), AstTestFactory.identifier3("b"));
+      target: AstTestFactory.identifier3("a"),
+      index: AstTestFactory.identifier3("b"),
+    );
     // a[b] += c
     AstTestFactory.assignmentExpression(
         expression, TokenType.PLUS_EQ, AstTestFactory.identifier3("c"));
@@ -231,7 +233,9 @@ class IndexExpressionTest {
 
   void test_inGetterContext_assignment_simple_left() {
     IndexExpression expression = AstTestFactory.indexExpression(
-        AstTestFactory.identifier3("a"), AstTestFactory.identifier3("b"));
+      target: AstTestFactory.identifier3("a"),
+      index: AstTestFactory.identifier3("b"),
+    );
     // a[b] = c
     AstTestFactory.assignmentExpression(
         expression, TokenType.EQ, AstTestFactory.identifier3("c"));
@@ -240,7 +244,9 @@ class IndexExpressionTest {
 
   void test_inGetterContext_nonAssignment() {
     IndexExpression expression = AstTestFactory.indexExpression(
-        AstTestFactory.identifier3("a"), AstTestFactory.identifier3("b"));
+      target: AstTestFactory.identifier3("a"),
+      index: AstTestFactory.identifier3("b"),
+    );
     // a[b] + c
     AstTestFactory.binaryExpression(
         expression, TokenType.PLUS, AstTestFactory.identifier3("c"));
@@ -249,7 +255,9 @@ class IndexExpressionTest {
 
   void test_inSetterContext_assignment_compound_left() {
     IndexExpression expression = AstTestFactory.indexExpression(
-        AstTestFactory.identifier3("a"), AstTestFactory.identifier3("b"));
+      target: AstTestFactory.identifier3("a"),
+      index: AstTestFactory.identifier3("b"),
+    );
     // a[b] += c
     AstTestFactory.assignmentExpression(
         expression, TokenType.PLUS_EQ, AstTestFactory.identifier3("c"));
@@ -258,7 +266,9 @@ class IndexExpressionTest {
 
   void test_inSetterContext_assignment_compound_right() {
     IndexExpression expression = AstTestFactory.indexExpression(
-        AstTestFactory.identifier3("a"), AstTestFactory.identifier3("b"));
+      target: AstTestFactory.identifier3("a"),
+      index: AstTestFactory.identifier3("b"),
+    );
     // c += a[b]
     AstTestFactory.assignmentExpression(
         AstTestFactory.identifier3("c"), TokenType.PLUS_EQ, expression);
@@ -267,7 +277,9 @@ class IndexExpressionTest {
 
   void test_inSetterContext_assignment_simple_left() {
     IndexExpression expression = AstTestFactory.indexExpression(
-        AstTestFactory.identifier3("a"), AstTestFactory.identifier3("b"));
+      target: AstTestFactory.identifier3("a"),
+      index: AstTestFactory.identifier3("b"),
+    );
     // a[b] = c
     AstTestFactory.assignmentExpression(
         expression, TokenType.EQ, AstTestFactory.identifier3("c"));
@@ -276,7 +288,9 @@ class IndexExpressionTest {
 
   void test_inSetterContext_assignment_simple_right() {
     IndexExpression expression = AstTestFactory.indexExpression(
-        AstTestFactory.identifier3("a"), AstTestFactory.identifier3("b"));
+      target: AstTestFactory.identifier3("a"),
+      index: AstTestFactory.identifier3("b"),
+    );
     // c = a[b]
     AstTestFactory.assignmentExpression(
         AstTestFactory.identifier3("c"), TokenType.EQ, expression);
@@ -285,7 +299,9 @@ class IndexExpressionTest {
 
   void test_inSetterContext_nonAssignment() {
     IndexExpression expression = AstTestFactory.indexExpression(
-        AstTestFactory.identifier3("a"), AstTestFactory.identifier3("b"));
+      target: AstTestFactory.identifier3("a"),
+      index: AstTestFactory.identifier3("b"),
+    );
     AstTestFactory.binaryExpression(
         expression, TokenType.PLUS, AstTestFactory.identifier3("c"));
     // a[b] + cc
@@ -294,7 +310,9 @@ class IndexExpressionTest {
 
   void test_inSetterContext_postfix_bang() {
     IndexExpression expression = AstTestFactory.indexExpression(
-        AstTestFactory.identifier3("a"), AstTestFactory.identifier3("b"));
+      target: AstTestFactory.identifier3("a"),
+      index: AstTestFactory.identifier3("b"),
+    );
     // a[b]!
     AstTestFactory.postfixExpression(expression, TokenType.BANG);
     expect(expression.inSetterContext(), isFalse);
@@ -302,7 +320,9 @@ class IndexExpressionTest {
 
   void test_inSetterContext_postfix_plusPlus() {
     IndexExpression expression = AstTestFactory.indexExpression(
-        AstTestFactory.identifier3("a"), AstTestFactory.identifier3("b"));
+      target: AstTestFactory.identifier3("a"),
+      index: AstTestFactory.identifier3("b"),
+    );
     AstTestFactory.postfixExpression(expression, TokenType.PLUS_PLUS);
     // a[b]++
     expect(expression.inSetterContext(), isTrue);
@@ -310,7 +330,9 @@ class IndexExpressionTest {
 
   void test_inSetterContext_prefix_bang() {
     IndexExpression expression = AstTestFactory.indexExpression(
-        AstTestFactory.identifier3("a"), AstTestFactory.identifier3("b"));
+      target: AstTestFactory.identifier3("a"),
+      index: AstTestFactory.identifier3("b"),
+    );
     // !a[b]
     AstTestFactory.prefixExpression(TokenType.BANG, expression);
     expect(expression.inSetterContext(), isFalse);
@@ -318,7 +340,9 @@ class IndexExpressionTest {
 
   void test_inSetterContext_prefix_minusMinus() {
     IndexExpression expression = AstTestFactory.indexExpression(
-        AstTestFactory.identifier3("a"), AstTestFactory.identifier3("b"));
+      target: AstTestFactory.identifier3("a"),
+      index: AstTestFactory.identifier3("b"),
+    );
     // --a[b]
     AstTestFactory.prefixExpression(TokenType.MINUS_MINUS, expression);
     expect(expression.inSetterContext(), isTrue);
@@ -326,7 +350,9 @@ class IndexExpressionTest {
 
   void test_inSetterContext_prefix_plusPlus() {
     IndexExpression expression = AstTestFactory.indexExpression(
-        AstTestFactory.identifier3("a"), AstTestFactory.identifier3("b"));
+      target: AstTestFactory.identifier3("a"),
+      index: AstTestFactory.identifier3("b"),
+    );
     // ++a[b]
     AstTestFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
     expect(expression.inSetterContext(), isTrue);
@@ -360,25 +386,26 @@ class IndexExpressionTest {
 
   void test_isNullAware_false() {
     final expression = AstTestFactory.indexExpression(
-        AstTestFactory.nullLiteral(),
-        AstTestFactory.nullLiteral(),
-        TokenType.OPEN_SQUARE_BRACKET);
+      target: AstTestFactory.nullLiteral(),
+      index: AstTestFactory.nullLiteral(),
+    );
     expect(expression.isNullAware, isFalse);
   }
 
   void test_isNullAware_regularIndex() {
     final expression = AstTestFactory.indexExpression(
-        AstTestFactory.nullLiteral(),
-        AstTestFactory.nullLiteral(),
-        TokenType.OPEN_SQUARE_BRACKET);
+      target: AstTestFactory.nullLiteral(),
+      index: AstTestFactory.nullLiteral(),
+    );
     expect(expression.isNullAware, isFalse);
   }
 
   void test_isNullAware_true() {
     final expression = AstTestFactory.indexExpression(
-        AstTestFactory.nullLiteral(),
-        AstTestFactory.nullLiteral(),
-        TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET);
+      target: AstTestFactory.nullLiteral(),
+      hasQuestion: true,
+      index: AstTestFactory.nullLiteral(),
+    );
     expect(expression.isNullAware, isTrue);
   }
 }

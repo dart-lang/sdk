@@ -171,15 +171,15 @@ class A {
 extension E on A? {
   void bar() {
     this[0];
-    this?.[0];
+    this?[0];
 
     this[0] = 0;
-    this?.[0] = 0;
+    this?[0] = 0;
   }
 }
 ''', [
       error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 126, 4),
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 155, 4),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 154, 4),
     ]);
   }
 

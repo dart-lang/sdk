@@ -299,28 +299,6 @@ main(A? a) {
     );
   }
 
-  test_read_nullable_questionDotIndex() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  bool operator[](int index) => false;
-}
-
-main(A? a) {
-  a?.[0];
-}
-''');
-
-    var indexElement = findElement.method('[]');
-
-    var indexExpression = findNode.index('a?.[0]');
-    assertIndexExpression(
-      indexExpression,
-      readElement: indexElement,
-      writeElement: null,
-      type: 'bool?',
-    );
-  }
-
   test_readWrite_nullable() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -338,46 +316,6 @@ main(A? a) {
     var numPlusElement = numElement.getMethod('+');
 
     var indexExpression = findNode.index('a?[0]');
-    assertIndexExpression(
-      indexExpression,
-      readElement: indexElement,
-      writeElement: indexEqElement,
-      type: 'num',
-    );
-    assertParameterElement(
-      indexExpression.index,
-      indexEqElement.parameters[0],
-    );
-
-    var assignment = indexExpression.parent as AssignmentExpression;
-    assertAssignment(
-      assignment,
-      operatorElement: numPlusElement,
-      type: 'num?',
-    );
-    assertParameterElement(
-      assignment.rightHandSide,
-      numPlusElement.parameters[0],
-    );
-  }
-
-  test_readWrite_nullable_questionDotIndex() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  num operator[](int index) => 0;
-  void operator[]=(int index, num value) {}
-}
-
-main(A? a) {
-  a?.[0] += 1.2;
-}
-''');
-
-    var indexElement = findElement.method('[]');
-    var indexEqElement = findElement.method('[]=');
-    var numPlusElement = numElement.getMethod('+');
-
-    var indexExpression = findNode.index('a?.[0]');
     assertIndexExpression(
       indexExpression,
       readElement: indexElement,
@@ -445,40 +383,6 @@ main(A? a) {
     var indexEqElement = findElement.method('[]=');
 
     var indexExpression = findNode.index('a?[0]');
-    assertIndexExpression(
-      indexExpression,
-      readElement: null,
-      writeElement: indexEqElement,
-      type: null,
-    );
-    assertParameterElement(
-      indexExpression.index,
-      indexEqElement.parameters[0],
-    );
-
-    var assignment = indexExpression.parent as AssignmentExpression;
-    assertAssignment(
-      assignment,
-      operatorElement: null,
-      type: 'double?',
-    );
-    assertParameterElement(assignment.rightHandSide, null);
-  }
-
-  test_write_nullable_questionDotIndex() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  void operator[]=(int index, num value) {}
-}
-
-main(A? a) {
-  a?.[0] = 1.2;
-}
-''');
-
-    var indexEqElement = findElement.method('[]=');
-
-    var indexExpression = findNode.index('a?.[0]');
     assertIndexExpression(
       indexExpression,
       readElement: null,

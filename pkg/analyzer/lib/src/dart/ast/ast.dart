@@ -3886,7 +3886,7 @@ class ExtensionOverrideImpl extends ExpressionImpl
   bool get isNullAware {
     var nextType = argumentList.endToken.next.type;
     return nextType == TokenType.QUESTION_PERIOD ||
-        nextType == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET;
+        nextType == TokenType.QUESTION;
   }
 
   @override
@@ -5868,7 +5868,6 @@ class IndexExpressionImpl extends ExpressionImpl
       return _ancestorCascade.isNullAware;
     }
     return question != null ||
-        leftBracket.type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET ||
         (leftBracket.type == TokenType.OPEN_SQUARE_BRACKET &&
             period != null &&
             period.type == TokenType.QUESTION_PERIOD_PERIOD);

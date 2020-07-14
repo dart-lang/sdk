@@ -614,7 +614,7 @@ extension E on int {
 }
 
 void f(int? a) {
-  E(a)?.[0];
+  E(a)?[0];
 }
 ''');
 
@@ -633,7 +633,7 @@ extension E on int {
 }
 
 void f(int? a) {
-  E(a)?.[0] = 1;
+  E(a)?[0] = 1;
 }
 ''');
 
