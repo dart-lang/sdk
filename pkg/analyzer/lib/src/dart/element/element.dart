@@ -15,6 +15,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
@@ -6679,8 +6680,7 @@ class ParameterElementImpl extends VariableElementImpl
     if (_parameterKind != null) return _parameterKind;
 
     if (linkedNode != null) {
-      FormalParameter linkedNode = this.linkedNode;
-      // ignore: deprecated_member_use_from_same_package
+      var linkedNode = this.linkedNode as FormalParameterImpl;
       return linkedNode.kind;
     }
     return _parameterKind;

@@ -336,7 +336,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
+  void visitDefaultFormalParameter(covariant DefaultFormalParameterImpl node) {
     NormalFormalParameter normalParameter = node.parameter;
     SimpleIdentifier nameNode = normalParameter.identifier;
 
@@ -358,7 +358,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       element.isConst = node.isConst;
       element.isExplicitlyCovariant = node.parameter.covariantKeyword != null;
       element.isFinal = node.isFinal;
-      // ignore: deprecated_member_use_from_same_package
       element.parameterKind = node.kind;
 
       if (normalParameter is SimpleFormalParameter &&
@@ -457,7 +456,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitFieldFormalParameter(FieldFormalParameter node) {
+  void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     FieldFormalParameterElementImpl element;
     if (node.parent is DefaultFormalParameter) {
       element = node.declaredElement;
@@ -475,7 +474,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element.isConst = node.isConst;
         element.isExplicitlyCovariant = node.covariantKeyword != null;
         element.isFinal = node.isFinal;
-        // ignore: deprecated_member_use_from_same_package
         element.parameterKind = node.kind;
         _setCodeRange(element, node);
         element.metadata = _createElementAnnotations(node.metadata);
@@ -629,7 +627,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+  void visitFunctionTypedFormalParameter(
+    covariant FunctionTypedFormalParameterImpl node,
+  ) {
     ParameterElementImpl element;
     if (node.parent is DefaultFormalParameter) {
       element = node.declaredElement;
@@ -643,7 +643,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element.isConst = node.isConst;
         element.isExplicitlyCovariant = node.covariantKeyword != null;
         element.isFinal = node.isFinal;
-        // ignore: deprecated_member_use_from_same_package
         element.parameterKind = node.kind;
         _setCodeRange(element, node);
       }
@@ -857,7 +856,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+  void visitSimpleFormalParameter(covariant SimpleFormalParameterImpl node) {
     ParameterElementImpl element;
     if (node.parent is DefaultFormalParameter) {
       element = node.declaredElement;
@@ -877,15 +876,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element.isConst = node.isConst;
         element.isExplicitlyCovariant = node.covariantKeyword != null;
         element.isFinal = node.isFinal;
-        // ignore: deprecated_member_use_from_same_package
         element.parameterKind = node.kind;
         if (node.type == null) {
           element.hasImplicitType = true;
         }
-        (node as SimpleFormalParameterImpl).declaredElement = element;
+        node.declaredElement = element;
       }
       nameNode?.staticElement = element;
-      (node as SimpleFormalParameterImpl).declaredElement = element;
+      node.declaredElement = element;
     }
 
     node.type?.accept(this);

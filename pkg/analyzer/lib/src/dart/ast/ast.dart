@@ -4339,7 +4339,6 @@ abstract class FormalParameterImpl extends AstNodeImpl
   bool get isRequiredPositional => kind == ParameterKind.REQUIRED;
 
   @override
-  // Overridden to remove the 'deprecated' annotation.
   ParameterKind get kind;
 }
 
@@ -7685,11 +7684,10 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
     _identifier = _becomeParentOf(identifier as SimpleIdentifierImpl);
   }
 
-  @deprecated
   @override
   ParameterKind get kind {
     AstNode parent = this.parent;
-    if (parent is DefaultFormalParameter) {
+    if (parent is DefaultFormalParameterImpl) {
       return parent.kind;
     }
     return ParameterKind.REQUIRED;

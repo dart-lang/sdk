@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
@@ -160,11 +161,10 @@ class FunctionTypeBuilder extends TypeBuilder {
     bool isNNBD,
     FormalParameterList node,
   ) {
-    return node.parameters.map((parameter) {
+    return node.parameters.asImpl.map((parameter) {
       return ParameterElementImpl.synthetic(
         parameter.identifier?.name ?? '',
         _getParameterType(isNNBD, parameter),
-        // ignore: deprecated_member_use_from_same_package
         parameter.kind,
       );
     }).toList();
