@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2jsOptions=--strong --omit-implicit-checks
-
-int f<T>(T a) => null;
+int f<T>(T a) => 0;
 
 typedef int F<R>(R a);
 
@@ -15,5 +13,5 @@ class B<S> {
 }
 
 main() {
-  new B<int>().c(0);
+  B<int>().c(0);
 }

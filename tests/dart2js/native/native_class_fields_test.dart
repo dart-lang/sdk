@@ -7,10 +7,10 @@ import "native_testing.dart";
 // Verify that native fields on classes are not renamed by the minifier.
 @Native("A")
 class A {
-  int myLongPropertyName;
-  int getValue;
+  int? myLongPropertyName;
+  int? getValue;
 
-  int method(int z) => myLongPropertyName;
+  int? method(int z) => myLongPropertyName;
 }
 
 void setup() {
@@ -49,7 +49,7 @@ main() {
   setup();
   var a = makeA();
   a.myLongPropertyName = 21;
-  int gotten = a.myLongPropertyName;
+  int? gotten = a.myLongPropertyName;
   Expect.equals(11, gotten);
 
   // Force interceptor dispatch.
@@ -64,7 +64,7 @@ main() {
     // renaming of native properties can only work using getters and setters
     // that access the original name.
     a2.myLongPropertyName = 21;
-    int gotten = a2.myLongPropertyName;
+    int? gotten = a2.myLongPropertyName;
     Expect.equals(11, gotten);
   }
 }

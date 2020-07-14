@@ -12,15 +12,20 @@ class Class {
 }
 
 @pragma('dart2js:noInline')
-test1(dynamic c, num n) {
+test1(dynamic c, dynamic n) {
   if (c is Class) {
     c.method(field = 41, n, field = 42);
   }
 }
 
 @pragma('dart2js:noInline')
-test2(dynamic c, num n) {
+test2(dynamic c, dynamic n) {
   if (c is! Class) return;
+  c.method(field = 66, n, field = 67);
+}
+
+@pragma('dart2js:noInline')
+test3(dynamic c, dynamic n) {
   c.method(field = 86, n, field = 87);
 }
 
@@ -36,6 +41,14 @@ main() {
 
   try {
     test2(new Class(), 0.5);
+    field = 213;
+    field = 213;
+  } catch (e) {}
+  // See above comment.
+  Expect.equals(66, field);
+
+  try {
+    test3(new Class(), 0.5);
     field = 321;
     field = 321;
   } catch (e) {}
