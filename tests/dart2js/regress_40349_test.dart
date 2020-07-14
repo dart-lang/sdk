@@ -21,7 +21,7 @@ dynamic x = Wrapper<int>();
 
 class A<E> {
   int _foo = 0;
-  List<E> list = [null];
+  List<E?> list = [null];
 
   @pragma('dart2js:tryInline')
   void internalMethod(E value) {

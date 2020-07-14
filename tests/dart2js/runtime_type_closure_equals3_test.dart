@@ -2,19 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2jsOptions=--strong
-
 import 'package:expect/expect.dart';
 
-String method() => null;
+String method() => throw 'unreachable';
 
 class Class1<T> {
   Class1();
 
   method() {
-    T local1a() => null;
+    T local1a() => throw 'unreachable';
 
-    T local1b() => null;
+    T local1b() => throw 'unreachable';
 
     T local2(T t, String s) => t;
 
@@ -29,6 +27,6 @@ class Class2<T> {
 }
 
 main() {
-  new Class1<int>().method();
-  new Class2<int>();
+  Class1<int>().method();
+  Class2<int>();
 }

@@ -14,21 +14,21 @@ class BuildContext {}
 class Widget {}
 
 abstract class ProxyWidget extends Widget {
-  final Widget child;
+  final Widget? child;
 
   ProxyWidget({this.child});
 }
 
 abstract class InheritedWidget extends ProxyWidget {
-  InheritedWidget({Widget child}) : super(child: child);
+  InheritedWidget({Widget? child}) : super(child: child);
 }
 
 class InheritedProvider<T> extends InheritedWidget {
-  final T _value;
-  final UpdateShouldNotify<T> _updateShouldNotify;
+  final T? _value;
+  final UpdateShouldNotify<T>? _updateShouldNotify;
 
   InheritedProvider(
-      {T value, UpdateShouldNotify<T> updateShouldNotify, Widget child})
+      {T? value, UpdateShouldNotify<T>? updateShouldNotify, Widget? child})
       : _value = value,
         _updateShouldNotify = updateShouldNotify,
         super(child: child);
@@ -73,15 +73,15 @@ class ValueDelegateWidget<T> extends DelegateWidget {
 
 class ValueListenableProvider<T>
     extends ValueDelegateWidget<ValueListenable<T>> {
-  final Widget child;
+  final Widget? child;
 
-  final UpdateShouldNotify<T> updateShouldNotify;
+  final UpdateShouldNotify<T>? updateShouldNotify;
 
   ValueListenableProvider(ValueStateDelegate<ValueListenable<T>> delegate,
       this.updateShouldNotify, this.child)
       : super(delegate);
 
-  Widget build() {
+  ValueListenableBuilder<T> build() {
     return ValueListenableBuilder<T>(
       valueListenable: delegate.value,
       builder: (_, value, child) {
@@ -97,25 +97,25 @@ class ValueListenableProvider<T>
 }
 
 class ValueListenableBuilder<T> extends Widget {
-  final ValueListenable<T> valueListenable;
-  final ValueWidgetBuilder<T> builder;
-  final Widget child;
+  final ValueListenable<T>? valueListenable;
+  final ValueWidgetBuilder<T>? builder;
+  final Widget? child;
 
   ValueListenableBuilder({this.valueListenable, this.builder, this.child});
 }
 
 void main() {
-  print(create(42).valueListenable.value);
-  print(create('foo').valueListenable.value);
+  print(create(42).valueListenable!.value);
+  print(create('foo').valueListenable!.value);
 }
 
 ValueListenableBuilder<T> create<T>(T value) {
-  ValueListenableImpl<T> valueListenable = new ValueListenableImpl<T>(value);
+  ValueListenableImpl<T> valueListenable = ValueListenableImpl<T>(value);
   ValueStateDelegateImpl<ValueListenable<T>> valueStateDelegate =
-      new ValueStateDelegateImpl<ValueListenable<T>>(valueListenable);
+      ValueStateDelegateImpl<ValueListenable<T>>(valueListenable);
   ValueListenableProvider<T> valueListenableProvider =
-      new ValueListenableProvider<T>(valueStateDelegate, null, null);
-  Widget widget = valueListenableProvider.build();
+      ValueListenableProvider<T>(valueStateDelegate, null, null);
+  ValueListenableBuilder<T> widget = valueListenableProvider.build();
   print(value);
   return widget;
 }
