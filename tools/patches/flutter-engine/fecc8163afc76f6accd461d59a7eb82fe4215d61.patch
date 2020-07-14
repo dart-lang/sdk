@@ -1,0 +1,13 @@
+diff --git a/DEPS b/DEPS
+index a4ee1ba7e..862c7d8f7 100644
+--- a/DEPS
++++ b/DEPS
+@@ -170,7 +170,7 @@ deps = {
+    Var('dart_git') + '/args.git' + '@' + Var('dart_args_tag'),
+ 
+   'src/third_party/dart/third_party/pkg/async':
+-   Var('dart_git') + '/async.git@e0c41e0c1fb70ba606dc81335c981af7c00987c6',
++   Var('dart_git') + '/async.git@5a4373458bfc902e4a4064427c619c2b41783f0d',
+ 
+   'src/third_party/dart/third_party/pkg/bazel_worker':
+    Var('dart_git') + '/bazel_worker.git@26680d5e249b249c7216ab2fed0ac8ed4ee285c5',
