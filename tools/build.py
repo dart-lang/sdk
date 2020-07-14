@@ -204,6 +204,7 @@ def EnsureGomaStarted(out_dir):
 def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer):
     build_config = utils.GetBuildConf(mode, arch, target_os, sanitizer)
     out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer)
+    using_goma = False
     # TODO(kustermann): Remove this once we always run GN.
     RunGNIfNeeded(out_dir, target_os, mode, arch, sanitizer)
     command = ['ninja', '-C', out_dir]
