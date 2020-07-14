@@ -73,7 +73,7 @@ vars = {
   "boringssl_gen_rev": "429ccb1877f7987a6f3988228bc2440e61293499",
   "boringssl_rev" : "4dfd5af70191b068aebe567b8e29ce108cee85ce",
   "browser-compat-data_tag": "v1.0.22",
-  "charcode_rev": "9085e6b6127f084d66c0a94810a808121459012a",
+  "charcode_rev": "af1e2d59a9c383da94f99ea51dac4b93fb0626c4",
   "chrome_rev" : "19997",
   "cli_util_tag" : "0.1.4",
   "collection_rev": "80f5b6de8a8d8d584732a71bb59912da3e44883b",

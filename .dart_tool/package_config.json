@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-07-09T13:10:41.742079",
+  "generated": "2020-07-14T07:50:57.318843",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -107,7 +107,7 @@
       "name": "charcode",
       "rootUri": "../third_party/pkg/charcode",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.9"
     },
     {
       "name": "cli_util",
@@ -375,7 +375,7 @@
       "name": "matcher",
       "rootUri": "../third_party/pkg/matcher",
       "packageUri": "lib/",
-      "languageVersion": "2.4"
+      "languageVersion": "2.7"
     },
     {
       "name": "meta",
