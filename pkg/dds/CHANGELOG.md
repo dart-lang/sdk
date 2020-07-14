@@ -1,3 +1,8 @@
+# 1.2.3
+
+- Fixed issue where DDS was expecting a client provided implementation of
+`compileExpression` to return a response with two layers of `response` objects.
+
 # 1.2.2
 
 - Fixed issue where a `StateError` could be raised within `DartDevelopmentService`
