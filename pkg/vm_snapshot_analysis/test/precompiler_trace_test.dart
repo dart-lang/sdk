@@ -89,8 +89,8 @@ void main() async {
         expect(retainedClasses, containsAll(['A', 'B', 'K']));
         expect(retainedFunctions, containsAll(['print', 'tearOff']));
 
-        final getTearOffCall =
-            callGraph.dynamicCalls.firstWhere((n) => n.data == 'get:tornOff');
+        final getTearOffCall = callGraph.dynamicCalls
+            .firstWhere((n) => n.data == 'dyn:get:tornOff');
         expect(
             getTearOffCall.dominated.map((n) => n.data.qualifiedName),
             equals([

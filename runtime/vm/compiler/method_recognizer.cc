@@ -255,15 +255,7 @@ void MethodRecognizer::Libraries(GrowableArray<Library*>* libs) {
   libs->Add(&Library::ZoneHandle(Library::FfiLibrary()));
 }
 
-Token::Kind MethodTokenRecognizer::RecognizeTokenKind(const String& name_) {
-  Thread* thread = Thread::Current();
-  REUSABLE_STRING_HANDLESCOPE(thread);
-  String& name = thread->StringHandle();
-  name = name_.raw();
-  ASSERT(name.IsSymbol());
-  if (Function::IsDynamicInvocationForwarderName(name)) {
-    name = Function::DemangleDynamicInvocationForwarderName(name);
-  }
+static Token::Kind RecognizeTokenKindHelper(const String& name) {
   if (name.raw() == Symbols::Plus().raw()) {
     return Token::kADD;
   } else if (name.raw() == Symbols::Minus().raw()) {
@@ -308,6 +300,18 @@ Token::Kind MethodTokenRecognizer::RecognizeTokenKind(const String& name_) {
     return Token::kSET;
   }
   return Token::kILLEGAL;
+}
+
+Token::Kind MethodTokenRecognizer::RecognizeTokenKind(const String& name) {
+  ASSERT(name.IsSymbol());
+  if (Function::IsDynamicInvocationForwarderName(name)) {
+    Thread* thread = Thread::Current();
+    const auto& demangled_name = String::Handle(
+        thread->zone(), Function::DemangleDynamicInvocationForwarderName(name));
+    return RecognizeTokenKindHelper(demangled_name);
+  } else {
+    return RecognizeTokenKindHelper(name);
+  }
 }
 
 #define RECOGNIZE_FACTORY(symbol, class_name, constructor_name, cid, fp)       \

@@ -52,11 +52,11 @@ DEFINE_FLAG(int,
 static void GetUniqueDynamicTarget(Isolate* isolate,
                                    const String& fname,
                                    Object* function) {
-  UniqueFunctionsSet functions_set(
+  UniqueFunctionsMap functions_map(
       isolate->object_store()->unique_dynamic_targets());
   ASSERT(fname.IsSymbol());
-  *function = functions_set.GetOrNull(fname);
-  ASSERT(functions_set.Release().raw() ==
+  *function = functions_map.GetOrNull(fname);
+  ASSERT(functions_map.Release().raw() ==
          isolate->object_store()->unique_dynamic_targets());
 }
 

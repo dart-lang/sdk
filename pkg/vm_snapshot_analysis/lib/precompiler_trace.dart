@@ -437,10 +437,11 @@ class _TraceReader {
             callNodesBySelector[targetName]?.connectTo(funNode);
             callNodesBySelector['$dynPrefix$targetName']?.connectTo(funNode);
           } else if (name.startsWith(extractorPrefix)) {
-            // Handle method tear-off: [tear-off-extractor] get:foo is hit
-            // by get:foo.
-            callNodesBySelector[name.substring(extractorPrefix.length)]
-                ?.connectTo(funNode);
+            // Handle method tear-off: [tear-off-extractor] get:foo can be hit
+            // by dyn:get:foo and get:foo.
+            final targetName = name.substring(extractorPrefix.length);
+            callNodesBySelector[targetName]?.connectTo(funNode);
+            callNodesBySelector['$dynPrefix$targetName']?.connectTo(funNode);
           }
         }
       }

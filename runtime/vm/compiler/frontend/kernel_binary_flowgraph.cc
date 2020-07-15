@@ -2331,16 +2331,27 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
     instructions += CheckNull(position, receiver, getter_name);
   }
 
-  if (!direct_call.target_.IsNull()) {
+  const String* mangled_name = &getter_name;
+  const Function* direct_call_target = &direct_call.target_;
+  if (H.IsRoot(itarget_name)) {
+    mangled_name = &String::ZoneHandle(
+        Z, Function::CreateDynamicInvocationForwarderName(getter_name));
+    if (!direct_call_target->IsNull()) {
+      direct_call_target = &Function::ZoneHandle(
+          direct_call.target_.GetDynamicInvocationForwarder(*mangled_name));
+    }
+  }
+
+  if (!direct_call_target->IsNull()) {
     ASSERT(CompilerState::Current().is_aot());
     instructions +=
-        StaticCall(position, direct_call.target_, 1, Array::null_array(),
+        StaticCall(position, *direct_call_target, 1, Array::null_array(),
                    ICData::kNoRebind, &result_type);
   } else {
     const intptr_t kTypeArgsLen = 0;
     const intptr_t kNumArgsChecked = 1;
     instructions +=
-        InstanceCall(position, getter_name, Token::kGET, kTypeArgsLen, 1,
+        InstanceCall(position, *mangled_name, Token::kGET, kTypeArgsLen, 1,
                      Array::null_array(), kNumArgsChecked, *interface_target,
                      *tearoff_interface_target, &result_type);
   }

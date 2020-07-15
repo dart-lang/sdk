@@ -2180,8 +2180,10 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
 
   const bool is_dynamic_call =
       Function::IsDynamicInvocationForwarderName(target_name);
+  String& demangled_target_name = String::Handle(zone, target_name.raw());
   if (is_dynamic_call) {
-    target_name = Function::DemangleDynamicInvocationForwarderName(target_name);
+    demangled_target_name =
+        Function::DemangleDynamicInvocationForwarderName(target_name);
   }
 
   Class& cls = Class::Handle(zone, receiver.clazz());
@@ -2194,8 +2196,9 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
 
 #define NO_SUCH_METHOD()                                                       \
   const Object& result = Object::Handle(                                       \
-      zone, DartEntry::InvokeNoSuchMethod(                                     \
-                receiver, target_name, orig_arguments, orig_arguments_desc));  \
+      zone,                                                                    \
+      DartEntry::InvokeNoSuchMethod(receiver, demangled_target_name,           \
+                                    orig_arguments, orig_arguments_desc));     \
   ThrowIfError(result);                                                        \
   arguments.SetReturn(result);
 
@@ -2206,13 +2209,23 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
       zone, closure_function.ImplicitInstanceClosure(receiver));               \
   arguments.SetReturn(result);
 
-  const bool is_getter = Field::IsGetterName(target_name);
+  const bool is_getter = Field::IsGetterName(demangled_target_name);
   if (is_getter) {
+    // Tear-off of a method
     // o.foo (o.get:foo) failed, closurize o.foo() if it exists.
-    String& field_name =
-        String::Handle(zone, Field::NameFromGetter(target_name));
+    const auto& function_name =
+        String::Handle(zone, Field::NameFromGetter(demangled_target_name));
+    const auto& dyn_function_name = String::Handle(
+        zone, is_dynamic_call ? Function::CreateDynamicInvocationForwarderName(
+                                    function_name)
+                              : function_name.raw());
     while (!cls.IsNull()) {
-      function = cls.LookupDynamicFunction(field_name);
+      if (is_dynamic_call) {
+        function = cls.LookupDynamicFunction(dyn_function_name);
+      }
+      if (function.IsNull()) {
+        function = cls.LookupDynamicFunction(function_name);
+      }
       if (!function.IsNull()) {
         CLOSURIZE(function);
         return;
@@ -2222,6 +2235,7 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
 
     // Fall through for noSuchMethod
   } else {
+    // Call through field.
     // o.foo(...) failed, invoke noSuchMethod is foo exists but has the wrong
     // number of arguments, or try (o.foo).call(...)
 
@@ -2247,16 +2261,38 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
       return;
     }
 
-    const String& getter_name =
-        String::Handle(zone, Field::GetterName(target_name));
+    // Dynamic call sites have to use the dynamic getter as well (if it was
+    // created).
+    const auto& getter_name =
+        String::Handle(zone, Field::GetterName(demangled_target_name));
+    const auto& dyn_getter_name = String::Handle(
+        zone, is_dynamic_call
+                  ? Function::CreateDynamicInvocationForwarderName(getter_name)
+                  : getter_name.raw());
     ArgumentsDescriptor args_desc(orig_arguments_desc);
     while (!cls.IsNull()) {
+      // If there is a function with the target name but mismatched arguments
+      // we need to call `receiver.noSuchMethod()`.
       function = cls.LookupDynamicFunction(target_name);
       if (!function.IsNull()) {
         ASSERT(!function.AreValidArguments(args_desc, NULL));
         break;  // mismatch, invoke noSuchMethod
       }
-      function = cls.LookupDynamicFunction(getter_name);
+      if (is_dynamic_call) {
+        function = cls.LookupDynamicFunction(demangled_target_name);
+        if (!function.IsNull()) {
+          ASSERT(!function.AreValidArguments(args_desc, NULL));
+          break;  // mismatch, invoke noSuchMethod
+        }
+      }
+
+      // If there is a getter we need to call-through-getter.
+      if (is_dynamic_call) {
+        function = cls.LookupDynamicFunction(dyn_getter_name);
+      }
+      if (function.IsNull()) {
+        function = cls.LookupDynamicFunction(getter_name);
+      }
       if (!function.IsNull()) {
         const Array& getter_arguments = Array::Handle(Array::New(1));
         getter_arguments.SetAt(0, receiver);

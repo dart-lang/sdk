@@ -71,61 +71,50 @@ FunctionPtr Resolver::ResolveDynamicAnyArgs(Zone* zone,
   }
   Function& function = Function::Handle(zone);
 
-  String& demangled = String::Handle(zone);
+  const String& demangled = String::Handle(
+      zone,
+      Function::IsDynamicInvocationForwarderName(function_name)
+          ? Function::DemangleDynamicInvocationForwarderName(function_name)
+          : function_name.raw());
 
-  const bool is_getter = Field::IsGetterName(function_name);
+  const bool is_getter = Field::IsGetterName(demangled);
+  String& demangled_getter_name = String::Handle();
   if (is_getter) {
-    demangled = Field::NameFromGetter(function_name);
+    demangled_getter_name = Field::NameFromGetter(demangled);
   }
 
-  if (Function::IsDynamicInvocationForwarderName(function_name)) {
-    demangled = Function::DemangleDynamicInvocationForwarderName(function_name);
-#ifdef DART_PRECOMPILED_RUNTIME
-    // In precompiled mode, the non-dynamic version of the function may be
-    // tree-shaken away, so can't necessarily resolve the demanged name.
-    while (!cls.IsNull()) {
+  const bool is_dyn_call = demangled.raw() != function_name.raw();
+
+  while (!cls.IsNull()) {
+    if (is_dyn_call) {
+      // Try to find a dyn:* forwarder & return it.
       function = cls.GetInvocationDispatcher(
           function_name, Array::null_array(),
           FunctionLayout::kDynamicInvocationForwarder,
           /*create_if_absent=*/false);
-      if (!function.IsNull()) break;
-      cls = cls.SuperClass();
     }
-    // Some functions don't require dynamic invocation forwarders, for example
-    // if there are no parameters or all the parameters are marked
-    // `generic-covariant` (meaning there's no work for the dynamic invocation
-    // forwarder to do, see `kernel::DynamicInvocationForwarder`). For these
-    // functions, we won't have built a `dyn:` version, but it's safe to just
-    // return the original version directly.
-    return !function.IsNull() ? function.raw()
-                              : ResolveDynamicAnyArgs(zone, receiver_class,
-                                                      demangled, allow_add);
-#else
-    function =
-        ResolveDynamicAnyArgs(zone, receiver_class, demangled, allow_add);
-    return function.IsNull() ? function.raw()
-                             : function.GetDynamicInvocationForwarder(
-                                   function_name, allow_add);
-#endif
-  }
+    if (!function.IsNull()) return function.raw();
 
-  // Now look for an instance function whose name matches function_name
-  // in the class.
-  while (!cls.IsNull()) {
-    function = cls.LookupDynamicFunction(function_name);
-    if (!function.IsNull()) {
-      return function.raw();
+    function = cls.LookupDynamicFunction(demangled);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    // In JIT we might need to lazily create a dyn:* forwarder.
+    if (is_dyn_call && !function.IsNull()) {
+      function =
+          function.GetDynamicInvocationForwarder(function_name, allow_add);
     }
+#endif
+    if (!function.IsNull()) return function.raw();
+
     // Getter invocation might actually be a method extraction.
-    if (is_getter && function.IsNull()) {
-      function = cls.LookupDynamicFunction(demangled);
+    if (is_getter) {
+      function = cls.LookupDynamicFunction(demangled_getter_name);
       if (!function.IsNull()) {
         if (allow_add && FLAG_lazy_dispatchers) {
           // We were looking for the getter but found a method with the same
           // name. Create a method extractor and return it.
           // The extractor does not exist yet, so using GetMethodExtractor is
           // not necessary here.
-          function = function.CreateMethodExtractor(function_name);
+          function = function.CreateMethodExtractor(demangled);
           return function.raw();
         } else {
           return Function::null();

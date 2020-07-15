@@ -723,7 +723,13 @@ bool NeedsDynamicInvocationForwarder(const Function& function) {
   // dynamic invocation forwarder. So dynamic invocation forwarder is only
   // needed if there are non-covariant parameters of non-top type.
 
-  ASSERT(!function.IsImplicitGetterFunction());
+  // TODO(dartbug.com/40876): Implement dynamic invocation forwarders for
+  // getters.
+  if (function.IsImplicitGetterFunction() ||
+      function.IsImplicitClosureFunction() || function.IsMethodExtractor()) {
+    return false;
+  }
+
   if (function.IsImplicitSetterFunction()) {
     const auto& field = Field::Handle(zone, function.accessor_field());
     return !(field.is_covariant() || field.is_generic_covariant_impl());

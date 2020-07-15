@@ -3674,6 +3674,10 @@ StringPtr Function::DemangleDynamicInvocationForwarderName(const String& name) {
                       name.Length() - kDynamicPrefixLength);
 }
 
+StringPtr Function::CreateDynamicInvocationForwarderName(const String& name) {
+  return Symbols::FromConcat(Thread::Current(), Symbols::DynamicPrefix(), name);
+}
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
 FunctionPtr Function::CreateDynamicInvocationForwarder(
     const String& mangled_name) const {
@@ -3714,10 +3718,6 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
   forwarder.SetForwardingChecks(checks);
 
   return forwarder.raw();
-}
-
-StringPtr Function::CreateDynamicInvocationForwarderName(const String& name) {
-  return Symbols::FromConcat(Thread::Current(), Symbols::DynamicPrefix(), name);
 }
 
 FunctionPtr Function::GetDynamicInvocationForwarder(

@@ -3513,9 +3513,9 @@ class Function : public Object {
 
   static StringPtr DemangleDynamicInvocationForwarderName(const String& name);
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
   static StringPtr CreateDynamicInvocationForwarderName(const String& name);
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   FunctionPtr CreateDynamicInvocationForwarder(
       const String& mangled_name) const;
 
