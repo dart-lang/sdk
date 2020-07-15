@@ -16,7 +16,7 @@ import 'package:vm_snapshot_analysis/program_info.dart';
 import 'package:vm_snapshot_analysis/utils.dart';
 import 'package:vm_snapshot_analysis/v8_profile.dart';
 
-import '../utils.dart';
+import 'utils.dart';
 
 class CompareCommand extends Command<void> {
   @override

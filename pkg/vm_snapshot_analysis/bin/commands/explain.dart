@@ -17,7 +17,7 @@ import 'package:vm_snapshot_analysis/precompiler_trace.dart';
 import 'package:vm_snapshot_analysis/program_info.dart';
 import 'package:vm_snapshot_analysis/utils.dart';
 
-import '../utils.dart';
+import 'utils.dart';
 
 class ExplainCommand extends Command<void> {
   @override

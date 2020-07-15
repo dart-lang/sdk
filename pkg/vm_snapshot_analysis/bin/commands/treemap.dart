@@ -19,7 +19,7 @@ import 'package:path/path.dart' as p;
 import 'package:args/command_runner.dart';
 import 'package:vm_snapshot_analysis/treemap.dart';
 
-import '../utils.dart';
+import 'utils.dart';
 
 class TreemapCommand extends Command<void> {
   @override

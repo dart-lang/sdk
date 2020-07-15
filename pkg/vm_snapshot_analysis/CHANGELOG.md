@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.0+1
+- Fix broken package by moving non-executable file out of bin/ directory.
+
 ## 0.5.0
 - Remove `dart:io` dependency from package `lib`, and move commands to `bin`.
 - Replace `loadProgramInfo` util method with `loadProgramInfoFromJson`, which
