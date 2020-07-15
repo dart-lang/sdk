@@ -224,11 +224,23 @@ import 'inference_failure_on_uninitialized_variable_test.dart'
     as inference_failure_on_uninitialized_variable;
 import 'inference_failure_on_untyped_parameter_test.dart'
     as inference_failure_on_untyped_parameter;
+import 'initializer_for_non_existent_field_test.dart'
+    as initializer_for_non_existent_field;
+import 'initializer_for_static_field_test.dart' as initializer_for_static_field;
+import 'initializing_formal_for_non_existent_field_test.dart'
+    as initializing_formal_for_non_existent_field;
+import 'initializing_formal_for_static_field_test.dart'
+    as initializing_formal_for_static_field;
 import 'instance_access_to_static_member_test.dart'
     as instance_access_to_static_member;
+import 'instance_member_access_from_factory_test.dart'
+    as instance_member_access_from_factory;
 import 'instance_member_access_from_static_test.dart'
     as instance_member_access_from_static;
 import 'instantiate_abstract_class_test.dart' as instantiate_abstract_class;
+import 'instantiate_enum_test.dart' as instantiate_enum;
+import 'integer_literal_imprecise_as_double_test.dart'
+    as integer_literal_imprecise_as_double;
 import 'integer_literal_out_of_range_test.dart' as integer_literal_out_of_range;
 import 'invalid_annotation_from_deferred_library_test.dart'
     as invalid_annotation_from_deferred_library;
@@ -735,9 +747,16 @@ main() {
     inference_failure_on_function_return_type.main();
     inference_failure_on_uninitialized_variable.main();
     inference_failure_on_untyped_parameter.main();
+    initializer_for_non_existent_field.main();
+    initializer_for_static_field.main();
+    initializing_formal_for_non_existent_field.main();
+    initializing_formal_for_static_field.main();
     instance_access_to_static_member.main();
+    instance_member_access_from_factory.main();
     instance_member_access_from_static.main();
     instantiate_abstract_class.main();
+    instantiate_enum.main();
+    integer_literal_imprecise_as_double.main();
     integer_literal_out_of_range.main();
     invalid_annotation.main();
     invalid_annotation_from_deferred_library.main();
