@@ -171,8 +171,11 @@ class _StreamManager {
     for (final streamId in streamListeners.keys.toList()) {
       streamCancel(client, streamId).catchError(
         (_) => null,
-        // Ignore 'stream not subscribed' errors.
-        test: (e) => e is json_rpc.RpcException,
+        // Ignore 'stream not subscribed' errors and StateErrors which arise
+        // when DDS is shutting down.
+        test: (e) =>
+            (e is json_rpc.RpcException) ||
+            (dds._shuttingDown && e is StateError),
       );
     }
     // Notify other service clients of service extensions that are being

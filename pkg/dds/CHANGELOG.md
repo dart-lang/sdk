@@ -1,3 +1,8 @@
+# 1.2.4
+
+- Fixed another issue where a `StateError` could be raised within `DartDevelopmentService`
+  when a client has disconnected after the target VM service has shutdown.
+
 # 1.2.3
 
 - Fixed issue where DDS was expecting a client provided implementation of
@@ -6,7 +11,7 @@
 # 1.2.2
 
 - Fixed issue where a `StateError` could be raised within `DartDevelopmentService`
-  when a client disconnected after the target VM service has shutdown.
+  when a client has disconnected after the target VM service has shutdown.
 
 # 1.2.1
 
