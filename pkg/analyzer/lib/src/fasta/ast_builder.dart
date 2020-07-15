@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         LocatedMessage,
         Message,
         MessageCode,
+        messageAbstractClassMember,
         messageConstConstructorWithBody,
         messageConstructorWithTypeParameters,
         messageDirectiveAfterDeclaration,
@@ -20,8 +21,8 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageInvalidThisInInitializer,
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
-        messageTypedefNotFunction,
         messageOperatorWithTypeParameters,
+        messageTypedefNotFunction,
         templateDuplicateLabelInSwitchStatement,
         templateExpectedButGot,
         templateExpectedIdentifier,
@@ -836,6 +837,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endClassFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -847,6 +849,10 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("Fields");
 
+    if (abstractToken != null) {
+      handleRecoverableError(
+          messageAbstractClassMember, abstractToken, abstractToken);
+    }
     if (externalToken != null) {
       handleRecoverableError(
           messageExternalField, externalToken, externalToken);
@@ -1218,7 +1224,7 @@ class AstBuilder extends StackListener {
       // an error at this point, but we include them in order to get navigation,
       // search, etc.
     }
-    endClassFields(externalToken, staticToken, covariantToken, lateToken,
+    endClassFields(null, externalToken, staticToken, covariantToken, lateToken,
         varFinalOrConst, count, beginToken, endToken);
   }
 
@@ -1842,6 +1848,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endMixinFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -1850,8 +1857,8 @@ class AstBuilder extends StackListener {
       int count,
       Token beginToken,
       Token endToken) {
-    endClassFields(externalToken, staticToken, covariantToken, lateToken,
-        varFinalOrConst, count, beginToken, endToken);
+    endClassFields(abstractToken, externalToken, staticToken, covariantToken,
+        lateToken, varFinalOrConst, count, beginToken, endToken);
   }
 
   @override

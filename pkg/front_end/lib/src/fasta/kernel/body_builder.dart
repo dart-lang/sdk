@@ -696,6 +696,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void endClassFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -705,6 +706,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Token beginToken,
       Token endToken) {
     debugEvent("Fields");
+    if (abstractToken != null) {
+      handleRecoverableError(
+          fasta.messageAbstractClassMember, abstractToken, abstractToken);
+    }
     if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
       if (externalToken != null) {

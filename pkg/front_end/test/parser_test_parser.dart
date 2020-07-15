@@ -694,6 +694,7 @@ class TestParser extends Parser {
 
   Token parseFields(
       Token beforeStart,
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -707,6 +708,7 @@ class TestParser extends Parser {
       bool nameIsRecovered) {
     doPrint('parseFields('
         '$beforeStart, '
+        '$abstractToken, '
         '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
@@ -721,6 +723,7 @@ class TestParser extends Parser {
     indent++;
     var result = super.parseFields(
         beforeStart,
+        abstractToken,
         externalToken,
         staticToken,
         covariantToken,
@@ -1004,6 +1007,7 @@ class TestParser extends Parser {
 
   Token parseMethod(
       Token beforeStart,
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -1018,6 +1022,7 @@ class TestParser extends Parser {
       bool nameIsRecovered) {
     doPrint('parseMethod('
         '$beforeStart, '
+        '$abstractToken, '
         '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
@@ -1033,6 +1038,7 @@ class TestParser extends Parser {
     indent++;
     var result = super.parseMethod(
         beforeStart,
+        abstractToken,
         externalToken,
         staticToken,
         covariantToken,
@@ -1049,8 +1055,14 @@ class TestParser extends Parser {
     return result;
   }
 
-  Token parseFactoryMethod(Token token, DeclarationKind kind, Token beforeStart,
-      Token externalToken, Token staticOrCovariant, Token varFinalOrConst) {
+  Token parseFactoryMethod(
+      Token token,
+      DeclarationKind kind,
+      Token beforeStart,
+      Token abstractToken,
+      Token externalToken,
+      Token staticOrCovariant,
+      Token varFinalOrConst) {
     doPrint('parseFactoryMethod('
         '$token, '
         '$kind, '
@@ -1060,7 +1072,7 @@ class TestParser extends Parser {
         '$varFinalOrConst)');
     indent++;
     var result = super.parseFactoryMethod(token, kind, beforeStart,
-        externalToken, staticOrCovariant, varFinalOrConst);
+        abstractToken, externalToken, staticOrCovariant, varFinalOrConst);
     indent--;
     return result;
   }
@@ -1948,6 +1960,7 @@ class TestParser extends Parser {
 
   Token parseInvalidOperatorDeclaration(
       Token beforeStart,
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -1958,6 +1971,7 @@ class TestParser extends Parser {
       String enclosingDeclarationName) {
     doPrint('parseInvalidOperatorDeclaration('
         '$beforeStart, '
+        '$abstractToken, '
         '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
@@ -1969,6 +1983,7 @@ class TestParser extends Parser {
     indent++;
     var result = super.parseInvalidOperatorDeclaration(
         beforeStart,
+        abstractToken,
         externalToken,
         staticToken,
         covariantToken,
@@ -1984,6 +1999,7 @@ class TestParser extends Parser {
   Token recoverFromInvalidMember(
       Token token,
       Token beforeStart,
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -1997,6 +2013,7 @@ class TestParser extends Parser {
     doPrint('recoverFromInvalidMember('
         '$token, '
         '$beforeStart, '
+        '$abstractToken, '
         '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
@@ -2011,6 +2028,7 @@ class TestParser extends Parser {
     var result = super.recoverFromInvalidMember(
         token,
         beforeStart,
+        abstractToken,
         externalToken,
         staticToken,
         covariantToken,

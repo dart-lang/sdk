@@ -233,6 +233,7 @@ class ExplicitTypeLintListener extends LintListener {
   }
 
   void endClassFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,

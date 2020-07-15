@@ -1711,6 +1711,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endClassFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -1720,6 +1721,10 @@ class OutlineBuilder extends StackListenerImpl {
       Token beginToken,
       Token endToken) {
     debugEvent("Fields");
+    if (abstractToken != null) {
+      handleRecoverableError(
+          messageAbstractClassMember, abstractToken, abstractToken);
+    }
     if (lateToken != null && !libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
       if (externalToken != null) {

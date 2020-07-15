@@ -2464,6 +2464,7 @@ class Parser {
     }
     return parseFields(
         beforeStart,
+        /* abstractToken = */ null,
         externalToken,
         /* staticToken = */ null,
         /* covariantToken = */ null,
@@ -2479,6 +2480,7 @@ class Parser {
 
   Token parseFields(
       Token beforeStart,
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -2563,18 +2565,42 @@ class Parser {
     }
     switch (kind) {
       case DeclarationKind.TopLevel:
+        if (abstractToken != null) {
+          reportRecoverableError(
+              abstractToken, codes.messageAbstractClassMember);
+        }
         listener.endTopLevelFields(externalToken, staticToken, covariantToken,
             lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
         break;
       case DeclarationKind.Class:
-        listener.endClassFields(externalToken, staticToken, covariantToken,
-            lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
+        listener.endClassFields(
+            abstractToken,
+            externalToken,
+            staticToken,
+            covariantToken,
+            lateToken,
+            varFinalOrConst,
+            fieldCount,
+            beforeStart.next,
+            token);
         break;
       case DeclarationKind.Mixin:
-        listener.endMixinFields(externalToken, staticToken, covariantToken,
-            lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
+        listener.endMixinFields(
+            abstractToken,
+            externalToken,
+            staticToken,
+            covariantToken,
+            lateToken,
+            varFinalOrConst,
+            fieldCount,
+            beforeStart.next,
+            token);
         break;
       case DeclarationKind.Extension:
+        if (abstractToken != null) {
+          reportRecoverableError(
+              abstractToken, codes.messageAbstractClassMember);
+        }
         if (staticToken == null && externalToken == null) {
           reportRecoverableError(
               firstName, codes.messageExtensionDeclaresInstanceField);
@@ -3192,6 +3218,7 @@ class Parser {
       Token token, DeclarationKind kind, String enclosingDeclarationName) {
     Token beforeStart = token = parseMetadataStar(token);
 
+    Token abstractToken;
     Token covariantToken;
     Token externalToken;
     Token lateToken;
@@ -3232,6 +3259,7 @@ class Parser {
           }
           if (isModifier(next)) {
             ModifierRecoveryContext context = new ModifierRecoveryContext(this)
+              ..abstractToken = abstractToken
               ..covariantToken = covariantToken
               ..externalToken = externalToken
               ..lateToken = lateToken
@@ -3241,6 +3269,7 @@ class Parser {
             token = context.parseClassMemberModifiers(token);
             next = token.next;
 
+            abstractToken = context.abstractToken;
             covariantToken = context.covariantToken;
             externalToken = context.externalToken;
             lateToken = context.lateToken;
@@ -3285,8 +3314,8 @@ class Parser {
           if (beforeType != token) {
             reportRecoverableError(token, codes.messageTypeBeforeFactory);
           }
-          token = parseFactoryMethod(token, kind, beforeStart, externalToken,
-              staticToken ?? covariantToken, varFinalOrConst);
+          token = parseFactoryMethod(token, kind, beforeStart, abstractToken,
+              externalToken, staticToken ?? covariantToken, varFinalOrConst);
           listener.endMember();
           return token;
         }
@@ -3299,6 +3328,7 @@ class Parser {
         if (next2.isUserDefinableOperator && typeParam == noTypeParamOrArg) {
           token = parseMethod(
               beforeStart,
+              abstractToken,
               externalToken,
               staticToken,
               covariantToken,
@@ -3321,6 +3351,7 @@ class Parser {
           // Recovery: Invalid operator
           return parseInvalidOperatorDeclaration(
               beforeStart,
+              abstractToken,
               externalToken,
               staticToken,
               covariantToken,
@@ -3333,6 +3364,7 @@ class Parser {
           // Recovery
           token = parseMethod(
               beforeStart,
+              abstractToken,
               externalToken,
               staticToken,
               covariantToken,
@@ -3357,6 +3389,7 @@ class Parser {
         return recoverFromInvalidMember(
             token,
             beforeStart,
+            abstractToken,
             externalToken,
             staticToken,
             covariantToken,
@@ -3378,6 +3411,7 @@ class Parser {
           // Recovery: Missing `operator` keyword
           return parseInvalidOperatorDeclaration(
               beforeStart,
+              abstractToken,
               externalToken,
               staticToken,
               covariantToken,
@@ -3411,6 +3445,7 @@ class Parser {
         identical(value, '=>')) {
       token = parseMethod(
           beforeStart,
+          abstractToken,
           externalToken,
           staticToken,
           covariantToken,
@@ -3430,6 +3465,7 @@ class Parser {
       }
       token = parseFields(
           beforeStart,
+          abstractToken,
           externalToken,
           staticToken,
           covariantToken,
@@ -3448,6 +3484,7 @@ class Parser {
 
   Token parseMethod(
       Token beforeStart,
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -3460,6 +3497,9 @@ class Parser {
       DeclarationKind kind,
       String enclosingDeclarationName,
       bool nameIsRecovered) {
+    if (abstractToken != null) {
+      reportRecoverableError(abstractToken, codes.messageAbstractClassMember);
+    }
     if (lateToken != null) {
       reportRecoverableErrorWithToken(
           lateToken, codes.templateExtraneousModifier);
@@ -3685,8 +3725,14 @@ class Parser {
     return token;
   }
 
-  Token parseFactoryMethod(Token token, DeclarationKind kind, Token beforeStart,
-      Token externalToken, Token staticOrCovariant, Token varFinalOrConst) {
+  Token parseFactoryMethod(
+      Token token,
+      DeclarationKind kind,
+      Token beforeStart,
+      Token abstractToken,
+      Token externalToken,
+      Token staticOrCovariant,
+      Token varFinalOrConst) {
     Token factoryKeyword = token = token.next;
     assert(optional('factory', factoryKeyword));
 
@@ -3706,6 +3752,9 @@ class Parser {
       context = null;
     }
 
+    if (abstractToken != null) {
+      reportRecoverableError(abstractToken, codes.messageAbstractClassMember);
+    }
     if (staticOrCovariant != null) {
       reportRecoverableErrorWithToken(
           staticOrCovariant, codes.templateExtraneousModifier);
@@ -6898,6 +6947,7 @@ class Parser {
   /// (and events have already been generated).
   Token parseInvalidOperatorDeclaration(
       Token beforeStart,
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -6945,6 +6995,7 @@ class Parser {
 
     Token token = parseMethod(
         beforeStart,
+        abstractToken,
         externalToken,
         staticToken,
         covariantToken,
@@ -6967,6 +7018,7 @@ class Parser {
   Token recoverFromInvalidMember(
       Token token,
       Token beforeStart,
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -6989,6 +7041,7 @@ class Parser {
     } else if (next.isOperator && next.endGroup == null) {
       return parseInvalidOperatorDeclaration(
           beforeStart,
+          abstractToken,
           externalToken,
           staticToken,
           covariantToken,
@@ -7005,6 +7058,7 @@ class Parser {
         identical(value, '{')) {
       token = parseMethod(
           beforeStart,
+          abstractToken,
           externalToken,
           staticToken,
           covariantToken,
@@ -7028,6 +7082,7 @@ class Parser {
     } else {
       token = parseFields(
           beforeStart,
+          abstractToken,
           externalToken,
           staticToken,
           covariantToken,

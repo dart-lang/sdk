@@ -388,6 +388,7 @@ class TextualOutlineListener extends DirectiveListener {
 
   @override
   void endClassFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,

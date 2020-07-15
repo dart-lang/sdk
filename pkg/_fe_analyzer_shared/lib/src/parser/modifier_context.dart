@@ -97,10 +97,6 @@ class ModifierRecoveryContext {
   /// Parse modifiers for class methods and fields.
   Token parseClassMemberModifiers(Token token) {
     token = parseModifiers(token);
-    if (abstractToken != null) {
-      parser.reportRecoverableError(
-          abstractToken, codes.messageAbstractClassMember);
-    }
     reportExtraneousModifier(requiredToken);
     return token;
   }
