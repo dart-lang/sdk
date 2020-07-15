@@ -11,7 +11,7 @@ void main() async {
   await periodicTest();
 }
 
-void timeoutTest() async {
+Future<void> timeoutTest() async {
   bool beforeRestart = true;
   bool calledBeforeRestart = false;
   bool calledAfterRestart = false;
@@ -31,7 +31,7 @@ void timeoutTest() async {
   Expect.isFalse(calledAfterRestart);
 }
 
-void periodicTest() async {
+Future<void> periodicTest() async {
   bool beforeRestart = true;
   bool calledBeforeRestart = false;
   bool calledAfterRestart = false;
