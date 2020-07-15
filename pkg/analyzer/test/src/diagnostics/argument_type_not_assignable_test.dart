@@ -180,15 +180,53 @@ class A {
     ]);
   }
 
-  test_index() async {
+  test_index_invalidRead() async {
     await assertErrorsInCode('''
 class A {
-  operator [](int index) {}
+  int operator [](int index) => 0;
 }
 f(A a) {
   a['0'];
 }''', [
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 53, 3),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 60, 3),
+    ]);
+  }
+
+  test_index_invalidRead_validWrite() async {
+    await assertErrorsInCode('''
+class A {
+  int operator [](int index) => 0;
+  operator []=(String index, int value) {}
+}
+f(A a) {
+  a['0'] += 0;
+}''', [
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 103, 3),
+    ]);
+  }
+
+  test_index_invalidWrite() async {
+    await assertErrorsInCode('''
+class A {
+  operator []=(int index, int value) {}
+}
+f(A a) {
+  a['0'] = 0;
+}''', [
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 65, 3),
+    ]);
+  }
+
+  test_index_validRead_invalidWrite() async {
+    await assertErrorsInCode('''
+class A {
+  int operator [](String index) => 0;
+  operator []=(int index, int value) {}
+}
+f(A a) {
+  a['0'] += 0;
+}''', [
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 103, 3),
     ]);
   }
 

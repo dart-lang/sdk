@@ -40,6 +40,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
 import 'package:analyzer/src/task/strong/checker.dart';
+import 'package:meta/meta.dart';
 
 class EnclosingExecutableContext {
   final ExecutableElement element;
@@ -798,7 +799,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    _checkForArgumentTypeNotAssignableForArgument(node.index);
+    void checkIndexExpression(MethodElement method) {
+      if (method != null) {
+        var parameters = method.parameters;
+        if (parameters.isNotEmpty) {
+          _checkForArgumentTypeNotAssignableForArgument2(
+            argument: node.index,
+            parameter: parameters[0],
+            promoteParameterToNullable: false,
+          );
+        }
+      }
+    }
+
+    checkIndexExpression(node.staticElement);
+    checkIndexExpression(node.auxiliaryElements?.staticElement);
+
     if (node.isNullAware) {
       var target = node.realTarget;
       if (_isExpressionWithType(target)) {
@@ -1455,12 +1471,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void _checkForArgumentTypeNotAssignableForArgument(Expression argument,
       {bool promoteParameterToNullable = false}) {
+    // TODO(scheglov) probably cannot happen
     if (argument == null) {
       return;
     }
 
-    ParameterElement staticParameterElement = argument.staticParameterElement;
-    DartType staticParameterType = staticParameterElement?.type;
+    _checkForArgumentTypeNotAssignableForArgument2(
+      argument: argument,
+      parameter: argument.staticParameterElement,
+      promoteParameterToNullable: promoteParameterToNullable,
+    );
+  }
+
+  void _checkForArgumentTypeNotAssignableForArgument2({
+    @required Expression argument,
+    @required ParameterElement parameter,
+    @required bool promoteParameterToNullable,
+  }) {
+    DartType staticParameterType = parameter?.type;
     if (promoteParameterToNullable && staticParameterType != null) {
       staticParameterType = _typeSystem.makeNullable(staticParameterType);
     }
