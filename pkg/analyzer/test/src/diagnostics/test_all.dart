@@ -126,8 +126,6 @@ import 'expected_one_set_type_arguments_test.dart'
     as expected_one_set_type_arguments;
 import 'expected_two_map_type_arguments_test.dart'
     as expected_two_map_type_arguments;
-import 'export_duplicated_library_named_test.dart'
-    as export_duplicated_library_named;
 import 'export_internal_library_test.dart' as export_internal_library;
 import 'export_legacy_symbol_test.dart' as export_legacy_symbol;
 import 'export_of_non_library_test.dart' as export_of_non_library;
@@ -206,8 +204,6 @@ import 'implicit_this_reference_in_initializer_test.dart'
     as implicit_this_reference_in_initializer;
 import 'import_deferred_library_with_load_function_test.dart'
     as import_deferred_library_with_load_function;
-import 'import_duplicated_library_named_test.dart'
-    as import_duplicated_library_named;
 import 'import_of_non_library_test.dart' as import_of_non_library;
 import 'inconsistent_case_expression_types_test.dart'
     as inconsistent_case_expression_types;
@@ -687,7 +683,6 @@ main() {
     expected_one_list_type_arguments.main();
     expected_one_set_type_arguments.main();
     expected_two_map_type_arguments.main();
-    export_duplicated_library_named.main();
     export_internal_library.main();
     export_legacy_symbol.main();
     export_of_non_library.main();
@@ -737,7 +732,6 @@ main() {
     implements_super_class.main();
     implicit_this_reference_in_initializer.main();
     import_deferred_library_with_load_function.main();
-    import_duplicated_library_named.main();
     import_of_non_library.main();
     inconsistent_case_expression_types.main();
     inconsistent_inheritance_getter_and_method.main();

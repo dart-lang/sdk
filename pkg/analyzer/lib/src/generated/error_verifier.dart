@@ -196,16 +196,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   EnclosingExecutableContext _enclosingExecutable =
       EnclosingExecutableContext.empty();
 
-  /// A table mapping name of the library to the export directive which export
-  /// this library.
-  final Map<String, LibraryElement> _nameToExportElement =
-      HashMap<String, LibraryElement>();
-
-  /// A table mapping name of the library to the import directive which import
-  /// this library.
-  final Map<String, LibraryElement> _nameToImportElement =
-      HashMap<String, LibraryElement>();
-
   /// A table mapping names to the exported elements.
   final Map<String, Element> _exportedElements = HashMap<String, Element>();
 
@@ -547,7 +537,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (exportElement != null) {
       LibraryElement exportedLibrary = exportElement.exportedLibrary;
       _checkForAmbiguousExport(node, exportElement, exportedLibrary);
-      _checkForExportDuplicateLibraryName(node, exportElement, exportedLibrary);
       _checkForExportInternalLibrary(node, exportElement);
       _checkForExportLegacySymbol(node);
     }
@@ -788,7 +777,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           node.prefix, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME);
     }
     if (importElement != null) {
-      _checkForImportDuplicateLibraryName(node, importElement);
       _checkForImportInternalLibrary(node, importElement);
       if (importElement.isDeferred) {
         _checkForDeferredImportOfExtensions(node, importElement);
@@ -2283,38 +2271,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return true;
   }
 
-  /// Verify that the given export [directive] has a unique name among other
-  /// exported libraries. The [exportElement] is the [ExportElement] retrieved
-  /// from the node, if the element in the node was `null`, then this method is
-  /// not called. The [exportedLibrary] is the library element containing the
-  /// exported element.
-  ///
-  /// See [CompileTimeErrorCode.EXPORT_DUPLICATED_LIBRARY_NAME].
-  void _checkForExportDuplicateLibraryName(ExportDirective directive,
-      ExportElement exportElement, LibraryElement exportedLibrary) {
-    if (exportedLibrary == null) {
-      return;
-    }
-    String name = exportedLibrary.name;
-    // check if there is other exported library with the same name
-    LibraryElement prevLibrary = _nameToExportElement[name];
-    if (prevLibrary != null) {
-      if (prevLibrary != exportedLibrary) {
-        if (name.isNotEmpty) {
-          _errorReporter.reportErrorForNode(
-              StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAMED, directive, [
-            prevLibrary.definingCompilationUnit.source.uri.toString(),
-            exportedLibrary.definingCompilationUnit.source.uri.toString(),
-            name
-          ]);
-        }
-        return;
-      }
-    } else {
-      _nameToExportElement[name] = exportedLibrary;
-    }
-  }
-
   /// Check that if the visiting library is not system, then any given library
   /// should not be SDK internal library. The [exportElement] is the
   /// [ExportElement] retrieved from the node, if the element in the node was
@@ -2768,36 +2724,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
           identifier,
           [identifier.name]);
-    }
-  }
-
-  /// Verify that the given import [directive] has a unique name among other
-  /// imported libraries. The [importElement] is the [ImportElement] retrieved
-  /// from the node, if the element in the node was `null`, then this method is
-  /// not called.
-  ///
-  /// See [CompileTimeErrorCode.IMPORT_DUPLICATED_LIBRARY_NAME].
-  void _checkForImportDuplicateLibraryName(
-      ImportDirective directive, ImportElement importElement) {
-    // prepare imported library
-    LibraryElement nodeLibrary = importElement.importedLibrary;
-    if (nodeLibrary == null) {
-      return;
-    }
-    String name = nodeLibrary.name;
-    // check if there is another imported library with the same name
-    LibraryElement prevLibrary = _nameToImportElement[name];
-    if (prevLibrary != null) {
-      if (prevLibrary != nodeLibrary && name.isNotEmpty) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAMED, directive, [
-          prevLibrary.definingCompilationUnit.source.uri,
-          nodeLibrary.definingCompilationUnit.source.uri,
-          name
-        ]);
-      }
-    } else {
-      _nameToImportElement[name] = nodeLibrary;
     }
   }
 

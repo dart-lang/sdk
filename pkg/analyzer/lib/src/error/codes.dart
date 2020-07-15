@@ -8896,23 +8896,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
       errorSeverity: ErrorSeverity.WARNING,
       hasPublishedDocs: true);
 
-  /**
-   * 14.2 Exports: It is a static warning to export two different libraries with
-   * the same name.
-   *
-   * Parameters:
-   * 0: the uri pointing to a first library
-   * 1: the uri pointing to a second library
-   * 2:e the shared name of the exported libraries
-   */
-  static const StaticWarningCode EXPORT_DUPLICATED_LIBRARY_NAMED =
-      StaticWarningCode(
-          'EXPORT_DUPLICATED_LIBRARY_NAMED',
-          "The exported libraries '{0}' and '{1}' can't have the same name "
-              "'{2}'.",
-          correction:
-              "Try adding a hide clause to one of the export directives.");
-
   @Deprecated('Use CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS')
   static const CompileTimeErrorCode EXTRA_POSITIONAL_ARGUMENTS =
       CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS;
@@ -9272,22 +9255,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
           "The return type of getter '{0}' is '{1}' which isn't a subtype "
               "of the type '{2}' of its setter '{3}'.",
           correction: "Try changing the types so that they are compatible.");
-
-  /**
-   * 14.1 Imports: It is a static warning to import two different libraries with
-   * the same name.
-   *
-   * Parameters:
-   * 0: the uri pointing to a first library
-   * 1: the uri pointing to a second library
-   * 2: the shared name of the imported libraries
-   */
-  static const StaticWarningCode IMPORT_DUPLICATED_LIBRARY_NAMED =
-      StaticWarningCode(
-          'IMPORT_DUPLICATED_LIBRARY_NAMED',
-          "The imported libraries '{0}' and '{1}' can't have the same name "
-              "'{2}'.",
-          correction: "Try adding a hide clause to one of the imports.");
 
   @Deprecated('Use CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY')
   static const CompileTimeErrorCode IMPORT_OF_NON_LIBRARY =
