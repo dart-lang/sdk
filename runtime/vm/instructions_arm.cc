@@ -20,7 +20,7 @@ CallPattern::CallPattern(uword pc, const Code& code)
       target_code_pool_index_(-1) {
   ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: blx lr.
-  ASSERT(*(reinterpret_cast<uword*>(pc) - 1) == 0xe12fff3e);
+  ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xe12fff3e);
 
   Register reg;
   InstructionPattern::DecodeLoadWordFromPool(pc - 2 * Instr::kInstrSize, &reg,
@@ -34,7 +34,7 @@ ICCallPattern::ICCallPattern(uword pc, const Code& code)
       data_pool_index_(-1) {
   ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: blx lr.
-  ASSERT(*(reinterpret_cast<uword*>(pc) - 1) == 0xe12fff3e);
+  ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xe12fff3e);
 
   Register reg;
   uword data_load_end = InstructionPattern::DecodeLoadWordFromPool(
@@ -53,7 +53,7 @@ NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
       target_code_pool_index_(-1) {
   ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: blx lr.
-  ASSERT(*(reinterpret_cast<uword*>(end_) - 1) == 0xe12fff3e);
+  ASSERT(*(reinterpret_cast<uint32_t*>(end_) - 1) == 0xe12fff3e);
 
   Register reg;
   uword native_function_load_end = InstructionPattern::DecodeLoadWordFromPool(
@@ -278,7 +278,7 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
     : SwitchableCallPatternBase(code) {
   ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: blx lr.
-  ASSERT(*(reinterpret_cast<uword*>(pc) - 1) == 0xe12fff3e);
+  ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xe12fff3e);
 
   Register reg;
   uword data_load_end = InstructionPattern::DecodeLoadWordFromPool(
@@ -301,7 +301,7 @@ BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc, const Code& code)
     : SwitchableCallPatternBase(code) {
   ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: blx lr.
-  ASSERT(*(reinterpret_cast<uword*>(pc) - 1) == 0xe12fff3e);
+  ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xe12fff3e);
 
   Register reg;
   uword data_load_end = InstructionPattern::DecodeLoadWordFromPool(
@@ -429,7 +429,7 @@ intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
   // Ensure the caller of the type testing stub (whose return address is [pc_])
   // branched via `blx R9` or a pc-relative call.
   uword pc = pc_ - Instr::kInstrSize;
-  const uword blx_r9 = 0xe12fff39;
+  const uint32_t blx_r9 = 0xe12fff39;
   if (*reinterpret_cast<uint32_t*>(pc) != blx_r9) {
     PcRelativeCallPattern pattern(pc);
     RELEASE_ASSERT(pattern.IsValid());

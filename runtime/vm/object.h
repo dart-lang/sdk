@@ -5222,14 +5222,17 @@ class ObjectPool : public Object {
   };
 
   EntryType TypeAt(intptr_t index) const {
+    ASSERT((index >= 0) && (index <= Length()));
     return TypeBits::decode(raw_ptr()->entry_bits()[index]);
   }
 
   Patchability PatchableAt(intptr_t index) const {
+    ASSERT((index >= 0) && (index <= Length()));
     return PatchableBit::decode(raw_ptr()->entry_bits()[index]);
   }
 
   void SetTypeAt(intptr_t index, EntryType type, Patchability patchable) const {
+    ASSERT(index >= 0 && index <= Length());
     const uint8_t bits =
         PatchableBit::encode(patchable) | TypeBits::encode(type);
     StoreNonPointer(&raw_ptr()->entry_bits()[index], bits);
@@ -5289,8 +5292,13 @@ class ObjectPool : public Object {
   static intptr_t IndexFromOffset(intptr_t offset) {
     ASSERT(
         Utils::IsAligned(offset + kHeapObjectTag, compiler::target::kWordSize));
-    return (offset + kHeapObjectTag - data_offset()) /
-           sizeof(ObjectPoolLayout::Entry);
+#if defined(DART_PRECOMPILER)
+    return (offset + kHeapObjectTag -
+            compiler::target::ObjectPool::element_offset(0)) /
+           compiler::target::kWordSize;
+#else
+    return (offset + kHeapObjectTag - element_offset(0)) / kWordSize;
+#endif
   }
 
   static intptr_t OffsetFromIndex(intptr_t index) {
