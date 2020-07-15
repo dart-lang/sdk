@@ -2359,6 +2359,18 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
 #else
   TypeUsageInfo* type_usage_info = thread()->type_usage_info();
 
+  // Special case: non-nullable Object.
+  // Top types should be handled by the caller and cannot reach here.
+  ASSERT(!dst_type.IsTopTypeForSubtyping());
+  if (dst_type.IsObjectType()) {
+    ASSERT(dst_type.IsNonNullable() && isolate()->null_safety());
+    __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
+    __ BranchIf(NOT_EQUAL, done);
+    // Fall back to type testing stub.
+    __ LoadObject(TypeTestABI::kDstTypeReg, dst_type);
+    return;
+  }
+
   // If the int type is assignable to [dst_type] we special case it on the
   // caller side!
   const Type& int_type = Type::Handle(zone(), Type::IntType());

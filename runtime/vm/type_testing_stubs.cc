@@ -270,6 +270,14 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
     __ Ret();
     __ Bind(&continue_checking);
 
+  } else if (type.IsObjectType()) {
+    ASSERT(type.IsNonNullable() && Isolate::Current()->null_safety());
+    compiler::Label continue_checking;
+    __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
+    __ BranchIf(EQUAL, &continue_checking);
+    __ Ret();
+    __ Bind(&continue_checking);
+
   } else {
     // TODO(kustermann): Make more fast cases, e.g. Type::Number()
     // is implemented by Smi.
@@ -477,7 +485,6 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     // ("Right Legacy", "Right Nullable" rules).
     if (Isolate::Current()->null_safety() && !type_arg.IsNullable() &&
         !type_arg.IsLegacy()) {
-      compiler::Label skip_nullable_check;
       // Nullable type is not a subtype of non-nullable type.
       // TODO(dartbug.com/40736): Allocate a register for instance type argument
       // and avoid reloading it.
@@ -489,10 +496,6 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
       __ CompareTypeNullabilityWith(TTSInternalRegs::kScratchReg,
                                     compiler::target::Nullability::kNullable);
       __ BranchIf(EQUAL, check_failed);
-
-      if (type_arg.IsTypeParameter()) {
-        __ Bind(&skip_nullable_check);
-      }
     }
   }
 

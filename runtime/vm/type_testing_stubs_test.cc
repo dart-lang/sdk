@@ -410,6 +410,17 @@ ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
              ExpectLazilyFailedViaSTC, ExpectFailedViaSTC);
   RunTTSTest(obj_b2, type_dynamic_t, tav_object, tav_null,
              ExpectLazilyHandledViaSTC, ExpectHandledViaSTC);
+
+  // obj as Object (with null safety)
+  Isolate* isolate = Isolate::Current();
+  if (isolate->null_safety()) {
+    auto& type_non_nullable_object =
+        Type::Handle(isolate->object_store()->non_nullable_object_type());
+    RunTTSTest(obj_a, type_non_nullable_object, tav_null, tav_null,
+               ExpectLazilyHandledViaTTS, ExpectHandledViaTTS);
+    RunTTSTest(Object::null_object(), type_non_nullable_object, tav_null,
+               tav_null, ExpectLazilyFailedViaTTS, ExpectFailedViaTTS);
+  }
 }
 
 ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
