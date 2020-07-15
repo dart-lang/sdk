@@ -21,7 +21,7 @@
  *     import 'dart:io';
  *
  * For an introduction to I/O in Dart, see the [dart:io library
- * tour](https://www.dartlang.org/dart-vm/io-library-tour).
+ * tour](https://dart.dev/guides/libraries/library-tour#dartio).
  *
  * ## File, Directory, and Link
  *

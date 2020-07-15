@@ -32,8 +32,8 @@ const String _hexDigits = "0123456789ABCDEF";
  * * [URIs][uris] in the [library tour][libtour]
  * * [RFC-3986](http://tools.ietf.org/html/rfc3986)
  *
- * [uris]: https://www.dartlang.org/docs/dart-up-and-running/ch03.html#uris
- * [libtour]: https://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html
+ * [uris]: https://dart.dev/guides/libraries/library-tour#uris
+ * [libtour]: https://dart.dev/guides/libraries/library-tour
  */
 abstract class Uri {
   /**

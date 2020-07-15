@@ -30,8 +30,8 @@ part of dart.core;
  *     }
  *
  * **See also:**
- * [Iteration](http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#iteration)
- * in the [library tour](http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html)
+ * [Iteration](https://dart.dev/guides/libraries/library-tour#iteration)
+ * in the [library tour](https://dart.dev/guides/libraries/library-tour)
  */
 abstract class Iterator<E> {
   /**
