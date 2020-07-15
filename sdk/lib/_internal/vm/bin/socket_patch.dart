@@ -1077,6 +1077,10 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     }
   }
 
+  SocketMessage? receiveMessage([int? len]) {
+    return nativeRecvMsg(len ?? 65535);
+  }
+
   static int _fixOffset(int? offset) => offset ?? 0;
 
   int write(List<int> buffer, int offset, int? bytes) {
@@ -1141,6 +1145,40 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     } catch (e) {
       StackTrace st = StackTrace.current;
       scheduleMicrotask(() => reportError(e, st, "Send failed"));
+      return 0;
+    }
+  }
+
+  int sendMessage(
+      List<int> buffer,
+      int offset,
+      int? bytes,
+      InternetAddress? address,
+      int port,
+      List<SocketControlMessage> controlMessages) {
+    _throwOnBadPort(port);
+    bytes ??= buffer.length - offset;
+    if (isClosing || isClosed) return 0;
+    try {
+      _BufferAndStart bufferAndStart =
+          _ensureFastAndSerializableByteData(buffer, offset, bytes);
+      if (!const bool.fromEnvironment("dart.vm.product")) {
+        _SocketProfile.collectStatistic(
+            nativeGetSocketId(),
+            _SocketProfileType.writeBytes,
+            bufferAndStart.buffer.length - bufferAndStart.start);
+      }
+      int result = nativeSendMsg(
+          bufferAndStart.buffer,
+          bufferAndStart.start,
+          bytes,
+          address != null ? (address as _InternetAddress)._in_addr : null,
+          port,
+          controlMessages);
+      return result;
+    } catch (e) {
+      StackTrace st = StackTrace.current;
+      scheduleMicrotask(() => reportError(e, st, "SendMessage failed"));
       return 0;
     }
   }
@@ -1530,10 +1568,18 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   bool nativeAvailableDatagram() native "Socket_AvailableDatagram";
   Uint8List? nativeRead(int len) native "Socket_Read";
   Datagram? nativeRecvFrom() native "Socket_RecvFrom";
+  SocketMessage? nativeRecvMsg(int len) native "Socket_RecvMsg";
   int nativeWrite(List<int> buffer, int offset, int bytes)
       native "Socket_WriteList";
   int nativeSendTo(List<int> buffer, int offset, int bytes, Uint8List address,
       int port) native "Socket_SendTo";
+  int nativeSendMsg(
+      List<int> buffer,
+      int offset,
+      int bytes,
+      Uint8List? address,
+      int port,
+      List<SocketControlMessage> controlMessages) native "Socket_SendMsg";
   nativeCreateConnect(Uint8List addr, int port, int scope_id)
       native "Socket_CreateConnect";
   nativeCreateUnixDomainConnect(String addr, _Namespace namespace)
@@ -1760,8 +1806,16 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
     }
   }
 
+  SocketMessage? receiveMessage([int? len]) {
+    return _socket.receiveMessage(len);
+  }
+
   int write(List<int> buffer, [int offset = 0, int? count]) =>
       _socket.write(buffer, offset, count);
+
+  int sendMessage(List<SocketControlMessage> controlMessages, List<int> data,
+          [int offset = 0, int? count]) =>
+      _socket.sendMessage(data, offset, count, null, 0, controlMessages);
 
   Future<RawSocket> close() => _socket.close().then<RawSocket>((_) {
         if (!const bool.fromEnvironment("dart.vm.product")) {
@@ -2385,4 +2439,59 @@ Datagram _makeDatagram(
       data,
       _InternetAddress(InternetAddressType._from(type), address, null, in_addr),
       port);
+}
+
+@pragma("vm:entry-point", "call")
+SocketMessage _makeSocketMessage(
+    Uint8List data,
+    String address,
+    Uint8List in_addr,
+    int port,
+    int type,
+    List<SocketControlMessage?> controlMessages) {
+  return new SocketMessage(
+      data,
+      _InternetAddress(InternetAddressType._from(type), address, null, in_addr),
+      port,
+      controlMessages.cast<SocketControlMessage>());
+}
+
+@pragma("vm:entry-point", "call")
+UnknownControlMessage _makeUnknownControlMessage(
+    int level, int type, Uint8List data) {
+  return new UnknownControlMessage(level, type, data);
+}
+
+@pragma("vm:entry-point", "call")
+UnixCredentialsControlMessage _makeUnixCredentialsControlMessage(
+    int pid, int uid, int gid) {
+  return new UnixCredentialsControlMessage(pid, uid, gid);
+}
+
+@pragma("vm:entry-point", "call")
+bool _isUnixCredentialsControlMessage(SocketControlMessage controlMessage) {
+  return controlMessage is UnixCredentialsControlMessage;
+}
+
+@pragma("vm:entry-point", "call")
+UnixCredentialsControlMessage _asUnixCredentialsControlMessage(
+    SocketControlMessage controlMessage) {
+  return controlMessage as UnixCredentialsControlMessage;
+}
+
+@pragma("vm:entry-point", "call")
+UnixFileDescriptorsControlMessage _makeUnixFileDescriptorsControlMessage(
+    List<int> fileDescriptors) {
+  return new UnixFileDescriptorsControlMessage(fileDescriptors);
+}
+
+@pragma("vm:entry-point", "call")
+bool _isUnixFileDescriptorsControlMessage(SocketControlMessage controlMessage) {
+  return controlMessage is UnixFileDescriptorsControlMessage;
+}
+
+@pragma("vm:entry-point", "call")
+UnixFileDescriptorsControlMessage _asUnixFileDescriptorsControlMessage(
+    SocketControlMessage controlMessage) {
+  return controlMessage as UnixFileDescriptorsControlMessage;
 }

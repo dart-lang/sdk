@@ -669,6 +669,10 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     return result;
   }
 
+  SocketMessage? receiveMessage([int? len]) {
+    return null;
+  }
+
   static int _fixOffset(int? offset) => offset ?? 0;
 
   // Write the data to the socket, and schedule the filter to encrypt it.
@@ -697,6 +701,11 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
     _scheduleFilter();
     return written;
+  }
+
+  int sendMessage(List<SocketControlMessage> controlMessages, List<int> data,
+      [int offset = 0, int? count]) {
+    return -1;
   }
 
   X509Certificate? get peerCertificate => _secureFilter!.peerCertificate;

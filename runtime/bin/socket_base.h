@@ -149,6 +149,123 @@ class AddressList {
   DISALLOW_COPY_AND_ASSIGN(AddressList);
 };
 
+class SocketControlMessage {
+ public:
+  enum SocketControlMessageType {
+    kUnknown,
+    kUnixCredentials,
+    kUnixFileDescriptors
+  };
+
+  explicit SocketControlMessage(SocketControlMessageType type) : type_(type) {}
+
+  SocketControlMessageType type() const { return type_; }
+
+ private:
+  SocketControlMessageType type_;
+
+  DISALLOW_COPY_AND_ASSIGN(SocketControlMessage);
+};
+
+class UnknownControlMessage : public SocketControlMessage {
+ public:
+  explicit UnknownControlMessage(intptr_t level,
+                                 intptr_t type,
+                                 void* data,
+                                 size_t data_length)
+      : SocketControlMessage(kUnknown),
+        level_(level),
+        type_(type),
+        data_(new uint8_t[data_length]),
+        data_length_(data_length) {
+    memcpy(data_, data, data_length);
+  }
+
+  ~UnknownControlMessage() { delete[] data_; }
+
+  intptr_t level() const { return level_; }
+  intptr_t type() const { return type_; }
+  uint8_t* data() const { return data_; }
+  size_t data_length() const { return data_length_; }
+
+ private:
+  const intptr_t level_;
+  const intptr_t type_;
+  uint8_t* data_;
+  const size_t data_length_;
+
+  DISALLOW_COPY_AND_ASSIGN(UnknownControlMessage);
+};
+
+class UnixCredentialsControlMessage : public SocketControlMessage {
+ public:
+  explicit UnixCredentialsControlMessage(int pid, int uid, int gid)
+      : SocketControlMessage(kUnixCredentials),
+        pid_(pid),
+        uid_(uid),
+        gid_(gid) {}
+
+  int pid() const { return pid_; }
+  int uid() const { return uid_; }
+  int gid() const { return gid_; }
+
+ private:
+  const int pid_;
+  const int uid_;
+  const int gid_;
+
+  DISALLOW_COPY_AND_ASSIGN(UnixCredentialsControlMessage);
+};
+
+class UnixFileDescriptorsControlMessage : public SocketControlMessage {
+ public:
+  explicit UnixFileDescriptorsControlMessage(int* file_descriptors,
+                                             intptr_t count)
+      : SocketControlMessage(kUnixFileDescriptors),
+        count_(count),
+        file_descriptors_(new int[count_]) {
+    for (intptr_t i = 0; i < count; i++) {
+      file_descriptors_[i] = file_descriptors[i];
+    }
+  }
+
+  ~UnixFileDescriptorsControlMessage() { delete[] file_descriptors_; }
+
+  intptr_t count() const { return count_; }
+  int GetAt(intptr_t i) const { return file_descriptors_[i]; }
+
+ private:
+  const intptr_t count_;
+  int* file_descriptors_;
+
+  DISALLOW_COPY_AND_ASSIGN(UnixFileDescriptorsControlMessage);
+};
+
+class SocketControlMessageList {
+ public:
+  explicit SocketControlMessageList(intptr_t count)
+      : count_(count), control_messages_(new SocketControlMessage*[count_]) {}
+
+  ~SocketControlMessageList() {
+    for (intptr_t i = 0; i < count_; i++) {
+      delete control_messages_[i];
+    }
+    delete[] control_messages_;
+  }
+
+  intptr_t count() const { return count_; }
+  SocketControlMessage* GetAt(intptr_t i) const { return control_messages_[i]; }
+  void SetAt(intptr_t i, SocketControlMessage* control_message) {
+    control_messages_[i] = control_message;
+  }
+
+ private:
+  const intptr_t count_;
+  SocketControlMessage** control_messages_;
+
+  DISALLOW_COPY_AND_ASSIGN(SocketControlMessageList);
+};
+
 class SocketBase : public AllStatic {
  public:
   enum SocketRequest {
@@ -181,11 +298,23 @@ class SocketBase : public AllStatic {
                          intptr_t num_bytes,
                          const RawAddr& addr,
                          SocketOpKind sync);
+  static intptr_t SendMsg(intptr_t fd,
+                          const void* buffer,
+                          intptr_t num_bytes,
+                          RawAddr* addr,
+                          SocketControlMessageList* control_messages,
+                          SocketOpKind sync);
   static intptr_t RecvFrom(intptr_t fd,
                            void* buffer,
                            intptr_t num_bytes,
                            RawAddr* addr,
                            SocketOpKind sync);
+  static intptr_t RecvMsg(intptr_t fd,
+                          void* buffer,
+                          intptr_t num_bytes,
+                          RawAddr* addr,
+                          SocketControlMessageList** control_messages,
+                          SocketOpKind sync);
   static bool AvailableDatagram(intptr_t fd, void* buffer, intptr_t num_bytes);
   // Returns true if the given error-number is because the system was not able
   // to bind the socket to a specific IP.

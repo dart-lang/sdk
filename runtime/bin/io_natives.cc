@@ -156,6 +156,8 @@ namespace bin {
   V(Socket_LeaveMulticast, 4)                                                  \
   V(Socket_Read, 2)                                                            \
   V(Socket_RecvFrom, 1)                                                        \
+  V(Socket_RecvMsg, 2)                                                         \
+  V(Socket_SendMsg, 7)                                                         \
   V(Socket_SendTo, 6)                                                          \
   V(Socket_SetOption, 4)                                                       \
   V(Socket_SetRawOption, 4)                                                    \

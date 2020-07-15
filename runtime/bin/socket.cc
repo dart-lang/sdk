@@ -654,6 +654,178 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, result);
 }
 
+void FUNCTION_NAME(Socket_RecvMsg)(Dart_NativeArguments args) {
+  Socket* socket =
+      Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
+  ASSERT(socket != nullptr);
+
+  int64_t length = 0;
+  DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &length);
+  uint8_t* buffer = nullptr;
+  Dart_Handle data = IOBuffer::Allocate(length, &buffer);
+  if (Dart_IsNull(data)) {
+    Dart_ThrowException(DartUtils::NewDartOSError());
+  }
+  if (Dart_IsError(data)) {
+    Dart_PropagateError(data);
+  }
+  ASSERT(buffer != nullptr);
+
+  // Read data into the buffer.
+  RawAddr addr;
+  SocketControlMessageList* control_messages;
+  const intptr_t bytes_read =
+      SocketBase::RecvMsg(socket->fd(), buffer, length, &addr,
+                          &control_messages, SocketBase::kAsync);
+  if (bytes_read == 0) {
+    delete control_messages;
+    Dart_SetReturnValue(args, Dart_Null());
+    return;
+  }
+  if (bytes_read < 0) {
+    ASSERT(bytes_read == -1);
+    Dart_ThrowException(DartUtils::NewDartOSError());
+  }
+
+  // Memory Sanitizer complains addr not being initialized, which is done
+  // through RecvMsg().
+  // Issue: https://github.com/google/sanitizers/issues/1201
+  MSAN_UNPOISON(&addr, sizeof(RawAddr));
+
+  // Get the port and clear it in the sockaddr structure.
+  int port = SocketAddress::GetAddrPort(addr);
+  // TODO(21403): Add checks for AF_UNIX, if unix domain sockets
+  // are used in SOCK_DGRAM.
+  enum internet_type { IPv4, IPv6 };
+  internet_type type;
+  if (addr.addr.sa_family == AF_INET) {
+    addr.in.sin_port = 0;
+    type = IPv4;
+  } else {
+    ASSERT(addr.addr.sa_family == AF_INET6);
+    addr.in6.sin6_port = 0;
+    type = IPv6;
+  }
+  // Format the address to a string using the numeric format.
+  char numeric_address[INET6_ADDRSTRLEN];
+  SocketBase::FormatNumericAddress(addr, numeric_address, INET6_ADDRSTRLEN);
+
+  Dart_Handle core_lib = Dart_LookupLibrary(DartUtils::NewString("dart:core"));
+  if (Dart_IsError(core_lib)) {
+    Dart_PropagateError(core_lib);
+  }
+  Dart_Handle int_type =
+      Dart_GetNonNullableType(core_lib, DartUtils::NewString("int"), 0, NULL);
+  if (Dart_IsError(int_type)) {
+    Dart_PropagateError(int_type);
+  }
+
+  Dart_Handle io_lib = Dart_LookupLibrary(DartUtils::NewString("dart:io"));
+  if (Dart_IsError(io_lib)) {
+    Dart_PropagateError(io_lib);
+  }
+  Dart_Handle control_message_type = Dart_GetNullableType(
+      io_lib, DartUtils::NewString("SocketControlMessage"), 0, NULL);
+  if (Dart_IsError(control_message_type)) {
+    Dart_PropagateError(control_message_type);
+  }
+
+  // Convert control messages into Dart objects.
+  Dart_Handle control_message_list =
+      Dart_NewListOfType(control_message_type, control_messages->count());
+  if (Dart_IsError(control_message_list)) {
+    Dart_PropagateError(control_message_list);
+  }
+  for (intptr_t i = 0; i < control_messages->count(); i++) {
+    SocketControlMessage* control_message = control_messages->GetAt(i);
+    Dart_Handle dart_control_message;
+
+    switch (control_message->type()) {
+      case SocketControlMessage::kUnixCredentials: {
+        UnixCredentialsControlMessage* credentials_message =
+            static_cast<UnixCredentialsControlMessage*>(control_message);
+
+        const int kNumArgs = 3;
+        Dart_Handle dart_args[kNumArgs];
+        dart_args[0] = Dart_NewInteger(credentials_message->pid());
+        dart_args[1] = Dart_NewInteger(credentials_message->uid());
+        dart_args[2] = Dart_NewInteger(credentials_message->gid());
+        dart_control_message = Dart_Invoke(
+            io_lib, DartUtils::NewString("_makeUnixCredentialsControlMessage"),
+            kNumArgs, dart_args);
+        break;
+      }
+      case SocketControlMessage::kUnixFileDescriptors: {
+        UnixFileDescriptorsControlMessage* unix_fd_message =
+            static_cast<UnixFileDescriptorsControlMessage*>(control_message);
+
+        Dart_Handle fd_list = Dart_NewListOfTypeFilled(
+            int_type, Dart_NewInteger(0), unix_fd_message->count());
+        if (Dart_IsError(fd_list)) {
+          Dart_PropagateError(fd_list);
+        }
+        for (intptr_t i = 0; i < unix_fd_message->count(); i++) {
+          Dart_ListSetAt(fd_list, i,
+                         Dart_NewInteger(unix_fd_message->GetAt(i)));
+        }
+
+        dart_control_message = Dart_Invoke(
+            io_lib,
+            DartUtils::NewString("_makeUnixFileDescriptorsControlMessage"), 1,
+            &fd_list);
+        break;
+      }
+      case SocketControlMessage::kUnknown: {
+        UnknownControlMessage* unknown_message =
+            static_cast<UnknownControlMessage*>(control_message);
+
+        uint8_t* buffer = nullptr;
+        Dart_Handle data =
+            IOBuffer::Allocate(unknown_message->data_length(), &buffer);
+        memcpy(buffer, unknown_message->data(), unknown_message->data_length());
+
+        const int kNumArgs = 3;
+        Dart_Handle dart_args[kNumArgs];
+        dart_args[0] = Dart_NewInteger(unknown_message->level());
+        dart_args[1] = Dart_NewInteger(unknown_message->type());
+        dart_args[2] = data;
+        dart_control_message = Dart_Invoke(
+            io_lib, DartUtils::NewString("_makeUnknownControlMessage"),
+            kNumArgs, dart_args);
+        break;
+      }
+      default:
+        UNREACHABLE();
+    }
+    if (Dart_IsError(dart_control_message)) {
+      Dart_PropagateError(dart_control_message);
+    }
+
+    Dart_ListSetAt(control_message_list, i, dart_control_message);
+  }
+
+  // Create a SocketMessage object.
+  const int kNumArgs = 6;
+  Dart_Handle dart_args[kNumArgs];
+  dart_args[0] = data;
+  dart_args[1] = Dart_NewStringFromCString(numeric_address);
+  if (Dart_IsError(dart_args[1])) {
+    Dart_PropagateError(dart_args[1]);
+  }
+  dart_args[2] = SocketAddress::ToTypedData(addr);
+  dart_args[3] = Dart_NewInteger(port);
+  dart_args[4] = Dart_NewInteger(type);
+  dart_args[5] = control_message_list;
+  if (Dart_IsError(dart_args[3])) {
+    Dart_PropagateError(dart_args[3]);
+  }
+  Dart_Handle result = Dart_Invoke(
+      io_lib, DartUtils::NewString("_makeSocketMessage"), kNumArgs, dart_args);
+  Dart_SetReturnValue(args, result);
+
+  delete control_messages;
+}
+
 void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
   Socket* socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
@@ -689,6 +861,109 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
     } else {
       Dart_SetIntegerReturnValue(args, bytes_written);
     }
+  } else {
+    // Extract OSError before we release data, as it may override the error.
+    Dart_Handle error;
+    {
+      OSError os_error;
+      Dart_TypedDataReleaseData(buffer_obj);
+      error = DartUtils::NewDartOSError(&os_error);
+    }
+    Dart_ThrowException(error);
+  }
+}
+
+void FUNCTION_NAME(Socket_SendMsg)(Dart_NativeArguments args) {
+  Socket* socket =
+      Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
+  Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
+  intptr_t offset = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
+  intptr_t length = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
+  Dart_Handle address_obj = Dart_GetNativeArgument(args, 4);
+  RawAddr raw_addr;
+  RawAddr* addr = nullptr;
+  if (address_obj != Dart_Null()) {
+    ASSERT(Dart_IsList(address_obj));
+    SocketAddress::GetSockAddr(address_obj, &raw_addr);
+    int64_t port = DartUtils::GetInt64ValueCheckRange(
+        Dart_GetNativeArgument(args, 5), 0, 65535);
+    SocketAddress::SetAddrPort(&raw_addr, port);
+    addr = &raw_addr;
+  }
+
+  Dart_Handle io_lib = Dart_LookupLibrary(DartUtils::NewString("dart:io"));
+  if (Dart_IsError(io_lib)) {
+    Dart_PropagateError(io_lib);
+  }
+
+  Dart_Handle control_message_list_dart = Dart_GetNativeArgument(args, 6);
+  ASSERT(Dart_IsList(control_message_list_dart));
+  intptr_t control_messages_length;
+  Dart_ListLength(control_message_list_dart, &control_messages_length);
+  SocketControlMessageList control_message_list =
+      SocketControlMessageList(control_messages_length);
+  for (intptr_t i = 0; i < control_messages_length; i++) {
+    Dart_Handle control_message_dart =
+        Dart_ListGetAt(control_message_list_dart, i);
+    SocketControlMessage* control_message;
+
+    Dart_Handle is_unix_credentials_control_message = Dart_Invoke(
+        io_lib, DartUtils::NewString("_isUnixCredentialsControlMessage"), 1,
+        &control_message_dart);
+    Dart_Handle is_unix_file_descriptors_control_message = Dart_Invoke(
+        io_lib, DartUtils::NewString("_isUnixFileDescriptorsControlMessage"), 1,
+        &control_message_dart);
+
+    if (DartUtils::GetBooleanValue(is_unix_credentials_control_message)) {
+      Dart_Handle unix_credentials_message = Dart_Invoke(
+          io_lib, DartUtils::NewString("_asUnixCredentialsControlMessage"), 1,
+          &control_message_dart);
+      int pid = DartUtils::GetIntegerValue(
+          Dart_GetField(unix_credentials_message, DartUtils::NewString("pid")));
+      int uid = DartUtils::GetIntegerValue(
+          Dart_GetField(unix_credentials_message, DartUtils::NewString("uid")));
+      int gid = DartUtils::GetIntegerValue(
+          Dart_GetField(unix_credentials_message, DartUtils::NewString("gid")));
+      control_message = new UnixCredentialsControlMessage(pid, uid, gid);
+    } else if (DartUtils::GetBooleanValue(
+                   is_unix_file_descriptors_control_message)) {
+      Dart_Handle unix_socket_control_message = Dart_Invoke(
+          io_lib, DartUtils::NewString("_asUnixFileDescriptorsControlMessage"),
+          1, &control_message_dart);
+      Dart_Handle file_descriptors_dart = Dart_GetField(
+          unix_socket_control_message, DartUtils::NewString("fileDescriptors"));
+      intptr_t file_descriptors_length;
+      Dart_ListLength(file_descriptors_dart, &file_descriptors_length);
+      int* file_descriptors = new int[file_descriptors_length];
+      for (intptr_t j = 0; j < file_descriptors_length; j++) {
+        Dart_Handle fd_dart = Dart_ListGetAt(file_descriptors_dart, j);
+        file_descriptors[j] = DartUtils::GetIntegerValue(fd_dart);
+      }
+      control_message = new UnixFileDescriptorsControlMessage(
+          file_descriptors, file_descriptors_length);
+      delete[] file_descriptors;
+    } else {
+      UNREACHABLE();
+    }
+    control_message_list.SetAt(i, control_message);
+  }
+
+  Dart_TypedData_Type type;
+  uint8_t* buffer = nullptr;
+  intptr_t len;
+  Dart_Handle result = Dart_TypedDataAcquireData(
+      buffer_obj, &type, reinterpret_cast<void**>(&buffer), &len);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+  ASSERT((offset + length) <= len);
+  buffer += offset;
+  intptr_t bytes_written =
+      SocketBase::SendMsg(socket->fd(), buffer, length, addr,
+                          &control_message_list, SocketBase::kAsync);
+  if (bytes_written >= 0) {
+    Dart_TypedDataReleaseData(buffer_obj);
+    Dart_SetIntegerReturnValue(args, bytes_written);
   } else {
     // Extract OSError before we release data, as it may override the error.
     Dart_Handle error;

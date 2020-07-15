@@ -440,6 +440,43 @@ Future testHttpServer(String name) async {
   await httpServer.close();
 }
 
+Future testFileDescriptorMessage(String name) async {
+  var address = InternetAddress('$name/sock', type: InternetAddressType.unix);
+  var server = await RawServerSocket.bind(address, 0, shared: false);
+  server.listen((socket) async {
+    // Expect to receive a message when the client connects.
+    await socket.firstWhere((RawSocketEvent event) => event == RawSocketEvent.read);
+    var message = socket.receiveMessage();
+    Expect.isNotNull(message);
+    Expect.equals(message.data, 'Hello');
+    Expect.hasLength(message.controlMessages, 1);
+    Expect.type<UnixFileDescriptorsControlMessage>(message.controlMessages[0]);
+    Expect.hasLength((message as UnixFileDescriptorsControlMessage).fileDescriptors, 1);
+    // Note: We can't test the value of the file descriptor, as a new one will have been created using dup from the one sent.
+
+    // Send a response containing stdout.
+    await socket.firstWhere((RawSocketEvent event) => event == RawSocketEvent.send);
+    socket.sendMessage([UnixFileDescriptorsControlMessage([1])], 'World');
+
+    socket.destroy();
+  });
+
+  // Send a message with stdout.
+  var socket = await RawSocket.connect(address, 0);
+  await socket.firstWhere((RawSocketEvent event) => event == RawSocketEvent.send);
+  socket.sendMessage([UnixFileDescriptorsControlMessage([1])], 'Hello');
+
+  // Expect a response also containing stdout.
+  await socket.firstWhere((RawSocketEvent event) => event == RawSocketEvent.read);
+  var message = socket.receiveMessage();
+  Expect.isNotNull(message);
+  Expect.equals(message.data, 'World');
+  Expect.hasLength(message.controlMessages, 1);
+  Expect.type<UnixFileDescriptorsControlMessage>(message.controlMessages[0]);
+  Expect.hasLength((message as UnixFileDescriptorsControlMessage).fileDescriptors, 1);
+  // Note: We can't test the value of the file descriptor, as a new one will have been created using dup from the one sent.
+}
+
 // Create socket in temp directory
 Future withTempDir(String prefix, Future<void> test(Directory dir)) async {
   var tempDir = Directory.systemTemp.createTempSync(prefix);
@@ -478,6 +515,9 @@ void main() async {
       await testHttpServer('${dir.path}');
     });
     await testShortAbstractAddress();
+    await withTempDir('unix_socket_test', (Directory dir) async {
+      await testFileDescriptorMessage('${dir.path}');
+    });
   } catch (e) {
     if (Platform.isMacOS || Platform.isLinux || Platform.isAndroid) {
       Expect.fail("Unexpected exception $e is thrown");
