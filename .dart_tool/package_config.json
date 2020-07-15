@@ -557,6 +557,12 @@
       "languageVersion": "2.1"
     },
     {
+      "name": "sse",
+      "rootUri": "../third_party/pkg/sse",
+      "packageUri": "lib/",
+      "languageVersion": "2.6"
+    },
+    {
       "name": "stack_trace",
       "rootUri": "../third_party/pkg/stack_trace",
       "packageUri": "lib/",
@@ -585,6 +591,12 @@
       "rootUri": "../third_party/pkg/string_scanner",
       "packageUri": "lib/",
       "languageVersion": "2.0"
+    },
+    {
+      "name": "sync_http",
+      "rootUri": "../third_party/pkg/sync_http",
+      "packageUri": "lib/",
+      "languageVersion": "2.6"
     },
     {
       "name": "telemetry",
@@ -693,6 +705,12 @@
       "rootUri": "../third_party/pkg/watcher",
       "packageUri": "lib/",
       "languageVersion": "2.2"
+    },
+    {
+      "name": "webdriver",
+      "rootUri": "../third_party/pkg/webdriver",
+      "packageUri": "lib/",
+      "languageVersion": "2.6"
     },
     {
       "name": "web_components",

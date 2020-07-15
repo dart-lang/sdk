@@ -28,7 +28,7 @@ class _StreamManager {
           continue;
         }
         if (isBinaryData) {
-          listener.ws.sink.add(data);
+          listener.connection.sink.add(data);
         } else {
           listener.sendNotification('streamNotify', data);
         }

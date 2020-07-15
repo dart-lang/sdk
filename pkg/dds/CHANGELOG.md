@@ -1,3 +1,7 @@
+# 1.3.0
+
+- Added support for SSE connections from web-based clients.
+
 # 1.2.4
 
 - Fixed another issue where a `StateError` could be raised within `DartDevelopmentService`

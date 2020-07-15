@@ -21,6 +21,7 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
+import 'package:sse/server/sse_handler.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -109,6 +110,12 @@ abstract class DartDevelopmentService {
   ///
   /// Returns `null` if the service is not running.
   Uri get uri;
+
+  /// The [Uri] VM service clients can use to communicate with this
+  /// [DartDevelopmentService] via server-sent events (SSE).
+  ///
+  /// Returns `null` if the service is not running.
+  Uri get sseUri;
 
   /// The [Uri] VM service clients can use to communicate with this
   /// [DartDevelopmentService] via a [WebSocket].

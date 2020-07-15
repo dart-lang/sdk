@@ -96,6 +96,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.3.6",  # Please see the note above before updating.
 
+  "chromedriver_tag": "83.0.4103.39",
   "dartdoc_tag" : "v0.32.2",
   "ffi_rev": "454ab0f9ea6bd06942a983238d8a6818b1357edb",
   "fixnum_rev": "9b38f49f6679654d66a363e69e48173cca07e882",
@@ -142,10 +143,12 @@ vars = {
   "source_maps-0.9.4_rev": "38524",
   "source_maps_rev": "87b4fd9027378bbd51b02e9d7df794eee8a82b7a",
   "source_span_tag": "1.7.0",
+  "sse_tag": "e5cf68975e8e87171a3dc297577aa073454a91dc",
   "stack_trace_tag": "56811dbb2530d823b764fe167ec335879a4adb32",
   "stagehand_tag": "v3.3.9",
   "stream_channel_tag": "70433d577be02c48cb16d72d65654f3b4d82c6ed",
   "string_scanner_rev": "a918e7371af6b6e73bfd534ff9da6084741c1f99",
+  "sync_http_rev": "a85d7ec764ea485cbbc49f3f3e7f1b43f87a1c74",
   "test_descriptor_tag": "1.1.1",
   "test_process_tag": "1.0.3",
   "term_glyph_rev": "b3da31e9684a99cfe5f192b89914492018b44da7",
@@ -156,6 +159,7 @@ vars = {
   "usage_tag": "3.4.0",
   "vector_math_rev": "90631fbb609f61d42f28621253c0ec9fc6a326d2",
   "watcher_rev": "fc3c9aae5d31d707b3013b42634dde8d8a1161b4",
+  "webdriver_rev": "5a8d6805d9cf8a3cbb4fcd64849b538b7491e50e",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "490061ef0e22d3c8460ad2802f9948219365ad6b",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
@@ -408,6 +412,8 @@ deps = {
   Var("dart_root") + "/third_party/pkg/source_map_stack_trace":
       Var("dart_git") + "source_map_stack_trace.git" +
       "@" + Var("source_map_stack_trace_tag"),
+  Var("dart_root") + "/third_party/pkg/sse":
+      Var("dart_git") + "sse.git" + "@" + Var("sse_tag"),
   Var("dart_root") + "/third_party/pkg/stack_trace":
       Var("dart_git") + "stack_trace.git" + "@" + Var("stack_trace_tag"),
   Var("dart_root") + "/third_party/pkg/stagehand":
@@ -418,6 +424,8 @@ deps = {
   Var("dart_root") + "/third_party/pkg/string_scanner":
       Var("dart_git") + "string_scanner.git" +
       "@" + Var("string_scanner_rev"),
+  Var("dart_root") + "/third_party/pkg/sync_http":
+      Var("dart_git") + "sync_http.git" + "@" + Var("sync_http_rev"),
   Var("dart_root") + "/third_party/pkg/term_glyph":
       Var("dart_git") + "term_glyph.git" + "@" + Var("term_glyph_rev"),
   Var("dart_root") + "/third_party/pkg/test":
@@ -443,6 +451,10 @@ deps = {
   Var("dart_root") + "/third_party/pkg/web_components":
       Var("dart_git") + "web-components.git" +
       "@" + Var("web_components_rev"),
+  Var("dart_root") + "/third_party/pkg/webdriver":
+      Var("dart_git") + "external/github.com/google/webdriver.dart.git" +
+      "@" + Var("webdriver_rev"),
+
   Var("dart_root") + "/third_party/pkg/web_socket_channel":
       Var("dart_git") + "web_socket_channel.git" +
       "@" + Var("web_socket_channel_rev"),
@@ -458,6 +470,17 @@ deps = {
       ],
       "condition": "(host_os == 'linux' or host_os == 'mac') and (host_cpu == 'x64' or host_cpu == 'arm64')",
       "dep_type": "cipd",
+  },
+
+  Var("dart_root") + "/third_party/webdriver/chrome": {
+    "packages": [
+      {
+        "package": "dart/third_party/chromedriver/${{platform}}",
+        "version": "version:" + Var("chromedriver_tag"),
+      }
+    ],
+    "condition": "host_cpu == 'x64'",
+    "dep_type": "cipd",
   },
 
   Var("dart_root") + "/pkg/analysis_server/language_model": {
