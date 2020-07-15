@@ -4203,7 +4203,54 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
+    /// If the operator is not valid because the target already makes use of a
+    /// null aware operator, return the null aware operator from the target.
+    Token previousShortCircuitingOperator(Expression target) {
+      if (target is PropertyAccess) {
+        var operator = target.operator;
+        var type = operator.type;
+        if (type == TokenType.QUESTION_PERIOD) {
+          var realTarget = target.realTarget;
+          if (_isExpressionWithType(realTarget)) {
+            return previousShortCircuitingOperator(realTarget) ?? operator;
+          }
+        }
+      } else if (target is IndexExpression) {
+        if (target.question != null) {
+          var realTarget = target.realTarget;
+          if (_isExpressionWithType(realTarget)) {
+            return previousShortCircuitingOperator(realTarget) ??
+                target.question;
+          }
+        }
+      } else if (target is MethodInvocation) {
+        var operator = target.operator;
+        var type = operator.type;
+        if (type == TokenType.QUESTION_PERIOD) {
+          var realTarget = target.realTarget;
+          if (_isExpressionWithType(realTarget)) {
+            return previousShortCircuitingOperator(realTarget) ?? operator;
+          }
+          return operator;
+        }
+      }
+      return null;
+    }
+
     if (_typeSystem.isStrictlyNonNullable(target.staticType)) {
+      if (errorCode == StaticWarningCode.INVALID_NULL_AWARE_OPERATOR) {
+        var previousOperator = previousShortCircuitingOperator(target);
+        if (previousOperator != null) {
+          _errorReporter.reportError(DiagnosticFactory()
+              .invalidNullAwareAfterShortCircuit(
+                  _errorReporter.source,
+                  operator.offset,
+                  endToken.end - operator.offset,
+                  arguments,
+                  previousOperator));
+          return;
+        }
+      }
       _errorReporter.reportErrorForOffset(
         errorCode,
         operator.offset,

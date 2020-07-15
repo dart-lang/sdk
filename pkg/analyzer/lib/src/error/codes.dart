@@ -9344,6 +9344,22 @@ class StaticWarningCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
+   * Parameters:
+   * 0: The null-aware operator that is invalid
+   * 1: The non-null-aware operator that can replace the invalid operator
+   */
+  static const StaticWarningCode
+      INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT =
+      StaticWarningCodeWithUniqueName(
+          'INVALID_NULL_AWARE_OPERATOR',
+          'INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT',
+          "The target expression can't be null because of short-circuiting, so "
+              "the null-aware operator '{0}' can't be used.",
+          correction: "Try replace the operator '{0}' with '{1}'.",
+          errorSeverity: ErrorSeverity.WARNING,
+          hasPublishedDocs: true);
+
+  /**
    * 7.1 Instance Methods: It is a static warning if an instance method
    * <i>m1</i> overrides an instance member <i>m2</i>, the signature of
    * <i>m2</i> explicitly specifies a default value for a formal parameter
@@ -10632,10 +10648,12 @@ class StaticWarningCodeWithUniqueName extends StaticWarningCode {
   const StaticWarningCodeWithUniqueName(
       String name, this.uniqueName, String message,
       {String correction,
+      ErrorSeverity errorSeverity = ErrorSeverity.ERROR,
       bool hasPublishedDocs,
       bool isUnresolvedIdentifier = false})
       : super(name, message,
             correction: correction,
+            errorSeverity: errorSeverity,
             hasPublishedDocs: hasPublishedDocs,
             isUnresolvedIdentifier: isUnresolvedIdentifier);
 }

@@ -12,8 +12,70 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(InvalidNullAwareOperatorAfterShortCircuitTest);
     defineReflectiveTests(InvalidNullAwareOperatorTest);
   });
+}
+
+@reflectiveTest
+class InvalidNullAwareOperatorAfterShortCircuitTest
+    extends DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.non_nullable],
+    );
+
+  Future<void> test_getter_previousTarget() async {
+    await assertErrorsInCode('''
+void f(String? s) {
+  s?.length?.isEven;
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+          31, 2,
+          contextMessages: [message('/test/lib/test.dart', 23, 2)]),
+    ]);
+  }
+
+  Future<void> test_index_previousTarget() async {
+    await assertErrorsInCode('''
+void f(String? s) {
+  s?[4]?.length;
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+          27, 2,
+          contextMessages: [message('/test/lib/test.dart', 23, 1)]),
+    ]);
+  }
+
+  Future<void> test_methodInvocation_previousTarget() async {
+    await assertErrorsInCode('''
+void f(String? s) {
+  s?.substring(0, 5)?.length;
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+          40, 2,
+          contextMessages: [message('/test/lib/test.dart', 23, 2)]),
+    ]);
+  }
+
+  Future<void> test_methodInvocation_previousTwoTargets() async {
+    await assertErrorsInCode('''
+void f(String? s) {
+  s?.substring(0, 5)?.toLowerCase()?.length;
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+          40, 2,
+          contextMessages: [message('/test/lib/test.dart', 23, 2)]),
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+          55, 2,
+          contextMessages: [message('/test/lib/test.dart', 23, 2)]),
+    ]);
+  }
 }
 
 @reflectiveTest
