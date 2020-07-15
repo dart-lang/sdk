@@ -21,6 +21,7 @@ import 'dart:math' show Random;
 import 'dart:typed_data' show Uint8List;
 
 part 'async_cast.dart';
+part 'bytes_builder.dart';
 part 'cast.dart';
 part 'errors.dart';
 part 'iterable.dart';
