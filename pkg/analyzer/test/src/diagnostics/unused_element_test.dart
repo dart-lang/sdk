@@ -1067,6 +1067,17 @@ class A {
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42668')
+  test_topLevelAccessors_notUsed_questionQuestionEqual() async {
+    await assertNoErrorsInCode(r'''
+int get _c => 1;
+void set _c(int x) {}
+int f() {
+  return _c ??= 7;
+}
+''');
+  }
+
   test_topLevelVariable_isUsed() async {
     await assertNoErrorsInCode(r'''
 int _a = 1;
@@ -1086,11 +1097,31 @@ main() {
 ''');
   }
 
+  test_topLevelVariable_isUsed_questionQuestionEqual() async {
+    await assertNoErrorsInCode(r'''
+int _a;
+f() {
+  _a ??= 1;
+}
+''');
+  }
+
   test_topLevelVariable_notUsed() async {
     await assertErrorsInCode(r'''
 int _a = 1;
 main() {
   _a = 2;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 4, 2),
+    ]);
+  }
+
+  test_topLevelVariable_notUsed_compoundAssign() async {
+    await assertErrorsInCode(r'''
+int _a = 1;
+f() {
+  _a += 1;
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 4, 2),
