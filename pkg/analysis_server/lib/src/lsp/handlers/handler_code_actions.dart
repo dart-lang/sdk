@@ -45,16 +45,21 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       return success(const []);
     }
 
-    final capabilities = server?.clientCapabilities?.textDocument?.codeAction;
+    final capabilities = server?.clientCapabilities?.textDocument;
 
     final clientSupportsWorkspaceApplyEdit =
         server?.clientCapabilities?.workspace?.applyEdit == true;
 
     final clientSupportsLiteralCodeActions =
-        capabilities?.codeActionLiteralSupport != null;
+        capabilities?.codeAction?.codeActionLiteralSupport != null;
 
     final clientSupportedCodeActionKinds = HashSet<CodeActionKind>.of(
-        capabilities?.codeActionLiteralSupport?.codeActionKind?.valueSet ?? []);
+        capabilities?.codeAction?.codeActionLiteralSupport?.codeActionKind
+                ?.valueSet ??
+            []);
+
+    final clientSupportedDiagnosticTags = HashSet<DiagnosticTag>.of(
+        capabilities?.publishDiagnostics?.tagSupport?.valueSet ?? []);
 
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
@@ -70,6 +75,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
               clientSupportedCodeActionKinds,
               clientSupportsLiteralCodeActions,
               clientSupportsWorkspaceApplyEdit,
+              clientSupportedDiagnosticTags,
               path.result,
               params.range,
               offset,
@@ -185,6 +191,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     HashSet<CodeActionKind> kinds,
     bool supportsLiterals,
     bool supportsWorkspaceApplyEdit,
+    HashSet<DiagnosticTag> supportedDiagnosticTags,
     String path,
     Range range,
     int offset,
@@ -196,7 +203,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           kinds, supportsLiterals, supportsWorkspaceApplyEdit, path),
       _getAssistActions(kinds, supportsLiterals, offset, length, unit),
       _getRefactorActions(kinds, supportsLiterals, path, offset, length, unit),
-      _getFixActions(kinds, supportsLiterals, range, unit),
+      _getFixActions(
+          kinds, supportsLiterals, supportedDiagnosticTags, range, unit),
     ]);
     final flatResults = results.expand((x) => x).toList();
 
@@ -206,6 +214,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   Future<List<Either2<Command, CodeAction>>> _getFixActions(
     HashSet<CodeActionKind> clientSupportedCodeActionKinds,
     bool clientSupportsLiteralCodeActions,
+    HashSet<DiagnosticTag> supportedDiagnosticTags,
     Range range,
     ResolvedUnitResult unit,
   ) async {
@@ -237,7 +246,11 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           if (fixes.isNotEmpty) {
             fixes.sort(Fix.SORT_BY_RELEVANCE);
 
-            final diagnostic = toDiagnostic(unit, error);
+            final diagnostic = toDiagnostic(
+              unit,
+              error,
+              supportedTags: supportedDiagnosticTags,
+            );
             codeActions.addAll(
               fixes.map((fix) => _createFixAction(fix, diagnostic)),
             );

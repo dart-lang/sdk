@@ -660,6 +660,11 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       Folder folder, ContextRoot contextRoot, AnalysisOptions options) {
     var builder = createContextBuilder(folder, options);
     var analysisDriver = builder.buildDriver(contextRoot);
+    final textDocumentCapabilities =
+        analysisServer.clientCapabilities?.textDocument;
+    final supportedDiagnosticTags = HashSet<DiagnosticTag>.of(
+        textDocumentCapabilities?.publishDiagnostics?.tagSupport?.valueSet ??
+            []);
     analysisDriver.results.listen((result) {
       var path = result.path;
       if (analysisServer.shouldSendErrorsNotificationFor(path)) {
@@ -668,7 +673,12 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
             result.errors
                 .where((e) => e.errorCode.type != ErrorType.TODO)
                 .toList(),
-            toDiagnostic);
+            (result, error, [severity]) => toDiagnostic(
+                  result,
+                  error,
+                  supportedTags: supportedDiagnosticTags,
+                  errorSeverity: severity,
+                ));
 
         analysisServer.publishDiagnostics(result.path, serverErrors);
       }

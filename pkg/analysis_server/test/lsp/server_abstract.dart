@@ -279,6 +279,17 @@ mixin ClientCapabilitiesHelperMixin {
     return extendWorkspaceCapabilities(source, {'configuration': true});
   }
 
+  TextDocumentClientCapabilities withDiagnosticTagSupport(
+    TextDocumentClientCapabilities source,
+    List<DiagnosticTag> tags,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'publishDiagnostics': {
+        'tagSupport': {'valueSet': tags.map((k) => k.toJson()).toList()}
+      }
+    });
+  }
+
   ClientCapabilitiesWorkspace withDidChangeConfigurationDynamicRegistration(
     ClientCapabilitiesWorkspace source,
   ) {

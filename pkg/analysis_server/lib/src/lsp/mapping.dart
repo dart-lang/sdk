@@ -28,11 +28,25 @@ import 'package:analyzer/dart/analysis/results.dart' as server;
 import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart' as server;
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/services/available_declarations.dart' as dec;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' as server;
+import 'package:meta/meta.dart';
+
+const diagnosticTagsForErrorCode = <server.ErrorCode, List<lsp.DiagnosticTag>>{
+  HintCode.DEAD_CODE: [lsp.DiagnosticTag.Unnecessary],
+  HintCode.DEPRECATED_MEMBER_USE: [lsp.DiagnosticTag.Deprecated],
+  HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE: [
+    lsp.DiagnosticTag.Deprecated
+  ],
+  HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE: [
+    lsp.DiagnosticTag.Deprecated
+  ],
+  HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [lsp.DiagnosticTag.Deprecated],
+};
 
 const languageSourceName = 'dart';
 
@@ -508,6 +522,19 @@ String getDeclarationCompletionDetail(
   }
 }
 
+List<lsp.DiagnosticTag> getDiagnosticTags(
+    HashSet<lsp.DiagnosticTag> supportedTags, server.AnalysisError error) {
+  if (supportedTags == null) {
+    return null;
+  }
+
+  final tags = diagnosticTagsForErrorCode[error.errorCode]
+      ?.where(supportedTags.contains)
+      ?.toList();
+
+  return tags != null && tags.isNotEmpty ? tags : null;
+}
+
 bool isDartDocument(lsp.TextDocumentIdentifier doc) =>
     doc?.uri?.endsWith('.dart');
 
@@ -583,7 +610,6 @@ lsp.Diagnostic pluginToDiagnostic(
     code: error.code,
     source: languageSourceName,
     message: message,
-    tags: null, // TODO(dantup): DiagnosticTags
     relatedInformation: relatedInformation,
   );
 }
@@ -799,8 +825,11 @@ lsp.CompletionItem toCompletionItem(
 }
 
 lsp.Diagnostic toDiagnostic(
-    server.ResolvedUnitResult result, server.AnalysisError error,
-    [server.ErrorSeverity errorSeverity]) {
+  server.ResolvedUnitResult result,
+  server.AnalysisError error, {
+  @required HashSet<lsp.DiagnosticTag> supportedTags,
+  server.ErrorSeverity errorSeverity,
+}) {
   var errorCode = error.errorCode;
 
   // Default to the error's severity if none is specified.
@@ -824,7 +853,7 @@ lsp.Diagnostic toDiagnostic(
     code: errorCode.name.toLowerCase(),
     source: languageSourceName,
     message: message,
-    tags: null, // TODO(dantup): DiagnosticTags
+    tags: getDiagnosticTags(supportedTags, error),
     relatedInformation: relatedInformation,
   );
 }
