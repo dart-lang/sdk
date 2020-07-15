@@ -13,7 +13,7 @@ class Class<T> {
 
 @pragma('dart2js:noInline')
 test<Q>() {
-  Q local1(Q) {}
+  Q? local1(Q) {}
   local2(int i) => i;
 
   var toString = '${local1.runtimeType}';

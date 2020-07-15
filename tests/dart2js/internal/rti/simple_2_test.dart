@@ -5,7 +5,7 @@
 import 'dart:_rti' as rti;
 import "package:expect/expect.dart";
 
-void checkToString(String expected, Object rti1) {
+void checkToString(String expected, rti.Rti rti1) {
   String result = rti.testingRtiToString(rti1);
   if (expected == result) return;
   Expect.equals(expected, result.replaceAll('minified:', ''));

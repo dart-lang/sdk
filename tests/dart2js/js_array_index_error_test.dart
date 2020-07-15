@@ -11,10 +11,10 @@ import 'package:expect/expect.dart';
 @pragma('dart2js:assumeDynamic')
 confuse(x) => x;
 
-Error getError(action(), name, part) {
+Error? getError(action(), name, part) {
   try {
     action();
-  } catch (e) {
+  } on Error catch (e) {
     return e;
   }
   Expect.fail('must throw: $name: $part');
