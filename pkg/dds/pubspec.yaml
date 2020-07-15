@@ -17,6 +17,7 @@ dependencies:
   pedantic: ^1.7.0
   shelf: ^0.7.5
   shelf_proxy: ^0.1.0+7
+  shelf_static: ^0.2.8
   shelf_web_socket: ^0.2.3
   sse: ^3.5.0
   stream_channel: ^2.0.0
