@@ -150,7 +150,7 @@ class CompletionResolveHandler
         return success(CompletionItem(
           label: item.label,
           kind: item.kind,
-          tags: null, // TODO(dantup): CompletionItemTags (eg. deprecated)
+          tags: item.tags,
           detail: data.displayUri != null && thisFilesChanges.isNotEmpty
               ? "Auto import from '${data.displayUri}'\n\n${item.detail ?? ''}"
                   .trim()

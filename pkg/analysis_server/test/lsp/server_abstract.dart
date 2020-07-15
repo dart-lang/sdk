@@ -227,7 +227,7 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  TextDocumentClientCapabilities withCompletionItemDeprecatedSupport(
+  TextDocumentClientCapabilities withCompletionItemDeprecatedFlagSupport(
     TextDocumentClientCapabilities source,
   ) {
     return extendTextDocumentCapabilities(source, {
@@ -256,6 +256,19 @@ mixin ClientCapabilitiesHelperMixin {
     return extendTextDocumentCapabilities(source, {
       'completion': {
         'completionItem': {'snippetSupport': true}
+      }
+    });
+  }
+
+  TextDocumentClientCapabilities withCompletionItemTagSupport(
+    TextDocumentClientCapabilities source,
+    List<CompletionItemTag> tags,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'completion': {
+        'completionItem': {
+          'tagSupport': {'valueSet': tags.map((k) => k.toJson()).toList()}
+        }
       }
     });
   }

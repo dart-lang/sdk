@@ -224,8 +224,12 @@ lsp.CompletionItem declarationToCompletionItem(
       label = declaration.name;
   }
 
-  final useDeprecated =
+  final supportsDeprecatedFlag =
       completionCapabilities?.completionItem?.deprecatedSupport == true;
+  final supportedTags =
+      completionCapabilities?.completionItem?.tagSupport?.valueSet ?? const [];
+  final supportsDeprecatedTag =
+      supportedTags.contains(lsp.CompletionItemTag.Deprecated);
 
   final completionKind = declarationKindToCompletionItemKind(
       supportedCompletionItemKinds, declaration.kind);
@@ -243,10 +247,16 @@ lsp.CompletionItem declarationToCompletionItem(
   return lsp.CompletionItem(
     label: label,
     kind: completionKind,
-    tags: null, // TODO(dantup): CompletionItemTags
-    detail: getDeclarationCompletionDetail(
-        declaration, completionKind, useDeprecated),
-    deprecated: useDeprecated && declaration.isDeprecated ? true : null,
+    tags: supportedTags.isNotEmpty
+        ? [
+            if (supportsDeprecatedTag && declaration.isDeprecated)
+              lsp.CompletionItemTag.Deprecated
+          ]
+        : null,
+    detail: getDeclarationCompletionDetail(declaration, completionKind,
+        supportsDeprecatedFlag || supportsDeprecatedTag),
+    deprecated:
+        supportsDeprecatedFlag && declaration.isDeprecated ? true : null,
     // Relevance is a number, highest being best. LSP does text sort so subtract
     // from a large number so that a text sort will result in the correct order.
     // 555 -> 999455
@@ -723,8 +733,12 @@ lsp.CompletionItem toCompletionItem(
     }
   }
 
-  final useDeprecated =
+  final supportsDeprecatedFlag =
       completionCapabilities?.completionItem?.deprecatedSupport == true;
+  final supportedTags =
+      completionCapabilities?.completionItem?.tagSupport?.valueSet ?? const [];
+  final supportsDeprecatedTag =
+      supportedTags.contains(lsp.CompletionItemTag.Deprecated);
   final formats = completionCapabilities?.completionItem?.documentationFormat;
   final supportsSnippets =
       completionCapabilities?.completionItem?.snippetSupport == true;
@@ -751,11 +765,17 @@ lsp.CompletionItem toCompletionItem(
   return lsp.CompletionItem(
     label: label,
     kind: completionKind,
-    tags: null, // TODO(dantup): CompletionItemTags
-    detail: getCompletionDetail(suggestion, completionKind, useDeprecated),
+    tags: supportedTags.isNotEmpty
+        ? [
+            if (supportsDeprecatedTag && suggestion.isDeprecated)
+              lsp.CompletionItemTag.Deprecated
+          ]
+        : null,
+    detail: getCompletionDetail(suggestion, completionKind,
+        supportsDeprecatedFlag || supportsDeprecatedTag),
     documentation:
         asStringOrMarkupContent(formats, cleanDartdoc(suggestion.docComplete)),
-    deprecated: useDeprecated && suggestion.isDeprecated ? true : null,
+    deprecated: supportsDeprecatedFlag && suggestion.isDeprecated ? true : null,
     // Relevance is a number, highest being best. LSP does text sort so subtract
     // from a large number so that a text sort will result in the correct order.
     // 555 -> 999455

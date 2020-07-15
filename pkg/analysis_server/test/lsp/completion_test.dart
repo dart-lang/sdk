@@ -300,7 +300,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(item.detail.toLowerCase(), contains('deprecated'));
   }
 
-  Future<void> test_isDeprecated_supported() async {
+  Future<void> test_isDeprecated_supportedFlag() async {
     final content = '''
     class MyClass {
       @deprecated
@@ -314,7 +314,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     ''';
 
     await initialize(
-        textDocumentCapabilities: withCompletionItemDeprecatedSupport(
+        textDocumentCapabilities: withCompletionItemDeprecatedFlagSupport(
             emptyTextDocumentClientCapabilities));
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
@@ -322,6 +322,32 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     // ignore: deprecated_member_use_from_same_package
     expect(item.deprecated, isTrue);
     // If the client says it supports the deprecated flag, we should not show
+    // deprecated in the details.
+    expect(item.detail, isNot(contains('deprecated')));
+  }
+
+  Future<void> test_isDeprecated_supportedTag() async {
+    final content = '''
+    class MyClass {
+      @deprecated
+      String abcdefghij;
+    }
+
+    main() {
+      MyClass a;
+      a.abc^
+    }
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withCompletionItemTagSupport(
+            emptyTextDocumentClientCapabilities,
+            [CompletionItemTag.Deprecated]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label == 'abcdefghij');
+    expect(item.tags, contains(CompletionItemTag.Deprecated));
+    // If the client says it supports the deprecated tag, we should not show
     // deprecated in the details.
     expect(item.detail, isNot(contains('deprecated')));
   }
