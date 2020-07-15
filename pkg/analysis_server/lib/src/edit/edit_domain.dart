@@ -11,13 +11,12 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/import_elements_computer.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
-import 'package:analysis_server/src/edit/edit_bulk_fixes.dart'
-    show EditBulkFixes;
 import 'package:analysis_server/src/edit/edit_dartfix.dart' show EditDartFix;
 import 'package:analysis_server/src/edit/fix/dartfix_info.dart' show allFixes;
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
-import 'package:analysis_server/src/protocol_server.dart' hide Element;
+import 'package:analysis_server/src/protocol_server.dart'
+    hide AnalysisError, Element;
 import 'package:analysis_server/src/services/completion/postfix/postfix_completion.dart';
 import 'package:analysis_server/src/services/completion/statement/statement_completion.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
@@ -38,6 +37,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' as engine;
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -95,12 +95,50 @@ class EditDomainHandler extends AbstractRequestHandler {
 
   Future bulkFixes(Request request) async {
     //
-    // Compute fixes
+    // Compute bulk fixes
     //
     try {
-      var bulkFix = EditBulkFixes(server, request);
-      var response = await bulkFix.compute();
+      var params = EditBulkFixesParams.fromRequest(request);
+      for (var file in params.included) {
+        if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+          return;
+        }
+      }
 
+      var paths = <String>[];
+      for (var include in params.included) {
+        var resource = server.resourceProvider.getResource(include);
+        resource.collectDartFilePaths(paths);
+      }
+
+      var errors = await _getErrors(params.included);
+
+      var sourceChange = SourceChange('bulk_fix');
+
+      // todo (pq): push loop into a BulkFixProcessor
+      for (var error in errors) {
+        // todo (pq): filtering will happen in processor
+        List<AnalysisErrorFixes> fixes;
+        while (fixes == null) {
+          try {
+            fixes = await _computeServerErrorFixes(
+                request, error.source.fullName, error.offset);
+          } on InconsistentAnalysisException {
+            // Loop around to try again to compute the fixes.
+          }
+        }
+
+        // In the long run we'll want to support the case where the desired fix
+        // is the first one.  For now, we just assume that the first way is the
+        // only or best way.
+        var edits = fixes[0].fixes[0].edits;
+        for (var edit in edits) {
+          sourceChange.addFileEdit(edit);
+        }
+      }
+
+      var response =
+          EditBulkFixesResult(sourceChange.edits).toResponse(request.id);
       server.sendResponse(response);
     } catch (exception, stackTrace) {
       server.sendServerErrorNotification('Exception while getting bulk fixes',
@@ -821,6 +859,39 @@ error.errorCode: ${error.errorCode}
     server.sendResponse(result.toResponse(request.id));
   }
 
+  /// todo (pq): (temporary) -> to be moved and redesigned in BulkFixesProcessor
+  Future<List<AnalysisError>> _getErrors(List<String> pathsToProcess) async {
+    var errors = <AnalysisError>[];
+
+    var pathsProcessed = <String>{};
+    for (var path in pathsToProcess) {
+      var driver = server.getAnalysisDriver(path);
+      switch (await driver.getSourceKind(path)) {
+        case SourceKind.PART:
+          // todo (pq): ensure parts are processed (see `edit_dartfix.dart`)
+          continue;
+          break;
+        case SourceKind.LIBRARY:
+          var result = await driver.getResolvedLibrary(path);
+          if (result != null) {
+            for (var unit in result.units) {
+              if (pathsToProcess.contains(unit.path) &&
+                  !pathsProcessed.contains(unit.path)) {
+                for (var error in unit.errors) {
+                  errors.add(error);
+                }
+                pathsProcessed.add(unit.path);
+              }
+            }
+          }
+          break;
+        default:
+          break;
+      }
+    }
+    return errors;
+  }
+
   YamlMap _getOptions(SourceFactory sourceFactory, String content) {
     var optionsProvider = AnalysisOptionsProvider(sourceFactory);
     try {
@@ -1294,3 +1365,15 @@ class _RefactoringManager {
 /// [_RefactoringManager] throws instances of this class internally to stop
 /// processing in a manager that was reset.
 class _ResetError {}
+
+extension ResourceExtension on Resource {
+  void collectDartFilePaths(List<String> paths) {
+    if (this is File && AnalysisEngine.isDartFileName(path)) {
+      paths.add(path);
+    } else if (this is Folder) {
+      for (var child in (this as Folder).getChildren()) {
+        child.collectDartFilePaths(paths);
+      }
+    }
+  }
+}
