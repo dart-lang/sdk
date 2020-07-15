@@ -3233,8 +3233,7 @@ Fragment FlowGraphBuilder::NullAssertion(LocalVariable* variable) {
 
 Fragment FlowGraphBuilder::BuildNullAssertions() {
   Fragment code;
-  if (I->null_safety() || !I->asserts() || !FLAG_null_assertions ||
-      !KernelIsolate::GetExperimentalFlag("non-nullable")) {
+  if (I->null_safety() || !I->asserts() || !FLAG_null_assertions) {
     return code;
   }
 
