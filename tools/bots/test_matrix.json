@@ -1120,18 +1120,10 @@
       },
       "steps": [
         {
-          "name": "configure dart",
-          "script": "tools/gn.py",
-          "arguments": [
-            "--mode=${mode}",
-            "--arch=${arch}",
-            "--bytecode"
-          ]
-        },
-        {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--bytecode",
             "runtime"
           ]
         },
@@ -1274,16 +1266,10 @@
       },
       "steps": [
         {
-          "name": "configure dart",
-          "script": "tools/gn.py",
-          "arguments": [
-            "--use-qemu"
-          ]
-        },
-        {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--use-qemu",
             "dart_precompiled_runtime",
             "runtime_kernel"
           ]
@@ -1527,11 +1513,6 @@
       },
       "steps": [
         {
-          "name": "configure dart",
-          "script": "tools/gn.py",
-          "arguments": []
-        },
-        {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
@@ -1554,11 +1535,6 @@
         "description": "This configuration is used by the VM/JIT builders with sanitizers."
       },
       "steps": [
-        {
-          "name": "configure dart",
-          "script": "tools/gn.py",
-          "arguments": []
-        },
         {
           "name": "build dart",
           "script": "tools/build.py",
@@ -1587,11 +1563,6 @@
       },
       "steps": [
         {
-          "name": "configure dart",
-          "script": "tools/gn.py",
-          "arguments": []
-        },
-        {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
@@ -1618,11 +1589,6 @@
       },
       "steps": [
         {
-          "name": "configure dart",
-          "script": "tools/gn.py",
-          "arguments": []
-        },
-        {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
@@ -1648,21 +1614,13 @@
       },
       "steps": [
         {
-          "name": "configure dart",
-          "script": "tools/gn.py",
-          "arguments": [
-            "--mode=all",
-            "--arch=all",
-            "--no-clang",
-            "--no-goma"
-          ]
-        },
-        {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
             "--mode=all",
             "--arch=all",
+            "--no-clang",
+            "--no-goma",
             "runtime"
           ]
         }
@@ -3489,20 +3447,10 @@
       },
       "steps": [
         {
-          "name": "configure dart",
-          "script": "tools/gn.py",
-          "arguments": [
-            "--mode=release",
-            "--arch=x64",
-            "--bytecode"
-          ]
-        },
-        {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--mode=release",
-            "--arch=x64",
+            "--bytecode",
             "create_sdk_with_abi_versions"
           ]
         },
@@ -3524,29 +3472,10 @@
       },
       "steps": [
         {
-          "name": "configure dart for simarm_x64",
-          "script": "tools/gn.py",
-          "arguments": [
-            "--mode=${mode}",
-            "--arch=simarm_x64",
-            "--bytecode"
-          ]
-        },
-        {
-          "name": "configure dart for simarm",
-          "script": "tools/gn.py",
-          "arguments": [
-            "--mode=${mode}",
-            "--arch=simarm",
-            "--bytecode"
-          ]
-        },
-        {
           "name": "build dart for simarm_x64",
           "script": "tools/build.py",
           "arguments": [
-            "--mode=${mode}",
-            "--arch=simarm_x64",
+            "--bytecode",
             "gen_snapshot"
           ]
         },
@@ -3554,8 +3483,8 @@
           "name": "build dart for simarm",
           "script": "tools/build.py",
           "arguments": [
-            "--mode=${mode}",
             "--arch=simarm",
+            "--bytecode",
             "dart_precompiled_runtime",
             "vm_platform"
           ]

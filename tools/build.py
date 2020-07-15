@@ -115,48 +115,6 @@ def NotifyBuildDone(build_config, success, start):
         # Ignore return code, if this command fails, it doesn't matter.
         os.system(command)
 
-
-def GenerateBuildfilesIfNeeded():
-    if os.path.exists(utils.GetBuildDir(HOST_OS)):
-        return True
-    command = [
-        'python',
-        os.path.join(DART_ROOT, 'tools', 'generate_buildfiles.py')
-    ]
-    print("Running " + ' '.join(command))
-    process = subprocess.Popen(command)
-    process.wait()
-    if process.returncode != 0:
-        print("Tried to generate missing buildfiles, but failed. "
-              "Try running manually:\n\t$ " + ' '.join(command))
-        return False
-    return True
-
-
-def RunGNIfNeeded(out_dir, target_os, mode, arch, sanitizer):
-    if os.path.isfile(os.path.join(out_dir, 'args.gn')):
-        return
-    gn_os = 'host' if target_os == HOST_OS else target_os
-    gn_command = [
-        'python',
-        os.path.join(DART_ROOT, 'tools', 'gn.py'),
-        '--sanitizer',
-        sanitizer,
-        '-m',
-        mode,
-        '-a',
-        arch,
-        '--os',
-        gn_os,
-        '-v',
-    ]
-
-    process = subprocess.Popen(gn_command)
-    process.wait()
-    if process.returncode != 0:
-        print("Tried to run GN, but it failed. Try running it manually: \n\t$ "
-              + ' '.join(gn_command))
-
 def UseGoma(out_dir):
     args_gn = os.path.join(out_dir, 'args.gn')
     return 'use_goma = true' in open(args_gn, 'r').read()
@@ -205,8 +163,6 @@ def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer):
     build_config = utils.GetBuildConf(mode, arch, target_os, sanitizer)
     out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer)
     using_goma = False
-    # TODO(kustermann): Remove this once we always run GN.
-    RunGNIfNeeded(out_dir, target_os, mode, arch, sanitizer)
     command = ['ninja', '-C', out_dir]
     if options.verbose:
         command += ['-v']
@@ -280,9 +236,6 @@ def Main():
         parser.print_help()
         return 1
 
-    if not GenerateBuildfilesIfNeeded():
-        return 1
-
     # If binaries are built with sanitizers we should use those flags.
     # If the binaries are not built with sanitizers the flag should have no
     # effect.
@@ -290,8 +243,7 @@ def Main():
     env.update(SanitizerEnvironmentVariables())
 
     # Always run GN before building.
-    # TODO(kustermann): Once recipe change landed we should enable this again.
-    # gn_py.RunGnOnConfiguredConfigurations(options)
+    gn_py.RunGnOnConfiguredConfigurations(options)
 
     # Build all targets for each requested configuration.
     configs = []
