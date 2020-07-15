@@ -14,8 +14,6 @@ library dart.typed_data;
 
 import "dart:_internal" show Since, UnmodifiableListBase;
 
-export "dart:_internal" show BytesBuilder;
-
 part "unmodifiable_typed_data.dart";
 
 /**

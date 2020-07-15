@@ -58,11 +58,6 @@
 
 [#41653]: https://github.com/dart-lang/sdk/issues/41653
 
-#### `dart:typed_data`
-
-*   Class `BytesBuilder` originally from `dart:io` is now available
-    in `dart:typed_data`. It's still exported from `dart:io` as well.
-
 ### Tools
 
 #### dartfmt

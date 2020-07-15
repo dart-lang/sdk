@@ -197,10 +197,9 @@ import 'dart:math';
 import 'dart:typed_data';
 
 export 'dart:_http';
-@Deprecated("Import BytesBuilder from dart:typed_data instead")
-export 'dart:_internal' show BytesBuilder;
 export 'dart:_internal' show HttpStatus;
 
+part 'bytes_builder.dart';
 part 'common.dart';
 part 'data_transformer.dart';
 part 'directory.dart';
