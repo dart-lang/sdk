@@ -12,6 +12,9 @@
 #include <stdint.h>
 
 #include <fuchsia/intl/cpp/fidl.h>
+#include <lib/async/default.h>
+#include <lib/async-loop/loop.h>
+#include <lib/async-loop/default.h>
 #include <lib/inspect/cpp/inspect.h>
 #include <lib/sys/cpp/component_context.h>
 #include <lib/sys/cpp/service_directory.h>
@@ -128,6 +131,7 @@ class InspectMetrics {
 // Initialized on OS:Init(), deinitialized on OS::Cleanup.
 std::unique_ptr<sys::ComponentInspector> component_inspector;
 std::unique_ptr<InspectMetrics> metrics;
+async_loop_t* message_loop = nullptr;
 
 // Initializes the source of timezone data if available.  Timezone data file in
 // Fuchsia is at a fixed directory path.  Returns true on success.
@@ -418,6 +422,12 @@ void OS::PrintErr(const char* format, ...) {
 }
 
 void OS::Init() {
+  if (async_get_default_dispatcher() == NULL) {
+    async_loop_create(&kAsyncLoopConfigAttachToCurrentThread, &message_loop);
+    async_set_default_dispatcher(async_loop_get_dispatcher(message_loop));
+    async_loop_start_thread(message_loop, "Fuchsia async loop", nullptr);
+  }
+
   sys::ComponentContext* context = dart::ComponentContext();
   component_inspector = std::make_unique<sys::ComponentInspector>(context);
   metrics = std::make_unique<InspectMetrics>(component_inspector->inspector());
@@ -430,6 +440,10 @@ void OS::Init() {
 void OS::Cleanup() {
   metrics = nullptr;
   component_inspector = nullptr;
+  if (message_loop != nullptr) {
+    async_loop_destroy(message_loop);
+    message_loop = nullptr;
+  }
 }
 
 void OS::PrepareToAbort() {}

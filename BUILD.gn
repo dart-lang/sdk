@@ -156,10 +156,35 @@ if (is_fuchsia) {
 
   fuchsia_component("dart_sdk_fuchsia_test_component") {
     testonly = true
-    data_deps = [
-      "runtime/bin:dart",
+    data_deps = [ "runtime/bin:dart" ]
+    manifest = "build/fuchsia/dart.cmx"
+
+    resource_files = [
+      ".packages",
     ]
-    manifest = "build/fuchsia/tests.cmx"
+    resource_dirs = [
+      "tests/standalone",
+      "pkg/async_helper",
+      "pkg/expect",
+      "pkg/meta",
+      "pkg/smith",
+      "third_party/pkg/args",
+      "third_party/pkg/async",
+      "third_party/pkg/collection",
+      "third_party/pkg/path",
+      "third_party/pkg/pool",
+      "third_party/pkg/stack_trace",
+    ]
+
+    resources = []
+    foreach(file, resource_files) {
+      resources += [{
+        path = file
+        dest = "data/" + file
+      }]
+    }
+    resources += exec_script(
+        "tools/fuchsia/find_resources.py", resource_dirs, "json")
   }
 
   fuchsia_package("dart_sdk_fuchsia_test_package") {

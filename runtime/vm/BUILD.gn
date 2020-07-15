@@ -75,6 +75,10 @@ library_for_all_configs("libdart_vm") {
     if (using_fuchsia_gn_sdk) {
       extra_deps = [
         "$fuchsia_sdk_root/fidl/fuchsia.intl",
+        "$fuchsia_sdk_root/pkg/async",
+        "$fuchsia_sdk_root/pkg/async-default",
+        "$fuchsia_sdk_root/pkg/async-loop",
+        "$fuchsia_sdk_root/pkg/async-loop-default",
         "$fuchsia_sdk_root/pkg/inspect",
         "$fuchsia_sdk_root/pkg/inspect_service_cpp",
         "$fuchsia_sdk_root/pkg/sys_cpp",
@@ -84,6 +88,8 @@ library_for_all_configs("libdart_vm") {
     } else if (using_fuchsia_sdk) {
       extra_deps = [
         "$fuchsia_sdk_root/fidl:fuchsia.intl",
+        "$fuchsia_sdk_root/pkg:async-loop",
+        "$fuchsia_sdk_root/pkg:async-loop-default",
         "$fuchsia_sdk_root/pkg:inspect",
         "$fuchsia_sdk_root/pkg:inspect_service_cpp",
         "$fuchsia_sdk_root/pkg:sys_cpp",
