@@ -23,8 +23,15 @@ abstract class CiderByteStore {
   void put(String key, List<int> signature, List<int> bytes);
 }
 
+class CiderCacheEntry {
+  final List<int> signature;
+  final List<int> bytes;
+
+  CiderCacheEntry(this.signature, this.bytes);
+}
+
 class CiderMemoryByteStore implements CiderByteStore {
-  final Map<String, _CiderCacheEntry> _map = {};
+  final Map<String, CiderCacheEntry> _map = {};
 
   @override
   List<int> get(String key, List<int> signature) {
@@ -39,13 +46,6 @@ class CiderMemoryByteStore implements CiderByteStore {
 
   @override
   void put(String key, List<int> signature, List<int> bytes) {
-    _map[key] = _CiderCacheEntry(signature, bytes);
+    _map[key] = CiderCacheEntry(signature, bytes);
   }
-}
-
-class _CiderCacheEntry {
-  final List<int> signature;
-  final List<int> bytes;
-
-  _CiderCacheEntry(this.signature, this.bytes);
 }
