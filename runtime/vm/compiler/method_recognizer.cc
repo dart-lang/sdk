@@ -4,6 +4,7 @@
 
 #include "vm/compiler/method_recognizer.h"
 
+#include "vm/log.h"
 #include "vm/object.h"
 #include "vm/reusable_handles.h"
 #include "vm/symbols.h"
@@ -198,13 +199,16 @@ void MethodRecognizer::InitializeState() {
   GrowableArray<Library*> libs(3);
   Libraries(&libs);
   Function& func = Function::Handle();
+  bool fingerprints_match = true;
 
   for (intptr_t i = 1; i < MethodRecognizer::kNumRecognizedMethods; i++) {
     const MethodRecognizer::Kind kind = static_cast<MethodRecognizer::Kind>(i);
     func = Library::GetFunction(libs, recognized_methods[i].class_name,
                                 recognized_methods[i].function_name);
     if (!func.IsNull()) {
-      ASSERT(func.CheckSourceFingerprint(recognized_methods[i].fp));
+      fingerprints_match =
+          func.CheckSourceFingerprint(recognized_methods[i].fp) &&
+          fingerprints_match;
       func.set_recognized_kind(kind);
       switch (kind) {
 #define RECOGNIZE_METHOD(class_name, function_name, enum_name, fp)             \
@@ -217,19 +221,21 @@ void MethodRecognizer::InitializeState() {
           break;
       }
     } else if (!FLAG_precompiled_mode) {
-      FATAL2("Missing %s::%s\n", recognized_methods[i].class_name,
-             recognized_methods[i].function_name);
+      fingerprints_match = false;
+      OS::PrintErr("Missing %s::%s\n", recognized_methods[i].class_name,
+                   recognized_methods[i].function_name);
     }
   }
 
 #define SET_FUNCTION_BIT(class_name, function_name, dest, fp, setter, value)   \
   func = Library::GetFunction(libs, #class_name, #function_name);              \
   if (!func.IsNull()) {                                                        \
-    ASSERT(func.CheckSourceFingerprint(fp));                                   \
+    fingerprints_match =                                                       \
+        func.CheckSourceFingerprint(fp) && fingerprints_match;                 \
     func.setter(value);                                                        \
   } else if (!FLAG_precompiled_mode) {                                         \
     OS::PrintErr("Missing %s::%s\n", #class_name, #function_name);             \
-    UNREACHABLE();                                                             \
+    fingerprints_match = false;                                                \
   }
 
 #define SET_IS_POLYMORPHIC_TARGET(class_name, function_name, dest, fp)         \
@@ -241,6 +247,14 @@ void MethodRecognizer::InitializeState() {
 #undef SET_RECOGNIZED_KIND
 #undef SET_IS_POLYMORPHIC_TARGET
 #undef SET_FUNCTION_BIT
+
+  if (!fingerprints_match) {
+    FATAL(
+        "FP mismatch while recognizing methods. If the behavior of "
+        "these functions has changed, then changes are also needed in "
+        "the VM's compiler. Otherwise the fingerprint can simply be "
+        "updated in recognized_methods_list.h\n");
+  }
 }
 
 void MethodRecognizer::Libraries(GrowableArray<Library*>* libs) {

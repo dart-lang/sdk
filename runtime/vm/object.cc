@@ -9190,6 +9190,10 @@ void Function::SetDeoptReasonForAll(intptr_t deopt_id,
 }
 
 bool Function::CheckSourceFingerprint(int32_t fp) const {
+#if !defined(DEBUG)
+  return true;  // Only check on debug.
+#endif
+
   if (Isolate::Current()->obfuscate() || FLAG_precompiled_mode ||
       (Dart::vm_snapshot_kind() != Snapshot::kNone)) {
     return true;  // The kernel structure has been altered, skip checking.
@@ -9202,22 +9206,12 @@ bool Function::CheckSourceFingerprint(int32_t fp) const {
   }
 
   if (SourceFingerprint() != fp) {
-    const bool recalculatingFingerprints = false;
-    if (recalculatingFingerprints) {
-      // This output can be copied into a file, then used with sed
-      // to replace the old values.
-      // sed -i.bak -f /tmp/newkeys \
-      //    runtime/vm/compiler/recognized_methods_list.h
-      THR_Print("s/0x%08x/0x%08x/\n", fp, SourceFingerprint());
-    } else {
-      THR_Print(
-          "FP mismatch while recognizing method %s: expecting 0x%08x found "
-          "0x%08x.\nIf the behavior of this function has changed, then changes "
-          "are also needed in the VM's compiler. Otherwise the fingerprint can "
-          "simply be updated in recognized_methods_list.h\n",
-          ToFullyQualifiedCString(), fp, SourceFingerprint());
-      return false;
-    }
+    // This output can be copied into a file, then used with sed
+    // to replace the old values.
+    // sed -i.bak -f /tmp/newkeys \
+    //    runtime/vm/compiler/recognized_methods_list.h
+    THR_Print("s/0x%08x/0x%08x/\n", fp, SourceFingerprint());
+    return false;
   }
   return true;
 }
@@ -13548,15 +13542,16 @@ ObjectPtr Library::GetFunctionClosure(const String& name) const {
 void Library::CheckFunctionFingerprints() {
   GrowableArray<Library*> all_libs;
   Function& func = Function::Handle();
-  bool has_errors = false;
+  bool fingerprints_match = true;
 
 #define CHECK_FINGERPRINTS(class_name, function_name, dest, fp)                \
   func = GetFunction(all_libs, #class_name, #function_name);                   \
   if (func.IsNull()) {                                                         \
-    has_errors = true;                                                         \
+    fingerprints_match = false;                                                \
     OS::PrintErr("Function not found %s.%s\n", #class_name, #function_name);   \
   } else {                                                                     \
-    ASSERT(func.CheckSourceFingerprint(fp));                                   \
+    fingerprints_match =                                                       \
+        func.CheckSourceFingerprint(fp) && fingerprints_match;                 \
   }
 
 #define CHECK_FINGERPRINTS2(class_name, function_name, dest, fp)               \
@@ -13596,10 +13591,11 @@ void Library::CheckFunctionFingerprints() {
 #define CHECK_FACTORY_FINGERPRINTS(symbol, class_name, factory_name, cid, fp)  \
   func = GetFunction(all_libs, #class_name, #factory_name);                    \
   if (func.IsNull()) {                                                         \
-    has_errors = true;                                                         \
+    fingerprints_match = false;                                                \
     OS::PrintErr("Function not found %s.%s\n", #class_name, #factory_name);    \
   } else {                                                                     \
-    ASSERT(func.CheckSourceFingerprint(fp));                                   \
+    fingerprints_match =                                                       \
+        func.CheckSourceFingerprint(fp) && fingerprints_match;                 \
   }
 
   all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
@@ -13607,8 +13603,12 @@ void Library::CheckFunctionFingerprints() {
 
 #undef CHECK_FACTORY_FINGERPRINTS
 
-  if (has_errors) {
-    FATAL("Fingerprint mismatch.");
+  if (!fingerprints_match) {
+    FATAL(
+        "FP mismatch while recognizing methods. If the behavior of "
+        "these functions has changed, then changes are also needed in "
+        "the VM's compiler. Otherwise the fingerprint can simply be "
+        "updated in recognized_methods_list.h\n");
   }
 }
 #endif  // defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME).
