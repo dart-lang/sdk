@@ -2,16 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// 'dart:mirrors' provides no functionality in dart-web, but can be imported and
-// all APIs throw.
-import 'dart:mirrors';
-import 'package:expect/expect.dart';
+// 'dart:mirrors' can no longer be imported, doing so produces a static error.
+import 'dart:mirrors';   //# 01: compile-time error
 
 main() {
-  Expect.throws<UnsupportedError>(() => currentMirrorSystem());
-  Expect.throws<UnsupportedError>(() => reflect(main));
-  Expect.throws<UnsupportedError>(() => reflectClass(Object));
-  Expect.throws<UnsupportedError>(() => reflectType(Object));
-  Expect.throws<UnsupportedError>(() => MirrorSystem.getName(#core));
-  Expect.throws<UnsupportedError>(() => MirrorSystem.getSymbol("core"));
+  reflect(main);         //# 01: continued
 }
