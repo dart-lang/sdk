@@ -10749,9 +10749,6 @@ class StrongModeCode extends ErrorCode {
       "The super call must be last in an initializer "
           "list (see https://goo.gl/EY6hDP): '{0}'.");
 
-  static const StrongModeCode DYNAMIC_INVOKE = StrongModeCode(
-      ErrorType.HINT, 'DYNAMIC_INVOKE', "'{0}' requires a dynamic invoke.");
-
   static const StrongModeCode IMPLICIT_DYNAMIC_PARAMETER = StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
       'IMPLICIT_DYNAMIC_PARAMETER',

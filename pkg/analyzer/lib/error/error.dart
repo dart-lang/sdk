@@ -817,7 +817,6 @@ const List<ErrorCode> errorCodeValues = [
   StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION,
   StaticWarningCode.USE_OF_VOID_RESULT,
   StrongModeCode.COULD_NOT_INFER,
-  StrongModeCode.DYNAMIC_INVOKE,
   StrongModeCode.IMPLICIT_DYNAMIC_FIELD,
   StrongModeCode.IMPLICIT_DYNAMIC_FUNCTION,
   StrongModeCode.IMPLICIT_DYNAMIC_INVOKE,
