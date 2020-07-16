@@ -4096,10 +4096,11 @@ ObjectPtr Class::Invoke(const String& function_name,
                         bool check_is_entrypoint) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-
-  // TODO(regis): Support invocation of generic functions with type arguments.
-  const int kTypeArgsLen = 0;
   CHECK_ERROR(EnsureIsFinalized(thread));
+
+  // We don't pass any explicit type arguments, which will be understood as
+  // using dynamic for any function type arguments by lower layers.
+  const int kTypeArgsLen = 0;
 
   Function& function =
       Function::Handle(zone, LookupStaticFunction(function_name));
@@ -4137,15 +4138,16 @@ ObjectPtr Class::Invoke(const String& function_name,
       zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(),
                                           arg_names, Heap::kNew));
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
-  const TypeArguments& type_args = Object::null_type_arguments();
   if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
       (respect_reflectable && !function.is_reflectable())) {
     return ThrowNoSuchMethod(
         AbstractType::Handle(zone, RareType()), function_name, args, arg_names,
         InvocationMirror::kStatic, InvocationMirror::kMethod);
   }
-  ObjectPtr type_error =
-      function.DoArgumentTypesMatch(args, args_descriptor, type_args);
+  // This is a static function, so we pass an empty instantiator tav.
+  ASSERT(function.is_static());
+  ObjectPtr type_error = function.DoArgumentTypesMatch(
+      args, args_descriptor, Object::empty_type_arguments());
   if (type_error != Error::null()) {
     return type_error;
   }
@@ -7762,83 +7764,358 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
   return true;
 }
 
+// Checks each supplied function type argument is a subtype of the corresponding
+// bound. Also takes the number of type arguments to skip over because they
+// belong to parent functions and are not included in the type parameters.
+// Returns null if all checks succeed, otherwise returns a non-null Error for
+// one of the failures.
+static ObjectPtr TypeArgumentsAreBoundSubtypes(
+    Zone* zone,
+    const TokenPosition& token_pos,
+    const TypeArguments& type_parameters,
+    intptr_t num_parent_type_args,
+    const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments) {
+  ASSERT(!type_parameters.IsNull());
+  ASSERT(!function_type_arguments.IsNull());
+  const intptr_t kNumTypeArgs = function_type_arguments.Length();
+  ASSERT_EQUAL(num_parent_type_args + type_parameters.Length(), kNumTypeArgs);
+
+  // Don't bother allocating handles, there's nothing to check.
+  if (kNumTypeArgs - num_parent_type_args == 0) return Error::null();
+
+  auto& type = AbstractType::Handle(zone);
+  auto& bound = AbstractType::Handle(zone);
+  auto& name = String::Handle(zone);
+  for (intptr_t i = num_parent_type_args; i < kNumTypeArgs; i++) {
+    type = type_parameters.TypeAt(i - num_parent_type_args);
+    ASSERT(type.IsTypeParameter());
+    const auto& parameter = TypeParameter::Cast(type);
+    bound = parameter.bound();
+    name = parameter.name();
+    // Only perform non-covariant checks where the bound is not the top type.
+    if (parameter.IsGenericCovariantImpl() || bound.IsTopTypeForSubtyping()) {
+      continue;
+    }
+    if (!AbstractType::InstantiateAndTestSubtype(&type, &bound,
+                                                 instantiator_type_arguments,
+                                                 function_type_arguments)) {
+      return Error::RawCast(ThrowTypeError(token_pos, type, bound, name));
+    }
+  }
+
+  return Error::null();
+}
+
+// Returns a TypeArguments object where, for each type parameter local to this
+// function, the entry in the TypeArguments is an instantiated version of its
+// bound. In the instantiated bound, any local function type parameter
+// references are replaced with the corresponding bound if that bound can be
+// fully instantiated without local function type parameters, otherwise dynamic.
+static TypeArgumentsPtr InstantiateTypeParametersToBounds(
+    Zone* zone,
+    const TokenPosition& token_pos,
+    const TypeArguments& type_parameters,
+    const TypeArguments& instantiator_type_args,
+    intptr_t num_parent_type_args,
+    const TypeArguments& parent_type_args) {
+  ASSERT(!type_parameters.IsNull());
+  const intptr_t kNumCurrentTypeArgs = type_parameters.Length();
+  const intptr_t kNumTypeArgs = kNumCurrentTypeArgs + num_parent_type_args;
+  auto& function_type_args = TypeArguments::Handle(zone);
+
+  bool all_bounds_instantiated = true;
+
+  // Create a type argument vector large enough for the parents' and current
+  // type arguments.
+  function_type_args = TypeArguments::New(kNumTypeArgs);
+  auto& type = AbstractType::Handle(zone);
+  auto& bound = AbstractType::Handle(zone);
+  // First copy over the parent type args (or the dynamic type if null).
+  for (intptr_t i = 0; i < num_parent_type_args; i++) {
+    type = parent_type_args.IsNull() ? Type::DynamicType()
+                                     : parent_type_args.TypeAt(i);
+    function_type_args.SetTypeAt(i, type);
+  }
+  // Now try fully instantiating the bounds of each parameter using only
+  // the instantiator and parent function type arguments. If possible, keep the
+  // instantiated bound as the entry. Otherwise, just set that entry to dynamic.
+  for (intptr_t i = num_parent_type_args; i < kNumTypeArgs; i++) {
+    type = type_parameters.TypeAt(i - num_parent_type_args);
+    const auto& param = TypeParameter::Cast(type);
+    bound = param.bound();
+    // Only instantiate up to the parent type parameters.
+    if (!bound.IsInstantiated(kAny, num_parent_type_args)) {
+      bound = bound.InstantiateFrom(instantiator_type_args, function_type_args,
+                                    num_parent_type_args, Heap::kNew);
+    }
+    if (!bound.IsInstantiated()) {
+      // There are local type variables used in this bound.
+      bound = Type::DynamicType();
+      all_bounds_instantiated = false;
+    }
+    function_type_args.SetTypeAt(i, bound);
+  }
+
+  // If all the bounds were instantiated in the first pass, then there can't
+  // be any self or mutual recursion, so skip the bounds subtype check.
+  if (all_bounds_instantiated) return function_type_args.raw();
+
+  // Do another pass, using the set of TypeArguments we just created. If a given
+  // bound was instantiated in the last pass, just copy it over. (We don't need
+  // to iterate to a fixed point, since there should be no self or mutual
+  // recursion in the bounds.)
+  const auto& first_round =
+      TypeArguments::Handle(zone, function_type_args.raw());
+  function_type_args = TypeArguments::New(kNumTypeArgs);
+  // Again, copy over the parent type arguments first.
+  for (intptr_t i = 0; i < num_parent_type_args; i++) {
+    type = first_round.TypeAt(i);
+    function_type_args.SetTypeAt(i, type);
+  }
+  for (intptr_t i = num_parent_type_args; i < kNumTypeArgs; i++) {
+    type = type_parameters.TypeAt(i - num_parent_type_args);
+    const auto& param = TypeParameter::Cast(type);
+    bound = first_round.TypeAt(i);
+    // The dynamic type is never a bound, even when implicit, so it also marks
+    // bounds that were not already fully instantiated.
+    if (bound.raw() == Type::DynamicType()) {
+      bound = param.bound();
+      bound = bound.InstantiateFrom(instantiator_type_args, first_round,
+                                    kAllFree, Heap::kNew);
+    }
+    function_type_args.SetTypeAt(i, bound);
+  }
+
+  return function_type_args.raw();
+}
+
+// Retrieves the function type arguments, if any. This could be explicitly
+// passed type from the arguments array, delayed type arguments in closures,
+// or instantiated bounds for the type parameters if no other source for
+// function type arguments are found.
+static TypeArgumentsPtr RetrieveFunctionTypeArguments(
+    Thread* thread,
+    Zone* zone,
+    const Function& function,
+    const Instance& receiver,
+    const TypeArguments& instantiator_type_args,
+    const TypeArguments& type_params,
+    const Array& args,
+    const ArgumentsDescriptor& args_desc) {
+  ASSERT(!function.IsNull());
+
+  const intptr_t kNumCurrentTypeArgs = function.NumTypeParameters(thread);
+  const intptr_t kNumParentTypeArgs = function.NumParentTypeParameters();
+  const intptr_t kNumTypeArgs = kNumCurrentTypeArgs + kNumParentTypeArgs;
+  // Non-generic functions don't receive type arguments.
+  if (kNumTypeArgs == 0) return Object::empty_type_arguments().raw();
+  // Closure functions require that the receiver be provided (and is a closure).
+  ASSERT(!function.IsClosureFunction() || receiver.IsClosure());
+
+  // Only closure functions should have possibly generic parents.
+  ASSERT(function.IsClosureFunction() || kNumParentTypeArgs == 0);
+  const auto& parent_type_args =
+      function.IsClosureFunction()
+          ? TypeArguments::Handle(
+                zone, Closure::Cast(receiver).function_type_arguments())
+          : Object::null_type_arguments();
+  // We don't try to instantiate the parent type parameters to their bounds
+  // if not provided or check any closed-over type arguments against the parent
+  // type parameter bounds (since they have been type checked already).
+  if (kNumCurrentTypeArgs == 0) return parent_type_args.raw();
+
+  auto& function_type_args = TypeArguments::Handle(zone);
+  if (function.IsClosureFunction()) {
+    const auto& closure = Closure::Cast(receiver);
+    function_type_args = closure.delayed_type_arguments();
+    if (function_type_args.raw() == Object::empty_type_arguments().raw()) {
+      // There are no delayed type arguments, so set back to null.
+      function_type_args = TypeArguments::null();
+    }
+  }
+
+  if (function_type_args.IsNull() && args_desc.TypeArgsLen() > 0) {
+    function_type_args ^= args.At(0);
+  }
+
+  if (function_type_args.IsNull()) {
+    // We have no explicitly provided function type arguments, so generate
+    // some by instantiating the parameters to bounds.
+    return InstantiateTypeParametersToBounds(
+        zone, function.token_pos(), type_params, instantiator_type_args,
+        kNumParentTypeArgs, parent_type_args);
+  }
+
+  if (kNumParentTypeArgs > 0) {
+    function_type_args = function_type_args.Prepend(
+        zone, parent_type_args, kNumParentTypeArgs, kNumTypeArgs);
+  }
+
+  return function_type_args.raw();
+}
+
+// Retrieves the instantiator type arguments, if any, from the receiver.
+static TypeArgumentsPtr RetrieveInstantiatorTypeArguments(
+    Zone* zone,
+    const Function& function,
+    const Instance& receiver) {
+  if (function.IsClosureFunction()) {
+    ASSERT(receiver.IsClosure());
+    const auto& closure = Closure::Cast(receiver);
+    return closure.instantiator_type_arguments();
+  }
+  if (!receiver.IsNull()) {
+    const auto& cls = Class::Handle(zone, receiver.clazz());
+    if (cls.NumTypeArguments() > 0) {
+      return receiver.GetTypeArguments();
+    }
+  }
+  return Object::empty_type_arguments().raw();
+}
+
+ObjectPtr Function::DoArgumentTypesMatch(
+    const Array& args,
+    const ArgumentsDescriptor& args_desc) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  auto& receiver = Instance::Handle(zone);
+  if (IsClosureFunction() || HasThisParameter()) {
+    receiver ^= args.At(args_desc.FirstArgIndex());
+  }
+  const auto& instantiator_type_arguments = TypeArguments::Handle(
+      zone, RetrieveInstantiatorTypeArguments(zone, *this, receiver));
+  return Function::DoArgumentTypesMatch(args, args_desc,
+                                        instantiator_type_arguments);
+}
+
 ObjectPtr Function::DoArgumentTypesMatch(
     const Array& args,
     const ArgumentsDescriptor& args_desc,
-    const TypeArguments& instantiator_type_args) const {
+    const TypeArguments& instantiator_type_arguments) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Function& instantiated_func = Function::Handle(zone, raw());
 
-  if (!HasInstantiatedSignature()) {
-    instantiated_func = InstantiateSignatureFrom(instantiator_type_args,
-                                                 Object::null_type_arguments(),
-                                                 kAllFree, Heap::kNew);
+  auto& receiver = Instance::Handle(zone);
+  if (IsClosureFunction() || HasThisParameter()) {
+    receiver ^= args.At(args_desc.FirstArgIndex());
   }
-  AbstractType& argument_type = AbstractType::Handle(zone);
-  AbstractType& parameter_type = AbstractType::Handle(zone);
+
+  const auto& params = TypeArguments::Handle(zone, type_parameters());
+  const auto& function_type_arguments = TypeArguments::Handle(
+      zone, RetrieveFunctionTypeArguments(thread, zone, *this, receiver,
+                                          instantiator_type_arguments, params,
+                                          args, args_desc));
+  return Function::DoArgumentTypesMatch(
+      args, args_desc, instantiator_type_arguments, function_type_arguments);
+}
+
+ObjectPtr Function::DoArgumentTypesMatch(
+    const Array& args,
+    const ArgumentsDescriptor& args_desc,
+    const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments) const {
+  // We need a concrete (possibly empty) type arguments vector, not the
+  // implicitly filled with dynamic one.
+  ASSERT(!function_type_arguments.IsNull());
+
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  // Perform any non-covariant bounds checks on the provided function type
+  // arguments to make sure they are appropriate subtypes of the bounds.
+  const intptr_t kNumLocalTypeArgs = NumTypeParameters(thread);
+  if (kNumLocalTypeArgs > 0) {
+    const intptr_t kNumParentTypeArgs = NumParentTypeParameters();
+    ASSERT_EQUAL(kNumLocalTypeArgs + kNumParentTypeArgs,
+                 function_type_arguments.Length());
+    const auto& params = TypeArguments::Handle(zone, type_parameters());
+    const auto& result = Object::Handle(
+        zone, TypeArgumentsAreBoundSubtypes(
+                  zone, token_pos(), params, kNumParentTypeArgs,
+                  instantiator_type_arguments, function_type_arguments));
+    if (result.IsError()) {
+      return result.raw();
+    }
+  } else {
+    ASSERT_EQUAL(NumParentTypeParameters(), function_type_arguments.Length());
+  }
+
+  AbstractType& type = AbstractType::Handle(zone);
   Instance& argument = Instance::Handle(zone);
 
-  // Check types of the provided arguments against the expected parameter types.
-  for (intptr_t i = args_desc.FirstArgIndex(); i < args_desc.PositionalCount();
-       ++i) {
-    argument ^= args.At(i);
-    argument_type = argument.GetType(Heap::kNew);
-    parameter_type = instantiated_func.ParameterTypeAt(i);
-
-    // If the argument type is dynamic or the parameter is null, move on.
-    if (parameter_type.IsDynamicType() || argument_type.IsNullType()) {
-      continue;
+  auto check_argument = [](const Instance& argument, const AbstractType& type,
+                           const TypeArguments& instantiator_type_args,
+                           const TypeArguments& function_type_args) -> bool {
+    // If the argument type is the top type, no need to check.
+    if (type.IsTopTypeForSubtyping()) return true;
+    if (argument.IsNull()) {
+      return Instance::NullIsAssignableTo(type);
     }
-    if (!argument.IsInstanceOf(parameter_type, instantiator_type_args,
-                               Object::null_type_arguments())) {
-      String& argument_name = String::Handle(zone, ParameterNameAt(i));
-      return ThrowTypeError(token_pos(), argument, parameter_type,
-                            argument_name);
+    return argument.IsAssignableTo(type, instantiator_type_args,
+                                   function_type_args);
+  };
+
+  // Check types of the provided arguments against the expected parameter types.
+  const intptr_t arg_offset = args_desc.FirstArgIndex();
+  // Only check explicit arguments.
+  const intptr_t arg_start = arg_offset + NumImplicitParameters();
+  const intptr_t num_positional_args = args_desc.PositionalCount();
+  for (intptr_t arg_index = arg_start; arg_index < num_positional_args;
+       ++arg_index) {
+    argument ^= args.At(arg_index);
+    // Adjust for type arguments when they're present.
+    const intptr_t param_index = arg_index - arg_offset;
+    type = ParameterTypeAt(param_index);
+
+    if (!check_argument(argument, type, instantiator_type_arguments,
+                        function_type_arguments)) {
+      auto& name = String::Handle(zone, ParameterNameAt(param_index));
+      return ThrowTypeError(token_pos(), argument, type, name);
     }
   }
 
-  const intptr_t num_arguments = args_desc.Count();
   const intptr_t num_named_arguments = args_desc.NamedCount();
   if (num_named_arguments == 0) {
     return Error::null();
   }
 
+  const int num_parameters = NumParameters();
+  const int num_fixed_params = num_fixed_parameters();
+
   String& argument_name = String::Handle(zone);
   String& parameter_name = String::Handle(zone);
 
   // Check types of named arguments against expected parameter type.
-  for (intptr_t i = 0; i < num_named_arguments; i++) {
-    argument_name = args_desc.NameAt(i);
+  for (intptr_t named_index = 0; named_index < num_named_arguments;
+       named_index++) {
+    argument_name = args_desc.NameAt(named_index);
     ASSERT(argument_name.IsSymbol());
-    bool found = false;
-    const intptr_t num_positional_args = num_arguments - num_named_arguments;
-    const int num_parameters = NumParameters();
+    argument ^= args.At(args_desc.PositionAt(named_index));
 
     // Try to find the named parameter that matches the provided argument.
-    for (intptr_t j = num_positional_args; !found && (j < num_parameters);
-         j++) {
-      parameter_name = ParameterNameAt(j);
-      ASSERT(argument_name.IsSymbol());
-      if (argument_name.Equals(parameter_name)) {
-        found = true;
-        argument ^= args.At(args_desc.PositionAt(i));
-        argument_type = argument.GetType(Heap::kNew);
-        parameter_type = instantiated_func.ParameterTypeAt(j);
+    // Even when annotated with @required, named parameters are still stored
+    // as if they were optional and so come after the fixed parameters.
+    // Currently O(n^2) as there's no guarantee from either the CFE or the
+    // VM that named parameters and named arguments are sorted in the same way.
+    intptr_t param_index = num_fixed_params;
+    for (; param_index < num_parameters; param_index++) {
+      parameter_name = ParameterNameAt(param_index);
+      ASSERT(parameter_name.IsSymbol());
 
-        // If the argument type is dynamic or the parameter is null, move on.
-        if (parameter_type.IsDynamicType() || argument_type.IsNullType()) {
-          continue;
-        }
-        if (!argument.IsInstanceOf(parameter_type, instantiator_type_args,
-                                   Object::null_type_arguments())) {
-          String& argument_name = String::Handle(zone, ParameterNameAt(i));
-          return ThrowTypeError(token_pos(), argument, parameter_type,
-                                argument_name);
-        }
+      if (!parameter_name.Equals(argument_name)) continue;
+
+      type = ParameterTypeAt(param_index);
+      if (!check_argument(argument, type, instantiator_type_arguments,
+                          function_type_arguments)) {
+        auto& name = String::Handle(zone, ParameterNameAt(param_index));
+        return ThrowTypeError(token_pos(), argument, type, name);
       }
+      break;
     }
-    ASSERT(found);
+    // Only should fail if AreValidArguments returns a false positive.
+    ASSERT(param_index < num_parameters);
   }
   return Error::null();
 }
@@ -12501,7 +12778,8 @@ ObjectPtr Library::Invoke(const String& function_name,
                           const Array& arg_names,
                           bool respect_reflectable,
                           bool check_is_entrypoint) const {
-  // TODO(regis): Support invocation of generic functions with type arguments.
+  // We don't pass any explicit type arguments, which will be understood as
+  // using dynamic for any function type arguments by lower layers.
   const int kTypeArgsLen = 0;
 
   Function& function = Function::Handle();
@@ -12543,7 +12821,6 @@ ObjectPtr Library::Invoke(const String& function_name,
       Array::Handle(ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(),
                                                   arg_names, Heap::kNew));
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
-  const TypeArguments& type_args = Object::null_type_arguments();
   if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
       (respect_reflectable && !function.is_reflectable())) {
     return ThrowNoSuchMethod(
@@ -12551,8 +12828,10 @@ ObjectPtr Library::Invoke(const String& function_name,
         function_name, args, arg_names, InvocationMirror::kTopLevel,
         InvocationMirror::kMethod);
   }
-  ObjectPtr type_error =
-      function.DoArgumentTypesMatch(args, args_descriptor, type_args);
+  // This is a static function, so we pass an empty instantiator tav.
+  ASSERT(function.is_static());
+  ObjectPtr type_error = function.DoArgumentTypesMatch(
+      args, args_descriptor, Object::empty_type_arguments());
   if (type_error != Error::null()) {
     return type_error;
   }
@@ -17516,10 +17795,10 @@ ObjectPtr Instance::InvokeGetter(const String& getter_name,
 
   Class& klass = Class::Handle(zone, clazz());
   CHECK_ERROR(klass.EnsureIsFinalized(thread));
-  TypeArguments& type_args = TypeArguments::Handle(zone);
-  if (klass.NumTypeArguments() > 0) {
-    type_args = GetTypeArguments();
-  }
+  const auto& inst_type_args =
+      klass.NumTypeArguments() > 0
+          ? TypeArguments::Handle(zone, GetTypeArguments())
+          : Object::null_type_arguments();
 
   const String& internal_getter_name =
       String::Handle(zone, Field::GetterName(getter_name));
@@ -17565,7 +17844,7 @@ ObjectPtr Instance::InvokeGetter(const String& getter_name,
 
   return InvokeInstanceFunction(*this, function, internal_getter_name, args,
                                 args_descriptor, respect_reflectable,
-                                type_args);
+                                inst_type_args);
 }
 
 ObjectPtr Instance::InvokeSetter(const String& setter_name,
@@ -17577,10 +17856,10 @@ ObjectPtr Instance::InvokeSetter(const String& setter_name,
 
   const Class& klass = Class::Handle(zone, clazz());
   CHECK_ERROR(klass.EnsureIsFinalized(thread));
-  TypeArguments& type_args = TypeArguments::Handle(zone);
-  if (klass.NumTypeArguments() > 0) {
-    type_args = GetTypeArguments();
-  }
+  const auto& inst_type_args =
+      klass.NumTypeArguments() > 0
+          ? TypeArguments::Handle(zone, GetTypeArguments())
+          : Object::null_type_arguments();
 
   const String& internal_setter_name =
       String::Handle(zone, Field::SetterName(setter_name));
@@ -17612,7 +17891,7 @@ ObjectPtr Instance::InvokeSetter(const String& setter_name,
 
   return InvokeInstanceFunction(*this, setter, internal_setter_name, args,
                                 args_descriptor, respect_reflectable,
-                                type_args);
+                                inst_type_args);
 }
 
 ObjectPtr Instance::Invoke(const String& function_name,
@@ -17624,6 +17903,7 @@ ObjectPtr Instance::Invoke(const String& function_name,
   Zone* zone = thread->zone();
   Class& klass = Class::Handle(zone, clazz());
   CHECK_ERROR(klass.EnsureIsFinalized(thread));
+
   Function& function = Function::Handle(
       zone, Resolver::ResolveDynamicAnyArgs(zone, klass, function_name));
 
@@ -17631,16 +17911,17 @@ ObjectPtr Instance::Invoke(const String& function_name,
     CHECK_ERROR(function.VerifyCallEntryPoint());
   }
 
-  // TODO(regis): Support invocation of generic functions with type arguments.
+  // We don't pass any explicit type arguments, which will be understood as
+  // using dynamic for any function type arguments by lower layers.
   const int kTypeArgsLen = 0;
   const Array& args_descriptor = Array::Handle(
       zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(),
                                           arg_names, Heap::kNew));
 
-  TypeArguments& type_args = TypeArguments::Handle(zone);
-  if (klass.NumTypeArguments() > 0) {
-    type_args = GetTypeArguments();
-  }
+  const auto& inst_type_args =
+      klass.NumTypeArguments() > 0
+          ? TypeArguments::Handle(zone, GetTypeArguments())
+          : Object::null_type_arguments();
 
   if (function.IsNull()) {
     // Didn't find a method: try to find a getter and invoke call on its result.
@@ -17662,7 +17943,7 @@ ObjectPtr Instance::Invoke(const String& function_name,
       const Object& getter_result = Object::Handle(
           zone, InvokeInstanceFunction(*this, function, getter_name,
                                        getter_args, getter_args_descriptor,
-                                       respect_reflectable, type_args));
+                                       respect_reflectable, inst_type_args));
       if (getter_result.IsError()) {
         return getter_result.raw();
       }
@@ -17676,7 +17957,7 @@ ObjectPtr Instance::Invoke(const String& function_name,
   // Found an ordinary method.
   return InvokeInstanceFunction(*this, function, function_name, args,
                                 args_descriptor, respect_reflectable,
-                                type_args);
+                                inst_type_args);
 }
 
 ObjectPtr Instance::EvaluateCompiledExpression(
@@ -23664,6 +23945,16 @@ TransferableTypedDataPtr TransferableTypedData::New(uint8_t* data,
 
 const char* TransferableTypedData::ToCString() const {
   return "TransferableTypedData";
+}
+
+intptr_t Closure::NumTypeParameters(Thread* thread) const {
+  if (delayed_type_arguments() != Object::null_type_arguments().raw() &&
+      delayed_type_arguments() != Object::empty_type_arguments().raw()) {
+    return 0;
+  } else {
+    const auto& closure_function = Function::Handle(thread->zone(), function());
+    return closure_function.NumTypeParameters(thread);
+  }
 }
 
 const char* Closure::ToCString() const {

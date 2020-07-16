@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--lazy-dispatchers
+// VMOptions=--no-lazy-dispatchers
+
 import "package:expect/expect.dart";
 
 // Test that Null's noSuchMethod can be closurized and called directly.

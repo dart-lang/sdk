@@ -32,15 +32,7 @@ bool MethodCanSkipTypeChecksForNonCovariantArguments(
   // In AOT mode we don't dynamically generate such trampolines but instead rely
   // on a static analysis to discover which methods can be invoked dynamically,
   // and generate the necessary trampolines during precompilation.
-  if (method.name() == Symbols::Call().raw() ||
-      method.CanReceiveDynamicInvocation()) {
-    // Currently we consider all call methods to be invoked dynamically and
-    // don't mangle their names.
-    // TODO(vegorov) remove this once we also introduce special type checking
-    // entry point for closures.
-    return false;
-  }
-  return true;
+  return !method.CanReceiveDynamicInvocation();
 }
 
 ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
