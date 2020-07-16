@@ -30,12 +30,26 @@ class _ClientManager {
     );
     clients.add(client);
     client.listen().then((_) => removeClient(client));
+    if (clients.length == 1) {
+      dds.isolateManager.initialize().then((_) {
+        dds.streamManager.streamListen(
+          null,
+          _StreamManager.kDebugStream,
+        );
+      });
+    }
   }
 
   /// Cleanup state for a disconnected client.
   void removeClient(_DartDevelopmentServiceClient client) {
     _clearClientName(client);
     clients.remove(client);
+    if (clients.isEmpty) {
+      dds.streamManager.streamCancel(
+        null,
+        _StreamManager.kDebugStream,
+      );
+    }
   }
 
   /// Cleanup clients on DDS shutdown.

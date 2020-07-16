@@ -47,6 +47,7 @@ declare_args() {
 # ........analysis_server.dart.snapshot
 # ........dart2js.dart.snapshot
 # ........dartanalyzer.dart.snapshot
+# ........dds.dart.snapshot
 # ........dartdev.dart.snapshot
 # ........dartdoc.dart.snapshot
 # ........dartfmt.dart.snapshot
@@ -134,6 +135,10 @@ _platform_sdk_snapshots = [
     "../utils/dartfmt",
   ],
   [
+    "dds",
+    "../utils/dds:generate_dds_snapshot",
+  ],
+  [
     "pub",
     "../utils/pub",
   ],
@@ -181,6 +186,10 @@ _full_sdk_snapshots = [
   [
     "dartfmt",
     "../utils/dartfmt",
+  ],
+  [
+    "dds",
+    "../utils/dds:generate_dds_snapshot",
   ],
   [
     "kernel_worker",
