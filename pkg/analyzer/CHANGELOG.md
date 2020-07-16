@@ -3,6 +3,7 @@
   `FolderBasedDartSdk`. It is up to the clients to decide how to
   find SDK, for example using `package:cli_util`.
 * Fixed `LintDriver` for the new way to access `WorkspacePackage`.
+* Deprecated `Scope.lookup()`, use `Scope.lookup2()` instead.
 
 ## 0.39.13
 * Added 'dart/sdk/build_sdk_summary.dart' with `buildSdkSummary`.

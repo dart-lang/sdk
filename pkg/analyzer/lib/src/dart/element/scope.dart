@@ -19,12 +19,22 @@ class LibraryScope implements Scope {
       : _libraryElement = libraryElement,
         _implScope = impl.LibraryScope(libraryElement);
 
+  @Deprecated('Use lookup2() that is closer to the language specification')
   @override
   Element lookup({@required String id, @required bool setter}) {
     var name = setter ? '$id=' : id;
     var token = SyntheticStringToken(TokenType.IDENTIFIER, name, 0);
     var identifier = astFactory.simpleIdentifier(token);
     return _implScope.lookup(identifier, _libraryElement);
+  }
+
+  @override
+  ScopeLookupResult lookup2(String id) {
+    // ignore: deprecated_member_use_from_same_package
+    var getter = lookup(id: id, setter: false);
+    // ignore: deprecated_member_use_from_same_package
+    var setter = lookup(id: id, setter: true);
+    return ScopeLookupResult(getter, setter);
   }
 }
 
@@ -42,10 +52,18 @@ class PrefixScope implements Scope {
     }
   }
 
+  @Deprecated('Use lookup2() that is closer to the language specification')
   @override
   Element lookup({@required String id, @required bool setter}) {
     var map = setter ? _setters : _getters;
     return map[id];
+  }
+
+  @override
+  ScopeLookupResult lookup2(String id) {
+    var getter = _getters[id];
+    var setter = _setters[id];
+    return ScopeLookupResult(getter, setter);
   }
 
   void _add(Element element) {
