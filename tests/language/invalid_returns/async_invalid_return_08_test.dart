@@ -18,9 +18,12 @@ void test1() async {
   // [cfe] A value of type 'Object' can't be returned from an async function with return type 'void'.
 }
 
-// Inferred return type of function literal is `Future<Object>`, no error.
+// Inferred return type of function literal is `Future<void>`.
 void Function() test2 = () async {
   return v;
+  //     ^
+  // [analyzer] unspecified
+  // [cfe] A value of type 'Object' can't be returned from an async function with return type 'Future<void>'.
 };
 
 void main() {

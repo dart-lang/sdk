@@ -18,9 +18,12 @@ FutureOr<void> test1() async {
   // [cfe] A value of type 'Future<int>' can't be returned from an async function with return type 'FutureOr<void>'.
 }
 
-// Inferred return type of function literal is `Future<int>`, no error.
+// Inferred return type of function literal is `Future<void>`.
 FutureOr<void> Function() test2 = () async {
   return v;
+  //     ^
+  // [analyzer] unspecified
+  // [cfe] A value of type 'Future<int>' can't be returned from an async function with return type 'Future<void>'.
 };
 
 void main() {
