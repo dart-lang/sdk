@@ -3198,32 +3198,24 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(kElementTypePos).reg() == kElemTypeReg);
   ASSERT(locs()->in(kLengthPos).reg() == kLengthReg);
 
+  compiler::Label slow_path, done;
   if (compiler->is_optimizing() && !FLAG_precompiled_mode &&
       num_elements()->BindsToConstant() &&
       compiler::target::IsSmi(num_elements()->BoundConstant())) {
     const intptr_t length =
         compiler::target::SmiValue(num_elements()->BoundConstant());
     if (Array::IsValidLength(length)) {
-      compiler::Label slow_path, done;
       InlineArrayAllocation(compiler, length, &slow_path, &done);
-      __ Bind(&slow_path);
-      __ PushObject(Object::null_object());  // Make room for the result.
-      __ Push(kLengthReg);                   // length.
-      __ Push(kElemTypeReg);
-      compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
-                                    kAllocateArrayRuntimeEntry, 2, locs());
-      __ Drop(2);
-      __ Pop(kResultReg);
-      __ Bind(&done);
-      return;
     }
   }
 
+  __ Bind(&slow_path);
   auto object_store = compiler->isolate()->object_store();
   const auto& allocate_array_stub =
       Code::ZoneHandle(compiler->zone(), object_store->allocate_array_stub());
   compiler->GenerateStubCall(token_pos(), allocate_array_stub,
                              PcDescriptorsLayout::kOther, locs(), deopt_id());
+  __ Bind(&done);
   ASSERT(locs()->out(0).reg() == kResultReg);
 }
 

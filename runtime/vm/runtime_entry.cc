@@ -51,6 +51,10 @@ DEFINE_FLAG(int,
             reoptimization_counter_threshold,
             4000,
             "Counter threshold before a function gets reoptimized.");
+DEFINE_FLAG(bool,
+            stress_write_barrier_elimination,
+            false,
+            "Stress test write barrier elimination.");
 DEFINE_FLAG(bool, trace_deoptimization, false, "Trace deoptimization");
 DEFINE_FLAG(bool,
             trace_deoptimization_verbose,
@@ -253,6 +257,10 @@ DEFINE_RUNTIME_ENTRY(IntegerDivisionByZeroException, 0) {
   Exceptions::ThrowByType(Exceptions::kIntegerDivisionByZeroException, args);
 }
 
+static Heap::Space SpaceForRuntimeAllocation() {
+  return FLAG_stress_write_barrier_elimination ? Heap::kOld : Heap::kNew;
+}
+
 // Allocation of a fixed length array of given element type.
 // This runtime entry is never called for allocating a List of a generic type,
 // because a prior run time call instantiates the element type if necessary.
@@ -281,8 +289,9 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
     Exceptions::Throw(thread, exception);
   }
 
-  const Array& array =
-      Array::Handle(zone, Array::New(static_cast<intptr_t>(len), Heap::kNew));
+  const Array& array = Array::Handle(
+      zone,
+      Array::New(static_cast<intptr_t>(len), SpaceForRuntimeAllocation()));
   arguments.SetReturn(array);
   TypeArguments& element_type =
       TypeArguments::CheckedHandle(zone, arguments.ArgAt(1));
@@ -321,7 +330,7 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
       Error::Handle(zone, cls.EnsureIsAllocateFinalized(thread));
   ThrowIfError(error);
   const Instance& instance =
-      Instance::Handle(zone, Instance::New(cls, Heap::kNew));
+      Instance::Handle(zone, Instance::New(cls, SpaceForRuntimeAllocation()));
 
   arguments.SetReturn(instance);
   if (cls.NumTypeArguments() == 0) {
@@ -490,8 +499,8 @@ DEFINE_RUNTIME_ENTRY(AllocateSubtypeTestCache, 0) {
 // Return value: newly allocated context.
 DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
   const Smi& num_variables = Smi::CheckedHandle(zone, arguments.ArgAt(0));
-  const Context& context =
-      Context::Handle(zone, Context::New(num_variables.Value()));
+  const Context& context = Context::Handle(
+      zone, Context::New(num_variables.Value(), SpaceForRuntimeAllocation()));
   arguments.SetReturn(context);
 }
 
@@ -501,8 +510,8 @@ DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
 // Return value: newly allocated context.
 DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
   const Context& ctx = Context::CheckedHandle(zone, arguments.ArgAt(0));
-  Context& cloned_ctx =
-      Context::Handle(zone, Context::New(ctx.num_variables()));
+  Context& cloned_ctx = Context::Handle(
+      zone, Context::New(ctx.num_variables(), SpaceForRuntimeAllocation()));
   cloned_ctx.set_parent(Context::Handle(zone, ctx.parent()));
   Object& inst = Object::Handle(zone);
   for (int i = 0; i < ctx.num_variables(); i++) {
