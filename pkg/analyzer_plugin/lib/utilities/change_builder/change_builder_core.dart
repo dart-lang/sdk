@@ -4,16 +4,22 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
 /// A builder used to build a [SourceChange].
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ChangeBuilder {
-  /// Initialize a newly created change builder.
-  factory ChangeBuilder() = ChangeBuilderImpl;
+  /// Initialize a newly created change builder. If the builder will be used to
+  /// create changes for Dart files, then either a [session] or a [workspace]
+  /// must be provided (but not both).
+  factory ChangeBuilder({AnalysisSession session, ChangeWorkspace workspace}) =
+      ChangeBuilderImpl;
 
   /// Return the range of the selection for the change being built, or `null` if
   /// there is no selection.
@@ -27,7 +33,26 @@ abstract class ChangeBuilder {
   /// Use the [buildFileEdit] function to create a collection of edits to the
   /// file with the given [path]. The edits will be added to the source change
   /// that is being built.
+  ///
+  /// The builder passed to the [buildFileEdit] function has additional support
+  /// for working with Dart source files.
+  Future<void> addDartFileEdit(
+      String path, void Function(DartFileEditBuilder builder) buildFileEdit,
+      {ImportPrefixGenerator importPrefixGenerator});
+
+  /// Use the [buildFileEdit] function to create a collection of edits to the
+  /// file with the given [path]. The edits will be added to the source change
+  /// that is being built.
   Future<void> addFileEdit(
+      String path, void Function(FileEditBuilder builder) buildFileEdit);
+
+  /// Use the [buildFileEdit] function to create a collection of edits to the
+  /// file with the given [path]. The edits will be added to the source change
+  /// that is being built.
+  ///
+  /// The builder passed to the [buildFileEdit] function has no special support
+  /// for any particular kind of file.
+  Future<void> addGenericFileEdit(
       String path, void Function(FileEditBuilder builder) buildFileEdit);
 
   /// Set the selection for the change being built to the given [position].

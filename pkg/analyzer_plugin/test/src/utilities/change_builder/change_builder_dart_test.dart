@@ -39,7 +39,7 @@ class DartChangeBuilderImplTest extends AbstractContextTest
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'library test;');
     var builder = newBuilder();
-    var fileEditBuilder = await builder.createFileEditBuilder(path);
+    var fileEditBuilder = await builder.createGenericFileEditBuilder(path);
     expect(fileEditBuilder, const TypeMatcher<DartFileEditBuilder>());
     var fileEdit = fileEditBuilder.fileEdit;
     expect(fileEdit.file, path);

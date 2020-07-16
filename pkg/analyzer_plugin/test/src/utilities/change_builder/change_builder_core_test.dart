@@ -23,7 +23,7 @@ class ChangeBuilderImplTest {
   Future<void> test_createFileEditBuilder() async {
     var builder = ChangeBuilderImpl();
     var path = '/test.dart';
-    var fileEditBuilder = await builder.createFileEditBuilder(path);
+    var fileEditBuilder = await builder.createGenericFileEditBuilder(path);
     expect(fileEditBuilder, const TypeMatcher<FileEditBuilder>());
     var fileEdit = fileEditBuilder.fileEdit;
     expect(fileEdit.file, path);
