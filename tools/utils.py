@@ -503,7 +503,7 @@ def GetGitRevision(git_revision_file=None, repo_path=DART_DIR):
 
 
 def GetShortGitHash(repo_path=DART_DIR):
-    p = subprocess.Popen(['git', 'rev-parse', '--short', 'HEAD'],
+    p = subprocess.Popen(['git', 'rev-parse', '--short=10', 'HEAD'],
                          stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT,
                          shell=IsWindows(),
