@@ -6277,20 +6277,22 @@ class InterpolationStringImpl extends InterpolationElementImpl
   Iterable<SyntacticEntity> get childEntities => ChildEntities()..add(contents);
 
   @override
-  int get contentsEnd {
-    String lexeme = contents.lexeme;
-    return offset + StringLexemeHelper(lexeme, true, true).end;
-  }
+  int get contentsEnd => offset + _lexemeHelper.end;
 
   @override
-  int get contentsOffset {
-    int offset = contents.offset;
-    String lexeme = contents.lexeme;
-    return offset + StringLexemeHelper(lexeme, true, true).start;
-  }
+  int get contentsOffset => contents.offset + _lexemeHelper.start;
 
   @override
   Token get endToken => contents;
+
+  @override
+  StringInterpolation get parent => super.parent;
+
+  StringLexemeHelper get _lexemeHelper {
+    String lexeme = contents.lexeme;
+    return StringLexemeHelper(lexeme, identical(this, parent.elements.first),
+        identical(this, parent.elements.last));
+  }
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitInterpolationString(this);

@@ -25,6 +25,7 @@ main() {
     defineReflectiveTests(ConstructorDeclarationTest);
     defineReflectiveTests(FieldFormalParameterTest);
     defineReflectiveTests(IndexExpressionTest);
+    defineReflectiveTests(InterpolationStringTest);
     defineReflectiveTests(MethodDeclarationTest);
     defineReflectiveTests(MethodInvocationTest);
     defineReflectiveTests(NodeListTest);
@@ -407,6 +408,176 @@ class IndexExpressionTest {
       index: AstTestFactory.nullLiteral(),
     );
     expect(expression.isNullAware, isTrue);
+  }
+}
+
+@reflectiveTest
+class InterpolationStringTest extends ParserTestCase {
+  InterpolationString interpolationString(
+      String lexeme, String value, bool isFirst, bool isLast) {
+    var node = AstTestFactory.interpolationString(lexeme, value);
+    var nodes = <InterpolationElement>[
+      if (!isFirst) AstTestFactory.interpolationString("'first", "first"),
+      node,
+      if (!isLast) AstTestFactory.interpolationString("last'", "last")
+    ];
+    var parent = AstTestFactory.string(nodes);
+    assert(node.parent == parent);
+    return node;
+  }
+
+  void test_contentsOffset_doubleQuote_first() {
+    var node = interpolationString('"foo', "foo", true, true);
+    expect(node.contentsOffset, '"'.length);
+    expect(node.contentsEnd, '"'.length + "foo".length);
+  }
+
+  void test_contentsOffset_doubleQuote_firstLast() {
+    var node = interpolationString('"foo"', "foo", true, true);
+    expect(node.contentsOffset, '"'.length);
+    expect(node.contentsEnd, '"'.length + "foo".length);
+  }
+
+  void test_contentsOffset_doubleQuote_last() {
+    var node = interpolationString('foo"', "foo", false, true);
+    expect(node.contentsOffset, 0);
+    expect(node.contentsEnd, "foo".length);
+  }
+
+  void test_contentsOffset_doubleQuote_last_empty() {
+    var node = interpolationString('"', "", false, true);
+    expect(node.contentsOffset, 0);
+    expect(node.contentsEnd, 0);
+  }
+
+  void test_contentsOffset_doubleQuote_last_unterminated() {
+    var node = interpolationString('foo', "foo", false, true);
+    expect(node.contentsOffset, 0);
+    expect(node.contentsEnd, "foo".length);
+  }
+
+  void test_contentsOffset_doubleQuote_multiline_first() {
+    var node = interpolationString('"""\nfoo\n', "foo\n", true, true);
+    expect(node.contentsOffset, '"""\n'.length);
+    expect(node.contentsEnd, '"""\n'.length + "foo\n".length);
+  }
+
+  void test_contentsOffset_doubleQuote_multiline_firstLast() {
+    var node = interpolationString('"""\nfoo\n"""', "foo\n", true, true);
+    expect(node.contentsOffset, '"""\n'.length);
+    expect(node.contentsEnd, '"""\n'.length + "foo\n".length);
+  }
+
+  void test_contentsOffset_doubleQuote_multiline_last() {
+    var node = interpolationString('foo\n"""', "foo\n", false, true);
+    expect(node.contentsOffset, 0);
+    expect(node.contentsEnd, "foo\n".length);
+  }
+
+  void test_contentsOffset_doubleQuote_multiline_last_empty() {
+    var node = interpolationString('"""', "", false, true);
+    expect(node.contentsOffset, 0);
+    expect(node.contentsEnd, 0);
+  }
+
+  void test_contentsOffset_doubleQuote_multiline_last_unterminated() {
+    var node = interpolationString('foo\n', "foo\n", false, true);
+    expect(node.contentsOffset, 0);
+    expect(node.contentsEnd, "foo\n".length);
+  }
+
+  void test_contentsOffset_escapeCharacters() {
+    // Contents offset cannot use 'value' string, because of escape sequences.
+    var node = interpolationString(r'"foo\nbar"', "foo\nbar", true, true);
+    expect(node.contentsOffset, '"'.length);
+    expect(node.contentsEnd, '"'.length + "foo\\nbar".length);
+  }
+
+  void test_contentsOffset_middle() {
+    var node = interpolationString("foo", "foo", false, false);
+    expect(node.contentsOffset, 0);
+    expect(node.contentsEnd, "foo".length);
+  }
+
+  void test_contentsOffset_middle_quoteBegin() {
+    // This occurs in, for instance, `"$a'foo$b"`
+    var node = interpolationString("'foo", "'foo", false, false);
+    expect(node.contentsOffset, 0);
+    expect(node.contentsEnd, "'foo".length);
+  }
+
+  void test_contentsOffset_middle_quoteBeginEnd() {
+    // This occurs in, for instance, `"$a'foo'$b"`
+    var node = interpolationString("'foo'", "'foo'", false, false);
+    expect(node.contentsOffset, 0);
+    expect(node.contentsEnd, "'foo'".length);
+  }
+
+  void test_contentsOffset_middle_quoteEnd() {
+    // This occurs in, for instance, `"${a}foo'$b"`
+    var node = interpolationString("foo'", "foo'", false, false);
+    expect(node.contentsOffset, 0);
+    expect(node.contentsEnd, "foo'".length);
+  }
+
+  void test_contentsOffset_singleQuote_first() {
+    var node = interpolationString("'foo", "foo", true, true);
+    expect(node.contentsOffset, "'".length);
+    expect(node.contentsEnd, "'".length + "foo".length);
+  }
+
+  void test_contentsOffset_singleQuote_firstLast() {
+    var node = interpolationString("'foo'", "foo", true, true);
+    expect(node.contentsOffset, "'".length);
+    expect(node.contentsEnd, "'".length + "foo".length);
+  }
+
+  void test_contentsOffset_singleQuote_last() {
+    var node = interpolationString("foo'", "foo", false, true);
+    expect(node.contentsOffset, 0);
+    expect(node.contentsEnd, "foo".length);
+  }
+
+  void test_contentsOffset_singleQuote_last_empty() {
+    var node = interpolationString("'", "", false, true);
+    expect(node.contentsOffset, 0);
+    expect(node.contentsEnd, 0);
+  }
+
+  void test_contentsOffset_singleQuote_last_unterminated() {
+    var node = interpolationString("foo", "foo", false, true);
+    expect(node.contentsOffset, 0);
+    expect(node.contentsEnd, "foo".length);
+  }
+
+  void test_contentsOffset_singleQuote_multiline_first() {
+    var node = interpolationString("'''\nfoo\n", "foo\n", true, true);
+    expect(node.contentsOffset, "'''\n".length);
+    expect(node.contentsEnd, "'''\n".length + "foo\n".length);
+  }
+
+  void test_contentsOffset_singleQuote_multiline_firstLast() {
+    var node = interpolationString("'''\nfoo\n'''", "foo\n", true, true);
+    expect(node.contentsOffset, "'''\n".length);
+    expect(node.contentsEnd, "'''\n".length + "foo\n".length);
+  }
+
+  void test_contentsOffset_singleQuote_multiline_last() {
+    var node = interpolationString("foo\n'''", "foo\n", false, true);
+    expect(node.contentsOffset, 0);
+    expect(node.contentsEnd, "foo\n".length);
+  }
+
+  void test_contentsOffset_singleQuote_multiline_last_empty() {
+    var node = interpolationString("'''", "", false, true);
+    expect(node.contentsOffset, 0);
+    expect(node.contentsEnd, 0);
+  }
+
+  void test_contentsOffset_singleQuote_multiline_last_unterminated() {
+    var node = interpolationString("foo\n", "foo\n", false, true);
+    expect(node.contentsOffset, 0);
+    expect(node.contentsEnd, "foo\n".length);
   }
 }
 

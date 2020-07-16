@@ -35,6 +35,7 @@ import 'instance_member_inference_class_test.dart'
     as instance_member_inference_class;
 import 'instance_member_inference_mixin_test.dart'
     as instance_member_inference_mixin;
+import 'interpolation_string_test.dart' as interpolation_string;
 import 'language_version_test.dart' as language_version;
 import 'library_element_test.dart' as library_element;
 import 'local_function_test.dart' as local_function;
@@ -88,6 +89,7 @@ main() {
     instance_creation.main();
     instance_member_inference_class.main();
     instance_member_inference_mixin.main();
+    interpolation_string.main();
     language_version.main();
     library_element.main();
     local_function.main();
