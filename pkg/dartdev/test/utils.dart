@@ -55,6 +55,7 @@ class TestProject {
     String workingDir,
   }) {
     var arguments = [
+      absolutePathToDartdevFile,
       command,
       if (command == 'migrate')
         // TODO(srawlins): Enable `pub outdated` in tests.
@@ -63,6 +64,7 @@ class TestProject {
     ];
 
     arguments.add('--disable-dartdev-analytics');
+
     return Process.runSync(
       Platform.resolvedExecutable,
       arguments,

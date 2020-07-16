@@ -86,7 +86,7 @@ class _StreamManager {
   Future<void> listen() async {
     // The _IsolateManager requires information from both the Debug and
     // Isolate streams, so they must always be subscribed to by DDS.
-    for (final stream in ddsCoreStreams.where((e) => e != kDebugStream)) {
+    for (final stream in ddsCoreStreams) {
       await streamListen(null, stream);
     }
     dds._vmServiceClient.registerMethod(
@@ -117,15 +117,12 @@ class _StreamManager {
   ) async {
     assert(stream != null && stream.isNotEmpty);
     if (!streamListeners.containsKey(stream)) {
-      if ((stream == kDebugStream && client == null) ||
-          stream != kDebugStream) {
-        // This will return an RPC exception if the stream doesn't exist. This
-        // will throw and the exception will be forwarded to the client.
-        final result = await dds._vmServiceClient.sendRequest('streamListen', {
-          'streamId': stream,
-        });
-        assert(result['type'] == 'Success');
-      }
+      // This will return an RPC exception if the stream doesn't exist. This
+      // will throw and the exception will be forwarded to the client.
+      final result = await dds._vmServiceClient.sendRequest('streamListen', {
+        'streamId': stream,
+      });
+      assert(result['type'] == 'Success');
       streamListeners[stream] = <_DartDevelopmentServiceClient>[];
     }
     if (streamListeners[stream].contains(client)) {
@@ -145,18 +142,16 @@ class _StreamManager {
   /// send a `streamCancel` request for `stream` to the VM service.
   Future<void> streamCancel(
     _DartDevelopmentServiceClient client,
-    String stream, {
-    bool cancelCoreStream = false,
-  }) async {
+    String stream,
+  ) async {
     assert(stream != null && stream.isNotEmpty);
     final listeners = streamListeners[stream];
-    if (client != null && (listeners == null || !listeners.contains(client))) {
+    if (listeners == null || !listeners.contains(client)) {
       throw kStreamNotSubscribedException;
     }
     listeners.remove(client);
     // Don't cancel streams DDS needs to function.
-    if (listeners.isEmpty &&
-        (!ddsCoreStreams.contains(stream) || cancelCoreStream)) {
+    if (listeners.isEmpty && !ddsCoreStreams.contains(stream)) {
       streamListeners.remove(stream);
       // Ensure the VM service hasn't shutdown.
       if (dds._vmServiceClient.isClosed) {

@@ -85,6 +85,7 @@ class _RunningIsolate {
     if (_resumeApprovalsByName.isEmpty) {
       return false;
     }
+
     // If all the required approvals are present, we should resume.
     return _resumeApprovalsByName.containsAll(requiredClientApprovals);
   }

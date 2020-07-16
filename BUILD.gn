@@ -61,10 +61,7 @@ group("runtime") {
   # TODO(bkonyi): this dep causes a segfault on Android XARM_X64 builds.
   # See issue #41776.
   if (dart_target_arch != "arm") {
-    deps += [
-      "utils/dartdev:dartdev",
-      "utils/dds:dds",
-    ]
+    deps += [ "utils/dartdev:dartdev" ]
   }
 }
 

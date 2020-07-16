@@ -878,8 +878,6 @@ dart_executable("dart") {
   }
   extra_sources = [
     "builtin.cc",
-    "dartdev_isolate.cc",
-    "dartdev_isolate.h",
     "dfe.cc",
     "dfe.h",
     "gzip.cc",

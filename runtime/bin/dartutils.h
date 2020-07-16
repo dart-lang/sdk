@@ -55,8 +55,6 @@ class CommandLineOptions {
     arguments_ = NULL;
   }
 
-  void Reset() { count_ = 0; }
-
   int count() const { return count_; }
   int max_count() const { return max_count_; }
   const char** arguments() const { return arguments_; }
@@ -81,8 +79,6 @@ class CommandLineOptions {
       arguments_[count_++] = argv[i];
     }
   }
-
-  Dart_Handle CreateRuntimeOptions();
 
   void operator delete(void* pointer) { abort(); }
 
