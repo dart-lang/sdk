@@ -1,5 +1,5 @@
 name: meta
-version: 1.3.0-nullsafety
+version: 1.3.0-nullsafety.1
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/meta
 description: >
  This library contains the declarations of annotations that developers can use
@@ -7,6 +7,5 @@ description: >
  analyzing the source code. These annotations are intended to be used by tools
  to provide a better user experience.
 environment:
-  # This must remain a tight constraint (only allow dev versions) until nnbd is
-  # stable.
-  sdk: '>=2.9.0-18.0 <2.9.0'
+  # This must remain a tight upper bound until nnbd is stable.
+  sdk: '>=2.9.0-18.0 <2.10.0'
