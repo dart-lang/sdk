@@ -215,8 +215,6 @@ ObjectPtr DartEntry::ResolveCallable(const Array& arguments,
   const ArgumentsDescriptor args_desc(arguments_descriptor);
   const intptr_t receiver_index = args_desc.FirstArgIndex();
   const intptr_t type_args_len = args_desc.TypeArgsLen();
-  const intptr_t args_count = args_desc.Count();
-  const intptr_t named_args_count = args_desc.NamedCount();
   const auto& getter_name = Symbols::GetCall();
 
   auto& instance = Instance::Handle(zone);
@@ -228,8 +226,7 @@ ObjectPtr DartEntry::ResolveCallable(const Array& arguments,
        instance ^= arguments.At(receiver_index)) {
     // The instance is a callable, so check that its function is compatible.
     if (instance.IsCallable(&function)) {
-      bool matches = function.AreValidArgumentCounts(type_args_len, args_count,
-                                                     named_args_count, nullptr);
+      bool matches = function.AreValidArguments(args_desc, nullptr);
 
       if (matches && type_args_len > 0 && function.IsClosureFunction()) {
         // Though the closure function is generic, the closure itself may
