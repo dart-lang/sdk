@@ -44,7 +44,7 @@ class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
     state.migrationInfo = migrationInfo;
     site = PreviewSite(state, () async {
       return state;
-    });
+    }, () {});
   }
 
   void test_apply_regress41391() async {
@@ -198,7 +198,7 @@ class PreviewSiteWithEngineTest extends NnbdMigrationTestBase
     state.migrationInfo = migrationInfo;
     site = PreviewSite(state, () async {
       return state;
-    });
+    }, () {});
   }
 
   void test_applyHintAction() async {
