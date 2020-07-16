@@ -4225,7 +4225,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         }
       } else if (target is MethodInvocation) {
         var operator = target.operator;
-        var type = operator.type;
+        var type = operator?.type;
         if (type == TokenType.QUESTION_PERIOD) {
           var realTarget = target.realTarget;
           if (_isExpressionWithType(realTarget)) {

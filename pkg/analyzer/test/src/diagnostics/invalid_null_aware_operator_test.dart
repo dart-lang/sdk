@@ -50,6 +50,22 @@ void f(String? s) {
     ]);
   }
 
+  Future<void> test_methodInvocation_noTarget() async {
+    await assertErrorsInCode('''
+class C {
+  C? m1() => this;
+  C m2() => this;
+  void m3() {
+    m1()?.m2()?.m2();
+  }
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+          75, 2,
+          contextMessages: [message('/test/lib/test.dart', 69, 2)]),
+    ]);
+  }
+
   Future<void> test_methodInvocation_previousTarget() async {
     await assertErrorsInCode('''
 void f(String? s) {
