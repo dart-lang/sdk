@@ -2752,18 +2752,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       num_elements()->BoundConstant().IsSmi()) {
     const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();
     if (Array::IsValidLength(length)) {
-      compiler::Label slow_path, done;
       InlineArrayAllocation(compiler, length, &slow_path, &done);
-      __ Bind(&slow_path);
-      __ PushObject(Object::null_object());  // Make room for the result.
-      __ pushq(kLengthReg);
-      __ pushq(kElemTypeReg);
-      compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
-                                    kAllocateArrayRuntimeEntry, 2, locs());
-      __ Drop(2);
-      __ popq(kResultReg);
-      __ Bind(&done);
-      return;
     }
   }
 
