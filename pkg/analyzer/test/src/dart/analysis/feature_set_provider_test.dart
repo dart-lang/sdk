@@ -80,6 +80,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
 
     provider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
+      resourceProvider: resourceProvider,
       packages: packages,
       packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
       nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
@@ -126,6 +127,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
 
     provider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
+      resourceProvider: resourceProvider,
       packages: packages,
       packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
       nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
@@ -172,6 +174,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
 
     provider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
+      resourceProvider: resourceProvider,
       packages: packages,
       packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
       nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
@@ -193,6 +196,12 @@ class FeatureSetProviderTest with ResourceProviderMixin {
     check(
       uriStr: 'package:aaa/a.dart',
       posixPath: '/packages/aaa/a.dart',
+      expected: Version.parse('2.5.0'),
+    );
+
+    check(
+      uriStr: toUriStr('/packages/aaa/test/a.dart'),
+      posixPath: '/packages/aaa/test/a.dart',
       expected: Version.parse('2.5.0'),
     );
 
@@ -233,6 +242,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
 
     provider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
+      resourceProvider: resourceProvider,
       packages: packages,
       packageDefaultFeatureSet: FeatureSet.fromEnableFlags(['non-nullable']),
       nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
@@ -262,6 +272,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
 
     provider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
+      resourceProvider: resourceProvider,
       packages: findPackagesFrom(resourceProvider, getFolder('/test')),
       packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
       nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
@@ -293,6 +304,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
 ''');
     provider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
+      resourceProvider: resourceProvider,
       packages: findPackagesFrom(resourceProvider, getFolder('/test')),
       packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
       nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
@@ -308,6 +320,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
   test_sdk_allowedExperiments_mockDefault() {
     provider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
+      resourceProvider: resourceProvider,
       packages: findPackagesFrom(resourceProvider, getFolder('/test')),
       packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
       nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),

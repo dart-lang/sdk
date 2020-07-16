@@ -4,10 +4,12 @@
 
 import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -17,16 +19,19 @@ class FeatureSetProvider {
   static const isNullSafetySdk = true;
 
   final AllowedExperiments _allowedExperiments;
+  final ResourceProvider _resourceProvider;
   final Packages _packages;
   final FeatureSet _packageDefaultFeatureSet;
   final FeatureSet _nonPackageDefaultFeatureSet;
 
   FeatureSetProvider._({
     @required AllowedExperiments allowedExperiments,
+    @required ResourceProvider resourceProvider,
     @required Packages packages,
     @required FeatureSet packageDefaultFeatureSet,
     @required FeatureSet nonPackageDefaultFeatureSet,
   })  : _allowedExperiments = allowedExperiments,
+        _resourceProvider = resourceProvider,
         _packages = packages,
         _packageDefaultFeatureSet = packageDefaultFeatureSet,
         _nonPackageDefaultFeatureSet = nonPackageDefaultFeatureSet;
@@ -88,6 +93,7 @@ class FeatureSetProvider {
         }
       }
     } else if (uri.isScheme('file')) {
+      fileUriToNormalizedPath(_resourceProvider.pathContext, uri);
       var package = _packages.packageForPath(uri.path);
       if (package != null) {
         return package;
@@ -99,6 +105,7 @@ class FeatureSetProvider {
 
   static FeatureSetProvider build({
     @required SourceFactory sourceFactory,
+    @required ResourceProvider resourceProvider,
     @required Packages packages,
     @required FeatureSet packageDefaultFeatureSet,
     @required FeatureSet nonPackageDefaultFeatureSet,
@@ -106,6 +113,7 @@ class FeatureSetProvider {
     var allowedExperiments = _experimentsForSdk(sourceFactory.dartSdk);
     return FeatureSetProvider._(
       allowedExperiments: allowedExperiments,
+      resourceProvider: resourceProvider,
       packages: packages,
       packageDefaultFeatureSet: packageDefaultFeatureSet,
       nonPackageDefaultFeatureSet: nonPackageDefaultFeatureSet,
