@@ -1067,18 +1067,7 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
   final CodeChecker _codeChecker;
   final String _name;
 
-  /// A flag indicating whether certain diagnostics related to top-level
-  /// elements should be produced. The diagnostics are the ones introduced by
-  /// the analyzer to signal to users when the version of type inference
-  /// performed by the analyzer was unable to accurately infer type information.
-  /// The implementation of type inference used by the task model still has
-  /// these deficiencies, but the implementation used by the driver does not.
-  // TODO(brianwilkerson) Remove this field when the task model has been
-  // removed.
-  final bool flagTopLevel;
-
-  _TopLevelInitializerValidator(this._codeChecker, this._name,
-      {this.flagTopLevel = true});
+  _TopLevelInitializerValidator(this._codeChecker, this._name);
 
   void validateHasType(AstNode n, PropertyAccessorElement e) {
     if (e.hasImplicitReturnType) {
@@ -1111,7 +1100,7 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
       if (e is PropertyAccessorElement) {
         if (e.isStatic) {
           validateHasType(n, e);
-        } else if (e.hasImplicitReturnType && flagTopLevel) {
+        } else if (e.hasImplicitReturnType) {
           _codeChecker._recordMessage(
               n, StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, [_name, e.name]);
         }
@@ -1119,7 +1108,7 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
           e is ExecutableElement &&
           e.kind == ElementKind.METHOD &&
           !e.isStatic) {
-        if (_hasAnyImplicitType(e) && flagTopLevel) {
+        if (_hasAnyImplicitType(e)) {
           _codeChecker._recordMessage(
               n, StrongModeCode.TOP_LEVEL_INSTANCE_METHOD, [_name, e.name]);
         }
@@ -1223,16 +1212,14 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
     if (method is ExecutableElement) {
       if (method.kind == ElementKind.METHOD &&
           !method.isStatic &&
-          method.hasImplicitReturnType &&
-          flagTopLevel) {
+          method.hasImplicitReturnType) {
         _codeChecker._recordMessage(node,
             StrongModeCode.TOP_LEVEL_INSTANCE_METHOD, [_name, method.name]);
       }
       if (node.typeArguments == null && method.typeParameters.isNotEmpty) {
         if (method.kind == ElementKind.METHOD &&
             !method.isStatic &&
-            _anyParameterHasImplicitType(method) &&
-            flagTopLevel) {
+            _anyParameterHasImplicitType(method)) {
           _codeChecker._recordMessage(node,
               StrongModeCode.TOP_LEVEL_INSTANCE_METHOD, [_name, method.name]);
         }
