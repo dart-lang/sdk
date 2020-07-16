@@ -4089,6 +4089,69 @@ ObjectPtr Class::InvokeSetter(const String& setter_name,
   return value.raw();
 }
 
+// Creates a new array of boxed arguments suitable for invoking the callable
+// from the original boxed arguments for a static call. Also sets the contents
+// of the handle pointed to by [callable_args_desc_array_out] to an appropriate
+// arguments descriptor array for the new arguments.
+//
+// Assumes [arg_names] are consistent with [static_args_descriptor].
+static ArrayPtr CreateCallableArgumentsFromStatic(
+    Zone* zone,
+    const Instance& receiver,
+    const Array& static_args,
+    const Array& arg_names,
+    const ArgumentsDescriptor& static_args_descriptor) {
+  const intptr_t num_static_type_args = static_args_descriptor.TypeArgsLen();
+  const intptr_t num_static_args = static_args_descriptor.Count();
+  // Double check that the static args descriptor expects boxed arguments
+  // and the static args descriptor is consistent with the static arguments.
+  ASSERT_EQUAL(static_args_descriptor.Size(), num_static_args);
+  ASSERT_EQUAL(static_args.Length(),
+               num_static_args + (num_static_type_args > 0 ? 1 : 0));
+  // Add an additional slot to store the callable as the receiver.
+  const auto& callable_args =
+      Array::Handle(zone, Array::New(static_args.Length() + 1));
+  const intptr_t first_arg_index = static_args_descriptor.FirstArgIndex();
+  auto& temp = Object::Handle(zone);
+  // Copy the static args into the corresponding slots of the callable args.
+  if (num_static_type_args > 0) {
+    temp = static_args.At(0);
+    callable_args.SetAt(0, temp);
+  }
+  for (intptr_t i = first_arg_index; i < static_args.Length(); i++) {
+    temp = static_args.At(i);
+    callable_args.SetAt(i + 1, temp);
+  }
+  // Set the receiver slot in the callable args.
+  callable_args.SetAt(first_arg_index, receiver);
+  return callable_args.raw();
+}
+
+// Return the result of invoking the callable contained in the arguments.
+// Performs non-covariant type checks when the callable function does not
+// expect to be called dynamically.
+static ObjectPtr InvokeCallableWithChecks(Zone* zone,
+                                          const Array& args,
+                                          const Array& args_descriptor_array) {
+  auto& result = Object::Handle(
+      zone, DartEntry::ResolveCallable(args, args_descriptor_array));
+  if (result.IsError()) {
+    return result.raw();
+  }
+  const auto& function =
+      Function::Handle(zone, Function::RawCast(result.raw()));
+  if (!function.IsNull() && !function.CanReceiveDynamicInvocation()) {
+    // Let DoArgumentTypesMatch extract the appropriate instantiator
+    // and function tavs from the arguments (including the callable).
+    ArgumentsDescriptor call_args_descriptor(args_descriptor_array);
+    result = function.DoArgumentTypesMatch(args, call_args_descriptor);
+    if (result.IsError()) {
+      return result.raw();
+    }
+  }
+  return DartEntry::InvokeCallable(function, args, args_descriptor_array);
+}
+
 ObjectPtr Class::Invoke(const String& function_name,
                         const Array& args,
                         const Array& arg_names,
@@ -4101,6 +4164,10 @@ ObjectPtr Class::Invoke(const String& function_name,
   // We don't pass any explicit type arguments, which will be understood as
   // using dynamic for any function type arguments by lower layers.
   const int kTypeArgsLen = 0;
+  const Array& args_descriptor_array = Array::Handle(
+      zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(),
+                                          arg_names, Heap::kNew));
+  ArgumentsDescriptor args_descriptor(args_descriptor_array);
 
   Function& function =
       Function::Handle(zone, LookupStaticFunction(function_name));
@@ -4118,26 +4185,19 @@ ObjectPtr Class::Invoke(const String& function_name,
       if (check_is_entrypoint) {
         CHECK_ERROR(EntryPointFieldInvocationError(function_name));
       }
-      // Make room for the closure (receiver) in the argument list.
-      const intptr_t num_args = args.Length();
-      const Array& call_args = Array::Handle(zone, Array::New(num_args + 1));
-      Object& temp = Object::Handle(zone);
-      for (int i = 0; i < num_args; i++) {
-        temp = args.At(i);
-        call_args.SetAt(i + 1, temp);
-      }
-      call_args.SetAt(0, getter_result);
-      const Array& call_args_descriptor_array = Array::Handle(
-          zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, call_args.Length(),
+      const auto& call_args_descriptor_array = Array::Handle(
+          zone, ArgumentsDescriptor::NewBoxed(args_descriptor.TypeArgsLen(),
+                                              args_descriptor.Count() + 1,
                                               arg_names, Heap::kNew));
-      // Call the closure.
-      return DartEntry::InvokeClosure(call_args, call_args_descriptor_array);
+      const auto& call_args = Array::Handle(
+          zone,
+          CreateCallableArgumentsFromStatic(zone, Instance::Cast(getter_result),
+                                            args, arg_names, args_descriptor));
+      return InvokeCallableWithChecks(zone, call_args,
+                                      call_args_descriptor_array);
     }
   }
-  const Array& args_descriptor_array = Array::Handle(
-      zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(),
-                                          arg_names, Heap::kNew));
-  ArgumentsDescriptor args_descriptor(args_descriptor_array);
+
   if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
       (respect_reflectable && !function.is_reflectable())) {
     return ThrowNoSuchMethod(
@@ -12778,14 +12838,22 @@ ObjectPtr Library::Invoke(const String& function_name,
                           const Array& arg_names,
                           bool respect_reflectable,
                           bool check_is_entrypoint) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
   // We don't pass any explicit type arguments, which will be understood as
   // using dynamic for any function type arguments by lower layers.
   const int kTypeArgsLen = 0;
+  const Array& args_descriptor_array = Array::Handle(
+      zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(),
+                                          arg_names, Heap::kNew));
+  ArgumentsDescriptor args_descriptor(args_descriptor_array);
 
-  Function& function = Function::Handle();
-  Object& obj = Object::Handle(LookupLocalOrReExportObject(function_name));
-  if (obj.IsFunction()) {
-    function ^= obj.raw();
+  auto& function = Function::Handle(zone);
+  auto& result =
+      Object::Handle(zone, LookupLocalOrReExportObject(function_name));
+  if (result.IsFunction()) {
+    function ^= result.raw();
   }
 
   if (!function.IsNull() && check_is_entrypoint) {
@@ -12794,37 +12862,31 @@ ObjectPtr Library::Invoke(const String& function_name,
 
   if (function.IsNull()) {
     // Didn't find a method: try to find a getter and invoke call on its result.
-    const Object& getter_result = Object::Handle(InvokeGetter(
-        function_name, false, respect_reflectable, check_is_entrypoint));
+    const Object& getter_result = Object::Handle(
+        zone, InvokeGetter(function_name, false, respect_reflectable,
+                           check_is_entrypoint));
     if (getter_result.raw() != Object::sentinel().raw()) {
       if (check_is_entrypoint) {
         CHECK_ERROR(EntryPointFieldInvocationError(function_name));
       }
-      // Make room for the closure (receiver) in arguments.
-      intptr_t numArgs = args.Length();
-      const Array& call_args = Array::Handle(Array::New(numArgs + 1));
-      Object& temp = Object::Handle();
-      for (int i = 0; i < numArgs; i++) {
-        temp = args.At(i);
-        call_args.SetAt(i + 1, temp);
-      }
-      call_args.SetAt(0, getter_result);
-      const Array& call_args_descriptor_array =
-          Array::Handle(ArgumentsDescriptor::NewBoxed(
-              kTypeArgsLen, call_args.Length(), arg_names, Heap::kNew));
-      // Call closure.
-      return DartEntry::InvokeClosure(call_args, call_args_descriptor_array);
+      const auto& call_args_descriptor_array = Array::Handle(
+          zone, ArgumentsDescriptor::NewBoxed(args_descriptor.TypeArgsLen(),
+                                              args_descriptor.Count() + 1,
+                                              arg_names, Heap::kNew));
+      const auto& call_args = Array::Handle(
+          zone,
+          CreateCallableArgumentsFromStatic(zone, Instance::Cast(getter_result),
+                                            args, arg_names, args_descriptor));
+      return InvokeCallableWithChecks(zone, call_args,
+                                      call_args_descriptor_array);
     }
   }
 
-  const Array& args_descriptor_array =
-      Array::Handle(ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(),
-                                                  arg_names, Heap::kNew));
-  ArgumentsDescriptor args_descriptor(args_descriptor_array);
   if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
       (respect_reflectable && !function.is_reflectable())) {
     return ThrowNoSuchMethod(
-        AbstractType::Handle(Class::Handle(toplevel_class()).RareType()),
+        AbstractType::Handle(zone,
+                             Class::Handle(zone, toplevel_class()).RareType()),
         function_name, args, arg_names, InvocationMirror::kTopLevel,
         InvocationMirror::kMethod);
   }
@@ -17949,8 +18011,7 @@ ObjectPtr Instance::Invoke(const String& function_name,
       }
       // Replace the closure as the receiver in the arguments list.
       args.SetAt(0, getter_result);
-      // Call the closure.
-      return DartEntry::InvokeClosure(args, args_descriptor);
+      return InvokeCallableWithChecks(zone, args, args_descriptor);
     }
   }
 

@@ -2831,11 +2831,14 @@ class Function : public Object {
     return (kind() == FunctionLayout::kConstructor) && is_static();
   }
 
+  static bool ClosureBodiesContainNonCovariantChecks() {
+    return FLAG_precompiled_mode || FLAG_lazy_dispatchers;
+  }
+
   // Whether this function can receive an invocation where the number and names
   // of arguments have not been checked.
   bool CanReceiveDynamicInvocation() const {
-    return (IsClosureFunction() &&
-            (FLAG_lazy_dispatchers || FLAG_precompiled_mode)) ||
+    return (IsClosureFunction() && ClosureBodiesContainNonCovariantChecks()) ||
            IsFfiTrampoline();
   }
 
@@ -2903,8 +2906,7 @@ class Function : public Object {
   bool IsInFactoryScope() const;
 
   bool NeedsArgumentTypeChecks() const {
-    return (IsClosureFunction() &&
-            (FLAG_lazy_dispatchers || FLAG_precompiled_mode)) ||
+    return (IsClosureFunction() && ClosureBodiesContainNonCovariantChecks()) ||
            !(is_static() || (kind() == FunctionLayout::kConstructor));
   }
 
