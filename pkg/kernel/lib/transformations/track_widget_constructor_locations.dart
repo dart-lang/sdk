@@ -368,8 +368,8 @@ class WidgetCreatorTracker {
       _hasCreationLocationClass.enclosingLibrary,
     );
     final Field locationField = new Field(fieldName,
-        type: new InterfaceType(
-            _locationClass, clazz.enclosingLibrary.nonNullable),
+        type:
+            new InterfaceType(_locationClass, clazz.enclosingLibrary.nullable),
         isFinal: true,
         reference: clazz.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)
@@ -389,8 +389,8 @@ class WidgetCreatorTracker {
       ));
       final VariableDeclaration variable = new VariableDeclaration(
         _creationLocationParameterName,
-        type: new InterfaceType(
-            _locationClass, clazz.enclosingLibrary.nonNullable),
+        type:
+            new InterfaceType(_locationClass, clazz.enclosingLibrary.nullable),
       );
       if (!_maybeAddNamedParameter(constructor.function, variable)) {
         return;
@@ -418,7 +418,11 @@ class WidgetCreatorTracker {
       if (!hasRedirectingInitializer) {
         constructor.initializers.add(new FieldInitializer(
           locationField,
-          new VariableGet(variable),
+          clazz.enclosingLibrary.isNonNullableByDefault
+              // The parameter is nullable so that it can be optional but the
+              // field is non-nullable so we check it here.
+              ? new NullCheck(new VariableGet(variable))
+              : new VariableGet(variable),
         ));
         // TODO(jacobr): add an assert verifying the locationField is not
         // null. Currently, we cannot safely add this assert because we do not
@@ -535,8 +539,7 @@ class WidgetCreatorTracker {
           procedure.function,
           new VariableDeclaration(_creationLocationParameterName,
               type: new InterfaceType(
-                  _locationClass, clazz.enclosingLibrary.nonNullable),
-              isRequired: clazz.enclosingLibrary.isNonNullableByDefault),
+                  _locationClass, clazz.enclosingLibrary.nullable)),
         );
       }
     }
@@ -559,8 +562,7 @@ class WidgetCreatorTracker {
       final VariableDeclaration variable = new VariableDeclaration(
           _creationLocationParameterName,
           type: new InterfaceType(
-              _locationClass, clazz.enclosingLibrary.nonNullable),
-          isRequired: clazz.enclosingLibrary.isNonNullableByDefault);
+              _locationClass, clazz.enclosingLibrary.nullable));
       if (_hasNamedParameter(
           constructor.function, _creationLocationParameterName)) {
         // Constructor was already rewritten. TODO(jacobr): is this case actually hit?
