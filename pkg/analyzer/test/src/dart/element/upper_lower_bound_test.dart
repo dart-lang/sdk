@@ -114,7 +114,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     // BOTTOM(Never) is true
     isBottom(neverNone);
     isNotBottom(neverQuestion);
-    isNotBottom(neverStar);
+    isBottom(neverStar);
 
     // BOTTOM(X&T) is true iff BOTTOM(T)
     T = typeParameter('T', bound: objectQuestion);

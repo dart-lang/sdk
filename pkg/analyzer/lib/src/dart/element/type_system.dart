@@ -984,8 +984,10 @@ class TypeSystemImpl extends TypeSystem {
   /// Return `true`  for things in the equivalence class of `Never`.
   bool isBottom(DartType type) {
     // BOTTOM(Never) is true
-    if (identical(type, NeverTypeImpl.instance)) {
-      return true;
+    if (type is NeverType) {
+      var result = type.nullabilitySuffix != NullabilitySuffix.question;
+      assert(type.isBottom == result);
+      return result;
     }
 
     // BOTTOM(X&T) is true iff BOTTOM(T)
@@ -993,16 +995,21 @@ class TypeSystemImpl extends TypeSystem {
     if (type is TypeParameterTypeImpl) {
       var T = type.promotedBound;
       if (T != null) {
-        return isBottom(T);
+        var result = isBottom(T);
+        assert(type.isBottom == result);
+        return result;
       }
 
       T = type.element.bound;
       if (T != null) {
-        return isBottom(T);
+        var result = isBottom(T);
+        assert(type.isBottom == result);
+        return result;
       }
     }
 
     // BOTTOM(T) is false otherwise
+    assert(!type.isBottom);
     return false;
   }
 

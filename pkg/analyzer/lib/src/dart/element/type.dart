@@ -1672,7 +1672,7 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
   int get hashCode => 0;
 
   @override
-  bool get isBottom => true;
+  bool get isBottom => nullabilitySuffix != NullabilitySuffix.question;
 
   @override
   bool get isDartCoreNull {
@@ -1941,6 +1941,25 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
   @override
   int get hashCode => element.hashCode;
+
+  @override
+  bool get isBottom {
+    // In principle we ought to be able to do `return bound.isBottom;`, but that
+    // goes into an infinite loop with illegal code in which type parameter
+    // bounds form a loop.  So we have to be more careful.
+    Set<TypeParameterElement> seenTypes = {};
+    TypeParameterType type = this;
+    while (seenTypes.add(type.element)) {
+      var bound = type.bound;
+      if (bound is TypeParameterType) {
+        type = bound;
+      } else {
+        return bound.isBottom;
+      }
+    }
+    // Infinite loop.
+    return false;
+  }
 
   @Deprecated('Check element, or use getDisplayString()')
   @override

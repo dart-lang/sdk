@@ -78,7 +78,7 @@ class LinkingBundleContext {
   LinkedNodeTypeBuilder writeType(DartType type) {
     if (type == null) return null;
 
-    if (type.isBottom) {
+    if (type is NeverType) {
       return LinkedNodeTypeBuilder(
         kind: LinkedNodeTypeKind.bottom,
         nullabilitySuffix: _nullabilitySuffix(type),

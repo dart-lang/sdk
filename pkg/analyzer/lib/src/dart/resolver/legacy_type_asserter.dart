@@ -114,7 +114,7 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
       return;
     }
 
-    if (type.isBottom && type.isDartCoreNull) {
+    if (type is NeverType && type.isDartCoreNull) {
       // Never?, which is ok.
       //
       // Note: we could allow Null? and Null, but we really should be able to
