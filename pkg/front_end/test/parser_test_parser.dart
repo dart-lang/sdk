@@ -774,6 +774,7 @@ class TestParser extends Parser {
       Token token,
       Token name,
       Token lateToken,
+      Token abstractToken,
       Token externalToken,
       Token varFinalOrConst,
       DeclarationKind kind,
@@ -782,12 +783,21 @@ class TestParser extends Parser {
         '$token, '
         '$name, '
         '$lateToken, '
+        '$abstractToken, '
+        '$externalToken, '
         '$varFinalOrConst, '
         '$kind, '
         '$enclosingDeclarationName)');
     indent++;
-    var result = super.parseFieldInitializerOpt(token, name, lateToken,
-        externalToken, varFinalOrConst, kind, enclosingDeclarationName);
+    var result = super.parseFieldInitializerOpt(
+        token,
+        name,
+        lateToken,
+        abstractToken,
+        externalToken,
+        varFinalOrConst,
+        kind,
+        enclosingDeclarationName);
     indent--;
     return result;
   }
@@ -1055,14 +1065,8 @@ class TestParser extends Parser {
     return result;
   }
 
-  Token parseFactoryMethod(
-      Token token,
-      DeclarationKind kind,
-      Token beforeStart,
-      Token abstractToken,
-      Token externalToken,
-      Token staticOrCovariant,
-      Token varFinalOrConst) {
+  Token parseFactoryMethod(Token token, DeclarationKind kind, Token beforeStart,
+      Token externalToken, Token staticOrCovariant, Token varFinalOrConst) {
     doPrint('parseFactoryMethod('
         '$token, '
         '$kind, '
@@ -1072,7 +1076,7 @@ class TestParser extends Parser {
         '$varFinalOrConst)');
     indent++;
     var result = super.parseFactoryMethod(token, kind, beforeStart,
-        abstractToken, externalToken, staticOrCovariant, varFinalOrConst);
+        externalToken, staticOrCovariant, varFinalOrConst);
     indent--;
     return result;
   }

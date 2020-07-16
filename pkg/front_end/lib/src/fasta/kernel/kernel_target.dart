@@ -769,9 +769,9 @@ class KernelTarget extends TargetImplementation {
     List<FieldBuilder> lateFinalFields = <FieldBuilder>[];
 
     builder.forEachDeclaredField((String name, FieldBuilder fieldBuilder) {
-      if (fieldBuilder.isExternal) {
-        // Skip external fields. These are external getters/setters and have
-        // no initialization.
+      if (fieldBuilder.isAbstract || fieldBuilder.isExternal) {
+        // Skip abstract and external fields. These are abstract/external
+        // getters/setters and have no initialization.
         return;
       }
       if (fieldBuilder.isDeclarationInstanceMember && !fieldBuilder.isFinal) {

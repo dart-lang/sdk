@@ -1210,6 +1210,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endExtensionFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -1224,8 +1225,8 @@ class AstBuilder extends StackListener {
       // an error at this point, but we include them in order to get navigation,
       // search, etc.
     }
-    endClassFields(null, externalToken, staticToken, covariantToken, lateToken,
-        varFinalOrConst, count, beginToken, endToken);
+    endClassFields(abstractToken, externalToken, staticToken, covariantToken,
+        lateToken, varFinalOrConst, count, beginToken, endToken);
   }
 
   @override

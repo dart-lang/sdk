@@ -2456,7 +2456,12 @@ mixin ErrorParserTestMixin implements AbstractParserTestCase {
 
   void test_classInClass_abstract() {
     parseCompilationUnit("class C { abstract class B {} }",
-        errors: [expectedError(ParserErrorCode.CLASS_IN_CLASS, 19, 5)]);
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.ABSTRACT_CLASS_MEMBER, 10, 8),
+                expectedError(ParserErrorCode.CLASS_IN_CLASS, 19, 5)
+              ]
+            : [expectedError(ParserErrorCode.CLASS_IN_CLASS, 19, 5)]);
   }
 
   void test_classInClass_nonAbstract() {

@@ -118,6 +118,7 @@ coo
 cov
 crashes
 cumulative
+cx
 dacoharkes
 dadd
 daemon
@@ -205,6 +206,7 @@ faking
 falling
 favors
 fetched
+fi
 fibonacci
 filesystem
 filler
@@ -242,6 +244,7 @@ fox
 fulfill
 func
 futures
+fx
 gallery
 gamma
 gave

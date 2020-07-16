@@ -2534,12 +2534,12 @@ class Parser {
     }
 
     int fieldCount = 1;
-    token = parseFieldInitializerOpt(name, name, lateToken, externalToken,
-        varFinalOrConst, kind, enclosingDeclarationName);
+    token = parseFieldInitializerOpt(name, name, lateToken, abstractToken,
+        externalToken, varFinalOrConst, kind, enclosingDeclarationName);
     while (optional(',', token.next)) {
       name = ensureIdentifier(token.next, context);
-      token = parseFieldInitializerOpt(name, name, lateToken, externalToken,
-          varFinalOrConst, kind, enclosingDeclarationName);
+      token = parseFieldInitializerOpt(name, name, lateToken, abstractToken,
+          externalToken, varFinalOrConst, kind, enclosingDeclarationName);
       ++fieldCount;
     }
     Token semicolon = token.next;
@@ -2565,10 +2565,7 @@ class Parser {
     }
     switch (kind) {
       case DeclarationKind.TopLevel:
-        if (abstractToken != null) {
-          reportRecoverableError(
-              abstractToken, codes.messageAbstractClassMember);
-        }
+        assert(abstractToken == null);
         listener.endTopLevelFields(externalToken, staticToken, covariantToken,
             lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
         break;
@@ -2599,14 +2596,22 @@ class Parser {
       case DeclarationKind.Extension:
         if (abstractToken != null) {
           reportRecoverableError(
-              abstractToken, codes.messageAbstractClassMember);
+              firstName, codes.messageAbstractExtensionField);
         }
         if (staticToken == null && externalToken == null) {
           reportRecoverableError(
               firstName, codes.messageExtensionDeclaresInstanceField);
         }
-        listener.endExtensionFields(externalToken, staticToken, covariantToken,
-            lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
+        listener.endExtensionFields(
+            abstractToken,
+            externalToken,
+            staticToken,
+            covariantToken,
+            lateToken,
+            varFinalOrConst,
+            fieldCount,
+            beforeStart.next,
+            token);
         break;
     }
     return token;
@@ -2681,6 +2686,7 @@ class Parser {
       Token token,
       Token name,
       Token lateToken,
+      Token abstractToken,
       Token externalToken,
       Token varFinalOrConst,
       DeclarationKind kind,
@@ -2704,6 +2710,7 @@ class Parser {
         } else if (kind == DeclarationKind.TopLevel &&
             optional("final", varFinalOrConst) &&
             lateToken == null &&
+            abstractToken == null &&
             externalToken == null) {
           reportRecoverableError(
               name,
@@ -3218,8 +3225,8 @@ class Parser {
       Token token, DeclarationKind kind, String enclosingDeclarationName) {
     Token beforeStart = token = parseMetadataStar(token);
 
-    Token abstractToken;
     Token covariantToken;
+    Token abstractToken;
     Token externalToken;
     Token lateToken;
     Token staticToken;
@@ -3229,6 +3236,9 @@ class Parser {
     if (isModifier(next)) {
       if (optional('external', next)) {
         externalToken = token = next;
+        next = token.next;
+      } else if (optional('abstract', next)) {
+        abstractToken = token = next;
         next = token.next;
       }
       if (isModifier(next)) {
@@ -3259,22 +3269,22 @@ class Parser {
           }
           if (isModifier(next)) {
             ModifierRecoveryContext context = new ModifierRecoveryContext(this)
-              ..abstractToken = abstractToken
               ..covariantToken = covariantToken
               ..externalToken = externalToken
               ..lateToken = lateToken
               ..staticToken = staticToken
-              ..varFinalOrConst = varFinalOrConst;
+              ..varFinalOrConst = varFinalOrConst
+              ..abstractToken = abstractToken;
 
             token = context.parseClassMemberModifiers(token);
             next = token.next;
 
-            abstractToken = context.abstractToken;
             covariantToken = context.covariantToken;
             externalToken = context.externalToken;
             lateToken = context.lateToken;
             staticToken = context.staticToken;
             varFinalOrConst = context.varFinalOrConst;
+            abstractToken = context.abstractToken;
 
             context = null;
           }
@@ -3314,8 +3324,12 @@ class Parser {
           if (beforeType != token) {
             reportRecoverableError(token, codes.messageTypeBeforeFactory);
           }
-          token = parseFactoryMethod(token, kind, beforeStart, abstractToken,
-              externalToken, staticToken ?? covariantToken, varFinalOrConst);
+          if (abstractToken != null) {
+            reportRecoverableError(
+                abstractToken, codes.messageAbstractClassMember);
+          }
+          token = parseFactoryMethod(token, kind, beforeStart, externalToken,
+              staticToken ?? covariantToken, varFinalOrConst);
           listener.endMember();
           return token;
         }
@@ -3385,6 +3399,10 @@ class Parser {
           (identical(value, 'typedef') &&
               token == beforeStart &&
               next.next.isIdentifier)) {
+        if (abstractToken != null) {
+          reportRecoverableError(
+              abstractToken, codes.messageAbstractClassMember);
+        }
         // Recovery
         return recoverFromInvalidMember(
             token,
@@ -3725,14 +3743,8 @@ class Parser {
     return token;
   }
 
-  Token parseFactoryMethod(
-      Token token,
-      DeclarationKind kind,
-      Token beforeStart,
-      Token abstractToken,
-      Token externalToken,
-      Token staticOrCovariant,
-      Token varFinalOrConst) {
+  Token parseFactoryMethod(Token token, DeclarationKind kind, Token beforeStart,
+      Token externalToken, Token staticOrCovariant, Token varFinalOrConst) {
     Token factoryKeyword = token = token.next;
     assert(optional('factory', factoryKeyword));
 
@@ -3752,9 +3764,6 @@ class Parser {
       context = null;
     }
 
-    if (abstractToken != null) {
-      reportRecoverableError(abstractToken, codes.messageAbstractClassMember);
-    }
     if (staticOrCovariant != null) {
       reportRecoverableErrorWithToken(
           staticOrCovariant, codes.templateExtraneousModifier);

@@ -6,12 +6,11 @@
 # always be fixed by either spelling correctly or updating the dictionary.
 
 AbstractClassInstantiation/example: Fail
-AbstractClassMember/part_wrapped_script5: Fail
-AbstractClassMember/part_wrapped_script6: Fail
-AbstractClassMember/script5: Fail
-AbstractClassMember/script6: Fail
+AbstractExtensionField/analyzerCode: Fail
+AbstractExtensionField/example: Fail
 AbstractNotSync/example: Fail
 AbstractRedirectedClassInstantiation/example: Fail
+AbstractStaticField/analyzerCode: Fail
 AccessError/analyzerCode: Fail
 AccessError/example: Fail
 AmbiguousExtensionMethod/analyzerCode: Fail

@@ -548,8 +548,23 @@ AbstractClassMember:
     - "abstract class C {abstract m();}"
     - "abstract class C {abstract get m;}"
     - "abstract class C {abstract set m(int x);}"
-    - "abstract class C {abstract f;}"
-    - "abstract class C {abstract static f;}"
+    - "abstract class C {abstract var f;}"
+    - "abstract class C {abstract static var f;}"
+
+AbstractStaticField:
+  template: "Static fields can't be declared 'abstract'."
+  tip: "Try removing the 'abstract' or 'static' keyword."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {abstract static var f;}"
+
+AbstractExtensionField:
+  template: "Extension fields can't be declared 'abstract'."
+  tip: "Try removing the 'abstract' keyword."
+# Separate class and extension field handling to to support this.
+#  configuration: nnbd-strong
+#  script:
+#    - "extension C on int { abstract static var f; }"
 
 ClassInClass:
   index: 53

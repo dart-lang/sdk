@@ -680,6 +680,9 @@ mixin ErroneousMemberBuilderMixin implements MemberBuilder {
   bool get isExternal => false;
 
   @override
+  bool get isAbstract => false;
+
+  @override
   void set parent(Builder value) {
     throw new UnsupportedError('AmbiguousMemberBuilder.parent=');
   }

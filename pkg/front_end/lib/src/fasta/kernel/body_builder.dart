@@ -706,12 +706,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Token beginToken,
       Token endToken) {
     debugEvent("Fields");
-    if (abstractToken != null) {
-      handleRecoverableError(
-          fasta.messageAbstractClassMember, abstractToken, abstractToken);
-    }
     if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
+      if (abstractToken != null) {
+        handleRecoverableError(
+            fasta.messageAbstractClassMember, abstractToken, abstractToken);
+      }
       if (externalToken != null) {
         handleRecoverableError(
             fasta.messageExternalField, externalToken, externalToken);

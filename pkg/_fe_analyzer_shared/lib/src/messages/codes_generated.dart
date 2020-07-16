@@ -46,6 +46,15 @@ const MessageCode messageAbstractClassMember = const MessageCode(
         r"""Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractExtensionField = messageAbstractExtensionField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractExtensionField = const MessageCode(
+    "AbstractExtensionField",
+    message: r"""Extension fields can't be declared 'abstract'.""",
+    tip: r"""Try removing the 'abstract' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAbstractNotSync = messageAbstractNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -80,6 +89,15 @@ Message _withArgumentsAbstractRedirectedClassInstantiation(String name) {
           """Factory redirects to class '${name}', which is abstract and can't be instantiated.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractStaticField = messageAbstractStaticField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractStaticField = const MessageCode(
+    "AbstractStaticField",
+    message: r"""Static fields can't be declared 'abstract'.""",
+    tip: r"""Try removing the 'abstract' or 'static' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateAccessError =

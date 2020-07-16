@@ -576,6 +576,7 @@ class ParserTestListener implements Listener {
   }
 
   void endExtensionFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
