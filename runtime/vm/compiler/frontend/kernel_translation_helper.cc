@@ -3417,11 +3417,35 @@ static void SetupUnboxingInfoOfParameter(const Function& function,
   }
 }
 
+static void SetupUnboxingInfoOfReturnValue(
+    const Function& function,
+    const UnboxingInfoMetadata* metadata) {
+  switch (metadata->return_info) {
+    case UnboxingInfoMetadata::kUnboxedIntCandidate:
+      if (FlowGraphCompiler::SupportsUnboxedInt64()) {
+        function.set_unboxed_integer_return();
+      }
+      break;
+    case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
+      if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
+        function.set_unboxed_double_return();
+      }
+      break;
+    case UnboxingInfoMetadata::kUnboxingCandidate:
+      UNREACHABLE();
+      break;
+    case UnboxingInfoMetadata::kBoxed:
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
 void TypeTranslator::SetupUnboxingInfoMetadata(const Function& function,
                                                intptr_t library_kernel_offset) {
   const intptr_t kernel_offset =
       function.kernel_offset() + library_kernel_offset;
-
   const auto unboxing_info =
       unboxing_info_metadata_helper_.GetUnboxingInfoMetadata(kernel_offset);
 
@@ -3432,26 +3456,29 @@ void TypeTranslator::SetupUnboxingInfoMetadata(const Function& function,
     for (intptr_t i = 0; i < unboxing_info->unboxed_args_info.length(); i++) {
       SetupUnboxingInfoOfParameter(function, i, unboxing_info);
     }
+    SetupUnboxingInfoOfReturnValue(function, unboxing_info);
+  }
+}
 
-    switch (unboxing_info->return_info) {
-      case UnboxingInfoMetadata::kUnboxedIntCandidate:
-        if (FlowGraphCompiler::SupportsUnboxedInt64()) {
-          function.set_unboxed_integer_return();
-        }
-        break;
-      case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
-        if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
-          function.set_unboxed_double_return();
-        }
-        break;
-      case UnboxingInfoMetadata::kUnboxingCandidate:
-        UNREACHABLE();
-        break;
-      case UnboxingInfoMetadata::kBoxed:
-        break;
-      default:
-        UNREACHABLE();
-        break;
+void TypeTranslator::SetupUnboxingInfoMetadataForFieldAccessors(
+    const Function& field_accessor,
+    intptr_t library_kernel_offset) {
+  const intptr_t kernel_offset =
+      field_accessor.kernel_offset() + library_kernel_offset;
+  const auto unboxing_info =
+      unboxing_info_metadata_helper_.GetUnboxingInfoMetadata(kernel_offset);
+
+  // TODO(dartbug.com/32292): accept unboxed parameters and return value
+  // when FLAG_use_table_dispatch == false.
+  if (FLAG_precompiled_mode && unboxing_info != nullptr &&
+      FLAG_use_table_dispatch && FLAG_use_bare_instructions) {
+    if (field_accessor.IsImplicitSetterFunction()) {
+      for (intptr_t i = 0; i < unboxing_info->unboxed_args_info.length(); i++) {
+        SetupUnboxingInfoOfParameter(field_accessor, i, unboxing_info);
+      }
+    } else {
+      ASSERT(field_accessor.IsImplicitGetterFunction());
+      SetupUnboxingInfoOfReturnValue(field_accessor, unboxing_info);
     }
   }
 }

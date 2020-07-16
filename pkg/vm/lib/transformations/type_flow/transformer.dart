@@ -309,6 +309,13 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
     if (_typeFlowAnalysis.isMemberUsed(member)) {
       if (member is Field) {
         _setInferredType(member, _typeFlowAnalysis.fieldType(member));
+
+        final unboxingInfoMetadata =
+            _unboxingInfo.getUnboxingInfoOfMember(member);
+        if (unboxingInfoMetadata != null &&
+            !unboxingInfoMetadata.isFullyBoxed) {
+          _unboxingInfoMetadata.mapping[member] = unboxingInfoMetadata;
+        }
       } else {
         Args<Type> argTypes = _typeFlowAnalysis.argumentTypes(member);
         final uncheckedParameters =
@@ -532,32 +539,42 @@ void _makePartition(Component component, TypeFlowAnalysis typeFlowAnalysis,
 
 void _updateUnboxingInfoOfMember(Member member,
     TypeFlowAnalysis typeFlowAnalysis, UnboxingInfoManager unboxingInfo) {
-  if (typeFlowAnalysis.isMemberUsed(member) && (member is! Field)) {
-    final Args<Type> argTypes = typeFlowAnalysis.argumentTypes(member);
-    assertx(argTypes != null);
+  if (typeFlowAnalysis.isMemberUsed(member)) {
+    if (member is Procedure || member is Constructor) {
+      final Args<Type> argTypes = typeFlowAnalysis.argumentTypes(member);
+      assertx(argTypes != null);
 
-    final int firstParamIndex =
-        numTypeParams(member) + (hasReceiverArg(member) ? 1 : 0);
+      final int firstParamIndex =
+          numTypeParams(member) + (hasReceiverArg(member) ? 1 : 0);
 
-    final positionalParams = member.function.positionalParameters;
-    assertx(
-        argTypes.positionalCount == firstParamIndex + positionalParams.length);
+      final positionalParams = member.function.positionalParameters;
+      assertx(argTypes.positionalCount ==
+          firstParamIndex + positionalParams.length);
 
-    for (int i = 0; i < positionalParams.length; i++) {
-      final inferredType = argTypes.values[firstParamIndex + i];
-      unboxingInfo.applyToArg(member, i, inferredType);
+      for (int i = 0; i < positionalParams.length; i++) {
+        final inferredType = argTypes.values[firstParamIndex + i];
+        unboxingInfo.applyToArg(member, i, inferredType);
+      }
+
+      final names = argTypes.names;
+      for (int i = 0; i < names.length; i++) {
+        final inferredType =
+            argTypes.values[firstParamIndex + positionalParams.length + i];
+        unboxingInfo.applyToArg(
+            member, positionalParams.length + i, inferredType);
+      }
+
+      final Type resultType = typeFlowAnalysis.getSummary(member).resultType;
+      unboxingInfo.applyToReturn(member, resultType);
+    } else if (member is Field) {
+      final fieldValue = typeFlowAnalysis.getFieldValue(member).value;
+      if (member.hasSetter) {
+        unboxingInfo.applyToArg(member, 0, fieldValue);
+      }
+      unboxingInfo.applyToReturn(member, fieldValue);
+    } else {
+      assertx(false);
     }
-
-    final names = argTypes.names;
-    for (int i = 0; i < names.length; i++) {
-      final inferredType =
-          argTypes.values[firstParamIndex + positionalParams.length + i];
-      unboxingInfo.applyToArg(
-          member, positionalParams.length + i, inferredType);
-    }
-
-    final Type resultType = typeFlowAnalysis.getSummary(member).resultType;
-    unboxingInfo.applyToReturn(member, resultType);
   }
 }
 

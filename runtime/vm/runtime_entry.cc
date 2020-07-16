@@ -1657,6 +1657,7 @@ void SwitchableCallHandler::DoUnlinkedCall(const UnlinkedCall& unlinked,
     if (unlinked.can_patch_to_monomorphic()) {
       object = expected_cid.raw();
       code = target_code.raw();
+      ASSERT(code.HasMonomorphicEntry());
     } else {
       object = MonomorphicSmiableCall::New(expected_cid.Value(), target_code);
       code = StubCode::MonomorphicSmiableCheck().raw();
@@ -1909,6 +1910,7 @@ void SwitchableCallHandler::DoICDataMiss(const ICData& ic_data,
         Code::Handle(zone_, target_function.EnsureHasCode());
     const Smi& expected_cid =
         Smi::Handle(zone_, Smi::New(receiver_.GetClassId()));
+    ASSERT(target_code.HasMonomorphicEntry());
     CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
         thread_, caller_frame_->pc(), caller_code_, expected_cid, target_code);
     arguments_.SetArgAt(0, target_code);
@@ -2200,18 +2202,17 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
     // o.foo (o.get:foo) failed, closurize o.foo() if it exists.
     const auto& function_name =
         String::Handle(zone, Field::NameFromGetter(demangled_target_name));
-    const auto& dyn_function_name = String::Handle(
-        zone, is_dynamic_call ? Function::CreateDynamicInvocationForwarderName(
-                                    function_name)
-                              : function_name.raw());
     while (!cls.IsNull()) {
-      if (is_dynamic_call) {
-        function = cls.LookupDynamicFunction(dyn_function_name);
-      }
+      // We don't generate dyn:* forwarders for method extractors so there is no
+      // need to try to find a dyn:get:foo first (see assertion below)
       if (function.IsNull()) {
         function = cls.LookupDynamicFunction(function_name);
       }
       if (!function.IsNull()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        ASSERT(!kernel::NeedsDynamicInvocationForwarder(Function::Handle(
+            function.GetMethodExtractor(demangled_target_name))));
+#endif
         const Function& closure_function =
             Function::Handle(zone, function.ImplicitClosureFunction());
         const Object& result = Object::Handle(

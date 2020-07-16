@@ -2756,6 +2756,10 @@ class Function : public Object {
   void set_accessor_field(const Field& value) const;
   FieldPtr accessor_field() const;
 
+  bool IsRegularFunction() const {
+    return kind() == FunctionLayout::kRegularFunction;
+  }
+
   bool IsMethodExtractor() const {
     return kind() == FunctionLayout::kMethodExtractor;
   }
@@ -2911,6 +2915,7 @@ class Function : public Object {
   }
 
   bool NeedsMonomorphicCheckedEntry(Zone* zone) const;
+  bool HasDynamicCallers(Zone* zone) const;
   bool PrologueNeedsArgumentsDescriptor() const;
 
   bool MayHaveUncheckedEntryPoint() const;
@@ -3307,6 +3312,15 @@ class Function : public Object {
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  bool HasUnboxedParameters() const {
+    return raw_ptr()->unboxed_parameters_info_.HasUnboxedParameters();
+  }
+  bool HasUnboxedReturnValue() const {
+    return raw_ptr()->unboxed_parameters_info_.HasUnboxedReturnValue();
+  }
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+
   // Returns true if the type of this function is a subtype of the type of
   // the other function.
   bool IsSubtypeOf(const Function& other, Heap::Space space) const;
@@ -3333,6 +3347,12 @@ class Function : public Object {
   // Returns true if this function represents an implicit getter function.
   bool IsImplicitGetterFunction() const {
     return kind() == FunctionLayout::kImplicitGetter;
+  }
+
+  // Returns true if this function represents an implicit static getter
+  // function.
+  bool IsImplicitStaticGetterFunction() const {
+    return kind() == FunctionLayout::kImplicitStaticGetter;
   }
 
   // Returns true if this function represents an explicit setter function.

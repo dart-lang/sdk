@@ -931,6 +931,7 @@ class FunctionLayout : public ObjectLayout {
   class UnboxedParameterBitmap {
    public:
     static constexpr intptr_t kBitsPerParameter = 2;
+    static constexpr intptr_t kParameterBitmask = (1 << kBitsPerParameter) - 1;
     static constexpr intptr_t kCapacity =
         (kBitsPerByte * sizeof(uint64_t)) / kBitsPerParameter;
 
@@ -943,37 +944,44 @@ class FunctionLayout : public ObjectLayout {
       if (position >= kCapacity) {
         return false;
       }
-      ASSERT(Utils::TestBit(bitmap_, 2 * position) ||
-             !Utils::TestBit(bitmap_, 2 * position + 1));
-      return Utils::TestBit(bitmap_, 2 * position);
+      ASSERT(Utils::TestBit(bitmap_, kBitsPerParameter * position) ||
+             !Utils::TestBit(bitmap_, kBitsPerParameter * position + 1));
+      return Utils::TestBit(bitmap_, kBitsPerParameter * position);
     }
     DART_FORCE_INLINE bool IsUnboxedInteger(intptr_t position) const {
       if (position >= kCapacity) {
         return false;
       }
-      return Utils::TestBit(bitmap_, 2 * position) &&
-             !Utils::TestBit(bitmap_, 2 * position + 1);
+      return Utils::TestBit(bitmap_, kBitsPerParameter * position) &&
+             !Utils::TestBit(bitmap_, kBitsPerParameter * position + 1);
     }
     DART_FORCE_INLINE bool IsUnboxedDouble(intptr_t position) const {
       if (position >= kCapacity) {
         return false;
       }
-      return Utils::TestBit(bitmap_, 2 * position) &&
-             Utils::TestBit(bitmap_, 2 * position + 1);
+      return Utils::TestBit(bitmap_, kBitsPerParameter * position) &&
+             Utils::TestBit(bitmap_, kBitsPerParameter * position + 1);
     }
     DART_FORCE_INLINE void SetUnboxedInteger(intptr_t position) {
       ASSERT(position < kCapacity);
-      bitmap_ |= Utils::Bit<decltype(bitmap_)>(2 * position);
-      ASSERT(!Utils::TestBit(bitmap_, 2 * position + 1));
+      bitmap_ |= Utils::Bit<decltype(bitmap_)>(kBitsPerParameter * position);
+      ASSERT(!Utils::TestBit(bitmap_, kBitsPerParameter * position + 1));
     }
     DART_FORCE_INLINE void SetUnboxedDouble(intptr_t position) {
       ASSERT(position < kCapacity);
-      bitmap_ |= Utils::Bit<decltype(bitmap_)>(2 * position);
-      bitmap_ |= Utils::Bit<decltype(bitmap_)>(2 * position + 1);
+      bitmap_ |= Utils::Bit<decltype(bitmap_)>(kBitsPerParameter * position);
+      bitmap_ |=
+          Utils::Bit<decltype(bitmap_)>(kBitsPerParameter * position + 1);
     }
     DART_FORCE_INLINE uint64_t Value() const { return bitmap_; }
     DART_FORCE_INLINE bool IsEmpty() const { return bitmap_ == 0; }
     DART_FORCE_INLINE void Reset() { bitmap_ = 0; }
+    DART_FORCE_INLINE bool HasUnboxedParameters() const {
+      return (bitmap_ >> kBitsPerParameter) != 0;
+    }
+    DART_FORCE_INLINE bool HasUnboxedReturnValue() const {
+      return (bitmap_ & kParameterBitmask) != 0;
+    }
 
    private:
     uint64_t bitmap_;

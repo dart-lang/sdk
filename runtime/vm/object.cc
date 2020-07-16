@@ -3724,10 +3724,13 @@ FunctionPtr Function::GetDynamicInvocationForwarder(
     const String& mangled_name,
     bool allow_add /* = true */) const {
   ASSERT(IsDynamicInvocationForwarderName(mangled_name));
-  const Class& owner = Class::Handle(Owner());
-  Function& result = Function::Handle(owner.GetInvocationDispatcher(
-      mangled_name, Array::null_array(),
-      FunctionLayout::kDynamicInvocationForwarder, /*create_if_absent=*/false));
+  auto zone = Thread::Current()->zone();
+  const Class& owner = Class::Handle(zone, Owner());
+  Function& result = Function::Handle(
+      zone,
+      owner.GetInvocationDispatcher(mangled_name, Array::null_array(),
+                                    FunctionLayout::kDynamicInvocationForwarder,
+                                    /*create_if_absent=*/false));
 
   if (!result.IsNull()) {
     return result.raw();
@@ -9122,7 +9125,15 @@ void Function::SetKernelDataAndScript(const Script& script,
 ScriptPtr Function::script() const {
   // NOTE(turnidge): If you update this function, you probably want to
   // update Class::PatchFieldsAndFunctions() at the same time.
-  Object& data = Object::Handle(raw_ptr()->data_);
+  const Object& data = Object::Handle(raw_ptr()->data_);
+  if (IsDynamicInvocationForwarder()) {
+    const auto& forwarding_target = Function::Handle(ForwardingTarget());
+    return forwarding_target.script();
+  }
+  if (IsImplicitGetterOrSetter()) {
+    const auto& field = Field::Handle(accessor_field());
+    return field.Script();
+  }
   if (data.IsArray()) {
     Object& script = Object::Handle(Array::Cast(data).At(0));
     if (script.IsScript()) {
@@ -9590,9 +9601,36 @@ bool Function::NeedsMonomorphicCheckedEntry(Zone* zone) const {
     return false;
   }
 
+  // All dyn:* forwarders are called via SwitchableCalls and all except the ones
+  // with `PrologueNeedsArgumentsDescriptor()` transition into monomorphic
+  // state.
+  if (Function::IsDynamicInvocationForwarderName(name())) {
+    return true;
+  }
+
   // If table dispatch is disabled, all instance calls use switchable calls.
   if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions &&
         FLAG_use_table_dispatch)) {
+    return true;
+  }
+
+  // Only if there are dynamic callers and if we didn't create a dyn:* forwarder
+  // for it do we need the monomorphic checked entry.
+  return HasDynamicCallers(zone) &&
+         !kernel::NeedsDynamicInvocationForwarder(*this);
+#else
+  UNREACHABLE();
+  return true;
+#endif
+}
+
+bool Function::HasDynamicCallers(Zone* zone) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Issue(dartbug.com/42719):
+  // Right now the metadata of _Closure.call says there are no dynamic callers -
+  // even though there can be. To be conservative we return true.
+  if ((name() == Symbols::GetCall().raw() || name() == Symbols::Call().raw()) &&
+      Class::IsClosureClass(Owner())) {
     return true;
   }
 

@@ -346,13 +346,13 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       break;
     }
     case FunctionLayout::kDynamicInvocationForwarder: {
+      const String& name = String::Handle(Z, function.name());
+      ASSERT(Function::IsDynamicInvocationForwarderName(name));
+
+      const auto& target = Function::ZoneHandle(Z, function.ForwardingTarget());
+      ASSERT(!target.IsNull());
+
       if (helper_.PeekTag() == kField) {
-#ifdef DEBUG
-        String& name = String::Handle(Z, function.name());
-        ASSERT(Function::IsDynamicInvocationForwarderName(name));
-        name = Function::DemangleDynamicInvocationForwarderName(name);
-        ASSERT(Field::IsSetterName(name));
-#endif
         // Create [this] variable.
         const Class& klass = Class::Handle(Z, function.Owner());
         parsed_function_->set_receiver_var(
@@ -361,29 +361,36 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         scope_->InsertParameterAt(0, parsed_function_->receiver_var());
 
         // Create setter value variable.
-        result_->setter_value = MakeVariable(
-            TokenPosition::kNoSource, TokenPosition::kNoSource,
-            Symbols::Value(),
-            AbstractType::ZoneHandle(Z, function.ParameterTypeAt(1)));
-        scope_->InsertParameterAt(1, result_->setter_value);
-      } else {
-        helper_.ReadUntilFunctionNode();
-        function_node_helper.ReadUntilExcluding(
-            FunctionNodeHelper::kPositionalParameters);
-
-        // Create [this] variable.
-        intptr_t pos = 0;
-        Class& klass = Class::Handle(Z, function.Owner());
-        parsed_function_->set_receiver_var(
-            MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                         Symbols::This(), H.GetDeclarationType(klass)));
-        scope_->InsertParameterAt(pos++, parsed_function_->receiver_var());
-
-        // Create all positional and named parameters.
-        AddPositionalAndNamedParameters(
-            pos, kTypeCheckEverythingNotCheckedInNonDynamicallyInvokedMethod,
-            attrs);
+        if (target.IsImplicitSetterFunction()) {
+          result_->setter_value = MakeVariable(
+              TokenPosition::kNoSource, TokenPosition::kNoSource,
+              Symbols::Value(),
+              AbstractType::ZoneHandle(Z, function.ParameterTypeAt(1)));
+          scope_->InsertParameterAt(1, result_->setter_value);
+        }
+        break;
       }
+
+      // We do not create dyn:* forwarders for method extractors, since those
+      // can never return unboxed values (they return a closure).
+      ASSERT(!target.IsMethodExtractor());
+
+      helper_.ReadUntilFunctionNode();
+      function_node_helper.ReadUntilExcluding(
+          FunctionNodeHelper::kPositionalParameters);
+
+      // Create [this] variable.
+      intptr_t pos = 0;
+      Class& klass = Class::Handle(Z, function.Owner());
+      parsed_function_->set_receiver_var(
+          MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                       Symbols::This(), H.GetDeclarationType(klass)));
+      scope_->InsertParameterAt(pos++, parsed_function_->receiver_var());
+
+      // Create all positional and named parameters.
+      AddPositionalAndNamedParameters(
+          pos, kTypeCheckEverythingNotCheckedInNonDynamicallyInvokedMethod,
+          attrs);
       break;
     }
     case FunctionLayout::kMethodExtractor: {

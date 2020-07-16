@@ -6,8 +6,8 @@ import "dart:typed_data" as typ;
 import "dart:typed_data";
 
 class _Vector extends core::Object {
-[@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  final field core::int* _offset;
-[@vm.inferred-type.metadata=dart.core::_Smi (value: 10)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]  final field core::int* _length;
+[@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5] [@vm.unboxing-info.metadata=()->i]  final field core::int* _offset;
+[@vm.inferred-type.metadata=dart.core::_Smi (value: 10)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7] [@vm.unboxing-info.metadata=()->i]  final field core::int* _length;
 [@vm.inferred-type.metadata=dart.typed_data::_Float64List] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:8,getterSelectorId:9]  final field core::List<core::double*>* _elements;
 [@vm.unboxing-info.metadata=(i)->b]  constructor •([@vm.inferred-type.metadata=dart.core::_Smi (value: 10)] core::int* size) → self::_Vector*
     : self::_Vector::_offset = 0, self::_Vector::_length = size, self::_Vector::_elements = [@vm.inferred-type.metadata=dart.typed_data::_Float64List] typ::Float64List::•(size), super core::Object::•()

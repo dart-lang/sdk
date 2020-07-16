@@ -1469,6 +1469,9 @@ class TypeTranslator {
  private:
   void SetupUnboxingInfoMetadata(const Function& function,
                                  intptr_t library_kernel_offset);
+  void SetupUnboxingInfoMetadataForFieldAccessors(
+      const Function& field_accessor,
+      intptr_t library_kernel_offset);
 
   void BuildTypeInternal();
   void BuildInterfaceType(bool simple);

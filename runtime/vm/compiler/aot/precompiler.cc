@@ -1028,6 +1028,14 @@ bool Precompiler::MustRetainFunction(const Function& function) {
     if (name.Equals(Symbols::_ClosureCall())) return true;
   }
 
+  // We have to retain functions which can be a target of a SwitchableCall
+  // at AOT runtime, since the AOT runtime needs to be able to find the
+  // function object in the class.
+  if (function.NeedsMonomorphicCheckedEntry(Z) ||
+      Function::IsDynamicInvocationForwarderName(function.name())) {
+    return true;
+  }
+
   return false;
 }
 

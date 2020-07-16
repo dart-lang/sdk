@@ -2244,6 +2244,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   getter.set_accessor_field(field);
   getter.set_is_extension_member(field.is_extension_member());
   H.SetupFieldAccessorFunction(klass, getter, field_type);
+  T.SetupUnboxingInfoMetadataForFieldAccessors(getter, library_kernel_offset_);
 
   if (field.NeedsSetter()) {
     // Only static fields can be const.
@@ -2265,6 +2266,8 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     setter.set_accessor_field(field);
     setter.set_is_extension_member(field.is_extension_member());
     H.SetupFieldAccessorFunction(klass, setter, field_type);
+    T.SetupUnboxingInfoMetadataForFieldAccessors(getter,
+                                                 library_kernel_offset_);
   }
 }
 
