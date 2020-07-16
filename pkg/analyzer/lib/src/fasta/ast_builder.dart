@@ -849,7 +849,7 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("Fields");
 
-    if (abstractToken != null) {
+    if (!enableNonNullable && abstractToken != null) {
       handleRecoverableError(
           messageAbstractClassMember, abstractToken, abstractToken);
     }
