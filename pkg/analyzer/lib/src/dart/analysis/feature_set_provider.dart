@@ -44,7 +44,7 @@ class FeatureSetProvider {
       }
     }
 
-    var package = _packages.packageForPath(path);
+    var package = _findPackage(uri, path);
     if (package != null) {
       var experiments = _allowedExperiments.forPackage(package.name);
       if (experiments != null) {
@@ -65,8 +65,7 @@ class FeatureSetProvider {
     if (uri.isScheme('dart')) {
       return ExperimentStatus.currentVersion;
     }
-
-    var package = _packages.packageForPath(path);
+    var package = _findPackage(uri, path);
     if (package != null) {
       var languageVersion = package.languageVersion;
       if (languageVersion != null) {
@@ -75,6 +74,27 @@ class FeatureSetProvider {
     }
 
     return ExperimentStatus.currentVersion;
+  }
+
+  /// Return the package corresponding to the [uri] or [path], `null` if none.
+  Package _findPackage(Uri uri, String path) {
+    if (uri.isScheme('package')) {
+      var pathSegments = uri.pathSegments;
+      if (pathSegments.isNotEmpty) {
+        var packageName = pathSegments.first;
+        var package = _packages[packageName];
+        if (package != null) {
+          return package;
+        }
+      }
+    } else if (uri.isScheme('file')) {
+      var package = _packages.packageForPath(uri.path);
+      if (package != null) {
+        return package;
+      }
+    }
+
+    return _packages.packageForPath(path);
   }
 
   static FeatureSetProvider build({
