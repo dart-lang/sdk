@@ -4311,32 +4311,28 @@ abstract class FormalParameterImpl extends AstNodeImpl
   }
 
   @override
-  bool get isNamed =>
-      kind == ParameterKind.NAMED || kind == ParameterKind.NAMED_REQUIRED;
+  bool get isNamed => kind.isNamed;
 
   @override
-  bool get isOptional =>
-      kind == ParameterKind.NAMED || kind == ParameterKind.POSITIONAL;
+  bool get isOptional => kind.isOptional;
 
   @override
-  bool get isOptionalNamed => kind == ParameterKind.NAMED;
+  bool get isOptionalNamed => kind.isOptionalNamed;
 
   @override
-  bool get isOptionalPositional => kind == ParameterKind.POSITIONAL;
+  bool get isOptionalPositional => kind.isOptionalPositional;
 
   @override
-  bool get isPositional =>
-      kind == ParameterKind.POSITIONAL || kind == ParameterKind.REQUIRED;
+  bool get isPositional => kind.isPositional;
 
   @override
-  bool get isRequired =>
-      kind == ParameterKind.REQUIRED || kind == ParameterKind.NAMED_REQUIRED;
+  bool get isRequired => kind.isRequired;
 
   @override
-  bool get isRequiredNamed => kind == ParameterKind.NAMED_REQUIRED;
+  bool get isRequiredNamed => kind.isRequiredNamed;
 
   @override
-  bool get isRequiredPositional => kind == ParameterKind.REQUIRED;
+  bool get isRequiredPositional => kind.isRequiredPositional;
 
   @override
   ParameterKind get kind;

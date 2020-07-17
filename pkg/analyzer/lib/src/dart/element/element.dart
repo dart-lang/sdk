@@ -6902,36 +6902,28 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 /// [ParameterElement].
 mixin ParameterElementMixin implements ParameterElement {
   @override
-  bool get isNamed =>
-      parameterKind == ParameterKind.NAMED ||
-      parameterKind == ParameterKind.NAMED_REQUIRED;
+  bool get isNamed => parameterKind.isNamed;
 
   @override
-  bool get isNotOptional =>
-      parameterKind == ParameterKind.REQUIRED ||
-      parameterKind == ParameterKind.NAMED_REQUIRED;
+  bool get isNotOptional => parameterKind.isRequired;
 
   @override
-  bool get isOptional =>
-      parameterKind == ParameterKind.NAMED ||
-      parameterKind == ParameterKind.POSITIONAL;
+  bool get isOptional => parameterKind.isOptional;
 
   @override
-  bool get isOptionalNamed => parameterKind == ParameterKind.NAMED;
+  bool get isOptionalNamed => parameterKind.isOptionalNamed;
 
   @override
-  bool get isOptionalPositional => parameterKind == ParameterKind.POSITIONAL;
+  bool get isOptionalPositional => parameterKind.isOptionalPositional;
 
   @override
-  bool get isPositional =>
-      parameterKind == ParameterKind.POSITIONAL ||
-      parameterKind == ParameterKind.REQUIRED;
+  bool get isPositional => parameterKind.isPositional;
 
   @override
-  bool get isRequiredNamed => parameterKind == ParameterKind.NAMED_REQUIRED;
+  bool get isRequiredNamed => parameterKind.isRequiredNamed;
 
   @override
-  bool get isRequiredPositional => parameterKind == ParameterKind.REQUIRED;
+  bool get isRequiredPositional => parameterKind.isRequiredPositional;
 
   @override
   // Overridden to remove the 'deprecated' annotation.

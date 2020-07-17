@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart' show AnnotatedNode, Comment;
 import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/src/dart/element/element.dart' show ElementImpl;
+import 'package:meta/meta.dart';
 
 export 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
     show resolveRelativeUri;
@@ -49,19 +50,60 @@ bool startsWith(Uri uri1, Uri uri2) {
 /// can be either required or optional.
 class ParameterKind implements Comparable<ParameterKind> {
   /// A positional required parameter.
-  static const ParameterKind REQUIRED =
-      ParameterKind('REQUIRED', 0, false, false);
+  static const ParameterKind REQUIRED = ParameterKind(
+    name: 'REQUIRED',
+    ordinal: 0,
+    isPositional: true,
+    isRequiredPositional: true,
+    isOptionalPositional: false,
+    isNamed: false,
+    isRequiredNamed: false,
+    isOptionalNamed: false,
+    isRequired: true,
+    isOptional: false,
+  );
 
   /// A positional optional parameter.
-  static const ParameterKind POSITIONAL =
-      ParameterKind('POSITIONAL', 1, false, true);
+  static const ParameterKind POSITIONAL = ParameterKind(
+    name: 'POSITIONAL',
+    ordinal: 1,
+    isPositional: true,
+    isRequiredPositional: false,
+    isOptionalPositional: true,
+    isNamed: false,
+    isRequiredNamed: false,
+    isOptionalNamed: false,
+    isRequired: false,
+    isOptional: true,
+  );
 
   /// A named required parameter.
-  static const ParameterKind NAMED_REQUIRED =
-      ParameterKind('NAMED_REQUIRED', 2, true, false);
+  static const ParameterKind NAMED_REQUIRED = ParameterKind(
+    name: 'NAMED_REQUIRED',
+    ordinal: 2,
+    isPositional: false,
+    isRequiredPositional: false,
+    isOptionalPositional: false,
+    isNamed: true,
+    isRequiredNamed: true,
+    isOptionalNamed: false,
+    isRequired: true,
+    isOptional: false,
+  );
 
   /// A named optional parameter.
-  static const ParameterKind NAMED = ParameterKind('NAMED', 2, true, true);
+  static const ParameterKind NAMED = ParameterKind(
+    name: 'NAMED',
+    ordinal: 3,
+    isPositional: false,
+    isRequiredPositional: false,
+    isOptionalPositional: false,
+    isNamed: true,
+    isRequiredNamed: false,
+    isOptionalNamed: true,
+    isRequired: false,
+    isOptional: true,
+  );
 
   static const List<ParameterKind> values = [
     REQUIRED,
@@ -76,14 +118,57 @@ class ParameterKind implements Comparable<ParameterKind> {
   /// The ordinal value of the parameter.
   final int ordinal;
 
-  /// A flag indicating whether this is a named or positional parameter.
+  /// Return `true` if is a positional parameter.
+  ///
+  /// Positional parameters can either be required or optional.
+  final bool isPositional;
+
+  /// Return `true` if both a required and positional parameter.
+  final bool isRequiredPositional;
+
+  /// Return `true` if both an optional and positional parameter.
+  final bool isOptionalPositional;
+
+  /// Return `true` if a named parameter.
+  ///
+  /// Named parameters can either be required or optional.
   final bool isNamed;
 
-  /// A flag indicating whether this is an optional or required parameter.
+  /// Return `true` if both a required and named parameter.
+  ///
+  /// Note: this will return `false` for a named parameter that is annotated
+  /// with the `@required` annotation.
+  final bool isRequiredNamed;
+
+  /// Return `true` if both an optional and named parameter.
+  final bool isOptionalNamed;
+
+  /// Return `true` if a required parameter.
+  ///
+  /// Required parameters can either be positional or named.
+  ///
+  /// Note: this will return `false` for a named parameter that is annotated
+  /// with the `@required` annotation.
+  final bool isRequired;
+
+  /// Return `true` if an optional parameter.
+  ///
+  /// Optional parameters can either be positional or named.
   final bool isOptional;
 
   /// Initialize a newly created kind with the given state.
-  const ParameterKind(this.name, this.ordinal, this.isNamed, this.isOptional);
+  const ParameterKind({
+    @required this.name,
+    @required this.ordinal,
+    @required this.isPositional,
+    @required this.isRequiredPositional,
+    @required this.isOptionalPositional,
+    @required this.isNamed,
+    @required this.isRequiredNamed,
+    @required this.isOptionalNamed,
+    @required this.isRequired,
+    @required this.isOptional,
+  });
 
   @override
   int get hashCode => ordinal;
