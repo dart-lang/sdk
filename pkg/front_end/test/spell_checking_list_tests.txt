@@ -56,6 +56,7 @@ benchmark
 besides
 beta
 bigger
+bkonyi
 blah
 blindly
 blocked
@@ -129,6 +130,7 @@ dash
 dashes
 day
 db
+dds
 debugger
 decrease
 decrements
@@ -502,6 +504,7 @@ slight
 smoke
 somehow
 spans
+spawn
 spell
 spellcheck
 spelled

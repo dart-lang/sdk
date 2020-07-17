@@ -13,6 +13,7 @@ main(List<String> args) async {
   LeakFinder heapHelper = new LeakFinder();
 
   heapHelper.start([
+    "--disable-dart-dev",
     "--enable-asserts",
     Platform.script.resolve("incremental_dart2js_tester.dart").toString(),
     "--addDebugBreaks",

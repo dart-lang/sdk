@@ -354,14 +354,41 @@ class Server {
 
     final String path = result;
     if (path == WEBSOCKET_PATH) {
+      final subprotocols = request.headers['sec-websocket-protocol'];
       if (acceptNewWebSocketConnections) {
         WebSocketTransformer.upgrade(request,
+                protocolSelector:
+                    subprotocols == null ? null : (_) => 'implicit-redirect',
                 compression: CompressionOptions.compressionOff)
             .then((WebSocket webSocket) {
           WebSocketClient(webSocket, _service);
         });
       } else {
         // Forward the websocket connection request to DDS.
+        // The Javascript WebSocket implementation doesn't like websocket
+        // connection requests being redirected. Instead of redirecting, we'll
+        // just forward the connection manually if 'implicit-redirect' is
+        // provided as a protocol.
+        if (subprotocols != null) {
+          if (subprotocols.contains('implicit-redirect')) {
+            WebSocketTransformer.upgrade(request,
+                    protocolSelector: (_) => 'implicit-redirect',
+                    compression: CompressionOptions.compressionOff)
+                .then((WebSocket webSocket) async {
+              final ddsWs = await WebSocket.connect(
+                  _service.ddsUri!.replace(scheme: 'ws').toString());
+              ddsWs.addStream(webSocket);
+              webSocket.addStream(ddsWs);
+              webSocket.done.then((_) {
+                ddsWs.close();
+              });
+              ddsWs.done.then((_) {
+                webSocket.close();
+              });
+            });
+            return;
+          }
+        }
         request.response.redirect(_service.ddsUri!);
       }
       return;
