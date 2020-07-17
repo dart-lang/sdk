@@ -708,10 +708,19 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     var args = [
       if (_configuration.useElf) ...[
         "--snapshot-kind=app-aot-elf",
-        "--elf=$tempDir/out.aotsnapshot"
+        "--elf=$tempDir/out.aotsnapshot",
       ] else ...[
         "--snapshot-kind=app-aot-assembly",
-        "--assembly=$tempDir/out.S"
+        "--assembly=$tempDir/out.S",
+      ],
+      // Only splitting with a ELF to avoid having to setup compilation of
+      // multiple assembly files in the test harness. Only splitting tests of
+      // deferred imports because splitting currently requires disable bare
+      // instructions mode, and we want to continue testing bare instructions
+      // mode.
+      if (_configuration.useElf && arguments.last.contains("deferred")) ...[
+        "--loading-unit-manifest=$tempDir/ignored.json",
+        "--use-bare-instructions=false",
       ],
       if (_isAndroid && _isArm) '--no-sim-use-hardfp',
       if (_configuration.isMinified) '--obfuscate',

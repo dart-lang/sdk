@@ -1125,17 +1125,20 @@ void Elf::FinalizeDwarfSections() {
   // Need these to turn offsets into relocated addresses.
   auto const vm_start =
       symbol_to_address_map.LookupValue(kVmSnapshotInstructionsAsmSymbol);
-  ASSERT(vm_start > 0);
+  // vm_start is absent in deferred loading peices.
   auto const isolate_start =
       symbol_to_address_map.LookupValue(kIsolateSnapshotInstructionsAsmSymbol);
   ASSERT(isolate_start > 0);
   auto const vm_text = FindSectionForAddress(vm_start);
-  ASSERT(vm_text != nullptr);
+  // vm_text is absent in deferred loading peices.
   auto const isolate_text = FindSectionForAddress(isolate_start);
   ASSERT(isolate_text != nullptr);
 
   SnapshotTextObjectNamer namer(zone_);
   const auto& codes = dwarf_->codes();
+  if (codes.length() == 0) {
+    return;
+  }
   for (intptr_t i = 0; i < codes.length(); i++) {
     const auto& code = *codes[i];
     auto const name = namer.SnapshotNameFor(i, code);
@@ -1300,7 +1303,8 @@ Section* Elf::GenerateBuildId() {
     auto const name = kBuildIdSegmentNames[i];
     auto const symbol = LookupSymbol(dynstrtab_, dynsym_, name);
     if (symbol == nullptr) {
-      FATAL1("No symbol %s found for expected segment\n", name);
+      stream.WriteFixed(static_cast<uint32_t>(0));
+      continue;
     }
     auto const bits = sections_[symbol->section_index]->AsBitsContainer();
     if (bits == nullptr) {

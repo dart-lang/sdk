@@ -3287,6 +3287,12 @@ DEFINE_RUNTIME_ENTRY(LateInitializationError, 1) {
   Exceptions::ThrowLateInitializationError(String::Handle(field.name()));
 }
 
+DEFINE_RUNTIME_ENTRY(NotLoaded, 0) {
+  // We could just use a trap instruction in the stub, but we get better stack
+  // traces when there is an exit frame.
+  FATAL("Not loaded");
+}
+
 // Use expected function signatures to help MSVC compiler resolve overloading.
 typedef double (*UnaryMathCFunction)(double x);
 typedef double (*BinaryMathCFunction)(double x, double y);

@@ -900,7 +900,7 @@ void Precompiler::AddConstObject(const class Instance& instance) {
     return;
   }
 
-  const Class& cls = Class::Handle(Z, instance.clazz());
+  Class& cls = Class::Handle(Z, instance.clazz());
   AddInstantiatedClass(cls);
 
   if (instance.IsClosure()) {
@@ -915,6 +915,17 @@ void Precompiler::AddConstObject(const class Instance& instance) {
         Z, Closure::Cast(instance).function_type_arguments()));
     AddTypeArguments(TypeArguments::Handle(
         Z, Closure::Cast(instance).delayed_type_arguments()));
+    return;
+  }
+
+  if (instance.IsLibraryPrefix()) {
+    const LibraryPrefix& prefix = LibraryPrefix::Cast(instance);
+    ASSERT(prefix.is_deferred_load());
+    const Library& target = Library::Handle(Z, prefix.GetLibrary(0));
+    cls = target.toplevel_class();
+    if (!classes_to_retain_.HasKey(&cls)) {
+      classes_to_retain_.Insert(&Class::ZoneHandle(Z, cls.raw()));
+    }
     return;
   }
 

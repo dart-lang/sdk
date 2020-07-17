@@ -410,6 +410,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void set_library_tag_handler(Dart_LibraryTagHandler handler) {
     library_tag_handler_ = handler;
   }
+  Dart_DeferredLoadHandler deferred_load_handler() const {
+    return deferred_load_handler_;
+  }
+  void set_deferred_load_handler(Dart_DeferredLoadHandler handler) {
+    deferred_load_handler_ = handler;
+  }
 
   intptr_t GetClassSizeForHeapWalkAt(intptr_t cid);
 
@@ -605,6 +611,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   intptr_t isolate_count_ = 0;
   bool initial_spawn_successful_ = false;
   Dart_LibraryTagHandler library_tag_handler_ = nullptr;
+  Dart_DeferredLoadHandler deferred_load_handler_ = nullptr;
   int64_t start_time_micros_;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -846,6 +853,10 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   ObjectPtr CallTagHandler(Dart_LibraryTag tag,
                            const Object& arg1,
                            const Object& arg2);
+  bool HasDeferredLoadHandler() const {
+    return group()->deferred_load_handler() != nullptr;
+  }
+  ObjectPtr CallDeferredLoadHandler(intptr_t id);
 
   void SetupImagePage(const uint8_t* snapshot_buffer, bool is_executable);
 

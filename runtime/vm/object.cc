@@ -17239,7 +17239,7 @@ LoadingUnitPtr LoadingUnit::New() {
   }
   result.set_id(kIllegalId);
   result.set_loaded(false);
-  result.set_load_issued(false);
+  result.set_load_outstanding(false);
   return result.raw();
 }
 
@@ -17259,6 +17259,36 @@ void LoadingUnit::set_base_objects(const Array& value) const {
 
 const char* LoadingUnit::ToCString() const {
   return "LoadingUnit";
+}
+
+ObjectPtr LoadingUnit::IssueLoad() const {
+  ASSERT(!loaded());
+  ASSERT(!load_outstanding());
+  set_load_outstanding(true);
+  return Isolate::Current()->CallDeferredLoadHandler(id());
+}
+
+void LoadingUnit::CompleteLoad(const String& error_message,
+                               bool transient_error) const {
+  ASSERT(!loaded());
+  ASSERT(load_outstanding());
+  set_loaded(error_message.IsNull());
+  set_load_outstanding(false);
+
+  const Library& lib = Library::Handle(Library::CoreLibrary());
+  const String& sel = String::Handle(String::New("_completeLoads"));
+  const Function& func = Function::Handle(lib.LookupFunctionAllowPrivate(sel));
+  ASSERT(!func.IsNull());
+  const Array& args = Array::Handle(Array::New(3));
+  args.SetAt(0, Smi::Handle(Smi::New(id())));
+  args.SetAt(1, error_message);
+  args.SetAt(2, Bool::Get(transient_error));
+  const Object& result = Object::Handle(DartEntry::InvokeFunction(func, args));
+  if (result.IsUnwindError()) {
+    Thread::Current()->set_sticky_error(Error::Cast(result));
+  } else if (result.IsError()) {
+    UNREACHABLE();
+  }
 }
 
 const char* Error::ToErrorCString() const {

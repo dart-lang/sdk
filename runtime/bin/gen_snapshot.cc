@@ -114,6 +114,7 @@ static const char* kSnapshotKindNames[] = {
   V(blobs_container_filename, blobs_container_filename)                        \
   V(assembly, assembly_filename)                                               \
   V(elf, elf_filename)                                                         \
+  V(loading_unit_manifest, loading_unit_manifest_filename)                     \
   V(load_compilation_trace, load_compilation_trace_filename)                   \
   V(load_type_feedback, load_type_feedback_filename)                           \
   V(save_debugging_info, debugging_info_filename)                              \
@@ -286,7 +287,7 @@ static int ParseArguments(int argc,
     case kAppAOTElf: {
       if (elf_filename == NULL) {
         Syslog::PrintErr(
-            "Building an AOT snapshot as assembly requires specifying "
+            "Building an AOT snapshot as ELF requires specifying "
             "an output file for --elf.\n\n");
         return -1;
       }
@@ -335,13 +336,21 @@ static int ParseArguments(int argc,
   return 0;
 }
 
+PRINTF_ATTRIBUTE(1, 2) static void PrintErrAndExit(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  Syslog::VPrintErr(format, args);
+  va_end(args);
+
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+  exit(kErrorExitCode);
+}
+
 static File* OpenFile(const char* filename) {
   File* file = File::Open(NULL, filename, File::kWriteTruncate);
   if (file == NULL) {
-    Syslog::PrintErr("Error: Unable to write file: %s\n\n", filename);
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-    exit(kErrorExitCode);
+    PrintErrAndExit("Error: Unable to write file: %s\n\n", filename);
   }
   return file;
 }
@@ -352,29 +361,20 @@ static void WriteFile(const char* filename,
   File* file = OpenFile(filename);
   RefCntReleaseScope<File> rs(file);
   if (!file->WriteFully(buffer, size)) {
-    Syslog::PrintErr("Error: Unable to write file: %s\n\n", filename);
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-    exit(kErrorExitCode);
+    PrintErrAndExit("Error: Unable to write file: %s\n\n", filename);
   }
 }
 
 static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
   File* file = File::Open(NULL, filename, File::kRead);
   if (file == NULL) {
-    Syslog::PrintErr("Unable to open file %s\n", filename);
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-    exit(kErrorExitCode);
+    PrintErrAndExit("Error: Unable to read file: %s\n", filename);
   }
   RefCntReleaseScope<File> rs(file);
   *size = file->Length();
   *buffer = reinterpret_cast<uint8_t*>(malloc(*size));
   if (!file->ReadFully(*buffer, *size)) {
-    Syslog::PrintErr("Unable to read file %s\n", filename);
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-    exit(kErrorExitCode);
+    PrintErrAndExit("Error: Unable to read file: %s\n", filename);
   }
 }
 
@@ -579,11 +579,91 @@ static void StreamingWriteCallback(void* callback_data,
                                    intptr_t size) {
   File* file = reinterpret_cast<File*>(callback_data);
   if ((file != nullptr) && !file->WriteFully(buffer, size)) {
-    Syslog::PrintErr("Error: Unable to write snapshot file\n\n");
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-    exit(kErrorExitCode);
+    PrintErrAndExit("Error: Unable to write snapshot file\n\n");
   }
+}
+
+static void StreamingCloseCallback(void* callback_data) {
+  File* file = reinterpret_cast<File*>(callback_data);
+  file->Release();
+}
+
+static File* OpenLoadingUnitManifest() {
+  File* manifest_file = OpenFile(loading_unit_manifest_filename);
+  if (!manifest_file->Print("{ \"loadingUnits\": [\n")) {
+    PrintErrAndExit("Error: Unable to write file: %s\n\n",
+                    loading_unit_manifest_filename);
+  }
+  return manifest_file;
+}
+
+static void WriteLoadingUnitManifest(File* manifest_file,
+                                     intptr_t id,
+                                     const char* path) {
+  bool success = true;
+  if (id != 1) {
+    success &= manifest_file->Print(",");
+  }
+  success &=
+      manifest_file->Print("{ \"id\": %" Pd ", \"path\": \"%s\" }\n", id, path);
+  if (!success) {
+    PrintErrAndExit("Error: Unable to write file: %s\n\n",
+                    loading_unit_manifest_filename);
+  }
+}
+
+static void CloseLoadingUnitManifest(File* manifest_file) {
+  if (!manifest_file->Print("] }\n")) {
+    PrintErrAndExit("Error: Unable to write file: %s\n\n",
+                    loading_unit_manifest_filename);
+  }
+  manifest_file->Release();
+}
+
+static void NextLoadingUnit(void* callback_data,
+                            intptr_t loading_unit_id,
+                            void** write_callback_data,
+                            void** write_debug_callback_data,
+                            const char* main_filename,
+                            const char* suffix) {
+  char* filename = loading_unit_id == 1
+                       ? strdup(main_filename)
+                       : Utils::SCreate("%s-%" Pd ".part.%s", main_filename,
+                                        loading_unit_id, suffix);
+  File* file = OpenFile(filename);
+  *write_callback_data = file;
+
+  if (debugging_info_filename != nullptr) {
+    char* debug_filename =
+        loading_unit_id == 1
+            ? strdup(debugging_info_filename)
+            : Utils::SCreate("%s-%" Pd ".part.so", debugging_info_filename,
+                             loading_unit_id);
+    File* debug_file = OpenFile(debug_filename);
+    *write_debug_callback_data = debug_file;
+    free(debug_filename);
+  }
+
+  WriteLoadingUnitManifest(reinterpret_cast<File*>(callback_data),
+                           loading_unit_id, filename);
+
+  free(filename);
+}
+
+static void NextAsmCallback(void* callback_data,
+                            intptr_t loading_unit_id,
+                            void** write_callback_data,
+                            void** write_debug_callback_data) {
+  NextLoadingUnit(callback_data, loading_unit_id, write_callback_data,
+                  write_debug_callback_data, assembly_filename, "S");
+}
+
+static void NextElfCallback(void* callback_data,
+                            intptr_t loading_unit_id,
+                            void** write_callback_data,
+                            void** write_debug_callback_data) {
+  NextLoadingUnit(callback_data, loading_unit_id, write_callback_data,
+                  write_debug_callback_data, elf_filename, "so");
 }
 
 static void CreateAndWritePrecompiledSnapshot() {
@@ -596,20 +676,30 @@ static void CreateAndWritePrecompiledSnapshot() {
 
   // Create a precompiled snapshot.
   if (snapshot_kind == kAppAOTAssembly) {
-    File* file = OpenFile(assembly_filename);
-    RefCntReleaseScope<File> rs(file);
-    File* debug_file = nullptr;
-    if (debugging_info_filename != nullptr) {
-      debug_file = OpenFile(debugging_info_filename);
-    } else if (strip) {
+    if (strip && (debugging_info_filename == nullptr)) {
       Syslog::PrintErr(
           "Warning: Generating assembly code without DWARF debugging"
           " information.\n");
     }
-    result = Dart_CreateAppAOTSnapshotAsAssembly(StreamingWriteCallback, file,
-                                                 strip, debug_file);
-    if (debug_file != nullptr) debug_file->Release();
-    CHECK_RESULT(result);
+    if (loading_unit_manifest_filename == nullptr) {
+      File* file = OpenFile(assembly_filename);
+      RefCntReleaseScope<File> rs(file);
+      File* debug_file = nullptr;
+      if (debugging_info_filename != nullptr) {
+        debug_file = OpenFile(debugging_info_filename);
+      }
+      result = Dart_CreateAppAOTSnapshotAsAssembly(StreamingWriteCallback, file,
+                                                   strip, debug_file);
+      if (debug_file != nullptr) debug_file->Release();
+      CHECK_RESULT(result);
+    } else {
+      File* manifest_file = OpenLoadingUnitManifest();
+      result = Dart_CreateAppAOTSnapshotAsAssemblies(
+          NextAsmCallback, manifest_file, strip, StreamingWriteCallback,
+          StreamingCloseCallback);
+      CHECK_RESULT(result);
+      CloseLoadingUnitManifest(manifest_file);
+    }
     if (obfuscate && !strip) {
       Syslog::PrintErr(
           "Warning: The generated assembly code contains unobfuscated DWARF "
@@ -617,20 +707,30 @@ static void CreateAndWritePrecompiledSnapshot() {
           "         To avoid this, use --strip to remove it.\n");
     }
   } else if (snapshot_kind == kAppAOTElf) {
-    File* file = OpenFile(elf_filename);
-    RefCntReleaseScope<File> rs(file);
-    File* debug_file = nullptr;
-    if (debugging_info_filename != nullptr) {
-      debug_file = OpenFile(debugging_info_filename);
-    } else if (strip) {
+    if (strip && (debugging_info_filename == nullptr)) {
       Syslog::PrintErr(
           "Warning: Generating ELF library without DWARF debugging"
           " information.\n");
     }
-    result = Dart_CreateAppAOTSnapshotAsElf(StreamingWriteCallback, file, strip,
-                                            debug_file);
-    if (debug_file != nullptr) debug_file->Release();
-    CHECK_RESULT(result);
+    if (loading_unit_manifest_filename == nullptr) {
+      File* file = OpenFile(elf_filename);
+      RefCntReleaseScope<File> rs(file);
+      File* debug_file = nullptr;
+      if (debugging_info_filename != nullptr) {
+        debug_file = OpenFile(debugging_info_filename);
+      }
+      result = Dart_CreateAppAOTSnapshotAsElf(StreamingWriteCallback, file,
+                                              strip, debug_file);
+      if (debug_file != nullptr) debug_file->Release();
+      CHECK_RESULT(result);
+    } else {
+      File* manifest_file = OpenLoadingUnitManifest();
+      result = Dart_CreateAppAOTSnapshotAsElfs(NextElfCallback, manifest_file,
+                                               strip, StreamingWriteCallback,
+                                               StreamingCloseCallback);
+      CHECK_RESULT(result);
+      CloseLoadingUnitManifest(manifest_file);
+    }
     if (obfuscate && !strip) {
       Syslog::PrintErr(
           "Warning: The generated ELF library contains unobfuscated DWARF "

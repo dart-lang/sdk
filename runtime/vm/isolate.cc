@@ -1878,6 +1878,18 @@ ObjectPtr Isolate::CallTagHandler(Dart_LibraryTag tag,
   return Api::UnwrapHandle(api_result);
 }
 
+ObjectPtr Isolate::CallDeferredLoadHandler(intptr_t id) {
+  Thread* thread = Thread::Current();
+  Api::Scope api_scope(thread);
+  Dart_Handle api_result;
+  {
+    TransitionVMToNative transition(thread);
+    RELEASE_ASSERT(HasDeferredLoadHandler());
+    api_result = group()->deferred_load_handler()(id);
+  }
+  return Api::UnwrapHandle(api_result);
+}
+
 void Isolate::SetupImagePage(const uint8_t* image_buffer, bool is_executable) {
   Image image(image_buffer);
   heap()->SetupImagePage(image.object_start(), image.object_size(),

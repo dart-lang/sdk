@@ -1041,7 +1041,7 @@ void LoadingUnit::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_baseObjects", Array::Handle(base_objects()));
   jsobj.AddProperty("_id", static_cast<intptr_t>(id()));
   jsobj.AddProperty("_loaded", loaded());
-  jsobj.AddProperty("_load_united", load_issued());
+  jsobj.AddProperty("_loadOutstanding", load_outstanding());
 }
 
 void Error::PrintJSONImpl(JSONStream* stream, bool ref) const {

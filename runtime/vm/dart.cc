@@ -657,14 +657,6 @@ Isolate* Dart::CreateIsolate(const char* name_prefix,
   return isolate;
 }
 
-static bool IsSnapshotCompatible(Snapshot::Kind vm_kind,
-                                 Snapshot::Kind isolate_kind) {
-  if (vm_kind == isolate_kind) return true;
-  if (vm_kind == Snapshot::kFull && isolate_kind == Snapshot::kFullJIT)
-    return true;
-  return Snapshot::IsFull(isolate_kind);
-}
-
 #if defined(DART_PRECOMPILED_RUNTIME)
 static bool CloneIntoChildIsolateAOT(Thread* T,
                                      Isolate* I,

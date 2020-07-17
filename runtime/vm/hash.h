@@ -27,6 +27,16 @@ inline uint32_t FinalizeHash(uint32_t hash, intptr_t hashbits) {
   return (hash == 0) ? 1 : hash;
 }
 
+inline uint32_t HashBytes(const uint8_t* bytes, intptr_t size) {
+  uint32_t hash = size;
+  while (size > 0) {
+    hash = CombineHashes(hash, *bytes);
+    bytes++;
+    size--;
+  }
+  return hash;
+}
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_HASH_H_

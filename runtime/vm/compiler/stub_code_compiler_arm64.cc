@@ -3900,6 +3900,12 @@ void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
   __ brk(0);
 }
 
+void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ CallRuntime(kNotLoadedRuntimeEntry, 0);
+  __ brk(0);
+}
+
 // Instantiate type arguments from instantiator and function type args.
 // R3 uninstantiated type arguments.
 // R2 instantiator type arguments.

@@ -2074,7 +2074,7 @@ class LoadingUnitLayout : public ObjectLayout {
   ArrayPtr base_objects_;
   VISIT_TO(ObjectPtr, base_objects_);
   int32_t id_;
-  bool load_issued_;
+  bool load_outstanding_;
   bool loaded_;
 };
 
@@ -2141,9 +2141,8 @@ class LibraryPrefixLayout : public InstanceLayout {
     switch (kind) {
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<ObjectPtr*>(&imports_);
       case Snapshot::kFullAOT:
-        return reinterpret_cast<ObjectPtr*>(&importer_);
+        return reinterpret_cast<ObjectPtr*>(&imports_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:

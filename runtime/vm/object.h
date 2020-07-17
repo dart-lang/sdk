@@ -5448,6 +5448,10 @@ class Instructions : public Object {
     return memcmp(a->ptr(), b->ptr(), InstanceSize(Size(a))) == 0;
   }
 
+  uint32_t Hash() const {
+    return HashBytes(reinterpret_cast<const uint8_t*>(PayloadStart()), Size());
+  }
+
   CodeStatistics* stats() const;
   void set_stats(CodeStatistics* stats) const;
 
@@ -7015,8 +7019,9 @@ class SubtypeTestCache : public Object {
 
 class LoadingUnit : public Object {
  public:
-  static const intptr_t kIllegalId = 0;
-  static const intptr_t kRootId = 1;
+  static constexpr intptr_t kIllegalId = 0;
+  COMPILE_ASSERT(kIllegalId == WeakTable::kNoValue);
+  static constexpr intptr_t kRootId = 1;
 
   static LoadingUnitPtr New();
 
@@ -7031,17 +7036,23 @@ class LoadingUnit : public Object {
   void set_base_objects(const Array& value) const;
 
   intptr_t id() const { return raw_ptr()->id_; }
-  void set_id(intptr_t id) { StoreNonPointer(&raw_ptr()->id_, id); }
+  void set_id(intptr_t id) const { StoreNonPointer(&raw_ptr()->id_, id); }
 
   // True once the VM deserializes this unit's snapshot.
   bool loaded() const { return raw_ptr()->loaded_; }
-  void set_loaded(bool value) { StoreNonPointer(&raw_ptr()->loaded_, value); }
-
-  // True once the VM invokes the embedder's deferred load callback.
-  bool load_issued() const { return raw_ptr()->load_issued_; }
-  void set_load_issued(bool value) {
-    StoreNonPointer(&raw_ptr()->load_issued_, value);
+  void set_loaded(bool value) const {
+    StoreNonPointer(&raw_ptr()->loaded_, value);
   }
+
+  // True once the VM invokes the embedder's deferred load callback until the
+  // embedder calls Dart_DeferredLoadComplete[Error].
+  bool load_outstanding() const { return raw_ptr()->load_outstanding_; }
+  void set_load_outstanding(bool value) const {
+    StoreNonPointer(&raw_ptr()->load_outstanding_, value);
+  }
+
+  ObjectPtr IssueLoad() const;
+  void CompleteLoad(const String& error_message, bool transient_error) const;
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(LoadingUnit, Object);

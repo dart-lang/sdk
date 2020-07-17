@@ -297,6 +297,8 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   // isolates in the group.
   Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
   CHECK_RESULT(result);
+  result = Dart_SetDeferredLoadHandler(Loader::DeferredLoadHandler);
+  CHECK_RESULT(result);
 
   auto isolate_data = reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
 
@@ -554,6 +556,8 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   Dart_EnterScope();
 
   Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
+  CHECK_RESULT(result);
+  result = Dart_SetDeferredLoadHandler(Loader::DeferredLoadHandler);
   CHECK_RESULT(result);
 
   // Load embedder specific bits and return.

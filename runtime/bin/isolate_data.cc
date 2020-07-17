@@ -25,13 +25,16 @@ IsolateGroupData::IsolateGroupData(const char* url,
 }
 
 IsolateGroupData::~IsolateGroupData() {
+  for (intptr_t i = 0; i < loading_units_.length(); i++) {
+    delete loading_units_[i];
+  }
   free(script_url);
-  script_url = NULL;
+  script_url = nullptr;
   free(packages_file_);
-  packages_file_ = NULL;
+  packages_file_ = nullptr;
   free(resolved_packages_config_);
-  resolved_packages_config_ = NULL;
-  kernel_buffer_ = NULL;
+  resolved_packages_config_ = nullptr;
+  kernel_buffer_ = nullptr;
   kernel_buffer_size_ = 0;
 }
 
