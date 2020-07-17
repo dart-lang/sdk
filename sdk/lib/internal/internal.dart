@@ -186,7 +186,7 @@ external Object? extractTypeArguments<T>(T instance, Function extract);
 /// of that class.
 /// If applied to a class method, or parameter of such,
 /// any method implementing that interface method is also annotated.
-/// I multiple `Since` annotations apply to the same declaration or
+/// If multiple `Since` annotations apply to the same declaration or
 /// parameter, the latest version takes precendence.
 ///
 /// Any use of a marked API may trigger a warning if the using code
