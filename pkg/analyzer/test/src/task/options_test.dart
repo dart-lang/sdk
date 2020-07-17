@@ -484,7 +484,7 @@ linter:
 }
 
 class TestRule extends LintRule {
-  TestRule() : super(name: 'fantastic_test_rule');
+  TestRule() : super(name: 'fantastic_test_rule', description: '');
 
-  TestRule.withName(String name) : super(name: name);
+  TestRule.withName(String name) : super(name: name, description: '');
 }

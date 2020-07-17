@@ -2131,19 +2131,7 @@ class ErrorEncoding {
   /// Return the lint code with the given [errorName], or `null` if there is no
   /// lint registered with that name.
   static ErrorCode _lintCodeByUniqueName(String errorName) {
-    const String lintPrefix = 'LintCode.';
-    if (errorName.startsWith(lintPrefix)) {
-      String lintName = errorName.substring(lintPrefix.length);
-      return linter.Registry.ruleRegistry.getRule(lintName)?.lintCode;
-    }
-
-    const String lintPrefixOld = '_LintCode.';
-    if (errorName.startsWith(lintPrefixOld)) {
-      String lintName = errorName.substring(lintPrefixOld.length);
-      return linter.Registry.ruleRegistry.getRule(lintName)?.lintCode;
-    }
-
-    return null;
+    return linter.Registry.ruleRegistry.codeForUniqueName(errorName);
   }
 }
 
