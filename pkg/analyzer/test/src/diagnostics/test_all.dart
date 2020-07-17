@@ -409,6 +409,7 @@ import 'not_initialized_non_nullable_instance_field_test.dart'
     as not_initialized_non_nullable_instance_field;
 import 'not_initialized_non_nullable_variable_test.dart'
     as not_initialized_non_nullable_variable;
+import 'not_instantiated_bound_test.dart' as not_instantiated_bound;
 import 'not_iterable_spread_test.dart' as not_iterable_spread;
 import 'not_map_spread_test.dart' as not_map_spread;
 import 'not_null_aware_null_spread_test.dart' as not_null_aware_null_spread;
@@ -872,6 +873,7 @@ main() {
     not_enough_positional_arguments.main();
     not_initialized_non_nullable_instance_field.main();
     not_initialized_non_nullable_variable.main();
+    not_instantiated_bound.main();
     not_iterable_spread.main();
     not_map_spread.main();
     not_null_aware_null_spread.main();

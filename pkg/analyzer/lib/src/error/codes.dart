@@ -5197,6 +5197,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  static const CompileTimeErrorCode NOT_INSTANTIATED_BOUND =
+      CompileTimeErrorCode('NOT_INSTANTIATED_BOUND',
+          'Type parameter bound types must be instantiated.',
+          correction: 'Try adding type arguments to the type parameter bound.');
+
+  /**
+   * No parameters.
+   */
   // #### Description
   //
   // The analyzer produces this diagnostic when the static type of the
@@ -10808,12 +10816,6 @@ class StrongModeCode extends ErrorCode {
       'IMPLICIT_DYNAMIC_INVOKE',
       "Missing type arguments for calling generic function type '{0}'.",
       correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode NOT_INSTANTIATED_BOUND = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'NOT_INSTANTIATED_BOUND',
-      "Type parameter bound types must be instantiated.",
-      correction: "Try adding type arguments.");
 
   /*
    * TODO(brianwilkerson) Make the TOP_LEVEL_ error codes be errors rather than
