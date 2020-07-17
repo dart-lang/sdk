@@ -32,7 +32,8 @@ class AssignToLocalVariable extends CorrectionProducer {
         return;
       }
     }
-    if (expressionStatement == null) {
+    if (expressionStatement == null ||
+        _hasPrecedingStatementRecovery(expressionStatement)) {
       return;
     }
     // prepare expression
@@ -66,4 +67,25 @@ class AssignToLocalVariable extends CorrectionProducer {
 
   /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
   static AssignToLocalVariable newInstance() => AssignToLocalVariable();
+
+  /// Return `true` if the given [statement] resulted from a recovery case that
+  /// would make the change create even worse errors than the original code.
+  static bool _hasPrecedingStatementRecovery(Statement statement) {
+    var parent = statement.parent;
+    if (parent is Block) {
+      var statements = parent.statements;
+      var index = statements.indexOf(statement);
+      if (index > 0) {
+        var precedingStatement = statements[index - 1];
+        if (precedingStatement is ExpressionStatement &&
+            precedingStatement.semicolon.isSynthetic) {
+          return true;
+        } else if (precedingStatement is VariableDeclarationStatement &&
+            precedingStatement.semicolon.isSynthetic) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 }
