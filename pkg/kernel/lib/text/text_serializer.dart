@@ -1386,36 +1386,48 @@ TextSerializer<AsyncMarker> asyncMarkerSerializer = Case(
         key: (e) => e.value,
         value: (e) => Wrapped((_) => null, (_) => e.key, Nothing())));
 
-TextSerializer<FunctionNode> functionNodeSerializer = new Wrapped(
-    (w) => Tuple2(
-        w.asyncMarker,
-        Tuple2(
+TextSerializer<Tuple2<FunctionNode, List<Initializer>>>
+    functionNodeWithInitializersSerializer = Wrapped(
+        (w) => Tuple2(
+            w.first.asyncMarker,
             Tuple2(
-                w.typeParameters,
-                Tuple3(
-                    w.positionalParameters.sublist(0, w.requiredParameterCount),
-                    w.positionalParameters.sublist(w.requiredParameterCount),
-                    w.namedParameters)),
-            Tuple2(w.returnType, w.body))),
-    (u) => FunctionNode(u.second.second.second,
-        typeParameters: u.second.first.first,
-        positionalParameters:
-            u.second.first.second.first + u.second.first.second.second,
-        namedParameters: u.second.first.second.third,
-        requiredParameterCount: u.second.first.second.first.length,
-        returnType: u.second.second.first,
-        asyncMarker: u.first),
-    Tuple2Serializer(
-        asyncMarkerSerializer,
-        Bind(
-            Rebind(
-                typeParametersSerializer,
+                Tuple2(
+                    w.first.typeParameters,
+                    Tuple3(
+                        w.first.positionalParameters
+                            .sublist(0, w.first.requiredParameterCount),
+                        w.first.positionalParameters
+                            .sublist(w.first.requiredParameterCount),
+                        w.first.namedParameters)),
+                Tuple3(w.first.returnType, w.second, w.first.body))),
+        (u) => Tuple2(
+            FunctionNode(u.second.second.third,
+                typeParameters: u.second.first.first,
+                positionalParameters:
+                    u.second.first.second.first + u.second.first.second.second,
+                namedParameters: u.second.first.second.third,
+                requiredParameterCount: u.second.first.second.first.length,
+                returnType: u.second.second.first,
+                asyncMarker: u.first),
+            u.second.second.second),
+        Tuple2Serializer(
+            asyncMarkerSerializer,
+            Bind(
+                Rebind(
+                    typeParametersSerializer,
+                    Tuple3Serializer(
+                        ListSerializer(variableDeclarationSerializer),
+                        ListSerializer(variableDeclarationSerializer),
+                        ListSerializer(variableDeclarationSerializer))),
                 Tuple3Serializer(
-                    ListSerializer(variableDeclarationSerializer),
-                    ListSerializer(variableDeclarationSerializer),
-                    ListSerializer(variableDeclarationSerializer))),
-            Tuple2Serializer(
-                dartTypeSerializer, Optional(statementSerializer)))));
+                    dartTypeSerializer,
+                    Optional(ListSerializer(initializerSerializer)),
+                    Optional(statementSerializer)))));
+
+TextSerializer<FunctionNode> functionNodeSerializer = Wrapped(
+    (w) => Tuple2(w, null),
+    (u) => u.first,
+    functionNodeWithInitializersSerializer);
 
 const Map<int, String> procedureFlagToName = const {
   Procedure.FlagStatic: "static",
@@ -1603,11 +1615,12 @@ TextSerializer<Procedure> factorySerializer = Wrapped(
         nameSerializer, procedureFlagsSerializer, functionNodeSerializer));
 
 TextSerializer<Constructor> constructorSerializer = Wrapped(
-    (w) => Tuple4(w.name, w.flags, w.initializers, w.function),
-    (u) => Constructor(u.fourth, name: u.first, initializers: u.third)
-      ..flags = u.second,
-    Tuple4Serializer(nameSerializer, constructorFlagsSerializer,
-        ListSerializer(initializerSerializer), functionNodeSerializer));
+    (w) => Tuple3(w.name, w.flags, Tuple2(w.function, w.initializers)),
+    (u) =>
+        Constructor(u.third.first, name: u.first, initializers: u.third.second)
+          ..flags = u.second,
+    Tuple3Serializer(nameSerializer, constructorFlagsSerializer,
+        functionNodeWithInitializersSerializer));
 
 TextSerializer<RedirectingFactoryConstructor>
     redirectingFactoryConstructorSerializer = Wrapped(

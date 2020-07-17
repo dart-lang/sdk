@@ -391,7 +391,7 @@ void test() {
           expectation: ''
               '(expr (fun (sync) ("T^0") ((dynamic)) ((dynamic)) ("t1^1" '
               '() (par "T^0" _) _ ()) ("t2^2" () (par "T^0" _) '
-              '_ ()) () (par "T^0" _) (ret (get-var "t1^1" _))))',
+              '_ ()) () (par "T^0" _) _ (ret (get-var "t1^1" _))))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
           makeDeserializationState: () => new DeserializationState(
@@ -416,7 +416,7 @@ void test() {
           expectation: ''
               '(method (public "foo") ((static))'
               ' (sync) () () () ("x^0" () (dynamic) _ ()) () ()'
-              ' (dynamic) (ret (get-var "x^0" _)))',
+              ' (dynamic) _ (ret (get-var "x^0" _)))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
           makeDeserializationState: () => new DeserializationState(
@@ -452,11 +452,11 @@ void test() {
               ''
               ' ((method (public "foo") ((static))'
               ' (sync) () () () ("x^0" () (dynamic) _ ()) () () (dynamic)'
-              ' (ret (get-var "x^0" _)))'
+              ' _ (ret (get-var "x^0" _)))'
               ''
               ' (method (public "bar") ((static))'
               ' (sync) () () () ("x^0" () (dynamic) _ ()) () () (dynamic)'
-              ' (ret'
+              ' _ (ret'
               ' (invoke-static "package:foo/bar.dart::@methods::foo"'
               ' () ((get-var "x^0" _)) ()))))'
               ''
@@ -491,7 +491,7 @@ void test() {
               ''
               ' ((method (public "foo") ((static))'
               ' (sync) () () () () () () (interface "package:foo/bar.dart::A" ())'
-              ' (ret (null))))'
+              ' _ (ret (null))))'
               ''
               ' ("A" () () () () _ _ () ())'
               ''

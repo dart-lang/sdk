@@ -314,6 +314,11 @@ class VerificationState {
   void mergeToParent() {
     // Pass the free occurrences of variables and type parameters to the parent.
     if (parent != null) {
+      if (parent.node is Constructor && node is FunctionNode) {
+        // Parameters of constructor's function node are visible in
+        // constructor's initializers.
+        parent.variableDeclarations.addAll(variableDeclarations);
+      }
       parent.usedVariables
           .addAll(usedVariables.difference(variableDeclarations));
       parent.usedTypeParameters
@@ -382,12 +387,12 @@ class TextSerializationVerifier extends RecursiveVisitor<void> {
     exitNode(node);
   }
 
-  void enterNode(node) {
+  void enterNode(Node node) {
     pushStateFor(node);
     currentState.handleDeclarations();
   }
 
-  void exitNode(node) {
+  void exitNode(Node node) {
     if (!identical(node, currentState.node)) {
       throw new StateError("Trying to remove node '${node}' from the stack, "
           "while another node '${currentState.node}' is on the top of it.");
