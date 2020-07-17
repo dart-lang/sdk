@@ -2585,6 +2585,17 @@ class HintCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the name of the parameter that is declared but not used
+   */
+  static const HintCode UNUSED_ELEMENT_PARAMETER = HintCodeWithUniqueName(
+      'UNUSED_ELEMENT',
+      'HintCode.UNUSED_ELEMENT_PARAMETER',
+      "A value for optional parameter '{0}' isn't ever given.",
+      correction: "Try removing the unused parameter.",
+      hasPublishedDocs: true);
+
+  /**
+   * Parameters:
    * 0: the name of the unused field
    */
   // #### Description

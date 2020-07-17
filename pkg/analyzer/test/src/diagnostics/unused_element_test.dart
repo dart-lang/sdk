@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -10,6 +12,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnusedElementTest);
+    defineReflectiveTests(UnusedElementWithNnbdTest);
   });
 }
 
@@ -108,6 +111,7 @@ class _A {
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 6, 2),
+      error(HintCode.UNUSED_ELEMENT, 26, 5),
     ]);
   }
 
@@ -937,6 +941,267 @@ extension on String {
     ]);
   }
 
+  test_optionalParameter_constructor_named_notUsed() async {
+    await assertErrorsInCode(r'''
+class A {
+  A._([int a]);
+}
+f() => A._();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 21, 1),
+    ]);
+  }
+
+  test_optionalParameter_constructor_unnamed_notUsed() async {
+    await assertErrorsInCode(r'''
+class _A {
+  _A([int a]);
+}
+f() => _A();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 21, 1),
+    ]);
+  }
+
+  test_optionalParameter_isUsed_functionTearoff() async {
+    await assertNoErrorsInCode(r'''
+f() {
+  void _m([int a]) {}
+  _m;
+}
+''');
+  }
+
+  test_optionalParameter_isUsed_local() async {
+    await assertNoErrorsInCode(r'''
+f() {
+  void _m([int a]) {}
+  _m(1);
+}
+''');
+  }
+
+  test_optionalParameter_isUsed_methodTearoff() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void _m([int a]) {}
+}
+f() => A()._m;
+''');
+  }
+
+  test_optionalParameter_isUsed_named() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void _m({int a = 0}) {}
+}
+f() => A()._m(a: 0);
+''');
+  }
+
+  test_optionalParameter_isUsed_overridden() async {
+    await assertErrorsInCode(r'''
+class A {
+  void _m([int a]) {}
+}
+class B implements A {
+  void _m([int a]) {}
+}
+f() {
+  A()._m();
+  B()._m(0);
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 25, 1),
+    ]);
+  }
+
+  test_optionalParameter_isUsed_override() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void _m([int a]) {}
+}
+class B implements A {
+  void _m([int a]) {}
+}
+f() => A()._m(0);
+''');
+  }
+
+  test_optionalParameter_isUsed_override_renamed() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void _m([int a]) {}
+}
+class B implements A {
+  void _m([int b]) {}
+}
+f() => A()._m(0);
+''');
+  }
+
+  test_optionalParameter_isUsed_overrideRequired() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void _m(int a) {}
+}
+class B implements A {
+  void _m([int a]) {}
+}
+f() => A()._m(0);
+''');
+  }
+
+  test_optionalParameter_isUsed_positional() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void _m([int a]) {}
+}
+f() => A()._m(0);
+''');
+  }
+
+  test_optionalParameter_isUsed_publicMethod() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void m([int a]) {}
+}
+f() => A().m();
+''');
+  }
+
+  test_optionalParameter_isUsed_publicMethod_extension() async {
+    await assertNoErrorsInCode(r'''
+extension E on String {
+  void m([int a]) {}
+}
+f() => "hello".m();
+''');
+  }
+
+  test_optionalParameter_isUsed_requiredPositional() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void _m(int a) {}
+}
+f() => A()._m(0);
+''');
+  }
+
+  test_optionalParameter_notUsed_extension() async {
+    await assertErrorsInCode(r'''
+extension E on String {
+  void _m([int a]) {}
+}
+f() => "hello"._m();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 39, 1),
+    ]);
+  }
+
+  test_optionalParameter_notUsed_named() async {
+    await assertErrorsInCode(r'''
+class A {
+  void _m({int a}) {}
+}
+f() => A()._m();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 25, 1),
+    ]);
+  }
+
+  test_optionalParameter_notUsed_override_added() async {
+    await assertErrorsInCode(r'''
+class A {
+  void _m() {}
+}
+class B implements A {
+  void _m([int a]) {}
+}
+f() => A()._m();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 65, 1),
+    ]);
+  }
+
+  test_optionalParameter_notUsed_positional() async {
+    await assertErrorsInCode(r'''
+class A {
+  void _m([int a]) {}
+}
+f() => A()._m();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 25, 1),
+    ]);
+  }
+
+  test_optionalParameter_notUsed_publicMethod_privateExtension() async {
+    await assertErrorsInCode(r'''
+extension _E on String {
+  void m([int a]) {}
+}
+f() => "hello".m();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 39, 1),
+    ]);
+  }
+
+  test_optionalParameter_notUsed_publicMethod_unnamedExtension() async {
+    await assertErrorsInCode(r'''
+extension on String {
+  void m([int a]) {}
+}
+f() => "hello".m();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 36, 1),
+    ]);
+  }
+
+  test_optionalParameter_static_notUsed() async {
+    await assertErrorsInCode(r'''
+class A {
+  static void _m([int a]) {}
+}
+f() => A._m();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 32, 1),
+    ]);
+  }
+
+  test_optionalParameter_staticPublic_notUsed_privateClass() async {
+    await assertErrorsInCode(r'''
+class _A {
+  static void m([int a]) {}
+}
+f() => _A.m();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 32, 1),
+    ]);
+  }
+
+  test_optionalParameter_topLevel_isUsed() async {
+    await assertNoErrorsInCode(r'''
+void _m([int a]) {}
+f() => _m(1);
+''');
+  }
+
+  test_optionalParameter_topLevel_notUsed() async {
+    await assertErrorsInCode(r'''
+void _m([int a]) {}
+f() => _m();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 13, 1),
+    ]);
+  }
+
+  test_optionalParameter_topLevelPublic_isUsed() async {
+    await assertNoErrorsInCode(r'''
+void m([int a]) {}
+f() => m();
+''');
+  }
+
   test_publicStaticMethod_privateClass_isUsed() async {
     await assertNoErrorsInCode(r'''
 class _A {
@@ -1135,5 +1400,25 @@ int _a = 7;
 ''', [
       error(HintCode.UNUSED_ELEMENT, 34, 2),
     ]);
+  }
+}
+
+@reflectiveTest
+class UnusedElementWithNnbdTest extends DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
+
+  test_optionalParameter_isUsed_overrideRequiredNamed() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void _m({required int a}) {}
+}
+class B implements A {
+  void _m({int a = 0}) {}
+}
+f() => A()._m(a: 0);
+''');
   }
 }

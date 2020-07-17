@@ -465,6 +465,7 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.UNUSED_CATCH_CLAUSE,
   HintCode.UNUSED_CATCH_STACK,
   HintCode.UNUSED_ELEMENT,
+  HintCode.UNUSED_ELEMENT_PARAMETER,
   HintCode.UNUSED_FIELD,
   HintCode.UNUSED_IMPORT,
   HintCode.UNUSED_LABEL,
