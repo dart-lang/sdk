@@ -140,7 +140,7 @@ int foo;
     );
   }
 
-  test_scope_lookup2__implicitCoreImport() async {
+  test_scope_lookup2_implicitCoreImport() async {
     await assertNoErrorsInCode('');
 
     var scope = result.libraryElement.scope;
@@ -151,7 +151,7 @@ int foo;
     );
   }
 
-  test_scope_lookup2__notFound() async {
+  test_scope_lookup2_notFound() async {
     await assertNoErrorsInCode('');
 
     var scope = result.libraryElement.scope;
@@ -165,7 +165,7 @@ int foo;
     );
   }
 
-  test_scope_lookup2__prefersLocal() async {
+  test_scope_lookup2_prefersLocal() async {
     await assertNoErrorsInCode(r'''
 // ignore:unused_import
 import 'dart:math';
@@ -186,7 +186,7 @@ int sin() => 3;
     );
   }
 
-  test_scope_lookup2__prefix() async {
+  test_scope_lookup2_prefix() async {
     await assertNoErrorsInCode(r'''
 // ignore:unused_import
 import 'dart:math' as math;
@@ -200,7 +200,7 @@ import 'dart:math' as math;
     );
   }
 
-  test_scope_lookup2__respectsCombinator_hide() async {
+  test_scope_lookup2_respectsCombinator_hide() async {
     await assertNoErrorsInCode(r'''
 // ignore:unused_import
 import 'dart:math' hide sin;
@@ -223,7 +223,7 @@ import 'dart:math' hide sin;
     );
   }
 
-  test_scope_lookup2__respectsCombinator_show() async {
+  test_scope_lookup2_respectsCombinator_show() async {
     await assertNoErrorsInCode(r'''
 // ignore:unused_import
 import 'dart:math' show sin;

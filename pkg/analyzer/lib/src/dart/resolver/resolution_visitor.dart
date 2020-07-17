@@ -505,6 +505,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+    _withNameScope(() {
+      super.visitForPartsWithDeclarations(node);
+    });
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElementImpl element;
     if (_elementWalker != null) {

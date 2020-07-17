@@ -384,15 +384,19 @@ class LinterContextImpl implements LinterContext {
       Element idElement;
       Element idEqElement;
 
-      void lookupScopeAndEnclosing() {
-        while (scope != null && idElement == null && idEqElement == null) {
+      while (scope != null && idElement == null && idEqElement == null) {
+        if (scope is HasNewScope) {
+          var newScope = (scope as HasNewScope).newScope;
+          var newLookupResult = newScope.lookup2(id);
+          idElement = newLookupResult.getter;
+          idEqElement = newLookupResult.setter;
+          break;
+        } else {
           idElement = scope.localLookup(id);
           idEqElement = scope.localLookup(idEq);
           scope = scope.enclosingScope;
         }
       }
-
-      lookupScopeAndEnclosing();
 
       var requestedElement = setter ? idEqElement : idElement;
       var differentElement = setter ? idElement : idEqElement;

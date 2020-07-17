@@ -6996,7 +6996,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   }
 
   @override
-  Scope get scope => _scope ??= PrefixScope(this);
+  Scope get scope => _scope ??= PrefixScope(enclosingElement, this);
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitPrefixElement(this);

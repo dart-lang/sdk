@@ -6,7 +6,9 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart' as new_scope;
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/scope.dart' as new_scope;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
@@ -225,6 +227,10 @@ class FunctionTypeScope extends EnclosedScope {
   }
 }
 
+abstract class HasNewScope {
+  new_scope.Scope get newScope;
+}
+
 /// The scope statements that can be the target of unlabeled `break` and
 /// `continue` statements.
 class ImplicitLabelScope {
@@ -292,74 +298,49 @@ class LabelScope {
   }
 }
 
-/// The scope containing all of the names available from imported libraries.
-class LibraryImportScope extends Scope {
-  /// The element representing the library in which this scope is enclosed.
+/// A scope containing all of the names defined in a given library.
+class LibraryScope implements EnclosedScope, HasNewScope {
   final LibraryElement _definingLibrary;
+  final new_scope.LibraryScope _impl;
 
-  /// A list of the namespaces representing the names that are available in this
-  /// scope from imported libraries.
-  List<Namespace> _importedNamespaces;
-
-  /// A table mapping prefixes that have been referenced to a map from the names
-  /// that have been referenced to the element associated with the prefixed
-  /// name.
-  Map<String, Map<String, Element>> _definedPrefixedNames;
-
-  /// Cache of public extensions defined in this library's imported namespaces.
-  List<ExtensionElement> _extensions;
-
-  /// Initialize a newly created scope representing the names imported into the
-  /// [_definingLibrary].
-  LibraryImportScope(this._definingLibrary) {
-    _createImportedNamespaces();
-  }
+  LibraryScope(LibraryElement definingLibrary)
+      : _definingLibrary = definingLibrary,
+        _impl = new_scope.LibraryScope(definingLibrary);
 
   @override
-  List<ExtensionElement> get extensions {
-    if (_extensions == null) {
-      _extensions = [];
-      List<ImportElement> imports = _definingLibrary.imports;
-      int count = imports.length;
-      for (int i = 0; i < count; i++) {
-        for (var element in imports[i].namespace.definedNames.values) {
-          if (element is ExtensionElement && !_extensions.contains(element)) {
-            _extensions.add(element);
-          }
-        }
-      }
-    }
-    return _extensions;
-  }
+  List<ExtensionElement> get extensions => _impl.extensions;
 
   @override
-  void define(Element element) {
-    if (!Scope.isPrivateName(element.displayName)) {
-      super.define(element);
-    }
-  }
+  new_scope.EnclosedScope get newScope => _impl;
 
   @override
   Element internalLookup(String name) {
-    return localLookup(name);
+    if (name.endsWith('=')) {
+      var id = name.substring(0, name.length - 1);
+      return _impl.lookup2(id).setter;
+    } else {
+      return _impl.lookup2(name).getter;
+    }
   }
 
   @override
-  Element localLookup(String name) {
-    var element = super.localLookup(name);
-    if (element != null) {
-      return element;
+  Element lookup(Identifier identifier, LibraryElement referencingLibrary) {
+    if (identifier is SimpleIdentifier) {
+      return internalLookup(identifier.name);
     }
 
-    element = _lookupInImportedNamespaces((namespace) {
-      return namespace.get(name);
-    });
-    if (element != null) {
-      defineNameWithoutChecking(name, element);
+    if (identifier is PrefixedIdentifier) {
+      return _internalLookupPrefixed(
+        identifier.prefix.name,
+        identifier.identifier.name,
+      );
     }
 
-    return element;
+    throw UnimplementedError();
   }
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
   bool shouldIgnoreUndefined(Identifier node) {
@@ -409,166 +390,18 @@ class LibraryImportScope extends Scope {
     return false;
   }
 
-  /// Create all of the namespaces associated with the libraries imported into
-  /// this library. The names are not added to this scope, but are stored for
-  /// later reference.
-  void _createImportedNamespaces() {
-    List<ImportElement> imports = _definingLibrary.imports;
-    int count = imports.length;
-    _importedNamespaces = List<Namespace>(count);
-    for (int i = 0; i < count; i++) {
-      _importedNamespaces[i] = imports[i].namespace;
-    }
-  }
-
-  /// Add the given [element] to this scope without checking for duplication or
-  /// hiding.
-  void _definePrefixedNameWithoutChecking(
-      String prefix, String name, Element element) {
-    _definedPrefixedNames ??= HashMap<String, Map<String, Element>>();
-    Map<String, Element> unprefixedNames = _definedPrefixedNames.putIfAbsent(
-        prefix, () => HashMap<String, Element>());
-    unprefixedNames[name] = element;
-  }
-
   @override
   Element _internalLookupPrefixed(String prefix, String name) {
-    Element element = _localPrefixedLookup(prefix, name);
-    if (element != null) {
-      return element;
-    }
-    element = _lookupInImportedNamespaces(
-        (Namespace namespace) => namespace.getPrefixed(prefix, name));
-    if (element != null) {
-      _definePrefixedNameWithoutChecking(prefix, name, element);
-    }
-    return element;
-  }
-
-  /// Return the element with which the given [prefix] and [name] are
-  /// associated, or `null` if the name is not defined within this scope.
-  Element _localPrefixedLookup(String prefix, String name) {
-    if (_definedPrefixedNames != null) {
-      Map<String, Element> unprefixedNames = _definedPrefixedNames[prefix];
-      if (unprefixedNames != null) {
-        return unprefixedNames[name];
+    var prefixElement = _impl.lookup2(prefix).getter;
+    if (prefixElement is PrefixElement) {
+      if (name.endsWith('=')) {
+        var id = name.substring(0, name.length - 1);
+        return prefixElement.scope.lookup2(id).setter;
+      } else {
+        return prefixElement.scope.lookup2(name).getter;
       }
     }
     return null;
-  }
-
-  Element _lookupInImportedNamespaces(
-      Element Function(Namespace namespace) lookup) {
-    Element result;
-
-    bool hasPotentialConflict = false;
-    for (int i = 0; i < _importedNamespaces.length; i++) {
-      Element element = lookup(_importedNamespaces[i]);
-      if (element != null) {
-        if (result == null || result == element) {
-          result = element;
-        } else {
-          hasPotentialConflict = true;
-        }
-      }
-    }
-
-    if (hasPotentialConflict) {
-      var sdkElements = <Element>{};
-      var nonSdkElements = <Element>{};
-      for (int i = 0; i < _importedNamespaces.length; i++) {
-        Element element = lookup(_importedNamespaces[i]);
-        if (element != null) {
-          if (element is NeverElementImpl || element.library.isInSdk) {
-            sdkElements.add(element);
-          } else {
-            nonSdkElements.add(element);
-          }
-        }
-      }
-      if (sdkElements.length > 1 || nonSdkElements.length > 1) {
-        var conflictingElements = <Element>[
-          ...sdkElements,
-          ...nonSdkElements,
-        ];
-        return MultiplyDefinedElementImpl(
-            _definingLibrary.context,
-            _definingLibrary.session,
-            conflictingElements.first.name,
-            conflictingElements);
-      }
-      if (nonSdkElements.isNotEmpty) {
-        result = nonSdkElements.first;
-      } else if (sdkElements.isNotEmpty) {
-        result = sdkElements.first;
-      }
-    }
-
-    return result;
-  }
-}
-
-/// A scope containing all of the names defined in a given library.
-class LibraryScope extends EnclosedScope {
-  final List<ExtensionElement> _extensions = <ExtensionElement>[];
-
-  /// Initialize a newly created scope representing the names defined in the
-  /// [definingLibrary].
-  LibraryScope(LibraryElement definingLibrary)
-      : super(LibraryImportScope(definingLibrary)) {
-    _defineTopLevelNames(definingLibrary);
-
-    // For `dart:core` to be able to pass analysis, it has to have `dynamic`
-    // added to its library scope. Note that this is not true of, for instance,
-    // `Object`, because `Object` has a source definition which is not possible
-    // for `dynamic`.
-    if (definingLibrary.isDartCore) {
-      define(DynamicElementImpl.instance);
-    }
-  }
-
-  @override
-  List<ExtensionElement> get extensions =>
-      enclosingScope.extensions.toList()..addAll(_extensions);
-
-  /// Add to this scope all of the public top-level names that are defined in
-  /// the given [compilationUnit].
-  void _defineLocalNames(CompilationUnitElement compilationUnit) {
-    for (PropertyAccessorElement element in compilationUnit.accessors) {
-      define(element);
-    }
-    for (ClassElement element in compilationUnit.enums) {
-      define(element);
-    }
-    for (ExtensionElement element in compilationUnit.extensions) {
-      define(element);
-      _extensions.add(element);
-    }
-    for (FunctionElement element in compilationUnit.functions) {
-      define(element);
-    }
-    for (FunctionTypeAliasElement element
-        in compilationUnit.functionTypeAliases) {
-      define(element);
-    }
-    for (ClassElement element in compilationUnit.mixins) {
-      define(element);
-    }
-    for (ClassElement element in compilationUnit.types) {
-      define(element);
-    }
-  }
-
-  /// Add to this scope all of the names that are explicitly defined in the
-  /// [definingLibrary].
-  void _defineTopLevelNames(LibraryElement definingLibrary) {
-    for (PrefixElement prefix in definingLibrary.prefixes) {
-      define(prefix);
-    }
-    _defineLocalNames(definingLibrary.definingCompilationUnit);
-    for (CompilationUnitElement compilationUnit in definingLibrary.parts) {
-      _defineLocalNames(compilationUnit);
-    }
   }
 }
 
