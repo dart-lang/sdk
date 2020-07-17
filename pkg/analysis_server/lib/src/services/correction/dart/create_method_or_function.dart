@@ -10,7 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -26,7 +26,7 @@ class CreateMethodOrFunction extends CorrectionProducer {
   FixKind get fixKind => _fixKind;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     if (node is SimpleIdentifier) {
       var nameNode = node as SimpleIdentifier;
       // prepare argument expression (to get parameter)
@@ -81,7 +81,7 @@ class CreateMethodOrFunction extends CorrectionProducer {
   /// Prepares proposal for creating function corresponding to the given
   /// [FunctionType].
   Future<void> _createExecutable(
-      DartChangeBuilder builder,
+      ChangeBuilder builder,
       FunctionType functionType,
       String name,
       String targetFile,
@@ -92,8 +92,8 @@ class CreateMethodOrFunction extends CorrectionProducer {
       String sourceSuffix,
       Element target) async {
     // build method source
-    await builder.addFileEdit(targetFile, (DartFileEditBuilder builder) {
-      builder.addInsertion(insertOffset, (DartEditBuilder builder) {
+    await builder.addDartFileEdit(targetFile, (builder) {
+      builder.addInsertion(insertOffset, (builder) {
         builder.write(sourcePrefix);
         builder.write(prefix);
         // may be static
@@ -106,7 +106,7 @@ class CreateMethodOrFunction extends CorrectionProducer {
           builder.write(' ');
         }
         // append name
-        builder.addLinkedEdit('NAME', (DartLinkedEditBuilder builder) {
+        builder.addLinkedEdit('NAME', (builder) {
           builder.write(name);
         });
         // append parameters
@@ -124,7 +124,7 @@ class CreateMethodOrFunction extends CorrectionProducer {
   /// Adds proposal for creating method corresponding to the given
   /// [FunctionType] in the given [ClassElement].
   Future<void> _createFunction(
-      DartChangeBuilder builder, FunctionType functionType) async {
+      ChangeBuilder builder, FunctionType functionType) async {
     var name = (node as SimpleIdentifier).name;
     // prepare environment
     var insertOffset = unit.end;
@@ -140,7 +140,7 @@ class CreateMethodOrFunction extends CorrectionProducer {
 
   /// Adds proposal for creating method corresponding to the given
   /// [FunctionType] in the given [ClassElement].
-  Future<void> _createMethod(DartChangeBuilder builder,
+  Future<void> _createMethod(ChangeBuilder builder,
       ClassElement targetClassElement, FunctionType functionType) async {
     var name = (node as SimpleIdentifier).name;
     // prepare environment

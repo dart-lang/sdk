@@ -23,7 +23,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/util/comment.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
 
@@ -850,8 +850,8 @@ class SuggestionBuilder {
   Future<void> suggestOverride(SimpleIdentifier targetId,
       ExecutableElement element, bool invokeSuper) async {
     var displayTextBuffer = StringBuffer();
-    var builder = DartChangeBuilder(request.result.session);
-    await builder.addFileEdit(request.result.path, (builder) {
+    var builder = ChangeBuilder(session: request.result.session);
+    await builder.addDartFileEdit(request.result.path, (builder) {
       builder.addReplacement(range.node(targetId), (builder) {
         builder.writeOverride(
           element,

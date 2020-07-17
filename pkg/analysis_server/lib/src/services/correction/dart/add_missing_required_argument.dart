@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddMissingRequiredArgument extends CorrectionProducer {
@@ -22,7 +22,7 @@ class AddMissingRequiredArgument extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     InstanceCreationExpression creation;
     Element targetElement;
     ArgumentList argumentList;
@@ -79,8 +79,8 @@ class AddMissingRequiredArgument extends CorrectionProducer {
         }
       }
 
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addInsertion(offset, (DartEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addInsertion(offset, (builder) {
           if (arguments.isNotEmpty && !insertBetweenParams) {
             builder.write(', ');
           }

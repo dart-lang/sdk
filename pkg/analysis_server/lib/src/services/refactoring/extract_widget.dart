@@ -24,6 +24,7 @@ import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceRange;
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -142,8 +143,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() async {
-    var changeBuilder = DartChangeBuilder(sessionHelper.session);
-    await changeBuilder.addFileEdit(resolveResult.path, (builder) {
+    var builder = ChangeBuilder(session: sessionHelper.session);
+    await builder.addDartFileEdit(resolveResult.path, (builder) {
       if (_expression != null) {
         builder.addReplacement(range.node(_expression), (builder) {
           _writeWidgetInstantiation(builder);
@@ -161,7 +162,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
       _writeWidgetDeclaration(builder);
     });
-    return changeBuilder.sourceChange;
+    return builder.sourceChange;
   }
 
   @override

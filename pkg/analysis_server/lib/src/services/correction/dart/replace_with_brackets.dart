@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -14,9 +14,9 @@ class ReplaceWithBrackets extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REPLACE_WITH_BRACKETS;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     if (node is EmptyStatement && node.parent is! Block) {
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
         var previous = node.findPrevious(node.beginToken);
         if (previous != null) {
           builder.addSimpleReplacement(range.endEnd(previous, node), ' {}');

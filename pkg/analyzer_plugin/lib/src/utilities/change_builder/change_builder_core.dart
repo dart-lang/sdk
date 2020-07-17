@@ -102,6 +102,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
     }
   }
 
+  @Deprecated('Use either addDartFileEdit or addGenericFileEdit')
   @override
   Future<void> addFileEdit(
       String path, void Function(FileEditBuilder builder) buildFileEdit) async {

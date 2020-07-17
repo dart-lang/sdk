@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -23,7 +23,7 @@ class CreateConstructor extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CREATE_CONSTRUCTOR;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     if (node is ArgumentList && node.parent is InstanceCreationExpression) {
       await _proposeFromInstanceCreation(builder);
     } else {
@@ -31,7 +31,7 @@ class CreateConstructor extends CorrectionProducer {
     }
   }
 
-  Future<void> _proposeFromConstructorName(DartChangeBuilder builder) async {
+  Future<void> _proposeFromConstructorName(ChangeBuilder builder) async {
     SimpleIdentifier name;
     InstanceCreationExpression instanceCreation;
     if (node is SimpleIdentifier) {
@@ -75,8 +75,8 @@ class CreateConstructor extends CorrectionProducer {
         .prepareNewConstructorLocation(targetNode);
 
     var targetFile = targetElement.source.fullName;
-    await builder.addFileEdit(targetFile, (DartFileEditBuilder builder) {
-      builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
+    await builder.addDartFileEdit(targetFile, (builder) {
+      builder.addInsertion(targetLocation.offset, (builder) {
         builder.write(targetLocation.prefix);
         builder.writeConstructorDeclaration(targetElement.name,
             argumentList: instanceCreation.argumentList,
@@ -90,7 +90,7 @@ class CreateConstructor extends CorrectionProducer {
     });
   }
 
-  Future<void> _proposeFromInstanceCreation(DartChangeBuilder builder) async {
+  Future<void> _proposeFromInstanceCreation(ChangeBuilder builder) async {
     InstanceCreationExpression instanceCreation = node.parent;
     _constructorName = instanceCreation.constructorName;
     // should be synthetic default constructor
@@ -119,8 +119,8 @@ class CreateConstructor extends CorrectionProducer {
 
     var targetSource = targetElement.source;
     var targetFile = targetSource.fullName;
-    await builder.addFileEdit(targetFile, (DartFileEditBuilder builder) {
-      builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
+    await builder.addDartFileEdit(targetFile, (builder) {
+      builder.addInsertion(targetLocation.offset, (builder) {
         builder.write(targetLocation.prefix);
         builder.writeConstructorDeclaration(targetElement.name,
             argumentList: instanceCreation.argumentList);

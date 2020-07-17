@@ -12,9 +12,8 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart'
+    show DartLinkedEditBuilderImpl;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,27 +22,12 @@ import 'dart/dart_change_builder_mixin.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DartChangeBuilderImplTest);
     defineReflectiveTests(DartEditBuilderImplTest);
     defineReflectiveTests(DartFileEditBuilderImplTest);
     defineReflectiveTests(DartLinkedEditBuilderImplTest);
     defineReflectiveTests(ImportLibraryTest);
     defineReflectiveTests(WriteOverrideTest);
   });
-}
-
-@reflectiveTest
-class DartChangeBuilderImplTest extends AbstractContextTest
-    with DartChangeBuilderMixin {
-  Future<void> test_createFileEditBuilder() async {
-    var path = convertPath('/home/test/lib/test.dart');
-    addSource(path, 'library test;');
-    var builder = newBuilder();
-    var fileEditBuilder = await builder.createGenericFileEditBuilder(path);
-    expect(fileEditBuilder, const TypeMatcher<DartFileEditBuilder>());
-    var fileEdit = fileEditBuilder.fileEdit;
-    expect(fileEdit.file, path);
-  }
 }
 
 @reflectiveTest
@@ -55,10 +39,9 @@ class DartEditBuilderImplTest extends AbstractContextTest
     DartType typeA = await _getType(path, 'A');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(0, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeClassDeclaration('C', interfaces: [typeA]);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeClassDeclaration('C', interfaces: [typeA]);
       });
     });
     var edit = getEdit(builder);
@@ -71,10 +54,9 @@ class DartEditBuilderImplTest extends AbstractContextTest
     addSource(path, '');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(0, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeClassDeclaration('C', isAbstract: true);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeClassDeclaration('C', isAbstract: true);
       });
     });
     var edit = getEdit(builder);
@@ -86,10 +68,9 @@ class DartEditBuilderImplTest extends AbstractContextTest
     addSource(path, '');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(0, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeClassDeclaration('C',
-            membersWriter: () {
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeClassDeclaration('C', membersWriter: () {
           builder.write('/**/');
         });
       });
@@ -104,10 +85,9 @@ class DartEditBuilderImplTest extends AbstractContextTest
     DartType typeA = await _getType(path, 'A');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(0, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeClassDeclaration('C', mixins: [typeA]);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeClassDeclaration('C', mixins: [typeA]);
       });
     });
     var edit = getEdit(builder);
@@ -122,10 +102,9 @@ class DartEditBuilderImplTest extends AbstractContextTest
     DartType typeB = await _getType(path, 'B');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(0, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeClassDeclaration('C', mixins: [typeB], superclass: typeA);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeClassDeclaration('C', mixins: [typeB], superclass: typeA);
       });
     });
     var edit = getEdit(builder);
@@ -138,10 +117,9 @@ class DartEditBuilderImplTest extends AbstractContextTest
     addSource(path, '');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(0, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeClassDeclaration('C', nameGroupName: 'name');
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeClassDeclaration('C', nameGroupName: 'name');
       });
     });
     var edit = getEdit(builder);
@@ -160,9 +138,9 @@ class DartEditBuilderImplTest extends AbstractContextTest
     DartType typeB = await _getType(path, 'B');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(0, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeClassDeclaration('C',
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeClassDeclaration('C',
             superclass: typeB, superclassGroupName: 'superclass');
       });
     });
@@ -181,8 +159,8 @@ class DartEditBuilderImplTest extends AbstractContextTest
     addSource(path, 'class C {}');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
-      builder.addInsertion(9, (DartEditBuilder builder) {
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(9, (builder) {
         builder.writeConstructorDeclaration('A', bodyWriter: () {
           builder.write(' { print(42); }');
         });
@@ -202,8 +180,8 @@ class C {
 ''');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
-      builder.addInsertion(42, (DartEditBuilder builder) {
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(42, (builder) {
         builder.writeConstructorDeclaration('A', fieldNames: ['a', 'bb']);
       });
     });
@@ -216,8 +194,8 @@ class C {
     addSource(path, 'class C {}');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
-      builder.addInsertion(9, (DartEditBuilder builder) {
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(9, (builder) {
         builder.writeConstructorDeclaration('A', initializerWriter: () {
           builder.write('super()');
         });
@@ -232,8 +210,8 @@ class C {
     addSource(path, 'class C {}');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
-      builder.addInsertion(9, (DartEditBuilder builder) {
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(9, (builder) {
         builder.writeConstructorDeclaration('A', parameterWriter: () {
           builder.write('int a, {this.b}');
         });
@@ -249,10 +227,9 @@ class C {
     addSource(path, content);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeFieldDeclaration('f',
-            initializerWriter: () {
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeFieldDeclaration('f', initializerWriter: () {
           builder.write('e');
         });
       });
@@ -267,9 +244,9 @@ class C {
     addSource(path, content);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeFieldDeclaration('f', isConst: true);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeFieldDeclaration('f', isConst: true);
       });
     });
     var edit = getEdit(builder);
@@ -282,10 +259,9 @@ class C {
     addSource(path, content);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeFieldDeclaration('f', isConst: true, isFinal: true);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeFieldDeclaration('f', isConst: true, isFinal: true);
       });
     });
     var edit = getEdit(builder);
@@ -299,10 +275,9 @@ class C {
     DartType typeA = await _getType(path, 'A');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeFieldDeclaration('f', isConst: true, type: typeA);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeFieldDeclaration('f', isConst: true, type: typeA);
       });
     });
     var edit = getEdit(builder);
@@ -315,9 +290,9 @@ class C {
     addSource(path, content);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeFieldDeclaration('f', isFinal: true);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeFieldDeclaration('f', isFinal: true);
       });
     });
     var edit = getEdit(builder);
@@ -331,10 +306,9 @@ class C {
     DartType typeA = await _getType(path, 'A');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeFieldDeclaration('f', isFinal: true, type: typeA);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeFieldDeclaration('f', isFinal: true, type: typeA);
       });
     });
     var edit = getEdit(builder);
@@ -347,9 +321,9 @@ class C {
     addSource(path, content);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeFieldDeclaration('f', isStatic: true);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeFieldDeclaration('f', isStatic: true);
       });
     });
     var edit = getEdit(builder);
@@ -362,10 +336,9 @@ class C {
     addSource(path, content);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeFieldDeclaration('f', nameGroupName: 'name');
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeFieldDeclaration('f', nameGroupName: 'name');
       });
     });
     var edit = getEdit(builder);
@@ -387,10 +360,9 @@ class C {
     DartType typeA = await _getType(path, 'A');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeFieldDeclaration('f', type: typeA, typeGroupName: 'type');
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeFieldDeclaration('f', type: typeA, typeGroupName: 'type');
       });
     });
     var edit = getEdit(builder);
@@ -412,10 +384,9 @@ class C {
     addSource(path, content);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(0, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeFunctionDeclaration('fib',
-            bodyWriter: () {
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeFunctionDeclaration('fib', bodyWriter: () {
           builder.write('{ ... }');
         });
       });
@@ -431,10 +402,9 @@ class C {
     addSource(path, content);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(0, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeFunctionDeclaration('fib', nameGroupName: 'name');
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeFunctionDeclaration('fib', nameGroupName: 'name');
       });
     });
     var edit = getEdit(builder);
@@ -454,10 +424,9 @@ class C {
     addSource(path, content);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(0, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeFunctionDeclaration('fib',
-            parameterWriter: () {
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeFunctionDeclaration('fib', parameterWriter: () {
           builder.write('p, q, r');
         });
       });
@@ -475,9 +444,9 @@ class C {
     DartType typeA = await _getType(path, 'A');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(0, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeFunctionDeclaration('fib',
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeFunctionDeclaration('fib',
             returnType: typeA, returnTypeGroupName: 'type');
       });
     });
@@ -497,10 +466,9 @@ class C {
     addSource(path, content);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeGetterDeclaration('g',
-            bodyWriter: () {
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeGetterDeclaration('g', bodyWriter: () {
           builder.write('{}');
         });
       });
@@ -515,10 +483,9 @@ class C {
     addSource(path, content);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeGetterDeclaration('g', isStatic: true);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeGetterDeclaration('g', isStatic: true);
       });
     });
     var edit = getEdit(builder);
@@ -531,10 +498,9 @@ class C {
     addSource(path, content);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeGetterDeclaration('g', nameGroupName: 'name');
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeGetterDeclaration('g', nameGroupName: 'name');
       });
     });
     var edit = getEdit(builder);
@@ -556,9 +522,9 @@ class C {
     DartType typeA = await _getType(path, 'A');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeGetterDeclaration('g',
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeGetterDeclaration('g',
             returnType: typeA, returnTypeGroupName: 'returnType');
       });
     });
@@ -584,10 +550,9 @@ void f() {
     await driver.getResult(path);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(11, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeLocalVariableDeclaration('foo',
-            initializerWriter: () {
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(11, (builder) {
+        builder.writeLocalVariableDeclaration('foo', initializerWriter: () {
           builder.write('null');
         });
       });
@@ -606,10 +571,9 @@ void f() {
     await driver.getResult(path);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(11, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeLocalVariableDeclaration('foo', nameGroupName: 'name');
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(11, (builder) {
+        builder.writeLocalVariableDeclaration('foo', nameGroupName: 'name');
       });
     });
     var edit = getEdit(builder);
@@ -633,10 +597,9 @@ void f() {
     await driver.getResult(path);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(11, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeLocalVariableDeclaration('foo', isConst: true);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(11, (builder) {
+        builder.writeLocalVariableDeclaration('foo', isConst: true);
       });
     });
     var edit = getEdit(builder);
@@ -654,10 +617,9 @@ void f() {
     await driver.getResult(path);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(11, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeLocalVariableDeclaration('foo', isFinal: true);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(11, (builder) {
+        builder.writeLocalVariableDeclaration('foo', isFinal: true);
       });
     });
     var edit = getEdit(builder);
@@ -677,9 +639,9 @@ class MyClass {}''';
     var A = unit.declarations[1] as ClassDeclaration;
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(11, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeLocalVariableDeclaration(
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(11, (builder) {
+        builder.writeLocalVariableDeclaration(
           'foo',
           initializerWriter: () {
             builder.write('null');
@@ -708,9 +670,9 @@ class MyClass {}''';
     var A = unit.declarations[1] as ClassDeclaration;
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(11, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeLocalVariableDeclaration(
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(11, (builder) {
+        builder.writeLocalVariableDeclaration(
           'foo',
           type: A.declaredElement.instantiate(
             typeArguments: [],
@@ -744,9 +706,9 @@ class MyClass {}''';
     var A = unit.declarations[1] as ClassDeclaration;
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(11, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeLocalVariableDeclaration(
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(11, (builder) {
+        builder.writeLocalVariableDeclaration(
           'foo',
           isFinal: true,
           type: A.declaredElement.instantiate(
@@ -773,10 +735,9 @@ class MyClass {}''';
     DartType typeA = await _getType(path, 'A');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(0, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeMixinDeclaration('M', interfaces: [typeA]);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeMixinDeclaration('M', interfaces: [typeA]);
       });
     });
     var edit = getEdit(builder);
@@ -792,9 +753,9 @@ class MyClass {}''';
     DartType typeB = await _getType(path, 'B');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(0, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeMixinDeclaration('M',
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeMixinDeclaration('M',
             interfaces: [typeA], superclassConstraints: [typeB]);
       });
     });
@@ -808,10 +769,9 @@ class MyClass {}''';
     addSource(path, '');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(0, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeMixinDeclaration('M',
-            membersWriter: () {
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeMixinDeclaration('M', membersWriter: () {
           builder.write('/**/');
         });
       });
@@ -825,10 +785,9 @@ class MyClass {}''';
     addSource(path, '');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(0, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeMixinDeclaration('M', nameGroupName: 'name');
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeMixinDeclaration('M', nameGroupName: 'name');
       });
     });
     var edit = getEdit(builder);
@@ -847,10 +806,9 @@ class MyClass {}''';
     DartType typeA = await _getType(path, 'A');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(0, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeMixinDeclaration('M', superclassConstraints: [typeA]);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeMixinDeclaration('M', superclassConstraints: [typeA]);
       });
     });
     var edit = getEdit(builder);
@@ -863,9 +821,9 @@ class MyClass {}''';
     addSource(path, content);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeParameter('a');
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameter('a');
       });
     });
     var edit = getEdit(builder);
@@ -879,9 +837,9 @@ class MyClass {}''';
     DartType typeA = await _getType(path, 'A');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeParameter('a', type: typeA);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameter('a', type: typeA);
       });
     });
     var edit = getEdit(builder);
@@ -906,10 +864,9 @@ class A {}
     var argument = invocation.argumentList.arguments[0];
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(2, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeParameterMatchingArgument(argument, 0, <String>{});
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(2, (builder) {
+        builder.writeParameterMatchingArgument(argument, 0, <String>{});
       });
     });
     var edit = getEdit(builder);
@@ -927,9 +884,9 @@ class A {}
     var elements = parameters.parameters.map((p) => p.declaredElement);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeParameters(elements);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameters(elements);
       });
     });
     var edit = getEdit(builder);
@@ -947,9 +904,9 @@ class A {}
     var elements = parameters.parameters.map((p) => p.declaredElement);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeParameters(elements);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameters(elements);
       });
     });
     var edit = getEdit(builder);
@@ -967,9 +924,9 @@ class A {}
     var elements = parameters.parameters.map((p) => p.declaredElement);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeParameters(elements);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameters(elements);
       });
     });
     var edit = getEdit(builder);
@@ -990,10 +947,9 @@ f(int i, String s) {
     var invocation = statement.expression as MethodInvocation;
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeParametersMatchingArguments(invocation.argumentList);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParametersMatchingArguments(invocation.argumentList);
       });
     });
     var edit = getEdit(builder);
@@ -1014,10 +970,9 @@ f(int i, String s) {
     var invocation = statement.expression as MethodInvocation;
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeParametersMatchingArguments(invocation.argumentList);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParametersMatchingArguments(invocation.argumentList);
       });
     });
     var edit = getEdit(builder);
@@ -1042,8 +997,8 @@ import 'a.dart';
     var fooElement = aElement.methods[0];
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
         builder.writeReference(fooElement);
       });
     });
@@ -1064,8 +1019,8 @@ import 'a.dart';
     var aElement = await _getTopLevelAccessorElement(aPath, 'a');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
         builder.writeReference(aElement);
       });
     });
@@ -1086,8 +1041,8 @@ import 'a.dart' as p;
     var aElement = await _getTopLevelAccessorElement(aPath, 'a');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
         builder.writeReference(aElement);
       });
     });
@@ -1106,8 +1061,8 @@ import 'a.dart' as p;
     var aElement = await _getTopLevelAccessorElement(aPath, 'a');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
         builder.writeReference(aElement);
       });
     });
@@ -1123,10 +1078,9 @@ import 'a.dart' as p;
     addSource(path, content);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeSetterDeclaration('s',
-            bodyWriter: () {
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeSetterDeclaration('s', bodyWriter: () {
           builder.write('{/* TODO */}');
         });
       });
@@ -1141,10 +1095,9 @@ import 'a.dart' as p;
     addSource(path, content);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeSetterDeclaration('s', isStatic: true);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeSetterDeclaration('s', isStatic: true);
       });
     });
     var edit = getEdit(builder);
@@ -1157,10 +1110,9 @@ import 'a.dart' as p;
     addSource(path, content);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeSetterDeclaration('s', nameGroupName: 'name');
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeSetterDeclaration('s', nameGroupName: 'name');
       });
     });
     var edit = getEdit(builder);
@@ -1182,9 +1134,9 @@ import 'a.dart' as p;
     DartType typeA = await _getType(path, 'A');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeSetterDeclaration('s',
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeSetterDeclaration('s',
             parameterType: typeA, parameterTypeGroupName: 'returnType');
       });
     });
@@ -1207,10 +1159,10 @@ import 'a.dart' as p;
     var unit = (await driver.getResult(path))?.unit;
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
         var typeProvider = unit.declaredElement.library.typeProvider;
-        (builder as DartEditBuilder).writeType(typeProvider.dynamicType);
+        builder.writeType(typeProvider.dynamicType);
       });
     });
     var edit = getEdit(builder);
@@ -1249,9 +1201,9 @@ import 'a.dart' as p;
     var typeBofA = await _getType(path, 'B', typeArguments: [typeA]);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeType(typeBofA);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeType(typeBofA);
       });
     });
     var edit = getEdit(builder);
@@ -1265,9 +1217,9 @@ import 'a.dart' as p;
     DartType typeC = await _getType(path, 'C');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeType(typeC, groupName: 'type');
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeType(typeC, groupName: 'type');
       });
     });
     var edit = getEdit(builder);
@@ -1286,10 +1238,10 @@ import 'a.dart' as p;
     DartType typeC = await _getType(path, 'C');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder)
-            .writeType(typeC, addSupertypeProposals: true, groupName: 'type');
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeType(typeC,
+            addSupertypeProposals: true, groupName: 'type');
       });
     });
     var edit = getEdit(builder);
@@ -1321,7 +1273,7 @@ import 'a.dart' as p;
     );
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (builder) {
+    await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length, (builder) {
         // "T" cannot be written, because we are outside of "A".
         // So, we also should not create linked groups.
@@ -1345,9 +1297,9 @@ import 'a.dart' as p;
     addSource(path, content);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeType(null);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeType(null);
       });
     });
     var edit = getEdit(builder);
@@ -1380,7 +1332,7 @@ class B {}
     }
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (builder) {
+    await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeType(a1.instantiate(
           typeArguments: [],
@@ -1420,11 +1372,10 @@ class B {}
     var unit = (await driver.getResult(path))?.unit;
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
         var typeProvider = unit.declaredElement.library.typeProvider;
-        (builder as DartEditBuilder)
-            .writeType(typeProvider.dynamicType, required: true);
+        builder.writeType(typeProvider.dynamicType, required: true);
       });
     });
     var edit = getEdit(builder);
@@ -1438,9 +1389,9 @@ class B {}
     DartType typeA = await _getType(path, 'A');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeType(typeA, required: true);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeType(typeA, required: true);
       });
     });
     var edit = getEdit(builder);
@@ -1453,9 +1404,9 @@ class B {}
     addSource(path, content);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeType(null, required: true);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeType(null, required: true);
       });
     });
     var edit = getEdit(builder);
@@ -1469,9 +1420,9 @@ class B {}
     DartType typeA = await _getType(path, 'A');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeType(typeA);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeType(typeA);
       });
     });
     var edit = getEdit(builder);
@@ -1493,9 +1444,9 @@ class B {}
     addSource(path, content);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilderImpl).writeTypes([]);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeTypes([]);
       });
     });
     var edit = getEdit(builder);
@@ -1510,9 +1461,9 @@ class B {}
     DartType typeB = await _getType(path, 'B');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilderImpl).writeTypes([typeA, typeB]);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeTypes([typeA, typeB]);
       });
     });
     var edit = getEdit(builder);
@@ -1525,9 +1476,9 @@ class B {}
     addSource(path, content);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilderImpl).writeTypes(null);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeTypes(null);
       });
     });
     var edit = getEdit(builder);
@@ -1542,10 +1493,9 @@ class B {}
     DartType typeB = await _getType(path, 'B');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilderImpl)
-            .writeTypes([typeA, typeB], prefix: 'implements ');
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeTypes([typeA, typeB], prefix: 'implements ');
       });
     });
     var edit = getEdit(builder);
@@ -1560,7 +1510,7 @@ class B {}
     var f = await _getTopLevelAccessorElement(path, 'v');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (builder) {
+    await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
         builder.writeType(f.returnType);
       });
@@ -1605,9 +1555,8 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
     var body = findNode.functionBody('{}');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      (builder as DartFileEditBuilder)
-          .convertFunctionFromSyncToAsync(body, resolvedUnit.typeProvider);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.convertFunctionFromSyncToAsync(body, resolvedUnit.typeProvider);
     });
     var edits = getEdits(builder);
     expect(edits, hasLength(1));
@@ -1623,31 +1572,13 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
     var body = findNode.functionBody('{}');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      (builder as DartFileEditBuilder)
-          .convertFunctionFromSyncToAsync(body, resolvedUnit.typeProvider);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.convertFunctionFromSyncToAsync(body, resolvedUnit.typeProvider);
     });
     var edits = getEdits(builder);
     expect(edits, hasLength(2));
     expect(edits[0].replacement, equalsIgnoringWhitespace('async'));
     expect(edits[1].replacement, equalsIgnoringWhitespace('Future<String>'));
-  }
-
-  Future<void> test_createEditBuilder() async {
-    var path = convertPath('/home/test/lib/test.dart');
-    addSource(path, 'library test;');
-    var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      var offset = 4;
-      var length = 5;
-      var editBuilder = (builder as DartFileEditBuilderImpl)
-          .createEditBuilder(offset, length);
-      expect(editBuilder, const TypeMatcher<DartEditBuilder>());
-      var sourceEdit = editBuilder.sourceEdit;
-      expect(sourceEdit.length, length);
-      expect(sourceEdit.offset, offset);
-      expect(sourceEdit.replacement, isEmpty);
-    });
   }
 
   Future<void> test_format_hasEdits() async {
@@ -1670,7 +1601,7 @@ void functionAfter() {
     newFile(path, content: initialCode);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (builder) {
+    await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(34, (builder) {
         builder.writeln('  3 +  4;');
       });
@@ -1722,7 +1653,7 @@ void functionAfter() {
     newFile(path, content: initialCode);
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (builder) {
+    await builder.addDartFileEdit(path, (builder) {
       builder.format(SourceRange(37, 39));
     });
 
@@ -1754,9 +1685,8 @@ void functionAfter() {
     var type = findNode.typeAnnotation('String');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      (builder as DartFileEditBuilder)
-          .replaceTypeWithFuture(type, resolvedUnit.typeProvider);
+    await builder.addDartFileEdit(path, (builder) {
+      builder.replaceTypeWithFuture(type, resolvedUnit.typeProvider);
     });
     var edits = getEdits(builder);
     expect(edits, hasLength(1));
@@ -2237,7 +2167,7 @@ import 'aaa.dart';
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, initialCode);
     var builder = newBuilder();
-    await builder.addFileEdit(path, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(path, (builder) {
       for (var i = 0; i < uriList.length; ++i) {
         var uri = Uri.parse(uriList[i]);
         builder.importLibrary(uri);
@@ -2812,9 +2742,9 @@ class B extends A {
     var displayBuffer = displayText != null ? StringBuffer() : null;
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(content.length - 2, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeOverride(
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 2, (builder) {
+        builder.writeOverride(
           inherited,
           displayTextBuffer: displayBuffer,
           invokeSuper: invokeSuper,

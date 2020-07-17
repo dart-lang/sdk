@@ -9,14 +9,14 @@ import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class AssignToLocalVariable extends CorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     // prepare enclosing ExpressionStatement
     ExpressionStatement expressionStatement;
     // ignore: unnecessary_this
@@ -52,7 +52,7 @@ class AssignToLocalVariable extends CorrectionProducer {
         getVariableNameSuggestionsForExpression(type, expression, excluded);
 
     if (suggestions.isNotEmpty) {
-      await builder.addFileEdit(file, (builder) {
+      await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(offset, (builder) {
           builder.write('var ');
           builder.addSimpleLinkedEdit('NAME', suggestions[0],

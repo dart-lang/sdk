@@ -9,7 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertClassToMixin extends CorrectionProducer {
@@ -17,7 +17,7 @@ class ConvertClassToMixin extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.CONVERT_CLASS_TO_MIXIN;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
     if (classDeclaration == null) {
       return;
@@ -54,7 +54,7 @@ class ConvertClassToMixin extends CorrectionProducer {
     }
     interfaces.addAll(classElement.interfaces);
 
-    await builder.addFileEdit(file, (builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(
           range.startStart(
               classDeclaration.abstractKeyword ?? classDeclaration.classKeyword,

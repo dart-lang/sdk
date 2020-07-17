@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as path;
@@ -20,7 +20,7 @@ class ConvertToRelativeImport extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_TO_RELATIVE_IMPORT;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is StringLiteral) {
       node = node.parent;
@@ -70,7 +70,7 @@ class ConvertToRelativeImport extends CorrectionProducer {
       from: path.dirname(sourceUri.path),
     );
 
-    await builder.addFileEdit(file, (builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
         range.node(importDirective.uri).getExpanded(-1),
         relativePath,

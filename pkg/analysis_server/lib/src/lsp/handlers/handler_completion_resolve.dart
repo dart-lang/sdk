@@ -13,7 +13,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart' as analyzer;
 import 'package:analyzer/src/util/comment.dart' as analyzer;
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class CompletionResolveHandler
     extends MessageHandler<CompletionItem, CompletionItem> {
@@ -111,8 +111,8 @@ class CompletionResolveHandler
         }
 
         var newInsertText = item.insertText ?? item.label;
-        final builder = DartChangeBuilder(session);
-        await builder.addFileEdit(data.file, (builder) {
+        final builder = ChangeBuilder(session: session);
+        await builder.addDartFileEdit(data.file, (builder) {
           final result = builder.importLibraryElement(library.uri);
           if (result.prefix != null) {
             newInsertText = '${result.prefix}.$newInsertText';

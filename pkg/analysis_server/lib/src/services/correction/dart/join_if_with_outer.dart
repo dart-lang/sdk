@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class JoinIfWithOuter extends CorrectionProducer {
@@ -15,7 +15,7 @@ class JoinIfWithOuter extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.JOIN_IF_WITH_OUTER;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     // climb up condition to the (supposedly) "if" statement
     var node = this.node;
     while (node is Expression) {
@@ -65,7 +65,7 @@ class JoinIfWithOuter extends CorrectionProducer {
     var oldSource = utils.getRangeText(lineRanges);
     var newSource = utils.indentSourceLeftRight(oldSource);
 
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(range.node(outerIfStatement),
           'if ($condition) {$eol$newSource$prefix}');
     });

@@ -95,7 +95,7 @@ class MyFixContributor extends Object
   void _defineComponent(AnalysisError error) {
     // TODO Get the name from the source code.
     String componentName = null;
-    ChangeBuilder builder = new DartChangeBuilder(session);
+    ChangeBuilder builder = new ChangeBuilder(session: session);
     // TODO Build the edit to insert the definition of the component.
     addFix(error, defineComponent, builder, args: [componentName]);
   }

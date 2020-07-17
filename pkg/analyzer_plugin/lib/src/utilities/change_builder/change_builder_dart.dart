@@ -27,14 +27,18 @@ import 'package:charcode/ascii.dart';
 import 'package:dart_style/dart_style.dart';
 
 /// A [ChangeBuilder] used to build changes in Dart files.
+@Deprecated('Use ChangeBuilder')
 class DartChangeBuilderImpl extends ChangeBuilderImpl
     implements DartChangeBuilder {
   /// Initialize a newly created change builder.
+  @Deprecated('Use ChangeBuilder(session: session)')
   DartChangeBuilderImpl(AnalysisSession session) : super(session: session);
 
+  @Deprecated('Use ChangeBuilder(workspace: workspace)')
   DartChangeBuilderImpl.forWorkspace(ChangeWorkspace workspace)
       : super(workspace: workspace);
 
+  @Deprecated('Use ChangeBuilder.addDartFileEdit')
   @override
   Future<void> addFileEdit(
       String path, void Function(DartFileEditBuilder builder) buildFileEdit,

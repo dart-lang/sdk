@@ -10,7 +10,7 @@ import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class UpdateSdkConstraints extends NonDartCorrectionProducer {
+class UpdateSdkConstraints extends CorrectionProducer {
   /// The minimum version to which the SDK constraints should be updated.
   final String _minimumVersion;
 
@@ -61,7 +61,7 @@ class UpdateSdkConstraints extends NonDartCorrectionProducer {
     if (newText == null) {
       return;
     }
-    await builder.addFileEdit(pubspecFile.path, (builder) {
+    await builder.addGenericFileEdit(pubspecFile.path, (builder) {
       builder.addSimpleReplacement(SourceRange(offset, length), newText);
     });
   }

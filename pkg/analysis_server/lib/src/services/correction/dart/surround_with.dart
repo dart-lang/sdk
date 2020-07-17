@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/correction/statement_analyzer.dart'
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class SurroundWith extends MultiCorrectionProducer {
   @override
@@ -93,8 +93,8 @@ class _SurroundWithBlock extends _SurroundWith {
   AssistKind get assistKind => DartAssistKind.SURROUND_WITH_BLOCK;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+  Future<void> compute(ChangeBuilder builder) async {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(statementsRange.offset, '$indentOld{$eol');
       builder.addSimpleReplacement(
           statementsRange,
@@ -116,9 +116,9 @@ class _SurroundWithDoWhile extends _SurroundWith {
   AssistKind get assistKind => DartAssistKind.SURROUND_WITH_DO_WHILE;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(statementsRange, (DartEditBuilder builder) {
+  Future<void> compute(ChangeBuilder builder) async {
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addReplacement(statementsRange, (builder) {
         builder.write(indentOld);
         builder.write('do {');
         builder.write(eol);
@@ -145,9 +145,9 @@ class _SurroundWithFor extends _SurroundWith {
   AssistKind get assistKind => DartAssistKind.SURROUND_WITH_FOR;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(statementsRange, (DartEditBuilder builder) {
+  Future<void> compute(ChangeBuilder builder) async {
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addReplacement(statementsRange, (builder) {
         builder.write(indentOld);
         builder.write('for (var ');
         builder.addSimpleLinkedEdit('VAR', 'v');
@@ -180,9 +180,9 @@ class _SurroundWithForIn extends _SurroundWith {
   AssistKind get assistKind => DartAssistKind.SURROUND_WITH_FOR_IN;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(statementsRange, (DartEditBuilder builder) {
+  Future<void> compute(ChangeBuilder builder) async {
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addReplacement(statementsRange, (builder) {
         builder.write(indentOld);
         builder.write('for (var ');
         builder.addSimpleLinkedEdit('NAME', 'item');
@@ -211,9 +211,9 @@ class _SurroundWithIf extends _SurroundWith {
   AssistKind get assistKind => DartAssistKind.SURROUND_WITH_IF;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(statementsRange, (DartEditBuilder builder) {
+  Future<void> compute(ChangeBuilder builder) async {
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addReplacement(statementsRange, (builder) {
         builder.write(indentOld);
         builder.write('if (');
         builder.addSimpleLinkedEdit('CONDITION', 'condition');
@@ -240,12 +240,12 @@ class _SurroundWithSetState extends _SurroundWith {
   AssistKind get assistKind => DartAssistKind.SURROUND_WITH_SET_STATE;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var classDeclaration = node.parent.thisOrAncestorOfType<ClassDeclaration>();
     if (classDeclaration != null &&
         flutter.isState(classDeclaration.declaredElement)) {
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addReplacement(statementsRange, (DartEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addReplacement(statementsRange, (builder) {
           builder.write(indentOld);
           builder.writeln('setState(() {');
           builder.write(indentedCode);
@@ -269,9 +269,9 @@ class _SurroundWithTryCatch extends _SurroundWith {
   AssistKind get assistKind => DartAssistKind.SURROUND_WITH_TRY_CATCH;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(statementsRange, (DartEditBuilder builder) {
+  Future<void> compute(ChangeBuilder builder) async {
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addReplacement(statementsRange, (builder) {
         builder.write(indentOld);
         builder.write('try {');
         builder.write(eol);
@@ -308,9 +308,9 @@ class _SurroundWithTryFinally extends _SurroundWith {
   AssistKind get assistKind => DartAssistKind.SURROUND_WITH_TRY_FINALLY;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(statementsRange, (DartEditBuilder builder) {
+  Future<void> compute(ChangeBuilder builder) async {
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addReplacement(statementsRange, (builder) {
         builder.write(indentOld);
         builder.write('try {');
         builder.write(eol);
@@ -345,9 +345,9 @@ class _SurroundWithWhile extends _SurroundWith {
   AssistKind get assistKind => DartAssistKind.SURROUND_WITH_WHILE;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(statementsRange, (DartEditBuilder builder) {
+  Future<void> compute(ChangeBuilder builder) async {
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addReplacement(statementsRange, (builder) {
         builder.write(indentOld);
         builder.write('while (');
         builder.addSimpleLinkedEdit('CONDITION', 'condition');

@@ -9,14 +9,14 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class AddNotNullAssert extends CorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.ADD_NOT_NULL_ASSERT;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     final identifier = node;
     if (identifier is SimpleIdentifier) {
       if (identifier.parent is FormalParameter) {
@@ -47,7 +47,7 @@ class AddNotNullAssert extends CorrectionProducer {
             }
           }
 
-          await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+          await builder.addDartFileEdit(file, (builder) {
             final id = identifier.name;
             final prefix = utils.getNodePrefix(exp);
             final indent = utils.getIndent(1);

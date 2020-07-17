@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterConvertToChildren extends CorrectionProducer {
@@ -14,7 +14,7 @@ class FlutterConvertToChildren extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.FLUTTER_CONVERT_TO_CHILDREN;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     // Find "child: widget" under selection.
     NamedExpression namedExp;
     {
@@ -33,7 +33,7 @@ class FlutterConvertToChildren extends CorrectionProducer {
       }
     }
 
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       _convertFlutterChildToChildren(namedExp, eol, utils.getNodeText,
           utils.getLinePrefix, utils.getIndent, utils.getText, builder);
     });
@@ -46,7 +46,7 @@ class FlutterConvertToChildren extends CorrectionProducer {
       Function getLinePrefix,
       Function getIndent,
       Function getText,
-      DartFileEditBuilder builder) {
+      FileEditBuilder builder) {
     var childArg = namedExp.expression;
     var childLoc = namedExp.offset + 'child'.length;
     builder.addSimpleInsertion(childLoc, 'ren');

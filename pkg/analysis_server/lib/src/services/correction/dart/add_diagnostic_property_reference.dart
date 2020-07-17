@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:meta/meta.dart';
@@ -21,7 +22,7 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     final node = this.node;
     if (node is! SimpleIdentifier) {
       return;
@@ -103,9 +104,8 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
     if (debugFillProperties == null) {
       final insertOffset =
           utils.prepareNewMethodLocation(classDeclaration).offset;
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addInsertion(utils.getLineNext(insertOffset),
-            (DartEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addInsertion(utils.getLineNext(insertOffset), (builder) {
           final declPrefix =
               utils.getLinePrefix(classDeclaration.offset) + utils.getIndent(1);
           final bodyPrefix = declPrefix + utils.getIndent(1);
@@ -154,9 +154,8 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
         return null;
       }
 
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addInsertion(utils.getLineNext(offset),
-            (DartEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addInsertion(utils.getLineNext(offset), (builder) {
           writePropertyReference(builder,
               prefix: prefix, builderName: propertiesBuilderName);
         });

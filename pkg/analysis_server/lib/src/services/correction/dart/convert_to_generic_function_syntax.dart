@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -20,7 +20,7 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     while (node != null) {
       if (node is FunctionTypeAlias) {
@@ -55,7 +55,7 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
   }
 
   Future<void> _convertFunctionTypeAlias(
-      DartChangeBuilder builder, FunctionTypeAlias node) async {
+      ChangeBuilder builder, FunctionTypeAlias node) async {
     if (!_allParametersHaveTypes(node.parameters)) {
       return;
     }
@@ -73,7 +73,7 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
       replacement = '$functionName = $returnType Function$parameters';
     }
     // add change
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
           range.startStart(node.typedefKeyword.next, node.semicolon),
           replacement);
@@ -81,7 +81,7 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
   }
 
   Future<void> _convertFunctionTypedFormalParameter(
-      DartChangeBuilder builder, FunctionTypedFormalParameter node) async {
+      ChangeBuilder builder, FunctionTypedFormalParameter node) async {
     if (!_allParametersHaveTypes(node.parameters)) {
       return;
     }
@@ -99,7 +99,7 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
       replacement = '$returnType Function$parameters $functionName';
     }
     // add change
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(range.node(node), replacement);
     });
   }

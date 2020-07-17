@@ -16,7 +16,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// An object used to compute a set of edits to add imports to a given library
@@ -49,9 +49,8 @@ class ImportElementsComputer {
       }
     }
 
-    var builder = DartChangeBuilder(libraryResult.session);
-    await builder.addFileEdit(libraryResult.path,
-        (DartFileEditBuilder builder) {
+    var builder = ChangeBuilder(session: libraryResult.session);
+    await builder.addDartFileEdit(libraryResult.path, (builder) {
       for (var importedElements in filteredImportedElements) {
         var matchingImports =
             _findMatchingImports(existingImports, importedElements);
@@ -65,7 +64,7 @@ class ImportElementsComputer {
           var importedSource = importedFile.createSource(uri);
           var importUri = _getLibrarySourceUri(libraryElement, importedSource);
           var description = _getInsertionDescription(importUri);
-          builder.addInsertion(description.offset, (DartEditBuilder builder) {
+          builder.addInsertion(description.offset, (builder) {
             for (var i = 0; i < description.newLinesBefore; i++) {
               builder.writeln();
             }
@@ -154,8 +153,7 @@ class ImportElementsComputer {
               } else if (combinator is ShowCombinator &&
                   namesToShow.isNotEmpty) {
                 // TODO(brianwilkerson) Add the names in alphabetic order.
-                builder.addInsertion(combinator.shownNames.last.end,
-                    (DartEditBuilder builder) {
+                builder.addInsertion(combinator.shownNames.last.end, (builder) {
                   for (var nameToShow in namesToShow) {
                     builder.write(', ');
                     builder.write(nameToShow);

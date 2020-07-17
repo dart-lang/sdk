@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -21,7 +21,7 @@ class CreateMixin extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CREATE_MIXIN;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     Element prefixElement;
     SimpleIdentifier nameNode;
     if (node is SimpleIdentifier) {
@@ -91,8 +91,8 @@ class CreateMixin extends CorrectionProducer {
     if (offset < 0) {
       return;
     }
-    await builder.addFileEdit(filePath, (DartFileEditBuilder builder) {
-      builder.addInsertion(offset, (DartEditBuilder builder) {
+    await builder.addDartFileEdit(filePath, (builder) {
+      builder.addInsertion(offset, (builder) {
         builder.write(prefix);
         builder.writeMixinDeclaration(_mixinName, nameGroupName: 'NAME');
         builder.write(suffix);

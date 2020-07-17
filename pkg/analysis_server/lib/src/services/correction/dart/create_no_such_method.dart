@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateNoSuchMethod extends CorrectionProducer {
@@ -13,7 +13,7 @@ class CreateNoSuchMethod extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CREATE_NO_SUCH_METHOD;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     if (node.parent is! ClassDeclaration) {
       return;
     }
@@ -21,8 +21,8 @@ class CreateNoSuchMethod extends CorrectionProducer {
     // prepare environment
     var prefix = utils.getIndent(1);
     var insertOffset = targetClass.end - 1;
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addInsertion(insertOffset, (DartEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addInsertion(insertOffset, (builder) {
         builder.selectHere();
         // insert empty line before existing member
         if (targetClass.members.isNotEmpty) {

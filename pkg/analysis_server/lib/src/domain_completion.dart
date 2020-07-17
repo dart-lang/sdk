@@ -26,7 +26,7 @@ import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// Instances of the class [CompletionDomainHandler] implement a
 /// [RequestHandler] that handles requests in the completion domain.
@@ -188,8 +188,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         var session = analysisDriver.currentSession;
 
         var completion = params.label;
-        var builder = DartChangeBuilder(session);
-        await builder.addFileEdit(file, (builder) {
+        var builder = ChangeBuilder(session: session);
+        await builder.addDartFileEdit(file, (builder) {
           var result = builder.importLibraryElement(library.uri);
           if (result.prefix != null) {
             completion = '${result.prefix}.$completion';
