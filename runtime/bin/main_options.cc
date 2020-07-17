@@ -42,6 +42,7 @@ SnapshotKind Options::gen_snapshot_kind_ = kNone;
 bool Options::enable_vm_service_ = false;
 MallocGrowableArray<const char*> Options::enabled_experiments_ =
     MallocGrowableArray<const char*>(4);
+bool Options::disable_dart_dev_ = true;
 
 #define OPTION_FIELD(variable) Options::variable##_
 
@@ -403,6 +404,28 @@ bool Options::ProcessEnableExperimentOption(const char* arg,
   return true;
 }
 
+bool Options::ProcessEnableDartDevOption(const char* arg,
+                                         CommandLineOptions* vm_options) {
+  const char* value = OptionProcessor::ProcessOption(arg, "--enable-dart-dev");
+  if (value == nullptr) {
+    value = OptionProcessor::ProcessOption(arg, "--enable_dart_dev");
+  }
+  if (value == nullptr) {
+    // Ensure --disable-dart-dev doesn't result in an unknown flag error.
+    value = OptionProcessor::ProcessOption(arg, "--disable-dart-dev");
+    if (value != nullptr) {
+      return true;
+    }
+    value = OptionProcessor::ProcessOption(arg, "--disable_dart_dev");
+    if (value != nullptr) {
+      return true;
+    }
+    return false;
+  }
+  disable_dart_dev_ = false;
+  return true;
+}
+
 static void ResolveDartDevSnapshotPath(const char* script,
                                        char** snapshot_path) {
   if (!DartDevUtils::TryResolveDartDevSnapshotPath(snapshot_path)) {
@@ -591,7 +614,8 @@ int Options::ParseArguments(int argc,
         }
       }
     }
-    if (num_experiment_flags + 1 != script_or_cmd_index) {
+    // +2 since --enable-dart-dev needs to be passed to enable DartDev.
+    if (num_experiment_flags + 2 != script_or_cmd_index) {
       Syslog::PrintErr(
           "Warning: The following flags were passed as VM options and are "
           "being "

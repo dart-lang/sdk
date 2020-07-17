@@ -46,8 +46,7 @@ namespace bin {
   V(disable_exit, exit_disabled)                                               \
   V(preview_dart_2, nop_option)                                                \
   V(suppress_core_dump, suppress_core_dump)                                    \
-  V(enable_service_port_fallback, enable_service_port_fallback)                \
-  V(disable_dart_dev, disable_dart_dev)
+  V(enable_service_port_fallback, enable_service_port_fallback)
 
 // Boolean flags that have a short form.
 #define SHORT_BOOL_OPTIONS_LIST(V)                                             \
@@ -70,7 +69,8 @@ namespace bin {
   V(ProcessEnableVmServiceOption)                                              \
   V(ProcessObserveOption)                                                      \
   V(ProcessAbiVersionOption)                                                   \
-  V(ProcessEnableExperimentOption)
+  V(ProcessEnableExperimentOption)                                             \
+  V(ProcessEnableDartDevOption)
 
 // This enum must match the strings in kSnapshotKindNames in main_options.cc.
 enum SnapshotKind {
@@ -129,6 +129,8 @@ class Options {
   static constexpr int kAbiVersionUnset = -1;
   static int target_abi_version() { return target_abi_version_; }
 
+  static bool disable_dart_dev() { return disable_dart_dev_; }
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
   static DFE* dfe() { return dfe_; }
   static void set_dfe(DFE* dfe) { dfe_ = dfe; }
@@ -179,6 +181,7 @@ class Options {
 
   static int target_abi_version_;
   static MallocGrowableArray<const char*> enabled_experiments_;
+  static bool disable_dart_dev_;
 
 #define OPTION_FRIEND(flag, variable) friend class OptionProcessor_##flag;
   STRING_OPTIONS_LIST(OPTION_FRIEND)
