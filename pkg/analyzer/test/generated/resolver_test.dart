@@ -501,20 +501,6 @@ main() {
     assertType(findNode.simple('v; // return'), 'int');
   }
 
-  test_functionExpression_asInvocationArgument_notSubtypeOfStaticType() async {
-    await assertErrorsInCode(r'''
-class A {
-  m(void f(int i)) {}
-}
-x() {
-  A a = new A();
-  a.m(() => 0);
-}''', [
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 63, 7),
-    ]);
-    assertType(findNode.functionExpression('() => 0'), 'int Function()');
-  }
-
   test_initializer_hasStaticType() async {
     await resolveTestCode(r'''
 f() {

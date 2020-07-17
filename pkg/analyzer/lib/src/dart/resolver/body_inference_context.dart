@@ -92,13 +92,7 @@ class BodyInferenceContext {
       endOfBlockIsReachable: endOfBlockIsReachable,
     );
 
-    DartType clampedReturnedType;
-    if (contextType == null ||
-        _typeSystem.isSubtypeOf2(actualReturnedType, contextType)) {
-      clampedReturnedType = actualReturnedType;
-    } else {
-      clampedReturnedType = nonNullifyType(_typeSystem, contextType);
-    }
+    var clampedReturnedType = _clampToContextType(actualReturnedType);
 
     if (_isGenerator) {
       if (_isAsynchronous) {
@@ -115,6 +109,35 @@ class BodyInferenceContext {
         return clampedReturnedType;
       }
     }
+  }
+
+  /// Let `T` be the **actual returned type** of a function literal.
+  DartType _clampToContextType(DartType T) {
+    // Let `R` be the greatest closure of the typing context `K`.
+    var R = contextType;
+    if (R == null) {
+      return T;
+    }
+
+    // If `R` is `void`, or the function literal is marked `async` and `R` is
+    // `FutureOr<void>`, let `S` be `void`.
+    if (_typeSystem.isNonNullableByDefault) {
+      if (R.isVoid ||
+          _isAsynchronous &&
+              R is InterfaceType &&
+              R.isDartAsyncFutureOr &&
+              R.typeArguments[0].isVoid) {
+        return VoidTypeImpl.instance;
+      }
+    }
+
+    // Otherwise, if `T <: R` then let `S` be `T`.
+    if (_typeSystem.isSubtypeOf2(T, R)) {
+      return T;
+    }
+
+    // Otherwise, let `S` be `R`.
+    return nonNullifyType(_typeSystem, R);
   }
 
   DartType _computeActualReturnedType({

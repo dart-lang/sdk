@@ -29,7 +29,6 @@ void main() {
 
   Expect.throws<TypeError>(() {
     int x = wrap(noToString); // Implicit cast should throw
-    return x;
   }, (e) {
     e.toString(); // Should not throw.
     return true;
