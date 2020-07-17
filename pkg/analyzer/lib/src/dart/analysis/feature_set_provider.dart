@@ -93,8 +93,8 @@ class FeatureSetProvider {
         }
       }
     } else if (uri.isScheme('file')) {
-      fileUriToNormalizedPath(_resourceProvider.pathContext, uri);
-      var package = _packages.packageForPath(uri.path);
+      var uriPath = fileUriToNormalizedPath(_resourceProvider.pathContext, uri);
+      var package = _packages.packageForPath(uriPath);
       if (package != null) {
         return package;
       }
