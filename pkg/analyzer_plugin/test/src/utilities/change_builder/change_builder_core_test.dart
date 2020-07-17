@@ -46,7 +46,7 @@ class ChangeBuilderImplTest {
   void test_sourceChange_emptyEdit() async {
     var builder = ChangeBuilderImpl();
     var path = '/test.dart';
-    await builder.addFileEdit(path, (FileEditBuilder builder) {});
+    await builder.addGenericFileEdit(path, (builder) {});
     var sourceChange = builder.sourceChange;
     expect(sourceChange, isNotNull);
     expect(sourceChange.edits, isEmpty);
@@ -68,7 +68,7 @@ class ChangeBuilderImplTest {
   Future<void> test_sourceChange_oneChange() async {
     var builder = ChangeBuilderImpl();
     var path = '/test.dart';
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
+    await builder.addGenericFileEdit(path, (builder) {
       builder.addSimpleInsertion(0, '_');
     });
     builder.getLinkedEditGroup('a');
@@ -89,9 +89,9 @@ class EditBuilderImplTest {
     var builder = ChangeBuilderImpl();
     var offset = 10;
     var text = 'content';
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(10, (EditBuilder builder) {
-        builder.addLinkedEdit('a', (LinkedEditBuilder builder) {
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addInsertion(10, (builder) {
+        builder.addLinkedEdit('a', (builder) {
           builder.write(text);
         });
         var sourceEdit = (builder as EditBuilderImpl).sourceEdit;
@@ -114,8 +114,8 @@ class EditBuilderImplTest {
     var builder = ChangeBuilderImpl();
     var offset = 10;
     var text = 'content';
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(10, (EditBuilder builder) {
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addInsertion(10, (builder) {
         builder.addSimpleLinkedEdit('a', text);
         var sourceEdit = (builder as EditBuilderImpl).sourceEdit;
         expect(sourceEdit.replacement, text);
@@ -135,8 +135,8 @@ class EditBuilderImplTest {
 
   Future<void> test_createLinkedEditBuilder() async {
     var builder = ChangeBuilderImpl();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(10, (EditBuilder builder) {
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addInsertion(10, (builder) {
         var linkBuilder =
             (builder as EditBuilderImpl).createLinkedEditBuilder();
         expect(linkBuilder, const TypeMatcher<LinkedEditBuilder>());
@@ -146,7 +146,7 @@ class EditBuilderImplTest {
 
   Future<void> test_selectHere() async {
     var builder = ChangeBuilderImpl();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
+    await builder.addGenericFileEdit(path, (builder) {
       builder.addInsertion(10, (EditBuilder builder) {
         builder.selectHere();
       });
@@ -158,8 +158,8 @@ class EditBuilderImplTest {
     var builder = ChangeBuilderImpl();
     var offset = 10;
     var text = 'write';
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(offset, (EditBuilder builder) {
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addInsertion(offset, (builder) {
         builder.write(text);
       });
     });
@@ -186,9 +186,8 @@ class EditBuilderImplTest {
     var builder = ChangeBuilderImpl();
     var offset = 52;
     var length = 12;
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addReplacement(SourceRange(offset, length),
-          (EditBuilder builder) {
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addReplacement(SourceRange(offset, length), (builder) {
         builder.writeln();
       });
     });
@@ -216,9 +215,8 @@ class EditBuilderImplTest {
     var offset = 52;
     var length = 12;
     var text = 'writeln';
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addReplacement(SourceRange(offset, length),
-          (EditBuilder builder) {
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addReplacement(SourceRange(offset, length), (builder) {
         builder.writeln(text);
       });
     });
@@ -251,7 +249,7 @@ class FileEditBuilderImplTest {
     var offset = 23;
     var length = 7;
     var builder = ChangeBuilderImpl();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
+    await builder.addGenericFileEdit(path, (builder) {
       builder.addDeletion(SourceRange(offset, length));
     });
     var edits = builder.sourceChange.edits[0].edits;
@@ -263,8 +261,8 @@ class FileEditBuilderImplTest {
 
   Future<void> test_addInsertion() async {
     var builder = ChangeBuilderImpl();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(10, (EditBuilder builder) {
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addInsertion(10, (builder) {
         expect(builder, isNotNull);
       });
     });
@@ -273,7 +271,7 @@ class FileEditBuilderImplTest {
   Future<void> test_addLinkedPosition() async {
     var builder = ChangeBuilderImpl();
     var groupName = 'a';
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
+    await builder.addGenericFileEdit(path, (builder) {
       builder.addLinkedPosition(SourceRange(3, 6), groupName);
     });
 
@@ -288,8 +286,8 @@ class FileEditBuilderImplTest {
 
   Future<void> test_addReplacement() async {
     var builder = ChangeBuilderImpl();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addReplacement(SourceRange(4, 5), (EditBuilder builder) {
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addReplacement(SourceRange(4, 5), (builder) {
         expect(builder, isNotNull);
       });
     });
@@ -299,7 +297,7 @@ class FileEditBuilderImplTest {
     var offset = 23;
     var text = 'xyz';
     var builder = ChangeBuilderImpl();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
+    await builder.addGenericFileEdit(path, (builder) {
       builder.addSimpleInsertion(offset, text);
     });
     var edits = builder.sourceChange.edits[0].edits;
@@ -314,7 +312,7 @@ class FileEditBuilderImplTest {
     var length = 7;
     var text = 'xyz';
     var builder = ChangeBuilderImpl();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
+    await builder.addGenericFileEdit(path, (builder) {
       builder.addSimpleReplacement(SourceRange(offset, length), text);
     });
     var edits = builder.sourceChange.edits[0].edits;
@@ -326,7 +324,7 @@ class FileEditBuilderImplTest {
 
   Future<void> test_createEditBuilder() async {
     var builder = ChangeBuilderImpl();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
+    await builder.addGenericFileEdit(path, (builder) {
       var offset = 4;
       var length = 5;
       var editBuilder =
@@ -347,9 +345,9 @@ class LinkedEditBuilderImplTest {
   Future<void> test_addSuggestion() async {
     var groupName = 'a';
     var builder = ChangeBuilderImpl();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(10, (EditBuilder builder) {
-        builder.addLinkedEdit(groupName, (LinkedEditBuilder builder) {
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addInsertion(10, (builder) {
+        builder.addLinkedEdit(groupName, (builder) {
           builder.write('A');
           builder.addSuggestion(LinkedEditSuggestionKind.TYPE, 'B');
         });
@@ -363,9 +361,9 @@ class LinkedEditBuilderImplTest {
   Future<void> test_addSuggestion_zeroLength() async {
     var groupName = 'a';
     var builder = ChangeBuilderImpl();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(10, (EditBuilder builder) {
-        builder.addLinkedEdit(groupName, (LinkedEditBuilder builder) {
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addInsertion(10, (builder) {
+        builder.addLinkedEdit(groupName, (builder) {
           builder.addSuggestion(LinkedEditSuggestionKind.TYPE, 'A');
         });
       });
@@ -377,9 +375,9 @@ class LinkedEditBuilderImplTest {
   Future<void> test_addSuggestions() async {
     var groupName = 'a';
     var builder = ChangeBuilderImpl();
-    await builder.addFileEdit(path, (FileEditBuilder builder) {
-      builder.addInsertion(10, (EditBuilder builder) {
-        builder.addLinkedEdit(groupName, (LinkedEditBuilder builder) {
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addInsertion(10, (builder) {
+        builder.addLinkedEdit(groupName, (builder) {
           builder.write('A');
           builder.addSuggestions(LinkedEditSuggestionKind.TYPE, ['B', 'C']);
         });
