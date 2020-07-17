@@ -61,10 +61,7 @@ group("runtime") {
   # TODO(bkonyi): this dep causes a segfault on Android XARM_X64 builds.
   # See issue #41776.
   if (dart_target_arch != "arm") {
-    deps += [
-      "utils/dartdev:dartdev",
-      "utils/dds:dds",
-    ]
+    deps += [ "utils/dartdev:dartdev" ]
   }
 }
 
@@ -162,7 +159,9 @@ if (is_fuchsia) {
     data_deps = [ "runtime/bin:dart" ]
     manifest = "build/fuchsia/dart.cmx"
 
-    resource_files = [ ".packages" ]
+    resource_files = [
+      ".packages",
+    ]
     resource_dirs = [
       "tests/standalone",
       "pkg/async_helper",
@@ -179,15 +178,13 @@ if (is_fuchsia) {
 
     resources = []
     foreach(file, resource_files) {
-      resources += [
-        {
-          path = file
-          dest = "data/" + file
-        },
-      ]
+      resources += [{
+        path = file
+        dest = "data/" + file
+      }]
     }
-    resources +=
-        exec_script("tools/fuchsia/find_resources.py", resource_dirs, "json")
+    resources += exec_script(
+        "tools/fuchsia/find_resources.py", resource_dirs, "json")
   }
 
   fuchsia_package("dart_sdk_fuchsia_test_package") {

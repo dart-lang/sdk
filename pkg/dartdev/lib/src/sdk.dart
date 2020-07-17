@@ -52,9 +52,6 @@ class Sdk {
 
   String get dartfmt => path.absolute(sdkPath, 'bin', _binName('dartfmt'));
 
-  String get ddsSnapshot =>
-      path.absolute(sdkPath, 'bin', 'snapshots', 'dds.dart.snapshot');
-
   String get pub => path.absolute(sdkPath, 'bin', _binName('pub'));
 
   static String _binName(String base) =>
