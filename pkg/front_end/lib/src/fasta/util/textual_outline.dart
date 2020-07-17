@@ -311,7 +311,7 @@ class TokenPrinter {
 
 String _textualizeClass(TextualOutlineListener listener, Token beginToken,
     Token endToken, _TextualOutlineState originalState,
-    {bool throwOnUnexpected: false, bool model: false}) {
+    {bool throwOnUnexpected: false}) {
   Token token = beginToken;
   TokenPrinter tokenPrinter = new TokenPrinter();
   // Class header.

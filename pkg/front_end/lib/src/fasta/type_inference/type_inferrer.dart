@@ -1763,7 +1763,6 @@ class TypeInferrerImpl implements TypeInferrer {
       Arguments arguments,
       List<VariableDeclaration> hoistedExpressions,
       {bool isOverloadedArithmeticOperator: false,
-      bool isBinaryOperator: false,
       DartType receiverType,
       DartType returnType,
       bool skipTypeArgumentInference: false,
