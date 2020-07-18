@@ -2735,6 +2735,30 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try making the deferred import non-deferred.");
 
   /**
+   * It is a compile-time error if the declared return type of a function marked
+   * 'async*' is not a supertype of 'Stream<T>' for some type 'T'.
+   */
+  static const CompileTimeErrorCode ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE =
+      CompileTimeErrorCode(
+          'ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE',
+          "Functions marked 'async*' must have a return type that is a "
+              "supertype of 'Stream<T>' for some type 'T'.",
+          correction: "Try fixing the return type of the function, or "
+              "removing the modifier 'async*' from the function body.");
+
+  /**
+   * It is a compile-time error if the declared return type of a function marked
+   * 'sync*' is not a supertype of 'Iterable<T>' for some type 'T'.
+   */
+  static const CompileTimeErrorCode ILLEGAL_SYNC_GENERATOR_RETURN_TYPE =
+      CompileTimeErrorCode(
+          'ILLEGAL_SYNC_GENERATOR_RETURN_TYPE',
+          "Functions marked 'sync*' must have a return type that is a "
+              "supertype of 'Iterable<T>' for some type 'T'.",
+          correction: "Try fixing the return type of the function, or "
+              "removing the modifier 'sync*' from the function body.");
+
+  /**
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause
    * of a class <i>C</i> specifies a malformed type or deferred type as a
    * superinterface.
@@ -7171,18 +7195,6 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
           correction: "Try adjusting the number of type arguments.");
 
   /**
-   * 9 Functions: It is a static warning if the declared return type of a
-   * function marked async* may not be assigned to Stream.
-   */
-  static const StaticTypeWarningCode ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE =
-      StaticTypeWarningCode(
-          'ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE',
-          "Functions marked 'async*' must have a return type assignable to "
-              "'Stream'.",
-          correction: "Try fixing the return type of the function, or "
-              "removing the modifier 'async*' from the function body.");
-
-  /**
    * No parameters.
    */
   // #### Description
@@ -7229,18 +7241,6 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
           correction: "Try fixing the return type of the function, or "
               "removing the modifier 'async' from the function body.",
           hasPublishedDocs: true);
-
-  /**
-   * 9 Functions: It is a static warning if the declared return type of a
-   * function marked sync* may not be assigned to Iterable.
-   */
-  static const StaticTypeWarningCode ILLEGAL_SYNC_GENERATOR_RETURN_TYPE =
-      StaticTypeWarningCode(
-          'ILLEGAL_SYNC_GENERATOR_RETURN_TYPE',
-          "Functions marked 'sync*' must have a return type assignable to "
-              "'Iterable'.",
-          correction: "Try fixing the return type of the function, or "
-              "removing the modifier 'sync*' from the function body.");
 
   /**
    * Parameters:

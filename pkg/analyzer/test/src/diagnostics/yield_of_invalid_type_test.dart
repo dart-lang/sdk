@@ -39,7 +39,7 @@ int f() async* {
   yield 0;
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 3),
+      error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 3),
       error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 25, 1),
     ]);
   }
@@ -58,7 +58,7 @@ Iterable<int> f() async* {
   yield 0;
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 13),
+      error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 13),
       error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 35, 1),
     ]);
   }
@@ -122,7 +122,7 @@ int f() sync* {
   yield 0;
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 0, 3),
+      error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 0, 3),
       error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 24, 1),
     ]);
   }
@@ -169,7 +169,7 @@ Stream<int> f() sync* {
   yield 0;
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 22, 11),
+      error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 22, 11),
       error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 54, 1),
     ]);
   }

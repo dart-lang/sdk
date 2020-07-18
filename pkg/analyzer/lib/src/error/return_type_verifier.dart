@@ -10,6 +10,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/error/analyzer_error_code.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:meta/meta.dart';
@@ -87,7 +88,7 @@ class ReturnTypeVerifier {
 
     void checkElement(
       ClassElement expectedElement,
-      StaticTypeWarningCode errorCode,
+      AnalyzerErrorCode errorCode,
     ) {
       void reportError() {
         enclosingExecutable.hasLegalReturnType = false;
@@ -113,7 +114,7 @@ class ReturnTypeVerifier {
       if (enclosingExecutable.isGenerator) {
         checkElement(
           _typeProvider.streamElement,
-          StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
+          CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
         );
       } else {
         checkElement(
@@ -124,7 +125,7 @@ class ReturnTypeVerifier {
     } else if (enclosingExecutable.isGenerator) {
       checkElement(
         _typeProvider.iterableElement,
-        StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE,
+        CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE,
       );
     }
   }
