@@ -6,6 +6,6 @@
 
 library empty_packages_file_option_test;
 
-import 'package:foo/foo.dart';
+import 'package:foo/foo.dart'; //# 01: compile-time error
 
 main() {}
