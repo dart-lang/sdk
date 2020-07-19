@@ -892,10 +892,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
     } else if (expression is IndexExpression) {
       name = _getBaseNameFromExpression(expression.realTarget);
-      if (name.endsWith('es')) {
-        name = name.substring(0, name.length - 2);
-      } else if (name.endsWith('s')) {
-        name = name.substring(0, name.length - 1);
+      if (name != null) {
+        if (name.endsWith('es')) {
+          name = name.substring(0, name.length - 2);
+        } else if (name.endsWith('s')) {
+          name = name.substring(0, name.length - 1);
+        }
       }
     }
     // strip known prefixes
