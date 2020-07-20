@@ -870,27 +870,6 @@ class KernelTarget extends TargetImplementation {
           constructor.function.body.parent = constructor.function;
         }
 
-        Set<Field> myInitializedFields = new Set<Field>();
-        for (Initializer initializer in constructor.initializers) {
-          if (initializer is FieldInitializer) {
-            myInitializedFields.add(initializer.field);
-          }
-        }
-        for (VariableDeclaration formal
-            in constructor.function.positionalParameters) {
-          if (formal.isFieldFormal) {
-            Builder fieldBuilder =
-                builder.scope.lookupLocalMember(formal.name, setter: false) ??
-                    builder.origin.scope
-                        .lookupLocalMember(formal.name, setter: false);
-            // If next is not null it's a duplicated field,
-            // and it doesn't need to be initialized to null below
-            // (and doing it will crash serialization).
-            if (fieldBuilder?.next == null && fieldBuilder is FieldBuilder) {
-              myInitializedFields.add(fieldBuilder.field);
-            }
-          }
-        }
         if (constructor.isConst && nonFinalFields.isNotEmpty) {
           builder.addProblem(messageConstConstructorNonFinalField,
               constructor.fileOffset, noLength,

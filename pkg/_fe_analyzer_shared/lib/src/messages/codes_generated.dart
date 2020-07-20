@@ -55,6 +55,35 @@ const MessageCode messageAbstractExtensionField = const MessageCode(
     tip: r"""Try removing the 'abstract' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractFieldConstructorInitializer =
+    messageAbstractFieldConstructorInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractFieldConstructorInitializer = const MessageCode(
+    "AbstractFieldConstructorInitializer",
+    message: r"""Abstract fields cannot have initializers.""",
+    tip:
+        r"""Try removing the field initializer or the 'abstract' keyword from the field declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractFieldInitializer = messageAbstractFieldInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractFieldInitializer = const MessageCode(
+    "AbstractFieldInitializer",
+    message: r"""Abstract fields cannot have initializers.""",
+    tip: r"""Try removing the initializer or the 'abstract' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractLateField = messageAbstractLateField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractLateField = const MessageCode(
+    "AbstractLateField",
+    message: r"""Abstract fields cannot be late.""",
+    tip: r"""Try removing the 'abstract' or 'late' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAbstractNotSync = messageAbstractNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

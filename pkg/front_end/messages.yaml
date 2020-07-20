@@ -564,7 +564,29 @@ AbstractExtensionField:
 # Separate class and extension field handling to to support this.
 #  configuration: nnbd-strong
 #  script:
-#    - "extension C on int { abstract static var f; }"
+#    - "extension C on int {abstract static var f;}"
+
+AbstractFieldInitializer:
+  template: "Abstract fields cannot have initializers."
+  tip: "Try removing the initializer or the 'abstract' keyword."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {abstract var f = 0;}"
+
+AbstractFieldConstructorInitializer:
+  template: "Abstract fields cannot have initializers."
+  tip: "Try removing the field initializer or the 'abstract' keyword from the field declaration."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {abstract var f; C(this.f);}"
+    - "abstract class C {abstract var f; C() : this.f = 0;}"
+
+AbstractLateField:
+  template: "Abstract fields cannot be late."
+  tip: "Try removing the 'abstract' or 'late' keyword."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {abstract late var f;}"
 
 ClassInClass:
   index: 53

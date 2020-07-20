@@ -7,11 +7,13 @@
 
 // Check that abstract declarations are abstract.
 class Abstract1 {
+//    ^
+// [cfe] The non-abstract class 'Abstract1' is missing implementations for these members:
+
   // The class is not abstract and does not have an implementation of `x`.
   abstract int x;
   //           ^
   // [analyzer] unspecified
-  // [cfe] unspecified
 }
 
 // Check that class has expected interface.
@@ -26,9 +28,10 @@ abstract class Abstract2 {
 
     // Cannot assign to final field.
     a.x = 42;
+    //^
+    // [cfe] The setter 'x' isn't defined for the class 'Abstract2'.
     //  ^
     // [analyzer] unspecified
-    // [cfe] unspecified
 
     String y = a.y;
     a.y = "ab";
@@ -37,7 +40,7 @@ abstract class Abstract2 {
     a.y = Object();
     //    ^^^^^^^^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    // [cfe] A value of type 'Object' can't be assigned to a variable of type 'String'.
   }
 
   void test() {
@@ -45,9 +48,10 @@ abstract class Abstract2 {
 
     // Cannot assign to final field.
     this.x = 42;
+    //   ^
+    // [cfe] The setter 'x' isn't defined for the class 'Abstract2'.
     //     ^
     // [analyzer] unspecified
-    // [cfe] unspecified
 
     String y = this.y;
     this.y = "ab";
@@ -56,7 +60,7 @@ abstract class Abstract2 {
     this.y = Object();
     //       ^^^^^^^^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    // [cfe] A value of type 'Object' can't be assigned to a variable of type 'String'.
   }
 }
 

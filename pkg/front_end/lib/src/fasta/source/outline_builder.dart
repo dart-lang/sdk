@@ -1739,6 +1739,11 @@ class OutlineBuilder extends StackListenerImpl {
             messageAbstractStaticField, abstractToken, abstractToken);
         abstractToken = null;
       }
+      if (abstractToken != null && lateToken != null) {
+        handleRecoverableError(
+            messageAbstractLateField, abstractToken, abstractToken);
+        abstractToken = null;
+      }
     }
     List<FieldInfo> fieldInfos = popFieldInfos(count);
     TypeBuilder type = pop();

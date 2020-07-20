@@ -2460,6 +2460,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (member is FieldBuilder) {
       FieldBuilder fieldBuilder = member;
       inLateFieldInitializer = fieldBuilder.isLate;
+      if (fieldBuilder.isAbstract) {
+        addProblem(
+            fasta.messageAbstractFieldInitializer, token.charOffset, noLength);
+      }
     } else {
       inLateFieldInitializer = false;
     }
@@ -5871,7 +5875,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         ];
       }
       initializedFields[name] = assignmentOffset;
-      if (builder.isFinal && builder.hasInitializer) {
+      if (builder.isAbstract) {
+        return <Initializer>[
+          buildInvalidInitializer(
+              buildProblem(fasta.messageAbstractFieldConstructorInitializer,
+                  fieldNameOffset, name.length),
+              fieldNameOffset)
+        ];
+      } else if (builder.isFinal && builder.hasInitializer) {
         addProblem(
             fasta.templateFinalInstanceVariableAlreadyInitialized
                 .withArguments(name),
