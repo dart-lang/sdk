@@ -74,7 +74,7 @@ class DartUnitHoverComputer {
         if (element.enclosingElement is! ExecutableElement) {
           // containing class
           var containingClass = element.thisOrAncestorOfType<ClassElement>();
-          if (containingClass != null) {
+          if (containingClass != null && containingClass != element) {
             hover.containingClassDescription = containingClass.displayName;
           }
           // containing library
