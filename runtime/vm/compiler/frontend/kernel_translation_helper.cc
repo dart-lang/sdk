@@ -3477,7 +3477,8 @@ void TypeTranslator::SetupUnboxingInfoMetadataForFieldAccessors(
         SetupUnboxingInfoOfParameter(field_accessor, i, unboxing_info);
       }
     } else {
-      ASSERT(field_accessor.IsImplicitGetterFunction());
+      ASSERT(field_accessor.IsImplicitGetterFunction() ||
+             field_accessor.IsImplicitStaticGetterFunction());
       SetupUnboxingInfoOfReturnValue(field_accessor, unboxing_info);
     }
   }
