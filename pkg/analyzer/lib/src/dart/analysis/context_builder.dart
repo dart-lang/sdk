@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart'
     show PerformanceLog;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
 import 'package:analyzer/src/generated/source.dart' show ContentCache;
+import 'package:cli_util/cli_util.dart';
 import 'package:meta/meta.dart';
 
 /// An implementation of a context builder.
@@ -44,8 +45,10 @@ class ContextBuilderImpl implements ContextBuilder {
       List<String> librarySummaryPaths,
       @deprecated PerformanceLog performanceLog,
       @deprecated AnalysisDriverScheduler scheduler,
-      @required String sdkPath,
+      String sdkPath,
       String sdkSummaryPath}) {
+    // TODO(scheglov) Remove this, and make `sdkPath` required.
+    sdkPath ??= getSdkPath();
     ArgumentError.checkNotNull(sdkPath, 'sdkPath');
 
     var byteStore = MemoryByteStore();
