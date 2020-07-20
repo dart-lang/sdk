@@ -76,6 +76,7 @@ import 'create_missing_overrides_test.dart' as create_missing_overrides;
 import 'create_mixin_test.dart' as create_mixin;
 import 'create_no_such_method_test.dart' as create_no_such_method;
 import 'create_setter_test.dart' as create_setter;
+import 'data_driven/test_all.dart' as data_driven;
 import 'extend_class_for_mixin_test.dart' as extend_class_for_mixin;
 import 'fix_test.dart' as fix;
 import 'import_async_test.dart' as import_async;
@@ -226,6 +227,7 @@ void main() {
     create_mixin.main();
     create_no_such_method.main();
     create_setter.main();
+    data_driven.main();
     extend_class_for_mixin.main();
     fix.main();
     import_async.main();
