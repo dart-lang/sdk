@@ -6,10 +6,12 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeParameterSupertypeOfItsBoundTest);
+    defineReflectiveTests(TypeParameterSupertypeOfItsBoundWithNullSafetyTest);
   });
 }
 
@@ -18,6 +20,18 @@ class TypeParameterSupertypeOfItsBoundTest extends DriverResolutionTest {
   test_1of1() async {
     await assertErrorsInCode(r'''
 class A<T extends T> {
+}
+''', [
+      error(StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 11),
+    ]);
+  }
+
+  test_1of1_used() async {
+    await assertErrorsInCode('''
+class A<T extends T> {
+  void foo(x) {
+    x is T;
+  }
 }
 ''', [
       error(StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 11),
@@ -35,3 +49,7 @@ class A<T1 extends T3, T2, T3 extends T1> {
     ]);
   }
 }
+
+@reflectiveTest
+class TypeParameterSupertypeOfItsBoundWithNullSafetyTest
+    extends TypeParameterSupertypeOfItsBoundTest with WithNullSafetyMixin {}

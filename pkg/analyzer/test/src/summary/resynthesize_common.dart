@@ -1685,6 +1685,30 @@ class D {
 ''');
   }
 
+  test_class_type_parameters_cycle_1of1() async {
+    var library = await checkLibrary('class C<T extends T> {}');
+    checkElementText(
+        library,
+        r'''
+notSimplyBounded class C<T extends dynamic> {
+}
+''',
+        withTypes: true);
+  }
+
+  test_class_type_parameters_cycle_2of3() async {
+    var library = await checkLibrary(r'''
+class C<T extends V, U, V extends T> {}
+''');
+    checkElementText(
+        library,
+        r'''
+notSimplyBounded class C<T extends dynamic, U, V extends dynamic> {
+}
+''',
+        withTypes: true);
+  }
+
   test_class_type_parameters_f_bound_complex() async {
     var library = await checkLibrary('class C<T extends List<U>, U> {}');
     checkElementText(library, r'''
