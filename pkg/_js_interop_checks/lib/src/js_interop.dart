@@ -4,19 +4,48 @@
 
 import 'package:kernel/kernel.dart';
 
-/// Returns true iff the class has an `@JS(...)` annotation from `package:js`
-/// or from the internal `dart:_js_annotations`.
-bool hasJSInteropAnnotation(Class c) =>
-    c.annotations.any(_isPublicJSAnnotation);
+/// Returns true iff the node has an `@JS(...)` annotation from `package:js` or
+/// from the internal `dart:_js_annotations`.
+bool hasJSInteropAnnotation(Annotatable a) =>
+    a.annotations.any(_isPublicJSAnnotation);
+
+/// Returns true if [m] belongs to a JS interop context. Checks if either the
+/// member or the surrounding context has a JS interop annotation.
+bool isJSInteropMember(Member m) {
+  if (hasJSInteropAnnotation(m)) return true;
+  var enclosingClass = m.enclosingClass;
+  if (enclosingClass != null) return hasJSInteropAnnotation(enclosingClass);
+  var enclosingLibrary = m.enclosingLibrary;
+  if (enclosingLibrary != null) return hasJSInteropAnnotation(enclosingLibrary);
+  return false;
+}
+
+/// Returns true if [m] belongs to an anonymous class.
+bool isAnonymousClassMember(Member m) {
+  var enclosingClass = m.enclosingClass;
+  if (enclosingClass == null) return false;
+  return enclosingClass.annotations.any(_isAnonymousAnnotation);
+}
 
 final _packageJs = Uri.parse('package:js/js.dart');
 final _internalJs = Uri.parse('dart:_js_annotations');
 
-/// Returns [true] if [e] is the `JS` annotation from `package:js`.
+/// Returns true if [value] is the `JS` annotation from `package:js` or from
+/// `dart:_js_annotations`.
 bool _isPublicJSAnnotation(Expression value) {
   var c = _annotationClass(value);
   return c != null &&
       c.name == 'JS' &&
+      (c.enclosingLibrary.importUri == _packageJs ||
+          c.enclosingLibrary.importUri == _internalJs);
+}
+
+/// Returns true if [value] is the `anyonymous` annotation from `package:js` or
+/// from `dart:_js_annotations`.
+bool _isAnonymousAnnotation(Expression value) {
+  var c = _annotationClass(value);
+  return c != null &&
+      c.name == '_Anonymous' &&
       (c.enclosingLibrary.importUri == _packageJs ||
           c.enclosingLibrary.importUri == _internalJs);
 }

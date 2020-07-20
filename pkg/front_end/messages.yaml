@@ -4079,6 +4079,10 @@ JsInteropIndexNotSupported:
   template: "JS interop classes do not support [] and []= operator methods."
   tip: "Try replacing with a normal method."
 
+JsInteropNamedParameters:
+  template: "Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class."
+  tip: "Try replacing them with normal or optional parameters."
+
 JsInteropNonExternalConstructor:
   template: "JS interop classes do not support non-external constructors."
   tip: "Try annotating with `external`."

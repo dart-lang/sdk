@@ -5464,6 +5464,16 @@ const MessageCode messageJsInteropIndexNotSupported = const MessageCode(
     tip: r"""Try replacing with a normal method.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropNamedParameters = messageJsInteropNamedParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropNamedParameters = const MessageCode(
+    "JsInteropNamedParameters",
+    message:
+        r"""Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.""",
+    tip: r"""Try replacing them with normal or optional parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropNonExternalConstructor =
     messageJsInteropNonExternalConstructor;
 

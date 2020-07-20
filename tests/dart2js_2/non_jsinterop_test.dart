@@ -62,7 +62,7 @@ class Class {
   // NON_NATIVE_EXTERNAL                 //# 09: compile-time error
   external factory Class.externalFact(); //# 09: continued
 
-  @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 10: compile-time error
+  @JS('a') // GENERIC  //# 10: compile-time error
   Class.jsInteropGenerative(); //# 10: continued
 
   @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 11: compile-time error

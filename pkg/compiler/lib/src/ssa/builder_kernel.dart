@@ -3603,13 +3603,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           }
         }
         assert(namedValues.isEmpty);
-      } else {
-        // Throw an error because JS cannot handle named parameters.
-        reporter.reportErrorMessage(
-            _elementMap.getSpannable(targetElement, target),
-            MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
-            {'method': function.name});
-        return null;
       }
     }
     return values;
