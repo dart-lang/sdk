@@ -125,6 +125,8 @@ Updated the Linter to `0.1.117`, which includes:
   * Don't require a `pubspec.lock` file. When the lockfile is missing, the
     **Current** column is empty.
 * `pub upgrade`: Show summary count of outdated packages after running.
+  It will also only show newer packages if they are not prereleases or
+  the package is already a prerelease.
 * Publishing Flutter plugins using the old plugin format is no longer allowed.
   Plugins using the old plugin format can still be consumed.
 * `pub run`: Fix precompilation with relative `PUB_CACHE` paths
@@ -132,6 +134,9 @@ Updated the Linter to `0.1.117`, which includes:
 * Preserve Windows line endings in `pubspec.lock` if they are already there
   ([#2489](https://github.com/dart-lang/pub/pull/2489)).
 * Better terminal color-detection. Use colors in terminals on Windows.
+* Fix git folder names in cache, allowing for ssh-style git 
+  dependencies.
+* Fix: Avoid precompilation of dependencies of global packages.
 
 ## 2.8.4 - 2020-06-04
 

@@ -128,7 +128,7 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "86fbb2cde9bbc66c8d159909d2f65a5981ea5b50",
   "protobuf_rev": "3746c8fd3f2b0147623a8e3db89c3ff4330de760",
-  "pub_rev": "85bdb898aeb2ac7cea76489ba0bf4e52ff7a79bf",
+  "pub_rev": "04b054b62cc437cf23451785fdc50e49cd9de139",
   "pub_semver_tag": "v1.4.4",
   "quiver-dart_tag": "246e754fe45cecb6aa5f3f13b4ed61037ff0d784",
   "resource_rev": "f8e37558a1c4f54550aa463b88a6a831e3e33cd6",
