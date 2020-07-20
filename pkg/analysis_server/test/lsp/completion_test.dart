@@ -976,6 +976,41 @@ main() {
     '''));
   }
 
+  /// This test reproduces a bug where the pathKey hash used in
+  /// available_declarations.dart would not change with the contents of the file
+  /// (as it always used 0 as the modification stamp) which would prevent
+  /// completion including items from files that were open (had overlays).
+  /// https://github.com/Dart-Code/Dart-Code/issues/2286#issuecomment-658597532
+  Future<void> test_suggestionSets_modifiedFiles() async {
+    final otherFilePath = join(projectFolderPath, 'lib', 'other_file.dart');
+    final otherFileUri = Uri.file(otherFilePath);
+
+    final mainFileContent = 'MyOtherClass^';
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(mainFileContent));
+    await initialAnalysis;
+
+    // Start with a blank file.
+    newFile(otherFilePath, content: '');
+    await openFile(otherFileUri, '');
+    await pumpEventQueue(times: 5000);
+
+    // Reopen the file with a class definition.
+    await closeFile(otherFileUri);
+    await openFile(otherFileUri, 'class MyOtherClass {}');
+    await pumpEventQueue(times: 5000);
+
+    // Ensure the class appears in completion.
+    final completions =
+        await getCompletion(mainFileUri, positionFromMarker(mainFileContent));
+    final matching =
+        completions.where((c) => c.label == 'MyOtherClass').toList();
+    expect(matching, hasLength(1));
+  }
+
   Future<void> test_suggestionSets_namedConstructors() async {
     newFile(
       join(projectFolderPath, 'other_file.dart'),

@@ -336,7 +336,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   }
 
   void onOverlayCreated(String path, String content) {
-    resourceProvider.setOverlay(path, content: content, modificationStamp: 0);
+    resourceProvider.setOverlay(path,
+        content: content, modificationStamp: overlayModificationStamp++);
 
     _afterOverlayChanged(path, plugin.AddContentOverlay(content));
   }
@@ -361,7 +362,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     }
 
     resourceProvider.setOverlay(path,
-        content: newContent, modificationStamp: 0);
+        content: newContent, modificationStamp: overlayModificationStamp++);
 
     _afterOverlayChanged(path, plugin.ChangeContentOverlay(edits));
   }
