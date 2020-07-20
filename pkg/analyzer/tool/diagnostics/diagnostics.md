@@ -8104,6 +8104,8 @@ void f() {
 
 ### unused_element
 
+_A value for optional parameter '{0}' isn't ever given._
+
 _The declaration '{0}' isn't referenced._
 
 #### Description

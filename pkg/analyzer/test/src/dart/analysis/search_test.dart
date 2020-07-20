@@ -1755,7 +1755,7 @@ class NoMatchABCDEF {}
   /// Create [ExpectedResult] for a qualified and resolved match.
   ExpectedResult _expectIdQ(
       Element element, SearchResultKind kind, String search,
-      {int length, bool isResolved = true}) {
+      {int length}) {
     return _expectId(element, kind, search, isQualified: true, length: length);
   }
 

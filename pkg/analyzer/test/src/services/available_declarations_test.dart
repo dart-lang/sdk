@@ -2525,6 +2525,20 @@ final double e = 2.7;
 
 @reflectiveTest
 class ExportTest extends _Base {
+  test_classTypeAlias() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+mixin M {}
+class A = Object with M;
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/test.dart', declarations: [
+      _ExpectedDeclaration.mixin('M'),
+      _ExpectedDeclaration.classTypeAlias('A'),
+    ]);
+  }
+
   test_combinators_hide() async {
     newFile('/home/test/lib/a.dart', content: r'''
 class A {}
@@ -2660,6 +2674,32 @@ enum E2 {a, b}
     ]);
   }
 
+  test_function() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+int foo() => 0;
+int bar() => 0;
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/test.dart', declarations: [
+      _ExpectedDeclaration.function('foo'),
+      _ExpectedDeclaration.function('bar'),
+    ]);
+  }
+
+  test_functionTypeAlias() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+typedef F = int Function();
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/test.dart', declarations: [
+      _ExpectedDeclaration.functionTypeAlias('F'),
+    ]);
+  }
+
   test_missing() async {
     newFile('/home/test/lib/test.dart', content: r'''
 export 'a.dart';
@@ -2762,6 +2802,18 @@ class C {}
       _ExpectedDeclaration.class_('C', [
         _ExpectedDeclaration.constructor(''),
       ]),
+    ]);
+  }
+
+  test_variable() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+int foo = 0;
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/test.dart', declarations: [
+      _ExpectedDeclaration.variable('foo'),
     ]);
   }
 }
