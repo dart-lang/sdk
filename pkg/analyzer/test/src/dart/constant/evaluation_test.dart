@@ -15,7 +15,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/test_support.dart';
 import '../resolution/driver_resolution.dart';
-import 'potentially_constant_test.dart';
+import '../resolution/with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
