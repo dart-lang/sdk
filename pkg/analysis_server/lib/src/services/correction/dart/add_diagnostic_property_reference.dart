@@ -99,6 +99,9 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
     }
 
     final classDeclaration = parent.thisOrAncestorOfType<ClassDeclaration>();
+    if (classDeclaration == null) {
+      return;
+    }
     final debugFillProperties =
         classDeclaration.getMethod('debugFillProperties');
     if (debugFillProperties == null) {
