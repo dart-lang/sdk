@@ -7,18 +7,12 @@ import "static_type_helper.dart";
 
 // as modified by Null Safety
 void main() {
-  testTypes<int, double, num, Object, int, double, num>(
-      1, 1.0, 1, 1, 1, 1.0, 1);
+  testTypes<int, double, num, Object>(1, 1.0, 1, 1);
 }
 
-void testTypes<
-    I extends int,
-    D extends double,
-    N extends num,
-    O extends Object,
-    II extends I,
-    DD extends D,
-    NN extends N>(I ti, D td, N tn, O to, II tii, DD tdd, NN tnn) {
+void
+    testTypes<I extends int, D extends double, N extends num, O extends Object>(
+        I ti, D td, N tn, O to) {
   int i = 1;
   double d = 1.0;
   num n = cast(1);
@@ -63,6 +57,12 @@ void testTypes<
   //^^
   // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
 
+  ti += i; // Type of expression is `int`, not `I`.
+  //    ^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // ^^
+  // [cfe] A value of type 'int' can't be assigned to a variable of type 'I'.
+
   ti += d; // Type of expression is `num`, not `I`.
   //    ^
   // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
@@ -86,6 +86,66 @@ void testTypes<
   // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
   // ^^
   // [cfe] A value of type 'num' can't be assigned to a variable of type 'I'.
+
+  td += i; // Type of expression is `double`, not `D`.
+  //    ^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // ^^
+  // [cfe] A value of type 'double' can't be assigned to a variable of type 'D'.
+
+  td += d; // Type of expression is `double`, not `D`.
+  //    ^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // ^^
+  // [cfe] A value of type 'double' can't be assigned to a variable of type 'D'.
+
+  td += n; // Type of expression is `double`, not `D`.
+  //    ^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // ^^
+  // [cfe] A value of type 'double' can't be assigned to a variable of type 'D'.
+
+  td += dyn; // Type of expression is `double`, not `D`.
+  //    ^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // ^^
+  // [cfe] A value of type 'double' can't be assigned to a variable of type 'D'.
+
+  td += never; // Type of expression is `double`, not `D`.
+  //    ^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // ^^
+  // [cfe] A value of type 'double' can't be assigned to a variable of type 'D'.
+
+  tn += i; // Type of expression is `num`, not `N`.
+  //    ^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // ^^
+  // [cfe] A value of type 'num' can't be assigned to a variable of type 'N'.
+
+  tn += d; // Type of expression is `num`, not `N`.
+  //    ^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // ^^
+  // [cfe] A value of type 'num' can't be assigned to a variable of type 'N'.
+
+  tn += n; // Type of expression is `num`, not `N`.
+  //    ^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // ^^
+  // [cfe] A value of type 'num' can't be assigned to a variable of type 'N'.
+
+  tn += dyn; // Type of expression is `num`, not `N`.
+  //    ^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // ^^
+  // [cfe] A value of type 'num' can't be assigned to a variable of type 'N'.
+
+  tn += never; // Type of expression is `num`, not `N`.
+  //    ^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // ^^
+  // [cfe] A value of type 'num' can't be assigned to a variable of type 'N'.
 
   O oi1 = to; // New variable to avoid demoting `oi`.
   if (oi1 is int) {
@@ -182,4 +242,5 @@ void testTypes<
   }
 }
 
+// The value as the context type, without risking any assignment promotion.
 T cast<T>(Object value) => value as T;

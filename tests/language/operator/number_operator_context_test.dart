@@ -41,36 +41,26 @@ void testIntContext<I extends int, O extends Object>(I i, O o) {
   context<int>(i % (contextType(1)..expectStaticType<Exactly<int>>()));
   context<int>(i.remainder(contextType(1)..expectStaticType<Exactly<int>>()));
 
-  context<I>(i + (contextType(1)..expectStaticType<Exactly<int>>()));
-  context<I>(i - (contextType(1)..expectStaticType<Exactly<int>>()));
-  context<I>(i * (contextType(1)..expectStaticType<Exactly<int>>()));
-  context<I>(i % (contextType(1)..expectStaticType<Exactly<int>>()));
-  context<I>(i.remainder(contextType(1)..expectStaticType<Exactly<int>>()));
-
   context<num>(1 + (contextType(1)..expectStaticType<Exactly<num>>()));
   context<num>(1 - (contextType(1)..expectStaticType<Exactly<num>>()));
   context<num>(1 * (contextType(1)..expectStaticType<Exactly<num>>()));
   context<num>(1 % (contextType(1)..expectStaticType<Exactly<num>>()));
   context<num>(1.remainder(contextType(1)..expectStaticType<Exactly<num>>()));
 
-  var oi = o;
+  O oi = 1 as O;
   if (oi is! int) throw "promote oi to O&int";
-
   context<int>(oi + (contextType(1)..expectStaticType<Exactly<int>>()));
   context<int>(oi - (contextType(1)..expectStaticType<Exactly<int>>()));
   context<int>(oi * (contextType(1)..expectStaticType<Exactly<int>>()));
   context<int>(oi % (contextType(1)..expectStaticType<Exactly<int>>()));
   context<int>(oi.remainder(contextType(1)..expectStaticType<Exactly<int>>()));
 
-  i += contextType(1)..expectStaticType<Exactly<int>>();
-  i -= contextType(1)..expectStaticType<Exactly<int>>();
-  i *= contextType(1)..expectStaticType<Exactly<int>>();
-  i %= contextType(1)..expectStaticType<Exactly<int>>();
-
-  oi += contextType(1)..expectStaticType<Exactly<int>>();
-  oi -= contextType(1)..expectStaticType<Exactly<int>>();
-  oi *= contextType(1)..expectStaticType<Exactly<int>>();
-  oi %= contextType(2)..expectStaticType<Exactly<int>>();
+  int ii = 0;
+  ii += contextType(1)..expectStaticType<Exactly<int>>();
+  ii -= contextType(1)..expectStaticType<Exactly<int>>();
+  ii *= contextType(1)..expectStaticType<Exactly<int>>();
+  ii %= contextType(1)..expectStaticType<Exactly<int>>();
+  if (ii != 0) throw "use ii";
 
   context<int>(1.clamp(contextType(1)..expectStaticType<Exactly<int>>(),
       contextType(1)..expectStaticType<Exactly<int>>()));
@@ -78,14 +68,8 @@ void testIntContext<I extends int, O extends Object>(I i, O o) {
   context<int>(i.clamp(contextType(1)..expectStaticType<Exactly<int>>(),
       contextType(1)..expectStaticType<Exactly<int>>()));
 
-  context<I>(i.clamp(contextType(1)..expectStaticType<Exactly<I>>(),
-      contextType(1)..expectStaticType<Exactly<I>>()));
-
   context<int>(oi.clamp(contextType(1)..expectStaticType<Exactly<int>>(),
       contextType(1)..expectStaticType<Exactly<int>>()));
-
-  context<I>(i.clamp(contextType(1)..expectStaticType<Exactly<I>>(),
-      contextType(1)..expectStaticType<Exactly<I>>()));
 }
 
 void testDoubleContext<I extends int, D extends double, N extends num,
@@ -118,17 +102,14 @@ void testDoubleContext<I extends int, D extends double, N extends num,
   context<double>(
       d.remainder(contextType(1.0)..expectStaticType<Exactly<num>>()));
 
-  context<D>(1 + (contextType(1)..expectStaticType<Exactly<double>>()));
-  context<D>(1 - (contextType(1)..expectStaticType<Exactly<double>>()));
-  context<D>(1 * (contextType(1)..expectStaticType<Exactly<double>>()));
-  context<D>(1 % (contextType(1)..expectStaticType<Exactly<double>>()));
-  context<D>(1.remainder(contextType(1)..expectStaticType<Exactly<double>>()));
-
-  context<D>(d + (contextType(1.0)..expectStaticType<Exactly<num>>()));
-  context<D>(d - (contextType(1.0)..expectStaticType<Exactly<num>>()));
-  context<D>(d * (contextType(1.0)..expectStaticType<Exactly<num>>()));
-  context<D>(d % (contextType(1.0)..expectStaticType<Exactly<num>>()));
-  context<D>(d.remainder(contextType(1.0)..expectStaticType<Exactly<num>>()));
+  var od = (1.0 as O);
+  if (od is! double) throw "promote od to O&double";
+  context<double>(od + (contextType(1.0)..expectStaticType<Exactly<num>>()));
+  context<double>(od - (contextType(1.0)..expectStaticType<Exactly<num>>()));
+  context<double>(od * (contextType(1.0)..expectStaticType<Exactly<num>>()));
+  context<double>(od % (contextType(1.0)..expectStaticType<Exactly<num>>()));
+  context<double>(
+      od.remainder(contextType(1.0)..expectStaticType<Exactly<num>>()));
 
   // The context type also causes double literals.
   context<double>(1 + (1..expectStaticType<double>()));
@@ -137,25 +118,10 @@ void testDoubleContext<I extends int, D extends double, N extends num,
   context<double>(1 % (1..expectStaticType<double>()));
   context<double>(1.remainder(1..expectStaticType<double>()));
 
-  var od = o;
-  if (od is! double) throw "promote od to O&double";
-
-  context<double>(od + (contextType(1.0)..expectStaticType<Exactly<num>>()));
-  context<double>(od - (contextType(1.0)..expectStaticType<Exactly<num>>()));
-  context<double>(od * (contextType(1.0)..expectStaticType<Exactly<num>>()));
-  context<double>(od % (contextType(1.0)..expectStaticType<Exactly<num>>()));
-  context<double>(
-      od.remainder(contextType(1.0)..expectStaticType<Exactly<num>>()));
-
   d += contextType(1)..expectStaticType<Exactly<num>>();
   d -= contextType(1)..expectStaticType<Exactly<num>>();
   d *= contextType(1)..expectStaticType<Exactly<num>>();
   d %= contextType(2)..expectStaticType<Exactly<num>>();
-
-  od += contextType(1)..expectStaticType<Exactly<num>>();
-  od -= contextType(1)..expectStaticType<Exactly<num>>();
-  od *= contextType(1)..expectStaticType<Exactly<num>>();
-  od %= contextType(2)..expectStaticType<Exactly<num>>();
 
   context<double>(1.1.clamp(
       contextType(1.0)..expectStaticType<Exactly<double>>(),
@@ -164,19 +130,34 @@ void testDoubleContext<I extends int, D extends double, N extends num,
   context<double>(d.clamp(contextType(1.0)..expectStaticType<Exactly<double>>(),
       contextType(1.0)..expectStaticType<Exactly<double>>()));
 
-  context<D>(d.clamp(contextType(1.0)..expectStaticType<Exactly<D>>(),
-      contextType(1.0)..expectStaticType<Exactly<D>>()));
-
   context<double>(od.clamp(
       contextType(1.0)..expectStaticType<Exactly<double>>(),
       contextType(1.0)..expectStaticType<Exactly<double>>()));
-
-  context<D>(od.clamp(contextType(1.0)..expectStaticType<Exactly<D>>(),
-      contextType(1.0)..expectStaticType<Exactly<D>>()));
 }
 
 void testNumContext<N extends num, O extends Object>(N n, O o) {
+  var i1 = 1;
+  var d1 = 1.0;
+  num n1 = 1;
   if (o is! num) throw "promote o to O&num";
+
+  context<num>(i1 + (contextType(1)..expectStaticType<Exactly<num>>()));
+  context<num>(i1 - (contextType(1)..expectStaticType<Exactly<num>>()));
+  context<num>(i1 * (contextType(1)..expectStaticType<Exactly<num>>()));
+  context<num>(i1 % (contextType(1)..expectStaticType<Exactly<num>>()));
+  context<num>(i1.remainder(contextType(1)..expectStaticType<Exactly<num>>()));
+
+  context<num>(d1 + (contextType(1)..expectStaticType<Exactly<num>>()));
+  context<num>(d1 - (contextType(1)..expectStaticType<Exactly<num>>()));
+  context<num>(d1 * (contextType(1)..expectStaticType<Exactly<num>>()));
+  context<num>(d1 % (contextType(1)..expectStaticType<Exactly<num>>()));
+  context<num>(d1.remainder(contextType(1)..expectStaticType<Exactly<num>>()));
+
+  context<num>(n1 + (contextType(1)..expectStaticType<Exactly<num>>()));
+  context<num>(n1 - (contextType(1)..expectStaticType<Exactly<num>>()));
+  context<num>(n1 * (contextType(1)..expectStaticType<Exactly<num>>()));
+  context<num>(n1 % (contextType(1)..expectStaticType<Exactly<num>>()));
+  context<num>(n1.remainder(contextType(1)..expectStaticType<Exactly<num>>()));
 
   context<num>(n + (contextType(1)..expectStaticType<Exactly<num>>()));
   context<num>(n - (contextType(1)..expectStaticType<Exactly<num>>()));
@@ -192,7 +173,4 @@ void testNumContext<N extends num, O extends Object>(N n, O o) {
 
   context<num>(o.clamp(contextType(1)..expectStaticType<Exactly<num>>(),
       contextType(1)..expectStaticType<Exactly<num>>()));
-
-  context<N>(n.clamp(contextType(1)..expectStaticType<Exactly<N>>(),
-      contextType(1)..expectStaticType<Exactly<N>>()));
 }
