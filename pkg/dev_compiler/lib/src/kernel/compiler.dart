@@ -3239,7 +3239,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       if (_annotatedNullCheck(p.annotations)) {
         body.add(_nullParameterCheck(jsParam));
-      } else if (_mustBeNonNullable(p.type) &&
+      } else if (!_options.soundNullSafety &&
+          _mustBeNonNullable(p.type) &&
           !_annotatedNotNull(p.annotations)) {
         // TODO(vsm): Remove if / when CFE does this:
         // https://github.com/dart-lang/sdk/issues/40597
