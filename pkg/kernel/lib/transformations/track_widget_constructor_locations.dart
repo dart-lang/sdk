@@ -11,7 +11,7 @@ import '../target/changed_structure_notifier.dart';
 
 // Parameter name used to track were widget constructor calls were made from.
 //
-// The parameter name contains a randomly generate hex string to avoid collision
+// The parameter name contains a randomly generated hex string to avoid collision
 // with user generated parameters.
 const String _creationLocationParameterName =
     r'$creationLocationd_0dea112b090073317d4';
