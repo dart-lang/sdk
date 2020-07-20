@@ -407,6 +407,8 @@ class DartFixKind {
   static const REPLACE_BOOLEAN_WITH_BOOL = FixKind(
       'dart.fix.replace.booleanWithBool', 50, "Replace 'boolean' with 'bool'",
       appliedTogetherMessage: "Replace all 'boolean' with 'bool' in file");
+  static const REPLACE_CASCADE_WITH_DOT =
+      FixKind('dart.fix.replace.cascadeWithDot', 50, "Replace '..' with '.'");
   static const REPLACE_COLON_WITH_EQUALS =
       FixKind('dart.fix.replace.colonWithEquals', 50, "Replace ':' with '='");
   static const REPLACE_WITH_FILLED = FixKind(

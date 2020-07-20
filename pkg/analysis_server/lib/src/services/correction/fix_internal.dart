@@ -115,6 +115,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_unused_local
 import 'package:analysis_server/src/services/correction/dart/remove_unused_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/rename_to_camel_case.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_boolean_with_bool.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_final_with_const.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_new_with_const.dart';
@@ -301,6 +302,11 @@ class FixProcessor extends BaseProcessor {
     LintNames.avoid_returning_null_for_future: [
       AddAsync.newInstance,
       WrapInFuture.newInstance,
+    ],
+    LintNames.avoid_single_cascade_in_expression_statements: [
+      // TODO(brianwilkerson) This fix should be applied to some non-lint
+      //  diagnostics and should also be available as an assist.
+      ReplaceCascadeWithDot.newInstance,
     ],
     LintNames.avoid_types_as_parameter_names: [
       ConvertToOnType.newInstance,
