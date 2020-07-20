@@ -57,6 +57,11 @@ class DecoratedTypeOperations
   }
 
   @override
+  bool isNever(DecoratedType type) {
+    return false;
+  }
+
+  @override
   bool isSameType(DecoratedType type1, DecoratedType type2) {
     return type1 == type2;
   }

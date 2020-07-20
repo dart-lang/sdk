@@ -276,6 +276,15 @@ class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
         !variable.hasDeclaredInitializer;
   }
 
+  @override
+  bool isNever(DartType type) {
+    // TODO(paulberry): this is not quite right:
+    // - It returns `true` for `Never?` (should return `false`)
+    // - It returns `false` for `T extends Never` (should return `true`)
+    // - It returns `false` for `T & Never` (should return `true`)
+    return type is NeverType;
+  }
+
   // TODO(dmitryas): Consider checking for mutual subtypes instead of ==.
   @override
   bool isSameType(DartType type1, DartType type2) => type1 == type2;

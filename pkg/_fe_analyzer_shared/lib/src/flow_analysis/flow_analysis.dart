@@ -1512,24 +1512,32 @@ class FlowModel<Variable, Type> {
     }
 
     List<Type> newPromotedTypes = info.promotedTypes;
+    bool newReachable = reachable;
     if (promotedType != null) {
       newPromotedTypes =
           VariableModel._addToPromotedTypes(info.promotedTypes, promotedType);
+      if (typeOperations.isNever(promotedType)) {
+        newReachable = false;
+      }
     }
 
     return identical(newTested, info.tested) &&
-            identical(newPromotedTypes, info.promotedTypes)
+            identical(newPromotedTypes, info.promotedTypes) &&
+            newReachable == reachable
         ? this
         : _updateVariableInfo(
             variable,
             new VariableModel<Variable, Type>(newPromotedTypes, newTested,
-                info.assigned, info.unassigned, info.writeCaptured));
+                info.assigned, info.unassigned, info.writeCaptured),
+            reachable: newReachable);
   }
 
   /// Returns a new [FlowModel] where the information for [variable] is replaced
   /// with [model].
   FlowModel<Variable, Type> _updateVariableInfo(
-      Variable variable, VariableModel<Variable, Type> model) {
+      Variable variable, VariableModel<Variable, Type> model,
+      {bool reachable}) {
+    reachable ??= this.reachable;
     Map<Variable, VariableModel<Variable, Type>> newVariableInfo =
         new Map<Variable, VariableModel<Variable, Type>>.from(variableInfo);
     newVariableInfo[variable] = model;
@@ -1666,6 +1674,14 @@ abstract class TypeOperations<Variable, Type> {
   /// parameter), and it has no declared type (no explicit type, and not
   /// initializer).
   bool isLocalVariableWithoutDeclaredType(Variable variable);
+
+  /// Determines whether the given [type] is equivalent to the `Never` type.
+  ///
+  /// A type is equivalent to `Never` if it:
+  /// (a) is the `Never` type itself.
+  /// (b) is a type variable that extends `Never`, OR
+  /// (c) is a type variable that has been promoted to `Never`
+  bool isNever(Type type);
 
   /// Returns `true` if [type1] and [type2] are the same type.
   bool isSameType(Type type1, Type type2);
