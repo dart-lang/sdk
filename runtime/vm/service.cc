@@ -4062,7 +4062,11 @@ static bool RequestHeapSnapshot(Thread* thread, JSONStream* js) {
   return true;
 }
 
-static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
+static const MethodParameter* get_process_memory_usage_params[] = {
+    NULL,
+};
+
+static bool GetProcessMemoryUsage(Thread* thread, JSONStream* js) {
   JSONObject response(js);
   response.AddProperty("type", "ProcessMemoryUsage");
 
@@ -4072,55 +4076,41 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
   rss.AddProperty64("size", Service::CurrentRSS());
   JSONArray rss_children(&rss, "children");
 
-  JSONObject vm(&rss_children);
-  intptr_t vm_size = 0;
   {
-    JSONArray vm_children(&vm, "children");
-
-    {
-      JSONObject profiler(&vm_children);
-      profiler.AddProperty("name", "Profiler");
-      profiler.AddProperty("description",
-                           "Samples from the Dart VM's profiler");
-      intptr_t size = Profiler::Size();
-      vm_size += size;
-      profiler.AddProperty64("size", size);
-      JSONArray(&profiler, "children");
-    }
+    JSONObject profiler(&rss_children);
+    profiler.AddProperty("name", "Profiler");
+    profiler.AddProperty("description", "Samples from the Dart VM's profiler");
+    profiler.AddProperty64("size", Profiler::Size());
+    JSONArray(&profiler, "children");
+  }
 
   {
-    JSONObject timeline(&vm_children);
+    JSONObject timeline(&rss_children);
     timeline.AddProperty("name", "Timeline");
     timeline.AddProperty(
         "description",
         "Timeline events from dart:developer and Dart_TimelineEvent");
-    intptr_t size = Timeline::recorder()->Size();
-    vm_size += size;
-    timeline.AddProperty64("size", size);
+    timeline.AddProperty64("size", Timeline::recorder()->Size());
     JSONArray(&timeline, "children");
   }
 
   {
-    JSONObject zone(&vm_children);
+    JSONObject zone(&rss_children);
     zone.AddProperty("name", "Zone");
     zone.AddProperty("description", "Arena allocation in the Dart VM");
-    intptr_t size = Zone::Size();
-    vm_size += size;
-    zone.AddProperty64("size", size);
+    zone.AddProperty64("size", Zone::Size());
     JSONArray(&zone, "children");
   }
 
   {
-    JSONObject semi(&vm_children);
+    JSONObject semi(&rss_children);
     semi.AddProperty("name", "SemiSpace Cache");
     semi.AddProperty("description", "Cached heap regions");
-    intptr_t size = SemiSpace::CachedSize();
-    vm_size += size;
-    semi.AddProperty64("size", size);
+    semi.AddProperty64("size", SemiSpace::CachedSize());
     JSONArray(&semi, "children");
   }
 
-  IsolateGroup::ForEach([&vm_children, &vm_size](IsolateGroup* isolate_group) {
+  IsolateGroup::ForEach([&rss_children](IsolateGroup* isolate_group) {
     // Note: new_space()->CapacityInWords() includes memory that hasn't been
     // allocated from the OS yet.
     int64_t capacity = (isolate_group->heap()->new_space()->UsedInWords() +
@@ -4129,11 +4119,10 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
     int64_t used = isolate_group->heap()->TotalUsedInWords() * kWordSize;
     int64_t free = capacity - used;
 
-    JSONObject group(&vm_children);
+    JSONObject group(&rss_children);
     group.AddPropertyF("name", "IsolateGroup %s",
                        isolate_group->source()->name);
     group.AddProperty("description", "Dart heap capacity");
-    vm_size += capacity;
     group.AddProperty64("size", capacity);
     JSONArray group_children(&group, "children");
 
@@ -4153,21 +4142,7 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
       JSONArray(&jsfree, "children");
     }
   });
-  }  // vm_children
 
-  vm.AddProperty("name", "Dart VM");
-  vm.AddProperty("description", "");
-  vm.AddProperty64("size", vm_size);
-
-  return vm_size;
-}
-
-static const MethodParameter* get_process_memory_usage_params[] = {
-    NULL,
-};
-
-static bool GetProcessMemoryUsage(Thread* thread, JSONStream* js) {
-  GetProcessMemoryUsageHelper(js);
   return true;
 }
 
@@ -4588,11 +4563,6 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
         jsarr_isolate_groups.AddValue(isolate_group);
       }
     });
-  }
-  {
-    JSONStream discard_js;
-    intptr_t vm_memory = GetProcessMemoryUsageHelper(&discard_js);
-    jsobj.AddProperty("_currentMemory", vm_memory);
   }
 }
 
