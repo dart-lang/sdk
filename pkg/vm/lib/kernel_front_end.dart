@@ -120,11 +120,6 @@ void declareCompilerOptions(ArgParser args) {
       help: 'Whether asserts will be enabled.', defaultsTo: false);
   args.addFlag('sound-null-safety',
       help: 'Respect the nullability of types at runtime.', defaultsTo: null);
-  // TODO(alexmarkov) Remove obsolete --null-safety option.
-  args.addFlag('null-safety',
-      help: 'Deprecated. Please use --sound-null-safety instead.',
-      hide: true,
-      defaultsTo: null);
   args.addFlag('split-output-by-packages',
       help:
           'Split resulting kernel file into multiple files (one per package).',
@@ -192,8 +187,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool genBytecode = options['gen-bytecode'];
   final bool dropAST = options['drop-ast'];
   final bool enableAsserts = options['enable-asserts'];
-  final bool nullSafety =
-      options['sound-null-safety'] ?? options['null-safety'];
+  final bool nullSafety = options['sound-null-safety'];
   final bool useProtobufTreeShaker = options['protobuf-tree-shaker'];
   final bool useProtobufTreeShakerV2 = options['protobuf-tree-shaker-v2'];
   final bool splitOutputByPackages = options['split-output-by-packages'];

@@ -98,11 +98,6 @@ DEFINE_FLAG_HANDLER(SoundNullSafetyHandler,
                     sound_null_safety,
                     "Respect the nullability of types at runtime.");
 
-// TODO(alexmarkov) Remove obsolete --null-safety option.
-DEFINE_FLAG_HANDLER(SoundNullSafetyHandler,
-                    null_safety,
-                    "Respect the nullability of types at runtime.");
-
 DEFINE_FLAG(bool,
             disable_thread_pool_limit,
             false,
