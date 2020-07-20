@@ -39,10 +39,10 @@ void setup() {
 })()""");
 }
 
-A gA;
-B gB;
-C gC;
-M gM;
+A? gA;
+B? gB;
+C? gC;
+M? gM;
 
 isA(x) => x is A;
 asA(x) => x as A;

@@ -8,10 +8,14 @@ import "native_testing.dart";
 // that are known from the DOM (like x, y, z).
 @Native("A")
 class A {
-  int x;
-  int y;
-  int z;
-  int gettersCalled;
+  void set x(int unused) native;
+  int get x native;
+  void set y(int unused) native;
+  int get y native;
+  void set z(int unused) native;
+  int get z native;
+  void set gettersCalled(int unused) native;
+  int get gettersCalled native;
 }
 
 void setup() {

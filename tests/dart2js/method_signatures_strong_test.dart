@@ -2,35 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2jsOptions=--strong
-
 import 'package:expect/expect.dart';
 
 class Class1 {
-  num method1<T>(num n) => null;
+  num method1<T>(num n) => throw 'unreachable';
 
-  num method2<T>(int n) => null;
+  num method2<T>(int n) => throw 'unreachable';
 
-  int method3<T>(num n) => null;
+  int method3<T>(num n) => throw 'unreachable';
 }
 
 class Class2 {
-  num method4<T>(T n) => null;
+  num method4<T>(T n) => throw 'unreachable';
 }
 
 class Class3 {
-  T method5<T>(num n) => null;
+  T method5<T>(num n) => throw 'unreachable';
 }
 
 class Class4 {
-  num method6<T>(num n, T t) => null;
+  num method6<T>(num n, T t) => throw 'unreachable';
 }
 
-num method7<T>(T n) => null;
+num method7<T>(T n) => throw 'unreachable';
 
-T method8<T>(num n) => null;
+T method8<T>(num n) => throw 'unreachable';
 
-num method9<T>(num n, T t) => null;
+num method9<T>(num n, T t) => throw 'unreachable';
 
 @pragma('dart2js:noInline')
 test(o) => o is num Function(num);

@@ -87,8 +87,8 @@ main() {
     var x = a.op(51);
   } catch (e) {
     threw = true;
-    Expect.equals(100, e.code);
     Expect.isTrue(e is E);
+    Expect.equals(100, (e as E).code);
   }
   Expect.isTrue(threw);
 
