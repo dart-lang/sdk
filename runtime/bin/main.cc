@@ -1221,16 +1221,9 @@ void main(int argc, char** argv) {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   if (should_run_user_program) {
-    if (!Dart_IsPrecompiledRuntime() && Snapshot::IsAOTSnapshot(script_name)) {
-      Syslog::PrintErr(
-          "%s is an AOT snapshot and should be run with 'dartaotruntime'\n",
-          script_name);
-      Platform::Exit(kErrorExitCode);
-    } else {
-      // Run the main isolate until we aren't told to restart.
-      while (RunMainIsolate(script_name, &dart_options)) {
-        Syslog::PrintErr("Restarting VM\n");
-      }
+    // Run the main isolate until we aren't told to restart.
+    while (RunMainIsolate(script_name, &dart_options)) {
+      Syslog::PrintErr("Restarting VM\n");
     }
   }
 
