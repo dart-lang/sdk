@@ -6,6 +6,7 @@
 dwarf_stack_trace_test: Pass, RuntimeError # Issue 35563
 
 [ $runtime == dart_precompiled ]
+check_for_aot_snapshot_jit_test: SkipByDesign
 http_launch_test: Skip
 io/addlatexhash_test: Skip
 io/dart_std_io_pipe_test: Skip

@@ -34,6 +34,10 @@ class Snapshot {
   static void GenerateAppJIT(const char* snapshot_filename);
   static void GenerateAppAOTAsAssembly(const char* snapshot_filename);
 
+  // Returns true if snapshot_filename points to an AOT snapshot (aka,
+  // an ELF binary). May report false negatives.
+  static bool IsAOTSnapshot(const char* snapshot_filename);
+
   static AppSnapshot* TryReadAppendedAppSnapshotElf(const char* container_path);
   static AppSnapshot* TryReadAppSnapshot(
       const char* script_uri,
