@@ -26,7 +26,9 @@ compileAndRunTest(String comment, String expectedOutput) async {
     ''');
 
     final testDillPath = path.join(temp, 'test.dill');
-    await runGenKernel('BUILD DILL FILE', [
+    await runGenKernelWithoutStandardOptions('BUILD DILL FILE', [
+      "--platform",
+      platformDill,
       '--enable-experiment=non-nullable',
       '--output=$testDillPath',
       testScriptPath,
