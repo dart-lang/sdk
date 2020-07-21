@@ -159,12 +159,12 @@ class CompileNativeCommand extends DartdevCommand<int> {
       )
       ..addMultiOption('define', abbr: 'D', valueHelp: 'key=value', help: '''
 Set values of environment variables. To specify multiple variables, use multiple options or use commas to separate key-value pairs.
-E.g.: dart2native -Da=1,b=2 main.dart''')
+E.g.: dart compile $commandName -Da=1,b=2 main.dart''')
       ..addFlag('enable-asserts',
           negatable: false, help: 'Enable assert statements.')
       ..addOption('packages', abbr: 'p', valueHelp: 'path', help: '''
 Get package locations from the specified file instead of .packages. <path> can be relative or absolute.
-E.g.: dart2native --packages=/tmp/pkgs main.dart
+E.g.: dart compile $commandName --packages=/tmp/pkgs main.dart
 ''')
       ..addOption('save-debugging-info', abbr: 'S', valueHelp: 'path', help: '''
 Remove debugging information from the output and save it separately to the specified file. <path> can be relative or absolute.
