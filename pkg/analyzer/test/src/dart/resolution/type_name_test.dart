@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
+import 'with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -256,12 +255,8 @@ f(Never a) {}
 }
 
 @reflectiveTest
-class TypeNameResolutionWithNnbdTest extends TypeNameResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
-
+class TypeNameResolutionWithNnbdTest extends TypeNameResolutionTest
+    with WithNullSafetyMixin {
   ImportFindElement get import_a {
     return findElement.importFind('package:test/a.dart');
   }

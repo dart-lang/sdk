@@ -2,16 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../resolution/driver_resolution.dart';
+import '../resolution/with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -1043,15 +1042,8 @@ class B extends A {
 }
 
 @reflectiveTest
-class InheritanceManager3WithNnbdTest extends _InheritanceManager3Base {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class InheritanceManager3WithNnbdTest extends _InheritanceManager3Base
+    with WithNullSafetyMixin {
   test_getInheritedMap_topMerge_method() async {
     newFile('/test/lib/a.dart', content: r'''
 // @dart = 2.6

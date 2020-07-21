@@ -7,6 +7,7 @@ import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/resolution/with_null_safety_mixin.dart';
 import 'sdk_constraint_verifier_support.dart';
 
 main() {
@@ -32,12 +33,8 @@ Never foo;
 }
 
 @reflectiveTest
-class SdkVersionNeverWithNnbdTest extends SdkConstraintVerifierTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures =
-        FeatureSet.forTesting(additionalFeatures: [Feature.non_nullable]);
-
+class SdkVersionNeverWithNnbdTest extends SdkConstraintVerifierTest
+    with WithNullSafetyMixin {
   test_experimentEnabled() async {
     await verifyVersion('2.7.0', r'''
 Never foo = (throw 42);
