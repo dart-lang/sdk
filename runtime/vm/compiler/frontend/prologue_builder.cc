@@ -40,7 +40,8 @@ bool PrologueBuilder::PrologueSkippableOnUncheckedEntry(
 
 bool PrologueBuilder::HasEmptyPrologue(const Function& function) {
   return !function.HasOptionalParameters() && !function.IsGeneric() &&
-         !function.CanReceiveDynamicInvocation();
+         !function.CanReceiveDynamicInvocation() &&
+         !function.IsClosureFunction();
 }
 
 BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
@@ -81,6 +82,8 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
   }
 
   const bool is_empty_prologue = prologue.entry == prologue.current;
+  // Double-check we create empty prologues when HasEmptyPrologue returns true.
+  ASSERT(!HasEmptyPrologue(function_) || is_empty_prologue);
 
   // Always do this to preserve deoptid numbering.
   JoinEntryInstr* normal_code = BuildJoinEntry();

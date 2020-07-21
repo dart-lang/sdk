@@ -486,7 +486,8 @@ _handlePackagesRequest(bool traceLoading, int tag, Uri resource) {
 // Embedder Entrypoint:
 // The embedder calls this method to initial the package resolution state.
 @pragma("vm:entry-point")
-void _Init(String packagesConfig, String workingDirectory, String rootScript) {
+void _Init(
+    String? packagesConfig, String workingDirectory, String? rootScript) {
   // Register callbacks and hooks with the rest of core libraries.
   _setupHooks();
 

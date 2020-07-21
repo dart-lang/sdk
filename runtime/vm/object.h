@@ -2835,10 +2835,15 @@ class Function : public Object {
     return (kind() == FunctionLayout::kConstructor) && is_static();
   }
 
+  static bool ClosureBodiesContainNonCovariantChecks() {
+    return FLAG_precompiled_mode || FLAG_lazy_dispatchers;
+  }
+
   // Whether this function can receive an invocation where the number and names
   // of arguments have not been checked.
   bool CanReceiveDynamicInvocation() const {
-    return IsClosureFunction() || IsFfiTrampoline();
+    return (IsClosureFunction() && ClosureBodiesContainNonCovariantChecks()) ||
+           IsFfiTrampoline();
   }
 
   bool HasThisParameter() const {
@@ -2905,7 +2910,7 @@ class Function : public Object {
   bool IsInFactoryScope() const;
 
   bool NeedsArgumentTypeChecks() const {
-    return IsClosureFunction() ||
+    return (IsClosureFunction() && ClosureBodiesContainNonCovariantChecks()) ||
            !(is_static() || (kind() == FunctionLayout::kConstructor));
   }
 
@@ -3131,11 +3136,51 @@ class Function : public Object {
                               String* error_message) const;
 
   // Returns a TypeError if the provided arguments don't match the function
-  // parameter types, NULL otherwise. Assumes AreValidArguments is called first.
+  // parameter types, null otherwise. Assumes AreValidArguments is called first.
+  //
+  // If the function has a non-null receiver in the arguments, the instantiator
+  // type arguments are retrieved from the receiver, otherwise the null type
+  // arguments vector is used.
+  //
+  // If the function is generic, the appropriate function type arguments are
+  // retrieved either from the arguments array or the receiver (if a closure).
+  // If no function type arguments are available in either location, the bounds
+  // of the function type parameters are instantiated and used as the function
+  // type arguments.
+  //
+  // The local function type arguments (_not_ parent function type arguments)
+  // are also checked against the bounds of the corresponding parameters to
+  // ensure they are appropriate subtypes if the function is generic.
+  ObjectPtr DoArgumentTypesMatch(const Array& args,
+                                 const ArgumentsDescriptor& arg_names) const;
+
+  // Returns a TypeError if the provided arguments don't match the function
+  // parameter types, null otherwise. Assumes AreValidArguments is called first.
+  //
+  // If the function is generic, the appropriate function type arguments are
+  // retrieved either from the arguments array or the receiver (if a closure).
+  // If no function type arguments are available in either location, the bounds
+  // of the function type parameters are instantiated and used as the function
+  // type arguments.
+  //
+  // The local function type arguments (_not_ parent function type arguments)
+  // are also checked against the bounds of the corresponding parameters to
+  // ensure they are appropriate subtypes if the function is generic.
   ObjectPtr DoArgumentTypesMatch(
       const Array& args,
       const ArgumentsDescriptor& arg_names,
       const TypeArguments& instantiator_type_args) const;
+
+  // Returns a TypeError if the provided arguments don't match the function
+  // parameter types, null otherwise. Assumes AreValidArguments is called first.
+  //
+  // The local function type arguments (_not_ parent function type arguments)
+  // are also checked against the bounds of the corresponding parameters to
+  // ensure they are appropriate subtypes if the function is generic.
+  ObjectPtr DoArgumentTypesMatch(const Array& args,
+                                 const ArgumentsDescriptor& arg_names,
+                                 const TypeArguments& instantiator_type_args,
+                                 const TypeArguments& function_type_args) const;
 
   // Returns true if the type argument count, total argument count and the names
   // of optional arguments are valid for calling this function.
@@ -10523,6 +10568,11 @@ class Closure : public Instance {
   static intptr_t context_offset() {
     return OFFSET_OF(ClosureLayout, context_);
   }
+
+  bool IsGeneric(Thread* thread) const { return NumTypeParameters(thread) > 0; }
+  intptr_t NumTypeParameters(Thread* thread) const;
+  // No need for NumParentTypeParameters, as a closure is always closed over
+  // its parents type parameters (i.e., function_type_parameters() above).
 
   SmiPtr hash() const { return raw_ptr()->hash_; }
   static intptr_t hash_offset() { return OFFSET_OF(ClosureLayout, hash_); }

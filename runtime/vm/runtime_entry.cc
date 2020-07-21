@@ -2205,21 +2205,6 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
   // a zigzagged lookup to see if this call failed because of an arity mismatch,
   // need for conversion, or there really is no such method.
 
-#define NO_SUCH_METHOD()                                                       \
-  const Object& result = Object::Handle(                                       \
-      zone,                                                                    \
-      DartEntry::InvokeNoSuchMethod(receiver, demangled_target_name,           \
-                                    orig_arguments, orig_arguments_desc));     \
-  ThrowIfError(result);                                                        \
-  arguments.SetReturn(result);
-
-#define CLOSURIZE(some_function)                                               \
-  const Function& closure_function =                                           \
-      Function::Handle(zone, some_function.ImplicitClosureFunction());         \
-  const Object& result = Object::Handle(                                       \
-      zone, closure_function.ImplicitInstanceClosure(receiver));               \
-  arguments.SetReturn(result);
-
   const bool is_getter = Field::IsGetterName(demangled_target_name);
   if (is_getter) {
     // Tear-off of a method
@@ -2237,7 +2222,11 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
         ASSERT(!kernel::NeedsDynamicInvocationForwarder(Function::Handle(
             function.GetMethodExtractor(demangled_target_name))));
 #endif
-        CLOSURIZE(function);
+        const Function& closure_function =
+            Function::Handle(zone, function.ImplicitClosureFunction());
+        const Object& result = Object::Handle(
+            zone, closure_function.ImplicitInstanceClosure(receiver));
+        arguments.SetReturn(result);
         return;
       }
       cls = cls.SuperClass();
@@ -2257,14 +2246,14 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
           zone,
           DartEntry::ResolveCallable(orig_arguments, orig_arguments_desc));
       ThrowIfError(result);
-      const Function& callable_function =
-          Function::Handle(zone, Function::RawCast(result.raw()));
-      if (is_dynamic_call && !callable_function.IsNull()) {
-        // TODO(dartbug.com/40813): Move checks that are currently compiled
-        // in the closure body to here as they are also moved to
-        // FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher.
+      function ^= result.raw();
+      if (is_dynamic_call && !function.IsNull() &&
+          !function.CanReceiveDynamicInvocation()) {
+        ArgumentsDescriptor args_desc(orig_arguments_desc);
+        result = function.DoArgumentTypesMatch(orig_arguments, args_desc);
+        ThrowIfError(result);
       }
-      result = DartEntry::InvokeCallable(callable_function, orig_arguments,
+      result = DartEntry::InvokeCallable(function, orig_arguments,
                                          orig_arguments_desc);
       ThrowIfError(result);
       arguments.SetReturn(result);
@@ -2312,31 +2301,31 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
         ASSERT(getter_result.IsNull() || getter_result.IsInstance());
 
         orig_arguments.SetAt(args_desc.FirstArgIndex(), getter_result);
-        auto& call_result = Object::Handle(
+        auto& result = Object::Handle(
             zone,
             DartEntry::ResolveCallable(orig_arguments, orig_arguments_desc));
-        ThrowIfError(call_result);
-        const Function& callable_function =
-            Function::Handle(zone, Function::RawCast(call_result.raw()));
-        if (is_dynamic_call && !callable_function.IsNull()) {
-          // TODO(dartbug.com/40813): Move checks that are currently compiled
-          // in the closure body to here as they are also moved to
-          // FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher.
+        ThrowIfError(result);
+        function ^= result.raw();
+        if (is_dynamic_call && !function.IsNull() &&
+            !function.CanReceiveDynamicInvocation()) {
+          result = function.DoArgumentTypesMatch(orig_arguments, args_desc);
+          ThrowIfError(result);
         }
-        call_result = DartEntry::InvokeCallable(
-            callable_function, orig_arguments, orig_arguments_desc);
-        ThrowIfError(call_result);
-        arguments.SetReturn(call_result);
+        result = DartEntry::InvokeCallable(function, orig_arguments,
+                                           orig_arguments_desc);
+        ThrowIfError(result);
+        arguments.SetReturn(result);
         return;
       }
       cls = cls.SuperClass();
     }
   }
 
-  NO_SUCH_METHOD();
-
-#undef NO_SUCH_METHOD
-#undef CLOSURIZE
+  const Object& result = Object::Handle(
+      zone, DartEntry::InvokeNoSuchMethod(receiver, demangled_target_name,
+                                          orig_arguments, orig_arguments_desc));
+  ThrowIfError(result);
+  arguments.SetReturn(result);
 }
 
 // Invoke appropriate noSuchMethod function.

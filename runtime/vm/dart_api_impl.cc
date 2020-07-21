@@ -3806,11 +3806,14 @@ static Dart_Handle NewExternalTypedData(
   CHECK_LENGTH(length, ExternalTypedData::MaxElements(cid));
   Zone* zone = thread->zone();
   intptr_t bytes = length * ExternalTypedData::ElementSizeInBytes(cid);
-  const ExternalTypedData& result = ExternalTypedData::Handle(
-      zone,
-      ExternalTypedData::New(cid, reinterpret_cast<uint8_t*>(data), length,
-                             thread->heap()->SpaceForExternal(bytes)));
-  if (callback != NULL) {
+  auto& cls = Class::Handle(zone, thread->isolate()->class_table()->At(cid));
+  auto& result = Object::Handle(zone, cls.EnsureIsAllocateFinalized(thread));
+  if (result.IsError()) {
+    return Api::NewHandle(thread, result.raw());
+  }
+  result = ExternalTypedData::New(cid, reinterpret_cast<uint8_t*>(data), length,
+                                  thread->heap()->SpaceForExternal(bytes));
+  if (callback != nullptr) {
     AllocateFinalizableHandle(thread, result, peer, external_allocation_size,
                               callback);
   }
