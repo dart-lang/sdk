@@ -1424,7 +1424,8 @@ class _TreeShakerPass1 extends Transformer {
     TypeCheck check = shaker.typeFlowAnalysis.explicitCast(node);
     if (check != null && check.canAlwaysSkip) {
       return StaticInvocation(
-          unsafeCast, Arguments([node.operand], types: [node.type]));
+          unsafeCast, Arguments([node.operand], types: [node.type]))
+        ..fileOffset = node.fileOffset;
     }
     return node;
   }
@@ -1437,7 +1438,8 @@ class _TreeShakerPass1 extends Transformer {
       return StaticInvocation(
           unsafeCast,
           Arguments([node.operand],
-              types: [node.getStaticType(staticTypeContext)]));
+              types: [node.getStaticType(staticTypeContext)]))
+        ..fileOffset = node.fileOffset;
     }
     return node;
   }
