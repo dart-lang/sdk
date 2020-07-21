@@ -2140,7 +2140,7 @@ DEFINE_RUNTIME_ENTRY(SwitchableCallMiss, 2) {
 //   Arg0: receiver
 //   Arg1: target name
 //   Arg2: arguments descriptor
-//   Returns: target function
+//   Returns: target function (can only be null if !FLAG_lazy_dispatchers)
 // Modifies the instance call table in current interpreter.
 DEFINE_RUNTIME_ENTRY(InterpretedInstanceCallMissHandler, 3) {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -2164,31 +2164,21 @@ DEFINE_RUNTIME_ENTRY(InterpretedInstanceCallMissHandler, 3) {
     target_function =
         InlineCacheMissHelper(receiver_class, arg_desc, target_name);
   }
-  ASSERT(!target_function.IsNull());
+  ASSERT(!target_function.IsNull() || !FLAG_lazy_dispatchers);
   arguments.SetReturn(target_function);
 #endif
 }
 
-// Invoke appropriate noSuchMethod or closure from getter.
-// Arg0: receiver
-// Arg1: ICData or MegamorphicCache
-// Arg2: arguments descriptor array
-// Arg3: arguments array
-DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
+// Used to find the correct receiver and function to invoke or to fall back to
+// invoking noSuchMethod when lazy dispatchers are disabled. Returns the
+// result of the invocation or an Error.
+static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
+    Zone* zone,
+    const Instance& receiver,
+    const String& target_name,
+    const Array& orig_arguments,
+    const Array& orig_arguments_desc) {
   ASSERT(!FLAG_lazy_dispatchers);
-  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
-  const Object& ic_data_or_cache = Object::Handle(zone, arguments.ArgAt(1));
-  const Array& orig_arguments_desc =
-      Array::CheckedHandle(zone, arguments.ArgAt(2));
-  const Array& orig_arguments = Array::CheckedHandle(zone, arguments.ArgAt(3));
-  String& target_name = String::Handle(zone);
-  if (ic_data_or_cache.IsICData()) {
-    target_name = ICData::Cast(ic_data_or_cache).target_name();
-  } else {
-    ASSERT(ic_data_or_cache.IsMegamorphicCache());
-    target_name = MegamorphicCache::Cast(ic_data_or_cache).target_name();
-  }
-
   const bool is_dynamic_call =
       Function::IsDynamicInvocationForwarderName(target_name);
   String& demangled_target_name = String::Handle(zone, target_name.raw());
@@ -2226,8 +2216,7 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
             Function::Handle(zone, function.ImplicitClosureFunction());
         const Object& result = Object::Handle(
             zone, closure_function.ImplicitInstanceClosure(receiver));
-        arguments.SetReturn(result);
-        return;
+        return result.raw();
       }
       cls = cls.SuperClass();
     }
@@ -2245,19 +2234,21 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
       auto& result = Object::Handle(
           zone,
           DartEntry::ResolveCallable(orig_arguments, orig_arguments_desc));
-      ThrowIfError(result);
+      if (result.IsError()) {
+        return result.raw();
+      }
       function ^= result.raw();
       if (is_dynamic_call && !function.IsNull() &&
           !function.CanReceiveDynamicInvocation()) {
         ArgumentsDescriptor args_desc(orig_arguments_desc);
         result = function.DoArgumentTypesMatch(orig_arguments, args_desc);
-        ThrowIfError(result);
+        if (result.IsError()) {
+          return result.raw();
+        }
       }
       result = DartEntry::InvokeCallable(function, orig_arguments,
                                          orig_arguments_desc);
-      ThrowIfError(result);
-      arguments.SetReturn(result);
-      return;
+      return result.raw();
     }
 
     // Dynamic call sites have to use the dynamic getter as well (if it was
@@ -2297,25 +2288,29 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
         getter_arguments.SetAt(0, receiver);
         const Object& getter_result = Object::Handle(
             zone, DartEntry::InvokeFunction(function, getter_arguments));
-        ThrowIfError(getter_result);
+        if (getter_result.IsError()) {
+          return getter_result.raw();
+        }
         ASSERT(getter_result.IsNull() || getter_result.IsInstance());
 
         orig_arguments.SetAt(args_desc.FirstArgIndex(), getter_result);
         auto& result = Object::Handle(
             zone,
             DartEntry::ResolveCallable(orig_arguments, orig_arguments_desc));
-        ThrowIfError(result);
+        if (result.IsError()) {
+          return result.raw();
+        }
         function ^= result.raw();
         if (is_dynamic_call && !function.IsNull() &&
             !function.CanReceiveDynamicInvocation()) {
           result = function.DoArgumentTypesMatch(orig_arguments, args_desc);
-          ThrowIfError(result);
+          if (result.IsError()) {
+            return result.raw();
+          }
         }
         result = DartEntry::InvokeCallable(function, orig_arguments,
                                            orig_arguments_desc);
-        ThrowIfError(result);
-        arguments.SetReturn(result);
-        return;
+        return result.raw();
       }
       cls = cls.SuperClass();
     }
@@ -2324,6 +2319,33 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
   const Object& result = Object::Handle(
       zone, DartEntry::InvokeNoSuchMethod(receiver, demangled_target_name,
                                           orig_arguments, orig_arguments_desc));
+  return result.raw();
+}
+
+// Invoke appropriate noSuchMethod or closure from getter.
+// Arg0: receiver
+// Arg1: ICData or MegamorphicCache
+// Arg2: arguments descriptor array
+// Arg3: arguments array
+DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
+  ASSERT(!FLAG_lazy_dispatchers);
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Object& ic_data_or_cache = Object::Handle(zone, arguments.ArgAt(1));
+  const Array& orig_arguments_desc =
+      Array::CheckedHandle(zone, arguments.ArgAt(2));
+  const Array& orig_arguments = Array::CheckedHandle(zone, arguments.ArgAt(3));
+  String& target_name = String::Handle(zone);
+  if (ic_data_or_cache.IsICData()) {
+    target_name = ICData::Cast(ic_data_or_cache).target_name();
+  } else {
+    ASSERT(ic_data_or_cache.IsMegamorphicCache());
+    target_name = MegamorphicCache::Cast(ic_data_or_cache).target_name();
+  }
+
+  const auto& result = Object::Handle(
+      zone,
+      InvokeCallThroughGetterOrNoSuchMethod(
+          zone, receiver, target_name, orig_arguments, orig_arguments_desc));
   ThrowIfError(result);
   arguments.SetReturn(result);
 }
@@ -2358,22 +2380,32 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromPrologue, 4) {
   arguments.SetReturn(result);
 }
 
-// Invoke appropriate noSuchMethod function.
+// Invoke appropriate noSuchMethod function (or in the case of no lazy
+// dispatchers, walk the receiver to find the correct method to call).
 // Arg0: receiver
-// Arg1: arguments descriptor array.
-// Arg2: arguments array.
-// Arg3: function name.
+// Arg1: function name.
+// Arg2: arguments descriptor array.
+// Arg3: arguments array.
 DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethod, 4) {
   ASSERT(FLAG_enable_interpreter);
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
-  const Array& orig_arguments_desc =
-      Array::CheckedHandle(zone, arguments.ArgAt(1));
-  const Array& orig_arguments = Array::CheckedHandle(zone, arguments.ArgAt(2));
   const String& original_function_name =
-      String::CheckedHandle(zone, arguments.ArgAt(3));
+      String::CheckedHandle(zone, arguments.ArgAt(1));
+  const Array& orig_arguments_desc =
+      Array::CheckedHandle(zone, arguments.ArgAt(2));
+  const Array& orig_arguments = Array::CheckedHandle(zone, arguments.ArgAt(3));
 
-  const Object& result = Object::Handle(DartEntry::InvokeNoSuchMethod(
-      receiver, original_function_name, orig_arguments, orig_arguments_desc));
+  auto& result = Object::Handle(zone);
+  if (!FLAG_lazy_dispatchers) {
+    // Failing to find the method could be due to the lack of lazy invoke field
+    // dispatchers, so attempt a deeper search before calling noSuchMethod.
+    result = InvokeCallThroughGetterOrNoSuchMethod(
+        zone, receiver, original_function_name, orig_arguments,
+        orig_arguments_desc);
+  } else {
+    result = DartEntry::InvokeNoSuchMethod(receiver, original_function_name,
+                                           orig_arguments, orig_arguments_desc);
+  }
   ThrowIfError(result);
   arguments.SetReturn(result);
 }
