@@ -1,3 +1,8 @@
+# 1.3.1
+
+- Fixed issue where an exception could be thrown during startup if the target
+  process had an isolate without an associated pause event.
+
 # 1.3.0
 
 - Added support for SSE connections from web-based clients.
