@@ -5,7 +5,6 @@
 /// Helpers for working with the output of `--trace-precompiler-to` VM flag.
 library vm_snapshot_analysis.precompiler_trace;
 
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:vm_snapshot_analysis/name.dart';
