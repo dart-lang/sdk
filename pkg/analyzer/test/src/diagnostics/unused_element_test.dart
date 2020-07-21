@@ -1332,8 +1332,7 @@ class A {
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42668')
-  test_topLevelAccessors_notUsed_questionQuestionEqual() async {
+  test_topLevelAccessors_isUsed_questionQuestionEqual() async {
     await assertNoErrorsInCode(r'''
 int get _c => 1;
 void set _c(int x) {}

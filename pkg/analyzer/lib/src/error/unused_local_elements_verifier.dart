@@ -147,10 +147,14 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     }
     bool isIdentifierRead = _isReadIdentifier(node);
     if (element is PropertyAccessorElement &&
-        element.isSynthetic &&
         isIdentifierRead &&
         element.variable is TopLevelVariableElement) {
-      usedElements.addElement(element.variable);
+      if (element.isSynthetic) {
+        usedElements.addElement(element.variable);
+      } else {
+        usedElements.members.add(element);
+        _addMemberAndCorrespondingGetter(element);
+      }
     } else if (element is LocalVariableElement) {
       if (isIdentifierRead) {
         usedElements.addElement(element);
@@ -194,14 +198,20 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
           !identical(element, _enclosingExec)) {
         usedElements.members.add(element);
         if (isIdentifierRead) {
-          // Store the corresponding getter.
-          if (element is PropertyAccessorElement && element.isSetter) {
-            element = (element as PropertyAccessorElement).correspondingGetter;
-          }
-          usedElements.members.add(element);
-          usedElements.readMembers.add(element);
+          _addMemberAndCorrespondingGetter(element);
         }
       }
+    }
+  }
+
+  /// Add [element] as a used member and, if [element] is a setter, add its
+  /// corresponding getter as a used member.
+  void _addMemberAndCorrespondingGetter(Element element) {
+    if (element is PropertyAccessorElement && element.isSetter) {
+      usedElements.members.add(element.correspondingGetter);
+      usedElements.readMembers.add(element.correspondingGetter);
+    } else {
+      usedElements.readMembers.add(element);
     }
   }
 
