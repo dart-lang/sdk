@@ -459,6 +459,7 @@ class TestConfiguration {
         mode.name.substring(0, 1).toUpperCase() + mode.name.substring(1);
 
     if (system == System.android) result += "Android";
+    if (system == System.fuchsia) result += "Fuchsia";
 
     if (sanitizer != Sanitizer.none) {
       result += sanitizer.name.toUpperCase();

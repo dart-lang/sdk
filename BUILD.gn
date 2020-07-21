@@ -157,14 +157,18 @@ if (is_fuchsia) {
   import("third_party/fuchsia/sdk/linux/build/component.gni")
   import("third_party/fuchsia/sdk/linux/build/package.gni")
 
-  fuchsia_component("dart_sdk_fuchsia_test_component") {
+  fuchsia_component("fuchsia_test_component") {
     testonly = true
     data_deps = [ "runtime/bin:dart" ]
     manifest = "build/fuchsia/dart.cmx"
 
-    resource_files = [ ".packages" ]
+    resource_files = [
+      ".packages",
+      "pkg/testing/test/hello_test.dart",
+    ]
     resource_dirs = [
       "tests/standalone",
+      "tests/language_2",
       "pkg/async_helper",
       "pkg/expect",
       "pkg/meta",
@@ -190,8 +194,16 @@ if (is_fuchsia) {
         exec_script("tools/fuchsia/find_resources.py", resource_dirs, "json")
   }
 
-  fuchsia_package("dart_sdk_fuchsia_test_package") {
+  fuchsia_package("fuchsia_test_package") {
+    package_name = "dart_test_"
+    if (is_debug) {
+      package_name += "debug"
+    } else if (is_release) {
+      package_name += "release"
+    } else if (is_product) {
+      package_name += "product"
+    }
     testonly = true
-    deps = [ ":dart_sdk_fuchsia_test_component" ]
+    deps = [ ":fuchsia_test_component" ]
   }
 }

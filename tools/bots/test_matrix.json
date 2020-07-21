@@ -701,6 +701,7 @@
       }
     },
     "dartk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {},
+    "dartk-fuchsia-(debug|product|release)-x64": {},
     "dartk-linux-debug-(ia32|x64)-canary": {
       "options": {
         "builder-tag": "canary"

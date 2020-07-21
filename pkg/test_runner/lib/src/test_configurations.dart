@@ -10,6 +10,7 @@ import 'android.dart';
 import 'browser_controller.dart';
 import 'co19_test_config.dart';
 import 'configuration.dart';
+import 'fuchsia.dart';
 import 'path.dart';
 import 'process_queue.dart';
 import 'terminal.dart';
@@ -152,6 +153,11 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
         }
       }
     }
+
+    if (configuration.system == System.fuchsia) {
+      await FuchsiaEmulator.publishPackage(configuration.taskCount,
+          configuration.buildDirectory, configuration.mode.name);
+    }
   }
 
   // If we only need to print out status files for test suites
@@ -170,6 +176,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     for (var configuration in configurations) {
       configuration.stopServers();
     }
+    FuchsiaEmulator.stop();
 
     DebugLogger.close();
     if (!firstConf.keepGeneratedFiles) {
