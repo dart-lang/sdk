@@ -480,7 +480,8 @@ class AnalysisServer extends AbstractAnalysisServer {
     // during normal analysis (for example dot folders are skipped over in
     // _handleWatchEventImpl).
     return contextManager.isInAnalysisRoot(file) &&
-        !contextManager.isContainedInDotFolder(file);
+        !contextManager.isContainedInDotFolder(file) &&
+        !contextManager.isIgnored(file);
   }
 
   Future<void> shutdown() {

@@ -176,6 +176,35 @@ analyzer:
     expect(filesErrors[brokenFile], isNull);
   }
 
+  Future<void> test_excludedFolder() async {
+    addAnalysisOptionsFile('''
+analyzer:
+  exclude:
+    - excluded/**
+''');
+    createProject();
+    var excludedFile =
+        newFile(join(projectPath, 'excluded/broken.dart'), content: 'err').path;
+
+    // There should be no errors initially.
+    await waitForTasksFinished();
+    await pumpEventQueue(times: 5000);
+    expect(filesErrors[excludedFile], isNull);
+
+    // Triggering the file to be processed should still generate no errors.
+    await waitResponse(AnalysisGetHoverParams(excludedFile, 0).toRequest('0'));
+    await waitForTasksFinished();
+    await pumpEventQueue(times: 5000);
+    expect(filesErrors[excludedFile], isNull);
+
+    // Opening the file should still generate no errors.
+    await waitResponse(
+        AnalysisSetPriorityFilesParams([excludedFile]).toRequest('0'));
+    await waitForTasksFinished();
+    await pumpEventQueue(times: 5000);
+    expect(filesErrors[excludedFile], isNull);
+  }
+
   Future<void> test_importError() async {
     createProject();
 

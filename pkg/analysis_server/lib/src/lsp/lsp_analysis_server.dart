@@ -519,7 +519,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     // during normal analysis (for example dot folders are skipped over in
     // _handleWatchEventImpl).
     return contextManager.isInAnalysisRoot(file) &&
-        !contextManager.isContainedInDotFolder(file);
+        !contextManager.isContainedInDotFolder(file) &&
+        !contextManager.isIgnored(file);
   }
 
   /// Returns `true` if Flutter outlines should be sent for [file] with the
