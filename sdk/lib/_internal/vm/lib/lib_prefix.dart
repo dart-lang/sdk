@@ -58,13 +58,13 @@ Future<void> _loadLibrary(_LibraryPrefix prefix) async {
       }
       await load.future;
     }
-    // Ensure the prefix's future does not complete until the next Turn even
-    // when loading is a no-op or synchronous. Helps applications avoid writing
-    // code that only works when loading isn't really deferred.
-    await new Future<void>(() {
-      prefix._setLoaded();
-    });
   }
+  // Ensure the prefix's future does not complete until the next Turn even
+  // when loading is a no-op or synchronous. Helps applications avoid writing
+  // code that only works when loading isn't really deferred.
+  await new Future<void>(() {
+    prefix._setLoaded();
+  });
 }
 
 @pragma("vm:entry-point")
