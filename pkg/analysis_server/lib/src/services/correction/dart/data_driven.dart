@@ -4,14 +4,11 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/convert_argument_to_type_argument_change.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/rename_change.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
 
 class DataDriven extends MultiCorrectionProducer {
@@ -31,7 +28,7 @@ class DataDriven extends MultiCorrectionProducer {
     }
     for (var set in _availableTransformSets) {
       for (var transform in set.transformsFor(name, importedUris)) {
-        yield _DataDrivenFix(transform);
+        yield DataDrivenFix(transform);
       }
     }
   }
@@ -62,10 +59,11 @@ class DataDriven extends MultiCorrectionProducer {
 
 /// A correction processor that can make one of the possible change computed by
 /// the [DataDriven] producer.
-class _DataDrivenFix extends CorrectionProducer {
+class DataDrivenFix extends CorrectionProducer {
+  /// The transform being applied to implement this fix.
   final Transform _transform;
 
-  _DataDrivenFix(this._transform);
+  DataDrivenFix(this._transform);
 
   @override
   List<Object> get fixArguments => [_transform.title];
@@ -73,66 +71,20 @@ class _DataDrivenFix extends CorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.DATA_DRIVEN;
 
-  /// Return the node representing the name that was changed.
-  SimpleIdentifier get _nameNode {
-    var node = this.node;
-    if (node is SimpleIdentifier) {
-      return node;
-    } else if (node is ConstructorName) {
-      return node.name;
-    }
-    throw StateError('Unexpected class of node: ${node.runtimeType}');
-  }
-
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    // TODO(brianwilkerson) Consider a validation loop in which we validate that
-    //  all of the changes can be applied before we start applying any of them.
+    var changes = _transform.changes;
+    var data = <Object>[];
+    for (var change in changes) {
+      var result = change.validate(this);
+      if (result == null) {
+        return;
+      }
+      data.add(result);
+    }
     await builder.addDartFileEdit(file, (builder) {
-      for (var change in _transform.changes) {
-        // TODO(brianwilkerson) Consider moving the logic for each change into
-        //  the change to avoid having too much logic here.
-        //    change.apply(builder, this);
-        if (change is ConvertArgumentToTypeArgumentChange) {
-          var parent = node.parent;
-          if (parent is MethodInvocation) {
-            var arguments = parent.argumentList.arguments;
-            var argumentIndex = change.argumentIndex;
-            if (argumentIndex >= arguments.length) {
-              return;
-            }
-            var argument = arguments[argumentIndex];
-            if (argument is! SimpleIdentifier) {
-              return;
-            }
-            // TODO(brianwilkerson) Generalize this into a utility to add an
-            //  element to a list.
-            var typeArguments = parent.typeArguments;
-            var typeArgumentIndex = change.typeArgumentIndex;
-            if (typeArguments == null) {
-              // Adding the first type argument.
-              if (typeArgumentIndex != 0) {
-                return;
-              }
-              builder.addSimpleInsertion(parent.argumentList.offset,
-                  '<${(argument as SimpleIdentifier).name}>');
-            } else {
-              if (typeArgumentIndex > typeArguments.arguments.length) {
-                return;
-              } else if (typeArgumentIndex == 0) {
-                builder.addSimpleInsertion(typeArguments.leftBracket.end,
-                    '${(argument as SimpleIdentifier).name}, ');
-              } else {
-                var previous = typeArguments.arguments[typeArgumentIndex - 1];
-                builder.addSimpleInsertion(
-                    previous.end, ', ${(argument as SimpleIdentifier).name}');
-              }
-            }
-            builder.addDeletion(range.nodeInList(arguments, argument));
-          }
-        } else if (change is RenameChange) {
-          builder.addSimpleReplacement(range.node(_nameNode), change.newName);
-        }
+      for (var i = 0; i < changes.length; i++) {
+        changes[i].apply(builder, this, data[i]);
       }
     });
   }
