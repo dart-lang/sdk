@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -13,7 +14,7 @@ import 'package:meta/meta.dart';
 /// has been converted into a type argument.
 class ConvertArgumentToTypeArgumentChange extends Change<_Data> {
   /// The index of the argument that was transformed.
-  final int argumentIndex;
+  final ParameterReference parameterReference;
 
   /// The index of the type argument into which the argument was transformed.
   final int typeArgumentIndex;
@@ -22,25 +23,27 @@ class ConvertArgumentToTypeArgumentChange extends Change<_Data> {
   /// argument at the [argumentIndex] to the type parameter at the
   /// [typeArgumentIndex] for the function [element].
   ConvertArgumentToTypeArgumentChange(
-      {@required this.argumentIndex, @required this.typeArgumentIndex})
-      : assert(argumentIndex >= 0),
+      {@required this.parameterReference, @required this.typeArgumentIndex})
+      : assert(parameterReference != null),
         assert(typeArgumentIndex >= 0);
 
   @override
   void apply(DartFileEditBuilder builder, DataDrivenFix fix, _Data data) {
-    if (data.typeArguments == null) {
+    var typeArguments = data.typeArguments;
+    var typeName = data.argumentValue;
+    if (typeArguments == null) {
       // Adding the first type argument.
       builder.addSimpleInsertion(
-          data.argumentList.offset, '<${data.argument.name}>');
+          data.argumentList.offset, '<${typeName.name}>');
     } else {
       if (typeArgumentIndex == 0) {
         // Inserting the type argument at the beginning of the list.
         builder.addSimpleInsertion(
-            data.typeArguments.leftBracket.end, '${data.argument.name}, ');
+            typeArguments.leftBracket.end, '${typeName.name}, ');
       } else {
         // Inserting the type argument after an existing type argument.
-        var previous = data.typeArguments.arguments[typeArgumentIndex - 1];
-        builder.addSimpleInsertion(previous.end, ', ${data.argument.name}');
+        var previous = typeArguments.arguments[typeArgumentIndex - 1];
+        builder.addSimpleInsertion(previous.end, ', ${typeName.name}');
       }
     }
     builder.addDeletion(range.nodeInList(data.arguments, data.argument));
@@ -51,11 +54,7 @@ class ConvertArgumentToTypeArgumentChange extends Change<_Data> {
     var parent = fix.node.parent;
     if (parent is MethodInvocation) {
       var argumentList = parent.argumentList;
-      var arguments = argumentList.arguments;
-      if (argumentIndex >= arguments.length) {
-        return null;
-      }
-      var argument = arguments[argumentIndex];
+      var argument = parameterReference.argumentFrom(argumentList);
       if (argument is! SimpleIdentifier) {
         return null;
       }
@@ -65,25 +64,34 @@ class ConvertArgumentToTypeArgumentChange extends Change<_Data> {
       if (typeArgumentIndex > typeArgumentLength) {
         return null;
       }
-      return _Data(argumentList, arguments, argument, typeArguments);
+      return _Data(argumentList, argument, typeArguments);
     }
     return null;
   }
 }
 
 class _Data {
-  /// The argument list for the invocation.
+  /// The argument list of the invocation.
   final ArgumentList argumentList;
 
-  /// The list of function arguments.
-  final NodeList<Expression> arguments;
-
-  /// The argument being moved to the list of type arguments.
-  final SimpleIdentifier argument;
+  /// The value of the argument being moved to the list of type arguments.
+  final Identifier argumentValue;
 
   /// The list of type arguments for the invocation, or `null` if the invocation
   /// does not have any type arguments.
   final TypeArgumentList typeArguments;
 
-  _Data(this.argumentList, this.arguments, this.argument, this.typeArguments);
+  _Data(this.argumentList, this.argumentValue, this.typeArguments);
+
+  /// Return the argument being moved to the list of type arguments.
+  Expression get argument {
+    var parent = argumentValue.parent;
+    if (parent is NamedExpression) {
+      return parent;
+    }
+    return argumentValue;
+  }
+
+  /// The list of invocation arguments.
+  NodeList<Expression> get arguments => argumentList.arguments;
 }
