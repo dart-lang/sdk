@@ -49,7 +49,7 @@ class EnclosingExecutableContext {
   final bool isFactoryConstructor;
   final bool isGenerativeConstructor;
   final bool isGenerator;
-  final bool isStaticMethod;
+  final bool inStaticMethod;
 
   /// The return statements that have a value.
   final List<ReturnStatement> _returnsWith = [];
@@ -69,7 +69,7 @@ class EnclosingExecutableContext {
         isGenerativeConstructor =
             element is ConstructorElement && !element.isFactory,
         isGenerator = element != null && element.isGenerator,
-        isStaticMethod = _isStaticMethod(element);
+        inStaticMethod = _inStaticMethod(element);
 
   EnclosingExecutableContext.empty() : this(null);
 
@@ -105,10 +105,13 @@ class EnclosingExecutableContext {
 
   DartType get returnType => element.returnType;
 
-  static bool _isStaticMethod(ExecutableElement element) {
+  static bool _inStaticMethod(ExecutableElement element) {
     var enclosing = element?.enclosingElement;
     if (enclosing is ClassElement || enclosing is ExtensionElement) {
       return element.isStatic;
+    }
+    if (enclosing is ExecutableElement) {
+      return _inStaticMethod(enclosing);
     }
     return false;
   }
@@ -2669,7 +2672,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     if (!_isInConstructorInitializer &&
-        !_enclosingExecutable.isStaticMethod &&
+        !_enclosingExecutable.inStaticMethod &&
         !_enclosingExecutable.isFactoryConstructor &&
         !_isInInstanceNotLateVariableDeclaration &&
         !_isInStaticVariableDeclaration) {
@@ -2712,7 +2715,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
     }
 
-    if (_enclosingExecutable.isStaticMethod) {
+    if (_enclosingExecutable.inStaticMethod) {
+      // TODO
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, identifier);
     } else if (_enclosingExecutable.isFactoryConstructor) {
@@ -4079,7 +4083,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForTypeParameterReferencedByStatic(SimpleIdentifier identifier) {
-    if (_enclosingExecutable.isStaticMethod || _isInStaticVariableDeclaration) {
+    if (_enclosingExecutable.inStaticMethod || _isInStaticVariableDeclaration) {
       var element = identifier.staticElement;
       if (element is TypeParameterElement &&
           element.enclosingElement is ClassElement) {
