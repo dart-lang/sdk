@@ -253,7 +253,7 @@ void main() {
       });
 
       test('bad SDK dir', () {
-        var failureMessage;
+        String failureMessage;
         CommandLineOptions.parse(['--dart-sdk', '&&&&&', 'foo.dart'],
             printAndFail: (msg) => failureMessage = msg);
         expect(failureMessage, equals('Invalid Dart SDK path: &&&&&'));
