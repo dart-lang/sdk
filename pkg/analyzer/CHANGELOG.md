@@ -1,4 +1,4 @@
-## 0.39.14-dev
+## 0.39.14
 * Removed `defaultSdkDirectory()` and `getSdkProperty()` from internal
   `FolderBasedDartSdk`. It is up to the clients to decide how to
   find SDK, for example using `package:cli_util`.
@@ -7,6 +7,7 @@
 * Updated implementations of `ContextBuilder.createContext()` and
   `ContextLocator.locateContexts` to use the current SDK if `sdkPath`
   is not provided.
+* Bug fixes: #41981, #29731, #42720, #33545, #42599, #42699.
 
 ## 0.39.13
 * Added 'dart/sdk/build_sdk_summary.dart' with `buildSdkSummary`.
