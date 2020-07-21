@@ -705,9 +705,9 @@ TextSerializer<MapConcatenation> mapConcatenationSerializer = Wrapped(
         ListSerializer(expressionSerializer)));
 
 TextSerializer<BlockExpression> blockExpressionSerializer = Wrapped(
-    (be) => Tuple2(be.body, be.value),
-    (t) => BlockExpression(t.first, t.second),
-    Tuple2Serializer(blockSerializer, expressionSerializer));
+    (w) => Tuple2(w.body.statements, w.value),
+    (u) => BlockExpression(Block(u.first), u.second),
+    const BlockSerializer());
 
 TextSerializer<Instantiation> instantiationSerializer = Wrapped(
     (i) => Tuple2(i.expression, i.typeArguments),
@@ -1104,20 +1104,13 @@ TextSerializer<AssertStatement> assertStatementSerializer = Wrapped(
     (t) => AssertStatement(t.first, message: t.second),
     Tuple2Serializer(expressionSerializer, Optional(expressionSerializer)));
 
-TextSerializer<Block> blockSerializer =
-    new Wrapped(unwrapBlock, wrapBlock, const BlockSerializer());
+TextSerializer<Block> blockSerializer = new Wrapped(
+    (w) => Tuple2(w.statements, null),
+    (u) => Block(u.first),
+    const BlockSerializer());
 
-List<Statement> unwrapBlock(Block node) => node.statements;
-
-Block wrapBlock(List<Statement> statements) => new Block(statements);
-
-TextSerializer<AssertBlock> assertBlockSerializer =
-    new Wrapped(unwrapAssertBlock, wrapAssertBlock, const BlockSerializer());
-
-List<Statement> unwrapAssertBlock(AssertBlock node) => node.statements;
-
-AssertBlock wrapAssertBlock(List<Statement> statements) =>
-    new AssertBlock(statements);
+TextSerializer<AssertBlock> assertBlockSerializer = new Wrapped(
+    (w) => Tuple2(w.statements, null), (u) => u.first, const BlockSerializer());
 
 /// Serializer for [Block]s.
 ///
@@ -1132,41 +1125,46 @@ AssertBlock wrapAssertBlock(List<Statement> statements) =>
 /// unnecessary nested blocks.  Instead, [BlockSerializer] is implemented
 /// without direct invocations of either [ListSerializer] or [Bind], but with a
 /// certain internal correspondence to how they work.
-class BlockSerializer extends TextSerializer<List<Statement>> {
+class BlockSerializer
+    extends TextSerializer<Tuple2<List<Statement>, Expression>> {
   const BlockSerializer();
 
-  List<Statement> readFrom(
+  Tuple2<List<Statement>, Expression> readFrom(
       Iterator<Object> stream, DeserializationState state) {
     if (stream.current is! Iterator) {
       throw StateError("Expected a list, found an atom: '${stream.current}'.");
     }
     Iterator<Object> list = stream.current;
     list.moveNext();
-    List<Statement> result = [];
+    List<Statement> statements = [];
     DeserializationState currentState = state;
     while (list.current != null) {
       currentState = new DeserializationState(
           new DeserializationEnvironment(currentState.environment),
           currentState.nameRoot);
-      result.add(statementSerializer.readFrom(list, currentState));
+      statements.add(statementSerializer.readFrom(list, currentState));
       currentState.environment.extend();
     }
     stream.moveNext();
-    return result;
+    Expression expression =
+        new Optional(expressionSerializer).readFrom(stream, currentState);
+    return new Tuple2(statements, expression);
   }
 
-  void writeTo(StringBuffer buffer, List<Statement> statements,
+  void writeTo(StringBuffer buffer, Tuple2<List<Statement>, Expression> tuple,
       SerializationState state) {
     buffer.write('(');
     SerializationState currentState = state;
-    for (int i = 0; i < statements.length; ++i) {
+    for (int i = 0; i < tuple.first.length; ++i) {
       if (i != 0) buffer.write(' ');
       currentState = new SerializationState(
           new SerializationEnvironment(currentState.environment));
-      statementSerializer.writeTo(buffer, statements[i], currentState);
+      statementSerializer.writeTo(buffer, tuple.first[i], currentState);
       currentState.environment.extend();
     }
-    buffer.write(')');
+    buffer.write(') ');
+    new Optional(expressionSerializer)
+        .writeTo(buffer, tuple.second, currentState);
   }
 }
 
@@ -1359,7 +1357,7 @@ TextSerializer<ContinueSwitchStatement> continueSwitchStatementSerializer =
 TextSerializer<FunctionDeclaration> functionDeclarationSerializer = Wrapped(
     (w) => Tuple2(w.variable, w.function),
     (u) => FunctionDeclaration(u.first, u.second),
-    Bind(variableDeclarationSerializer, functionNodeSerializer));
+    Rebind(variableDeclarationSerializer, functionNodeSerializer));
 
 Case<Statement> statementSerializer =
     new Case.uninitialized(const StatementTagger());
