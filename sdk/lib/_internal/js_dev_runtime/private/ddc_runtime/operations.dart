@@ -456,7 +456,7 @@ bool dtest(obj) {
   return obj;
 }
 
-void booleanConversionFailed(obj) {
+Never booleanConversionFailed(obj) {
   var actual = typeName(getReifiedType(obj));
   throw TypeErrorImpl("type '$actual' is not a 'bool' in boolean expression");
 }
