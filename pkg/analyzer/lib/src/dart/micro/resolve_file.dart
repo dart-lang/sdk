@@ -254,8 +254,10 @@ class FileResolver {
     return file.libraryCycle.signatureStr;
   }
 
+  /// The [completionLine] and [completionColumn] are zero based.
   ResolvedUnitResult resolve({
-    int completionOffset,
+    int completionLine,
+    int completionColumn,
     @required String path,
     OperationPerformanceImpl performance,
   }) {
@@ -271,6 +273,12 @@ class FileResolver {
         );
         var file = fileContext.file;
         var libraryFile = file.partOfLibrary ?? file;
+
+        int completionOffset;
+        if (completionLine != null && completionColumn != null) {
+          var lineOffset = file.lineInfo.getOffsetOfLine(completionLine);
+          completionOffset = lineOffset + completionColumn;
+        }
 
         performance.run('libraryContext', (performance) {
           libraryContext.load2(
@@ -324,19 +332,6 @@ class FileResolver {
         );
       });
     });
-  }
-
-  @deprecated
-  ResolvedUnitResult resolve2({
-    int completionOffset,
-    @required String path,
-    OperationPerformanceImpl performance,
-  }) {
-    return resolve(
-      completionOffset: completionOffset,
-      path: path,
-      performance: performance,
-    );
   }
 
   /// Make sure that [fsState], [contextObjects], and [libraryContext] are

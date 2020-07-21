@@ -69,25 +69,6 @@ main() {
     ]);
   }
 
-  Future<void> test_compute_performance_timers() async {
-    await _compute(r'''
-main() {
-  ^
-}
-''');
-
-    void assertTimerNotEmpty(Duration duration) {
-      expect(duration, isNotNull);
-      expect(duration, isNot(Duration.zero));
-    }
-
-    var performance = _completionResult.performance;
-    assertTimerNotEmpty(performance.file);
-    assertTimerNotEmpty(performance.imports);
-    assertTimerNotEmpty(performance.resolution);
-    assertTimerNotEmpty(performance.suggestions);
-  }
-
   Future<void> test_compute_prefixStart_hasPrefix() async {
     await _compute('''
 class A {

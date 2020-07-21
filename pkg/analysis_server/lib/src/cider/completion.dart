@@ -58,25 +58,17 @@ class CiderCompletionComputer {
     @required int column,
   }) async {
     return _performanceRoot.runAsync('completion', (performance) async {
-      var fileContext = _logger.run('Get file $path', () {
-        return _fileResolver.getFileContext(
-          path: path,
-          performance: performance,
-        );
-      });
-
-      var file = fileContext.file;
-
-      var lineInfo = file.lineInfo;
-      var offset = lineInfo.getOffsetOfLine(line) + column;
-
       var resolvedUnit = performance.run('resolution', (performance) {
         return _fileResolver.resolve(
-          completionOffset: offset,
+          completionLine: line,
+          completionColumn: column,
           path: path,
           performance: performance,
         );
       });
+
+      var lineInfo = resolvedUnit.lineInfo;
+      var offset = lineInfo.getOffsetOfLine(line) + column;
 
       var completionRequest = CompletionRequestImpl(
         resolvedUnit,
@@ -149,7 +141,7 @@ class CiderCompletionComputer {
       var result = CiderCompletionResult._(
         suggestions: suggestions,
         performance: CiderCompletionPerformance._(
-          file: performance.getChild('fileContext').elapsed,
+          file: Duration.zero,
           imports: performance.getChild('imports').elapsed,
           resolution: performance.getChild('resolution').elapsed,
           suggestions: performance.getChild('suggestions').elapsed,
@@ -243,15 +235,19 @@ class CiderCompletionComputer {
 
 class CiderCompletionPerformance {
   /// The elapsed time for file access.
+  @Deprecated('This operation is not performed anymore')
   final Duration file;
 
   /// The elapsed time to compute import suggestions.
+  @Deprecated("Use 'operations' instead")
   final Duration imports;
 
   /// The elapsed time for resolution.
+  @Deprecated("Use 'operations' instead")
   final Duration resolution;
 
   /// The elapsed time to compute suggestions.
+  @Deprecated("Use 'operations' instead")
   final Duration suggestions;
 
   /// The tree of operation performances.
