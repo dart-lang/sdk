@@ -14,8 +14,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -44,13 +44,12 @@ void resolveTemplateNode({
   final unitElement = componentClass.enclosingElement;
   final library = componentClass.library;
 
-  final libraryScope = LibraryScope(library);
   node.accept(
     ResolutionVisitor(
       unitElement: unitElement,
       errorListener: errorListener,
       featureSet: library.context.analysisOptions.contextFeatures,
-      nameScope: libraryScope,
+      nameScope: library.scope,
     ),
   );
 
@@ -60,11 +59,11 @@ void resolveTemplateNode({
       overrideAsExpression: overrideAsExpression);
   // fill the name scope
   final classScope = ClassScope(resolver.nameScope, componentClass);
-  final localScope = EnclosedScope(classScope);
+  final localScope = LocalScope(classScope);
   resolver
     ..nameScope = localScope
     ..enclosingClass = componentClass;
-  localVariables.forEach(localScope.define);
+  localVariables.forEach(localScope.add);
   // do resolve
   node.accept(resolver);
   // verify

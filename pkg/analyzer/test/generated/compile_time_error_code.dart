@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
-import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/driver_resolution.dart';
 
@@ -150,11 +149,8 @@ main() {
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38352')
   test_constWithNonConstantArgument_classShadowedBySetter() async {
-    // TODO(paulberry): once this is fixed, change this test to use
-    // assertErrorsInCode and verify the exact error message(s).
-    var code = '''
+    await assertErrorsInCode(r'''
 class Annotation {
   const Annotation(Object obj);
 }
@@ -165,10 +161,10 @@ class Foo {
   @Annotation(Bar)
   set Bar(int value) {}
 }
-''';
-    addTestFile(code);
-    await resolveTestFile();
-    assertHasTestErrors();
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 94, 3),
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 94, 3),
+    ]);
   }
 
   test_constWithNonConstantArgument_instanceCreation() async {

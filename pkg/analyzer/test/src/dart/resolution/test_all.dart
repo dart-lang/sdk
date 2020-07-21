@@ -20,6 +20,7 @@ import 'extension_override_test.dart' as extension_override;
 import 'field_test.dart' as field;
 import 'for_element_test.dart' as for_element;
 import 'for_statement_test.dart' as for_in;
+import 'function_declaration_test.dart' as function_declaration;
 import 'function_expression_invocation_test.dart'
     as function_expression_invocation;
 import 'function_type_alias_test.dart' as function_type_alias;
@@ -41,6 +42,7 @@ import 'library_element_test.dart' as library_element;
 import 'local_function_test.dart' as local_function;
 import 'local_variable_test.dart' as local_variable;
 import 'metadata_test.dart' as metadata;
+import 'method_declaration_test.dart' as method_declaration;
 import 'method_invocation_test.dart' as method_invocation;
 import 'mixin_test.dart' as mixin_resolution;
 import 'namespace_test.dart' as namespace;
@@ -77,6 +79,7 @@ main() {
     field.main();
     for_element.main();
     for_in.main();
+    function_declaration.main();
     function_expression_invocation.main();
     function_type_alias.main();
     generic_function_type.main();
@@ -95,6 +98,7 @@ main() {
     local_function.main();
     local_variable.main();
     metadata.main();
+    method_declaration.main();
     method_invocation.main();
     mixin_resolution.main();
     namespace.main();

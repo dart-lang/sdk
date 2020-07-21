@@ -6,29 +6,14 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/scope.dart' as new_scope;
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/scope.dart' as new_scope;
+import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
 /// The scope defined by a block.
-class BlockScope extends EnclosedScope {
-  /// Initialize a newly created scope, enclosed within the [enclosingScope],
-  /// based on the given [block].
-  BlockScope(Scope enclosingScope, Block block) : super(enclosingScope) {
-    if (block == null) {
-      throw ArgumentError("block cannot be null");
-    }
-    _defineElements(block);
-  }
-
-  void _defineElements(Block block) {
-    for (Element element in elementsInBlock(block)) {
-      define(element);
-    }
-  }
-
+class BlockScope {
   /// Return the elements that are declared directly in the given [block]. This
   /// does not include elements declared in nested blocks.
   static Iterable<Element> elementsInBlock(Block block) sync* {
@@ -47,188 +32,6 @@ class BlockScope extends EnclosedScope {
       }
     }
   }
-}
-
-/// The scope defined by a class.
-class ClassScope extends EnclosedScope {
-  /// Initialize a newly created scope, enclosed within the [enclosingScope],
-  /// based on the given [classElement].
-  ClassScope(Scope enclosingScope, ClassElement classElement)
-      : super(enclosingScope) {
-    if (classElement == null) {
-      throw ArgumentError("class element cannot be null");
-    }
-    _defineMembers(classElement);
-  }
-
-  /// Define the instance members defined by the given [classElement].
-  void _defineMembers(ClassElement classElement) {
-    List<PropertyAccessorElement> accessors = classElement.accessors;
-    int accessorLength = accessors.length;
-    for (int i = 0; i < accessorLength; i++) {
-      define(accessors[i]);
-    }
-    List<MethodElement> methods = classElement.methods;
-    int methodLength = methods.length;
-    for (int i = 0; i < methodLength; i++) {
-      define(methods[i]);
-    }
-  }
-}
-
-/// The scope defined for the initializers in a constructor.
-class ConstructorInitializerScope extends EnclosedScope {
-  /// Initialize a newly created scope, enclosed within the [enclosingScope].
-  ConstructorInitializerScope(Scope enclosingScope, ConstructorElement element)
-      : super(enclosingScope) {
-    _initializeFieldFormalParameters(element);
-  }
-
-  /// Initialize the local scope with all of the field formal parameters.
-  void _initializeFieldFormalParameters(ConstructorElement element) {
-    for (ParameterElement parameter in element.parameters) {
-      if (parameter is FieldFormalParameterElement) {
-        define(parameter);
-      }
-    }
-  }
-}
-
-/// A scope that is lexically enclosed in another scope.
-class EnclosedScope extends Scope {
-  /// The scope in which this scope is lexically enclosed.
-  @override
-  final Scope enclosingScope;
-
-  /// Initialize a newly created scope, enclosed within the [enclosingScope].
-  EnclosedScope(this.enclosingScope);
-
-  @override
-  Element internalLookup(String name) {
-    Element element = localLookup(name);
-    if (element != null) {
-      return element;
-    }
-    // Check enclosing scope.
-    return enclosingScope.internalLookup(name);
-  }
-
-  @override
-  Element _internalLookupPrefixed(String prefix, String name) {
-    return enclosingScope._internalLookupPrefixed(prefix, name);
-  }
-}
-
-/// The scope defined by an extension.
-class ExtensionScope extends EnclosedScope {
-  /// Initialize a newly created scope, enclosed within the [enclosingScope],
-  /// that represents the given [_extensionElement].
-  ExtensionScope(Scope enclosingScope, ExtensionElement extensionElement)
-      : super(enclosingScope) {
-    _defineMembers(extensionElement);
-  }
-
-  /// Define the static members defined by the given [extensionElement]. The
-  /// instance members should only be found if they would be found by normal
-  /// lookup on `this`.
-  void _defineMembers(ExtensionElement extensionElement) {
-    List<PropertyAccessorElement> accessors = extensionElement.accessors;
-    int accessorLength = accessors.length;
-    for (int i = 0; i < accessorLength; i++) {
-      define(accessors[i]);
-    }
-    List<MethodElement> methods = extensionElement.methods;
-    int methodLength = methods.length;
-    for (int i = 0; i < methodLength; i++) {
-      define(methods[i]);
-    }
-  }
-}
-
-/// The scope defined by a function.
-class FunctionScope extends EnclosedScope {
-  /// The element representing the function that defines this scope.
-  final FunctionTypedElement _functionElement;
-
-  /// A flag indicating whether the parameters have already been defined, used
-  /// to prevent the parameters from being defined multiple times.
-  bool _parametersDefined = false;
-
-  /// Initialize a newly created scope, enclosed within the [enclosingScope],
-  /// that represents the given [_functionElement].
-  FunctionScope(Scope enclosingScope, this._functionElement)
-      : super(EnclosedScope(EnclosedScope(enclosingScope))) {
-    if (_functionElement == null) {
-      throw ArgumentError("function element cannot be null");
-    }
-    _defineTypeParameters();
-  }
-
-  /// Define the parameters for the given function in the scope that encloses
-  /// this function.
-  void defineParameters() {
-    if (_parametersDefined) {
-      return;
-    }
-    _parametersDefined = true;
-    Scope parameterScope = enclosingScope;
-    List<ParameterElement> parameters = _functionElement.parameters;
-    int length = parameters.length;
-    for (int i = 0; i < length; i++) {
-      ParameterElement parameter = parameters[i];
-      if (!parameter.isInitializingFormal) {
-        parameterScope.define(parameter);
-      }
-    }
-  }
-
-  /// Define the type parameters for the function.
-  void _defineTypeParameters() {
-    Scope typeParameterScope = enclosingScope.enclosingScope;
-    List<TypeParameterElement> typeParameters = _functionElement.typeParameters;
-    int length = typeParameters.length;
-    for (int i = 0; i < length; i++) {
-      TypeParameterElement typeParameter = typeParameters[i];
-      typeParameterScope.define(typeParameter);
-    }
-  }
-}
-
-/// The scope defined by a function type alias.
-class FunctionTypeScope extends EnclosedScope {
-  final FunctionTypeAliasElement _typeElement;
-
-  bool _parametersDefined = false;
-
-  /// Initialize a newly created scope, enclosed within the [enclosingScope],
-  /// that represents the given [_typeElement].
-  FunctionTypeScope(Scope enclosingScope, this._typeElement)
-      : super(EnclosedScope(enclosingScope)) {
-    _defineTypeParameters();
-  }
-
-  /// Define the parameters for the function type alias.
-  void defineParameters() {
-    if (_parametersDefined) {
-      return;
-    }
-    _parametersDefined = true;
-    for (ParameterElement parameter in _typeElement.function.parameters) {
-      define(parameter);
-    }
-  }
-
-  /// Define the type parameters for the function type alias.
-  void _defineTypeParameters() {
-    Scope typeParameterScope = enclosingScope;
-    for (TypeParameterElement typeParameter in _typeElement.typeParameters) {
-      typeParameterScope.define(typeParameter);
-    }
-  }
-}
-
-abstract class HasNewScope {
-  new_scope.Scope get newScope;
 }
 
 /// The scope statements that can be the target of unlabeled `break` and
@@ -252,7 +55,7 @@ class ImplicitLabelScope {
   /// `continue` statement, or `null` if there is no appropriate target.
   Statement getTarget(bool isContinue) {
     if (outerScope == null) {
-      // This scope represents the toplevel of a function body, so it doesn't
+      // This scope represents the top-level of a function body, so it doesn't
       // match either break or continue.
       return null;
     }
@@ -295,113 +98,6 @@ class LabelScope {
       return this;
     }
     return _outerScope?.lookup(targetLabel);
-  }
-}
-
-/// A scope containing all of the names defined in a given library.
-class LibraryScope implements EnclosedScope, HasNewScope {
-  final LibraryElement _definingLibrary;
-  final new_scope.LibraryScope _impl;
-
-  LibraryScope(LibraryElement definingLibrary)
-      : _definingLibrary = definingLibrary,
-        _impl = new_scope.LibraryScope(definingLibrary);
-
-  @override
-  List<ExtensionElement> get extensions => _impl.extensions;
-
-  @override
-  new_scope.EnclosedScope get newScope => _impl;
-
-  @override
-  Element internalLookup(String name) {
-    if (name.endsWith('=')) {
-      var id = name.substring(0, name.length - 1);
-      return _impl.lookup2(id).setter;
-    } else {
-      return _impl.lookup2(name).getter;
-    }
-  }
-
-  @override
-  Element lookup(Identifier identifier, LibraryElement referencingLibrary) {
-    if (identifier is SimpleIdentifier) {
-      return internalLookup(identifier.name);
-    }
-
-    if (identifier is PrefixedIdentifier) {
-      return _internalLookupPrefixed(
-        identifier.prefix.name,
-        identifier.identifier.name,
-      );
-    }
-
-    throw UnimplementedError();
-  }
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  @override
-  bool shouldIgnoreUndefined(Identifier node) {
-    Iterable<NamespaceCombinator> getShowCombinators(
-        ImportElement importElement) {
-      return importElement.combinators.whereType<ShowElementCombinator>();
-    }
-
-    if (node is PrefixedIdentifier) {
-      String prefix = node.prefix.name;
-      String name = node.identifier.name;
-      List<ImportElement> imports = _definingLibrary.imports;
-      int count = imports.length;
-      for (int i = 0; i < count; i++) {
-        ImportElement importElement = imports[i];
-        if (importElement.prefix?.name == prefix &&
-            importElement.importedLibrary?.isSynthetic != false) {
-          Iterable<NamespaceCombinator> showCombinators =
-              getShowCombinators(importElement);
-          if (showCombinators.isEmpty) {
-            return true;
-          }
-          for (ShowElementCombinator combinator in showCombinators) {
-            if (combinator.shownNames.contains(name)) {
-              return true;
-            }
-          }
-        }
-      }
-    } else if (node is SimpleIdentifier) {
-      String name = node.name;
-      List<ImportElement> imports = _definingLibrary.imports;
-      int count = imports.length;
-      for (int i = 0; i < count; i++) {
-        ImportElement importElement = imports[i];
-        if (importElement.prefix == null &&
-            importElement.importedLibrary?.isSynthetic != false) {
-          for (ShowElementCombinator combinator
-              in getShowCombinators(importElement)) {
-            if (combinator.shownNames.contains(name)) {
-              return true;
-            }
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  @override
-  Element _internalLookupPrefixed(String prefix, String name) {
-    var prefixElement = _impl.lookup2(prefix).getter;
-    if (prefixElement is PrefixElement) {
-      if (name.endsWith('=')) {
-        var id = name.substring(0, name.length - 1);
-        return prefixElement.scope.lookup2(id).setter;
-      } else {
-        return prefixElement.scope.lookup2(name).getter;
-      }
-    }
-    return null;
   }
 }
 
@@ -525,7 +221,7 @@ class NamespaceBuilder {
   /// publicly visible name.
   void _addIfPublic(Map<String, Element> definedNames, Element element) {
     String name = element.name;
-    if (name != null && name.isNotEmpty && !Scope.isPrivateName(name)) {
+    if (name != null && name.isNotEmpty && !Identifier.isPrivateName(name)) {
       definedNames[name] = element;
     }
   }
@@ -704,133 +400,60 @@ class PrefixedNamespace implements Namespace {
   }
 }
 
-/// A name scope used by the resolver to determine which names are visible at
-/// any given point in the code.
-abstract class Scope {
-  /// The prefix used to mark an identifier as being private to its library.
-  static int PRIVATE_NAME_PREFIX = 0x5F;
-
-  /// The suffix added to the declared name of a setter when looking up the
-  /// setter. Used to disambiguate between a getter and a setter that have the
-  /// same name.
-  static String SETTER_SUFFIX = "=";
-
-  /// The name used to look up the method used to implement the unary minus
-  /// operator. Used to disambiguate between the unary and binary operators.
-  static String UNARY_MINUS = "unary-";
-
-  /// A table mapping names that are defined in this scope to the element
-  /// representing the thing declared with that name.
-  Map<String, Element> _definedNames;
-
-  /// Return the scope in which this scope is lexically enclosed.
-  Scope get enclosingScope => null;
-
-  /// The list of extensions defined in this scope.
-  List<ExtensionElement> get extensions =>
-      enclosingScope == null ? <ExtensionElement>[] : enclosingScope.extensions;
-
-  /// Add the given [element] to this scope. If there is already an element with
-  /// the given name defined in this scope, then the original element will
-  /// continue to be mapped to the name.
-  void define(Element element) {
-    String name = _getName(element);
-    if (name != null && name.isNotEmpty) {
-      _definedNames ??= HashMap<String, Element>();
-      _definedNames.putIfAbsent(name, () => element);
-    }
-  }
-
-  /// Add the given [element] to this scope without checking for duplication or
-  /// hiding.
-  void defineNameWithoutChecking(String name, Element element) {
-    _definedNames ??= HashMap<String, Element>();
-    _definedNames[name] = element;
-  }
-
-  /// Add the given [element] to this scope without checking for duplication or
-  /// hiding.
-  void defineWithoutChecking(Element element) {
-    _definedNames ??= HashMap<String, Element>();
-    _definedNames[_getName(element)] = element;
-  }
-
-  /// Return the element with which the given [name] is associated, or `null` if
-  /// the name is not defined within this scope.
-  Element internalLookup(String name);
-
-  /// Return the element with which the given [name] is associated, or `null` if
-  /// the name is not defined within this scope. This method only returns
-  /// elements that are directly defined within this scope, not elements that
-  /// are defined in an enclosing scope.
-  Element localLookup(String name) {
-    if (_definedNames != null) {
-      return _definedNames[name];
-    }
-    return null;
-  }
-
-  /// Return the element with which the given [identifier] is associated, or
-  /// `null` if the name is not defined within this scope. The
-  /// [referencingLibrary] is the library that contains the reference to the
-  /// name, used to implement library-level privacy.
-  Element lookup(Identifier identifier, LibraryElement referencingLibrary) {
-    if (identifier is PrefixedIdentifier) {
-      return _internalLookupPrefixed(
-          identifier.prefix.name, identifier.identifier.name);
-    }
-    return internalLookup(identifier.name);
-  }
-
+extension ScopeExtension on Scope {
   /// Return `true` if the fact that the given [node] is not defined should be
   /// ignored (from the perspective of error reporting). This will be the case
   /// if there is at least one import that defines the node's prefix, and if
   /// that import either has no show combinators or has a show combinator that
   /// explicitly lists the node's name.
   bool shouldIgnoreUndefined(Identifier node) {
-    if (enclosingScope != null) {
-      return enclosingScope.shouldIgnoreUndefined(node);
+    if (node is PrefixedIdentifier) {
+      return _enclosingLibraryScope.shouldIgnoreUndefined(
+        prefix: node.prefix.name,
+        name: node.identifier.name,
+      );
     }
-    return false;
+
+    return _enclosingLibraryScope.shouldIgnoreUndefined(
+      prefix: null,
+      name: (node as SimpleIdentifier).name,
+    );
   }
 
-  /// Return the name that will be used to look up the given [element].
-  String _getName(Element element) {
-    if (element is MethodElement) {
-      MethodElement method = element;
-      if (method.name == "-" && method.parameters.isEmpty) {
-        return UNARY_MINUS;
+  List<ExtensionElement> get extensions {
+    return _enclosingLibraryScope.extensions;
+  }
+
+  LibraryScope get _enclosingLibraryScope {
+    var scope = this;
+    while (scope != null) {
+      if (scope is LibraryScope) {
+        return scope;
+      }
+      scope = (scope as EnclosedScope).parent;
+    }
+    throw StateError('Can only be used in a LibraryScope.');
+  }
+
+  // TODO(scheglov) check if it might be inlined
+  Element lookupIdentifier(Identifier identifier) {
+    if (identifier is SimpleIdentifier) {
+      var result = this.lookup2(identifier.name);
+      return result.getter ?? result.setter;
+    } else {
+      var prefixedIdentifier = identifier as PrefixedIdentifier;
+
+      var prefixIdentifier = prefixedIdentifier.prefix;
+      var prefixName = prefixIdentifier.name;
+      var prefixElement = this.lookup2(prefixName).getter;
+      prefixIdentifier.staticElement = prefixElement;
+
+      if (prefixElement is PrefixElement) {
+        var name = prefixedIdentifier.identifier.name;
+        var result = prefixElement.scope.lookup2(name);
+        return result.getter ?? result.setter;
       }
     }
-    return element.name;
-  }
-
-  /// Return the element with which the given [prefix] and [name] are
-  /// associated, or `null` if the name is not defined within this scope.
-  Element _internalLookupPrefixed(String prefix, String name);
-
-  /// Return `true` if the given [name] is a library-private name.
-  static bool isPrivateName(String name) =>
-      name != null && name.startsWith('_');
-}
-
-/// The scope defined by the type parameters in an element that defines type
-/// parameters.
-class TypeParameterScope extends EnclosedScope {
-  /// Initialize a newly created scope, enclosed within the [enclosingScope],
-  /// that defines the type parameters from the given [element].
-  TypeParameterScope(Scope enclosingScope, TypeParameterizedElement element)
-      : super(enclosingScope) {
-    if (element == null) {
-      throw ArgumentError("element cannot be null");
-    }
-    _defineTypeParameters(element);
-  }
-
-  /// Define the type parameters declared by the [element].
-  void _defineTypeParameters(TypeParameterizedElement element) {
-    for (TypeParameterElement typeParameter in element.typeParameters) {
-      define(typeParameter);
-    }
+    return null;
   }
 }

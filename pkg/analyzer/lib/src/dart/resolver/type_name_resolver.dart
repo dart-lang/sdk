@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
@@ -23,7 +24,7 @@ class TypeNameResolver {
   final TypeSystemImpl typeSystem;
   final DartType dynamicType;
   final bool isNonNullableByDefault;
-  final LibraryElement definingLibrary;
+  final LibraryElement definingLibrary; // TODO(scheglov) remove
   final ErrorReporter errorReporter;
 
   Scope nameScope;
@@ -74,7 +75,25 @@ class TypeNameResolver {
       return;
     }
 
-    var element = nameScope.lookup(typeIdentifier, definingLibrary);
+    // TODO(scheglov) Update to use `lookup2`.
+    var element = nameScope.lookupIdentifier(typeIdentifier);
+
+    // TODO(scheglov) When fixing the previous TODO, report the prefix sooner.
+    if (typeIdentifier is PrefixedIdentifier) {
+      var prefix = typeIdentifier.prefix;
+      var prefixElement = prefix.staticElement;
+      if (prefixElement != null &&
+          prefixElement is! PrefixElement &&
+          prefixElement is! ClassElement) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION,
+          prefix,
+          [prefix.name],
+        );
+        node.type = dynamicType;
+        return;
+      }
+    }
 
     if (element is MultiplyDefinedElement) {
       _setElement(typeIdentifier, element);
@@ -88,15 +107,9 @@ class TypeNameResolver {
       return;
     }
 
+    // TODO(scheglov) Can we do rewriting better with using `lookup2`?
     if (_rewriteToConstructorName(node)) {
       return;
-    }
-
-    // Full `prefix.Name` cannot be resolved, try to resolve 'prefix' alone.
-    if (typeIdentifier is PrefixedIdentifier) {
-      var prefixIdentifier = typeIdentifier.prefix;
-      var prefixElement = nameScope.lookup(prefixIdentifier, definingLibrary);
-      prefixIdentifier.staticElement = prefixElement;
     }
 
     node.type = dynamicType;
@@ -305,7 +318,7 @@ class TypeNameResolver {
         constructorName is ConstructorName &&
         constructorName.name == null) {
       var classIdentifier = typeIdentifier.prefix;
-      var classElement = nameScope.lookup(classIdentifier, definingLibrary);
+      var classElement = nameScope.lookupIdentifier(classIdentifier);
       if (classElement is ClassElement) {
         var constructorIdentifier = typeIdentifier.identifier;
 
@@ -347,7 +360,7 @@ class TypeNameResolver {
     } else if (typeName is PrefixedIdentifier) {
       typeName.identifier.staticElement = element;
       SimpleIdentifier prefix = typeName.prefix;
-      prefix.staticElement = nameScope.lookup(prefix, definingLibrary);
+      prefix.staticElement = nameScope.lookupIdentifier(prefix);
     }
   }
 

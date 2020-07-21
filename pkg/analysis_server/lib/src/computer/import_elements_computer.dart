@@ -244,7 +244,7 @@ class ImportElementsComputer {
   List<ImportedElements> _filterImportedElements(
       List<ImportedElements> originalList) {
     var libraryElement = libraryResult.libraryElement;
-    var libraryScope = LibraryScope(libraryElement);
+    var libraryScope = libraryElement.scope;
     AstFactory factory = AstFactoryImpl();
     var filteredList = <ImportedElements>[];
     for (var elements in originalList) {
@@ -259,7 +259,7 @@ class ImportElementsComputer {
           Token period = SimpleToken(TokenType.PERIOD, -1);
           identifier = factory.prefixedIdentifier(prefix, period, identifier);
         }
-        var element = libraryScope.lookup(identifier, libraryElement);
+        var element = libraryScope.lookupIdentifier(identifier);
         if (element != null) {
           filteredElements.remove(name);
         }

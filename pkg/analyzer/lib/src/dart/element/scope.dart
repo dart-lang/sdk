@@ -8,6 +8,22 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart' as impl;
 import 'package:meta/meta.dart';
 
+/// The scope defined by a class.
+class ClassScope extends EnclosedScope {
+  ClassScope(Scope parent, ClassElement element) : super(parent) {
+    element.accessors.forEach(_addPropertyAccessor);
+    element.methods.forEach(_addGetter);
+  }
+}
+
+/// The scope for the initializers in a constructor.
+class ConstructorInitializerScope extends EnclosedScope {
+  ConstructorInitializerScope(Scope parent, ConstructorElement element)
+      : super(parent) {
+    element.parameters.forEach(_addGetter);
+  }
+}
+
 /// A scope that is lexically enclosed in another scope.
 class EnclosedScope implements Scope {
   final Scope _parent;
@@ -15,6 +31,8 @@ class EnclosedScope implements Scope {
   final Map<String, Element> _setters = {};
 
   EnclosedScope(Scope parent) : _parent = parent;
+
+  Scope get parent => _parent;
 
   @Deprecated('Use lookup2() that is closer to the language specification')
   @override
@@ -56,12 +74,83 @@ class EnclosedScope implements Scope {
   }
 }
 
+/// The scope defined by an extension.
+class ExtensionScope extends EnclosedScope {
+  ExtensionScope(
+    Scope parent,
+    ExtensionElement element,
+  ) : super(parent) {
+    element.accessors.forEach(_addPropertyAccessor);
+    element.methods.forEach(_addGetter);
+  }
+}
+
+class FormalParameterScope extends EnclosedScope {
+  FormalParameterScope(
+    Scope parent,
+    List<ParameterElement> elements,
+  ) : super(parent) {
+    for (var parameter in elements) {
+      if (parameter is! FieldFormalParameterElement) {
+        _addGetter(parameter);
+      }
+    }
+  }
+}
+
 class LibraryScope extends EnclosedScope {
+  final LibraryElement _element;
   final List<ExtensionElement> extensions = [];
 
-  LibraryScope(LibraryElement library) : super(_LibraryImportScope(library)) {
+  LibraryScope(LibraryElement element)
+      : _element = element,
+        super(_LibraryImportScope(element)) {
     extensions.addAll((_parent as _LibraryImportScope).extensions);
-    _defineTopLevelElements(library);
+
+    _element.prefixes.forEach(_addGetter);
+    _element.units.forEach(_addUnitElements);
+  }
+
+  bool shouldIgnoreUndefined({
+    @required String prefix,
+    @required String name,
+  }) {
+    Iterable<NamespaceCombinator> getShowCombinators(
+        ImportElement importElement) {
+      return importElement.combinators.whereType<ShowElementCombinator>();
+    }
+
+    if (prefix != null) {
+      for (var importElement in _element.imports) {
+        if (importElement.prefix?.name == prefix &&
+            importElement.importedLibrary?.isSynthetic != false) {
+          var showCombinators = getShowCombinators(importElement);
+          if (showCombinators.isEmpty) {
+            return true;
+          }
+          for (ShowElementCombinator combinator in showCombinators) {
+            if (combinator.shownNames.contains(name)) {
+              return true;
+            }
+          }
+        }
+      }
+    } else {
+      // TODO(scheglov) merge for(s).
+      for (var importElement in _element.imports) {
+        if (importElement.prefix == null &&
+            importElement.importedLibrary?.isSynthetic != false) {
+          for (ShowElementCombinator combinator
+              in getShowCombinators(importElement)) {
+            if (combinator.shownNames.contains(name)) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+
+    return false;
   }
 
   void _addExtension(ExtensionElement element) {
@@ -71,7 +160,7 @@ class LibraryScope extends EnclosedScope {
     }
   }
 
-  void _defineLocalNames(CompilationUnitElement compilationUnit) {
+  void _addUnitElements(CompilationUnitElement compilationUnit) {
     compilationUnit.accessors.forEach(_addPropertyAccessor);
     compilationUnit.enums.forEach(_addGetter);
     compilationUnit.extensions.forEach(_addExtension);
@@ -80,10 +169,13 @@ class LibraryScope extends EnclosedScope {
     compilationUnit.mixins.forEach(_addGetter);
     compilationUnit.types.forEach(_addGetter);
   }
+}
 
-  void _defineTopLevelElements(LibraryElement library) {
-    library.prefixes.forEach(_addGetter);
-    library.units.forEach(_defineLocalNames);
+class LocalScope extends EnclosedScope {
+  LocalScope(Scope parent) : super(parent);
+
+  void add(Element element) {
+    _addGetter(element);
   }
 }
 
@@ -184,6 +276,15 @@ class PrefixScope implements Scope {
       return false;
     }
     return element.library.isInSdk;
+  }
+}
+
+class TypeParameterScope extends EnclosedScope {
+  TypeParameterScope(
+    Scope parent,
+    List<TypeParameterElement> elements,
+  ) : super(parent) {
+    elements.forEach(_addGetter);
   }
 }
 

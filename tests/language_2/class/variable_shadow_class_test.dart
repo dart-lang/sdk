@@ -15,8 +15,8 @@ main() {
     var Test;
     // Now this refers to the variable.
     var i = new Test.named(10);
-    //          ^^^^^^^^^^
-    // [analyzer] STATIC_WARNING.CREATION_WITH_NON_TYPE
+    //          ^^^^
+    // [analyzer] COMPILE_TIME_ERROR.PREFIX_SHADOWED_BY_LOCAL_DECLARATION
     // [cfe] Method not found: 'Test.named'.
     Expect.equals(10, i.field);
   }

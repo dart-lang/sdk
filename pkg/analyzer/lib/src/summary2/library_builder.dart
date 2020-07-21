@@ -6,7 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart' show LibraryScope;
+import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -209,7 +209,7 @@ class LibraryBuilder {
 
   void buildElement() {
     element = linker.elementFactory.libraryOfUri('$uri');
-    scope = LibraryScope(element);
+    scope = element.scope;
   }
 
   void buildInitialExportScope() {

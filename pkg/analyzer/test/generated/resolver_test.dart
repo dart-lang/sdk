@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
-import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,27 +20,11 @@ import 'resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(EnclosedScopeTest);
     defineReflectiveTests(ErrorResolverTest);
     defineReflectiveTests(PrefixedNamespaceTest);
-    defineReflectiveTests(ScopeTest);
     defineReflectiveTests(StrictModeTest);
     defineReflectiveTests(TypePropagationTest);
   });
-}
-
-@reflectiveTest
-class EnclosedScopeTest extends DriverResolutionTest {
-  test_define_duplicate() async {
-    Scope rootScope = _RootScope();
-    EnclosedScope scope = EnclosedScope(rootScope);
-    SimpleIdentifier identifier = AstTestFactory.identifier3('v');
-    VariableElement element1 = ElementFactory.localVariableElement(identifier);
-    VariableElement element2 = ElementFactory.localVariableElement(identifier);
-    scope.define(element1);
-    scope.define(element2);
-    expect(scope.lookup(identifier, null), same(element1));
-  }
 }
 
 @reflectiveTest
@@ -149,27 +132,6 @@ class PrefixedNamespaceTest extends DriverResolutionTest {
       map[element.name] = element;
     }
     return map;
-  }
-}
-
-@reflectiveTest
-class ScopeTest extends DriverResolutionTest {
-  void test_define_duplicate() {
-    Scope scope = _RootScope();
-    SimpleIdentifier identifier = AstTestFactory.identifier3('v');
-    VariableElement element1 = ElementFactory.localVariableElement(identifier);
-    VariableElement element2 = ElementFactory.localVariableElement(identifier);
-    scope.define(element1);
-    scope.define(element2);
-    expect(scope.localLookup('v'), same(element1));
-  }
-
-  void test_isPrivateName_nonPrivate() {
-    expect(Scope.isPrivateName("Public"), isFalse);
-  }
-
-  void test_isPrivateName_private() {
-    expect(Scope.isPrivateName("_Private"), isTrue);
   }
 }
 
@@ -651,9 +613,4 @@ main() {
 }''');
     assertTypeDynamic(findNode.simple('v = '));
   }
-}
-
-class _RootScope extends Scope {
-  @override
-  Element internalLookup(String name) => null;
 }

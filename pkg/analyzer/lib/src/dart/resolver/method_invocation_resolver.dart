@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -480,7 +481,7 @@ class MethodInvocationResolver {
 
   void _resolveReceiverNull(
       MethodInvocation node, SimpleIdentifier nameNode, String name) {
-    var element = nameScope.lookup(nameNode, _definingLibrary);
+    var element = nameScope.lookup2(name).getter;
     if (element != null) {
       element = _resolver.toLegacyElement(element);
       nameNode.staticElement = element;
@@ -545,7 +546,7 @@ class MethodInvocationResolver {
     // TODO(scheglov) I don't like how we resolve prefixed names.
     // But maybe this is the only one solution.
     var prefixedName = PrefixedIdentifierImpl.temp(receiver, nameNode);
-    var element = nameScope.lookup(prefixedName, _definingLibrary);
+    var element = prefix.scope.lookup2(name).getter;
     element = _resolver.toLegacyElement(element);
     nameNode.staticElement = element;
 

@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart' show ResolverVisitor;
 import 'package:analyzer/src/generated/source.dart';
@@ -718,7 +717,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
 
     _visitor = ResolverVisitor(
         inheritance, _definingLibrary, source, _typeProvider, _listener,
-        featureSet: featureSet, nameScope: LibraryScope(_definingLibrary));
+        featureSet: featureSet, nameScope: _definingLibrary.scope);
     _analyzer = _visitor.typeAnalyzer;
   }
 

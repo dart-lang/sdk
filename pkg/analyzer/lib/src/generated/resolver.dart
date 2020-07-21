@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
@@ -20,6 +21,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart'
     show ConstructorMember, Member;
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
+import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
@@ -731,10 +733,44 @@ class ResolverVisitor extends ScopedVisitor {
     AstNode parent = node.parent;
     if (parent is FunctionDeclaration ||
         parent is FunctionTypeAlias ||
-        parent is ConstructorDeclaration ||
-        parent is MethodDeclaration) {
+        parent is ConstructorDeclaration) {
       return;
     }
+
+    // TODO(scheglov) Change corresponding visiting places to visit comments
+    // with name scopes set for correct comments resolution.
+    if (parent is GenericTypeAlias) {
+      var element = parent.declaredElement as GenericTypeAliasElement;
+      var outerScope = nameScope;
+      try {
+        nameScope = TypeParameterScope(nameScope, element.typeParameters);
+
+        var functionElement = element.function;
+        if (functionElement != null) {
+          nameScope = FormalParameterScope(
+            TypeParameterScope(nameScope, functionElement.typeParameters),
+            functionElement.parameters,
+          );
+        }
+
+        super.visitComment(node);
+        return;
+      } finally {
+        nameScope = outerScope;
+      }
+    } else if (parent is MethodDeclaration) {
+      var outerScope = nameScope;
+      try {
+        var element = parent.declaredElement;
+        nameScope = FormalParameterScope(nameScope, element.parameters);
+
+        super.visitComment(node);
+        return;
+      } finally {
+        nameScope = outerScope;
+      }
+    }
+
     super.visitComment(node);
   }
 
@@ -1122,8 +1158,11 @@ class ResolverVisitor extends ScopedVisitor {
     } else {
       Scope outerScope = nameScope;
       try {
-        ExecutableElement functionElement = node.declaredElement;
-        nameScope = FunctionScope(nameScope, functionElement);
+        ExecutableElement element = node.declaredElement;
+        nameScope = FormalParameterScope(
+          TypeParameterScope(nameScope, element.typeParameters),
+          element.parameters,
+        );
         _functionExpressionResolver.resolve(node);
       } finally {
         nameScope = outerScope;
@@ -1334,12 +1373,6 @@ class ResolverVisitor extends ScopedVisitor {
     }
 
     _enclosingFunction = outerFunction;
-  }
-
-  @override
-  void visitMethodDeclarationInScope(MethodDeclaration node) {
-    super.visitMethodDeclarationInScope(node);
-    safelyVisitComment(node.documentationComment);
   }
 
   @override
@@ -2108,7 +2141,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   ///
   /// @return the enclosing [Scope].
   Scope popNameScope() {
-    nameScope = nameScope.enclosingScope;
+    nameScope = (nameScope as EnclosedScope).parent;
     return nameScope;
   }
 
@@ -2116,7 +2149,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   ///
   /// @return the new [Scope].
   Scope pushNameScope() {
-    Scope newScope = EnclosedScope(nameScope);
+    Scope newScope = LocalScope(nameScope);
     nameScope = newScope;
     return nameScope;
   }
@@ -2125,7 +2158,8 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   void visitBlock(Block node) {
     Scope outerScope = nameScope;
     try {
-      EnclosedScope enclosedScope = BlockScope(nameScope, node);
+      var enclosedScope = LocalScope(nameScope);
+      BlockScope.elementsInBlock(node).forEach(enclosedScope.add);
       nameScope = enclosedScope;
       _setNodeNameScope(node, nameScope);
       super.visitBlock(node);
@@ -2151,11 +2185,11 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     if (exception != null) {
       Scope outerScope = nameScope;
       try {
-        nameScope = EnclosedScope(nameScope);
-        nameScope.define(exception.staticElement);
+        nameScope = LocalScope(nameScope);
+        _define(exception.staticElement);
         SimpleIdentifier stackTrace = node.stackTraceParameter;
         if (stackTrace != null) {
-          nameScope.define(stackTrace.staticElement);
+          _define(stackTrace.staticElement);
         }
         super.visitCatchClause(node);
       } finally {
@@ -2181,7 +2215,10 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
         ClassElement outerClass = enclosingClass;
         try {
           enclosingClass = node.declaredElement;
-          nameScope = TypeParameterScope(nameScope, classElement);
+          nameScope = TypeParameterScope(
+            nameScope,
+            classElement.typeParameters,
+          );
           visitClassDeclarationInScope(node);
           nameScope = ClassScope(nameScope, classElement);
           visitClassMembersInScope(node);
@@ -2214,7 +2251,10 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       ClassElement element = node.declaredElement;
-      nameScope = ClassScope(TypeParameterScope(nameScope, element), element);
+      nameScope = ClassScope(
+        TypeParameterScope(nameScope, element.typeParameters),
+        element,
+      );
       super.visitClassTypeAlias(node);
     } finally {
       nameScope = outerScope;
@@ -2244,25 +2284,30 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     }
     Scope outerScope = nameScope;
     try {
-      if (constructorElement != null) {
-        nameScope = FunctionScope(nameScope, constructorElement);
-      }
       node.documentationComment?.accept(this);
       node.metadata.accept(this);
       node.returnType?.accept(this);
       node.name?.accept(this);
       node.parameters?.accept(this);
-      Scope functionScope = nameScope;
       try {
         if (constructorElement != null) {
-          nameScope =
-              ConstructorInitializerScope(nameScope, constructorElement);
+          nameScope = ConstructorInitializerScope(
+            nameScope,
+            constructorElement,
+          );
         }
         node.initializers.accept(this);
       } finally {
-        nameScope = functionScope;
+        nameScope = outerScope;
       }
       node.redirectedConstructor?.accept(this);
+
+      if (constructorElement != null) {
+        nameScope = FormalParameterScope(
+          nameScope,
+          constructorElement.parameters,
+        );
+      }
       visitConstructorDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
@@ -2277,7 +2322,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     VariableElement element = node.declaredElement;
     if (element != null) {
-      nameScope.define(element);
+      _define(element);
     }
     super.visitDeclaredIdentifier(node);
   }
@@ -2349,7 +2394,10 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
         ExtensionElement outerExtension = enclosingExtension;
         try {
           enclosingExtension = extensionElement;
-          nameScope = TypeParameterScope(nameScope, extensionElement);
+          nameScope = TypeParameterScope(
+            nameScope,
+            extensionElement.typeParameters,
+          );
           visitExtensionDeclarationInScope(node);
           nameScope = ExtensionScope(nameScope, extensionElement);
           visitExtensionMembersInScope(node);
@@ -2388,7 +2436,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   void visitForElement(ForElement node) {
     Scope outerNameScope = nameScope;
     try {
-      nameScope = EnclosedScope(nameScope);
+      nameScope = LocalScope(nameScope);
       _setNodeNameScope(node, nameScope);
       visitForElementInScope(node);
     } finally {
@@ -2413,12 +2461,22 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     // scope.  Note: we must not do this if the parent is a
     // FunctionTypedFormalParameter, because in that case we aren't finished
     // resolving the full function signature, just a part of it.
-    if (nameScope is FunctionScope &&
-        node.parent is! FunctionTypedFormalParameter) {
-      (nameScope as FunctionScope).defineParameters();
-    }
-    if (nameScope is FunctionTypeScope) {
-      (nameScope as FunctionTypeScope).defineParameters();
+    var parent = node.parent;
+    if (parent is FunctionExpression) {
+      nameScope = FormalParameterScope(
+        nameScope,
+        parent.declaredElement.parameters,
+      );
+    } else if (parent is FunctionTypeAlias) {
+      nameScope = FormalParameterScope(
+        nameScope,
+        parent.declaredElement.parameters,
+      );
+    } else if (parent is MethodDeclaration) {
+      nameScope = FormalParameterScope(
+        nameScope,
+        parent.declaredElement.parameters,
+      );
     }
   }
 
@@ -2427,7 +2485,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     Scope outerNameScope = nameScope;
     ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
     try {
-      nameScope = EnclosedScope(nameScope);
+      nameScope = LocalScope(nameScope);
       _implicitLabelScope = _implicitLabelScope.nest(node);
       _setNodeNameScope(node, nameScope);
       visitForStatementInScope(node);
@@ -2452,7 +2510,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     ExecutableElement functionElement = node.declaredElement;
     if (functionElement != null &&
         functionElement.enclosingElement is! CompilationUnitElement) {
-      nameScope.define(functionElement);
+      _define(functionElement);
     }
     Scope outerScope = nameScope;
     try {
@@ -2461,7 +2519,10 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
             "Missing element for top-level function ${node.name.name} in "
             "${definingLibrary.source.fullName}");
       } else {
-        nameScope = FunctionScope(nameScope, functionElement);
+        nameScope = TypeParameterScope(
+          nameScope,
+          functionElement.typeParameters,
+        );
       }
       visitFunctionDeclarationInScope(node);
     } finally {
@@ -2500,7 +2561,10 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
           AnalysisEngine.instance.instrumentationService
               .logInfo(buffer.toString());
         } else {
-          nameScope = FunctionScope(nameScope, functionElement);
+          nameScope = FormalParameterScope(
+            TypeParameterScope(nameScope, functionElement.typeParameters),
+            functionElement.parameters,
+          );
         }
         super.visitFunctionExpression(node);
       } finally {
@@ -2513,7 +2577,8 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     Scope outerScope = nameScope;
     try {
-      nameScope = FunctionTypeScope(nameScope, node.declaredElement);
+      var element = node.declaredElement;
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       visitFunctionTypeAliasInScope(node);
     } finally {
       nameScope = outerScope;
@@ -2534,12 +2599,10 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
             "Missing element for function typed formal parameter "
             "${node.identifier.name} in ${definingLibrary.source.fullName}");
       } else {
-        nameScope = EnclosedScope(nameScope);
-        var typeParameters = parameterElement.typeParameters;
-        int length = typeParameters.length;
-        for (int i = 0; i < length; i++) {
-          nameScope.define(typeParameters[i]);
-        }
+        nameScope = TypeParameterScope(
+          nameScope,
+          parameterElement.typeParameters,
+        );
       }
       super.visitFunctionTypedFormalParameter(node);
     } finally {
@@ -2566,7 +2629,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
                 "${definingLibrary.source.fullName}");
         super.visitGenericFunctionType(node);
       } else {
-        nameScope = TypeParameterScope(nameScope, element);
+        nameScope = TypeParameterScope(nameScope, element.typeParameters);
         super.visitGenericFunctionType(node);
       }
     } finally {
@@ -2585,13 +2648,15 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
                 "${definingLibrary.source.fullName}");
         super.visitGenericTypeAlias(node);
       } else {
-        nameScope = TypeParameterScope(nameScope, element);
+        nameScope = TypeParameterScope(nameScope, element.typeParameters);
         super.visitGenericTypeAlias(node);
 
         GenericFunctionTypeElement functionElement = element.function;
         if (functionElement != null) {
-          nameScope = FunctionScope(nameScope, functionElement)
-            ..defineParameters();
+          nameScope = FormalParameterScope(
+            nameScope,
+            functionElement.parameters,
+          );
           visitGenericTypeAliasInFunctionScope(node);
         }
       }
@@ -2629,7 +2694,10 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
             .logInfo("Missing element for method ${node.name.name} in "
                 "${definingLibrary.source.fullName}");
       } else {
-        nameScope = FunctionScope(nameScope, methodElement);
+        nameScope = TypeParameterScope(
+          nameScope,
+          methodElement.typeParameters,
+        );
       }
       visitMethodDeclarationInScope(node);
     } finally {
@@ -2650,7 +2718,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     try {
       enclosingClass = element;
 
-      nameScope = TypeParameterScope(nameScope, element);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       visitMixinDeclarationInScope(node);
 
       nameScope = ClassScope(nameScope, element);
@@ -2687,7 +2755,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     } else if (node != null) {
       Scope outerNameScope = nameScope;
       try {
-        nameScope = EnclosedScope(nameScope);
+        nameScope = LocalScope(nameScope);
         node.accept(this);
       } finally {
         nameScope = outerNameScope;
@@ -2700,7 +2768,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     node.expression.accept(this);
     Scope outerNameScope = nameScope;
     try {
-      nameScope = EnclosedScope(nameScope);
+      nameScope = LocalScope(nameScope);
       _setNodeNameScope(node, nameScope);
       node.statements.accept(this);
     } finally {
@@ -2712,7 +2780,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   void visitSwitchDefault(SwitchDefault node) {
     Scope outerNameScope = nameScope;
     try {
-      nameScope = EnclosedScope(nameScope);
+      nameScope = LocalScope(nameScope);
       _setNodeNameScope(node, nameScope);
       node.statements.accept(this);
     } finally {
@@ -2752,7 +2820,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
         node.parent.parent is! FieldDeclaration) {
       VariableElement element = node.declaredElement;
       if (element != null) {
-        nameScope.define(element);
+        _define(element);
       }
     }
   }
@@ -2782,6 +2850,10 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
       labelScope = LabelScope(labelScope, labelName, node, labelElement);
     }
     return outerScope;
+  }
+
+  void _define(Element element) {
+    (nameScope as LocalScope).add(element);
   }
 
   /// Return the [Scope] to use while resolving inside the [node].
@@ -2934,7 +3006,7 @@ class VariableResolverVisitor extends ScopedVisitor {
       return;
     }
     // Prepare VariableElement.
-    Element element = nameScope.lookup(node, definingLibrary);
+    Element element = nameScope.lookupIdentifier(node);
     if (element is! VariableElement) {
       return;
     }

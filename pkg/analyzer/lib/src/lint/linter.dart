@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
@@ -24,7 +25,6 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show
@@ -370,8 +370,6 @@ class LinterContextImpl implements LinterContext {
   @override
   LinterNameInScopeResolutionResult resolveNameInScope(
       String id, bool setter, AstNode node) {
-    var idEq = '$id=';
-
     Scope scope;
     for (var context = node; context != null; context = context.parent) {
       scope = ScopedVisitor.getNodeNameScope(context);
@@ -381,22 +379,9 @@ class LinterContextImpl implements LinterContext {
     }
 
     if (scope != null) {
-      Element idElement;
-      Element idEqElement;
-
-      while (scope != null && idElement == null && idEqElement == null) {
-        if (scope is HasNewScope) {
-          var newScope = (scope as HasNewScope).newScope;
-          var newLookupResult = newScope.lookup2(id);
-          idElement = newLookupResult.getter;
-          idEqElement = newLookupResult.setter;
-          break;
-        } else {
-          idElement = scope.localLookup(id);
-          idEqElement = scope.localLookup(idEq);
-          scope = scope.enclosingScope;
-        }
-      }
+      var lookupResult = scope.lookup2(id);
+      var idElement = lookupResult.getter;
+      var idEqElement = lookupResult.setter;
 
       var requestedElement = setter ? idEqElement : idElement;
       var differentElement = setter ? idElement : idEqElement;

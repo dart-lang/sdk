@@ -24,7 +24,6 @@ import 'package:analyzer/src/dart/micro/library_graph.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/dart2js_verifier.dart';
@@ -70,7 +69,6 @@ class LibraryAnalyzer {
 
   LibraryElement _libraryElement;
 
-  LibraryScope _libraryScope;
   final Map<FileState, LineInfo> _fileToLineInfo = {};
 
   final Map<FileState, IgnoreInfo> _fileToIgnoreInfo = {};
@@ -135,8 +133,6 @@ class LibraryAnalyzer {
     });
 
     _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
-
-    _libraryScope = LibraryScope(_libraryElement);
 
     performance.run('resolveDirectives', (performance) {
       _resolveDirectives(units, forCompletion);
@@ -693,14 +689,14 @@ class LibraryAnalyzer {
         unitElement: unitElement,
         errorListener: errorListener,
         featureSet: unit.featureSet,
-        nameScope: _libraryScope,
+        nameScope: _libraryElement.scope,
         elementWalker: ElementWalker.forCompilationUnit(unitElement),
       ),
     );
 
     unit.accept(VariableResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
-        nameScope: _libraryScope));
+        nameScope: _libraryElement.scope));
 
     // Nothing for RESOLVED_UNIT8?
     // Nothing for RESOLVED_UNIT9?
