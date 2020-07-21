@@ -1686,11 +1686,17 @@ class OutlineBuilder extends StackListenerImpl {
       Token beginToken,
       Token endToken) {
     debugEvent("endTopLevelFields");
-    if (lateToken != null && !libraryBuilder.isNonNullableByDefault) {
+    if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
       if (externalToken != null) {
         handleRecoverableError(
             messageExternalField, externalToken, externalToken);
+        externalToken = null;
+      }
+    } else {
+      if (externalToken != null && lateToken != null) {
+        handleRecoverableError(
+            messageExternalLateField, externalToken, externalToken);
         externalToken = null;
       }
     }
@@ -1743,6 +1749,10 @@ class OutlineBuilder extends StackListenerImpl {
         handleRecoverableError(
             messageAbstractLateField, abstractToken, abstractToken);
         abstractToken = null;
+      } else if (externalToken != null && lateToken != null) {
+        handleRecoverableError(
+            messageExternalLateField, externalToken, externalToken);
+        externalToken = null;
       }
     }
     List<FieldInfo> fieldInfos = popFieldInfos(count);

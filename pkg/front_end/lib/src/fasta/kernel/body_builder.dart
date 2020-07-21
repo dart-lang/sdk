@@ -2463,6 +2463,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (fieldBuilder.isAbstract) {
         addProblem(
             fasta.messageAbstractFieldInitializer, token.charOffset, noLength);
+      } else if (fieldBuilder.isExternal) {
+        addProblem(
+            fasta.messageExternalFieldInitializer, token.charOffset, noLength);
       }
     } else {
       inLateFieldInitializer = false;
@@ -5879,6 +5882,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         return <Initializer>[
           buildInvalidInitializer(
               buildProblem(fasta.messageAbstractFieldConstructorInitializer,
+                  fieldNameOffset, name.length),
+              fieldNameOffset)
+        ];
+      } else if (builder.isExternal) {
+        return <Initializer>[
+          buildInvalidInitializer(
+              buildProblem(fasta.messageExternalFieldConstructorInitializer,
                   fieldNameOffset, name.length),
               fieldNameOffset)
         ];

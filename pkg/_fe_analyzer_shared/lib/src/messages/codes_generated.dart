@@ -55,6 +55,15 @@ const MessageCode messageAbstractExtensionField = const MessageCode(
     tip: r"""Try removing the 'abstract' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractExternalField = messageAbstractExternalField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractExternalField = const MessageCode(
+    "AbstractExternalField",
+    message: r"""Fields can't be declared both 'abstract' and 'external'.""",
+    tip: r"""Try removing the 'abstract' or 'external' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAbstractFieldConstructorInitializer =
     messageAbstractFieldConstructorInitializer;
 
@@ -3316,6 +3325,35 @@ const MessageCode messageExternalField = const MessageCode("ExternalField",
     message: r"""Fields can't be declared to be 'external'.""",
     tip:
         r"""Try removing the keyword 'external', or replacing the field by an external getter and/or setter.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalFieldConstructorInitializer =
+    messageExternalFieldConstructorInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalFieldConstructorInitializer = const MessageCode(
+    "ExternalFieldConstructorInitializer",
+    message: r"""External fields cannot have initializers.""",
+    tip:
+        r"""Try removing the field initializer or the 'external' keyword from the field declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalFieldInitializer = messageExternalFieldInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalFieldInitializer = const MessageCode(
+    "ExternalFieldInitializer",
+    message: r"""External fields cannot have initializers.""",
+    tip: r"""Try removing the initializer or the 'external' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalLateField = messageExternalLateField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalLateField = const MessageCode(
+    "ExternalLateField",
+    message: r"""External fields cannot be late.""",
+    tip: r"""Try removing the 'external' or 'late' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExternalMethodWithBody = messageExternalMethodWithBody;

@@ -10,6 +10,7 @@ AbstractFieldConstructorInitializer/analyzerCode: Fail
 AbstractFieldInitializer/analyzerCode: Fail
 AbstractExtensionField/analyzerCode: Fail
 AbstractExtensionField/example: Fail
+AbstractExternalField/analyzerCode: Fail
 AbstractLateField/analyzerCode: Fail
 AbstractNotSync/example: Fail
 AbstractRedirectedClassInstantiation/example: Fail
@@ -258,6 +259,9 @@ ExternalConstructorWithFieldInitializers/example: Fail
 ExternalFactoryRedirection/example: Fail
 ExternalFactoryWithBody/part_wrapped_script1: Fail
 ExternalFactoryWithBody/script1: Fail
+ExternalFieldConstructorInitializer/analyzerCode: Fail
+ExternalFieldInitializer/analyzerCode: Fail
+ExternalLateField/analyzerCode: Fail
 ExtraneousModifier/part_wrapped_script1: Fail
 ExtraneousModifier/part_wrapped_script10: Fail
 ExtraneousModifier/part_wrapped_script11: Fail

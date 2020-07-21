@@ -551,6 +551,14 @@ AbstractClassMember:
     - "abstract class C {abstract var f;}"
     - "abstract class C {abstract static var f;}"
 
+AbstractExternalField:
+  template: "Fields can't be declared both 'abstract' and 'external'."
+  tip: "Try removing the 'abstract' or 'external' keyword."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {abstract external var f;}"
+    - "abstract class C {external abstract var f;}"
+
 AbstractStaticField:
   template: "Static fields can't be declared 'abstract'."
   tip: "Try removing the 'abstract' or 'static' keyword."
@@ -771,6 +779,31 @@ ExternalField:
   analyzerCode: ParserErrorCode.EXTERNAL_FIELD
   script:
     - "class C { external var f; }"
+
+
+ExternalFieldInitializer:
+  template: "External fields cannot have initializers."
+  tip: "Try removing the initializer or the 'external' keyword."
+  configuration: nnbd-strong
+  script:
+    - "external var f = 0;"
+    - "abstract class C {external var f = 0;}"
+
+ExternalFieldConstructorInitializer:
+  template: "External fields cannot have initializers."
+  tip: "Try removing the field initializer or the 'external' keyword from the field declaration."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {external var f; C(this.f);}"
+    - "abstract class C {external var f; C() : this.f = 0;}"
+
+ExternalLateField:
+  template: "External fields cannot be late."
+  tip: "Try removing the 'external' or 'late' keyword."
+  configuration: nnbd-strong
+  script:
+    - "external late var f;"
+    - "abstract class C {external late var f;}"
 
 InitializerForStaticField:
   template: "'#name' isn't an instance field of this class."

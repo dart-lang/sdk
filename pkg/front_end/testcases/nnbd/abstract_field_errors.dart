@@ -20,12 +20,35 @@ abstract class A {
   abstract static int staticField;
 
   abstract static final int finalStaticField;
+
+  abstract late int lateInstanceField;
+
+  external abstract int externalInstanceField;
+
+  external abstract final int externalFinalInstanceField;
+
+  external abstract covariant num externalCovariantInstanceField;
+
+  abstract external int externalInstanceField;
+
+  abstract external final int externalFinalInstanceField;
+
+  abstract external covariant num externalCovariantInstanceField;
+
+  external abstract late int externalLateInstanceField;
 }
 
 mixin B {
   abstract static int staticField;
 
   abstract static final int finalStaticField;
+
+  external abstract int externalInstanceField;
+
+  external abstract final int externalFinalInstanceField;
+
+  external abstract covariant num externalCovariantInstanceField;
+
 }
 
 extension Extension on A {

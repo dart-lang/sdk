@@ -2511,6 +2511,9 @@ class Parser {
         reportRecoverableError(varFinalOrConst, codes.messageTypeAfterVar);
       }
     }
+    if (abstractToken != null && externalToken != null) {
+      reportRecoverableError(abstractToken, codes.messageAbstractExternalField);
+    }
 
     Token token = typeInfo.parseType(beforeType, this);
     assert(token.next == name || token.next.isEof);
