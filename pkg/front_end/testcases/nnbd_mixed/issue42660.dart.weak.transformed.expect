@@ -13,13 +13,18 @@ static method main() → void {
   iss::E|m(c.{iss::Class::f}());
   iss::E|m(c.{iss::Class::f}.call());
   iss::E|m(c.{iss::Class::p});
+  iss::E|m(c.{iss::Class::[]}(0));
+  iss::E|m(c.{iss::Class::unary-}());
+  iss::E|m(c.{iss::Class::+}(4));
   let final iss::Class<dynamic>* #t1 = c in block {
     iss::E|m(#t1.{iss::Class::p});
     iss::E|m(#t1.{iss::Class::f}());
+    iss::E|m(#t1.{iss::Class::[]}(0));
   } =>#t1;
   let final iss::Class<dynamic>* #t2 = new iss::Class::•<dynamic>() in block {
     iss::E|m(#t2.{iss::Class::p});
     iss::E|m(#t2.{iss::Class::f}());
+    iss::E|m(#t2.{iss::Class::[]}(0));
   } =>#t2;
 }
 
@@ -34,6 +39,12 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   method f() → core::int?
     return 4;
   get p() → core::int?
+    return 4;
+  operator [](core::int index) → core::int?
+    return 4;
+  operator unary-() → core::int?
+    return 4;
+  operator +(core::Object? other) → core::int?
     return 4;
 }
 extension E on core::int {

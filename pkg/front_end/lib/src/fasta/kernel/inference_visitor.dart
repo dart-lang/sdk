@@ -3656,6 +3656,11 @@ class InferenceVisitor
         }
         break;
     }
+
+    if (!inferrer.isNonNullableByDefault) {
+      binaryType = legacyErasure(inferrer.coreTypes, binaryType);
+    }
+
     if (!inferrer.isTopLevel && binaryTarget.isNullable) {
       return new ExpressionInferenceResult(
           binaryType,
@@ -3748,6 +3753,11 @@ class InferenceVisitor
         }
         break;
     }
+
+    if (!inferrer.isNonNullableByDefault) {
+      unaryType = legacyErasure(inferrer.coreTypes, unaryType);
+    }
+
     if (!inferrer.isTopLevel && unaryTarget.isNullable) {
       // TODO(johnniwinther): Special case 'unary-' in messages. It should
       // probably be referred to as "Unary operator '-' ...".
@@ -3831,6 +3841,11 @@ class InferenceVisitor
         }
         break;
     }
+
+    if (!inferrer.isNonNullableByDefault) {
+      readType = legacyErasure(inferrer.coreTypes, readType);
+    }
+
     if (!inferrer.isTopLevel && readTarget.isNullable) {
       return new ExpressionInferenceResult(
           readType,
