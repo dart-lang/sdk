@@ -89,6 +89,9 @@ template("kernel_service_dill") {
     vm_args = [
       "--depfile=$abs_depfile",
       "--depfile_output_filename=$rebased_output",
+
+      # Ensure gen_kernel.dart will use this SDK hash when consuming/producing
+      # kernel.
       "-Dsdk_hash=$sdk_hash",
     ]
 
@@ -97,6 +100,10 @@ template("kernel_service_dill") {
 
     args =
         invoker.extra_args + [
+          # Ensure the compiled kernel-service will use this SDK hash when
+          # consuming/producing kernel.
+          "-Dsdk_hash=$sdk_hash",
+
           "--packages=" + scheme + ":///.packages",
           "--platform=" + rebase_path("$root_out_dir/vm_platform_strong.dill"),
           "--filesystem-root=" + rebase_path("../../"),

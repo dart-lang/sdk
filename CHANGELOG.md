@@ -58,6 +58,18 @@
 
 [#41653]: https://github.com/dart-lang/sdk/issues/41653
 
+#### `dart:mirrors`
+
+*   **Breaking Change** [#42714][]: web compilers (dart2js and DDC) now produce
+    a compile-time error if `dart:mirrors` is imported.
+
+    Most projects should not be affected. Since 2.0.0 this library was
+    unsupported and produced runtime errors on all its APIs. Since then several
+    tools already reject code that use `dart:mirrors` including webdev and
+    flutter tools, we expect few projects to run into this problem.
+
+[#42714]: https://github.com/dart-lang/sdk/issues/42714
+
 ### Tools
 
 #### dartfmt

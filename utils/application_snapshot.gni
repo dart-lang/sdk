@@ -102,6 +102,8 @@ template("_application_snapshot") {
     vm_args = [
       "--depfile=$abs_depfile",
       "--depfile_output_filename=$rebased_output",
+
+      # Ensure gen_kernel.dart will use this SDK hash when consuming/producing kernel.
       "-Dsdk_hash=$sdk_hash",
     ]
 
@@ -114,6 +116,13 @@ template("_application_snapshot") {
       "--no-embed-sources",
       "--no-link-platform",
       "--output=" + rebase_path(output),
+
+      # Ensure the compiled appliation (e.g. kernel-service, frontend-server,
+      # ...) will use this SDK hash when consuming/producing kernel.
+      #
+      # (Instead of ensuring every user of the "application_snapshot" /
+      # "kernel_snapshot" passes this if needed, we always pass it)
+      "-Dsdk_hash=$sdk_hash",
     ]
     if (dart_platform_bytecode) {
       args += [
