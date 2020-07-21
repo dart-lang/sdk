@@ -9098,11 +9098,6 @@ class OneByteString : public AllStatic {
                                              intptr_t length,
                                              Heap::Space space);
 
-  static void SetPeer(const String& str,
-                      void* peer,
-                      intptr_t external_allocation_size,
-                      Dart_WeakPersistentHandleFinalizer callback);
-
   static const ClassId kClassId = kOneByteStringCid;
 
   static OneByteStringPtr null() {
@@ -9226,11 +9221,6 @@ class TwoByteString : public AllStatic {
   static TwoByteStringPtr Transform(int32_t (*mapping)(int32_t ch),
                                     const String& str,
                                     Heap::Space space);
-
-  static void SetPeer(const String& str,
-                      void* peer,
-                      intptr_t external_allocation_size,
-                      Dart_WeakPersistentHandleFinalizer callback);
 
   static TwoByteStringPtr null() {
     return static_cast<TwoByteStringPtr>(Object::null());
