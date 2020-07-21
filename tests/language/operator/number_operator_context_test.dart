@@ -112,16 +112,17 @@ void testDoubleContext<I extends int, D extends double, N extends num,
       od.remainder(contextType(1.0)..expectStaticType<Exactly<num>>()));
 
   // The context type also causes double literals.
-  context<double>(1 + (1..expectStaticType<double>()));
-  context<double>(1 - (1..expectStaticType<double>()));
-  context<double>(1 * (1..expectStaticType<double>()));
-  context<double>(1 % (1..expectStaticType<double>()));
-  context<double>(1.remainder(1..expectStaticType<double>()));
+  context<double>(1 + (1..expectStaticType<Exactly<double>>()));
+  context<double>(1 - (1..expectStaticType<Exactly<double>>()));
+  context<double>(1 * (1..expectStaticType<Exactly<double>>()));
+  context<double>(1 % (1..expectStaticType<Exactly<double>>()));
+  context<double>(1.remainder(1..expectStaticType<Exactly<double>>()));
 
-  d += contextType(1)..expectStaticType<Exactly<num>>();
-  d -= contextType(1)..expectStaticType<Exactly<num>>();
-  d *= contextType(1)..expectStaticType<Exactly<num>>();
-  d %= contextType(2)..expectStaticType<Exactly<num>>();
+  double dd = 0.0;
+  dd += contextType(1)..expectStaticType<Exactly<num>>();
+  dd -= contextType(1)..expectStaticType<Exactly<num>>();
+  dd *= contextType(1)..expectStaticType<Exactly<num>>();
+  dd %= contextType(2)..expectStaticType<Exactly<num>>();
 
   context<double>(1.1.clamp(
       contextType(1.0)..expectStaticType<Exactly<double>>(),
