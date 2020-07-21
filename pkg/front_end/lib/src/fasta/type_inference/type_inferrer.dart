@@ -1603,7 +1603,7 @@ class TypeInferrerImpl implements TypeInferrer {
             messageVoidExpression, expression.fileOffset, noLength);
       }
     }
-    if (result.inferredType is NeverType) {
+    if (coreTypes.isBottom(result.inferredType)) {
       flowAnalysis.handleExit();
     }
     return result;
