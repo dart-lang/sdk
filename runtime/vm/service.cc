@@ -1117,6 +1117,9 @@ void Service::HandleEvent(ServiceEvent* event) {
     }
     // Ignore events when no one is listening to the event stream.
     return;
+  } else if (event->stream_info() != NULL &&
+             FLAG_warn_on_pause_with_no_debugger && event->IsPause()) {
+    ReportPauseOnConsole(event);
   }
   if (!ServiceIsolate::IsRunning()) {
     return;
