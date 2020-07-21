@@ -19,12 +19,12 @@ class RemoveConst extends _RemoveConst {
   static RemoveConst newInstance() => RemoveConst();
 }
 
-class RemoveUnnecesaryConst extends _RemoveConst {
+class RemoveUnnecessaryConst extends _RemoveConst {
   @override
   FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_CONST;
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveUnnecesaryConst newInstance() => RemoveUnnecesaryConst();
+  static RemoveUnnecessaryConst newInstance() => RemoveUnnecessaryConst();
 }
 
 abstract class _RemoveConst extends CorrectionProducer {

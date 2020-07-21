@@ -457,7 +457,7 @@ class FixProcessor extends BaseProcessor {
       RemoveInterpolationBraces.newInstance,
     ],
     LintNames.unnecessary_const: [
-      RemoveUnnecesaryConst.newInstance,
+      RemoveUnnecessaryConst.newInstance,
     ],
     LintNames.unnecessary_lambdas: [
       ReplaceWithTearOff.newInstance,

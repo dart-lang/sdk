@@ -32,7 +32,7 @@ class BulkFixProcessor {
     LintNames.prefer_equal_for_default_values:
         ReplaceColonWithEquals.newInstance,
     LintNames.slash_for_doc_comments: ConvertDocumentationIntoLine.newInstance,
-    LintNames.unnecessary_const: RemoveUnnecesaryConst.newInstance,
+    LintNames.unnecessary_const: RemoveUnnecessaryConst.newInstance,
     LintNames.unnecessary_new: RemoveUnnecessaryNew.newInstance,
   };
 
