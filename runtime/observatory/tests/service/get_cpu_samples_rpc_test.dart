@@ -24,9 +24,9 @@ Future checkSamples(Isolate isolate) async {
       await isolate.invokeRpcNoUpgrade('getCpuSamples', {'_code': true});
   expect(result['type'], equals('CpuSamples'));
 
-  final isString = isInstanceOf<String>();
-  final isInt = isInstanceOf<int>();
-  final isList = isInstanceOf<List>();
+  final isString = isA<String>();
+  final isInt = isA<int>();
+  final isList = isA<List>();
   final functions = result['functions'];
   expect(functions.length, greaterThan(10),
       reason: "Should have many functions");

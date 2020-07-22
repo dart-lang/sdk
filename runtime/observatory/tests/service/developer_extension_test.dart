@@ -73,7 +73,7 @@ var tests = <IsolateTest>[
   resumeIsolateAndAwaitEvent(Isolate.kExtensionStream, (ServiceEvent event) {
     expect(event.kind, equals(ServiceEvent.kExtension));
     expect(event.extensionKind, equals('ALPHA'));
-    expect(event.extensionData, new isInstanceOf<Map>());
+    expect(event.extensionData, isA<Map>());
     expect(event.extensionData['cat'], equals('dog'));
   }),
   hasStoppedAtBreakpoint,

@@ -16,11 +16,11 @@ var tests = <VMTest>[
     expect(result['type'], equals('VM'));
     expect(result['name'], equals('Walter'));
     expect(result['architectureBits'], isPositive);
-    expect(result['targetCPU'], new isInstanceOf<String>());
-    expect(result['hostCPU'], new isInstanceOf<String>());
+    expect(result['targetCPU'], isA<String>());
+    expect(result['hostCPU'], isA<String>());
     expect(result['operatingSystem'], Platform.operatingSystem);
-    expect(result['version'], new isInstanceOf<String>());
-    expect(result['pid'], new isInstanceOf<int>());
+    expect(result['version'], isA<String>());
+    expect(result['pid'], isA<int>());
     expect(result['startTime'], isPositive);
     expect(result['isolates'].length, isPositive);
     expect(result['isolates'][0]['type'], equals('@Isolate'));

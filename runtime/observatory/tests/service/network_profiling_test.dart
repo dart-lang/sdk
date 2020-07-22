@@ -59,7 +59,7 @@ Future<void> socketTest() async {
 Future<void> checkFinishEvent(ServiceEvent event) {
   expect(event.kind, equals(ServiceEvent.kExtension));
   expect(event.extensionKind, equals('socketTest'));
-  expect(event.extensionData, isInstanceOf<Map>());
+  expect(event.extensionData, isA<Map>());
   expect(event.extensionData['socket'], equals('test'));
 }
 

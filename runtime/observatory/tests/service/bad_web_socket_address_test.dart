@@ -15,7 +15,7 @@ void testBadWebSocket() async {
   } catch (e) {
     error = e;
   }
-  expect(error, new isInstanceOf<NetworkRpcException>());
+  expect(error, isA<NetworkRpcException>());
 }
 
 main() async {
