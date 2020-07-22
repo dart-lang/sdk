@@ -97,6 +97,7 @@ class CiderCompletionComputer {
             return await manager.computeSuggestions(
               performance,
               completionRequest,
+              enableOverrideContributor: false,
               enableUriContributor: false,
             );
           });

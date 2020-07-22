@@ -104,11 +104,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         await perf.runAsync(contributorTag, (performance) async {
           try {
             suggestions.addAll(
-              await manager.computeSuggestions(
-                performance,
-                request,
-                enableUriContributor: true,
-              ),
+              await manager.computeSuggestions(performance, request),
             );
           } on AbortCompletion {
             suggestions.clear();

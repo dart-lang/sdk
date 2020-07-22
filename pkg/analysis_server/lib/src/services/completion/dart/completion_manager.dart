@@ -51,7 +51,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
-import 'package:meta/meta.dart';
 
 /// [DartCompletionManager] determines if a completion request is Dart specific
 /// and forwards those requests to all [DartCompletionContributor]s.
@@ -103,7 +102,8 @@ class DartCompletionManager {
   Future<List<CompletionSuggestion>> computeSuggestions(
     OperationPerformanceImpl performance,
     CompletionRequest request, {
-    @required bool enableUriContributor,
+    bool enableOverrideContributor = true,
+    bool enableUriContributor = true,
   }) async {
     request.checkAborted();
     if (!AnalysisEngine.isDartFileName(request.result.path)) {
@@ -146,7 +146,7 @@ class DartCompletionManager {
       LocalLibraryContributor(),
       LocalReferenceContributor(),
       NamedConstructorContributor(),
-      OverrideContributor(),
+      if (enableOverrideContributor) OverrideContributor(),
       StaticMemberContributor(),
       TypeMemberContributor(),
       if (enableUriContributor) UriContributor(),

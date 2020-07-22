@@ -106,7 +106,6 @@ class CompletionRunner {
               return await contributor.computeSuggestions(
                 performance,
                 request,
-                enableUriContributor: true,
               );
             },
           );
