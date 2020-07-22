@@ -71,13 +71,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         element.contents,
         isSingleQuoted: node.isSingleQuoted,
         isMultiline: node.isMultiline,
-        // TODO(a14n): should be the following line but the values look buggy
-        // contentsOffset: element.contentsOffset,
-        // contentsEnd: element.contentsEnd,
-        contentsOffset: element.offset +
-            (element != node.elements.first ? 0 : node.isMultiline ? 3 : 1),
-        contentsEnd: element.end -
-            (element != node.elements.last ? 0 : node.isMultiline ? 3 : 1),
+        contentsOffset: element.contentsOffset,
+        contentsEnd: element.contentsEnd,
       );
     }
   }
