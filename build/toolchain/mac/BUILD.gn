@@ -130,7 +130,7 @@ template("mac_toolchain") {
       temporary_tocname = dylib + ".tmp"
 
       does_reexport_command = "[ ! -e $dylib -o ! -e $tocname ] || otool -l $dylib | grep -q LC_REEXPORT_DYLIB"
-      link_command = "$ld -shared $sysroot_flags $toolchain_flags {{ldflags}} -o $dylib -Wl,-filelist,$rspfile {{solibs}} {{libs}}"
+      link_command = "$ld -shared $sysroot_flags $toolchain_flags {{ldflags}} -o $dylib -Wl,-filelist,$rspfile {{solibs}} {{libs}} {{frameworks}}"
       replace_command = "if ! cmp -s $temporary_tocname $tocname; then mv $temporary_tocname $tocname"
       extract_toc_command = "{ otool -l $dylib | grep LC_ID_DYLIB -A 5; nm -gP $dylib | cut -f1-2 -d' ' | grep -v U\$\$; true; }"
 
@@ -171,7 +171,7 @@ template("mac_toolchain") {
         stripped_outfile = "{{root_out_dir}}/exe.stripped/$exename"
       }
 
-      command = "$ld $sysroot_flags $toolchain_flags {{ldflags}} -Xlinker -rpath -Xlinker @executable_path/Frameworks -o $outfile -Wl,-filelist,$rspfile {{solibs}} {{libs}}"
+      command = "$ld $sysroot_flags $toolchain_flags {{ldflags}} -Xlinker -rpath -Xlinker @executable_path/Frameworks -o $outfile -Wl,-filelist,$rspfile {{solibs}} {{libs}} {{frameworks}}"
       if (defined(invoker.strip)) {
         strip = invoker.strip
         strip_command = "${strip} -x -o $stripped_outfile $outfile"
