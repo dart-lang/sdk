@@ -919,9 +919,9 @@ class CodeChecker extends RecursiveAstVisitor {
   void _recordImplicitCast(Expression expr, DartType to,
       {DartType from,
       bool opAssign = false,
-      forSpread = false,
-      forSpreadKey = false,
-      forSpreadValue = false}) {
+      bool forSpread = false,
+      bool forSpreadKey = false,
+      bool forSpreadValue = false}) {
     // If this is an implicit tearoff, we need to mark the cast, but we don't
     // want to warn if it's a legal subtype.
     if (from is InterfaceType && rules.acceptsFunctionType(to)) {

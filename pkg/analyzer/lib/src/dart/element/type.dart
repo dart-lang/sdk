@@ -372,7 +372,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   void _forEachParameterType(
-      ParameterKind kind, Function(String name, DartType type) callback) {
+      ParameterKind kind, void Function(String name, DartType type) callback) {
     for (var parameter in parameters) {
       // ignore: deprecated_member_use_from_same_package
       if (parameter.parameterKind == kind) {

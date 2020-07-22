@@ -49,7 +49,7 @@ import 'package:path/path.dart' as p;
 
 export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 
-typedef Printer = Function(String msg);
+typedef Printer = void Function(String msg);
 
 /// Describes a String in valid camel case format.
 @deprecated // Never intended for public use.
@@ -212,7 +212,7 @@ class Hyperlink {
 
   String get html => '<a href="$href">${_emph(label)}</a>';
 
-  String _emph(msg) => bold ? '<strong>$msg</strong>' : msg;
+  String _emph(String msg) => bold ? '<strong>$msg</strong>' : msg;
 }
 
 /// The result of attempting to evaluate an expression.

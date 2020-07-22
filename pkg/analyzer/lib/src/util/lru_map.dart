@@ -5,7 +5,7 @@
 import 'dart:collection';
 
 /// This handler is notified when an item is evicted from the cache.
-typedef EvictionHandler<K, V> = Function(K key, V value);
+typedef EvictionHandler<K, V> = void Function(K key, V value);
 
 /// A hash-table based cache implementation.
 ///

@@ -38,7 +38,7 @@ class CiderMemoryByteStore implements CiderByteStore {
     var entry = _map[key];
 
     if (entry != null &&
-        const ListEquality().equals(entry.signature, signature)) {
+        const ListEquality<int>().equals(entry.signature, signature)) {
       return entry.bytes;
     }
     return null;

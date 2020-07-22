@@ -287,7 +287,7 @@ class LintDriver {
 /// [errorSink].
 class StdInstrumentation extends NoopInstrumentationService {
   @override
-  void logError(String message, [exception]) {
+  void logError(String message, [Object exception]) {
     errorSink.writeln(message);
     if (exception != null) {
       errorSink.writeln(exception);
@@ -303,7 +303,7 @@ class StdInstrumentation extends NoopInstrumentationService {
   }
 
   @override
-  void logInfo(String message, [exception]) {
+  void logInfo(String message, [Object exception]) {
     outSink.writeln(message);
     if (exception != null) {
       outSink.writeln(exception);

@@ -45,7 +45,7 @@ to get the compilation unit element for a file at a known `path`, then you can
 ask the analysis session for the compilation unit representing that file.
 
 ```dart
-analyzeSingleFile(AnalysisSession session, String path) async {
+void analyzeSingleFile(AnalysisSession session, String path) async {
   UnitElementResult result = await session.getUnitElement(path);
   CompilationUnitElement element = result.element;
 }

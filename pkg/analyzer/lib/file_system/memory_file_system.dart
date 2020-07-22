@@ -584,11 +584,11 @@ abstract class _MemoryResource implements Resource {
   String get shortName => _provider.pathContext.basename(path);
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (runtimeType != other.runtimeType) {
       return false;
     }
-    return path == other.path;
+    return path == (other as _MemoryResource).path;
   }
 
   @override

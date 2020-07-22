@@ -259,7 +259,7 @@ class ResolverVisitor extends ScopedVisitor {
       AnalysisErrorListener errorListener,
       {FeatureSet featureSet,
       Scope nameScope,
-      reportConstEvaluationErrors = true,
+      bool reportConstEvaluationErrors = true,
       FlowAnalysisHelper flowAnalysisHelper})
       : this._(
             inheritanceManager,
@@ -285,7 +285,7 @@ class ResolverVisitor extends ScopedVisitor {
       AnalysisErrorListener errorListener,
       FeatureSet featureSet,
       Scope nameScope,
-      reportConstEvaluationErrors,
+      bool reportConstEvaluationErrors,
       this._flowAnalysis,
       this._migratableAstInfoProvider,
       MigrationResolutionHooks migrationResolutionHooks)

@@ -14,6 +14,18 @@ analyzer:
     # There are currently 2000 violations in lib/.
     unnecessary_this: ignore
 
+    # "strict-inference" is enabled, but "unused" parameters named '_' are
+    # still reported.  Re-evaluate after
+    # https://github.com/dart-lang/language/pull/599 and a functional fix land.
+    inference_failure_on_untyped_parameter: ignore
+    # There are about 10k violations in test/ due to missing return types on
+    # test methods. It would be nice to mark this code as
+    # "ignored for test/**/*.dart".
+    inference_failure_on_function_return_type: ignore
+
+  language:
+    strict-inference: true
+
 linter:
   rules:
     - avoid_unused_constructor_parameters

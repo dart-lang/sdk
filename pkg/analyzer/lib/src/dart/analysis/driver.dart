@@ -1635,7 +1635,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         null);
   }
 
-  void _reportException(String path, exception, StackTrace stackTrace) {
+  void _reportException(String path, Object exception, StackTrace stackTrace) {
     String contextKey;
     if (exception is _ExceptionState) {
       var state = exception as _ExceptionState;
@@ -1677,8 +1677,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         .toBuffer();
   }
 
-  String _storeExceptionContext(
-      String path, FileState libraryFile, exception, StackTrace stackTrace) {
+  String _storeExceptionContext(String path, FileState libraryFile,
+      Object exception, StackTrace stackTrace) {
     if (allowedNumberOfContextsToWrite <= 0) {
       return null;
     } else {

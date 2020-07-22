@@ -5260,7 +5260,7 @@ class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {
   _UninstantiatedBoundChecker(this._errorReporter);
 
   @override
-  void visitTypeName(node) {
+  void visitTypeName(TypeName node) {
     var typeArgs = node.typeArguments;
     if (typeArgs != null) {
       typeArgs.accept(this);

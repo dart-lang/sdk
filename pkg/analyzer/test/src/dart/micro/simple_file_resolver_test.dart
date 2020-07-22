@@ -260,7 +260,7 @@ var foo = 0;
     // Still has cached, will be not resolved.
     createFileResolver();
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView.resolvedFiles, []);
+    expect(fileResolver.testView.resolvedFiles, <Object>[]);
 
     // Change the file, new resolver.
     // With changed file the previously cached result cannot be used.
@@ -273,7 +273,7 @@ var foo = 0;
     // Still has cached, will be not resolved.
     createFileResolver();
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView.resolvedFiles, []);
+    expect(fileResolver.testView.resolvedFiles, <Object>[]);
   }
 
   test_getErrors_reuse_changeDependency() {
@@ -313,7 +313,7 @@ var a = 4.2;
     // Still has cached, will be not resolved.
     createFileResolver();
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView.resolvedFiles, []);
+    expect(fileResolver.testView.resolvedFiles, <Object>[]);
   }
 
   test_hint() async {

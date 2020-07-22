@@ -32,7 +32,8 @@ class LintCode extends ErrorCode {
   String get url => 'https://dart-lang.github.io/linter/lints/$name.html';
 
   @override
-  bool operator ==(other) => uniqueName == other.uniqueName;
+  bool operator ==(Object other) =>
+      other is LintCode && uniqueName == other.uniqueName;
 }
 
 class LintCodeWithUniqueName extends LintCode {

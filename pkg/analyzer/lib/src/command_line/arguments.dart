@@ -115,7 +115,7 @@ DartSdkManager createDartSdkManager(
 /// TODO(danrubel) Update DDC to support all the options defined in this method
 /// then remove the [ddc] named argument from this method.
 void defineAnalysisArguments(ArgParser parser,
-    {bool hide = true, ddc = false}) {
+    {bool hide = true, bool ddc = false}) {
   parser.addOption(sdkPathOption,
       help: 'The path to the Dart SDK.', hide: ddc && hide);
   parser.addOption(analysisOptionsFileOption,
