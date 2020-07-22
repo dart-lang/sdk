@@ -3415,6 +3415,95 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try using a top-level variable or a field.");
 
   /**
+   * Parameters:
+   * 0: the type of the function
+   * 1: the expected function type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_FUNCTION = CompileTimeErrorCode(
+      'INVALID_CAST_FUNCTION',
+      "The function '{0}' has type '{1}' that isn't of expected type "
+          "'{2}'. This means its parameter or return type doesn't match what "
+          "is expected.");
+
+  /**
+   * Parameters:
+   * 0: the type of the torn-off function expression
+   * 1: the expected function type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_FUNCTION_EXPR =
+      CompileTimeErrorCode(
+          'INVALID_CAST_FUNCTION_EXPR',
+          "The function expression type '{0}' isn't of type '{1}'. "
+              "This means its parameter or return type doesn't match what is "
+              "expected. Consider changing parameter type(s) or the returned "
+              "type(s).");
+
+  /**
+   * Parameters:
+   * 0: the type of the literal
+   * 1: the expected type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_LITERAL = CompileTimeErrorCode(
+      'INVALID_CAST_LITERAL',
+      "The literal '{0}' with type '{1}' isn't of expected type '{2}'.");
+
+  /**
+   * Parameters:
+   * 0: the type of the list literal
+   * 1: the expected type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_LITERAL_LIST =
+      CompileTimeErrorCode(
+          'INVALID_CAST_LITERAL_LIST',
+          "The list literal type '{0}' isn't of expected type '{1}'. The "
+              "list's type can be changed with an explicit generic type "
+              "argument or by changing the element types.");
+
+  /**
+   * Parameters:
+   * 0: the type of the map literal
+   * 1: the expected type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_LITERAL_MAP =
+      CompileTimeErrorCode(
+          'INVALID_CAST_LITERAL_MAP',
+          "The map literal type '{0}' isn't of expected type '{1}'. The maps's "
+              "type can be changed with an explicit generic type arguments or "
+              "by changing the key and value types.");
+
+  /**
+   * Parameters:
+   * 0: the type of the set literal
+   * 1: the expected type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_LITERAL_SET =
+      CompileTimeErrorCode(
+          'INVALID_CAST_LITERAL_SET',
+          "The set literal type '{0}' isn't of expected type '{1}'. The set's "
+              "type can be changed with an explicit generic type argument or "
+              "by changing the element types.");
+
+  /**
+   * Parameters:
+   * 0: the type of the instantiated object
+   * 1: the expected type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_NEW_EXPR = CompileTimeErrorCode(
+      'INVALID_CAST_NEW_EXPR',
+      "The constructor returns type '{0}' that isn't of expected type '{1}'.");
+
+  /**
+   * Parameters:
+   * 0: the type of the torn-off method
+   * 1: the expected function type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_METHOD = CompileTimeErrorCode(
+      'INVALID_CAST_METHOD',
+      "The method tear-off '{0}' has type '{1}' that isn't of expected type "
+          "'{2}'. This means its parameter or return type doesn't match what "
+          "is expected.");
+
+  /**
    * TODO(brianwilkerson) Remove this when we have decided on how to report
    * errors in compile-time constants. Until then, this acts as a placeholder
    * for more informative errors.
@@ -10697,59 +10786,6 @@ class StrongModeCode extends ErrorCode {
       ErrorType.COMPILE_TIME_ERROR,
       'COULD_NOT_INFER',
       "Couldn't infer type parameter '{0}'.{1}");
-
-  static const StrongModeCode INVALID_CAST_LITERAL = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_LITERAL',
-      "The literal '{0}' with type '{1}' isn't of expected type '{2}'.");
-
-  static const StrongModeCode INVALID_CAST_LITERAL_LIST = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_LITERAL_LIST',
-      "The list literal type '{0}' isn't of expected type '{1}'. The list's "
-          "type can be changed with an explicit generic type argument or by "
-          "changing the element types.");
-
-  static const StrongModeCode INVALID_CAST_LITERAL_MAP = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_LITERAL_MAP',
-      "The map literal type '{0}' isn't of expected type '{1}'. The maps's "
-          "type can be changed with an explicit generic type arguments or by "
-          "changing the key and value types.");
-
-  static const StrongModeCode INVALID_CAST_LITERAL_SET = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_LITERAL_SET',
-      "The set literal type '{0}' isn't of expected type '{1}'. The set's "
-          "type can be changed with an explicit generic type argument or by "
-          "changing the element types.");
-
-  static const StrongModeCode INVALID_CAST_FUNCTION_EXPR = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_FUNCTION_EXPR',
-      "The function expression type '{0}' isn't of type '{1}'. "
-          "This means its parameter or return type doesn't match what is "
-          "expected. Consider changing parameter type(s) or the returned "
-          "type(s).");
-
-  static const StrongModeCode INVALID_CAST_NEW_EXPR = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_NEW_EXPR',
-      "The constructor returns type '{0}' that isn't of expected type '{1}'.");
-
-  static const StrongModeCode INVALID_CAST_METHOD = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_METHOD',
-      "The method tear-off '{0}' has type '{1}' that isn't of expected type "
-          "'{2}'. This means its parameter or return type doesn't match what "
-          "is expected.");
-
-  static const StrongModeCode INVALID_CAST_FUNCTION = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_FUNCTION',
-      "The function '{0}' has type '{1}' that isn't of expected type "
-          "'{2}'. This means its parameter or return type doesn't match what "
-          "is expected.");
 
   static const StrongModeCode INVALID_SUPER_INVOCATION = StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,

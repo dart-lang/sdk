@@ -17,7 +17,8 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
+import 'package:analyzer/src/error/codes.dart'
+    show CompileTimeErrorCode, StrongModeCode;
 import 'package:analyzer/src/summary/idl.dart';
 
 /// Given an [expression] and a corresponding [typeSystem] and [typeProvider],
@@ -940,28 +941,29 @@ class CodeChecker extends RecursiveAstVisitor {
         // runtime.
         if (expr is ListLiteral) {
           _recordMessage(
-              expr, StrongModeCode.INVALID_CAST_LITERAL_LIST, [from, to]);
+              expr, CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, [from, to]);
         } else if (expr is SetOrMapLiteral) {
           if (expr.isMap) {
-            _recordMessage(
-                expr, StrongModeCode.INVALID_CAST_LITERAL_MAP, [from, to]);
+            _recordMessage(expr, CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP,
+                [from, to]);
           } else if (expr.isSet) {
-            _recordMessage(
-                expr, StrongModeCode.INVALID_CAST_LITERAL_SET, [from, to]);
+            _recordMessage(expr, CompileTimeErrorCode.INVALID_CAST_LITERAL_SET,
+                [from, to]);
           } else {
             // This should only happen when the code is invalid, in which case
             // the error should have been reported elsewhere.
           }
         } else {
-          _recordMessage(
-              expr, StrongModeCode.INVALID_CAST_LITERAL, [expr, from, to]);
+          _recordMessage(expr, CompileTimeErrorCode.INVALID_CAST_LITERAL,
+              [expr, from, to]);
         }
         return;
       }
 
       if (expr is FunctionExpression) {
+        // TODO(srawlins): Add _any_ test that shows this code is reported.
         _recordMessage(
-            expr, StrongModeCode.INVALID_CAST_FUNCTION_EXPR, [from, to]);
+            expr, CompileTimeErrorCode.INVALID_CAST_FUNCTION_EXPR, [from, to]);
         return;
       }
 
@@ -971,7 +973,7 @@ class CodeChecker extends RecursiveAstVisitor {
           // fromT should be an exact type - this will almost certainly fail at
           // runtime.
           _recordMessage(
-              expr, StrongModeCode.INVALID_CAST_NEW_EXPR, [from, to]);
+              expr, CompileTimeErrorCode.INVALID_CAST_NEW_EXPR, [from, to]);
           return;
         }
       }
@@ -981,8 +983,8 @@ class CodeChecker extends RecursiveAstVisitor {
         _recordMessage(
             expr,
             e is MethodElement
-                ? StrongModeCode.INVALID_CAST_METHOD
-                : StrongModeCode.INVALID_CAST_FUNCTION,
+                ? CompileTimeErrorCode.INVALID_CAST_METHOD
+                : CompileTimeErrorCode.INVALID_CAST_FUNCTION,
             [e.name, from, to]);
         return;
       }

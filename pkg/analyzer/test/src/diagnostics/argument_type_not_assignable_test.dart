@@ -287,12 +287,25 @@ class A<K, V> {
 
   test_invocation_functionTypes_optional() async {
     await assertErrorsInCode('''
-void acceptFunNumOptBool(void funNumOptBool([bool b])) {}
-void funNumBool(bool b) {}
+void acceptFunOptBool(void funNumOptBool([bool b])) {}
+void funBool(bool b) {}
 main() {
-  acceptFunNumOptBool(funNumBool);
+  acceptFunOptBool(funBool);
 }''', [
-      error(StrongModeCode.INVALID_CAST_FUNCTION, 116, 10),
+      error(CompileTimeErrorCode.INVALID_CAST_FUNCTION, 107, 7),
+    ]);
+  }
+
+  test_invocation_functionTypes_optional_method() async {
+    await assertErrorsInCode('''
+void acceptFunOptBool(void funOptBool([bool b])) {}
+class C {
+  static void funBool(bool b) {}
+}
+main() {
+  acceptFunOptBool(C.funBool);
+}''', [
+      error(CompileTimeErrorCode.INVALID_CAST_METHOD, 125, 9),
     ]);
   }
 
@@ -483,5 +496,19 @@ n(int i) {}
   test_invocation_functionTypes_optional() async {
     // The test is currently generating an error where none is expected.
     await super.test_invocation_functionTypes_optional();
+  }
+
+  @override
+  test_invocation_functionTypes_optional_method() async {
+    await assertErrorsInCode('''
+void acceptFunOptBool(void funOptBool([bool b])) {}
+class C {
+  static void funBool(bool b) {}
+}
+main() {
+  acceptFunOptBool(C.funBool);
+}''', [
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 125, 9),
+    ]);
   }
 }

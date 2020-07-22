@@ -1147,8 +1147,8 @@ test() {
  ''');
     var analysisResult = await computeAnalysisResult(source);
     assertErrors(source, [
-      StrongModeCode.INVALID_CAST_LITERAL,
-      StrongModeCode.INVALID_CAST_LITERAL
+      CompileTimeErrorCode.INVALID_CAST_LITERAL,
+      CompileTimeErrorCode.INVALID_CAST_LITERAL
     ]);
     var unit = analysisResult.unit;
     var h = (AstFinder.getStatementsInTopLevelFunction(unit, "test")[0]
@@ -1934,7 +1934,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
    ''';
     Source source = addSource(code);
     TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertErrors(source, [StrongModeCode.INVALID_CAST_LITERAL]);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_CAST_LITERAL]);
     verify([source]);
     CompilationUnit unit = analysisResult.unit;
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
@@ -1986,7 +1986,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     Source source = addSource(code);
     TestAnalysisResult analysisResult = await computeAnalysisResult(source);
     assertErrors(source, [
-      StrongModeCode.INVALID_CAST_LITERAL,
+      CompileTimeErrorCode.INVALID_CAST_LITERAL,
     ]);
     verify([source]);
     CompilationUnit unit = analysisResult.unit;
