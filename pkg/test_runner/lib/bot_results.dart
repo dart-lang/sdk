@@ -1,13 +1,13 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// results.json and flaky.json parser.
+/// Parses results.json and flaky.json.
 
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
+import 'dart:math' as math;
 
 import 'package:pool/pool.dart';
 
@@ -18,34 +18,34 @@ String gsutilPy;
 const testResultsStoragePath = "gs://dart-test-results/builders";
 
 /// Limit the number of concurrent subprocesses by half the number of cores.
-final gsutilPool = new Pool(max(1, Platform.numberOfProcessors ~/ 2));
+final gsutilPool = Pool(math.max(1, Platform.numberOfProcessors ~/ 2));
 
 /// Runs gsutil with the provided [arguments] and returns the standard output.
+///
 /// Returns null if the requested URL didn't exist.
 Future<String> runGsutil(List<String> arguments) async {
   return gsutilPool.withResource(() async {
-    final processResult = await Process.run(
+    var processResult = await Process.run(
         "python", [gsutilPy]..addAll(arguments),
         runInShell: Platform.isWindows);
+    var stderr = processResult.stderr as String;
     if (processResult.exitCode != 0) {
-      if (processResult.exitCode == 1 &&
-              processResult.stderr.contains("No URLs matched") ||
-          processResult.stderr
-              .contains("One or more URLs matched no objects")) {
+      if (processResult.exitCode == 1 && stderr.contains("No URLs matched") ||
+          stderr.contains("One or more URLs matched no objects")) {
         return null;
       }
-      String error = "Failed to run: python $gsutilPy $arguments\n"
+      var error = "Failed to run: python $gsutilPy $arguments\n"
           "exitCode: ${processResult.exitCode}\n"
           "stdout:\n${processResult.stdout}\n"
           "stderr:\n${processResult.stderr}";
       if (processResult.exitCode == 1 &&
-          processResult.stderr.contains("401 Anonymous caller")) {
+          stderr.contains("401 Anonymous caller")) {
         error =
             "\n\nYou need to authenticate by running:\npython $gsutilPy config\n";
       }
-      throw new Exception(error);
+      throw Exception(error);
     }
-    return processResult.stdout;
+    return processResult.stdout as String;
   });
 }
 
@@ -56,12 +56,12 @@ Future<String> catGsutil(String path) => runGsutil(["cat", path]);
 /// Returns the files and directories in the provided cloud storage [directory],
 /// or null if it didn't exist.
 Future<Iterable<String>> lsGsutil(String directory) async {
-  final contents = await runGsutil(["ls", directory]);
+  var contents = await runGsutil(["ls", directory]);
   if (contents == null) {
     return null;
   }
   return LineSplitter.split(contents).map((String path) {
-    final elements = path.split("/");
+    var elements = path.split("/");
     if (elements[elements.length - 1].isEmpty) {
       return elements[elements.length - 2];
     } else {
@@ -113,23 +113,22 @@ List<Map<String, dynamic>> parseResults(String contents) {
 }
 
 Future<List<Map<String, dynamic>>> loadResults(String path) async {
-  final results = <Map<String, dynamic>>[];
-  final lines = new File(path)
+  var results = <Map<String, dynamic>>[];
+  var lines = File(path)
       .openRead()
       .cast<List<int>>()
       .transform(utf8.decoder)
-      .transform(new LineSplitter());
-  await for (final line in lines) {
-    final Map<String, dynamic> map = jsonDecode(line);
-    results.add(map);
+      .transform(const LineSplitter());
+  await for (var line in lines) {
+    results.add(jsonDecode(line) as Map<String, dynamic>);
   }
   return results;
 }
 
 Map<String, Map<String, dynamic>> createResultsMap(
     List<Map<String, dynamic>> results) {
-  Map<String, Map<String, dynamic>> result = {};
-  for (Map<String, dynamic> map in results) {
+  var result = <String, Map<String, dynamic>>{};
+  for (var map in results) {
     var key = "${map["configuration"]}:${map["name"]}";
     result.putIfAbsent(key, () => map);
   }
