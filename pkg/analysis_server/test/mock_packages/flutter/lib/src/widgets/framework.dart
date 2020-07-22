@@ -47,7 +47,7 @@ abstract class StatelessWidget extends Widget {
   Widget build(BuildContext context) => null;
 }
 
-class Widget {
+class Widget extends DiagnosticableTree {
   final Key key;
 
   const Widget({this.key});

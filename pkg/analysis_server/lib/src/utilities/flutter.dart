@@ -36,6 +36,9 @@ class Flutter {
   final Uri _uriContainer = Uri.parse(
     'package:flutter/src/widgets/container.dart',
   );
+  final Uri _uriDiagnostics = Uri.parse(
+    'package:flutter/src/foundation/diagnostics.dart',
+  );
   final Uri _uriEdgeInsets = Uri.parse(
     'package:flutter/src/painting/edge_insets.dart',
   );
@@ -337,6 +340,35 @@ class Flutter {
     return isColorElement(type.element);
   }
 
+  /// Return `true` if the given [type] is the flutter mixin `Diagnosticable`
+  /// or its subtype.
+  bool isDiagnosticable(DartType type) {
+    if (type is! InterfaceType) {
+      return false;
+    }
+
+    bool isDiagnosticableElement(ClassElement element) {
+      if (element == null) {
+        return false;
+      }
+
+      bool isExactDiagnosticable(ClassElement element) =>
+          element?.name == 'Diagnosticable' &&
+          element.source.uri == _uriDiagnostics;
+      if (isExactDiagnosticable(element)) {
+        return true;
+      }
+      for (var type in element.allSupertypes) {
+        if (isExactDiagnosticable(type.element)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    return isDiagnosticableElement(type.element);
+  }
+
   /// Return `true` if the [element] is the Flutter class `Alignment`.
   bool isExactAlignment(ClassElement element) {
     return _isExactWidget(element, 'Alignment', _uriAlignment);
@@ -432,8 +464,8 @@ class Flutter {
         isWidgetType(type.typeArguments[0]);
   }
 
-  /// Return `true` if the given [type] is the dart.ui class `Color`, or its
-  /// subtype.
+  /// Return `true` if the given [type] is the vector_math_64 class `Matrix4`,
+  /// or its subtype.
   bool isMatrix4(DartType type) {
     if (type is! InterfaceType) {
       return false;
