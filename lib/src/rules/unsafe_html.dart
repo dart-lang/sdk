@@ -57,6 +57,13 @@ class UnsafeHtml extends LintRule implements NodeLintRule {
     registry.addFunctionExpressionInvocation(this, visitor);
     registry.addMethodInvocation(this, visitor);
   }
+
+  @override
+  List<LintCode> get lintCodes => [
+        _Visitor.unsafeAttributeCode,
+        _Visitor.unsafeMethodCode,
+        _Visitor.unsafeConstructorCode
+      ];
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
@@ -64,12 +71,18 @@ class _Visitor extends SimpleAstVisitor<void> {
   // single-quotes to match the convention in the analyzer and linter packages.
   // This requires some coordination within Google, as various allow-lists are
   // keyed on the exact text of the LintCode message.
-  static const unsafeAttributeCode = SecurityLintCode(
-      'unsafe_html', '$_descPrefix (assigning "{0}" attribute).');
-  static const unsafeMethodCode = SecurityLintCode(
-      'unsafe_html', "$_descPrefix (calling the '{0}' method of {1}).");
-  static const unsafeConstructorCode = SecurityLintCode(
-      'unsafe_html', "$_descPrefix (calling the '{0}' constructor of {1}).");
+  static const unsafeAttributeCode = SecurityLintCodeWithUniqueName(
+      'unsafe_html',
+      'LintCode.unsafe_html_attribute',
+      '$_descPrefix (assigning "{0}" attribute).');
+  static const unsafeMethodCode = SecurityLintCodeWithUniqueName(
+      'unsafe_html',
+      'LintCode.unsafe_html_method',
+      "$_descPrefix (calling the '{0}' method of {1}).");
+  static const unsafeConstructorCode = SecurityLintCodeWithUniqueName(
+      'unsafe_html',
+      'LintCode.unsafe_html_constructor',
+      "$_descPrefix (calling the '{0}' constructor of {1}).");
 
   final LintRule rule;
 
