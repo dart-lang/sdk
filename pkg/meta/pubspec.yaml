@@ -8,4 +8,4 @@ description: >
  to provide a better user experience.
 environment:
   # This must remain a tight constraint until nnbd is stable.
-  sdk: '>=2.9.0-18.0 <=2.9.10'
+  sdk: '>=2.10.0-0.0 <2.10.0'
