@@ -24,8 +24,8 @@
 #include <zircon/syscalls/object.h>
 #include <zircon/types.h>
 
-#include "unicode/errorcode.h"
-#include "unicode/timezone.h"
+#include "third_party/icu/source/common/unicode/errorcode.h"
+#include "third_party/icu/source/i18n/unicode/timezone.h"
 
 #include "platform/assert.h"
 #include "platform/syslog.h"
