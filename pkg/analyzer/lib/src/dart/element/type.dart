@@ -1822,6 +1822,9 @@ abstract class TypeImpl implements DartType {
   void appendTo(ElementDisplayStringBuilder builder);
 
   @override
+  InterfaceType asInstanceOf(ClassElement element) => null;
+
+  @override
   String getDisplayString({
     bool skipAllDynamicArguments = false,
     bool withNullability = false,
@@ -1991,6 +1994,11 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeTypeParameterType(this);
+  }
+
+  @override
+  InterfaceType asInstanceOf(ClassElement element) {
+    return bound?.asInstanceOf(element);
   }
 
   @override

@@ -143,10 +143,9 @@ class LiteralElementVerifier {
 
     expressionType = typeSystem.resolveToBound(expressionType);
 
-    InterfaceType iterableType;
-    if (expressionType is InterfaceType) {
-      iterableType = expressionType.asInstanceOf(typeProvider.iterableElement);
-    }
+    var iterableType = expressionType.asInstanceOf(
+      typeProvider.iterableElement,
+    );
 
     if (iterableType == null) {
       return errorReporter.reportErrorForNode(
@@ -186,10 +185,9 @@ class LiteralElementVerifier {
 
     expressionType = typeSystem.resolveToBound(expressionType);
 
-    InterfaceType mapType;
-    if (expressionType is InterfaceType) {
-      mapType = expressionType.asInstanceOf(typeProvider.mapElement);
-    }
+    var mapType = expressionType.asInstanceOf(
+      typeProvider.mapElement,
+    );
 
     if (mapType == null) {
       return errorReporter.reportErrorForNode(

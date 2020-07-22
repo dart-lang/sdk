@@ -190,8 +190,7 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
   }
 
   bool _isIterable(DartType type) {
-    return type is InterfaceType &&
-        type.asInstanceOf(typeProvider.iterableElement) != null;
+    return type.asInstanceOf(typeProvider.iterableElement) != null;
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

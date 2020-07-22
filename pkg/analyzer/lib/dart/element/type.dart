@@ -126,6 +126,23 @@ abstract class DartType {
   /// Use the given [visitor] to visit this type.
   R accept<R>(TypeVisitor<R> visitor);
 
+  /// Return the canonical interface that this type implements for [element],
+  /// or `null` if such an interface does not exist.
+  ///
+  /// For example, given the following definitions
+  /// ```
+  /// class A<E> {}
+  /// class B<E> implements A<E> {}
+  /// class C implements A<String> {}
+  /// ```
+  /// Asking the type `B<int>` for the type associated with `A` will return the
+  /// type `A<int>`. Asking the type `C` for the type associated with `A` will
+  /// return the type `A<String>`.
+  ///
+  /// For a [TypeParameterType] with a bound (declared or promoted), returns
+  /// the interface implemented by the bound.
+  InterfaceType asInstanceOf(ClassElement element);
+
   /// Return the presentation of this type as it should appear when presented
   /// to users in contexts such as error messages.
   ///
@@ -298,20 +315,6 @@ abstract class InterfaceType implements ParameterizedType {
   /// mixin declaration declares. The list will be empty if this class does not
   /// represent a mixin declaration.
   List<InterfaceType> get superclassConstraints;
-
-  /// Return the canonical interface that this type implements for [element],
-  /// or `null` if such an interface does not exist.
-  ///
-  /// For example, given the following definitions
-  /// ```
-  /// class A<E> {}
-  /// class B<E> implements A<E> {}
-  /// class C implements A<String> {}
-  /// ```
-  /// Asking the type `B<int>` for the type associated with `A` will return the
-  /// type `A<int>`. Asking the type `C` for the type associated with `A` will
-  /// return the type `A<String>`.
-  InterfaceType asInstanceOf(ClassElement element);
 
   /// Return the element representing the getter with the given [name] that is
   /// declared in this class, or `null` if this class does not declare a getter

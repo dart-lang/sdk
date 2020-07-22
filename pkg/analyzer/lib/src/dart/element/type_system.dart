@@ -273,8 +273,8 @@ abstract class TypeSystem implements public.TypeSystem {
     if (type is! InterfaceType) return null;
     if (genericType is! InterfaceType) return null;
 
-    var asInstanceOf = (type as InterfaceType)
-        .asInstanceOf((genericType as InterfaceType).element);
+    var asInstanceOf =
+        type.asInstanceOf((genericType as InterfaceType).element);
 
     if (asInstanceOf != null) {
       return asInstanceOf.typeArguments[0];

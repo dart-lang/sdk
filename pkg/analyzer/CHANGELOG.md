@@ -1,3 +1,8 @@
+## 0.39.15-dev
+* Move `asInstanceOf(ClassElement)` to `DartType`, so that it is also
+  supported for `TypeParameterType` when its bound implements the
+  requested interface.
+
 ## 0.39.14
 * Removed `defaultSdkDirectory()` and `getSdkProperty()` from internal
   `FolderBasedDartSdk`. It is up to the clients to decide how to
