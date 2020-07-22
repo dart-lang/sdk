@@ -1842,10 +1842,10 @@ abstract class LinkedNodeTypeFormalParameter extends base.SummaryClass {
 
 /// Kinds of [LinkedNodeType]s.
 enum LinkedNodeTypeKind {
-  bottom,
   dynamic_,
   function,
   interface,
+  never,
   typeParameter,
   void_
 }

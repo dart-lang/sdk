@@ -28,7 +28,7 @@ class GCCompactor : public ValueObject,
       : HandleVisitor(thread),
         ObjectPointerVisitor(thread->isolate_group()),
         heap_(heap) {}
-  ~GCCompactor() {}
+  ~GCCompactor() { free(image_page_ranges_); }
 
   void Compact(OldPage* pages, FreeList* freelist, Mutex* mutex);
 
@@ -47,13 +47,21 @@ class GCCompactor : public ValueObject,
   Heap* heap_;
 
   struct ImagePageRange {
-    uword base;
-    uword size;
+    uword start;
+    uword end;
   };
-  // There are up to 4 images to consider:
-  // {instructions, data} x {vm isolate, current isolate}
-  static const intptr_t kMaxImagePages = 4;
-  ImagePageRange image_page_ranges_[kMaxImagePages];
+  static int CompareImagePageRanges(const ImagePageRange* a,
+                                    const ImagePageRange* b) {
+    if (a->start < b->start) {
+      return -1;
+    } else if (a->start == b->start) {
+      return 0;
+    } else {
+      return 1;
+    }
+  }
+  intptr_t image_page_hi_ = 0;
+  ImagePageRange* image_page_ranges_ = nullptr;
 
   // The typed data views whose inner pointer must be updated after sliding is
   // complete.

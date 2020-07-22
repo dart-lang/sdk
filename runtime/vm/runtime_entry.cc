@@ -51,6 +51,10 @@ DEFINE_FLAG(int,
             reoptimization_counter_threshold,
             4000,
             "Counter threshold before a function gets reoptimized.");
+DEFINE_FLAG(bool,
+            stress_write_barrier_elimination,
+            false,
+            "Stress test write barrier elimination.");
 DEFINE_FLAG(bool, trace_deoptimization, false, "Trace deoptimization");
 DEFINE_FLAG(bool,
             trace_deoptimization_verbose,
@@ -253,6 +257,10 @@ DEFINE_RUNTIME_ENTRY(IntegerDivisionByZeroException, 0) {
   Exceptions::ThrowByType(Exceptions::kIntegerDivisionByZeroException, args);
 }
 
+static Heap::Space SpaceForRuntimeAllocation() {
+  return FLAG_stress_write_barrier_elimination ? Heap::kOld : Heap::kNew;
+}
+
 // Allocation of a fixed length array of given element type.
 // This runtime entry is never called for allocating a List of a generic type,
 // because a prior run time call instantiates the element type if necessary.
@@ -281,8 +289,9 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
     Exceptions::Throw(thread, exception);
   }
 
-  const Array& array =
-      Array::Handle(zone, Array::New(static_cast<intptr_t>(len), Heap::kNew));
+  const Array& array = Array::Handle(
+      zone,
+      Array::New(static_cast<intptr_t>(len), SpaceForRuntimeAllocation()));
   arguments.SetReturn(array);
   TypeArguments& element_type =
       TypeArguments::CheckedHandle(zone, arguments.ArgAt(1));
@@ -303,14 +312,25 @@ static TokenPosition GetCallerLocation() {
   return caller_frame->GetTokenPos();
 }
 
+// Result of an invoke may be an unhandled exception, in which case we
+// rethrow it.
+static void ThrowIfError(const Object& result) {
+  if (!result.IsNull() && result.IsError()) {
+    Exceptions::PropagateError(Error::Cast(result));
+  }
+}
+
 // Allocate a new object.
 // Arg0: class of the object that needs to be allocated.
 // Arg1: type arguments of the object that needs to be allocated.
 // Return value: newly allocated object.
 DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
   const Class& cls = Class::CheckedHandle(zone, arguments.ArgAt(0));
+  const Error& error =
+      Error::Handle(zone, cls.EnsureIsAllocateFinalized(thread));
+  ThrowIfError(error);
   const Instance& instance =
-      Instance::Handle(zone, Instance::New(cls, Heap::kNew));
+      Instance::Handle(zone, Instance::New(cls, SpaceForRuntimeAllocation()));
 
   arguments.SetReturn(instance);
   if (cls.NumTypeArguments() == 0) {
@@ -479,8 +499,8 @@ DEFINE_RUNTIME_ENTRY(AllocateSubtypeTestCache, 0) {
 // Return value: newly allocated context.
 DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
   const Smi& num_variables = Smi::CheckedHandle(zone, arguments.ArgAt(0));
-  const Context& context =
-      Context::Handle(zone, Context::New(num_variables.Value()));
+  const Context& context = Context::Handle(
+      zone, Context::New(num_variables.Value(), SpaceForRuntimeAllocation()));
   arguments.SetReturn(context);
 }
 
@@ -490,8 +510,8 @@ DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
 // Return value: newly allocated context.
 DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
   const Context& ctx = Context::CheckedHandle(zone, arguments.ArgAt(0));
-  Context& cloned_ctx =
-      Context::Handle(zone, Context::New(ctx.num_variables()));
+  Context& cloned_ctx = Context::Handle(
+      zone, Context::New(ctx.num_variables(), SpaceForRuntimeAllocation()));
   cloned_ctx.set_parent(Context::Handle(zone, ctx.parent()));
   Object& inst = Object::Handle(zone);
   for (int i = 0; i < ctx.num_variables(); i++) {
@@ -499,14 +519,6 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
     cloned_ctx.SetAt(i, inst);
   }
   arguments.SetReturn(cloned_ctx);
-}
-
-// Result of an invoke may be an unhandled exception, in which case we
-// rethrow it.
-static void ThrowIfError(const Object& result) {
-  if (!result.IsNull() && result.IsError()) {
-    Exceptions::PropagateError(Error::Cast(result));
-  }
 }
 
 // Invoke field getter before dispatch.
@@ -1207,8 +1219,7 @@ static void TrySwitchInstanceCall(const ICData& ic_data,
     // A call site in the monomorphic state does not load the arguments
     // descriptor, so do not allow transition to this state if the callee
     // needs it.
-    if (target_function.HasOptionalParameters() ||
-        target_function.IsGeneric()) {
+    if (target_function.PrologueNeedsArgumentsDescriptor()) {
       return;
     }
 
@@ -1643,8 +1654,8 @@ void SwitchableCallHandler::DoUnlinkedCall(const UnlinkedCall& unlinked,
   //
   // Because of this we also don't generate monomorphic checks for those
   // functions.
-  if (!target_function.IsNull() && !target_function.HasOptionalParameters() &&
-      !target_function.IsGeneric()) {
+  if (!target_function.IsNull() &&
+      !target_function.PrologueNeedsArgumentsDescriptor()) {
     // Patch to monomorphic call.
     ASSERT(target_function.HasCode());
     const Code& target_code =
@@ -1655,6 +1666,7 @@ void SwitchableCallHandler::DoUnlinkedCall(const UnlinkedCall& unlinked,
     if (unlinked.can_patch_to_monomorphic()) {
       object = expected_cid.raw();
       code = target_code.raw();
+      ASSERT(code.HasMonomorphicEntry());
     } else {
       object = MonomorphicSmiableCall::New(expected_cid.Value(), target_code);
       code = StubCode::MonomorphicSmiableCheck().raw();
@@ -1896,8 +1908,7 @@ void SwitchableCallHandler::DoICDataMiss(const ICData& ic_data,
 
   if ((number_of_checks == 0) &&
       (!FLAG_precompiled_mode || ic_data.receiver_cannot_be_smi()) &&
-      !target_function.HasOptionalParameters() &&
-      !target_function.IsGeneric()) {
+      !target_function.PrologueNeedsArgumentsDescriptor()) {
     // This call site is unlinked: transition to a monomorphic direct call.
     // Note we cannot do this if the target has optional parameters because
     // the monomorphic direct call does not load the arguments descriptor.
@@ -1908,6 +1919,7 @@ void SwitchableCallHandler::DoICDataMiss(const ICData& ic_data,
         Code::Handle(zone_, target_function.EnsureHasCode());
     const Smi& expected_cid =
         Smi::Handle(zone_, Smi::New(receiver_.GetClassId()));
+    ASSERT(target_code.HasMonomorphicEntry());
     CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
         thread_, caller_frame_->pc(), caller_code_, expected_cid, target_code);
     arguments_.SetArgAt(0, target_code);
@@ -2128,7 +2140,7 @@ DEFINE_RUNTIME_ENTRY(SwitchableCallMiss, 2) {
 //   Arg0: receiver
 //   Arg1: target name
 //   Arg2: arguments descriptor
-//   Returns: target function
+//   Returns: target function (can only be null if !FLAG_lazy_dispatchers)
 // Modifies the instance call table in current interpreter.
 DEFINE_RUNTIME_ENTRY(InterpretedInstanceCallMissHandler, 3) {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -2152,9 +2164,162 @@ DEFINE_RUNTIME_ENTRY(InterpretedInstanceCallMissHandler, 3) {
     target_function =
         InlineCacheMissHelper(receiver_class, arg_desc, target_name);
   }
-  ASSERT(!target_function.IsNull());
+  ASSERT(!target_function.IsNull() || !FLAG_lazy_dispatchers);
   arguments.SetReturn(target_function);
 #endif
+}
+
+// Used to find the correct receiver and function to invoke or to fall back to
+// invoking noSuchMethod when lazy dispatchers are disabled. Returns the
+// result of the invocation or an Error.
+static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
+    Zone* zone,
+    const Instance& receiver,
+    const String& target_name,
+    const Array& orig_arguments,
+    const Array& orig_arguments_desc) {
+  ASSERT(!FLAG_lazy_dispatchers);
+  const bool is_dynamic_call =
+      Function::IsDynamicInvocationForwarderName(target_name);
+  String& demangled_target_name = String::Handle(zone, target_name.raw());
+  if (is_dynamic_call) {
+    demangled_target_name =
+        Function::DemangleDynamicInvocationForwarderName(target_name);
+  }
+
+  Class& cls = Class::Handle(zone, receiver.clazz());
+  Function& function = Function::Handle(zone);
+
+  // Dart distinguishes getters and regular methods and allows their calls
+  // to mix with conversions, and its selectors are independent of arity. So do
+  // a zigzagged lookup to see if this call failed because of an arity mismatch,
+  // need for conversion, or there really is no such method.
+
+  const bool is_getter = Field::IsGetterName(demangled_target_name);
+  if (is_getter) {
+    // Tear-off of a method
+    // o.foo (o.get:foo) failed, closurize o.foo() if it exists.
+    const auto& function_name =
+        String::Handle(zone, Field::NameFromGetter(demangled_target_name));
+    while (!cls.IsNull()) {
+      // We don't generate dyn:* forwarders for method extractors so there is no
+      // need to try to find a dyn:get:foo first (see assertion below)
+      if (function.IsNull()) {
+        function = cls.LookupDynamicFunction(function_name);
+      }
+      if (!function.IsNull()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        ASSERT(!kernel::NeedsDynamicInvocationForwarder(Function::Handle(
+            function.GetMethodExtractor(demangled_target_name))));
+#endif
+        const Function& closure_function =
+            Function::Handle(zone, function.ImplicitClosureFunction());
+        const Object& result = Object::Handle(
+            zone, closure_function.ImplicitInstanceClosure(receiver));
+        return result.raw();
+      }
+      cls = cls.SuperClass();
+    }
+
+    // Fall through for noSuchMethod
+  } else {
+    // Call through field.
+    // o.foo(...) failed, invoke noSuchMethod is foo exists but has the wrong
+    // number of arguments, or try (o.foo).call(...)
+
+    if ((target_name.raw() == Symbols::Call().raw()) && receiver.IsClosure()) {
+      // Special case: closures are implemented with a call getter instead of a
+      // call method and with lazy dispatchers the field-invocation-dispatcher
+      // would perform the closure call.
+      auto& result = Object::Handle(
+          zone,
+          DartEntry::ResolveCallable(orig_arguments, orig_arguments_desc));
+      if (result.IsError()) {
+        return result.raw();
+      }
+      function ^= result.raw();
+      if (is_dynamic_call && !function.IsNull() &&
+          !function.CanReceiveDynamicInvocation()) {
+        ArgumentsDescriptor args_desc(orig_arguments_desc);
+        result = function.DoArgumentTypesMatch(orig_arguments, args_desc);
+        if (result.IsError()) {
+          return result.raw();
+        }
+      }
+      result = DartEntry::InvokeCallable(function, orig_arguments,
+                                         orig_arguments_desc);
+      return result.raw();
+    }
+
+    // Dynamic call sites have to use the dynamic getter as well (if it was
+    // created).
+    const auto& getter_name =
+        String::Handle(zone, Field::GetterName(demangled_target_name));
+    const auto& dyn_getter_name = String::Handle(
+        zone, is_dynamic_call
+                  ? Function::CreateDynamicInvocationForwarderName(getter_name)
+                  : getter_name.raw());
+    ArgumentsDescriptor args_desc(orig_arguments_desc);
+    while (!cls.IsNull()) {
+      // If there is a function with the target name but mismatched arguments
+      // we need to call `receiver.noSuchMethod()`.
+      function = cls.LookupDynamicFunction(target_name);
+      if (!function.IsNull()) {
+        ASSERT(!function.AreValidArguments(args_desc, NULL));
+        break;  // mismatch, invoke noSuchMethod
+      }
+      if (is_dynamic_call) {
+        function = cls.LookupDynamicFunction(demangled_target_name);
+        if (!function.IsNull()) {
+          ASSERT(!function.AreValidArguments(args_desc, NULL));
+          break;  // mismatch, invoke noSuchMethod
+        }
+      }
+
+      // If there is a getter we need to call-through-getter.
+      if (is_dynamic_call) {
+        function = cls.LookupDynamicFunction(dyn_getter_name);
+      }
+      if (function.IsNull()) {
+        function = cls.LookupDynamicFunction(getter_name);
+      }
+      if (!function.IsNull()) {
+        const Array& getter_arguments = Array::Handle(Array::New(1));
+        getter_arguments.SetAt(0, receiver);
+        const Object& getter_result = Object::Handle(
+            zone, DartEntry::InvokeFunction(function, getter_arguments));
+        if (getter_result.IsError()) {
+          return getter_result.raw();
+        }
+        ASSERT(getter_result.IsNull() || getter_result.IsInstance());
+
+        orig_arguments.SetAt(args_desc.FirstArgIndex(), getter_result);
+        auto& result = Object::Handle(
+            zone,
+            DartEntry::ResolveCallable(orig_arguments, orig_arguments_desc));
+        if (result.IsError()) {
+          return result.raw();
+        }
+        function ^= result.raw();
+        if (is_dynamic_call && !function.IsNull() &&
+            !function.CanReceiveDynamicInvocation()) {
+          result = function.DoArgumentTypesMatch(orig_arguments, args_desc);
+          if (result.IsError()) {
+            return result.raw();
+          }
+        }
+        result = DartEntry::InvokeCallable(function, orig_arguments,
+                                           orig_arguments_desc);
+        return result.raw();
+      }
+      cls = cls.SuperClass();
+    }
+  }
+
+  const Object& result = Object::Handle(
+      zone, DartEntry::InvokeNoSuchMethod(receiver, demangled_target_name,
+                                          orig_arguments, orig_arguments_desc));
+  return result.raw();
 }
 
 // Invoke appropriate noSuchMethod or closure from getter.
@@ -2177,119 +2342,12 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
     target_name = MegamorphicCache::Cast(ic_data_or_cache).target_name();
   }
 
-  const bool is_dynamic_call =
-      Function::IsDynamicInvocationForwarderName(target_name);
-  if (is_dynamic_call) {
-    target_name = Function::DemangleDynamicInvocationForwarderName(target_name);
-  }
-
-  Class& cls = Class::Handle(zone, receiver.clazz());
-  Function& function = Function::Handle(zone);
-
-  // Dart distinguishes getters and regular methods and allows their calls
-  // to mix with conversions, and its selectors are independent of arity. So do
-  // a zigzagged lookup to see if this call failed because of an arity mismatch,
-  // need for conversion, or there really is no such method.
-
-#define NO_SUCH_METHOD()                                                       \
-  const Object& result = Object::Handle(                                       \
-      zone, DartEntry::InvokeNoSuchMethod(                                     \
-                receiver, target_name, orig_arguments, orig_arguments_desc));  \
-  ThrowIfError(result);                                                        \
+  const auto& result = Object::Handle(
+      zone,
+      InvokeCallThroughGetterOrNoSuchMethod(
+          zone, receiver, target_name, orig_arguments, orig_arguments_desc));
+  ThrowIfError(result);
   arguments.SetReturn(result);
-
-#define CLOSURIZE(some_function)                                               \
-  const Function& closure_function =                                           \
-      Function::Handle(zone, some_function.ImplicitClosureFunction());         \
-  const Object& result = Object::Handle(                                       \
-      zone, closure_function.ImplicitInstanceClosure(receiver));               \
-  arguments.SetReturn(result);
-
-  const bool is_getter = Field::IsGetterName(target_name);
-  if (is_getter) {
-    // o.foo (o.get:foo) failed, closurize o.foo() if it exists.
-    String& field_name =
-        String::Handle(zone, Field::NameFromGetter(target_name));
-    while (!cls.IsNull()) {
-      function = cls.LookupDynamicFunction(field_name);
-      if (!function.IsNull()) {
-        CLOSURIZE(function);
-        return;
-      }
-      cls = cls.SuperClass();
-    }
-
-    // Fall through for noSuchMethod
-  } else {
-    // o.foo(...) failed, invoke noSuchMethod is foo exists but has the wrong
-    // number of arguments, or try (o.foo).call(...)
-
-    if ((target_name.raw() == Symbols::Call().raw()) && receiver.IsClosure()) {
-      // Special case: closures are implemented with a call getter instead of a
-      // call method and with lazy dispatchers the field-invocation-dispatcher
-      // would perform the closure call.
-      auto& result = Object::Handle(
-          zone,
-          DartEntry::ResolveCallable(orig_arguments, orig_arguments_desc));
-      ThrowIfError(result);
-      const Function& callable_function =
-          Function::Handle(zone, Function::RawCast(result.raw()));
-      if (is_dynamic_call && !callable_function.IsNull()) {
-        // TODO(dartbug.com/40813): Move checks that are currently compiled
-        // in the closure body to here as they are also moved to
-        // FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher.
-      }
-      result = DartEntry::InvokeCallable(callable_function, orig_arguments,
-                                         orig_arguments_desc);
-      ThrowIfError(result);
-      arguments.SetReturn(result);
-      return;
-    }
-
-    const String& getter_name =
-        String::Handle(zone, Field::GetterName(target_name));
-    ArgumentsDescriptor args_desc(orig_arguments_desc);
-    while (!cls.IsNull()) {
-      function = cls.LookupDynamicFunction(target_name);
-      if (!function.IsNull()) {
-        ASSERT(!function.AreValidArguments(args_desc, NULL));
-        break;  // mismatch, invoke noSuchMethod
-      }
-      function = cls.LookupDynamicFunction(getter_name);
-      if (!function.IsNull()) {
-        const Array& getter_arguments = Array::Handle(Array::New(1));
-        getter_arguments.SetAt(0, receiver);
-        const Object& getter_result = Object::Handle(
-            zone, DartEntry::InvokeFunction(function, getter_arguments));
-        ThrowIfError(getter_result);
-        ASSERT(getter_result.IsNull() || getter_result.IsInstance());
-
-        orig_arguments.SetAt(args_desc.FirstArgIndex(), getter_result);
-        auto& call_result = Object::Handle(
-            zone,
-            DartEntry::ResolveCallable(orig_arguments, orig_arguments_desc));
-        ThrowIfError(call_result);
-        const Function& callable_function =
-            Function::Handle(zone, Function::RawCast(call_result.raw()));
-        if (is_dynamic_call && !callable_function.IsNull()) {
-          // TODO(dartbug.com/40813): Move checks that are currently compiled
-          // in the closure body to here as they are also moved to
-          // FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher.
-        }
-        call_result = DartEntry::InvokeCallable(
-            callable_function, orig_arguments, orig_arguments_desc);
-        ThrowIfError(call_result);
-        arguments.SetReturn(call_result);
-        return;
-      }
-      cls = cls.SuperClass();
-    }
-  }
-
-  NO_SUCH_METHOD();
-
-#undef NO_SUCH_METHOD
-#undef CLOSURIZE
 }
 
 // Invoke appropriate noSuchMethod function.
@@ -2322,22 +2380,32 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromPrologue, 4) {
   arguments.SetReturn(result);
 }
 
-// Invoke appropriate noSuchMethod function.
+// Invoke appropriate noSuchMethod function (or in the case of no lazy
+// dispatchers, walk the receiver to find the correct method to call).
 // Arg0: receiver
-// Arg1: arguments descriptor array.
-// Arg2: arguments array.
-// Arg3: function name.
+// Arg1: function name.
+// Arg2: arguments descriptor array.
+// Arg3: arguments array.
 DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethod, 4) {
   ASSERT(FLAG_enable_interpreter);
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
-  const Array& orig_arguments_desc =
-      Array::CheckedHandle(zone, arguments.ArgAt(1));
-  const Array& orig_arguments = Array::CheckedHandle(zone, arguments.ArgAt(2));
   const String& original_function_name =
-      String::CheckedHandle(zone, arguments.ArgAt(3));
+      String::CheckedHandle(zone, arguments.ArgAt(1));
+  const Array& orig_arguments_desc =
+      Array::CheckedHandle(zone, arguments.ArgAt(2));
+  const Array& orig_arguments = Array::CheckedHandle(zone, arguments.ArgAt(3));
 
-  const Object& result = Object::Handle(DartEntry::InvokeNoSuchMethod(
-      receiver, original_function_name, orig_arguments, orig_arguments_desc));
+  auto& result = Object::Handle(zone);
+  if (!FLAG_lazy_dispatchers) {
+    // Failing to find the method could be due to the lack of lazy invoke field
+    // dispatchers, so attempt a deeper search before calling noSuchMethod.
+    result = InvokeCallThroughGetterOrNoSuchMethod(
+        zone, receiver, original_function_name, orig_arguments,
+        orig_arguments_desc);
+  } else {
+    result = DartEntry::InvokeNoSuchMethod(receiver, original_function_name,
+                                           orig_arguments, orig_arguments_desc);
+  }
   ThrowIfError(result);
   arguments.SetReturn(result);
 }
@@ -3238,6 +3306,12 @@ DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
 DEFINE_RUNTIME_ENTRY(LateInitializationError, 1) {
   const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
   Exceptions::ThrowLateInitializationError(String::Handle(field.name()));
+}
+
+DEFINE_RUNTIME_ENTRY(NotLoaded, 0) {
+  // We could just use a trap instruction in the stub, but we get better stack
+  // traces when there is an exit frame.
+  FATAL("Not loaded");
 }
 
 // Use expected function signatures to help MSVC compiler resolve overloading.

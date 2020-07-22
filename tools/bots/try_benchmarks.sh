@@ -77,6 +77,7 @@ for command; do
     # NOTE: These are duplicated in tools/bots/test_matrix.json, keep in sync.
     ./tools/build.py --mode=release --arch=ia32 create_sdk
     ./tools/build.py --mode=release --arch=ia32 runtime
+    ./tools/build.py --mode=release --arch=ia32 kernel-service.dart.snapshot
   elif [ "$command" = linux-ia32-archive ]; then
     strip -w \
       -K 'kDartVmSnapshotData' \
@@ -151,6 +152,7 @@ for command; do
       out/ReleaseIA32/dart \
       out/ReleaseIA32/gen_snapshot \
       out/ReleaseIA32/gen_kernel_bytecode.dill \
+      out/ReleaseIA32/kernel-service.dart.snapshot \
       out/ReleaseIA32/run_vm_tests \
       sdk \
       samples-dev/swarm \
@@ -174,28 +176,30 @@ main() {
 }
 EOF
     out/ReleaseIA32/dart --profile-period=10000 --packages=.packages hello.dart
-    out/ReleaseIA32/dart --null-safety --enable-experiment=non-nullable --profile-period=10000 --packages=.packages hello.dart
+    out/ReleaseIA32/dart --sound-null-safety --enable-experiment=non-nullable --profile-period=10000 --packages=.packages hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/perf.dart parse hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/perf.dart scan hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/fasta_perf.dart kernel_gen_e2e hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/fasta_perf.dart scan hello.dart
-    out/ReleaseIA32/dart --print_metrics pkg/analyzer_cli/bin/analyzer.dart --dart-sdk=sdk hello.dart
-    out/ReleaseIA32/run_vm_tests InitialRSS
-    out/ReleaseIA32/run_vm_tests --null-safety --enable-experiment=non-nullable InitialRSS
-    out/ReleaseIA32/run_vm_tests GenKernelKernelLoadKernel
-    out/ReleaseIA32/run_vm_tests --null-safety --enable-experiment=non-nullable GenKernelKernelLoadKernel
-    out/ReleaseIA32/run_vm_tests KernelServiceCompileAll
-    out/ReleaseIA32/run_vm_tests --null-safety --enable-experiment=non-nullable KernelServiceCompileAll
+    out/ReleaseIA32/dart-sdk/bin/dart --print_metrics pkg/analyzer_cli/bin/analyzer.dart --dart-sdk=sdk hello.dart
+    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot InitialRSS
+    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable InitialRSS
+    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot GenKernelKernelLoadKernel
+    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable GenKernelKernelLoadKernel
+    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot KernelServiceCompileAll
+    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable KernelServiceCompileAll
+    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot UseDartApi
+    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable UseDartApi
     out/ReleaseIA32/dart --profile-period=10000 --packages=.packages benchmarks/Example/dart2/Example.dart
-    out/ReleaseIA32/dart --null-safety --enable-experiment=non-nullable --profile-period=10000 --packages=.packages benchmarks/Example/dart/Example.dart
+    out/ReleaseIA32/dart --sound-null-safety --enable-experiment=non-nullable --profile-period=10000 --packages=.packages benchmarks/Example/dart/Example.dart
     out/ReleaseIA32/dart benchmarks/FfiBoringssl/dart2/FfiBoringssl.dart
-    out/ReleaseIA32/dart --null-safety --enable-experiment=non-nullable benchmarks/FfiBoringssl/dart/FfiBoringssl.dart
+    out/ReleaseIA32/dart --sound-null-safety --enable-experiment=non-nullable benchmarks/FfiBoringssl/dart/FfiBoringssl.dart
     out/ReleaseIA32/dart benchmarks/FfiCall/dart2/FfiCall.dart
-    out/ReleaseIA32/dart --null-safety --enable-experiment=non-nullable benchmarks/FfiCall/dart/FfiCall.dart
+    out/ReleaseIA32/dart --sound-null-safety --enable-experiment=non-nullable benchmarks/FfiCall/dart/FfiCall.dart
     out/ReleaseIA32/dart benchmarks/FfiMemory/dart2/FfiMemory.dart
-    out/ReleaseIA32/dart --null-safety --enable-experiment=non-nullable benchmarks/FfiMemory/dart/FfiMemory.dart
+    out/ReleaseIA32/dart --sound-null-safety --enable-experiment=non-nullable benchmarks/FfiMemory/dart/FfiMemory.dart
     out/ReleaseIA32/dart benchmarks/FfiStruct/dart2/FfiStruct.dart
-    out/ReleaseIA32/dart --null-safety --enable-experiment=non-nullable benchmarks/FfiStruct/dart/FfiStruct.dart
+    out/ReleaseIA32/dart --sound-null-safety --enable-experiment=non-nullable benchmarks/FfiStruct/dart/FfiStruct.dart
     cd ..
     rm -rf tmp
   elif [ "$command" = linux-x64-build ]; then
@@ -204,6 +208,7 @@ EOF
     ./tools/build.py --mode=release --arch=x64 runtime
     ./tools/build.py --mode=release --arch=x64 gen_snapshot
     ./tools/build.py --mode=release --arch=x64 dart_precompiled_runtime
+    ./tools/build.py --mode=release --arch=x64 kernel-service.dart.snapshot
   elif [ "$command" = linux-x64-archive ]; then
     strip -w \
       -K 'kDartVmSnapshotData' \
@@ -296,6 +301,7 @@ EOF
       out/ReleaseX64/dart \
       out/ReleaseX64/gen_snapshot \
       out/ReleaseX64/gen_kernel_bytecode.dill \
+      out/ReleaseX64/kernel-service.dart.snapshot \
       out/ReleaseX64/run_vm_tests \
       third_party/d8/linux/x64 \
       third_party/firefox_jsshell/linux/ \
@@ -322,11 +328,11 @@ main() {
 }
 EOF
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages hello.dart
-    out/ReleaseX64/dart --null-safety --enable-experiment=non-nullable --profile-period=10000 --packages=.packages hello.dart
+    out/ReleaseX64/dart --sound-null-safety --enable-experiment=non-nullable --profile-period=10000 --packages=.packages hello.dart
     DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/precompiler2 --packages=.packages hello.dart blob.bin
     DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/dart_precompiled_runtime2 --profile-period=10000 blob.bin
-    DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/precompiler2 --null-safety --enable-experiment=non-nullable --packages=.packages hello.dart blob.bin
-    DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/dart_precompiled_runtime2 --null-safety --profile-period=10000 blob.bin
+    DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/precompiler2 --sound-null-safety --enable-experiment=non-nullable --packages=.packages hello.dart blob.bin
+    DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/dart_precompiled_runtime2 --profile-period=10000 blob.bin
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages --optimization-counter-threshold=-1 hello.dart
     out/ReleaseX64/dart-sdk/bin/dart2js --packages=.packages --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
@@ -342,26 +348,28 @@ EOF
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseX64/dart-sdk/bin/dart2js --benchmarking-x --packages=.packages --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
-    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --kernel hello.dart
-    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --mode=compile --compile-vm-options=--print-metrics --packages=.packages --out out.js --kernel hello.dart
+    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 hello.dart
+    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --mode=compile --compile-vm-options=--print-metrics --packages=.packages --out out.js hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/perf.dart parse hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/perf.dart scan hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/fasta_perf.dart kernel_gen_e2e hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/fasta_perf.dart scan hello.dart
-    out/ReleaseX64/dart pkg/analysis_server/benchmark/benchmarks.dart run --quick --repeat 1 analysis-server-cold
-    out/ReleaseX64/dart --print_metrics pkg/analyzer_cli/bin/analyzer.dart --dart-sdk=sdk hello.dart
+    out/ReleaseX64/dart-sdk/bin/dart pkg/analysis_server/benchmark/benchmarks.dart run --quick --repeat 1 analysis-server-cold
+    out/ReleaseX64/dart-sdk/bin/dart --print_metrics pkg/analyzer_cli/bin/analyzer.dart --dart-sdk=sdk hello.dart
     echo '[{"name":"foo","edits":[["pkg/compiler/lib/src/dart2js.dart","2016","2017"],["pkg/compiler/lib/src/options.dart","2016","2017"]]}]' > appjit_train_edits.json
     out/ReleaseX64/dart --background-compilation=false --snapshot-kind=app-jit --snapshot=pkg/front_end/tool/incremental_perf.dart.appjit pkg/front_end/tool/incremental_perf.dart --target=vm --sdk-summary=out/ReleaseX64/vm_platform_strong.dill --sdk-library-specification=sdk/lib/libraries.json pkg/compiler/lib/src/dart2js.dart appjit_train_edits.json
     out/ReleaseX64/dart --background-compilation=false pkg/front_end/tool/incremental_perf.dart.appjit --target=vm --sdk-summary=out/ReleaseX64/vm_platform_strong.dill --sdk-library-specification=sdk/lib/libraries.json pkg/front_end/benchmarks/ikg/hello.dart pkg/front_end/benchmarks/ikg/hello.edits.json
     out/ReleaseX64/dart --packages=.packages pkg/kernel/test/binary_bench.dart --golem AstFromBinaryLazy out/ReleaseX64/vm_platform_strong.dill
-    out/ReleaseX64/run_vm_tests InitialRSS
-    out/ReleaseX64/run_vm_tests --null-safety --enable-experiment=non-nullable InitialRSS
-    out/ReleaseX64/run_vm_tests GenKernelKernelLoadKernel
-    out/ReleaseX64/run_vm_tests --null-safety --enable-experiment=non-nullable GenKernelKernelLoadKernel
-    out/ReleaseX64/run_vm_tests KernelServiceCompileAll
-    out/ReleaseX64/run_vm_tests --null-safety --enable-experiment=non-nullable KernelServiceCompileAll
+    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot InitialRSS
+    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable InitialRSS
+    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot GenKernelKernelLoadKernel
+    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable GenKernelKernelLoadKernel
+    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot KernelServiceCompileAll
+    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable KernelServiceCompileAll
+    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot UseDartApi
+    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable UseDartApi
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages benchmarks/Example/dart2/Example.dart
-    out/ReleaseX64/dart --null-safety --enable-experiment=non-nullable --profile-period=10000 --packages=.packages benchmarks/Example/dart/Example.dart
+    out/ReleaseX64/dart --sound-null-safety --enable-experiment=non-nullable --profile-period=10000 --packages=.packages benchmarks/Example/dart/Example.dart
     cd ..
     rm -rf tmp
   else

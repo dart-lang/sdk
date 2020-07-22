@@ -3029,6 +3029,59 @@ DART_EXPORT Dart_Handle
 Dart_SetLibraryTagHandler(Dart_LibraryTagHandler handler);
 
 /**
+ * Handles deferred loading requests. When this handler is invoked, it should
+ * eventually load the deferred loading unit with the given id and call
+ * Dart_DeferredLoadComplete or Dart_DeferredLoadCompleteError. It is
+ * recommended that the loading occur asynchronously, but it is permitted to
+ * call Dart_DeferredLoadComplete or Dart_DeferredLoadCompleteError before the
+ * handler returns.
+ *
+ * If an error is returned, it will be propogated through
+ * `prefix.loadLibrary()`. This is useful for synchronous
+ * implementations, which must propogate any unwind errors from
+ * Dart_DeferredLoadComplete or Dart_DeferredLoadComplete. Otherwise the handler
+ * should return a non-error such as `Dart_Null()`.
+ */
+typedef Dart_Handle (*Dart_DeferredLoadHandler)(intptr_t loading_unit_id);
+
+/**
+ * Sets the deferred load handler for the current isolate. This handler is
+ * used to handle loading deferred imports in an AppJIT or AppAOT program.
+ */
+DART_EXPORT Dart_Handle
+Dart_SetDeferredLoadHandler(Dart_DeferredLoadHandler handler);
+
+/**
+ * Notifies the VM that a deferred load completed successfully. This function
+ * will eventually cause the corresponding `prefix.loadLibrary()` futures to
+ * complete.
+ *
+ * Requires the current isolate to be the same current isolate during the
+ * invocation of the Dart_DeferredLoadHandler.
+ */
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
+Dart_DeferredLoadComplete(intptr_t loading_unit_id,
+                          const uint8_t* snapshot_data,
+                          const uint8_t* snapshot_instructions);
+
+/**
+ * Notifies the VM that a deferred load failed. This function
+ * will eventually cause the corresponding `prefix.loadLibrary()` futures to
+ * complete with an error.
+ *
+ * If `transient` is true, future invocations of `prefix.loadLibrary()` will
+ * trigger new load requests. If false, futures invocation will complete with
+ * the same error.
+ *
+ * Requires the current isolate to be the same current isolate during the
+ * invocation of the Dart_DeferredLoadHandler.
+ */
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
+Dart_DeferredLoadCompleteError(intptr_t loading_unit_id,
+                               const char* error_message,
+                               bool transient);
+
+/**
  * Canonicalizes a url with respect to some library.
  *
  * The url is resolved with respect to the library's url and some url
@@ -3522,9 +3575,15 @@ Dart_LoadTypeFeedback(uint8_t* buffer, intptr_t buffer_length);
  */
 DART_EXPORT Dart_Handle Dart_Precompile();
 
+typedef void (*Dart_CreateLoadingUnitCallback)(
+    void* callback_data,
+    intptr_t loading_unit_id,
+    void** write_callback_data,
+    void** write_debug_callback_data);
 typedef void (*Dart_StreamingWriteCallback)(void* callback_data,
                                             const uint8_t* buffer,
                                             intptr_t size);
+typedef void (*Dart_StreamingCloseCallback)(void* callback_data);
 
 // On Darwin systems, 'dlsym' adds an '_' to the beginning of the symbol name.
 // Use the '...CSymbol' definitions for resolving through 'dlsym'. The actual
@@ -3580,6 +3639,13 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
                                     void* callback_data,
                                     bool stripped,
                                     void* debug_callback_data);
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
+Dart_CreateAppAOTSnapshotAsAssemblies(
+    Dart_CreateLoadingUnitCallback next_callback,
+    void* next_callback_data,
+    bool stripped,
+    Dart_StreamingWriteCallback write_callback,
+    Dart_StreamingCloseCallback close_callback);
 
 /**
  *  Creates a precompiled snapshot.
@@ -3613,6 +3679,12 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
                                void* callback_data,
                                bool stripped,
                                void* debug_callback_data);
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
+Dart_CreateAppAOTSnapshotAsElfs(Dart_CreateLoadingUnitCallback next_callback,
+                                void* next_callback_data,
+                                bool stripped,
+                                Dart_StreamingWriteCallback write_callback,
+                                Dart_StreamingCloseCallback close_callback);
 
 /**
  *  Like Dart_CreateAppAOTSnapshotAsAssembly, but only includes

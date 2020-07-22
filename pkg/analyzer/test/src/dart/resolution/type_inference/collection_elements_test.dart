@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../driver_resolution.dart';
+import '../with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,15 +16,8 @@ main() {
 }
 
 @reflectiveTest
-class ForElementWithNnbdTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class ForElementWithNnbdTest extends DriverResolutionTest
+    with WithNullSafetyMixin {
   test_list_awaitForIn_dynamic_downward() async {
     await resolveTestCode('''
 void f() async {
@@ -202,15 +194,8 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class IfElementWithNnbdTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class IfElementWithNnbdTest extends DriverResolutionTest
+    with WithNullSafetyMixin {
   test_list_downward() async {
     await resolveTestCode('''
 void f() {
@@ -246,15 +231,8 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class SpreadElementWithNnbdTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class SpreadElementWithNnbdTest extends DriverResolutionTest
+    with WithNullSafetyMixin {
   test_list_downward() async {
     await resolveTestCode('''
 void f() {

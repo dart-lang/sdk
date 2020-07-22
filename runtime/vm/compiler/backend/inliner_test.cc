@@ -227,12 +227,10 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_generate) {
         kMatchAndMoveJoinEntry,
         kMatchAndMoveCheckStackOverflow,
         kMatchAndMoveUnboxInt64,
-        kMatchAndMoveUnboxInt64,
         kMatchAndMoveBranchTrue,
 
         // Loop body
         kMatchAndMoveTargetEntry,
-        kWordSize == 8 ? kMatchAndMoveUnboxInt64 : kNop,
         kMatchAndMoveGenericCheckBound,
         kMatchAndMoveStoreIndexed,
         kMatchAndMoveCheckedSmiOp,
@@ -241,7 +239,6 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_generate) {
         // Loop header once again
         kMatchAndMoveJoinEntry,
         kMatchAndMoveCheckStackOverflow,
-        kMatchAndMoveUnboxInt64,
         kMatchAndMoveUnboxInt64,
         kMatchAndMoveBranchFalse,
 

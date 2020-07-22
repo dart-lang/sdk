@@ -15,21 +15,7 @@ main() {
 
 @reflectiveTest
 class InstanceMemberAccessFromStaticTest extends DriverResolutionTest {
-  test_class_field() async {
-    await assertErrorsInCode(r'''
-class A {
-  int foo;
-
-  static void bar() {
-    foo;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 48, 3),
-    ]);
-  }
-
-  test_class_getter() async {
+  test_class_getter_fromMethod() async {
     await assertErrorsInCode(r'''
 class A {
   int get foo => 0;
@@ -43,7 +29,23 @@ class A {
     ]);
   }
 
-  test_class_method() async {
+  test_class_getter_fromMethod_fromClosure() async {
+    await assertErrorsInCode(r'''
+class A {
+  int get foo => 0;
+
+  static Object bar() {
+    return () {
+      foo;
+    };
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 77, 3),
+    ]);
+  }
+
+  test_class_method_fromMethod() async {
     await assertErrorsInCode(r'''
 class A {
   void foo() {}
@@ -57,7 +59,7 @@ class A {
     ]);
   }
 
-  test_class_setter() async {
+  test_class_setter_fromMethod() async {
     await assertErrorsInCode(r'''
 class A {
   set foo(int _) {}
@@ -71,7 +73,7 @@ class A {
     ]);
   }
 
-  test_extension_external_getter() async {
+  test_extension_external_getter_fromMethod() async {
     await assertErrorsInCode(r'''
 extension E on A {
   int get foo => 0;
@@ -87,7 +89,7 @@ class A {
     ]);
   }
 
-  test_extension_external_method() async {
+  test_extension_external_method_fromMethod() async {
     await assertErrorsInCode(r'''
 extension E on A {
   void foo() {}
@@ -103,7 +105,7 @@ class A {
     ]);
   }
 
-  test_extension_external_setter() async {
+  test_extension_external_setter_fromMethod() async {
     await assertErrorsInCode(r'''
 extension E on A {
   set foo(int _) {}
@@ -119,7 +121,7 @@ class A {
     ]);
   }
 
-  test_extension_internal_getter() async {
+  test_extension_internal_getter_fromMethod() async {
     await assertErrorsInCode(r'''
 extension E on int {
   int get foo => 0;
@@ -133,7 +135,7 @@ extension E on int {
     ]);
   }
 
-  test_extension_internal_method() async {
+  test_extension_internal_method_fromMethod() async {
     await assertErrorsInCode(r'''
 extension E on int {
   void foo() {}
@@ -147,7 +149,7 @@ extension E on int {
     ]);
   }
 
-  test_extension_internal_setter() async {
+  test_extension_internal_setter_fromMethod() async {
     await assertErrorsInCode(r'''
 extension E on int {
   set foo(int _) {}

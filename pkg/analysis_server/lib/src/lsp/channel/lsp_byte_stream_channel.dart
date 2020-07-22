@@ -119,10 +119,9 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
 
   void _sendParseError() {
     final error = ResponseMessage(
-        null,
-        null,
-        ResponseError(ErrorCodes.ParseError, 'Unable to parse message', null),
-        jsonRpcVersion);
+        error: ResponseError(
+            code: ErrorCodes.ParseError, message: 'Unable to parse message'),
+        jsonrpc: jsonRpcVersion);
     sendResponse(error);
   }
 

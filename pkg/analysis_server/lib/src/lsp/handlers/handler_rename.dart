@@ -55,7 +55,7 @@ class PrepareRenameHandler
       }
 
       return success(RangeAndPlaceholder(
-        toRange(
+        range: toRange(
           unit.result.lineInfo,
           // If the offset is set to -1 it means there is no location for the
           // old name. However since we must provide a range for LSP, we'll use
@@ -64,7 +64,7 @@ class PrepareRenameHandler
           refactorDetails.offset == -1 ? offset : refactorDetails.offset,
           refactorDetails.length,
         ),
-        refactoring.oldName,
+        placeholder: refactoring.oldName,
       ));
     });
   }

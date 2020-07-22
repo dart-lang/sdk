@@ -69,12 +69,16 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
 
     newFile(pluginAnalyzedFilePath);
     await initialize();
-    final res = await getDefinition(pluginAnalyzedFileUri, lsp.Position(0, 0));
+    final res = await getDefinition(
+        pluginAnalyzedFileUri, lsp.Position(line: 0, character: 0));
 
     expect(res, hasLength(1));
     var loc = res.single;
     expect(
-        loc.range, equals(lsp.Range(lsp.Position(0, 0), lsp.Position(0, 5))));
+        loc.range,
+        equals(lsp.Range(
+            start: lsp.Position(line: 0, character: 0),
+            end: lsp.Position(line: 0, character: 5))));
     expect(loc.uri, equals(pluginAnalyzedFileUri.toString()));
   }
 

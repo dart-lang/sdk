@@ -35,6 +35,10 @@ class HttpPreviewServer {
   // A function which allows the migration to be rerun, taking changed paths.
   final Future<MigrationState> Function() rerunFunction;
 
+  /// Callback function that should be invoked after successfully applying
+  /// migration.
+  final void Function() applyHook;
+
   /// The internet address the server should bind to.  Should be suitable for
   /// passing to HttpServer.bind, i.e. either a [String] or an
   /// [InternetAddress].
@@ -45,13 +49,13 @@ class HttpPreviewServer {
   final int preferredPort;
 
   /// Initialize a newly created HTTP server.
-  HttpPreviewServer(this.migrationState, this.rerunFunction, this.bindAddress,
-      this.preferredPort)
+  HttpPreviewServer(this.migrationState, this.rerunFunction, this.applyHook,
+      this.bindAddress, this.preferredPort)
       : assert(bindAddress is String || bindAddress is InternetAddress);
 
   Future<String> get authToken async {
     await _serverFuture;
-    previewSite ??= PreviewSite(migrationState, rerunFunction);
+    previewSite ??= PreviewSite(migrationState, rerunFunction, applyHook);
     return previewSite.serviceAuthToken;
   }
 
@@ -93,13 +97,13 @@ class HttpPreviewServer {
 
   /// Handle a GET request received by the HTTP server.
   Future<void> _handleGetRequest(HttpRequest request) async {
-    previewSite ??= PreviewSite(migrationState, rerunFunction);
+    previewSite ??= PreviewSite(migrationState, rerunFunction, applyHook);
     await previewSite.handleGetRequest(request);
   }
 
   /// Handle a POST request received by the HTTP server.
   Future<void> _handlePostRequest(HttpRequest request) async {
-    previewSite ??= PreviewSite(migrationState, rerunFunction);
+    previewSite ??= PreviewSite(migrationState, rerunFunction, applyHook);
     await previewSite.handlePostRequest(request);
   }
 

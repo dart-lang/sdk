@@ -17,15 +17,7 @@ Future<void> runSplitAOTKernelGenerationTest(Uri testScriptUri) async {
     final outputDillPath = path.join(temp, 'output.dill');
     final snapshotPath = path.join(temp, 'aot.snapshot');
 
-    final extraGenKernelOptions = Platform.executableArguments
-        .where((arg) =>
-            arg.startsWith('--enable-experiment=') ||
-            arg == '--null-safety' ||
-            arg == '--no-null-safety')
-        .toList();
-
     await runGenKernel('BUILD INTERMEDIATE DILL FILE', [
-      ...extraGenKernelOptions,
       '--no-aot',
       '--link-platform',
       '--output=$intermediateDillPath',
@@ -33,7 +25,6 @@ Future<void> runSplitAOTKernelGenerationTest(Uri testScriptUri) async {
     ]);
 
     await runGenKernel('BUILD FINAL DILL FILE', [
-      ...extraGenKernelOptions,
       '--aot',
       '--from-dill=$intermediateDillPath',
       '--link-platform',

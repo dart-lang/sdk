@@ -1588,15 +1588,23 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
     auto& type_class = Class::Handle(zone_);
 #define TRY_INLINE(iface, member_name, type, cid)                              \
   if (!member_name.IsNull()) {                                                 \
+    const bool is_float_access =                                               \
+        cid == kTypedDataFloat32ArrayCid || cid == kTypedDataFloat64ArrayCid;  \
     if (receiver_type->IsAssignableTo(member_name)) {                          \
       if (is_length_getter) {                                                  \
         type_class = member_name.type_class();                                 \
         ReplaceWithLengthGetter(call);                                         \
       } else if (is_index_get) {                                               \
+        if (is_float_access && !FlowGraphCompiler::SupportsUnboxedDoubles()) { \
+          return;                                                              \
+        }                                                                      \
         if (!index_type->IsNullableInt()) return;                              \
         type_class = member_name.type_class();                                 \
         ReplaceWithIndexGet(call, cid);                                        \
       } else {                                                                 \
+        if (is_float_access && !FlowGraphCompiler::SupportsUnboxedDoubles()) { \
+          return;                                                              \
+        }                                                                      \
         if (!index_type->IsNullableInt()) return;                              \
         if (!value_type->IsAssignableTo(type)) return;                         \
         type_class = member_name.type_class();                                 \

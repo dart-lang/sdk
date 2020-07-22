@@ -75,4 +75,56 @@ f(C c) {
       findElement.setter('a'),
     );
   }
+
+  test_method_reference() async {
+    await assertErrorsInCode(r'''
+class A {
+  static m() {}
+}
+main(A a) {
+  a.m;
+}
+''', [
+      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 44, 1),
+    ]);
+  }
+
+  test_propertyAccess_field() async {
+    await assertErrorsInCode(r'''
+class A {
+  static var f;
+}
+main(A a) {
+  a.f;
+}
+''', [
+      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 44, 1),
+    ]);
+  }
+
+  test_propertyAccess_getter() async {
+    await assertErrorsInCode(r'''
+class A {
+  static get f => 42;
+}
+main(A a) {
+  a.f;
+}
+''', [
+      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 50, 1),
+    ]);
+  }
+
+  test_propertyAccess_setter() async {
+    await assertErrorsInCode(r'''
+class A {
+  static set f(x) {}
+}
+main(A a) {
+  a.f = 42;
+}
+''', [
+      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 49, 1),
+    ]);
+  }
 }

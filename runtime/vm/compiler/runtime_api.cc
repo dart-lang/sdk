@@ -994,6 +994,10 @@ word SubtypeTestCache::NextFieldOffset() {
   return -kWordSize;
 }
 
+word LoadingUnit::NextFieldOffset() {
+  return -kWordSize;
+}
+
 word Context::NextFieldOffset() {
   return -kWordSize;
 }

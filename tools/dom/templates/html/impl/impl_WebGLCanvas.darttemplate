@@ -11,6 +11,6 @@ $!MEMBERS
   CanvasElement get canvas native;
 
   @JSName('canvas')
-  OffscreenCanvas get offscreenCanvas native;
+  OffscreenCanvas$NULLABLE get offscreenCanvas native;
 }
 

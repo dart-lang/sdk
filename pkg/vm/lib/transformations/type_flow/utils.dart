@@ -109,7 +109,7 @@ bool hasReceiverArg(Member member) =>
 // Type arguments to procedures is only supported for factory constructors of
 // generic classes at the moment.
 //
-// TODO(sjindel/tfa): Extend suport to normal generic functions.
+// TODO(sjindel/tfa): Extend support to normal generic functions.
 int numTypeParams(Member member) => member is Procedure && member.isFactory
     ? member.function.typeParameters.length
     : 0;

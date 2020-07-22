@@ -8,8 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -26,7 +24,6 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart' show LibraryScope;
 import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/dart2js_verifier.dart';
@@ -50,7 +47,6 @@ import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
-import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 var timerLibraryAnalyzer = Stopwatch();
@@ -70,7 +66,6 @@ class LibraryAnalyzer {
   final DeclaredVariables _declaredVariables;
   final SourceFactory _sourceFactory;
   final FileState _library;
-  final ResourceProvider _resourceProvider;
 
   final InheritanceManager3 _inheritance;
   final bool Function(Uri) _isLibraryUri;
@@ -79,7 +74,6 @@ class LibraryAnalyzer {
 
   LibraryElement _libraryElement;
 
-  LibraryScope _libraryScope;
   final Map<FileState, LineInfo> _fileToLineInfo = {};
 
   final Map<FileState, IgnoreInfo> _fileToIgnoreInfo = {};
@@ -100,7 +94,6 @@ class LibraryAnalyzer {
       this._elementFactory,
       this._inheritance,
       this._library,
-      this._resourceProvider,
       {TestingData testingData})
       : _testingData = testingData;
 
@@ -128,7 +121,6 @@ class LibraryAnalyzer {
     timerLibraryAnalyzerFreshUnit.stop();
 
     _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
-    _libraryScope = LibraryScope(_libraryElement);
 
     // Resolve URIs in directives to corresponding sources.
     FeatureSet featureSet = units[_library].featureSet;
@@ -190,6 +182,8 @@ class LibraryAnalyzer {
 
     assert(units.values.every(LegacyTypeAsserter.assertLegacyTypes));
 
+    _checkForInconsistentLanguageVersionOverride(units);
+
     timerLibraryAnalyzerVerify.stop();
 
     // Return full results.
@@ -201,6 +195,44 @@ class LibraryAnalyzer {
     });
     timerLibraryAnalyzer.stop();
     return results;
+  }
+
+  void _checkForInconsistentLanguageVersionOverride(
+    Map<FileState, CompilationUnit> units,
+  ) {
+    var libraryUnit = units.values.first;
+    var libraryOverrideToken = libraryUnit.languageVersionToken;
+
+    for (var partEntry in units.entries.skip(1)) {
+      var partUnit = partEntry.value;
+      var partOverrideToken = partUnit.languageVersionToken;
+      if (libraryOverrideToken != null) {
+        if (partOverrideToken != null) {
+          if (partOverrideToken.major != libraryOverrideToken.major ||
+              partOverrideToken.minor != libraryOverrideToken.minor) {
+            _getErrorReporter(partEntry.key).reportErrorForToken(
+              CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE,
+              partOverrideToken,
+            );
+          }
+        } else {
+          var partDirectives = partUnit.directives;
+          for (var partOf in partDirectives.whereType<PartOfDirective>()) {
+            var partOffset = partOf.partKeyword.offset;
+            _getErrorReporter(partEntry.key).reportErrorForOffset(
+              CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE,
+              partOffset,
+              partOf.ofKeyword.end - partOffset,
+            );
+          }
+        }
+      } else if (partOverrideToken != null) {
+        _getErrorReporter(partEntry.key).reportErrorForToken(
+          CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE,
+          partOverrideToken,
+        );
+      }
+    }
   }
 
   void _computeConstantErrors(
@@ -251,8 +283,8 @@ class LibraryAnalyzer {
         declaredVariables: _declaredVariables,
         typeSystem: _typeSystem,
         inheritanceManager: _inheritance,
-        resourceProvider: _resourceProvider,
         analysisOptions: _context.analysisOptions,
+        workspacePackage: _library.workspacePackage,
       ),
     );
 
@@ -309,8 +341,6 @@ class LibraryAnalyzer {
     var nodeRegistry = NodeLintRegistry(_analysisOptions.enableTiming);
     var visitors = <AstVisitor>[];
 
-    final workspacePackage = _getPackage(currentUnit.unit);
-
     var context = LinterContextImpl(
       allUnits,
       currentUnit,
@@ -319,7 +349,7 @@ class LibraryAnalyzer {
       _typeSystem,
       _inheritance,
       _analysisOptions,
-      workspacePackage,
+      file.workspacePackage,
     );
     for (Linter linter in _analysisOptions.lintRules) {
       linter.reporter = errorReporter;
@@ -477,23 +507,6 @@ class LibraryAnalyzer {
         isNonNullableByDefault: _libraryElement.isNonNullableByDefault,
       );
     });
-  }
-
-  WorkspacePackage _getPackage(CompilationUnit unit) {
-    final libraryPath = _library.source.fullName;
-    Workspace workspace =
-        unit.declaredElement.session?.analysisContext?.workspace;
-
-    // If there is no driver setup (as in test environments), we need to create
-    // a workspace ourselves.
-    // todo (pq): fix tests or otherwise de-dup this logic shared w/ resolver.
-    if (workspace == null) {
-      final builder = ContextBuilder(
-          _resourceProvider, null /* sdkManager */, null /* contentCache */);
-      workspace = ContextBuilder.createWorkspace(
-          _resourceProvider, libraryPath, builder);
-    }
-    return workspace?.findPackageFor(libraryPath);
   }
 
   /// Return the name of the library that the given part is declared to be a
@@ -694,14 +707,14 @@ class LibraryAnalyzer {
         unitElement: unitElement,
         errorListener: errorListener,
         featureSet: unit.featureSet,
-        nameScope: _libraryScope,
+        nameScope: _libraryElement.scope,
         elementWalker: ElementWalker.forCompilationUnit(unitElement),
       ),
     );
 
     unit.accept(VariableResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
-        nameScope: _libraryScope));
+        nameScope: _libraryElement.scope));
 
     // Nothing for RESOLVED_UNIT8?
     // Nothing for RESOLVED_UNIT9?

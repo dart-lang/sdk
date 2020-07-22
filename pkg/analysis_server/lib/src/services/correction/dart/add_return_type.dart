@@ -12,7 +12,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddReturnType extends CorrectionProducer {
@@ -23,7 +23,7 @@ class AddReturnType extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_RETURN_TYPE;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     SyntacticEntity insertBeforeEntity;
     FunctionBody body;
     if (node is SimpleIdentifier) {
@@ -58,7 +58,7 @@ class AddReturnType extends CorrectionProducer {
       return null;
     }
 
-    await builder.addFileEdit(file, (builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(insertBeforeEntity.offset, (builder) {
         if (returnType.isDynamic) {
           builder.write('dynamic');

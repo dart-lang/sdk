@@ -13,7 +13,7 @@ FutureOr<String> test() {
   return v;
   //     ^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] A value of type 'FutureOr<int?>' can't be returned from a function with return type 'FutureOr<String>'.
 }
 
 void main() {

@@ -8,8 +8,9 @@ import 'package:analysis_server/src/services/correction/selection_analyzer.dart'
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterWrap extends MultiCorrectionProducer {
@@ -138,7 +139,11 @@ class _FlutterWrapPadding extends _WrapSingleWidget {
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_PADDING;
 
   @override
-  List<String> get _leadingLines => ['padding: const EdgeInsets.all(8.0),'];
+  List<String> get _leadingLines {
+    var keyword =
+        (widgetExpr as ExpressionImpl).inConstantContext ? '' : ' const';
+    return ['padding:$keyword EdgeInsets.all(8.0),'];
+  }
 
   @override
   String get _parentClassName => 'Padding';
@@ -174,7 +179,7 @@ abstract class _WrapMultipleWidgets extends CorrectionProducer {
   String get _parentLibraryUri => flutter.widgetsUri;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var selectedRange = range.startEnd(firstWidget, lastWidget);
     var src = utils.getRangeText(selectedRange);
     var parentClassElement =
@@ -185,8 +190,8 @@ abstract class _WrapMultipleWidgets extends CorrectionProducer {
       return;
     }
 
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(selectedRange, (DartEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addReplacement(selectedRange, (builder) {
         builder.writeReference(parentClassElement);
         builder.write('(');
 
@@ -231,7 +236,7 @@ abstract class _WrapSingleWidget extends CorrectionProducer {
   String get _parentLibraryUri => null;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var widgetSrc = utils.getNodeText(widgetExpr);
 
     // If the wrapper class is specified, find its element.
@@ -246,8 +251,8 @@ abstract class _WrapSingleWidget extends CorrectionProducer {
       }
     }
 
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(widgetExpr), (DartEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addReplacement(range.node(widgetExpr), (builder) {
         if (parentClassElement == null) {
           builder.addSimpleLinkedEdit('WIDGET', 'widget');
         } else {

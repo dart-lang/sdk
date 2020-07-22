@@ -193,6 +193,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to use the trivial abstract value domain.
   bool useTrivialAbstractValueDomain = false;
 
+  /// Whether to use the powerset abstract value domain (experimental).
+  bool experimentalPowersets = false;
+
   /// Whether to disable optimization for need runtime type information.
   bool disableRtiOptimization = false;
 
@@ -428,6 +431,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..disableTypeInference = _hasOption(options, Flags.disableTypeInference)
       ..useTrivialAbstractValueDomain =
           _hasOption(options, Flags.useTrivialAbstractValueDomain)
+      ..experimentalPowersets = _hasOption(options, Flags.experimentalPowersets)
       ..disableRtiOptimization =
           _hasOption(options, Flags.disableRtiOptimization)
       ..dumpInfo = _hasOption(options, Flags.dumpInfo)

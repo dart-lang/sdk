@@ -17,7 +17,8 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
+import 'package:analyzer/src/error/codes.dart'
+    show CompileTimeErrorCode, StrongModeCode;
 import 'package:analyzer/src/summary/idl.dart';
 
 /// Given an [expression] and a corresponding [typeSystem] and [typeProvider],
@@ -174,9 +175,7 @@ class CodeChecker extends RecursiveAstVisitor {
       checkAssignment(element.expression, expressionCastType);
 
       var exprType = element.expression.staticType;
-      var asIterableType = exprType is InterfaceTypeImpl
-          ? exprType.asInstanceOf(typeProvider.iterableElement)
-          : null;
+      var asIterableType = exprType.asInstanceOf(typeProvider.iterableElement);
       var elementType =
           asIterableType == null ? null : asIterableType.typeArguments[0];
       // Items in the spread will then potentially be downcast to the expected
@@ -213,9 +212,7 @@ class CodeChecker extends RecursiveAstVisitor {
       checkAssignment(element.expression, expressionCastType);
 
       var exprType = element.expression.staticType;
-      var asMapType = exprType is InterfaceTypeImpl
-          ? exprType.asInstanceOf(typeProvider.mapElement)
-          : null;
+      var asMapType = exprType.asInstanceOf(typeProvider.mapElement);
 
       var elementKeyType =
           asMapType == null ? null : asMapType.typeArguments[0];
@@ -845,11 +842,9 @@ class CodeChecker extends RecursiveAstVisitor {
 
   DartType _getInstanceTypeArgument(
       DartType expressionType, ClassElement instanceType) {
-    if (expressionType is InterfaceTypeImpl) {
-      var asInstanceType = expressionType.asInstanceOf(instanceType);
-      if (asInstanceType != null) {
-        return asInstanceType.typeArguments[0];
-      }
+    var asInstanceType = expressionType.asInstanceOf(instanceType);
+    if (asInstanceType != null) {
+      return asInstanceType.typeArguments[0];
     }
     return null;
   }
@@ -918,9 +913,9 @@ class CodeChecker extends RecursiveAstVisitor {
   void _recordImplicitCast(Expression expr, DartType to,
       {DartType from,
       bool opAssign = false,
-      forSpread = false,
-      forSpreadKey = false,
-      forSpreadValue = false}) {
+      bool forSpread = false,
+      bool forSpreadKey = false,
+      bool forSpreadValue = false}) {
     // If this is an implicit tearoff, we need to mark the cast, but we don't
     // want to warn if it's a legal subtype.
     if (from is InterfaceType && rules.acceptsFunctionType(to)) {
@@ -940,28 +935,29 @@ class CodeChecker extends RecursiveAstVisitor {
         // runtime.
         if (expr is ListLiteral) {
           _recordMessage(
-              expr, StrongModeCode.INVALID_CAST_LITERAL_LIST, [from, to]);
+              expr, CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, [from, to]);
         } else if (expr is SetOrMapLiteral) {
           if (expr.isMap) {
-            _recordMessage(
-                expr, StrongModeCode.INVALID_CAST_LITERAL_MAP, [from, to]);
+            _recordMessage(expr, CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP,
+                [from, to]);
           } else if (expr.isSet) {
-            _recordMessage(
-                expr, StrongModeCode.INVALID_CAST_LITERAL_SET, [from, to]);
+            _recordMessage(expr, CompileTimeErrorCode.INVALID_CAST_LITERAL_SET,
+                [from, to]);
           } else {
             // This should only happen when the code is invalid, in which case
             // the error should have been reported elsewhere.
           }
         } else {
-          _recordMessage(
-              expr, StrongModeCode.INVALID_CAST_LITERAL, [expr, from, to]);
+          _recordMessage(expr, CompileTimeErrorCode.INVALID_CAST_LITERAL,
+              [expr, from, to]);
         }
         return;
       }
 
       if (expr is FunctionExpression) {
+        // TODO(srawlins): Add _any_ test that shows this code is reported.
         _recordMessage(
-            expr, StrongModeCode.INVALID_CAST_FUNCTION_EXPR, [from, to]);
+            expr, CompileTimeErrorCode.INVALID_CAST_FUNCTION_EXPR, [from, to]);
         return;
       }
 
@@ -971,7 +967,7 @@ class CodeChecker extends RecursiveAstVisitor {
           // fromT should be an exact type - this will almost certainly fail at
           // runtime.
           _recordMessage(
-              expr, StrongModeCode.INVALID_CAST_NEW_EXPR, [from, to]);
+              expr, CompileTimeErrorCode.INVALID_CAST_NEW_EXPR, [from, to]);
           return;
         }
       }
@@ -981,8 +977,8 @@ class CodeChecker extends RecursiveAstVisitor {
         _recordMessage(
             expr,
             e is MethodElement
-                ? StrongModeCode.INVALID_CAST_METHOD
-                : StrongModeCode.INVALID_CAST_FUNCTION,
+                ? CompileTimeErrorCode.INVALID_CAST_METHOD
+                : CompileTimeErrorCode.INVALID_CAST_FUNCTION,
             [e.name, from, to]);
         return;
       }
@@ -1067,18 +1063,7 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
   final CodeChecker _codeChecker;
   final String _name;
 
-  /// A flag indicating whether certain diagnostics related to top-level
-  /// elements should be produced. The diagnostics are the ones introduced by
-  /// the analyzer to signal to users when the version of type inference
-  /// performed by the analyzer was unable to accurately infer type information.
-  /// The implementation of type inference used by the task model still has
-  /// these deficiencies, but the implementation used by the driver does not.
-  // TODO(brianwilkerson) Remove this field when the task model has been
-  // removed.
-  final bool flagTopLevel;
-
-  _TopLevelInitializerValidator(this._codeChecker, this._name,
-      {this.flagTopLevel = true});
+  _TopLevelInitializerValidator(this._codeChecker, this._name);
 
   void validateHasType(AstNode n, PropertyAccessorElement e) {
     if (e.hasImplicitReturnType) {
@@ -1111,7 +1096,7 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
       if (e is PropertyAccessorElement) {
         if (e.isStatic) {
           validateHasType(n, e);
-        } else if (e.hasImplicitReturnType && flagTopLevel) {
+        } else if (e.hasImplicitReturnType) {
           _codeChecker._recordMessage(
               n, StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, [_name, e.name]);
         }
@@ -1119,7 +1104,7 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
           e is ExecutableElement &&
           e.kind == ElementKind.METHOD &&
           !e.isStatic) {
-        if (_hasAnyImplicitType(e) && flagTopLevel) {
+        if (_hasAnyImplicitType(e)) {
           _codeChecker._recordMessage(
               n, StrongModeCode.TOP_LEVEL_INSTANCE_METHOD, [_name, e.name]);
         }
@@ -1223,16 +1208,14 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
     if (method is ExecutableElement) {
       if (method.kind == ElementKind.METHOD &&
           !method.isStatic &&
-          method.hasImplicitReturnType &&
-          flagTopLevel) {
+          method.hasImplicitReturnType) {
         _codeChecker._recordMessage(node,
             StrongModeCode.TOP_LEVEL_INSTANCE_METHOD, [_name, method.name]);
       }
       if (node.typeArguments == null && method.typeParameters.isNotEmpty) {
         if (method.kind == ElementKind.METHOD &&
             !method.isStatic &&
-            _anyParameterHasImplicitType(method) &&
-            flagTopLevel) {
+            _anyParameterHasImplicitType(method)) {
           _codeChecker._recordMessage(node,
               StrongModeCode.TOP_LEVEL_INSTANCE_METHOD, [_name, method.name]);
         }

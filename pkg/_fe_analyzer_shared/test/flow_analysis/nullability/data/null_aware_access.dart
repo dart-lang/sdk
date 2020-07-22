@@ -35,68 +35,68 @@ void nullAwareAssign(C? c) {
 }
 
 void indexGetterCall(C? c) {
-  c?.[/*nonNullable*/ c];
+  c?[/*nonNullable*/ c];
 }
 
 void indexSetterCall(C? c) {
-  c?.[/*nonNullable*/ c] = /*nonNullable*/ c;
+  c?[/*nonNullable*/ c] = /*nonNullable*/ c;
 }
 
 void indexCompoundAssign(C? c) {
-  c?.[/*nonNullable*/ c] += /*nonNullable*/ c;
+  c?[/*nonNullable*/ c] += /*nonNullable*/ c;
 }
 
 void indexNullAwareAssign(C? c) {
-  c?.[/*nonNullable*/ c] ??= /*nonNullable*/ c;
+  c?[/*nonNullable*/ c] ??= /*nonNullable*/ c;
 }
 
 void setterCall_nullShorting(C? c, D? d) {
   c?.getterReturningC.setter = /*nonNullable*/ c;
   c?.getterReturningNullableC?.setter = /*nonNullable*/ c;
-  c?.[0].setter = /*nonNullable*/ c;
-  d?.[0]?.setter = /*nonNullable*/ d;
+  c?[0].setter = /*nonNullable*/ c;
+  d?[0]?.setter = /*nonNullable*/ d;
 }
 
 void compoundAssign_nullShorting(C? c, D? d) {
   c?.getterReturningC.getterSetter += /*nonNullable*/ c;
   c?.getterReturningNullableC?.getterSetter += /*nonNullable*/ c;
-  c?.[0].getterSetter += /*nonNullable*/ c;
-  d?.[0]?.getterSetter += /*nonNullable*/ d;
+  c?[0].getterSetter += /*nonNullable*/ c;
+  d?[0]?.getterSetter += /*nonNullable*/ d;
 }
 
 void nullAwareAssign_nullShorting(C? c, D? d) {
   c?.getterReturningC.getterSetter ??= /*nonNullable*/ c;
   c?.getterReturningNullableC?.getterSetter ??= /*nonNullable*/ c;
-  c?.[0].getterSetter ??= /*nonNullable*/ c;
-  d?.[0]?.getterSetter ??= /*nonNullable*/ d;
+  c?[0].getterSetter ??= /*nonNullable*/ c;
+  d?[0]?.getterSetter ??= /*nonNullable*/ d;
 }
 
 void indexGetterCall_nullShorting(C? c, D? d) {
   c?.getterReturningC[/*nonNullable*/ c];
-  c?.getterReturningNullableC?.[/*nonNullable*/ c];
-  c?.[0][/*nonNullable*/ c];
-  d?.[0]?.[/*nonNullable*/ d];
+  c?.getterReturningNullableC?[/*nonNullable*/ c];
+  c?[0][/*nonNullable*/ c];
+  d?[0]?[/*nonNullable*/ d];
 }
 
 void indexSetterCall_nullShorting(C? c, D? d) {
   c?.getterReturningC[/*nonNullable*/ c] = /*nonNullable*/ c;
-  c?.getterReturningNullableC?.[/*nonNullable*/ c] = /*nonNullable*/ c;
-  c?.[0][/*nonNullable*/ c] = /*nonNullable*/ c;
-  d?.[0]?.[/*nonNullable*/ d] = /*nonNullable*/ d;
+  c?.getterReturningNullableC?[/*nonNullable*/ c] = /*nonNullable*/ c;
+  c?[0][/*nonNullable*/ c] = /*nonNullable*/ c;
+  d?[0]?[/*nonNullable*/ d] = /*nonNullable*/ d;
 }
 
 void indexCompoundAssign_nullShorting(C? c, D? d) {
   c?.getterReturningC[/*nonNullable*/ c] += /*nonNullable*/ c;
-  c?.getterReturningNullableC?.[/*nonNullable*/ c] += /*nonNullable*/ c;
-  c?.[0][/*nonNullable*/ c] += /*nonNullable*/ c;
-  d?.[0]?.[/*nonNullable*/ d] += /*nonNullable*/ d;
+  c?.getterReturningNullableC?[/*nonNullable*/ c] += /*nonNullable*/ c;
+  c?[0][/*nonNullable*/ c] += /*nonNullable*/ c;
+  d?[0]?[/*nonNullable*/ d] += /*nonNullable*/ d;
 }
 
 void indexNullAwareAssign_nullShorting(C? c, D? d) {
   c?.getterReturningC[/*nonNullable*/ c] ??= /*nonNullable*/ c;
-  c?.getterReturningNullableC?.[/*nonNullable*/ c] ??= /*nonNullable*/ c;
-  c?.[0][/*nonNullable*/ c] ??= /*nonNullable*/ c;
-  d?.[0]?.[/*nonNullable*/ d] ??= /*nonNullable*/ d;
+  c?.getterReturningNullableC?[/*nonNullable*/ c] ??= /*nonNullable*/ c;
+  c?[0][/*nonNullable*/ c] ??= /*nonNullable*/ c;
+  d?[0]?[/*nonNullable*/ d] ??= /*nonNullable*/ d;
 }
 
 void null_aware_cascades_do_not_promote_target(C? c) {

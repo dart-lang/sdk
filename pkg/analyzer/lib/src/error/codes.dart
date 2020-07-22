@@ -2735,6 +2735,30 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try making the deferred import non-deferred.");
 
   /**
+   * It is a compile-time error if the declared return type of a function marked
+   * 'async*' is not a supertype of 'Stream<T>' for some type 'T'.
+   */
+  static const CompileTimeErrorCode ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE =
+      CompileTimeErrorCode(
+          'ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE',
+          "Functions marked 'async*' must have a return type that is a "
+              "supertype of 'Stream<T>' for some type 'T'.",
+          correction: "Try fixing the return type of the function, or "
+              "removing the modifier 'async*' from the function body.");
+
+  /**
+   * It is a compile-time error if the declared return type of a function marked
+   * 'sync*' is not a supertype of 'Iterable<T>' for some type 'T'.
+   */
+  static const CompileTimeErrorCode ILLEGAL_SYNC_GENERATOR_RETURN_TYPE =
+      CompileTimeErrorCode(
+          'ILLEGAL_SYNC_GENERATOR_RETURN_TYPE',
+          "Functions marked 'sync*' must have a return type that is a "
+              "supertype of 'Iterable<T>' for some type 'T'.",
+          correction: "Try fixing the return type of the function, or "
+              "removing the modifier 'sync*' from the function body.");
+
+  /**
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause
    * of a class <i>C</i> specifies a malformed type or deferred type as a
    * superinterface.
@@ -3031,6 +3055,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction:
               "Try adjusting the supertypes of this class to remove the "
               "inconsistency.");
+
+  /**
+   * It is a compile-time error if a part file has a different language version
+   * override than its library.
+   *
+   * https://github.com/dart-lang/language/blob/master/accepted/
+   * future-releases/language-versioning/feature-specification.md
+   * #individual-library-language-version-override
+   */
+  static const CompileTimeErrorCode INCONSISTENT_LANGUAGE_VERSION_OVERRIDE =
+      CompileTimeErrorCode(
+          'INCONSISTENT_LANGUAGE_VERSION_OVERRIDE',
+          "Parts must have exactly the same language version override as "
+              "the library.");
 
   /**
    * Parameters:
@@ -3375,6 +3413,95 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'INVALID_ANNOTATION_GETTER', "Getters can't be used as annotations.",
           correction: "Try using a top-level variable or a field.");
+
+  /**
+   * Parameters:
+   * 0: the type of the function
+   * 1: the expected function type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_FUNCTION = CompileTimeErrorCode(
+      'INVALID_CAST_FUNCTION',
+      "The function '{0}' has type '{1}' that isn't of expected type "
+          "'{2}'. This means its parameter or return type doesn't match what "
+          "is expected.");
+
+  /**
+   * Parameters:
+   * 0: the type of the torn-off function expression
+   * 1: the expected function type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_FUNCTION_EXPR =
+      CompileTimeErrorCode(
+          'INVALID_CAST_FUNCTION_EXPR',
+          "The function expression type '{0}' isn't of type '{1}'. "
+              "This means its parameter or return type doesn't match what is "
+              "expected. Consider changing parameter type(s) or the returned "
+              "type(s).");
+
+  /**
+   * Parameters:
+   * 0: the type of the literal
+   * 1: the expected type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_LITERAL = CompileTimeErrorCode(
+      'INVALID_CAST_LITERAL',
+      "The literal '{0}' with type '{1}' isn't of expected type '{2}'.");
+
+  /**
+   * Parameters:
+   * 0: the type of the list literal
+   * 1: the expected type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_LITERAL_LIST =
+      CompileTimeErrorCode(
+          'INVALID_CAST_LITERAL_LIST',
+          "The list literal type '{0}' isn't of expected type '{1}'. The "
+              "list's type can be changed with an explicit generic type "
+              "argument or by changing the element types.");
+
+  /**
+   * Parameters:
+   * 0: the type of the map literal
+   * 1: the expected type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_LITERAL_MAP =
+      CompileTimeErrorCode(
+          'INVALID_CAST_LITERAL_MAP',
+          "The map literal type '{0}' isn't of expected type '{1}'. The maps's "
+              "type can be changed with an explicit generic type arguments or "
+              "by changing the key and value types.");
+
+  /**
+   * Parameters:
+   * 0: the type of the set literal
+   * 1: the expected type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_LITERAL_SET =
+      CompileTimeErrorCode(
+          'INVALID_CAST_LITERAL_SET',
+          "The set literal type '{0}' isn't of expected type '{1}'. The set's "
+              "type can be changed with an explicit generic type argument or "
+              "by changing the element types.");
+
+  /**
+   * Parameters:
+   * 0: the type of the instantiated object
+   * 1: the expected type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_NEW_EXPR = CompileTimeErrorCode(
+      'INVALID_CAST_NEW_EXPR',
+      "The constructor returns type '{0}' that isn't of expected type '{1}'.");
+
+  /**
+   * Parameters:
+   * 0: the type of the torn-off method
+   * 1: the expected function type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_METHOD = CompileTimeErrorCode(
+      'INVALID_CAST_METHOD',
+      "The method tear-off '{0}' has type '{1}' that isn't of expected type "
+          "'{2}'. This means its parameter or return type doesn't match what "
+          "is expected.");
 
   /**
    * TODO(brianwilkerson) Remove this when we have decided on how to report
@@ -4247,6 +4374,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode MIXIN_WITH_NON_CLASS_SUPERCLASS =
       CompileTimeErrorCode('MIXIN_WITH_NON_CLASS_SUPERCLASS',
           "Mixin can only be applied to class.");
+
+  /**
+   * Technically this is [IMPLEMENTS_SUPER_CLASS].
+   * See https://github.com/dart-lang/sdk/issues/25765#issuecomment-307422593
+   *
+   * Parameters:
+   * 0: the name of the class that appears in both "extends" and "with" clauses
+   */
+  static const CompileTimeErrorCode MIXINS_SUPER_CLASS = CompileTimeErrorCode(
+      'MIXINS_SUPER_CLASS',
+      "'{0}' can't be used in both 'extends' and 'with' clauses.",
+      correction: "Try removing one of the occurrences.");
 
   /**
    * 7.6.1 Generative Constructors: A generative constructor may be redirecting,
@@ -5171,6 +5310,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  static const CompileTimeErrorCode NOT_INSTANTIATED_BOUND =
+      CompileTimeErrorCode('NOT_INSTANTIATED_BOUND',
+          'Type parameter bound types must be instantiated.',
+          correction: 'Try adding type arguments to the type parameter bound.');
+
+  /**
+   * No parameters.
+   */
   // #### Description
   //
   // The analyzer produces this diagnostic when the static type of the
@@ -5564,6 +5711,24 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
+   * From the `Static Types` section of the spec:
+   *
+   *     A type T is malformed if:
+   *     - T has the form id or the form prefix.id, and in the enclosing lexical
+   *       scope, the name id (respectively prefix.id) does not denote a type.
+   *
+   * In particular, this means that if an import prefix is shadowed by a local
+   * declaration, it is an error to try to use it as a prefix for a type name.
+   */
+  static const CompileTimeErrorCode PREFIX_SHADOWED_BY_LOCAL_DECLARATION =
+      CompileTimeErrorCode(
+          'PREFIX_SHADOWED_BY_LOCAL_DECLARATION',
+          "The prefix '{0}' can't be used here because it is shadowed by a "
+              "local declaration.",
+          correction:
+              "Try renaming either the prefix or the local declaration.");
+
+  /**
    * It is an error for a mixin to add a private name that conflicts with a
    * private name added by a superclass or another mixin.
    */
@@ -5581,6 +5746,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode PRIVATE_OPTIONAL_PARAMETER =
       CompileTimeErrorCode('PRIVATE_OPTIONAL_PARAMETER',
           "Named optional parameters can't start with an underscore.");
+
+  static const CompileTimeErrorCode PRIVATE_SETTER = CompileTimeErrorCode(
+      'PRIVATE_SETTER',
+      "The setter '{0}' is private and can't be accessed outside of the "
+          "library that declares it.",
+      correction: "Try making it public.");
 
   /**
    * 12.1 Constants: It is a compile-time error if the value of a compile-time
@@ -7113,18 +7284,6 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
           correction: "Try adjusting the number of type arguments.");
 
   /**
-   * 9 Functions: It is a static warning if the declared return type of a
-   * function marked async* may not be assigned to Stream.
-   */
-  static const StaticTypeWarningCode ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE =
-      StaticTypeWarningCode(
-          'ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE',
-          "Functions marked 'async*' must have a return type assignable to "
-              "'Stream'.",
-          correction: "Try fixing the return type of the function, or "
-              "removing the modifier 'async*' from the function body.");
-
-  /**
    * No parameters.
    */
   // #### Description
@@ -7171,18 +7330,6 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
           correction: "Try fixing the return type of the function, or "
               "removing the modifier 'async' from the function body.",
           hasPublishedDocs: true);
-
-  /**
-   * 9 Functions: It is a static warning if the declared return type of a
-   * function marked sync* may not be assigned to Iterable.
-   */
-  static const StaticTypeWarningCode ILLEGAL_SYNC_GENERATOR_RETURN_TYPE =
-      StaticTypeWarningCode(
-          'ILLEGAL_SYNC_GENERATOR_RETURN_TYPE',
-          "Functions marked 'sync*' must have a return type assignable to "
-              "'Iterable'.",
-          correction: "Try fixing the return type of the function, or "
-              "removing the modifier 'sync*' from the function body.");
 
   /**
    * Parameters:
@@ -8846,23 +8993,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
       errorSeverity: ErrorSeverity.WARNING,
       hasPublishedDocs: true);
 
-  /**
-   * 14.2 Exports: It is a static warning to export two different libraries with
-   * the same name.
-   *
-   * Parameters:
-   * 0: the uri pointing to a first library
-   * 1: the uri pointing to a second library
-   * 2:e the shared name of the exported libraries
-   */
-  static const StaticWarningCode EXPORT_DUPLICATED_LIBRARY_NAMED =
-      StaticWarningCode(
-          'EXPORT_DUPLICATED_LIBRARY_NAMED',
-          "The exported libraries '{0}' and '{1}' can't have the same name "
-              "'{2}'.",
-          correction:
-              "Try adding a hide clause to one of the export directives.");
-
   @Deprecated('Use CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS')
   static const CompileTimeErrorCode EXTRA_POSITIONAL_ARGUMENTS =
       CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS;
@@ -9223,22 +9353,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
               "of the type '{2}' of its setter '{3}'.",
           correction: "Try changing the types so that they are compatible.");
 
-  /**
-   * 14.1 Imports: It is a static warning to import two different libraries with
-   * the same name.
-   *
-   * Parameters:
-   * 0: the uri pointing to a first library
-   * 1: the uri pointing to a second library
-   * 2: the shared name of the imported libraries
-   */
-  static const StaticWarningCode IMPORT_DUPLICATED_LIBRARY_NAMED =
-      StaticWarningCode(
-          'IMPORT_DUPLICATED_LIBRARY_NAMED',
-          "The imported libraries '{0}' and '{1}' can't have the same name "
-              "'{2}'.",
-          correction: "Try adding a hide clause to one of the imports.");
-
   @Deprecated('Use CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY')
   static const CompileTimeErrorCode IMPORT_OF_NON_LIBRARY =
       CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
@@ -9322,6 +9436,22 @@ class StaticWarningCode extends AnalyzerErrorCode {
           'INVALID_NULL_AWARE_OPERATOR',
           "The target expression can't be null, so the null-aware operator "
               "'{0}' can't be used.",
+          correction: "Try replace the operator '{0}' with '{1}'.",
+          errorSeverity: ErrorSeverity.WARNING,
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: The null-aware operator that is invalid
+   * 1: The non-null-aware operator that can replace the invalid operator
+   */
+  static const StaticWarningCode
+      INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT =
+      StaticWarningCodeWithUniqueName(
+          'INVALID_NULL_AWARE_OPERATOR',
+          'INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT',
+          "The target expression can't be null because of short-circuiting, so "
+              "the null-aware operator '{0}' can't be used.",
           correction: "Try replace the operator '{0}' with '{1}'.",
           errorSeverity: ErrorSeverity.WARNING,
           hasPublishedDocs: true);
@@ -10615,10 +10745,12 @@ class StaticWarningCodeWithUniqueName extends StaticWarningCode {
   const StaticWarningCodeWithUniqueName(
       String name, this.uniqueName, String message,
       {String correction,
+      ErrorSeverity errorSeverity = ErrorSeverity.ERROR,
       bool hasPublishedDocs,
       bool isUnresolvedIdentifier = false})
       : super(name, message,
             correction: correction,
+            errorSeverity: errorSeverity,
             hasPublishedDocs: hasPublishedDocs,
             isUnresolvedIdentifier: isUnresolvedIdentifier);
 }
@@ -10655,67 +10787,11 @@ class StrongModeCode extends ErrorCode {
       'COULD_NOT_INFER',
       "Couldn't infer type parameter '{0}'.{1}");
 
-  static const StrongModeCode INVALID_CAST_LITERAL = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_LITERAL',
-      "The literal '{0}' with type '{1}' isn't of expected type '{2}'.");
-
-  static const StrongModeCode INVALID_CAST_LITERAL_LIST = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_LITERAL_LIST',
-      "The list literal type '{0}' isn't of expected type '{1}'. The list's "
-          "type can be changed with an explicit generic type argument or by "
-          "changing the element types.");
-
-  static const StrongModeCode INVALID_CAST_LITERAL_MAP = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_LITERAL_MAP',
-      "The map literal type '{0}' isn't of expected type '{1}'. The maps's "
-          "type can be changed with an explicit generic type arguments or by "
-          "changing the key and value types.");
-
-  static const StrongModeCode INVALID_CAST_LITERAL_SET = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_LITERAL_SET',
-      "The set literal type '{0}' isn't of expected type '{1}'. The set's "
-          "type can be changed with an explicit generic type argument or by "
-          "changing the element types.");
-
-  static const StrongModeCode INVALID_CAST_FUNCTION_EXPR = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_FUNCTION_EXPR',
-      "The function expression type '{0}' isn't of type '{1}'. "
-          "This means its parameter or return type doesn't match what is "
-          "expected. Consider changing parameter type(s) or the returned "
-          "type(s).");
-
-  static const StrongModeCode INVALID_CAST_NEW_EXPR = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_NEW_EXPR',
-      "The constructor returns type '{0}' that isn't of expected type '{1}'.");
-
-  static const StrongModeCode INVALID_CAST_METHOD = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_METHOD',
-      "The method tear-off '{0}' has type '{1}' that isn't of expected type "
-          "'{2}'. This means its parameter or return type doesn't match what "
-          "is expected.");
-
-  static const StrongModeCode INVALID_CAST_FUNCTION = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_FUNCTION',
-      "The function '{0}' has type '{1}' that isn't of expected type "
-          "'{2}'. This means its parameter or return type doesn't match what "
-          "is expected.");
-
   static const StrongModeCode INVALID_SUPER_INVOCATION = StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
       'INVALID_SUPER_INVOCATION',
       "The super call must be last in an initializer "
           "list (see https://goo.gl/EY6hDP): '{0}'.");
-
-  static const StrongModeCode DYNAMIC_INVOKE = StrongModeCode(
-      ErrorType.HINT, 'DYNAMIC_INVOKE', "'{0}' requires a dynamic invoke.");
 
   static const StrongModeCode IMPLICIT_DYNAMIC_PARAMETER = StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
@@ -10776,12 +10852,6 @@ class StrongModeCode extends ErrorCode {
       'IMPLICIT_DYNAMIC_INVOKE',
       "Missing type arguments for calling generic function type '{0}'.",
       correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode NOT_INSTANTIATED_BOUND = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'NOT_INSTANTIATED_BOUND',
-      "Type parameter bound types must be instantiated.",
-      correction: "Try adding type arguments.");
 
   /*
    * TODO(brianwilkerson) Make the TOP_LEVEL_ error codes be errors rather than

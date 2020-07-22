@@ -231,6 +231,11 @@ void KernelLoader::ReadObfuscationProhibitions() {
   helper.ReadProhibitions();
 }
 
+void KernelLoader::ReadLoadingUnits() {
+  LoadingUnitsMetadataHelper helper(&helper_);
+  helper.ReadLoadingUnits();
+}
+
 Object& KernelLoader::LoadEntireProgram(Program* program,
                                         bool process_pending_classes) {
   Thread* thread = Thread::Current();
@@ -274,11 +279,19 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
       if (pair != NULL) {
         // At least two entries with content. Unless the content is the same
         // that's not valid.
-        if (pair->sources->CompareTo(script_source) != 0 ||
-            !pair->line_starts->CanonicalizeEquals(line_starts)) {
-          FATAL(
+        const bool src_differ = pair->sources->CompareTo(script_source) != 0;
+        const bool line_starts_differ =
+            !pair->line_starts->CanonicalizeEquals(line_starts);
+        if (src_differ || line_starts_differ) {
+          FATAL3(
               "Invalid kernel binary: Contains at least two source entries "
-              "that do not agree.");
+              "that do not agree. URI '%s', difference: %s. Subprogram count: "
+              "%" Pd ".",
+              uri_string.ToCString(),
+              src_differ && line_starts_differ
+                  ? "src and line starts"
+                  : (src_differ ? "src" : "line starts"),
+              subprogram_count);
         }
       } else {
         UriToSourceTableEntry* tmp = new UriToSourceTableEntry();
@@ -539,7 +552,7 @@ void KernelLoader::AnnotateNativeProcedures() {
     for (intptr_t j = 0; j < annotation_count; ++j) {
       const intptr_t tag = helper_.PeekTag();
       if (tag == kConstantExpression) {
-        helper_.ReadByte();  // Skip the tag.
+        helper_.ReadByte();      // Skip the tag.
         helper_.ReadPosition();  // Skip fileOffset.
         helper_.SkipDartType();  // Skip type.
 
@@ -670,7 +683,7 @@ void KernelLoader::LoadNativeExtensionLibraries() {
 
         const intptr_t tag = helper_.PeekTag();
         if (tag == kConstantExpression) {
-          helper_.ReadByte();  // Skip the tag.
+          helper_.ReadByte();      // Skip the tag.
           helper_.ReadPosition();  // Skip fileOffset.
           helper_.SkipDartType();  // Skip type.
 
@@ -1040,15 +1053,17 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
       library_helper.GetNonNullableByDefaultCompiledMode();
   if (!I->null_safety() && mode == NNBDCompiledMode::kStrong) {
     H.ReportError(
-        "Library '%s' was compiled with null safety (in strong mode) and it "
-        "requires --null-safety option at runtime",
+        "Library '%s' was compiled with sound null safety (in strong mode) and "
+        "it "
+        "requires --sound-null-safety option at runtime",
         String::Handle(library.url()).ToCString());
   }
   if (I->null_safety() && (mode == NNBDCompiledMode::kWeak ||
                            mode == NNBDCompiledMode::kDisabled)) {
     H.ReportError(
-        "Library '%s' was compiled without null safety (in weak mode) and it "
-        "cannot be used with --null-safety at runtime",
+        "Library '%s' was compiled without sound null safety (in weak mode) "
+        "and it "
+        "cannot be used with --sound-null-safety at runtime",
         String::Handle(library.url()).ToCString());
   }
   library.set_nnbd_compiled_mode(mode);
@@ -1104,6 +1119,7 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   Class& toplevel_class =
       Class::Handle(Z, Class::New(library, Symbols::TopLevel(), script,
                                   TokenPosition::kNoSource, register_class));
+  toplevel_class.set_is_abstract();
   toplevel_class.set_is_declaration_loaded();
   toplevel_class.set_is_type_finalized();
   library.set_toplevel_class(toplevel_class);
@@ -1867,7 +1883,7 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
         // TODO(sjindel): Refactor `ExternalName` handling to do this as well
         // and avoid the "potential natives" list.
 
-        helper_.ReadByte();  // Skip the tag.
+        helper_.ReadByte();      // Skip the tag.
         helper_.ReadPosition();  // Skip fileOffset.
         helper_.SkipDartType();  // Skip type.
         const intptr_t offset_in_constant_table = helper_.ReadUInt();
@@ -2228,6 +2244,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   getter.set_accessor_field(field);
   getter.set_is_extension_member(field.is_extension_member());
   H.SetupFieldAccessorFunction(klass, getter, field_type);
+  T.SetupUnboxingInfoMetadataForFieldAccessors(getter, library_kernel_offset_);
 
   if (field.NeedsSetter()) {
     // Only static fields can be const.
@@ -2249,6 +2266,8 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     setter.set_accessor_field(field);
     setter.set_is_extension_member(field.is_extension_member());
     H.SetupFieldAccessorFunction(klass, setter, field_type);
+    T.SetupUnboxingInfoMetadataForFieldAccessors(getter,
+                                                 library_kernel_offset_);
   }
 }
 

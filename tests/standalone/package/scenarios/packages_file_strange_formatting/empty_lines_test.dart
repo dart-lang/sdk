@@ -4,6 +4,10 @@
 
 // Packages=empty_lines.packages
 
+// This test verifies handling of legacy .packages file and cannot be run in
+// null safety (strong) mode as strong mode needs new package_config.json.
+// Requirements=nnbd-weak
+
 library empty_lines_test;
 
 import 'package:foo/foo.dart' as foo;

@@ -51,8 +51,8 @@ class Class4 extends Class1 {
 }
 
 @pragma('dart2js:noInline')
-method6(Class1 c) {
-  return c.field1;
+method6(Class1? c) {
+  return c!.field1;
 }
 
 @pragma('dart2js:noInline')

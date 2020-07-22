@@ -51,6 +51,19 @@ void f() {
     ]);
   }
 
+  test_malformed_constructor_call() async {
+    await assertErrorsInCode('''
+class C {
+  C.x();
+}
+main() {
+  new C.x.y();
+}
+''', [
+      error(StaticWarningCode.NEW_WITH_NON_TYPE, 36, 3),
+    ]);
+  }
+
   test_typeParameter() async {
     await assertErrorsInCode('''
 void foo<T>() {

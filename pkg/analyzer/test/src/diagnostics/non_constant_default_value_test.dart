@@ -61,6 +61,68 @@ void bar<T>([void Function(T Function()) p = f]) {}
 ''', [ExpectedError(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 67, 1)]);
   }
 
+  test_constructor_named() async {
+    await assertErrorsInCode(r'''
+class A {
+  int y;
+  A({x : y}) {}
+}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 28, 1),
+    ]);
+  }
+
+  test_constructor_positional() async {
+    await assertErrorsInCode(r'''
+class A {
+  int y;
+  A([x = y]) {}
+}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 28, 1),
+    ]);
+  }
+
+  test_function_named() async {
+    await assertErrorsInCode(r'''
+int y;
+f({x : y}) {}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 14, 1),
+    ]);
+  }
+
+  test_function_positional() async {
+    await assertErrorsInCode(r'''
+int y;
+f([x = y]) {}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 14, 1),
+    ]);
+  }
+
+  test_method_named() async {
+    await assertErrorsInCode(r'''
+class A {
+  int y;
+  m({x : y}) {}
+}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 28, 1),
+    ]);
+  }
+
+  test_method_positional() async {
+    await assertErrorsInCode(r'''
+class A {
+  int y;
+  m([x = y]) {}
+}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 28, 1),
+    ]);
+  }
+
   test_noAppliedTypeParameters_defaultConstructorValue_dynamic() async {
     await assertNoErrorsInCode(r'''
 void f<T>(T t) => t;

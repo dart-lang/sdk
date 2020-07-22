@@ -65,6 +65,7 @@ general/external_import: RuntimeError
 general/incomplete_field_formal_parameter: RuntimeError
 general/infer_field_from_multiple: TypeCheckError
 general/invalid_operator: TypeCheckError
+general/invalid_operator_override: TypeCheckError
 general/invocations: RuntimeError
 general/issue37776: RuntimeError
 general/issue38938: RuntimeError
@@ -169,10 +170,12 @@ instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError
 late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/issue41180: RuntimeError
+nnbd/issue42546: TypeCheckError
 nnbd/nullable_object_access: TypeCheckError
 nnbd/nullable_receiver: TypeCheckError
 nnbd/potentially_nullable_access: TypeCheckError
 nnbd/strong_lib_not_ok_from_dill/strong: RuntimeError
+nnbd/strong_package_not_ok_from_dill/strong: RuntimeError
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError

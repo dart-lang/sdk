@@ -194,7 +194,7 @@ class ExperimentsTest {
 
   test_fromStrings_unrecognized_flag() {
     // Unrecognized flags are ignored.
-    expect(getFlags(fromStrings(['a'])), []);
+    expect(getFlags(fromStrings(['a'])), <Object>[]);
   }
 
   test_validateFlagCombination_disable_then_enable() {

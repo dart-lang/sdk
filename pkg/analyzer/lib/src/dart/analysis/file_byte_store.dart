@@ -84,7 +84,7 @@ class EvictingFileByteStore implements ByteStore {
 
   /// This function is started in a new isolate, receives cache folder clean up
   /// requests and evicts older files from the folder.
-  static void _cacheCleanUpFunction(message) {
+  static void _cacheCleanUpFunction(Object message) {
     SendPort initialReplyTo = message;
     ReceivePort port = ReceivePort();
     initialReplyTo.send(port.sendPort);

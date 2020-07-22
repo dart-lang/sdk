@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -44,6 +45,25 @@ class DiagnosticFactory {
           message: "The first key with this value.",
           offset: originalKey.offset,
           length: originalKey.length)
+    ]);
+  }
+
+  /// Return a diagnostic indicating that the [duplicateKey] (in a constant map)
+  /// is a duplicate of the [originalKey].
+  AnalysisError invalidNullAwareAfterShortCircuit(Source source, int offset,
+      int length, List<Object> arguments, Token previousToken) {
+    var lexeme = previousToken.lexeme;
+    return AnalysisError(
+        source,
+        offset,
+        length,
+        StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+        arguments, [
+      DiagnosticMessageImpl(
+          filePath: source.fullName,
+          message: "The operator '$lexeme' is causing the short circuiting.",
+          offset: previousToken.offset,
+          length: previousToken.length)
     ]);
   }
 

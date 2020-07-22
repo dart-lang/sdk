@@ -32,7 +32,17 @@ class LintCode extends ErrorCode {
   String get url => 'https://dart-lang.github.io/linter/lints/$name.html';
 
   @override
-  bool operator ==(other) => uniqueName == other.uniqueName;
+  bool operator ==(Object other) =>
+      other is LintCode && uniqueName == other.uniqueName;
+}
+
+class LintCodeWithUniqueName extends LintCode {
+  @override
+  final String uniqueName;
+
+  const LintCodeWithUniqueName(String name, this.uniqueName, String message,
+      {String correction})
+      : super(name, message, correction: correction);
 }
 
 /// Defines security-related best practice recommendations.
@@ -45,4 +55,14 @@ class SecurityLintCode extends LintCode {
 
   @override
   bool get isIgnorable => false;
+}
+
+class SecurityLintCodeWithUniqueName extends SecurityLintCode {
+  @override
+  final String uniqueName;
+
+  const SecurityLintCodeWithUniqueName(
+      String name, this.uniqueName, String message,
+      {String correction})
+      : super(name, message, correction: correction);
 }

@@ -220,7 +220,7 @@ class TypeAssertions {
   Asserter<DartType> isFunction2Of(
           Asserter<DartType> argType, Asserter<DartType> returnType) =>
       (DartType type) {
-        FunctionType fType = (type as FunctionType);
+        FunctionType fType = type as FunctionType;
         argType(fType.normalParameterTypes[0]);
         returnType(fType.returnType);
       };
@@ -230,7 +230,7 @@ class TypeAssertions {
   AsserterBuilder<List<Asserter<DartType>>, DartType> isInstantiationOf(
           Asserter<DartType> baseAssert) =>
       (List<Asserter<DartType>> argAsserts) => (DartType type) {
-            InterfaceType t = (type as InterfaceType);
+            InterfaceType t = type as InterfaceType;
             baseAssert(t);
             List<DartType> typeArguments = t.typeArguments;
             expect(typeArguments, hasLength(argAsserts.length));

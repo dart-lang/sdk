@@ -108,8 +108,9 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     final invalidTriggerKind = CompletionTriggerKind.fromJson(-1);
     final request = getCompletion(
       mainFileUri,
-      Position(0, 0),
-      context: CompletionContext(invalidTriggerKind, 'A'),
+      Position(line: 0, character: 0),
+      context: CompletionContext(
+          triggerKind: invalidTriggerKind, triggerCharacter: 'A'),
     );
 
     await expectLater(
@@ -292,13 +293,14 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     final item = res.singleWhere((c) => c.label == 'abcdefghij');
+    // ignore: deprecated_member_use_from_same_package
     expect(item.deprecated, isNull);
     // If the does not say it supports the deprecated flag, we should show
     // '(deprecated)' in the details.
     expect(item.detail.toLowerCase(), contains('deprecated'));
   }
 
-  Future<void> test_isDeprecated_supported() async {
+  Future<void> test_isDeprecated_supportedFlag() async {
     final content = '''
     class MyClass {
       @deprecated
@@ -312,13 +314,40 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     ''';
 
     await initialize(
-        textDocumentCapabilities: withCompletionItemDeprecatedSupport(
+        textDocumentCapabilities: withCompletionItemDeprecatedFlagSupport(
             emptyTextDocumentClientCapabilities));
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     final item = res.singleWhere((c) => c.label == 'abcdefghij');
+    // ignore: deprecated_member_use_from_same_package
     expect(item.deprecated, isTrue);
     // If the client says it supports the deprecated flag, we should not show
+    // deprecated in the details.
+    expect(item.detail, isNot(contains('deprecated')));
+  }
+
+  Future<void> test_isDeprecated_supportedTag() async {
+    final content = '''
+    class MyClass {
+      @deprecated
+      String abcdefghij;
+    }
+
+    main() {
+      MyClass a;
+      a.abc^
+    }
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withCompletionItemTagSupport(
+            emptyTextDocumentClientCapabilities,
+            [CompletionItemTag.Deprecated]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label == 'abcdefghij');
+    expect(item.tags, contains(CompletionItemTag.Deprecated));
+    // If the client says it supports the deprecated tag, we should not show
     // deprecated in the details.
     expect(item.detail, isNot(contains('deprecated')));
   }
@@ -363,7 +392,9 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(item.textEdit.newText, equals(r'one: ${1:}'));
     expect(
       item.textEdit.range,
-      equals(Range(positionFromMarker(content), positionFromMarker(content))),
+      equals(Range(
+          start: positionFromMarker(content),
+          end: positionFromMarker(content))),
     );
   }
 
@@ -850,7 +881,7 @@ main() {
         // When the server sends the edit back, just keep a copy and say we
         // applied successfully (it'll be verified below).
         editParams = edit;
-        return ApplyWorkspaceEditResponse(true, null);
+        return ApplyWorkspaceEditResponse(applied: true);
       },
     );
     // Successful edits return an empty success() response.
@@ -943,6 +974,41 @@ main() {
   var a = MyExportedClass.myStaticDateTimeField
 }
     '''));
+  }
+
+  /// This test reproduces a bug where the pathKey hash used in
+  /// available_declarations.dart would not change with the contents of the file
+  /// (as it always used 0 as the modification stamp) which would prevent
+  /// completion including items from files that were open (had overlays).
+  /// https://github.com/Dart-Code/Dart-Code/issues/2286#issuecomment-658597532
+  Future<void> test_suggestionSets_modifiedFiles() async {
+    final otherFilePath = join(projectFolderPath, 'lib', 'other_file.dart');
+    final otherFileUri = Uri.file(otherFilePath);
+
+    final mainFileContent = 'MyOtherClass^';
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(mainFileContent));
+    await initialAnalysis;
+
+    // Start with a blank file.
+    newFile(otherFilePath, content: '');
+    await openFile(otherFileUri, '');
+    await pumpEventQueue(times: 5000);
+
+    // Reopen the file with a class definition.
+    await closeFile(otherFileUri);
+    await openFile(otherFileUri, 'class MyOtherClass {}');
+    await pumpEventQueue(times: 5000);
+
+    // Ensure the class appears in completion.
+    final completions =
+        await getCompletion(mainFileUri, positionFromMarker(mainFileContent));
+    final matching =
+        completions.where((c) => c.label == 'MyOtherClass').toList();
+    expect(matching, hasLength(1));
   }
 
   Future<void> test_suggestionSets_namedConstructors() async {

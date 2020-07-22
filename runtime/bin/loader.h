@@ -26,6 +26,7 @@ class Loader {
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                        Dart_Handle library,
                                        Dart_Handle url);
+  static Dart_Handle DeferredLoadHandler(intptr_t loading_unit_id);
 
   static void InitOnce();
 

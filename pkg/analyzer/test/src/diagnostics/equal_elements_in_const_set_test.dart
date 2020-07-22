@@ -24,9 +24,7 @@ class EqualElementsInConstSetTest extends DriverResolutionTest {
 var c = const {1, 2, 1};
 ''', [
       error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 21, 1,
-          contextMessages: [
-            message(resourceProvider.convertPath('/test/lib/test.dart'), 15, 1)
-          ]),
+          contextMessages: [message('/test/lib/test.dart', 15, 1)]),
     ]);
   }
 
@@ -38,12 +36,7 @@ var c = const {1, if (1 < 0) 2 else 1};
         analysisOptions.experimentStatus.constant_update_2018
             ? [
                 error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 36, 1,
-                    contextMessages: [
-                      message(
-                          resourceProvider.convertPath('/test/lib/test.dart'),
-                          15,
-                          1)
-                    ]),
+                    contextMessages: [message('/test/lib/test.dart', 15, 1)]),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 19),
@@ -106,12 +99,7 @@ var c = const {1, if (0 < 1) 1};
         analysisOptions.experimentStatus.constant_update_2018
             ? [
                 error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 29, 1,
-                    contextMessages: [
-                      message(
-                          resourceProvider.convertPath('/test/lib/test.dart'),
-                          15,
-                          1)
-                    ]),
+                    contextMessages: [message('/test/lib/test.dart', 15, 1)]),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 12),
@@ -127,9 +115,7 @@ class A<T> {
 var c = const {const A<int>(), const A<int>()};
 ''', [
       error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 60, 14,
-          contextMessages: [
-            message(resourceProvider.convertPath('/test/lib/test.dart'), 44, 14)
-          ]),
+          contextMessages: [message('/test/lib/test.dart', 44, 14)]),
     ]);
   }
 
@@ -164,12 +150,7 @@ var c = const {1, ...{1}};
         analysisOptions.experimentStatus.constant_update_2018
             ? [
                 error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 21, 3,
-                    contextMessages: [
-                      message(
-                          resourceProvider.convertPath('/test/lib/test.dart'),
-                          15,
-                          1)
-                    ]),
+                    contextMessages: [message('/test/lib/test.dart', 15, 1)]),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 6),

@@ -44,6 +44,28 @@ B<int> b;
     assertType(B_int_redirect.returnType, 'A<int>');
   }
 
+  test_formalParameterScope_type() async {
+    await assertNoErrorsInCode('''
+class a {}
+
+class B {
+  B(a a) {
+    a;
+  }
+}
+''');
+
+    assertElement(
+      findNode.simple('a a'),
+      findElement.class_('a'),
+    );
+
+    assertElement(
+      findNode.simple('a;'),
+      findElement.parameter('a'),
+    );
+  }
+
   test_initializer_field_functionExpression_blockBody() async {
     await resolveTestCode(r'''
 class C {

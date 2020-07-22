@@ -204,6 +204,36 @@ main() {
     );
   }
 
+  Future<void> test_relevanceTags_constructorBeforeClass() async {
+    server.options.useNewRelevance = true;
+    addTestFile(r'''
+void foo(List<int> a) {}
+
+main() {
+  foo(); // ref
+}
+''');
+
+    var results = await _getSuggestions(
+      testFile,
+      testCode.indexOf('); // ref'),
+    );
+
+    var includedTags = results.includedSuggestionRelevanceTags;
+    int findBoost(String tag) {
+      for (var includedTag in includedTags) {
+        if (includedTag.tag == tag) {
+          return includedTag.relevanceBoost;
+        }
+      }
+      fail('Missing relevance boost for tag $tag');
+    }
+
+    var classBoost = findBoost('ElementKind.CLASS');
+    var constructorBoost = findBoost('ElementKind.CONSTRUCTOR');
+    expect(constructorBoost, greaterThan(classBoost));
+  }
+
   Future<void> test_relevanceTags_enum() async {
     newFile('/home/test/lib/a.dart', content: r'''
 enum MyEnum {

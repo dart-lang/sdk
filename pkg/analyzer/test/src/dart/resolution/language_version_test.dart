@@ -2,18 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
+import 'with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -24,16 +22,8 @@ main() {
 }
 
 @reflectiveTest
-class NullSafetyExperimentGlobalTest extends _FeaturesTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    );
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class NullSafetyExperimentGlobalTest extends _FeaturesTest
+    with WithNullSafetyMixin {
   test_jsonConfig_legacyContext_nonNullDependency() async {
     _configureTestWithJsonConfig('''
 {
@@ -141,10 +131,10 @@ var x = 0;
     assertErrorsInList(result.errors, []);
     assertType(findElement.topVar('x').type, 'int*');
 
-    // Upgrade the language version to `2.9`, so enabled Null Safety.
+    // Upgrade the language version to `2.10`, so enabled Null Safety.
     driver.changeFile(path);
     await _resolveFile(path, r'''
-// @dart = 2.9
+// @dart = 2.10
 var x = 0;
 ''');
     assertType(findElement.topVar('x').type, 'int');
@@ -172,10 +162,10 @@ var x = 0;
 ''');
     assertType(findElement.topVar('x').type, 'int*');
 
-    // Upgrade the language version to `2.9`, so enabled Null Safety.
+    // Upgrade the language version to `2.10`, so enabled Null Safety.
     _changeTestFile();
     await assertNoErrorsInCode('''
-// @dart = 2.9
+// @dart = 2.10
 var x = 0;
 ''');
     assertType(findElement.topVar('x').type, 'int');

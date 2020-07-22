@@ -154,6 +154,7 @@ casing
 cast
 casted
 casts
+ce
 cfe
 ch
 channel
@@ -184,6 +185,7 @@ class6a
 class6b
 clazz
 cli
+clil
 clock
 cls
 cn
@@ -404,6 +406,7 @@ field1
 field1a
 field1b
 field2
+fieldformal
 file's
 filenames
 finv
@@ -432,6 +435,7 @@ frontend
 frontends
 fs
 fsource
+fue
 fuller
 function's
 fuse
@@ -493,6 +497,7 @@ human
 i
 i'll
 i2b
+ic
 id
 identifies
 identifying
@@ -577,6 +582,8 @@ largest
 lattice
 layer
 layout
+lc
+ld
 leafp
 len
 lets
@@ -593,6 +600,7 @@ linearized
 linebreak
 linter
 lives
+ll
 llub
 lm
 locationd
@@ -622,6 +630,7 @@ masking
 master
 matcher
 mb
+mc
 md
 me
 merely
@@ -679,6 +688,7 @@ nameless
 namer
 natively
 nbsp
+nc
 ncs
 ncurses
 nd
@@ -742,6 +752,7 @@ os
 outputting
 overlap
 overloader
+overlooked
 overshadowed
 overwrite
 overwriting
@@ -1041,6 +1052,7 @@ subst
 substed
 substitutes
 substitutor
+suggests
 sum
 summarizing
 superclasses
@@ -1130,6 +1142,9 @@ tuple
 tuple2
 tuple3
 tuple4
+tuple5
+tuple6
+tuple7
 type1
 type2
 typeref
@@ -1210,6 +1225,7 @@ vary
 vb
 vector
 vegorov
+verbosity
 versa
 vice
 violated

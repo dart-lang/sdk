@@ -311,7 +311,7 @@ class TokenPrinter {
 
 String _textualizeClass(TextualOutlineListener listener, Token beginToken,
     Token endToken, _TextualOutlineState originalState,
-    {bool throwOnUnexpected: false, bool model: false}) {
+    {bool throwOnUnexpected: false}) {
   Token token = beginToken;
   TokenPrinter tokenPrinter = new TokenPrinter();
   // Class header.
@@ -388,6 +388,7 @@ class TextualOutlineListener extends DirectiveListener {
 
   @override
   void endClassFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,

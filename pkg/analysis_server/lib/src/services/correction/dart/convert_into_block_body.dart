@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertIntoBlockBody extends CorrectionProducer {
@@ -14,7 +14,7 @@ class ConvertIntoBlockBody extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_BLOCK_BODY;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var body = getEnclosingFunctionBody();
     // prepare expression body
     if (body is! ExpressionFunctionBody || body.isGenerator) {
@@ -35,8 +35,8 @@ class ConvertIntoBlockBody extends CorrectionProducer {
     var prefix = utils.getNodePrefix(body.parent);
     var indent = utils.getIndent(1);
 
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(body), (DartEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addReplacement(range.node(body), (builder) {
         if (body.isAsynchronous) {
           builder.write('async ');
         }

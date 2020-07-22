@@ -10,21 +10,25 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
+import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart'
+    show Namespace, NamespaceBuilder;
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
 import 'package:analyzer/src/generated/element_type_provider.dart';
@@ -2143,7 +2147,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  DartType get returnType =>
+  InterfaceType get returnType =>
       ElementTypeProvider.current.getExecutableReturnType(this);
 
   @override
@@ -2152,15 +2156,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  DartType get returnTypeInternal {
-    if (_returnType != null) return _returnType;
-
-    InterfaceTypeImpl classThisType = enclosingElement.thisType;
-    return _returnType = InterfaceTypeImpl(
-      element: classThisType.element,
-      typeArguments: classThisType.typeArguments,
-      nullabilitySuffix: classThisType.nullabilitySuffix,
-    );
+  InterfaceType get returnTypeInternal {
+    return _returnType ??= enclosingElement.thisType;
   }
 
   @override
@@ -5215,6 +5212,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// The cached list of prefixes.
   List<PrefixElement> _prefixes;
 
+  /// The scope of this library, `null` if it has not been created yet.
+  LibraryScope _scope;
+
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
   LibraryElementImpl(this.context, this.session, String name, int offset,
@@ -5586,6 +5586,11 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   set publicNamespace(Namespace publicNamespace) {
     _publicNamespace = publicNamespace;
+  }
+
+  @override
+  Scope get scope {
+    return _scope ??= LibraryScope(this);
   }
 
   @override
@@ -6675,8 +6680,7 @@ class ParameterElementImpl extends VariableElementImpl
     if (_parameterKind != null) return _parameterKind;
 
     if (linkedNode != null) {
-      FormalParameter linkedNode = this.linkedNode;
-      // ignore: deprecated_member_use_from_same_package
+      var linkedNode = this.linkedNode as FormalParameterImpl;
       return linkedNode.kind;
     }
     return _parameterKind;
@@ -6898,36 +6902,28 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 /// [ParameterElement].
 mixin ParameterElementMixin implements ParameterElement {
   @override
-  bool get isNamed =>
-      parameterKind == ParameterKind.NAMED ||
-      parameterKind == ParameterKind.NAMED_REQUIRED;
+  bool get isNamed => parameterKind.isNamed;
 
   @override
-  bool get isNotOptional =>
-      parameterKind == ParameterKind.REQUIRED ||
-      parameterKind == ParameterKind.NAMED_REQUIRED;
+  bool get isNotOptional => parameterKind.isRequired;
 
   @override
-  bool get isOptional =>
-      parameterKind == ParameterKind.NAMED ||
-      parameterKind == ParameterKind.POSITIONAL;
+  bool get isOptional => parameterKind.isOptional;
 
   @override
-  bool get isOptionalNamed => parameterKind == ParameterKind.NAMED;
+  bool get isOptionalNamed => parameterKind.isOptionalNamed;
 
   @override
-  bool get isOptionalPositional => parameterKind == ParameterKind.POSITIONAL;
+  bool get isOptionalPositional => parameterKind.isOptionalPositional;
 
   @override
-  bool get isPositional =>
-      parameterKind == ParameterKind.POSITIONAL ||
-      parameterKind == ParameterKind.REQUIRED;
+  bool get isPositional => parameterKind.isPositional;
 
   @override
-  bool get isRequiredNamed => parameterKind == ParameterKind.NAMED_REQUIRED;
+  bool get isRequiredNamed => parameterKind.isRequiredNamed;
 
   @override
-  bool get isRequiredPositional => parameterKind == ParameterKind.REQUIRED;
+  bool get isRequiredPositional => parameterKind.isRequiredPositional;
 
   @override
   // Overridden to remove the 'deprecated' annotation.
@@ -6954,6 +6950,9 @@ mixin ParameterElementMixin implements ParameterElement {
 
 /// A concrete implementation of a [PrefixElement].
 class PrefixElementImpl extends ElementImpl implements PrefixElement {
+  /// The scope of this prefix, `null` if it has not been created yet.
+  PrefixScope _scope;
+
   /// Initialize a newly created method element to have the given [name] and
   /// [nameOffset].
   PrefixElementImpl(String name, int nameOffset) : super(name, nameOffset);
@@ -6987,6 +6986,9 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
     }
     return super.nameOffset;
   }
+
+  @override
+  Scope get scope => _scope ??= PrefixScope(enclosingElement, this);
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitPrefixElement(this);

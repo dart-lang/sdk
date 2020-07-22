@@ -206,9 +206,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  void assertElementNull(Expression node) {
-    Element actual = getNodeElement(node);
-    expect(actual, isNull);
+  void assertElementNull(Object nodeOrElement) {
+    Element element;
+    if (nodeOrElement is AstNode) {
+      element = getNodeElement(nodeOrElement);
+    } else {
+      element = nodeOrElement as Element;
+    }
+
+    expect(element, isNull);
   }
 
   void assertElementString(Element element, String expected) {
@@ -255,6 +261,16 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertErrorsInResolvedUnit(result, expectedErrors);
 
     return result;
+  }
+
+  Future<void> assertErrorsInFile2(
+    String path,
+    List<ExpectedError> expectedErrors,
+  ) async {
+    path = convertPath(path);
+
+    var result = await resolveFile(path);
+    assertErrorsInResolvedUnit(result, expectedErrors);
   }
 
   void assertErrorsInList(

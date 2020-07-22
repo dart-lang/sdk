@@ -39,7 +39,7 @@ class Glob {
   int get hashCode => _pattern.hashCode;
 
   @override
-  bool operator ==(other) => other is Glob && _pattern == other._pattern;
+  bool operator ==(Object other) => other is Glob && _pattern == other._pattern;
 
   /// Return `true` if the given [path] matches this glob.
   /// The given [path] must use the same [_separator] as the glob.

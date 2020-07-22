@@ -548,8 +548,53 @@ AbstractClassMember:
     - "abstract class C {abstract m();}"
     - "abstract class C {abstract get m;}"
     - "abstract class C {abstract set m(int x);}"
-    - "abstract class C {abstract f;}"
-    - "abstract class C {abstract static f;}"
+    - "abstract class C {abstract var f;}"
+    - "abstract class C {abstract static var f;}"
+
+AbstractExternalField:
+  template: "Fields can't be declared both 'abstract' and 'external'."
+  tip: "Try removing the 'abstract' or 'external' keyword."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {abstract external var f;}"
+    - "abstract class C {external abstract var f;}"
+
+AbstractStaticField:
+  template: "Static fields can't be declared 'abstract'."
+  tip: "Try removing the 'abstract' or 'static' keyword."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {abstract static var f;}"
+
+AbstractExtensionField:
+  template: "Extension fields can't be declared 'abstract'."
+  tip: "Try removing the 'abstract' keyword."
+# Separate class and extension field handling to to support this.
+#  configuration: nnbd-strong
+#  script:
+#    - "extension C on int {abstract static var f;}"
+
+AbstractFieldInitializer:
+  template: "Abstract fields cannot have initializers."
+  tip: "Try removing the initializer or the 'abstract' keyword."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {abstract var f = 0;}"
+
+AbstractFieldConstructorInitializer:
+  template: "Abstract fields cannot have initializers."
+  tip: "Try removing the field initializer or the 'abstract' keyword from the field declaration."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {abstract var f; C(this.f);}"
+    - "abstract class C {abstract var f; C() : this.f = 0;}"
+
+AbstractLateField:
+  template: "Abstract fields cannot be late."
+  tip: "Try removing the 'abstract' or 'late' keyword."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {abstract late var f;}"
 
 ClassInClass:
   index: 53
@@ -734,6 +779,31 @@ ExternalField:
   analyzerCode: ParserErrorCode.EXTERNAL_FIELD
   script:
     - "class C { external var f; }"
+
+
+ExternalFieldInitializer:
+  template: "External fields cannot have initializers."
+  tip: "Try removing the initializer or the 'external' keyword."
+  configuration: nnbd-strong
+  script:
+    - "external var f = 0;"
+    - "abstract class C {external var f = 0;}"
+
+ExternalFieldConstructorInitializer:
+  template: "External fields cannot have initializers."
+  tip: "Try removing the field initializer or the 'external' keyword from the field declaration."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {external var f; C(this.f);}"
+    - "abstract class C {external var f; C() : this.f = 0;}"
+
+ExternalLateField:
+  template: "External fields cannot be late."
+  tip: "Try removing the 'external' or 'late' keyword."
+  configuration: nnbd-strong
+  script:
+    - "external late var f;"
+    - "abstract class C {external late var f;}"
 
 InitializerForStaticField:
   template: "'#name' isn't an instance field of this class."
@@ -1187,6 +1257,16 @@ Unspecified:
 
 StrongModeNNBDButOptOut:
   template: "A library can't opt out of null safety by default, when using sound null safety."
+
+StrongModeNNBDPackageOptOut:
+  template:  |
+    Cannot run with sound null safety as one or more dependencies do not
+    support null safety:
+
+    #names
+
+    Run 'pub outdated --mode=null-safety' to determine if versions of your
+    dependencies supporting null safety are available.
 
 AbstractNotSync:
   template: "Abstract methods can't use 'async', 'async*', or 'sync*'."
@@ -3413,6 +3493,16 @@ ReturnWithoutExpressionAsync:
   configuration: nnbd-strong
   declaration: "Future<int> foo() async { return; }"
 
+InvalidReturn:
+  template: "A value of type '#type' can't be returned from a function with return type '#type2'."
+  configuration: nnbd-strong
+  declaration: "int foo() { return true; }"
+
+InvalidReturnAsync:
+  template: "A value of type '#type' can't be returned from an async function with return type '#type2'."
+  configuration: nnbd-strong
+  declaration: "Future<int> foo() async { return true; }"
+
 ImplicitReturnNull:
   template: "A non-null value must be returned since the return type '#type' doesn't allow null."
   configuration: nnbd-strong
@@ -4021,6 +4111,10 @@ NullableMixinError:
 JsInteropIndexNotSupported:
   template: "JS interop classes do not support [] and []= operator methods."
   tip: "Try replacing with a normal method."
+
+JsInteropNamedParameters:
+  template: "Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class."
+  tip: "Try replacing them with normal or optional parameters."
 
 JsInteropNonExternalConstructor:
   template: "JS interop classes do not support non-external constructors."

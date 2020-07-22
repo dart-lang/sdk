@@ -369,11 +369,11 @@ abstract class _OverlayResource implements Resource {
   String get shortName => _resource.shortName;
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (runtimeType != other.runtimeType) {
       return false;
     }
-    return path == other.path;
+    return path == (other as _OverlayResource).path;
   }
 
   @override

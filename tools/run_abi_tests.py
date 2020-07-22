@@ -195,7 +195,7 @@ def diffAllResults(tests, flags):
                                                flags.configuration_name)
                 resultFile.write(json.dumps(outResult) + '\n')
                 if diffs:
-                    logRecords = allLogs[name] if name in allLogs else []
+                    logRecords = allLogs.get(name, {})
                     logFile.write(
                         json.dumps(
                             makeLog(diffs, results, logRecords, flags.

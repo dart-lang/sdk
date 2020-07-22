@@ -1177,6 +1177,12 @@ class SubtypeTestCache : public AllStatic {
   static word NextFieldOffset();
 };
 
+class LoadingUnit : public AllStatic {
+ public:
+  static word InstanceSize();
+  static word NextFieldOffset();
+};
+
 class Context : public AllStatic {
  public:
   static word header_size();

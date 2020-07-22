@@ -621,6 +621,7 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void endClassFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -631,8 +632,16 @@ class ForwardingTestListener extends ForwardingListener {
       Token endToken) {
     // beginMember --> endClassFields, endMember
     expectIn('Member');
-    super.endClassFields(externalToken, staticToken, covariantToken, lateToken,
-        varFinalOrConst, count, beginToken, endToken);
+    super.endClassFields(
+        abstractToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
   }
 
   @override
@@ -749,6 +758,7 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void endExtensionFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -759,8 +769,16 @@ class ForwardingTestListener extends ForwardingListener {
       Token endToken) {
     // beginMember --> endExtensionFields, endMember
     expectIn('Member');
-    super.endExtensionFields(externalToken, staticToken, covariantToken,
-        lateToken, varFinalOrConst, count, beginToken, endToken);
+    super.endExtensionFields(
+        abstractToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
   }
 
   @override
@@ -1005,6 +1023,7 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void endMixinFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -1015,8 +1034,16 @@ class ForwardingTestListener extends ForwardingListener {
       Token endToken) {
     // beginMember --> endMixinFields, endMember
     expectIn('Member');
-    super.endMixinFields(externalToken, staticToken, covariantToken, lateToken,
-        varFinalOrConst, count, beginToken, endToken);
+    super.endMixinFields(
+        abstractToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
   }
 
   @override

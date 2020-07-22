@@ -97,7 +97,6 @@ import '../messages.dart'
         messageConstConstructorNonFinalField,
         messageConstConstructorNonFinalFieldCause,
         messageConstConstructorRedirectionToNonConst,
-        messageStrongModeNNBDButOptOut,
         noLength,
         templateFieldNonNullableNotInitializedByConstructorError,
         templateFieldNonNullableWithoutInitializerError,
@@ -122,7 +121,7 @@ import '../target_implementation.dart' show TargetImplementation;
 import '../uri_translator.dart' show UriTranslator;
 
 import 'constant_evaluator.dart' as constants
-    show EvaluationMode, transformLibraries;
+    show EvaluationMode, transformLibraries, transformProcedure;
 
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 
@@ -255,7 +254,7 @@ class KernelTarget extends TargetImplementation {
         if (loader.nnbdMode == NnbdMode.Strong ||
             loader.nnbdMode == NnbdMode.Agnostic) {
           if (!builder.isNonNullableByDefault) {
-            loader.addProblem(messageStrongModeNNBDButOptOut, -1, 1, fileUri);
+            loader.registerStrongOptOutLibrary(builder);
           }
         }
         return builder;
@@ -770,9 +769,9 @@ class KernelTarget extends TargetImplementation {
     List<FieldBuilder> lateFinalFields = <FieldBuilder>[];
 
     builder.forEachDeclaredField((String name, FieldBuilder fieldBuilder) {
-      if (fieldBuilder.isExternal) {
-        // Skip external fields. These are external getters/setters and have
-        // no initialization.
+      if (fieldBuilder.isAbstract || fieldBuilder.isExternal) {
+        // Skip abstract and external fields. These are abstract/external
+        // getters/setters and have no initialization.
         return;
       }
       if (fieldBuilder.isDeclarationInstanceMember && !fieldBuilder.isFinal) {
@@ -871,27 +870,6 @@ class KernelTarget extends TargetImplementation {
           constructor.function.body.parent = constructor.function;
         }
 
-        Set<Field> myInitializedFields = new Set<Field>();
-        for (Initializer initializer in constructor.initializers) {
-          if (initializer is FieldInitializer) {
-            myInitializedFields.add(initializer.field);
-          }
-        }
-        for (VariableDeclaration formal
-            in constructor.function.positionalParameters) {
-          if (formal.isFieldFormal) {
-            Builder fieldBuilder =
-                builder.scope.lookupLocalMember(formal.name, setter: false) ??
-                    builder.origin.scope
-                        .lookupLocalMember(formal.name, setter: false);
-            // If next is not null it's a duplicated field,
-            // and it doesn't need to be initialized to null below
-            // (and doing it will crash serialization).
-            if (fieldBuilder?.next == null && fieldBuilder is FieldBuilder) {
-              myInitializedFields.add(fieldBuilder.field);
-            }
-          }
-        }
         if (constructor.isConst && nonFinalFields.isNotEmpty) {
           builder.addProblem(messageConstConstructorNonFinalField,
               constructor.fileOffset, noLength,
@@ -1092,26 +1070,7 @@ class KernelTarget extends TargetImplementation {
 
     TypeEnvironment environment =
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
-    constants.EvaluationMode evaluationMode;
-    // If nnbd is not enabled we will use weak evaluation mode. This is needed
-    // because the SDK might be agnostic and therefore needs to be weakened
-    // for legacy mode.
-    assert(
-        isExperimentEnabledGlobally(ExperimentalFlag.nonNullable) ||
-            loader.nnbdMode == NnbdMode.Weak,
-        "Non-weak nnbd mode found without experiment enabled: "
-        "${loader.nnbdMode}.");
-    switch (loader.nnbdMode) {
-      case NnbdMode.Weak:
-        evaluationMode = constants.EvaluationMode.weak;
-        break;
-      case NnbdMode.Strong:
-        evaluationMode = constants.EvaluationMode.strong;
-        break;
-      case NnbdMode.Agnostic:
-        evaluationMode = constants.EvaluationMode.agnostic;
-        break;
-    }
+    constants.EvaluationMode evaluationMode = _getConstantEvaluationMode();
 
     constants.transformLibraries(
         loader.libraries,
@@ -1120,6 +1079,7 @@ class KernelTarget extends TargetImplementation {
         environment,
         new KernelConstantErrorReporter(loader),
         evaluationMode,
+        evaluateAnnotations: true,
         desugarSets: !backendTarget.supportsSetLiterals,
         enableTripleShift:
             isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
@@ -1141,9 +1101,51 @@ class KernelTarget extends TargetImplementation {
   ChangedStructureNotifier get changedStructureNotifier => null;
 
   void runProcedureTransformations(Procedure procedure) {
+    TypeEnvironment environment =
+        new TypeEnvironment(loader.coreTypes, loader.hierarchy);
+    constants.EvaluationMode evaluationMode = _getConstantEvaluationMode();
+
+    constants.transformProcedure(
+        procedure,
+        backendTarget.constantsBackend(loader.coreTypes),
+        environmentDefines,
+        environment,
+        new KernelConstantErrorReporter(loader),
+        evaluationMode,
+        evaluateAnnotations: true,
+        desugarSets: !backendTarget.supportsSetLiterals,
+        enableTripleShift:
+            isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
+        errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
+    ticker.logMs("Evaluated constants");
+
     backendTarget.performTransformationsOnProcedure(
         loader.coreTypes, loader.hierarchy, procedure,
         logger: (String msg) => ticker.logMs(msg));
+  }
+
+  constants.EvaluationMode _getConstantEvaluationMode() {
+    constants.EvaluationMode evaluationMode;
+    // If nnbd is not enabled we will use weak evaluation mode. This is needed
+    // because the SDK might be agnostic and therefore needs to be weakened
+    // for legacy mode.
+    assert(
+        isExperimentEnabledGlobally(ExperimentalFlag.nonNullable) ||
+            loader.nnbdMode == NnbdMode.Weak,
+        "Non-weak nnbd mode found without experiment enabled: "
+        "${loader.nnbdMode}.");
+    switch (loader.nnbdMode) {
+      case NnbdMode.Weak:
+        evaluationMode = constants.EvaluationMode.weak;
+        break;
+      case NnbdMode.Strong:
+        evaluationMode = constants.EvaluationMode.strong;
+        break;
+      case NnbdMode.Agnostic:
+        evaluationMode = constants.EvaluationMode.agnostic;
+        break;
+    }
+    return evaluationMode;
   }
 
   void verify() {

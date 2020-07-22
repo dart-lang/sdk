@@ -10,7 +10,9 @@ import 'native_testing.dart';
 
 @Native("A")
 class A {
-  int key; //  jsname is 'key'
+  //  jsname is 'key'
+  void set key(int unused) native;
+  int get key native;
   int getKey() => key;
 }
 

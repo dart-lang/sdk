@@ -25,5 +25,5 @@ int fletcher16(List<int> data) {
   c0 = c0 % 255;
   c1 = c1 % 255;
 
-  return (c1 << 8 | c0);
+  return c1 << 8 | c0;
 }

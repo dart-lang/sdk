@@ -3886,7 +3886,7 @@ class ExtensionOverrideImpl extends ExpressionImpl
   bool get isNullAware {
     var nextType = argumentList.endToken.next.type;
     return nextType == TokenType.QUESTION_PERIOD ||
-        nextType == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET;
+        nextType == TokenType.QUESTION;
   }
 
   @override
@@ -4311,35 +4311,30 @@ abstract class FormalParameterImpl extends AstNodeImpl
   }
 
   @override
-  bool get isNamed =>
-      kind == ParameterKind.NAMED || kind == ParameterKind.NAMED_REQUIRED;
+  bool get isNamed => kind.isNamed;
 
   @override
-  bool get isOptional =>
-      kind == ParameterKind.NAMED || kind == ParameterKind.POSITIONAL;
+  bool get isOptional => kind.isOptional;
 
   @override
-  bool get isOptionalNamed => kind == ParameterKind.NAMED;
+  bool get isOptionalNamed => kind.isOptionalNamed;
 
   @override
-  bool get isOptionalPositional => kind == ParameterKind.POSITIONAL;
+  bool get isOptionalPositional => kind.isOptionalPositional;
 
   @override
-  bool get isPositional =>
-      kind == ParameterKind.POSITIONAL || kind == ParameterKind.REQUIRED;
+  bool get isPositional => kind.isPositional;
 
   @override
-  bool get isRequired =>
-      kind == ParameterKind.REQUIRED || kind == ParameterKind.NAMED_REQUIRED;
+  bool get isRequired => kind.isRequired;
 
   @override
-  bool get isRequiredNamed => kind == ParameterKind.NAMED_REQUIRED;
+  bool get isRequiredNamed => kind.isRequiredNamed;
 
   @override
-  bool get isRequiredPositional => kind == ParameterKind.REQUIRED;
+  bool get isRequiredPositional => kind.isRequiredPositional;
 
   @override
-  // Overridden to remove the 'deprecated' annotation.
   ParameterKind get kind;
 }
 
@@ -5868,7 +5863,6 @@ class IndexExpressionImpl extends ExpressionImpl
       return _ancestorCascade.isNullAware;
     }
     return question != null ||
-        leftBracket.type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET ||
         (leftBracket.type == TokenType.OPEN_SQUARE_BRACKET &&
             period != null &&
             period.type == TokenType.QUESTION_PERIOD_PERIOD);
@@ -6279,20 +6273,22 @@ class InterpolationStringImpl extends InterpolationElementImpl
   Iterable<SyntacticEntity> get childEntities => ChildEntities()..add(contents);
 
   @override
-  int get contentsEnd {
-    String lexeme = contents.lexeme;
-    return offset + StringLexemeHelper(lexeme, true, true).end;
-  }
+  int get contentsEnd => offset + _lexemeHelper.end;
 
   @override
-  int get contentsOffset {
-    int offset = contents.offset;
-    String lexeme = contents.lexeme;
-    return offset + StringLexemeHelper(lexeme, true, true).start;
-  }
+  int get contentsOffset => contents.offset + _lexemeHelper.start;
 
   @override
   Token get endToken => contents;
+
+  @override
+  StringInterpolation get parent => super.parent;
+
+  StringLexemeHelper get _lexemeHelper {
+    String lexeme = contents.lexeme;
+    return StringLexemeHelper(lexeme, identical(this, parent.elements.first),
+        identical(this, parent.elements.last));
+  }
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitInterpolationString(this);
@@ -7686,11 +7682,10 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
     _identifier = _becomeParentOf(identifier as SimpleIdentifierImpl);
   }
 
-  @deprecated
   @override
   ParameterKind get kind {
     AstNode parent = this.parent;
-    if (parent is DefaultFormalParameter) {
+    if (parent is DefaultFormalParameterImpl) {
       return parent.kind;
     }
     return ParameterKind.REQUIRED;

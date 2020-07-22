@@ -2,28 +2,93 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(InvalidNullAwareOperatorAfterShortCircuitTest);
     defineReflectiveTests(InvalidNullAwareOperatorTest);
   });
 }
 
 @reflectiveTest
-class InvalidNullAwareOperatorTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    );
+class InvalidNullAwareOperatorAfterShortCircuitTest extends DriverResolutionTest
+    with WithNullSafetyMixin {
+  Future<void> test_getter_previousTarget() async {
+    await assertErrorsInCode('''
+void f(String? s) {
+  s?.length?.isEven;
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+          31, 2,
+          contextMessages: [message('/test/lib/test.dart', 23, 2)]),
+    ]);
+  }
 
+  Future<void> test_index_previousTarget() async {
+    await assertErrorsInCode('''
+void f(String? s) {
+  s?[4]?.length;
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+          27, 2,
+          contextMessages: [message('/test/lib/test.dart', 23, 1)]),
+    ]);
+  }
+
+  Future<void> test_methodInvocation_noTarget() async {
+    await assertErrorsInCode('''
+class C {
+  C? m1() => this;
+  C m2() => this;
+  void m3() {
+    m1()?.m2()?.m2();
+  }
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+          75, 2,
+          contextMessages: [message('/test/lib/test.dart', 69, 2)]),
+    ]);
+  }
+
+  Future<void> test_methodInvocation_previousTarget() async {
+    await assertErrorsInCode('''
+void f(String? s) {
+  s?.substring(0, 5)?.length;
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+          40, 2,
+          contextMessages: [message('/test/lib/test.dart', 23, 2)]),
+    ]);
+  }
+
+  Future<void> test_methodInvocation_previousTwoTargets() async {
+    await assertErrorsInCode('''
+void f(String? s) {
+  s?.substring(0, 5)?.toLowerCase()?.length;
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+          40, 2,
+          contextMessages: [message('/test/lib/test.dart', 23, 2)]),
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+          55, 2,
+          contextMessages: [message('/test/lib/test.dart', 23, 2)]),
+    ]);
+  }
+}
+
+@reflectiveTest
+class InvalidNullAwareOperatorTest extends DriverResolutionTest
+    with WithNullSafetyMixin {
   test_getter_class() async {
     await assertNoErrorsInCode('''
 class C {
@@ -126,7 +191,6 @@ import 'a.dart';
 
 f() {
   x?[0];
-  x?.[0];
   x?..[0];
 }
 ''');
@@ -136,13 +200,11 @@ f() {
     await assertErrorsInCode('''
 f(List<int> x) {
   x?[0];
-  x?.[0];
   x?..[0];
 }
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 20, 2),
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 29, 3),
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 39, 3),
     ]);
   }
 
@@ -150,7 +212,6 @@ f(List<int> x) {
     await assertNoErrorsInCode('''
 f(List<int>? x) {
   x?[0];
-  x?.[0];
   x?..[0];
 }
 ''');

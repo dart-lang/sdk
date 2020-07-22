@@ -40,6 +40,7 @@ abstract class VM implements VMRef {
   /// The current number of allocations on the native heap within the VM.
   int get heapAllocationCount;
 
+  int get currentMemory;
   int get maxRSS;
   int get currentRSS;
 

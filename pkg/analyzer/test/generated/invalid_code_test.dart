@@ -4,12 +4,11 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -337,15 +336,8 @@ class C {
 }
 
 @reflectiveTest
-class InvalidCodeWithNullSafetyTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class InvalidCodeWithNullSafetyTest extends DriverResolutionTest
+    with WithNullSafetyMixin {
   test_issue_40837() async {
     await _assertCanBeAnalyzed('''
 class A {

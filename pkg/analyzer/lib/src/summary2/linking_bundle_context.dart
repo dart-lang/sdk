@@ -78,12 +78,7 @@ class LinkingBundleContext {
   LinkedNodeTypeBuilder writeType(DartType type) {
     if (type == null) return null;
 
-    if (type.isBottom) {
-      return LinkedNodeTypeBuilder(
-        kind: LinkedNodeTypeKind.bottom,
-        nullabilitySuffix: _nullabilitySuffix(type),
-      );
-    } else if (type.isDynamic) {
+    if (type.isDynamic) {
       return LinkedNodeTypeBuilder(
         kind: LinkedNodeTypeKind.dynamic_,
       );
@@ -94,6 +89,11 @@ class LinkingBundleContext {
         kind: LinkedNodeTypeKind.interface,
         interfaceClass: indexOfElement(type.element),
         interfaceTypeArguments: type.typeArguments.map(writeType).toList(),
+        nullabilitySuffix: _nullabilitySuffix(type),
+      );
+    } else if (type is NeverType) {
+      return LinkedNodeTypeBuilder(
+        kind: LinkedNodeTypeKind.never,
         nullabilitySuffix: _nullabilitySuffix(type),
       );
     } else if (type is TypeParameterType) {

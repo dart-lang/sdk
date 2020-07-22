@@ -5,7 +5,7 @@
 // Tests elimination of type casts.
 // This test requires non-nullable experiment.
 
-// @dart = 2.9
+// @dart = 2.10
 
 class A<T> {}
 

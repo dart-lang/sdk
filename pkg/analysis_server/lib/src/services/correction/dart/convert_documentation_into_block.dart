@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertDocumentationIntoBlock extends CorrectionProducer {
@@ -15,7 +15,7 @@ class ConvertDocumentationIntoBlock extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var comment = node.thisOrAncestorOfType<Comment>();
     if (comment == null || !comment.isDocumentation) {
       return;
@@ -29,8 +29,8 @@ class ConvertDocumentationIntoBlock extends CorrectionProducer {
     }
     var prefix = utils.getNodePrefix(comment);
 
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(comment), (DartEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addReplacement(range.node(comment), (builder) {
         builder.writeln('/**');
         for (var token in comment.tokens) {
           builder.write(prefix);

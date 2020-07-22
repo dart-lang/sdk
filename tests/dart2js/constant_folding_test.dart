@@ -928,7 +928,7 @@ void main() {
 ///   constant evaluation results in `0` or `0.0` and the other results in
 ///   `-0.0`. Therefore, we additionally check that both values have the same
 ///   sign in this case.
-void jsEquals(expected, actual, [String reason = null]) {
+void jsEquals(expected, actual, [String reason = ""]) {
   if (expected is num && actual is num) {
     if (expected.isNaN && actual.isNaN) return;
   }
@@ -941,7 +941,7 @@ void jsEquals(expected, actual, [String reason = null]) {
         actual.isNegative,
         (reason == null ? "" : "$reason ") +
             "${expected.toString()} and "
-            "${actual.toString()} have different signs.");
+                "${actual.toString()} have different signs.");
   }
 }
 

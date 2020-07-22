@@ -12,6 +12,7 @@
 #include "bin/file.h"
 #include "bin/gzip.h"
 #include "bin/lockers.h"
+#include "bin/snapshot_utils.h"
 #include "bin/utils.h"
 #include "include/dart_tools_api.h"
 #include "platform/growable_array.h"
@@ -219,6 +220,44 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   return DartUtils::NewError("Invalid tag : %d '%s'", tag, url_string);
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+Dart_Handle Loader::DeferredLoadHandler(intptr_t loading_unit_id) {
+  // A synchronous implementation. An asynchronous implementation would be
+  // better, but the standalone embedder only implements AOT for testing.
+
+  auto isolate_group_data =
+      reinterpret_cast<IsolateGroupData*>(Dart_CurrentIsolateGroupData());
+  char* unit_url = Utils::SCreate(
+      "%s-%" Pd ".part.so", isolate_group_data->script_url, loading_unit_id);
+
+  AppSnapshot* loading_unit_snapshot = Snapshot::TryReadAppSnapshot(unit_url);
+  Dart_Handle result;
+  if (loading_unit_snapshot != nullptr) {
+    isolate_group_data->AddLoadingUnit(loading_unit_snapshot);
+    const uint8_t* isolate_snapshot_data = nullptr;
+    const uint8_t* isolate_snapshot_instructions = nullptr;
+    const uint8_t* ignore_vm_snapshot_data;
+    const uint8_t* ignore_vm_snapshot_instructions;
+    loading_unit_snapshot->SetBuffers(
+        &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
+        &isolate_snapshot_data, &isolate_snapshot_instructions);
+    result = Dart_DeferredLoadComplete(loading_unit_id, isolate_snapshot_data,
+                                       isolate_snapshot_instructions);
+    if (Dart_IsApiError(result)) {
+      result =
+          Dart_DeferredLoadCompleteError(loading_unit_id, Dart_GetError(result),
+                                         /*transient*/ false);
+    }
+  } else {
+    char* error_message = Utils::SCreate("Failed to load %s", unit_url);
+    result = Dart_DeferredLoadCompleteError(loading_unit_id, error_message,
+                                            /*transient*/ false);
+    free(error_message);
+  }
+
+  free(unit_url);
+  return result;
+}
 
 void Loader::InitOnce() {
 }

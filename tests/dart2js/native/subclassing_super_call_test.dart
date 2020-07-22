@@ -15,13 +15,14 @@ class N1 {}
 @Native("N2")
 class N2 extends N1 {
   N2.init();
-  String text;
+  void set text(String unused) native;
+  String get text native;
   foo() native;
 }
 
 class AA extends N2 {
   AA.init() : super.init();
-  String afield;
+  String? afield;
   afun() => 'afun:$afield';
 }
 

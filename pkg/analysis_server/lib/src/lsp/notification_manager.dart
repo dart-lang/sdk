@@ -32,12 +32,12 @@ class LspNotificationManager extends AbstractNotificationManager {
         .map((error) => pluginToDiagnostic(server.getLineInfo, error))
         .toList();
 
-    final params =
-        PublishDiagnosticsParams(Uri.file(filePath).toString(), diagnostics);
+    final params = PublishDiagnosticsParams(
+        uri: Uri.file(filePath).toString(), diagnostics: diagnostics);
     final message = NotificationMessage(
-      Method.textDocument_publishDiagnostics,
-      params,
-      jsonRpcVersion,
+      method: Method.textDocument_publishDiagnostics,
+      params: params,
+      jsonrpc: jsonRpcVersion,
     );
 
     channel.sendNotification(message);

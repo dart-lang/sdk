@@ -460,6 +460,47 @@ int i = "s";
     makeError(line: 12, column: 34, length: 56, cfeError: "Message."),
   ]);
 
+  // Allow front ends in any order.
+  expectParseErrorExpectations("""
+int i = "s";
+/\/      ^^^
+/\/ [cfe] Error message.
+/\/ [analyzer] ErrorCode.BAD_THING
+""", [
+    makeError(
+        line: 1,
+        column: 9,
+        length: 3,
+        analyzerError: "ErrorCode.BAD_THING",
+        cfeError: "Error message."),
+  ]);
+  expectParseErrorExpectations("""
+int i = "s";
+/\/      ^^^
+/\/ [web] Web message.
+/\/ [analyzer] ErrorCode.BAD_THING
+""", [
+    makeError(
+        line: 1,
+        column: 9,
+        length: 3,
+        analyzerError: "ErrorCode.BAD_THING",
+        webError: "Web message."),
+  ]);
+  expectParseErrorExpectations("""
+int i = "s";
+/\/      ^^^
+/\/ [web] Web message.
+/\/ [cfe] Error message.
+""", [
+    makeError(
+        line: 1,
+        column: 9,
+        length: 3,
+        cfeError: "Error message.",
+        webError: "Web message."),
+  ]);
+
   // Must have at least one error message.
   expectFormatError("""
 int i = "s";
@@ -487,26 +528,6 @@ int i = "s";
 int i = "s";
 /\/ ^^^
 /\/ [wat] Error message.
-""");
-
-  // Front ends must be ordered.
-  expectFormatError("""
-int i = "s";
-/\/      ^^^
-/\/ [cfe] Error message.
-/\/ [analyzer] ErrorCode.BAD_THING
-""");
-  expectFormatError("""
-int i = "s";
-/\/      ^^^
-/\/ [web] Error message.
-/\/ [analyzer] ErrorCode.BAD_THING
-""");
-  expectFormatError("""
-int i = "s";
-/\/      ^^^
-/\/ [web] Error message.
-/\/ [cfe] Error message
 """);
 
   // Analyzer error must look like an error code.

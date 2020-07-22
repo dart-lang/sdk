@@ -88,15 +88,15 @@ DEFINE_FLAG_HANDLER(DeterministicModeHandler,
                     deterministic,
                     "Enable deterministic mode.");
 
-int FLAG_null_safety = kNullSafetyOptionUnspecified;
-static void NullSafetyHandler(bool value) {
-  FLAG_null_safety = value ? kNullSafetyOptionStrong : kNullSafetyOptionWeak;
+int FLAG_sound_null_safety = kNullSafetyOptionUnspecified;
+static void SoundNullSafetyHandler(bool value) {
+  FLAG_sound_null_safety =
+      value ? kNullSafetyOptionStrong : kNullSafetyOptionWeak;
 }
 
-DEFINE_FLAG_HANDLER(
-    NullSafetyHandler,
-    null_safety,
-    "Respect the nullability of types in casts and instance checks.");
+DEFINE_FLAG_HANDLER(SoundNullSafetyHandler,
+                    sound_null_safety,
+                    "Respect the nullability of types at runtime.");
 
 DEFINE_FLAG(bool,
             disable_thread_pool_limit,
@@ -146,6 +146,63 @@ static InstancePtr DeserializeMessage(Thread* thread, Message* message) {
     ASSERT(!obj.IsError());
     return Instance::RawCast(obj.raw());
   }
+}
+
+void IsolateGroupSource::add_loaded_blob(
+    Zone* zone,
+    const ExternalTypedData& external_typed_data) {
+  Array& loaded_blobs = Array::Handle();
+  bool saved_external_typed_data = false;
+  if (loaded_blobs_ != nullptr) {
+    loaded_blobs = loaded_blobs_;
+
+    // Walk the array, and (if stuff was removed) compact and reuse the space.
+    // Note that the space has to be compacted as the ordering is important.
+    WeakProperty& weak_property = WeakProperty::Handle();
+    WeakProperty& weak_property_tmp = WeakProperty::Handle();
+    ExternalTypedData& existing_entry = ExternalTypedData::Handle(zone);
+    intptr_t next_entry_index = 0;
+    for (intptr_t i = 0; i < loaded_blobs.Length(); i++) {
+      weak_property ^= loaded_blobs.At(i);
+      if (weak_property.key() != ExternalTypedData::null()) {
+        if (i != next_entry_index) {
+          existing_entry = ExternalTypedData::RawCast(weak_property.key());
+          weak_property_tmp ^= loaded_blobs.At(next_entry_index);
+          weak_property_tmp.set_key(existing_entry);
+        }
+        next_entry_index++;
+      }
+    }
+    if (next_entry_index < loaded_blobs.Length()) {
+      // There's now space to re-use.
+      weak_property ^= loaded_blobs.At(next_entry_index);
+      weak_property.set_key(external_typed_data);
+      next_entry_index++;
+      saved_external_typed_data = true;
+    }
+    if (next_entry_index < loaded_blobs.Length()) {
+      ExternalTypedData& nullExternalTypedData =
+          ExternalTypedData::Handle(zone);
+      while (next_entry_index < loaded_blobs.Length()) {
+        // Null out any extra spaces.
+        weak_property ^= loaded_blobs.At(next_entry_index);
+        weak_property.set_key(nullExternalTypedData);
+        next_entry_index++;
+      }
+    }
+  }
+  if (!saved_external_typed_data) {
+    const WeakProperty& weak_property =
+        WeakProperty::Handle(WeakProperty::New(Heap::kOld));
+    weak_property.set_key(external_typed_data);
+
+    intptr_t length = loaded_blobs.IsNull() ? 0 : loaded_blobs.Length();
+    Array& new_array =
+        Array::Handle(Array::Grow(loaded_blobs, length + 1, Heap::kOld));
+    new_array.SetAt(length, weak_property);
+    loaded_blobs_ = new_array.raw();
+  }
+  num_blob_loads_++;
 }
 
 void IdleTimeHandler::InitializeWithHeap(Heap* heap) {
@@ -827,7 +884,11 @@ void Isolate::RegisterClass(const Class& cls) {
     return;
   }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  class_table()->Register(cls);
+  if (cls.IsTopLevel()) {
+    class_table()->RegisterTopLevel(cls);
+  } else {
+    class_table()->Register(cls);
+  }
 }
 
 #if defined(DEBUG)
@@ -1812,6 +1873,18 @@ ObjectPtr Isolate::CallTagHandler(Dart_LibraryTag tag,
   return Api::UnwrapHandle(api_result);
 }
 
+ObjectPtr Isolate::CallDeferredLoadHandler(intptr_t id) {
+  Thread* thread = Thread::Current();
+  Api::Scope api_scope(thread);
+  Dart_Handle api_result;
+  {
+    TransitionVMToNative transition(thread);
+    RELEASE_ASSERT(HasDeferredLoadHandler());
+    api_result = group()->deferred_load_handler()(id);
+  }
+  return Api::UnwrapHandle(api_result);
+}
+
 void Isolate::SetupImagePage(const uint8_t* image_buffer, bool is_executable) {
   Image image(image_buffer);
   heap()->SetupImagePage(image.object_start(), image.object_size(),
@@ -2671,9 +2744,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&deoptimized_code_array_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
   if (isolate_group_ != nullptr) {
-    if (isolate_group_->source()->hot_reload_blobs_ != nullptr) {
+    if (isolate_group_->source()->loaded_blobs_ != nullptr) {
       visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(
-          &(isolate_group_->source()->hot_reload_blobs_)));
+          &(isolate_group_->source()->loaded_blobs_)));
     }
   }
 #if !defined(PRODUCT)

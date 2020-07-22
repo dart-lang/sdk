@@ -166,6 +166,7 @@ class FileState {
     @required OperationPerformanceImpl performance,
   }) {
     _fsState.testView.refreshedFiles.add(path);
+    performance.getDataInt('count').increment();
 
     performance.run('digest', (_) {
       _digest = utf8.encode(_fsState.getFileDigest(path));
@@ -184,13 +185,16 @@ class FileState {
           return getContent();
         });
 
-        var unit = performance.run('parse', (_) {
+        var unit = performance.run('parse', (performance) {
+          performance.getDataInt('count').increment();
+          performance.getDataInt('length').add(content.length);
           return parse(AnalysisErrorListener.NULL_LISTENER, content);
         });
 
-        performance.run('unlinked', (_) {
+        performance.run('unlinked', (performance) {
           var unlinkedBuilder = serializeAstCiderUnlinked(_digest, unit);
           bytes = unlinkedBuilder.toBuffer();
+          performance.getDataInt('length').add(bytes.length);
           _fsState._byteStore.put(unlinkedKey, _digest, bytes);
         });
 

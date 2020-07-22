@@ -138,7 +138,7 @@ class ObjectLayout {
   // See Object::MakeUnusedSpaceTraversable.
   COMPILE_ASSERT(kCardRememberedBit == 0);
 
-  COMPILE_ASSERT(kClassIdTagSize == (sizeof(classid_t) * kBitsPerByte));
+  COMPILE_ASSERT(8 * sizeof(uint16_t) == kClassIdTagSize);
 
   // Encodes the object size in the tag in units of object alignment.
   class SizeTag {
@@ -704,7 +704,8 @@ class ClassLayout : public ObjectLayout {
   enum ClassFinalizedState {
     kAllocated = 0,  // Initial state.
     kPreFinalized,   // VM classes: size precomputed, but no checks done.
-    kFinalized,      // Class parsed, finalized and ready for use.
+    kFinalized,      // Class parsed, code compiled, not ready for allocation.
+    kAllocateFinalized,  // CHA invalidated, class is ready for allocation.
   };
   enum ClassLoadingState {
     // Class object is created, but it is not filled up.
@@ -930,6 +931,7 @@ class FunctionLayout : public ObjectLayout {
   class UnboxedParameterBitmap {
    public:
     static constexpr intptr_t kBitsPerParameter = 2;
+    static constexpr intptr_t kParameterBitmask = (1 << kBitsPerParameter) - 1;
     static constexpr intptr_t kCapacity =
         (kBitsPerByte * sizeof(uint64_t)) / kBitsPerParameter;
 
@@ -942,37 +944,44 @@ class FunctionLayout : public ObjectLayout {
       if (position >= kCapacity) {
         return false;
       }
-      ASSERT(Utils::TestBit(bitmap_, 2 * position) ||
-             !Utils::TestBit(bitmap_, 2 * position + 1));
-      return Utils::TestBit(bitmap_, 2 * position);
+      ASSERT(Utils::TestBit(bitmap_, kBitsPerParameter * position) ||
+             !Utils::TestBit(bitmap_, kBitsPerParameter * position + 1));
+      return Utils::TestBit(bitmap_, kBitsPerParameter * position);
     }
     DART_FORCE_INLINE bool IsUnboxedInteger(intptr_t position) const {
       if (position >= kCapacity) {
         return false;
       }
-      return Utils::TestBit(bitmap_, 2 * position) &&
-             !Utils::TestBit(bitmap_, 2 * position + 1);
+      return Utils::TestBit(bitmap_, kBitsPerParameter * position) &&
+             !Utils::TestBit(bitmap_, kBitsPerParameter * position + 1);
     }
     DART_FORCE_INLINE bool IsUnboxedDouble(intptr_t position) const {
       if (position >= kCapacity) {
         return false;
       }
-      return Utils::TestBit(bitmap_, 2 * position) &&
-             Utils::TestBit(bitmap_, 2 * position + 1);
+      return Utils::TestBit(bitmap_, kBitsPerParameter * position) &&
+             Utils::TestBit(bitmap_, kBitsPerParameter * position + 1);
     }
     DART_FORCE_INLINE void SetUnboxedInteger(intptr_t position) {
       ASSERT(position < kCapacity);
-      bitmap_ |= Utils::Bit<decltype(bitmap_)>(2 * position);
-      ASSERT(!Utils::TestBit(bitmap_, 2 * position + 1));
+      bitmap_ |= Utils::Bit<decltype(bitmap_)>(kBitsPerParameter * position);
+      ASSERT(!Utils::TestBit(bitmap_, kBitsPerParameter * position + 1));
     }
     DART_FORCE_INLINE void SetUnboxedDouble(intptr_t position) {
       ASSERT(position < kCapacity);
-      bitmap_ |= Utils::Bit<decltype(bitmap_)>(2 * position);
-      bitmap_ |= Utils::Bit<decltype(bitmap_)>(2 * position + 1);
+      bitmap_ |= Utils::Bit<decltype(bitmap_)>(kBitsPerParameter * position);
+      bitmap_ |=
+          Utils::Bit<decltype(bitmap_)>(kBitsPerParameter * position + 1);
     }
     DART_FORCE_INLINE uint64_t Value() const { return bitmap_; }
     DART_FORCE_INLINE bool IsEmpty() const { return bitmap_ == 0; }
     DART_FORCE_INLINE void Reset() { bitmap_ = 0; }
+    DART_FORCE_INLINE bool HasUnboxedParameters() const {
+      return (bitmap_ >> kBitsPerParameter) != 0;
+    }
+    DART_FORCE_INLINE bool HasUnboxedReturnValue() const {
+      return (bitmap_ & kParameterBitmask) != 0;
+    }
 
    private:
     uint64_t bitmap_;
@@ -1186,9 +1195,9 @@ class FieldLayout : public ObjectLayout {
 #endif
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
-  classid_t guarded_cid_;
-  classid_t is_nullable_;  // kNullCid if field can contain null value and
-                           // kInvalidCid otherwise.
+  uint16_t guarded_cid_;
+  uint16_t is_nullable_;  // kNullCid if field can contain null value and
+                          // kInvalidCid otherwise.
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
@@ -1214,6 +1223,9 @@ class FieldLayout : public ObjectLayout {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class CidRewriteVisitor;
+  friend class GuardFieldClassInstr;     // For sizeof(guarded_cid_/...)
+  friend class LoadFieldInstr;           // For sizeof(guarded_cid_/...)
+  friend class StoreInstanceFieldInstr;  // For sizeof(guarded_cid_/...)
 };
 
 class ScriptLayout : public ObjectLayout {
@@ -1303,6 +1315,7 @@ class LibraryLayout : public ObjectLayout {
   GrowableObjectArrayPtr metadata_;  // Metadata on classes, methods etc.
   ClassPtr toplevel_class_;          // Class containing top-level elements.
   GrowableObjectArrayPtr used_scripts_;
+  LoadingUnitPtr loading_unit_;
   ArrayPtr imports_;  // List of Namespaces imported without prefix.
   ArrayPtr exports_;  // List of re-exported Namespaces.
   ArrayPtr dependencies_;
@@ -1389,7 +1402,7 @@ class WeakSerializationReferenceLayout : public ObjectLayout {
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   VISIT_NOTHING();
-  classid_t cid_;
+  uint16_t cid_;
 #else
   VISIT_FROM(ObjectPtr, target_);
   ObjectPtr target_;
@@ -1975,8 +1988,8 @@ class SingleTargetCacheLayout : public ObjectLayout {
   CodePtr target_;
   VISIT_TO(ObjectPtr, target_);
   uword entry_point_;
-  classid_t lower_limit_;
-  classid_t upper_limit_;
+  uint16_t lower_limit_;
+  uint16_t upper_limit_;
 };
 
 class MonomorphicSmiableCallLayout : public ObjectLayout {
@@ -2054,6 +2067,17 @@ class SubtypeTestCacheLayout : public ObjectLayout {
   VISIT_TO(ObjectPtr, cache_);
 };
 
+class LoadingUnitLayout : public ObjectLayout {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LoadingUnit);
+  VISIT_FROM(ObjectPtr, parent_);
+  LoadingUnitPtr parent_;
+  ArrayPtr base_objects_;
+  VISIT_TO(ObjectPtr, base_objects_);
+  int32_t id_;
+  bool load_outstanding_;
+  bool loaded_;
+};
+
 class ErrorLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Error);
 };
@@ -2117,9 +2141,8 @@ class LibraryPrefixLayout : public InstanceLayout {
     switch (kind) {
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<ObjectPtr*>(&imports_);
       case Snapshot::kFullAOT:
-        return reinterpret_cast<ObjectPtr*>(&importer_);
+        return reinterpret_cast<ObjectPtr*>(&imports_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -2233,7 +2256,7 @@ class TypeParameterLayout : public AbstractTypeLayout {
   AbstractTypePtr bound_;  // ObjectType if no explicit bound specified.
   FunctionPtr parameterized_function_;
   VISIT_TO(ObjectPtr, parameterized_function_)
-  classid_t parameterized_class_id_;
+  uint16_t parameterized_class_id_;
   TokenPosition token_pos_;
   int16_t index_;
   uint8_t flags_;

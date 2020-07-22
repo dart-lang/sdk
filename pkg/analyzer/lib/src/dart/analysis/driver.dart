@@ -91,7 +91,7 @@ typedef WorkToWaitAfterComputingResult = Future<void> Function(String path);
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 104;
+  static const int DATA_VERSION = 106;
 
   /// The length of the list returned by [_computeDeclaredVariablesSignature].
   static const int _declaredVariablesSignatureLength = 4;
@@ -488,10 +488,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// At least one of the optional parameters should be provided, but only those
   /// that represent state that has actually changed need be provided.
   void configure({
+    api.AnalysisContext analysisContext,
     AnalysisOptions analysisOptions,
     Packages packages,
     SourceFactory sourceFactory,
   }) {
+    if (analysisContext != null) {
+      this.analysisContext = analysisContext;
+    }
     if (analysisOptions != null) {
       _analysisOptions = analysisOptions;
     }
@@ -1286,7 +1290,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             libraryContext.elementFactory,
             libraryContext.analysisSession.inheritanceManager,
             library,
-            _resourceProvider,
             testingData: testingData);
         Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
 
@@ -1363,7 +1366,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           libraryContext.elementFactory,
           libraryContext.analysisSession.inheritanceManager,
           library,
-          _resourceProvider,
           testingData: testingData);
       Map<FileState, UnitAnalysisResult> unitResults = analyzer.analyze();
       var resolvedUnits = <ResolvedUnitResult>[];
@@ -1453,6 +1455,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     featureSetProvider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
+      resourceProvider: _resourceProvider,
       packages: _packages,
       packageDefaultFeatureSet: _analysisOptions.contextFeatures,
       nonPackageDefaultFeatureSet: _analysisOptions.nonPackageFeatureSet,
@@ -1465,6 +1468,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _resourceProvider,
       name,
       sourceFactory,
+      analysisContext?.workspace,
       analysisOptions,
       declaredVariables,
       _saltForUnlinked,
@@ -1631,7 +1635,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         null);
   }
 
-  void _reportException(String path, exception, StackTrace stackTrace) {
+  void _reportException(String path, Object exception, StackTrace stackTrace) {
     String contextKey;
     if (exception is _ExceptionState) {
       var state = exception as _ExceptionState;
@@ -1639,12 +1643,20 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       stackTrace = state.stackTrace;
       contextKey = state.contextKey;
     }
+
     CaughtException caught = CaughtException(exception, stackTrace);
-    String fileContent = _fsState.getFileForPath(path).content;
+
+    var fileContentMap = <String, String>{};
+    var libraryFile = _fsState.getFileForPath(path);
+    for (var file in libraryFile.libraryFiles) {
+      fileContentMap[file.path] = file.content;
+    }
+
     _exceptionController.add(
       ExceptionResult(
         filePath: path,
-        fileContent: fileContent,
+        fileContentMap: fileContentMap,
+        fileContent: libraryFile.content,
         exception: caught,
         contextKey: contextKey,
       ),
@@ -1665,8 +1677,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         .toBuffer();
   }
 
-  String _storeExceptionContext(
-      String path, FileState libraryFile, exception, StackTrace stackTrace) {
+  String _storeExceptionContext(String path, FileState libraryFile,
+      Object exception, StackTrace stackTrace) {
     if (allowedNumberOfContextsToWrite <= 0) {
       return null;
     } else {
@@ -2119,33 +2131,25 @@ class ErrorEncoding {
   /// Return the lint code with the given [errorName], or `null` if there is no
   /// lint registered with that name.
   static ErrorCode _lintCodeByUniqueName(String errorName) {
-    const String lintPrefix = 'LintCode.';
-    if (errorName.startsWith(lintPrefix)) {
-      String lintName = errorName.substring(lintPrefix.length);
-      return linter.Registry.ruleRegistry.getRule(lintName)?.lintCode;
-    }
-
-    const String lintPrefixOld = '_LintCode.';
-    if (errorName.startsWith(lintPrefixOld)) {
-      String lintName = errorName.substring(lintPrefixOld.length);
-      return linter.Registry.ruleRegistry.getRule(lintName)?.lintCode;
-    }
-
-    return null;
+    return linter.Registry.ruleRegistry.codeForUniqueName(errorName);
   }
 }
 
 /// Exception that happened during analysis.
 class ExceptionResult {
-  /// The path of the file being analyzed when the [exception] happened.
+  /// The path of the library being analyzed when the [exception] happened.
   ///
   /// Absolute and normalized.
   final String filePath;
 
+  /// The content of the library and its parts.
+  final Map<String, String> fileContentMap;
+
   /// The path of the file being analyzed when the [exception] happened.
+  @Deprecated('Use fileContentMap instead')
   final String fileContent;
 
-  /// The exception during analysis of the file with the [path].
+  /// The exception during analysis of the file with the [filePath].
   final CaughtException exception;
 
   /// If the exception happened during a file analysis, and the context in which
@@ -2156,6 +2160,7 @@ class ExceptionResult {
 
   ExceptionResult({
     @required this.filePath,
+    @required this.fileContentMap,
     @required this.fileContent,
     @required this.exception,
     @required this.contextKey,
@@ -2262,7 +2267,7 @@ class _DiscoverAvailableFilesTask {
 
 /// Information about an exception and its context.
 class _ExceptionState {
-  final exception;
+  final Object exception;
   final StackTrace stackTrace;
 
   /// The key under which the context of the exception was stored, or `null`

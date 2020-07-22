@@ -1490,7 +1490,6 @@ true
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
         '--packages=${tempDir.path}/.packages',
-        '--debugger-module-names'
       ];
 
       final StreamController<List<int>> streamController =
@@ -1557,7 +1556,6 @@ true
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
         '--packages=${tempDir.path}/.packages',
-        '--debugger-module-names',
         '--experimental-emit-debug-metadata'
       ];
 
@@ -1621,7 +1619,6 @@ true
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
         '--packages=${tempDir.path}/.packages',
-        '--debugger-module-names'
       ];
 
       final StreamController<List<int>> streamController =
@@ -1729,7 +1726,6 @@ true
         '--output-dill=${dillFile.path}',
         '--target=dartdevc',
         '--packages=${tempDir.path}/.packages',
-        '--debugger-module-names'
       ];
 
       final StreamController<List<int>> streamController =

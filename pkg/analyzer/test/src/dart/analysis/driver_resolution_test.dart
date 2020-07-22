@@ -8495,8 +8495,7 @@ main() {
 
   /// Assert that the [argument] has the [expectedType]. If the [argument] is
   /// a [NamedExpression], the name must be resolved to the same parameter.
-  void _assertArgumentToParameter2(Expression argument, String expectedType,
-      {DartType memberType}) {
+  void _assertArgumentToParameter2(Expression argument, String expectedType) {
     ParameterElement actual = argument.staticParameterElement;
     assertType(actual.type, expectedType);
 

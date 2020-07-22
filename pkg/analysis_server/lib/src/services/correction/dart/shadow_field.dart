@@ -9,14 +9,14 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class ShadowField extends CorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.SHADOW_FIELD;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     if (node is! SimpleIdentifier) {
       return;
     }
@@ -51,7 +51,7 @@ class ShadowField extends CorrectionProducer {
     //
     // Build the change.
     //
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(offset, (builder) {
         // TODO(brianwilkerson) Conditionally write a type annotation instead of
         //  'var' when we're able to discover user preferences.

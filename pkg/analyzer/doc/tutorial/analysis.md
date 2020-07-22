@@ -48,14 +48,14 @@ to all of the files, or directories containing files, that you want to be able
 to analyze.
 
 ```dart
-main() {
+void main() {
   List<String> includedPaths = <String>[/* ... */];
   AnalysisContextCollection collection =
       new AnalysisContextCollection(includedPaths: includedPaths);
   analyzeSomeFiles(collection, includedPaths);
 }
 
-analyzeSomeFiles(
+void analyzeSomeFiles(
     AnalysisContextCollection collection, List<String> includedPaths) {
   // See below.
 }
@@ -77,7 +77,7 @@ For example, if you have defined the collection as above, you could perform
 analysis with the following:
 
 ```dart
-analyzeSomeFiles(
+void analyzeSomeFiles(
     AnalysisContextCollection collection, List<String> includedPaths) {
   for (String path in includedPaths) {
     AnalysisContext context = collection.contextFor(path);
@@ -85,7 +85,7 @@ analyzeSomeFiles(
   }
 }
 
-analyzeSingleFile(AnalysisContext context, String path) {
+void analyzeSingleFile(AnalysisContext context, String path) {
   // See below.
 }
 ```
@@ -97,7 +97,7 @@ all of the files in the included files and directories by using a slightly
 different API:
 
 ```dart
-analyzeAllFiles(AnalysisContextCollection collection) {
+void analyzeAllFiles(AnalysisContextCollection collection) {
   for (AnalysisContext context in collection.contexts) {
     for (String path in context.contextRoot.analyzedFiles()) {
       analyzeSingleFile(context, path);
@@ -105,7 +105,7 @@ analyzeAllFiles(AnalysisContextCollection collection) {
   }
 }
 
-analyzeSingleFile(AnalysisContext context, String path) {
+void analyzeSingleFile(AnalysisContext context, String path) {
   // See below.
 }
 ```
@@ -123,7 +123,7 @@ need to ask the context for an analysis session and then ask the session to
 perform the analysis.
 
 ```dart
-analyzeSingleFile(AnalysisContext context, String path) {
+void analyzeSingleFile(AnalysisContext context, String path) {
   AnalysisSession session = context.currentSession;
   // ...
 }

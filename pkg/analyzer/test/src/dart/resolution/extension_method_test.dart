@@ -2,16 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
+import 'with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -316,15 +315,8 @@ f(p.C c) {
 /// Tests that show that extension declarations and the members inside them are
 /// resolved correctly.
 @reflectiveTest
-class ExtensionMethodsDeclarationWithNnbdTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class ExtensionMethodsDeclarationWithNnbdTest extends DriverResolutionTest
+    with WithNullSafetyMixin {
   test_this_type_interface() async {
     await assertNoErrorsInCode('''
 extension E on int {
@@ -484,15 +476,7 @@ extension on M {}
 
 @reflectiveTest
 class ExtensionMethodsExtendedTypeWithNnbdTest
-    extends ExtensionMethodsExtendedTypeTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-}
+    extends ExtensionMethodsExtendedTypeTest with WithNullSafetyMixin {}
 
 /// Tests that extension members can be correctly resolved when referenced
 /// by code external to the extension declaration.
@@ -1437,15 +1421,7 @@ extension E on Function {
 
 @reflectiveTest
 class ExtensionMethodsExternalReferenceWithNnbdTest
-    extends ExtensionMethodsExternalReferenceTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+    extends ExtensionMethodsExternalReferenceTest with WithNullSafetyMixin {
   test_instance_getter_fromInstance_Never() async {
     await assertNoErrorsInCode('''
 extension E on Never {
@@ -1615,10 +1591,10 @@ extension E on int {
 }
 
 f(int? a) {
-  a?.[0];
+  a?[0];
 }
 ''');
-    var index = findNode.index('a?.[0]');
+    var index = findNode.index('a?[0]');
     assertElement(index, findElement.method('[]'));
   }
 
@@ -2243,12 +2219,4 @@ extension E on C {
 
 @reflectiveTest
 class ExtensionMethodsInternalReferenceWithNnbdTest
-    extends ExtensionMethodsInternalReferenceTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-}
+    extends ExtensionMethodsInternalReferenceTest with WithNullSafetyMixin {}

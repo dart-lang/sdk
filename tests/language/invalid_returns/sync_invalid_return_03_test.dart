@@ -11,7 +11,7 @@ FutureOr<int?> test() {
   return;
 //^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] A value must be explicitly returned from a non-void function.
 }
 
 void main() {

@@ -61,7 +61,10 @@ group("runtime") {
   # TODO(bkonyi): this dep causes a segfault on Android XARM_X64 builds.
   # See issue #41776.
   if (dart_target_arch != "arm") {
-    deps += [ "utils/dartdev:dartdev" ]
+    deps += [
+      "utils/dartdev:dartdev",
+      "utils/dds:dds",
+    ]
   }
 }
 
@@ -148,4 +151,59 @@ group("observatory_archive") {
 
 group("compressed_observatory_archive") {
   deps = [ "runtime/observatory:copy_compressed_observatory_archive" ]
+}
+
+if (is_fuchsia) {
+  import("third_party/fuchsia/sdk/linux/build/component.gni")
+  import("third_party/fuchsia/sdk/linux/build/package.gni")
+
+  fuchsia_component("fuchsia_test_component") {
+    testonly = true
+    data_deps = [ "runtime/bin:dart" ]
+    manifest = "build/fuchsia/dart.cmx"
+
+    resource_files = [
+      ".packages",
+      "pkg/testing/test/hello_test.dart",
+    ]
+    resource_dirs = [
+      "tests/standalone",
+      "tests/language_2",
+      "pkg/async_helper",
+      "pkg/expect",
+      "pkg/meta",
+      "pkg/smith",
+      "third_party/pkg/args",
+      "third_party/pkg/async",
+      "third_party/pkg/collection",
+      "third_party/pkg/path",
+      "third_party/pkg/pool",
+      "third_party/pkg/stack_trace",
+    ]
+
+    resources = []
+    foreach(file, resource_files) {
+      resources += [
+        {
+          path = file
+          dest = "data/" + file
+        },
+      ]
+    }
+    resources +=
+        exec_script("tools/fuchsia/find_resources.py", resource_dirs, "json")
+  }
+
+  fuchsia_package("fuchsia_test_package") {
+    package_name = "dart_test_"
+    if (is_debug) {
+      package_name += "debug"
+    } else if (is_release) {
+      package_name += "release"
+    } else if (is_product) {
+      package_name += "product"
+    }
+    testonly = true
+    deps = [ ":fuchsia_test_component" ]
+  }
 }

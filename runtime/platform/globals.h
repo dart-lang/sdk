@@ -15,6 +15,14 @@
 #define FALL_THROUGH ((void)0)
 #endif
 
+#if defined(GOOGLE3)
+// google3 builds use NDEBUG to indicate non-debug builds which is different
+// from the way the Dart project expects it: DEBUG indicating a debug build.
+#if !defined(NDEBUG) && !defined(DEBUG)
+#define DEBUG
+#endif  // !NDEBUG && !DEBUG
+#endif  // GOOGLE3
+
 // __STDC_FORMAT_MACROS has to be defined before including <inttypes.h> to
 // enable platform independent printf format specifiers.
 #ifndef __STDC_FORMAT_MACROS
@@ -471,8 +479,10 @@ const int64_t kSignBitDouble = DART_INT64_C(0x8000000000000000);
 typedef intptr_t word;
 typedef uintptr_t uword;
 
-// Size of a class id.
-typedef uint16_t classid_t;
+// Size of a class id assigned to concrete, abstract and top-level classes.
+//
+// We use a signed integer type here to make it comparable with intptr_t.
+typedef int32_t classid_t;
 
 // Byte sizes.
 const int kWordSize = sizeof(word);

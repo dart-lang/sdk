@@ -419,8 +419,12 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
 
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
+    // TODO(#42403) Handle this option if dart2js supports non-nullable asserts
+    // on non-nullable method arguments.
+    var options = testFile.sharedOptions.toList();
+    options.remove('--null-assertions');
     return [
-      ...testFile.sharedOptions,
+      ...options,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       ...testFile.dart2jsOptions,
@@ -510,6 +514,11 @@ class DevCompilerConfiguration extends CompilerConfiguration {
   Command _createCommand(String inputFile, String outputFile,
       List<String> sharedOptions, Map<String, String> environment) {
     var args = <String>[];
+    // Remove option for generating non-null assertions for non-nullable
+    // method parameters in weak mode. DDC treats this as a runtime flag for
+    // the bootstrapping code, instead of a compiler option.
+    var options = sharedOptions.toList();
+    options.remove('--null-assertions');
     if (!_useSdk) {
       // If we're testing a built SDK, DDC will find its own summary.
       //
@@ -524,7 +533,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
           .toNativePath();
       args.addAll(["--dart-sdk-summary", sdkSummary]);
     }
-    args.addAll(sharedOptions);
+    args.addAll(options);
     args.addAll(_configuration.sharedOptions);
 
     args.addAll([
@@ -699,10 +708,19 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     var args = [
       if (_configuration.useElf) ...[
         "--snapshot-kind=app-aot-elf",
-        "--elf=$tempDir/out.aotsnapshot"
+        "--elf=$tempDir/out.aotsnapshot",
       ] else ...[
         "--snapshot-kind=app-aot-assembly",
-        "--assembly=$tempDir/out.S"
+        "--assembly=$tempDir/out.S",
+      ],
+      // Only splitting with a ELF to avoid having to setup compilation of
+      // multiple assembly files in the test harness. Only splitting tests of
+      // deferred imports because splitting currently requires disable bare
+      // instructions mode, and we want to continue testing bare instructions
+      // mode.
+      if (_configuration.useElf && arguments.last.contains("deferred")) ...[
+        "--loading-unit-manifest=$tempDir/ignored.json",
+        "--use-bare-instructions=false",
       ],
       if (_isAndroid && _isArm) '--no-sim-use-hardfp',
       if (_configuration.isMinified) '--obfuscate',
@@ -1179,8 +1197,12 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
   @override
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
+    // Remove shared option for generating non-null assertions for non-nullable
+    // method parameters in weak mode. It's currently unused by the front end.
+    var options = testFile.sharedOptions.toList();
+    options.remove('--null-assertions');
     var arguments = [
-      ...testFile.sharedOptions,
+      ...options,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       if (_configuration.configuration.nnbdMode == NnbdMode.strong) ...[

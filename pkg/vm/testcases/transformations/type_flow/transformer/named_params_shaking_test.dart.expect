@@ -15,7 +15,7 @@ abstract class TestNamedOrderBase extends core::Object {
   }
 }
 class TestNamedOrderSub extends self::TestNamedOrderBase {
-[@vm.inferred-type.metadata=int] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  field core::int* x;
+[@vm.inferred-type.metadata=int] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=(i)->i]  field core::int* x;
   constructor •() → self::TestNamedOrderSub*
     : self::TestNamedOrderSub::x = [@vm.inferred-type.metadata=int] self::dec(), dynamic #t5 = [@vm.inferred-type.metadata=int] self::inc(), dynamic #t6 = [@vm.inferred-type.metadata=int] self::inc(), dynamic #t7 = [@vm.inferred-type.metadata=int] self::inc(), dynamic #t8 = [@vm.inferred-type.metadata=int] self::dec(), super self::TestNamedOrderBase::•(#t5, #t8, #t7, #t6) {
     exp::Expect::equals([@vm.direct-call.metadata=#lib::TestNamedOrderSub.x] [@vm.inferred-type.metadata=int] this.{self::TestNamedOrderSub::x}, 0);

@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -23,7 +23,7 @@ class RenameToCamelCase extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.RENAME_TO_CAMEL_CASE;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     if (node is! SimpleIdentifier) {
       return;
     }
@@ -55,7 +55,7 @@ class RenameToCamelCase extends CorrectionProducer {
     }
 
     // Compute the change.
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       for (var reference in references) {
         builder.addSimpleReplacement(range.node(reference), _newName);
       }

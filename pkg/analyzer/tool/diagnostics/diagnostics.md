@@ -3439,6 +3439,9 @@ var x;
 
 ### invalid_null_aware_operator
 
+_The target expression can't be null because of short-circuiting, so the
+null-aware operator '{0}' can't be used._
+
 _The target expression can't be null, so the null-aware operator '{0}' can't be
 used._
 
@@ -8100,6 +8103,8 @@ void f() {
 {% endprettify %}
 
 ### unused_element
+
+_A value for optional parameter '{0}' isn't ever given._
 
 _The declaration '{0}' isn't referenced._
 

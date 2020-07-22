@@ -13,19 +13,18 @@ import 'package:analyzer/dart/element/element.dart';
 /// Computer for Flutter specific outlines.
 class FlutterOutlineComputer {
   final ResolvedUnitResult resolvedUnit;
-  Flutter flutter;
 
   final List<protocol.FlutterOutline> _depthFirstOrder = [];
 
   FlutterOutlineComputer(this.resolvedUnit);
+
+  Flutter get _flutter => Flutter.instance;
 
   protocol.FlutterOutline compute() {
     var dartOutline = DartUnitOutlineComputer(
       resolvedUnit,
       withBasicFlutter: false,
     ).compute();
-
-    flutter = Flutter.of(resolvedUnit);
 
     // Convert Dart outlines into Flutter outlines.
     var flutterDartOutline = _convert(dartOutline);
@@ -131,7 +130,7 @@ class FlutterOutlineComputer {
   /// a widget reference outline item.
   protocol.FlutterOutline _createOutline(Expression node, bool withGeneric) {
     var type = node.staticType;
-    if (!flutter.isWidgetType(type)) {
+    if (!_flutter.isWidgetType(type)) {
       return null;
     }
     var className = type.element.displayName;
@@ -140,9 +139,9 @@ class FlutterOutlineComputer {
       var attributes = <protocol.FlutterOutlineAttribute>[];
       var children = <protocol.FlutterOutline>[];
       for (var argument in node.argumentList.arguments) {
-        var isWidgetArgument = flutter.isWidgetType(argument.staticType);
+        var isWidgetArgument = _flutter.isWidgetType(argument.staticType);
         var isWidgetListArgument =
-            flutter.isListOfWidgetsType(argument.staticType);
+            _flutter.isListOfWidgetsType(argument.staticType);
 
         String parentAssociationLabel;
         Expression childrenExpression;

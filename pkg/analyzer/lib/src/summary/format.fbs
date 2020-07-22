@@ -414,13 +414,13 @@ enum LinkedNodeKind : byte {
 
 /// Kinds of [LinkedNodeType]s.
 enum LinkedNodeTypeKind : byte {
-  bottom,
-
   dynamic_,
 
   function,
 
   interface,
+
+  never,
 
   typeParameter,
 

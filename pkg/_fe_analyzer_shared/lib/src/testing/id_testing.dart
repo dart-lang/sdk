@@ -643,6 +643,20 @@ typedef Future<Map<String, TestResult<T>>> RunTestFunction<T>(TestData testData,
     Map<String, List<String>> skipMap,
     Uri nullUri});
 
+/// Compute the file: URI of the file located at `path`, where `path` is
+/// relative to the root of the SDK repository.
+///
+/// We find the root of the SDK repository by looking for the parent of the
+/// directory named `pkg`.
+Uri _fileUriFromSdkRoot(String path) {
+  Uri uri = Platform.script;
+  List<String> pathSegments = uri.pathSegments;
+  return uri.replace(pathSegments: [
+    ...pathSegments.sublist(0, pathSegments.lastIndexOf('pkg')),
+    ...path.split('/')
+  ]);
+}
+
 class MarkerOptions {
   final Map<String, Uri> markers;
 
@@ -669,7 +683,7 @@ class MarkerOptions {
       }
       String marker = line.substring(0, eqPos);
       String tester = line.substring(eqPos + 1);
-      File testerFile = new File(tester);
+      File testerFile = new File.fromUri(_fileUriFromSdkRoot(tester));
       if (!testerFile.existsSync()) {
         throw new ArgumentError(
             "Tester '$tester' does not exist for marker '$marker' in "

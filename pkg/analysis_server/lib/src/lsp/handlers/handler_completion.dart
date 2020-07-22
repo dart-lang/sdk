@@ -154,7 +154,7 @@ class CompletionHandler
       '$name/$declaringUri';
 
   Future<ErrorOr<List<CompletionItem>>> _getPluginResults(
-    TextDocumentClientCapabilitiesCompletion completionCapabilities,
+    CompletionClientCapabilities completionCapabilities,
     HashSet<CompletionItemKind> clientSupportedCompletionKinds,
     LineInfo lineInfo,
     String path,
@@ -177,7 +177,7 @@ class CompletionHandler
   }
 
   Future<ErrorOr<List<CompletionItem>>> _getServerItems(
-    TextDocumentClientCapabilitiesCompletion completionCapabilities,
+    CompletionClientCapabilities completionCapabilities,
     HashSet<CompletionItemKind> clientSupportedCompletionKinds,
     bool includeSuggestionSets,
     ResolvedUnitResult unit,
@@ -340,7 +340,7 @@ class CompletionHandler
   }
 
   Iterable<CompletionItem> _pluginResultsToItems(
-    TextDocumentClientCapabilitiesCompletion completionCapabilities,
+    CompletionClientCapabilities completionCapabilities,
     HashSet<CompletionItemKind> clientSupportedCompletionKinds,
     LineInfo lineInfo,
     List<plugin.CompletionGetSuggestionsResult> pluginResults,

@@ -29,7 +29,8 @@ class FormattingHandler
     }
 
     final unformattedSource = file.readAsStringSync();
-    return success(generateEditsForFormatting(unformattedSource));
+    return success(generateEditsForFormatting(
+        unformattedSource, server.clientConfiguration.lineLength));
   }
 
   @override

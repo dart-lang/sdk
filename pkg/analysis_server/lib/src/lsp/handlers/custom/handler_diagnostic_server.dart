@@ -24,6 +24,6 @@ class DiagnosticServerHandler
   Future<ErrorOr<DartDiagnosticServer>> handle(
       void _, CancellationToken token) async {
     final port = await server.diagnosticServer.getServerPort();
-    return success(DartDiagnosticServer(port));
+    return success(DartDiagnosticServer(port: port));
   }
 }

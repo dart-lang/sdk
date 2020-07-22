@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/executable_parameters.da
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -82,8 +82,8 @@ class _ChangeName extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CHANGE_ARGUMENT_NAME;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
-    await builder.addFileEdit(file, (builder) {
+  Future<void> compute(ChangeBuilder builder) async {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(range.node(_argumentName), _proposedName);
     });
   }

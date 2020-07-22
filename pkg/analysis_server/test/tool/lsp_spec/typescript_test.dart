@@ -242,6 +242,39 @@ export type DocumentSelector = DocumentFilter[];
       expect(typeAlias.baseType, isArrayOf(isSimpleType('DocumentFilter')));
     });
 
+    test('parses a type alias that is a union of unnamed types', () {
+      final input = '''
+export type NameOrLength = { name: string } | { length: number };
+    ''';
+      final output = parseString(input);
+      expect(output, hasLength(3));
+
+      // Results should be the two inline interfaces followed by the type alias.
+
+      expect(output[0], const TypeMatcher<InlineInterface>());
+      final InlineInterface interface1 = output[0];
+      expect(interface1.name, equals('NameOrLength1'));
+      expect(interface1.members, hasLength(1));
+      expect(interface1.members[0].name, equals('name'));
+
+      expect(output[1], const TypeMatcher<InlineInterface>());
+      final InlineInterface interface2 = output[1];
+      expect(interface2.name, equals('NameOrLength2'));
+      expect(interface2.members, hasLength(1));
+      expect(interface2.members[0].name, equals('length'));
+
+      expect(output[2], const TypeMatcher<TypeAlias>());
+      final TypeAlias typeAlias = output[2];
+      expect(typeAlias.name, equals('NameOrLength'));
+      expect(typeAlias.baseType, const TypeMatcher<UnionType>());
+
+      // The type alias should be a union of the two types above.
+      UnionType union = typeAlias.baseType;
+      expect(union.types, hasLength(2));
+      expect(union.types[0], isSimpleType(interface1.name));
+      expect(union.types[1], isSimpleType(interface2.name));
+    });
+
     test('parses a namespace of constants', () {
       final input = '''
 export namespace ResourceOperationKind {
@@ -320,6 +353,19 @@ interface SomeInformation {
       expect(field, const TypeMatcher<Field>());
       expect(field.name, equals('label'));
       expect(field.type, isSimpleType('object'));
+    });
+
+    test('parses multiple single-line comments into a single token', () {
+      final input = '''
+// This is line 1
+// This is line 2
+interface SomeInformation {
+}
+    ''';
+      final output = parseString(input);
+      expect(output, hasLength(1));
+      expect(output[0].commentNode.token.lexeme, equals('''// This is line 1
+// This is line 2'''));
     });
   });
 }

@@ -30,11 +30,8 @@ Future<void> main(List<String> args) async {
 
     {
       final result = await Process.run(dart, [
-        genKernel,
-        '--platform',
-        platformDill,
-        '-o',
-        dillPath,
+        '--snapshot-kind=kernel',
+        '--snapshot=$dillPath',
         sourcePath,
       ]);
       Expect.equals('', result.stderr);
@@ -57,8 +54,9 @@ Future<void> main(List<String> args) async {
       // tags (both UInt32).
       Expect.listEquals(tagComponentFile, bytes.sublist(0, 4));
       Expect.listEquals(tagBinaryFormatVersion, bytes.sublist(4, 8));
+      Expect.notEquals('0000000000', ascii.decode(bytes.sublist(8, 10)));
       // Flip the first byte in the hash:
-      bytes[8] ^= bytes[8];
+      bytes[8] = ~bytes[8];
       myFile.writeAsBytesSync(bytes);
     }
 

@@ -46,6 +46,53 @@ const MessageCode messageAbstractClassMember = const MessageCode(
         r"""Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractExtensionField = messageAbstractExtensionField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractExtensionField = const MessageCode(
+    "AbstractExtensionField",
+    message: r"""Extension fields can't be declared 'abstract'.""",
+    tip: r"""Try removing the 'abstract' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractExternalField = messageAbstractExternalField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractExternalField = const MessageCode(
+    "AbstractExternalField",
+    message: r"""Fields can't be declared both 'abstract' and 'external'.""",
+    tip: r"""Try removing the 'abstract' or 'external' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractFieldConstructorInitializer =
+    messageAbstractFieldConstructorInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractFieldConstructorInitializer = const MessageCode(
+    "AbstractFieldConstructorInitializer",
+    message: r"""Abstract fields cannot have initializers.""",
+    tip:
+        r"""Try removing the field initializer or the 'abstract' keyword from the field declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractFieldInitializer = messageAbstractFieldInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractFieldInitializer = const MessageCode(
+    "AbstractFieldInitializer",
+    message: r"""Abstract fields cannot have initializers.""",
+    tip: r"""Try removing the initializer or the 'abstract' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractLateField = messageAbstractLateField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractLateField = const MessageCode(
+    "AbstractLateField",
+    message: r"""Abstract fields cannot be late.""",
+    tip: r"""Try removing the 'abstract' or 'late' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAbstractNotSync = messageAbstractNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -80,6 +127,15 @@ Message _withArgumentsAbstractRedirectedClassInstantiation(String name) {
           """Factory redirects to class '${name}', which is abstract and can't be instantiated.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractStaticField = messageAbstractStaticField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractStaticField = const MessageCode(
+    "AbstractStaticField",
+    message: r"""Static fields can't be declared 'abstract'.""",
+    tip: r"""Try removing the 'abstract' or 'static' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateAccessError =
@@ -3271,6 +3327,35 @@ const MessageCode messageExternalField = const MessageCode("ExternalField",
         r"""Try removing the keyword 'external', or replacing the field by an external getter and/or setter.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalFieldConstructorInitializer =
+    messageExternalFieldConstructorInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalFieldConstructorInitializer = const MessageCode(
+    "ExternalFieldConstructorInitializer",
+    message: r"""External fields cannot have initializers.""",
+    tip:
+        r"""Try removing the field initializer or the 'external' keyword from the field declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalFieldInitializer = messageExternalFieldInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalFieldInitializer = const MessageCode(
+    "ExternalFieldInitializer",
+    message: r"""External fields cannot have initializers.""",
+    tip: r"""Try removing the initializer or the 'external' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalLateField = messageExternalLateField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalLateField = const MessageCode(
+    "ExternalLateField",
+    message: r"""External fields cannot be late.""",
+    tip: r"""Try removing the 'external' or 'late' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExternalMethodWithBody = messageExternalMethodWithBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5415,6 +5500,16 @@ const MessageCode messageJsInteropIndexNotSupported = const MessageCode(
     message:
         r"""JS interop classes do not support [] and []= operator methods.""",
     tip: r"""Try replacing with a normal method.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropNamedParameters = messageJsInteropNamedParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropNamedParameters = const MessageCode(
+    "JsInteropNamedParameters",
+    message:
+        r"""Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.""",
+    tip: r"""Try replacing them with normal or optional parameters.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropNonExternalConstructor =
@@ -7871,6 +7966,46 @@ const MessageCode messageStrongModeNNBDButOptOut = const MessageCode(
     "StrongModeNNBDButOptOut",
     message:
         r"""A library can't opt out of null safety by default, when using sound null safety.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        List<String>
+            _names)> templateStrongModeNNBDPackageOptOut = const Template<
+        Message Function(List<String> _names)>(
+    messageTemplate:
+        r"""Cannot run with sound null safety as one or more dependencies do not
+support null safety:
+
+#names
+
+Run 'pub outdated --mode=null-safety' to determine if versions of your
+dependencies supporting null safety are available.""",
+    withArguments: _withArgumentsStrongModeNNBDPackageOptOut);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(List<String> _names)>
+    codeStrongModeNNBDPackageOptOut =
+    const Code<Message Function(List<String> _names)>(
+  "StrongModeNNBDPackageOptOut",
+  templateStrongModeNNBDPackageOptOut,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsStrongModeNNBDPackageOptOut(List<String> _names) {
+  if (_names.isEmpty) throw 'No names provided';
+  String names = itemizeNames(_names);
+  return new Message(codeStrongModeNNBDPackageOptOut,
+      message:
+          """Cannot run with sound null safety as one or more dependencies do not
+support null safety:
+
+${names}
+
+Run 'pub outdated --mode=null-safety' to determine if versions of your
+dependencies supporting null safety are available.""",
+      arguments: {'names': _names});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperAsExpression = messageSuperAsExpression;

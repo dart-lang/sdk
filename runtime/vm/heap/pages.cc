@@ -1612,13 +1612,6 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
     grow_heap = 0;
   }
   heap_->RecordData(PageSpace::kPageGrowth, grow_heap);
-
-  // Limit shrinkage: allow growth by at least half the pages freed by GC.
-  const intptr_t freed_pages =
-      (before.CombinedUsedInWords() - after.CombinedUsedInWords()) /
-      kOldPageSizeInWords;
-  grow_heap = Utils::Maximum(grow_heap, freed_pages / 2);
-  heap_->RecordData(PageSpace::kAllowedGrowth, grow_heap);
   last_usage_ = after;
 
   RecordUpdate(before, after, grow_heap, "gc");

@@ -15,6 +15,8 @@ namespace dart {
 
 class WeakTable {
  public:
+  static constexpr intptr_t kNoValue = 0;
+
   WeakTable() : size_(kMinSize), used_(0), count_(0) {
     ASSERT(Utils::IsPowerOfTwo(size_));
     data_ = reinterpret_cast<intptr_t*>(calloc(size_, kEntrySize * kWordSize));
@@ -104,7 +106,7 @@ class WeakTable {
       obj = ObjectAtExclusive(idx);
     }
     ASSERT(ValueAtExclusive(idx) == 0);
-    return 0;
+    return kNoValue;
   }
 
   // Removes and returns the value associated with |key|. Returns 0 if there is
@@ -123,7 +125,7 @@ class WeakTable {
       obj = ObjectAtExclusive(idx);
     }
     ASSERT(ValueAtExclusive(idx) == 0);
-    return 0;
+    return kNoValue;
   }
 
   void Forward(ObjectPointerVisitor* visitor);

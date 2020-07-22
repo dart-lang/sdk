@@ -690,7 +690,7 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractValue computeAbstractValueForConstant(ConstantValue value) {
-    return computeTypeMask(_closedWorld, value);
+    return computeTypeMask(this, _closedWorld, value);
   }
 
   @override

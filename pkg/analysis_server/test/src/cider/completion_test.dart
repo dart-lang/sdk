@@ -69,25 +69,6 @@ main() {
     ]);
   }
 
-  Future<void> test_compute_performance_timers() async {
-    await _compute(r'''
-main() {
-  ^
-}
-''');
-
-    void assertTimerNotEmpty(Duration duration) {
-      expect(duration, isNotNull);
-      expect(duration, isNot(Duration.zero));
-    }
-
-    var performance = _completionResult.performance;
-    assertTimerNotEmpty(performance.file);
-    assertTimerNotEmpty(performance.imports);
-    assertTimerNotEmpty(performance.resolution);
-    assertTimerNotEmpty(performance.suggestions);
-  }
-
   Future<void> test_compute_prefixStart_hasPrefix() async {
     await _compute('''
 class A {
@@ -364,6 +345,20 @@ void foo() {
 ''');
 
     _assertHasGetter(text: 'isEven');
+  }
+
+  Future<void> test_partialResolution_hasPart() async {
+    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+class A {}
+''');
+
+    await _compute(r'''
+part 'a.dart';
+^
+''');
+
+    _assertHasClass(text: 'int');
+    _assertHasClass(text: 'A');
   }
 
   Future<void> test_warmUp_cachesImportedLibraries() async {

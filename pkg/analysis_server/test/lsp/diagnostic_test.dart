@@ -127,6 +127,61 @@ void f() {
     expect(updatedDiagnostics, hasLength(0));
   }
 
+  Future<void> test_diagnosticTag_deprecated() async {
+    newFile(mainFilePath, content: '''
+    @deprecated
+    int dep;
+
+    void main() => print(dep);
+    ''');
+
+    final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await initialize(
+        textDocumentCapabilities: withDiagnosticTagSupport(
+            emptyTextDocumentClientCapabilities, [DiagnosticTag.Deprecated]));
+    final diagnostics = await diagnosticsUpdate;
+    expect(diagnostics, hasLength(1));
+    final diagnostic = diagnostics.first;
+    expect(diagnostic.code, equals('deprecated_member_use_from_same_package'));
+    expect(diagnostic.tags, contains(DiagnosticTag.Deprecated));
+  }
+
+  Future<void> test_diagnosticTag_notSupported() async {
+    newFile(mainFilePath, content: '''
+    @deprecated
+    int dep;
+
+    void main() => print(dep);
+    ''');
+
+    final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await initialize();
+    final diagnostics = await diagnosticsUpdate;
+    expect(diagnostics, hasLength(1));
+    final diagnostic = diagnostics.first;
+    expect(diagnostic.code, equals('deprecated_member_use_from_same_package'));
+    expect(diagnostic.tags, isNull);
+  }
+
+  Future<void> test_diagnosticTag_unnecessary() async {
+    newFile(mainFilePath, content: '''
+    void main() {
+      return;
+      print('unreachable');
+    }
+    ''');
+
+    final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await initialize(
+        textDocumentCapabilities: withDiagnosticTagSupport(
+            emptyTextDocumentClientCapabilities, [DiagnosticTag.Unnecessary]));
+    final diagnostics = await diagnosticsUpdate;
+    expect(diagnostics, hasLength(1));
+    final diagnostic = diagnostics.first;
+    expect(diagnostic.code, equals('dead_code'));
+    expect(diagnostic.tags, contains(DiagnosticTag.Unnecessary));
+  }
+
   Future<void> test_dotFilesExcluded() async {
     var dotFolderFilePath =
         join(projectFolderPath, '.dart_tool', 'tool_file.dart');
@@ -139,7 +194,7 @@ void f() {
 
     // Send a request for a hover.
     await initialize();
-    await getHover(dotFolderFileUri, Position(0, 0));
+    await getHover(dotFolderFileUri, Position(line: 0, character: 0));
 
     // Ensure that as part of responding to getHover, diagnostics were not
     // transmitted.

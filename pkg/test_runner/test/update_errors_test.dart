@@ -15,7 +15,7 @@ import 'utils.dart';
 // here as significant, so we obfuscate them using seemingly-pointless string
 // escapes here like `\/`.
 
-Future<void> main() async {
+void main() {
   // Inserts analyzer, CFE, and both errors.
   expectUpdate("""
 int i = "bad";
@@ -287,7 +287,7 @@ someBadCode();
 /\/ [cfe] Wrong 1.
 """);
 
-  // Don't crash with RangeError.
+  // Doesn't crash with RangeError.
   expectUpdate("""
 x
 // [error line 1, column 1, length 0]

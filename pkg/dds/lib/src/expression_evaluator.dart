@@ -76,7 +76,7 @@ class _ExpressionEvaluator {
         return (await externalClient.sendRequest(
           'compileExpression',
           compileParams,
-        ))['result']['kernelBytes'];
+        ))['kernelBytes'];
       } else {
         // Fallback to compiling using the kernel service.
         return (await dds._vmServiceClient.sendRequest(

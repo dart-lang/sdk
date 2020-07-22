@@ -188,12 +188,12 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   static EventStreamProvider<KeyEvent> keyPressEvent =
       new _KeyboardEventHandler('keypress');
 
-  String get code => _parent.code;
+  String get code => _parent.code!;
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;
-  int get detail => _parent.detail;
-  bool get isComposing => _parent.isComposing;
-  String get key => _parent.key;
+  int get detail => _parent.detail!;
+  bool get isComposing => _parent.isComposing!;
+  String get key => _parent.key!;
   /**
    * Accessor to the part of the keyboard that the key was pressed from (one of
    * KeyLocation.STANDARD, KeyLocation.RIGHT, KeyLocation.LEFT,

@@ -387,6 +387,13 @@ class TypeInferrerImpl implements TypeInferrer {
   /// [contextType], and inserts an implicit downcast, inserts a tear-off, or
   /// reports an error if appropriate.
   ///
+  /// If [declaredContextType] is provided, this is used instead of
+  /// [contextType] for reporting the type against which [expressionType] isn't
+  /// assignable. This is used when checking the assignability of return
+  /// statements in async functions in which the assignability is checked
+  /// against the future value type but the reporting should refer to the
+  /// declared return type.
+  ///
   /// If [runtimeCheckedType] is provided, this is used for the implicit cast,
   /// otherwise [contextType] is used. This is used for return from async
   /// where the returned expression is wrapped in a `Future`, if necessary,
@@ -395,6 +402,7 @@ class TypeInferrerImpl implements TypeInferrer {
   Expression ensureAssignable(
       DartType contextType, DartType expressionType, Expression expression,
       {int fileOffset,
+      DartType declaredContextType,
       DartType runtimeCheckedType,
       bool isVoidAllowed: false,
       Template<Message Function(DartType, DartType, bool)> errorTemplate}) {
@@ -444,8 +452,8 @@ class TypeInferrerImpl implements TypeInferrer {
         break;
       case AssignabilityKind.unassignable:
         // Error: not assignable.  Perform error recovery.
-        result = _wrapUnassignableExpression(
-            expression, expressionType, contextType, errorTemplate);
+        result = _wrapUnassignableExpression(expression, expressionType,
+            contextType, declaredContextType, errorTemplate);
         break;
       case AssignabilityKind.unassignableVoid:
         // Error: not assignable.  Perform error recovery.
@@ -465,8 +473,12 @@ class TypeInferrerImpl implements TypeInferrer {
       case AssignabilityKind.unassignableTearoff:
         TypedTearoff typedTearoff =
             _tearOffCall(expression, expressionType, fileOffset);
-        result = _wrapUnassignableExpression(typedTearoff.tearoff,
-            typedTearoff.tearoffType, contextType, errorTemplate);
+        result = _wrapUnassignableExpression(
+            typedTearoff.tearoff,
+            typedTearoff.tearoffType,
+            contextType,
+            declaredContextType,
+            errorTemplate);
         break;
       case AssignabilityKind.unassignableCantTearoff:
         result = _wrapTearoffErrorExpression(
@@ -505,6 +517,7 @@ class TypeInferrerImpl implements TypeInferrer {
       Expression expression,
       DartType expressionType,
       DartType contextType,
+      DartType declaredContextType,
       Template<Message Function(DartType, DartType, bool)> template) {
     Expression errorNode = new AsExpression(
         expression,
@@ -520,7 +533,9 @@ class TypeInferrerImpl implements TypeInferrer {
       errorNode = helper.wrapInProblem(
           errorNode,
           (template ?? templateInvalidAssignmentError).withArguments(
-              expressionType, contextType, isNonNullableByDefault),
+              expressionType,
+              declaredContextType ?? contextType,
+              isNonNullableByDefault),
           errorNode.fileOffset,
           noLength);
     }
@@ -845,7 +860,8 @@ class TypeInferrerImpl implements TypeInferrer {
       }
       if (includeExtensionMethods) {
         ObjectAccessTarget target = _findExtensionMember(
-            receiverBound, coreTypes.objectClass, name, fileOffset);
+            receiverBound, coreTypes.objectClass, name, fileOffset,
+            setter: setter);
         if (target != null) {
           return target;
         }
@@ -1587,7 +1603,7 @@ class TypeInferrerImpl implements TypeInferrer {
             messageVoidExpression, expression.fileOffset, noLength);
       }
     }
-    if (result.inferredType is NeverType) {
+    if (coreTypes.isBottom(result.inferredType)) {
       flowAnalysis.handleExit();
     }
     return result;
@@ -1747,7 +1763,6 @@ class TypeInferrerImpl implements TypeInferrer {
       Arguments arguments,
       List<VariableDeclaration> hoistedExpressions,
       {bool isOverloadedArithmeticOperator: false,
-      bool isBinaryOperator: false,
       DartType receiverType,
       DartType returnType,
       bool skipTypeArgumentInference: false,
@@ -2016,6 +2031,10 @@ class TypeInferrerImpl implements TypeInferrer {
         !containsFreeFunctionTypeVariables(inferredType),
         "Inferred return type $inferredType contains free variables."
         "Inferred function type: $calleeType.");
+
+    if (!isNonNullableByDefault) {
+      inferredType = legacyErasure(coreTypes, inferredType);
+    }
 
     return new SuccessfulInferenceResult(inferredType);
   }

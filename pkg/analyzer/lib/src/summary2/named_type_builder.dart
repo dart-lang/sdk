@@ -6,10 +6,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_visitor.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:meta/meta.dart';
@@ -60,6 +63,16 @@ class NamedTypeBuilder extends TypeBuilder {
 
     return NamedTypeBuilder(typeSystem, element, arguments, nullabilitySuffix,
         node: node);
+  }
+
+  @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    if (visitor is LinkingTypeVisitor<R>) {
+      var visitor2 = visitor as LinkingTypeVisitor<R>;
+      return visitor2.visitNamedTypeBuilder(this);
+    } else {
+      throw StateError('Should not happen outside linking.');
+    }
   }
 
   @override
@@ -191,15 +204,7 @@ class NamedTypeBuilder extends TypeBuilder {
   }) {
     var returnType = _buildNodeType(returnTypeNode);
     var typeParameters = _typeParameters(typeParameterList);
-
-    var formalParameters = parameterList.parameters.map((parameter) {
-      return ParameterElementImpl.synthetic(
-        parameter.identifier?.name ?? '',
-        _buildFormalParameterType(parameter),
-        // ignore: deprecated_member_use_from_same_package
-        parameter.kind,
-      );
-    }).toList();
+    var formalParameters = _formalParameters(parameterList);
 
     return FunctionTypeImpl(
       typeFormals: typeParameters,
@@ -228,6 +233,16 @@ class NamedTypeBuilder extends TypeBuilder {
     } else {
       return _buildType(node.type);
     }
+  }
+
+  List<ParameterElementImpl> _formalParameters(FormalParameterList node) {
+    return node.parameters.asImpl.map((parameter) {
+      return ParameterElementImpl.synthetic(
+        parameter.identifier?.name ?? '',
+        _buildFormalParameterType(parameter),
+        parameter.kind,
+      );
+    }).toList();
   }
 
   NullabilitySuffix _getNullabilitySuffix(bool hasQuestion) {

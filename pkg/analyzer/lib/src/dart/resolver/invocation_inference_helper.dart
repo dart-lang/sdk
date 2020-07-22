@@ -217,7 +217,7 @@ class InvocationInferenceHelper {
       expression.staticType = DynamicTypeImpl.instance;
     } else {
       expression.staticType = type;
-      if (identical(type, NeverTypeImpl.instance)) {
+      if (_typeSystem.isBottom(type)) {
         _flowAnalysis?.flow?.handleExit();
       }
     }

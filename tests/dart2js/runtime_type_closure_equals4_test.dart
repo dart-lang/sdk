@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2jsOptions=--strong
-
 import 'package:expect/expect.dart';
 
 class Class1<T> {
@@ -21,9 +19,9 @@ class Class2<T> {
 }
 
 main() {
-  var c = new Class1<int>();
+  var c = Class1<int>();
 
   Expect.isTrue(c.method1a.runtimeType == c.method1b.runtimeType);
   Expect.isFalse(c.method1a.runtimeType == c.method2.runtimeType);
-  new Class2<int>();
+  Class2<int>();
 }

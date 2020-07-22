@@ -384,7 +384,9 @@ class IsolateReloadContext {
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context_;
   Isolate* isolate_;
   intptr_t saved_num_cids_ = -1;
+  intptr_t saved_num_tlc_cids_ = -1;
   std::atomic<ClassPtr*> saved_class_table_;
+  std::atomic<ClassPtr*> saved_tlc_class_table_;
   MallocGrowableArray<LibraryInfo> library_infos_;
 
   ClassPtr OldClassOrNull(const Class& replacement_or_new);

@@ -11,3 +11,10 @@ double getDoubleWithHeapObjectTag() {
   final double v = bd.getFloat64(0, Endian.host);
   return v;
 }
+
+// Make an integer that would look like an object pointer (irrespective of
+// we compile to 32-bit or 64-bit and whether we use little or big endian
+// encoding of the integer).
+int get integerFieldValue =>
+    int.parse('1') == 1 ? constIntegerFieldValue : 0x8000900180009001;
+const int constIntegerFieldValue = 0x8000000180000001;

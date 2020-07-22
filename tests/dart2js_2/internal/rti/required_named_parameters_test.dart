@@ -51,11 +51,11 @@ main() {
 
   // Subtype may not redeclare optional parameters as required
   rti2 = rti.testingUniverseEval(universe, "@(A,{a!A,b!A,c!A})");
-  Expect.isFalse(rti.testingIsSubtype(universe, rti2, rti1));
+  Expect.equals(isWeakMode, rti.testingIsSubtype(universe, rti2, rti1));
 
   // Subtype may not declare new required named parameters
   rti2 = rti.testingUniverseEval(universe, "@(A,{a!A,b:A,c!A,d!A})");
-  Expect.isFalse(rti.testingIsSubtype(universe, rti2, rti1));
+  Expect.equals(isWeakMode, rti.testingIsSubtype(universe, rti2, rti1));
 
   // Rti.toString() appears as expected
   Expect.equals('(B, {required B a, B b, required B c}) => dynamic',

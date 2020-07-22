@@ -576,6 +576,30 @@ class E extends D {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_class_type_param_bound_references_class() async {
+    var content = '''
+class Node<T extends Node<T>> {
+  final List<T> nodes = <T>[];
+}
+class C extends Node<C> {}
+main() {
+  var x = C();
+  x.nodes.add(x);
+}
+''';
+    var expected = '''
+class Node<T extends Node<T>> {
+  final List<T> nodes = <T>[];
+}
+class C extends Node<C> {}
+main() {
+  var x = C();
+  x.nodes.add(x);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_class_with_default_constructor() async {
     var content = '''
 void main() => f(Foo());

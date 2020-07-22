@@ -14,7 +14,7 @@ import '../helpers/memory_compiler.dart';
 
 const List<Test> TESTS = const <Test>[
   const Test('Empty js-interop class.', '''
-@JS() 
+@JS()
 library test;
 
 import 'package:js/js.dart';
@@ -81,19 +81,6 @@ class A {
 
 main() => new A();
 '''),
-  const Test('Js-interop class with external method with named parameters.', '''
-@JS()
-library test;
-
-import 'package:js/js.dart';
-
-@JS()
-class A {
-  external method({a, b});
-}
-
-main() => new A();
-''', errors: const [MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS]),
   const Test('Js-interop class with static method.', '''
 @JS()
 library test;

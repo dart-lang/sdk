@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -20,13 +18,8 @@ main() {
 }
 
 @reflectiveTest
-class InvalidUseOfNullValueTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    );
-
+class InvalidUseOfNullValueTest extends DriverResolutionTest
+    with WithNullSafetyMixin {
   test_as() async {
     await assertNoErrorsInCode(r'''
 m() {
@@ -132,16 +125,7 @@ m(bool cond) {
 
 @reflectiveTest
 class UncheckedUseOfNullableValueInsideExtensionTest
-    extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    );
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+    extends DriverResolutionTest with WithNullSafetyMixin {
   test_indexExpression_nonNullable() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -171,15 +155,15 @@ class A {
 extension E on A? {
   void bar() {
     this[0];
-    this?.[0];
+    this?[0];
 
     this[0] = 0;
-    this?.[0] = 0;
+    this?[0] = 0;
   }
 }
 ''', [
       error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 126, 4),
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 155, 4),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 154, 4),
     ]);
   }
 
@@ -346,16 +330,8 @@ extension E on A? {
 }
 
 @reflectiveTest
-class UncheckedUseOfNullableValueTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    );
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class UncheckedUseOfNullableValueTest extends DriverResolutionTest
+    with WithNullSafetyMixin {
   test_and_nonNullable() async {
     await assertNoErrorsInCode(r'''
 m() {

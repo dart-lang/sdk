@@ -9,14 +9,14 @@ import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class AssignToLocalVariable extends CorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     // prepare enclosing ExpressionStatement
     ExpressionStatement expressionStatement;
     // ignore: unnecessary_this
@@ -32,7 +32,8 @@ class AssignToLocalVariable extends CorrectionProducer {
         return;
       }
     }
-    if (expressionStatement == null) {
+    if (expressionStatement == null ||
+        _hasPrecedingStatementRecovery(expressionStatement)) {
       return;
     }
     // prepare expression
@@ -52,7 +53,7 @@ class AssignToLocalVariable extends CorrectionProducer {
         getVariableNameSuggestionsForExpression(type, expression, excluded);
 
     if (suggestions.isNotEmpty) {
-      await builder.addFileEdit(file, (builder) {
+      await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(offset, (builder) {
           builder.write('var ');
           builder.addSimpleLinkedEdit('NAME', suggestions[0],
@@ -66,4 +67,25 @@ class AssignToLocalVariable extends CorrectionProducer {
 
   /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
   static AssignToLocalVariable newInstance() => AssignToLocalVariable();
+
+  /// Return `true` if the given [statement] resulted from a recovery case that
+  /// would make the change create even worse errors than the original code.
+  static bool _hasPrecedingStatementRecovery(Statement statement) {
+    var parent = statement.parent;
+    if (parent is Block) {
+      var statements = parent.statements;
+      var index = statements.indexOf(statement);
+      if (index > 0) {
+        var precedingStatement = statements[index - 1];
+        if (precedingStatement is ExpressionStatement &&
+            precedingStatement.semicolon.isSynthetic) {
+          return true;
+        } else if (precedingStatement is VariableDeclarationStatement &&
+            precedingStatement.semicolon.isSynthetic) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 }

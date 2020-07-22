@@ -40,7 +40,7 @@ Tossing their heads in sprightly dance.
 
 var _var3 = <int>[Foo().a, (Foo()..a).a];
 
-/*member: Foo.:[]*/
+/*member: Foo.:[_var3:Foo]*/
 class Foo {
   int z = 99;
   /*member: Foo.a:[_var3]*/

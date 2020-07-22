@@ -116,77 +116,93 @@ class ServerCapabilitiesComputer {
     // list of what files types we support (and allows them to avoid sending
     // requests where we have only partial support for some types).
     return ServerCapabilities(
-        dynamicRegistrations.textSync
-            ? null
-            : Either2<TextDocumentSyncOptions, num>.t1(TextDocumentSyncOptions(
-                // The open/close and sync kind flags are registered dynamically if the
-                // client supports them, so these static registrations are based on whether
-                // the client supports dynamic registration.
-                true,
-                TextDocumentSyncKind.Incremental,
-                false,
-                false,
-                null,
-              )),
-        dynamicRegistrations.hover ? null : true, // hoverProvider
-        dynamicRegistrations.completion
-            ? null
-            : CompletionOptions(
-                true, // resolveProvider
-                dartCompletionTriggerCharacters,
-              ),
-        dynamicRegistrations.signatureHelp
-            ? null
-            : SignatureHelpOptions(
-                dartSignatureHelpTriggerCharacters,
-              ),
-        dynamicRegistrations.definition ? null : true, // definitionProvider
-        null,
-        dynamicRegistrations.implementation
-            ? null
-            : true, // implementationProvider
-        dynamicRegistrations.references ? null : true, // referencesProvider
-        dynamicRegistrations.documentHighlights
-            ? null
-            : true, // documentHighlightProvider
-        dynamicRegistrations.documentSymbol
-            ? null
-            : true, // documentSymbolProvider
-        true, // workspaceSymbolProvider
-        // "The `CodeActionOptions` return type is only valid if the client
-        // signals code action literal support via the property
-        // `textDocument.codeAction.codeActionLiteralSupport`."
-        dynamicRegistrations.codeActions
-            ? null
-            : codeActionLiteralSupport != null
-                ? Either2<bool, CodeActionOptions>.t2(
-                    CodeActionOptions(DartCodeActionKind.serverSupportedKinds))
-                : Either2<bool, CodeActionOptions>.t1(true),
-        null,
-        dynamicRegistrations.formatting
-            ? null
-            : enableFormatter, // documentFormattingProvider
-        false, // documentRangeFormattingProvider
-        dynamicRegistrations.typeFormatting
-            ? null
-            : enableFormatter
-                ? DocumentOnTypeFormattingOptions(
-                    dartTypeFormattingCharacters.first,
-                    dartTypeFormattingCharacters.skip(1).toList())
-                : null,
-        dynamicRegistrations.rename
-            ? null
-            : renameOptionsSupport
-                ? Either2<bool, RenameOptions>.t2(RenameOptions(true))
-                : Either2<bool, RenameOptions>.t1(true),
-        null,
-        null,
-        dynamicRegistrations.folding ? null : true, // foldingRangeProvider
-        null, // declarationProvider
-        ExecuteCommandOptions(Commands.serverSupportedCommands),
-        ServerCapabilitiesWorkspace(
-            ServerCapabilitiesWorkspaceFolders(true, true)),
-        null);
+      textDocumentSync: dynamicRegistrations.textSync
+          ? null
+          : Either2<TextDocumentSyncOptions, num>.t1(TextDocumentSyncOptions(
+              // The open/close and sync kind flags are registered dynamically if the
+              // client supports them, so these static registrations are based on whether
+              // the client supports dynamic registration.
+              openClose: true,
+              change: TextDocumentSyncKind.Incremental,
+              willSave: false,
+              willSaveWaitUntil: false,
+              save: null,
+            )),
+      completionProvider: dynamicRegistrations.completion
+          ? null
+          : CompletionOptions(
+              triggerCharacters: dartCompletionTriggerCharacters,
+              resolveProvider: true,
+            ),
+      hoverProvider: dynamicRegistrations.hover
+          ? null
+          : Either2<bool, HoverOptions>.t1(true),
+      signatureHelpProvider: dynamicRegistrations.signatureHelp
+          ? null
+          : SignatureHelpOptions(
+              triggerCharacters: dartSignatureHelpTriggerCharacters,
+            ),
+      definitionProvider: dynamicRegistrations.definition
+          ? null
+          : Either2<bool, DefinitionOptions>.t1(true),
+      implementationProvider: dynamicRegistrations.implementation
+          ? null
+          : Either3<bool, ImplementationOptions,
+              ImplementationRegistrationOptions>.t1(
+              true,
+            ),
+      referencesProvider: dynamicRegistrations.references
+          ? null
+          : Either2<bool, ReferenceOptions>.t1(true),
+      documentHighlightProvider: dynamicRegistrations.documentHighlights
+          ? null
+          : Either2<bool, DocumentHighlightOptions>.t1(true),
+      documentSymbolProvider: dynamicRegistrations.documentSymbol
+          ? null
+          : Either2<bool, DocumentSymbolOptions>.t1(true),
+      // "The `CodeActionOptions` return type is only valid if the client
+      // signals code action literal support via the property
+      // `textDocument.codeAction.codeActionLiteralSupport`."
+      codeActionProvider: dynamicRegistrations.codeActions
+          ? null
+          : codeActionLiteralSupport != null
+              ? Either2<bool, CodeActionOptions>.t2(CodeActionOptions(
+                  codeActionKinds: DartCodeActionKind.serverSupportedKinds,
+                ))
+              : Either2<bool, CodeActionOptions>.t1(true),
+      documentFormattingProvider: dynamicRegistrations.formatting
+          ? null
+          : Either2<bool, DocumentFormattingOptions>.t1(enableFormatter),
+      documentOnTypeFormattingProvider: dynamicRegistrations.typeFormatting
+          ? null
+          : enableFormatter
+              ? DocumentOnTypeFormattingOptions(
+                  firstTriggerCharacter: dartTypeFormattingCharacters.first,
+                  moreTriggerCharacter:
+                      dartTypeFormattingCharacters.skip(1).toList())
+              : null,
+      renameProvider: dynamicRegistrations.rename
+          ? null
+          : renameOptionsSupport
+              ? Either2<bool, RenameOptions>.t2(
+                  RenameOptions(prepareProvider: true))
+              : Either2<bool, RenameOptions>.t1(true),
+      foldingRangeProvider: dynamicRegistrations.folding
+          ? null
+          : Either3<bool, FoldingRangeOptions,
+              FoldingRangeRegistrationOptions>.t1(
+              true,
+            ),
+      executeCommandProvider: ExecuteCommandOptions(
+        commands: Commands.serverSupportedCommands,
+      ),
+      workspaceSymbolProvider: true,
+      workspace: ServerCapabilitiesWorkspace(
+          workspaceFolders: WorkspaceFoldersServerCapabilities(
+        supported: true,
+        changeNotifications: Either2<String, bool>.t2(true),
+      )),
+    );
   }
 
   /// If the client supports dynamic registrations we can tell it what methods
@@ -197,17 +213,18 @@ class ServerCapabilitiesComputer {
   /// support and it will be up to them to decide which file types they will
   /// send requests for.
   Future<void> performDynamicRegistration() async {
-    final dartFiles = DocumentFilter('dart', 'file', null);
-    final pubspecFile = DocumentFilter('yaml', 'file', '**/pubspec.yaml');
-    final analysisOptionsFile =
-        DocumentFilter('yaml', 'file', '**/analysis_options.yaml');
+    final dartFiles = DocumentFilter(language: 'dart', scheme: 'file');
+    final pubspecFile = DocumentFilter(
+        language: 'yaml', scheme: 'file', pattern: '**/pubspec.yaml');
+    final analysisOptionsFile = DocumentFilter(
+        language: 'yaml', scheme: 'file', pattern: '**/analysis_options.yaml');
 
     final pluginTypes = _server.pluginManager.plugins
         .expand((plugin) => plugin.currentSession?.interestingFiles ?? const [])
         // All published plugins use something like `*.extension` as
         // interestingFiles. Prefix a `**/` so that the glob matches nested
         // folders as well.
-        .map((glob) => DocumentFilter(null, 'file', '**/$glob'));
+        .map((glob) => DocumentFilter(scheme: 'file', pattern: '**/$glob'));
 
     final allTypes = {dartFiles, ...pluginTypes}.toList();
 
@@ -230,7 +247,9 @@ class ServerCapabilitiesComputer {
     void register(bool condition, Method method, [ToJsonable options]) {
       if (condition == true) {
         registrations.add(Registration(
-            (_lastRegistrationId++).toString(), method.toJson(), options));
+            id: (_lastRegistrationId++).toString(),
+            method: method.toJson(),
+            registerOptions: options));
       }
     }
 
@@ -240,94 +259,99 @@ class ServerCapabilitiesComputer {
     register(
       dynamicRegistrations.textSync,
       Method.textDocument_didOpen,
-      TextDocumentRegistrationOptions(allSynchronisedTypes),
+      TextDocumentRegistrationOptions(documentSelector: allSynchronisedTypes),
     );
     register(
       dynamicRegistrations.textSync,
       Method.textDocument_didClose,
-      TextDocumentRegistrationOptions(allSynchronisedTypes),
+      TextDocumentRegistrationOptions(documentSelector: allSynchronisedTypes),
     );
     register(
       dynamicRegistrations.textSync,
       Method.textDocument_didChange,
       TextDocumentChangeRegistrationOptions(
-          TextDocumentSyncKind.Incremental, allSynchronisedTypes),
+          syncKind: TextDocumentSyncKind.Incremental,
+          documentSelector: allSynchronisedTypes),
     );
     register(
       dynamicRegistrations.completion,
       Method.textDocument_completion,
       CompletionRegistrationOptions(
-        dartCompletionTriggerCharacters,
-        null,
-        true,
-        allTypes,
+        documentSelector: allTypes,
+        triggerCharacters: dartCompletionTriggerCharacters,
+        resolveProvider: true,
       ),
     );
     register(
       dynamicRegistrations.hover,
       Method.textDocument_hover,
-      TextDocumentRegistrationOptions(allTypes),
+      TextDocumentRegistrationOptions(documentSelector: allTypes),
     );
     register(
       dynamicRegistrations.signatureHelp,
       Method.textDocument_signatureHelp,
       SignatureHelpRegistrationOptions(
-          dartSignatureHelpTriggerCharacters, allTypes),
+        documentSelector: allTypes,
+        triggerCharacters: dartSignatureHelpTriggerCharacters,
+      ),
     );
     register(
       dynamicRegistrations.references,
       Method.textDocument_references,
-      TextDocumentRegistrationOptions(allTypes),
+      TextDocumentRegistrationOptions(documentSelector: allTypes),
     );
     register(
       dynamicRegistrations.documentHighlights,
       Method.textDocument_documentHighlight,
-      TextDocumentRegistrationOptions(allTypes),
+      TextDocumentRegistrationOptions(documentSelector: allTypes),
     );
     register(
       dynamicRegistrations.documentSymbol,
       Method.textDocument_documentSymbol,
-      TextDocumentRegistrationOptions(allTypes),
+      TextDocumentRegistrationOptions(documentSelector: allTypes),
     );
     register(
       enableFormatter && dynamicRegistrations.formatting,
       Method.textDocument_formatting,
-      TextDocumentRegistrationOptions(allTypes),
+      TextDocumentRegistrationOptions(documentSelector: allTypes),
     );
     register(
       enableFormatter && dynamicRegistrations.typeFormatting,
       Method.textDocument_onTypeFormatting,
       DocumentOnTypeFormattingRegistrationOptions(
-        dartTypeFormattingCharacters.first,
-        dartTypeFormattingCharacters.skip(1).toList(),
-        [dartFiles], // This one is currently Dart-specific
+        documentSelector: [dartFiles], // This one is currently Dart-specific
+        firstTriggerCharacter: dartTypeFormattingCharacters.first,
+        moreTriggerCharacter: dartTypeFormattingCharacters.skip(1).toList(),
       ),
     );
     register(
       dynamicRegistrations.definition,
       Method.textDocument_definition,
-      TextDocumentRegistrationOptions(allTypes),
+      TextDocumentRegistrationOptions(documentSelector: allTypes),
     );
     register(
       dynamicRegistrations.implementation,
       Method.textDocument_implementation,
-      TextDocumentRegistrationOptions(allTypes),
+      TextDocumentRegistrationOptions(documentSelector: allTypes),
     );
     register(
       dynamicRegistrations.codeActions,
       Method.textDocument_codeAction,
       CodeActionRegistrationOptions(
-          allTypes, DartCodeActionKind.serverSupportedKinds),
+        documentSelector: allTypes,
+        codeActionKinds: DartCodeActionKind.serverSupportedKinds,
+      ),
     );
     register(
       dynamicRegistrations.rename,
       Method.textDocument_rename,
-      RenameRegistrationOptions(true, allTypes),
+      RenameRegistrationOptions(
+          documentSelector: allTypes, prepareProvider: true),
     );
     register(
       dynamicRegistrations.folding,
       Method.textDocument_foldingRange,
-      TextDocumentRegistrationOptions(allTypes),
+      TextDocumentRegistrationOptions(documentSelector: allTypes),
     );
     register(
       dynamicRegistrations.didChangeConfiguration,
@@ -358,8 +382,8 @@ class ServerCapabilitiesComputer {
           registration.registerOptions;
 
       if (entryRemovedOrChanged) {
-        removedRegistrations
-            .add(Unregistration(registration.id, registration.method));
+        removedRegistrations.add(
+            Unregistration(id: registration.id, method: registration.method));
       } else {
         // Replace the registration in our new set with the original registration
         // so that we retain the original ID sent to the client (otherwise we
@@ -373,7 +397,7 @@ class ServerCapabilitiesComputer {
 
     if (removedRegistrations.isNotEmpty) {
       await _server.sendRequest(Method.client_unregisterCapability,
-          UnregistrationParams(removedRegistrations));
+          UnregistrationParams(unregisterations: removedRegistrations));
     }
 
     // Only send the registration request if we have at least one (since
@@ -381,7 +405,7 @@ class ServerCapabilitiesComputer {
     if (additionalRegistrations.isNotEmpty) {
       final registrationResponse = await _server.sendRequest(
         Method.client_registerCapability,
-        RegistrationParams(additionalRegistrations),
+        RegistrationParams(registrations: additionalRegistrations),
       );
 
       if (registrationResponse.error != null) {

@@ -6,9 +6,8 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -20,7 +19,7 @@ class ReplaceWithVar extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REPLACE_WITH_VAR;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var type = _findType(node);
     if (type == null) {
       return;
@@ -63,7 +62,7 @@ class ReplaceWithVar extends CorrectionProducer {
         //  this in more places by examining the elements of the collection.
         return;
       }
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
         if (parent.isConst || parent.isFinal) {
           builder.addDeletion(range.startStart(type, variables[0]));
         } else {
@@ -84,7 +83,7 @@ class ReplaceWithVar extends CorrectionProducer {
           typeArgumentsOffset = iterable.offset;
         }
       }
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
         if (parent.isConst || parent.isFinal) {
           builder.addDeletion(range.startStart(type, parent.identifier));
         } else {
@@ -127,12 +126,10 @@ class ReplaceWithVar extends CorrectionProducer {
           return false;
         }
         final iterableType = parent.iterable.staticType;
-        if (iterableType is InterfaceTypeImpl) {
-          var instantiatedType =
-              iterableType.asInstanceOf(typeProvider.iterableElement);
-          if (instantiatedType?.typeArguments?.first == staticType) {
-            return true;
-          }
+        var instantiatedType =
+            iterableType.asInstanceOf(typeProvider.iterableElement);
+        if (instantiatedType?.typeArguments?.first == staticType) {
+          return true;
         }
         return false;
       }

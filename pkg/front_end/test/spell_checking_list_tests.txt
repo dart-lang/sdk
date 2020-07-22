@@ -56,6 +56,7 @@ benchmark
 besides
 beta
 bigger
+bkonyi
 blah
 blindly
 blocked
@@ -118,6 +119,7 @@ coo
 cov
 crashes
 cumulative
+cx
 dacoharkes
 dadd
 daemon
@@ -128,6 +130,7 @@ dash
 dashes
 day
 db
+dds
 debugger
 decrease
 decrements
@@ -160,6 +163,7 @@ discovering
 dispatcher
 dispose
 dist
+divergent
 doctype
 doesnt
 dog
@@ -204,6 +208,7 @@ faking
 falling
 favors
 fetched
+fi
 fibonacci
 filesystem
 filler
@@ -241,6 +246,7 @@ fox
 fulfill
 func
 futures
+fx
 gallery
 gamma
 gave
@@ -409,6 +415,7 @@ optimal
 oracle
 outbound
 overlay
+pack
 party
 pause
 paused
@@ -497,6 +504,7 @@ slight
 smoke
 somehow
 spans
+spawn
 spell
 spellcheck
 spelled

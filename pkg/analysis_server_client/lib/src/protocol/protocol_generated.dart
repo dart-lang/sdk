@@ -7115,6 +7115,180 @@ class DiagnosticGetServerPortResult implements ResponseResult {
   }
 }
 
+/// edit.bulkFixes params
+///
+/// {
+///   "included": List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class EditBulkFixesParams implements RequestParams {
+  List<String> _included;
+
+  /// A list of the files and directories for which edits should be suggested.
+  ///
+  /// If a request is made with a path that is invalid, e.g. is not absolute
+  /// and normalized, an error of type INVALID_FILE_PATH_FORMAT will be
+  /// generated. If a request is made for a file which does not exist, or which
+  /// is not currently subject to analysis (e.g. because it is not associated
+  /// with any analysis root specified to analysis.setAnalysisRoots), an error
+  /// of type FILE_NOT_ANALYZED will be generated.
+  List<String> get included => _included;
+
+  /// A list of the files and directories for which edits should be suggested.
+  ///
+  /// If a request is made with a path that is invalid, e.g. is not absolute
+  /// and normalized, an error of type INVALID_FILE_PATH_FORMAT will be
+  /// generated. If a request is made for a file which does not exist, or which
+  /// is not currently subject to analysis (e.g. because it is not associated
+  /// with any analysis root specified to analysis.setAnalysisRoots), an error
+  /// of type FILE_NOT_ANALYZED will be generated.
+  set included(List<String> value) {
+    assert(value != null);
+    _included = value;
+  }
+
+  EditBulkFixesParams(List<String> included) {
+    this.included = included;
+  }
+
+  factory EditBulkFixesParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    json ??= {};
+    if (json is Map) {
+      List<String> included;
+      if (json.containsKey('included')) {
+        included = jsonDecoder.decodeList(
+            jsonPath + '.included', json['included'], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'included');
+      }
+      return EditBulkFixesParams(included);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'edit.bulkFixes params', json);
+    }
+  }
+
+  factory EditBulkFixesParams.fromRequest(Request request) {
+    return EditBulkFixesParams.fromJson(
+        RequestDecoder(request), 'params', request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var result = <String, dynamic>{};
+    result['included'] = included;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return Request(id, 'edit.bulkFixes', toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditBulkFixesParams) {
+      return listEqual(
+          included, other.included, (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    var hash = 0;
+    hash = JenkinsSmiHash.combine(hash, included.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/// edit.bulkFixes result
+///
+/// {
+///   "edits": List<SourceFileEdit>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class EditBulkFixesResult implements ResponseResult {
+  List<SourceFileEdit> _edits;
+
+  /// A list of source edits to apply the recommended changes.
+  List<SourceFileEdit> get edits => _edits;
+
+  /// A list of source edits to apply the recommended changes.
+  set edits(List<SourceFileEdit> value) {
+    assert(value != null);
+    _edits = value;
+  }
+
+  EditBulkFixesResult(List<SourceFileEdit> edits) {
+    this.edits = edits;
+  }
+
+  factory EditBulkFixesResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    json ??= {};
+    if (json is Map) {
+      List<SourceFileEdit> edits;
+      if (json.containsKey('edits')) {
+        edits = jsonDecoder.decodeList(
+            jsonPath + '.edits',
+            json['edits'],
+            (String jsonPath, Object json) =>
+                SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'edits');
+      }
+      return EditBulkFixesResult(edits);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'edit.bulkFixes result', json);
+    }
+  }
+
+  factory EditBulkFixesResult.fromResponse(Response response) {
+    return EditBulkFixesResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        'result',
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var result = <String, dynamic>{};
+    result['edits'] =
+        edits.map((SourceFileEdit value) => value.toJson()).toList();
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is EditBulkFixesResult) {
+      return listEqual(
+          edits, other.edits, (SourceFileEdit a, SourceFileEdit b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    var hash = 0;
+    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
 /// edit.dartfix params
 ///
 /// {

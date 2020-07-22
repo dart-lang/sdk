@@ -20,6 +20,7 @@ import 'extension_override_test.dart' as extension_override;
 import 'field_test.dart' as field;
 import 'for_element_test.dart' as for_element;
 import 'for_statement_test.dart' as for_in;
+import 'function_declaration_test.dart' as function_declaration;
 import 'function_expression_invocation_test.dart'
     as function_expression_invocation;
 import 'function_type_alias_test.dart' as function_type_alias;
@@ -35,17 +36,20 @@ import 'instance_member_inference_class_test.dart'
     as instance_member_inference_class;
 import 'instance_member_inference_mixin_test.dart'
     as instance_member_inference_mixin;
+import 'interpolation_string_test.dart' as interpolation_string;
 import 'language_version_test.dart' as language_version;
 import 'library_element_test.dart' as library_element;
 import 'local_function_test.dart' as local_function;
 import 'local_variable_test.dart' as local_variable;
 import 'metadata_test.dart' as metadata;
+import 'method_declaration_test.dart' as method_declaration;
 import 'method_invocation_test.dart' as method_invocation;
 import 'mixin_test.dart' as mixin_resolution;
 import 'namespace_test.dart' as namespace;
 import 'non_nullable_test.dart' as non_nullable;
 import 'optional_const_test.dart' as optional_const;
 import 'postfix_expression_test.dart' as postfix_expression;
+import 'prefix_element_test.dart' as prefix_element;
 import 'prefix_expression_test.dart' as prefix_expression;
 import 'prefixed_identifier_test.dart' as prefixed_identifier;
 import 'property_access_test.dart' as property_access;
@@ -75,6 +79,7 @@ main() {
     field.main();
     for_element.main();
     for_in.main();
+    function_declaration.main();
     function_expression_invocation.main();
     function_type_alias.main();
     generic_function_type.main();
@@ -87,17 +92,20 @@ main() {
     instance_creation.main();
     instance_member_inference_class.main();
     instance_member_inference_mixin.main();
+    interpolation_string.main();
     language_version.main();
     library_element.main();
     local_function.main();
     local_variable.main();
     metadata.main();
+    method_declaration.main();
     method_invocation.main();
     mixin_resolution.main();
     namespace.main();
     non_nullable.main();
     optional_const.main();
     postfix_expression.main();
+    prefix_element.main();
     prefix_expression.main();
     prefixed_identifier.main();
     property_access.main();

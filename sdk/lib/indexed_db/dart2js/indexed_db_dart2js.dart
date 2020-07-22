@@ -244,7 +244,7 @@ class Cursor extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get direction native;
+  String? get direction native;
 
   @_annotation_Creates_IDBKey
   @_annotation_Returns_IDBKey
@@ -400,15 +400,15 @@ class Database extends EventTarget {
   static const EventStreamProvider<VersionChangeEvent> versionChangeEvent =
       const EventStreamProvider<VersionChangeEvent>('versionchange');
 
-  String get name native;
+  String? get name native;
 
   @Returns('DomStringList')
   @Creates('DomStringList')
-  List<String> get objectStoreNames native;
+  List<String>? get objectStoreNames native;
 
   @Creates('int|String|Null')
   @Returns('int|String|Null')
-  int get version native;
+  int? get version native;
 
   void close() native;
 
@@ -656,15 +656,15 @@ class Index extends Interceptor {
   @annotation_Creates_SerializedScriptValue
   Object? get keyPath native;
 
-  bool get multiEntry native;
+  bool? get multiEntry native;
 
-  String get name native;
+  String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
-  ObjectStore get objectStore native;
+  ObjectStore? get objectStore native;
 
-  bool get unique native;
+  bool? get unique native;
 
   @JSName('count')
   Request _count(Object? key) native;
@@ -727,12 +727,12 @@ class KeyRange extends Interceptor {
   @annotation_Creates_SerializedScriptValue
   Object? get lower native;
 
-  bool get lowerOpen native;
+  bool? get lowerOpen native;
 
   @annotation_Creates_SerializedScriptValue
   Object? get upper native;
 
-  bool get upperOpen native;
+  bool? get upperOpen native;
 
   @JSName('bound')
   static KeyRange bound_(Object lower, Object upper,
@@ -879,20 +879,20 @@ class ObjectStore extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get autoIncrement native;
+  bool? get autoIncrement native;
 
   @Returns('DomStringList')
   @Creates('DomStringList')
-  List<String> get indexNames native;
+  List<String>? get indexNames native;
 
   @annotation_Creates_SerializedScriptValue
   Object? get keyPath native;
 
-  String get name native;
+  String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
-  Transaction get transaction native;
+  Transaction? get transaction native;
 
   @Returns('Request')
   @Creates('Request')
@@ -1028,7 +1028,7 @@ class Observation extends Interceptor {
 
   Object? get key native;
 
-  String get type native;
+  String? get type native;
 
   Object? get value native;
 }
@@ -1072,11 +1072,11 @@ class ObserverChanges extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Database get database native;
+  Database? get database native;
 
   Object? get records native;
 
-  Transaction get transaction native;
+  Transaction? get transaction native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1145,9 +1145,9 @@ class Request extends EventTarget {
   static const EventStreamProvider<Event> successEvent =
       const EventStreamProvider<Event>('success');
 
-  DomException get error native;
+  DomException? get error native;
 
-  String get readyState native;
+  String? get readyState native;
 
   dynamic get result => _convertNativeToDart_IDBAny(this._get_result);
   @JSName('result')
@@ -1157,7 +1157,7 @@ class Request extends EventTarget {
   @Creates('Null')
   Object? get source native;
 
-  Transaction get transaction native;
+  Transaction? get transaction native;
 
   /// Stream of `error` events handled by this [Request].
   Stream<Event> get onError => errorEvent.forTarget(this);
@@ -1232,15 +1232,15 @@ class Transaction extends EventTarget {
   static const EventStreamProvider<Event> errorEvent =
       const EventStreamProvider<Event>('error');
 
-  Database get db native;
+  Database? get db native;
 
-  DomException get error native;
+  DomException? get error native;
 
-  String get mode native;
+  String? get mode native;
 
   @Returns('DomStringList')
   @Creates('DomStringList')
-  List<String> get objectStoreNames native;
+  List<String>? get objectStoreNames native;
 
   void abort() native;
 
@@ -1282,9 +1282,9 @@ class VersionChangeEvent extends Event {
   static VersionChangeEvent _create_2(type) =>
       JS('VersionChangeEvent', 'new IDBVersionChangeEvent(#)', type);
 
-  String get dataLoss native;
+  String? get dataLoss native;
 
-  String get dataLossMessage native;
+  String? get dataLossMessage native;
 
   @Creates('int|String|Null')
   @Returns('int|String|Null')
@@ -1292,7 +1292,7 @@ class VersionChangeEvent extends Event {
 
   @Creates('int|String|Null')
   @Returns('int|String|Null')
-  int get oldVersion native;
+  int? get oldVersion native;
 
   @JSName('target')
   OpenDBRequest get target native;

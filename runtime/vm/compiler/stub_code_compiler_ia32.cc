@@ -2965,6 +2965,12 @@ void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
   __ int3();  // Marker stub.
 }
 
+void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ CallRuntime(kNotLoadedRuntimeEntry, 0);
+  __ int3();
+}
+
 // Instantiate type arguments from instantiator and function type args.
 // EBX: uninstantiated type arguments.
 // EDX: instantiator type arguments.

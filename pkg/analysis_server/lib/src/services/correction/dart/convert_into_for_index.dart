@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertIntoForIndex extends CorrectionProducer {
@@ -16,7 +16,7 @@ class ConvertIntoForIndex extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_FOR_INDEX;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     // find enclosing ForEachStatement
     var forEachStatement = node.thisOrAncestorMatching(
             (node) => node is ForStatement && node.forLoopParts is ForEachParts)
@@ -78,7 +78,7 @@ class ConvertIntoForIndex extends CorrectionProducer {
     var indent = utils.getIndent(1);
     var firstBlockLine = utils.getLineContentEnd(body.leftBracket.end);
     // add change
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       // TODO(brianwilkerson) Create linked positions for the loop variable.
       builder.addSimpleReplacement(
           range.startEnd(forEachStatement, forEachStatement.rightParenthesis),

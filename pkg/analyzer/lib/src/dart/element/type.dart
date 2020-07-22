@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -67,6 +68,11 @@ class DynamicTypeImpl extends TypeImpl implements DynamicType {
 
   @override
   bool operator ==(Object object) => identical(object, this);
+
+  @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    return visitor.visitDynamicType(this);
+  }
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -269,6 +275,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    return visitor.visitFunctionType(this);
+  }
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeFunctionType(this);
   }
@@ -361,7 +372,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   void _forEachParameterType(
-      ParameterKind kind, Function(String name, DartType type) callback) {
+      ParameterKind kind, void Function(String name, DartType type) callback) {
     for (var parameter in parameters) {
       // ignore: deprecated_member_use_from_same_package
       if (parameter.parameterKind == kind) {
@@ -706,6 +717,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  List<InterfaceType> get allSupertypes {
+    var substitution = Substitution.fromInterfaceType(this);
+    return element.allSupertypes.map(substitution.substituteType).toList();
+  }
+
+  @override
   List<ConstructorElement> get constructors {
     if (_constructors == null) {
       List<ConstructorElement> constructors = element.constructors;
@@ -874,24 +891,16 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    return visitor.visitInterfaceType(this);
+  }
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeInterfaceType(this);
   }
 
-  /// Return either this type or a supertype of this type that is defined by the
-  /// [targetElement], or `null` if such a type does not exist. If this type
-  /// inherits from the target element along multiple paths, then the returned
-  /// type is arbitrary.
-  ///
-  /// For example, given the following definitions
-  /// ```
-  /// class A<E> {}
-  /// class B<E> implements A<E> {}
-  /// class C implements A<String> {}
-  /// ```
-  /// Asking the type `B<int>` for the type associated with `A` will return the
-  /// type `A<int>`. Asking the type `C` for the type associated with `A` will
-  /// return the type `A<String>`.
+  @override
   InterfaceType asInstanceOf(ClassElement targetElement) {
     if (element == targetElement) {
       return this;
@@ -1663,7 +1672,7 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
   int get hashCode => 0;
 
   @override
-  bool get isBottom => true;
+  bool get isBottom => nullabilitySuffix != NullabilitySuffix.question;
 
   @override
   bool get isDartCoreNull {
@@ -1677,6 +1686,11 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
 
   @override
   bool operator ==(Object object) => identical(object, this);
+
+  @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    return visitor.visitNeverType(this);
+  }
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -1808,6 +1822,9 @@ abstract class TypeImpl implements DartType {
   void appendTo(ElementDisplayStringBuilder builder);
 
   @override
+  InterfaceType asInstanceOf(ClassElement element) => null;
+
+  @override
   String getDisplayString({
     bool skipAllDynamicArguments = false,
     bool withNullability = false,
@@ -1928,6 +1945,25 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @override
   int get hashCode => element.hashCode;
 
+  @override
+  bool get isBottom {
+    // In principle we ought to be able to do `return bound.isBottom;`, but that
+    // goes into an infinite loop with illegal code in which type parameter
+    // bounds form a loop.  So we have to be more careful.
+    Set<TypeParameterElement> seenTypes = {};
+    TypeParameterType type = this;
+    while (seenTypes.add(type.element)) {
+      var bound = type.bound;
+      if (bound is TypeParameterType) {
+        type = bound;
+      } else {
+        return bound.isBottom;
+      }
+    }
+    // Infinite loop.
+    return false;
+  }
+
   @Deprecated('Check element, or use getDisplayString()')
   @override
   String get name => element.name;
@@ -1951,8 +1987,18 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    return visitor.visitTypeParameterType(this);
+  }
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeTypeParameterType(this);
+  }
+
+  @override
+  InterfaceType asInstanceOf(ClassElement element) {
+    return bound?.asInstanceOf(element);
   }
 
   @override
@@ -2085,6 +2131,11 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
 
   @override
   bool operator ==(Object object) => identical(object, this);
+
+  @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    return visitor.visitVoidType(this);
+  }
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {

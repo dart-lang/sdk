@@ -5,16 +5,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <memory>
 
-#include "include/bin/dart_io_api.h"
-#include "include/dart_api.h"
-#include "include/dart_embedder_api.h"
-#include "include/dart_tools_api.h"
+#include <memory>
 
 #include "bin/builtin.h"
 #include "bin/console.h"
 #include "bin/crashpad.h"
+#include "bin/dartdev_isolate.h"
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "bin/error_exit.h"
@@ -31,6 +28,10 @@
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/vmservice_impl.h"
+#include "include/bin/dart_io_api.h"
+#include "include/dart_api.h"
+#include "include/dart_embedder_api.h"
+#include "include/dart_tools_api.h"
 #include "platform/globals.h"
 #include "platform/growable_array.h"
 #include "platform/hashmap.h"
@@ -73,30 +74,6 @@ static bool kernel_isolate_is_running = false;
 static Dart_Isolate main_isolate = NULL;
 
 static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size);
-
-static Dart_Handle CreateRuntimeOptions(CommandLineOptions* options) {
-  int options_count = options->count();
-  Dart_Handle string_type = DartUtils::GetDartType("dart:core", "String");
-  if (Dart_IsError(string_type)) {
-    return string_type;
-  }
-  Dart_Handle dart_arguments =
-      Dart_NewListOfTypeFilled(string_type, Dart_EmptyString(), options_count);
-  if (Dart_IsError(dart_arguments)) {
-    return dart_arguments;
-  }
-  for (int i = 0; i < options_count; i++) {
-    Dart_Handle argument_value = DartUtils::NewString(options->GetArgument(i));
-    if (Dart_IsError(argument_value)) {
-      return argument_value;
-    }
-    Dart_Handle result = Dart_ListSetAt(dart_arguments, i, argument_value);
-    if (Dart_IsError(result)) {
-      return result;
-    }
-  }
-  return dart_arguments;
-}
 
 #define SAVE_ERROR_AND_EXIT(result)                                            \
   *error = Utils::StrDup(Dart_GetError(result));                               \
@@ -297,6 +274,8 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   // isolates in the group.
   Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
   CHECK_RESULT(result);
+  result = Dart_SetDeferredLoadHandler(Loader::DeferredLoadHandler);
+  CHECK_RESULT(result);
 
   auto isolate_data = reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
 
@@ -401,6 +380,15 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     // cannot correctly send each other messages.
     result = Dart_SortClasses();
     CHECK_RESULT(result);
+  }
+
+  // Disable pausing the DartDev isolate on start and exit.
+  const char* isolate_name = nullptr;
+  result = Dart_StringToCString(Dart_DebugName(), &isolate_name);
+  CHECK_RESULT(result);
+  if (strstr(isolate_name, "dartdev") != nullptr) {
+    Dart_SetShouldPauseOnStart(false);
+    Dart_SetShouldPauseOnExit(false);
   }
 
   // Make the isolate runnable so that it is ready to handle messages.
@@ -554,6 +542,8 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   Dart_EnterScope();
 
   Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
+  CHECK_RESULT(result);
+  result = Dart_SetDeferredLoadHandler(Loader::DeferredLoadHandler);
   CHECK_RESULT(result);
 
   // Load embedder specific bits and return.
@@ -937,8 +927,8 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     // initial startup message.
     const intptr_t kNumIsolateArgs = 2;
     Dart_Handle isolate_args[kNumIsolateArgs];
-    isolate_args[0] = main_closure;                        // entryPoint
-    isolate_args[1] = CreateRuntimeOptions(dart_options);  // args
+    isolate_args[0] = main_closure;                          // entryPoint
+    isolate_args[1] = dart_options->CreateRuntimeOptions();  // args
 
     Dart_Handle isolate_lib =
         Dart_LookupLibrary(Dart_NewStringFromCString("dart:isolate"));
@@ -1007,7 +997,7 @@ static Dart_GetVMServiceAssetsArchive GetVMServiceAssetsArchiveCallback = NULL;
 #endif  // !defined(PRODUCT)
 
 void main(int argc, char** argv) {
-  char* script_name;
+  char* script_name = nullptr;
   const int EXTRA_VM_ARGUMENTS = 10;
   CommandLineOptions vm_options(argc + EXTRA_VM_ARGUMENTS);
   CommandLineOptions dart_options(argc + EXTRA_VM_ARGUMENTS);
@@ -1097,9 +1087,6 @@ void main(int argc, char** argv) {
     }
   }
 
-  // At this point, script_name now points to either a script or a snapshot
-  // determined by DartDevUtils above.
-
   DartUtils::SetEnvironment(Options::environment());
 
   if (Options::suppress_core_dump()) {
@@ -1110,19 +1097,28 @@ void main(int argc, char** argv) {
 
   Loader::InitOnce();
 
-  if (app_snapshot == nullptr) {
-    // For testing purposes we add a flag to debug-mode to use the
-    // in-memory ELF loader.
-    const bool force_load_elf_from_memory =
-        false DEBUG_ONLY(|| Options::force_load_elf_from_memory());
-    app_snapshot =
-        Snapshot::TryReadAppSnapshot(script_name, force_load_elf_from_memory);
-  }
-  if (app_snapshot != nullptr) {
-    vm_run_app_snapshot = true;
-    app_snapshot->SetBuffers(&vm_snapshot_data, &vm_snapshot_instructions,
-                             &app_isolate_snapshot_data,
-                             &app_isolate_snapshot_instructions);
+  auto try_load_snapshots_lambda = [&](void) -> void {
+    if (app_snapshot == nullptr) {
+      // For testing purposes we add a flag to debug-mode to use the
+      // in-memory ELF loader.
+      const bool force_load_elf_from_memory =
+          false DEBUG_ONLY(|| Options::force_load_elf_from_memory());
+      app_snapshot =
+          Snapshot::TryReadAppSnapshot(script_name, force_load_elf_from_memory);
+    }
+    if (app_snapshot != nullptr) {
+      vm_run_app_snapshot = true;
+      app_snapshot->SetBuffers(&vm_snapshot_data, &vm_snapshot_instructions,
+                               &app_isolate_snapshot_data,
+                               &app_isolate_snapshot_instructions);
+    }
+  };
+
+  // At this point, script_name now points to a script if DartDev is disabled
+  // or a valid file path was provided as the first non-flag argument.
+  // Otherwise, script_name can be NULL if DartDev should be run.
+  if (script_name != nullptr) {
+    try_load_snapshots_lambda();
   }
 
   if (Options::gen_snapshot_kind() == kAppJIT) {
@@ -1155,16 +1151,18 @@ void main(int argc, char** argv) {
 // Note: must read platform only *after* VM flags are parsed because
 // they might affect how the platform is loaded.
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  dfe.Init(Options::target_abi_version());
-  uint8_t* application_kernel_buffer = NULL;
-  intptr_t application_kernel_buffer_size = 0;
-  dfe.ReadScript(script_name, &application_kernel_buffer,
-                 &application_kernel_buffer_size);
-  if (application_kernel_buffer != NULL) {
-    // Since we loaded the script anyway, save it.
-    dfe.set_application_kernel_buffer(application_kernel_buffer,
-                                      application_kernel_buffer_size);
-    Options::dfe()->set_use_dfe();
+  if (script_name != nullptr) {
+    dfe.Init(Options::target_abi_version());
+    uint8_t* application_kernel_buffer = NULL;
+    intptr_t application_kernel_buffer_size = 0;
+    dfe.ReadScript(script_name, &application_kernel_buffer,
+                   &application_kernel_buffer_size);
+    if (application_kernel_buffer != NULL) {
+      // Since we loaded the script anyway, save it.
+      dfe.set_application_kernel_buffer(application_kernel_buffer,
+                                        application_kernel_buffer_size);
+      Options::dfe()->set_use_dfe();
+    }
   }
 #endif
 
@@ -1204,10 +1202,29 @@ void main(int argc, char** argv) {
                                  &ServiceStreamCancelCallback);
   Dart_SetFileModifiedCallback(&FileModifiedCallback);
   Dart_SetEmbedderInformationCallback(&EmbedderInformationCallback);
+  bool ran_dart_dev = false;
+  bool should_run_user_program = true;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (DartDevIsolate::should_run_dart_dev() && !Options::disable_dart_dev() &&
+      Options::gen_snapshot_kind() == SnapshotKind::kNone) {
+    DartDevIsolate::DartDev_Result dartdev_result = DartDevIsolate::RunDartDev(
+        CreateIsolateGroupAndSetup, Options::packages_file(), &script_name,
+        &dart_options);
+    ASSERT(dartdev_result != DartDevIsolate::DartDev_Result_Unknown);
+    ran_dart_dev = true;
+    should_run_user_program =
+        (dartdev_result == DartDevIsolate::DartDev_Result_Run);
+    if (should_run_user_program) {
+      try_load_snapshots_lambda();
+    }
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  // Run the main isolate until we aren't told to restart.
-  while (RunMainIsolate(script_name, &dart_options)) {
-    Syslog::PrintErr("Restarting VM\n");
+  if (should_run_user_program) {
+    // Run the main isolate until we aren't told to restart.
+    while (RunMainIsolate(script_name, &dart_options)) {
+      Syslog::PrintErr("Restarting VM\n");
+    }
   }
 
   // Terminate process exit-code handler.
@@ -1223,6 +1240,9 @@ void main(int argc, char** argv) {
 
   delete app_snapshot;
   free(app_script_uri);
+  if (ran_dart_dev && script_name != nullptr) {
+    free(script_name);
+  }
 
   // Free copied argument strings if converted.
   if (argv_converted) {

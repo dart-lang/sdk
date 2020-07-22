@@ -9,19 +9,21 @@
 import 'native_testing.dart';
 
 abstract class I {
-  int key;
+  int? key;
 }
 
 @Native("A")
 class A implements I {
-  int key; //  jsname is 'key'
-  int getKey() => key;
+  //  jsname is 'key'
+  void set key(int? unused) native;
+  int? get key native;
+  int? getKey() => key;
 }
 
 class B implements I {
-  int key; //  jsname is not 'key'
+  int? key; //  jsname is not 'key'
   B([this.key = 222]);
-  int getKey() => key;
+  int? getKey() => key;
 }
 
 @Native("X")
@@ -72,8 +74,8 @@ testDynamic() {
 
 testPartial() {
   var things = [makeA(), new B(), makeX()];
-  I a = things[0];
-  I b = things[1];
+  I a = things[0] as I;
+  I b = things[1] as I;
 
   // All subtypes of I have a field 'key'. The compiler might be tempted to
   // generate a direct property access, but that will fail since one of the

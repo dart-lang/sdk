@@ -215,9 +215,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// The compilation unit in which data is currently being collected.
   CompilationUnit unit;
 
-  /// The object used to determine Flutter-specific features.
-  Flutter flutter;
-
   InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   /// The library containing the compilation unit being visited.
@@ -239,7 +236,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// Initialize this collector prior to visiting the unit in the [result].
   void initializeFrom(ResolvedUnitResult result) {
     unit = result.unit;
-    flutter = Flutter.of(result);
   }
 
   @override
@@ -1203,7 +1199,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       } else if (parent is FunctionExpressionInvocation) {
         return 'function';
       } else if (parent is InstanceCreationExpression) {
-        if (flutter.isWidgetType(parent.staticType)) {
+        if (Flutter.instance.isWidgetType(parent.staticType)) {
           return 'widgetConstructor';
         }
         return 'constructor';

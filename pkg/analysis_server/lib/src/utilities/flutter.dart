@@ -3,15 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/utilities/strings.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 
 class Flutter {
+  static final Flutter instance = Flutter();
+
   static const _nameAlign = 'Align';
   static const _nameCenter = 'Center';
   static const _nameContainer = 'Container';
@@ -22,60 +22,32 @@ class Flutter {
   static const _nameStreamBuilder = 'StreamBuilder';
   static const _nameWidget = 'Widget';
 
-  static final mobile = Flutter._('flutter', 'package:flutter');
-  static final web = Flutter._('flutter_web', 'package:flutter_web');
+  final String widgetsUri = 'package:flutter/widgets.dart';
 
-  static final _uriFlutterMobileWidgets =
-      Uri.parse('package:flutter/widgets.dart');
-
-  static final _uriFlutterWebWidgets =
-      Uri.parse('package:flutter_web/widgets.dart');
-
-  final String packageName;
-  final String widgetsUri;
-
-  final Uri _uriAlignment;
-  final Uri _uriAsync;
-  final Uri _uriBasic;
-  final Uri _uriContainer;
-  final Uri _uriEdgeInsets;
-  final Uri _uriFramework;
-  final Uri _uriWidgetsIcon;
-  final Uri _uriWidgetsText;
-
-  factory Flutter.of(ResolvedUnitResult resolvedUnit) {
-    var uriConverter = resolvedUnit.session.uriConverter;
-    var isMobile = uriConverter.uriToPath(_uriFlutterMobileWidgets) != null;
-    var isWeb = uriConverter.uriToPath(_uriFlutterWebWidgets) != null;
-
-    if (isMobile && isWeb) {
-      var visitor = _IdentifyMobileOrWeb();
-      resolvedUnit.unit.accept(visitor);
-      isMobile = visitor.isMobile;
-      isWeb = visitor.isWeb;
-    }
-
-    if (isMobile) {
-      return mobile;
-    }
-
-    if (isWeb) {
-      return web;
-    }
-
-    return mobile;
-  }
-
-  Flutter._(this.packageName, String uriPrefix)
-      : widgetsUri = '$uriPrefix/widgets.dart',
-        _uriAlignment = Uri.parse('$uriPrefix/src/painting/alignment.dart'),
-        _uriAsync = Uri.parse('$uriPrefix/src/widgets/async.dart'),
-        _uriBasic = Uri.parse('$uriPrefix/src/widgets/basic.dart'),
-        _uriContainer = Uri.parse('$uriPrefix/src/widgets/container.dart'),
-        _uriEdgeInsets = Uri.parse('$uriPrefix/src/painting/edge_insets.dart'),
-        _uriFramework = Uri.parse('$uriPrefix/src/widgets/framework.dart'),
-        _uriWidgetsIcon = Uri.parse('$uriPrefix/src/widgets/icon.dart'),
-        _uriWidgetsText = Uri.parse('$uriPrefix/src/widgets/text.dart');
+  final Uri _uriAlignment = Uri.parse(
+    'package:flutter/src/painting/alignment.dart',
+  );
+  final Uri _uriAsync = Uri.parse(
+    'package:flutter/src/widgets/async.dart',
+  );
+  final Uri _uriBasic = Uri.parse(
+    'package:flutter/src/widgets/basic.dart',
+  );
+  final Uri _uriContainer = Uri.parse(
+    'package:flutter/src/widgets/container.dart',
+  );
+  final Uri _uriEdgeInsets = Uri.parse(
+    'package:flutter/src/painting/edge_insets.dart',
+  );
+  final Uri _uriFramework = Uri.parse(
+    'package:flutter/src/widgets/framework.dart',
+  );
+  final Uri _uriWidgetsIcon = Uri.parse(
+    'package:flutter/src/widgets/icon.dart',
+  );
+  final Uri _uriWidgetsText = Uri.parse(
+    'package:flutter/src/widgets/text.dart',
+  );
 
   /// Return the argument with the given [index], or `null` if none.
   Expression argumentByIndex(List<Expression> arguments, int index) {
@@ -577,29 +549,5 @@ class Flutter {
   /// file with the given [uri].
   bool _isExactWidget(ClassElement element, String type, Uri uri) {
     return element != null && element.name == type && element.source.uri == uri;
-  }
-}
-
-class _IdentifyMobileOrWeb extends GeneralizingAstVisitor<void> {
-  bool isMobile = false;
-  bool isWeb = false;
-
-  @override
-  void visitExpression(Expression node) {
-    if (isMobile || isWeb) {
-      return;
-    }
-
-    if (Flutter.mobile.isWidgetExpression(node)) {
-      isMobile = true;
-      return;
-    }
-
-    if (Flutter.web.isWidgetExpression(node)) {
-      isWeb = true;
-      return;
-    }
-
-    super.visitExpression(node);
   }
 }

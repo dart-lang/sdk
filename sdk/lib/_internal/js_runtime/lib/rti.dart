@@ -2913,12 +2913,14 @@ bool _isFunctionSubtype(
       String sName = _Utils.asString(_Utils.arrayAt(sNamed, sIndex));
       sIndex += 3;
       if (_Utils.stringLessThan(tName, sName)) return false;
-      bool sIsRequired = _Utils.asBool(_Utils.arrayAt(sNamed, sIndex - 2));
+      bool sIsRequired = !JS_GET_FLAG('LEGACY') &&
+          _Utils.asBool(_Utils.arrayAt(sNamed, sIndex - 2));
       if (_Utils.stringLessThan(sName, tName)) {
         if (sIsRequired) return false;
         continue;
       }
-      bool tIsRequired = _Utils.asBool(_Utils.arrayAt(tNamed, tIndex + 1));
+      bool tIsRequired = !JS_GET_FLAG('LEGACY') &&
+          _Utils.asBool(_Utils.arrayAt(tNamed, tIndex + 1));
       if (sIsRequired && !tIsRequired) return false;
       Rti sType = _Utils.asRti(_Utils.arrayAt(sNamed, sIndex - 1));
       Rti tType = _Utils.asRti(_Utils.arrayAt(tNamed, tIndex + 2));
@@ -2926,9 +2928,11 @@ bool _isFunctionSubtype(
       break;
     }
   }
-  while (sIndex < sNamedLength) {
-    if (_Utils.asBool(_Utils.arrayAt(sNamed, sIndex + 1))) return false;
-    sIndex += 3;
+  if (!JS_GET_FLAG('LEGACY')) {
+    while (sIndex < sNamedLength) {
+      if (_Utils.asBool(_Utils.arrayAt(sNamed, sIndex + 1))) return false;
+      sIndex += 3;
+    }
   }
   return true;
 }

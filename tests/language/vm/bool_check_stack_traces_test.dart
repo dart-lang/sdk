@@ -81,8 +81,15 @@ void testStackTrace(void testCase(dynamic condition), List<int> lineNumbers) {
     print(stacktrace);
     print('-----------------------------');
 
-    Expect.isTrue(e is TypeError);
-    Expect.equals("type 'Null' is not a subtype of type 'bool'", e.toString());
+    if (isStrongMode) {
+      Expect.isTrue(e is TypeError);
+      Expect.equals(
+          "type 'Null' is not a subtype of type 'bool'", e.toString());
+    } else {
+      Expect.isTrue(e is AssertionError);
+      Expect.equals('Failed assertion: boolean expression must not be null',
+          e.toString());
+    }
 
     final String st = stacktrace.toString();
     for (int lineNum in lineNumbers) {

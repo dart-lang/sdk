@@ -1,3 +1,16 @@
+## 0.3.1-dev
+- Deprecated the class `DartChangeBuilder` and enhanced `ChangeBuilder` to be
+  the replacement for it.
+- Deprecated the method `ChangeBuilder.addFileEdit` and introduced
+  `ChangeBuilder.addDartFileEdit` and `ChangeBuilder.addGenericFileEdit` to be
+  the replacements for it.
+
+## 0.3.0
+- Removed deprecated `Plugin.getResolveResult`. Use `getResolvedUnitResult`.
+
+## 0.2.5
+- Change supported analyzer version to `^0.39.12`
+
 ## 0.2.4
 - Exposed method `AnalyzerConverter.locationFromElement` (was previously
   private).

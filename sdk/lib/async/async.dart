@@ -77,16 +77,16 @@
  *   wanted to know about handling errors and exceptions when working with
  *   Futures (but were afraid to ask).
  *
- * * [The Event Loop and Dart](https://www.dartlang.org/articles/event-loop/):
+ * * [The Event Loop and Dart](https://dart.dev/articles/event-loop/):
  *   Learn how Dart handles the event queue and microtask queue, so you can
  *   write better asynchronous code with fewer surprises.
  *
  * * [test package: Asynchronous Tests][test-readme]: How to test asynchronous
  *   code.
  *
- * [asynchronous-programming]: https://www.dartlang.org/docs/dart-up-and-running/ch03.html#dartasync---asynchronous-programming
- * [futures-tutorial]: https://www.dartlang.org/docs/tutorials/futures/
- * [futures-error-handling]: https://www.dartlang.org/articles/futures-and-error-handling/
+ * [asynchronous-programming]: https://dart.dev/guides/libraries/library-tour#dartasync---asynchronous-programming
+ * [futures-tutorial]: https://dart.dev/codelabs/async-await
+ * [futures-error-handling]: https://dart.dev/guides/libraries/futures-error-handling
  * [test-readme]: https://pub.dev/packages/test
  *
  * {@category Core}

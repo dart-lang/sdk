@@ -16,6 +16,8 @@ import 'package:vm_snapshot_analysis/program_info.dart';
 import 'package:vm_snapshot_analysis/utils.dart';
 import 'package:vm_snapshot_analysis/v8_profile.dart';
 
+import 'utils.dart';
+
 class CompareCommand extends Command<void> {
   @override
   final String name = 'compare';
@@ -107,9 +109,11 @@ precisely based on their source position (which is included in their name).
       {int maxWidth = 0,
       bool collapseAnonymousClosures = false,
       HistogramType granularity = HistogramType.bySymbol}) async {
-    final oldSizes = await loadProgramInfo(oldJson,
+    final oldJsonRaw = await loadJsonFromFile(oldJson);
+    final newJsonRaw = await loadJsonFromFile(newJson);
+    final oldSizes = loadProgramInfoFromJson(oldJsonRaw,
         collapseAnonymousClosures: collapseAnonymousClosures);
-    final newSizes = await loadProgramInfo(newJson,
+    final newSizes = loadProgramInfoFromJson(newJsonRaw,
         collapseAnonymousClosures: collapseAnonymousClosures);
 
     if ((oldSizes.snapshotInfo == null) != (newSizes.snapshotInfo == null)) {
@@ -144,9 +148,32 @@ precisely based on their source position (which is included in their name).
     print('Comparing ${oldJson.path} (old) to ${newJson.path} (new)');
     print('Old   : ${totalOld} bytes.');
     print('New   : ${totalNew} bytes.');
-    print('Change: ${totalDiff > 0 ? '+' : ''}${totalDiff} bytes.');
+    print('Change: ${totalDiff > 0 ? '+' : ''}${totalDiff}'
+        ' (${formatPercent(totalDiff, totalOld, withSign: true)}) bytes.');
 
     if (oldSizes.snapshotInfo != null) {
+      print(bucketLegend);
+      print('\nBreakdown by object type:');
+      final oldTypeHistogram =
+          computeHistogram(oldSizes, HistogramType.byNodeType);
+      final newTypeHistogram =
+          computeHistogram(newSizes, HistogramType.byNodeType);
+
+      final diffTypeHistogram = Histogram.fromIterable(
+          Set<String>()
+            ..addAll(oldTypeHistogram.buckets.keys)
+            ..addAll(newTypeHistogram.buckets.keys),
+          sizeOf: (bucket) =>
+              (newTypeHistogram.buckets[bucket] ?? 0) -
+              (oldTypeHistogram.buckets[bucket] ?? 0),
+          bucketFor: (bucket) => bucket,
+          bucketInfo: oldTypeHistogram.bucketInfo);
+
+      printHistogram(oldSizes, diffTypeHistogram,
+          prefix: diffTypeHistogram.bySize
+              .where((bucket) => diffTypeHistogram.buckets[bucket] != 0),
+          maxWidth: maxWidth);
+
       print(bucketLegend);
     }
   }

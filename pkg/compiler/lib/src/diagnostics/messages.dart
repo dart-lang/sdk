@@ -247,27 +247,6 @@ main() => new Class();
               """
           ]),
 
-      MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS: const MessageTemplate(
-          MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
-          "Js-interop method '#{method}' has named arguments but is not "
-          "a factory constructor of an @anonymous @JS class.",
-          howToFix: "Remove all named arguments from js-interop method or "
-              "in the case of a factory constructor annotate the class "
-              "as @anonymous.",
-          examples: const [
-            """
-              import 'package:js/js.dart';
-
-              @JS()
-              class Foo {
-                external bar(foo, {baz});
-              }
-
-              main() {
-                new Foo().bar(4, baz: 5);
-              }
-              """
-          ]),
       MessageKind.IMPLICIT_JS_INTEROP_FIELD_NOT_SUPPORTED:
           const MessageTemplate(
               MessageKind.IMPLICIT_JS_INTEROP_FIELD_NOT_SUPPORTED,

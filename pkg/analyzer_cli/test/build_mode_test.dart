@@ -28,7 +28,8 @@ class TestAnalyzerWorkerLoop extends AnalyzerWorkerLoop {
       : super(MemoryResourceProvider(), connection);
 
   @override
-  Future<void> analyze(CommandLineOptions options, inputs) async {
+  Future<void> analyze(
+      CommandLineOptions options, Map<String, WorkerInput> inputs) async {
     if (_analyze != null) {
       _analyze(options);
     }

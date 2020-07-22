@@ -8,6 +8,7 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/context/source.dart';
+import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -819,6 +820,9 @@ class _MockLintRule implements LintRule {
   final String _name;
 
   _MockLintRule(this._name);
+
+  @override
+  List<LintCode> get lintCodes => [LintCode(_name, '')];
 
   @override
   String get name => _name;

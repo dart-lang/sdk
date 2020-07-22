@@ -363,6 +363,11 @@ class TypeSystemTypeOperations
   }
 
   @override
+  bool isNever(DartType type) {
+    return typeSystem.isBottom(type);
+  }
+
+  @override
   bool isSameType(covariant TypeImpl type1, covariant TypeImpl type2) {
     return type1 == type2;
   }

@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 abstract class ConvertQuotes extends CorrectionProducer {
@@ -19,7 +19,7 @@ abstract class ConvertQuotes extends CorrectionProducer {
   bool get _fromDouble;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     if (node is SimpleStringLiteral) {
       SimpleStringLiteral literal = node;
       if (_fromDouble ? !literal.isSingleQuoted : literal.isSingleQuoted) {
@@ -29,7 +29,7 @@ abstract class ConvertQuotes extends CorrectionProducer {
         var quoteLength = literal.isMultiline ? 3 : 1;
         var lexeme = literal.literal.lexeme;
         if (!lexeme.contains(newQuote)) {
-          await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+          await builder.addDartFileEdit(file, (builder) {
             builder.addSimpleReplacement(
                 SourceRange(
                     literal.offset + (literal.isRaw ? 1 : 0), quoteLength),
@@ -56,7 +56,7 @@ abstract class ConvertQuotes extends CorrectionProducer {
             }
           }
         }
-        await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+        await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleReplacement(
               SourceRange(parent.offset + (parent.isRaw ? 1 : 0), quoteLength),
               newQuote);

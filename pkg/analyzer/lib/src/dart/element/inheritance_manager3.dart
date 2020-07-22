@@ -890,7 +890,7 @@ class Name {
   Name._internal(this.libraryUri, this.name, this.isPublic, this.hashCode);
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     return other is Name &&
         name == other.name &&
         libraryUri == other.libraryUri;

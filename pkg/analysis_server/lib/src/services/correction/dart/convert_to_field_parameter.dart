@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToFieldParameter extends CorrectionProducer {
@@ -16,7 +16,7 @@ class ConvertToFieldParameter extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_FIELD_PARAMETER;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     if (node == null) {
       return;
     }
@@ -75,7 +75,7 @@ class ConvertToFieldParameter extends CorrectionProducer {
       }
       var fieldName = parameterInitializer.fieldName.name;
 
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
         // replace parameter
         builder.addSimpleReplacement(range.node(parameter), 'this.$fieldName');
         // remove initializer

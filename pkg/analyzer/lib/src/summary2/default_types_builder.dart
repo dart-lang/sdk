@@ -19,22 +19,27 @@ class DefaultTypesBuilder {
     for (var node in nodes) {
       if (node is ClassDeclaration) {
         var element = node.declaredElement;
+        _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is ClassTypeAlias) {
         var element = node.declaredElement;
+        _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is FunctionTypeAlias) {
         var element = node.declaredElement;
+        _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is GenericTypeAlias) {
         var element = node.declaredElement;
+        _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is MixinDeclaration) {
         var element = node.declaredElement;
+        _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       }
@@ -81,6 +86,45 @@ class DefaultTypesBuilder {
           boundNode.type = DynamicTypeImpl.instance;
         } else {
           throw UnimplementedError('(${boundNode.runtimeType}) $boundNode');
+        }
+      }
+    }
+  }
+
+  void _breakSelfCycles(TypeParameterList parameterList) {
+    if (parameterList == null) return;
+    var typeParameters = parameterList.typeParameters;
+
+    Map<String, TypeParameter> typeParametersByName;
+    for (var parameter in typeParameters) {
+      var boundNode = parameter.bound;
+      if (boundNode is TypeName) {
+        if (typeParametersByName == null) {
+          typeParametersByName = {};
+          for (var parameterNode in typeParameters) {
+            var name = parameterNode.name.name;
+            typeParametersByName[name] = parameterNode;
+          }
+        }
+
+        var current = parameter;
+        for (var step = 0;
+            current != null && step < typeParameters.length;
+            ++step) {
+          var bound = current.bound;
+          if (bound is TypeName) {
+            var typeNameIdentifier = bound.name;
+            if (typeNameIdentifier is SimpleIdentifier) {
+              current = typeParametersByName[typeNameIdentifier.name];
+              continue;
+            }
+          }
+          current = null;
+          break;
+        }
+
+        if (current != null) {
+          boundNode.type = DynamicTypeImpl.instance;
         }
       }
     }

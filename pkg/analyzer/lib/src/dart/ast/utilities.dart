@@ -339,8 +339,7 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   DefaultFormalParameter visitDefaultFormalParameter(
-          DefaultFormalParameter node) =>
-      // ignore: deprecated_member_use_from_same_package
+          covariant DefaultFormalParameterImpl node) =>
       astFactory.defaultFormalParameter(cloneNode(node.parameter), node.kind,
           cloneToken(node.separator), cloneNode(node.defaultValue));
 
@@ -1446,10 +1445,9 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
-  bool visitDefaultFormalParameter(DefaultFormalParameter node) {
-    DefaultFormalParameter other = _other as DefaultFormalParameter;
+  bool visitDefaultFormalParameter(covariant DefaultFormalParameterImpl node) {
+    var other = _other as DefaultFormalParameterImpl;
     return isEqualNodes(node.parameter, other.parameter) &&
-        // ignore: deprecated_member_use_from_same_package
         node.kind == other.kind &&
         isEqualTokens(node.separator, other.separator) &&
         isEqualNodes(node.defaultValue, other.defaultValue);
@@ -4321,11 +4319,10 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   @override
-  bool visitDefaultFormalParameter(DefaultFormalParameter node) {
-    DefaultFormalParameter toNode = this._toNode as DefaultFormalParameter;
+  bool visitDefaultFormalParameter(covariant DefaultFormalParameterImpl node) {
+    var toNode = this._toNode as DefaultFormalParameterImpl;
     return _and(
         _isEqualNodes(node.parameter, toNode.parameter),
-        // ignore: deprecated_member_use_from_same_package
         node.kind == toNode.kind,
         _isEqualTokens(node.separator, toNode.separator),
         _isEqualNodes(node.defaultValue, toNode.defaultValue));

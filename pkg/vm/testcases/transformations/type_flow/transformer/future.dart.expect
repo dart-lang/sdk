@@ -9,7 +9,7 @@ class C<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::T*>*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method test2c([@vm.inferred-type.metadata=dart.core::_Smi (skip check) (value: 3)] generic-covariant-impl FutureOr<self::C::T*>* x) → void {}
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=(i)->b]  method test2c([@vm.inferred-type.metadata=dart.core::_Smi (skip check) (value: 3)] generic-covariant-impl FutureOr<self::C::T*>* x) → void {}
 [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method test3c([@vm.inferred-type.metadata=dart.async::_Future<dart.core::int*> (skip check)] generic-covariant-impl asy::Future<self::C::T*>* x) → void {}
 [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method test4c([@vm.inferred-type.metadata=dart.async::_Future<dart.core::int*> (skip check)] generic-covariant-impl FutureOr<self::C::T*>* x) → void {}
 [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  method test2r([@vm.inferred-type.metadata=#lib::C<dart.core::int*> (skip check)] generic-covariant-impl self::C<FutureOr<self::C::T*>*>* x) → void {}

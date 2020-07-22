@@ -2042,6 +2042,84 @@ Message _withArgumentsInvalidCastTopLevelFunction(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
+    Message Function(
+        DartType _type,
+        DartType _type2,
+        bool
+            isNonNullableByDefault)> templateInvalidReturn = const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+    messageTemplate:
+        r"""A value of type '#type' can't be returned from a function with return type '#type2'.""",
+    withArguments: _withArgumentsInvalidReturn);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeInvalidReturn = const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+  "InvalidReturn",
+  templateInvalidReturn,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidReturn(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidReturn,
+      message:
+          """A value of type '${type}' can't be returned from a function with return type '${type2}'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType _type2,
+        bool
+            isNonNullableByDefault)> templateInvalidReturnAsync = const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+    messageTemplate:
+        r"""A value of type '#type' can't be returned from an async function with return type '#type2'.""",
+    withArguments: _withArgumentsInvalidReturnAsync);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeInvalidReturnAsync = const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+  "InvalidReturnAsync",
+  templateInvalidReturnAsync,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidReturnAsync(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidReturnAsync,
+      message:
+          """A value of type '${type}' can't be returned from an async function with return type '${type2}'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
         Message Function(DartType _type, DartType _type2, DartType _type3,
             bool isNonNullableByDefault)>
     templateMixinApplicationIncompatibleSupertype = const Template<

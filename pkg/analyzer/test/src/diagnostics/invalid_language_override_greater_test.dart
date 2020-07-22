@@ -11,8 +11,8 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/constant/potentially_constant_test.dart';
 import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -40,12 +40,12 @@ class A {}
   test_greaterThanPackage() async {
     _configureTestPackageLanguageVersion('2.5');
     await assertNoErrorsInCode(r'''
-// @dart = 2.9
+// @dart = 2.10
 int? a;
 ''');
     _assertUnitLanguageVersion(
       package: Version.parse('2.5.0'),
-      override: Version.parse('2.9.0'),
+      override: Version.parse('2.10.0'),
     );
   }
 

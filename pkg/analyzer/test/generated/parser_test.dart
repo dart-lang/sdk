@@ -4416,8 +4416,8 @@ class Wrong<T> {
     ]);
     FunctionDeclaration declaration = unit.declarations.first;
     BlockFunctionBody blockBody = declaration.functionExpression.body;
-    ExpressionStatement statement = (blockBody).block.statements.first;
-    Expression expression = (statement).expression;
+    ExpressionStatement statement = blockBody.block.statements.first;
+    Expression expression = statement.expression;
     expect(expression, isSuperExpression);
     SuperExpression superExpression = expression;
     expect(superExpression.superKeyword, isNotNull);
@@ -11450,7 +11450,7 @@ class C {
 
   void test_missing_commaInArgumentList() {
     MethodInvocation expression = parseExpression("f(x: 1 y: 2)",
-        errors: ([expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1)]));
+        errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1)]);
     NodeList<Expression> arguments = expression.argumentList.arguments;
     expect(arguments, hasLength(2));
   }

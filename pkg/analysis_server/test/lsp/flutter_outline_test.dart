@@ -88,18 +88,33 @@ Widget build(BuildContext context) => Container(
     expect(outline, isNotNull);
 
     // Root node is entire document
-    expect(outline.range, equals(Range(Position(0, 0), Position(15, 0))));
+    expect(
+        outline.range,
+        equals(Range(
+            start: Position(line: 0, character: 0),
+            end: Position(line: 15, character: 0))));
     expect(outline.children, hasLength(1));
 
     final build = outline.children[0];
     expect(build.kind, equals('DART_ELEMENT'));
-    expect(build.range, equals(Range(Position(2, 0), Position(14, 6))));
-    expect(build.codeRange, equals(Range(Position(3, 0), Position(14, 6))));
+    expect(
+        build.range,
+        equals(Range(
+            start: Position(line: 2, character: 0),
+            end: Position(line: 14, character: 6))));
+    expect(
+        build.codeRange,
+        equals(Range(
+            start: Position(line: 3, character: 0),
+            end: Position(line: 14, character: 6))));
     expect(build.dartElement.kind, equals('FUNCTION'));
     expect(build.dartElement.name, equals('build'));
     expect(build.dartElement.parameters, equals('(BuildContext context)'));
-    expect(build.dartElement.range,
-        equals(Range(Position(3, 7), Position(3, 12))));
+    expect(
+        build.dartElement.range,
+        equals(Range(
+            start: Position(line: 3, character: 7),
+            end: Position(line: 3, character: 12))));
     expect(build.dartElement.returnType, equals('Widget'));
     expect(build.children, hasLength(1));
 
@@ -107,13 +122,20 @@ Widget build(BuildContext context) => Container(
         build.children[0].children[0].children[0].children[0].children[0];
     expect(icon.kind, equals('NEW_INSTANCE'));
     expect(icon.className, 'Icon');
-    expect(icon.range, equals(Range(Position(8, 31), Position(8, 50))));
+    expect(
+        icon.range,
+        equals(Range(
+            start: Position(line: 8, character: 31),
+            end: Position(line: 8, character: 50))));
     expect(icon.codeRange, equals(icon.range));
     expect(icon.attributes, hasLength(1));
     expect(icon.attributes[0].name, equals('icon'));
     expect(icon.attributes[0].label, equals('Icons.ac_unit'));
-    expect(icon.attributes[0].valueRange,
-        equals(Range(Position(8, 36), Position(8, 49))));
+    expect(
+        icon.attributes[0].valueRange,
+        equals(Range(
+            start: Position(line: 8, character: 36),
+            end: Position(line: 8, character: 49))));
     expect(icon.dartElement, isNull);
     expect(icon.children, hasLength(0));
   }

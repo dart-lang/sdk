@@ -9,7 +9,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -18,7 +18,7 @@ class RemoveUnusedElement extends _RemoveUnused {
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_ELEMENT;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     final sourceRanges = <SourceRange>[];
     final referencedNode = node.parent;
     if (referencedNode is ClassDeclaration ||
@@ -48,7 +48,7 @@ class RemoveUnusedElement extends _RemoveUnused {
       }
     }
 
-    await builder.addFileEdit(file, (builder) {
+    await builder.addDartFileEdit(file, (builder) {
       for (var sourceRange in sourceRanges) {
         builder.addDeletion(sourceRange);
       }
@@ -64,7 +64,7 @@ class RemoveUnusedField extends _RemoveUnused {
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_FIELD;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     final declaration = node.parent;
     if (declaration is! VariableDeclaration) {
       return;
@@ -100,7 +100,7 @@ class RemoveUnusedField extends _RemoveUnused {
       sourceRanges.add(sourceRange);
     }
 
-    await builder.addFileEdit(file, (builder) {
+    await builder.addDartFileEdit(file, (builder) {
       for (var sourceRange in sourceRanges) {
         builder.addDeletion(sourceRange);
       }

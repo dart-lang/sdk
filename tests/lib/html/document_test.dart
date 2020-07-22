@@ -48,7 +48,7 @@ main() {
 
     test('adoptNode', () {
       var div = new Element.html('<div><div id="foo">bar</div></div>');
-      var doc = document.implementation.createHtmlDocument('');
+      var doc = document.implementation!.createHtmlDocument('');
       expect(doc.adoptNode(div), div);
       expect(div.ownerDocument, doc);
       doc.body!.nodes.add(div);
@@ -57,7 +57,7 @@ main() {
 
     test('importNode', () {
       var div = new Element.html('<div><div id="foo">bar</div></div>');
-      var doc = document.implementation.createHtmlDocument('');
+      var doc = document.implementation!.createHtmlDocument('');
       var div2 = doc.importNode(div, true);
       expect(div2, notEquals(div));
       expect(div2.ownerDocument, doc);
@@ -70,7 +70,7 @@ main() {
       var doc1 = document;
       expect(doc1 is HtmlDocument, true);
       expect(inscrutable(doc1) is HtmlDocument, true);
-      var doc2 = document.implementation.createHtmlDocument('');
+      var doc2 = document.implementation!.createHtmlDocument('');
       expect(doc2 is HtmlDocument, true);
       expect(inscrutable(doc2) is HtmlDocument, true);
     });
@@ -78,7 +78,7 @@ main() {
     test('typeTest2', () {
       inscrutable = inscrutable(inscrutable);
       // XML document.
-      var doc3 = document.implementation.createDocument(null, 'report', null);
+      var doc3 = document.implementation!.createDocument(null, 'report', null);
       expect(doc3 is HtmlDocument, false);
       expect(inscrutable(doc3) is HtmlDocument, false);
     });

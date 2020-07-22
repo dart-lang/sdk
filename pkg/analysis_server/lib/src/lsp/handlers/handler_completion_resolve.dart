@@ -13,7 +13,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart' as analyzer;
 import 'package:analyzer/src/util/comment.dart' as analyzer;
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class CompletionResolveHandler
     extends MessageHandler<CompletionItem, CompletionItem> {
@@ -111,8 +111,8 @@ class CompletionResolveHandler
         }
 
         var newInsertText = item.insertText ?? item.label;
-        final builder = DartChangeBuilder(session);
-        await builder.addFileEdit(data.file, (builder) {
+        final builder = ChangeBuilder(session: session);
+        await builder.addDartFileEdit(data.file, (builder) {
           final result = builder.importLibraryElement(library.uri);
           if (result.prefix != null) {
             newInsertText = '${result.prefix}.$newInsertText';
@@ -135,7 +135,9 @@ class CompletionResolveHandler
         if (otherFilesChanges.isNotEmpty) {
           final workspaceEdit = createWorkspaceEdit(server, otherFilesChanges);
           command = Command(
-              'Add import', Commands.sendWorkspaceEdit, [workspaceEdit]);
+              title: 'Add import',
+              command: Commands.sendWorkspaceEdit,
+              arguments: [workspaceEdit]);
         }
 
         // Documentation is added on during resolve for LSP.
@@ -146,32 +148,36 @@ class CompletionResolveHandler
         final documentation = asStringOrMarkupContent(formats, dartDoc);
 
         return success(CompletionItem(
-          item.label,
-          item.kind,
-          data.displayUri != null && thisFilesChanges.isNotEmpty
+          label: item.label,
+          kind: item.kind,
+          tags: item.tags,
+          detail: data.displayUri != null && thisFilesChanges.isNotEmpty
               ? "Auto import from '${data.displayUri}'\n\n${item.detail ?? ''}"
                   .trim()
               : item.detail,
-          documentation,
-          item.deprecated,
-          item.preselect,
-          item.sortText,
-          item.filterText,
-          newInsertText,
-          item.insertTextFormat,
-          TextEdit(
+          documentation: documentation,
+          // The deprecated field is deprecated, but we should still supply it
+          // for clients that have not adopted CompletionItemTags.
+          // ignore: deprecated_member_use_from_same_package
+          deprecated: item.deprecated,
+          preselect: item.preselect,
+          sortText: item.sortText,
+          filterText: item.filterText,
+          insertText: newInsertText,
+          insertTextFormat: item.insertTextFormat,
+          textEdit: TextEdit(
             // TODO(dantup): If `clientSupportsSnippets == true` then we should map
             // `selection` in to a snippet (see how Dart Code does this).
-            toRange(lineInfo, item.data.rOffset, item.data.rLength),
-            newInsertText,
+            range: toRange(lineInfo, item.data.rOffset, item.data.rLength),
+            newText: newInsertText,
           ),
-          thisFilesChanges
+          additionalTextEdits: thisFilesChanges
               .expand((change) =>
                   change.edits.map((edit) => toTextEdit(lineInfo, edit)))
               .toList(),
-          item.commitCharacters,
-          command ?? item.command,
-          item.data,
+          commitCharacters: item.commitCharacters,
+          command: command ?? item.command,
+          data: item.data,
         ));
       } on InconsistentAnalysisException {
         // Loop around to try again.

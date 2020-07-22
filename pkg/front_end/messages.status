@@ -5,16 +5,16 @@
 # Note that test/spelling: Status will have no effect. Spelling errors can
 # always be fixed by either spelling correctly or updating the dictionary.
 
-StrongModeNNBDButOptOut/analyzerCode: Fail
-StrongModeNNBDButOptOut/example: Fail
-
 AbstractClassInstantiation/example: Fail
-AbstractClassMember/part_wrapped_script5: Fail
-AbstractClassMember/part_wrapped_script6: Fail
-AbstractClassMember/script5: Fail
-AbstractClassMember/script6: Fail
+AbstractFieldConstructorInitializer/analyzerCode: Fail
+AbstractFieldInitializer/analyzerCode: Fail
+AbstractExtensionField/analyzerCode: Fail
+AbstractExtensionField/example: Fail
+AbstractExternalField/analyzerCode: Fail
+AbstractLateField/analyzerCode: Fail
 AbstractNotSync/example: Fail
 AbstractRedirectedClassInstantiation/example: Fail
+AbstractStaticField/analyzerCode: Fail
 AccessError/analyzerCode: Fail
 AccessError/example: Fail
 AmbiguousExtensionMethod/analyzerCode: Fail
@@ -259,6 +259,9 @@ ExternalConstructorWithFieldInitializers/example: Fail
 ExternalFactoryRedirection/example: Fail
 ExternalFactoryWithBody/part_wrapped_script1: Fail
 ExternalFactoryWithBody/script1: Fail
+ExternalFieldConstructorInitializer/analyzerCode: Fail
+ExternalFieldInitializer/analyzerCode: Fail
+ExternalLateField/analyzerCode: Fail
 ExtraneousModifier/part_wrapped_script1: Fail
 ExtraneousModifier/part_wrapped_script10: Fail
 ExtraneousModifier/part_wrapped_script11: Fail
@@ -415,6 +418,8 @@ InvalidContinueTarget/example: Fail
 InvalidInitializer/example: Fail
 InvalidPackageUri/analyzerCode: Fail
 InvalidPackageUri/example: Fail
+InvalidReturn/analyzerCode: Fail
+InvalidReturnAsync/analyzerCode: Fail
 InvalidSuperInInitializer/example: Fail
 InvalidThisInInitializer/example: Fail
 InvalidTypeVariableInSupertype/analyzerCode: Fail
@@ -434,6 +439,8 @@ InvalidVoid/script1: Fail
 InvalidVoid/script2: Fail
 JsInteropIndexNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropIndexNotSupported/example: Fail # Web compiler specific
+JsInteropNamedParameters/analyzerCode: Fail # Web compiler specific
+JsInteropNamedParameters/example: Fail # Web compiler specific
 JsInteropNonExternalConstructor/analyzerCode: Fail # Web compiler specific
 JsInteropNonExternalConstructor/example: Fail # Web compiler specific
 LanguageVersionInvalidInDotPackages/analyzerCode: Fail
@@ -636,6 +643,10 @@ SourceOutlineSummary/example: Fail
 SpreadMapEntryTypeMismatch/analyzerCode: Fail # There's no analyzer code for that error yet.
 SpreadTypeMismatch/analyzerCode: Fail # There's no analyzer code for that error yet.
 StackOverflow/example: Fail
+StrongModeNNBDButOptOut/analyzerCode: Fail
+StrongModeNNBDButOptOut/example: Fail
+StrongModeNNBDPackageOptOut/analyzerCode: Fail
+StrongModeNNBDPackageOptOut/example: Fail
 SuperAsExpression/example: Fail
 SuperAsIdentifier/example: Fail
 SuperclassHasNoDefaultConstructor/example: Fail

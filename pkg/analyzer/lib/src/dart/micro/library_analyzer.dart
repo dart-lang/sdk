@@ -24,7 +24,6 @@ import 'package:analyzer/src/dart/micro/library_graph.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/dart2js_verifier.dart';
@@ -70,7 +69,6 @@ class LibraryAnalyzer {
 
   LibraryElement _libraryElement;
 
-  LibraryScope _libraryScope;
   final Map<FileState, LineInfo> _fileToLineInfo = {};
 
   final Map<FileState, IgnoreInfo> _fileToIgnoreInfo = {};
@@ -118,7 +116,10 @@ class LibraryAnalyzer {
     performance.run('parse', (performance) {
       for (FileState file in _library.libraryFiles) {
         if (completionPath == null || file.path == completionPath) {
-          units[file] = _parse(file);
+          units[file] = _parse(
+            file: file,
+            performance: performance,
+          );
         }
       }
     });
@@ -133,10 +134,8 @@ class LibraryAnalyzer {
 
     _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
 
-    _libraryScope = LibraryScope(_libraryElement);
-
     performance.run('resolveDirectives', (performance) {
-      _resolveDirectives(units);
+      _resolveDirectives(units, forCompletion);
     });
 
     performance.run('resolveFiles', (performance) {
@@ -279,8 +278,8 @@ class LibraryAnalyzer {
         declaredVariables: _declaredVariables,
         typeSystem: _typeSystem,
         inheritanceManager: _inheritance,
-        resourceProvider: _resourceProvider,
         analysisOptions: _context.analysisOptions,
+        workspacePackage: null, // TODO(scheglov) implement it
       ),
     );
 
@@ -514,10 +513,16 @@ class LibraryAnalyzer {
   }
 
   /// Return a  parsed unresolved [CompilationUnit].
-  CompilationUnit _parse(FileState file) {
-    AnalysisErrorListener errorListener = _getErrorListener(file);
+  CompilationUnit _parse({
+    @required FileState file,
+    @required OperationPerformanceImpl performance,
+  }) {
     String content = _getFileContent(file.path);
 
+    performance.getDataInt('count').increment();
+    performance.getDataInt('length').add(content.length);
+
+    AnalysisErrorListener errorListener = _getErrorListener(file);
     CompilationUnit unit = file.parse(errorListener, content);
 
     LineInfo lineInfo = unit.lineInfo;
@@ -527,9 +532,16 @@ class LibraryAnalyzer {
     return unit;
   }
 
-  void _resolveDirectives(Map<FileState, CompilationUnit> units) {
+  void _resolveDirectives(
+    Map<FileState, CompilationUnit> units,
+    bool forCompletion,
+  ) {
     CompilationUnit definingCompilationUnit = units[_library];
     definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
+
+    if (forCompletion) {
+      return;
+    }
 
     bool matchNodeElement(Directive node, Element element) {
       return node.keyword.offset == element.nameOffset;
@@ -677,14 +689,14 @@ class LibraryAnalyzer {
         unitElement: unitElement,
         errorListener: errorListener,
         featureSet: unit.featureSet,
-        nameScope: _libraryScope,
+        nameScope: _libraryElement.scope,
         elementWalker: ElementWalker.forCompilationUnit(unitElement),
       ),
     );
 
     unit.accept(VariableResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
-        nameScope: _libraryScope));
+        nameScope: _libraryElement.scope));
 
     // Nothing for RESOLVED_UNIT8?
     // Nothing for RESOLVED_UNIT9?

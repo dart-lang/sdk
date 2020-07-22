@@ -1,4 +1,4 @@
-## 0.6.3-dev
+## 0.6.3-nullsafety
 
 * Opt in to null safety.
 

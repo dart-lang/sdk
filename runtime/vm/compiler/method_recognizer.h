@@ -65,12 +65,6 @@ class MethodTokenRecognizer : public AllStatic {
   static Token::Kind RecognizeTokenKind(const String& name);
 };
 
-#define CHECK_FINGERPRINT2(f, p0, p1, fp)                                      \
-  ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1, fp))
-
-#define CHECK_FINGERPRINT3(f, p0, p1, p2, fp)                                  \
-  ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1 ", " #p2, fp))
-
 // Class that recognizes factories and returns corresponding result cid.
 class FactoryRecognizer : public AllStatic {
  public:

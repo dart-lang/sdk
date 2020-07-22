@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterWrapStreamBuilder extends CorrectionProducer {
@@ -13,7 +13,7 @@ class FlutterWrapStreamBuilder extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_STREAM_BUILDER;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var widgetExpr = flutter.identifyWidgetExpression(node);
     if (widgetExpr == null) {
       return;
@@ -31,7 +31,7 @@ class FlutterWrapStreamBuilder extends CorrectionProducer {
       return;
     }
 
-    await builder.addFileEdit(file, (builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(widgetExpr), (builder) {
         builder.writeReference(streamBuilderElement);
 

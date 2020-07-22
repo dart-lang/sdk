@@ -9,17 +9,18 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart'
     show ConstructorMember, Member;
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
+import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
@@ -44,7 +45,6 @@ import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -259,7 +259,7 @@ class ResolverVisitor extends ScopedVisitor {
       AnalysisErrorListener errorListener,
       {FeatureSet featureSet,
       Scope nameScope,
-      reportConstEvaluationErrors = true,
+      bool reportConstEvaluationErrors = true,
       FlowAnalysisHelper flowAnalysisHelper})
       : this._(
             inheritanceManager,
@@ -285,7 +285,7 @@ class ResolverVisitor extends ScopedVisitor {
       AnalysisErrorListener errorListener,
       FeatureSet featureSet,
       Scope nameScope,
-      reportConstEvaluationErrors,
+      bool reportConstEvaluationErrors,
       this._flowAnalysis,
       this._migratableAstInfoProvider,
       MigrationResolutionHooks migrationResolutionHooks)
@@ -731,10 +731,44 @@ class ResolverVisitor extends ScopedVisitor {
     AstNode parent = node.parent;
     if (parent is FunctionDeclaration ||
         parent is FunctionTypeAlias ||
-        parent is ConstructorDeclaration ||
-        parent is MethodDeclaration) {
+        parent is ConstructorDeclaration) {
       return;
     }
+
+    // TODO(scheglov) Change corresponding visiting places to visit comments
+    // with name scopes set for correct comments resolution.
+    if (parent is GenericTypeAlias) {
+      var element = parent.declaredElement as GenericTypeAliasElement;
+      var outerScope = nameScope;
+      try {
+        nameScope = TypeParameterScope(nameScope, element.typeParameters);
+
+        var functionElement = element.function;
+        if (functionElement != null) {
+          nameScope = FormalParameterScope(
+            TypeParameterScope(nameScope, functionElement.typeParameters),
+            functionElement.parameters,
+          );
+        }
+
+        super.visitComment(node);
+        return;
+      } finally {
+        nameScope = outerScope;
+      }
+    } else if (parent is MethodDeclaration) {
+      var outerScope = nameScope;
+      try {
+        var element = parent.declaredElement;
+        nameScope = FormalParameterScope(nameScope, element.parameters);
+
+        super.visitComment(node);
+        return;
+      } finally {
+        nameScope = outerScope;
+      }
+    }
+
     super.visitComment(node);
   }
 
@@ -1122,8 +1156,11 @@ class ResolverVisitor extends ScopedVisitor {
     } else {
       Scope outerScope = nameScope;
       try {
-        ExecutableElement functionElement = node.declaredElement;
-        nameScope = FunctionScope(nameScope, functionElement);
+        ExecutableElement element = node.declaredElement;
+        nameScope = FormalParameterScope(
+          TypeParameterScope(nameScope, element.typeParameters),
+          element.parameters,
+        );
         _functionExpressionResolver.resolve(node);
       } finally {
         nameScope = outerScope;
@@ -1334,12 +1371,6 @@ class ResolverVisitor extends ScopedVisitor {
     }
 
     _enclosingFunction = outerFunction;
-  }
-
-  @override
-  void visitMethodDeclarationInScope(MethodDeclaration node) {
-    super.visitMethodDeclarationInScope(node);
-    safelyVisitComment(node.documentationComment);
   }
 
   @override
@@ -2108,7 +2139,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   ///
   /// @return the enclosing [Scope].
   Scope popNameScope() {
-    nameScope = nameScope.enclosingScope;
+    nameScope = (nameScope as EnclosedScope).parent;
     return nameScope;
   }
 
@@ -2116,7 +2147,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   ///
   /// @return the new [Scope].
   Scope pushNameScope() {
-    Scope newScope = EnclosedScope(nameScope);
+    Scope newScope = LocalScope(nameScope);
     nameScope = newScope;
     return nameScope;
   }
@@ -2125,7 +2156,8 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   void visitBlock(Block node) {
     Scope outerScope = nameScope;
     try {
-      EnclosedScope enclosedScope = BlockScope(nameScope, node);
+      var enclosedScope = LocalScope(nameScope);
+      BlockScope.elementsInBlock(node).forEach(enclosedScope.add);
       nameScope = enclosedScope;
       _setNodeNameScope(node, nameScope);
       super.visitBlock(node);
@@ -2151,11 +2183,11 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     if (exception != null) {
       Scope outerScope = nameScope;
       try {
-        nameScope = EnclosedScope(nameScope);
-        nameScope.define(exception.staticElement);
+        nameScope = LocalScope(nameScope);
+        _define(exception.staticElement);
         SimpleIdentifier stackTrace = node.stackTraceParameter;
         if (stackTrace != null) {
-          nameScope.define(stackTrace.staticElement);
+          _define(stackTrace.staticElement);
         }
         super.visitCatchClause(node);
       } finally {
@@ -2168,28 +2200,22 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    ClassElement classElement = node.declaredElement;
     Scope outerScope = nameScope;
+    ClassElement outerClass = enclosingClass;
     try {
-      if (classElement == null) {
-        AnalysisEngine.instance.instrumentationService.logInfo(
-            "Missing element for class declaration ${node.name.name} in "
-            "${definingLibrary.source.fullName}",
-            CaughtException(AnalysisException(), null));
-        super.visitClassDeclaration(node);
-      } else {
-        ClassElement outerClass = enclosingClass;
-        try {
-          enclosingClass = node.declaredElement;
-          nameScope = TypeParameterScope(nameScope, classElement);
-          visitClassDeclarationInScope(node);
-          nameScope = ClassScope(nameScope, classElement);
-          visitClassMembersInScope(node);
-        } finally {
-          enclosingClass = outerClass;
-        }
-      }
+      ClassElement element = node.declaredElement;
+      enclosingClass = node.declaredElement;
+
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+      );
+      visitClassDeclarationInScope(node);
+
+      nameScope = ClassScope(nameScope, element);
+      visitClassMembersInScope(node);
     } finally {
+      enclosingClass = outerClass;
       nameScope = outerScope;
     }
   }
@@ -2214,7 +2240,10 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       ClassElement element = node.declaredElement;
-      nameScope = ClassScope(TypeParameterScope(nameScope, element), element);
+      nameScope = ClassScope(
+        TypeParameterScope(nameScope, element.typeParameters),
+        element,
+      );
       super.visitClassTypeAlias(node);
     } finally {
       nameScope = outerScope;
@@ -2229,40 +2258,32 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    ConstructorElement constructorElement = node.declaredElement;
-    if (constructorElement == null) {
-      StringBuffer buffer = StringBuffer();
-      buffer.write("Missing element for constructor ");
-      buffer.write(node.returnType.name);
-      if (node.name != null) {
-        buffer.write(".");
-        buffer.write(node.name.name);
-      }
-      buffer.write(" in ");
-      buffer.write(definingLibrary.source.fullName);
-      AnalysisEngine.instance.instrumentationService.logInfo(buffer.toString());
-    }
     Scope outerScope = nameScope;
     try {
-      if (constructorElement != null) {
-        nameScope = FunctionScope(nameScope, constructorElement);
-      }
+      ConstructorElement element = node.declaredElement;
+
       node.documentationComment?.accept(this);
       node.metadata.accept(this);
       node.returnType?.accept(this);
       node.name?.accept(this);
       node.parameters?.accept(this);
-      Scope functionScope = nameScope;
+
       try {
-        if (constructorElement != null) {
-          nameScope =
-              ConstructorInitializerScope(nameScope, constructorElement);
-        }
+        nameScope = ConstructorInitializerScope(
+          nameScope,
+          element,
+        );
         node.initializers.accept(this);
       } finally {
-        nameScope = functionScope;
+        nameScope = outerScope;
       }
+
       node.redirectedConstructor?.accept(this);
+
+      nameScope = FormalParameterScope(
+        nameScope,
+        element.parameters,
+      );
       visitConstructorDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
@@ -2276,8 +2297,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     VariableElement element = node.declaredElement;
+    // TODO(scheglov) Do we need this?
     if (element != null) {
-      nameScope.define(element);
+      _define(element);
     }
     super.visitDeclaredIdentifier(node);
   }
@@ -2300,25 +2322,16 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    ClassElement classElement = node.declaredElement;
     Scope outerScope = nameScope;
+    ClassElement outerClass = enclosingClass;
     try {
-      if (classElement == null) {
-        AnalysisEngine.instance.instrumentationService.logInfo(
-            "Missing element for enum declaration ${node.name.name} in "
-            "${definingLibrary.source.fullName}");
-        super.visitEnumDeclaration(node);
-      } else {
-        ClassElement outerClass = enclosingClass;
-        try {
-          enclosingClass = node.declaredElement;
-          nameScope = ClassScope(nameScope, classElement);
-          visitEnumMembersInScope(node);
-        } finally {
-          enclosingClass = outerClass;
-        }
-      }
+      ClassElement element = node.declaredElement;
+      enclosingClass = node.declaredElement;
+
+      nameScope = ClassScope(nameScope, element);
+      visitEnumMembersInScope(node);
     } finally {
+      enclosingClass = outerClass;
       nameScope = outerScope;
     }
   }
@@ -2337,27 +2350,22 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    ExtensionElement extensionElement = node.declaredElement;
     Scope outerScope = nameScope;
+    ExtensionElement outerExtension = enclosingExtension;
     try {
-      if (extensionElement == null) {
-        AnalysisEngine.instance.instrumentationService.logInfo(
-            "Missing element for extension declaration ${node.name.name} "
-            "in ${definingLibrary.source.fullName}");
-        super.visitExtensionDeclaration(node);
-      } else {
-        ExtensionElement outerExtension = enclosingExtension;
-        try {
-          enclosingExtension = extensionElement;
-          nameScope = TypeParameterScope(nameScope, extensionElement);
-          visitExtensionDeclarationInScope(node);
-          nameScope = ExtensionScope(nameScope, extensionElement);
-          visitExtensionMembersInScope(node);
-        } finally {
-          enclosingExtension = outerExtension;
-        }
-      }
+      ExtensionElement element = node.declaredElement;
+      enclosingExtension = element;
+
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+      );
+      visitExtensionDeclarationInScope(node);
+
+      nameScope = ExtensionScope(nameScope, element);
+      visitExtensionMembersInScope(node);
     } finally {
+      enclosingExtension = outerExtension;
       nameScope = outerScope;
     }
   }
@@ -2388,7 +2396,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   void visitForElement(ForElement node) {
     Scope outerNameScope = nameScope;
     try {
-      nameScope = EnclosedScope(nameScope);
+      nameScope = LocalScope(nameScope);
       _setNodeNameScope(node, nameScope);
       visitForElementInScope(node);
     } finally {
@@ -2413,12 +2421,22 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     // scope.  Note: we must not do this if the parent is a
     // FunctionTypedFormalParameter, because in that case we aren't finished
     // resolving the full function signature, just a part of it.
-    if (nameScope is FunctionScope &&
-        node.parent is! FunctionTypedFormalParameter) {
-      (nameScope as FunctionScope).defineParameters();
-    }
-    if (nameScope is FunctionTypeScope) {
-      (nameScope as FunctionTypeScope).defineParameters();
+    var parent = node.parent;
+    if (parent is FunctionExpression) {
+      nameScope = FormalParameterScope(
+        nameScope,
+        parent.declaredElement.parameters,
+      );
+    } else if (parent is FunctionTypeAlias) {
+      nameScope = FormalParameterScope(
+        nameScope,
+        parent.declaredElement.parameters,
+      );
+    } else if (parent is MethodDeclaration) {
+      nameScope = FormalParameterScope(
+        nameScope,
+        parent.declaredElement.parameters,
+      );
     }
   }
 
@@ -2427,7 +2445,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     Scope outerNameScope = nameScope;
     ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
     try {
-      nameScope = EnclosedScope(nameScope);
+      nameScope = LocalScope(nameScope);
       _implicitLabelScope = _implicitLabelScope.nest(node);
       _setNodeNameScope(node, nameScope);
       visitForStatementInScope(node);
@@ -2449,20 +2467,19 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    ExecutableElement functionElement = node.declaredElement;
-    if (functionElement != null &&
-        functionElement.enclosingElement is! CompilationUnitElement) {
-      nameScope.define(functionElement);
+    ExecutableElement element = node.declaredElement;
+    // TODO(scheglov) Do we need this?
+    if (element != null &&
+        element.enclosingElement is! CompilationUnitElement) {
+      _define(element);
     }
+
     Scope outerScope = nameScope;
     try {
-      if (functionElement == null) {
-        AnalysisEngine.instance.instrumentationService.logInfo(
-            "Missing element for top-level function ${node.name.name} in "
-            "${definingLibrary.source.fullName}");
-      } else {
-        nameScope = FunctionScope(nameScope, functionElement);
-      }
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+      );
       visitFunctionDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
@@ -2478,34 +2495,19 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     if (node.parent is FunctionDeclaration) {
       // We have already created a function scope and don't need to do so again.
       super.visitFunctionExpression(node);
-    } else {
-      Scope outerScope = nameScope;
-      try {
-        ExecutableElement functionElement = node.declaredElement;
-        if (functionElement == null) {
-          StringBuffer buffer = StringBuffer();
-          buffer.write("Missing element for function ");
-          AstNode parent = node.parent;
-          while (parent != null) {
-            if (parent is Declaration) {
-              Element parentElement = parent.declaredElement;
-              buffer.write(parentElement == null
-                  ? "<unknown> "
-                  : "${parentElement.name} ");
-            }
-            parent = parent.parent;
-          }
-          buffer.write("in ");
-          buffer.write(definingLibrary.source.fullName);
-          AnalysisEngine.instance.instrumentationService
-              .logInfo(buffer.toString());
-        } else {
-          nameScope = FunctionScope(nameScope, functionElement);
-        }
-        super.visitFunctionExpression(node);
-      } finally {
-        nameScope = outerScope;
-      }
+      return;
+    }
+
+    Scope outerScope = nameScope;
+    try {
+      ExecutableElement element = node.declaredElement;
+      nameScope = FormalParameterScope(
+        TypeParameterScope(nameScope, element.typeParameters),
+        element.parameters,
+      );
+      super.visitFunctionExpression(node);
+    } finally {
+      nameScope = outerScope;
     }
   }
 
@@ -2513,7 +2515,8 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     Scope outerScope = nameScope;
     try {
-      nameScope = FunctionTypeScope(nameScope, node.declaredElement);
+      var element = node.declaredElement;
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       visitFunctionTypeAliasInScope(node);
     } finally {
       nameScope = outerScope;
@@ -2528,19 +2531,11 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     Scope outerScope = nameScope;
     try {
-      ParameterElement parameterElement = node.declaredElement;
-      if (parameterElement == null) {
-        AnalysisEngine.instance.instrumentationService.logInfo(
-            "Missing element for function typed formal parameter "
-            "${node.identifier.name} in ${definingLibrary.source.fullName}");
-      } else {
-        nameScope = EnclosedScope(nameScope);
-        var typeParameters = parameterElement.typeParameters;
-        int length = typeParameters.length;
-        for (int i = 0; i < length; i++) {
-          nameScope.define(typeParameters[i]);
-        }
-      }
+      ParameterElement element = node.declaredElement;
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+      );
       super.visitFunctionTypedFormalParameter(node);
     } finally {
       nameScope = outerScope;
@@ -2556,19 +2551,13 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
       super.visitGenericFunctionType(node);
       return;
     }
-    GenericFunctionTypeElement element =
-        (node as GenericFunctionTypeImpl).declaredElement;
+
     Scope outerScope = nameScope;
     try {
-      if (element == null) {
-        AnalysisEngine.instance.instrumentationService
-            .logInfo("Missing element for generic function type in "
-                "${definingLibrary.source.fullName}");
-        super.visitGenericFunctionType(node);
-      } else {
-        nameScope = TypeParameterScope(nameScope, element);
-        super.visitGenericFunctionType(node);
-      }
+      GenericFunctionTypeElement element =
+          (node as GenericFunctionTypeImpl).declaredElement;
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      super.visitGenericFunctionType(node);
     } finally {
       nameScope = outerScope;
     }
@@ -2576,24 +2565,19 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    GenericTypeAliasElement element = node.declaredElement;
     Scope outerScope = nameScope;
     try {
-      if (element == null) {
-        AnalysisEngine.instance.instrumentationService
-            .logInfo("Missing element for generic function type in "
-                "${definingLibrary.source.fullName}");
-        super.visitGenericTypeAlias(node);
-      } else {
-        nameScope = TypeParameterScope(nameScope, element);
-        super.visitGenericTypeAlias(node);
+      GenericTypeAliasElement element = node.declaredElement;
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      super.visitGenericTypeAlias(node);
 
-        GenericFunctionTypeElement functionElement = element.function;
-        if (functionElement != null) {
-          nameScope = FunctionScope(nameScope, functionElement)
-            ..defineParameters();
-          visitGenericTypeAliasInFunctionScope(node);
-        }
+      GenericFunctionTypeElement functionElement = element.function;
+      if (functionElement != null) {
+        nameScope = FormalParameterScope(
+          nameScope,
+          functionElement.parameters,
+        );
+        visitGenericTypeAliasInFunctionScope(node);
       }
     } finally {
       nameScope = outerScope;
@@ -2623,14 +2607,11 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     Scope outerScope = nameScope;
     try {
-      ExecutableElement methodElement = node.declaredElement;
-      if (methodElement == null) {
-        AnalysisEngine.instance.instrumentationService
-            .logInfo("Missing element for method ${node.name.name} in "
-                "${definingLibrary.source.fullName}");
-      } else {
-        nameScope = FunctionScope(nameScope, methodElement);
-      }
+      ExecutableElement element = node.declaredElement;
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+      );
       visitMethodDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
@@ -2643,14 +2624,13 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    ClassElement element = node.declaredElement;
-
     Scope outerScope = nameScope;
     ClassElement outerClass = enclosingClass;
     try {
+      ClassElement element = node.declaredElement;
       enclosingClass = element;
 
-      nameScope = TypeParameterScope(nameScope, element);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       visitMixinDeclarationInScope(node);
 
       nameScope = ClassScope(nameScope, element);
@@ -2687,7 +2667,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     } else if (node != null) {
       Scope outerNameScope = nameScope;
       try {
-        nameScope = EnclosedScope(nameScope);
+        nameScope = LocalScope(nameScope);
         node.accept(this);
       } finally {
         nameScope = outerNameScope;
@@ -2700,7 +2680,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     node.expression.accept(this);
     Scope outerNameScope = nameScope;
     try {
-      nameScope = EnclosedScope(nameScope);
+      nameScope = LocalScope(nameScope);
       _setNodeNameScope(node, nameScope);
       node.statements.accept(this);
     } finally {
@@ -2712,7 +2692,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   void visitSwitchDefault(SwitchDefault node) {
     Scope outerNameScope = nameScope;
     try {
-      nameScope = EnclosedScope(nameScope);
+      nameScope = LocalScope(nameScope);
       _setNodeNameScope(node, nameScope);
       node.statements.accept(this);
     } finally {
@@ -2750,9 +2730,10 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     super.visitVariableDeclaration(node);
     if (node.parent.parent is! TopLevelVariableDeclaration &&
         node.parent.parent is! FieldDeclaration) {
+      // TODO(scheglov) Do we need this?
       VariableElement element = node.declaredElement;
       if (element != null) {
-        nameScope.define(element);
+        _define(element);
       }
     }
   }
@@ -2782,6 +2763,10 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
       labelScope = LabelScope(labelScope, labelName, node, labelElement);
     }
     return outerScope;
+  }
+
+  void _define(Element element) {
+    (nameScope as LocalScope).add(element);
   }
 
   /// Return the [Scope] to use while resolving inside the [node].
@@ -2934,7 +2919,7 @@ class VariableResolverVisitor extends ScopedVisitor {
       return;
     }
     // Prepare VariableElement.
-    Element element = nameScope.lookup(node, definingLibrary);
+    Element element = nameScope.lookupIdentifier(node);
     if (element is! VariableElement) {
       return;
     }

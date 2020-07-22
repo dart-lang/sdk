@@ -59,6 +59,13 @@ class BazelPackageUriResolver extends UriResolver {
   @override
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     return _sourceCache.putIfAbsent(uri, () {
+      if (uri.scheme == 'file') {
+        var pathRelativeToRoot = _workspace._relativeToRoot(uri.path);
+        if (pathRelativeToRoot == null) return null;
+        var fullFilePath = _context.join(_workspace.root, pathRelativeToRoot);
+        File file = _workspace.findFile(fullFilePath);
+        return file?.createSource(uri);
+      }
       if (uri.scheme != 'package') {
         return null;
       }
@@ -304,6 +311,32 @@ class BazelWorkspace extends Workspace
       // Go up a folder.
       folder = parent;
     }
+  }
+
+  String _relativeToRoot(String p) {
+    path.Context context = provider.pathContext;
+    // genfiles
+    if (genfiles != null && context.isWithin(genfiles, p)) {
+      return context.relative(p, from: genfiles);
+    }
+    // bin
+    for (String bin in binPaths) {
+      if (context.isWithin(bin, p)) {
+        return context.relative(p, from: bin);
+      }
+    }
+    // READONLY
+    if (readonly != null) {
+      if (context.isWithin(readonly, p)) {
+        return context.relative(p, from: readonly);
+      }
+    }
+    // Not generated
+    if (context.isWithin(root, p)) {
+      return context.relative(p, from: root);
+    }
+    // Failed reverse lookup
+    return null;
   }
 
   /// Find the Bazel workspace that contains the given [filePath].

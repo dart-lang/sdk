@@ -68,6 +68,12 @@ class NullableInference extends ExpressionVisitor<bool> {
   bool visitNullLiteral(NullLiteral node) => true;
 
   @override
+  bool visitNullCheck(NullCheck node) {
+    node.operand.accept(this);
+    return false;
+  }
+
+  @override
   bool visitVariableGet(VariableGet node) {
     return _variableInference.variableIsNullable(node.variable);
   }

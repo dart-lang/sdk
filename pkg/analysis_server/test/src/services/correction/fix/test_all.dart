@@ -31,6 +31,7 @@ import 'add_super_constructor_invocation_test.dart'
     as add_super_constructor_invocation;
 import 'add_type_annotation_test.dart' as add_type_annotation;
 import 'analysis_options/test_all.dart' as analysis_options;
+import 'bulk/test_all.dart' as bulk;
 import 'change_argument_name_test.dart' as change_argument_name;
 import 'change_to_nearest_precise_value_test.dart'
     as change_to_nearest_precise_value;
@@ -76,6 +77,7 @@ import 'create_missing_overrides_test.dart' as create_missing_overrides;
 import 'create_mixin_test.dart' as create_mixin;
 import 'create_no_such_method_test.dart' as create_no_such_method;
 import 'create_setter_test.dart' as create_setter;
+import 'data_driven/test_all.dart' as data_driven;
 import 'extend_class_for_mixin_test.dart' as extend_class_for_mixin;
 import 'fix_test.dart' as fix;
 import 'import_async_test.dart' as import_async;
@@ -131,6 +133,7 @@ import 'remove_unused_local_variable_test.dart' as remove_unused_local_variable;
 import 'remove_unused_parameter_test.dart' as remove_unused_parameter;
 import 'rename_to_camel_case_test.dart' as rename_to_camel_case;
 import 'replace_boolean_with_bool_test.dart' as replace_boolean_with_bool;
+import 'replace_cascade_with_dot_test.dart' as replace_cascade_with_dot;
 import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
 import 'replace_final_with_const_test.dart' as replace_final_with_const;
 import 'replace_new_with_const_test.dart' as replace_new_with_const;
@@ -185,6 +188,7 @@ void main() {
     add_super_constructor_invocation.main();
     add_type_annotation.main();
     analysis_options.main();
+    bulk.main();
     change_argument_name.main();
     change_to.main();
     change_to_nearest_precise_value.main();
@@ -225,6 +229,7 @@ void main() {
     create_mixin.main();
     create_no_such_method.main();
     create_setter.main();
+    data_driven.main();
     extend_class_for_mixin.main();
     fix.main();
     import_async.main();
@@ -277,6 +282,7 @@ void main() {
     remove_unused_parameter.main();
     rename_to_camel_case.main();
     replace_boolean_with_bool.main();
+    replace_cascade_with_dot.main();
     replace_colon_with_equals.main();
     replace_final_with_const.main();
     replace_new_with_const.main();

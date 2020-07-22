@@ -145,16 +145,17 @@ bool _invalidVariableName(String keyword, {bool strictMode = true}) {
 /// or extension, like "math_test". [testNameAlias] is the alias of the
 /// test variable used for import/export (usually relative to its module root).
 /// [testJSDir] is the relative path to the build directory where the
-/// dartdevc-generated JS file is stored.
+/// dartdevc-generated JS file is stored. [nonNullAsserts] enables non-null
+/// assertions for non-nullable method parameters when running with weak null
+/// safety.
 String dartdevcHtml(String testName, String testNameAlias, String testJSDir,
-    Compiler compiler, NnbdMode mode) {
+    Compiler compiler, NnbdMode mode, bool nonNullAsserts) {
   var testId = pathToJSIdentifier(testName);
   var testIdAlias = pathToJSIdentifier(testNameAlias);
-  var isKernel = compiler == Compiler.dartdevk;
   var isNnbd = mode != NnbdMode.legacy;
   var isNnbdStrong = mode == NnbdMode.strong;
-  var sdkPath = isKernel ? 'kernel/amd/dart_sdk' : 'js/amd/dart_sdk';
-  var pkgDir = isKernel ? 'pkg_kernel' : 'pkg';
+  var sdkPath = isNnbdStrong ? 'sound/amd/dart_sdk' : 'kernel/amd/dart_sdk';
+  var pkgDir = isNnbdStrong ? 'pkg_sound' : 'pkg_kernel';
   var packagePaths = testPackages
       .map((p) => '    "$p": "/root_build/gen/utils/dartdevc/$pkgDir/$p",')
       .join("\n");
@@ -232,8 +233,8 @@ requirejs(["$testName", "dart_sdk", "async_helper"],
   };
 
   if ($isNnbd) {
-    sdk.dart.nullSafety($isNnbdStrong);
     sdk.dart.weakNullSafetyWarnings(!$isNnbdStrong);
+    sdk.dart.nonNullAsserts($nonNullAsserts);
   }
 
   dartMainRunner(function testMainWrapper() {

@@ -45,6 +45,7 @@ class Heap {
 #endif
     kCanonicalHashes,
     kObjectIds,
+    kLoadingUnits,
     kNumWeakSelectors
   };
 
@@ -233,6 +234,15 @@ class Heap {
     return GetWeakEntry(raw_obj, kObjectIds);
   }
   void ResetObjectIdTable();
+
+  void SetLoadingUnit(ObjectPtr raw_obj, intptr_t object_id) {
+    ASSERT(Thread::Current()->IsMutatorThread());
+    SetWeakEntry(raw_obj, kLoadingUnits, object_id);
+  }
+  intptr_t GetLoadingUnit(ObjectPtr raw_obj) const {
+    ASSERT(Thread::Current()->IsMutatorThread());
+    return GetWeakEntry(raw_obj, kLoadingUnits);
+  }
 
   // Used by the GC algorithms to propagate weak entries.
   intptr_t GetWeakEntry(ObjectPtr raw_obj, WeakSelector sel) const;

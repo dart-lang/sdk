@@ -12,14 +12,14 @@ Future<int> test1() async {
   return;
 //^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] A value must be explicitly returned from a non-void async function.
 }
 
 Future<int> Function() test2 = () async {
   return;
 //^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] A value must be explicitly returned from a non-void async function.
 };
 
 void main() {

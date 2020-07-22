@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
+import 'with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -51,12 +50,8 @@ main() {
 }
 
 @reflectiveTest
-class ForEachElementWithNnbdTest extends ForEachElementTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
+class ForEachElementWithNnbdTest extends ForEachElementTest
+    with WithNullSafetyMixin {
   test_optIn_fromOptOut() async {
     newFile('/test/lib/a.dart', content: r'''
 class A implements Iterable<int> {

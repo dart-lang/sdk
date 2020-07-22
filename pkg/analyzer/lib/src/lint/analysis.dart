@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:io' as io;
 
+import 'package:analyzer/dart/analysis/context_locator.dart' as api;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart'
     show File, Folder, ResourceProvider, ResourceUriResolver;
@@ -15,6 +16,8 @@ import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'
+    as api;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -169,6 +172,9 @@ class LintDriver {
       _buildAnalyzerOptions(options),
       packages: Packages.empty,
     );
+
+    _setAnalysisDriverAnalysisContext(analysisDriver, files);
+
     analysisDriver.results.listen((_) {});
     analysisDriver.exceptions.listen((_) {});
     scheduler.start();
@@ -242,13 +248,46 @@ class LintDriver {
     }
     return null;
   }
+
+  void _setAnalysisDriverAnalysisContext(
+    AnalysisDriver analysisDriver,
+    Iterable<io.File> files,
+  ) {
+    if (files.isEmpty) {
+      return;
+    }
+
+    var rootPath = p.normalize(files.first.absolute.path);
+    if (rootPath == null) {
+      return;
+    }
+
+    var apiContextRoots = api.ContextLocator(
+      resourceProvider: resourceProvider,
+    ).locateRoots(
+      includedPaths: [rootPath],
+      excludedPaths: [],
+    );
+
+    if (apiContextRoots.isEmpty) {
+      return;
+    }
+
+    analysisDriver.configure(
+      analysisContext: api.DriverBasedAnalysisContext(
+        resourceProvider,
+        apiContextRoots.first,
+        analysisDriver,
+      ),
+    );
+  }
 }
 
 /// Prints logging information comments to the [outSink] and error messages to
 /// [errorSink].
 class StdInstrumentation extends NoopInstrumentationService {
   @override
-  void logError(String message, [exception]) {
+  void logError(String message, [Object exception]) {
     errorSink.writeln(message);
     if (exception != null) {
       errorSink.writeln(exception);
@@ -264,7 +303,7 @@ class StdInstrumentation extends NoopInstrumentationService {
   }
 
   @override
-  void logInfo(String message, [exception]) {
+  void logInfo(String message, [Object exception]) {
     outSink.writeln(message);
     if (exception != null) {
       outSink.writeln(exception);

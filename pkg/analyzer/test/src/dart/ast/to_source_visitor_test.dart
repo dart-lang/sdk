@@ -1741,9 +1741,12 @@ class ToSourceVisitor2Test {
 
   void test_visitIndexExpression() {
     _assertSource(
-        "a[i]",
-        AstTestFactory.indexExpression(
-            AstTestFactory.identifier3("a"), AstTestFactory.identifier3("i")));
+      "a[i]",
+      AstTestFactory.indexExpression(
+        target: AstTestFactory.identifier3("a"),
+        index: AstTestFactory.identifier3("i"),
+      ),
+    );
   }
 
   void test_visitInstanceCreationExpression_const() {

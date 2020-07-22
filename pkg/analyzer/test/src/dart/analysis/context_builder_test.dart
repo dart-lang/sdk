@@ -46,7 +46,10 @@ class ContextBuilderImplTest with ResourceProviderMixin {
     DeclaredVariables declaredVariables =
         DeclaredVariables.fromMap({'foo': 'true'});
     DriverBasedAnalysisContext context = contextBuilder.createContext(
-        contextRoot: contextRoot, declaredVariables: declaredVariables);
+      contextRoot: contextRoot,
+      declaredVariables: declaredVariables,
+      sdkPath: resourceProvider.convertPath(sdkRoot),
+    );
     expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
     assertEquals(context.driver.declaredVariables, declaredVariables);
@@ -68,8 +71,10 @@ class ContextBuilderImplTest with ResourceProviderMixin {
   }
 
   test_createContext_defaults() {
-    AnalysisContext context =
-        contextBuilder.createContext(contextRoot: contextRoot);
+    AnalysisContext context = contextBuilder.createContext(
+      contextRoot: contextRoot,
+      sdkPath: resourceProvider.convertPath(sdkRoot),
+    );
     expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
   }

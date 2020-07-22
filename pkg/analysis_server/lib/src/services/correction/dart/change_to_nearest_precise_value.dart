@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -21,14 +21,14 @@ class ChangeToNearestPreciseValue extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CHANGE_TO_NEAREST_PRECISE_VALUE;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     IntegerLiteral integer = node;
     var lexeme = integer.literal.lexeme;
     var precise = BigInt.from(IntegerLiteralImpl.nearestValidDouble(lexeme));
     _correction = lexeme.toLowerCase().contains('x')
         ? '0x${precise.toRadixString(16).toUpperCase()}'
         : precise.toString();
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(range.node(integer), _correction);
     });
   }

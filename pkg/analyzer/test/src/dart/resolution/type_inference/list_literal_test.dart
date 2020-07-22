@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../driver_resolution.dart';
+import '../with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -319,15 +318,7 @@ var a = <num>[];
 }
 
 @reflectiveTest
-class ListLiteralWithNnbdTest extends ListLiteralTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class ListLiteralWithNnbdTest extends ListLiteralTest with WithNullSafetyMixin {
   test_context_spread_nullAware() async {
     await assertNoErrorsInCode('''
 T f<T>(T t) => t;

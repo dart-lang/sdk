@@ -6,8 +6,10 @@ import 'package:analyzer/dart/ast/token.dart' show Keyword;
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_visitor.dart';
 
 /// A type that is being inferred but is not currently known.
 ///
@@ -35,6 +37,16 @@ class UnknownInferredType extends TypeImpl {
 
   @override
   bool operator ==(Object object) => identical(object, this);
+
+  @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    if (visitor is InferenceTypeVisitor<R>) {
+      var visitor2 = visitor as InferenceTypeVisitor<R>;
+      return visitor2.visitUnknownInferredType(this);
+    } else {
+      throw StateError('Should not happen outside inference.');
+    }
+  }
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {

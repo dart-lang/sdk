@@ -48,7 +48,7 @@ class TypeSchemaEliminationVisitor extends ReplacementVisitor {
       bottomType,
       isLeastClosure,
     );
-    var result = visitor.visit(schema);
+    var result = schema.accept(visitor);
     assert(visitor._isLeastClosure == isLeastClosure);
     return result ?? schema;
   }

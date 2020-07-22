@@ -539,7 +539,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     for (ir.VariableDeclaration variable in sortedNamedParameters) {
       namedParameters.add(variable.name);
       namedParameterTypes.add(getParameterType(variable));
-      if (variable.isRequired && !options.useLegacySubtyping) {
+      if (variable.isRequired) {
         requiredNamedParameters.add(variable.name);
       }
     }

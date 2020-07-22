@@ -241,7 +241,16 @@ abstract class TypeSystem implements public.TypeSystem {
     var substitution = Substitution.fromPairs(typeParameters, inferredTypes);
 
     for (int i = 0; i < srcTypes.length; i++) {
-      if (substitution.substituteType(srcTypes[i]) != destTypes[i]) {
+      var srcType = substitution.substituteType(srcTypes[i]);
+      var destType = destTypes[i];
+      if (isNonNullableByDefault) {
+        // TODO(scheglov) waiting for the spec
+        // https://github.com/dart-lang/sdk/issues/42605
+      } else {
+        srcType = toLegacyType(srcType);
+        destType = toLegacyType(destType);
+      }
+      if (srcType != destType) {
         // Failed to find an appropriate substitution
         return null;
       }
@@ -264,8 +273,8 @@ abstract class TypeSystem implements public.TypeSystem {
     if (type is! InterfaceType) return null;
     if (genericType is! InterfaceType) return null;
 
-    var asInstanceOf = (type as InterfaceTypeImpl)
-        .asInstanceOf((genericType as InterfaceType).element);
+    var asInstanceOf =
+        type.asInstanceOf((genericType as InterfaceType).element);
 
     if (asInstanceOf != null) {
       return asInstanceOf.typeArguments[0];
@@ -343,6 +352,11 @@ abstract class TypeSystem implements public.TypeSystem {
     }
 
     return type;
+  }
+
+  DartType toLegacyType(DartType type) {
+    if (isNonNullableByDefault) return type;
+    return NullabilityEliminator.perform(typeProvider, type);
   }
 
   /// Tries to promote from the first type from the second type, and returns the
@@ -970,8 +984,10 @@ class TypeSystemImpl extends TypeSystem {
   /// Return `true`  for things in the equivalence class of `Never`.
   bool isBottom(DartType type) {
     // BOTTOM(Never) is true
-    if (identical(type, NeverTypeImpl.instance)) {
-      return true;
+    if (type is NeverType) {
+      var result = type.nullabilitySuffix != NullabilitySuffix.question;
+      assert(type.isBottom == result);
+      return result;
     }
 
     // BOTTOM(X&T) is true iff BOTTOM(T)
@@ -979,16 +995,21 @@ class TypeSystemImpl extends TypeSystem {
     if (type is TypeParameterTypeImpl) {
       var T = type.promotedBound;
       if (T != null) {
-        return isBottom(T);
+        var result = isBottom(T);
+        assert(type.isBottom == result);
+        return result;
       }
 
       T = type.element.bound;
       if (T != null) {
-        return isBottom(T);
+        var result = isBottom(T);
+        assert(type.isBottom == result);
+        return result;
       }
     }
 
     // BOTTOM(T) is false otherwise
+    assert(!type.isBottom);
     return false;
   }
 
@@ -1425,11 +1446,6 @@ class TypeSystemImpl extends TypeSystem {
   /// nnbd/feature-specification.md#runtime-type-equality-operator
   bool runtimeTypesEqual(DartType T1, DartType T2) {
     return RuntimeTypeEqualityHelper(this).equal(T1, T2);
-  }
-
-  DartType toLegacyType(DartType type) {
-    if (isNonNullableByDefault) return type;
-    return NullabilityEliminator.perform(typeProvider, type);
   }
 
   /// Merges two types into a single type.

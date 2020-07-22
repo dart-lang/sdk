@@ -45,16 +45,21 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       return success(const []);
     }
 
-    final capabilities = server?.clientCapabilities?.textDocument?.codeAction;
+    final capabilities = server?.clientCapabilities?.textDocument;
 
     final clientSupportsWorkspaceApplyEdit =
         server?.clientCapabilities?.workspace?.applyEdit == true;
 
     final clientSupportsLiteralCodeActions =
-        capabilities?.codeActionLiteralSupport != null;
+        capabilities?.codeAction?.codeActionLiteralSupport != null;
 
     final clientSupportedCodeActionKinds = HashSet<CodeActionKind>.of(
-        capabilities?.codeActionLiteralSupport?.codeActionKind?.valueSet ?? []);
+        capabilities?.codeAction?.codeActionLiteralSupport?.codeActionKind
+                ?.valueSet ??
+            []);
+
+    final clientSupportedDiagnosticTags = HashSet<DiagnosticTag>.of(
+        capabilities?.publishDiagnostics?.tagSupport?.valueSet ?? []);
 
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
@@ -70,6 +75,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
               clientSupportedCodeActionKinds,
               clientSupportsLiteralCodeActions,
               clientSupportsWorkspaceApplyEdit,
+              clientSupportedDiagnosticTags,
               path.result,
               params.range,
               offset,
@@ -89,7 +95,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   ) {
     return clientSupportsLiteralCodeActions
         ? Either2<Command, CodeAction>.t2(
-            CodeAction(command.title, kind, null, null, command),
+            CodeAction(title: command.title, kind: kind, command: command),
           )
         : Either2<Command, CodeAction>.t1(command);
   }
@@ -100,11 +106,10 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   /// before the version number is read.
   CodeAction _createAssistAction(Assist assist) {
     return CodeAction(
-      assist.change.message,
-      toCodeActionKind(assist.change.id, CodeActionKind.Refactor),
-      const [],
-      createWorkspaceEdit(server, assist.change.edits),
-      null,
+      title: assist.change.message,
+      kind: toCodeActionKind(assist.change.id, CodeActionKind.Refactor),
+      diagnostics: const [],
+      edit: createWorkspaceEdit(server, assist.change.edits),
     );
   }
 
@@ -114,11 +119,10 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   /// before the version number is read.
   CodeAction _createFixAction(Fix fix, Diagnostic diagnostic) {
     return CodeAction(
-      fix.change.message,
-      toCodeActionKind(fix.change.id, CodeActionKind.QuickFix),
-      [diagnostic],
-      createWorkspaceEdit(server, fix.change.edits),
-      null,
+      title: fix.change.message,
+      kind: toCodeActionKind(fix.change.id, CodeActionKind.QuickFix),
+      diagnostics: [diagnostic],
+      edit: createWorkspaceEdit(server, fix.change.edits),
     );
   }
 
@@ -137,12 +141,12 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       // Build a new CodeAction that merges the diagnostics from each same
       // code action onto a single one.
       return CodeAction(
-          first.title,
-          first.kind,
+          title: first.title,
+          kind: first.kind,
           // Merge diagnostics from all of the CodeActions.
-          groups[edit].expand((r) => r.diagnostics).toList(),
-          first.edit,
-          first.command);
+          diagnostics: groups[edit].expand((r) => r.diagnostics).toList(),
+          edit: first.edit,
+          command: first.command);
     }).toList();
   }
 
@@ -187,6 +191,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     HashSet<CodeActionKind> kinds,
     bool supportsLiterals,
     bool supportsWorkspaceApplyEdit,
+    HashSet<DiagnosticTag> supportedDiagnosticTags,
     String path,
     Range range,
     int offset,
@@ -198,7 +203,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           kinds, supportsLiterals, supportsWorkspaceApplyEdit, path),
       _getAssistActions(kinds, supportsLiterals, offset, length, unit),
       _getRefactorActions(kinds, supportsLiterals, path, offset, length, unit),
-      _getFixActions(kinds, supportsLiterals, range, unit),
+      _getFixActions(
+          kinds, supportsLiterals, supportedDiagnosticTags, range, unit),
     ]);
     final flatResults = results.expand((x) => x).toList();
 
@@ -208,6 +214,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   Future<List<Either2<Command, CodeAction>>> _getFixActions(
     HashSet<CodeActionKind> clientSupportedCodeActionKinds,
     bool clientSupportsLiteralCodeActions,
+    HashSet<DiagnosticTag> supportedDiagnosticTags,
     Range range,
     ResolvedUnitResult unit,
   ) async {
@@ -239,7 +246,11 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           if (fixes.isNotEmpty) {
             fixes.sort(Fix.SORT_BY_RELEVANCE);
 
-            final diagnostic = toDiagnostic(unit, error);
+            final diagnostic = toDiagnostic(
+              unit,
+              error,
+              supportedTags: supportedDiagnosticTags,
+            );
             codeActions.addAll(
               fixes.map((fix) => _createFixAction(fix, diagnostic)),
             );
@@ -291,14 +302,18 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       return _commandOrCodeAction(
           clientSupportsLiteralCodeActions,
           actionKind,
-          Command(name, Commands.performRefactor, [
-            refactorKind.toJson(),
-            path,
-            server.getVersionedDocumentIdentifier(path).version,
-            offset,
-            length,
-            options,
-          ]));
+          Command(
+            title: name,
+            command: Commands.performRefactor,
+            arguments: [
+              refactorKind.toJson(),
+              path,
+              server.getVersionedDocumentIdentifier(path).version,
+              offset,
+              length,
+              options,
+            ],
+          ));
     }
 
     try {
@@ -357,12 +372,18 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       _commandOrCodeAction(
         clientSupportsLiteralCodeActions,
         DartCodeActionKind.SortMembers,
-        Command('Sort Members', Commands.sortMembers, [path]),
+        Command(
+            title: 'Sort Members',
+            command: Commands.sortMembers,
+            arguments: [path]),
       ),
       _commandOrCodeAction(
         clientSupportsLiteralCodeActions,
         CodeActionKind.SourceOrganizeImports,
-        Command('Organize Imports', Commands.organizeImports, [path]),
+        Command(
+            title: 'Organize Imports',
+            command: Commands.organizeImports,
+            arguments: [path]),
       ),
     ];
   }

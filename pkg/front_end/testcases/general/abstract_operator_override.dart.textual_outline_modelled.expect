@@ -1,0 +1,20 @@
+class A {
+  A operator +(B b) => new A();
+  A operator -() => new A();
+  A operator [](B b) => new A();
+  void operator []=(B b1, B b2) {}
+}
+
+class B extends A {
+  A operator +(A a);
+  A operator [](A a);
+  B operator -();
+  void operator []=(A a, B b);
+}
+
+class C extends A {
+  B operator [](B b);
+  void operator []=(B b, A a);
+}
+
+main() {}

@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../driver_resolution.dart';
+import '../with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,6 +17,50 @@ main() {
 
 @reflectiveTest
 class FunctionExpressionTest extends DriverResolutionTest {
+  test_contextFunctionType_returnType_async_blockBody_futureOrVoid() async {
+    var expectedErrors = expectedErrorsByNullability(
+      nullable: [
+        error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 72, 1),
+      ],
+      legacy: [],
+    );
+    await assertErrorsInCode('''
+import 'dart:async';
+
+FutureOr<void> Function() v = () async {
+  return 0;
+};
+''', expectedErrors);
+    _assertReturnType(
+      '() async {',
+      typeStringByNullability(
+        nullable: 'Future<void>',
+        legacy: 'Future<int>',
+      ),
+    );
+  }
+
+  test_contextFunctionType_returnType_async_blockBody_futureVoid() async {
+    var expectedErrors = expectedErrorsByNullability(
+      nullable: [
+        error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 48, 1),
+      ],
+      legacy: [],
+    );
+    await assertErrorsInCode('''
+Future<void> Function() v = () async {
+  return 0;
+};
+''', expectedErrors);
+    _assertReturnType(
+      '() async {',
+      typeStringByNullability(
+        nullable: 'Future<void>',
+        legacy: 'Future<int>',
+      ),
+    );
+  }
+
   test_contextFunctionType_returnType_async_expressionBody() async {
     await assertNoErrorsInCode('''
 Future<num> Function() v = () async => 0;
@@ -116,6 +160,24 @@ int Function() v = () {
       ['int'],
     );
     _assertReturnType('() {', 'int');
+  }
+
+  test_contextFunctionType_returnType_sync_blockBody_void() async {
+    var expectedErrors = expectedErrorsByNullability(nullable: [
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 34, 1),
+    ], legacy: []);
+    await assertErrorsInCode('''
+void Function() v = () {
+  return 0;
+};
+''', expectedErrors);
+    _assertReturnType(
+      '() {',
+      typeStringByNullability(
+        nullable: 'void',
+        legacy: 'int',
+      ),
+    );
   }
 
   test_contextFunctionType_returnType_sync_expressionBody() async {
@@ -398,15 +460,8 @@ var v = () sync* {
 }
 
 @reflectiveTest
-class FunctionExpressionWithNnbdTest extends FunctionExpressionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class FunctionExpressionWithNnbdTest extends FunctionExpressionTest
+    with WithNullSafetyMixin {
   test_contextFunctionType_nonNullify() async {
     newFile('/test/lib/a.dart', content: r'''
 // @dart = 2.7

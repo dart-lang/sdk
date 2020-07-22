@@ -20,12 +20,6 @@ main() {
 class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
   @override
   @failingTest
-  test_awaitInWrongContext_sync() {
-    return super.test_awaitInWrongContext_sync();
-  }
-
-  @override
-  @failingTest
   test_constEvalThrowsException() {
     return super.test_constEvalThrowsException();
   }

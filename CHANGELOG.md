@@ -1,3 +1,5 @@
+## 2.10.0
+
 ## 2.9.0
 
 ### Language
@@ -58,6 +60,18 @@
 
 [#41653]: https://github.com/dart-lang/sdk/issues/41653
 
+#### `dart:mirrors`
+
+*   **Breaking Change** [#42714][]: web compilers (dart2js and DDC) now produce
+    a compile-time error if `dart:mirrors` is imported.
+
+    Most projects should not be affected. Since 2.0.0 this library was
+    unsupported and produced runtime errors on all its APIs. Since then several
+    tools already reject code that use `dart:mirrors` including webdev and
+    flutter tools, we expect few projects to run into this problem.
+
+[#42714]: https://github.com/dart-lang/sdk/issues/42714
+
 ### Tools
 
 #### dartfmt
@@ -104,19 +118,27 @@ Updated the Linter to `0.1.117`, which includes:
 ### Pub
 * `pub run` and `pub global run` accepts a `--enable-experiment` flag enabling
   experiments in the Dart VM (and language).
+* Warn when publishing the first null-safe version of a package.
+* `pub outdated`:
+  * Introduce `--mode=null-safety` flag that will report which of your
+    dependencies you can upgrade to fully support null safety.
+  * If the current version of a dependency is a prerelease
+    version, use prereleases for latest if there is no newer stable.
+  * Don't require a `pubspec.lock` file. When the lockfile is missing, the
+    **Current** column is empty.
+* `pub upgrade`: Show summary count of outdated packages after running.
+  It will also only show newer packages if they are not prereleases or
+  the package is already a prerelease.
 * Publishing Flutter plugins using the old plugin format is no longer allowed.
   Plugins using the old plugin format can still be consumed.
-* Introduce `pub outdated --mode=null-safety` that will report which of your
-  dependencies you can upgrade to fully support null safety.
-* Fix `pub run` precompilation with relative `PUB_CACHE` paths (#2486)
-* Warn at publishing first time a package version opts in to null-safety.
-* Preserve Windows line endings in pubspec.lock if they are already there (#2489)
+* `pub run`: Fix precompilation with relative `PUB_CACHE` paths
+  ([#2486](https://github.com/dart-lang/pub/pull/2486)).
+* Preserve Windows line endings in `pubspec.lock` if they are already there
+  ([#2489](https://github.com/dart-lang/pub/pull/2489)).
 * Better terminal color-detection. Use colors in terminals on Windows.
-* `pub outdated`: If the current version of a dependency is a prerelease
-  version, use prereleases for latest if no newer stable.
-* `pub outdated` now works without a lockfile. In that case the 'Current'
-  column will be empty.
-* `pub upgrade`: Show summary count of outdated packages after running.
+* Fix git folder names in cache, allowing for ssh-style git 
+  dependencies.
+* Fix: Avoid precompilation of dependencies of global packages.
 
 ## 2.8.4 - 2020-06-04
 

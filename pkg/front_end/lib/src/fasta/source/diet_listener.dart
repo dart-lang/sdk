@@ -326,6 +326,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endClassFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,

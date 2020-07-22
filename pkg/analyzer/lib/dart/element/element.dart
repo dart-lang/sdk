@@ -37,6 +37,7 @@
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -487,6 +488,9 @@ abstract class ConstructorElement
   /// if this constructor does not redirect to another constructor or if the
   /// library containing this constructor has not yet been resolved.
   ConstructorElement get redirectedConstructor;
+
+  @override
+  InterfaceType get returnType;
 }
 
 /// The base class for all of the elements in the element model. Generally
@@ -1372,6 +1376,10 @@ abstract class LibraryElement implements Element {
   /// computed yet.
   Namespace get publicNamespace;
 
+  /// Return the name lookup scope for this library. It consists of elements
+  /// that are either declared in the library, or imported into it.
+  Scope get scope;
+
   /// Return the top-level elements defined in each of the compilation units
   /// that are included in this library. This includes both public and private
   /// elements, but does not include imports, exports, or synthetic elements.
@@ -1571,6 +1579,11 @@ abstract class ParameterElement
 abstract class PrefixElement implements Element {
   @override
   LibraryElement get enclosingElement;
+
+  /// Return the name lookup scope for this import prefix. It consists of
+  /// elements imported into the enclosing library with this prefix. The
+  /// namespace combinators of the import directives are taken into account.
+  Scope get scope;
 }
 
 /// A variable that might be subject to type promotion.  This might be a local

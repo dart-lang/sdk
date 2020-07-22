@@ -41,12 +41,13 @@ class CaughtException implements Exception {
 
   /// Initialize a newly created caught exception to have the given [exception]
   /// and [stackTrace].
-  CaughtException(exception, stackTrace)
+  CaughtException(Object exception, StackTrace stackTrace)
       : this.withMessage(null, exception, stackTrace);
 
   /// Initialize a newly created caught exception to have the given [exception],
   /// [stackTrace], and [message].
-  CaughtException.withMessage(this.message, this.exception, stackTrace)
+  CaughtException.withMessage(
+      this.message, this.exception, StackTrace stackTrace)
       : this.stackTrace = stackTrace ?? StackTrace.current;
 
   /// Recursively unwrap this [CaughtException] if it itself contains a
@@ -98,7 +99,7 @@ class CaughtException implements Exception {
 /// This is still considered an exceptional situation and will be sent to crash
 /// reporting.
 class SilentException extends CaughtException {
-  SilentException(String message, exception, stackTrace)
+  SilentException(String message, Object exception, StackTrace stackTrace)
       : super.withMessage(message, exception, stackTrace);
 
   /// Create a [SilentException] to wrap a [CaughtException], adding a

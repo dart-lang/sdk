@@ -23,6 +23,12 @@ int f() async {}
     ]);
   }
 
+  test_function_nonFuture_void() async {
+    await assertNoErrorsInCode('''
+void f() async {}
+''');
+  }
+
   test_function_nonFuture_withReturn() async {
     await assertErrorsInCode('''
 int f() async {
@@ -53,6 +59,14 @@ class C {
 ''', [
       error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 12, 3),
     ]);
+  }
+
+  test_method_nonFuture_void() async {
+    await assertNoErrorsInCode('''
+class C {
+  void m() async {}
+}
+''');
   }
 
   test_method_subtypeOfFuture() async {

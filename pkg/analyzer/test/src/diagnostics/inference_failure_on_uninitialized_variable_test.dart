@@ -6,7 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/resolver_test_case.dart';
+import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,8 +17,7 @@ main() {
 /// Tests of HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE with the
 /// "strict-inference" static analysis option.
 @reflectiveTest
-class InferenceFailureOnUninitializedVariableTest
-    extends StaticTypeAnalyzer2TestShared {
+class InferenceFailureOnUninitializedVariableTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions =>
       AnalysisOptionsImpl()..strictInference = true;

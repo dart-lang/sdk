@@ -1798,6 +1798,56 @@ void ObfuscationProhibitionsMetadataHelper::ReadMetadata(intptr_t node_offset) {
   return;
 }
 
+LoadingUnitsMetadataHelper::LoadingUnitsMetadataHelper(
+    KernelReaderHelper* helper)
+    : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
+
+void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
+  intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
+  if (md_offset < 0) {
+    return;
+  }
+
+  AlternativeReadingScopeWithNewData alt(&helper_->reader_,
+                                         &H.metadata_payloads(), md_offset);
+
+  Thread* T = Thread::Current();
+  Zone* Z = T->zone();
+  intptr_t unit_count = helper_->ReadUInt();
+  Array& loading_units = Array::Handle(Z, Array::New(unit_count + 1));
+  LoadingUnit& unit = LoadingUnit::Handle(Z);
+  LoadingUnit& parent = LoadingUnit::Handle(Z);
+  Library& lib = Library::Handle(Z);
+
+  for (int i = 0; i < unit_count; i++) {
+    intptr_t id = helper_->ReadUInt();
+    unit = LoadingUnit::New();
+    unit.set_id(id);
+
+    intptr_t parent_id = helper_->ReadUInt();
+    parent ^= loading_units.At(parent_id);
+    ASSERT(parent.IsNull() == (parent_id == 0));
+    unit.set_parent(parent);
+
+    intptr_t library_count = helper_->ReadUInt();
+    for (intptr_t j = 0; j < library_count; j++) {
+      const String& uri =
+          translation_helper_.DartSymbolPlain(helper_->ReadStringReference());
+      lib = Library::LookupLibrary(T, uri);
+      if (lib.IsNull()) {
+        FATAL1("Missing library: %s\n", uri.ToCString());
+      }
+      lib.set_loading_unit(unit);
+    }
+
+    loading_units.SetAt(id, unit);
+  }
+
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  ASSERT(object_store->loading_units() == Array::null());
+  object_store->set_loading_units(loading_units);
+}
+
 CallSiteAttributesMetadataHelper::CallSiteAttributesMetadataHelper(
     KernelReaderHelper* helper,
     TypeTranslator* type_translator)
@@ -3367,11 +3417,35 @@ static void SetupUnboxingInfoOfParameter(const Function& function,
   }
 }
 
+static void SetupUnboxingInfoOfReturnValue(
+    const Function& function,
+    const UnboxingInfoMetadata* metadata) {
+  switch (metadata->return_info) {
+    case UnboxingInfoMetadata::kUnboxedIntCandidate:
+      if (FlowGraphCompiler::SupportsUnboxedInt64()) {
+        function.set_unboxed_integer_return();
+      }
+      break;
+    case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
+      if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
+        function.set_unboxed_double_return();
+      }
+      break;
+    case UnboxingInfoMetadata::kUnboxingCandidate:
+      UNREACHABLE();
+      break;
+    case UnboxingInfoMetadata::kBoxed:
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
 void TypeTranslator::SetupUnboxingInfoMetadata(const Function& function,
                                                intptr_t library_kernel_offset) {
   const intptr_t kernel_offset =
       function.kernel_offset() + library_kernel_offset;
-
   const auto unboxing_info =
       unboxing_info_metadata_helper_.GetUnboxingInfoMetadata(kernel_offset);
 
@@ -3382,26 +3456,30 @@ void TypeTranslator::SetupUnboxingInfoMetadata(const Function& function,
     for (intptr_t i = 0; i < unboxing_info->unboxed_args_info.length(); i++) {
       SetupUnboxingInfoOfParameter(function, i, unboxing_info);
     }
+    SetupUnboxingInfoOfReturnValue(function, unboxing_info);
+  }
+}
 
-    switch (unboxing_info->return_info) {
-      case UnboxingInfoMetadata::kUnboxedIntCandidate:
-        if (FlowGraphCompiler::SupportsUnboxedInt64()) {
-          function.set_unboxed_integer_return();
-        }
-        break;
-      case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
-        if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
-          function.set_unboxed_double_return();
-        }
-        break;
-      case UnboxingInfoMetadata::kUnboxingCandidate:
-        UNREACHABLE();
-        break;
-      case UnboxingInfoMetadata::kBoxed:
-        break;
-      default:
-        UNREACHABLE();
-        break;
+void TypeTranslator::SetupUnboxingInfoMetadataForFieldAccessors(
+    const Function& field_accessor,
+    intptr_t library_kernel_offset) {
+  const intptr_t kernel_offset =
+      field_accessor.kernel_offset() + library_kernel_offset;
+  const auto unboxing_info =
+      unboxing_info_metadata_helper_.GetUnboxingInfoMetadata(kernel_offset);
+
+  // TODO(dartbug.com/32292): accept unboxed parameters and return value
+  // when FLAG_use_table_dispatch == false.
+  if (FLAG_precompiled_mode && unboxing_info != nullptr &&
+      FLAG_use_table_dispatch && FLAG_use_bare_instructions) {
+    if (field_accessor.IsImplicitSetterFunction()) {
+      for (intptr_t i = 0; i < unboxing_info->unboxed_args_info.length(); i++) {
+        SetupUnboxingInfoOfParameter(field_accessor, i, unboxing_info);
+      }
+    } else {
+      ASSERT(field_accessor.IsImplicitGetterFunction() ||
+             field_accessor.IsImplicitStaticGetterFunction());
+      SetupUnboxingInfoOfReturnValue(field_accessor, unboxing_info);
     }
   }
 }

@@ -57,4 +57,31 @@ class FakeFlutter {
 ''');
     await assertNoAssist();
   }
+
+  Future<void> test_inConstantContext() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  Widget build() {
+    return const Center(
+      child: /*caret*/Text('x'),
+    );
+  }
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  Widget build() {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(8.0),
+        child: Text('x'),
+      ),
+    );
+  }
+}
+''');
+  }
 }

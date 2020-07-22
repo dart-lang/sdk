@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.5.1-dev.1
+- Move `commands` back to lib.
+
+## 0.5.0+1
+- Fix broken package by moving non-executable file out of bin/ directory.
+
+## 0.5.0
+- Remove `dart:io` dependency from package `lib`, and move `commands` to `bin`.
+- Replace `loadProgramInfo` util method with `loadProgramInfoFromJson`, which
+expects an `Object` parameter instead of a `File` parameter.
+- `buildComparisonTreemap` now expects two `Object` parameters for `oldJson` and
+`newJson` instead of two `File` parameters.
+- `compare` command now prints difference breakdown by node type when this
+information is available.
+
 ## 0.4.0
 
 - Add `buildComparisonTreemap` for constructing treemap representing the diff

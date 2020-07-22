@@ -21,6 +21,7 @@
 /// the references to `String` and `int` are type arguments.
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart' show InterfaceTypeImpl;
 
 /// The type associated with elements in the element model.
@@ -121,6 +122,26 @@ abstract class DartType {
 
   /// Return the nullability suffix of this type.
   NullabilitySuffix get nullabilitySuffix;
+
+  /// Use the given [visitor] to visit this type.
+  R accept<R>(TypeVisitor<R> visitor);
+
+  /// Return the canonical interface that this type implements for [element],
+  /// or `null` if such an interface does not exist.
+  ///
+  /// For example, given the following definitions
+  /// ```
+  /// class A<E> {}
+  /// class B<E> implements A<E> {}
+  /// class C implements A<String> {}
+  /// ```
+  /// Asking the type `B<int>` for the type associated with `A` will return the
+  /// type `A<int>`. Asking the type `C` for the type associated with `A` will
+  /// return the type `A<String>`.
+  ///
+  /// For a [TypeParameterType] with a bound (declared or promoted), returns
+  /// the interface implemented by the bound.
+  InterfaceType asInstanceOf(ClassElement element);
 
   /// Return the presentation of this type as it should appear when presented
   /// to users in contexts such as error messages.
@@ -256,6 +277,10 @@ abstract class InterfaceType implements ParameterizedType {
   /// Return a list containing all of the accessors (getters and setters)
   /// declared in this type.
   List<PropertyAccessorElement> get accessors;
+
+  /// Return all the super-interfaces implemented by this interface. This
+  /// includes superclasses, mixins, interfaces, and superclass constraints.
+  List<InterfaceType> get allSupertypes;
 
   /// Return a list containing all of the constructors declared in this type.
   List<ConstructorElement> get constructors;

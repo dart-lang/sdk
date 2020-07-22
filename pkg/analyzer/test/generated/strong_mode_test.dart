@@ -1147,8 +1147,8 @@ test() {
  ''');
     var analysisResult = await computeAnalysisResult(source);
     assertErrors(source, [
-      StrongModeCode.INVALID_CAST_LITERAL,
-      StrongModeCode.INVALID_CAST_LITERAL
+      CompileTimeErrorCode.INVALID_CAST_LITERAL,
+      CompileTimeErrorCode.INVALID_CAST_LITERAL
     ]);
     var unit = analysisResult.unit;
     var h = (AstFinder.getStatementsInTopLevelFunction(unit, "test")[0]
@@ -1263,9 +1263,9 @@ void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) targ
     assertNoErrors(source);
     verify([source]);
     var unit = analysisResult.unit;
-    var body = (AstFinder.getTopLevelFunction(unit, '_mergeSort')
+    var body = AstFinder.getTopLevelFunction(unit, '_mergeSort')
         .functionExpression
-        .body as BlockFunctionBody);
+        .body as BlockFunctionBody;
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
@@ -1290,9 +1290,9 @@ void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
     assertNoErrors(source);
     verify([source]);
     var unit = analysisResult.unit;
-    var body = (AstFinder.getTopLevelFunction(unit, '_mergeSort')
+    var body = AstFinder.getTopLevelFunction(unit, '_mergeSort')
         .functionExpression
-        .body as BlockFunctionBody);
+        .body as BlockFunctionBody;
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
@@ -1317,9 +1317,9 @@ void _mergeSort<T>(T list, int compare(T a, T b), T target) {
     assertNoErrors(source);
     verify([source]);
     var unit = analysisResult.unit;
-    var body = (AstFinder.getTopLevelFunction(unit, '_mergeSort')
+    var body = AstFinder.getTopLevelFunction(unit, '_mergeSort')
         .functionExpression
-        .body as BlockFunctionBody);
+        .body as BlockFunctionBody;
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
@@ -1934,7 +1934,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
    ''';
     Source source = addSource(code);
     TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertErrors(source, [StrongModeCode.INVALID_CAST_LITERAL]);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_CAST_LITERAL]);
     verify([source]);
     CompilationUnit unit = analysisResult.unit;
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
@@ -1986,7 +1986,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     Source source = addSource(code);
     TestAnalysisResult analysisResult = await computeAnalysisResult(source);
     assertErrors(source, [
-      StrongModeCode.INVALID_CAST_LITERAL,
+      CompileTimeErrorCode.INVALID_CAST_LITERAL,
     ]);
     verify([source]);
     CompilationUnit unit = analysisResult.unit;
@@ -3523,168 +3523,6 @@ class C<E> {
   static T g<T>(T e) => null;
   static final h = g;
 }
-''');
-  }
-
-  test_notInstantiatedBound_class_error_recursion() async {
-    await assertErrorsInCode(r'''
-class A<T extends B> {} // points to a
-class B<T extends A> {} // points to b
-class C<T extends A> {} // points to a cyclical type
-''', [
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 18, 1),
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 57, 1),
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 96, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_class_error_recursion_less_direct() async {
-    await assertErrorsInCode(r'''
-class A<T extends B<A>> {}
-class B<T extends A<B>> {}
-''', [
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 20, 1),
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 47, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_class_error_recursion_typedef() async {
-    await assertErrorsInCode(r'''
-typedef F(C value);
-class C<T extends F> {}
-class D<T extends C> {}
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 19),
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 38, 1),
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 62, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_error_class_argument() async {
-    await assertErrorsInCode(r'''
-class A<K, V extends List<K>> {}
-class C<T extends A> {}
-''', [
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 51, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_error_class_argument2() async {
-    await assertErrorsInCode(r'''
-class A<K, V extends List<List<K>>> {}
-class C<T extends A> {}
-''', [
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 57, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_error_class_direct() async {
-    await assertErrorsInCode(r'''
-class A<K, V extends K> {}
-class C<T extends A> {}
-''', [
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 45, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_error_class_indirect() async {
-    await assertErrorsInCode(r'''
-class A<K, V extends K> {}
-class C<T extends List<A>> {}
-''', [
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 50, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_error_functionType() async {
-    await assertErrorsInCode(r'''
-class A<T extends Function(T)> {}
-class B<T extends T Function()> {}
-class C<T extends A> {}
-class D<T extends B> {}
-''', [
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 87, 1),
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 111, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_error_typedef_argument() async {
-    await assertErrorsInCode(r'''
-class A<K, V extends List<K>> {}
-typedef void F<T extends A>();
-''', [
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 58, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_error_typedef_argument2() async {
-    await assertErrorsInCode(r'''
-class A<K, V extends List<List<K>>> {}
-typedef void F<T extends A>();
-''', [
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 64, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_error_typedef_direct() async {
-    await assertErrorsInCode(r'''
-class A<K, V extends K> {}
-typedef void F<T extends A>();
-''', [
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 52, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_ok_class() async {
-    await assertNoErrorsInCode(r'''
-class A<T extends int> {}
-class C1<T extends A> {}
-class C2<T extends List<A>> {}
-''');
-  }
-
-  test_notInstantiatedBound_ok_class_class2() async {
-    await assertNoErrorsInCode(r'''
-class A<T> {}
-class C<T extends A<int>> {}
-class D<T extends C> {}
-''');
-  }
-
-  test_notInstantiatedBound_ok_class_class3() async {
-    await assertNoErrorsInCode(r'''
-class A<T> {}
-class B<T extends int> {}
-class C<T extends A<B>> {}
-''');
-  }
-
-  test_notInstantiatedBound_ok_class_class4() async {
-    await assertNoErrorsInCode(r'''
-class A<K, V> {}
-class B<T extends int> {}
-class C<T extends A<B, B>> {}
-''');
-  }
-
-  test_notInstantiatedBound_ok_class_function() async {
-    await assertNoErrorsInCode(r'''
-class A<T extends void Function()> {}
-class B<T extends A> {}
-''');
-  }
-
-  test_notInstantiatedBound_ok_class_typedef() async {
-    await assertNoErrorsInCode(r'''
-typedef void F<T extends int>();
-class C<T extends F> {}
-''');
-  }
-
-  test_notInstantiatedBound_ok_typedef_class() async {
-    await assertNoErrorsInCode(r'''
-class C<T extends int> {}
-typedef void F<T extends C>();
 ''');
   }
 

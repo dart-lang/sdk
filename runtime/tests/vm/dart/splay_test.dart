@@ -27,6 +27,7 @@
 // VMOptions=--verify_after_gc
 // VMOptions=--verify_before_gc --verify_after_gc
 // VMOptions=--verify_store_buffer
+// VMOptions=--stress_write_barrier_elimination
 
 import "dart:math";
 import 'package:benchmark_harness/benchmark_harness.dart';

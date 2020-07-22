@@ -9,18 +9,20 @@ import 'package:test/test.dart';
 void main() {
   group('generated classes', () {
     test('can be checked for equality', () {
-      final a = TextDocumentIdentifier('/a');
-      final b = TextDocumentIdentifier('/a');
+      final a = TextDocumentIdentifier(uri: '/a');
+      final b = TextDocumentIdentifier(uri: '/a');
 
       expect(a, equals(b));
       expect(a.hashCode, equals(b.hashCode));
     });
 
     test('with list fields can be checked for equality', () {
-      final a = TextDocumentClientCapabilitiesCodeActionKind(
-          [CodeActionKind.QuickFix]);
-      final b = TextDocumentClientCapabilitiesCodeActionKind(
-          [CodeActionKind.QuickFix]);
+      final a = CodeActionClientCapabilitiesCodeActionKind(
+        valueSet: [CodeActionKind.QuickFix],
+      );
+      final b = CodeActionClientCapabilitiesCodeActionKind(
+        valueSet: [CodeActionKind.QuickFix],
+      );
 
       expect(a, equals(b));
       expect(a.hashCode, equals(b.hashCode));
@@ -28,21 +30,33 @@ void main() {
 
     test('with aliased list fields can be checked for equality', () {
       final a = TextDocumentRegistrationOptions(
-          [DocumentFilter('dart', 'file', null)]);
+          documentSelector: [DocumentFilter(language: 'dart', scheme: 'file')]);
       final b = TextDocumentRegistrationOptions(
-          [DocumentFilter('dart', 'file', null)]);
+          documentSelector: [DocumentFilter(language: 'dart', scheme: 'file')]);
 
       expect(a, equals(b));
       expect(a.hashCode, equals(b.hashCode));
     });
 
     test('with map fields can be checked for equality', () {
-      final a = WorkspaceEdit({
-        'a': [TextEdit(Range(Position(0, 0), Position(0, 0)), 'a')]
-      }, null);
-      final b = WorkspaceEdit({
-        'a': [TextEdit(Range(Position(0, 0), Position(0, 0)), 'a')]
-      }, null);
+      final a = WorkspaceEdit(changes: {
+        'a': [
+          TextEdit(
+              range: Range(
+                  start: Position(line: 0, character: 0),
+                  end: Position(line: 0, character: 0)),
+              newText: 'a')
+        ]
+      });
+      final b = WorkspaceEdit(changes: {
+        'a': [
+          TextEdit(
+              range: Range(
+                  start: Position(line: 0, character: 0),
+                  end: Position(line: 0, character: 0)),
+              newText: 'a')
+        ]
+      });
 
       expect(a, equals(b));
       expect(a.hashCode, equals(b.hashCode));
@@ -57,10 +71,14 @@ void main() {
     });
 
     test('with union fields can be checked for equality', () {
-      final a =
-          SignatureInformation('a', Either2<String, MarkupContent>.t1('a'), []);
-      final b =
-          SignatureInformation('a', Either2<String, MarkupContent>.t1('a'), []);
+      final a = SignatureInformation(
+          label: 'a',
+          documentation: Either2<String, MarkupContent>.t1('a'),
+          parameters: []);
+      final b = SignatureInformation(
+          label: 'a',
+          documentation: Either2<String, MarkupContent>.t1('a'),
+          parameters: []);
 
       expect(a, equals(b));
       expect(a.hashCode, equals(b.hashCode));
@@ -68,9 +86,10 @@ void main() {
 
     test('consider subclasses when checking for equality', () {
       final a = TextDocumentRegistrationOptions(
-          [DocumentFilter('dart', 'file', null)]);
+          documentSelector: [DocumentFilter(language: 'dart', scheme: 'file')]);
       final b = TextDocumentSaveRegistrationOptions(
-          true, [DocumentFilter('dart', 'file', null)]);
+          includeText: true,
+          documentSelector: [DocumentFilter(language: 'dart', scheme: 'file')]);
 
       expect(a, isNot(equals(b)));
       expect(b, isNot(equals(a)));

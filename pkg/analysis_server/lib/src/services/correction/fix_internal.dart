@@ -69,6 +69,7 @@ import 'package:analysis_server/src/services/correction/dart/create_missing_over
 import 'package:analysis_server/src/services/correction/dart/create_mixin.dart';
 import 'package:analysis_server/src/services/correction/dart/create_no_such_method.dart';
 import 'package:analysis_server/src/services/correction/dart/create_setter.dart';
+import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/extend_class_for_mixin.dart';
 import 'package:analysis_server/src/services/correction/dart/import_library.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
@@ -115,6 +116,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_unused_local
 import 'package:analysis_server/src/services/correction/dart/remove_unused_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/rename_to_camel_case.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_boolean_with_bool.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_final_with_const.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_new_with_const.dart';
@@ -152,7 +154,6 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element, ElementKind;
-import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
 
@@ -300,8 +301,13 @@ class FixProcessor extends BaseProcessor {
       RemoveTypeAnnotation.newInstance,
     ],
     LintNames.avoid_returning_null_for_future: [
-      AddSync.newInstance,
+      AddAsync.newInstance,
       WrapInFuture.newInstance,
+    ],
+    LintNames.avoid_single_cascade_in_expression_statements: [
+      // TODO(brianwilkerson) This fix should be applied to some non-lint
+      //  diagnostics and should also be available as an assist.
+      ReplaceCascadeWithDot.newInstance,
     ],
     LintNames.avoid_types_as_parameter_names: [
       ConvertToOnType.newInstance,
@@ -451,7 +457,7 @@ class FixProcessor extends BaseProcessor {
       RemoveInterpolationBraces.newInstance,
     ],
     LintNames.unnecessary_const: [
-      RemoveUnnecesaryConst.newInstance,
+      RemoveUnnecessaryConst.newInstance,
     ],
     LintNames.unnecessary_lambdas: [
       ReplaceWithTearOff.newInstance,
@@ -526,6 +532,12 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
       ChangeArgumentName.newInstance,
     ],
+    HintCode.DEPRECATED_MEMBER_USE: [
+      DataDriven.newInstance,
+    ],
+    HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [
+      DataDriven.newInstance,
+    ],
     HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
       ImportLibrary.dartAsync,
     ],
@@ -573,10 +585,10 @@ class FixProcessor extends BaseProcessor {
   /// generators used for lint rules are in the [lintProducerMap].
   static const Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {
     CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT: [
-      AddSync.newInstance,
+      AddAsync.newInstance,
     ],
     CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT: [
-      AddSync.newInstance,
+      AddAsync.newInstance,
     ],
     CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE: [
       UseConst.newInstance,
@@ -989,7 +1001,7 @@ class FixProcessor extends BaseProcessor {
       CreateSetter.newInstance,
     ],
     StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT: [
-      AddSync.newInstance,
+      AddAsync.newInstance,
     ],
   };
 
@@ -1044,7 +1056,7 @@ class FixProcessor extends BaseProcessor {
 
     Future<void> compute(CorrectionProducer producer) async {
       producer.configure(context);
-      var builder = DartChangeBuilderImpl.forWorkspace(context.workspace);
+      var builder = ChangeBuilder(workspace: context.workspace);
       await producer.compute(builder);
       _addFixFromBuilder(builder, producer.fixKind,
           args: producer.fixArguments);

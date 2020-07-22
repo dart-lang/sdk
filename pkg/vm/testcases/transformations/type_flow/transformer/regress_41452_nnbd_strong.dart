@@ -6,7 +6,7 @@
 // Tests handling of null initializer of covariant field.
 // This test requires non-nullable experiment and NNBD strong mode.
 
-// @dart = 2.9
+// @dart = 2.10
 
 class _SplayTreeNode<Node extends _SplayTreeNode<Node>> {
   Node? left;

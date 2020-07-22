@@ -9,14 +9,14 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class IntroduceLocalCastType extends CorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.INTRODUCE_LOCAL_CAST_TYPE;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is IfStatement) {
       node = (node as IfStatement).condition;
@@ -65,8 +65,8 @@ class IntroduceLocalCastType extends CorrectionProducer {
         getVariableNameSuggestionsForExpression(castType, null, excluded);
 
     if (suggestions.isNotEmpty) {
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addInsertion(offset, (DartEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addInsertion(offset, (builder) {
           builder.write(eol + prefix + statementPrefix);
           builder.write(castTypeCode);
           builder.write(' ');

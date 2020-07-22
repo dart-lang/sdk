@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io' as io;
 import 'dart:isolate';
 
+import 'package:analyzer/dart/analysis/context_locator.dart' as api;
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -15,6 +16,8 @@ import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'
+    as api;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
@@ -574,6 +577,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
         packages: packageInfo.packages);
     analysisDriver.results.listen((_) {});
     analysisDriver.exceptions.listen((_) {});
+    _setAnalysisDriverAnalysisContext(source);
     scheduler.start();
   }
 
@@ -625,6 +629,27 @@ class Driver with HasContextMixin implements CommandLineStarter {
     var analyzer = AnalyzerImpl(analysisDriver.analysisOptions, analysisDriver,
         file, options, stats, startTime);
     return analyzer.analyze(formatter);
+  }
+
+  void _setAnalysisDriverAnalysisContext(String rootPath) {
+    var apiContextRoots = api.ContextLocator(
+      resourceProvider: resourceProvider,
+    ).locateRoots(
+      includedPaths: [rootPath],
+      excludedPaths: [],
+    );
+
+    if (apiContextRoots.isEmpty) {
+      return;
+    }
+
+    analysisDriver.configure(
+      analysisContext: api.DriverBasedAnalysisContext(
+        resourceProvider,
+        apiContextRoots.first,
+        analysisDriver,
+      ),
+    );
   }
 
   void _setupSdk(CommandLineOptions options, AnalysisOptions analysisOptions) {

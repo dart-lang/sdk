@@ -12,10 +12,10 @@ import "package:expect/expect.dart";
 confuse(x) => x;
 
 void check2(String name, name1, f1, name2, f2) {
-  Error trap(part, f) {
+  Error? trap(part, f) {
     try {
       f();
-    } catch (e) {
+    } on Error catch (e) {
       return e;
     }
     Expect.fail('should throw: $name.$part');

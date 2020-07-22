@@ -727,15 +727,23 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
   }
 
   // Advance pc to end of the compilation unit if not already there.
-  const intptr_t last_code_index = codes_.length() - 1;
-  const Code& last_code = *(codes_[last_code_index]);
-  const intptr_t last_pc_offset = last_code.Size();
-  const char* last_asm_name = namer.SnapshotNameFor(last_code_index, last_code);
+  if (codes_.length() != 0) {
+    const intptr_t last_code_index = codes_.length() - 1;
+    const Code& last_code = *(codes_[last_code_index]);
+    const intptr_t last_pc_offset = last_code.Size();
+    const char* last_asm_name =
+        namer.SnapshotNameFor(last_code_index, last_code);
 
-  stream->u1(DW_LNS_advance_pc);
-  ASSERT(previous_asm_name != nullptr);
-  stream->DistanceBetweenSymbolOffsets(last_asm_name, last_pc_offset,
-                                       previous_asm_name, previous_pc_offset);
+    stream->u1(DW_LNS_advance_pc);
+    if (previous_asm_name != nullptr) {
+      stream->DistanceBetweenSymbolOffsets(
+          last_asm_name, last_pc_offset, previous_asm_name, previous_pc_offset);
+    } else {
+      // No LNP entries (e.g., only stub code).
+      ASSERT(previous_pc_offset == 0);
+      stream->uleb128(last_pc_offset);
+    }
+  }
 
   // End of contiguous machine code.
   stream->u1(0);  // This is an extended opcode

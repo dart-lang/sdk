@@ -133,10 +133,12 @@ class ContextBuilder {
       includedPaths: [contextRoot.root],
       excludedPaths: contextRoot.exclude,
     );
-    driver.analysisContext = api.DriverBasedAnalysisContext(
-      resourceProvider,
-      apiContextRoots.first,
-      driver,
+    driver.configure(
+      analysisContext: api.DriverBasedAnalysisContext(
+        resourceProvider,
+        apiContextRoots.first,
+        driver,
+      ),
     );
 
     // temporary plugin support:

@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -20,14 +20,14 @@ class RemoveAnnotation extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_ANNOTATION;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     void addFix(Annotation node) async {
       if (node == null) {
         return;
       }
       var followingToken = node.endToken.next;
       followingToken = followingToken.precedingComments ?? followingToken;
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(range.startStart(node, followingToken));
       });
       _annotationName = node.name.name;

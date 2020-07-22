@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 class A {
   A() {}
-  int x;
+  int? x;
 
   foo() {
     x = 42;
@@ -24,7 +24,7 @@ main() {
   Expect.equals(0, a.x);
   a.x = 4;
   Expect.equals(4, a.x);
-  a.x += 1;
+  a.x = a.x! + 1;
   Expect.equals(5, a.x);
 
   B b = new B();

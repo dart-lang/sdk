@@ -546,21 +546,6 @@ class _ErrorExpectationParser {
       errors[source] = message;
     }
 
-    // Make sure the messages are in front end order.
-    var sources = errors.keys.toList();
-    for (var before = 0; before < ErrorSource.all.length - 1; before++) {
-      var beforeSource = ErrorSource.all[before];
-      for (var after = before + 1; after < ErrorSource.all.length; after++) {
-        var afterSource = ErrorSource.all[after];
-        if (errors.containsKey(beforeSource) &&
-            errors.containsKey(afterSource) &&
-            sources.indexOf(beforeSource) > sources.indexOf(afterSource)) {
-          _fail("The ${beforeSource.name} expectation must come before the "
-              "${afterSource.name} expectation.");
-        }
-      }
-    }
-
     if (errors.isEmpty) {
       _fail("An error expectation must specify at least one error message.");
     }

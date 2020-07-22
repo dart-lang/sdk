@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -15,7 +15,7 @@ class MoveTypeArgumentsToClass extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.MOVE_TYPE_ARGUMENTS_TO_CLASS;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     if (coveredNode is TypeArgumentList) {
       TypeArgumentList typeArguments = coveredNode;
       if (typeArguments.parent is! InstanceCreationExpression) {
@@ -30,7 +30,7 @@ class MoveTypeArgumentsToClass extends CorrectionProducer {
       if (element is ClassElement &&
           element.typeParameters != null &&
           element.typeParameters.length == typeArguments.arguments.length) {
-        await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+        await builder.addDartFileEdit(file, (builder) {
           var argumentText = utils.getNodeText(typeArguments);
           builder.addSimpleInsertion(typeName.end, argumentText);
           builder.addDeletion(range.node(typeArguments));

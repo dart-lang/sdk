@@ -215,7 +215,7 @@ class CommandLineOptions {
   /// analyzer options. In case of a format error, calls [printAndFail], which
   /// by default prints an error message to stderr and exits.
   static CommandLineOptions parse(List<String> args,
-      {Function(String msg) printAndFail = printAndFail}) {
+      {void Function(String msg) printAndFail = printAndFail}) {
     var options = _parse(args);
 
     /// Only happens in testing.

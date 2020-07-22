@@ -42,13 +42,16 @@ void main(List<String> args) async {
         help: 'Option to (compile|run|all). Default is all (compile and run).',
         allowed: ['compile', 'run', 'all'],
         defaultsTo: 'all')
-    ..addOption('nnbd',
-        help: 'Runtime null safety mode (strong|weak|disabled). When enabled '
-            'will automatically enable the "non-nullable" experiment. Defaults '
-            'to strong if the experiment is also passed manually, otherwise '
-            'to disabled.',
-        allowed: ['strong', 'weak', 'disabled'],
-        defaultsTo: 'disabled')
+    ..addFlag('sound-null-safety',
+        help: 'Compile for sound null safety at runtime. Passed through to the '
+            'DDC binary. Defaults to false.',
+        defaultsTo: false,
+        negatable: true)
+    ..addFlag('null-assertions',
+        help: 'Run with assertions that values passed to non-nullable method '
+            'parameters are not null.',
+        defaultsTo: false,
+        negatable: true)
     ..addFlag('observe',
         help:
             'Run the compiler in the Dart VM with --observe. Implies --debug.',
@@ -77,10 +80,7 @@ void main(List<String> args) async {
         negatable: false,
         defaultsTo: false)
     ..addOption('vm-service-port',
-        help: 'Specify the observatory port. Implied --observe.')
-    ..addSeparator('Deprecated and will be removed:')
-    ..addFlag('kernel',
-        abbr: 'k', help: 'Ignored. The kernel based DDC is always used.');
+        help: 'Specify the observatory port. Implied --observe.');
 
   var options = parser.parse(args);
   if (options['help'] as bool) {
@@ -106,15 +106,15 @@ void main(List<String> args) async {
   var compile = mode == 'compile' || mode == 'all';
   var run = mode == 'run' || mode == 'all';
   var verbose = options['verbose'] as bool;
+  var nonNullAsserts = options['null-assertions'] as bool;
 
-  // Enable null-safety either by passing the experiment flag
-  // or by requesting an nnbd mode:
-  var nnbd =
-      experiments.contains('non-nullable') || options['nnbd'] != 'disabled';
-  // Unless weak-mode is specified, default to strict checks
-  var isNnbdStrong = nnbd && options['nnbd'] != 'weak';
-  // Ensure non-nullable is passed as a flag
-  if (nnbd && !experiments.contains('non-nullable')) {
+  var soundNullSafety = options['sound-null-safety'] as bool;
+  // Enable null safety either by passing the `non-nullable` experiment flag or
+  // `sound-null-safety`.
+  var nnbd = experiments.contains('non-nullable') || soundNullSafety;
+
+  // Ensure non-nullable is passed as a flag.
+  if (soundNullSafety && !experiments.contains('non-nullable')) {
     experiments.add('non-nullable');
   }
 
@@ -210,14 +210,14 @@ void main(List<String> args) async {
   String ddcSdk;
   String sdkJsPath;
   String requirePath;
-  var suffix = isNnbdStrong ? p.join('sound', mod) : p.join('kernel', mod);
+  var suffix = soundNullSafety ? p.join('sound', mod) : p.join('kernel', mod);
   if (debug) {
     var sdkRoot = p.dirname(p.dirname(ddcPath));
     var buildDir =
         p.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out', 'ReleaseX64');
     dartSdk = p.join(buildDir, 'dart-sdk');
-    ddcSdk = p.join(
-        buildDir, isNnbdStrong ? 'ddc_outline_sound.dill' : 'ddc_outline.dill');
+    ddcSdk = p.join(buildDir,
+        soundNullSafety ? 'ddc_outline_sound.dill' : 'ddc_outline.dill');
     sdkJsPath = p.join(buildDir, 'gen', 'utils', 'dartdevc', suffix);
     requirePath = p.join(sdkRoot, 'third_party', 'requirejs');
   } else {
@@ -227,17 +227,18 @@ void main(List<String> args) async {
   }
 
   // Print an initial empty line to separate the invocation from the output.
-  print('');
+  if (verbose) {
+    print('');
+  }
 
   if (compile) {
     var ddcArgs = [
-      '--kernel',
       if (summarizeText) '--summarize-text',
       '--modules=$mod',
       '--dart-sdk-summary=$ddcSdk',
       for (var summary in summaries) '--summary=$summary',
       for (var experiment in experiments) '--enable-experiment=$experiment',
-      if (isNnbdStrong) '--sound-null-safety',
+      if (soundNullSafety) '--sound-null-safety',
       if (options['packages'] != null) '--packages=${options['packages']}',
       '-o',
       out,
@@ -275,8 +276,8 @@ void main(List<String> args) async {
         function(sdk, app) {
     'use strict';
     if ($nnbd) {
-      sdk.dart.nullSafety($isNnbdStrong);
-      sdk.dart.weakNullSafetyWarnings(!$isNnbdStrong);
+      sdk.dart.weakNullSafetyWarnings(!$soundNullSafety);
+      sdk.dart.nonNullAsserts($nonNullAsserts);
     }
     sdk._debugger.registerDevtoolsFormatter();
     app.$libname.main();
@@ -308,8 +309,8 @@ let sdk = require(\"dart_sdk\");
 let main = require(\"./$basename\").$libname.main;
 try {
   if ($nnbd) {
-    sdk.dart.nullSafety($isNnbdStrong);
-    sdk.dart.weakNullSafetyWarnings(!$isNnbdStrong);
+    sdk.dart.weakNullSafetyWarnings(!$soundNullSafety);
+    sdk.dart.nonNullAsserts($nonNullAsserts);
   }
   sdk._isolate_helper.startRootIsolate(main, []);
 } catch(e) {
@@ -342,8 +343,8 @@ import { $libname } from '$basename.js';
 let main = $libname.main;
 try {
   if ($nnbd) {
-    dart.nullSafety($isNnbdStrong);
-    dart.weakNullSafetyWarnings(!$isNnbdStrong);
+    dart.weakNullSafetyWarnings(!$soundNullSafety);
+    dart.nonNullAsserts($nonNullAsserts);
   }
   _isolate_helper.startRootIsolate(() => {}, []);
   main();

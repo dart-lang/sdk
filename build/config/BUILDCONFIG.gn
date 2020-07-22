@@ -258,6 +258,12 @@ if (is_posix) {
         [ "//build/config/gcc:symbol_visibility_hidden" ]
   }
 }
+if (is_fuchsia) {
+  _native_compiler_configs += [
+    "//third_party/fuchsia/sdk/linux/build/config:compiler",
+    "//third_party/fuchsia/sdk/linux/build/config:runtime_library",
+  ]
+}
 
 if (is_linux) {
   _native_compiler_configs += [ "//build/config/linux:sdk" ]

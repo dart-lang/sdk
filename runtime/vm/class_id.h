@@ -47,6 +47,7 @@ namespace dart {
   V(ICData)                                                                    \
   V(MegamorphicCache)                                                          \
   V(SubtypeTestCache)                                                          \
+  V(LoadingUnit)                                                               \
   V(Error)                                                                     \
   V(ApiError)                                                                  \
   V(LanguageError)                                                             \

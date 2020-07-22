@@ -85,7 +85,6 @@ class _RunningIsolate {
     if (_resumeApprovalsByName.isEmpty) {
       return false;
     }
-
     // If all the required approvals are present, we should resume.
     return _resumeApprovalsByName.containsAll(requiredClientApprovals);
   }
@@ -171,9 +170,14 @@ class _IsolateManager {
       });
       final portId = isolate['number'];
       final name = isolate['name'];
-      final eventKind = isolate['pauseEvent']['kind'];
-      isolates[portId] = _RunningIsolate(this, portId, name);
-      _updateIsolateState(portId, name, eventKind);
+      if (isolate.containsKey('pauseEvent')) {
+        isolates[portId] = _RunningIsolate(this, portId, name);
+        final eventKind = isolate['pauseEvent']['kind'];
+        _updateIsolateState(portId, name, eventKind);
+      } else {
+        // If the isolate doesn't have a pauseEvent, assume it's running.
+        isolateStarted(portId, name);
+      }
     }
   }
 

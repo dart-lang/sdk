@@ -10,6 +10,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/error/analyzer_error_code.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:meta/meta.dart';
@@ -87,11 +88,25 @@ class ReturnTypeVerifier {
 
     void checkElement(
       ClassElement expectedElement,
-      StaticTypeWarningCode errorCode,
+      AnalyzerErrorCode errorCode,
     ) {
-      if (!_isLegalReturnType(expectedElement)) {
+      void reportError() {
         enclosingExecutable.hasLegalReturnType = false;
         _errorReporter.reportErrorForNode(errorCode, returnType);
+      }
+
+      // It is a compile-time error if the declared return type of
+      // a function marked `sync*` or `async*` is `void`.
+      if (enclosingExecutable.isGenerator) {
+        if (enclosingExecutable.returnType.isVoid) {
+          return reportError();
+        }
+      }
+
+      // It is a compile-time error if the declared return type of
+      // a function marked `...` is not a supertype of `...`.
+      if (!_isLegalReturnType(expectedElement)) {
+        return reportError();
       }
     }
 
@@ -99,7 +114,7 @@ class ReturnTypeVerifier {
       if (enclosingExecutable.isGenerator) {
         checkElement(
           _typeProvider.streamElement,
-          StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
+          CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
         );
       } else {
         checkElement(
@@ -110,7 +125,7 @@ class ReturnTypeVerifier {
     } else if (enclosingExecutable.isGenerator) {
       checkElement(
         _typeProvider.iterableElement,
-        StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE,
+        CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE,
       );
     }
   }

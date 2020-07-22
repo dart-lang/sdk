@@ -387,7 +387,6 @@ private_html_members = monitored.Set(
         # Not prefixed but requires custom implementation for cross-browser compatibility.
         'Document.visibilityState',
         'Element.animate',
-        'Element.children',
         'Element.childElementCount',
         'Element.firstElementChild',
         'Element.getClientRects',
@@ -791,6 +790,7 @@ removed_html_members = monitored.Set(
         'DOMException.WRONG_DOCUMENT_ERR',
         'Element.accessKey',
         'Element.append',
+        'Element.children',
         'Element.dataset',
         'Element.get:classList',
         'Element.getAttributeNode',

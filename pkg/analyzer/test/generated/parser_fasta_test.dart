@@ -1676,7 +1676,7 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name.name, 'E');
     expect(extension.onKeyword.lexeme, 'on');
-    var namedType = (extension.extendedType as NamedType);
+    var namedType = extension.extendedType as NamedType;
     expect(namedType.name.name, 'C');
     expect(namedType.typeArguments.arguments, hasLength(1));
     expect(extension.members, hasLength(0));
@@ -1688,7 +1688,7 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name.name, 'E');
     expect(extension.onKeyword.lexeme, 'on');
-    var namedType = (extension.extendedType as NamedType);
+    var namedType = extension.extendedType as NamedType;
     expect(namedType.name.name, 'C');
     expect(namedType.typeArguments.arguments, hasLength(1));
     expect(extension.members, hasLength(0));
@@ -1700,7 +1700,7 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name, isNull);
     expect(extension.onKeyword.lexeme, 'on');
-    var namedType = (extension.extendedType as NamedType);
+    var namedType = extension.extendedType as NamedType;
     expect(namedType.name.name, 'C');
     expect(namedType.typeArguments.arguments, hasLength(1));
     expect(extension.members, hasLength(0));
@@ -1799,7 +1799,7 @@ class C {}
     expect(extension.name.name, 'E');
     expect(extension.onKeyword.lexeme, 'on');
     expect((extension.extendedType as NamedType).name.name, 'C');
-    var namedType = (extension.extendedType as NamedType);
+    var namedType = extension.extendedType as NamedType;
     expect(namedType.name.name, 'C');
     expect(namedType.typeArguments, isNull);
     expect(extension.members, hasLength(0));
@@ -1836,7 +1836,7 @@ class C {}
     expect(extension.name, isNull);
     expect(extension.onKeyword.lexeme, 'on');
     expect((extension.extendedType as NamedType).name.name, 'C');
-    var namedType = (extension.extendedType as NamedType);
+    var namedType = extension.extendedType as NamedType;
     expect(namedType.name.name, 'C');
     expect(namedType.typeArguments, isNull);
     expect(extension.members, hasLength(0));

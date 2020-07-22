@@ -1686,12 +1686,18 @@ class OutlineBuilder extends StackListenerImpl {
       Token beginToken,
       Token endToken) {
     debugEvent("endTopLevelFields");
-    if (lateToken != null && !libraryBuilder.isNonNullableByDefault) {
+    if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
       if (externalToken != null) {
-        externalToken = null;
         handleRecoverableError(
             messageExternalField, externalToken, externalToken);
+        externalToken = null;
+      }
+    } else {
+      if (externalToken != null && lateToken != null) {
+        handleRecoverableError(
+            messageExternalLateField, externalToken, externalToken);
+        externalToken = null;
       }
     }
     List<FieldInfo> fieldInfos = popFieldInfos(count);
@@ -1711,6 +1717,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endClassFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -1720,17 +1727,38 @@ class OutlineBuilder extends StackListenerImpl {
       Token beginToken,
       Token endToken) {
     debugEvent("Fields");
-    if (lateToken != null && !libraryBuilder.isNonNullableByDefault) {
+    if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
+      if (abstractToken != null) {
+        handleRecoverableError(
+            messageAbstractClassMember, abstractToken, abstractToken);
+        abstractToken = null;
+      }
       if (externalToken != null) {
-        externalToken = null;
         handleRecoverableError(
             messageExternalField, externalToken, externalToken);
+        externalToken = null;
+      }
+    } else {
+      if (staticToken != null && abstractToken != null) {
+        handleRecoverableError(
+            messageAbstractStaticField, abstractToken, abstractToken);
+        abstractToken = null;
+      }
+      if (abstractToken != null && lateToken != null) {
+        handleRecoverableError(
+            messageAbstractLateField, abstractToken, abstractToken);
+        abstractToken = null;
+      } else if (externalToken != null && lateToken != null) {
+        handleRecoverableError(
+            messageExternalLateField, externalToken, externalToken);
+        externalToken = null;
       }
     }
     List<FieldInfo> fieldInfos = popFieldInfos(count);
     TypeBuilder type = pop();
-    int modifiers = (externalToken != null ? externalMask : 0) |
+    int modifiers = (abstractToken != null ? abstractMask : 0) |
+        (externalToken != null ? externalMask : 0) |
         (staticToken != null ? staticMask : 0) |
         (covariantToken != null ? covariantMask : 0) |
         (lateToken != null ? lateMask : 0) |

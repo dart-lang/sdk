@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -39,7 +38,7 @@ int f() async* {
   yield 0;
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 3),
+      error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 3),
       error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 25, 1),
     ]);
   }
@@ -58,7 +57,7 @@ Iterable<int> f() async* {
   yield 0;
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 13),
+      error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 13),
       error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 35, 1),
     ]);
   }
@@ -122,7 +121,7 @@ int f() sync* {
   yield 0;
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 0, 3),
+      error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 0, 3),
       error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 24, 1),
     ]);
   }
@@ -169,7 +168,7 @@ Stream<int> f() sync* {
   yield 0;
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 22, 11),
+      error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 22, 11),
       error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 54, 1),
     ]);
   }
@@ -440,12 +439,5 @@ Iterable<String> g() => throw 0;
 }
 
 @reflectiveTest
-class YieldOfInvalidTypeTest2 extends YieldOfInvalidTypeTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-}
+class YieldOfInvalidTypeTest2 extends YieldOfInvalidTypeTest
+    with WithNullSafetyMixin {}

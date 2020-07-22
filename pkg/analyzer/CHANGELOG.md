@@ -1,6 +1,29 @@
-## 0.39.13-dev
+## 0.39.15-dev
+* Move `asInstanceOf(ClassElement)` to `DartType`, so that it is also
+  supported for `TypeParameterType` when its bound implements the
+  requested interface.
+
+## 0.39.14
+* Removed `defaultSdkDirectory()` and `getSdkProperty()` from internal
+  `FolderBasedDartSdk`. It is up to the clients to decide how to
+  find SDK, for example using `package:cli_util`.
+* Fixed `LintDriver` for the new way to access `WorkspacePackage`.
+* Deprecated `Scope.lookup()`, use `Scope.lookup2()` instead.
+* Updated implementations of `ContextBuilder.createContext()` and
+  `ContextLocator.locateContexts` to use the current SDK if `sdkPath`
+  is not provided.
+* Bug fixes: #41981, #29731, #42720, #33545, #42599, #42699.
+
+## 0.39.13
 * Added 'dart/sdk/build_sdk_summary.dart' with `buildSdkSummary`.
 * Added `DynamicType`, `NeverType`, and `VoidType` interfaces.
+* Added `TypeVisitor` and `DartType.accept(TypeVisitor)`.
+* Changed `ConstructorElement.returnType` to `InterfaceType`.
+* Added `InterfaceType.allSupertypes`.
+* Added `InterfaceType.asInstanceOf(ClassElement)`.
+* Removed deprecated internal `bogus-disabled` and `bogus-enabled`.
+* Added `Scope`, `LibraryElement.scope`, and `PrefixElement.scope`.
+* Bug fixes: #32192, #42620, #42256, #42605.
 
 ## 0.39.12
 * Deprecated `canUseSummaries` in `DartSdkManager` constructor.

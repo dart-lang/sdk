@@ -27,6 +27,7 @@ import 'package:nnbd_migration/src/front_end/web/edit_details.dart';
 import 'package:nnbd_migration/src/front_end/web/file_details.dart';
 import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
 import 'package:nnbd_migration/src/messages.dart' as messages;
+import 'package:nnbd_migration/src/preview/preview_site.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -81,6 +82,10 @@ class _ExceptionGeneratingNonNullableFix extends NonNullableFix {
 class _MigrationCli extends MigrationCli {
   final _MigrationCliTestBase _test;
 
+  /// If non-null, callback function that will be invoked by the `applyHook`
+  /// override.
+  void Function() _onApplyHook;
+
   _MigrationCli(this._test)
       : super(
             binaryName: 'nnbd_migration',
@@ -106,6 +111,12 @@ class _MigrationCliRunner extends MigrationCliRunner {
       : super(cli, options);
 
   _MigrationCli get cli => super.cli as _MigrationCli;
+
+  @override
+  void applyHook() {
+    super.applyHook();
+    cli._onApplyHook?.call();
+  }
 
   @override
   Future<void> blockUntilSignalInterrupt() async {
@@ -554,10 +565,19 @@ int${migrated ? '?' : ''} f() => null;
   test_lifecycle_apply_changes() async {
     var projectContents = simpleProject();
     var projectDir = await createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
+    var cli = _createCli();
+    var cliRunner = cli.decodeCommandLineArgs(
         _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    bool applyHookCalled = false;
+    cli._onApplyHook = () {
+      expect(applyHookCalled, false);
+      applyHookCalled = true;
+      // Changes should have been made
+      assertProjectContents(projectDir, simpleProject(migrated: true));
+    };
     await cliRunner.run();
     assertNormalExit(cliRunner);
+    expect(applyHookCalled, true);
     // Check that a summary was printed
     expect(logger.stdoutBuffer.toString(), contains('Applying changes'));
     // And that it refers to test.dart and pubspec.yaml
@@ -565,8 +585,6 @@ int${migrated ? '?' : ''} f() => null;
     expect(logger.stdoutBuffer.toString(), contains('pubspec.yaml'));
     // And that it does not tell the user they can rerun with `--apply-changes`
     expect(logger.stdoutBuffer.toString(), isNot(contains('--apply-changes')));
-    // Changes should have been made
-    assertProjectContents(projectDir, simpleProject(migrated: true));
   }
 
   test_lifecycle_contextdiscovery_handles_multiple() async {
@@ -812,6 +830,33 @@ void call_g() => g(null);
       assertHttpSuccess(response);
       assertProjectContents(
           projectDir, simpleProject(sourceText: 'int/*!*/ x;'));
+    });
+  }
+
+  test_lifecycle_preview_apply_changes() async {
+    var projectContents = simpleProject();
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    bool applyHookCalled = false;
+    cli._onApplyHook = () {
+      expect(applyHookCalled, false);
+      applyHookCalled = true;
+      // Changes should have been made
+      assertProjectContents(projectDir, simpleProject(migrated: true));
+    };
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      expect(
+          logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+      var authToken = uri.queryParameters['authToken'];
+      var response = await http.post(
+          uri.replace(
+              path: PreviewSite.applyMigrationPath,
+              queryParameters: {'authToken': authToken}),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(response);
+      expect(applyHookCalled, true);
     });
   }
 

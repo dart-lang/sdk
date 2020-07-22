@@ -23,6 +23,7 @@ meta
   dependencies: sdk
   lib/dart2js.dart
   lib/meta.dart
+  lib/meta_meta.dart
 
 sdk
   is package? no

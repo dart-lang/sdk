@@ -21,6 +21,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/workspace/basic.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:test/test.dart';
@@ -50,18 +51,29 @@ class FileSystemStateTest with ResourceProviderMixin {
   void setUp() {
     logger = PerformanceLog(logBuffer);
     sdk = MockSdk(resourceProvider: resourceProvider);
+
+    var packageMap = <String, List<Folder>>{
+      'aaa': [getFolder('/aaa/lib')],
+      'bbb': [getFolder('/bbb/lib')],
+    };
+
+    var workspace = BasicWorkspace.find(
+      resourceProvider,
+      packageMap,
+      convertPath('/test'),
+    );
+
     sourceFactory = SourceFactory([
       DartUriResolver(sdk),
       generatedUriResolver,
-      PackageMapUriResolver(resourceProvider, <String, List<Folder>>{
-        'aaa': [getFolder('/aaa/lib')],
-        'bbb': [getFolder('/bbb/lib')],
-      }),
+      PackageMapUriResolver(resourceProvider, packageMap),
       ResourceUriResolver(resourceProvider)
     ]);
+
     AnalysisOptions analysisOptions = AnalysisOptionsImpl();
     var featureSetProvider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
+      resourceProvider: resourceProvider,
       packages: Packages.empty,
       packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
       nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
@@ -73,6 +85,7 @@ class FileSystemStateTest with ResourceProviderMixin {
       resourceProvider,
       'contextName',
       sourceFactory,
+      workspace,
       analysisOptions,
       DeclaredVariables(),
       Uint32List(0),

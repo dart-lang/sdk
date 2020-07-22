@@ -25,7 +25,6 @@ head -n $(expr $LINE - 1) "$FILE" >"$TEMP_HEADER"
 
 # Run offsets_extractor for every architecture and append the results.
 run() {
-  tools/gn.py --mode=$1 --arch=$2
   tools/build.py --mode=$1 --arch=$2 offsets_extractor offsets_extractor_precompiled_runtime
   echo "" >>"$TEMP_JIT"
   out/$3/offsets_extractor >>"$TEMP_JIT"

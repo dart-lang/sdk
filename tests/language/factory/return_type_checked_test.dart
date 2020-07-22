@@ -8,7 +8,7 @@ class A {
   factory A() => 42;
   //             ^^
   // [analyzer] STATIC_TYPE_WARNING.RETURN_OF_INVALID_TYPE
-  // [cfe] A value of type 'int' can't be assigned to a variable of type 'A'.
+  // [cfe] A value of type 'int' can't be returned from a function with return type 'A'.
 }
 
 main() {

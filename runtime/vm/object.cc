@@ -173,6 +173,7 @@ ClassPtr Object::monomorphicsmiablecall_class_ =
 ClassPtr Object::icdata_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::megamorphic_cache_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::subtypetestcache_class_ = static_cast<ClassPtr>(RAW_NULL);
+ClassPtr Object::loadingunit_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::api_error_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::language_error_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::unhandled_exception_class_ = static_cast<ClassPtr>(RAW_NULL);
@@ -736,7 +737,7 @@ void Object::Init(Isolate* isolate) {
     cls.set_next_field_offset(host_next_field_offset, target_next_field_offset);
     cls.set_id(Class::kClassId);
     cls.set_state_bits(0);
-    cls.set_is_finalized();
+    cls.set_is_allocate_finalized();
     cls.set_is_declaration_loaded();
     cls.set_is_type_finalized();
     cls.set_type_arguments_field_offset_in_words(Class::kNoTypeArguments,
@@ -744,7 +745,7 @@ void Object::Init(Isolate* isolate) {
     cls.set_num_type_arguments(0);
     cls.set_num_native_fields(0);
     cls.InitEmptyFields();
-    isolate->RegisterClass(cls);
+    isolate->class_table()->Register(cls);
   }
 
   // Allocate and initialize the null class.
@@ -755,7 +756,7 @@ void Object::Init(Isolate* isolate) {
   // Allocate and initialize Never class.
   cls = Class::New<Instance, RTN::Instance>(kNeverCid, isolate);
   cls.set_num_type_arguments(0);
-  cls.set_is_finalized();
+  cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
   isolate->object_store()->set_never_class(cls);
@@ -765,7 +766,7 @@ void Object::Init(Isolate* isolate) {
       Class::New<FreeListElement::FakeInstance,
                  RTN::FreeListElement::FakeInstance>(kFreeListElement, isolate);
   cls.set_num_type_arguments(0);
-  cls.set_is_finalized();
+  cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
 
@@ -774,7 +775,7 @@ void Object::Init(Isolate* isolate) {
                    RTN::ForwardingCorpse::FakeInstance>(kForwardingCorpse,
                                                         isolate);
   cls.set_num_type_arguments(0);
-  cls.set_is_finalized();
+  cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
 
@@ -889,6 +890,9 @@ void Object::Init(Isolate* isolate) {
 
   cls = Class::New<SubtypeTestCache, RTN::SubtypeTestCache>(isolate);
   subtypetestcache_class_ = cls.raw();
+
+  cls = Class::New<LoadingUnit, RTN::LoadingUnit>(isolate);
+  loadingunit_class_ = cls.raw();
 
   cls = Class::New<ApiError, RTN::ApiError>(isolate);
   api_error_class_ = cls.raw();
@@ -1057,20 +1061,20 @@ void Object::Init(Isolate* isolate) {
   cls = Class::New<Instance, RTN::Instance>(kDynamicCid, isolate);
   cls.set_is_abstract();
   cls.set_num_type_arguments(0);
-  cls.set_is_finalized();
+  cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
   dynamic_class_ = cls.raw();
 
   cls = Class::New<Instance, RTN::Instance>(kVoidCid, isolate);
   cls.set_num_type_arguments(0);
-  cls.set_is_finalized();
+  cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
   void_class_ = cls.raw();
 
   cls = Class::New<Type, RTN::Type>(isolate);
-  cls.set_is_finalized();
+  cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
 
@@ -1286,6 +1290,7 @@ void Object::Cleanup() {
   icdata_class_ = static_cast<ClassPtr>(RAW_NULL);
   megamorphic_cache_class_ = static_cast<ClassPtr>(RAW_NULL);
   subtypetestcache_class_ = static_cast<ClassPtr>(RAW_NULL);
+  loadingunit_class_ = static_cast<ClassPtr>(RAW_NULL);
   api_error_class_ = static_cast<ClassPtr>(RAW_NULL);
   language_error_class_ = static_cast<ClassPtr>(RAW_NULL);
   unhandled_exception_class_ = static_cast<ClassPtr>(RAW_NULL);
@@ -1388,6 +1393,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(icdata, ICData);
   SET_CLASS_NAME(megamorphic_cache, MegamorphicCache);
   SET_CLASS_NAME(subtypetestcache, SubtypeTestCache);
+  SET_CLASS_NAME(loadingunit, LoadingUnit);
   SET_CLASS_NAME(api_error, ApiError);
   SET_CLASS_NAME(language_error, LanguageError);
   SET_CLASS_NAME(unhandled_exception, UnhandledException);
@@ -1844,7 +1850,7 @@ ErrorPtr Object::Init(Isolate* isolate,
 
     cls = Class::New<Instance, RTN::Instance>(kNeverCid, isolate);
     cls.set_num_type_arguments(0);
-    cls.set_is_finalized();
+    cls.set_is_allocate_finalized();
     cls.set_is_declaration_loaded();
     cls.set_is_type_finalized();
     cls.set_name(Symbols::Never());
@@ -2009,7 +2015,7 @@ ErrorPtr Object::Init(Isolate* isolate,
                                               /*register_class=*/false);
     cls.set_instance_size(0, 0);
     cls.set_next_field_offset(-kWordSize, -compiler::target::kWordSize);
-    isolate->RegisterClass(cls);
+    isolate->class_table()->Register(cls);
     RegisterPrivateClass(cls, Symbols::_ByteBuffer(), lib);
     pending_classes.Add(cls);
 
@@ -2458,7 +2464,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     cls = Class::New<Instance, RTN::Instance>(kByteBufferCid, isolate,
                                               /*register_isolate=*/false);
     cls.set_instance_size_in_words(0, 0);
-    isolate->RegisterClass(cls);
+    isolate->class_table()->Register(cls);
 
     cls = Class::New<Integer, RTN::Integer>(isolate);
     object_store->set_integer_implementation_class(cls);
@@ -2841,7 +2847,7 @@ ClassPtr Class::New(Isolate* isolate, bool register_class) {
     // possible in this case.
     result.set_is_declaration_loaded();
     result.set_is_type_finalized();
-    result.set_is_finalized();
+    result.set_is_allocate_finalized();
   } else if (FakeObject::kClassId != kClosureCid) {
     // VM backed classes are almost ready: run checks and resolve class
     // references, but do not recompute size.
@@ -2851,7 +2857,7 @@ ClassPtr Class::New(Isolate* isolate, bool register_class) {
   NOT_IN_PRECOMPILED(result.set_binary_declaration_offset(0));
   result.InitEmptyFields();
   if (register_class) {
-    isolate->RegisterClass(result);
+    isolate->class_table()->Register(result);
   }
   return result.raw();
 }
@@ -3654,7 +3660,11 @@ bool Library::FindPragma(Thread* T,
 }
 
 bool Function::IsDynamicInvocationForwarderName(const String& name) {
-  return name.StartsWith(Symbols::DynamicPrefix());
+  return IsDynamicInvocationForwarderName(name.raw());
+}
+
+bool Function::IsDynamicInvocationForwarderName(StringPtr name) {
+  return String::StartsWith(name, Symbols::DynamicPrefix().raw());
 }
 
 StringPtr Function::DemangleDynamicInvocationForwarderName(const String& name) {
@@ -3662,6 +3672,10 @@ StringPtr Function::DemangleDynamicInvocationForwarderName(const String& name) {
   ASSERT(Symbols::DynamicPrefix().Length() == kDynamicPrefixLength);
   return Symbols::New(Thread::Current(), name, kDynamicPrefixLength,
                       name.Length() - kDynamicPrefixLength);
+}
+
+StringPtr Function::CreateDynamicInvocationForwarderName(const String& name) {
+  return Symbols::FromConcat(Thread::Current(), Symbols::DynamicPrefix(), name);
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -3706,18 +3720,17 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
   return forwarder.raw();
 }
 
-StringPtr Function::CreateDynamicInvocationForwarderName(const String& name) {
-  return Symbols::FromConcat(Thread::Current(), Symbols::DynamicPrefix(), name);
-}
-
 FunctionPtr Function::GetDynamicInvocationForwarder(
     const String& mangled_name,
     bool allow_add /* = true */) const {
   ASSERT(IsDynamicInvocationForwarderName(mangled_name));
-  const Class& owner = Class::Handle(Owner());
-  Function& result = Function::Handle(owner.GetInvocationDispatcher(
-      mangled_name, Array::null_array(),
-      FunctionLayout::kDynamicInvocationForwarder, /*create_if_absent=*/false));
+  auto zone = Thread::Current()->zone();
+  const Class& owner = Class::Handle(zone, Owner());
+  Function& result = Function::Handle(
+      zone,
+      owner.GetInvocationDispatcher(mangled_name, Array::null_array(),
+                                    FunctionLayout::kDynamicInvocationForwarder,
+                                    /*create_if_absent=*/false));
 
   if (!result.IsNull()) {
     return result.raw();
@@ -3778,7 +3791,7 @@ void Class::Finalize() const {
     if (raw() == isolate->class_table()->At(id())) {
       // Sets the new size in the class table.
       isolate->class_table()->SetAt(id(), raw());
-      if (FLAG_precompiled_mode) {
+      if (FLAG_precompiled_mode && !ClassTable::IsTopLevelCid(id())) {
         isolate->group()->shared_class_table()->SetUnboxedFieldsMapAt(
             id(), host_bitmap);
       }
@@ -4079,6 +4092,69 @@ ObjectPtr Class::InvokeSetter(const String& setter_name,
   return value.raw();
 }
 
+// Creates a new array of boxed arguments suitable for invoking the callable
+// from the original boxed arguments for a static call. Also sets the contents
+// of the handle pointed to by [callable_args_desc_array_out] to an appropriate
+// arguments descriptor array for the new arguments.
+//
+// Assumes [arg_names] are consistent with [static_args_descriptor].
+static ArrayPtr CreateCallableArgumentsFromStatic(
+    Zone* zone,
+    const Instance& receiver,
+    const Array& static_args,
+    const Array& arg_names,
+    const ArgumentsDescriptor& static_args_descriptor) {
+  const intptr_t num_static_type_args = static_args_descriptor.TypeArgsLen();
+  const intptr_t num_static_args = static_args_descriptor.Count();
+  // Double check that the static args descriptor expects boxed arguments
+  // and the static args descriptor is consistent with the static arguments.
+  ASSERT_EQUAL(static_args_descriptor.Size(), num_static_args);
+  ASSERT_EQUAL(static_args.Length(),
+               num_static_args + (num_static_type_args > 0 ? 1 : 0));
+  // Add an additional slot to store the callable as the receiver.
+  const auto& callable_args =
+      Array::Handle(zone, Array::New(static_args.Length() + 1));
+  const intptr_t first_arg_index = static_args_descriptor.FirstArgIndex();
+  auto& temp = Object::Handle(zone);
+  // Copy the static args into the corresponding slots of the callable args.
+  if (num_static_type_args > 0) {
+    temp = static_args.At(0);
+    callable_args.SetAt(0, temp);
+  }
+  for (intptr_t i = first_arg_index; i < static_args.Length(); i++) {
+    temp = static_args.At(i);
+    callable_args.SetAt(i + 1, temp);
+  }
+  // Set the receiver slot in the callable args.
+  callable_args.SetAt(first_arg_index, receiver);
+  return callable_args.raw();
+}
+
+// Return the result of invoking the callable contained in the arguments.
+// Performs non-covariant type checks when the callable function does not
+// expect to be called dynamically.
+static ObjectPtr InvokeCallableWithChecks(Zone* zone,
+                                          const Array& args,
+                                          const Array& args_descriptor_array) {
+  auto& result = Object::Handle(
+      zone, DartEntry::ResolveCallable(args, args_descriptor_array));
+  if (result.IsError()) {
+    return result.raw();
+  }
+  const auto& function =
+      Function::Handle(zone, Function::RawCast(result.raw()));
+  if (!function.IsNull() && !function.CanReceiveDynamicInvocation()) {
+    // Let DoArgumentTypesMatch extract the appropriate instantiator
+    // and function tavs from the arguments (including the callable).
+    ArgumentsDescriptor call_args_descriptor(args_descriptor_array);
+    result = function.DoArgumentTypesMatch(args, call_args_descriptor);
+    if (result.IsError()) {
+      return result.raw();
+    }
+  }
+  return DartEntry::InvokeCallable(function, args, args_descriptor_array);
+}
+
 ObjectPtr Class::Invoke(const String& function_name,
                         const Array& args,
                         const Array& arg_names,
@@ -4086,10 +4162,15 @@ ObjectPtr Class::Invoke(const String& function_name,
                         bool check_is_entrypoint) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-
-  // TODO(regis): Support invocation of generic functions with type arguments.
-  const int kTypeArgsLen = 0;
   CHECK_ERROR(EnsureIsFinalized(thread));
+
+  // We don't pass any explicit type arguments, which will be understood as
+  // using dynamic for any function type arguments by lower layers.
+  const int kTypeArgsLen = 0;
+  const Array& args_descriptor_array = Array::Handle(
+      zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(),
+                                          arg_names, Heap::kNew));
+  ArgumentsDescriptor args_descriptor(args_descriptor_array);
 
   Function& function =
       Function::Handle(zone, LookupStaticFunction(function_name));
@@ -4107,37 +4188,34 @@ ObjectPtr Class::Invoke(const String& function_name,
       if (check_is_entrypoint) {
         CHECK_ERROR(EntryPointFieldInvocationError(function_name));
       }
-      // Make room for the closure (receiver) in the argument list.
-      const intptr_t num_args = args.Length();
-      const Array& call_args = Array::Handle(zone, Array::New(num_args + 1));
-      Object& temp = Object::Handle(zone);
-      for (int i = 0; i < num_args; i++) {
-        temp = args.At(i);
-        call_args.SetAt(i + 1, temp);
-      }
-      call_args.SetAt(0, getter_result);
-      const Array& call_args_descriptor_array = Array::Handle(
-          zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, call_args.Length(),
+      const auto& call_args_descriptor_array = Array::Handle(
+          zone, ArgumentsDescriptor::NewBoxed(args_descriptor.TypeArgsLen(),
+                                              args_descriptor.Count() + 1,
                                               arg_names, Heap::kNew));
-      // Call the closure.
-      return DartEntry::InvokeClosure(call_args, call_args_descriptor_array);
+      const auto& call_args = Array::Handle(
+          zone,
+          CreateCallableArgumentsFromStatic(zone, Instance::Cast(getter_result),
+                                            args, arg_names, args_descriptor));
+      return InvokeCallableWithChecks(zone, call_args,
+                                      call_args_descriptor_array);
     }
   }
-  const Array& args_descriptor_array = Array::Handle(
-      zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(),
-                                          arg_names, Heap::kNew));
-  ArgumentsDescriptor args_descriptor(args_descriptor_array);
-  const TypeArguments& type_args = Object::null_type_arguments();
-  if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
+
+  if (function.IsNull() ||
+      !function.AreValidArguments(args_descriptor, nullptr) ||
       (respect_reflectable && !function.is_reflectable())) {
     return ThrowNoSuchMethod(
         AbstractType::Handle(zone, RareType()), function_name, args, arg_names,
         InvocationMirror::kStatic, InvocationMirror::kMethod);
   }
-  ObjectPtr type_error =
-      function.DoArgumentTypesMatch(args, args_descriptor, type_args);
-  if (type_error != Error::null()) {
-    return type_error;
+  // This is a static function, so we pass an empty instantiator tav.
+  ASSERT(function.is_static());
+  if (!function.CanReceiveDynamicInvocation()) {
+    ObjectPtr type_error = function.DoArgumentTypesMatch(
+        args, args_descriptor, Object::empty_type_arguments());
+    if (type_error != Error::null()) {
+      return type_error;
+    }
   }
   return DartEntry::InvokeFunction(function, args, args_descriptor_array);
 }
@@ -4209,6 +4287,32 @@ ErrorPtr Class::EnsureIsFinalized(Thread* thread) const {
       UNREACHABLE();
     }
   }
+  return error.raw();
+}
+
+// Ensure that code outdated by finalized class is cleaned up, new instance of
+// this class is ready to be allocated.
+ErrorPtr Class::EnsureIsAllocateFinalized(Thread* thread) const {
+  ASSERT(!IsNull());
+  // Finalized classes have already been parsed.
+  if (is_allocate_finalized()) {
+    return Error::null();
+  }
+  if (Compiler::IsBackgroundCompilation()) {
+    Compiler::AbortBackgroundCompilation(
+        DeoptId::kNone, "Class allocate finalization while compiling");
+  }
+  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread != NULL);
+  Error& error = Error::Handle(thread->zone(), EnsureIsFinalized(thread));
+  if (!error.IsNull()) {
+    ASSERT(thread == Thread::Current());
+    if (thread->long_jump_base() != NULL) {
+      Report::LongJump(error);
+      UNREACHABLE();
+    }
+  }
+  error ^= ClassFinalizer::AllocateFinalizeClass(*this);
   return error.raw();
 }
 
@@ -4347,7 +4451,7 @@ ClassPtr Class::New(intptr_t index,
     result.set_is_abstract();
   }
   if (register_class) {
-    isolate->RegisterClass(result);
+    isolate->class_table()->Register(result);
   }
   return result.raw();
 }
@@ -4405,7 +4509,7 @@ ClassPtr Class::NewNativeWrapper(const Library& library,
         compiler::target::RoundedAllocationSize(target_instance_size));
     cls.set_next_field_offset(host_instance_size, target_instance_size);
     cls.set_num_native_fields(field_count);
-    cls.set_is_finalized();
+    cls.set_is_allocate_finalized();
     cls.set_is_declaration_loaded();
     cls.set_is_type_finalized();
     cls.set_is_synthesized_class();
@@ -4445,7 +4549,7 @@ ClassPtr Class::NewStringClass(intptr_t class_id, Isolate* isolate) {
   result.set_next_field_offset(host_next_field_offset,
                                target_next_field_offset);
   result.set_is_prefinalized();
-  isolate->RegisterClass(result);
+  isolate->class_table()->Register(result);
   return result.raw();
 }
 
@@ -4463,7 +4567,7 @@ ClassPtr Class::NewTypedDataClass(intptr_t class_id, Isolate* isolate) {
   result.set_next_field_offset(host_next_field_offset,
                                target_next_field_offset);
   result.set_is_prefinalized();
-  isolate->RegisterClass(result);
+  isolate->class_table()->Register(result);
   return result.raw();
 }
 
@@ -4482,7 +4586,7 @@ ClassPtr Class::NewTypedDataViewClass(intptr_t class_id, Isolate* isolate) {
   result.set_next_field_offset(host_next_field_offset,
                                target_next_field_offset);
   result.set_is_prefinalized();
-  isolate->RegisterClass(result);
+  isolate->class_table()->Register(result);
   return result.raw();
 }
 
@@ -4501,7 +4605,7 @@ ClassPtr Class::NewExternalTypedDataClass(intptr_t class_id, Isolate* isolate) {
   result.set_next_field_offset(host_next_field_offset,
                                target_next_field_offset);
   result.set_is_prefinalized();
-  isolate->RegisterClass(result);
+  isolate->class_table()->Register(result);
   return result.raw();
 }
 
@@ -4522,7 +4626,7 @@ ClassPtr Class::NewPointerClass(intptr_t class_id, Isolate* isolate) {
   result.set_next_field_offset(host_next_field_offset,
                                target_next_field_offset);
   result.set_is_prefinalized();
-  isolate->RegisterClass(result);
+  isolate->class_table()->Register(result);
   return result.raw();
 }
 
@@ -4676,6 +4780,8 @@ const char* Class::GenerateUserVisibleName() const {
       return Symbols::MegamorphicCache().ToCString();
     case kSubtypeTestCacheCid:
       return Symbols::SubtypeTestCache().ToCString();
+    case kLoadingUnitCid:
+      return Symbols::LoadingUnit().ToCString();
     case kApiErrorCid:
       return Symbols::ApiError().ToCString();
     case kLanguageErrorCid:
@@ -4757,10 +4863,6 @@ void Class::set_is_type_finalized() const {
                                           raw_ptr()->state_bits_));
 }
 
-void Class::set_is_patch() const {
-  set_state_bits(PatchBit::update(true, raw_ptr()->state_bits_));
-}
-
 void Class::set_is_synthesized_class() const {
   set_state_bits(SynthesizedClassBit::update(true, raw_ptr()->state_bits_));
 }
@@ -4793,6 +4895,12 @@ void Class::set_is_loaded(bool value) const {
 void Class::set_is_finalized() const {
   ASSERT(!is_finalized());
   set_state_bits(ClassFinalizedBits::update(ClassLayout::kFinalized,
+                                            raw_ptr()->state_bits_));
+}
+
+void Class::set_is_allocate_finalized() const {
+  ASSERT(!is_allocate_finalized());
+  set_state_bits(ClassFinalizedBits::update(ClassLayout::kAllocateFinalized,
                                             raw_ptr()->state_bits_));
 }
 
@@ -5440,10 +5548,9 @@ const char* Class::ToCString() const {
   NoSafepointScope no_safepoint;
   const Library& lib = Library::Handle(library());
   const char* library_name = lib.IsNull() ? "" : lib.ToCString();
-  const char* patch_prefix = is_patch() ? "Patch " : "";
   const char* class_name = String::Handle(Name()).ToCString();
-  return OS::SCreate(Thread::Current()->zone(), "%s %sClass: %s", library_name,
-                     patch_prefix, class_name);
+  return OS::SCreate(Thread::Current()->zone(), "%s Class: %s", library_name,
+                     class_name);
 }
 
 // Thomas Wang, Integer Hash Functions.
@@ -7723,83 +7830,358 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
   return true;
 }
 
+// Checks each supplied function type argument is a subtype of the corresponding
+// bound. Also takes the number of type arguments to skip over because they
+// belong to parent functions and are not included in the type parameters.
+// Returns null if all checks succeed, otherwise returns a non-null Error for
+// one of the failures.
+static ObjectPtr TypeArgumentsAreBoundSubtypes(
+    Zone* zone,
+    const TokenPosition& token_pos,
+    const TypeArguments& type_parameters,
+    intptr_t num_parent_type_args,
+    const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments) {
+  ASSERT(!type_parameters.IsNull());
+  ASSERT(!function_type_arguments.IsNull());
+  const intptr_t kNumTypeArgs = function_type_arguments.Length();
+  ASSERT_EQUAL(num_parent_type_args + type_parameters.Length(), kNumTypeArgs);
+
+  // Don't bother allocating handles, there's nothing to check.
+  if (kNumTypeArgs - num_parent_type_args == 0) return Error::null();
+
+  auto& type = AbstractType::Handle(zone);
+  auto& bound = AbstractType::Handle(zone);
+  auto& name = String::Handle(zone);
+  for (intptr_t i = num_parent_type_args; i < kNumTypeArgs; i++) {
+    type = type_parameters.TypeAt(i - num_parent_type_args);
+    ASSERT(type.IsTypeParameter());
+    const auto& parameter = TypeParameter::Cast(type);
+    bound = parameter.bound();
+    name = parameter.name();
+    // Only perform non-covariant checks where the bound is not the top type.
+    if (parameter.IsGenericCovariantImpl() || bound.IsTopTypeForSubtyping()) {
+      continue;
+    }
+    if (!AbstractType::InstantiateAndTestSubtype(&type, &bound,
+                                                 instantiator_type_arguments,
+                                                 function_type_arguments)) {
+      return Error::RawCast(ThrowTypeError(token_pos, type, bound, name));
+    }
+  }
+
+  return Error::null();
+}
+
+// Returns a TypeArguments object where, for each type parameter local to this
+// function, the entry in the TypeArguments is an instantiated version of its
+// bound. In the instantiated bound, any local function type parameter
+// references are replaced with the corresponding bound if that bound can be
+// fully instantiated without local function type parameters, otherwise dynamic.
+static TypeArgumentsPtr InstantiateTypeParametersToBounds(
+    Zone* zone,
+    const TokenPosition& token_pos,
+    const TypeArguments& type_parameters,
+    const TypeArguments& instantiator_type_args,
+    intptr_t num_parent_type_args,
+    const TypeArguments& parent_type_args) {
+  ASSERT(!type_parameters.IsNull());
+  const intptr_t kNumCurrentTypeArgs = type_parameters.Length();
+  const intptr_t kNumTypeArgs = kNumCurrentTypeArgs + num_parent_type_args;
+  auto& function_type_args = TypeArguments::Handle(zone);
+
+  bool all_bounds_instantiated = true;
+
+  // Create a type argument vector large enough for the parents' and current
+  // type arguments.
+  function_type_args = TypeArguments::New(kNumTypeArgs);
+  auto& type = AbstractType::Handle(zone);
+  auto& bound = AbstractType::Handle(zone);
+  // First copy over the parent type args (or the dynamic type if null).
+  for (intptr_t i = 0; i < num_parent_type_args; i++) {
+    type = parent_type_args.IsNull() ? Type::DynamicType()
+                                     : parent_type_args.TypeAt(i);
+    function_type_args.SetTypeAt(i, type);
+  }
+  // Now try fully instantiating the bounds of each parameter using only
+  // the instantiator and parent function type arguments. If possible, keep the
+  // instantiated bound as the entry. Otherwise, just set that entry to dynamic.
+  for (intptr_t i = num_parent_type_args; i < kNumTypeArgs; i++) {
+    type = type_parameters.TypeAt(i - num_parent_type_args);
+    const auto& param = TypeParameter::Cast(type);
+    bound = param.bound();
+    // Only instantiate up to the parent type parameters.
+    if (!bound.IsInstantiated(kAny, num_parent_type_args)) {
+      bound = bound.InstantiateFrom(instantiator_type_args, function_type_args,
+                                    num_parent_type_args, Heap::kNew);
+    }
+    if (!bound.IsInstantiated()) {
+      // There are local type variables used in this bound.
+      bound = Type::DynamicType();
+      all_bounds_instantiated = false;
+    }
+    function_type_args.SetTypeAt(i, bound);
+  }
+
+  // If all the bounds were instantiated in the first pass, then there can't
+  // be any self or mutual recursion, so skip the bounds subtype check.
+  if (all_bounds_instantiated) return function_type_args.raw();
+
+  // Do another pass, using the set of TypeArguments we just created. If a given
+  // bound was instantiated in the last pass, just copy it over. (We don't need
+  // to iterate to a fixed point, since there should be no self or mutual
+  // recursion in the bounds.)
+  const auto& first_round =
+      TypeArguments::Handle(zone, function_type_args.raw());
+  function_type_args = TypeArguments::New(kNumTypeArgs);
+  // Again, copy over the parent type arguments first.
+  for (intptr_t i = 0; i < num_parent_type_args; i++) {
+    type = first_round.TypeAt(i);
+    function_type_args.SetTypeAt(i, type);
+  }
+  for (intptr_t i = num_parent_type_args; i < kNumTypeArgs; i++) {
+    type = type_parameters.TypeAt(i - num_parent_type_args);
+    const auto& param = TypeParameter::Cast(type);
+    bound = first_round.TypeAt(i);
+    // The dynamic type is never a bound, even when implicit, so it also marks
+    // bounds that were not already fully instantiated.
+    if (bound.raw() == Type::DynamicType()) {
+      bound = param.bound();
+      bound = bound.InstantiateFrom(instantiator_type_args, first_round,
+                                    kAllFree, Heap::kNew);
+    }
+    function_type_args.SetTypeAt(i, bound);
+  }
+
+  return function_type_args.raw();
+}
+
+// Retrieves the function type arguments, if any. This could be explicitly
+// passed type from the arguments array, delayed type arguments in closures,
+// or instantiated bounds for the type parameters if no other source for
+// function type arguments are found.
+static TypeArgumentsPtr RetrieveFunctionTypeArguments(
+    Thread* thread,
+    Zone* zone,
+    const Function& function,
+    const Instance& receiver,
+    const TypeArguments& instantiator_type_args,
+    const TypeArguments& type_params,
+    const Array& args,
+    const ArgumentsDescriptor& args_desc) {
+  ASSERT(!function.IsNull());
+
+  const intptr_t kNumCurrentTypeArgs = function.NumTypeParameters(thread);
+  const intptr_t kNumParentTypeArgs = function.NumParentTypeParameters();
+  const intptr_t kNumTypeArgs = kNumCurrentTypeArgs + kNumParentTypeArgs;
+  // Non-generic functions don't receive type arguments.
+  if (kNumTypeArgs == 0) return Object::empty_type_arguments().raw();
+  // Closure functions require that the receiver be provided (and is a closure).
+  ASSERT(!function.IsClosureFunction() || receiver.IsClosure());
+
+  // Only closure functions should have possibly generic parents.
+  ASSERT(function.IsClosureFunction() || kNumParentTypeArgs == 0);
+  const auto& parent_type_args =
+      function.IsClosureFunction()
+          ? TypeArguments::Handle(
+                zone, Closure::Cast(receiver).function_type_arguments())
+          : Object::null_type_arguments();
+  // We don't try to instantiate the parent type parameters to their bounds
+  // if not provided or check any closed-over type arguments against the parent
+  // type parameter bounds (since they have been type checked already).
+  if (kNumCurrentTypeArgs == 0) return parent_type_args.raw();
+
+  auto& function_type_args = TypeArguments::Handle(zone);
+  if (function.IsClosureFunction()) {
+    const auto& closure = Closure::Cast(receiver);
+    function_type_args = closure.delayed_type_arguments();
+    if (function_type_args.raw() == Object::empty_type_arguments().raw()) {
+      // There are no delayed type arguments, so set back to null.
+      function_type_args = TypeArguments::null();
+    }
+  }
+
+  if (function_type_args.IsNull() && args_desc.TypeArgsLen() > 0) {
+    function_type_args ^= args.At(0);
+  }
+
+  if (function_type_args.IsNull()) {
+    // We have no explicitly provided function type arguments, so generate
+    // some by instantiating the parameters to bounds.
+    return InstantiateTypeParametersToBounds(
+        zone, function.token_pos(), type_params, instantiator_type_args,
+        kNumParentTypeArgs, parent_type_args);
+  }
+
+  if (kNumParentTypeArgs > 0) {
+    function_type_args = function_type_args.Prepend(
+        zone, parent_type_args, kNumParentTypeArgs, kNumTypeArgs);
+  }
+
+  return function_type_args.raw();
+}
+
+// Retrieves the instantiator type arguments, if any, from the receiver.
+static TypeArgumentsPtr RetrieveInstantiatorTypeArguments(
+    Zone* zone,
+    const Function& function,
+    const Instance& receiver) {
+  if (function.IsClosureFunction()) {
+    ASSERT(receiver.IsClosure());
+    const auto& closure = Closure::Cast(receiver);
+    return closure.instantiator_type_arguments();
+  }
+  if (!receiver.IsNull()) {
+    const auto& cls = Class::Handle(zone, receiver.clazz());
+    if (cls.NumTypeArguments() > 0) {
+      return receiver.GetTypeArguments();
+    }
+  }
+  return Object::empty_type_arguments().raw();
+}
+
+ObjectPtr Function::DoArgumentTypesMatch(
+    const Array& args,
+    const ArgumentsDescriptor& args_desc) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  auto& receiver = Instance::Handle(zone);
+  if (IsClosureFunction() || HasThisParameter()) {
+    receiver ^= args.At(args_desc.FirstArgIndex());
+  }
+  const auto& instantiator_type_arguments = TypeArguments::Handle(
+      zone, RetrieveInstantiatorTypeArguments(zone, *this, receiver));
+  return Function::DoArgumentTypesMatch(args, args_desc,
+                                        instantiator_type_arguments);
+}
+
 ObjectPtr Function::DoArgumentTypesMatch(
     const Array& args,
     const ArgumentsDescriptor& args_desc,
-    const TypeArguments& instantiator_type_args) const {
+    const TypeArguments& instantiator_type_arguments) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Function& instantiated_func = Function::Handle(zone, raw());
 
-  if (!HasInstantiatedSignature()) {
-    instantiated_func = InstantiateSignatureFrom(instantiator_type_args,
-                                                 Object::null_type_arguments(),
-                                                 kAllFree, Heap::kNew);
+  auto& receiver = Instance::Handle(zone);
+  if (IsClosureFunction() || HasThisParameter()) {
+    receiver ^= args.At(args_desc.FirstArgIndex());
   }
-  AbstractType& argument_type = AbstractType::Handle(zone);
-  AbstractType& parameter_type = AbstractType::Handle(zone);
+
+  const auto& params = TypeArguments::Handle(zone, type_parameters());
+  const auto& function_type_arguments = TypeArguments::Handle(
+      zone, RetrieveFunctionTypeArguments(thread, zone, *this, receiver,
+                                          instantiator_type_arguments, params,
+                                          args, args_desc));
+  return Function::DoArgumentTypesMatch(
+      args, args_desc, instantiator_type_arguments, function_type_arguments);
+}
+
+ObjectPtr Function::DoArgumentTypesMatch(
+    const Array& args,
+    const ArgumentsDescriptor& args_desc,
+    const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments) const {
+  // We need a concrete (possibly empty) type arguments vector, not the
+  // implicitly filled with dynamic one.
+  ASSERT(!function_type_arguments.IsNull());
+
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  // Perform any non-covariant bounds checks on the provided function type
+  // arguments to make sure they are appropriate subtypes of the bounds.
+  const intptr_t kNumLocalTypeArgs = NumTypeParameters(thread);
+  if (kNumLocalTypeArgs > 0) {
+    const intptr_t kNumParentTypeArgs = NumParentTypeParameters();
+    ASSERT_EQUAL(kNumLocalTypeArgs + kNumParentTypeArgs,
+                 function_type_arguments.Length());
+    const auto& params = TypeArguments::Handle(zone, type_parameters());
+    const auto& result = Object::Handle(
+        zone, TypeArgumentsAreBoundSubtypes(
+                  zone, token_pos(), params, kNumParentTypeArgs,
+                  instantiator_type_arguments, function_type_arguments));
+    if (result.IsError()) {
+      return result.raw();
+    }
+  } else {
+    ASSERT_EQUAL(NumParentTypeParameters(), function_type_arguments.Length());
+  }
+
+  AbstractType& type = AbstractType::Handle(zone);
   Instance& argument = Instance::Handle(zone);
 
-  // Check types of the provided arguments against the expected parameter types.
-  for (intptr_t i = args_desc.FirstArgIndex(); i < args_desc.PositionalCount();
-       ++i) {
-    argument ^= args.At(i);
-    argument_type = argument.GetType(Heap::kNew);
-    parameter_type = instantiated_func.ParameterTypeAt(i);
-
-    // If the argument type is dynamic or the parameter is null, move on.
-    if (parameter_type.IsDynamicType() || argument_type.IsNullType()) {
-      continue;
+  auto check_argument = [](const Instance& argument, const AbstractType& type,
+                           const TypeArguments& instantiator_type_args,
+                           const TypeArguments& function_type_args) -> bool {
+    // If the argument type is the top type, no need to check.
+    if (type.IsTopTypeForSubtyping()) return true;
+    if (argument.IsNull()) {
+      return Instance::NullIsAssignableTo(type);
     }
-    if (!argument.IsInstanceOf(parameter_type, instantiator_type_args,
-                               Object::null_type_arguments())) {
-      String& argument_name = String::Handle(zone, ParameterNameAt(i));
-      return ThrowTypeError(token_pos(), argument, parameter_type,
-                            argument_name);
+    return argument.IsAssignableTo(type, instantiator_type_args,
+                                   function_type_args);
+  };
+
+  // Check types of the provided arguments against the expected parameter types.
+  const intptr_t arg_offset = args_desc.FirstArgIndex();
+  // Only check explicit arguments.
+  const intptr_t arg_start = arg_offset + NumImplicitParameters();
+  const intptr_t num_positional_args = args_desc.PositionalCount();
+  for (intptr_t arg_index = arg_start; arg_index < num_positional_args;
+       ++arg_index) {
+    argument ^= args.At(arg_index);
+    // Adjust for type arguments when they're present.
+    const intptr_t param_index = arg_index - arg_offset;
+    type = ParameterTypeAt(param_index);
+
+    if (!check_argument(argument, type, instantiator_type_arguments,
+                        function_type_arguments)) {
+      auto& name = String::Handle(zone, ParameterNameAt(param_index));
+      return ThrowTypeError(token_pos(), argument, type, name);
     }
   }
 
-  const intptr_t num_arguments = args_desc.Count();
   const intptr_t num_named_arguments = args_desc.NamedCount();
   if (num_named_arguments == 0) {
     return Error::null();
   }
 
+  const int num_parameters = NumParameters();
+  const int num_fixed_params = num_fixed_parameters();
+
   String& argument_name = String::Handle(zone);
   String& parameter_name = String::Handle(zone);
 
   // Check types of named arguments against expected parameter type.
-  for (intptr_t i = 0; i < num_named_arguments; i++) {
-    argument_name = args_desc.NameAt(i);
+  for (intptr_t named_index = 0; named_index < num_named_arguments;
+       named_index++) {
+    argument_name = args_desc.NameAt(named_index);
     ASSERT(argument_name.IsSymbol());
-    bool found = false;
-    const intptr_t num_positional_args = num_arguments - num_named_arguments;
-    const int num_parameters = NumParameters();
+    argument ^= args.At(args_desc.PositionAt(named_index));
 
     // Try to find the named parameter that matches the provided argument.
-    for (intptr_t j = num_positional_args; !found && (j < num_parameters);
-         j++) {
-      parameter_name = ParameterNameAt(j);
-      ASSERT(argument_name.IsSymbol());
-      if (argument_name.Equals(parameter_name)) {
-        found = true;
-        argument ^= args.At(args_desc.PositionAt(i));
-        argument_type = argument.GetType(Heap::kNew);
-        parameter_type = instantiated_func.ParameterTypeAt(j);
+    // Even when annotated with @required, named parameters are still stored
+    // as if they were optional and so come after the fixed parameters.
+    // Currently O(n^2) as there's no guarantee from either the CFE or the
+    // VM that named parameters and named arguments are sorted in the same way.
+    intptr_t param_index = num_fixed_params;
+    for (; param_index < num_parameters; param_index++) {
+      parameter_name = ParameterNameAt(param_index);
+      ASSERT(parameter_name.IsSymbol());
 
-        // If the argument type is dynamic or the parameter is null, move on.
-        if (parameter_type.IsDynamicType() || argument_type.IsNullType()) {
-          continue;
-        }
-        if (!argument.IsInstanceOf(parameter_type, instantiator_type_args,
-                                   Object::null_type_arguments())) {
-          String& argument_name = String::Handle(zone, ParameterNameAt(i));
-          return ThrowTypeError(token_pos(), argument, parameter_type,
-                                argument_name);
-        }
+      if (!parameter_name.Equals(argument_name)) continue;
+
+      type = ParameterTypeAt(param_index);
+      if (!check_argument(argument, type, instantiator_type_arguments,
+                          function_type_arguments)) {
+        auto& name = String::Handle(zone, ParameterNameAt(param_index));
+        return ThrowTypeError(token_pos(), argument, type, name);
       }
+      break;
     }
-    ASSERT(found);
+    // Only should fail if AreValidArguments returns a false positive.
+    ASSERT(param_index < num_parameters);
   }
   return Error::null();
 }
@@ -8746,7 +9128,15 @@ void Function::SetKernelDataAndScript(const Script& script,
 ScriptPtr Function::script() const {
   // NOTE(turnidge): If you update this function, you probably want to
   // update Class::PatchFieldsAndFunctions() at the same time.
-  Object& data = Object::Handle(raw_ptr()->data_);
+  const Object& data = Object::Handle(raw_ptr()->data_);
+  if (IsDynamicInvocationForwarder()) {
+    const auto& forwarding_target = Function::Handle(ForwardingTarget());
+    return forwarding_target.script();
+  }
+  if (IsImplicitGetterOrSetter()) {
+    const auto& field = Field::Handle(accessor_field());
+    return field.Script();
+  }
   if (data.IsArray()) {
     Object& script = Object::Handle(Array::Cast(data).At(0));
     if (script.IsScript()) {
@@ -9150,7 +9540,11 @@ void Function::SetDeoptReasonForAll(intptr_t deopt_id,
   }
 }
 
-bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
+bool Function::CheckSourceFingerprint(int32_t fp) const {
+#if !defined(DEBUG)
+  return true;  // Only check on debug.
+#endif
+
   if (Isolate::Current()->obfuscate() || FLAG_precompiled_mode ||
       (Dart::vm_snapshot_kind() != Snapshot::kNone)) {
     return true;  // The kernel structure has been altered, skip checking.
@@ -9162,31 +9556,14 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
     return true;
   }
 
-#if 1
-  // The non-nullable experiment changes the fingerprints, we only track
-  // one fingerprint set, until we unfork and settle on a single snapshot
-  // version this check has to be bypassed.
-  // TODO(36376) - Restore checking fingerprints of recognized methods.
-#else
   if (SourceFingerprint() != fp) {
-    const bool recalculatingFingerprints = false;
-    if (recalculatingFingerprints) {
-      // This output can be copied into a file, then used with sed
-      // to replace the old values.
-      // sed -i.bak -f /tmp/newkeys \
-      //    runtime/vm/compiler/recognized_methods_list.h
-      THR_Print("s/0x%08x/0x%08x/\n", fp, SourceFingerprint());
-    } else {
-      THR_Print(
-          "FP mismatch while recognizing method %s: expecting 0x%08x found "
-          "0x%08x.\nIf the behavior of this function has changed, then changes "
-          "are also needed in the VM's compiler. Otherwise the fingerprint can "
-          "simply be updated in recognized_methods_list.h\n",
-          ToFullyQualifiedCString(), fp, SourceFingerprint());
-      return false;
-    }
+    // This output can be copied into a file, then used with sed
+    // to replace the old values.
+    // sed -i.bak -f /tmp/newkeys \
+    //    runtime/vm/compiler/recognized_methods_list.h
+    THR_Print("s/0x%08x/0x%08x/\n", fp, SourceFingerprint());
+    return false;
   }
-#endif
   return true;
 }
 
@@ -9223,13 +9600,40 @@ bool Function::NeedsMonomorphicCheckedEntry(Zone* zone) const {
   // monomorphic entry).
   //
   // See runtime_entry.cc:DEFINE_RUNTIME_ENTRY(UnlinkedCall)
-  if (HasOptionalParameters() || IsGeneric()) {
+  if (PrologueNeedsArgumentsDescriptor()) {
     return false;
+  }
+
+  // All dyn:* forwarders are called via SwitchableCalls and all except the ones
+  // with `PrologueNeedsArgumentsDescriptor()` transition into monomorphic
+  // state.
+  if (Function::IsDynamicInvocationForwarderName(name())) {
+    return true;
   }
 
   // If table dispatch is disabled, all instance calls use switchable calls.
   if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions &&
         FLAG_use_table_dispatch)) {
+    return true;
+  }
+
+  // Only if there are dynamic callers and if we didn't create a dyn:* forwarder
+  // for it do we need the monomorphic checked entry.
+  return HasDynamicCallers(zone) &&
+         !kernel::NeedsDynamicInvocationForwarder(*this);
+#else
+  UNREACHABLE();
+  return true;
+#endif
+}
+
+bool Function::HasDynamicCallers(Zone* zone) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Issue(dartbug.com/42719):
+  // Right now the metadata of _Closure.call says there are no dynamic callers -
+  // even though there can be. To be conservative we return true.
+  if ((name() == Symbols::GetCall().raw() || name() == Symbols::Call().raw()) &&
+      Class::IsClosureClass(Owner())) {
     return true;
   }
 
@@ -9246,6 +9650,12 @@ bool Function::NeedsMonomorphicCheckedEntry(Zone* zone) const {
   UNREACHABLE();
   return true;
 #endif
+}
+
+bool Function::PrologueNeedsArgumentsDescriptor() const {
+  // The prologue of those functions need to examine the arg descriptor for
+  // various purposes.
+  return IsGeneric() || HasOptionalParameters();
 }
 
 bool Function::MayHaveUncheckedEntryPoint() const {
@@ -11138,6 +11548,10 @@ void Library::set_kernel_data(const ExternalTypedData& data) const {
   StorePointer(&raw_ptr()->kernel_data_, data.raw());
 }
 
+void Library::set_loading_unit(const LoadingUnit& value) const {
+  StorePointer(&raw_ptr()->loading_unit_, value.raw());
+}
+
 void Library::SetName(const String& name) const {
   // Only set name once.
   ASSERT(!Loaded());
@@ -12135,6 +12549,7 @@ void Library::DropDependenciesAndCaches() const {
   StorePointer(&raw_ptr()->resolved_names_, Array::null());
   StorePointer(&raw_ptr()->exported_names_, Array::null());
   StorePointer(&raw_ptr()->loaded_scripts_, Array::null());
+  StorePointer(&raw_ptr()->dependencies_, Array::null());
 }
 
 void Library::AddImport(const Namespace& ns) const {
@@ -12314,15 +12729,18 @@ static ObjectPtr InvokeInstanceFunction(
   // Note "args" is already the internal arguments with the receiver as the
   // first element.
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
-  if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
+  if (function.IsNull() ||
+      !function.AreValidArguments(args_descriptor, nullptr) ||
       (respect_reflectable && !function.is_reflectable())) {
     return DartEntry::InvokeNoSuchMethod(receiver, target_name, args,
                                          args_descriptor_array);
   }
-  ObjectPtr type_error = function.DoArgumentTypesMatch(args, args_descriptor,
-                                                       instantiator_type_args);
-  if (type_error != Error::null()) {
-    return type_error;
+  if (!function.CanReceiveDynamicInvocation()) {
+    ObjectPtr type_error = function.DoArgumentTypesMatch(
+        args, args_descriptor, instantiator_type_args);
+    if (type_error != Error::null()) {
+      return type_error;
+    }
   }
   return DartEntry::InvokeFunction(function, args, args_descriptor_array);
 }
@@ -12464,13 +12882,22 @@ ObjectPtr Library::Invoke(const String& function_name,
                           const Array& arg_names,
                           bool respect_reflectable,
                           bool check_is_entrypoint) const {
-  // TODO(regis): Support invocation of generic functions with type arguments.
-  const int kTypeArgsLen = 0;
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
 
-  Function& function = Function::Handle();
-  Object& obj = Object::Handle(LookupLocalOrReExportObject(function_name));
-  if (obj.IsFunction()) {
-    function ^= obj.raw();
+  // We don't pass any explicit type arguments, which will be understood as
+  // using dynamic for any function type arguments by lower layers.
+  const int kTypeArgsLen = 0;
+  const Array& args_descriptor_array = Array::Handle(
+      zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(),
+                                          arg_names, Heap::kNew));
+  ArgumentsDescriptor args_descriptor(args_descriptor_array);
+
+  auto& function = Function::Handle(zone);
+  auto& result =
+      Object::Handle(zone, LookupLocalOrReExportObject(function_name));
+  if (result.IsFunction()) {
+    function ^= result.raw();
   }
 
   if (!function.IsNull() && check_is_entrypoint) {
@@ -12479,45 +12906,43 @@ ObjectPtr Library::Invoke(const String& function_name,
 
   if (function.IsNull()) {
     // Didn't find a method: try to find a getter and invoke call on its result.
-    const Object& getter_result = Object::Handle(InvokeGetter(
-        function_name, false, respect_reflectable, check_is_entrypoint));
+    const Object& getter_result = Object::Handle(
+        zone, InvokeGetter(function_name, false, respect_reflectable,
+                           check_is_entrypoint));
     if (getter_result.raw() != Object::sentinel().raw()) {
       if (check_is_entrypoint) {
         CHECK_ERROR(EntryPointFieldInvocationError(function_name));
       }
-      // Make room for the closure (receiver) in arguments.
-      intptr_t numArgs = args.Length();
-      const Array& call_args = Array::Handle(Array::New(numArgs + 1));
-      Object& temp = Object::Handle();
-      for (int i = 0; i < numArgs; i++) {
-        temp = args.At(i);
-        call_args.SetAt(i + 1, temp);
-      }
-      call_args.SetAt(0, getter_result);
-      const Array& call_args_descriptor_array =
-          Array::Handle(ArgumentsDescriptor::NewBoxed(
-              kTypeArgsLen, call_args.Length(), arg_names, Heap::kNew));
-      // Call closure.
-      return DartEntry::InvokeClosure(call_args, call_args_descriptor_array);
+      const auto& call_args_descriptor_array = Array::Handle(
+          zone, ArgumentsDescriptor::NewBoxed(args_descriptor.TypeArgsLen(),
+                                              args_descriptor.Count() + 1,
+                                              arg_names, Heap::kNew));
+      const auto& call_args = Array::Handle(
+          zone,
+          CreateCallableArgumentsFromStatic(zone, Instance::Cast(getter_result),
+                                            args, arg_names, args_descriptor));
+      return InvokeCallableWithChecks(zone, call_args,
+                                      call_args_descriptor_array);
     }
   }
 
-  const Array& args_descriptor_array =
-      Array::Handle(ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(),
-                                                  arg_names, Heap::kNew));
-  ArgumentsDescriptor args_descriptor(args_descriptor_array);
-  const TypeArguments& type_args = Object::null_type_arguments();
-  if (function.IsNull() || !function.AreValidArguments(args_descriptor, NULL) ||
+  if (function.IsNull() ||
+      !function.AreValidArguments(args_descriptor, nullptr) ||
       (respect_reflectable && !function.is_reflectable())) {
     return ThrowNoSuchMethod(
-        AbstractType::Handle(Class::Handle(toplevel_class()).RareType()),
+        AbstractType::Handle(zone,
+                             Class::Handle(zone, toplevel_class()).RareType()),
         function_name, args, arg_names, InvocationMirror::kTopLevel,
         InvocationMirror::kMethod);
   }
-  ObjectPtr type_error =
-      function.DoArgumentTypesMatch(args, args_descriptor, type_args);
-  if (type_error != Error::null()) {
-    return type_error;
+  // This is a static function, so we pass an empty instantiator tav.
+  ASSERT(function.is_static());
+  if (!function.CanReceiveDynamicInvocation()) {
+    ObjectPtr type_error = function.DoArgumentTypesMatch(
+        args, args_descriptor, Object::empty_type_arguments());
+    if (type_error != Error::null()) {
+      return type_error;
+    }
   }
   return DartEntry::InvokeFunction(function, args, args_descriptor_array);
 }
@@ -13505,15 +13930,16 @@ ObjectPtr Library::GetFunctionClosure(const String& name) const {
 void Library::CheckFunctionFingerprints() {
   GrowableArray<Library*> all_libs;
   Function& func = Function::Handle();
-  bool has_errors = false;
+  bool fingerprints_match = true;
 
 #define CHECK_FINGERPRINTS(class_name, function_name, dest, fp)                \
   func = GetFunction(all_libs, #class_name, #function_name);                   \
   if (func.IsNull()) {                                                         \
-    has_errors = true;                                                         \
+    fingerprints_match = false;                                                \
     OS::PrintErr("Function not found %s.%s\n", #class_name, #function_name);   \
   } else {                                                                     \
-    CHECK_FINGERPRINT3(func, class_name, function_name, dest, fp);             \
+    fingerprints_match =                                                       \
+        func.CheckSourceFingerprint(fp) && fingerprints_match;                 \
   }
 
 #define CHECK_FINGERPRINTS2(class_name, function_name, dest, fp)               \
@@ -13553,10 +13979,11 @@ void Library::CheckFunctionFingerprints() {
 #define CHECK_FACTORY_FINGERPRINTS(symbol, class_name, factory_name, cid, fp)  \
   func = GetFunction(all_libs, #class_name, #factory_name);                    \
   if (func.IsNull()) {                                                         \
-    has_errors = true;                                                         \
+    fingerprints_match = false;                                                \
     OS::PrintErr("Function not found %s.%s\n", #class_name, #factory_name);    \
   } else {                                                                     \
-    CHECK_FINGERPRINT2(func, symbol, cid, fp);                                 \
+    fingerprints_match =                                                       \
+        func.CheckSourceFingerprint(fp) && fingerprints_match;                 \
   }
 
   all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
@@ -13564,8 +13991,12 @@ void Library::CheckFunctionFingerprints() {
 
 #undef CHECK_FACTORY_FINGERPRINTS
 
-  if (has_errors) {
-    FATAL("Fingerprint mismatch.");
+  if (!fingerprints_match) {
+    FATAL(
+        "FP mismatch while recognizing methods. If the behavior of "
+        "these functions has changed, then changes are also needed in "
+        "the VM's compiler. Otherwise the fingerprint can simply be "
+        "updated in recognized_methods_list.h\n");
   }
 }
 #endif  // defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME).
@@ -17145,6 +17576,71 @@ const char* SubtypeTestCache::ToCString() const {
   return "SubtypeTestCache";
 }
 
+LoadingUnitPtr LoadingUnit::New() {
+  ASSERT(Object::loadingunit_class() != Class::null());
+  LoadingUnit& result = LoadingUnit::Handle();
+  {
+    // LoadingUnit objects are long living objects, allocate them in the
+    // old generation.
+    ObjectPtr raw = Object::Allocate(LoadingUnit::kClassId,
+                                     LoadingUnit::InstanceSize(), Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+  }
+  result.set_id(kIllegalId);
+  result.set_loaded(false);
+  result.set_load_outstanding(false);
+  return result.raw();
+}
+
+LoadingUnitPtr LoadingUnit::parent() const {
+  return raw_ptr()->parent_;
+}
+void LoadingUnit::set_parent(const LoadingUnit& value) const {
+  StorePointer(&raw_ptr()->parent_, value.raw());
+}
+
+ArrayPtr LoadingUnit::base_objects() const {
+  return raw_ptr()->base_objects_;
+}
+void LoadingUnit::set_base_objects(const Array& value) const {
+  StorePointer(&raw_ptr()->base_objects_, value.raw());
+}
+
+const char* LoadingUnit::ToCString() const {
+  return "LoadingUnit";
+}
+
+ObjectPtr LoadingUnit::IssueLoad() const {
+  ASSERT(!loaded());
+  ASSERT(!load_outstanding());
+  set_load_outstanding(true);
+  return Isolate::Current()->CallDeferredLoadHandler(id());
+}
+
+void LoadingUnit::CompleteLoad(const String& error_message,
+                               bool transient_error) const {
+  ASSERT(!loaded());
+  ASSERT(load_outstanding());
+  set_loaded(error_message.IsNull());
+  set_load_outstanding(false);
+
+  const Library& lib = Library::Handle(Library::CoreLibrary());
+  const String& sel = String::Handle(String::New("_completeLoads"));
+  const Function& func = Function::Handle(lib.LookupFunctionAllowPrivate(sel));
+  ASSERT(!func.IsNull());
+  const Array& args = Array::Handle(Array::New(3));
+  args.SetAt(0, Smi::Handle(Smi::New(id())));
+  args.SetAt(1, error_message);
+  args.SetAt(2, Bool::Get(transient_error));
+  const Object& result = Object::Handle(DartEntry::InvokeFunction(func, args));
+  if (result.IsUnwindError()) {
+    Thread::Current()->set_sticky_error(Error::Cast(result));
+  } else if (result.IsError()) {
+    UNREACHABLE();
+  }
+}
+
 const char* Error::ToErrorCString() const {
   if (IsNull()) {
     return "Error: null";
@@ -17438,10 +17934,10 @@ ObjectPtr Instance::InvokeGetter(const String& getter_name,
 
   Class& klass = Class::Handle(zone, clazz());
   CHECK_ERROR(klass.EnsureIsFinalized(thread));
-  TypeArguments& type_args = TypeArguments::Handle(zone);
-  if (klass.NumTypeArguments() > 0) {
-    type_args = GetTypeArguments();
-  }
+  const auto& inst_type_args =
+      klass.NumTypeArguments() > 0
+          ? TypeArguments::Handle(zone, GetTypeArguments())
+          : Object::null_type_arguments();
 
   const String& internal_getter_name =
       String::Handle(zone, Field::GetterName(getter_name));
@@ -17487,7 +17983,7 @@ ObjectPtr Instance::InvokeGetter(const String& getter_name,
 
   return InvokeInstanceFunction(*this, function, internal_getter_name, args,
                                 args_descriptor, respect_reflectable,
-                                type_args);
+                                inst_type_args);
 }
 
 ObjectPtr Instance::InvokeSetter(const String& setter_name,
@@ -17499,10 +17995,10 @@ ObjectPtr Instance::InvokeSetter(const String& setter_name,
 
   const Class& klass = Class::Handle(zone, clazz());
   CHECK_ERROR(klass.EnsureIsFinalized(thread));
-  TypeArguments& type_args = TypeArguments::Handle(zone);
-  if (klass.NumTypeArguments() > 0) {
-    type_args = GetTypeArguments();
-  }
+  const auto& inst_type_args =
+      klass.NumTypeArguments() > 0
+          ? TypeArguments::Handle(zone, GetTypeArguments())
+          : Object::null_type_arguments();
 
   const String& internal_setter_name =
       String::Handle(zone, Field::SetterName(setter_name));
@@ -17534,7 +18030,7 @@ ObjectPtr Instance::InvokeSetter(const String& setter_name,
 
   return InvokeInstanceFunction(*this, setter, internal_setter_name, args,
                                 args_descriptor, respect_reflectable,
-                                type_args);
+                                inst_type_args);
 }
 
 ObjectPtr Instance::Invoke(const String& function_name,
@@ -17546,6 +18042,7 @@ ObjectPtr Instance::Invoke(const String& function_name,
   Zone* zone = thread->zone();
   Class& klass = Class::Handle(zone, clazz());
   CHECK_ERROR(klass.EnsureIsFinalized(thread));
+
   Function& function = Function::Handle(
       zone, Resolver::ResolveDynamicAnyArgs(zone, klass, function_name));
 
@@ -17553,16 +18050,17 @@ ObjectPtr Instance::Invoke(const String& function_name,
     CHECK_ERROR(function.VerifyCallEntryPoint());
   }
 
-  // TODO(regis): Support invocation of generic functions with type arguments.
+  // We don't pass any explicit type arguments, which will be understood as
+  // using dynamic for any function type arguments by lower layers.
   const int kTypeArgsLen = 0;
   const Array& args_descriptor = Array::Handle(
       zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(),
                                           arg_names, Heap::kNew));
 
-  TypeArguments& type_args = TypeArguments::Handle(zone);
-  if (klass.NumTypeArguments() > 0) {
-    type_args = GetTypeArguments();
-  }
+  const auto& inst_type_args =
+      klass.NumTypeArguments() > 0
+          ? TypeArguments::Handle(zone, GetTypeArguments())
+          : Object::null_type_arguments();
 
   if (function.IsNull()) {
     // Didn't find a method: try to find a getter and invoke call on its result.
@@ -17584,21 +18082,20 @@ ObjectPtr Instance::Invoke(const String& function_name,
       const Object& getter_result = Object::Handle(
           zone, InvokeInstanceFunction(*this, function, getter_name,
                                        getter_args, getter_args_descriptor,
-                                       respect_reflectable, type_args));
+                                       respect_reflectable, inst_type_args));
       if (getter_result.IsError()) {
         return getter_result.raw();
       }
       // Replace the closure as the receiver in the arguments list.
       args.SetAt(0, getter_result);
-      // Call the closure.
-      return DartEntry::InvokeClosure(args, args_descriptor);
+      return InvokeCallableWithChecks(zone, args, args_descriptor);
     }
   }
 
   // Found an ordinary method.
   return InvokeInstanceFunction(*this, function, function_name, args,
                                 args_descriptor, respect_reflectable,
-                                type_args);
+                                inst_type_args);
 }
 
 ObjectPtr Instance::EvaluateCompiledExpression(
@@ -18453,7 +18950,9 @@ AbstractTypePtr AbstractType::SetInstantiatedNullability(
 
 AbstractTypePtr AbstractType::NormalizeFutureOrType(Heap::Space space) const {
   if (IsFutureOrType()) {
-    const AbstractType& unwrapped_type = AbstractType::Handle(UnwrapFutureOr());
+    Zone* zone = Thread::Current()->zone();
+    const AbstractType& unwrapped_type =
+        AbstractType::Handle(zone, UnwrapFutureOr());
     const classid_t cid = unwrapped_type.type_class_id();
     if (cid == kDynamicCid || cid == kVoidCid) {
       return unwrapped_type.raw();
@@ -18471,38 +18970,14 @@ AbstractTypePtr AbstractType::NormalizeFutureOrType(Heap::Space space) const {
     }
     if (cid == kNeverCid && unwrapped_type.IsNonNullable()) {
       ObjectStore* object_store = Isolate::Current()->object_store();
-      if (object_store->non_nullable_future_never_type() == Type::null()) {
-        const Class& cls = Class::Handle(object_store->future_class());
-        ASSERT(!cls.IsNull());
-        const TypeArguments& type_args =
-            TypeArguments::Handle(TypeArguments::New(1));
-        type_args.SetTypeAt(0, Type::Handle(object_store->never_type()));
-        Type& type =
-            Type::Handle(Type::New(cls, type_args, TokenPosition::kNoSource,
-                                   Nullability::kNonNullable));
-        type.SetIsFinalized();
-        type ^= type.Canonicalize();
-        object_store->set_non_nullable_future_never_type(type);
-      }
       const Type& future_never_type =
-          Type::Handle(object_store->non_nullable_future_never_type());
+          Type::Handle(zone, object_store->non_nullable_future_never_type());
+      ASSERT(!future_never_type.IsNull());
       return future_never_type.ToNullability(nullability(), space);
     }
     if (cid == kNullCid) {
       ObjectStore* object_store = Isolate::Current()->object_store();
-      if (object_store->nullable_future_null_type() == Type::null()) {
-        const Class& cls = Class::Handle(object_store->future_class());
-        ASSERT(!cls.IsNull());
-        const TypeArguments& type_args =
-            TypeArguments::Handle(TypeArguments::New(1));
-        Type& type = Type::Handle(object_store->null_type());
-        type_args.SetTypeAt(0, type);
-        type = Type::New(cls, type_args, TokenPosition::kNoSource,
-                         Nullability::kNullable);
-        type.SetIsFinalized();
-        type ^= type.Canonicalize();
-        object_store->set_nullable_future_null_type(type);
-      }
+      ASSERT(object_store->nullable_future_null_type() != Type::null());
       return object_store->nullable_future_null_type();
     }
     if (IsNullable() && unwrapped_type.IsNullable()) {
@@ -21252,22 +21727,6 @@ intptr_t String::Hash(const int32_t* characters, intptr_t len) {
   return HashImpl(characters, len);
 }
 
-uint16_t String::CharAt(intptr_t index) const {
-  intptr_t class_id = raw()->GetClassId();
-  ASSERT(IsStringClassId(class_id));
-  if (class_id == kOneByteStringCid) {
-    return OneByteString::CharAt(*this, index);
-  }
-  if (class_id == kTwoByteStringCid) {
-    return TwoByteString::CharAt(*this, index);
-  }
-  if (class_id == kExternalOneByteStringCid) {
-    return ExternalOneByteString::CharAt(*this, index);
-  }
-  ASSERT(class_id == kExternalTwoByteStringCid);
-  return ExternalTwoByteString::CharAt(*this, index);
-}
-
 intptr_t String::CharSize() const {
   intptr_t class_id = raw()->GetClassId();
   if (class_id == kOneByteStringCid || class_id == kExternalOneByteStringCid) {
@@ -21413,13 +21872,15 @@ intptr_t String::CompareTo(const String& other) const {
   return 0;
 }
 
-bool String::StartsWith(const String& other) const {
-  if (other.IsNull() || (other.Length() > this->Length())) {
-    return false;
-  }
-  intptr_t slen = other.Length();
-  for (int i = 0; i < slen; i++) {
-    if (this->CharAt(i) != other.CharAt(i)) {
+bool String::StartsWith(StringPtr str, StringPtr prefix) {
+  if (prefix == String::null()) return false;
+
+  const intptr_t length = String::LengthOf(str);
+  const intptr_t prefix_length = String::LengthOf(prefix);
+  if (prefix_length > length) return false;
+
+  for (intptr_t i = 0; i < prefix_length; i++) {
+    if (String::CharAt(str, i) != String::CharAt(prefix, i)) {
       return false;
     }
   }
@@ -23622,6 +24083,16 @@ TransferableTypedDataPtr TransferableTypedData::New(uint8_t* data,
 
 const char* TransferableTypedData::ToCString() const {
   return "TransferableTypedData";
+}
+
+intptr_t Closure::NumTypeParameters(Thread* thread) const {
+  if (delayed_type_arguments() != Object::null_type_arguments().raw() &&
+      delayed_type_arguments() != Object::empty_type_arguments().raw()) {
+    return 0;
+  } else {
+    const auto& closure_function = Function::Handle(thread->zone(), function());
+    return closure_function.NumTypeParameters(thread);
+  }
 }
 
 const char* Closure::ToCString() const {

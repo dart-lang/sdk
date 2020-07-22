@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../driver_resolution.dart';
+import '../with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -31,15 +30,7 @@ void f(Object a, Object b) {
 }
 
 @reflectiveTest
-class EqualWithNnbdTest extends EqualTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-}
+class EqualWithNnbdTest extends EqualTest with WithNullSafetyMixin {}
 
 @reflectiveTest
 class NotEqualTest extends DriverResolutionTest {
@@ -55,12 +46,4 @@ void f(Object a, Object b) {
 }
 
 @reflectiveTest
-class NotEqualWithNnbdTest extends NotEqualTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-}
+class NotEqualWithNnbdTest extends NotEqualTest with WithNullSafetyMixin {}

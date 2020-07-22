@@ -362,6 +362,7 @@ class KernelTextSerialization
           });
     return await CompilerContext.runWithOptions(options,
         (compilerContext) async {
+      component.computeCanonicalNames();
       compilerContext.uriToSource.addAll(component.uriToSource);
       TextSerializationVerifier verifier =
           new TextSerializationVerifier(root: component.root);

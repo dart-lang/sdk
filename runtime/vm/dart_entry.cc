@@ -110,7 +110,7 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
 #if !defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
 #else
-    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    if (FLAG_use_bare_instructions) {
       Thread* thread = Thread::Current();
       thread->set_global_object_pool(
           thread->isolate()->object_store()->global_object_pool());
@@ -215,8 +215,6 @@ ObjectPtr DartEntry::ResolveCallable(const Array& arguments,
   const ArgumentsDescriptor args_desc(arguments_descriptor);
   const intptr_t receiver_index = args_desc.FirstArgIndex();
   const intptr_t type_args_len = args_desc.TypeArgsLen();
-  const intptr_t args_count = args_desc.Count();
-  const intptr_t named_args_count = args_desc.NamedCount();
   const auto& getter_name = Symbols::GetCall();
 
   auto& instance = Instance::Handle(zone);
@@ -226,11 +224,19 @@ ObjectPtr DartEntry::ResolveCallable(const Array& arguments,
   // The null instance cannot resolve to a callable, so we can stop there.
   for (instance ^= arguments.At(receiver_index); !instance.IsNull();
        instance ^= arguments.At(receiver_index)) {
-    // If the current instance is a compatible callable, return its function.
-    if (instance.IsCallable(&function) &&
-        function.AreValidArgumentCounts(type_args_len, args_count,
-                                        named_args_count, nullptr)) {
-      return function.raw();
+    // The instance is a callable, so check that its function is compatible.
+    if (instance.IsCallable(&function)) {
+      bool matches = function.AreValidArguments(args_desc, nullptr);
+
+      if (matches && type_args_len > 0 && function.IsClosureFunction()) {
+        // Though the closure function is generic, the closure itself may
+        // not be because it closes over delayed function type arguments.
+        matches = Closure::Cast(instance).IsGeneric(thread);
+      }
+
+      if (matches) {
+        return function.raw();
+      }
     }
 
     // Special case: closures are implemented with a call getter instead of a

@@ -96,7 +96,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("const", is_const());
   jsobj.AddProperty("_finalized", is_finalized());
   jsobj.AddProperty("_implemented", is_implemented());
-  jsobj.AddProperty("_patch", is_patch());
+  jsobj.AddProperty("_patch", false);
   jsobj.AddProperty("_traceAllocations", TraceAllocation(isolate));
 
   const Class& superClass = Class::Handle(SuperClass());
@@ -1028,6 +1028,20 @@ void SubtypeTestCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
     return;
   }
   jsobj.AddProperty("_cache", Array::Handle(cache()));
+}
+
+void LoadingUnit::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("_parent", LoadingUnit::Handle(parent()));
+  jsobj.AddProperty("_baseObjects", Array::Handle(base_objects()));
+  jsobj.AddProperty("_id", static_cast<intptr_t>(id()));
+  jsobj.AddProperty("_loaded", loaded());
+  jsobj.AddProperty("_loadOutstanding", load_outstanding());
 }
 
 void Error::PrintJSONImpl(JSONStream* stream, bool ref) const {

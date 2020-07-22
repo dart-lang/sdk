@@ -163,6 +163,8 @@ class ProgramBuilder {
 
   Set<Class> _unneededNativeClasses;
 
+  List<StubMethod> _jsInteropIsChecks = [];
+
   /// Classes that have been allocated during a profile run.
   ///
   /// These classes should not be soft-deferred.
@@ -492,6 +494,8 @@ class ProgramBuilder {
     // a method in the case where there exist multiple JavaScript classes
     // that conflict on whether the member is a getter or a method.
     Class interceptorClass = _classes[_commonElements.jsJavaScriptObjectClass];
+
+    interceptorClass?.isChecks?.addAll(_jsInteropIsChecks);
     Set<String> stubNames = {};
     librariesMap
         .forEach((LibraryEntity library, List<ClassEntity> classElements, _) {
@@ -750,9 +754,7 @@ class ProgramBuilder {
       // Currently we generate duplicates if a class is implemented by multiple
       // js-interop classes.
       typeTests.forEachProperty(_sorter, (js.Name name, js.Node code) {
-        _classes[_commonElements.jsJavaScriptObjectClass]
-            .isChecks
-            .add(_buildStubMethod(name, code));
+        _jsInteropIsChecks.add(_buildStubMethod(name, code));
       });
     } else {
       for (Field field in instanceFields) {

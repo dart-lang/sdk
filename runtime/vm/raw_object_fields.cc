@@ -71,6 +71,7 @@ namespace dart {
   F(Library, metadata_)                                                        \
   F(Library, toplevel_class_)                                                  \
   F(Library, used_scripts_)                                                    \
+  F(Library, loading_unit_)                                                    \
   F(Library, imports_)                                                         \
   F(Library, exports_)                                                         \
   F(Library, kernel_data_)                                                     \
@@ -128,6 +129,8 @@ namespace dart {
   F(MegamorphicCache, buckets_)                                                \
   F(MegamorphicCache, mask_)                                                   \
   F(SubtypeTestCache, cache_)                                                  \
+  F(LoadingUnit, parent_)                                                      \
+  F(LoadingUnit, base_objects_)                                                \
   F(ApiError, message_)                                                        \
   F(LanguageError, previous_error_)                                            \
   F(LanguageError, script_)                                                    \

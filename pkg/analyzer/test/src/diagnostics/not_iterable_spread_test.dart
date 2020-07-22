@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,15 +16,8 @@ main() {
 }
 
 @reflectiveTest
-class NotIterableSpreadNullSafetyTest extends NotIterableSpreadTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class NotIterableSpreadNullSafetyTest extends NotIterableSpreadTest
+    with WithNullSafetyMixin {
   test_iterable_typeParameter_bound_listQuestion() async {
     await assertNoErrorsInCode('''
 void f<T extends List<int>?>(T a) {

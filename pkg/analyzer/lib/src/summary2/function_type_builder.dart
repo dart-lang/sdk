@@ -6,9 +6,12 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 
@@ -59,6 +62,16 @@ class FunctionTypeBuilder extends TypeBuilder {
 
   @override
   Element get element => null;
+
+  @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    if (visitor is LinkingTypeVisitor<R>) {
+      var visitor2 = visitor as LinkingTypeVisitor<R>;
+      return visitor2.visitFunctionTypeBuilder(this);
+    } else {
+      throw StateError('Should not happen outside linking.');
+    }
+  }
 
   @override
   DartType build() {
@@ -148,11 +161,10 @@ class FunctionTypeBuilder extends TypeBuilder {
     bool isNNBD,
     FormalParameterList node,
   ) {
-    return node.parameters.map((parameter) {
+    return node.parameters.asImpl.map((parameter) {
       return ParameterElementImpl.synthetic(
         parameter.identifier?.name ?? '',
         _getParameterType(isNNBD, parameter),
-        // ignore: deprecated_member_use_from_same_package
         parameter.kind,
       );
     }).toList();

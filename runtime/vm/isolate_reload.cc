@@ -404,11 +404,6 @@ class BecomeMapTraits {
 };
 
 bool IsolateReloadContext::IsSameClass(const Class& a, const Class& b) {
-  if (a.is_patch() != b.is_patch()) {
-    // TODO(johnmccutchan): Should we just check the class kind bits?
-    return false;
-  }
-
   // TODO(turnidge): We need to look at generic type arguments for
   // synthetic mixin classes.  Their names are not necessarily unique
   // currently.
@@ -463,6 +458,7 @@ IsolateReloadContext::IsolateReloadContext(
       group_reload_context_(group_reload_context),
       isolate_(isolate),
       saved_class_table_(nullptr),
+      saved_tlc_class_table_(nullptr),
       old_classes_set_storage_(Array::null()),
       class_map_storage_(Array::null()),
       removed_class_set_storage_(Array::null()),
@@ -481,6 +477,7 @@ IsolateReloadContext::IsolateReloadContext(
 IsolateReloadContext::~IsolateReloadContext() {
   ASSERT(zone_ == Thread::Current()->zone());
   ASSERT(saved_class_table_.load(std::memory_order_relaxed) == nullptr);
+  ASSERT(saved_tlc_class_table_.load(std::memory_order_relaxed) == nullptr);
 }
 
 void IsolateGroupReloadContext::ReportError(const Error& error) {
@@ -624,65 +621,13 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       const auto& typed_data = ExternalTypedData::Handle(
           Z, ExternalTypedData::NewFinalizeWithFree(
                  const_cast<uint8_t*>(kernel_buffer), kernel_buffer_size));
-
       kernel_program = kernel::Program::ReadFromTypedData(typed_data);
     }
 
     ExternalTypedData& external_typed_data =
         ExternalTypedData::Handle(Z, kernel_program.get()->typed_data()->raw());
     IsolateGroupSource* source = Isolate::Current()->source();
-    Array& hot_reload_blobs = Array::Handle();
-    bool saved_external_typed_data = false;
-    if (source->hot_reload_blobs_ != nullptr) {
-      hot_reload_blobs = source->hot_reload_blobs_;
-
-      // Walk the array, and (if stuff was removed) compact and reuse the space.
-      // Note that the space has to be compacted as the ordering is important.
-      WeakProperty& weak_property = WeakProperty::Handle();
-      WeakProperty& weak_property_tmp = WeakProperty::Handle();
-      ExternalTypedData& existing_entry = ExternalTypedData::Handle(Z);
-      intptr_t next_entry_index = 0;
-      for (intptr_t i = 0; i < hot_reload_blobs.Length(); i++) {
-        weak_property ^= hot_reload_blobs.At(i);
-        if (weak_property.key() != ExternalTypedData::null()) {
-          if (i != next_entry_index) {
-            existing_entry = ExternalTypedData::RawCast(weak_property.key());
-            weak_property_tmp ^= hot_reload_blobs.At(next_entry_index);
-            weak_property_tmp.set_key(existing_entry);
-          }
-          next_entry_index++;
-        }
-      }
-      if (next_entry_index < hot_reload_blobs.Length()) {
-        // There's now space to re-use.
-        weak_property ^= hot_reload_blobs.At(next_entry_index);
-        weak_property.set_key(external_typed_data);
-        next_entry_index++;
-        saved_external_typed_data = true;
-      }
-      if (next_entry_index < hot_reload_blobs.Length()) {
-        ExternalTypedData& nullExternalTypedData = ExternalTypedData::Handle(Z);
-        while (next_entry_index < hot_reload_blobs.Length()) {
-          // Null out any extra spaces.
-          weak_property ^= hot_reload_blobs.At(next_entry_index);
-          weak_property.set_key(nullExternalTypedData);
-          next_entry_index++;
-        }
-      }
-    }
-    if (!saved_external_typed_data) {
-      const WeakProperty& weak_property =
-          WeakProperty::Handle(WeakProperty::New(Heap::kOld));
-      weak_property.set_key(external_typed_data);
-
-      intptr_t length =
-          hot_reload_blobs.IsNull() ? 0 : hot_reload_blobs.Length();
-      Array& new_array =
-          Array::Handle(Array::Grow(hot_reload_blobs, length + 1, Heap::kOld));
-      new_array.SetAt(length, weak_property);
-      source->hot_reload_blobs_ = new_array.raw();
-    }
-    source->num_hot_reloads_++;
+    source->add_loaded_blob(Z, external_typed_data);
 
     modified_libs_ = new (Z) BitVector(Z, num_old_libs_);
     kernel::KernelLoader::FindModifiedLibraries(
@@ -1189,7 +1134,11 @@ void IsolateReloadContext::ReloadPhase4Rollback() {
 void IsolateReloadContext::RegisterClass(const Class& new_cls) {
   const Class& old_cls = Class::Handle(OldClassOrNull(new_cls));
   if (old_cls.IsNull()) {
-    I->class_table()->Register(new_cls);
+    if (new_cls.IsTopLevel()) {
+      I->class_table()->RegisterTopLevel(new_cls);
+    } else {
+      I->class_table()->Register(new_cls);
+    }
 
     if (FLAG_identity_reload) {
       TIR_Print("Could not find replacement class for %s\n",
@@ -1343,7 +1292,9 @@ void IsolateReloadContext::CheckpointClasses() {
   // Copy the class table for isolate.
   ClassTable* class_table = I->class_table();
   ClassPtr* saved_class_table = nullptr;
-  class_table->CopyBeforeHotReload(&saved_class_table, &saved_num_cids_);
+  ClassPtr* saved_tlc_class_table = nullptr;
+  class_table->CopyBeforeHotReload(&saved_class_table, &saved_tlc_class_table,
+                                   &saved_num_cids_, &saved_num_tlc_cids_);
 
   // Copy classes into saved_class_table_ first. Make sure there are no
   // safepoints until saved_class_table_ is filled up and saved so class raw
@@ -1353,6 +1304,8 @@ void IsolateReloadContext::CheckpointClasses() {
 
     // The saved_class_table_ is now source of truth for GC.
     saved_class_table_.store(saved_class_table, std::memory_order_release);
+    saved_tlc_class_table_.store(saved_tlc_class_table,
+                                 std::memory_order_release);
 
     // We can therefore wipe out all of the old entries (if that table is used
     // for GC during the hot-reload we have a bug).
@@ -1370,6 +1323,14 @@ void IsolateReloadContext::CheckpointClasses() {
         bool already_present = old_classes_set.Insert(cls);
         ASSERT(!already_present);
       }
+    }
+  }
+  for (intptr_t i = 0; i < saved_num_tlc_cids_; i++) {
+    const intptr_t cid = ClassTable::CidFromTopLevelIndex(i);
+    if (class_table->IsValidIndex(cid) && class_table->HasValidClassAt(cid)) {
+      cls = class_table->At(cid);
+      bool already_present = old_classes_set.Insert(cls);
+      ASSERT(!already_present);
     }
   }
   old_classes_set_storage_ = old_classes_set.Release().raw();
@@ -1520,8 +1481,9 @@ void IsolateReloadContext::CheckpointLibraries() {
 
 void IsolateReloadContext::RollbackClasses() {
   TIR_Print("---- ROLLING BACK CLASS TABLE\n");
-  ASSERT(saved_num_cids_ > 0);
+  ASSERT((saved_num_cids_ + saved_num_tlc_cids_) > 0);
   ASSERT(saved_class_table_.load(std::memory_order_relaxed) != nullptr);
+  ASSERT(saved_tlc_class_table_.load(std::memory_order_relaxed) != nullptr);
 
   DiscardSavedClassTable(/*is_rollback=*/true);
 }
@@ -1743,6 +1705,10 @@ void IsolateReloadContext::CommitAfterInstanceMorphing() {
       TIR_Print("Identity reload failed! B#C=%" Pd " A#C=%" Pd "\n",
                 saved_num_cids_, I->class_table()->NumCids());
     }
+    if (saved_num_tlc_cids_ != I->class_table()->NumTopLevelCids()) {
+      TIR_Print("Identity reload failed! B#TLC=%" Pd " A#TLC=%" Pd "\n",
+                saved_num_tlc_cids_, I->class_table()->NumTopLevelCids());
+    }
     const auto& saved_libs = GrowableObjectArray::Handle(saved_libraries_);
     const GrowableObjectArray& libs =
         GrowableObjectArray::Handle(I->object_store()->libraries());
@@ -1887,20 +1853,29 @@ void IsolateReloadContext::ValidateReload() {
 }
 
 ClassPtr IsolateReloadContext::GetClassForHeapWalkAt(intptr_t cid) {
-  ClassPtr* class_table = saved_class_table_.load(std::memory_order_acquire);
-  if (class_table != NULL) {
-    ASSERT(cid > 0);
-    ASSERT(cid < saved_num_cids_);
-    return class_table[cid];
+  ClassPtr* class_table = nullptr;
+  intptr_t index = -1;
+  if (ClassTable::IsTopLevelCid(cid)) {
+    class_table = saved_tlc_class_table_.load(std::memory_order_acquire);
+    index = ClassTable::IndexFromTopLevelCid(cid);
+    ASSERT(index < saved_num_tlc_cids_);
   } else {
-    return isolate_->class_table()->At(cid);
+    class_table = saved_class_table_.load(std::memory_order_acquire);
+    index = cid;
+    ASSERT(cid > 0 && cid < saved_num_cids_);
   }
+  if (class_table != nullptr) {
+    return class_table[index];
+  }
+  return isolate_->class_table()->At(cid);
 }
 
 intptr_t IsolateGroupReloadContext::GetClassSizeForHeapWalkAt(classid_t cid) {
+  if (ClassTable::IsTopLevelCid(cid)) {
+    return 0;
+  }
   intptr_t* size_table = saved_size_table_.load(std::memory_order_acquire);
   if (size_table != nullptr) {
-    ASSERT(cid > 0);
     ASSERT(cid < saved_num_cids_);
     return size_table[cid];
   } else {
@@ -1911,9 +1886,13 @@ intptr_t IsolateGroupReloadContext::GetClassSizeForHeapWalkAt(classid_t cid) {
 void IsolateReloadContext::DiscardSavedClassTable(bool is_rollback) {
   ClassPtr* local_saved_class_table =
       saved_class_table_.load(std::memory_order_relaxed);
-  I->class_table()->ResetAfterHotReload(local_saved_class_table,
-                                        saved_num_cids_, is_rollback);
+  ClassPtr* local_saved_tlc_class_table =
+      saved_tlc_class_table_.load(std::memory_order_relaxed);
+  I->class_table()->ResetAfterHotReload(
+      local_saved_class_table, local_saved_tlc_class_table, saved_num_cids_,
+      saved_num_tlc_cids_, is_rollback);
   saved_class_table_.store(nullptr, std::memory_order_release);
+  saved_tlc_class_table_.store(nullptr, std::memory_order_release);
 }
 
 void IsolateGroupReloadContext::DiscardSavedClassTable(bool is_rollback) {
@@ -1936,6 +1915,13 @@ void IsolateReloadContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   if (saved_class_table != NULL) {
     auto class_table = reinterpret_cast<ObjectPtr*>(&(saved_class_table[0]));
     visitor->VisitPointers(class_table, saved_num_cids_);
+  }
+  ClassPtr* saved_tlc_class_table =
+      saved_class_table_.load(std::memory_order_relaxed);
+  if (saved_tlc_class_table != NULL) {
+    auto class_table =
+        reinterpret_cast<ObjectPtr*>(&(saved_tlc_class_table[0]));
+    visitor->VisitPointers(class_table, saved_num_tlc_cids_);
   }
 }
 

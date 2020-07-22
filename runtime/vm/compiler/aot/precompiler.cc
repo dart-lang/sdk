@@ -900,7 +900,7 @@ void Precompiler::AddConstObject(const class Instance& instance) {
     return;
   }
 
-  const Class& cls = Class::Handle(Z, instance.clazz());
+  Class& cls = Class::Handle(Z, instance.clazz());
   AddInstantiatedClass(cls);
 
   if (instance.IsClosure()) {
@@ -915,6 +915,17 @@ void Precompiler::AddConstObject(const class Instance& instance) {
         Z, Closure::Cast(instance).function_type_arguments()));
     AddTypeArguments(TypeArguments::Handle(
         Z, Closure::Cast(instance).delayed_type_arguments()));
+    return;
+  }
+
+  if (instance.IsLibraryPrefix()) {
+    const LibraryPrefix& prefix = LibraryPrefix::Cast(instance);
+    ASSERT(prefix.is_deferred_load());
+    const Library& target = Library::Handle(Z, prefix.GetLibrary(0));
+    cls = target.toplevel_class();
+    if (!classes_to_retain_.HasKey(&cls)) {
+      classes_to_retain_.Insert(&Class::ZoneHandle(Z, cls.raw()));
+    }
     return;
   }
 
@@ -1026,6 +1037,14 @@ bool Precompiler::MustRetainFunction(const Function& function) {
   if (selector.raw() == Symbols::Call().raw()) {
     const auto& name = String::Handle(Z, function.QualifiedScrubbedName());
     if (name.Equals(Symbols::_ClosureCall())) return true;
+  }
+
+  // We have to retain functions which can be a target of a SwitchableCall
+  // at AOT runtime, since the AOT runtime needs to be able to find the
+  // function object in the class.
+  if (function.NeedsMonomorphicCheckedEntry(Z) ||
+      Function::IsDynamicInvocationForwarderName(function.name())) {
+    return true;
   }
 
   return false;
@@ -1299,18 +1318,24 @@ void Precompiler::CheckForNewDynamicFunctions() {
           // hit method extractor get:foo, because it will hit an existing
           // method foo first.
           selector2 = Field::NameFromGetter(selector);
-          selector3 = Symbols::Lookup(thread(), selector2);
-          if (IsSent(selector3)) {
+          if (IsSent(selector2)) {
             AddFunction(function);
           }
           selector2 = Function::CreateDynamicInvocationForwarderName(selector2);
-          selector3 = Symbols::Lookup(thread(), selector2);
-          if (IsSent(selector3)) {
-            AddFunction(function);
+          if (IsSent(selector2)) {
+            selector2 =
+                Function::CreateDynamicInvocationForwarderName(selector);
+            function2 = function.GetDynamicInvocationForwarder(selector2);
+            AddFunction(function2);
           }
         } else if (function.kind() == FunctionLayout::kRegularFunction) {
           selector2 = Field::LookupGetterSymbol(selector);
-          if (IsSent(selector2)) {
+          selector3 = String::null();
+          if (!selector2.IsNull()) {
+            selector3 =
+                Function::CreateDynamicInvocationForwarderName(selector2);
+          }
+          if (IsSent(selector2) || IsSent(selector3)) {
             metadata = kernel::ProcedureAttributesOf(function, Z);
             found_metadata = true;
 
@@ -1327,21 +1352,35 @@ void Precompiler::CheckForNewDynamicFunctions() {
           }
         }
 
-        if (function.kind() == FunctionLayout::kImplicitSetter ||
-            function.kind() == FunctionLayout::kSetterFunction ||
-            function.kind() == FunctionLayout::kRegularFunction) {
+        const bool is_getter =
+            function.kind() == FunctionLayout::kImplicitGetter ||
+            function.kind() == FunctionLayout::kGetterFunction;
+        const bool is_setter =
+            function.kind() == FunctionLayout::kImplicitSetter ||
+            function.kind() == FunctionLayout::kSetterFunction;
+        const bool is_regular =
+            function.kind() == FunctionLayout::kRegularFunction;
+        if (is_getter || is_setter || is_regular) {
           selector2 = Function::CreateDynamicInvocationForwarderName(selector);
           if (IsSent(selector2)) {
-            if (function.kind() == FunctionLayout::kImplicitSetter) {
+            if (function.kind() == FunctionLayout::kImplicitGetter ||
+                function.kind() == FunctionLayout::kImplicitSetter) {
               field = function.accessor_field();
               metadata = kernel::ProcedureAttributesOf(field, Z);
             } else if (!found_metadata) {
               metadata = kernel::ProcedureAttributesOf(function, Z);
             }
 
-            if (metadata.method_or_setter_called_dynamically) {
-              function2 = function.GetDynamicInvocationForwarder(selector2);
-              AddFunction(function2);
+            if (is_getter) {
+              if (metadata.getter_called_dynamically) {
+                function2 = function.GetDynamicInvocationForwarder(selector2);
+                AddFunction(function2);
+              }
+            } else {
+              if (metadata.method_or_setter_called_dynamically) {
+                function2 = function.GetDynamicInvocationForwarder(selector2);
+                AddFunction(function2);
+              }
             }
           }
         }
@@ -1376,16 +1415,38 @@ static void AddNameToFunctionsTable(Zone* zone,
   table->UpdateValue(fname, farray);
 }
 
+static void AddNamesToFunctionsTable(Zone* zone,
+                                     Table* table,
+                                     const String& fname,
+                                     const Function& function,
+                                     String* mangled_name,
+                                     Function* dyn_function) {
+  AddNameToFunctionsTable(zone, table, fname, function);
+
+  *dyn_function = function.raw();
+  if (kernel::NeedsDynamicInvocationForwarder(function)) {
+    *mangled_name = function.name();
+    *mangled_name =
+        Function::CreateDynamicInvocationForwarderName(*mangled_name);
+    *dyn_function = function.GetDynamicInvocationForwarder(*mangled_name,
+                                                           /*allow_add=*/true);
+  }
+  *mangled_name = Function::CreateDynamicInvocationForwarderName(fname);
+  AddNameToFunctionsTable(zone, table, *mangled_name, *dyn_function);
+}
+
 void Precompiler::CollectDynamicFunctionNames() {
   if (!FLAG_collect_dynamic_function_names) {
     return;
   }
-  Library& lib = Library::Handle(Z);
-  Class& cls = Class::Handle(Z);
-  Array& functions = Array::Handle(Z);
-  Function& function = Function::Handle(Z);
-  String& fname = String::Handle(Z);
-  Array& farray = Array::Handle(Z);
+  auto& lib = Library::Handle(Z);
+  auto& cls = Class::Handle(Z);
+  auto& functions = Array::Handle(Z);
+  auto& function = Function::Handle(Z);
+  auto& fname = String::Handle(Z);
+  auto& farray = Array::Handle(Z);
+  auto& mangled_name = String::Handle(Z);
+  auto& dyn_function = Function::Handle(Z);
 
   Table table(HashTables::New<Table>(100));
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
@@ -1394,27 +1455,34 @@ void Precompiler::CollectDynamicFunctionNames() {
     while (it.HasNext()) {
       cls = it.GetNextClass();
       functions = cls.functions();
-      for (intptr_t j = 0; j < functions.Length(); j++) {
+
+      const intptr_t length = functions.Length();
+      for (intptr_t j = 0; j < length; j++) {
         function ^= functions.At(j);
         if (function.IsDynamicFunction()) {
           fname = function.name();
           if (function.IsSetterFunction() ||
               function.IsImplicitSetterFunction()) {
-            AddNameToFunctionsTable(zone(), &table, fname, function);
+            AddNamesToFunctionsTable(zone(), &table, fname, function,
+                                     &mangled_name, &dyn_function);
           } else if (function.IsGetterFunction() ||
                      function.IsImplicitGetterFunction()) {
             // Enter both getter and non getter name.
-            AddNameToFunctionsTable(zone(), &table, fname, function);
+            AddNamesToFunctionsTable(zone(), &table, fname, function,
+                                     &mangled_name, &dyn_function);
             fname = Field::NameFromGetter(fname);
-            AddNameToFunctionsTable(zone(), &table, fname, function);
+            AddNamesToFunctionsTable(zone(), &table, fname, function,
+                                     &mangled_name, &dyn_function);
           } else if (function.IsMethodExtractor()) {
             // Skip. We already add getter names for regular methods below.
             continue;
           } else {
             // Regular function. Enter both getter and non getter name.
-            AddNameToFunctionsTable(zone(), &table, fname, function);
+            AddNamesToFunctionsTable(zone(), &table, fname, function,
+                                     &mangled_name, &dyn_function);
             fname = Field::GetterName(fname);
-            AddNameToFunctionsTable(zone(), &table, fname, function);
+            AddNamesToFunctionsTable(zone(), &table, fname, function,
+                                     &mangled_name, &dyn_function);
           }
         }
       }
@@ -1424,7 +1492,8 @@ void Precompiler::CollectDynamicFunctionNames() {
   // Locate all entries with one function only
   Table::Iterator iter(&table);
   String& key = String::Handle(Z);
-  UniqueFunctionsSet functions_set(HashTables::New<UniqueFunctionsSet>(20));
+  String& key_demangled = String::Handle(Z);
+  UniqueFunctionsMap functions_map(HashTables::New<UniqueFunctionsMap>(20));
   while (iter.MoveNext()) {
     intptr_t curr_key = iter.Current();
     key ^= table.GetKey(curr_key);
@@ -1432,8 +1501,25 @@ void Precompiler::CollectDynamicFunctionNames() {
     ASSERT(!farray.IsNull());
     if (farray.Length() == 1) {
       function ^= farray.At(0);
-      cls = function.Owner();
-      functions_set.Insert(function);
+
+      // It looks like there is exactly one target for the given name. Though we
+      // have to be careful: e.g. A name like `dyn:get:foo` might have a target
+      // `foo()`. Though the actual target would be a lazily created method
+      // extractor `get:foo` for the `foo` function.
+      //
+      // We'd like to prevent eager creation of functions which we normally
+      // create lazily.
+      // => We disable unique target optimization if the target belongs to the
+      //    lazily created functions.
+      key_demangled = key.raw();
+      if (Function::IsDynamicInvocationForwarderName(key)) {
+        key_demangled = Function::DemangleDynamicInvocationForwarderName(key);
+      }
+      if (function.name() != key.raw() &&
+          function.name() != key_demangled.raw()) {
+        continue;
+      }
+      functions_map.UpdateOrInsert(key, function);
     }
   }
 
@@ -1442,18 +1528,18 @@ void Precompiler::CollectDynamicFunctionNames() {
   get_runtime_type_is_unique_ = !farray.IsNull() && (farray.Length() == 1);
 
   if (FLAG_print_unique_targets) {
-    UniqueFunctionsSet::Iterator unique_iter(&functions_set);
+    UniqueFunctionsMap::Iterator unique_iter(&functions_map);
     while (unique_iter.MoveNext()) {
       intptr_t curr_key = unique_iter.Current();
-      function ^= functions_set.GetKey(curr_key);
+      function ^= functions_map.GetPayload(curr_key, 0);
       THR_Print("* %s\n", function.ToQualifiedCString());
     }
     THR_Print("%" Pd " of %" Pd " dynamic selectors are unique\n",
-              functions_set.NumOccupied(), table.NumOccupied());
+              functions_map.NumOccupied(), table.NumOccupied());
   }
 
   isolate()->object_store()->set_unique_dynamic_targets(
-      functions_set.Release());
+      functions_map.Release());
   table.Release();
 }
 
@@ -1461,6 +1547,7 @@ void Precompiler::TraceForRetainedFunctions() {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
+  String& name = String::Handle(Z);
   Function& function = Function::Handle(Z);
   Function& function2 = Function::Handle(Z);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
@@ -1485,6 +1572,19 @@ void Precompiler::TraceForRetainedFunctions() {
         if (retain) {
           function.DropUncompiledImplicitClosureFunction();
           AddTypesOf(function);
+        }
+      }
+
+      {
+        functions = cls.invocation_dispatcher_cache();
+        InvocationDispatcherTable dispatchers(functions);
+        for (auto dispatcher : dispatchers) {
+          name = dispatcher.Get<Class::kInvocationDispatcherName>();
+          if (name.IsNull()) break;  // Reached last entry.
+          function = dispatcher.Get<Class::kInvocationDispatcherFunction>();
+          if (possibly_retained_functions_.ContainsKey(function)) {
+            AddTypesOf(function);
+          }
         }
       }
     }
@@ -1601,6 +1701,26 @@ void Precompiler::DropFunctions() {
   GrowableObjectArray& retained_functions = GrowableObjectArray::Handle(Z);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
 
+  auto drop_function = [&](const Function& function) {
+    if (function.HasCode()) {
+      code = function.CurrentCode();
+      function.ClearCode();
+      // Wrap the owner of the code object in case the code object will be
+      // serialized but the function object will not.
+      owner = code.owner();
+      owner = WeakSerializationReference::Wrap(Z, owner);
+      code.set_owner(owner);
+    }
+    dropped_function_count_++;
+    if (FLAG_trace_precompiler) {
+      THR_Print("Dropping function %s\n",
+                function.ToLibNamePrefixedQualifiedCString());
+    }
+  };
+
+  auto& dispatchers_array = Array::Handle(Z);
+  auto& name = String::Handle(Z);
+  auto& desc = Array::Handle(Z);
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
@@ -1610,26 +1730,12 @@ void Precompiler::DropFunctions() {
       retained_functions = GrowableObjectArray::New();
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
-        bool retain = functions_to_retain_.ContainsKey(function);
         function.DropUncompiledImplicitClosureFunction();
         function.ClearBytecode();
-        if (retain) {
+        if (functions_to_retain_.ContainsKey(function)) {
           retained_functions.Add(function);
         } else {
-          if (function.HasCode()) {
-            code = function.CurrentCode();
-            function.ClearCode();
-            // Wrap the owner of the code object in case the code object will be
-            // serialized but the function object will not.
-            owner = code.owner();
-            owner = WeakSerializationReference::Wrap(Z, owner);
-            code.set_owner(owner);
-          }
-          dropped_function_count_++;
-          if (FLAG_trace_precompiler) {
-            THR_Print("Dropping function %s\n",
-                      function.ToLibNamePrefixedQualifiedCString());
-          }
+          drop_function(function);
         }
       }
 
@@ -1639,6 +1745,35 @@ void Precompiler::DropFunctions() {
       } else {
         cls.SetFunctions(Object::empty_array());
       }
+
+      retained_functions = GrowableObjectArray::New();
+      {
+        dispatchers_array = cls.invocation_dispatcher_cache();
+        InvocationDispatcherTable dispatchers(dispatchers_array);
+        for (auto dispatcher : dispatchers) {
+          name = dispatcher.Get<Class::kInvocationDispatcherName>();
+          if (name.IsNull()) break;  // Reached last entry.
+          desc = dispatcher.Get<Class::kInvocationDispatcherArgsDesc>();
+          function = dispatcher.Get<Class::kInvocationDispatcherFunction>();
+          if (functions_to_retain_.ContainsKey(function)) {
+            retained_functions.Add(name);
+            retained_functions.Add(desc);
+            retained_functions.Add(function);
+          } else {
+            drop_function(function);
+          }
+        }
+      }
+      if (retained_functions.Length() > 0) {
+        // Last entry must be null.
+        retained_functions.Add(Object::null_object());
+        retained_functions.Add(Object::null_object());
+        retained_functions.Add(Object::null_object());
+        functions = Array::MakeFixedLength(retained_functions);
+      } else {
+        functions = Object::empty_array().raw();
+      }
+      cls.set_invocation_dispatcher_cache(functions);
     }
   }
 
@@ -1646,25 +1781,11 @@ void Precompiler::DropFunctions() {
   retained_functions = GrowableObjectArray::New();
   for (intptr_t j = 0; j < closures.Length(); j++) {
     function ^= closures.At(j);
-    bool retain = functions_to_retain_.ContainsKey(function);
     function.ClearBytecode();
-    if (retain) {
+    if (functions_to_retain_.ContainsKey(function)) {
       retained_functions.Add(function);
     } else {
-      if (function.HasCode()) {
-        code = function.CurrentCode();
-        function.ClearCode();
-        // Wrap the owner of the code object in case the code object will be
-        // serialized but the function object will not.
-        owner = code.owner();
-        owner = WeakSerializationReference::Wrap(Z, owner);
-        code.set_owner(owner);
-      }
-      dropped_function_count_++;
-      if (FLAG_trace_precompiler) {
-        THR_Print("Dropping function %s\n",
-                  function.ToLibNamePrefixedQualifiedCString());
-      }
+      drop_function(function);
     }
   }
   isolate()->object_store()->set_closure_functions(retained_functions);
@@ -2198,7 +2319,7 @@ void Precompiler::DropLibraries() {
     } else {
       toplevel_class = lib.toplevel_class();
 
-      I->class_table()->Unregister(toplevel_class.id());
+      I->class_table()->UnregisterTopLevel(toplevel_class.id());
       toplevel_class.set_id(kIllegalCid);  // We check this when serializing.
 
       dropped_library_count_++;
@@ -2404,8 +2525,6 @@ static void GenerateNecessaryAllocationStubs(FlowGraph* flow_graph) {
 }
 
 // Return false if bailed out.
-// If optimized_result_code is not NULL then it is caller's responsibility
-// to install code.
 bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   ASSERT(CompilerState::Current().is_aot());
   if (optimized() && !parsed_function()->function().IsOptimizable()) {

@@ -9,10 +9,12 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -404,8 +406,10 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     //
     SimpleIdentifier array = AstTestFactory.identifier3("a");
     array.staticType = interfaceTypeStar(classD);
-    IndexExpression expression =
-        AstTestFactory.indexExpression(array, AstTestFactory.identifier3("i"));
+    IndexExpression expression = AstTestFactory.indexExpression(
+      target: array,
+      index: AstTestFactory.identifier3("i"),
+    );
     expect(_resolveIndexExpression(expression), same(operator));
     _listener.assertNoErrors();
   }
@@ -442,8 +446,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.setterElement(propName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter, setter];
     // set name scope
-    _visitor.nameScope = EnclosedScope(null)
-      ..defineNameWithoutChecking('A', classA);
+    _visitor.nameScope = LocalScope(null)..add(classA);
     // prepare "A.p"
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', 'p');
     CommentReference commentReference =
@@ -462,8 +465,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.methodElement("m", _typeProvider.intType);
     classA.methods = <MethodElement>[method];
     // set name scope
-    _visitor.nameScope = EnclosedScope(null)
-      ..defineNameWithoutChecking('A', classA);
+    _visitor.nameScope = LocalScope(null)..add(classA);
     // prepare "A.m"
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', 'm');
     CommentReference commentReference =
@@ -482,8 +484,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.methodElement("==", _typeProvider.boolType);
     classA.methods = <MethodElement>[method];
     // set name scope
-    _visitor.nameScope = EnclosedScope(null)
-      ..defineNameWithoutChecking('A', classA);
+    _visitor.nameScope = LocalScope(null)..add(classA);
     // prepare "A.=="
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', '==');
     CommentReference commentReference =
@@ -1029,7 +1030,9 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     try {
       _visitor.enclosingClass = enclosingClass;
       EnclosedScope innerScope = ClassScope(
-          TypeParameterScope(outerScope, enclosingClass), enclosingClass);
+        TypeParameterScope(outerScope, enclosingClass.typeParameters),
+        enclosingClass,
+      );
       _visitor.nameScope = innerScope;
       node.accept(_resolver);
     } finally {
@@ -1061,10 +1064,10 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   void _resolveNode(AstNode node, [List<Element> definedElements]) {
     Scope outerScope = _visitor.nameScope;
     try {
-      EnclosedScope innerScope = EnclosedScope(outerScope);
+      var innerScope = LocalScope(outerScope);
       if (definedElements != null) {
         for (Element element in definedElements) {
-          innerScope.define(element);
+          innerScope.add(element);
         }
       }
       _visitor.nameScope = innerScope;

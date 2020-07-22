@@ -105,8 +105,8 @@ main() async {
       expect(tx, isNotNull, reason: "Transaction not ready");
       try {
         SqlResultSet queryResult = await queryTable(tx, tableName);
-        expect(queryResult.rows.length, 1);
-        expect(queryResult.rows[0]['test_data'], "Some text data");
+        expect(queryResult.rows!.length, 1);
+        expect(queryResult.rows![0]['test_data'], "Some text data");
       } on DomException catch (error) {
         expect(false, true, reason: "queryTable failed - ${error.message}");
       }

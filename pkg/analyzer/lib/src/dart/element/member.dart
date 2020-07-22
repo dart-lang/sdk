@@ -84,6 +84,9 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
   }
 
   @override
+  InterfaceType get returnType => type.returnType as InterfaceType;
+
+  @override
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitConstructorElement(this);
 

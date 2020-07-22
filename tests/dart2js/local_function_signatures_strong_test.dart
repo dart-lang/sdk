@@ -2,93 +2,91 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2jsOptions=--strong
-
 import 'package:expect/expect.dart';
 
 class Class1 {
   method1() {
-    num local<T>(num n) => null;
+    num local<T>(num n) => null as dynamic;
     return local;
   }
 
   method2() {
-    num local<T>(int n) => null;
+    num local<T>(int n) => null as dynamic;
     return local;
   }
 
   method3() {
-    int local<T>(num n) => null;
+    int local<T>(num n) => null as dynamic;
     return local;
   }
 }
 
 class Class2 {
   method4<T>() {
-    num local(T n) => null;
+    num local(T n) => null as dynamic;
     return local;
   }
 }
 
 class Class3 {
   method5<T>() {
-    T local(num n) => null;
+    T local(num n) => null as dynamic;
     return local;
   }
 }
 
 class Class4 {
   method6<T>() {
-    num local(num n, T t) => null;
+    num local(num n, T t) => null as dynamic;
     return local;
   }
 }
 
 method7<T>() {
-  num local(T n) => null;
+  num local(T n) => null as dynamic;
   return local;
 }
 
 method8<T>() {
-  T local(num n) => null;
+  T local(num n) => null as dynamic;
   return local;
 }
 
 method9<T>() {
-  num local(num n, T t) => null;
+  num local(num n, T t) => null as dynamic;
   return local;
 }
 
 method10() {
-  num local<T>(T n) => null;
+  num local<T>(T n) => null as dynamic;
   return local;
 }
 
 method11() {
-  T local<T>(num n) => null;
+  T local<T>(num n) => null as dynamic;
   return local;
 }
 
 method12() {
-  num local<T>(num n, T t) => null;
+  num local<T>(num n, T t) => null as dynamic;
   return local;
 }
 
 num Function(num) //# 01: ok
     method13() {
-  num local<T>(num n) => null;
+  num local<T>(num n) => null as dynamic;
   return local;
 }
 
 num Function(num) //# 01: continued
     method14() {
-  num local<T>(T n) => null;
+  num local<T>(T n) => null as dynamic;
   return local;
 }
 
 num Function(num) //# 01: continued
     method15() {
-  T local<T>(num n) => null;
+  T local<T>(num n) => null as dynamic;
   return local;
 }
 

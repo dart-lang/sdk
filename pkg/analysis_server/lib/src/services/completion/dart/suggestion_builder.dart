@@ -23,7 +23,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/util/comment.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
 
@@ -164,17 +164,12 @@ class SuggestionBuilder {
   /// computed. In the latter case, [_hasContainingMemberName] will be `false`.
   String _cachedContainingMemberName;
 
-  /// The cached instance of the flutter utilities, or `null` if it hasn't been
-  /// created yet.
-  Flutter _flutter;
-
   /// Initialize a newly created suggestion builder to build suggestions for the
   /// given [request].
   SuggestionBuilder(this.request, {this.listener});
 
-  /// Return an object that can answer questions about Flutter code based on the
-  /// flavor of Flutter being used.
-  Flutter get flutter => _flutter ??= Flutter.of(request.result);
+  /// Return an object that can answer questions about Flutter code.
+  Flutter get flutter => Flutter.instance;
 
   /// Return an iterable that can be used to access the completion suggestions
   /// that have been built.
@@ -803,8 +798,7 @@ class SuggestionBuilder {
     // todo (pq): revisit this special casing; likely it can be generalized away
     var element = parameter.enclosingElement;
     if (element is ConstructorElement) {
-      var flutter = Flutter.of(request.result);
-      if (flutter.isWidget(element.enclosingElement)) {
+      if (Flutter.instance.isWidget(element.enclosingElement)) {
         var defaultValue = getDefaultStringParameterValue(parameter);
         // TODO(devoncarew): Should we remove the check here? We would then
         // suggest values for param types like closures.
@@ -856,8 +850,8 @@ class SuggestionBuilder {
   Future<void> suggestOverride(SimpleIdentifier targetId,
       ExecutableElement element, bool invokeSuper) async {
     var displayTextBuffer = StringBuffer();
-    var builder = DartChangeBuilder(request.result.session);
-    await builder.addFileEdit(request.result.path, (builder) {
+    var builder = ChangeBuilder(session: request.result.session);
+    await builder.addDartFileEdit(request.result.path, (builder) {
       builder.addReplacement(range.node(targetId), (builder) {
         builder.writeOverride(
           element,

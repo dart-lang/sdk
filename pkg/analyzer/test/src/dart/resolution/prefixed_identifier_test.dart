@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
+import 'with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -61,15 +60,7 @@ int Function() foo() {
 
 @reflectiveTest
 class PrefixedIdentifierResolutionWithNnbdTest
-    extends PrefixedIdentifierResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+    extends PrefixedIdentifierResolutionTest with WithNullSafetyMixin {
   test_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {}

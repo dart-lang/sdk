@@ -70,7 +70,8 @@ void main() async {
     test('basic-parsing', () async {
       await withFlag('basic-parsing', testSource, '--trace_precompiler_to',
           (json) async {
-        final callGraph = await loadTrace(File(json));
+        final jsonRaw = await loadJson(File(json));
+        final callGraph = loadTrace(jsonRaw);
         callGraph.computeDominators();
 
         final main = callGraph.program
@@ -88,8 +89,8 @@ void main() async {
         expect(retainedClasses, containsAll(['A', 'B', 'K']));
         expect(retainedFunctions, containsAll(['print', 'tearOff']));
 
-        final getTearOffCall =
-            callGraph.dynamicCalls.firstWhere((n) => n.data == 'get:tornOff');
+        final getTearOffCall = callGraph.dynamicCalls
+            .firstWhere((n) => n.data == 'dyn:get:tornOff');
         expect(
             getTearOffCall.dominated.map((n) => n.data.qualifiedName),
             equals([

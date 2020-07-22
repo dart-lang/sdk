@@ -4,12 +4,12 @@
     {
       "name": "foo",
       "rootUri": "../packages/foo",
-      "languageVersion": "2.9"
+      "languageVersion": "2.10"
     },
     {
       "name": "bar",
       "rootUri": "../packages/bar",
-      "languageVersion": "2.9"
+      "languageVersion": "2.10"
     }
   ]
 }

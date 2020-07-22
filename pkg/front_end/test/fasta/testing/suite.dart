@@ -203,7 +203,7 @@ class FastaContext extends ChainContext with MatchContext {
   final Map<Component, List<Iterable<String>>> componentToDiagnostics =
       <Component, List<Iterable<String>>>{};
   final Uri platformBinaries;
-  final Map<Uri, UriTranslator> _uriTranslators = {};
+  final Map<UriConfiguration, UriTranslator> _uriTranslators = {};
   final Map<Uri, TestOptions> _testOptions = {};
   final Map<Uri, LinkDependenciesOptions> _linkDependencies = {};
   final Map<Uri, Uri> _librariesJson = {};
@@ -364,9 +364,8 @@ class FastaContext extends ChainContext with MatchContext {
 
   Future<UriTranslator> computeUriTranslator(
       TestDescription description) async {
-    Uri librariesSpecificationUri =
-        computeLibrariesSpecificationUri(description);
-    UriTranslator uriTranslator = _uriTranslators[librariesSpecificationUri];
+    UriConfiguration uriConfiguration = computeUriConfiguration(description);
+    UriTranslator uriTranslator = _uriTranslators[uriConfiguration];
     if (uriTranslator == null) {
       Uri sdk = Uri.base.resolve("sdk/");
       Uri packages = Uri.base.resolve(".packages");
@@ -376,7 +375,7 @@ class FastaContext extends ChainContext with MatchContext {
           throw message.plainTextFormatted.join("\n");
         }
         ..sdkRoot = sdk
-        ..packagesFileUri = packages
+        ..packagesFileUri = uriConfiguration.packageConfigUri ?? packages
         ..environmentDefines = {}
         ..experimentalFlags =
             testOptions.computeExperimentalFlags(experimentalFlags)
@@ -385,14 +384,15 @@ class FastaContext extends ChainContext with MatchContext {
             : (testOptions.nnbdAgnosticMode
                 ? NnbdMode.Agnostic
                 : NnbdMode.Strong)
-        ..librariesSpecificationUri = librariesSpecificationUri;
+        ..librariesSpecificationUri =
+            uriConfiguration.librariesSpecificationUri;
       if (testOptions.overwriteCurrentSdkVersion != null) {
         compilerOptions.currentSdkVersion =
             testOptions.overwriteCurrentSdkVersion;
       }
       ProcessedOptions options = new ProcessedOptions(options: compilerOptions);
       uriTranslator = await options.getUriTranslator();
-      _uriTranslators[librariesSpecificationUri] = uriTranslator;
+      _uriTranslators[uriConfiguration] = uriTranslator;
     }
     return uriTranslator;
   }
@@ -431,11 +431,15 @@ class FastaContext extends ChainContext with MatchContext {
             }
             nnbdMode = NnbdMode.Weak;
           } else {
-            File f = new File.fromUri(description.uri.resolve(line));
-            if (!f.existsSync()) {
-              throw new UnsupportedError("No file found: $f ($line)");
+            Uri uri = description.uri.resolve(line);
+            if (uri.scheme != 'package') {
+              File f = new File.fromUri(uri);
+              if (!f.existsSync()) {
+                throw new UnsupportedError("No file found: $f ($line)");
+              }
+              uri = f.uri;
             }
-            content.add(f.uri);
+            content.add(uri);
           }
         }
       }
@@ -459,6 +463,20 @@ class FastaContext extends ChainContext with MatchContext {
       }
       return _librariesJson[directory.uri] = librariesJson;
     }
+  }
+
+  /// Custom package config used for [description].
+  Uri computePackageConfigUri(TestDescription description) {
+    Uri packageConfig =
+        description.uri.resolve(".dart_tool/package_config.json");
+    return new File.fromUri(packageConfig).existsSync() ? packageConfig : null;
+  }
+
+  UriConfiguration computeUriConfiguration(TestDescription description) {
+    Uri librariesSpecificationUri =
+        computeLibrariesSpecificationUri(description);
+    Uri packageConfigUri = computePackageConfigUri(description);
+    return new UriConfiguration(librariesSpecificationUri, packageConfigUri);
   }
 
   Expectation get verificationError => expectationSet["VerificationError"];
@@ -574,7 +592,7 @@ class Run extends Step<ComponentResult, int, FastaContext> {
           if (experimentalFlags[ExperimentalFlag.nonNullable]) {
             args.add("--enable-experiment=non-nullable");
             if (!context.weak) {
-              args.add("--null-safety");
+              args.add("--sound-null-safety");
             }
           }
           args.add(generated.path);
@@ -666,7 +684,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         linkDependenciesOptions.component = p;
         List<Library> keepLibraries = new List<Library>();
         for (Library lib in p.libraries) {
-          if (linkDependenciesOptions.content.contains(lib.fileUri)) {
+          if (linkDependenciesOptions.content.contains(lib.importUri)) {
             keepLibraries.add(lib);
           }
         }
@@ -894,5 +912,24 @@ class MatchHierarchy
     }
     return context.match<ComponentResult>(
         ".hierarchy.expect", "$sb", uri, result);
+  }
+}
+
+class UriConfiguration {
+  final Uri librariesSpecificationUri;
+  final Uri packageConfigUri;
+
+  UriConfiguration(this.librariesSpecificationUri, this.packageConfigUri);
+
+  @override
+  int get hashCode =>
+      librariesSpecificationUri.hashCode * 13 + packageConfigUri.hashCode * 17;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is UriConfiguration &&
+        librariesSpecificationUri == other.librariesSpecificationUri &&
+        packageConfigUri == other.packageConfigUri;
   }
 }

@@ -39,10 +39,9 @@ main() {
 
   test_infiniteParameterBoundCycle() async {
     await assertErrorsInCode(r'''
-typedef F<X extends F> = F Function();
+typedef F<X extends F<X>> = F Function();
 ''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 38),
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 20, 1),
+      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 41),
     ]);
   }
 

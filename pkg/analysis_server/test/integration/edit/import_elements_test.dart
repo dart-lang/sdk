@@ -6,8 +6,8 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:cli_util/cli_util.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -85,7 +85,7 @@ class AnalysisGetImportElementsIntegrationTest
     standardAnalysisSetup();
     await analysisFinished;
     var provider = PhysicalResourceProvider.INSTANCE;
-    var sdkPath = FolderBasedDartSdk.defaultSdkDirectory(provider).path;
+    var sdkPath = getSdkPath();
     var mathPath =
         provider.pathContext.join(sdkPath, 'lib', 'math', 'math.dart');
 
@@ -118,7 +118,7 @@ class C {}
     standardAnalysisSetup();
     await analysisFinished;
     var provider = PhysicalResourceProvider.INSTANCE;
-    var sdkPath = FolderBasedDartSdk.defaultSdkDirectory(provider).path;
+    var sdkPath = getSdkPath();
     var mathPath =
         provider.pathContext.join(sdkPath, 'lib', 'math', 'math.dart');
 

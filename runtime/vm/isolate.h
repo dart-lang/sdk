@@ -99,7 +99,7 @@ class WeakTable;
 constexpr int kNullSafetyOptionUnspecified = 0;
 constexpr int kNullSafetyOptionWeak = 1;
 constexpr int kNullSafetyOptionStrong = 2;
-extern int FLAG_null_safety;
+extern int FLAG_sound_null_safety;
 
 class PendingLazyDeopt {
  public:
@@ -200,9 +200,12 @@ class IsolateGroupSource {
         flags(flags),
         script_kernel_buffer(nullptr),
         script_kernel_size(-1),
-        hot_reload_blobs_(nullptr),
-        num_hot_reloads_(0) {}
+        loaded_blobs_(nullptr),
+        num_blob_loads_(0) {}
   ~IsolateGroupSource() { free(name); }
+
+  void add_loaded_blob(Zone* zone_,
+                       const ExternalTypedData& external_typed_data);
 
   // The arguments used for spawning in
   // `Dart_CreateIsolateGroupFromKernel` / `Dart_CreateIsolate`.
@@ -223,9 +226,9 @@ class IsolateGroupSource {
   // Any newly spawned isolates need to use this permutation map.
   std::unique_ptr<intptr_t[]> cid_permutation_map;
 
-  // List of weak pointers to external typed data for hot reload blobs.
-  ArrayPtr hot_reload_blobs_;
-  intptr_t num_hot_reloads_;
+  // List of weak pointers to external typed data for loaded blobs.
+  ArrayPtr loaded_blobs_;
+  intptr_t num_blob_loads_;
 };
 
 // Tracks idle time and notifies heap when idle time expired.
@@ -406,6 +409,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   }
   void set_library_tag_handler(Dart_LibraryTagHandler handler) {
     library_tag_handler_ = handler;
+  }
+  Dart_DeferredLoadHandler deferred_load_handler() const {
+    return deferred_load_handler_;
+  }
+  void set_deferred_load_handler(Dart_DeferredLoadHandler handler) {
+    deferred_load_handler_ = handler;
   }
 
   intptr_t GetClassSizeForHeapWalkAt(intptr_t cid);
@@ -602,6 +611,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   intptr_t isolate_count_ = 0;
   bool initial_spawn_successful_ = false;
   Dart_LibraryTagHandler library_tag_handler_ = nullptr;
+  Dart_DeferredLoadHandler deferred_load_handler_ = nullptr;
   int64_t start_time_micros_;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -843,6 +853,10 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   ObjectPtr CallTagHandler(Dart_LibraryTag tag,
                            const Object& arg1,
                            const Object& arg2);
+  bool HasDeferredLoadHandler() const {
+    return group()->deferred_load_handler() != nullptr;
+  }
+  ObjectPtr CallDeferredLoadHandler(intptr_t id);
 
   void SetupImagePage(const uint8_t* snapshot_buffer, bool is_executable);
 

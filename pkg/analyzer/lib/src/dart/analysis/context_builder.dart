@@ -20,9 +20,9 @@ import 'package:analyzer/src/dart/analysis/file_state.dart'
     show FileContentOverlay;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart'
     show PerformanceLog;
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
 import 'package:analyzer/src/generated/source.dart' show ContentCache;
+import 'package:cli_util/cli_util.dart';
 import 'package:meta/meta.dart';
 
 /// An implementation of a context builder.
@@ -37,11 +37,6 @@ class ContextBuilderImpl implements ContextBuilder {
       : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
-  /// Return the path to the default location of the SDK, or `null` if the sdk
-  /// cannot be found.
-  String get _defaultSdkPath =>
-      FolderBasedDartSdk.defaultSdkDirectory(resourceProvider)?.path;
-
   @override
   AnalysisContext createContext(
       {@required ContextRoot contextRoot,
@@ -52,14 +47,14 @@ class ContextBuilderImpl implements ContextBuilder {
       @deprecated AnalysisDriverScheduler scheduler,
       String sdkPath,
       String sdkSummaryPath}) {
+    // TODO(scheglov) Remove this, and make `sdkPath` required.
+    sdkPath ??= getSdkPath();
+    ArgumentError.checkNotNull(sdkPath, 'sdkPath');
+
     var byteStore = MemoryByteStore();
     var fileContentOverlay = FileContentOverlay();
     performanceLog ??= PerformanceLog(StringBuffer());
 
-    sdkPath ??= _defaultSdkPath;
-    if (sdkPath == null) {
-      throw ArgumentError('Cannot find path to the SDK');
-    }
     DartSdkManager sdkManager = DartSdkManager(sdkPath);
 
     if (scheduler == null) {

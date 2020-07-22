@@ -42,4 +42,14 @@ class W extends Widget {
 }
 ''');
   }
+
+  Future<void> test_notAvailable_mixin() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+mixin MyMixin {
+  String get foo/*caret*/() {}
+}
+''');
+    await assertNoAssist();
+  }
 }

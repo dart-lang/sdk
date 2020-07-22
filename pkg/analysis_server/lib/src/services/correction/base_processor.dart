@@ -23,7 +23,6 @@ abstract class BaseProcessor {
   final String file;
 
   final TypeProvider typeProvider;
-  final Flutter flutter;
 
   final AnalysisSession session;
   final AnalysisSessionHelper sessionHelper;
@@ -38,12 +37,13 @@ abstract class BaseProcessor {
     @required this.resolvedResult,
     @required this.workspace,
   })  : file = resolvedResult.path,
-        flutter = Flutter.of(resolvedResult),
         session = resolvedResult.session,
         sessionHelper = AnalysisSessionHelper(resolvedResult.session),
         typeProvider = resolvedResult.typeProvider,
         selectionEnd = (selectionOffset ?? 0) + (selectionLength ?? 0),
         utils = CorrectionUtils(resolvedResult);
+
+  Flutter get flutter => Flutter.instance;
 
   @protected
   bool setupCompute() {

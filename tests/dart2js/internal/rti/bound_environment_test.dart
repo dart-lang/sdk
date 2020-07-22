@@ -5,13 +5,13 @@
 import 'dart:_rti' as rti;
 import "package:expect/expect.dart";
 
-void checkRtiIdentical(Object rti1, Object rti2) {
+void checkRtiIdentical(rti.Rti rti1, rti.Rti rti2) {
   var format = rti.testingRtiToString;
   Expect.isTrue(
       identical(rti1, rti2), 'identical(${format(rti1)}, ${format(rti2)}');
 }
 
-void checkToString(String expected, Object rti1) {
+void checkToString(String expected, rti.Rti rti1) {
   String result = rti.testingRtiToString(rti1);
   if (expected == result) return;
   Expect.equals(expected, result.replaceAll('minified:', ''));

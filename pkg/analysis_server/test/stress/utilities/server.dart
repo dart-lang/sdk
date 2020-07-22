@@ -796,8 +796,7 @@ class Server {
   }
 
   /// Send a command to the server. An 'id' will be automatically assigned.
-  RequestData _send(String method, Map<String, dynamic> params,
-      {void Function(Response) onResponse}) {
+  RequestData _send(String method, Map<String, dynamic> params) {
     var id = '${_nextId++}';
     var requestData = RequestData(id, method, params, currentTime);
     _requestDataMap[id] = requestData;

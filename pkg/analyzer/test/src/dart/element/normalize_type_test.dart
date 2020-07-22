@@ -7,9 +7,9 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -508,7 +508,7 @@ T2: ${_typeString(T2 as TypeImpl)}
     var typeStr = '';
 
     var typeParameterCollector = _TypeParameterCollector();
-    DartTypeVisitor.visit(type, typeParameterCollector);
+    type.accept(typeParameterCollector);
     for (var typeParameter in typeParameterCollector.typeParameters) {
       typeStr += ', $typeParameter';
     }
@@ -522,7 +522,7 @@ T2: ${_typeString(T2 as TypeImpl)}
   }
 }
 
-class _TypeParameterCollector extends DartTypeVisitor<void> {
+class _TypeParameterCollector extends TypeVisitor<void> {
   final Set<String> typeParameters = {};
 
   /// We don't need to print bounds for these type parameters, because
@@ -531,12 +531,7 @@ class _TypeParameterCollector extends DartTypeVisitor<void> {
   final Set<TypeParameterElement> functionTypeParameters = {};
 
   @override
-  void defaultDartType(DartType type) {
-    throw UnimplementedError('(${type.runtimeType}) $type');
-  }
-
-  @override
-  void visitDynamicType(DynamicTypeImpl type) {}
+  void visitDynamicType(DynamicType type) {}
 
   @override
   void visitFunctionType(FunctionType type) {
@@ -544,24 +539,24 @@ class _TypeParameterCollector extends DartTypeVisitor<void> {
     for (var typeParameter in type.typeFormals) {
       var bound = typeParameter.bound;
       if (bound != null) {
-        DartTypeVisitor.visit(bound, this);
+        bound.accept(this);
       }
     }
     for (var parameter in type.parameters) {
-      DartTypeVisitor.visit(parameter.type, this);
+      parameter.type.accept(this);
     }
-    DartTypeVisitor.visit(type.returnType, this);
+    type.returnType.accept(this);
   }
 
   @override
   void visitInterfaceType(InterfaceType type) {
     for (var typeArgument in type.typeArguments) {
-      DartTypeVisitor.visit(typeArgument, this);
+      typeArgument.accept(this);
     }
   }
 
   @override
-  void visitNeverType(NeverTypeImpl type) {}
+  void visitNeverType(NeverType type) {}
 
   @override
   void visitTypeParameterType(TypeParameterType type) {

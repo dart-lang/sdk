@@ -35,11 +35,11 @@ expectThrows(f, check) {
 
 main() {
   dynamic x = null;
-  dynamic z = new Object();
-  dynamic v = new List(1)[0];
+  dynamic z = Object();
+  dynamic v = ([]..length = 1)[0];
   dynamic s = "Cannot call method 'foo' of null";
   dynamic nul = null;
-  dynamic f = new Foo();
+  dynamic f = Foo();
 
   expectThrows(() => x.fisk(), isNullError);
   expectThrows(() => v.fisk(), isNullError);

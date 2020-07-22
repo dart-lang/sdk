@@ -304,15 +304,9 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(const char* script_name) {
 
   const uint8_t* vm_data_buffer = reinterpret_cast<const uint8_t*>(
       Extensions::ResolveSymbol(library, kVmSnapshotDataCSymbol));
-  if (vm_data_buffer == NULL) {
-    FATAL1("Failed to resolve symbol '%s'\n", kVmSnapshotDataCSymbol);
-  }
 
   const uint8_t* vm_instructions_buffer = reinterpret_cast<const uint8_t*>(
       Extensions::ResolveSymbol(library, kVmSnapshotInstructionsCSymbol));
-  if (vm_instructions_buffer == NULL) {
-    FATAL1("Failed to resolve symbol '%s'\n", kVmSnapshotInstructionsCSymbol);
-  }
 
   const uint8_t* isolate_data_buffer = reinterpret_cast<const uint8_t*>(
       Extensions::ResolveSymbol(library, kIsolateSnapshotDataCSymbol));

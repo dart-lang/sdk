@@ -2205,6 +2205,22 @@ final Matcher isDiagnosticGetServerPortParams = isNull;
 final Matcher isDiagnosticGetServerPortResult = LazyMatcher(() =>
     MatchesJsonObject('diagnostic.getServerPort result', {'port': isInt}));
 
+/// edit.bulkFixes params
+///
+/// {
+///   "included": List<FilePath>
+/// }
+final Matcher isEditBulkFixesParams = LazyMatcher(() => MatchesJsonObject(
+    'edit.bulkFixes params', {'included': isListOf(isFilePath)}));
+
+/// edit.bulkFixes result
+///
+/// {
+///   "edits": List<SourceFileEdit>
+/// }
+final Matcher isEditBulkFixesResult = LazyMatcher(() => MatchesJsonObject(
+    'edit.bulkFixes result', {'edits': isListOf(isSourceFileEdit)}));
+
 /// edit.dartfix params
 ///
 /// {

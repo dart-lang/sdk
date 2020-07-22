@@ -137,7 +137,7 @@ class _LinkedNodeTypeKindReader extends fb.Reader<idl.LinkedNodeTypeKind> {
     int index = const fb.Uint8Reader().read(bc, offset);
     return index < idl.LinkedNodeTypeKind.values.length
         ? idl.LinkedNodeTypeKind.values[index]
-        : idl.LinkedNodeTypeKind.bottom;
+        : idl.LinkedNodeTypeKind.dynamic_;
   }
 }
 
@@ -16691,7 +16691,7 @@ class LinkedNodeTypeBuilder extends Object
   }
 
   @override
-  idl.LinkedNodeTypeKind get kind => _kind ??= idl.LinkedNodeTypeKind.bottom;
+  idl.LinkedNodeTypeKind get kind => _kind ??= idl.LinkedNodeTypeKind.dynamic_;
 
   set kind(idl.LinkedNodeTypeKind value) {
     this._kind = value;
@@ -16850,7 +16850,7 @@ class LinkedNodeTypeBuilder extends Object
     if (offset_interfaceTypeArguments != null) {
       fbBuilder.addOffset(4, offset_interfaceTypeArguments);
     }
-    if (_kind != null && _kind != idl.LinkedNodeTypeKind.bottom) {
+    if (_kind != null && _kind != idl.LinkedNodeTypeKind.dynamic_) {
       fbBuilder.addUint8(5, _kind.index);
     }
     if (_nullabilitySuffix != null &&
@@ -16954,7 +16954,7 @@ class _LinkedNodeTypeImpl extends Object
   @override
   idl.LinkedNodeTypeKind get kind {
     _kind ??= const _LinkedNodeTypeKindReader()
-        .vTableGet(_bc, _bcOffset, 5, idl.LinkedNodeTypeKind.bottom);
+        .vTableGet(_bc, _bcOffset, 5, idl.LinkedNodeTypeKind.dynamic_);
     return _kind;
   }
 
@@ -17010,7 +17010,7 @@ abstract class _LinkedNodeTypeMixin implements idl.LinkedNodeType {
       _result["interfaceTypeArguments"] =
           interfaceTypeArguments.map((_value) => _value.toJson()).toList();
     }
-    if (kind != idl.LinkedNodeTypeKind.bottom) {
+    if (kind != idl.LinkedNodeTypeKind.dynamic_) {
       _result["kind"] = kind.toString().split('.')[1];
     }
     if (nullabilitySuffix != idl.EntityRefNullabilitySuffix.starOrIrrelevant) {

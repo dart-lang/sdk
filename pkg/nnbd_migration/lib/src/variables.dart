@@ -286,7 +286,7 @@ class Variables {
   DartType toFinalType(DecoratedType decoratedType) {
     var type = decoratedType.type;
     if (type.isVoid || type.isDynamic) return type;
-    if (type.isBottom || type.isDartCoreNull) {
+    if (type is NeverType || type.isDartCoreNull) {
       if (decoratedType.node.isNullable) {
         return (_typeProvider.nullType as TypeImpl)
             .withNullability(NullabilitySuffix.none);

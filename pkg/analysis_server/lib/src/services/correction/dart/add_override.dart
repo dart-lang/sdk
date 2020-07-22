@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -16,7 +16,7 @@ class AddOverride extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_OVERRIDE;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var member = node.thisOrAncestorOfType<ClassMember>();
     if (member == null) {
       return;
@@ -32,7 +32,7 @@ class AddOverride extends CorrectionProducer {
 
     var exitPosition = Position(file, token.offset - 1);
     var indent = utils.getIndent(1);
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
           range.startLength(token, 0), '@override$eol$indent');
     });

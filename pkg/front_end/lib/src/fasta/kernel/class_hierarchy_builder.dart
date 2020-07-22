@@ -3038,14 +3038,7 @@ class InterfaceConflict extends DelayedMember {
           debug?.log("Combined Member Signature: "
               "${bestSoFar.fullName} !<: ${candidate.fullName}");
 
-          String uri = '${classBuilder.library.importUri}';
-          if (uri == 'dart:js' &&
-                  classBuilder.fileUri.pathSegments.last == 'js.dart' ||
-              uri == 'dart:_interceptors' &&
-                  classBuilder.fileUri.pathSegments.last == 'js_number.dart') {
-            // TODO(johnniwinther): Fix the dart2js libraries and remove the
-            // above URIs.
-          } else {
+          if (!shouldOverrideProblemBeOverlooked(classBuilder)) {
             bestSoFar = null;
             bestTypeSoFar = null;
             mutualSubtypes = null;

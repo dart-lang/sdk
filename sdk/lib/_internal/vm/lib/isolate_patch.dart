@@ -229,7 +229,7 @@ typedef _BinaryFunction(Never args, Never message);
  * isolate is in the message loop.
  */
 @pragma("vm:entry-point", "call")
-void _startMainIsolate(Function entryPoint, List<String> args) {
+void _startMainIsolate(Function entryPoint, List<String>? args) {
   _startIsolate(
       null, // no parent port
       entryPoint,

@@ -26,7 +26,7 @@ class JavaFile {
   @override
   int get hashCode => _path.hashCode;
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     return other is JavaFile && other._path == _path;
   }
 

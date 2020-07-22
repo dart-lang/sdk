@@ -18,20 +18,35 @@ void test() {
 
   InstanceMirror im1 = reflect(null);
   Expect.equals(cm, im1.type);
-  Expect.isTrue(im1.invoke(const Symbol("=="), [null]).reflectee);
+  if (isStrongMode) {
+    Expect.throwsTypeError(() => im1.invoke(const Symbol("=="), [null]),
+        'null not assignable to Object');
+  } else {
+    Expect.isTrue(im1.invoke(const Symbol("=="), [null]).reflectee);
+  }
   Expect.isFalse(im1.invoke(const Symbol("=="), [42]).reflectee);
 
   var obj = confuse(null); // Null value that isn't known at compile-time.
   InstanceMirror im2 = reflect(obj);
   Expect.equals(cm, im2.type);
-  Expect.isTrue(im2.invoke(const Symbol("=="), [null]).reflectee);
+  if (isStrongMode) {
+    Expect.throwsTypeError(() => im2.invoke(const Symbol("=="), [null]),
+        'null not assignable to Object');
+  } else {
+    Expect.isTrue(im2.invoke(const Symbol("=="), [null]).reflectee);
+  }
   Expect.isFalse(im2.invoke(const Symbol("=="), [42]).reflectee);
 
   InstanceMirror nullMirror = reflect(null);
   Expect.isTrue(nullMirror.getField(#hashCode).reflectee is int);
   Expect.equals(null.hashCode, nullMirror.getField(#hashCode).reflectee);
   Expect.equals('Null', nullMirror.getField(#runtimeType).reflectee.toString());
-  Expect.isTrue(nullMirror.invoke(#==, [null]).reflectee);
+  if (isStrongMode) {
+    Expect.throwsTypeError(
+        () => nullMirror.invoke(#==, [null]), 'null not assignable to Object');
+  } else {
+    Expect.isTrue(nullMirror.invoke(#==, [null]).reflectee);
+  }
   Expect.isFalse(nullMirror.invoke(#==, [new Object()]).reflectee);
   Expect.equals('null', nullMirror.invoke(#toString, []).reflectee);
   Expect.throwsNoSuchMethodError(

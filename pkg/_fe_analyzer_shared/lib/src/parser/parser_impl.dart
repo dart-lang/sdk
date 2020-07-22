@@ -2464,6 +2464,7 @@ class Parser {
     }
     return parseFields(
         beforeStart,
+        /* abstractToken = */ null,
         externalToken,
         /* staticToken = */ null,
         /* covariantToken = */ null,
@@ -2479,6 +2480,7 @@ class Parser {
 
   Token parseFields(
       Token beforeStart,
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -2509,6 +2511,9 @@ class Parser {
         reportRecoverableError(varFinalOrConst, codes.messageTypeAfterVar);
       }
     }
+    if (abstractToken != null && externalToken != null) {
+      reportRecoverableError(abstractToken, codes.messageAbstractExternalField);
+    }
 
     Token token = typeInfo.parseType(beforeType, this);
     assert(token.next == name || token.next.isEof);
@@ -2532,12 +2537,12 @@ class Parser {
     }
 
     int fieldCount = 1;
-    token = parseFieldInitializerOpt(name, name, lateToken, externalToken,
-        varFinalOrConst, kind, enclosingDeclarationName);
+    token = parseFieldInitializerOpt(name, name, lateToken, abstractToken,
+        externalToken, varFinalOrConst, kind, enclosingDeclarationName);
     while (optional(',', token.next)) {
       name = ensureIdentifier(token.next, context);
-      token = parseFieldInitializerOpt(name, name, lateToken, externalToken,
-          varFinalOrConst, kind, enclosingDeclarationName);
+      token = parseFieldInitializerOpt(name, name, lateToken, abstractToken,
+          externalToken, varFinalOrConst, kind, enclosingDeclarationName);
       ++fieldCount;
     }
     Token semicolon = token.next;
@@ -2563,24 +2568,53 @@ class Parser {
     }
     switch (kind) {
       case DeclarationKind.TopLevel:
+        assert(abstractToken == null);
         listener.endTopLevelFields(externalToken, staticToken, covariantToken,
             lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
         break;
       case DeclarationKind.Class:
-        listener.endClassFields(externalToken, staticToken, covariantToken,
-            lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
+        listener.endClassFields(
+            abstractToken,
+            externalToken,
+            staticToken,
+            covariantToken,
+            lateToken,
+            varFinalOrConst,
+            fieldCount,
+            beforeStart.next,
+            token);
         break;
       case DeclarationKind.Mixin:
-        listener.endMixinFields(externalToken, staticToken, covariantToken,
-            lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
+        listener.endMixinFields(
+            abstractToken,
+            externalToken,
+            staticToken,
+            covariantToken,
+            lateToken,
+            varFinalOrConst,
+            fieldCount,
+            beforeStart.next,
+            token);
         break;
       case DeclarationKind.Extension:
+        if (abstractToken != null) {
+          reportRecoverableError(
+              firstName, codes.messageAbstractExtensionField);
+        }
         if (staticToken == null && externalToken == null) {
           reportRecoverableError(
               firstName, codes.messageExtensionDeclaresInstanceField);
         }
-        listener.endExtensionFields(externalToken, staticToken, covariantToken,
-            lateToken, varFinalOrConst, fieldCount, beforeStart.next, token);
+        listener.endExtensionFields(
+            abstractToken,
+            externalToken,
+            staticToken,
+            covariantToken,
+            lateToken,
+            varFinalOrConst,
+            fieldCount,
+            beforeStart.next,
+            token);
         break;
     }
     return token;
@@ -2655,6 +2689,7 @@ class Parser {
       Token token,
       Token name,
       Token lateToken,
+      Token abstractToken,
       Token externalToken,
       Token varFinalOrConst,
       DeclarationKind kind,
@@ -2678,6 +2713,7 @@ class Parser {
         } else if (kind == DeclarationKind.TopLevel &&
             optional("final", varFinalOrConst) &&
             lateToken == null &&
+            abstractToken == null &&
             externalToken == null) {
           reportRecoverableError(
               name,
@@ -2697,7 +2733,7 @@ class Parser {
       token = parseExpression(assignment);
       listener.endVariableInitializer(assignment);
     } else {
-      listener.handleNoVariableInitializer(token.next);
+      listener.handleNoVariableInitializer(token);
     }
     return token;
   }
@@ -3193,6 +3229,7 @@ class Parser {
     Token beforeStart = token = parseMetadataStar(token);
 
     Token covariantToken;
+    Token abstractToken;
     Token externalToken;
     Token lateToken;
     Token staticToken;
@@ -3202,6 +3239,9 @@ class Parser {
     if (isModifier(next)) {
       if (optional('external', next)) {
         externalToken = token = next;
+        next = token.next;
+      } else if (optional('abstract', next)) {
+        abstractToken = token = next;
         next = token.next;
       }
       if (isModifier(next)) {
@@ -3236,7 +3276,8 @@ class Parser {
               ..externalToken = externalToken
               ..lateToken = lateToken
               ..staticToken = staticToken
-              ..varFinalOrConst = varFinalOrConst;
+              ..varFinalOrConst = varFinalOrConst
+              ..abstractToken = abstractToken;
 
             token = context.parseClassMemberModifiers(token);
             next = token.next;
@@ -3246,6 +3287,7 @@ class Parser {
             lateToken = context.lateToken;
             staticToken = context.staticToken;
             varFinalOrConst = context.varFinalOrConst;
+            abstractToken = context.abstractToken;
 
             context = null;
           }
@@ -3285,6 +3327,10 @@ class Parser {
           if (beforeType != token) {
             reportRecoverableError(token, codes.messageTypeBeforeFactory);
           }
+          if (abstractToken != null) {
+            reportRecoverableError(
+                abstractToken, codes.messageAbstractClassMember);
+          }
           token = parseFactoryMethod(token, kind, beforeStart, externalToken,
               staticToken ?? covariantToken, varFinalOrConst);
           listener.endMember();
@@ -3299,6 +3345,7 @@ class Parser {
         if (next2.isUserDefinableOperator && typeParam == noTypeParamOrArg) {
           token = parseMethod(
               beforeStart,
+              abstractToken,
               externalToken,
               staticToken,
               covariantToken,
@@ -3321,6 +3368,7 @@ class Parser {
           // Recovery: Invalid operator
           return parseInvalidOperatorDeclaration(
               beforeStart,
+              abstractToken,
               externalToken,
               staticToken,
               covariantToken,
@@ -3333,6 +3381,7 @@ class Parser {
           // Recovery
           token = parseMethod(
               beforeStart,
+              abstractToken,
               externalToken,
               staticToken,
               covariantToken,
@@ -3353,10 +3402,15 @@ class Parser {
           (identical(value, 'typedef') &&
               token == beforeStart &&
               next.next.isIdentifier)) {
+        if (abstractToken != null) {
+          reportRecoverableError(
+              abstractToken, codes.messageAbstractClassMember);
+        }
         // Recovery
         return recoverFromInvalidMember(
             token,
             beforeStart,
+            abstractToken,
             externalToken,
             staticToken,
             covariantToken,
@@ -3378,6 +3432,7 @@ class Parser {
           // Recovery: Missing `operator` keyword
           return parseInvalidOperatorDeclaration(
               beforeStart,
+              abstractToken,
               externalToken,
               staticToken,
               covariantToken,
@@ -3411,6 +3466,7 @@ class Parser {
         identical(value, '=>')) {
       token = parseMethod(
           beforeStart,
+          abstractToken,
           externalToken,
           staticToken,
           covariantToken,
@@ -3430,6 +3486,7 @@ class Parser {
       }
       token = parseFields(
           beforeStart,
+          abstractToken,
           externalToken,
           staticToken,
           covariantToken,
@@ -3448,6 +3505,7 @@ class Parser {
 
   Token parseMethod(
       Token beforeStart,
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -3460,6 +3518,9 @@ class Parser {
       DeclarationKind kind,
       String enclosingDeclarationName,
       bool nameIsRecovered) {
+    if (abstractToken != null) {
+      reportRecoverableError(abstractToken, codes.messageAbstractClassMember);
+    }
     if (lateToken != null) {
       reportRecoverableErrorWithToken(
           lateToken, codes.templateExtraneousModifier);
@@ -5655,7 +5716,7 @@ class Parser {
     if (typeInfo.isNullable) {
       Token next = typeInfo.skipType(token).next;
       if (!isOneOfOrEof(
-          next, const [')', '?', '??', ',', ';', ':', 'is', 'as'])) {
+          next, const [')', '?', '??', ',', ';', ':', 'is', 'as', '..'])) {
         // TODO(danrubel): investigate other situations
         // where `?` should be considered part of the type info
         // rather than the start of a conditional expression.
@@ -6898,6 +6959,7 @@ class Parser {
   /// (and events have already been generated).
   Token parseInvalidOperatorDeclaration(
       Token beforeStart,
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -6945,6 +7007,7 @@ class Parser {
 
     Token token = parseMethod(
         beforeStart,
+        abstractToken,
         externalToken,
         staticToken,
         covariantToken,
@@ -6967,6 +7030,7 @@ class Parser {
   Token recoverFromInvalidMember(
       Token token,
       Token beforeStart,
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -6989,6 +7053,7 @@ class Parser {
     } else if (next.isOperator && next.endGroup == null) {
       return parseInvalidOperatorDeclaration(
           beforeStart,
+          abstractToken,
           externalToken,
           staticToken,
           covariantToken,
@@ -7005,6 +7070,7 @@ class Parser {
         identical(value, '{')) {
       token = parseMethod(
           beforeStart,
+          abstractToken,
           externalToken,
           staticToken,
           covariantToken,
@@ -7028,6 +7094,7 @@ class Parser {
     } else {
       token = parseFields(
           beforeStart,
+          abstractToken,
           externalToken,
           staticToken,
           covariantToken,

@@ -27,48 +27,50 @@ void main() {
       process = null;
     });
 
-    bool useAuthCodes = false;
-    for (int i = 0; i < 2; ++i) {
-      test('Smoke Test with ${useAuthCodes ? "" : "no "} authentication codes',
-          () async {
-        dds = await DartDevelopmentService.startDartDevelopmentService(
-          remoteVmServiceUri,
-          enableAuthCodes: useAuthCodes,
-        );
-        expect(dds.isRunning, true);
+    void createSmokeTest(bool useAuthCodes) {
+      test(
+        'Smoke Test with ${useAuthCodes ? "" : "no "} authentication codes',
+        () async {
+          dds = await DartDevelopmentService.startDartDevelopmentService(
+            remoteVmServiceUri,
+            enableAuthCodes: useAuthCodes,
+          );
+          expect(dds.isRunning, true);
 
-        // Ensure basic websocket requests are forwarded correctly to the VM service.
-        final service = await vmServiceConnectUri(dds.wsUri.toString());
-        final version = await service.getVersion();
-        expect(version.major > 0, true);
-        expect(version.minor > 0, true);
+          // Ensure basic websocket requests are forwarded correctly to the VM service.
+          final service = await vmServiceConnectUri(dds.wsUri.toString());
+          final version = await service.getVersion();
+          expect(version.major > 0, true);
+          expect(version.minor > 0, true);
 
-        expect(
-          remoteVmServiceUri.pathSegments,
-          useAuthCodes ? isNotEmpty : isEmpty,
-        );
+          expect(
+            dds.uri.pathSegments,
+            useAuthCodes ? isNotEmpty : isEmpty,
+          );
 
-        // Ensure we can still make requests of the VM service via HTTP.
-        HttpClient client = HttpClient();
-        final request = await client.getUrl(remoteVmServiceUri.replace(
-          pathSegments: [
-            if (remoteVmServiceUri.pathSegments.isNotEmpty)
-              remoteVmServiceUri.pathSegments.first,
-            'getVersion',
-          ],
-        ));
-        final response = await request.close();
-        final Map<String, dynamic> jsonResponse = (await response
-            .transform(utf8.decoder)
-            .transform(json.decoder)
-            .single);
-        expect(jsonResponse['result']['type'], 'Version');
-        expect(jsonResponse['result']['major'] > 0, true);
-        expect(jsonResponse['result']['minor'] > 0, true);
-      });
-
-      useAuthCodes = true;
+          // Ensure we can still make requests of the VM service via HTTP.
+          HttpClient client = HttpClient();
+          final request = await client.getUrl(remoteVmServiceUri.replace(
+            pathSegments: [
+              if (remoteVmServiceUri.pathSegments.isNotEmpty)
+                remoteVmServiceUri.pathSegments.first,
+              'getVersion',
+            ],
+          ));
+          final response = await request.close();
+          final Map<String, dynamic> jsonResponse = (await response
+              .transform(utf8.decoder)
+              .transform(json.decoder)
+              .single);
+          expect(jsonResponse['result']['type'], 'Version');
+          expect(jsonResponse['result']['major'] > 0, true);
+          expect(jsonResponse['result']['minor'] > 0, true);
+        },
+      );
     }
+
+    createSmokeTest(true);
+    createSmokeTest(false);
 
     test('startup fails when VM service has existing clients', () async {
       Uri httpToWebSocketUri(Uri httpUri) {

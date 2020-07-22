@@ -922,10 +922,7 @@ class LinkedUnitContext {
     if (linkedType == null) return null;
 
     var kind = linkedType.kind;
-    if (kind == LinkedNodeTypeKind.bottom) {
-      var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
-      return NeverTypeImpl.instance.withNullability(nullabilitySuffix);
-    } else if (kind == LinkedNodeTypeKind.dynamic_) {
+    if (kind == LinkedNodeTypeKind.dynamic_) {
       return DynamicTypeImpl.instance;
     } else if (kind == LinkedNodeTypeKind.function) {
       var typeParameterDataList = linkedType.functionTypeParameters;
@@ -985,6 +982,9 @@ class LinkedUnitContext {
         typeArguments: linkedType.interfaceTypeArguments.map(readType).toList(),
         nullabilitySuffix: nullabilitySuffix,
       );
+    } else if (kind == LinkedNodeTypeKind.never) {
+      var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
+      return NeverTypeImpl.instance.withNullability(nullabilitySuffix);
     } else if (kind == LinkedNodeTypeKind.typeParameter) {
       TypeParameterElement element;
       var id = linkedType.typeParameterId;

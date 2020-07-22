@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -15,7 +15,7 @@ class RemoveUnusedParameter extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_PARAMETER;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     if (node is FormalParameter) {
       var parameter = node as FormalParameter;
       if (parameter.parent is DefaultFormalParameter) {
@@ -25,7 +25,7 @@ class RemoveUnusedParameter extends CorrectionProducer {
       var parameterList = parameter.parent as FormalParameterList;
       var parameters = parameterList.parameters;
       var index = parameters.indexOf(parameter);
-      await builder.addFileEdit(file, (builder) {
+      await builder.addDartFileEdit(file, (builder) {
         if (index == 0) {
           // Remove the first parameter in the list.
           if (parameters.length == 1) {

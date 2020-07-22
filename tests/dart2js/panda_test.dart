@@ -8,7 +8,7 @@ import "package:expect/expect.dart";
 import 'panda_lib.dart' as p;
 
 void main() {
-  p.Panda x = new p.Panda();
+  p.Panda? x = new p.Panda();
   Expect.isTrue(x is p.Panda);
   x = null;
   Expect.isFalse(x is p.Panda);

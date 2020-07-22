@@ -151,6 +151,7 @@ class Interface extends AstNode {
     this.baseTypes,
     this.members,
   ) : super(comment);
+
   @override
   String get name => nameToken.lexeme;
   String get nameWithTypeArgs => '$name$typeArgsString';
@@ -502,7 +503,9 @@ class Parser {
     if (includeUndefined) {
       types.add(Type.Undefined);
     }
+    var typeIndex = 0;
     while (true) {
+      typeIndex++;
       TypeBase type;
       if (_match([TokenType.LEFT_BRACE])) {
         // Inline interfaces.
@@ -521,7 +524,12 @@ class Parser {
           type = MapType(indexer.indexType, indexer.valueType);
         } else {
           // Add a synthetic interface to the parsers list of nodes to represent this type.
-          final generatedName = _joinNames(containerName, fieldName);
+          // If we have no fieldName to base the synthetic name from, we should use
+          // the index of this type, for example in:
+          //    type Foo = { [..] } | { [...] }
+          // we will generate Foo1 and Foo2 for the types.
+          final nameSuffix = fieldName ?? '$typeIndex';
+          final generatedName = _joinNames(containerName, nameSuffix);
           _nodes.add(InlineInterface(generatedName, members));
           // Record the type as a simple type that references this interface.
           type = Type.identifier(generatedName);
@@ -616,7 +624,9 @@ class Parser {
     final name = _consume(TokenType.IDENTIFIER, 'Expected identifier');
     _consume(TokenType.EQUAL, 'Expected =');
     final type = _type(name.lexeme, null);
-    _consume(TokenType.SEMI_COLON, 'Expected ;');
+    if (!_isAtEnd) {
+      _consume(TokenType.SEMI_COLON, 'Expected ;');
+    }
 
     return TypeAlias(leadingComment, name, type);
   }
@@ -640,8 +650,16 @@ class Scanner {
     return _tokens;
   }
 
-  void _addToken(TokenType type) {
-    final text = _source.substring(_startOfToken, _currentPos);
+  void _addToken(TokenType type, {bool mergeSameTypes = false}) {
+    var text = _source.substring(_startOfToken, _currentPos);
+
+    // Consecutive tokens of some types (for example Comments) are merged
+    // together.
+    if (mergeSameTypes && _tokens.isNotEmpty && type == _tokens.last.type) {
+      text = '${_tokens.last.lexeme}\n$text';
+      _tokens.removeLast();
+    }
+
     _tokens.add(Token(type, text));
   }
 
@@ -744,13 +762,13 @@ class Scanner {
             _advance();
             _advance();
           }
-          _addToken(TokenType.COMMENT);
+          _addToken(TokenType.COMMENT, mergeSameTypes: true);
         } else if (_match('/')) {
           // Single line comment.
           while (_peek() != '\n' && !_isAtEnd) {
             _advance();
           }
-          _addToken(TokenType.COMMENT);
+          _addToken(TokenType.COMMENT, mergeSameTypes: true);
         } else {
           _addToken(TokenType.SLASH);
         }

@@ -637,8 +637,7 @@ class ResolverTestCase with ResourceProviderMixin {
   }
 }
 
-/// Shared infrastructure for [StaticTypeAnalyzer2Test] and
-/// [StrongModeStaticTypeAnalyzer2Test].
+/// Shared infrastructure for [StaticTypeAnalyzer2Test].
 class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
   /// Find the expression that starts at the offset of [search] and validate its
   /// that its static type matches the given [type].

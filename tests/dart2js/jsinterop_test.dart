@@ -50,7 +50,7 @@ external externalTopLevelJsInteropFunction();
 
 class Class {
   Class.generative();
-  factory Class.fact() => null;
+  factory Class.fact() => null as dynamic;
 
   // NON_NATIVE_EXTERNAL               //# 08: compile-time error
   external Class.externalGenerative(); //# 08: continued
@@ -58,7 +58,7 @@ class Class {
   // NON_NATIVE_EXTERNAL                 //# 09: compile-time error
   external factory Class.externalFact(); //# 09: continued
 
-  @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 10: compile-time error
+  @JS('a') // GENERIC  //# 10: compile-time error
   Class.jsInteropGenerative(); //# 10: continued
 
   @JS('a') // JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS  //# 11: compile-time error

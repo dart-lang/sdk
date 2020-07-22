@@ -9,6 +9,7 @@ class Operators1 {
   // [cfe] Operator '==' should have exactly one parameter.
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
+  // [cfe] The method 'Operators1.==' has fewer positional arguments than those of overridden method 'Object.=='.
   operator <() => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
@@ -86,6 +87,7 @@ class Operators2 {
   // [cfe] Operator '==' should have exactly one parameter.
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
+  // [cfe] The method 'Operators2.==' has more required arguments than those of overridden method 'Object.=='.
   operator <(a, b) => true;
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
@@ -248,6 +250,7 @@ class Operators4 {
   operator ==({a}) => true;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+  // [cfe] The method 'Operators4.==' has fewer positional arguments than those of overridden method 'Object.=='.
   //           ^
   // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   // [cfe] An operator can't have optional parameters.
@@ -568,6 +571,9 @@ class Operators7 {
   operator ==<T>(a) => true;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+  // [cfe] Declared type variables of 'Operators7.==' doesn't match those on overridden method 'Object.=='.
+  //       ^
+  // [cfe] The return type of the method 'Operators7.==' is 'dynamic', which does not match the return type, 'bool', of the overridden method, 'Object.=='.
   //         ^^^
   // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
   //          ^
@@ -662,6 +668,13 @@ class Operators7 {
   // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
   //         ^
   // [cfe] Types parameters aren't allowed when defining an operator.
+}
+
+class Operators8 {
+  /*space*/ int operator []=(a, b) {}
+  //        ^^^
+  // [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_OPERATOR
+  // [cfe] unspecified
 }
 
 main() {}

@@ -496,7 +496,7 @@ class GenericInferrer {
       var prefix = parts[0];
       var middle = parts[1];
       var prefixPad = ' ' * (prefixMax - prefix.length);
-      var middlePad = ' ' * (prefixMax);
+      var middlePad = ' ' * prefixMax;
       var end = "";
       if (parts.length > 2) {
         end = '\n  $middlePad ${parts[2]}';

@@ -23,10 +23,10 @@ import 'package:analyzer/src/dart/analysis/file_state.dart'
     show FileContentOverlay;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart'
     show PerformanceLog;
-import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:cli_util/cli_util.dart';
 import 'package:glob/glob.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
@@ -50,10 +50,6 @@ class ContextLocatorImpl implements ContextLocator {
       : this.resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
-  /// Return the path to the default location of the SDK.
-  String get _defaultSdkPath =>
-      FolderBasedDartSdk.defaultSdkDirectory(resourceProvider).path;
-
   @deprecated
   @override
   List<AnalysisContext> locateContexts(
@@ -62,6 +58,10 @@ class ContextLocatorImpl implements ContextLocator {
       String optionsFile,
       String packagesFile,
       String sdkPath}) {
+    // TODO(scheglov) Remove this, and make `sdkPath` required.
+    sdkPath ??= getSdkPath();
+    ArgumentError.checkNotNull(sdkPath, 'sdkPath');
+
     List<ContextRoot> roots = locateRoots(
         includedPaths: includedPaths,
         excludedPaths: excludedPaths,
@@ -72,7 +72,7 @@ class ContextLocatorImpl implements ContextLocator {
     }
     PerformanceLog performanceLog = PerformanceLog(StringBuffer());
     AnalysisDriverScheduler scheduler = AnalysisDriverScheduler(performanceLog);
-    DartSdkManager sdkManager = DartSdkManager(sdkPath ?? _defaultSdkPath);
+    DartSdkManager sdkManager = DartSdkManager(sdkPath);
     scheduler.start();
     ContextBuilderOptions options = ContextBuilderOptions();
     ContextBuilder builder =

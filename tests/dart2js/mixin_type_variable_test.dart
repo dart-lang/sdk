@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 abstract class Bar<C> {
-  final List<C> _one = new List<C>();
+  final List<C> _one = [];
 
   final bool _two = Foo is C;
 }
@@ -29,7 +29,7 @@ class F extends E<int> {
 }
 
 main() {
-  new Foo();
-  new C('e');
-  new F('e');
+  Foo();
+  C('e');
+  F('e');
 }

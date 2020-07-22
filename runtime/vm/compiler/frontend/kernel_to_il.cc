@@ -2559,17 +2559,18 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
   // type and then invokes original setter we simply generate the type check
   // and inlined field store. Scope builder takes care of setting correct
   // type check mode in this case.
-  const bool is_setter = function.IsDynamicInvocationForwarder() ||
-                         function.IsImplicitSetterFunction();
-  const bool is_method = !function.IsStaticFunction();
+  const auto& target = Function::Handle(
+      Z, function.IsDynamicInvocationForwarder() ? function.ForwardingTarget()
+                                                 : function.raw());
+  ASSERT(target.IsImplicitGetterOrSetter());
 
-  Field& field = Field::ZoneHandle(Z);
-  if (function.IsDynamicInvocationForwarder()) {
-    Function& target = Function::Handle(function.ForwardingTarget());
-    field = target.accessor_field();
-  } else {
-    field = function.accessor_field();
-  }
+  const bool is_method = !function.IsStaticFunction();
+  const bool is_setter = target.IsImplicitSetterFunction();
+  const bool is_getter = target.IsImplicitGetterFunction() ||
+                         target.IsImplicitStaticGetterFunction();
+  ASSERT(is_setter || is_getter);
+
+  const auto& field = Field::ZoneHandle(Z, target.accessor_field());
 
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
@@ -2579,18 +2580,20 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
 
   Fragment body(normal_entry);
   if (is_setter) {
-    LocalVariable* setter_value =
+    auto const setter_value =
         parsed_function_->ParameterVariable(is_method ? 1 : 0);
-
-    // We only expect to generate a dynamic invocation forwarder if
-    // the value needs type check.
-    ASSERT(!function.IsDynamicInvocationForwarder() ||
-           setter_value->needs_type_check());
     if (is_method) {
       body += LoadLocal(parsed_function_->ParameterVariable(0));
     }
     body += LoadLocal(setter_value);
-    if (setter_value->needs_type_check()) {
+
+    // The dyn:* forwarder has to check the parameters that the
+    // actual target will not check.
+    // Though here we manually inline the target, so the dyn:* forwarder has to
+    // check all parameters.
+    const bool needs_type_check = function.IsDynamicInvocationForwarder() ||
+                                  setter_value->needs_type_check();
+    if (needs_type_check) {
       body += CheckAssignable(setter_value->type(), setter_value->name(),
                               AssertAssignableInstr::kParameterCheck);
     }
@@ -2612,7 +2615,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
       }
     }
     body += NullConstant();
-  } else if (is_method) {
+  } else if (is_getter && is_method) {
     ASSERT(!field.needs_load_guard()
                 NOT_IN_PRODUCT(|| I->HasAttemptedReload()));
     body += LoadLocal(parsed_function_->ParameterVariable(0));
@@ -2661,14 +2664,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
     const Function& function) {
   auto& name = String::Handle(Z, function.name());
   name = Function::DemangleDynamicInvocationForwarderName(name);
-  const auto& owner = Class::Handle(Z, function.Owner());
-  const auto& target =
-      Function::ZoneHandle(Z, owner.LookupDynamicFunction(name));
+  const auto& target = Function::ZoneHandle(Z, function.ForwardingTarget());
   ASSERT(!target.IsNull());
-  ASSERT(!target.IsImplicitGetterFunction());
 
-  if (target.IsImplicitSetterFunction()) {
+  if (target.IsImplicitSetterFunction() || target.IsImplicitGetterFunction()) {
     return BuildGraphOfFieldAccessor(function);
+  }
+  if (target.IsMethodExtractor()) {
+    return BuildGraphOfMethodExtractor(target);
   }
 
   graph_entry_ = new (Z) GraphEntryInstr(*parsed_function_, osr_id_);
@@ -3233,8 +3236,7 @@ Fragment FlowGraphBuilder::NullAssertion(LocalVariable* variable) {
 
 Fragment FlowGraphBuilder::BuildNullAssertions() {
   Fragment code;
-  if (I->null_safety() || !I->asserts() || !FLAG_null_assertions ||
-      !KernelIsolate::GetExperimentalFlag("non-nullable")) {
+  if (I->null_safety() || !I->asserts() || !FLAG_null_assertions) {
     return code;
   }
 

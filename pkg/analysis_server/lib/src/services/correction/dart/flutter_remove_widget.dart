@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterRemoveWidget extends CorrectionProducer {
@@ -14,7 +14,7 @@ class FlutterRemoveWidget extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.FLUTTER_REMOVE_WIDGET;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var widgetCreation = flutter.identifyNewExpression(node);
     if (widgetCreation == null) {
       return;
@@ -38,12 +38,12 @@ class FlutterRemoveWidget extends CorrectionProducer {
   }
 
   Future<void> _removeChild(
-      DartChangeBuilder builder,
+      ChangeBuilder builder,
       InstanceCreationExpression widgetCreation,
       NamedExpression childArgument) async {
     // child: ThisWidget(child: ourChild)
     // children: [foo, ThisWidget(child: ourChild), bar]
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       var childExpression = childArgument.expression;
       var childText = utils.getNodeText(childExpression);
       var indentOld = utils.getLinePrefix(childExpression.offset);
@@ -54,7 +54,7 @@ class FlutterRemoveWidget extends CorrectionProducer {
   }
 
   Future<void> _removeChildren(
-      DartChangeBuilder builder,
+      ChangeBuilder builder,
       InstanceCreationExpression widgetCreation,
       List<CollectionElement> childrenExpressions) async {
     // We can inline the list of our children only into another list.
@@ -63,7 +63,7 @@ class FlutterRemoveWidget extends CorrectionProducer {
       return;
     }
 
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       var firstChild = childrenExpressions.first;
       var lastChild = childrenExpressions.last;
       var childText = utils.getRangeText(range.startEnd(firstChild, lastChild));

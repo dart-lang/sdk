@@ -198,7 +198,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         prefix.staticElement = element;
         if (element is PrefixElement) {
           // TODO(brianwilkerson) Report this error?
-          element = _resolver.nameScope.lookup(identifier, _definingLibrary);
+          element = _resolver.nameScope.lookupIdentifier(identifier);
           name.staticElement = element;
           return;
         }
@@ -500,13 +500,13 @@ class ElementResolver extends SimpleAstVisitor<void> {
     //
     Element prefixElement = prefix.staticElement;
     if (prefixElement is PrefixElement) {
-      Element element = _resolver.nameScope.lookup(node, _definingLibrary);
+      Element element = _resolver.nameScope.lookupIdentifier(node);
       if (element == null && identifier.inSetterContext()) {
         Identifier setterName = PrefixedIdentifierImpl.temp(
             node.prefix,
             SimpleIdentifierImpl(StringToken(TokenType.STRING,
                 "${node.identifier.name}=", node.identifier.offset - 1)));
-        element = _resolver.nameScope.lookup(setterName, _definingLibrary);
+        element = _resolver.nameScope.lookupIdentifier(setterName);
       }
       element = _resolver.toLegacyElement(element);
       if (element == null && _resolver.nameScope.shouldIgnoreUndefined(node)) {
@@ -1334,8 +1334,15 @@ class ElementResolver extends SimpleAstVisitor<void> {
         ExecutableElement element;
 
         var setter = typeReference.getSetter(propertyName.name);
-        if (setter != null && setter.isAccessibleIn(_definingLibrary)) {
+        if (setter != null) {
           element = setter;
+          if (!setter.isAccessibleIn(_definingLibrary)) {
+            _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.PRIVATE_SETTER,
+              propertyName,
+              [propertyName.name, typeReference.name],
+            );
+          }
         }
 
         if (element != null) {
@@ -1523,39 +1530,38 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// which it could be resolved, or `null` if it could not be resolved. This
   /// does not record the results of the resolution.
   Element _resolveSimpleIdentifier(SimpleIdentifier identifier) {
-    Element element = _resolver.nameScope.lookup(identifier, _definingLibrary);
+    var lookupResult = _resolver.nameScope.lookup2(identifier.name);
+
+    Element element = lookupResult.getter;
     element = _resolver.toLegacyElement(element);
+
     if (element is PropertyAccessorElement && identifier.inSetterContext()) {
-      PropertyInducingElement variable =
-          (element as PropertyAccessorElement).variable;
-      if (variable != null) {
-        PropertyAccessorElement setter = variable.setter;
-        if (setter == null) {
-          //
-          // Check to see whether there might be a locally defined getter and
-          // an inherited setter.
-          //
-          ClassElement enclosingClass = _resolver.enclosingClass;
-          if (enclosingClass != null) {
-            var result = _typePropertyResolver.resolve(
-              receiver: null,
-              receiverType: enclosingClass.thisType,
-              name: identifier.name,
-              receiverErrorNode: identifier,
-              nameErrorNode: identifier,
-            );
-            setter = result.setter;
-          }
+      PropertyAccessorElement setter = lookupResult.setter;
+      if (setter == null) {
+        //
+        // Check to see whether there might be a locally defined getter and
+        // an inherited setter.
+        //
+        ClassElement enclosingClass = _resolver.enclosingClass;
+        if (enclosingClass != null) {
+          var result = _typePropertyResolver.resolve(
+            receiver: null,
+            receiverType: enclosingClass.thisType,
+            name: identifier.name,
+            receiverErrorNode: identifier,
+            nameErrorNode: identifier,
+          );
+          setter = result.setter;
         }
-        if (setter != null) {
-          element = setter;
-        }
+      }
+      if (setter != null) {
+        setter = _resolver.toLegacyElement(setter);
+        element = setter;
       }
     } else if (element == null &&
         (identifier.inSetterContext() ||
             identifier.parent is CommentReference)) {
-      Identifier setterId = SyntheticIdentifier('${identifier.name}=');
-      element = _resolver.nameScope.lookup(setterId, _definingLibrary);
+      element = lookupResult.setter;
       element = _resolver.toLegacyElement(element);
     }
     if (element == null) {

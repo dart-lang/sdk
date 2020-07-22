@@ -21,9 +21,9 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
   Future<ErrorOr<void>> handle(List<dynamic> arguments) async {
     if (arguments == null || arguments.length != 1 || arguments[0] is! String) {
       return ErrorOr.error(ResponseError(
-        ServerErrorCodes.InvalidCommandArguments,
-        '$commandName requires a single String parameter containing the path of a Dart file',
-        null,
+        code: ServerErrorCodes.InvalidCommandArguments,
+        message:
+            '$commandName requires a single String parameter containing the path of a Dart file',
       ));
     }
 

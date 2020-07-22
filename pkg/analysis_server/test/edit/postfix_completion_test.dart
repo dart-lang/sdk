@@ -36,7 +36,7 @@ main() {
 }
 ''');
     await waitForTasksFinished();
-    await _prepareCompletion('.for', atStart: true);
+    await _prepareCompletion('.for');
     _assertHasChange('Expand .for', '''
 main() {
   for (var value in []) {
@@ -88,8 +88,7 @@ main() {
     fail('Expected to find |$message| but got: ' + change.message);
   }
 
-  Future<void> _prepareCompletion(String key,
-      {bool atStart = false, bool atEnd = false, int delta = 0}) async {
+  Future<void> _prepareCompletion(String key) async {
     var offset = findOffset(key);
     var src = testCode.replaceFirst(key, '', offset);
     modifyTestFile(src);

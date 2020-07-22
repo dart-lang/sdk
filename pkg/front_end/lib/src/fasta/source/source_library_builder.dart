@@ -453,15 +453,42 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   LanguageVersion get languageVersion => _languageVersion;
 
+  void markLanguageVersionFinal() {
+    if (enableNonNullableInLibrary &&
+        (loader.nnbdMode == NnbdMode.Strong ||
+            loader.nnbdMode == NnbdMode.Agnostic)) {
+      // In strong and agnostic mode, the language version is not allowed to
+      // opt a library out of nnbd.
+      if (!isNonNullableByDefault) {
+        if (_languageVersion.isExplicit) {
+          addPostponedProblem(messageStrongModeNNBDButOptOut,
+              _languageVersion.charOffset, _languageVersion.charCount, fileUri);
+        } else {
+          loader.registerStrongOptOutLibrary(this);
+        }
+        _languageVersion = new InvalidLanguageVersion(
+            fileUri,
+            _languageVersion.charOffset,
+            _languageVersion.charCount,
+            _languageVersion.isExplicit,
+            loader.target.currentSdkVersion);
+      }
+    }
+    _languageVersion.isFinal = true;
+  }
+
   @override
   void setLanguageVersion(Version version,
       {int offset: 0, int length: noLength, bool explicit: false}) {
+    assert(!_languageVersion.isFinal);
     if (languageVersion.isExplicit) return;
 
     if (version == null) {
       addPostponedProblem(
           messageLanguageVersionInvalidInDotPackages, offset, length, fileUri);
       if (_languageVersion is ImplicitLanguageVersion) {
+        // If the package set an OK version, but the file set an invalid version
+        // we want to use the package version.
         _languageVersion = new InvalidLanguageVersion(
             fileUri, offset, length, explicit, loader.target.currentSdkVersion);
         library.setLanguageVersion(_languageVersion.version);
@@ -480,6 +507,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           length,
           fileUri);
       if (_languageVersion is ImplicitLanguageVersion) {
+        // If the package set an OK version, but the file set an invalid version
+        // we want to use the package version.
         _languageVersion = new InvalidLanguageVersion(
             fileUri, offset, length, explicit, loader.target.currentSdkVersion);
         library.setLanguageVersion(_languageVersion.version);
@@ -490,19 +519,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     _languageVersion =
         new LanguageVersion(version, fileUri, offset, length, explicit);
     library.setLanguageVersion(version);
-
-    if (enableNonNullableInLibrary &&
-        (loader.nnbdMode == NnbdMode.Strong ||
-            loader.nnbdMode == NnbdMode.Agnostic)) {
-      // In strong and agnostic mode, the language version is not allowed to
-      // opt a library out of nnbd.
-      if (!isNonNullableByDefault) {
-        addPostponedProblem(
-            messageStrongModeNNBDButOptOut, offset, length, fileUri);
-        _languageVersion = new InvalidLanguageVersion(
-            fileUri, offset, length, explicit, loader.target.currentSdkVersion);
-      }
-    }
   }
 
   ConstructorReferenceBuilder addConstructorReference(Object name,
@@ -3780,6 +3796,7 @@ class LanguageVersion {
   final int charOffset;
   final int charCount;
   final bool isExplicit;
+  bool isFinal = false;
 
   LanguageVersion(this.version, this.fileUri, this.charOffset, this.charCount,
       this.isExplicit);
@@ -3807,6 +3824,7 @@ class InvalidLanguageVersion implements LanguageVersion {
   final int charCount;
   final bool isExplicit;
   final Version version;
+  bool isFinal = false;
 
   InvalidLanguageVersion(this.fileUri, this.charOffset, this.charCount,
       this.isExplicit, this.version);
@@ -3830,6 +3848,7 @@ class InvalidLanguageVersion implements LanguageVersion {
 class ImplicitLanguageVersion implements LanguageVersion {
   @override
   final Version version;
+  bool isFinal = false;
 
   ImplicitLanguageVersion(this.version);
 

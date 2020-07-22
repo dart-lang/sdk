@@ -20,6 +20,8 @@ import 'package:vm_snapshot_analysis/program_info.dart';
 import 'package:vm_snapshot_analysis/utils.dart';
 import 'package:vm_snapshot_analysis/v8_profile.dart';
 
+import 'utils.dart';
+
 class SummaryCommand extends Command<void> {
   @override
   final name = 'summary';
@@ -154,7 +156,8 @@ void outputSummary(File input,
     File traceJson,
     int depsCollapseDepth = 3,
     int topToReport = 30}) async {
-  final info = await loadProgramInfo(input);
+  final inputJson = await loadJsonFromFile(input);
+  final info = loadProgramInfoFromJson(inputJson);
 
   // Compute histogram.
   var histogram = computeHistogram(info, granularity, filter: filter);
@@ -165,7 +168,8 @@ void outputSummary(File input,
   if (traceJson != null &&
       (granularity == HistogramType.byLibrary ||
           granularity == HistogramType.byPackage)) {
-    var callGraph = await loadTrace(traceJson);
+    final traceJsonRaw = loadJsonFromFile(traceJson);
+    var callGraph = loadTrace(traceJsonRaw);
 
     // Convert call graph into the approximate dependency graph, dropping any
     // dynamic and dispatch table based dependencies from the graph and only

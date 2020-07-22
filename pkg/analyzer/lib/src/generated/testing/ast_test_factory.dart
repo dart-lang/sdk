@@ -778,14 +778,27 @@ class AstTestFactory {
           [List<Combinator> combinators]) =>
       importDirective(null, uri, false, prefix, combinators);
 
-  static IndexExpression indexExpression(Expression array, Expression index,
-          [TokenType leftBracket = TokenType.OPEN_SQUARE_BRACKET]) =>
-      astFactory.indexExpressionForTarget2(
-          target: array,
-          leftBracket: TokenFactory.tokenFromType(leftBracket),
-          index: index,
-          rightBracket:
-              TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
+  static IndexExpression indexExpression({
+    @required Expression target,
+    bool hasQuestion = false,
+    @required Expression index,
+  }) {
+    return astFactory.indexExpressionForTarget2(
+      target: target,
+      question: hasQuestion
+          ? TokenFactory.tokenFromType(
+              TokenType.QUESTION,
+            )
+          : null,
+      leftBracket: TokenFactory.tokenFromType(
+        TokenType.OPEN_SQUARE_BRACKET,
+      ),
+      index: index,
+      rightBracket: TokenFactory.tokenFromType(
+        TokenType.CLOSE_SQUARE_BRACKET,
+      ),
+    );
+  }
 
   static IndexExpression indexExpressionForCascade(Expression array,
           Expression index, TokenType period, TokenType leftBracket) =>

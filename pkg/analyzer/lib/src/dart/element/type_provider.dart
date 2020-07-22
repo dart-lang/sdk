@@ -27,7 +27,7 @@ abstract class TypeProviderBase implements TypeProvider {
   @override
   bool isObjectGetter(String id) {
     PropertyAccessorElement element = objectType.element.getGetter(id);
-    return (element != null && !element.isStatic);
+    return element != null && !element.isStatic;
   }
 
   @override
@@ -38,7 +38,7 @@ abstract class TypeProviderBase implements TypeProvider {
   @override
   bool isObjectMethod(String id) {
     MethodElement element = objectType.element.getMethod(id);
-    return (element != null && !element.isStatic);
+    return element != null && !element.isStatic;
   }
 }
 

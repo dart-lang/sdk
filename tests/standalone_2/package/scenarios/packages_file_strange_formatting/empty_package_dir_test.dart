@@ -10,6 +10,6 @@
 // `import 'package:foo/foo.dart'` is equivalent to `import '/foo.dart'`.
 library empty_package_dir_test;
 
-import 'package:foo/foo.dart';
+import 'package:foo/foo.dart'; //# 01: compile-time error
 
 main() {}

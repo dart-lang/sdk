@@ -24,9 +24,9 @@ int i = 0;
     ]);
   }
 
-  test_correct_2_10() async {
+  test_correct_2_19() async {
     await assertErrorsInCode(r'''
-// @dart = 2.10
+// @dart = 2.19
 int i = 0;
 ''', [
       error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 15),

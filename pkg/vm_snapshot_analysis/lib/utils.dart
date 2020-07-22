@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 library vm_snapshot_analysis.utils;
 
-import 'dart:io';
-import 'dart:convert';
-
 import 'package:vm_snapshot_analysis/ascii_table.dart';
 import 'package:vm_snapshot_analysis/program_info.dart';
 import 'package:vm_snapshot_analysis/instruction_sizes.dart'
@@ -13,17 +10,8 @@ import 'package:vm_snapshot_analysis/instruction_sizes.dart'
 import 'package:vm_snapshot_analysis/treemap.dart';
 import 'package:vm_snapshot_analysis/v8_profile.dart' as v8_profile;
 
-Future<Object> loadJson(File input) async {
-  return await input
-      .openRead()
-      .transform(utf8.decoder)
-      .transform(json.decoder)
-      .first;
-}
-
-Future<ProgramInfo> loadProgramInfo(File input,
-    {bool collapseAnonymousClosures = false}) async {
-  final json = await loadJson(input);
+ProgramInfo loadProgramInfoFromJson(Object json,
+    {bool collapseAnonymousClosures = false}) {
   if (v8_profile.Snapshot.isV8HeapSnapshot(json)) {
     return v8_profile.toProgramInfo(v8_profile.Snapshot.fromJson(json),
         collapseAnonymousClosures: collapseAnonymousClosures);
@@ -34,17 +22,23 @@ Future<ProgramInfo> loadProgramInfo(File input,
 }
 
 /// Compare two size profiles and return result of the comparison as a treemap.
-Future<Map<String, dynamic>> buildComparisonTreemap(File oldJson, File newJson,
+Map<String, dynamic> buildComparisonTreemap(Object oldJson, Object newJson,
     {TreemapFormat format = TreemapFormat.collapsed,
-    bool collapseAnonymousClosures = false}) async {
-  final oldSizes = await loadProgramInfo(oldJson,
+    bool collapseAnonymousClosures = false}) {
+  final oldSizes = loadProgramInfoFromJson(oldJson,
       collapseAnonymousClosures: collapseAnonymousClosures);
-  final newSizes = await loadProgramInfo(newJson,
+  final newSizes = loadProgramInfoFromJson(newJson,
       collapseAnonymousClosures: collapseAnonymousClosures);
 
   final diff = computeDiff(oldSizes, newSizes);
 
   return treemapFromInfo(diff, format: format);
+}
+
+String formatPercent(int value, int total, {bool withSign = false}) {
+  final p = value / total * 100.0;
+  final sign = (withSign && value > 0) ? '+' : '';
+  return '${sign}${p.toStringAsFixed(2)}%';
 }
 
 void printHistogram(ProgramInfo info, Histogram histogram,
@@ -61,10 +55,14 @@ void printHistogram(ProgramInfo info, Histogram histogram,
     if (wasFiltered) Text.right('Of total'),
   ], maxWidth: maxWidth);
 
-  String formatPercent(int value, int total) {
-    final p = value / total * 100.0;
-    return p.toStringAsFixed(2) + "%";
-  }
+  final visibleRows = [prefix, suffix].expand((l) => l).toList();
+  final visibleSize =
+      visibleRows.fold(0, (sum, key) => sum + histogram.buckets[key]);
+  final numRestRows = histogram.length - (suffix.length + prefix.length);
+  final hiddenRows = Set<String>.from(histogram.bySize)
+      .difference(Set<String>.from(visibleRows));
+  final interestingHiddenRows =
+      hiddenRows.any((k) => histogram.buckets[k] != 0);
 
   if (prefix.isNotEmpty) {
     for (var key in prefix) {
@@ -76,15 +74,10 @@ void printHistogram(ProgramInfo info, Histogram histogram,
         if (wasFiltered) formatPercent(size, totalSize),
       ]);
     }
-    table.addSeparator(
-        prefix.length < histogram.length ? Separator.Wave : Separator.Line);
+    table.addSeparator(interestingHiddenRows ? Separator.Wave : Separator.Line);
   }
 
-  final visibleSize = [prefix, suffix]
-      .expand((l) => l)
-      .fold(0, (sum, key) => sum + histogram.buckets[key]);
-  final numRestRows = histogram.length - (suffix.length + prefix.length);
-  if (numRestRows > 0) {
+  if (interestingHiddenRows) {
     final totalRestBytes = histogram.totalSize - visibleSize;
     table.addTextSeparator(
         '$numRestRows more rows accounting for ${totalRestBytes}'

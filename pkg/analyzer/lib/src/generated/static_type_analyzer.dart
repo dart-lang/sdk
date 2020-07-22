@@ -112,7 +112,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       expression.staticType = _dynamicType;
     } else {
       expression.staticType = type;
-      if (identical(type, NeverTypeImpl.instance)) {
+      if (_typeSystem.isBottom(type)) {
         _flowAnalysis?.flow?.handleExit();
       }
     }

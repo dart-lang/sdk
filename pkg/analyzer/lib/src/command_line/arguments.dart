@@ -6,10 +6,10 @@ import 'dart:collection';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:args/args.dart';
+import 'package:cli_util/cli_util.dart';
 
 const String analysisOptionsFileOption = 'options';
 const String defineVariableOption = 'D';
@@ -103,11 +103,9 @@ ContextBuilderOptions createContextBuilderOptions(ArgResults args) {
 /// `true` and if the summary information exists.
 DartSdkManager createDartSdkManager(
     ResourceProvider resourceProvider, ArgResults args) {
-  String sdkPath = args[sdkPathOption];
+  String sdkPath = args[sdkPathOption] ?? getSdkPath();
 
-  return DartSdkManager(
-    sdkPath ?? FolderBasedDartSdk.defaultSdkDirectory(resourceProvider)?.path,
-  );
+  return DartSdkManager(sdkPath);
 }
 
 /// Add the standard flags and options to the given [parser]. The standard flags
@@ -117,7 +115,7 @@ DartSdkManager createDartSdkManager(
 /// TODO(danrubel) Update DDC to support all the options defined in this method
 /// then remove the [ddc] named argument from this method.
 void defineAnalysisArguments(ArgParser parser,
-    {bool hide = true, ddc = false}) {
+    {bool hide = true, bool ddc = false}) {
   parser.addOption(sdkPathOption,
       help: 'The path to the Dart SDK.', hide: ddc && hide);
   parser.addOption(analysisOptionsFileOption,

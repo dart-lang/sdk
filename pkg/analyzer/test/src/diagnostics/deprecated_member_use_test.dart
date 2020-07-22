@@ -18,6 +18,8 @@ main() {
 @reflectiveTest
 class DeprecatedMemberUseFromSamePackageTest extends DriverResolutionTest {
   test_basicWorkspace() async {
+    configureWorkspace(root: '/workspace');
+
     newFile('/workspace/lib/deprecated_library.dart', content: r'''
 @deprecated
 library deprecated_library;
@@ -33,6 +35,8 @@ f(A a) {}
   }
 
   test_bazelWorkspace() async {
+    configureWorkspace(root: '/workspace');
+
     newFile('/workspace/WORKSPACE');
     newFile('/workspace/project/BUILD');
     newFolder('/workspace/bazel-genfiles');
@@ -123,6 +127,8 @@ f(A a) {
   }
 
   test_gnWorkspace() async {
+    configureWorkspace(root: '/workspace');
+
     newFolder('/workspace/.jiri_root');
     newFile('/workspace/project/pubspec.yaml');
     newFile('/workspace/project/BUILD.gn');
@@ -353,6 +359,8 @@ f(A a, A b) {
   }
 
   test_packageBuildWorkspace() async {
+    configureWorkspace(root: '/workspace');
+
     newFolder('/workspace/.dart_tool/build/generated/project/lib');
     newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
     newFileWithBytes('/workspace/.packages', 'project:lib/'.codeUnits);

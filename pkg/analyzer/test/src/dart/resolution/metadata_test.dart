@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -14,6 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../summary/resolved_ast_printer.dart';
 import 'driver_resolution.dart';
+import 'with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -183,18 +182,11 @@ class B {}
 }
 
 @reflectiveTest
-class MetadataResolutionWithNnbdTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
-
+class MetadataResolutionWithNnbdTest extends DriverResolutionTest
+    with WithNullSafetyMixin {
   ImportFindElement get import_a {
     return findElement.importFind('package:test/a.dart');
   }
-
-  @override
-  bool get typeToStringWithNullability => true;
 
   test_optIn_fromOptOut_class() async {
     newFile('/test/lib/a.dart', content: r'''

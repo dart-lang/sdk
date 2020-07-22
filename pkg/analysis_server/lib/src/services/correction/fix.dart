@@ -283,6 +283,7 @@ class DartFixKind {
       'dart.fix.create.noSuchMethod', 49, "Create 'noSuchMethod' method");
   static const CREATE_SETTER =
       FixKind('dart.fix.create.setter', 50, "Create setter '{0}'");
+  static const DATA_DRIVEN = FixKind('dart.fix.dataDriven', 50, '{0}');
   static const EXTEND_CLASS_FOR_MIXIN =
       FixKind('dart.fix.extendClassForMixin', 50, "Extend the class '{0}'");
   static const IMPORT_ASYNC =
@@ -407,6 +408,8 @@ class DartFixKind {
   static const REPLACE_BOOLEAN_WITH_BOOL = FixKind(
       'dart.fix.replace.booleanWithBool', 50, "Replace 'boolean' with 'bool'",
       appliedTogetherMessage: "Replace all 'boolean' with 'bool' in file");
+  static const REPLACE_CASCADE_WITH_DOT =
+      FixKind('dart.fix.replace.cascadeWithDot', 50, "Replace '..' with '.'");
   static const REPLACE_COLON_WITH_EQUALS =
       FixKind('dart.fix.replace.colonWithEquals', 50, "Replace ':' with '='");
   static const REPLACE_WITH_FILLED = FixKind(

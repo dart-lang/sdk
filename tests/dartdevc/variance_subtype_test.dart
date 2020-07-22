@@ -43,17 +43,17 @@ void main() {
   // Invariant<Middle> <: Invariant<Middle>
   checkSubtype(typeRep<Invariant<Middle>>(), typeRep<Invariant<Middle>>());
 
-  // Invariant<dynamic> <:> Invariant<Object>
+  // Invariant<dynamic> <:> Invariant<Object?>
   checkMutualSubtype(
-      typeRep<Invariant<dynamic>>(), typeRep<Invariant<Object>>());
+      typeRep<Invariant<dynamic>>(), typeRep<Invariant<Object?>>());
 
   // Invariant<FutureOr<dynamic>> <:> Invariant<dynamic>
   checkMutualSubtype(
       typeRep<Invariant<FutureOr<dynamic>>>(), typeRep<Invariant<dynamic>>());
 
-  // Invariant<FutureOr<Null>> <:> Invariant<Future<Null>>
+  // Invariant<FutureOr<Null>> <:> Invariant<Future<Null>?>
   checkMutualSubtype(
-      typeRep<Invariant<FutureOr<Null>>>(), typeRep<Invariant<Future<Null>>>());
+      typeRep<Invariant<FutureOr<Null>>>(), typeRep<Invariant<Future<Null>?>>());
 
   // LegacyCovariant<Lower> <: LegacyCovariant<Middle>
   checkProperSubtype(

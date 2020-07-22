@@ -6,6 +6,7 @@ import 'dart:core' hide MapEntry;
 
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart';
 
@@ -3655,6 +3656,11 @@ class InferenceVisitor
         }
         break;
     }
+
+    if (!inferrer.isNonNullableByDefault) {
+      binaryType = legacyErasure(inferrer.coreTypes, binaryType);
+    }
+
     if (!inferrer.isTopLevel && binaryTarget.isNullable) {
       return new ExpressionInferenceResult(
           binaryType,
@@ -3747,6 +3753,11 @@ class InferenceVisitor
         }
         break;
     }
+
+    if (!inferrer.isNonNullableByDefault) {
+      unaryType = legacyErasure(inferrer.coreTypes, unaryType);
+    }
+
     if (!inferrer.isTopLevel && unaryTarget.isNullable) {
       // TODO(johnniwinther): Special case 'unary-' in messages. It should
       // probably be referred to as "Unary operator '-' ...".
@@ -3830,6 +3841,11 @@ class InferenceVisitor
         }
         break;
     }
+
+    if (!inferrer.isNonNullableByDefault) {
+      readType = legacyErasure(inferrer.coreTypes, readType);
+    }
+
     if (!inferrer.isTopLevel && readTarget.isNullable) {
       return new ExpressionInferenceResult(
           readType,
@@ -4023,6 +4039,11 @@ class InferenceVisitor
         }
         break;
     }
+
+    if (!inferrer.isNonNullableByDefault) {
+      readType = legacyErasure(inferrer.coreTypes, readType);
+    }
+
     readResult ??= new ExpressionInferenceResult(readType, read);
     if (!inferrer.isTopLevel && readTarget.isNullable) {
       readResult = inferrer.wrapExpressionInferenceResultInProblem(
@@ -5080,6 +5101,11 @@ class InferenceVisitor
     Member target = node.target;
     TypeInferenceEngine.resolveInferenceNode(target);
     DartType type = target.getterType;
+
+    if (!inferrer.isNonNullableByDefault) {
+      type = legacyErasure(inferrer.coreTypes, type);
+    }
+
     if (target is Procedure && target.kind == ProcedureKind.Method) {
       return inferrer.instantiateTearOff(type, typeContext, node);
     } else {

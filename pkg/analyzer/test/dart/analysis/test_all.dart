@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'from_environment_evaluator_test.dart' as declared_variables;
 import 'utilities_test.dart' as utilities;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     declared_variables.main();
     utilities.main();

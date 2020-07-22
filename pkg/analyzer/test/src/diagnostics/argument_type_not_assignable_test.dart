@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -180,15 +178,53 @@ class A {
     ]);
   }
 
-  test_index() async {
+  test_index_invalidRead() async {
     await assertErrorsInCode('''
 class A {
-  operator [](int index) {}
+  int operator [](int index) => 0;
 }
 f(A a) {
   a['0'];
 }''', [
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 53, 3),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 60, 3),
+    ]);
+  }
+
+  test_index_invalidRead_validWrite() async {
+    await assertErrorsInCode('''
+class A {
+  int operator [](int index) => 0;
+  operator []=(String index, int value) {}
+}
+f(A a) {
+  a['0'] += 0;
+}''', [
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 103, 3),
+    ]);
+  }
+
+  test_index_invalidWrite() async {
+    await assertErrorsInCode('''
+class A {
+  operator []=(int index, int value) {}
+}
+f(A a) {
+  a['0'] = 0;
+}''', [
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 65, 3),
+    ]);
+  }
+
+  test_index_validRead_invalidWrite() async {
+    await assertErrorsInCode('''
+class A {
+  int operator [](String index) => 0;
+  operator []=(int index, int value) {}
+}
+f(A a) {
+  a['0'] += 0;
+}''', [
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 103, 3),
     ]);
   }
 
@@ -251,12 +287,25 @@ class A<K, V> {
 
   test_invocation_functionTypes_optional() async {
     await assertErrorsInCode('''
-void acceptFunNumOptBool(void funNumOptBool([bool b])) {}
-void funNumBool(bool b) {}
+void acceptFunOptBool(void funNumOptBool([bool b])) {}
+void funBool(bool b) {}
 main() {
-  acceptFunNumOptBool(funNumBool);
+  acceptFunOptBool(funBool);
 }''', [
-      error(StrongModeCode.INVALID_CAST_FUNCTION, 116, 10),
+      error(CompileTimeErrorCode.INVALID_CAST_FUNCTION, 107, 7),
+    ]);
+  }
+
+  test_invocation_functionTypes_optional_method() async {
+    await assertErrorsInCode('''
+void acceptFunOptBool(void funOptBool([bool b])) {}
+class C {
+  static void funBool(bool b) {}
+}
+main() {
+  acceptFunOptBool(C.funBool);
+}''', [
+      error(CompileTimeErrorCode.INVALID_CAST_METHOD, 125, 9),
     ]);
   }
 
@@ -387,13 +436,8 @@ g(C c) {
 }
 
 @reflectiveTest
-class ArgumentTypeNotAssignableTest_NNBD extends ArgumentTypeNotAssignableTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    );
-
+class ArgumentTypeNotAssignableTest_NNBD extends ArgumentTypeNotAssignableTest
+    with WithNullSafetyMixin {
   test_binary_eqEq_covariantParameterType() async {
     await assertErrorsInCode(r'''
 class A {
@@ -452,5 +496,19 @@ n(int i) {}
   test_invocation_functionTypes_optional() async {
     // The test is currently generating an error where none is expected.
     await super.test_invocation_functionTypes_optional();
+  }
+
+  @override
+  test_invocation_functionTypes_optional_method() async {
+    await assertErrorsInCode('''
+void acceptFunOptBool(void funOptBool([bool b])) {}
+class C {
+  static void funBool(bool b) {}
+}
+main() {
+  acceptFunOptBool(C.funBool);
+}''', [
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 125, 9),
+    ]);
   }
 }

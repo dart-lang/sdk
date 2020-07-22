@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/dart/element/scope.dart';
 
 /// This class provides access to [Scope]s corresponding to [AstNode]s.
 class LinkingNodeContext {
