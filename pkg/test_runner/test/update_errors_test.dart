@@ -1,6 +1,7 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+import 'dart:math' as math;
 
 import 'package:expect/expect.dart';
 
@@ -16,7 +17,7 @@ import 'utils.dart';
 // escapes here like `\/`.
 
 void main() {
-  // Inserts analyzer, CFE, and both errors.
+  // Inserts single-front end errors.
   expectUpdate("""
 int i = "bad";
 
@@ -26,12 +27,7 @@ int third = "boo";
 """, errors: [
     makeError(line: 1, column: 9, length: 5, analyzerError: "some.error"),
     makeError(line: 3, column: 15, length: 7, cfeError: "Bad."),
-    makeError(
-        line: 5,
-        column: 13,
-        length: 5,
-        analyzerError: "an.error",
-        cfeError: "Wrong.\nLine.\nAnother."),
+    makeError(line: 5, column: 13, length: 5, webError: "Web.\nError."),
   ], expected: """
 int i = "bad";
 /\/      ^^^^^
@@ -43,15 +39,72 @@ int another = "wrong";
 
 int third = "boo";
 /\/          ^^^^^
-/\/ [analyzer] an.error
-/\/ [cfe] Wrong.
-/\/ Line.
-/\/ Another.
+/\/ [web] Web.
+/\/ Error.
+""");
+
+  // Inserts errors for multiple front ends.
+  expectUpdate("""
+int i = "bad";
+
+int another = "wrong";
+
+int third = "boo";
+
+int last = "oops";
+""", errors: [
+    makeError(
+        line: 1,
+        column: 9,
+        length: 5,
+        analyzerError: "some.error",
+        cfeError: "Bad."),
+    makeError(
+        line: 3,
+        column: 15,
+        length: 7,
+        cfeError: "Another bad.",
+        webError: "Web.\nError."),
+    makeError(
+        line: 5,
+        column: 13,
+        length: 5,
+        analyzerError: "third.error",
+        webError: "Web error."),
+    makeError(
+        line: 7,
+        column: 12,
+        length: 6,
+        analyzerError: "last.error",
+        cfeError: "Final.\nError.",
+        webError: "Web error."),
+  ], expected: """
+int i = "bad";
+/\/      ^^^^^
+/\/ [analyzer] some.error
+/\/ [cfe] Bad.
+
+int another = "wrong";
+/\/            ^^^^^^^
+/\/ [cfe] Another bad.
+/\/ [web] Web.
+/\/ Error.
+
+int third = "boo";
+/\/          ^^^^^
+/\/ [analyzer] third.error
+/\/ [web] Web error.
+
+int last = "oops";
+/\/         ^^^^^^
+/\/ [analyzer] last.error
+/\/ [cfe] Final.
+/\/ Error.
+/\/ [web] Web error.
 """);
 
   // Removes only analyzer errors.
-  expectUpdate(
-      """
+  expectUpdate("""
 int i = "bad";
 /\/      ^^^^^
 /\/ [analyzer] some.error
@@ -64,9 +117,7 @@ int third = "boo";
 /\/          ^^^^^
 /\/ [analyzer] an.error
 /\/ [cfe] Wrong.
-""",
-      removeCfe: false,
-      expected: """
+""", remove: {ErrorSource.analyzer}, expected: """
 int i = "bad";
 
 int another = "wrong";
@@ -79,8 +130,7 @@ int third = "boo";
 """);
 
   // Removes only CFE errors.
-  expectUpdate(
-      """
+  expectUpdate("""
 int i = "bad";
 /\/      ^^^^^
 /\/ [analyzer] some.error
@@ -93,9 +143,7 @@ int third = "boo";
 /\/          ^^^^^
 /\/ [analyzer] an.error
 /\/ [cfe] Wrong.
-""",
-      removeAnalyzer: false,
-      expected: """
+""", remove: {ErrorSource.cfe}, expected: """
 int i = "bad";
 /\/      ^^^^^
 /\/ [analyzer] some.error
@@ -105,6 +153,60 @@ int another = "wrong";
 int third = "boo";
 /\/          ^^^^^
 /\/ [analyzer] an.error
+""");
+
+  // Removes only web errors.
+  expectUpdate("""
+int i = "bad";
+/\/      ^^^^^
+/\/ [analyzer] some.error
+
+int another = "wrong";
+/\/            ^^^^^^^
+/\/ [web] Bad.
+
+int third = "boo";
+/\/          ^^^^^
+/\/ [cfe] Error.
+/\/ [web] Wrong.
+""", remove: {ErrorSource.web}, expected: """
+int i = "bad";
+/\/      ^^^^^
+/\/ [analyzer] some.error
+
+int another = "wrong";
+
+int third = "boo";
+/\/          ^^^^^
+/\/ [cfe] Error.
+""");
+
+  // Removes multiple error sources.
+  expectUpdate("""
+int i = "bad";
+/\/      ^^^^^
+/\/ [analyzer] some.error
+/\/ [cfe] CFE error.
+
+int another = "wrong";
+/\/            ^^^^^^^
+/\/ [web] Bad.
+
+int third = "boo";
+/\/          ^^^^^
+/\/ [analyzer] another.error
+/\/ [cfe] Error.
+/\/ [web] Wrong.
+""", remove: {ErrorSource.analyzer, ErrorSource.web}, expected: """
+int i = "bad";
+/\/      ^^^^^
+/\/ [cfe] CFE error.
+
+int another = "wrong";
+
+int third = "boo";
+/\/          ^^^^^
+/\/ [cfe] Error.
 """);
 
   // Preserves previous error's indentation if possible.
@@ -303,8 +405,7 @@ x
 
 void regression() {
   // https://github.com/dart-lang/sdk/issues/37990.
-  expectUpdate(
-      """
+  expectUpdate("""
 int get xx => 3;
 int get yy => 3;
 
@@ -325,20 +426,16 @@ class A {
 
   }
 }
-""",
-      removeAnalyzer: false,
-      errors: [
-        makeError(
-            line: 6,
-            column: 5,
-            length: 14,
-            cfeError: "Setter not found: 'xx'."),
-        makeError(
-            line: 16,
-            column: 7,
-            cfeError: "The method 'call' isn't defined for the class 'int'.")
-      ],
-      expected: """
+""", remove: {
+    ErrorSource.cfe
+  }, errors: [
+    makeError(
+        line: 6, column: 5, length: 14, cfeError: "Setter not found: 'xx'."),
+    makeError(
+        line: 16,
+        column: 7,
+        cfeError: "The method 'call' isn't defined for the class 'int'.")
+  ], expected: """
 int get xx => 3;
 int get yy => 3;
 
@@ -362,18 +459,62 @@ class A {
 }
 
 void expectUpdate(String original,
-    {List<StaticError> errors,
-    bool removeAnalyzer = true,
-    bool removeCfe = true,
-    String expected}) {
+    {List<StaticError> errors, Set<ErrorSource> remove, String expected}) {
   errors ??= const [];
+  remove ??= ErrorSource.all.toSet();
 
-  var actual = updateErrorExpectations(original, errors,
-      removeAnalyzer: removeAnalyzer, removeCfe: removeCfe);
+  var actual = updateErrorExpectations(original, errors, remove: remove);
   if (actual != expected) {
     // Not using Expect.equals() because the diffs it shows aren't helpful for
     // strings this large.
-    Expect.fail("Output did not match expectation. Expected:\n$expected"
-        "\n\nWas:\n$actual");
+    var actualLines = actual.split("\n");
+    var expectedLines = expected.split("\n");
+
+    // Figure out which leading lines do match so we can ignore those and
+    // highlight the offending ones.
+    var matchingActual = <int>{};
+    var matchingExpected = <int>{};
+    for (var i = 0;
+        i < math.min(actualLines.length, expectedLines.length);
+        i++) {
+      if (actualLines[i] != expectedLines[i]) break;
+      matchingActual.add(i);
+      matchingExpected.add(i);
+    }
+
+    // Find which trailing lines are the same so we can hide those too.
+    for (var i = 0;
+        i < math.min(actualLines.length, expectedLines.length);
+        i++) {
+      // Count backwards from the ends of each list.
+      var actualIndex = actualLines.length - i - 1;
+      var expectedIndex = expectedLines.length - i - 1;
+      if (actualLines[actualIndex] != expectedLines[expectedIndex]) break;
+      matchingActual.add(actualIndex);
+      matchingExpected.add(expectedIndex);
+    }
+
+    var buffer = StringBuffer();
+    void writeLine(int index, String line, Set<int> matchingLines) {
+      // Only show the line if it was different from the expectation.
+      if (matchingLines.contains(index)) {
+        buffer.writeln("    : $line");
+      } else {
+        buffer.writeln("${(index + 1).toString().padLeft(4)}: $line");
+      }
+    }
+
+    buffer.writeln("Output did not match expectation. Expected:");
+    for (var i = 0; i < expectedLines.length; i++) {
+      writeLine(i, expectedLines[i], matchingExpected);
+    }
+
+    buffer.writeln();
+    buffer.writeln("Was:");
+    for (var i = 0; i < actualLines.length; i++) {
+      writeLine(i, actualLines[i], matchingActual);
+    }
+
+    Expect.fail(buffer.toString());
   }
 }
