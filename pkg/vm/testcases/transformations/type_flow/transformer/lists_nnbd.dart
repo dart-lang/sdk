@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // This test requires non-nullable experiment.
-// @dart = 2.9
+// @dart = 2.10
 
 nonConstant() => int.parse('1') == 1;
 

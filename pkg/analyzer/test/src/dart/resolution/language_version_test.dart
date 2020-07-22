@@ -131,10 +131,10 @@ var x = 0;
     assertErrorsInList(result.errors, []);
     assertType(findElement.topVar('x').type, 'int*');
 
-    // Upgrade the language version to `2.9`, so enabled Null Safety.
+    // Upgrade the language version to `2.10`, so enabled Null Safety.
     driver.changeFile(path);
     await _resolveFile(path, r'''
-// @dart = 2.9
+// @dart = 2.10
 var x = 0;
 ''');
     assertType(findElement.topVar('x').type, 'int');
@@ -162,10 +162,10 @@ var x = 0;
 ''');
     assertType(findElement.topVar('x').type, 'int*');
 
-    // Upgrade the language version to `2.9`, so enabled Null Safety.
+    // Upgrade the language version to `2.10`, so enabled Null Safety.
     _changeTestFile();
     await assertNoErrorsInCode('''
-// @dart = 2.9
+// @dart = 2.10
 var x = 0;
 ''');
     assertType(findElement.topVar('x').type, 'int');

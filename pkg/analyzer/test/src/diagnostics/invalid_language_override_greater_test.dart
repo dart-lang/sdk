@@ -40,12 +40,12 @@ class A {}
   test_greaterThanPackage() async {
     _configureTestPackageLanguageVersion('2.5');
     await assertNoErrorsInCode(r'''
-// @dart = 2.9
+// @dart = 2.10
 int? a;
 ''');
     _assertUnitLanguageVersion(
       package: Version.parse('2.5.0'),
-      override: Version.parse('2.9.0'),
+      override: Version.parse('2.10.0'),
     );
   }
 
