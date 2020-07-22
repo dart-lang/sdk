@@ -14,13 +14,17 @@ import 'package:analyzer/src/generated/engine.dart';
 
 /// The scope defined by a block.
 class BlockScope {
-  /// Return the elements that are declared directly in the given [block]. This
-  /// does not include elements declared in nested blocks.
-  static Iterable<Element> elementsInBlock(Block block) sync* {
-    NodeList<Statement> statements = block.statements;
+  /// Return the elements that are declared directly in the given [statements].
+  /// This does not include elements declared in nested blocks.
+  static Iterable<Element> elementsInStatements(
+    List<Statement> statements,
+  ) sync* {
     int statementCount = statements.length;
     for (int i = 0; i < statementCount; i++) {
       Statement statement = statements[i];
+      if (statement is LabeledStatement) {
+        statement = (statement as LabeledStatement).statement;
+      }
       if (statement is VariableDeclarationStatement) {
         NodeList<VariableDeclaration> variables = statement.variables.variables;
         int variableCount = variables.length;

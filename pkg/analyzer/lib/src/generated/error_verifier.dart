@@ -359,13 +359,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitBlock(Block node) {
-    _hiddenElements = HiddenElements(_hiddenElements, node);
-    try {
+    _withHiddenElements(node.statements, () {
       _duplicateDefinitionVerifier.checkStatements(node.statements);
       super.visitBlock(node);
-    } finally {
-      _hiddenElements = _hiddenElements.outerElements;
-    }
+    });
   }
 
   @override
@@ -1111,14 +1108,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSwitchCase(SwitchCase node) {
-    _duplicateDefinitionVerifier.checkStatements(node.statements);
-    super.visitSwitchCase(node);
+    _withHiddenElements(node.statements, () {
+      _duplicateDefinitionVerifier.checkStatements(node.statements);
+      super.visitSwitchCase(node);
+    });
   }
 
   @override
   void visitSwitchDefault(SwitchDefault node) {
-    _duplicateDefinitionVerifier.checkStatements(node.statements);
-    super.visitSwitchDefault(node);
+    _withHiddenElements(node.statements, () {
+      _duplicateDefinitionVerifier.checkStatements(node.statements);
+      super.visitSwitchDefault(node);
+    });
   }
 
   @override
@@ -5124,6 +5125,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _withHiddenElements(List<Statement> statements, void Function() f) {
+    _hiddenElements = HiddenElements(_hiddenElements, statements);
+    try {
+      f();
+    } finally {
+      _hiddenElements = _hiddenElements.outerElements;
+    }
+  }
+
   /// Return [FieldElement]s that are declared in the [ClassDeclaration] with
   /// the given [constructor], but are not initialized.
   static List<FieldElement> computeNotInitializedFields(
@@ -5212,9 +5222,9 @@ class HiddenElements {
 
   /// Initialize a newly created set of hidden elements to include all of the
   /// elements defined in the set of [outerElements] and all of the elements
-  /// declared in the given [block].
-  HiddenElements(this.outerElements, Block block) {
-    _initializeElements(block);
+  /// declared in the given [statements].
+  HiddenElements(this.outerElements, List<Statement> statements) {
+    _initializeElements(statements);
   }
 
   /// Return `true` if this set of elements contains the given [element].
@@ -5234,9 +5244,9 @@ class HiddenElements {
   }
 
   /// Initialize the list of elements that are not yet declared to be all of the
-  /// elements declared somewhere in the given [block].
-  void _initializeElements(Block block) {
-    _elements.addAll(BlockScope.elementsInBlock(block));
+  /// elements declared somewhere in the given [statements].
+  void _initializeElements(List<Statement> statements) {
+    _elements.addAll(BlockScope.elementsInStatements(statements));
   }
 }
 

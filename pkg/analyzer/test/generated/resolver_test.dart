@@ -350,7 +350,6 @@ int f(num n) {
     ]);
   }
 
-//  @failingTest
   test_for() async {
     await assertErrorsInCode(r'''
 int f(List<int> list) {

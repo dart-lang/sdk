@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
-import 'package:test/test.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
@@ -15,28 +14,67 @@ main() {
   });
 }
 
+/// TODO(scheglov) Move other for-in tests here.
 @reflectiveTest
 class ForEachStatementResolutionTest extends DriverResolutionTest {
-  test_importPrefix_asIterable() async {
-    // TODO(scheglov) Remove this test (already tested as import prefix).
-    // TODO(scheglov) Move other for-in tests here.
+  test_iterable_missing() async {
     await assertErrorsInCode(r'''
-import 'dart:async' as p;
-
-main() {
-  for (var x in p) {}
+void f() {
+  for (var v in) {
+    v;
+  }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 52, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 26, 1),
     ]);
 
-    var xRef = findNode.simple('x in');
-    expect(xRef.staticElement, isNotNull);
+    assertType(findElement.localVar('v').type, 'dynamic');
+    assertType(findNode.simple('v;'), 'dynamic');
+  }
 
-    var pRef = findNode.simple('p) {}');
-    assertElement(pRef, findElement.prefix('p'));
-    assertTypeDynamic(pRef);
+  /// Test that the parameter `x` is in the scope of the iterable.
+  /// But the declared identifier `x` is in the scope of the body.
+  test_scope() async {
+    await assertNoErrorsInCode('''
+void f(List<List<int>> x) {
+  for (int x in x.first) {
+    x.isEven;
+  }
+}
+''');
+
+    assertElement(
+      findNode.simple('x) {'),
+      findElement.parameter('x'),
+    );
+
+    assertElement(
+      findNode.simple('x.isEven'),
+      findElement.localVar('x'),
+    );
+  }
+
+  test_type_genericFunctionType() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  for (Null Function<T>(T, Null) e in <dynamic>[]) {
+    e;
+  }
+}
+''');
+  }
+
+  test_type_inferred() async {
+    await assertNoErrorsInCode(r'''
+void f(List<int> a) {
+  for (var v in a) {
+    v;
+  }
+}
+''');
+
+    assertType(findElement.localVar('v').type, 'int');
+    assertType(findNode.simple('v;'), 'int');
   }
 }
 
