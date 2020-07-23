@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 
@@ -131,17 +132,32 @@ class LiteralElementVerifier {
     var expressionType = expression.staticType;
     if (expressionType.isDynamic) return;
 
-    if (expressionType.isDartCoreNull) {
-      if (!isNullAware) {
+    if (typeSystem.isNonNullableByDefault) {
+      if (typeSystem.isSubtypeOf2(expressionType, NeverTypeImpl.instance)) {
+        return;
+      }
+      if (typeSystem.isSubtypeOf2(expressionType, typeSystem.nullNone)) {
+        if (isNullAware) {
+          return;
+        }
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
           expression,
         );
+        return;
       }
-      return;
+    } else {
+      if (expressionType.isDartCoreNull) {
+        if (isNullAware) {
+          return;
+        }
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
+          expression,
+        );
+        return;
+      }
     }
-
-    expressionType = typeSystem.resolveToBound(expressionType);
 
     var iterableType = expressionType.asInstanceOf(
       typeProvider.iterableElement,
@@ -173,17 +189,32 @@ class LiteralElementVerifier {
     var expressionType = expression.staticType;
     if (expressionType.isDynamic) return;
 
-    if (expressionType.isDartCoreNull) {
-      if (!isNullAware) {
+    if (typeSystem.isNonNullableByDefault) {
+      if (typeSystem.isSubtypeOf2(expressionType, NeverTypeImpl.instance)) {
+        return;
+      }
+      if (typeSystem.isSubtypeOf2(expressionType, typeSystem.nullNone)) {
+        if (isNullAware) {
+          return;
+        }
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
           expression,
         );
+        return;
       }
-      return;
+    } else {
+      if (expressionType.isDartCoreNull) {
+        if (isNullAware) {
+          return;
+        }
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
+          expression,
+        );
+        return;
+      }
     }
-
-    expressionType = typeSystem.resolveToBound(expressionType);
 
     var mapType = expressionType.asInstanceOf(
       typeProvider.mapElement,

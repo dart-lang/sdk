@@ -274,16 +274,15 @@ var a = {if (0 < 1) ...c else ...d};
 
   test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull_map() async {
     await assertNoErrorsInCode('''
-f() async {
-  var futureNull = Future.value(null);
-  var a = {1 : 'a', ...?await futureNull, 2 : 'b'};
-  a;
+void f(Null a) async {
+  // ignore:unused_local_variable
+  var v = {1 : 'a', ...?a, 2 : 'b'};
 }
 ''');
     assertType(
       setOrMapLiteral('{1'),
       typeStringByNullability(
-        nullable: 'Map<int?, String?>',
+        nullable: 'Map<int, String>',
         legacy: 'Map<int, String>',
       ),
     );
@@ -291,16 +290,15 @@ f() async {
 
   test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull_set() async {
     await assertNoErrorsInCode('''
-f() async {
-  var futureNull = Future.value(null);
-  var a = {1, ...?await futureNull, 2};
-  a;
+void f(Null a) async {
+  // ignore:unused_local_variable
+  var v = {1, ...?a, 2};
 }
 ''');
     assertType(
       setOrMapLiteral('{1'),
       typeStringByNullability(
-        nullable: 'Set<int?>',
+        nullable: 'Set<int>',
         legacy: 'Set<int>',
       ),
     );
@@ -312,6 +310,36 @@ f() async {
   var futureNull = Future.value(null);
   var a = {...?await futureNull};
   a;
+}
+''');
+    assertType(setOrMapLiteral('{...'), 'dynamic');
+  }
+
+  test_noContext_noTypeArgs_spread_typeParameter_implementsMap() async {
+    await resolveTestCode('''
+void f<T extends Map<int, String>>(T a) {
+  // ignore:unused_local_variable
+  var v = {...a};
+}
+''');
+    assertType(setOrMapLiteral('{...'), 'Map<int, String>');
+  }
+
+  test_noContext_noTypeArgs_spread_typeParameter_notImplementsMap() async {
+    await resolveTestCode('''
+void f<T extends num>(T a) {
+  // ignore:unused_local_variable
+  var v = {...a};
+}
+''');
+    assertType(setOrMapLiteral('{...'), 'dynamic');
+  }
+
+  test_noContext_noTypeArgs_spread_typeParameter_notImplementsMap2() async {
+    await resolveTestCode('''
+void f<T extends num>(T a) {
+  // ignore:unused_local_variable
+  var v = {...a, 0: 1};
 }
 ''');
     assertType(setOrMapLiteral('{...'), 'dynamic');
@@ -394,5 +422,65 @@ main() {
       invokeType: 'Map<int, double>? Function(Map<int, double>?)',
       type: 'Map<int, double>?',
     );
+  }
+
+  test_noContext_noTypeArgs_spread_never() async {
+    await resolveTestCode('''
+void f(Never a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...a, if (b) throw 0: throw 0};
+}
+''');
+    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_never() async {
+    await resolveTestCode('''
+void f(Never a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...?a, if (b) throw 0: throw 0};
+}
+''');
+    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_null() async {
+    await resolveTestCode('''
+void f(Null a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...?a, if (b) throw 0: throw 0};
+}
+''');
+    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_typeParameter_never() async {
+    await resolveTestCode('''
+void f<T extends Never>(T a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...?a, if (b) throw 0: throw 0};
+}
+''');
+    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_typeParameter_null() async {
+    await resolveTestCode('''
+void f<T extends Null>(T a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...?a, if (b) throw 0: throw 0};
+}
+''');
+    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_typeParameter_never() async {
+    await resolveTestCode('''
+void f<T extends Never>(T a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...a, if (b) throw 0: throw 0};
+}
+''');
+    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
 }

@@ -18,19 +18,25 @@ void uncalled<X extends Null>(X x) {
   List<Never> l1b = l1;
   var l2 = [...myNever];
   List<Never> l2b = l2;
-  var l3 = [...?myNever]; // Warning, but possible.
+  var l3 = [...?myNever];
+  //        ^^^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   List<Never> l3b = l3;
   var s1 = {...?x, if (false) throw 1};
   Set<Never> s1b = s1;
   var s2 = {...myNever, if (false) throw 1};
   Set<Never> s2b = s2;
-  var s3 = {...?myNever, if (false) throw 1}; // Warning.
+  var s3 = {...?myNever, if (false) throw 1};
+  //        ^^^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   Set<Never> s3b = s3;
   var m1 = {...?x, if (false) throw 1: throw 1};
   Map<Never, Never> m1b = m1;
   var m2 = {...myNever, if (false) throw 1: throw 1};
   Map<Never, Never> m2b = m2;
-  var m3 = {...?myNever, if (false) throw 1: throw 1}; // Warning.
+  var m3 = {...?myNever, if (false) throw 1: throw 1};
+  //        ^^^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   Map<Never, Never> m3b = m3;
 
   // Test non-empty collection of `Never` and `int`.
@@ -38,19 +44,25 @@ void uncalled<X extends Null>(X x) {
   List<int> li1b = li1;
   var li2 = [...myNever, 1];
   List<int> li2b = li2;
-  var li3 = [...?myNever, 1]; // Warning.
+  var li3 = [...?myNever, 1];
+  //         ^^^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   List<int> li3b = li3;
   var si1 = {1, ...?x};
   Set<int> si1b = si1;
   var si2 = {1, ...myNever};
   Set<int> si2b = si2;
-  var si3 = {1, ...?myNever}; // Warning.
+  var si3 = {1, ...?myNever};
+  //            ^^^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   Set<int> si3b = si3;
   var mi1 = {1: 1, ...?x};
   Map<int, int> mi1b = mi1;
   var mi2 = {1: 1, ...myNever};
   Map<int, int> mi2b = mi2;
-  var mi3 = {1: 1, ...?myNever}; // Warning.
+  var mi3 = {1: 1, ...?myNever};
+  //               ^^^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   Map<int, int> mi3b = mi3;
 }
 

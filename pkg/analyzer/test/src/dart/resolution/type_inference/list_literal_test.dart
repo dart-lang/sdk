@@ -262,32 +262,82 @@ var a = [if (0 < 1) ...c else ...d];
     assertType(findNode.listLiteral('[if'), 'List<dynamic>');
   }
 
-  test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull() async {
+  test_noContext_noTypeArgs_spread_nullAware_null() async {
     await assertNoErrorsInCode('''
-f() async {
-  var futureNull = Future.value(null);
+void f(Null a) async {
   // ignore:unused_local_variable
-  var a = [1, ...?await futureNull, 2];
+  var v = [...?a];
 }
 ''');
     assertType(
       findNode.listLiteral('['),
       typeStringByNullability(
-        nullable: 'List<int?>',
+        nullable: 'List<Never>',
+        legacy: 'List<Null>',
+      ),
+    );
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_null2() async {
+    await assertNoErrorsInCode('''
+void f(Null a) async {
+  // ignore:unused_local_variable
+  var v = [1, ...?a, 2];
+}
+''');
+    assertType(
+      findNode.listLiteral('['),
+      typeStringByNullability(
+        nullable: 'List<int>',
         legacy: 'List<int>',
       ),
     );
   }
 
-  test_noContext_noTypeArgs_spread_nullAware_onlyNull() async {
-    await assertNoErrorsInCode('''
-f() async {
-  var futureNull = Future.value(null);
+  test_noContext_noTypeArgs_spread_nullAware_typeParameter_implementsNull() async {
+    await resolveTestCode('''
+void f<T extends Null>(T a) async {
   // ignore:unused_local_variable
-  var a = [...?await futureNull];
+  var v = [...?a];
 }
 ''');
-    assertType(findNode.listLiteral('['), 'List<Null>');
+    assertType(
+      findNode.listLiteral('['),
+      typeStringByNullability(
+        nullable: 'List<Never>',
+        legacy: 'List<dynamic>',
+      ),
+    );
+  }
+
+  test_noContext_noTypeArgs_spread_typeParameter_implementsIterable() async {
+    await resolveTestCode('''
+void f<T extends List<int>>(T a) {
+  // ignore:unused_local_variable
+  var v = [...a];
+}
+''');
+    assertType(findNode.listLiteral('[...'), 'List<int>');
+  }
+
+  test_noContext_noTypeArgs_spread_typeParameter_notImplementsIterable() async {
+    await resolveTestCode('''
+void f<T extends num>(T a) {
+  // ignore:unused_local_variable
+  var v = [...a];
+}
+''');
+    assertType(findNode.listLiteral('[...'), 'List<dynamic>');
+  }
+
+  test_noContext_noTypeArgs_spread_typeParameter_notImplementsIterable2() async {
+    await resolveTestCode('''
+void f<T extends num>(T a) {
+  // ignore:unused_local_variable
+  var v = [...a, 0];
+}
+''');
+    assertType(findNode.listLiteral('[...'), 'List<dynamic>');
   }
 
   test_noContext_typeArgs_expression_conflict() async {
@@ -359,5 +409,45 @@ main() {
     assertType(findNode.listLiteral('[0'), 'List<int>');
     assertType(findNode.listLiteral('[1,'), 'List<int?>');
     assertType(findNode.listLiteral('[[0'), 'List<List<int?>>');
+  }
+
+  test_noContext_noTypeArgs_spread_never() async {
+    await assertNoErrorsInCode('''
+void f(Never a) async {
+  // ignore:unused_local_variable
+  var v = [...a];
+}
+''');
+    assertType(findNode.listLiteral('['), 'List<Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_never() async {
+    await assertNoErrorsInCode('''
+void f(Never a) async {
+  // ignore:unused_local_variable
+  var v = [...a];
+}
+''');
+    assertType(findNode.listLiteral('['), 'List<Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_typeParameter_implementsNever() async {
+    await resolveTestCode('''
+void f<T extends Never>(T a) async {
+  // ignore:unused_local_variable
+  var v = [...?a];
+}
+''');
+    assertType(findNode.listLiteral('['), 'List<Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_typeParameter_implementsNever() async {
+    await assertNoErrorsInCode('''
+void f<T extends Never>(T a) async {
+  // ignore:unused_local_variable
+  var v = [...a];
+}
+''');
+    assertType(findNode.listLiteral('['), 'List<Never>');
   }
 }

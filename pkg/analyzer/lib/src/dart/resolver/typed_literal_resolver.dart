@@ -176,22 +176,37 @@ class TypedLiteralResolver {
       return _typeProvider.dynamicType;
     } else if (element is SpreadElement) {
       var expressionType = element.expression.staticType;
+
+      var iterableType = expressionType.asInstanceOf(
+        _typeProvider.iterableElement,
+      );
+      if (iterableType != null) {
+        return iterableType.typeArguments[0];
+      }
+
       if (expressionType.isDynamic) {
-        return expressionType;
-      } else if (expressionType is InterfaceType) {
+        return _typeProvider.dynamicType;
+      }
+
+      if (_typeSystem.isNonNullableByDefault) {
+        if (_typeSystem.isSubtypeOf2(expressionType, NeverTypeImpl.instance)) {
+          return NeverTypeImpl.instance;
+        }
+        if (_typeSystem.isSubtypeOf2(expressionType, _typeSystem.nullNone)) {
+          if (element.isNullAware) {
+            return NeverTypeImpl.instance;
+          }
+          return _typeProvider.dynamicType;
+        }
+      } else {
         if (expressionType.isDartCoreNull) {
           if (element.isNullAware) {
             return expressionType;
           }
-        } else {
-          var iterableType = expressionType.asInstanceOf(
-            _typeProvider.iterableElement,
-          );
-          if (iterableType != null) {
-            return iterableType.typeArguments[0];
-          }
+          return _typeProvider.dynamicType;
         }
       }
+
       // TODO(brianwilkerson) Report this as an error.
       return _typeProvider.dynamicType;
     }
@@ -332,39 +347,69 @@ class TypedLiteralResolver {
           valueType: element.value.staticType);
     } else if (element is SpreadElement) {
       DartType expressionType = element.expression.staticType;
-      bool isNull = expressionType.isDartCoreNull;
-      if (!isNull && expressionType is InterfaceType) {
-        if (_typeSystem.isSubtypeOf2(
-            expressionType, _typeProvider.iterableForSetMapDisambiguation)) {
-          InterfaceType iterableType =
-              expressionType.asInstanceOf(_typeProvider.iterableElement);
-          return _InferredCollectionElementTypeInformation(
-              elementType: iterableType.typeArguments[0],
-              keyType: null,
-              valueType: null);
-        } else if (_typeSystem.isSubtypeOf2(
-            expressionType, _typeProvider.mapForSetMapDisambiguation)) {
-          InterfaceType mapType =
-              expressionType.asInstanceOf(_typeProvider.mapElement);
-          List<DartType> typeArguments = mapType.typeArguments;
-          return _InferredCollectionElementTypeInformation(
-              elementType: null,
-              keyType: typeArguments[0],
-              valueType: typeArguments[1]);
-        }
-      } else if (expressionType.isDynamic) {
+
+      var iterableType = expressionType.asInstanceOf(
+        _typeProvider.iterableElement,
+      );
+      if (iterableType != null) {
         return _InferredCollectionElementTypeInformation(
-            elementType: expressionType,
-            keyType: expressionType,
-            valueType: expressionType);
-      } else if (isNull && element.isNullAware) {
-        return _InferredCollectionElementTypeInformation(
-            elementType: expressionType,
-            keyType: expressionType,
-            valueType: expressionType);
+          elementType: iterableType.typeArguments[0],
+          keyType: null,
+          valueType: null,
+        );
       }
+
+      var mapType = expressionType.asInstanceOf(
+        _typeProvider.mapElement,
+      );
+      if (mapType != null) {
+        return _InferredCollectionElementTypeInformation(
+          elementType: null,
+          keyType: mapType.typeArguments[0],
+          valueType: mapType.typeArguments[1],
+        );
+      }
+
+      if (expressionType.isDynamic) {
+        return _InferredCollectionElementTypeInformation(
+          elementType: expressionType,
+          keyType: expressionType,
+          valueType: expressionType,
+        );
+      }
+
+      if (_typeSystem.isNonNullableByDefault) {
+        if (_typeSystem.isSubtypeOf2(expressionType, NeverTypeImpl.instance)) {
+          return _InferredCollectionElementTypeInformation(
+            elementType: NeverTypeImpl.instance,
+            keyType: NeverTypeImpl.instance,
+            valueType: NeverTypeImpl.instance,
+          );
+        }
+        if (_typeSystem.isSubtypeOf2(expressionType, _typeSystem.nullNone)) {
+          if (element.isNullAware) {
+            return _InferredCollectionElementTypeInformation(
+              elementType: NeverTypeImpl.instance,
+              keyType: NeverTypeImpl.instance,
+              valueType: NeverTypeImpl.instance,
+            );
+          }
+        }
+      } else {
+        if (expressionType.isDartCoreNull && element.isNullAware) {
+          return _InferredCollectionElementTypeInformation(
+            elementType: expressionType,
+            keyType: expressionType,
+            valueType: expressionType,
+          );
+        }
+      }
+
       return _InferredCollectionElementTypeInformation(
-          elementType: null, keyType: null, valueType: null);
+        elementType: null,
+        keyType: null,
+        valueType: null,
+      );
     } else {
       throw StateError('Unknown element type ${element.runtimeType}');
     }

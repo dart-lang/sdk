@@ -246,6 +246,37 @@ f() {
     assertType(setLiteral('{1'), 'Set<int>');
   }
 
+  test_noContext_noTypeArgs_spread_typeParameter_implementsIterable() async {
+    await resolveTestCode('''
+void f<T extends List<int>>(T a) {
+  // ignore:unused_local_variable
+  var v = {...a};
+}
+''');
+    assertType(setLiteral('{...'), 'Set<int>');
+  }
+
+  test_noContext_noTypeArgs_spread_typeParameter_notImplementsIterable() async {
+    await resolveTestCode('''
+void f<T extends num>(T a) {
+  // ignore:unused_local_variable
+  var v = {...a};
+}
+''');
+    assertType(setLiteral('{...'), 'dynamic');
+  }
+
+  test_noContext_noTypeArgs_spread_typeParameter_notImplementsIterable2() async {
+    await resolveTestCode('''
+void f<T extends num>(T a) {
+  // ignore:unused_local_variable
+  var v = {...a, 0};
+}
+''');
+    assertType(setLiteral('{...'), 'dynamic');
+  }
+
+
   test_noContext_typeArgs_expression_conflict() async {
     await resolveTestCode('''
 var a = <String>{1};
@@ -300,5 +331,65 @@ class C<T extends Object?> {
     assertType(setOrMapLiteral('{}; // 2'), 'Set<T>');
     assertType(setOrMapLiteral('{}; // 3'), 'Set<T?>');
     assertType(setOrMapLiteral('{}; // 4'), 'Set<T?>');
+  }
+
+  test_noContext_noTypeArgs_spread_never() async {
+    await resolveTestCode('''
+void f(Never a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...a, if (b) throw 0};
+}
+''');
+    assertType(setLiteral('{...'), 'Set<Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_never() async {
+    await resolveTestCode('''
+void f(Never a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...?a, if (b) throw 0};
+}
+''');
+    assertType(setLiteral('{...'), 'Set<Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_null() async {
+    await assertNoErrorsInCode('''
+void f(Null a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...?a, if (b) throw 0};
+}
+''');
+    assertType(setLiteral('{...'), 'Set<Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_typeParameter_never() async {
+    await resolveTestCode('''
+void f<T extends Never>(T a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...?a, if (b) throw 0};
+}
+''');
+    assertType(setLiteral('{...'), 'Set<Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_typeParameter_null() async {
+    await assertNoErrorsInCode('''
+void f<T extends Null>(T a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...?a, if (b) throw 0};
+}
+''');
+    assertType(setLiteral('{...'), 'Set<Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_typeParameter_never() async {
+    await resolveTestCode('''
+void f<T extends Never>(T a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...a, if (b) throw 0};
+}
+''');
+    assertType(setLiteral('{...'), 'Set<Never>');
   }
 }
