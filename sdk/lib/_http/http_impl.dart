@@ -1078,8 +1078,6 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
 
   List<RedirectInfo> _responseRedirects = [];
 
-  bool _aborted = false;
-
   _HttpClientRequest(_HttpOutgoing outgoing, Uri uri, this.method, this._proxy,
       this._httpClient, this._httpClientConnection, this._timeline)
       : uri = uri,
@@ -1143,10 +1141,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
           .then((list) => list[0]);
 
   Future<HttpClientResponse> close() {
-    if (!_aborted) {
-      // It will send out the request.
-      super.close();
-    }
+    super.close();
     return done;
   }
 
@@ -1166,9 +1161,6 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
       _httpClientConnection.connectionInfo;
 
   void _onIncoming(_HttpIncoming incoming) {
-    if (_aborted) {
-      return;
-    }
     var response = new _HttpClientResponse(incoming, this, _httpClient);
     Future<HttpClientResponse> future;
     if (followRedirects && response.isRedirect) {
@@ -1191,21 +1183,12 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     } else {
       future = new Future<HttpClientResponse>.value(response);
     }
-    future.then((v) {
-      if (!_responseCompleter.isCompleted) {
-        _responseCompleter.complete(v);
-      }
-    }, onError: (e, s) {
-      if (!_responseCompleter.isCompleted) {
-        _responseCompleter.completeError(e, s);
-      }
-    });
+    future.then((v) => _responseCompleter.complete(v),
+        onError: _responseCompleter.completeError);
   }
 
   void _onError(error, StackTrace stackTrace) {
-    if (!_responseCompleter.isCompleted) {
-      _responseCompleter.completeError(error, stackTrace);
-    }
+    _responseCompleter.completeError(error, stackTrace);
   }
 
   // Generate the request URI based on the method and proxy.
@@ -1238,21 +1221,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     }
   }
 
-  void add(List<int> data) {
-    if (data.length == 0 || _aborted) return;
-    super.add(data);
-  }
-
-  void write(Object? obj) {
-    if (_aborted) return;
-    super.write(obj);
-  }
-
   void _writeHeader() {
-    if (_aborted) {
-      _outgoing.setHeader(Uint8List(0), 0);
-      return;
-    }
     BytesBuilder buffer = new _CopyingBytesBuilder(_OUTGOING_BUFFER_SIZE);
 
     // Write the request method.
@@ -1284,15 +1253,6 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     buffer.addByte(_CharCode.LF);
     Uint8List headerBytes = buffer.takeBytes();
     _outgoing.setHeader(headerBytes, headerBytes.length);
-  }
-
-  void abort([Object? exception, StackTrace? stackTrace]) {
-    _aborted = true;
-    if (!_responseCompleter.isCompleted) {
-      exception ??= HttpException("Request has been aborted");
-      _responseCompleter.completeError(exception, stackTrace);
-      _httpClientConnection.destroy();
-    }
   }
 }
 

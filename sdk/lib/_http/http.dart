@@ -2015,34 +2015,6 @@ abstract class HttpClientRequest implements IOSink {
   ///
   /// Returns `null` if the socket is not available.
   HttpConnectionInfo? get connectionInfo;
-
-  /// Aborts the client connection.
-  ///
-  /// If the connection has not yet completed, the request is aborted and the
-  /// [done] future (also returned by [close]) is completed with the provided
-  /// [exception] and [stackTrace].
-  /// If [exception] is omitted, it defaults to an [HttpException], and if
-  /// [stackTrace] is omitted, it defaults to [StackTrace.empty].
-  ///
-  /// If the [done] future has already completed, aborting has no effect.
-  ///
-  /// Using the [IOSink] methods (e.g., [write] and [add]) has no effect after
-  /// the request has been aborted
-  ///
-  /// ```dart
-  /// HttpClientRequst request = ...
-  /// request.write();
-  /// Timer(Duration(seconds: 1), () {
-  ///   request.abort();
-  /// });
-  /// request.close().then((response) {
-  ///   // If response comes back before abort, this callback will be called.
-  /// }, onError: (e) {
-  ///   // If abort() called before response is available, onError will fire.
-  /// });
-  /// ```
-  @Since("2.9")
-  void abort([Object? exception, StackTrace? stackTrace]);
 }
 
 /**

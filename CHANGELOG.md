@@ -1,12 +1,3 @@
-## 2.10.0
-
-### Core libraries
-
-#### `dart:io`
-
-*   Adds `Abort` method to class `HttpClientRequest`, which allows users
-    to cancel outgoing HTTP requests and stop following IO operations.
-
 ## 2.9.0
 
 ### Language
