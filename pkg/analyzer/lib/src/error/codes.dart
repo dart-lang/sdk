@@ -10781,11 +10781,6 @@ class StrongModeCode extends ErrorCode {
       "Try adding an explicit type like 'dynamic', or "
       "enable implicit-dynamic in your analysis options file.";
 
-  static const StrongModeCode INVALID_PARAMETER_DECLARATION = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_PARAMETER_DECLARATION',
-      "Type check failed: '{0}' isn't of type '{1}'.");
-
   static const StrongModeCode COULD_NOT_INFER = StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
       'COULD_NOT_INFER',

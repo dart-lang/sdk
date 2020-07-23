@@ -422,7 +422,7 @@ class A {
 
   A.c2(this.x, this.y);
 
-  A.c3(/*error:INVALID_PARAMETER_DECLARATION*/num this.x, String this.y);
+  A.c3(/*error:FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE*/num this.x, String this.y);
 }
 
 class B extends A {

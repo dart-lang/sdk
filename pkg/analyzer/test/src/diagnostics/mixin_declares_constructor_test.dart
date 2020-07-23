@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -24,6 +25,8 @@ mixin M {
 }
 ''', [
       error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
+      // TODO(srawlins): Don't report this from within a mixin.
+      error(StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, 29, 6),
     ]);
 
     var element = findElement.mixin('M');

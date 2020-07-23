@@ -17,8 +17,6 @@ class A {
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
   const A.a4(String this.x);
   //         ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_PARAMETER_DECLARATION
-  //         ^^^^^^^^^^^^^
   // [analyzer] STATIC_WARNING.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE
   //                     ^
   // [cfe] The type of parameter 'x', 'String' is not a subtype of the corresponding field's type, 'int'.

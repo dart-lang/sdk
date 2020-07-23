@@ -353,23 +353,6 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   @override
-  void visitFieldFormalParameter(FieldFormalParameter node) {
-    var element = node.declaredElement;
-    var typeName = node.type;
-    if (typeName != null) {
-      var type = _elementType(element);
-      var fieldElement =
-          node.identifier.staticElement as FieldFormalParameterElement;
-      var fieldType = _elementType(fieldElement.field);
-      if (!rules.isSubtypeOf2(type, fieldType)) {
-        _recordMessage(node, StrongModeCode.INVALID_PARAMETER_DECLARATION,
-            [node, fieldType]);
-      }
-    }
-    node.visitChildren(this);
-  }
-
-  @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     _visitForEachParts(node, node.loopVariable?.identifier);
     node.visitChildren(this);
