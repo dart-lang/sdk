@@ -9,21 +9,30 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MultipleSuperInitializersTest);
+    defineReflectiveTests(InvalidSuperInvocationTest);
   });
 }
 
 @reflectiveTest
-class MultipleSuperInitializersTest extends DriverResolutionTest {
-  test_twoSuperInitializers() async {
+class InvalidSuperInvocationTest extends DriverResolutionTest {
+  test_superBeforeAssert() async {
     await assertErrorsInCode(r'''
-class A {}
-class B extends A {
-  B() : super(), super() {}
+class A {
+  A(int x) : super(), assert(x != null);
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 39, 7),
-      error(CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS, 48, 7),
+      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 23, 7),
+    ]);
+  }
+
+  test_superBeforeAssignment() async {
+    await assertErrorsInCode(r'''
+class A {
+  final int x;
+  A() : super(), x = 1;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 33, 7),
     ]);
   }
 }

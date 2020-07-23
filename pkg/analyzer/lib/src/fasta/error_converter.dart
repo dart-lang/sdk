@@ -197,7 +197,7 @@ class FastaErrorReporter {
         return;
       case "INVALID_SUPER_INVOCATION":
         errorReporter?.reportErrorForOffset(
-            StrongModeCode.INVALID_SUPER_INVOCATION, offset, length);
+            CompileTimeErrorCode.INVALID_SUPER_INVOCATION, offset, length);
         return;
       case "MISSING_DIGIT":
         errorReporter?.reportErrorForOffset(

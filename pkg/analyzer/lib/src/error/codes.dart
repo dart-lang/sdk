@@ -3773,6 +3773,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Invalid reference to 'this' expression.",
           hasPublishedDocs: true);
 
+  static const CompileTimeErrorCode INVALID_SUPER_INVOCATION =
+      CompileTimeErrorCode('INVALID_SUPER_INVOCATION',
+          "The super call must be last in an initializer list: '{0}'.");
+
   /**
    * 12.6 Lists: It is a compile time error if the type argument of a constant
    * list literal includes a type parameter.
@@ -10786,12 +10790,6 @@ class StrongModeCode extends ErrorCode {
       ErrorType.COMPILE_TIME_ERROR,
       'COULD_NOT_INFER',
       "Couldn't infer type parameter '{0}'.{1}");
-
-  static const StrongModeCode INVALID_SUPER_INVOCATION = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_SUPER_INVOCATION',
-      "The super call must be last in an initializer "
-          "list (see https://goo.gl/EY6hDP): '{0}'.");
 
   static const StrongModeCode IMPLICIT_DYNAMIC_PARAMETER = StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,

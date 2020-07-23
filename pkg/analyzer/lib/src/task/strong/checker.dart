@@ -307,7 +307,12 @@ class CodeChecker extends RecursiveAstVisitor {
     for (int i = 0, last = init.length - 1; i < last; i++) {
       final node = init[i];
       if (node is SuperConstructorInvocation) {
-        _recordMessage(node, StrongModeCode.INVALID_SUPER_INVOCATION, [node]);
+        // TODO(srawlins): Don't report this when
+        //  [CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR] or
+        //  [CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS] is reported for
+        //  this constructor.
+        _recordMessage(
+            node, CompileTimeErrorCode.INVALID_SUPER_INVOCATION, [node]);
       }
     }
   }
