@@ -25,17 +25,7 @@ Language/Reference/Operator_Precedence/precedence_12_Shift_t04: Skip # Triple sh
 Language/Reference/Operator_Precedence/precedence_t05: Skip # Triple shift is not implemented yet
 Language/Statements/Assert/*: Skip # Not migrated to NNBD
 Language/Statements/Expression_Statements/syntax_t06: Skip # Type aliases are not fully implemented
-Language/Types/Dynamic_Type_System/*: Skip # Not migrated to NNBD
-Language/Types/Function_Types/*: Skip # Not migrated to NNBD
-Language/Types/Interface_Types/*: Skip # Not migrated to NNBD
-Language/Types/Parameterized_Types/*: Skip # Not migrated to NNBD
-Language/Types/Parameterized_Types/Actual_Type_of_Declaration/*: Skip # Not migrated to NNBD
-Language/Types/Static_Types/*: Skip # Not migrated to NNBD
-Language/Types/Type_Aliases/*: Skip # Not migrated to NNBD
-Language/Types/Type_Void/*: Skip # Not migrated to NNBD
-Language/Types/Type_dynamic/*: Skip # Not migrated to NNBD
-Language/Variables/*: Skip # Not migrated to NNBD
-Language/Variables/Evaluation_of_Implicit_Variable_Getters/*: Skip # Not migrated to NNBD
+Language/Types/Type_Aliases/built-in_types_t11: Skip # Triple shift is not implemented yet
 LanguageFeatures/Constant-update-2018/*: Skip # Not migrated to NNBD
 LanguageFeatures/Control-flow-collections/*: Skip # Not migrated to NNBD
 LanguageFeatures/Extension-methods/*: Skip # Not migrated to NNBD
