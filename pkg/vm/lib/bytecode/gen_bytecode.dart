@@ -1488,7 +1488,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     for (int i = 0; i < typeArgs.length; ++i) {
       final typeArg = typeArgs[i];
       if (!(typeArg is TypeParameterType &&
-          typeArg.parameter == functionTypeParameters[i])) {
+          typeArg.parameter == functionTypeParameters[i] &&
+          (typeArg.nullability == Nullability.nonNullable ||
+              typeArg.nullability == Nullability.undetermined))) {
         return false;
       }
     }
