@@ -27,14 +27,14 @@ Set<int> a = {'a'};
   }
 
   test_context_noTypeArgs_expression_noConflict() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 Set<int> a = {1};
 ''');
     assertType(setLiteral('{'), 'Set<int>');
   }
 
   test_context_noTypeArgs_noElements() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 Set<String> a = {};
 ''');
     assertType(setLiteral('{'), 'Set<String>');
@@ -67,14 +67,14 @@ Set<String> a = <String>{0};
 
   @failingTest
   test_context_typeArgs_expression_conflictingTypeArgs() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 Set<String> a = <int>{'a'};
 ''');
     assertType(setLiteral('{'), 'Set<String>');
   }
 
   test_context_typeArgs_expression_noConflict() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 Set<String> a = <String>{'a'};
 ''');
     assertType(setLiteral('{'), 'Set<String>');
@@ -88,67 +88,67 @@ Set<String> a = <int>{};
   }
 
   test_context_typeArgs_noElements_noConflict() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 Set<String> a = <String>{};
 ''');
     assertType(setLiteral('{'), 'Set<String>');
   }
 
   test_noContext_noTypeArgs_expressions_lubOfInt() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = {1, 2, 3};
 ''');
     assertType(setLiteral('{'), 'Set<int>');
   }
 
   test_noContext_noTypeArgs_expressions_lubOfNum() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = {1, 2.3, 4};
 ''');
     assertType(setLiteral('{'), 'Set<num>');
   }
 
   test_noContext_noTypeArgs_expressions_lubOfObject() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = {1, '2', 3};
 ''');
     assertType(setLiteral('{'), 'Set<Object>');
   }
 
   test_noContext_noTypeArgs_forEachWithDeclaration() async {
-    await resolveTestCode('''
-List<int> c;
+    await assertNoErrorsInCode('''
+List<int> c = [];
 var a = {for (int e in c) e * 2};
 ''');
     assertType(setLiteral('{for'), 'Set<int>');
   }
 
   test_noContext_noTypeArgs_forEachWithIdentifier() async {
-    await resolveTestCode('''
-List<int> c;
-int b;
+    await assertNoErrorsInCode('''
+List<int> c = [];
+int b = 0;
 var a = {for (b in c) b * 2};
 ''');
     assertType(setLiteral('{for'), 'Set<int>');
   }
 
   test_noContext_noTypeArgs_forWithDeclaration() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = {for (var i = 0; i < 2; i++) i * 2};
 ''');
     assertType(setLiteral('{for'), 'Set<int>');
   }
 
   test_noContext_noTypeArgs_forWithExpression() async {
-    await resolveTestCode('''
-int i;
+    await assertNoErrorsInCode('''
+int i = 0;
 var a = {for (i = 0; i < 2; i++) i * 2};
 ''');
     assertType(setLiteral('{for'), 'Set<int>');
   }
 
   test_noContext_noTypeArgs_if() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 bool c = true;
 var a = {if (c) 1};
 ''');
@@ -156,7 +156,7 @@ var a = {if (c) 1};
   }
 
   test_noContext_noTypeArgs_ifElse_lubOfInt() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 bool c = true;
 var a = {if (c) 1 else 2};
 ''');
@@ -164,7 +164,7 @@ var a = {if (c) 1 else 2};
   }
 
   test_noContext_noTypeArgs_ifElse_lubOfNum() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 bool c = true;
 var a = {if (c) 1 else 2.3};
 ''');
@@ -172,7 +172,7 @@ var a = {if (c) 1 else 2.3};
   }
 
   test_noContext_noTypeArgs_ifElse_lubOfObject() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 bool c = true;
 var a = {if (c) 1 else '2'};
 ''');
@@ -180,26 +180,26 @@ var a = {if (c) 1 else '2'};
   }
 
   test_noContext_noTypeArgs_spread() async {
-    await resolveTestCode('''
-List<int> c;
+    await assertNoErrorsInCode('''
+List<int> c = [];
 var a = {...c};
 ''');
     assertType(setLiteral('{...'), 'Set<int>');
   }
 
   test_noContext_noTypeArgs_spread_lubOfInt() async {
-    await resolveTestCode('''
-List<int> c;
-List<int> b;
+    await assertNoErrorsInCode('''
+List<int> c = [];
+List<int> b = [];
 var a = {...b, ...c};
 ''');
     assertType(setLiteral('{...'), 'Set<int>');
   }
 
   test_noContext_noTypeArgs_spread_lubOfNum() async {
-    await resolveTestCode('''
-List<int> c;
-List<double> b;
+    await assertNoErrorsInCode('''
+List<int> c = [];
+List<double> b = [];
 var a = {...b, ...c};
 ''');
     assertType(setLiteral('{...'), 'Set<num>');
@@ -207,18 +207,19 @@ var a = {...b, ...c};
 
   test_noContext_noTypeArgs_spread_lubOfObject() async {
     await resolveTestCode('''
-List<int> c;
-List<String> b;
+List<int> c = [];
+List<String> b = [];
 var a = {...b, ...c};
 ''');
     assertType(setLiteral('{...'), 'Set<Object>');
   }
 
   test_noContext_noTypeArgs_spread_mixin() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 mixin S on Set<int> {}
-main() {
-  S s1;
+
+void f(S s1) {
+  // ignore:unused_local_variable
   var s2 = {...s1};
 }
 ''');
@@ -227,16 +228,16 @@ main() {
 
   test_noContext_noTypeArgs_spread_nestedInIf_oneAmbiguous() async {
     await resolveTestCode('''
-List<int> c;
+List<int> c = [];
 dynamic d;
 var a = {if (0 < 1) ...c else ...d};
 ''');
-    assertType(setLiteral('{'), 'Set<dynamic>');
+    assertType(setLiteral('{if'), 'Set<dynamic>');
   }
 
   @failingTest
   test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 f() {
   var futureNull = Future.value(null);
   var a = {1, ...?await futureNull, 2};
@@ -253,7 +254,7 @@ var a = <String>{1};
   }
 
   test_noContext_typeArgs_expression_noConflict() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = <int>{1};
 ''');
     assertType(setLiteral('{'), 'Set<int>');
@@ -261,14 +262,14 @@ var a = <int>{1};
 
   @failingTest
   test_noContext_typeArgs_expressions_conflict() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = <int, String>{1, 2};
 ''');
     assertType(setLiteral('{'), 'Set<int>');
   }
 
   test_noContext_typeArgs_noElements() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = <num>{};
 ''');
     assertType(setLiteral('{'), 'Set<num>');
@@ -280,14 +281,14 @@ class SetLiteralWithNnbdTest extends SetLiteralTest with WithNullSafetyMixin {
   AstNode setOrMapLiteral(String search) => findNode.setOrMapLiteral(search);
 
   test_context_noTypeArgs_noEntries() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 Set<String> a = {};
 ''');
     assertType(setOrMapLiteral('{'), 'Set<String>');
   }
 
   test_context_noTypeArgs_noEntries_typeParameterNullable() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class C<T extends Object?> {
   Set<T> a = {}; // 1
   Set<T>? b = {}; // 2

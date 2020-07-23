@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../driver_resolution.dart';
@@ -35,14 +34,14 @@ Map<int, int> a = {1 : 'a'};
   }
 
   test_context_noTypeArgs_entry_noConflict() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 Map<int, int> a = {1 : 2};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
 
   test_context_noTypeArgs_noEntries() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 Map<String, String> a = {};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<String, String>');
@@ -81,7 +80,7 @@ Map<String, String> a = <String, String>{'a' : 1};
   }
 
   test_context_typeArgs_entry_noConflict() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 Map<String, String> a = <String, String>{'a' : 'b'};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<String, String>');
@@ -95,14 +94,14 @@ Map<String, String> a = <int, int>{};
   }
 
   test_context_typeArgs_noEntries_noConflict() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 Map<String, String> a = <String, String>{};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<String, String>');
   }
 
   test_default_constructor_param_typed() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class C {
   const C({x = const <String, int>{}});
 }
@@ -110,7 +109,7 @@ class C {
   }
 
   test_default_constructor_param_untyped() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class C {
   const C({x = const {}});
 }
@@ -118,60 +117,60 @@ class C {
   }
 
   test_noContext_noTypeArgs_expressions_lubOfIntAndString() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = {1 : 'a', 2 : 'b', 3 : 'c'};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<int, String>');
   }
 
   test_noContext_noTypeArgs_expressions_lubOfNumAndNum() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = {1 : 2, 3.0 : 4, 5 : 6.0};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<num, num>');
   }
 
   test_noContext_noTypeArgs_expressions_lubOfObjectAndObject() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = {1 : '1', '2' : 2, 3 : '3'};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<Object, Object>');
   }
 
   test_noContext_noTypeArgs_forEachWithDeclaration() async {
-    await resolveTestCode('''
-List<int> c;
+    await assertNoErrorsInCode('''
+List<int> c = [];
 var a = {for (int e in c) e : e * 2};
 ''');
     assertType(setOrMapLiteral('{for'), 'Map<int, int>');
   }
 
   test_noContext_noTypeArgs_forEachWithIdentifier() async {
-    await resolveTestCode('''
-List<int> c;
-int b;
+    await assertNoErrorsInCode('''
+List<int> c = [];
+int b = 0;
 var a = {for (b in c) b * 2 : b};
 ''');
     assertType(setOrMapLiteral('{for'), 'Map<int, int>');
   }
 
   test_noContext_noTypeArgs_forWithDeclaration() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = {for (var i = 0; i < 2; i++) i : i * 2};
 ''');
     assertType(setOrMapLiteral('{for'), 'Map<int, int>');
   }
 
   test_noContext_noTypeArgs_forWithExpression() async {
-    await resolveTestCode('''
-int i;
+    await assertNoErrorsInCode('''
+int i = 0;
 var a = {for (i = 0; i < 2; i++) i * 2 : i};
 ''');
     assertType(setOrMapLiteral('{for'), 'Map<int, int>');
   }
 
   test_noContext_noTypeArgs_if() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 bool c = true;
 var a = {if (c) 1 : 2};
 ''');
@@ -179,7 +178,7 @@ var a = {if (c) 1 : 2};
   }
 
   test_noContext_noTypeArgs_ifElse_lubOfIntAndInt() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 bool c = true;
 var a = {if (c) 1 : 3 else 2 : 4};
 ''');
@@ -187,7 +186,7 @@ var a = {if (c) 1 : 3 else 2 : 4};
   }
 
   test_noContext_noTypeArgs_ifElse_lubOfNumAndNum() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 bool c = true;
 var a = {if (c) 1.0 : 3 else 2 : 4.0};
 ''');
@@ -195,7 +194,7 @@ var a = {if (c) 1.0 : 3 else 2 : 4.0};
   }
 
   test_noContext_noTypeArgs_ifElse_lubOfObjectAndObject() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 bool c = true;
 var a = {if (c) 1 : '1' else '2': 2 };
 ''');
@@ -203,22 +202,22 @@ var a = {if (c) 1 : '1' else '2': 2 };
   }
 
   test_noContext_noTypeArgs_noEntries() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = {};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<dynamic, dynamic>');
   }
 
   test_noContext_noTypeArgs_spread() async {
-    await resolveTestCode('''
-Map<int, int> c;
+    await assertNoErrorsInCode('''
+Map<int, int> c = {};
 var a = {...c};
 ''');
     assertType(setOrMapLiteral('{...'), 'Map<int, int>');
   }
 
   test_noContext_noTypeArgs_spread_dynamic() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var c = {};
 var a = {...c};
 ''');
@@ -226,37 +225,38 @@ var a = {...c};
   }
 
   test_noContext_noTypeArgs_spread_lubOfIntAndInt() async {
-    await resolveTestCode('''
-Map<int, int> c;
-Map<int, int> b;
+    await assertNoErrorsInCode('''
+Map<int, int> c = {};
+Map<int, int> b = {};
 var a = {...b, ...c};
 ''');
     assertType(setOrMapLiteral('{...'), 'Map<int, int>');
   }
 
   test_noContext_noTypeArgs_spread_lubOfNumAndNum() async {
-    await resolveTestCode('''
-Map<int, double> c;
-Map<double, int> b;
+    await assertNoErrorsInCode('''
+Map<int, double> c = {};
+Map<double, int> b = {};
 var a = {...b, ...c};
 ''');
     assertType(setOrMapLiteral('{...'), 'Map<num, num>');
   }
 
   test_noContext_noTypeArgs_spread_lubOfObjectObject() async {
-    await resolveTestCode('''
-Map<int, int> c;
-Map<String, String> b;
+    await assertNoErrorsInCode('''
+Map<int, int> c = {};
+Map<String, String> b = {};
 var a = {...b, ...c};
 ''');
     assertType(setOrMapLiteral('{...'), 'Map<Object, Object>');
   }
 
   test_noContext_noTypeArgs_spread_mixin() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 mixin M on Map<String, int> {}
-main() {
-  M m1;
+
+main(M m1) {
+  // ignore:unused_local_variable
   var m2 = {...m1};
 }
 ''');
@@ -264,12 +264,12 @@ main() {
   }
 
   test_noContext_noTypeArgs_spread_nestedInIf_oneAmbiguous() async {
-    await resolveTestCode('''
-Map<String, int> c;
+    await assertNoErrorsInCode('''
+Map<String, int> c = {};
 dynamic d;
 var a = {if (0 < 1) ...c else ...d};
 ''');
-    assertType(setOrMapLiteral('{'), 'Map<dynamic, dynamic>');
+    assertType(setOrMapLiteral('{if'), 'Map<dynamic, dynamic>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull_map() async {
@@ -307,15 +307,13 @@ f() async {
   }
 
   test_noContext_noTypeArgs_spread_nullAware_onlyNull() async {
-    await assertErrorsInCode('''
+    await resolveTestCode('''
 f() async {
   var futureNull = Future.value(null);
   var a = {...?await futureNull};
   a;
 }
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 61, 22),
-    ]);
+''');
     assertType(setOrMapLiteral('{...'), 'dynamic');
   }
 
@@ -334,7 +332,7 @@ var a = <String, int>{'a' : 'b'};
   }
 
   test_noContext_typeArgs_entry_noConflict() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = <int, int>{1 : 2};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<int, int>');
@@ -349,14 +347,14 @@ var a = <int, String>{1};
 
   @failingTest
   test_noContext_typeArgs_expressions_conflictingTypeArgs() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = <int>{1 : 2, 3 : 4};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
 
   test_noContext_typeArgs_noEntries() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = <num, String>{};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<num, String>');
@@ -366,7 +364,7 @@ var a = <num, String>{};
 @reflectiveTest
 class MapLiteralWithNnbdTest extends MapLiteralTest with WithNullSafetyMixin {
   test_context_noTypeArgs_noEntries_typeParameterNullable() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class C<T extends Object?> {
   Map<String, T> a = {}; // 1
   Map<String, T>? b = {}; // 2

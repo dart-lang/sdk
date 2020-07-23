@@ -24,14 +24,14 @@ List<int> a = ['a'];
   }
 
   test_context_noTypeArgs_expression_noConflict() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 List<int> a = [1];
 ''');
     assertType(findNode.listLiteral('['), 'List<int>');
   }
 
   test_context_noTypeArgs_noElements() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 List<String> a = [];
 ''');
     assertType(findNode.listLiteral('['), 'List<String>');
@@ -73,14 +73,14 @@ List<String> a = <String>[0];
   test_context_typeArgs_expression_conflictingTypeArgs() async {
     // Context type and element types both suggest `String`, so this should
     // override the explicit type argument.
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 List<String> a = <int>['a'];
 ''');
     assertType(findNode.listLiteral('['), 'List<String>');
   }
 
   test_context_typeArgs_expression_noConflict() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 List<String> a = <String>['a'];
 ''');
     assertType(findNode.listLiteral('['), 'List<String>');
@@ -94,28 +94,28 @@ List<String> a = <int>[];
   }
 
   test_context_typeArgs_noElements_noConflict() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 List<String> a = <String>[];
 ''');
     assertType(findNode.listLiteral('['), 'List<String>');
   }
 
   test_noContext_noTypeArgs_expressions_lubOfInt() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = [1, 2, 3];
 ''');
     assertType(findNode.listLiteral('['), 'List<int>');
   }
 
   test_noContext_noTypeArgs_expressions_lubOfNum() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = [1, 2.3, 4];
 ''');
     assertType(findNode.listLiteral('['), 'List<num>');
   }
 
   test_noContext_noTypeArgs_expressions_lubOfObject() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = [1, '2', 3];
 ''');
     assertType(findNode.listLiteral('['), 'List<Object>');
@@ -136,39 +136,39 @@ var a = [0, x, 2];
   }
 
   test_noContext_noTypeArgs_forEachWithDeclaration() async {
-    await resolveTestCode('''
-List<int> c;
+    await assertNoErrorsInCode('''
+List<int> c = [];
 var a = [for (int e in c) e * 2];
 ''');
     assertType(findNode.listLiteral('[for'), 'List<int>');
   }
 
   test_noContext_noTypeArgs_forEachWithIdentifier() async {
-    await resolveTestCode('''
-List<int> c;
-int b;
+    await assertNoErrorsInCode('''
+List<int> c = [];
+int b = 0;
 var a = [for (b in c) b * 2];
 ''');
     assertType(findNode.listLiteral('[for'), 'List<int>');
   }
 
   test_noContext_noTypeArgs_forWithDeclaration() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = [for (var i = 0; i < 2; i++) i * 2];
 ''');
     assertType(findNode.listLiteral('[for'), 'List<int>');
   }
 
   test_noContext_noTypeArgs_forWithExpression() async {
-    await resolveTestCode('''
-int i;
+    await assertNoErrorsInCode('''
+int i = 0;
 var a = [for (i = 0; i < 2; i++) i * 2];
 ''');
     assertType(findNode.listLiteral('[for'), 'List<int>');
   }
 
   test_noContext_noTypeArgs_if() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 bool c = true;
 var a = [if (c) 1];
 ''');
@@ -176,7 +176,7 @@ var a = [if (c) 1];
   }
 
   test_noContext_noTypeArgs_ifElse_lubOfInt() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 bool c = true;
 var a = [if (c) 1 else 2];
 ''');
@@ -184,7 +184,7 @@ var a = [if (c) 1 else 2];
   }
 
   test_noContext_noTypeArgs_ifElse_lubOfNum() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 bool c = true;
 var a = [if (c) 1 else 2.3];
 ''');
@@ -192,7 +192,7 @@ var a = [if (c) 1 else 2.3];
   }
 
   test_noContext_noTypeArgs_ifElse_lubOfObject() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 bool c = true;
 var a = [if (c) 1 else '2'];
 ''');
@@ -200,52 +200,53 @@ var a = [if (c) 1 else '2'];
   }
 
   test_noContext_noTypeArgs_noElements() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = [];
 ''');
     assertType(findNode.listLiteral('['), 'List<dynamic>');
   }
 
   test_noContext_noTypeArgs_spread() async {
-    await resolveTestCode('''
-List<int> c;
+    await assertNoErrorsInCode('''
+List<int> c = [];
 var a = [...c];
 ''');
     assertType(findNode.listLiteral('[...'), 'List<int>');
   }
 
   test_noContext_noTypeArgs_spread_lubOfInt() async {
-    await resolveTestCode('''
-List<int> c;
-List<int> b;
+    await assertNoErrorsInCode('''
+List<int> c = [];
+List<int> b = [];
 var a = [...b, ...c];
 ''');
     assertType(findNode.listLiteral('[...'), 'List<int>');
   }
 
   test_noContext_noTypeArgs_spread_lubOfNum() async {
-    await resolveTestCode('''
-List<int> c;
-List<double> b;
+    await assertNoErrorsInCode('''
+List<int> c = [];
+List<double> b = [];
 var a = [...b, ...c];
 ''');
     assertType(findNode.listLiteral('[...'), 'List<num>');
   }
 
   test_noContext_noTypeArgs_spread_lubOfObject() async {
-    await resolveTestCode('''
-List<int> c;
-List<String> b;
+    await assertNoErrorsInCode('''
+List<int> c = [];
+List<String> b = [];
 var a = [...b, ...c];
 ''');
     assertType(findNode.listLiteral('[...'), 'List<Object>');
   }
 
   test_noContext_noTypeArgs_spread_mixin() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 mixin L on List<int> {}
-main() {
-  L l1;
+
+main(L l1) {
+  // ignore:unused_local_variable
   var l2 = [...l1];
 }
 ''');
@@ -254,17 +255,18 @@ main() {
 
   test_noContext_noTypeArgs_spread_nestedInIf_oneAmbiguous() async {
     await resolveTestCode('''
-List<int> c;
+List<int> c = [];
 dynamic d;
 var a = [if (0 < 1) ...c else ...d];
 ''');
-    assertType(findNode.listLiteral('['), 'List<dynamic>');
+    assertType(findNode.listLiteral('[if'), 'List<dynamic>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 f() async {
   var futureNull = Future.value(null);
+  // ignore:unused_local_variable
   var a = [1, ...?await futureNull, 2];
 }
 ''');
@@ -278,9 +280,10 @@ f() async {
   }
 
   test_noContext_noTypeArgs_spread_nullAware_onlyNull() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 f() async {
   var futureNull = Future.value(null);
+  // ignore:unused_local_variable
   var a = [...?await futureNull];
 }
 ''');
@@ -295,7 +298,7 @@ var a = <String>[1];
   }
 
   test_noContext_typeArgs_expression_noConflict() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = <int>[1];
 ''');
     assertType(findNode.listLiteral('['), 'List<int>');
@@ -303,14 +306,14 @@ var a = <int>[1];
 
   @failingTest
   test_noContext_typeArgs_expressions_conflict() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = <int, String>[1, 2];
 ''');
     assertType(findNode.listLiteral('['), 'List<int>');
   }
 
   test_noContext_typeArgs_noElements() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 var a = <num>[];
 ''');
     assertType(findNode.listLiteral('['), 'List<num>');
