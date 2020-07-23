@@ -712,7 +712,7 @@ class LibraryAnalyzer {
         featureSet: unit.featureSet, flowAnalysisHelper: flowAnalysisHelper);
 
     if (completionOffset != null) {
-      var node = NodeLocator2(completionOffset).searchWithin(unit);
+      var node = NodeLocator(completionOffset).searchWithin(unit);
       var enclosingExecutable = node?.thisOrAncestorMatching((e) {
         return e.parent is ClassDeclaration || e.parent is CompilationUnit;
       });

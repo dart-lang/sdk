@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
@@ -56,6 +57,7 @@ class CiderCompletionComputer {
     @required String path,
     @required int line,
     @required int column,
+    @visibleForTesting void Function(ResolvedUnitResult) testResolvedUnit,
   }) async {
     return _performanceRoot.runAsync('completion', (performance) async {
       var resolvedUnit = performance.run('resolution', (performance) {
@@ -66,6 +68,10 @@ class CiderCompletionComputer {
           performance: performance,
         );
       });
+
+      if (testResolvedUnit != null) {
+        testResolvedUnit(resolvedUnit);
+      }
 
       var lineInfo = resolvedUnit.lineInfo;
       var offset = lineInfo.getOffsetOfLine(line) + column;
