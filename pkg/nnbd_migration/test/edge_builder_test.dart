@@ -6812,6 +6812,29 @@ int g() => 1;
     // No assertions; just checking that it doesn't crash.
   }
 
+  Future<void> test_return_from_async_futureOr_to_future() async {
+    await analyze('''
+import 'dart:async';
+Future<Object> f(FutureOr<int> x) async => x;
+''');
+    var lubNodeMatcher = anyNode;
+    assertEdge(lubNodeMatcher, decoratedTypeAnnotation('Object').node,
+        hard: false, checkable: false);
+    var lubNode = lubNodeMatcher.matchingNode as NullabilityNodeForLUB;
+    expect(lubNode.left, same(decoratedTypeAnnotation('int> x').node));
+    expect(lubNode.right, same(decoratedTypeAnnotation('FutureOr<int>').node));
+  }
+
+  Future<void> test_return_from_async_list_to_future() async {
+    await analyze('''
+import 'dart:async';
+Future<Object> f(List<int> x) async => x;
+''');
+    assertEdge(decoratedTypeAnnotation('List<int>').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: false, checkable: false);
+  }
+
   Future<void> test_return_from_async_null() async {
     await analyze('''
 Future<int> f() async {

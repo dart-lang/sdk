@@ -5583,6 +5583,20 @@ test() => C.one();
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_return_future_or_null_from_async_method() async {
+    var content = '''
+import 'dart:async';
+Future<Null> f() async => g();
+FutureOr<Null> g() => null;
+''';
+    var expected = '''
+import 'dart:async';
+Future<Null> f() async => g();
+FutureOr<Null> g() => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_setter_overrides_implicit_setter() async {
     var content = '''
 class A {
