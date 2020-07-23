@@ -7,7 +7,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-class MyWidget with DiagnosticableMixin {
+class MyWidget with Diagnosticable {
   Widget p0; //Skipped
   List<Widget> p00; //Skipped
   Widget get p000 => null; //Skipped
@@ -41,6 +41,6 @@ class MyWidget with DiagnosticableMixin {
   }
 }
 
-class MyWidget2 with DiagnosticableMixin {
+class MyWidget2 with Diagnosticable {
   bool property; //LINT
 }
