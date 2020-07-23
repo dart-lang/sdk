@@ -70,7 +70,7 @@ class _Directory extends FileSystemEntity implements Directory {
     if (result is ArgumentError) throw result;
     if (result is OSError) {
       throw new FileSystemException(
-          "Setting current working directory failed", path, result);
+          "Setting current working directory failed", path.toString(), result);
     }
   }
 

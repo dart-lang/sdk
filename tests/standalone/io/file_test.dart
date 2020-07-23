@@ -1602,6 +1602,53 @@ class FileTest {
     }
   }
 
+  static void testAbsolute() {
+    var currentDirectory = Directory.current;
+    Directory.current = tempDirectory;
+    var file = File("temp.txt");
+    Expect.isFalse(file.isAbsolute);
+    file.writeAsStringSync("content");
+
+    var absFile = file.absolute;
+    Expect.isTrue(absFile.isAbsolute);
+    Expect.isTrue(absFile.path.startsWith(tempDirectory.path));
+
+    Expect.equals("content", absFile.readAsStringSync());
+
+    if (Platform.isWindows &&
+        tempDirectory.path.startsWith(RegExp(r"^[a-zA-Z]:"))) {
+      var driveRelativeFile = File(absFile.path.substring(2));
+      Expect.isFalse(driveRelativeFile.isAbsolute);
+      Expect.equals("content", driveRelativeFile.readAsStringSync());
+
+      var absFile3 = driveRelativeFile.absolute;
+      Expect.isTrue(absFile3.isAbsolute);
+      Expect.equals(absFile.path, absFile3.path);
+      Expect.equals("content", absFile3.readAsStringSync());
+
+      // Convert CWD from X:\path to \\localhost\X$\path.
+      var uncPath = r"\\localhost\" +
+          tempDirectory.path[0] +
+          r"$" +
+          tempDirectory.path.substring(2);
+      Directory.current = uncPath;
+      Expect.equals("content", file.readAsStringSync());
+
+      var absFile4 = file.absolute;
+      Expect.isTrue(absFile4.isAbsolute);
+      Expect.equals("content", absFile4.readAsStringSync());
+
+      Expect.equals("content", driveRelativeFile.readAsStringSync());
+
+      var absFile5 = driveRelativeFile.absolute;
+      Expect.isTrue(absFile5.isAbsolute);
+      Expect.isTrue(absFile5.path.startsWith(uncPath));
+      Expect.equals("content", absFile5.readAsStringSync());
+    }
+    file.deleteSync();
+    Directory.current = currentDirectory;
+  }
+
   static String getFilename(String path) {
     return Platform.script.resolve(path).toFilePath();
   }
@@ -1677,6 +1724,7 @@ class FileTest {
       testSetLastAccessedSync();
       testSetLastAccessedSyncDirectory();
       testDoubleAsyncOperation();
+      testAbsolute();
       asyncEnd();
     });
   }

@@ -796,13 +796,18 @@ bool File::SetLastModified(Namespace* namespc,
   return _wutime64(system_name.wide(), &times) == 0;
 }
 
+// Keep this function synchronized with the behavior
+// of `FileSystemEntity.isAbsolute` in file_system_entity.dart.
 bool File::IsAbsolutePath(const char* pathname) {
-  // Should we consider network paths?
-  if (pathname == NULL) {
-    return false;
-  }
-  return ((strlen(pathname) > 2) && (pathname[1] == ':') &&
-          ((pathname[2] == '\\') || (pathname[2] == '/')));
+  if (pathname == NULL) return false;
+  char first = pathname[0];
+  if (pathname == 0) return false;
+  char second = pathname[1];
+  if (first == '\\' && second == '\\') return true;
+  if (second != ':') return false;
+  first |= 0x20;
+  char third = pathname[2];
+  return (first >= 'a') && (first <= 'z') && (third == '\\' || third == '/');
 }
 
 const char* File::GetCanonicalPath(Namespace* namespc,
