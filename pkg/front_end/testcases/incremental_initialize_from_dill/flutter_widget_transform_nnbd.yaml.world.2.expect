@@ -47,8 +47,14 @@ library from "org-dartlang-test:///main.dart" as main {
 
   import "org-dartlang-test:///foo.dart";
 
-  static field foo::Foo foo = invalid-expression "Constant evaluation has no support for NullCheck!";
+  static field foo::Foo foo = #C7;
 }
 constants  {
   #C1 = null
+  #C2 = "org-dartlang-test:///main.dart"
+  #C3 = 3.0
+  #C4 = 17.0
+  #C5 = <wid::_Location*>[]
+  #C6 = wid::_Location {file:#C2, line:#C3, column:#C4, name:#C1, parameterLocations:#C5}
+  #C7 = foo::Foo {_location:#C6}
 }

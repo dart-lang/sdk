@@ -42,6 +42,7 @@ import '../fasta_codes.dart'
         messageConstEvalFailedAssertion,
         messageConstEvalNotListOrSetInSpread,
         messageConstEvalNotMapInSpread,
+        messageConstEvalNonNull,
         messageConstEvalNullValue,
         messageConstEvalStartingPoint,
         messageConstEvalUnevaluated,
@@ -2236,6 +2237,18 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
             typeEnvironment.coreTypes.boolLegacyRawType,
             constant.getType(_staticTypeContext),
             isNonNullableByDefault));
+  }
+
+  @override
+  Constant visitNullCheck(NullCheck node) {
+    final Constant constant = _evaluateSubexpression(node.operand);
+    if (constant is NullConstant) {
+      return report(node, messageConstEvalNonNull);
+    }
+    if (shouldBeUnevaluated) {
+      return unevaluated(node, new NullCheck(extract(constant)));
+    }
+    return constant;
   }
 
   @override

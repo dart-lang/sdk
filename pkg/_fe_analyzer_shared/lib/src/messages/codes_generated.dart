@@ -1309,6 +1309,14 @@ Message _withArgumentsConstEvalNonConstantVariableGet(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalNonNull = messageConstEvalNonNull;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalNonNull = const MessageCode(
+    "ConstEvalNonNull",
+    message: r"""Constant expression must be non-null.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalNotListOrSetInSpread =
     messageConstEvalNotListOrSetInSpread;
 

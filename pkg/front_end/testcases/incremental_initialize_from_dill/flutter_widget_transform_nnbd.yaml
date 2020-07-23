@@ -64,8 +64,7 @@ worlds:
             {
               "name": "flutter",
               "rootUri": "../flutter",
-              "packageUri": "lib/",
-              "languageVersion": "2.9"
+              "packageUri": "lib/"
             }
           ]
         }
