@@ -502,7 +502,6 @@ Future<T> runProtectedFromAbort<T>(Future<T> Function() action,
     // treat this as a crash which is signalled by exiting with 255.
     exit(255);
   }
-  return failingValue;
 }
 
 abstract class ValueSpecification {

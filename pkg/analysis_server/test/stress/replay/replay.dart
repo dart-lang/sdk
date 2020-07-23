@@ -129,7 +129,6 @@ class Driver {
       server.printStatistics();
     }
     exit(0);
-    return null;
   }
 
   /// Create and return a parser that can be used to parse the command-line
