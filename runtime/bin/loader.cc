@@ -145,9 +145,7 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   return Dart_Null();
 }
 #else
-static void MallocFinalizer(void* isolate_callback_data,
-                            Dart_WeakPersistentHandle handle,
-                            void* peer) {
+static void MallocFinalizer(void* isolate_callback_data, void* peer) {
   free(peer);
 }
 
@@ -185,8 +183,8 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     }
     result = Dart_NewExternalTypedData(Dart_TypedData_kUint8, kernel_buffer,
                                        kernel_buffer_size);
-    Dart_NewWeakPersistentHandle(result, kernel_buffer, kernel_buffer_size,
-                                 MallocFinalizer);
+    Dart_NewFinalizableHandle(result, kernel_buffer, kernel_buffer_size,
+                              MallocFinalizer);
     return result;
   }
   if (tag == Dart_kImportExtensionTag) {

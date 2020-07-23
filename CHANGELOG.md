@@ -1,3 +1,10 @@
+## 2.10.0
+
+### Dart VM
+
+*   Introduces `Dart_FinalizableHandle`s. They do auto-delete, and the weakly
+    referred object cannot be accessed through them.
+
 ## 2.9.0
 
 ### Language
@@ -134,7 +141,7 @@ Updated the Linter to `0.1.117`, which includes:
 * Preserve Windows line endings in `pubspec.lock` if they are already there
   ([#2489](https://github.com/dart-lang/pub/pull/2489)).
 * Better terminal color-detection. Use colors in terminals on Windows.
-* Fix git folder names in cache, allowing for ssh-style git 
+* Fix git folder names in cache, allowing for ssh-style git
   dependencies.
 * Fix: Avoid precompilation of dependencies of global packages.
 

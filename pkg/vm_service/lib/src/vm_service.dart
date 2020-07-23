@@ -5430,10 +5430,11 @@ class MemoryUsage extends Response {
 
   /// The amount of non-Dart memory that is retained by Dart objects. For
   /// example, memory associated with Dart objects through APIs such as
-  /// Dart_NewWeakPersistentHandle and Dart_NewExternalTypedData.  This usage is
-  /// only as accurate as the values supplied to these APIs from the VM embedder
-  /// or native extensions. This external memory applies GC pressure, but is
-  /// separate from heapUsage and heapCapacity.
+  /// Dart_NewFinalizableHandle, Dart_NewWeakPersistentHandle and
+  /// Dart_NewExternalTypedData.  This usage is only as accurate as the values
+  /// supplied to these APIs from the VM embedder or native extensions. This
+  /// external memory applies GC pressure, but is separate from heapUsage and
+  /// heapCapacity.
   int externalUsage;
 
   /// The total capacity of the heap in bytes. This is the amount of memory used

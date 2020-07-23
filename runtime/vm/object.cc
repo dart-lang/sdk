@@ -22421,7 +22421,8 @@ static FinalizablePersistentHandle* AddFinalizer(
     intptr_t external_size) {
   ASSERT(callback != NULL);
   return FinalizablePersistentHandle::New(Isolate::Current(), referent, peer,
-                                          callback, external_size);
+                                          callback, external_size,
+                                          /*auto_delete=*/true);
 }
 
 StringPtr String::Transform(int32_t (*mapping)(int32_t ch),
@@ -24052,7 +24053,6 @@ const char* SendPort::ToCString() const {
 }
 
 static void TransferableTypedDataFinalizer(void* isolate_callback_data,
-                                           Dart_WeakPersistentHandle handle,
                                            void* peer) {
   delete (reinterpret_cast<TransferableTypedDataPeer*>(peer));
 }
@@ -24075,8 +24075,8 @@ TransferableTypedDataPtr TransferableTypedData::New(uint8_t* data,
   // Set up finalizer so it frees allocated memory if handle is
   // garbage-collected.
   peer->set_handle(FinalizablePersistentHandle::New(
-      thread->isolate(), result, peer, &TransferableTypedDataFinalizer,
-      length));
+      thread->isolate(), result, peer, &TransferableTypedDataFinalizer, length,
+      /*auto_delete=*/true));
 
   return result.raw();
 }

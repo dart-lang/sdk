@@ -190,12 +190,29 @@ class PersistentHandle {
 // dart API.
 class FinalizablePersistentHandle {
  public:
+  // TODO(http://dartbug.com/42312): Delete this on migrating signature
+  // Dart_NewWeakPersistentHandle to Dart_HandleFinalizer.
+  enum class CallbackSignature {
+    // Uses a Dart_WeakPersistentHandleFinalizer.
+    kWeakPersistentHandleFinalizer = 0,
+    // Uses a Dart_HandleFinalizer.
+    kHandleFinalizer = 1,
+  };
+
   static FinalizablePersistentHandle* New(
       Isolate* isolate,
       const Object& object,
       void* peer,
       Dart_WeakPersistentHandleFinalizer callback,
-      intptr_t external_size);
+      intptr_t external_size,
+      bool auto_delete);
+
+  static FinalizablePersistentHandle* New(Isolate* isolate,
+                                          const Object& object,
+                                          void* peer,
+                                          Dart_HandleFinalizer callback,
+                                          intptr_t external_size,
+                                          bool auto_delete);
 
   // Accessors.
   ObjectPtr raw() const { return raw_; }
@@ -204,10 +221,26 @@ class FinalizablePersistentHandle {
     return OFFSET_OF(FinalizablePersistentHandle, raw_);
   }
   void* peer() const { return peer_; }
-  Dart_WeakPersistentHandleFinalizer callback() const { return callback_; }
-  Dart_WeakPersistentHandle apiHandle() {
+  Dart_WeakPersistentHandleFinalizer CallbackWeakFinalizer() const {
+    ASSERT(callback_signature_ ==
+           CallbackSignature::kWeakPersistentHandleFinalizer);
+    return callback_.weak_persistent;
+  }
+  Dart_HandleFinalizer callback() const {
+    ASSERT(callback_signature_ == CallbackSignature::kHandleFinalizer);
+    return callback_.finalizable;
+  }
+  uword callback_address() const {
+    return reinterpret_cast<uword>(callback_.finalizable);
+  }
+  Dart_WeakPersistentHandle ApiWeakPersistentHandle() {
     return reinterpret_cast<Dart_WeakPersistentHandle>(this);
   }
+  Dart_FinalizableHandle ApiFinalizableHandle() {
+    return reinterpret_cast<Dart_FinalizableHandle>(this);
+  }
+
+  bool auto_delete() const { return auto_delete_; }
 
   intptr_t external_size() const {
     return ExternalSizeInWordsBits::decode(external_data_) * kWordSize;
@@ -256,12 +289,22 @@ class FinalizablePersistentHandle {
   }
 
   static FinalizablePersistentHandle* Cast(Dart_WeakPersistentHandle handle);
+  static FinalizablePersistentHandle* Cast(Dart_FinalizableHandle handle);
 
  private:
   enum {
     kExternalNewSpaceBit = 0,
     kExternalSizeBits = 1,
     kExternalSizeBitsSize = (kBitsPerWord - 1),
+  };
+
+  union HandleFinalizer {
+    Dart_HandleFinalizer finalizable;
+    Dart_WeakPersistentHandleFinalizer weak_persistent;
+    HandleFinalizer(Dart_HandleFinalizer finalizer) : finalizable(finalizer) {}
+    HandleFinalizer(Dart_WeakPersistentHandleFinalizer finalizer)
+        : weak_persistent(finalizer) {}
+    HandleFinalizer() : finalizable(nullptr) {}
   };
 
   // This part of external_data_ is the number of externally allocated bytes.
@@ -277,7 +320,10 @@ class FinalizablePersistentHandle {
   friend class FinalizablePersistentHandles;
 
   FinalizablePersistentHandle()
-      : raw_(nullptr), peer_(NULL), external_data_(0), callback_(NULL) {}
+      : raw_(nullptr),
+        peer_(NULL),
+        external_data_(0),
+        callback_(HandleFinalizer()) {}
   ~FinalizablePersistentHandle() {}
 
   static void Finalize(IsolateGroup* isolate_group,
@@ -293,6 +339,7 @@ class FinalizablePersistentHandle {
     raw_ = static_cast<ObjectPtr>(reinterpret_cast<uword>(free_list));
     ASSERT(!raw_->IsHeapObject());
   }
+
   void FreeHandle(FinalizablePersistentHandle* free_list) {
     Clear();
     SetNext(free_list);
@@ -302,7 +349,9 @@ class FinalizablePersistentHandle {
     raw_ = Object::null();
     peer_ = NULL;
     external_data_ = 0;
-    callback_ = NULL;
+    callback_ = HandleFinalizer();
+    auto_delete_ = false;
+    callback_signature_ = CallbackSignature::kWeakPersistentHandleFinalizer;
   }
 
   void set_raw(ObjectPtr raw) { raw_ = raw; }
@@ -311,9 +360,13 @@ class FinalizablePersistentHandle {
 
   void set_peer(void* peer) { peer_ = peer; }
 
-  void set_callback(Dart_WeakPersistentHandleFinalizer callback) {
-    callback_ = callback;
+  void set_callback_signature(CallbackSignature callback_signature) {
+    callback_signature_ = callback_signature;
   }
+
+  void set_callback(HandleFinalizer callback) { callback_ = callback; }
+
+  void set_auto_delete(bool auto_delete) { auto_delete_ = auto_delete; }
 
   void set_external_size(intptr_t size) {
     intptr_t size_in_words = Utils::RoundUp(size, kObjectAlignment) / kWordSize;
@@ -343,7 +396,9 @@ class FinalizablePersistentHandle {
   ObjectPtr raw_;
   void* peer_;
   uword external_data_;
-  Dart_WeakPersistentHandleFinalizer callback_;
+  HandleFinalizer callback_;
+  bool auto_delete_;
+  CallbackSignature callback_signature_;
 
   DISALLOW_ALLOCATION();  // Allocated through AllocateHandle methods.
   DISALLOW_COPY_AND_ASSIGN(FinalizablePersistentHandle);
@@ -563,6 +618,10 @@ class FinalizablePersistentHandles
     return IsValidScopedHandle(reinterpret_cast<uword>(object));
   }
 
+  bool IsValidHandle(Dart_FinalizableHandle object) const {
+    return IsValidScopedHandle(reinterpret_cast<uword>(object));
+  }
+
   bool IsFreeHandle(Dart_WeakPersistentHandle object) const {
     FinalizablePersistentHandle* handle = free_list_;
     while (handle != NULL) {
@@ -746,6 +805,7 @@ class ApiState {
     MutexLocker ml(&mutex_);
     return weak_persistent_handles_.AllocateHandle();
   }
+
   void FreeWeakPersistentHandle(FinalizablePersistentHandle* weak_ref) {
     MutexLocker ml(&mutex_);
     weak_persistent_handles_.FreeHandle(weak_ref);
@@ -763,6 +823,11 @@ class ApiState {
   }
 
   bool IsValidWeakPersistentHandle(Dart_WeakPersistentHandle object) {
+    MutexLocker ml(&mutex_);
+    return weak_persistent_handles_.IsValidHandle(object);
+  }
+
+  bool IsValidFinalizableHandle(Dart_FinalizableHandle object) {
     MutexLocker ml(&mutex_);
     return weak_persistent_handles_.IsValidHandle(object);
   }
@@ -832,13 +897,38 @@ inline FinalizablePersistentHandle* FinalizablePersistentHandle::New(
     const Object& object,
     void* peer,
     Dart_WeakPersistentHandleFinalizer callback,
-    intptr_t external_size) {
+    intptr_t external_size,
+    bool auto_delete) {
+  ApiState* state = isolate->group()->api_state();
+  ASSERT(state != NULL);
+  ASSERT(callback != NULL);
+  FinalizablePersistentHandle* ref = state->AllocateWeakPersistentHandle();
+  ref->set_raw(object);
+  ref->set_peer(peer);
+  ref->set_callback_signature(
+      CallbackSignature::kWeakPersistentHandleFinalizer);
+  ref->set_callback(HandleFinalizer(callback));
+  ref->set_auto_delete(auto_delete);
+  // This may trigger GC, so it must be called last.
+  ref->SetExternalSize(external_size, isolate->group());
+  return ref;
+}
+
+inline FinalizablePersistentHandle* FinalizablePersistentHandle::New(
+    Isolate* isolate,
+    const Object& object,
+    void* peer,
+    Dart_HandleFinalizer callback,
+    intptr_t external_size,
+    bool auto_delete) {
   ApiState* state = isolate->group()->api_state();
   ASSERT(state != NULL);
   FinalizablePersistentHandle* ref = state->AllocateWeakPersistentHandle();
   ref->set_raw(object);
   ref->set_peer(peer);
-  ref->set_callback(callback);
+  ref->set_callback_signature(CallbackSignature::kHandleFinalizer);
+  ref->set_callback(HandleFinalizer(callback));
+  ref->set_auto_delete(auto_delete);
   // This may trigger GC, so it must be called last.
   ref->SetExternalSize(external_size, isolate->group());
   return ref;

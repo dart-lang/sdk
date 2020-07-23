@@ -4269,12 +4269,11 @@ class PersistentHandleVisitor : public HandleVisitor {
     obj.AddPropertyF(
         "peer", "0x%" Px "",
         reinterpret_cast<uintptr_t>(weak_persistent_handle->peer()));
-    obj.AddPropertyF(
-        "callbackAddress", "0x%" Px "",
-        reinterpret_cast<uintptr_t>(weak_persistent_handle->callback()));
+    obj.AddPropertyF("callbackAddress", "0x%" Px "",
+                     weak_persistent_handle->callback_address());
     // Attempt to include a native symbol name.
     char* name = NativeSymbolResolver::LookupSymbolName(
-        reinterpret_cast<uword>(weak_persistent_handle->callback()), nullptr);
+        weak_persistent_handle->callback_address(), nullptr);
     obj.AddProperty("callbackSymbolName", (name == nullptr) ? "" : name);
     if (name != nullptr) {
       NativeSymbolResolver::FreeSymbolName(name);

@@ -41,6 +41,10 @@
   F(Dart_NewWeakPersistentHandle)                                              \
   F(Dart_HandleFromWeakPersistent)                                             \
   F(Dart_DeleteWeakPersistentHandle)                                           \
+  F(Dart_UpdateExternalSize)                                                   \
+  F(Dart_NewFinalizableHandle)                                                 \
+  F(Dart_DeleteFinalizableHandle)                                              \
+  F(Dart_UpdateFinalizableExternalSize)                                        \
   /* Dart_Port */                                                              \
   F(Dart_Post)                                                                 \
   F(Dart_NewSendPort)                                                          \

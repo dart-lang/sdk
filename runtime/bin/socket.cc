@@ -1253,9 +1253,7 @@ void FUNCTION_NAME(Socket_AvailableDatagram)(Dart_NativeArguments args) {
   Dart_SetBooleanReturnValue(args, available);
 }
 
-static void NormalSocketFinalizer(void* isolate_data,
-                                  Dart_WeakPersistentHandle handle,
-                                  void* data) {
+static void NormalSocketFinalizer(void* isolate_data, void* data) {
   Socket* socket = reinterpret_cast<Socket*>(data);
   if (socket->fd() >= 0) {
     const int64_t flags = 1 << kCloseCommand;
@@ -1266,9 +1264,7 @@ static void NormalSocketFinalizer(void* isolate_data,
   socket->Release();
 }
 
-static void ListeningSocketFinalizer(void* isolate_data,
-                                     Dart_WeakPersistentHandle handle,
-                                     void* data) {
+static void ListeningSocketFinalizer(void* isolate_data, void* data) {
   Socket* socket = reinterpret_cast<Socket*>(data);
   if (socket->fd() >= 0) {
     const int64_t flags = (1 << kListeningSocket) | (1 << kCloseCommand);
@@ -1279,9 +1275,7 @@ static void ListeningSocketFinalizer(void* isolate_data,
   socket->Release();
 }
 
-static void StdioSocketFinalizer(void* isolate_data,
-                                 Dart_WeakPersistentHandle handle,
-                                 void* data) {
+static void StdioSocketFinalizer(void* isolate_data, void* data) {
   Socket* socket = reinterpret_cast<Socket*>(data);
   if (socket->fd() >= 0) {
     socket->CloseFd();
@@ -1289,9 +1283,7 @@ static void StdioSocketFinalizer(void* isolate_data,
   socket->Release();
 }
 
-static void SignalSocketFinalizer(void* isolate_data,
-                                  Dart_WeakPersistentHandle handle,
-                                  void* data) {
+static void SignalSocketFinalizer(void* isolate_data, void* data) {
   Socket* socket = reinterpret_cast<Socket*>(data);
   if (socket->fd() >= 0) {
     Process::ClearSignalHandlerByFd(socket->fd(), socket->isolate_port());
@@ -1312,7 +1304,7 @@ void Socket::ReuseSocketIdNativeField(Dart_Handle handle,
   if (Dart_IsError(err)) {
     Dart_PropagateError(err);
   }
-  Dart_WeakPersistentHandleFinalizer callback;
+  Dart_HandleFinalizer callback;
   switch (finalizer) {
     case kFinalizerNormal:
       callback = NormalSocketFinalizer;
@@ -1332,8 +1324,8 @@ void Socket::ReuseSocketIdNativeField(Dart_Handle handle,
       break;
   }
   if (callback != NULL) {
-    Dart_NewWeakPersistentHandle(handle, reinterpret_cast<void*>(socket),
-                                 sizeof(Socket), callback);
+    Dart_NewFinalizableHandle(handle, reinterpret_cast<void*>(socket),
+                              sizeof(Socket), callback);
   }
 }
 

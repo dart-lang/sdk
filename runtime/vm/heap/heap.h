@@ -61,7 +61,7 @@ class Heap {
     kOldSpace,     // Old space limit crossed.
     kFinalize,     // Concurrent marking finished.
     kFull,         // Heap::CollectAllGarbage
-    kExternal,     // Dart_NewWeakPersistentHandle
+    kExternal,     // Dart_NewFinalizableHandle Dart_NewWeakPersistentHandle
     kIdle,         // Dart_NotifyIdle
     kLowMemory,    // Dart_NotifyLowMemory
     kDebugging,    // service request, etc.

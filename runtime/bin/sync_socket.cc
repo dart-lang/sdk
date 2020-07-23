@@ -313,9 +313,7 @@ void FUNCTION_NAME(SynchronousSocket_GetRemotePeer)(Dart_NativeArguments args) {
   delete addr;
 }
 
-static void SynchronousSocketFinalizer(void* isolate_data,
-                                       Dart_WeakPersistentHandle handle,
-                                       void* data) {
+static void SynchronousSocketFinalizer(void* isolate_data, void* data) {
   SynchronousSocket* socket = reinterpret_cast<SynchronousSocket*>(data);
   if (socket->fd() >= 0) {
     SynchronousSocket::Close(socket->fd());
@@ -334,9 +332,9 @@ Dart_Handle SynchronousSocket::SetSocketIdNativeField(
     return error;
   }
 
-  Dart_NewWeakPersistentHandle(handle, reinterpret_cast<void*>(socket),
-                               sizeof(SynchronousSocket),
-                               SynchronousSocketFinalizer);
+  Dart_NewFinalizableHandle(handle, reinterpret_cast<void*>(socket),
+                            sizeof(SynchronousSocket),
+                            SynchronousSocketFinalizer);
   return error;
 }
 

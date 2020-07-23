@@ -10,6 +10,7 @@
 
 #include "lib/stacktrace.h"
 #include "platform/assert.h"
+#include "platform/unicode.h"
 #include "vm/class_finalizer.h"
 #include "vm/clustered_snapshot.h"
 #include "vm/compilation_trace.h"
@@ -22,7 +23,6 @@
 #include "vm/debugger.h"
 #include "vm/dwarf.h"
 #include "vm/elf.h"
-#include "platform/unicode.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
@@ -690,6 +690,14 @@ FinalizablePersistentHandle* FinalizablePersistentHandle::Cast(
 #endif
   return reinterpret_cast<FinalizablePersistentHandle*>(handle);
 }
+FinalizablePersistentHandle* FinalizablePersistentHandle::Cast(
+    Dart_FinalizableHandle handle) {
+#if defined(DEBUG)
+  ApiState* state = IsolateGroup::Current()->api_state();
+  ASSERT(state->IsValidFinalizableHandle(handle));
+#endif
+  return reinterpret_cast<FinalizablePersistentHandle*>(handle);
+}
 
 void FinalizablePersistentHandle::Finalize(
     IsolateGroup* isolate_group,
@@ -697,13 +705,24 @@ void FinalizablePersistentHandle::Finalize(
   if (!handle->raw()->IsHeapObject()) {
     return;  // Free handle.
   }
-  Dart_WeakPersistentHandleFinalizer callback = handle->callback();
-  ASSERT(callback != NULL);
   void* peer = handle->peer();
-  Dart_WeakPersistentHandle object = handle->apiHandle();
-  (*callback)(isolate_group->embedder_data(), object, peer);
   ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
+
+  ASSERT(handle->auto_delete());
+
+  if (handle->callback_signature_ == CallbackSignature::kHandleFinalizer) {
+    Dart_HandleFinalizer callback = handle->callback();
+    ASSERT(callback != NULL);
+    (*callback)(isolate_group->embedder_data(), peer);
+  } else {
+    Dart_WeakPersistentHandleFinalizer callback =
+        handle->CallbackWeakFinalizer();
+    ASSERT(callback != NULL);
+    Dart_WeakPersistentHandle object = handle->ApiWeakPersistentHandle();
+    (*callback)(isolate_group->embedder_data(), object, peer);
+  }
+
   state->FreeWeakPersistentHandle(handle);
 }
 
@@ -920,6 +939,19 @@ Dart_HandleFromWeakPersistent(Dart_WeakPersistentHandle object) {
   return Api::NewHandle(thread, weak_ref->raw());
 }
 
+static Dart_Handle HandleFromFinalizable(Dart_FinalizableHandle object) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  CHECK_ISOLATE(isolate);
+  ApiState* state = isolate->group()->api_state();
+  ASSERT(state != NULL);
+  TransitionNativeToVM transition(thread);
+  NoSafepointScope no_safepoint_scope;
+  FinalizablePersistentHandle* weak_ref =
+      FinalizablePersistentHandle::Cast(object);
+  return Api::NewHandle(thread, weak_ref->raw());
+}
+
 DART_EXPORT Dart_PersistentHandle Dart_NewPersistentHandle(Dart_Handle object) {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
@@ -943,7 +975,7 @@ DART_EXPORT void Dart_SetPersistentHandle(Dart_PersistentHandle obj1,
   obj1_ref->set_raw(obj2_ref);
 }
 
-static Dart_WeakPersistentHandle AllocateFinalizableHandle(
+static Dart_WeakPersistentHandle AllocateWeakPersistentHandle(
     Thread* thread,
     const Object& ref,
     void* peer,
@@ -954,16 +986,47 @@ static Dart_WeakPersistentHandle AllocateFinalizableHandle(
   }
   FinalizablePersistentHandle* finalizable_ref =
       FinalizablePersistentHandle::New(thread->isolate(), ref, peer, callback,
-                                       external_allocation_size);
-  return finalizable_ref->apiHandle();
+                                       external_allocation_size,
+                                       /*auto_delete=*/true);
+  return finalizable_ref->ApiWeakPersistentHandle();
 }
 
-static Dart_WeakPersistentHandle AllocateFinalizableHandle(
+static Dart_WeakPersistentHandle AllocateWeakPersistentHandle(
     Thread* thread,
     Dart_Handle object,
     void* peer,
     intptr_t external_allocation_size,
     Dart_WeakPersistentHandleFinalizer callback) {
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  Object& ref = thread->ObjectHandle();
+  ref = Api::UnwrapHandle(object);
+  return AllocateWeakPersistentHandle(thread, ref, peer,
+                                      external_allocation_size, callback);
+}
+
+static Dart_FinalizableHandle AllocateFinalizableHandle(
+    Thread* thread,
+    const Object& ref,
+    void* peer,
+    intptr_t external_allocation_size,
+    Dart_HandleFinalizer callback) {
+  if (!ref.raw()->IsHeapObject()) {
+    return NULL;
+  }
+
+  FinalizablePersistentHandle* finalizable_ref =
+      FinalizablePersistentHandle::New(thread->isolate(), ref, peer, callback,
+                                       external_allocation_size,
+                                       /*auto_delete=*/true);
+  return finalizable_ref->ApiFinalizableHandle();
+}
+
+static Dart_FinalizableHandle AllocateFinalizableHandle(
+    Thread* thread,
+    Dart_Handle object,
+    void* peer,
+    intptr_t external_allocation_size,
+    Dart_HandleFinalizer callback) {
   REUSABLE_OBJECT_HANDLESCOPE(thread);
   Object& ref = thread->ObjectHandle();
   ref = Api::UnwrapHandle(object);
@@ -982,6 +1045,22 @@ Dart_NewWeakPersistentHandle(Dart_Handle object,
     return NULL;
   }
   TransitionNativeToVM transition(thread);
+
+  return AllocateWeakPersistentHandle(thread, object, peer,
+                                      external_allocation_size, callback);
+}
+
+DART_EXPORT Dart_FinalizableHandle
+Dart_NewFinalizableHandle(Dart_Handle object,
+                          void* peer,
+                          intptr_t external_allocation_size,
+                          Dart_HandleFinalizer callback) {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  if (callback == nullptr) {
+    return nullptr;
+  }
+  TransitionNativeToVM transition(thread);
   return AllocateFinalizableHandle(thread, object, peer,
                                    external_allocation_size, callback);
 }
@@ -996,6 +1075,21 @@ DART_EXPORT void Dart_UpdateExternalSize(Dart_WeakPersistentHandle object,
   ASSERT(state->IsActiveWeakPersistentHandle(object));
   auto weak_ref = FinalizablePersistentHandle::Cast(object);
   weak_ref->UpdateExternalSize(external_size, isolate_group);
+}
+
+DART_EXPORT void Dart_UpdateFinalizableExternalSize(
+    Dart_FinalizableHandle object,
+    Dart_Handle strong_ref_to_object,
+    intptr_t external_allocation_size) {
+  if (!Dart_IdentityEquals(strong_ref_to_object,
+                           HandleFromFinalizable(object))) {
+    FATAL1(
+        "%s expects arguments 'object' and 'strong_ref_to_object' to point to "
+        "the same object.",
+        CURRENT_FUNC);
+  }
+  auto wph_object = reinterpret_cast<Dart_WeakPersistentHandle>(object);
+  Dart_UpdateExternalSize(wph_object, external_allocation_size);
 }
 
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
@@ -1023,6 +1117,22 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
   auto weak_ref = FinalizablePersistentHandle::Cast(object);
   weak_ref->EnsureFreedExternal(isolate_group);
   state->FreeWeakPersistentHandle(weak_ref);
+}
+
+DART_EXPORT void Dart_DeleteFinalizableHandle(
+    Dart_FinalizableHandle object,
+    Dart_Handle strong_ref_to_object) {
+  if (!Dart_IdentityEquals(strong_ref_to_object,
+                           HandleFromFinalizable(object))) {
+    FATAL1(
+        "%s expects arguments 'object' and 'strong_ref_to_object' to point to "
+        "the same object.",
+        CURRENT_FUNC);
+  }
+
+  auto wph_object = reinterpret_cast<Dart_WeakPersistentHandle>(object);
+
+  return Dart_DeleteWeakPersistentHandle(wph_object);
 }
 
 // --- Initialization and Globals ---
@@ -3814,8 +3924,8 @@ static Dart_Handle NewExternalTypedData(
   result = ExternalTypedData::New(cid, reinterpret_cast<uint8_t*>(data), length,
                                   thread->heap()->SpaceForExternal(bytes));
   if (callback != nullptr) {
-    AllocateFinalizableHandle(thread, result, peer, external_allocation_size,
-                              callback);
+    AllocateWeakPersistentHandle(thread, result, peer, external_allocation_size,
+                                 callback);
   }
   return Api::NewHandle(thread, result.raw());
 }

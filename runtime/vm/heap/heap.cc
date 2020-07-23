@@ -595,7 +595,7 @@ void Heap::CollectAllGarbage(GCReason reason) {
   EvacuateNewSpace(thread, reason);
   if (thread->is_marking()) {
     // If incremental marking is happening, we need to finish the GC cycle
-    // and perform a follow-up GC to pruge any "floating garbage" that may be
+    // and perform a follow-up GC to purge any "floating garbage" that may be
     // retained by the incremental barrier.
     CollectOldSpaceGarbage(thread, kMarkSweep, reason);
   }
