@@ -4364,9 +4364,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
                 CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
                 parameter,
                 [parameter.identifier.name]);
-          } else if (declaredType != null &&
-              fieldType != null &&
-              !_typeSystem.isSubtypeOf(declaredType, fieldType)) {
+          } else if (!_typeSystem.isSubtypeOf(declaredType, fieldType)) {
             _errorReporter.reportErrorForNode(
                 StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
                 parameter,
