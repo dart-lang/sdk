@@ -75,9 +75,7 @@ for command; do
     rm -f linux-x64_profile.tar.gz
   elif [ "$command" = linux-ia32-build ]; then
     # NOTE: These are duplicated in tools/bots/test_matrix.json, keep in sync.
-    ./tools/build.py --mode=release --arch=ia32 create_sdk
-    ./tools/build.py --mode=release --arch=ia32 runtime
-    ./tools/build.py --mode=release --arch=ia32 kernel-service.dart.snapshot
+    ./tools/build.py --mode=release --arch=ia32 create_sdk runtime kernel-service.dart.snapshot
   elif [ "$command" = linux-ia32-archive ]; then
     strip -w \
       -K 'kDartVmSnapshotData' \
@@ -204,11 +202,7 @@ EOF
     rm -rf tmp
   elif [ "$command" = linux-x64-build ]; then
     # NOTE: These are duplicated in tools/bots/test_matrix.json, keep in sync.
-    ./tools/build.py --mode=release --arch=x64 create_sdk
-    ./tools/build.py --mode=release --arch=x64 runtime
-    ./tools/build.py --mode=release --arch=x64 gen_snapshot
-    ./tools/build.py --mode=release --arch=x64 dart_precompiled_runtime
-    ./tools/build.py --mode=release --arch=x64 kernel-service.dart.snapshot
+    ./tools/build.py --mode=release --arch=x64 create_sdk runtime gen_snapshot dart_precompiled_runtime kernel-service.dart.snapshot dartdevc_test
   elif [ "$command" = linux-x64-archive ]; then
     strip -w \
       -K 'kDartVmSnapshotData' \
@@ -306,6 +300,10 @@ EOF
       third_party/d8/linux/x64 \
       third_party/firefox_jsshell/linux/ \
       out/ReleaseX64/dart_precompiled_runtime \
+      out/ReleaseX64/gen/utils/dartdevc/kernel/ \
+      out/ReleaseX64/ddc_outline.dill \
+      out/ReleaseX64/gen/utils/dartdevc/sound/ \
+      out/ReleaseX64/ddc_outline_sound.dill \
       sdk \
       samples-dev/swarm \
       third_party/pkg \
@@ -350,6 +348,8 @@ EOF
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 hello.dart
     out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --mode=compile --compile-vm-options=--print-metrics --packages=.packages --out out.js hello.dart
+    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --enable-experiment=non-nullable --sound-null-safety --debug hello.dart
+    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --enable-experiment=non-nullable --sound-null-safety --debug --mode=compile --compile-vm-options=--print-metrics --packages=.packages --out out.js hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/perf.dart parse hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/perf.dart scan hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/fasta_perf.dart kernel_gen_e2e hello.dart

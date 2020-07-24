@@ -3321,7 +3321,8 @@
             "runtime",
             "gen_snapshot",
             "dart_precompiled_runtime",
-            "kernel-service.dart.snapshot"
+            "kernel-service.dart.snapshot",
+            "dartdevc_test"
           ]
         },
         {
