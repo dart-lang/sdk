@@ -354,6 +354,12 @@
       "languageVersion": "2.2"
     },
     {
+      "name": "language_versioning_2.7_test",
+      "rootUri": "../pkg/language_versioning_2.7_test",
+      "packageUri": "lib/",
+      "languageVersion": "2.7"
+    },
+    {
       "name": "linter",
       "rootUri": "../third_party/pkg/linter",
       "packageUri": "lib/",
