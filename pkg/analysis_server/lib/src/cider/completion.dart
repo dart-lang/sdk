@@ -207,6 +207,8 @@ class CiderCompletionComputer {
     @required LibraryElement element,
     @required OperationPerformanceImpl performance,
   }) {
+    performance.getDataInt('libraryCount').increment();
+
     var path = element.source.fullName;
     var signature = _fileResolver.getLibraryLinkedSignature(
       path: path,
@@ -215,6 +217,7 @@ class CiderCompletionComputer {
 
     var cacheEntry = _cache._importedLibraries[path];
     if (cacheEntry == null || cacheEntry.signature != signature) {
+      performance.getDataInt('libraryCompute').increment();
       computedImportedLibraries.add(path);
       var suggestions = _librarySuggestions(element);
       cacheEntry = _CiderImportedLibrarySuggestions(

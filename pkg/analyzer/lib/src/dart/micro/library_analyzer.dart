@@ -127,12 +127,16 @@ class LibraryAnalyzer {
     // Resolve URIs in directives to corresponding sources.
     FeatureSet featureSet = units[_library].featureSet;
 
-    units.forEach((file, unit) {
-      _validateFeatureSet(unit, featureSet);
-      _resolveUriBasedDirectives(file, unit);
+    performance.run('resolveUriDirectives', (performance) {
+      units.forEach((file, unit) {
+        _validateFeatureSet(unit, featureSet);
+        _resolveUriBasedDirectives(file, unit);
+      });
     });
 
-    _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
+    performance.run('libraryElement', (performance) {
+      _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
+    });
 
     performance.run('resolveDirectives', (performance) {
       _resolveDirectives(units, forCompletion);
