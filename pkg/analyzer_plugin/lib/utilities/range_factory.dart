@@ -57,14 +57,18 @@ class RangeFactory {
   /// trailing comma as appropriate) in the containing [list].
   SourceRange nodeInList<T extends AstNode>(NodeList<T> list, T item) {
     if (list.length == 1) {
+      var nextToken = item.endToken.next;
+      if (nextToken.type == TokenType.COMMA) {
+        return startEnd(item, nextToken);
+      }
       return node(item);
     }
     final index = list.indexOf(item);
-    // Remove trailing comma.
     if (index == 0) {
+      // Remove the trailing comma.
       return startStart(item, list[1]);
     } else {
-      // Remove leading comma.
+      // Remove the leading comma.
       return endEnd(list[index - 1], item);
     }
   }
