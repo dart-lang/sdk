@@ -525,6 +525,7 @@ import 'switch_expression_not_assignable_test.dart'
     as switch_expression_not_assignable;
 import 'throw_of_invalid_type_test.dart' as throw_of_invalid_type;
 import 'todo_test.dart' as todo_test;
+import 'top_level_cycle_test.dart' as top_level_cycle;
 import 'top_level_instance_getter_test.dart' as top_level_instance_getter;
 import 'top_level_instance_method_test.dart' as top_level_instance_method;
 import 'type_alias_cannot_reference_itself_test.dart'
@@ -949,6 +950,7 @@ main() {
     switch_expression_not_assignable.main();
     throw_of_invalid_type.main();
     todo_test.main();
+    top_level_cycle.main();
     top_level_instance_getter.main();
     top_level_instance_method.main();
     type_alias_cannot_reference_itself.main();

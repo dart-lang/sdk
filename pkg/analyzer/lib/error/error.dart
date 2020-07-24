@@ -329,6 +329,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT,
   CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
   CompileTimeErrorCode.THROW_OF_INVALID_TYPE,
+  CompileTimeErrorCode.TOP_LEVEL_CYCLE,
   CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
   CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
   // ignore: deprecated_member_use_from_same_package
@@ -838,7 +839,6 @@ const List<ErrorCode> errorCodeValues = [
   StrongModeCode.IMPLICIT_DYNAMIC_RETURN,
   StrongModeCode.IMPLICIT_DYNAMIC_TYPE,
   StrongModeCode.IMPLICIT_DYNAMIC_VARIABLE,
-  StrongModeCode.TOP_LEVEL_CYCLE,
   StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK,
   StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE,
   StrongModeCode.TOP_LEVEL_INSTANCE_GETTER,

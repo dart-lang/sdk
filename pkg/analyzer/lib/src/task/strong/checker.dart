@@ -1059,8 +1059,12 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
       TopLevelInferenceError error = variable.typeInferenceError;
       if (error != null) {
         if (error.kind == TopLevelInferenceErrorKind.dependencyCycle) {
-          _codeChecker._recordMessage(
-              n, StrongModeCode.TOP_LEVEL_CYCLE, [_name, error.arguments]);
+          // Errors on const should have been reported with
+          // [CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT].
+          if (!variable.isConst) {
+            _codeChecker._recordMessage(n, CompileTimeErrorCode.TOP_LEVEL_CYCLE,
+                [_name, error.arguments]);
+          }
         } else {
           _codeChecker._recordMessage(
               n, StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE, [_name, e.name]);

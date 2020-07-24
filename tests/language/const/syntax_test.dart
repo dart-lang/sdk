@@ -95,15 +95,11 @@ const A2 = A3 + 1;
 //    ^^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_COMPILE_TIME_CONSTANT
 // [cfe] Can't infer the type of 'A2': circularity found during type inference.
-//         ^^
-// [analyzer] COMPILE_TIME_ERROR.TOP_LEVEL_CYCLE
 //            ^
 // [cfe] Constant evaluation error:
 const A3 = A2 + 1;
 //    ^^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_COMPILE_TIME_CONSTANT
-//         ^^
-// [analyzer] COMPILE_TIME_ERROR.TOP_LEVEL_CYCLE
 
 class C0 {
   static const X = const C1();
