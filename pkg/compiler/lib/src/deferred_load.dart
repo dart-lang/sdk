@@ -28,6 +28,7 @@ import 'options.dart';
 import 'universe/use.dart';
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
+import 'util/maplet.dart';
 import 'util/util.dart' show makeUnique;
 import 'world.dart' show KClosedWorld;
 
@@ -1050,8 +1051,11 @@ class ImportSetLattice {
         b = b._previous;
       }
     }
-    while (imports.isNotEmpty) {
-      result = result._add(imports.removeLast());
+
+    // Add merged elements back in reverse order. It is tempting to pop them off
+    // with `removeLast()` but that causes measurable shrinking reallocations.
+    for (int i = imports.length - 1; i >= 0; i--) {
+      result = result._add(imports[i]);
     }
     return result;
   }
@@ -1091,7 +1095,7 @@ class ImportSet {
   }
 
   /// Links to other import sets in the lattice by adding one import.
-  final Map<_DeferredImport, ImportSet> _transitions = {};
+  final Map<_DeferredImport, ImportSet> _transitions = Maplet();
 
   ImportSet.empty()
       : _import = null,
