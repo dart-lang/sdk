@@ -259,30 +259,6 @@ abstract class TypeSystem implements public.TypeSystem {
     return inferredTypes;
   }
 
-  /// Searches the superinterfaces of [type] for implementations of
-  /// [genericType] and returns the most specific type argument used for that
-  /// generic type.
-  ///
-  /// For a more general/robust solution, use [InterfaceTypeImpl.asInstanceOf].
-  ///
-  /// For example, given [type] `List<int>` and [genericType] `Iterable<T>`,
-  /// returns [int].
-  ///
-  /// Returns `null` if [type] does not implement [genericType].
-  DartType mostSpecificTypeArgument(DartType type, DartType genericType) {
-    if (type is! InterfaceType) return null;
-    if (genericType is! InterfaceType) return null;
-
-    var asInstanceOf =
-        type.asInstanceOf((genericType as InterfaceType).element);
-
-    if (asInstanceOf != null) {
-      return asInstanceOf.typeArguments[0];
-    }
-
-    return null;
-  }
-
   /// Returns a non-nullable version of [type].  This is equivalent to the
   /// operation `NonNull` defined in the spec.
   @override
