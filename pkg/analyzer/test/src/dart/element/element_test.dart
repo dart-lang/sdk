@@ -1282,6 +1282,23 @@ class FunctionTypeImplTest extends AbstractTypeTest {
 
 @reflectiveTest
 class InterfaceTypeImplTest extends AbstractTypeTest {
+  void test_allSupertypes() {
+    void check(InterfaceType type, List<String> expected) {
+      var actual = type.allSupertypes.map((e) {
+        return e.getDisplayString(
+          withNullability: true,
+        );
+      }).toList()
+        ..sort();
+      expect(actual, expected);
+    }
+
+    check(objectNone, []);
+    check(numNone, ['Comparable<num>', 'Object']);
+    check(intNone, ['Comparable<num>', 'Object', 'num']);
+    check(listNone(intQuestion), ['Iterable<int?>', 'Object']);
+  }
+
   test_asInstanceOf_explicitGeneric() {
     // class A<E> {}
     // class B implements A<C> {}
