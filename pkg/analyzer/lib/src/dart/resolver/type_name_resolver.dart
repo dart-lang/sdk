@@ -24,7 +24,6 @@ class TypeNameResolver {
   final TypeSystemImpl typeSystem;
   final DartType dynamicType;
   final bool isNonNullableByDefault;
-  final LibraryElement definingLibrary; // TODO(scheglov) remove
   final ErrorReporter errorReporter;
 
   Scope nameScope;
@@ -52,7 +51,7 @@ class TypeNameResolver {
   ConstructorName rewriteResult;
 
   TypeNameResolver(this.typeSystem, TypeProvider typeProvider,
-      this.isNonNullableByDefault, this.definingLibrary, this.errorReporter)
+      this.isNonNullableByDefault, this.errorReporter)
       : dynamicType = typeProvider.dynamicType;
 
   NullabilitySuffix get _noneOrStarSuffix {
@@ -69,55 +68,51 @@ class TypeNameResolver {
     rewriteResult = null;
 
     var typeIdentifier = node.name;
-
-    if (typeIdentifier is SimpleIdentifier && typeIdentifier.name == 'void') {
-      node.type = VoidTypeImpl.instance;
-      return;
-    }
-
-    // TODO(scheglov) Update to use `lookup2`.
-    var element = nameScope.lookupIdentifier(typeIdentifier);
-
-    // TODO(scheglov) When fixing the previous TODO, report the prefix sooner.
     if (typeIdentifier is PrefixedIdentifier) {
       var prefix = typeIdentifier.prefix;
-      var prefixElement = prefix.staticElement;
-      if (prefixElement != null &&
-          prefixElement is! PrefixElement &&
-          prefixElement is! ClassElement) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION,
-          prefix,
-          [prefix.name],
-        );
-        node.type = dynamicType;
+      var prefixName = prefix.name;
+      var prefixElement = nameScope.lookup2(prefixName).getter;
+      prefix.staticElement = prefixElement;
+
+      if (prefixElement == null) {
+        _resolveToElement(node, null);
         return;
       }
-    }
 
-    if (element is MultiplyDefinedElement) {
-      _setElement(typeIdentifier, element);
+      if (prefixElement is ClassElement) {
+        _rewriteToConstructorName(node, typeIdentifier);
+        return;
+      }
+
+      if (prefixElement is PrefixElement) {
+        var nameNode = typeIdentifier.identifier;
+        var name = nameNode.name;
+
+        var element = prefixElement.scope.lookup2(name).getter;
+        nameNode.staticElement = element;
+        _resolveToElement(node, element);
+        return;
+      }
+
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION,
+        prefix,
+        [prefix.name],
+      );
       node.type = dynamicType;
-      return;
-    }
+    } else {
+      var nameNode = typeIdentifier as SimpleIdentifier;
+      var name = nameNode.name;
 
-    if (element != null) {
-      _setElement(typeIdentifier, element);
-      node.type = _instantiateElement(node, element);
-      return;
-    }
+      if (name == 'void') {
+        node.type = VoidTypeImpl.instance;
+        return;
+      }
 
-    // TODO(scheglov) Can we do rewriting better with using `lookup2`?
-    if (_rewriteToConstructorName(node)) {
-      return;
+      var element = nameScope.lookup2(name).getter;
+      nameNode.staticElement = element;
+      _resolveToElement(node, element);
     }
-
-    node.type = dynamicType;
-    if (nameScope.shouldIgnoreUndefined(typeIdentifier)) {
-      return;
-    }
-
-    _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, null);
   }
 
   /// Return type arguments, exactly [parameterCount].
@@ -306,61 +301,66 @@ class TypeNameResolver {
     }
   }
 
-  /// We parse `foo.bar` as `prefix.Name` with the expectation that `prefix`
-  /// will be a [PrefixElement]. But we checked and found that `foo.bar` is
-  /// not in the scope, so try to see if it is `Class.constructor`.
-  ///
-  /// Return `true` if the node was rewritten as `Class.constructor`.
-  bool _rewriteToConstructorName(TypeName node) {
-    var typeIdentifier = node.name;
-    var constructorName = node.parent;
-    if (typeIdentifier is PrefixedIdentifier &&
-        constructorName is ConstructorName &&
-        constructorName.name == null) {
-      var classIdentifier = typeIdentifier.prefix;
-      var classElement = nameScope.lookupIdentifier(classIdentifier);
-      if (classElement is ClassElement) {
-        var constructorIdentifier = typeIdentifier.identifier;
-
-        var typeArguments = node.typeArguments;
-        if (typeArguments != null) {
-          errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-            typeArguments,
-            [classIdentifier.name, constructorIdentifier.name],
-          );
-          var instanceCreation = constructorName.parent;
-          if (instanceCreation is InstanceCreationExpressionImpl) {
-            instanceCreation.typeArguments = typeArguments;
-          }
-        }
-
-        node.name = classIdentifier;
-        node.typeArguments = null;
-
-        constructorName.period = typeIdentifier.period;
-        constructorName.name = constructorIdentifier;
-
-        rewriteResult = constructorName;
-        return true;
+  void _resolveToElement(TypeName node, Element element) {
+    if (element == null) {
+      node.type = dynamicType;
+      if (!nameScope.shouldIgnoreUndefined(node.name)) {
+        _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, null);
       }
+      return;
     }
 
-    return false;
+    if (element is MultiplyDefinedElement) {
+      node.type = dynamicType;
+      return;
+    }
+
+    node.type = _instantiateElement(node, element);
   }
 
-  /// Records the new Element for a TypeName's Identifier.
-  ///
-  /// A null may be passed in to indicate that the element can't be resolved.
-  /// (During a re-run of a task, it's important to clear any previous value
-  /// of the element.)
-  void _setElement(Identifier typeName, Element element) {
-    if (typeName is SimpleIdentifier) {
-      typeName.staticElement = element;
-    } else if (typeName is PrefixedIdentifier) {
-      typeName.identifier.staticElement = element;
-      SimpleIdentifier prefix = typeName.prefix;
-      prefix.staticElement = nameScope.lookupIdentifier(prefix);
+  /// We parse `foo.bar` as `prefix.Name` with the expectation that `prefix`
+  /// will be a [PrefixElement]. But when we resolved the `prefix` it turned
+  /// out to be a [ClassElement], so it is probably a `Class.constructor`.
+  void _rewriteToConstructorName(
+    TypeName node,
+    PrefixedIdentifier typeIdentifier,
+  ) {
+    var constructorName = node.parent;
+    if (constructorName is ConstructorName && constructorName.name == null) {
+      var classIdentifier = typeIdentifier.prefix;
+      var constructorIdentifier = typeIdentifier.identifier;
+
+      var typeArguments = node.typeArguments;
+      if (typeArguments != null) {
+        errorReporter.reportErrorForNode(
+          StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          typeArguments,
+          [classIdentifier.name, constructorIdentifier.name],
+        );
+        var instanceCreation = constructorName.parent;
+        if (instanceCreation is InstanceCreationExpressionImpl) {
+          instanceCreation.typeArguments = typeArguments;
+        }
+      }
+
+      node.name = classIdentifier;
+      node.typeArguments = null;
+
+      constructorName.period = typeIdentifier.period;
+      constructorName.name = constructorIdentifier;
+
+      rewriteResult = constructorName;
+      return;
+    }
+
+    if (_isInstanceCreation(node)) {
+      _ErrorHelper(errorReporter).reportNewWithNonType(node);
+    } else {
+      errorReporter.reportErrorForNode(
+        StaticWarningCode.NOT_A_TYPE,
+        typeIdentifier,
+        [typeIdentifier.name],
+      );
     }
   }
 

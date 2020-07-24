@@ -15,6 +15,30 @@ main() {
 
 @reflectiveTest
 class NotATypeTest extends DriverResolutionTest {
+  test_class_constructor() async {
+    await assertErrorsInCode('''
+class A {
+  A.foo();
+}
+
+A.foo bar() {}
+''', [
+      error(StaticWarningCode.NOT_A_TYPE, 24, 5),
+    ]);
+  }
+
+  test_class_method() async {
+    await assertErrorsInCode('''
+class A {
+  static void foo() {}
+}
+
+A.foo bar() {}
+''', [
+      error(StaticWarningCode.NOT_A_TYPE, 36, 5),
+    ]);
+  }
+
   test_extension() async {
     await assertErrorsInCode('''
 extension E on int {}
