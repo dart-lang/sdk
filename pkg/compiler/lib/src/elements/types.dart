@@ -651,7 +651,7 @@ class FunctionType extends DartType {
 
   final List<FunctionTypeVariable> typeVariables;
 
-  FunctionType._(
+  FunctionType._allocate(
       this.returnType,
       this.parameterTypes,
       this.optionalParameterTypes,
@@ -659,17 +659,42 @@ class FunctionType extends DartType {
       this.requiredNamedParameters,
       this.namedParameterTypes,
       this.typeVariables) {
-    assert(returnType != null, "Invalid return type in $this.");
-    assert(!parameterTypes.contains(null), "Invalid parameter types in $this.");
+    assert(returnType != null, 'Invalid return type in $this.');
+    assert(!parameterTypes.contains(null), 'Invalid parameter types in $this.');
     assert(!optionalParameterTypes.contains(null),
-        "Invalid optional parameter types in $this.");
+        'Invalid optional parameter types in $this.');
     assert(
-        !namedParameters.contains(null), "Invalid named parameters in $this.");
+        !namedParameters.contains(null), 'Invalid named parameters in $this.');
     assert(!requiredNamedParameters.contains(null),
-        "Invalid required named parameters in $this.");
+        'Invalid required named parameters in $this.');
     assert(!namedParameterTypes.contains(null),
-        "Invalid named parameter types in $this.");
-    assert(!typeVariables.contains(null), "Invalid type variables in $this.");
+        'Invalid named parameter types in $this.');
+    assert(!typeVariables.contains(null), 'Invalid type variables in $this.');
+  }
+
+  factory FunctionType._(
+      DartType returnType,
+      List<DartType> parameterTypes,
+      List<DartType> optionalParameterTypes,
+      List<String> namedParameters,
+      Set<String> requiredNamedParameters,
+      List<DartType> namedParameterTypes,
+      List<FunctionTypeVariable> typeVariables) {
+    // Canonicalize empty collections to constants to save storage.
+    if (parameterTypes.isEmpty) parameterTypes = const [];
+    if (optionalParameterTypes.isEmpty) optionalParameterTypes = const [];
+    if (namedParameterTypes.isEmpty) namedParameterTypes = const [];
+    if (requiredNamedParameters.isEmpty) requiredNamedParameters = const {};
+    if (typeVariables.isEmpty) typeVariables = const [];
+
+    return FunctionType._allocate(
+        returnType,
+        parameterTypes,
+        optionalParameterTypes,
+        namedParameters,
+        requiredNamedParameters,
+        namedParameterTypes,
+        typeVariables);
   }
 
   factory FunctionType._readFromDataSource(
