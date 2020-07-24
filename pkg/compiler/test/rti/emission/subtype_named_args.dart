@@ -55,23 +55,19 @@ typedef okWithDynamicFunc_2({int x, bool y, List<Map> z, classesFunc v});
 
 main() {
   Expect.isTrue(
-      /*spec.checks=[$signature],instance*/
-      /*prod.checks=[],instance*/
+      /*checks=[$signature],instance*/
       ({D a, B b, C c, A d}) {} is classesFunc);
   Expect.isTrue(
       /*checks=[$signature],instance*/
       ({A a, A b, A c, A d}) {} is classesFunc);
   Expect.isTrue(
-      /*spec.checks=[$signature],instance*/
-      /*prod.checks=[],instance*/
+      /*checks=[$signature],instance*/
       ({D a, A1 b, A1 c, A1 d}) {} is classesFunc);
   Expect.isTrue(
-      /*spec.checks=[$signature],instance*/
-      /*prod.checks=[],instance*/
+      /*checks=[$signature],instance*/
       ({D a, A2 b, A2 c, A2 d}) {} is classesFunc);
   Expect.isTrue(
-      /*spec.checks=[$signature],instance*/
-      /*prod.checks=[],instance*/
+      /*checks=[$signature],instance*/
       ({D a, D b, D c, D d}) {} is classesFunc);
   Expect.isTrue(
       /*checks=[$signature],instance*/
@@ -85,8 +81,7 @@ main() {
       ({Map<num, num> m, List<List<A1>> l, G<A, A1, A1, A1> g}) {}
           is genericsFunc);
   Expect.isTrue(
-      /*spec.checks=[$signature],instance*/
-      /*prod.checks=[],instance*/
+      /*checks=[$signature],instance*/
       ({Map<int, int> m, List<List<D>> l, G<D, D, D, D> g}) {} is genericsFunc);
   Expect.isTrue(
       /*checks=[$signature],instance*/
@@ -96,16 +91,14 @@ main() {
       ({Object m, Object l, Object g}) {} is genericsFunc);
 
   Expect.isTrue(
-      /*spec.checks=[$signature],instance*/
-      /*prod.checks=[],instance*/
+      /*checks=[$signature],instance*/
       ({A x, G y, mixFunc z, var v}) {} is dynamicFunc);
   Expect.isTrue(
-      /*spec.checks=[$signature],instance*/
-      /*prod.checks=[],instance*/
+      /*checks=[$signature],instance*/
       ({int x, bool y, List<Map> z, classesFunc v}) {} is dynamicFunc);
 
   Expect.isTrue(
-      /*checks=[],instance*/
+      /*checks=[$signature],instance*/
       (
           {okWithClassesFunc_1 f1,
           okWithGenericsFunc_1 f2,

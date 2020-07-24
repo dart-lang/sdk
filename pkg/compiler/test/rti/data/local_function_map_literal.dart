@@ -13,7 +13,7 @@ import 'package:expect/expect.dart';
 /*spec.member: method:implicit=[method.T],indirect,needsArgs*/
 /*prod.member: method:needsArgs*/
 method<T>() {
-  return () => <T, int>{};
+  return /*spec.needsSignature*/() => <T, int>{};
 }
 
 @pragma('dart2js:noInline')

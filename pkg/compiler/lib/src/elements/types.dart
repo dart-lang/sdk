@@ -1915,6 +1915,11 @@ abstract class DartTypes {
 
   bool _subtypeHelper(DartType s, DartType t,
       {bool allowPotentialSubtypes: false, bool assumeInstantiations: false}) {
+    assert(allowPotentialSubtypes || !assumeInstantiations);
+
+    // TODO(fishythefish): Add constraint solving for potential subtypes.
+    if (allowPotentialSubtypes) return true;
+
     /// Based on
     /// https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md.
     /// See also [_isSubtype] in `dart:_rti`.
@@ -1927,10 +1932,6 @@ abstract class DartTypes {
           env.isAssumed(s, t)) return true;
 
       if (s is AnyType) return true;
-      if (allowPotentialSubtypes &&
-          (s is TypeVariableType || t is TypeVariableType)) return true;
-      if (assumeInstantiations &&
-          (s is FunctionTypeVariable || t is FunctionTypeVariable)) return true;
 
       // Right Top:
       if (isTopType(t)) return true;
@@ -2039,10 +2040,10 @@ abstract class DartTypes {
           List<FunctionTypeVariable> sTypeVariables = s.typeVariables;
           List<FunctionTypeVariable> tTypeVariables = t.typeVariables;
           int length = tTypeVariables.length;
-          if (length == sTypeVariables.length) {
-            env ??= _Assumptions();
-            env.assumePairs(sTypeVariables, tTypeVariables);
-          } else if (!assumeInstantiations || length > 0) return false;
+          if (length != sTypeVariables.length) return false;
+
+          env ??= _Assumptions();
+          env.assumePairs(sTypeVariables, tTypeVariables);
           try {
             for (int i = 0; i < length; i++) {
               DartType sBound = sTypeVariables[i].bound;
