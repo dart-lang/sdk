@@ -327,6 +327,14 @@ class Driver implements ServerStarter {
     analysisServerOptions.newAnalysisDriverLog =
         results[NEW_ANALYSIS_DRIVER_LOG];
     analysisServerOptions.clientId = results[CLIENT_ID];
+    analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
+    // For clients that don't supply their own identifier, use a default based on
+    // whether the server will run in LSP mode or not.
+    analysisServerOptions.clientId ??=
+        analysisServerOptions.useLanguageServerProtocol
+            ? 'unknown.client.lsp'
+            : 'unknown.client.classic';
+
     analysisServerOptions.clientVersion = results[CLIENT_VERSION];
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
     if (results.wasParsed(ENABLE_EXPERIMENT_OPTION)) {
@@ -334,7 +342,6 @@ class Driver implements ServerStarter {
           (results[ENABLE_EXPERIMENT_OPTION] as List).cast<String>().toList();
     }
     analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
-    analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
     analysisServerOptions.useNewRelevance = results[USE_NEW_RELEVANCE];
 
     // Read in any per-SDK overrides specified in <sdk>/config/settings.json.
@@ -383,8 +390,7 @@ class Driver implements ServerStarter {
     analysisServerOptions.analytics = analytics;
 
     // Record the client name as the application installer ID.
-    analytics.setSessionValue(
-        'aiid', analysisServerOptions.clientId ?? 'not-set');
+    analytics.setSessionValue('aiid', analysisServerOptions.clientId);
     if (analysisServerOptions.clientVersion != null) {
       analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
     }
