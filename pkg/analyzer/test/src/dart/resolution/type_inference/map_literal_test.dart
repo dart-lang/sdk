@@ -40,6 +40,17 @@ Map<int, int> a = {1 : 2};
     assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
 
+  test_context_noTypeArgs_noElements_futureOr() async {
+    await resolveTestCode('''
+import 'dart:async';
+
+FutureOr<Map<int, String>> f() {
+  return {};
+}
+''');
+    assertType(setOrMapLiteral('{};'), 'Map<int, String>');
+  }
+
   test_context_noTypeArgs_noEntries() async {
     await assertNoErrorsInCode('''
 Map<String, String> a = {};

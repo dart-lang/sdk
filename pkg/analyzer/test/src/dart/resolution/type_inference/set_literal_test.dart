@@ -40,6 +40,17 @@ Set<String> a = {};
     assertType(setLiteral('{'), 'Set<String>');
   }
 
+  test_context_noTypeArgs_noElements_futureOr() async {
+    await resolveTestCode('''
+import 'dart:async';
+
+FutureOr<Set<int>> f() {
+  return {};
+}
+''');
+    assertType(setLiteral('{};'), 'Set<int>');
+  }
+
   test_context_noTypeArgs_noElements_typeParameter() async {
     await resolveTestCode('''
 class A<E extends Set<int>> {
@@ -275,7 +286,6 @@ void f<T extends num>(T a) {
 ''');
     assertType(setLiteral('{...'), 'dynamic');
   }
-
 
   test_noContext_typeArgs_expression_conflict() async {
     await resolveTestCode('''

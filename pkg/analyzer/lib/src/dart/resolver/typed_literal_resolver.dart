@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -267,39 +266,42 @@ class TypedLiteralResolver {
     return _LiteralResolution(_LiteralResolutionKind.ambiguous, null);
   }
 
-  /// If [contextType] is defined and is a subtype of `Iterable<Object>` and
-  /// [contextType] is not a subtype of `Map<Object, Object>`, then *e* is a set
+  /// If [contextType] implements `Iterable`, but not `Map`, then *e* is a set
   /// literal.
   ///
-  /// If [contextType] is defined and is a subtype of `Map<Object, Object>` and
-  /// [contextType] is not a subtype of `Iterable<Object>` then *e* is a map
+  /// If [contextType] implements `Map`, but not `Iterable`, then *e* is a map
   /// literal.
   _LiteralResolution _fromContextType(DartType contextType) {
     if (contextType != null) {
-      DartType unwrap(DartType type) {
-        if (type is InterfaceType &&
-            type.isDartAsyncFutureOr &&
-            type.typeArguments.length == 1) {
-          return unwrap(type.typeArguments[0]);
-        }
-        return type;
-      }
-
-      DartType unwrappedContextType = unwrap(contextType);
+      var unwrappedContextType = _typeSystem.futureOrBase(contextType);
       // TODO(brianwilkerson) Find out what the "greatest closure" is and use that
       // where [unwrappedContextType] is used below.
-      bool isIterable = _typeSystem.isSubtypeOf2(
-          unwrappedContextType, _typeProvider.iterableForSetMapDisambiguation);
-      bool isMap = _typeSystem.isSubtypeOf2(
-          unwrappedContextType, _typeProvider.mapForSetMapDisambiguation);
+      var iterableType = unwrappedContextType.asInstanceOf(
+        _typeProvider.iterableElement,
+      );
+      var mapType = unwrappedContextType.asInstanceOf(
+        _typeProvider.mapElement,
+      );
+      var isIterable = iterableType != null;
+      var isMap = mapType != null;
+
+      // When `S` implements `Iterable` but not `Map`, `e` is a set literal.
       if (isIterable && !isMap) {
         return _LiteralResolution(
-            _LiteralResolutionKind.set, unwrappedContextType);
-      } else if (isMap && !isIterable) {
+          _LiteralResolutionKind.set,
+          unwrappedContextType,
+        );
+      }
+
+      // When `S` implements `Map` but not `Iterable`, `e` is a map literal.
+      if (isMap && !isIterable) {
         return _LiteralResolution(
-            _LiteralResolutionKind.map, unwrappedContextType);
+          _LiteralResolutionKind.map,
+          unwrappedContextType,
+        );
       }
     }
+
     return _LiteralResolution(_LiteralResolutionKind.ambiguous, null);
   }
 
@@ -513,38 +515,54 @@ class TypedLiteralResolver {
     } else if (canBeAMap && mustBeAMap) {
       return _toMapType(literal, contextType, inferredTypes);
     }
+
     // Note: according to the spec, the following computations should be based
     // on the greatest closure of the context type (unless the context type is
     // `_`).  In practice, we can just use the context type directly, because
     // the only way the greatest closure of the context type could possibly have
     // a different subtype relationship to `Iterable<Object>` and
     // `Map<Object, Object>` is if the context type is `_`.
-    bool contextProvidesAmbiguityResolutionClues =
-        contextType != null && contextType is! UnknownInferredType;
-    bool contextIsIterable = contextProvidesAmbiguityResolutionClues &&
-        _typeSystem.isSubtypeOf2(
-            contextType, _typeProvider.iterableForSetMapDisambiguation);
-    bool contextIsMap = contextProvidesAmbiguityResolutionClues &&
-        _typeSystem.isSubtypeOf2(
-            contextType, _typeProvider.mapForSetMapDisambiguation);
-    if (contextIsIterable && !contextIsMap) {
-      return _toSetType(literal, contextType, inferredTypes);
-    } else if ((contextIsMap && !contextIsIterable) || elements.isEmpty) {
-      return _toMapType(literal, contextType, inferredTypes);
-    } else {
-      // Ambiguous.  We're not going to get any more information to resolve the
-      // ambiguity.  We don't want to make an arbitrary decision at this point
-      // because it will interfere with future type inference (see
-      // dartbug.com/36210), so we return a type of `dynamic`.
-      if (mustBeAMap && mustBeASet) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, literal);
-      } else {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, literal);
+    if (contextType != null) {
+      var contextIterableType = contextType.asInstanceOf(
+        _typeProvider.iterableElement,
+      );
+      var contextMapType = contextType.asInstanceOf(
+        _typeProvider.mapElement,
+      );
+      var contextIsIterable = contextIterableType != null;
+      var contextIsMap = contextMapType != null;
+
+      // When `S` implements `Iterable` but not `Map`, `e` is a set literal.
+      if (contextIsIterable && !contextIsMap) {
+        return _toSetType(literal, contextType, inferredTypes);
       }
-      return _typeProvider.dynamicType;
+
+      // When `S` implements `Map` but not `Iterable`, `e` is a map literal.
+      if (contextIsMap && !contextIsIterable) {
+        return _toMapType(literal, contextType, inferredTypes);
+      }
     }
+
+    // When `e` is of the form `{}` and `S` is undefined, `e` is a map literal.
+    if (elements.isEmpty && contextType == null) {
+      return _typeProvider.mapType2(
+        DynamicTypeImpl.instance,
+        DynamicTypeImpl.instance,
+      );
+    }
+
+    // Ambiguous.  We're not going to get any more information to resolve the
+    // ambiguity.  We don't want to make an arbitrary decision at this point
+    // because it will interfere with future type inference (see
+    // dartbug.com/36210), so we return a type of `dynamic`.
+    if (mustBeAMap && mustBeASet) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, literal);
+    } else {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, literal);
+    }
+    return _typeProvider.dynamicType;
   }
 
   DartType _inferSetTypeDownwards(SetOrMapLiteral node, DartType contextType) {

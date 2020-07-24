@@ -96,9 +96,6 @@ class TypeProviderImpl extends TypeProviderBase {
 
   InterfaceTypeImpl _nullStar;
 
-  InterfaceType _iterableForSetMapDisambiguation;
-  InterfaceType _mapForSetMapDisambiguation;
-
   Set<ClassElement> _nonSubtypableClasses;
 
   /// Initialize a newly created type provider to provide the types defined in
@@ -258,25 +255,6 @@ class TypeProviderImpl extends TypeProviderBase {
     return _iterableElement ??= _getClassElement(_coreLibrary, 'Iterable');
   }
 
-  /// Return the type that should be used during disambiguation between `Set`
-  /// and `Map` literals. If NNBD enabled, use `Iterable<Object?, Object?>`,
-  /// otherwise use `Iterable<Object*, Object*>*`.
-  InterfaceType get iterableForSetMapDisambiguation {
-    if (_iterableForSetMapDisambiguation == null) {
-      var objectType = objectElement.instantiate(
-        typeArguments: const [],
-        nullabilitySuffix: _questionOrStarSuffix,
-      );
-      _iterableForSetMapDisambiguation = iterableElement.instantiate(
-        typeArguments: [
-          objectType,
-        ],
-        nullabilitySuffix: _questionOrStarSuffix,
-      );
-    }
-    return _iterableForSetMapDisambiguation;
-  }
-
   @override
   InterfaceType get iterableObjectType {
     _iterableObjectType ??= InterfaceTypeImpl(
@@ -307,26 +285,6 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   ClassElement get mapElement {
     return _mapElement ??= _getClassElement(_coreLibrary, 'Map');
-  }
-
-  /// Return the type that should be used during disambiguation between `Set`
-  /// and `Map` literals. If NNBD enabled, use `Map<Object?, Object?>`,
-  /// otherwise use `Map<Object*, Object*>*`.
-  InterfaceType get mapForSetMapDisambiguation {
-    if (_mapForSetMapDisambiguation == null) {
-      var objectType = objectElement.instantiate(
-        typeArguments: const [],
-        nullabilitySuffix: _questionOrStarSuffix,
-      );
-      _mapForSetMapDisambiguation = mapElement.instantiate(
-        typeArguments: [
-          objectType,
-          objectType,
-        ],
-        nullabilitySuffix: _questionOrStarSuffix,
-      );
-    }
-    return _mapForSetMapDisambiguation;
   }
 
   @override
@@ -489,12 +447,6 @@ class TypeProviderImpl extends TypeProviderBase {
     } else {
       return NullabilitySuffix.star;
     }
-  }
-
-  NullabilitySuffix get _questionOrStarSuffix {
-    return isNonNullableByDefault
-        ? NullabilitySuffix.question
-        : NullabilitySuffix.star;
   }
 
   @override

@@ -90,6 +90,19 @@ abstract class TypeSystem implements public.TypeSystem {
     return type;
   }
 
+  DartType futureOrBase(DartType type) {
+    // If `T` is `FutureOr<S>` for some `S`,
+    // then `futureOrBase(T)` = `futureOrBase(S)`
+    if (type is InterfaceType && type.isDartAsyncFutureOr) {
+      return futureOrBase(
+        type.typeArguments[0],
+      );
+    }
+
+    // Otherwise `futureOrBase(T)` = `T`.
+    return type;
+  }
+
   List<InterfaceType> gatherMixinSupertypeConstraintsForInference(
       ClassElement mixinElement) {
     List<InterfaceType> candidates;

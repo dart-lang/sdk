@@ -9,6 +9,7 @@ import 'element_test.dart' as element;
 import 'factor_type_test.dart' as factor_type;
 import 'flatten_type_test.dart' as flatten_type;
 import 'function_type_test.dart' as function_type;
+import 'future_or_base_test.dart' as future_or_base;
 import 'future_value_type_test.dart' as future_value_type;
 import 'generic_inferrer_test.dart' as generic_inferrer;
 import 'inheritance_manager3_test.dart' as inheritance_manager3;
@@ -33,6 +34,7 @@ main() {
     factor_type.main();
     flatten_type.main();
     function_type.main();
+    future_or_base.main();
     future_value_type.main();
     generic_inferrer.main();
     inheritance_manager3.main();
