@@ -1149,6 +1149,7 @@ class _FunctionTypeHandle extends _TypeHandle {
     hash = _combineHashes(hash, listHashCode(positionalParams));
     hash = _combineHashes(hash, listHashCode(namedParams));
     hash = _combineHashes(hash, returnType.hashCode);
+    hash = _combineHashes(hash, nullability.index);
     return hash;
   }
 
@@ -1159,7 +1160,8 @@ class _FunctionTypeHandle extends _TypeHandle {
       this.numRequiredParams == other.numRequiredParams &&
       listEquals(this.positionalParams, other.positionalParams) &&
       listEquals(this.namedParams, other.namedParams) &&
-      this.returnType == other.returnType;
+      this.returnType == other.returnType &&
+      this.nullability == other.nullability;
 
   @override
   String toString() {
