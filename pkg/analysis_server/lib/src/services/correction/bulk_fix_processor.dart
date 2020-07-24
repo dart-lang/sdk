@@ -8,6 +8,7 @@ import 'dart:core';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/services/correction/dart/add_override.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
@@ -27,6 +28,7 @@ class BulkFixProcessor {
   /// correction producer used to build a fix for that diagnostic. The
   /// generators used for non-lint diagnostics are in the [nonLintProducerMap].
   static const Map<String, ProducerGenerator> lintProducerMap = {
+    LintNames.annotate_overrides: AddOverride.newInstance,
     LintNames.avoid_single_cascade_in_expression_statements:
         ReplaceCascadeWithDot.newInstance,
     LintNames.prefer_equal_for_default_values:
