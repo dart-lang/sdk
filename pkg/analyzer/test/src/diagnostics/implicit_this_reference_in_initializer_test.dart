@@ -11,7 +11,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImplicitThisReferenceInInitializerTest);
-    defineReflectiveTests(ImplicitThisReferenceInInitializerWithNnbdTest);
+    defineReflectiveTests(ImplicitThisReferenceInInitializerWithNullSafetyTest);
   });
 }
 
@@ -248,7 +248,7 @@ class A<T> {
 }
 
 @reflectiveTest
-class ImplicitThisReferenceInInitializerWithNnbdTest
+class ImplicitThisReferenceInInitializerWithNullSafetyTest
     extends ImplicitThisReferenceInInitializerTest with WithNullSafetyMixin {
   test_class_field_late_invokeInstanceMethod() async {
     await assertNoErrorsInCode(r'''

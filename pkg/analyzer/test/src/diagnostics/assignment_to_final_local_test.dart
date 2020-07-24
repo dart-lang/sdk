@@ -12,7 +12,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentToFinalLocalTest);
-    defineReflectiveTests(AssignmentToFinalLocalWithNnbdTest);
+    defineReflectiveTests(AssignmentToFinalLocalWithNullSafetyTest);
   });
 }
 
@@ -137,7 +137,7 @@ f() { x = 1; }''', [
 }
 
 @reflectiveTest
-class AssignmentToFinalLocalWithNnbdTest extends DriverResolutionTest
+class AssignmentToFinalLocalWithNullSafetyTest extends DriverResolutionTest
     with WithNullSafetyMixin {
   test_localVariable_late() async {
     await assertNoErrorsInCode('''

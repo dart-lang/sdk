@@ -14,7 +14,7 @@ import 'with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MethodInvocationResolutionTest);
-    defineReflectiveTests(MethodInvocationResolutionWithNnbdTest);
+    defineReflectiveTests(MethodInvocationResolutionWithNullSafetyTest);
   });
 }
 
@@ -1719,7 +1719,7 @@ main() {
 }
 
 @reflectiveTest
-class MethodInvocationResolutionWithNnbdTest extends DriverResolutionTest
+class MethodInvocationResolutionWithNullSafetyTest extends DriverResolutionTest
     with WithNullSafetyMixin {
   test_hasReceiver_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
     newFile('/test/lib/a.dart', content: r'''

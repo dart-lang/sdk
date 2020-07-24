@@ -11,7 +11,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantCaseExpressionTest);
-    defineReflectiveTests(NonConstantCaseExpressionWithNnbdTest);
+    defineReflectiveTests(NonConstantCaseExpressionWithNullSafetyTest);
   });
 }
 
@@ -66,5 +66,5 @@ void f(var e) {
 }
 
 @reflectiveTest
-class NonConstantCaseExpressionWithNnbdTest
+class NonConstantCaseExpressionWithNullSafetyTest
     extends NonConstantCaseExpressionTest with WithNullSafetyMixin {}

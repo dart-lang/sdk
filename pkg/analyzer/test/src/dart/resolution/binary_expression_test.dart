@@ -11,7 +11,7 @@ import 'with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BinaryExpressionResolutionTest);
-    defineReflectiveTests(BinaryExpressionResolutionWithNnbdTest);
+    defineReflectiveTests(BinaryExpressionResolutionWithNullSafetyTest);
   });
 }
 
@@ -230,7 +230,7 @@ f(int a, int b) {
 }
 
 @reflectiveTest
-class BinaryExpressionResolutionWithNnbdTest extends DriverResolutionTest
+class BinaryExpressionResolutionWithNullSafetyTest extends DriverResolutionTest
     with WithNullSafetyMixin {
   test_ifNull_left_nullableContext() async {
     await assertNoErrorsInCode(r'''

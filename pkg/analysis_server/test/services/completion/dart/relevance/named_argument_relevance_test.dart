@@ -11,7 +11,7 @@ import 'completion_relevance.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NamedArgumentRelevanceTest);
-    defineReflectiveTests(NamedArgumentRelevanceWithNnbdTest);
+    defineReflectiveTests(NamedArgumentRelevanceWithNullSafetyTest);
   });
 }
 
@@ -47,7 +47,8 @@ void g() => f(^);
 }
 
 @reflectiveTest
-class NamedArgumentRelevanceWithNnbdTest extends NamedArgumentRelevanceTest {
+class NamedArgumentRelevanceWithNullSafetyTest
+    extends NamedArgumentRelevanceTest {
   @override
   List<String> get enabledExperiments => ['non-nullable'];
 

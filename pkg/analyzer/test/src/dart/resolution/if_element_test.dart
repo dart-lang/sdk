@@ -10,7 +10,7 @@ import 'with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IfElementTest);
-    defineReflectiveTests(IfElementWithNnbdTest);
+    defineReflectiveTests(IfElementWithNullSafetyTest);
   });
 }
 
@@ -34,4 +34,5 @@ main(bool Function() b) {
 }
 
 @reflectiveTest
-class IfElementWithNnbdTest extends IfElementTest with WithNullSafetyMixin {}
+class IfElementWithNullSafetyTest extends IfElementTest
+    with WithNullSafetyMixin {}

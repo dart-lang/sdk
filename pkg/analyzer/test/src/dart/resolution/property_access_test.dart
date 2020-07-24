@@ -11,7 +11,7 @@ import 'with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PropertyAccessResolutionTest);
-    defineReflectiveTests(PropertyAccessResolutionWithNnbdTest);
+    defineReflectiveTests(PropertyAccessResolutionWithNullSafetyTest);
   });
 }
 
@@ -35,8 +35,8 @@ bar() {
 }
 
 @reflectiveTest
-class PropertyAccessResolutionWithNnbdTest extends PropertyAccessResolutionTest
-    with WithNullSafetyMixin {
+class PropertyAccessResolutionWithNullSafetyTest
+    extends PropertyAccessResolutionTest with WithNullSafetyMixin {
   test_implicitCall_tearOff_nullable() async {
     await assertErrorsInCode('''
 class A {

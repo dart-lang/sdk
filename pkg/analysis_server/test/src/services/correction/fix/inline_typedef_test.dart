@@ -13,7 +13,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InlineTypedefTest);
-    defineReflectiveTests(InlineTypedefWithNNBDTest);
+    defineReflectiveTests(InlineTypedefWithNullSafetyTest);
   });
 }
 
@@ -137,7 +137,7 @@ void g(Function<T>(T) f) {}
 }
 
 @reflectiveTest
-class InlineTypedefWithNNBDTest extends InlineTypedefTest {
+class InlineTypedefWithNullSafetyTest extends InlineTypedefTest {
   @override
   List<String> get experiments => [EnableString.non_nullable];
 

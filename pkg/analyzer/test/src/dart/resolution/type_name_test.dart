@@ -12,7 +12,7 @@ import 'with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeNameResolutionTest);
-    defineReflectiveTests(TypeNameResolutionWithNnbdTest);
+    defineReflectiveTests(TypeNameResolutionWithNullSafetyTest);
   });
 }
 
@@ -255,7 +255,7 @@ f(Never a) {}
 }
 
 @reflectiveTest
-class TypeNameResolutionWithNnbdTest extends TypeNameResolutionTest
+class TypeNameResolutionWithNullSafetyTest extends TypeNameResolutionTest
     with WithNullSafetyMixin {
   ImportFindElement get import_a {
     return findElement.importFind('package:test/a.dart');

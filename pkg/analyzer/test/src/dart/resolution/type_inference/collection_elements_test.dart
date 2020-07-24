@@ -9,14 +9,14 @@ import '../with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ForElementWithNnbdTest);
-    defineReflectiveTests(IfElementWithNnbdTest);
-    defineReflectiveTests(SpreadElementWithNnbdTest);
+    defineReflectiveTests(ForElementWithNullSafetyTest);
+    defineReflectiveTests(IfElementWithNullSafetyTest);
+    defineReflectiveTests(SpreadElementWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ForElementWithNnbdTest extends DriverResolutionTest
+class ForElementWithNullSafetyTest extends DriverResolutionTest
     with WithNullSafetyMixin {
   test_list_awaitForIn_dynamic_downward() async {
     await resolveTestCode('''
@@ -194,7 +194,7 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class IfElementWithNnbdTest extends DriverResolutionTest
+class IfElementWithNullSafetyTest extends DriverResolutionTest
     with WithNullSafetyMixin {
   test_list_downward() async {
     await resolveTestCode('''
@@ -231,7 +231,7 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class SpreadElementWithNnbdTest extends DriverResolutionTest
+class SpreadElementWithNullSafetyTest extends DriverResolutionTest
     with WithNullSafetyMixin {
   test_list_downward() async {
     await resolveTestCode('''

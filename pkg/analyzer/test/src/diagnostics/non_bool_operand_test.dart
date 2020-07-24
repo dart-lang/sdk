@@ -11,7 +11,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonBoolOperandTest);
-    defineReflectiveTests(NonBoolOperandTest_NNBD);
+    defineReflectiveTests(NonBoolOperandWithNullSafetyTest);
   });
 }
 
@@ -59,7 +59,7 @@ bool f(bool left, double right) {
 }
 
 @reflectiveTest
-class NonBoolOperandTest_NNBD extends DriverResolutionTest
+class NonBoolOperandWithNullSafetyTest extends DriverResolutionTest
     with WithNullSafetyMixin {
   test_and_null() async {
     await assertErrorsInCode(r'''

@@ -12,7 +12,7 @@ import 'with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PrefixExpressionResolutionTest);
-    defineReflectiveTests(PrefixExpressionResolutionWithNnbdTest);
+    defineReflectiveTests(PrefixExpressionResolutionWithNullSafetyTest);
   });
 }
 
@@ -172,7 +172,7 @@ f(int x) {
 }
 
 @reflectiveTest
-class PrefixExpressionResolutionWithNnbdTest
+class PrefixExpressionResolutionWithNullSafetyTest
     extends PrefixExpressionResolutionTest with WithNullSafetyMixin {
   test_plusPlus_depromote() async {
     await assertNoErrorsInCode(r'''

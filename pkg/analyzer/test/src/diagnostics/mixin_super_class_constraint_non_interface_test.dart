@@ -11,7 +11,8 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinSuperClassConstraintNonInterfaceTest);
-    defineReflectiveTests(MixinSuperClassConstraintNonInterfaceWithNnbdTest);
+    defineReflectiveTests(
+        MixinSuperClassConstraintNonInterfaceWithNullSafetyTest);
   });
 }
 
@@ -19,7 +20,7 @@ main() {
 class MixinSuperClassConstraintNonInterfaceTest extends DriverResolutionTest {}
 
 @reflectiveTest
-class MixinSuperClassConstraintNonInterfaceWithNnbdTest
+class MixinSuperClassConstraintNonInterfaceWithNullSafetyTest
     extends MixinSuperClassConstraintNonInterfaceTest with WithNullSafetyMixin {
   test_Never() async {
     await assertErrorsInCode('''

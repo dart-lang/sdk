@@ -10,7 +10,7 @@ import '../with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConditionalExpressionTest);
-    defineReflectiveTests(ConditionalExpressionWithNnbdTest);
+    defineReflectiveTests(ConditionalExpressionWithNullSafetyTest);
   });
 }
 
@@ -28,7 +28,7 @@ void f(bool a, int b, int c) {
 }
 
 @reflectiveTest
-class ConditionalExpressionWithNnbdTest extends ConditionalExpressionTest
+class ConditionalExpressionWithNullSafetyTest extends ConditionalExpressionTest
     with WithNullSafetyMixin {
   @failingTest
   test_downward() async {

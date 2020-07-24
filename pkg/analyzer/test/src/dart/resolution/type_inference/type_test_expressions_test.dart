@@ -10,9 +10,9 @@ import '../with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IsNotTest);
-    defineReflectiveTests(IsNotWithNnbdTest);
+    defineReflectiveTests(IsNotWithNullSafetyTest);
     defineReflectiveTests(IsTest);
-    defineReflectiveTests(IsWithNnbdTest);
+    defineReflectiveTests(IsWithNullSafetyTest);
   });
 }
 
@@ -30,7 +30,7 @@ void f(Object a) {
 }
 
 @reflectiveTest
-class IsNotWithNnbdTest extends IsNotTest with WithNullSafetyMixin {}
+class IsNotWithNullSafetyTest extends IsNotTest with WithNullSafetyMixin {}
 
 @reflectiveTest
 class IsTest extends DriverResolutionTest {
@@ -46,4 +46,4 @@ void f(Object a) {
 }
 
 @reflectiveTest
-class IsWithNnbdTest extends IsTest with WithNullSafetyMixin {}
+class IsWithNullSafetyTest extends IsTest with WithNullSafetyMixin {}

@@ -10,9 +10,9 @@ import '../with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LogicalAndTest);
-    defineReflectiveTests(LogicalAndWithNnbdTest);
+    defineReflectiveTests(LogicalAndWithNullSafetyTest);
     defineReflectiveTests(LogicalOrTest);
-    defineReflectiveTests(LogicalOrWithNnbdTest);
+    defineReflectiveTests(LogicalOrWithNullSafetyTest);
   });
 }
 
@@ -30,7 +30,8 @@ void f(bool a, bool b) {
 }
 
 @reflectiveTest
-class LogicalAndWithNnbdTest extends LogicalAndTest with WithNullSafetyMixin {
+class LogicalAndWithNullSafetyTest extends LogicalAndTest
+    with WithNullSafetyMixin {
   @failingTest
   test_downward() async {
     await resolveTestCode('''
@@ -60,7 +61,8 @@ void f(bool a, bool b) {
 }
 
 @reflectiveTest
-class LogicalOrWithNnbdTest extends LogicalOrTest with WithNullSafetyMixin {
+class LogicalOrWithNullSafetyTest extends LogicalOrTest
+    with WithNullSafetyMixin {
   @failingTest
   test_downward() async {
     await resolveTestCode('''

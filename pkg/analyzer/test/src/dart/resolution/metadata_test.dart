@@ -17,7 +17,7 @@ import 'with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MetadataResolutionTest);
-    defineReflectiveTests(MetadataResolutionWithNnbdTest);
+    defineReflectiveTests(MetadataResolutionWithNullSafetyTest);
   });
 }
 
@@ -182,7 +182,7 @@ class B {}
 }
 
 @reflectiveTest
-class MetadataResolutionWithNnbdTest extends DriverResolutionTest
+class MetadataResolutionWithNullSafetyTest extends DriverResolutionTest
     with WithNullSafetyMixin {
   ImportFindElement get import_a {
     return findElement.importFind('package:test/a.dart');

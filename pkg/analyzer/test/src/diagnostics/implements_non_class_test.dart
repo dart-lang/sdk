@@ -11,7 +11,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImplementsNonClassTest);
-    defineReflectiveTests(ImplementsNonClassWithNnbdTest);
+    defineReflectiveTests(ImplementsNonClassWithNullSafetyTest);
   });
 }
 
@@ -56,7 +56,7 @@ class C = A with M implements B;
 }
 
 @reflectiveTest
-class ImplementsNonClassWithNnbdTest extends ImplementsNonClassTest
+class ImplementsNonClassWithNullSafetyTest extends ImplementsNonClassTest
     with WithNullSafetyMixin {
   test_Never() async {
     await assertErrorsInCode('''

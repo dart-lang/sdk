@@ -11,7 +11,7 @@ import '../with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FunctionExpressionTest);
-    defineReflectiveTests(FunctionExpressionWithNnbdTest);
+    defineReflectiveTests(FunctionExpressionWithNullSafetyTest);
   });
 }
 
@@ -460,7 +460,7 @@ var v = () sync* {
 }
 
 @reflectiveTest
-class FunctionExpressionWithNnbdTest extends FunctionExpressionTest
+class FunctionExpressionWithNullSafetyTest extends FunctionExpressionTest
     with WithNullSafetyMixin {
   test_contextFunctionType_nonNullify() async {
     newFile('/test/lib/a.dart', content: r'''

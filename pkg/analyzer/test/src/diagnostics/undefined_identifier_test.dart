@@ -12,7 +12,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedIdentifierTest);
-    defineReflectiveTests(UndefinedIdentifierWithNnbdTest);
+    defineReflectiveTests(UndefinedIdentifierWithNullSafetyTest);
   });
 }
 
@@ -176,5 +176,5 @@ main(int p) {
 }
 
 @reflectiveTest
-class UndefinedIdentifierWithNnbdTest extends UndefinedIdentifierTest
+class UndefinedIdentifierWithNullSafetyTest extends UndefinedIdentifierTest
     with WithNullSafetyMixin {}

@@ -9,12 +9,13 @@ import '../with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ThrowWithNnbdTest);
+    defineReflectiveTests(ThrowWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ThrowWithNnbdTest extends DriverResolutionTest with WithNullSafetyMixin {
+class ThrowWithNullSafetyTest extends DriverResolutionTest
+    with WithNullSafetyMixin {
   test_downward() async {
     await resolveTestCode('''
 void f() {

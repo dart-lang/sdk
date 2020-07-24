@@ -13,7 +13,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingRequiredParamTest);
-    defineReflectiveTests(MissingRequiredParamWithNnbdTest);
+    defineReflectiveTests(MissingRequiredParamWithNullSafetyTest);
   });
 }
 
@@ -245,7 +245,7 @@ class C {
 }
 
 @reflectiveTest
-class MissingRequiredParamWithNnbdTest extends DriverResolutionTest
+class MissingRequiredParamWithNullSafetyTest extends DriverResolutionTest
     with WithNullSafetyMixin {
   test_constructor_argumentGiven() async {
     await assertNoErrorsInCode(r'''

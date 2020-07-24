@@ -12,7 +12,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeArgumentNotMatchingBoundsTest);
     defineReflectiveTests(
-      TypeArgumentNotMatchingBoundsWithNnbdTest,
+      TypeArgumentNotMatchingBoundsWithNullSafetyTest,
     );
   });
 }
@@ -401,7 +401,7 @@ class C extends Object with G<B>{}
 }
 
 @reflectiveTest
-class TypeArgumentNotMatchingBoundsWithNnbdTest
+class TypeArgumentNotMatchingBoundsWithNullSafetyTest
     extends TypeArgumentNotMatchingBoundsTest with WithNullSafetyMixin {
   test_extends_optIn_fromOptOut_Null() async {
     newFile('/test/lib/a.dart', content: r'''

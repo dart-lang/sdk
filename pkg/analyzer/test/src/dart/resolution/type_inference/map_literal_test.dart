@@ -11,7 +11,7 @@ import '../with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapLiteralTest);
-    defineReflectiveTests(MapLiteralWithNnbdTest);
+    defineReflectiveTests(MapLiteralWithNullSafetyTest);
   });
 }
 
@@ -390,7 +390,8 @@ var a = <num, String>{};
 }
 
 @reflectiveTest
-class MapLiteralWithNnbdTest extends MapLiteralTest with WithNullSafetyMixin {
+class MapLiteralWithNullSafetyTest extends MapLiteralTest
+    with WithNullSafetyMixin {
   test_context_noTypeArgs_noEntries_typeParameterNullable() async {
     await assertNoErrorsInCode('''
 class C<T extends Object?> {

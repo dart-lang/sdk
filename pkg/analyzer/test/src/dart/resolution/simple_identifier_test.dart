@@ -11,7 +11,7 @@ import 'with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SimpleIdentifierResolutionTest);
-    defineReflectiveTests(SimpleIdentifierResolutionWithNnbdTest);
+    defineReflectiveTests(SimpleIdentifierResolutionWithNullSafetyTest);
   });
 }
 
@@ -113,7 +113,7 @@ class A {
 }
 
 @reflectiveTest
-class SimpleIdentifierResolutionWithNnbdTest
+class SimpleIdentifierResolutionWithNullSafetyTest
     extends SimpleIdentifierResolutionTest with WithNullSafetyMixin {
   test_functionReference() async {
     await assertErrorsInCode('''

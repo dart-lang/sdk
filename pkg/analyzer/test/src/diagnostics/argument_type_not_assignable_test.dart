@@ -12,7 +12,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArgumentTypeNotAssignableTest);
-    defineReflectiveTests(ArgumentTypeNotAssignableTest_NNBD);
+    defineReflectiveTests(ArgumentTypeNotAssignableWithNullSafetyTest);
   });
 }
 
@@ -436,8 +436,8 @@ g(C c) {
 }
 
 @reflectiveTest
-class ArgumentTypeNotAssignableTest_NNBD extends ArgumentTypeNotAssignableTest
-    with WithNullSafetyMixin {
+class ArgumentTypeNotAssignableWithNullSafetyTest
+    extends ArgumentTypeNotAssignableTest with WithNullSafetyMixin {
   test_binary_eqEq_covariantParameterType() async {
     await assertErrorsInCode(r'''
 class A {

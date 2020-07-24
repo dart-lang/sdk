@@ -11,7 +11,8 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionOverrideArgumentNotAssignableTest);
-    defineReflectiveTests(ExtensionOverrideArgumentNotAssignableWithNNBDTest);
+    defineReflectiveTests(
+        ExtensionOverrideArgumentNotAssignableWithNullSafetyTest);
   });
 }
 
@@ -62,7 +63,7 @@ void f(B b) {
 }
 
 @reflectiveTest
-class ExtensionOverrideArgumentNotAssignableWithNNBDTest
+class ExtensionOverrideArgumentNotAssignableWithNullSafetyTest
     extends DriverResolutionTest with WithNullSafetyMixin {
   test_override_onNonNullable() async {
     await assertErrorsInCode(r'''

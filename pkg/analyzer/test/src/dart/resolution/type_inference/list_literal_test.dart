@@ -10,7 +10,7 @@ import '../with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ListLiteralTest);
-    defineReflectiveTests(ListLiteralWithNnbdTest);
+    defineReflectiveTests(ListLiteralWithNullSafetyTest);
   });
 }
 
@@ -371,7 +371,8 @@ var a = <num>[];
 }
 
 @reflectiveTest
-class ListLiteralWithNnbdTest extends ListLiteralTest with WithNullSafetyMixin {
+class ListLiteralWithNullSafetyTest extends ListLiteralTest
+    with WithNullSafetyMixin {
   test_context_spread_nullAware() async {
     await assertNoErrorsInCode('''
 T f<T>(T t) => t;

@@ -11,7 +11,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ForInOfInvalidTypeTest);
-    defineReflectiveTests(ForInOfInvalidTypeWithNnbdTest);
+    defineReflectiveTests(ForInOfInvalidTypeWithNullSafetyTest);
   });
 }
 
@@ -63,7 +63,7 @@ f(bool e) {
 }
 
 @reflectiveTest
-class ForInOfInvalidTypeWithNnbdTest extends ForInOfInvalidTypeTest
+class ForInOfInvalidTypeWithNullSafetyTest extends ForInOfInvalidTypeTest
     with WithNullSafetyMixin {
   test_awaitForIn_never() async {
     await assertErrorsInCode('''

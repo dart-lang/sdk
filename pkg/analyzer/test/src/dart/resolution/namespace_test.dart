@@ -10,7 +10,7 @@ import 'with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportResolutionTest);
-    defineReflectiveTests(ImportResolutionWithNnbdTest);
+    defineReflectiveTests(ImportResolutionWithNullSafetyTest);
   });
 }
 
@@ -29,5 +29,5 @@ Never f() => throw 'foo';
 }
 
 @reflectiveTest
-class ImportResolutionWithNnbdTest extends ImportResolutionTest
+class ImportResolutionWithNullSafetyTest extends ImportResolutionTest
     with WithNullSafetyMixin {}

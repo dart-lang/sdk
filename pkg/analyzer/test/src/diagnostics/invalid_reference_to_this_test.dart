@@ -11,7 +11,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidReferenceToThisTest);
-    defineReflectiveTests(InvalidReferenceToThisTest_NNBD);
+    defineReflectiveTests(InvalidReferenceToThisWithNullSafetyTest);
   });
 }
 
@@ -135,8 +135,8 @@ class A {
 }
 
 @reflectiveTest
-class InvalidReferenceToThisTest_NNBD extends InvalidReferenceToThisTest
-    with WithNullSafetyMixin {
+class InvalidReferenceToThisWithNullSafetyTest
+    extends InvalidReferenceToThisTest with WithNullSafetyMixin {
   test_instanceVariableInitializer_inDeclaration_late() async {
     await assertNoErrorsInCode(r'''
 class A {

@@ -11,7 +11,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingEnumConstantInSwitchTest);
-    defineReflectiveTests(MissingEnumConstantInSwitchWithNnbdTest);
+    defineReflectiveTests(MissingEnumConstantInSwitchWithNullSafetyTest);
   });
 }
 
@@ -82,7 +82,7 @@ void f(E e) {
 }
 
 @reflectiveTest
-class MissingEnumConstantInSwitchWithNnbdTest
+class MissingEnumConstantInSwitchWithNullSafetyTest
     extends MissingEnumConstantInSwitchTest with WithNullSafetyMixin {
   test_nullable() async {
     await assertErrorsInCode('''

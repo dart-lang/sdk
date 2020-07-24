@@ -11,7 +11,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentToFinalTest);
-    defineReflectiveTests(AssignmentToFinalWithNnbdTest);
+    defineReflectiveTests(AssignmentToFinalWithNullSafetyTest);
   });
 }
 
@@ -45,7 +45,7 @@ f() {
 }
 
 @reflectiveTest
-class AssignmentToFinalWithNnbdTest extends AssignmentToFinalTest
+class AssignmentToFinalWithNullSafetyTest extends AssignmentToFinalTest
     with WithNullSafetyMixin {
   test_field_late() async {
     await assertNoErrorsInCode('''

@@ -14,7 +14,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferFinalInForEachTest);
     defineReflectiveTests(PreferFinalFieldsTest);
-    defineReflectiveTests(PreferFinalFieldsWithNNBDTest);
+    defineReflectiveTests(PreferFinalFieldsWithNullSafetyTest);
   });
 }
 
@@ -58,7 +58,7 @@ class C {
 }
 
 @reflectiveTest
-class PreferFinalFieldsWithNNBDTest extends FixProcessorLintTest {
+class PreferFinalFieldsWithNullSafetyTest extends FixProcessorLintTest {
   @override
   List<String> get experiments => [EnableString.non_nullable];
 

@@ -11,7 +11,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CaseExpressionTypeImplementsEqualsTest);
-    defineReflectiveTests(CaseExpressionTypeImplementsEqualsWithNnbdTest);
+    defineReflectiveTests(CaseExpressionTypeImplementsEqualsWithNullSafetyTest);
   });
 }
 
@@ -106,7 +106,7 @@ void f(e) {
 }
 
 @reflectiveTest
-class CaseExpressionTypeImplementsEqualsWithNnbdTest
+class CaseExpressionTypeImplementsEqualsWithNullSafetyTest
     extends DriverResolutionTest with WithNullSafetyMixin {
   test_declares() async {
     await assertNoErrorsInCode(r'''

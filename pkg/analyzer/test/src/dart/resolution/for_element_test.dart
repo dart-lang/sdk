@@ -10,7 +10,7 @@ import 'with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ForEachElementTest);
-    defineReflectiveTests(ForEachElementWithNnbdTest);
+    defineReflectiveTests(ForEachElementWithNullSafetyTest);
     defineReflectiveTests(ForLoopElementTest);
   });
 }
@@ -50,7 +50,7 @@ main() {
 }
 
 @reflectiveTest
-class ForEachElementWithNnbdTest extends ForEachElementTest
+class ForEachElementWithNullSafetyTest extends ForEachElementTest
     with WithNullSafetyMixin {
   test_optIn_fromOptOut() async {
     newFile('/test/lib/a.dart', content: r'''

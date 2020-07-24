@@ -11,7 +11,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidOverrideTest);
-    defineReflectiveTests(InvalidOverrideWithNnbdTest);
+    defineReflectiveTests(InvalidOverrideWithNullSafetyTest);
   });
 }
 
@@ -561,7 +561,7 @@ class B implements I<int>, J<String> {
 }
 
 @reflectiveTest
-class InvalidOverrideWithNnbdTest extends DriverResolutionTest
+class InvalidOverrideWithNullSafetyTest extends DriverResolutionTest
     with WithNullSafetyMixin {
   test_method_parameter_functionTyped_optOut_extends_optIn() async {
     newFile('/test/lib/a.dart', content: r'''

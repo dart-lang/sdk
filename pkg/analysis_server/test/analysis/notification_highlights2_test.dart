@@ -17,7 +17,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationHighlightsTest);
     defineReflectiveTests(HighlightsWithControlFlowCollectionsTest);
-    defineReflectiveTests(HighlightsWithNnbdTest);
+    defineReflectiveTests(HighlightsWithNullSafetyTest);
     defineReflectiveTests(HighlightTypeTest);
   });
 }
@@ -1297,7 +1297,7 @@ f(a, b) {
 }
 
 @reflectiveTest
-class HighlightsWithNnbdTest extends HighlightsTestSupport {
+class HighlightsWithNullSafetyTest extends HighlightsTestSupport {
   @override
   void createProject({Map<String, String> packageRoots}) {
     addAnalysisOptionsFile('''

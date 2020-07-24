@@ -11,7 +11,7 @@ import '../with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetLiteralTest);
-    defineReflectiveTests(SetLiteralWithNnbdTest);
+    defineReflectiveTests(SetLiteralWithNullSafetyTest);
   });
 }
 
@@ -308,7 +308,8 @@ var a = <num>{};
 }
 
 @reflectiveTest
-class SetLiteralWithNnbdTest extends SetLiteralTest with WithNullSafetyMixin {
+class SetLiteralWithNullSafetyTest extends SetLiteralTest
+    with WithNullSafetyMixin {
   AstNode setOrMapLiteral(String search) => findNode.setOrMapLiteral(search);
 
   test_context_noTypeArgs_noEntries() async {

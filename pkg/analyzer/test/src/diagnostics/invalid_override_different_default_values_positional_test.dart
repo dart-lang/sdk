@@ -12,7 +12,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidOverrideDifferentDefaultValuesPositionalTest);
     defineReflectiveTests(
-      InvalidOverrideDifferentDefaultValuesPositionalWithNnbdTest,
+      InvalidOverrideDifferentDefaultValuesPositionalWithNullSafetyTest,
     );
   });
 }
@@ -313,7 +313,7 @@ class B extends A {
 }
 
 @reflectiveTest
-class InvalidOverrideDifferentDefaultValuesPositionalWithNnbdTest
+class InvalidOverrideDifferentDefaultValuesPositionalWithNullSafetyTest
     extends InvalidOverrideDifferentDefaultValuesPositionalTest
     with WithNullSafetyMixin {
   test_concrete_equal_optIn_extends_optOut() async {

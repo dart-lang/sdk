@@ -12,7 +12,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FinalNotInitializedTest);
-    defineReflectiveTests(FinalNotInitializedWithNnbdTest);
+    defineReflectiveTests(FinalNotInitializedWithNullSafetyTest);
   });
 }
 
@@ -84,7 +84,7 @@ mixin M {
 }
 
 @reflectiveTest
-class FinalNotInitializedWithNnbdTest extends DriverResolutionTest
+class FinalNotInitializedWithNullSafetyTest extends DriverResolutionTest
     with WithNullSafetyMixin {
   test_field_noConstructor_initializer() async {
     await assertNoErrorsInCode('''

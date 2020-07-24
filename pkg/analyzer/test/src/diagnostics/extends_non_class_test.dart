@@ -11,7 +11,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtendsNonClassTest);
-    defineReflectiveTests(ExtendsNonClassWithNnbdTest);
+    defineReflectiveTests(ExtendsNonClassWithNullSafetyTest);
   });
 }
 
@@ -19,7 +19,7 @@ main() {
 class ExtendsNonClassTest extends DriverResolutionTest {}
 
 @reflectiveTest
-class ExtendsNonClassWithNnbdTest extends ExtendsNonClassTest
+class ExtendsNonClassWithNullSafetyTest extends ExtendsNonClassTest
     with WithNullSafetyMixin {
   test_Never() async {
     await assertErrorsInCode('''
