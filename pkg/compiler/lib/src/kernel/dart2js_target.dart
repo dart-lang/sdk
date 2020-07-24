@@ -127,7 +127,7 @@ class Dart2jsTarget extends Target {
       name = name.substring(4);
     } else if (name.startsWith('set:')) {
       kind = invocationMirrorSetterKind;
-      name = name.substring(4);
+      name = name.substring(4) + '=';
     } else {
       kind = invocationMirrorMethodKind;
     }
