@@ -16,8 +16,13 @@ void main() {
   //    ip address show
   asyncStart();
   try {
-    // Make sure the address here is the same as what it shows in "ip address show"
-    var ipv6 = 'fe80:1::10%tap0';
+    // Make sure the address here is the same as what it shows in
+    // "ip address show"
+    var ipv6 = 'fe80:1::1%tap0';
+
+    // Parses a Link-local address on Linux and Windows will throw an exception.
+    InternetAddress(ipv6);
+
     HttpServer.bind(ipv6, 0).then((server) {
       server.listen((request) {
         var timer = new Timer.periodic(const Duration(milliseconds: 0), (_) {
