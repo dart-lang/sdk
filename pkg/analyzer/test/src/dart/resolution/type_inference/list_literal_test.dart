@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../driver_resolution.dart';
@@ -17,9 +18,11 @@ main() {
 @reflectiveTest
 class ListLiteralTest extends DriverResolutionTest {
   test_context_noTypeArgs_expression_conflict() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 List<int> a = ['a'];
-''');
+''', [
+      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 15, 3),
+    ]);
     assertType(findNode.listLiteral('['), 'List<int>');
   }
 
@@ -38,34 +41,54 @@ List<String> a = [];
   }
 
   test_context_noTypeArgs_noElements_typeParameter() async {
-    await resolveTestCode('''
+    var expectedErrors = expectedErrorsByNullability(
+      nullable: [
+        error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 39, 2),
+      ],
+      legacy: [
+        error(CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, 39, 2),
+      ],
+    );
+    await assertErrorsInCode('''
 class A<E extends List<int>> {
   E a = [];
 }
-''');
+''', expectedErrors);
     assertType(findNode.listLiteral('['), 'List<dynamic>');
   }
 
   test_context_noTypeArgs_noElements_typeParameter_dynamic() async {
-    await resolveTestCode('''
+    var expectedErrors = expectedErrorsByNullability(
+      nullable: [
+        error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 43, 2),
+      ],
+      legacy: [
+        error(CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, 43, 2),
+      ],
+    );
+    await assertErrorsInCode('''
 class A<E extends List<dynamic>> {
   E a = [];
 }
-''');
+''', expectedErrors);
     assertType(findNode.listLiteral('['), 'List<dynamic>');
   }
 
   test_context_typeArgs_expression_conflictingContext() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 List<String> a = <int>[0];
-''');
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 17, 8),
+    ]);
     assertType(findNode.listLiteral('['), 'List<int>');
   }
 
   test_context_typeArgs_expression_conflictingExpression() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 List<String> a = <String>[0];
-''');
+''', [
+      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 26, 1),
+    ]);
     assertType(findNode.listLiteral('['), 'List<String>');
   }
 
@@ -87,9 +110,11 @@ List<String> a = <String>['a'];
   }
 
   test_context_typeArgs_noElements_conflict() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 List<String> a = <int>[];
-''');
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 17, 7),
+    ]);
     assertType(findNode.listLiteral('['), 'List<int>');
   }
 
@@ -122,16 +147,20 @@ var a = [1, '2', 3];
   }
 
   test_noContext_noTypeArgs_expressions_unresolved() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 var a = [x];
-''');
+''', [
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 9, 1),
+    ]);
     assertType(findNode.listLiteral('['), 'List<dynamic>');
   }
 
   test_noContext_noTypeArgs_expressions_unresolved_multiple() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 var a = [0, x, 2];
-''');
+''', [
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 12, 1),
+    ]);
     assertType(findNode.listLiteral('['), 'List<dynamic>');
   }
 
@@ -254,7 +283,7 @@ main(L l1) {
   }
 
   test_noContext_noTypeArgs_spread_nestedInIf_oneAmbiguous() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 List<int> c = [];
 dynamic d;
 var a = [if (0 < 1) ...c else ...d];
@@ -264,7 +293,7 @@ var a = [if (0 < 1) ...c else ...d];
 
   test_noContext_noTypeArgs_spread_nullAware_null() async {
     await assertNoErrorsInCode('''
-void f(Null a) async {
+void f(Null a) {
   // ignore:unused_local_variable
   var v = [...?a];
 }
@@ -280,27 +309,27 @@ void f(Null a) async {
 
   test_noContext_noTypeArgs_spread_nullAware_null2() async {
     await assertNoErrorsInCode('''
-void f(Null a) async {
+void f(Null a) {
   // ignore:unused_local_variable
   var v = [1, ...?a, 2];
 }
 ''');
-    assertType(
-      findNode.listLiteral('['),
-      typeStringByNullability(
-        nullable: 'List<int>',
-        legacy: 'List<int>',
-      ),
-    );
+    assertType(findNode.listLiteral('['), 'List<int>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_typeParameter_implementsNull() async {
-    await resolveTestCode('''
+    var expectedErrors = expectedErrorsByNullability(
+      nullable: [],
+      legacy: [
+        error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 85, 1),
+      ],
+    );
+    await assertErrorsInCode('''
 void f<T extends Null>(T a) async {
   // ignore:unused_local_variable
   var v = [...?a];
 }
-''');
+''', expectedErrors);
     assertType(
       findNode.listLiteral('['),
       typeStringByNullability(
@@ -311,7 +340,7 @@ void f<T extends Null>(T a) async {
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_implementsIterable() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 void f<T extends List<int>>(T a) {
   // ignore:unused_local_variable
   var v = [...a];
@@ -321,29 +350,35 @@ void f<T extends List<int>>(T a) {
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_notImplementsIterable() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 void f<T extends num>(T a) {
   // ignore:unused_local_variable
   var v = [...a];
 }
-''');
+''', [
+      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 77, 1),
+    ]);
     assertType(findNode.listLiteral('[...'), 'List<dynamic>');
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_notImplementsIterable2() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 void f<T extends num>(T a) {
   // ignore:unused_local_variable
   var v = [...a, 0];
 }
-''');
+''', [
+      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 77, 1),
+    ]);
     assertType(findNode.listLiteral('[...'), 'List<dynamic>');
   }
 
   test_noContext_typeArgs_expression_conflict() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 var a = <String>[1];
-''');
+''', [
+      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 17, 1),
+    ]);
     assertType(findNode.listLiteral('['), 'List<String>');
   }
 
@@ -423,22 +458,26 @@ void f(Never a) async {
   }
 
   test_noContext_noTypeArgs_spread_nullAware_never() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void f(Never a) async {
   // ignore:unused_local_variable
-  var v = [...a];
+  var v = [...?a];
 }
-''');
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 69, 4),
+    ]);
     assertType(findNode.listLiteral('['), 'List<Never>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_typeParameter_implementsNever() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 void f<T extends Never>(T a) async {
   // ignore:unused_local_variable
   var v = [...?a];
 }
-''');
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 82, 4),
+    ]);
     assertType(findNode.listLiteral('['), 'List<Never>');
   }
 
