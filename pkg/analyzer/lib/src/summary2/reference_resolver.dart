@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
@@ -492,19 +491,33 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitTypeName(TypeName node) {
-    var typeName = node.name;
-    if (typeName is SimpleIdentifier && typeName.name == 'void') {
-      node.type = VoidTypeImpl.instance;
-      return;
-    }
+    var typeIdentifier = node.name;
 
-    var element = scope.lookupIdentifier(typeName);
-    if (typeName is SimpleIdentifier) {
-      typeName.staticElement = element;
-    } else if (typeName is PrefixedIdentifier) {
-      typeName.identifier.staticElement = element;
-      SimpleIdentifier prefix = typeName.prefix;
-      prefix.staticElement = scope.lookupIdentifier(prefix);
+    Element element;
+    if (typeIdentifier is PrefixedIdentifier) {
+      var prefix = typeIdentifier.prefix;
+      var prefixName = prefix.name;
+      var prefixElement = scope.lookup2(prefixName).getter;
+      prefix.staticElement = prefixElement;
+
+      if (prefixElement is PrefixElement) {
+        var nameNode = typeIdentifier.identifier;
+        var name = nameNode.name;
+
+        element = prefixElement.scope.lookup2(name).getter;
+        nameNode.staticElement = element;
+      }
+    } else {
+      var nameNode = typeIdentifier as SimpleIdentifier;
+      var name = nameNode.name;
+
+      if (name == 'void') {
+        node.type = VoidTypeImpl.instance;
+        return;
+      }
+
+      element = scope.lookup2(name).getter;
+      nameNode.staticElement = element;
     }
 
     node.typeArguments?.accept(this);
