@@ -42,7 +42,8 @@ var v = const <bool, int>{if (1 < 0) true: a else false: b};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 101, 1),
+                error(
+                    CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 101, 1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 70, 32),
@@ -69,11 +70,13 @@ var v = const <bool, int>{if (1 < 0) true: 'a'};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 43, 3),
+                error(
+                    CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 43, 3),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 26, 20),
-                error(StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 43, 3),
+                error(
+                    CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 43, 3),
               ]);
   }
 
@@ -98,7 +101,8 @@ var v = const <bool, int>{if (true) true: a};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 65, 1),
+                error(
+                    CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 65, 1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 49, 17),
@@ -132,7 +136,7 @@ var v = const <bool, int>{true: a};
 const dynamic a = 'a';
 var v = const <bool, int>{true: a};
 ''', [
-      error(StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 55, 1),
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 55, 1),
     ]);
   }
 
@@ -140,7 +144,7 @@ var v = const <bool, int>{true: a};
     await assertErrorsInCode('''
 var v = const <bool, int>{true: 'a'};
 ''', [
-      error(StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 32, 3),
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 32, 3),
     ]);
   }
 
@@ -164,11 +168,13 @@ var v = const <bool, int>{...{true: a}};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 59, 1),
+                error(
+                    CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 59, 1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 49, 12),
-                error(StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 59, 1),
+                error(
+                    CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 59, 1),
               ]);
   }
 
@@ -192,7 +198,7 @@ var v = <bool, int>{if (1 < 0) true: a else false: b};
     await assertErrorsInCode('''
 var v = <bool, int>{if (1 < 0) true: 'a'};
 ''', [
-      error(StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 37, 3),
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 37, 3),
     ]);
   }
 
@@ -228,7 +234,7 @@ var v = <bool, int>{true: a};
     await assertErrorsInCode('''
 var v = <bool, int>{true: 'a'};
 ''', [
-      error(StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 26, 3),
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 26, 3),
     ]);
   }
 
@@ -248,7 +254,7 @@ var v = <int, int>{...<num, num>{1: 1}};
     await assertErrorsInCode('''
 var v = <bool, int>{...{true: 'a'}};
 ''', [
-      error(StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 30, 3),
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 30, 3),
     ]);
   }
 

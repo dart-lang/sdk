@@ -31,7 +31,7 @@ void testList() {
   var c = <int>[
     for (num n in <num>[1, 2, 3, 4]) n
     //                               ^
-    // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
   ];
 
@@ -64,10 +64,10 @@ void testMap() {
   var c = <int, int>{
     for (num n in <num>[1, 2, 3, 4]) n: n
     //                               ^
-    // [analyzer] STATIC_WARNING.MAP_KEY_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.MAP_KEY_TYPE_NOT_ASSIGNABLE
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
     //                                  ^
-    // [analyzer] STATIC_WARNING.MAP_VALUE_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.MAP_VALUE_TYPE_NOT_ASSIGNABLE
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
   };
 
@@ -100,7 +100,7 @@ void testSet() {
   var c = <int>{
     for (num n in <num>[1, 2, 3, 4]) n
     //                               ^
-    // [analyzer] STATIC_WARNING.SET_ELEMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.SET_ELEMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
   };
 
@@ -117,14 +117,14 @@ void testNullIterable() {
   Iterable<int>? nullIterable = null;
   var a = <int>[for (var i in nullIterable) 1];
   //                          ^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   // [cfe] The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
   var b = {for (var i in nullIterable) 1: 1};
   //                     ^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   // [cfe] The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
   var c = <int>{for (var i in nullIterable) 1};
   //                          ^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   // [cfe] The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
 }

@@ -426,9 +426,14 @@ version: 1.3.2
   Future<void> test_StaticWarning() async {
     createProject();
     addTestFile('''
-main() {
-  final int foo;
-  print(foo);
+enum E {e1, e2}
+
+void f(E e) {
+  switch (e) {
+    case E.e1:
+      print(0);
+      break;
+  }
 }
 ''');
     await waitForTasksFinished();
@@ -436,7 +441,7 @@ main() {
     var errors = filesErrors[testFile];
     expect(errors, hasLength(1));
     var error = errors[0];
-    expect(error.severity, AnalysisErrorSeverity.ERROR);
+    expect(error.severity, AnalysisErrorSeverity.WARNING);
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
   }
 }

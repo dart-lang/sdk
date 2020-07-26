@@ -22,7 +22,7 @@ main() {
   C = null;
 }
 ''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_TYPE, 22, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 22, 1),
     ]);
   }
 
@@ -33,7 +33,7 @@ main() {
   E = null;
 }
 ''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_TYPE, 24, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 24, 1),
     ]);
   }
 
@@ -44,7 +44,7 @@ main() {
   F = null;
 }
 ''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_TYPE, 29, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 29, 1),
     ]);
   }
 
@@ -56,7 +56,7 @@ class C<T> {
   }
 }
 ''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_TYPE, 25, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 25, 1),
     ]);
   }
 }

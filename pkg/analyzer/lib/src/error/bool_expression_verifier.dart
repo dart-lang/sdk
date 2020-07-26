@@ -79,12 +79,12 @@ class BoolExpressionVerifier {
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
       _errorReporter.reportErrorForNode(
-        StaticWarningCode.USE_OF_VOID_RESULT,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
         methodName,
       );
     } else {
       _errorReporter.reportErrorForNode(
-        StaticWarningCode.USE_OF_VOID_RESULT,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
         expression,
       );
     }

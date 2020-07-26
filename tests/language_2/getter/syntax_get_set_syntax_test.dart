@@ -73,7 +73,7 @@ class C0 {
 // [analyzer] SYNTACTIC_ERROR.VAR_RETURN_TYPE
 // [cfe] The return type can't be 'var'.
 //    ^^^^^^
-// [analyzer] STATIC_WARNING.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+// [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
   var get b, c;
 //^^^
 // [analyzer] SYNTACTIC_ERROR.VAR_RETURN_TYPE
@@ -94,7 +94,7 @@ class C0 {
 // [analyzer] SYNTACTIC_ERROR.VAR_RETURN_TYPE
 // [cfe] The return type can't be 'var'.
 //    ^^^^^^
-// [analyzer] STATIC_WARNING.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+// [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
 //        ^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
 // [cfe] A method declaration needs an explicit list of parameters.
@@ -141,9 +141,9 @@ class C1 {
   List set;
   List set d;
 //^^^^
-// [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+// [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
 //^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+// [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
 //         ^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
 // [cfe] A method declaration needs an explicit list of parameters.
@@ -153,7 +153,7 @@ class C1 {
 // [cfe] A setter should have exactly one formal parameter.
   List set e, f;
 //^^^^
-// [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+// [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
 //         ^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
 // [cfe] A method declaration needs an explicit list of parameters.
@@ -189,9 +189,9 @@ class C2 {
   List<int> set;
   List<int> set d;
 //^^^^^^^^^
-// [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+// [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
 //^^^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+// [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
 //              ^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
 // [cfe] A method declaration needs an explicit list of parameters.
@@ -201,7 +201,7 @@ class C2 {
 // [cfe] A setter should have exactly one formal parameter.
   List<int> set e, f;
 //^^^^^^^^^
-// [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+// [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
 //              ^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
 // [cfe] A method declaration needs an explicit list of parameters.

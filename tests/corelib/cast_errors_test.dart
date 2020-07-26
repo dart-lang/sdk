@@ -17,7 +17,7 @@ void testSetDowncast() {
   var newC = new C();
   dSet.add(newC);
   //       ^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'C' can't be assigned to the parameter type 'D?'.
 }
 
@@ -27,7 +27,7 @@ void testMapDowncast() {
 
   dMap[c] = d;
   //   ^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'C' can't be assigned to a variable of type 'D?'.
   dMap[d] = c;
   //        ^

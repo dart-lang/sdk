@@ -48,7 +48,7 @@ main() {
 //^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 //                                 ^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] The argument type 'Contravariant<String>' can't be assigned to the parameter type 'Contravariant<int>'.
 
   // String <: T <: int is not a valid constraint.
@@ -56,7 +56,7 @@ main() {
 //^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 //                                    ^^^^^^^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] The argument type 'Contravariant<int>' can't be assigned to the parameter type 'Contravariant<String>'.
 
   // Middle <: T <: Lower is not a valid constraint

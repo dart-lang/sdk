@@ -20,7 +20,7 @@ void A(out int foo) {
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
   // [cfe] The operator '<' isn't defined for the class 'Type'.
   //   ^^^
-  // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
   // [cfe] Expected ';' after this.
   //   ^^^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
@@ -29,7 +29,7 @@ void A(out int foo) {
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
   // [cfe] The operator '>' isn't defined for the class 'Type'.
   //               ^^^
-  // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
   // [cfe] Getter not found: 'bar'.
 }
 

@@ -29,7 +29,7 @@ main() {
   // [cfe] The operator '-' isn't defined for the class 'String'.
   Expect.throws(() => x * y);
   //                      ^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
   Expect.throws(() => x / y);
   //                    ^

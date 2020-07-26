@@ -7,7 +7,7 @@ import 'package:expect/expect.dart';
 abstract class Link<T> {
   factory Link.Foo() = LinkFactory<T>.Foo;
   //                   ^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.REDIRECT_TO_INVALID_RETURN_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_INVALID_RETURN_TYPE
   // [cfe] The constructor function type 'LinkFactory<T> Function()' isn't a subtype of 'Link<T> Function()'.
 }
 

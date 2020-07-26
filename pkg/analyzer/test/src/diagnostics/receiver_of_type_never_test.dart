@@ -78,7 +78,7 @@ void main(Never? x) {
   x + (1 + 2);
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
     ]);
 
     assertBinaryExpression(
@@ -122,7 +122,7 @@ void main(Never? x) {
   x();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
     ]);
   }
 
@@ -190,7 +190,7 @@ void main(Never? x) {
   x[0];
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
       error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 25, 3),
     ]);
 
@@ -208,7 +208,7 @@ void main(Never? x) {
   x[0] += 1 + 2;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
       error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 25, 3),
       error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 25, 3),
     ]);
@@ -229,7 +229,7 @@ void main(Never? x) {
   x[0] = 1 + 2;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
       error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 25, 3),
     ]);
 
@@ -335,7 +335,7 @@ void main(Never? x) {
   x++;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
     ]);
 
     assertPostfixExpression(
@@ -368,7 +368,7 @@ void main(Never? x) {
   ++x;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 1),
     ]);
 
     assertPrefixExpression(
@@ -470,7 +470,7 @@ void main(Never? x) {
   x.foo;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
     ]);
 
     assertSimpleIdentifier(

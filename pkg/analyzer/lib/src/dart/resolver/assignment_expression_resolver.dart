@@ -197,7 +197,7 @@ class AssignmentExpressionResolver {
     if (operatorType != TokenType.EQ) {
       if (staticType != null && staticType.isVoid) {
         _errorReporter.reportErrorForToken(
-          StaticWarningCode.USE_OF_VOID_RESULT,
+          CompileTimeErrorCode.USE_OF_VOID_RESULT,
           operator,
         );
         return;

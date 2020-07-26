@@ -23,7 +23,7 @@ class A implements B {
 class B {
   factory B() = A;
 }''', [
-      error(StaticWarningCode.REDIRECT_TO_INVALID_FUNCTION_TYPE, 65, 1),
+      error(CompileTimeErrorCode.REDIRECT_TO_INVALID_FUNCTION_TYPE, 65, 1),
     ]);
   }
 

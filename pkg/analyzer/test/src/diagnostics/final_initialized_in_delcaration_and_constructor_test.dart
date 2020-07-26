@@ -23,8 +23,10 @@ class A {
   A(this.x) {}
 }
 ''', [
-      error(StaticWarningCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
-          34, 1),
+      error(
+          CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
+          34,
+          1),
     ]);
   }
 }

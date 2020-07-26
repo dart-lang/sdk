@@ -8,7 +8,7 @@ class A {
   const A(
     this.x
     //   ^
-    // [analyzer] STATIC_WARNING.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR
+    // [analyzer] COMPILE_TIME_ERROR.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR
     // [cfe] 'x' is a final instance variable that has already been initialized.
     //   ^
     // [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.

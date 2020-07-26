@@ -13,7 +13,7 @@ class Foo {
   // Intentionally abstract:
   get i;
 //^^^^^^
-// [analyzer] STATIC_WARNING.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+// [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
 }
 
 class Bar {}

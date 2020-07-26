@@ -22,7 +22,7 @@ class Bar<T> implements Foo<T> {
 
     func("Hello World!");
     //   ^^^^^^^^^^^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] The argument type 'String' can't be assigned to the parameter type 'T'.
     return new Bar<T>();
   }

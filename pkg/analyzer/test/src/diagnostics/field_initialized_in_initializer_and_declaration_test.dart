@@ -23,8 +23,10 @@ class A {
   A() : x = 1;
 }
 ''', [
-      error(StaticWarningCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
-          37, 1),
+      error(
+          CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+          37,
+          1),
     ]);
   }
 }

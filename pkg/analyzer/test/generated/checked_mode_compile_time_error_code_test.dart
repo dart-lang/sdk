@@ -164,7 +164,7 @@ class A {
 foo(x) => 1;
 var v = const A(foo);
 ''', [
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 116, 3),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 116, 3),
       error(
           CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
           116,
@@ -196,7 +196,7 @@ var v = const A('foo');
           CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
           62,
           5),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 62, 5),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 62, 5),
     ]);
   }
 
@@ -237,7 +237,7 @@ var v = const A('foo');
           CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
           62,
           5),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 62, 5),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 62, 5),
     ]);
   }
 
@@ -354,7 +354,7 @@ class A {
 int foo(String x) => 1;
 var v = const A(foo);
 ''', [
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 127, 3),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 127, 3),
       error(
           CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
           127,
@@ -369,7 +369,7 @@ class A {
   const A() : x = '';
 }
 ''', [
-      error(StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 43, 2),
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 43, 2),
       error(
           CheckedModeCompileTimeErrorCode
               .CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
@@ -470,7 +470,7 @@ var v = const A(null);
     await assertErrorsInCode('''
 var v = const <String> [42];
 ''', [
-      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 24, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 24, 2),
     ]);
   }
 
@@ -542,7 +542,7 @@ var v = const A('foo');
           CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
           46,
           5),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 46, 5),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 46, 5),
     ]);
   }
 
@@ -553,7 +553,7 @@ class A<T> {
 }
 var v = const A<int>('foo');
 ''', [
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 52, 5),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 52, 5),
       error(
           CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
           52,

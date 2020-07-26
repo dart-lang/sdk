@@ -948,8 +948,8 @@ f(C c) {
 extension on Object {}
 var a = b + c;
 ''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 31, 1),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 35, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 31, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 35, 1),
     ]);
   }
 

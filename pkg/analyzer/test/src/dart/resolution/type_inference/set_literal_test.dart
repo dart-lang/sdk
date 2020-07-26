@@ -24,7 +24,7 @@ class SetLiteralTest extends DriverResolutionTest {
     await assertErrorsInCode('''
 Set<int> a = {'a'};
 ''', [
-      error(StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 14, 3),
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 14, 3),
     ]);
     assertType(setLiteral('{'), 'Set<int>');
   }
@@ -92,7 +92,7 @@ class A<E extends Set<dynamic>> {
     await assertErrorsInCode('''
 Set<String> a = <String>{0};
 ''', [
-      error(StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 25, 1),
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 25, 1),
     ]);
     assertType(setLiteral('{'), 'Set<String>');
   }
@@ -317,7 +317,7 @@ void f<T extends num>(T a) {
     await assertErrorsInCode('''
 var a = <String>{1};
 ''', [
-      error(StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 17, 1),
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 17, 1),
     ]);
     assertType(setLiteral('{'), 'Set<String>');
   }

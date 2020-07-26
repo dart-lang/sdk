@@ -18,7 +18,7 @@ const d = const C(intValue);
 // [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
 // [cfe] The argument type 'int' can't be assigned to the parameter type 'double'.
 //                ^^^^^^^^
-// [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 const e = const D(0.0);
 const f = const D(intValue);
 //        ^^^^^^^^^^^^^^^^^

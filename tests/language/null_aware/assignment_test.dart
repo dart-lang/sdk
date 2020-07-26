@@ -125,7 +125,7 @@ main() {
   //                               ^^
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //                                      ^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'C?' can't be assigned to a variable of type 'int'.
   { D d = new D(new E()); H? h = (d?.v += 1); }
   //                             ^^^^^^^^^^^
@@ -136,11 +136,11 @@ main() {
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   { D.staticE = new E(); F? f = (D?.staticE += nullC()); }
   //                                           ^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'C?' can't be assigned to a variable of type 'int'.
   { h.D.staticE = new h.E(); h.F? f = (h.D?.staticE += h.nullC()); }
   //                                                   ^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'C?' can't be assigned to a variable of type 'int'.
   { D.staticE = new E(); H? h = (D?.staticE += 1); }
   //                            ^^^^^^^^^^^^^^^^^

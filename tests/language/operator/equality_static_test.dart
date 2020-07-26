@@ -56,7 +56,7 @@ void main() {
   null == voidListVar;
   null == voidVar;
   //      ^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
 
   true == null;
@@ -73,7 +73,7 @@ void main() {
   true == voidListVar;
   true == voidVar;
   //      ^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
 
   <int>{} == null;
@@ -90,7 +90,7 @@ void main() {
   <int>{} == voidListVar;
   <int>{} == voidVar;
   //         ^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
 
   numVar == null;
@@ -107,7 +107,7 @@ void main() {
   numVar == voidListVar;
   numVar == voidVar;
   //        ^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
 
   aVar == null;
@@ -124,51 +124,51 @@ void main() {
   aVar == voidListVar;
   aVar == voidVar;
   //      ^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
 
   covar1Var == null;
   covar1Var == true;
   //           ^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   covar1Var == <int>{};
   //           ^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   covar1Var == numVar;
   //           ^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   covar1Var == aVar;
   //           ^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   covar1Var == covar1Var;
   covar1Var == aNullableVar;
   //           ^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   covar1Var == covar1NullableVar;
   covar1Var == futureOrNullableIntVar;
   //           ^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   covar1Var == futureOrCovar1Var;
   //           ^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   covar1Var == const AbstractCovar2();
   //           ^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   covar1Var == voidListVar;
   //           ^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   covar1Var == voidVar;
   //           ^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
 
   aNullableVar == null;
@@ -185,51 +185,51 @@ void main() {
   aNullableVar == voidListVar;
   aNullableVar == voidVar;
   //              ^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
 
   covar1NullableVar == null;
   covar1NullableVar == true;
   //                   ^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   covar1NullableVar == <int>{};
   //                   ^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   covar1NullableVar == numVar;
   //                   ^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   covar1NullableVar == aVar;
   //                   ^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   covar1NullableVar == covar1Var;
   covar1NullableVar == aNullableVar;
   //                   ^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   covar1NullableVar == covar1NullableVar;
   covar1NullableVar == futureOrNullableIntVar;
   //                   ^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   covar1NullableVar == futureOrCovar1Var;
   //                   ^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   covar1NullableVar == const AbstractCovar2();
   //                   ^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   covar1NullableVar == voidListVar;
   //                   ^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   covar1NullableVar == voidVar;
   //                   ^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
 
   futureOrNullableIntVar == null;
@@ -246,7 +246,7 @@ void main() {
   futureOrNullableIntVar == voidListVar;
   futureOrNullableIntVar == voidVar;
   //                        ^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
 
   futureOrCovar1Var == null;
@@ -263,54 +263,54 @@ void main() {
   futureOrCovar1Var == voidListVar;
   futureOrCovar1Var == voidVar;
   //                   ^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
 
   const AbstractCovar2() == null;
   const AbstractCovar2() == true;
   //                        ^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   const AbstractCovar2() == <int>{};
   //                        ^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   const AbstractCovar2() == numVar;
   //                        ^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   const AbstractCovar2() == aVar;
   //                        ^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   const AbstractCovar2() == covar1Var;
   //                        ^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   const AbstractCovar2() == aNullableVar;
   //                        ^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   const AbstractCovar2() == covar1NullableVar;
   //                        ^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   const AbstractCovar2() == futureOrNullableIntVar;
   //                        ^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   const AbstractCovar2() == futureOrCovar1Var;
   //                        ^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   const AbstractCovar2() == const AbstractCovar2();
   const AbstractCovar2() == voidListVar;
   //                        ^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] unspecified
   const AbstractCovar2() == voidVar;
   //                        ^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
 
   voidListVar == null;
@@ -327,59 +327,59 @@ void main() {
   voidListVar == voidListVar;
   voidListVar == voidVar;
   //             ^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
 
   voidVar == null;
 //^^^^^^^
-// [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
 // [cfe] unspecified
   voidVar == true;
 //^^^^^^^
-// [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
 // [cfe] unspecified
   voidVar == <int>{};
 //^^^^^^^
-// [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
 // [cfe] unspecified
   voidVar == numVar;
 //^^^^^^^
-// [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
 // [cfe] unspecified
   voidVar == aVar;
 //^^^^^^^
-// [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
 // [cfe] unspecified
   voidVar == covar1Var;
 //^^^^^^^
-// [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
 // [cfe] unspecified
   voidVar == aNullableVar;
 //^^^^^^^
-// [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
 // [cfe] unspecified
   voidVar == covar1NullableVar;
 //^^^^^^^
-// [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
 // [cfe] unspecified
   voidVar == futureOrNullableIntVar;
 //^^^^^^^
-// [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
 // [cfe] unspecified
   voidVar == futureOrCovar1Var;
 //^^^^^^^
-// [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
 // [cfe] unspecified
   voidVar == voidListVar;
 //^^^^^^^
-// [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
 // [cfe] unspecified
   voidVar == voidVar;
 //^^^^^^^
-// [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
 // [cfe] This expression has type 'void' and can't be used.
 //           ^^^^^^^
-// [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
 // [cfe] This expression has type 'void' and can't be used.
 
   void fun<X extends Covar1, Y extends Covar1?, Z extends FutureOr<Covar1>>(
@@ -387,89 +387,89 @@ void main() {
     covar1Var == null;
     covar1Var == true;
     //           ^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] unspecified
     covar1Var == <int>{};
     //           ^^^^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] unspecified
     covar1Var == numVar;
     //           ^^^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] unspecified
     covar1Var == aVar;
     //           ^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] unspecified
     covar1Var == covar1Var;
     covar1Var == aNullableVar;
     //           ^^^^^^^^^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] unspecified
     covar1Var == covar1NullableVar;
     covar1Var == futureOrNullableIntVar;
     //           ^^^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] unspecified
     covar1Var == futureOrCovar1Var;
     //           ^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] unspecified
     covar1Var == const AbstractCovar2();
     //           ^^^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] unspecified
     covar1Var == voidListVar;
     //           ^^^^^^^^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] unspecified
     covar1Var == voidVar;
     //           ^^^^^^^
-    // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
     // [cfe] This expression has type 'void' and can't be used.
 
     covar1NullableVar == null;
     covar1NullableVar == true;
     //                   ^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] unspecified
     covar1NullableVar == <int>{};
     //                   ^^^^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] unspecified
     covar1NullableVar == numVar;
     //                   ^^^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] unspecified
     covar1NullableVar == aVar;
     //                   ^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] unspecified
     covar1NullableVar == covar1Var;
     covar1NullableVar == aNullableVar;
     //                   ^^^^^^^^^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] unspecified
     covar1NullableVar == covar1NullableVar;
     covar1NullableVar == futureOrNullableIntVar;
     //                   ^^^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] unspecified
     covar1NullableVar == futureOrCovar1Var;
     //                   ^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] unspecified
     covar1NullableVar == const AbstractCovar2();
     //                   ^^^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] unspecified
     covar1NullableVar == voidListVar;
     //                   ^^^^^^^^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] unspecified
     covar1NullableVar == voidVar;
     //                   ^^^^^^^
-    // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
     // [cfe] This expression has type 'void' and can't be used.
 
     futureOrCovar1Var == null;
@@ -486,7 +486,7 @@ void main() {
     futureOrCovar1Var == voidListVar;
     futureOrCovar1Var == voidVar;
     //                   ^^^^^^^
-    // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
     // [cfe] This expression has type 'void' and can't be used.
   }
 }

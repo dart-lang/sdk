@@ -198,7 +198,7 @@ main() {
   new math.A();
 }
 ''', [
-      error(StaticWarningCode.NEW_WITH_NON_TYPE, 49, 1),
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 49, 1),
     ]);
 
     assertTypeName(
@@ -231,7 +231,7 @@ main() {
   new A();
 }
 ''', [
-      error(StaticWarningCode.NEW_WITH_NON_TYPE, 15, 1),
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 15, 1),
     ]);
 
     assertTypeName(

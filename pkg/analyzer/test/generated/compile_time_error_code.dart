@@ -53,8 +53,8 @@ f() {
 }
 ''', [
       error(ParserErrorCode.EXPECTED_TOKEN, 8, 7),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 8, 7),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 16, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 8, 7),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 16, 1),
     ]);
   }
 
@@ -163,7 +163,7 @@ class Foo {
 }
 ''', [
       error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 94, 3),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 94, 3),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 94, 3),
     ]);
   }
 
@@ -208,7 +208,7 @@ class A<T> {
   const A();
 }
 ''', [
-      error(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 40, 1),
+      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 40, 1),
       error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 40, 1),
     ]);
   }
@@ -221,7 +221,7 @@ class A<T> {
 }
 ''', [
       error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 45, 1),
-      error(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 45, 1),
+      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 45, 1),
     ]);
   }
 
@@ -312,9 +312,9 @@ var b1 = const bool.fromEnvironment(1);
 var b2 = const bool.fromEnvironment('x', defaultValue: 1);
 ''', [
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 9, 29),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 36, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 36, 1),
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 49, 48),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 81, 15),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 81, 15),
     ]);
   }
 
@@ -326,7 +326,7 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);
 var b = const bool.fromEnvironment('x', defaultValue: 1);
 ''', [
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 8, 48),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 40, 15),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 40, 15),
     ]);
   }
 
@@ -503,7 +503,7 @@ class MyClass {
   const MyClass([p = foo]);
 }
 ''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 37, 3),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 37, 3),
       error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 37, 3),
     ]);
   }
@@ -518,7 +518,7 @@ var s5 = const Symbol('x', foo: 'x');
 ''', [
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 9, 17),
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 37, 15),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 50, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 50, 1),
       error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 75, 2),
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 100, 10),
       error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 139, 3),
@@ -532,7 +532,7 @@ const _ = $expr;
 ''', [
       error(HintCode.UNUSED_ELEMENT, 23, 1),
       error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT, 27, 6),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 2),
     ]);
   }
 
@@ -543,7 +543,7 @@ const _ = $expr;
 ''', [
       error(HintCode.UNUSED_ELEMENT, 23, 1),
       error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT, 27, 6),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 2),
     ]);
   }
 
@@ -554,7 +554,7 @@ const _ = $expr;
 ''', [
       error(HintCode.UNUSED_ELEMENT, 23, 1),
       error(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM, 27, 6),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 2),
     ]);
   }
 }

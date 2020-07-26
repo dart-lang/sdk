@@ -30,7 +30,7 @@ void
 
   /* indent */ i + "string";
   //               ^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'num'.
 
   i += d;
@@ -193,19 +193,19 @@ void
 
   context<D>(i + td); // Type of expression is `double`, not `D`.
   //         ^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //           ^
   // [cfe] A value of type 'double' can't be assigned to a variable of type 'D'.
 
   context<D>(n + td); // Type of expression is `double`, not `D`.
   //         ^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //           ^
   // [cfe] A value of type 'double' can't be assigned to a variable of type 'D'.
 
   context<D>(1.0 + td); // Type of expression is `double`, not `D`.
   //         ^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //             ^
   // [cfe] The argument type 'double' can't be assigned to the parameter type 'D'.
 

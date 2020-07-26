@@ -122,7 +122,7 @@ class C {
     yGetValue = 1; check(1, () => v ??= y, ['$s.v', 'y', '$s.v=1']);
     finalOne ??= null;
 //  ^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
 // [cfe] The setter 'finalOne' isn't defined for the class 'C'.
 //               ^^^^
 // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
@@ -169,7 +169,7 @@ main() {
   { var l; yGetValue = 1; check(1, () => l ??= y, ['y']); Expect.equals(1, l); }
   { final l = 1; l ??= null; }
   //             ^
-  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
+  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
   // [cfe] Can't assign to the final variable 'l'.
   //                   ^^^^
   // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
@@ -177,7 +177,7 @@ main() {
   // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
   C ??= null;
 //^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
 // [cfe] Can't assign to a type literal.
 //      ^^^^
 // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT

@@ -348,7 +348,7 @@ class X<T extends A> {
   factory X.name(int x, int y) = X<B>;
 }
 ''', [
-      error(StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE, 99, 4),
+      error(CompileTimeErrorCode.REDIRECT_TO_INVALID_RETURN_TYPE, 99, 4),
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 101, 1),
     ]);
   }

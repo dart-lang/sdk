@@ -23,49 +23,49 @@ import 'built_in_prefix_library_yield.dart' as yield;
 
 async<dynamic> _async = new async.A();
 // [error line 24, column 1, length 5]
-// [analyzer] STATIC_WARNING.NOT_A_TYPE
+// [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'async' isn't a type.
 // [error line 24, column 1]
 // [cfe] Expected 0 type arguments.
 await<dynamic> _await = new await.A();
 // [error line 30, column 1, length 5]
-// [analyzer] STATIC_WARNING.NOT_A_TYPE
+// [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'await' isn't a type.
 // [error line 30, column 1]
 // [cfe] Expected 0 type arguments.
 hide<dynamic> _hide = new hide.A();
 // [error line 36, column 1, length 4]
-// [analyzer] STATIC_WARNING.NOT_A_TYPE
+// [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'hide' isn't a type.
 // [error line 36, column 1]
 // [cfe] Expected 0 type arguments.
 of<dynamic> _of = new of.A();
 // [error line 42, column 1, length 2]
-// [analyzer] STATIC_WARNING.NOT_A_TYPE
+// [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'of' isn't a type.
 // [error line 42, column 1]
 // [cfe] Expected 0 type arguments.
 on<dynamic> _on = new on.A();
 // [error line 48, column 1, length 2]
-// [analyzer] STATIC_WARNING.NOT_A_TYPE
+// [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'on' isn't a type.
 // [error line 48, column 1]
 // [cfe] Expected 0 type arguments.
 show<dynamic> _show = new show.A();
 // [error line 54, column 1, length 4]
-// [analyzer] STATIC_WARNING.NOT_A_TYPE
+// [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'show' isn't a type.
 // [error line 54, column 1]
 // [cfe] Expected 0 type arguments.
 sync<dynamic> _sync = new sync.A();
 // [error line 60, column 1, length 4]
-// [analyzer] STATIC_WARNING.NOT_A_TYPE
+// [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'sync' isn't a type.
 // [error line 60, column 1]
 // [cfe] Expected 0 type arguments.
 yield<dynamic> _yield = new yield.A();
 // [error line 66, column 1, length 5]
-// [analyzer] STATIC_WARNING.NOT_A_TYPE
+// [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'yield' isn't a type.
 // [error line 66, column 1]
 // [cfe] Expected 0 type arguments.

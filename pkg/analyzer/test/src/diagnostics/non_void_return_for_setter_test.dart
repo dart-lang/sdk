@@ -20,7 +20,7 @@ class NonVoidReturnForSetterTest extends DriverResolutionTest {
 int set x(int v) {
   return 42;
 }''', [
-      error(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, 0, 3),
+      error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 0, 3),
     ]);
   }
 
@@ -43,7 +43,7 @@ class A {
     return 42;
   }
 }''', [
-      error(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, 12, 3),
+      error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 12, 3),
     ]);
   }
 

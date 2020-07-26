@@ -22,6 +22,6 @@ void main() {
   checkNoDynamicTypeError(() => new D<int>(v));
   checkDynamicTypeError(() => new D<String>(v));
   //                                        ^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'int' can't be assigned to the parameter type 'String'.
 }

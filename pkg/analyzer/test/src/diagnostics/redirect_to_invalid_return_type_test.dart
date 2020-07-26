@@ -23,7 +23,7 @@ class A {
 class B {
   factory B() = A;
 }''', [
-      error(StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE, 47, 1),
+      error(CompileTimeErrorCode.REDIRECT_TO_INVALID_RETURN_TYPE, 47, 1),
     ]);
   }
 }

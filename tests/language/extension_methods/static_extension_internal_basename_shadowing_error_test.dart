@@ -23,29 +23,29 @@ extension E1 on A1 {
     // The instance getter shadows the global setter
     topLevelSetter = topLevelSetter + 1;
 //  ^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'topLevelSetter'.
     topLevelSetter++;
 //  ^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'topLevelSetter'.
     topLevelSetter = 0;
 //  ^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'topLevelSetter'.
 
     // The instance getter shadows the global field setter
     topLevelField = topLevelField + 1;
 //  ^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'topLevelField'.
     topLevelField++;
 //  ^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'topLevelField'.
     topLevelField = 0;
 //  ^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'topLevelField'.
 
     // The instance getter shadows the global method
@@ -115,29 +115,29 @@ extension E3 on A3 {
     // The static getter shadows the global setter
     topLevelSetter = topLevelSetter + 1;
 //  ^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'topLevelSetter'.
     topLevelSetter++;
 //  ^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'topLevelSetter'.
     topLevelSetter = 0;
 //  ^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'topLevelSetter'.
 
     // The static getter shadows the global field setter
     topLevelField = topLevelField + 1;
 //  ^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'topLevelField'.
     topLevelField++;
 //  ^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'topLevelField'.
     topLevelField = 0;
 //  ^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'topLevelField'.
 
     // The static getter shadows the global method
@@ -211,15 +211,15 @@ extension E6 on A6 {
     // The instance getter shadows the other extension's setter
     extensionSetter = extensionSetter + 1;
 //  ^^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'extensionSetter'.
     extensionSetter++;
 //  ^^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'extensionSetter'.
     extensionSetter = 0;
 //  ^^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'extensionSetter'.
 
     // The instance getter shadows the other extensions method
@@ -242,15 +242,15 @@ class A7 extends A6 {
     // The instance getter shadows the other extension's setter
     extensionSetter = extensionSetter + 1;
 //  ^^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] The setter 'extensionSetter' isn't defined for the class 'A7'.
     extensionSetter++;
 //  ^^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] The setter 'extensionSetter' isn't defined for the class 'A7'.
     extensionSetter = 0;
 //  ^^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] The setter 'extensionSetter' isn't defined for the class 'A7'.
 
     // The instance getter shadows the other extensions method
@@ -343,15 +343,15 @@ extension E10 on A10 {
     // The static getter shadows the other extension's setter
     extensionSetter = extensionSetter + 1;
 //  ^^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'extensionSetter'.
     extensionSetter++;
 //  ^^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'extensionSetter'.
     extensionSetter = 0;
 //  ^^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'extensionSetter'.
 
     // The static field shadows the other extension's setter
@@ -389,15 +389,15 @@ class A11 extends A10 {
     // The static getter shadows the other extension's setter
     extensionSetter = extensionSetter + 1;
 //  ^^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'extensionSetter'.
     extensionSetter++;
 //  ^^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'extensionSetter'.
     extensionSetter = 0;
 //  ^^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'extensionSetter'.
 
     // The static field shadows the other extension's setter

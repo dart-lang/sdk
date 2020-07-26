@@ -20,119 +20,119 @@ set tooMany(var value, var extra) {}
 
 /*space*/ int? set wrongReturnType1(_) => 1;
 //        ^^^^
-// [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+// [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
 // [cfe] unspecified
 
 /*space*/ FutureOr<void> set wrongReturnType2(_) {}
 //        ^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+// [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
 // [cfe] unspecified
 
 /*space*/ Never set wrongReturnType3(_) => throw 1;
 //        ^^^^^
-// [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+// [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
 // [cfe] unspecified
 
 int get nonSubtypes1 => 1;
 //      ^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.GETTER_NOT_SUBTYPE_SETTER_TYPES
+// [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
 // [cfe] unspecified
 set nonSubtypes1(String _) {}
 
 int? get nonSubtypes2 => 1;
 //       ^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.GETTER_NOT_SUBTYPE_SETTER_TYPES
+// [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
 // [cfe] unspecified
 set nonSubtypes2(int _) {}
 
 FutureOr<int> get nonSubtypes3 => 1;
 //                ^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.GETTER_NOT_SUBTYPE_SETTER_TYPES
+// [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
 // [cfe] unspecified
 set nonSubtypes3(int _) {}
 
 dynamic get nonSubtypes4 => 1;
 //          ^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.GETTER_NOT_SUBTYPE_SETTER_TYPES
+// [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
 // [cfe] unspecified
 set nonSubtypes4(int _) {}
 
 class C {
   static int? set staticWrongReturnType1(_) => 1;
   //     ^^^^
-  // [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
   // [cfe] unspecified
 
   static FutureOr<void> set staticWrongReturnType2(_) {}
   //     ^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
   // [cfe] unspecified
 
   static Never set staticWrongReturnType3(_) => throw 1;
   //     ^^^^^
-  // [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
   // [cfe] unspecified
 
   /*space*/ int? set wrongReturnType1(_) => 1;
   //        ^^^^
-  // [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
   // [cfe] unspecified
 
   /*space*/ FutureOr<void> set wrongReturnType2(_) {}
   //        ^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
   // [cfe] unspecified
 
   /*space*/ Never set wrongReturnType3(_) => throw 1;
   //        ^^^^^
-  // [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
   // [cfe] unspecified
 
   static int get staticNonSubtypes1 => 1;
   //             ^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.GETTER_NOT_SUBTYPE_SETTER_TYPES
+  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
   // [cfe] unspecified
   static set staticNonSubtypes1(String _) {}
 
   static int? get staticNonSubtypes2 => 1;
   //              ^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.GETTER_NOT_SUBTYPE_SETTER_TYPES
+  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
   // [cfe] unspecified
   static set staticNonSubtypes2(int _) {}
 
   static FutureOr<int> get staticNonSubtypes3 => 1;
   //                       ^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.GETTER_NOT_SUBTYPE_SETTER_TYPES
+  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
   // [cfe] unspecified
   static set staticNonSubtypes3(int _) {}
 
   static dynamic get staticNonSubtypes4 => 1;
   //                 ^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.GETTER_NOT_SUBTYPE_SETTER_TYPES
+  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
   // [cfe] unspecified
   static set staticNonSubtypes4(int _) {}
 
   int get nonSubtypes1 => 1;
   //      ^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.GETTER_NOT_SUBTYPE_SETTER_TYPES
+  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
   // [cfe] unspecified
   set nonSubtypes1(String _) {}
 
   int? get nonSubtypes2 => 1;
   //       ^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.GETTER_NOT_SUBTYPE_SETTER_TYPES
+  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
   // [cfe] unspecified
   set nonSubtypes2(int _) {}
 
   FutureOr<int> get nonSubtypes3 => 1;
   //                ^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.GETTER_NOT_SUBTYPE_SETTER_TYPES
+  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
   // [cfe] unspecified
   set nonSubtypes3(int _) {}
 
   dynamic get nonSubtypes4 => 1;
   //          ^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.GETTER_NOT_SUBTYPE_SETTER_TYPES
+  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
   // [cfe] unspecified
   set nonSubtypes4(int _) {}
 }

@@ -24,7 +24,7 @@ class MapLiteralTest extends DriverResolutionTest {
     await assertErrorsInCode('''
 Map<int, int> a = {'a' : 1};
 ''', [
-      error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 19, 3),
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 19, 3),
     ]);
     assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
@@ -33,7 +33,7 @@ Map<int, int> a = {'a' : 1};
     await assertErrorsInCode('''
 Map<int, int> a = {1 : 'a'};
 ''', [
-      error(StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 23, 3),
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 23, 3),
     ]);
     assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }
@@ -101,7 +101,7 @@ class A<E extends Map<dynamic, dynamic>> {
     await assertErrorsInCode('''
 Map<String, String> a = <String, String>{0 : 'a'};
 ''', [
-      error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 41, 1),
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 41, 1),
     ]);
     assertType(setOrMapLiteral('{'), 'Map<String, String>');
   }
@@ -110,7 +110,7 @@ Map<String, String> a = <String, String>{0 : 'a'};
     await assertErrorsInCode('''
 Map<String, String> a = <String, String>{'a' : 1};
 ''', [
-      error(StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 47, 1),
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 47, 1),
     ]);
     assertType(setOrMapLiteral('{'), 'Map<String, String>');
   }
@@ -382,7 +382,7 @@ void f<T extends num>(T a) {
     await assertErrorsInCode('''
 var a = <String, int>{1 : 2};
 ''', [
-      error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 22, 1),
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 22, 1),
     ]);
     assertType(setOrMapLiteral('{'), 'Map<String, int>');
   }
@@ -391,7 +391,7 @@ var a = <String, int>{1 : 2};
     await assertErrorsInCode('''
 var a = <String, int>{'a' : 'b'};
 ''', [
-      error(StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 28, 3),
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 28, 3),
     ]);
     assertType(setOrMapLiteral('{'), 'Map<String, int>');
   }

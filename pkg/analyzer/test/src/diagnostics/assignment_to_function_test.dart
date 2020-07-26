@@ -21,7 +21,7 @@ f() {}
 main() {
   f = null;
 }''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_FUNCTION, 18, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION, 18, 1),
     ]);
   }
 }

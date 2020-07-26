@@ -31,7 +31,7 @@ class N {}''');
 import 'lib1.dart';
 import 'lib2.dart';
 f(p) {p as N;}''', [
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 51, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 51, 1),
     ]);
   }
 
@@ -42,7 +42,7 @@ import 'dart:async2';
 
 Future v;
 ''', [
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 44, 6),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 44, 6),
     ]);
   }
 
@@ -57,7 +57,7 @@ class N {}''');
 import 'lib1.dart';
 import 'lib2.dart';
 class A extends N {}''', [
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 56, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 56, 1),
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 56, 1),
     ]);
   }
@@ -74,7 +74,7 @@ import 'lib1.dart';
 import 'lib2.dart';
 class A implements N {}''', [
       error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 59, 1),
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 59, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 59, 1),
     ]);
   }
 
@@ -105,7 +105,7 @@ part 'part.dart';
     GatheringErrorListener()
       ..addAll(partResult.errors)
       ..assertErrors([
-        error(StaticWarningCode.AMBIGUOUS_IMPORT, 29, 1),
+        error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 29, 1),
         error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 29, 1),
       ]);
   }
@@ -122,7 +122,7 @@ library L;
 import 'lib1.dart';
 import 'lib2.dart';
 f() {new N();}''', [
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 60, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 60, 1),
     ]);
   }
 
@@ -137,7 +137,7 @@ class N {}''');
 import 'lib1.dart';
 import 'lib2.dart';
 f(p) {p is N;}''', [
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 51, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 51, 1),
     ]);
   }
 
@@ -152,7 +152,7 @@ class N {}''');
 import 'lib1.dart';
 import 'lib2.dart';
 g() { N.FOO; }''', [
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 46, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 46, 1),
     ]);
   }
 
@@ -175,14 +175,14 @@ class A {
   N m() { return null; }
 }
 class B<T extends N> {}''', [
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 48, 1),
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 53, 1),
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 59, 1),
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 63, 1),
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 72, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 48, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 53, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 59, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 63, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 72, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 74, 1),
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 106, 1),
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 149, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 106, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 149, 1),
     ]);
   }
 
@@ -198,7 +198,7 @@ import 'lib1.dart';
 import 'lib2.dart';
 class A<T> {}
 A<N> f() { return null; }''', [
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 56, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 56, 1),
     ]);
   }
 
@@ -214,7 +214,7 @@ import 'lib1.dart';
 import 'lib2.dart';
 class A<T> {}
 f() {new A<N>();}''', [
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 65, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 65, 1),
     ]);
   }
 
@@ -230,7 +230,7 @@ import 'lib1.dart';
 import 'lib2.dart';
 f() { g(v); }
 g(p) {}''', [
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 48, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 48, 1),
     ]);
   }
 
@@ -245,7 +245,7 @@ var v;''');
 import 'lib1.dart';
 import 'lib2.dart';
 f() { v = 0; }''', [
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 46, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 46, 1),
     ]);
   }
 }

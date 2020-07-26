@@ -26,7 +26,8 @@ mixin M {
 ''', [
       error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
       // TODO(srawlins): Don't report this from within a mixin.
-      error(StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, 29, 6),
+      error(
+          CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, 29, 6),
     ]);
 
     var element = findElement.mixin('M');

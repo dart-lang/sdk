@@ -41,7 +41,7 @@ class YieldStatementResolver {
   /// it returns 'void'. Or, in rare cases, when other types of expressions are
   /// void, such as identifiers.
   ///
-  /// See [StaticWarningCode.USE_OF_VOID_RESULT].
+  /// See [CompileTimeErrorCode.USE_OF_VOID_RESULT].
   ///
   /// TODO(scheglov) This is duplicate
   /// TODO(scheglov) Also in [BoolExpressionVerifier]
@@ -52,12 +52,12 @@ class YieldStatementResolver {
 
     if (expression is MethodInvocation) {
       _errorReporter.reportErrorForNode(
-        StaticWarningCode.USE_OF_VOID_RESULT,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
         expression.methodName,
       );
     } else {
       _errorReporter.reportErrorForNode(
-        StaticWarningCode.USE_OF_VOID_RESULT,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
         expression,
       );
     }

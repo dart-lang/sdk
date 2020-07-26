@@ -26,7 +26,7 @@ f() {
   A a = new A();
   a.v = 1;
 }''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL, 54, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 54, 1),
     ]);
   }
 
@@ -39,7 +39,7 @@ f() {
   A a = new A();
   a.v += 1;
 }''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL, 54, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 54, 1),
     ]);
   }
 }

@@ -10,32 +10,32 @@ main() {
   //                 ^^^
   // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
   //                 ^^^
-  // [analyzer] STATIC_WARNING.TYPE_TEST_WITH_NON_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_NON_TYPE
   Expect.equals(2, 2 as int);
   //                    ^^^
   // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
   //                    ^^^
-  // [analyzer] STATIC_WARNING.CAST_TO_NON_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.CAST_TO_NON_TYPE
   Expect.isTrue(-2 is int);
   //                  ^^^
   // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
   //                  ^^^
-  // [analyzer] STATIC_WARNING.TYPE_TEST_WITH_NON_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_NON_TYPE
   Expect.equals(-2, -2 as int);
   //                      ^^^
   // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
   //                      ^^^
-  // [analyzer] STATIC_WARNING.CAST_TO_NON_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.CAST_TO_NON_TYPE
   Expect.isTrue(0x10 is int);
   //                    ^^^
   // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
   //                    ^^^
-  // [analyzer] STATIC_WARNING.TYPE_TEST_WITH_NON_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_NON_TYPE
   Expect.isTrue(-0x10 is int);
   //                     ^^^
   // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
   //                     ^^^
-  // [analyzer] STATIC_WARNING.TYPE_TEST_WITH_NON_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_NON_TYPE
 
   // "a" will be part of hex literal, the following "s" is an error.
   0x10as int;
@@ -75,14 +75,14 @@ main() {
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
 // ^
-// [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 // [cfe] Getter not found: 'd'.
   1D;
 //^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
 // ^
-// [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 // [cfe] Getter not found: 'D'.
   Expect.throwsNoSuchMethodError(() => 1.d+2);
   //                                     ^
@@ -97,14 +97,14 @@ main() {
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
 //   ^
-// [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 // [cfe] Getter not found: 'd'.
   1.1D;
 //^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
 //   ^
-// [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 // [cfe] Getter not found: 'D'.
   1e;
 //^
@@ -116,6 +116,6 @@ main() {
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
 // ^
-// [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 // [cfe] Getter not found: 'x'.
 }

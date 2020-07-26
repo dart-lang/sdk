@@ -21,7 +21,7 @@ class ListLiteralTest extends DriverResolutionTest {
     await assertErrorsInCode('''
 List<int> a = ['a'];
 ''', [
-      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 15, 3),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 15, 3),
     ]);
     assertType(findNode.listLiteral('['), 'List<int>');
   }
@@ -87,7 +87,7 @@ List<String> a = <int>[0];
     await assertErrorsInCode('''
 List<String> a = <String>[0];
 ''', [
-      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 26, 1),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 26, 1),
     ]);
     assertType(findNode.listLiteral('['), 'List<String>');
   }
@@ -150,7 +150,7 @@ var a = [1, '2', 3];
     await assertErrorsInCode('''
 var a = [x];
 ''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 9, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 9, 1),
     ]);
     assertType(findNode.listLiteral('['), 'List<dynamic>');
   }
@@ -159,7 +159,7 @@ var a = [x];
     await assertErrorsInCode('''
 var a = [0, x, 2];
 ''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 12, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 12, 1),
     ]);
     assertType(findNode.listLiteral('['), 'List<dynamic>');
   }
@@ -377,7 +377,7 @@ void f<T extends num>(T a) {
     await assertErrorsInCode('''
 var a = <String>[1];
 ''', [
-      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 17, 1),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 17, 1),
     ]);
     assertType(findNode.listLiteral('['), 'List<String>');
   }

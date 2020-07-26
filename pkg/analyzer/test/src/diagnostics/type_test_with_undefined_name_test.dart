@@ -21,7 +21,7 @@ f(var p) {
   if (p is A) {
   }
 }''', [
-      error(StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME, 22, 1),
+      error(CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME, 22, 1),
     ]);
   }
 }

@@ -22,7 +22,8 @@ class A {
   A(dynamic this.x) {}
 }
 ''', [
-      error(StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, 23, 14),
+      error(CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, 23,
+          14),
     ]);
   }
 
@@ -33,7 +34,8 @@ class A {
   A(String this.x) {}
 }
 ''', [
-      error(StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, 23, 13),
+      error(CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, 23,
+          13),
     ]);
   }
 }

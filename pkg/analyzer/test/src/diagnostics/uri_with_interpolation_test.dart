@@ -20,7 +20,7 @@ class UriWithInterpolationTest extends DriverResolutionTest {
 import 'stuff_\$platform.dart';
 ''', [
       error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 7, 22),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 15, 8),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 8),
     ]);
   }
 

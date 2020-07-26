@@ -228,7 +228,7 @@ class MethodInvocationResolver {
       ExecutableElement element, SimpleIdentifier nameNode) {
     if (!element.isStatic) {
       _resolver.errorReporter.reportErrorForNode(
-        StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
+        CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
         nameNode,
         [nameNode.name],
       );
@@ -264,7 +264,7 @@ class MethodInvocationResolver {
   void _reportUseOfVoidType(MethodInvocation node, AstNode errorNode) {
     _setDynamicResolution(node);
     _resolver.errorReporter.reportErrorForNode(
-      StaticWarningCode.USE_OF_VOID_RESULT,
+      CompileTimeErrorCode.USE_OF_VOID_RESULT,
       errorNode,
     );
   }

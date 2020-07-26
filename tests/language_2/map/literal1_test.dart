@@ -9,6 +9,6 @@ main() {
       <String, String>
     {"a": 0};
     //    ^
-    // [analyzer] STATIC_WARNING.MAP_VALUE_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.MAP_VALUE_TYPE_NOT_ASSIGNABLE
     // [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
 }

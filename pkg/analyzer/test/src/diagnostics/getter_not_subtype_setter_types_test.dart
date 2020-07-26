@@ -24,7 +24,7 @@ class C {
   set foo(int v) {}
 }
 ''', [
-      error(StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 20, 3),
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 20, 3),
     ]);
   }
 
@@ -35,7 +35,7 @@ class C {
   set foo(String v) {}
 }
 ''', [
-      error(StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 16, 3),
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 16, 3),
     ]);
   }
 
@@ -60,7 +60,7 @@ class B {
 
 abstract class X implements A, B {}
 ''', [
-      error(StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 84, 1),
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 84, 1),
     ]);
   }
 
@@ -141,7 +141,7 @@ class C {
   set foo(String _) {}
 }
 ''', [
-      error(StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 20, 3),
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 20, 3),
     ]);
   }
 
@@ -186,7 +186,7 @@ class B extends A {
   set foo(String _) {}
 }
 ''', [
-      error(StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 59, 3),
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 59, 3),
     ]);
   }
 
@@ -200,7 +200,7 @@ class B extends A {
   int get foo => 0;
 }
 ''', [
-      error(StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 66, 3),
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 66, 3),
     ]);
   }
 
@@ -211,7 +211,7 @@ class C {
   static set foo(int v) {}
 }
 ''', [
-      error(StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 27, 3),
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 27, 3),
     ]);
   }
 
@@ -222,7 +222,7 @@ extension E on Object {
   set foo(String v) {}
 }
 ''', [
-      error(StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 34, 3),
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 34, 3),
     ]);
   }
 
@@ -233,7 +233,7 @@ extension E on Object {
   static set foo(String v) {}
 }
 ''', [
-      error(StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 41, 3),
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 41, 3),
     ]);
   }
 
@@ -242,7 +242,7 @@ extension E on Object {
 int get foo => 0;
 set foo(String v) {}
 ''', [
-      error(StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 8, 3),
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 8, 3),
     ]);
   }
 
@@ -251,7 +251,7 @@ set foo(String v) {}
 get foo => 0;
 set foo(int v) {}
 ''', [
-      error(StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 4, 3),
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 4, 3),
     ]);
   }
 

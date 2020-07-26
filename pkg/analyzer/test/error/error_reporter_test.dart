@@ -41,7 +41,7 @@ class ErrorReporterTest extends DriverResolutionTest {
       isNonNullableByDefault: false,
     );
     reporter.reportErrorForElement(
-      StaticWarningCode.CAST_TO_NON_TYPE,
+      CompileTimeErrorCode.CAST_TO_NON_TYPE,
       element,
       ['A'],
     );
@@ -63,7 +63,7 @@ import 'dart:math';
       isNonNullableByDefault: false,
     );
     reporter.reportErrorForElement(
-      StaticWarningCode.CAST_TO_NON_TYPE,
+      CompileTimeErrorCode.CAST_TO_NON_TYPE,
       element,
       ['A'],
     );
@@ -102,7 +102,7 @@ main() {
     );
 
     reporter.reportErrorForNode(
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
       findNode.simple('x'),
       [firstType, secondType],
     );
@@ -140,7 +140,7 @@ main() {
       isNonNullableByDefault: false,
     );
     reporter.reportErrorForNode(
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
       findNode.simple('x'),
       [firstType, secondType],
     );
@@ -173,7 +173,7 @@ main() {
       isNonNullableByDefault: false,
     );
     reporter.reportErrorForNode(
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
       findNode.simple('x'),
       [fa.variables.type.type, fb.variables.type.type],
     );
@@ -208,7 +208,7 @@ main() {
       isNonNullableByDefault: false,
     );
     reporter.reportErrorForNode(
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
       findNode.simple('x'),
       [ba.variables.type.type, bb.variables.type.type],
     );

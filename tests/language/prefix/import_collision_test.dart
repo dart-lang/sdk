@@ -11,6 +11,6 @@ import "../library2.dart" as lib2; // also defines 'foo'.
 main() {
   lib2.foo = 1;
   //   ^^^
-  // [analyzer] STATIC_WARNING.AMBIGUOUS_IMPORT
+  // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_IMPORT
   // [cfe] Setter not found: 'foo'.
 }

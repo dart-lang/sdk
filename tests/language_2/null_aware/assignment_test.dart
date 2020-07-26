@@ -112,7 +112,7 @@ main() {
   // [cfe] The setter 'v' isn't defined for the class 'B'.
   { D d = new D(new E()); F f = (d?.v += nullC()); }
   //                                     ^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'C' can't be assigned to a variable of type 'int'.
   { D d = new D(new E()); H h = (d?.v += 1); }
   //                            ^^^^^^^^^^^
@@ -121,11 +121,11 @@ main() {
   // [cfe] A value of type 'G' can't be assigned to a variable of type 'H'.
   { D.staticE = new E(); F f = (D?.staticE += nullC()); }
   //                                          ^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'C' can't be assigned to a variable of type 'int'.
   { h.D.staticE = new h.E(); h.F f = (h.D?.staticE += h.nullC()); }
   //                                                  ^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'C' can't be assigned to a variable of type 'int'.
   { D.staticE = new E(); H h = (D?.staticE += 1); }
   //                           ^^^^^^^^^^^^^^^^^

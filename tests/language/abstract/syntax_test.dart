@@ -14,7 +14,7 @@ class A {
 // [cfe] The non-abstract class 'A' is missing implementations for these members:
   foo();
 //^^^^^^
-// [analyzer] STATIC_WARNING.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+// [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
   static bar();
   //          ^
   // [analyzer] SYNTACTIC_ERROR.MISSING_FUNCTION_BODY

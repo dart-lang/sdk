@@ -24,7 +24,7 @@ void f() {
   var a = const A<int>();
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
-      error(StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS, 64, 6),
+      error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 64, 6),
     ]);
 
     assertType(findNode.instanceCreation('const A<int>'), 'A<int>');
@@ -39,7 +39,7 @@ void f() {
   A a = const A();
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 49, 1),
-      error(StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS, 59, 1),
+      error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 59, 1),
     ]);
   }
 
@@ -50,7 +50,7 @@ void f() {
   new A<int>();
 }
 ''', [
-      error(StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS, 40, 6),
+      error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 40, 6),
     ]);
 
     assertType(findNode.instanceCreation('new A<int>'), 'A<int>');
@@ -63,7 +63,7 @@ void f() {
   new A();
 }
 ''', [
-      error(StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS, 37, 1),
+      error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 37, 1),
     ]);
   }
 
@@ -74,7 +74,7 @@ void f() {
   A<int>();
 }
 ''', [
-      error(StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS, 36, 6),
+      error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 36, 6),
     ]);
 
     assertType(findNode.instanceCreation('A<int>'), 'A<int>');
@@ -87,7 +87,7 @@ void f() {
   A();
 }
 ''', [
-      error(StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS, 33, 1),
+      error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 33, 1),
     ]);
   }
 }

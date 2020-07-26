@@ -795,7 +795,7 @@ class _ConstLiteralVerifier {
   bool _validateListExpression(Expression expression, DartObjectImpl value) {
     if (!verifier._evaluationEngine.runtimeTypeMatch(value, listElementType)) {
       verifier._errorReporter.reportErrorForNode(
-        StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
+        CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
         expression,
         [value.type, listElementType],
       );
@@ -872,7 +872,7 @@ class _ConstLiteralVerifier {
 
       if (!verifier._evaluationEngine.runtimeTypeMatch(keyValue, mapKeyType)) {
         verifier._errorReporter.reportErrorForNode(
-          StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+          CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
           keyExpression,
           [keyType, mapKeyType],
         );
@@ -902,7 +902,7 @@ class _ConstLiteralVerifier {
       if (!verifier._evaluationEngine
           .runtimeTypeMatch(valueValue, mapValueType)) {
         verifier._errorReporter.reportErrorForNode(
-          StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
+          CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
           valueExpression,
           [valueValue.type, mapValueType],
         );
@@ -950,7 +950,7 @@ class _ConstLiteralVerifier {
   bool _validateSetExpression(Expression expression, DartObjectImpl value) {
     if (!verifier._evaluationEngine.runtimeTypeMatch(value, setElementType)) {
       verifier._errorReporter.reportErrorForNode(
-        StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
+        CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
         expression,
         [value.type, setElementType],
       );

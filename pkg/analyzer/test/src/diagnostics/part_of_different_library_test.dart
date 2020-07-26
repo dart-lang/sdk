@@ -21,7 +21,7 @@ class PartOfDifferentLibraryTest extends DriverResolutionTest {
 library lib;
 part 'part.dart';
 ''', [
-      error(StaticWarningCode.PART_OF_DIFFERENT_LIBRARY, 18, 11),
+      error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 18, 11),
     ]);
   }
 }

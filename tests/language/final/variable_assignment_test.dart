@@ -8,18 +8,18 @@ main() {
   final x = 30;
   x = 0;
 //^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
 // [cfe] Can't assign to the final variable 'x'.
   x += 1;
 //^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
 // [cfe] Can't assign to the final variable 'x'.
   ++x;
   //^
-  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
+  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
   // [cfe] Can't assign to the final variable 'x'.
   x++;
 //^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
 // [cfe] Can't assign to the final variable 'x'.
 }

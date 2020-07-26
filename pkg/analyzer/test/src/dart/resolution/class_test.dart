@@ -530,7 +530,7 @@ main() {
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 33, 1),
       error(
-          StaticWarningCode
+          CompileTimeErrorCode
               .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
           60,
           1),

@@ -10,6 +10,6 @@ void main() {
   A a = new B();
   <B>[a];
   //  ^
-  // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
 }

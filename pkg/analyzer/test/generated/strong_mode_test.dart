@@ -1094,7 +1094,7 @@ test() {
     await computeAnalysisResult(source);
     _expectInferenceError(source, [
       StrongModeCode.COULD_NOT_INFER,
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ], r'''
 Couldn't infer type parameter 'T'.
 
@@ -1120,8 +1120,8 @@ test() {
     await computeAnalysisResult(source);
     _expectInferenceError(source, [
       StrongModeCode.COULD_NOT_INFER,
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ], r'''
 Couldn't infer type parameter 'T'.
 
@@ -1199,7 +1199,7 @@ test(Iterable values) {
     await computeAnalysisResult(source);
     _expectInferenceError(source, [
       StrongModeCode.COULD_NOT_INFER,
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ], r'''
 Couldn't infer type parameter 'T'.
 
@@ -1365,7 +1365,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     var analysisResult = await computeAnalysisResult(source);
     assertErrors(source, [
       StrongModeCode.COULD_NOT_INFER,
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
     var unit = analysisResult.unit;
@@ -3262,10 +3262,10 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 3),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 106, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 106, 1),
     ]);
     // Note: this correctly reports the error
-    // StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE when run with the driver;
+    // CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE when run with the driver;
     // when run without the driver, it reports no errors.  So we don't bother
     // checking whether the correct errors were reported.
     expectInitializerType('foo', 'Future<String>');
@@ -3678,8 +3678,8 @@ class A {
 }
 dynamic set g(int x) => null;
 ''', [
-      error(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, 12, 7),
-      error(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, 47, 7),
+      error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 12, 7),
+      error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 47, 7),
     ]);
   }
 
@@ -3723,8 +3723,8 @@ class A {
 }
 Object set g(x) => null;
 ''', [
-      error(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, 12, 6),
-      error(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, 46, 6),
+      error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 12, 6),
+      error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 46, 6),
     ]);
   }
 

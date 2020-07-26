@@ -23,7 +23,7 @@ class A {
 
 A.foo bar() {}
 ''', [
-      error(StaticWarningCode.NOT_A_TYPE, 24, 5),
+      error(CompileTimeErrorCode.NOT_A_TYPE, 24, 5),
     ]);
   }
 
@@ -35,7 +35,7 @@ class A {
 
 A.foo bar() {}
 ''', [
-      error(StaticWarningCode.NOT_A_TYPE, 36, 5),
+      error(CompileTimeErrorCode.NOT_A_TYPE, 36, 5),
     ]);
   }
 
@@ -43,7 +43,7 @@ A.foo bar() {}
     await assertErrorsInCode('''
 extension E on int {}
 E a;
-''', [error(StaticWarningCode.NOT_A_TYPE, 22, 1)]);
+''', [error(CompileTimeErrorCode.NOT_A_TYPE, 22, 1)]);
     var typeName = findNode.typeName('E a;');
     assertTypeDynamic(typeName.type);
     assertTypeNull(typeName.name);
@@ -55,7 +55,7 @@ f() {}
 main() {
   f v = null;
 }''', [
-      error(StaticWarningCode.NOT_A_TYPE, 18, 1),
+      error(CompileTimeErrorCode.NOT_A_TYPE, 18, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 20, 1),
     ]);
   }

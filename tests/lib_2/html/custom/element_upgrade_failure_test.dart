@@ -43,14 +43,14 @@ main() async {
     expect(() {
       upgrader.upgrade(new HtmlElementInterface());
       //                   ^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] STATIC_WARNING.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT
+      // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT
     }, throws);
   });
 }
 
 class HtmlElementInterface implements HtmlElement {
   //  ^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
   HtmlElementInterface.created();
 }
 

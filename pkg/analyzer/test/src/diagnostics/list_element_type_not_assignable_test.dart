@@ -42,8 +42,8 @@ var v = const <int>[if (1 < 0) a else b];
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(
-                    StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 82, 1),
+                error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 82,
+                    1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 64, 19),
@@ -57,13 +57,13 @@ var v = const <int>[if (1 < 0) 'a'];
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(
-                    StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 31, 3),
+                error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 31,
+                    3),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 20, 14),
-                error(
-                    StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 31, 3),
+                error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 31,
+                    3),
               ]);
   }
 
@@ -101,8 +101,8 @@ var v = const <int>[if (true) a];
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(
-                    StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 53, 1),
+                error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 53,
+                    1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 43, 11),
@@ -125,7 +125,7 @@ var v = const <int>[...[0, 1]];
     await assertErrorsInCode('''
 var v = const <String>[42];
 ''', [
-      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 23, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 23, 2),
     ]);
   }
 
@@ -134,7 +134,7 @@ var v = const <String>[42];
 const dynamic x = 42;
 var v = const <String>[x];
 ''', [
-      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 45, 1),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 45, 1),
     ]);
   }
 
@@ -184,7 +184,7 @@ var v = <int>[if (1 < 0) a else b];
     await assertErrorsInCode('''
 var v = <int>[if (1 < 0) 'a'];
 ''', [
-      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 25, 3),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 25, 3),
     ]);
   }
 
@@ -212,7 +212,7 @@ var v = <int>[...[0, 1]];
     await assertErrorsInCode('''
 var v = <String>[42];
 ''', [
-      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 17, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 17, 2),
     ]);
   }
 

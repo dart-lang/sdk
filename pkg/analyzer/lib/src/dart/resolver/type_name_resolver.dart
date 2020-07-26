@@ -357,7 +357,7 @@ class TypeNameResolver {
       _ErrorHelper(errorReporter).reportNewWithNonType(node);
     } else {
       errorReporter.reportErrorForNode(
-        StaticWarningCode.NOT_A_TYPE,
+        CompileTimeErrorCode.NOT_A_TYPE,
         typeIdentifier,
         [typeIdentifier.name],
       );
@@ -386,7 +386,7 @@ class _ErrorHelper {
         errorReporter.reportErrorForNode(
           instanceCreation.isConst
               ? CompileTimeErrorCode.CONST_WITH_NON_TYPE
-              : StaticWarningCode.NEW_WITH_NON_TYPE,
+              : CompileTimeErrorCode.NEW_WITH_NON_TYPE,
           errorNode,
           [identifier.name],
         );
@@ -402,7 +402,7 @@ class _ErrorHelper {
 
     if (errorNode.name == 'boolean') {
       errorReporter.reportErrorForNode(
-        StaticWarningCode.UNDEFINED_CLASS_BOOLEAN,
+        CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN,
         errorNode,
       );
       return;
@@ -410,7 +410,7 @@ class _ErrorHelper {
 
     if (_isTypeInCatchClause(node)) {
       errorReporter.reportErrorForNode(
-        StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE,
+        CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE,
         identifier,
         [identifier.name],
       );
@@ -419,7 +419,7 @@ class _ErrorHelper {
 
     if (_isTypeInAsExpression(node)) {
       errorReporter.reportErrorForNode(
-        StaticWarningCode.CAST_TO_NON_TYPE,
+        CompileTimeErrorCode.CAST_TO_NON_TYPE,
         identifier,
         [identifier.name],
       );
@@ -429,13 +429,13 @@ class _ErrorHelper {
     if (_isTypeInIsExpression(node)) {
       if (element != null) {
         errorReporter.reportErrorForNode(
-          StaticWarningCode.TYPE_TEST_WITH_NON_TYPE,
+          CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE,
           identifier,
           [identifier.name],
         );
       } else {
         errorReporter.reportErrorForNode(
-          StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME,
+          CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME,
           identifier,
           [identifier.name],
         );
@@ -489,7 +489,7 @@ class _ErrorHelper {
 
     if (element != null) {
       errorReporter.reportErrorForNode(
-        StaticWarningCode.NOT_A_TYPE,
+        CompileTimeErrorCode.NOT_A_TYPE,
         identifier,
         [identifier.name],
       );
@@ -498,7 +498,7 @@ class _ErrorHelper {
 
     if (identifier is SimpleIdentifier && identifier.name == 'await') {
       errorReporter.reportErrorForNode(
-        StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT,
+        CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
         node,
       );
       return;

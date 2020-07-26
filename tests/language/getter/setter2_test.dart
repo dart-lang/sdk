@@ -24,7 +24,7 @@ class T1 {
   late A getterField;
   A get field {
   //    ^^^^^
-  // [analyzer] STATIC_WARNING.GETTER_NOT_SUBTYPE_SETTER_TYPES
+  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
   // [cfe] unspecified
     return getterField;
   }
@@ -39,7 +39,7 @@ class T2 {
   late C setterField;
   A get field {
   //    ^^^^^
-  // [analyzer] STATIC_WARNING.GETTER_NOT_SUBTYPE_SETTER_TYPES
+  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
   // [cfe] unspecified
     return getterField;
   }

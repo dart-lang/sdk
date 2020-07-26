@@ -41,7 +41,7 @@ main() {
   dynamic;
 }
 ''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 42, 7),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 42, 7),
     ]);
 
     assertSimpleIdentifier(

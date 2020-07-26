@@ -24,7 +24,7 @@ f() {
   new A();
 }
 ''', [
-      error(StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 38, 1),
+      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 38, 1),
     ]);
   }
 
@@ -59,7 +59,7 @@ f() {
   new A.name();
 }
 ''', [
-      error(StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 35, 4),
+      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 35, 4),
     ]);
   }
 }

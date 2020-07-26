@@ -75,6 +75,6 @@ main() {
 
   testCall(listMiddle);
   //       ^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'List<Covariant<Middle>>' can't be assigned to the parameter type 'Iterable<Covariant<Lower>>'.
 }

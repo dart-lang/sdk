@@ -108,7 +108,7 @@ class C1 {
   const C1()
       : x = C0.X
       //^
-      // [analyzer] STATIC_WARNING.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
+      // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
       //  ^
       // [cfe] 'x' is a final instance variable that has already been initialized.
       //  ^
@@ -125,7 +125,7 @@ const B3 = B0 + B1;
 //         ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_NUM
 //              ^^
-// [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] A value of type 'String' can't be assigned to a variable of type 'num'.
 
 // Check identical.

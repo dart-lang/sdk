@@ -632,7 +632,7 @@ class LibraryAnalyzer {
                     [name]);
               } else if (libraryNameNode.name != name) {
                 libraryErrorReporter.reportErrorForNode(
-                    StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
+                    CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
                     partUri,
                     [libraryNameNode.name, name]);
               }
@@ -640,7 +640,7 @@ class LibraryAnalyzer {
               Source source = nameOrSource.source;
               if (source != _library.source) {
                 libraryErrorReporter.reportErrorForNode(
-                    StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
+                    CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
                     partUri,
                     [_library.uriStr, source.uri]);
               }

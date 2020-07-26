@@ -22,7 +22,7 @@ class A {
   A() : x = '';
 }
 ''', [
-      error(StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 31, 2),
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 31, 2),
     ]);
   }
 }

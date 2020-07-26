@@ -23,7 +23,7 @@ void test0() {
   c0.m1;
   c0.m1 = 0;
   // ^^
-  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
   // [cfe] The setter 'm1' isn't defined for the class 'C0'.
   E0(c0).m1 = 0;
   E0(c0).m1;
@@ -33,12 +33,12 @@ void test0() {
 
   c0.m1 += 0;
   // ^^
-  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
   // [cfe] The setter 'm1' isn't defined for the class 'C0'.
 
   c0.m1++;
   // ^^
-  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
   // [cfe] The setter 'm1' isn't defined for the class 'C0'.
 
   c0.m2 = 0;
@@ -109,7 +109,7 @@ void test1() {
 
   c1a.m1 = 0;
   //  ^^
-  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
+  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
   // [cfe] The setter 'm1' isn't defined for the class 'C1<int>'.
 
   c1a.m2;
@@ -195,7 +195,7 @@ void test1() {
 
   c1c.m1 = 0;
   //  ^^
-  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
+  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
   // [cfe] The setter 'm1' isn't defined for the class 'C1<Object>'.
 
   c1c.m2;
@@ -224,7 +224,7 @@ extension E2 on C2 {
     this.m1;
     this.m1 = 0;
     //   ^^
-    // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
     // [cfe] The setter 'm1' isn't defined for the class 'C2'.
 
     this.m2 = 0;

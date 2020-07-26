@@ -23,7 +23,7 @@ void foo() {
   new F();
 }
 ''', [
-      error(StaticWarningCode.NEW_WITH_NON_TYPE, 49, 1),
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 49, 1),
     ]);
   }
 
@@ -36,7 +36,7 @@ void f() {
 }
 lib.B b;
 ''', [
-      error(StaticWarningCode.NEW_WITH_NON_TYPE, 47, 1),
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 47, 1),
     ]);
   }
 
@@ -47,7 +47,7 @@ void f() {
   new A();
 }
 ''', [
-      error(StaticWarningCode.NEW_WITH_NON_TYPE, 28, 1),
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 28, 1),
     ]);
   }
 
@@ -60,7 +60,7 @@ main() {
   new C.x.y();
 }
 ''', [
-      error(StaticWarningCode.NEW_WITH_NON_TYPE, 36, 3),
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 36, 3),
     ]);
   }
 
@@ -70,7 +70,7 @@ void foo<T>() {
   new T();
 }
 ''', [
-      error(StaticWarningCode.NEW_WITH_NON_TYPE, 22, 1),
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 22, 1),
     ]);
   }
 }

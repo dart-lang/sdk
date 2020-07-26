@@ -589,7 +589,7 @@ class _ClassVerifier {
         }
         if (name2 == name) {
           reporter.reportErrorForNode(
-              StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+              CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
               member,
               [name, classElement.name]);
           return true;
@@ -668,31 +668,32 @@ class _ClassVerifier {
 
     if (descriptions.length == 1) {
       reporter.reportErrorForNode(
-        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
         classNameNode,
         [descriptions[0]],
       );
     } else if (descriptions.length == 2) {
       reporter.reportErrorForNode(
-        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
+        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
         classNameNode,
         [descriptions[0], descriptions[1]],
       );
     } else if (descriptions.length == 3) {
       reporter.reportErrorForNode(
-        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
+        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
         classNameNode,
         [descriptions[0], descriptions[1], descriptions[2]],
       );
     } else if (descriptions.length == 4) {
       reporter.reportErrorForNode(
-        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
+        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
         classNameNode,
         [descriptions[0], descriptions[1], descriptions[2], descriptions[3]],
       );
     } else {
       reporter.reportErrorForNode(
-        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
+        CompileTimeErrorCode
+            .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
         classNameNode,
         [
           descriptions[0],

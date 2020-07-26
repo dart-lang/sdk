@@ -23,7 +23,7 @@ class A<T> {
   }
 }
 ''', [
-      error(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 34, 1),
+      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 34, 1),
     ]);
   }
 
@@ -33,7 +33,7 @@ class A<T> {
   static T foo;
 }
 ''', [
-      error(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1),
+      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1),
     ]);
   }
 
@@ -43,7 +43,7 @@ class A<T> {
   static T get foo => null;
 }
 ''', [
-      error(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1),
+      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1),
     ]);
   }
 
@@ -56,7 +56,7 @@ class A<T> {
   }
 }
 ''', [
-      error(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 70, 1),
+      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 70, 1),
     ]);
   }
 
@@ -68,7 +68,7 @@ class A<T> {
   }
 }
 ''', [
-      error(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 49, 1),
+      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 49, 1),
     ]);
   }
 
@@ -78,7 +78,7 @@ class A<T> {
   static foo(T a) {}
 }
 ''', [
-      error(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 26, 1),
+      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 26, 1),
     ]);
   }
 
@@ -90,7 +90,7 @@ class A<T> {
   }
 }
 ''', [
-      error(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1),
+      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1),
     ]);
   }
 
@@ -100,7 +100,7 @@ class A<T> {
   static set foo(T _) {}
 }
 ''', [
-      error(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 30, 1),
+      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 30, 1),
     ]);
   }
 }

@@ -8,7 +8,7 @@ class A {
   A() {
     print(field + 42);
     //    ^^^^^
-    // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
     // [cfe] The getter 'field' isn't defined for the class 'A'.
   }
 }

@@ -20,7 +20,7 @@ class UndefinedClassBooleanTest extends DriverResolutionTest {
     await assertErrorsInCode('''
 f() { boolean v; }
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS_BOOLEAN, 6, 7),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN, 6, 7),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
     ]);
   }

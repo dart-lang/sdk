@@ -165,7 +165,7 @@ main(Never? x) {
   x<int>(1 + 2);
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
     ]);
 
     assertFunctionExpressionInvocation(

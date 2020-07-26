@@ -36,7 +36,7 @@ main() {
   foo(0);
 }
 ''', [
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 46, 3),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 46, 3),
     ]);
 
     var invocation = findNode.methodInvocation('foo(0)');
@@ -60,7 +60,7 @@ main() {
   p.foo(0);
 }
 ''', [
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 58, 3),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 58, 3),
     ]);
 
     var invocation = findNode.methodInvocation('foo(0)');
@@ -425,7 +425,7 @@ main() {
   bar.foo(0);
 }
 ''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 11, 3),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 11, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
   }
@@ -699,7 +699,7 @@ main(C<void> c) {
   c.foo();
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 44, 5),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 44, 5),
     ]);
 
     var invocation = findNode.functionExpressionInvocation('foo();');
@@ -720,7 +720,7 @@ main() {
   foo();
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 23, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
 
     var invocation = findNode.functionExpressionInvocation('foo();');
@@ -741,7 +741,7 @@ main() {
   foo()();
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 26, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 3),
     ]);
     assertMethodInvocation(
       findNode.methodInvocation('foo()()'),
@@ -758,7 +758,7 @@ main() {
   foo();
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 22, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 22, 3),
     ]);
 
     var invocation = findNode.functionExpressionInvocation('foo();');
@@ -778,7 +778,7 @@ main() {
   foo.toString();
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 23, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
     // TODO(scheglov) Resolve fully, or don't resolve at all.
     assertMethodInvocation(
@@ -795,7 +795,7 @@ main() {
   foo..toString();
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 23, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
     // TODO(scheglov) Resolve fully, or don't resolve at all.
     assertMethodInvocation(
@@ -812,7 +812,7 @@ main() {
   foo?.toString();
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 23, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
     // TODO(scheglov) Resolve fully, or don't resolve at all.
     assertMethodInvocation(
@@ -1769,7 +1769,7 @@ void main(Function? foo) {
   foo.call();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 29, 3),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 29, 3),
     ]);
 
     assertMethodInvocation2(
@@ -1820,7 +1820,7 @@ main(A? a) {
   a.foo();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 44, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 44, 1),
     ]);
 
     assertMethodInvocation2(
@@ -1846,7 +1846,7 @@ main(A? a) {
   a.foo();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 82, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 82, 1),
     ]);
 
     assertMethodInvocation2(
@@ -1913,7 +1913,7 @@ main(A? a) {
   a.foo();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 27, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 27, 1),
       error(StaticTypeWarningCode.UNDEFINED_METHOD, 29, 3),
     ]);
 
@@ -1938,7 +1938,7 @@ main(A? a) {
   a.foo();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 65, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 65, 1),
       error(StaticTypeWarningCode.UNDEFINED_METHOD, 67, 3),
     ]);
 

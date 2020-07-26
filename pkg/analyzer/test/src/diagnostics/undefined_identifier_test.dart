@@ -24,8 +24,8 @@ class UndefinedIdentifierTest extends DriverResolutionTest {
 /** [m] xxx [new B.c] */
 class A {
 }''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 5, 1),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 17, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 5, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 17, 1),
     ]);
   }
 
@@ -35,7 +35,7 @@ f(var l) {
   for (e in l) {
   }
 }''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 18, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1),
     ]);
   }
 
@@ -54,7 +54,7 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 25, 1),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 40, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 40, 1),
     ]);
   }
 
@@ -76,7 +76,7 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 31, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 31, 1),
     ]);
   }
 
@@ -84,7 +84,7 @@ f() {
     await assertErrorsInCode('''
 int a() => b;
 ''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 11, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 11, 1),
     ]);
   }
 
@@ -95,7 +95,7 @@ main() {
   List;
   String;
 }''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 49, 6),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 49, 6),
     ]);
   }
 
@@ -103,7 +103,7 @@ main() {
     await assertErrorsInCode('''
 var a = b;
 ''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 8, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 8, 1),
     ]);
   }
 
@@ -111,7 +111,7 @@ var a = b;
     await assertErrorsInCode('''
 f() { C.m(); }
 ''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 6, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 6, 1),
     ]);
   }
 
@@ -129,7 +129,7 @@ class B extends A {
   }
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 1),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 62, 4),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 62, 4),
     ]);
   }
 
@@ -146,7 +146,7 @@ class B extends A {
     _foo = 42;
   }
 }''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 54, 4),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 54, 4),
     ]);
   }
 

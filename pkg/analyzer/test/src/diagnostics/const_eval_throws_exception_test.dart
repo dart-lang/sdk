@@ -126,8 +126,10 @@ class C {
 }
 var x = const C();
 ''', [
-      error(StaticWarningCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
-          39, 1),
+      error(
+          CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+          39,
+          1),
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 56, 9),
     ]);
   }
@@ -145,8 +147,10 @@ class C {
 }
 var x = const C(2);
 ''', [
-      error(StaticWarningCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
-          40, 1),
+      error(
+          CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
+          40,
+          1),
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 54, 10),
     ]);
   }

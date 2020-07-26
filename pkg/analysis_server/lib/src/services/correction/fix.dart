@@ -14,27 +14,29 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 /// Return true if this [errorCode] is likely to have a fix associated with it.
 bool hasFix(ErrorCode errorCode) =>
-    errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN ||
-    errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER ||
-    errorCode == StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR ||
+    errorCode == CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN ||
+    errorCode == CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER ||
+    errorCode == CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR ||
     errorCode ==
-        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE ||
+        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE ||
     errorCode ==
-        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO ||
+        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO ||
     errorCode ==
-        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE ||
+        CompileTimeErrorCode
+            .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE ||
     errorCode ==
-        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR ||
+        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR ||
     errorCode ==
-        StaticWarningCode
+        CompileTimeErrorCode
             .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS ||
-    errorCode == StaticWarningCode.CAST_TO_NON_TYPE ||
-    errorCode == StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME ||
-    errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED ||
-    errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 ||
-    errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 ||
-    errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS ||
-    errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER ||
+    errorCode == CompileTimeErrorCode.CAST_TO_NON_TYPE ||
+    errorCode == CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME ||
+    errorCode == CompileTimeErrorCode.FINAL_NOT_INITIALIZED ||
+    errorCode == CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 ||
+    errorCode == CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 ||
+    errorCode ==
+        CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS ||
+    errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER ||
     errorCode ==
         CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE ||
     errorCode == CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE ||

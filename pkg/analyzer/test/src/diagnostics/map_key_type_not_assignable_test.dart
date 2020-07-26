@@ -42,7 +42,7 @@ var v = const <int, bool>{if (1 < 0) a: true else b: false};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 94, 1),
+                error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 94, 1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 70, 32),
@@ -69,11 +69,11 @@ var v = const <int, bool>{if (1 < 0) 'a': true};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 37, 3),
+                error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 37, 3),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 26, 20),
-                error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 37, 3),
+                error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 37, 3),
               ]);
   }
 
@@ -98,7 +98,7 @@ var v = const <int, bool>{if (true) a: true};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 59, 1),
+                error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 59, 1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 49, 17),
@@ -132,7 +132,7 @@ var v = const <int, bool>{a : true};
 const dynamic a = 'a';
 var v = const <int, bool>{a : true};
 ''', [
-      error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 49, 1),
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 49, 1),
     ]);
   }
 
@@ -140,7 +140,7 @@ var v = const <int, bool>{a : true};
     await assertErrorsInCode('''
 var v = const <int, bool>{'a' : true};
 ''', [
-      error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 26, 3),
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 26, 3),
     ]);
   }
 
@@ -164,11 +164,11 @@ var v = const <int, String>{...{a: 'a'}};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 55, 1),
+                error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 55, 1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 51, 11),
-                error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 55, 1),
+                error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 55, 1),
               ]);
   }
 
@@ -198,7 +198,7 @@ var v = <int, bool>{if (1 < 0) a: true else b: false};
     await assertErrorsInCode('''
 var v = <int, bool>{if (1 < 0) 'a': true};
 ''', [
-      error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 31, 3),
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 31, 3),
     ]);
   }
 
@@ -234,7 +234,7 @@ var v = <int, bool>{a : true};
     await assertErrorsInCode('''
 var v = <int, bool>{'a' : true};
 ''', [
-      error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 20, 3),
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 20, 3),
     ]);
   }
 
@@ -254,7 +254,7 @@ var v = <int, int>{...<num, num>{1: 1}};
     await assertErrorsInCode('''
 var v = <int, String>{...{'a': 'a'}};
 ''', [
-      error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 26, 3),
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 26, 3),
     ]);
   }
 

@@ -27,11 +27,11 @@ class Derived extends Base {
     String? stringQuestion = 'foo';
     super == string;
     //       ^^^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] The argument type 'String' can't be assigned to the parameter type 'num?'.
     super == stringQuestion;
     //       ^^^^^^^^^^^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] The argument type 'String?' can't be assigned to the parameter type 'num?'.
   }
 }
