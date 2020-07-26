@@ -127,7 +127,7 @@ class A {
 @A([min])
 main() {}
 ''', [
-      error(StrongModeCode.COULD_NOT_INFER, 66, 5),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 66, 5),
     ]);
 
     var identifier = findNode.simple('min]');

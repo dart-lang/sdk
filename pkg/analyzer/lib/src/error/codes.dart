@@ -1322,6 +1322,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "renaming the field to a name that doesn't conflict.");
 
   /**
+   * Parameters:
+   * 0: the name of the type parameter
+   * 1: detail text explaining why the type could not be inferred
+   */
+  static const CompileTimeErrorCode COULD_NOT_INFER = CompileTimeErrorCode(
+      'COULD_NOT_INFER', "Couldn't infer type parameter '{0}'.{1}");
+
+  /**
    * 10.10 Superinterfaces: It is a compile-time error if a class `C` has two
    * superinterfaces that are different instantiations of the same generic
    * class. For example, a class may not have both `List<int>` and `List<num>`
@@ -1330,7 +1338,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the class implementing the conflicting interface
    * 1: the first conflicting type
-   * 1: the second conflicting type
+   * 2: the second conflicting type
    */
   static const CompileTimeErrorCode CONFLICTING_GENERIC_INTERFACES =
       CompileTimeErrorCode(
@@ -10689,11 +10697,6 @@ class StrongModeCode extends ErrorCode {
   static const String _implicitDynamicCorrection =
       "Try adding an explicit type like 'dynamic', or "
       "enable implicit-dynamic in your analysis options file.";
-
-  static const StrongModeCode COULD_NOT_INFER = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'COULD_NOT_INFER',
-      "Couldn't infer type parameter '{0}'.{1}");
 
   static const StrongModeCode IMPLICIT_DYNAMIC_FIELD = StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,

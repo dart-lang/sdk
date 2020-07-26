@@ -335,7 +335,7 @@ var b = const bool.fromEnvironment('x', defaultValue: 1);
 T f<T>(T t) => null;
 main() { f(<S>(S s) => s); }
 ''', [
-      error(StrongModeCode.COULD_NOT_INFER, 30, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 30, 1),
     ]);
   }
 
@@ -344,7 +344,7 @@ main() { f(<S>(S s) => s); }
 T Function<T>(T) f;
 main() { f(<S>(S s) => s); }
 ''', [
-      error(StrongModeCode.COULD_NOT_INFER, 29, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 29, 1),
     ]);
   }
 
@@ -355,7 +355,7 @@ class C {
 }
 main() { new C().f(<S>(S s) => s); }
 ''', [
-      error(StrongModeCode.COULD_NOT_INFER, 52, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 52, 1),
     ]);
   }
 

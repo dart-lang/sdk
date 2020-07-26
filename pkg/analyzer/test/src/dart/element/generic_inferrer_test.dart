@@ -616,7 +616,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
 
     if (expectError) {
       expect(listener.errors.map((e) => e.errorCode).toList(),
-          [StrongModeCode.COULD_NOT_INFER],
+          [CompileTimeErrorCode.COULD_NOT_INFER],
           reason: 'expected exactly 1 could not infer error.');
     } else {
       expect(listener.errors, isEmpty, reason: 'did not expect any errors.');

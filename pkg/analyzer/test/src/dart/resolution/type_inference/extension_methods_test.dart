@@ -306,7 +306,7 @@ f(String s) {
   E(s).foo();
 }
 ''', [
-      error(StrongModeCode.COULD_NOT_INFER, 69, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 69, 1),
     ]);
     var override = findNode.extensionOverride('E(s)');
     assertElementTypeStrings(override.typeArgumentTypes, ['String']);
