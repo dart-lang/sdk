@@ -46,7 +46,8 @@ class CustomElement {
   }
 
   final HtmlElement element;
-  CustomElement.created(String elementClass) : element = document.createElement("shadow") {
+  CustomElement.created(String elementClass)
+      : element = document.createElement("shadow") {
     reverseElements[element] = this;
     element.classes = [elementClass];
 

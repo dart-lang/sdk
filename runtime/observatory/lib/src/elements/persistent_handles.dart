@@ -71,7 +71,8 @@ class PersistentHandlesPageElement extends CustomElement implements Renderable {
     return e;
   }
 
-  PersistentHandlesPageElement.created() : super.created('persistent-handles-page');
+  PersistentHandlesPageElement.created()
+      : super.created('persistent-handles-page');
 
   @override
   attached() {

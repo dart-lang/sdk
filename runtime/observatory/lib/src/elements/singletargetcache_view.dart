@@ -83,7 +83,10 @@ class SingleTargetCacheViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  SingleTargetCacheViewElement.created() : super.created('singletargetcache-view',);
+  SingleTargetCacheViewElement.created()
+      : super.created(
+          'singletargetcache-view',
+        );
 
   @override
   attached() {

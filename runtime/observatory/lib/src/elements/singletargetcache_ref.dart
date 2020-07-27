@@ -34,7 +34,8 @@ class SingleTargetCacheRefElement extends CustomElement implements Renderable {
     return e;
   }
 
-  SingleTargetCacheRefElement.created() : super.created('singletargetcache-ref');
+  SingleTargetCacheRefElement.created()
+      : super.created('singletargetcache-ref');
 
   @override
   void attached() {

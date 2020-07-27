@@ -222,9 +222,9 @@ class AllocationProfileElement extends CustomElement implements Renderable {
               ..classes = ['compact']
               ..text = _isCompacted ? 'expand ▼' : 'compact ▲'
               ..onClick.listen((_) {
-                    _isCompacted = !_isCompacted;
-                          _r.dirty();
-               }),
+                _isCompacted = !_isCompacted;
+                _r.dirty();
+              }),
             new HRElement()
           ],
         new DivElement()
@@ -365,35 +365,26 @@ class AllocationProfileElement extends CustomElement implements Renderable {
                 _SortingField.newInternalSize, _SortingDirection.descending),
             _createHeaderButton(const ['bytes'], 'External',
                 _SortingField.newExternalSize, _SortingDirection.descending),
-            _createHeaderButton(const ['bytes'], 'Size',
-                _SortingField.newSize, _SortingDirection.descending),
-            _createHeaderButton(
-                const ['instances'], 'Instances',
-                _SortingField.newInstances,
+            _createHeaderButton(const ['bytes'], 'Size', _SortingField.newSize,
                 _SortingDirection.descending),
-
+            _createHeaderButton(const ['instances'], 'Instances',
+                _SortingField.newInstances, _SortingDirection.descending),
             _createHeaderButton(const ['bytes'], 'Internal',
                 _SortingField.oldInternalSize, _SortingDirection.descending),
             _createHeaderButton(const ['bytes'], 'External',
                 _SortingField.oldExternalSize, _SortingDirection.descending),
-            _createHeaderButton(const ['bytes'], 'Size',
-                _SortingField.oldSize, _SortingDirection.descending),
-            _createHeaderButton(
-                const ['instances'], 'Instances',
-                _SortingField.oldInstances,
+            _createHeaderButton(const ['bytes'], 'Size', _SortingField.oldSize,
                 _SortingDirection.descending),
-
+            _createHeaderButton(const ['instances'], 'Instances',
+                _SortingField.oldInstances, _SortingDirection.descending),
             _createHeaderButton(const ['bytes'], 'Internal',
                 _SortingField.internalSize, _SortingDirection.descending),
             _createHeaderButton(const ['bytes'], 'External',
                 _SortingField.externalSize, _SortingDirection.descending),
-            _createHeaderButton(const ['bytes'], 'Size',
-                _SortingField.size, _SortingDirection.descending),
-            _createHeaderButton(
-                const ['instances'], 'Instances',
-                _SortingField.instances,
+            _createHeaderButton(const ['bytes'], 'Size', _SortingField.size,
                 _SortingDirection.descending),
-
+            _createHeaderButton(const ['instances'], 'Instances',
+                _SortingField.instances, _SortingDirection.descending),
             _createHeaderButton(const ['name'], 'Class',
                 _SortingField.className, _SortingDirection.ascending)
           ],
@@ -564,28 +555,19 @@ class AllocationProfileElement extends CustomElement implements Renderable {
     ].join(',');
   }
 
-  static int _getNewInstances(M.ClassHeapStats s) =>
-      s.newSpace.instances;
-  static int _getNewInternalSize(M.ClassHeapStats s) =>
-      s.newSpace.internalSize;
-  static int _getNewExternalSize(M.ClassHeapStats s) =>
-      s.newSpace.externalSize;
-  static int _getNewSize(M.ClassHeapStats s) =>
-      s.newSpace.size;
-  static int _getOldInstances(M.ClassHeapStats s) =>
-      s.oldSpace.instances;
-  static int _getOldInternalSize(M.ClassHeapStats s) =>
-      s.oldSpace.internalSize;
-  static int _getOldExternalSize(M.ClassHeapStats s) =>
-      s.oldSpace.externalSize;
-  static int _getOldSize(M.ClassHeapStats s) =>
-      s.oldSpace.size;
+  static int _getNewInstances(M.ClassHeapStats s) => s.newSpace.instances;
+  static int _getNewInternalSize(M.ClassHeapStats s) => s.newSpace.internalSize;
+  static int _getNewExternalSize(M.ClassHeapStats s) => s.newSpace.externalSize;
+  static int _getNewSize(M.ClassHeapStats s) => s.newSpace.size;
+  static int _getOldInstances(M.ClassHeapStats s) => s.oldSpace.instances;
+  static int _getOldInternalSize(M.ClassHeapStats s) => s.oldSpace.internalSize;
+  static int _getOldExternalSize(M.ClassHeapStats s) => s.oldSpace.externalSize;
+  static int _getOldSize(M.ClassHeapStats s) => s.oldSpace.size;
   static int _getInstances(M.ClassHeapStats s) =>
       s.newSpace.instances + s.oldSpace.instances;
   static int _getInternalSize(M.ClassHeapStats s) =>
       s.newSpace.internalSize + s.oldSpace.internalSize;
   static int _getExternalSize(M.ClassHeapStats s) =>
       s.newSpace.externalSize + s.oldSpace.externalSize;
-  static int _getSize(M.ClassHeapStats s) =>
-      s.newSpace.size + s.oldSpace.size;
+  static int _getSize(M.ClassHeapStats s) => s.newSpace.size + s.oldSpace.size;
 }
