@@ -6,6 +6,8 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
+import 'core.dart';
+
 final Sdk sdk = Sdk();
 
 String get _computeSdkPath {
@@ -59,4 +61,13 @@ class Sdk {
 
   static String _binName(String base) =>
       Platform.isWindows ? '$base.bat' : base;
+
+  static bool checkSnapshotExists(String snapshotPath) {
+    if (!File(snapshotPath).existsSync()) {
+      log.stderr('Could not find $snapshotPath. Have you built the full '
+          'Dart SDK?');
+      return false;
+    }
+    return true;
+  }
 }

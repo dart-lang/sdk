@@ -122,7 +122,9 @@ Run a Dart file.''');
     _DebuggingSession debugSession;
     if (launchDds) {
       debugSession = _DebuggingSession();
-      await debugSession.start();
+      if (!await debugSession.start()) {
+        return 255;
+      }
     }
 
     final script = Directory.current.uri
@@ -135,8 +137,14 @@ Run a Dart file.''');
 }
 
 class _DebuggingSession {
-  Future<void> start() async {
+  Future<bool> start() async {
     final serviceInfo = await Service.getInfo();
+    final ddsSnapshot = (dirname(sdk.dart).endsWith('bin'))
+        ? sdk.ddsSnapshot
+        : absolute(dirname(sdk.dart), 'gen', 'dds.dart.snapshot');
+    if (!Sdk.checkSnapshotExists(ddsSnapshot)) {
+      return false;
+    }
     final process = await Process.start(
         sdk.dart,
         [
@@ -157,5 +165,6 @@ class _DebuggingSession {
     });
 
     await completer.future;
+    return true;
   }
 }

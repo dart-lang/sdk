@@ -19,6 +19,9 @@ class TestCommand extends DartdevCommand<int> {
 
   @override
   void printUsage() {
+    if (!Sdk.checkSnapshotExists(sdk.pub)) {
+      return;
+    }
     final command = sdk.pub;
     final args = ['run', 'test', '--help'];
 
@@ -42,6 +45,9 @@ class TestCommand extends DartdevCommand<int> {
 
   @override
   FutureOr<int> run() async {
+    if (!Sdk.checkSnapshotExists(sdk.pub)) {
+      return 255;
+    }
     final command = sdk.pub;
     final testArgs = argResults.arguments.toList();
 

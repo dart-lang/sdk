@@ -22,6 +22,9 @@ class PubCommand extends DartdevCommand<int> {
     // Override [printUsage] for invocations of 'dart help pub' which won't
     // execute [run] below.  Without this, the 'dart help pub' reports the
     // command pub with no commands or flags.
+    if (!Sdk.checkSnapshotExists(sdk.pub)) {
+      return;
+    }
     final command = sdk.pub;
     final args = ['help'];
 
@@ -42,6 +45,9 @@ class PubCommand extends DartdevCommand<int> {
 
   @override
   FutureOr<int> run() async {
+    if (!Sdk.checkSnapshotExists(sdk.pub)) {
+      return 255;
+    }
     final command = sdk.pub;
     var args = argResults.arguments;
 

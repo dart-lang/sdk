@@ -65,6 +65,9 @@ class CompileJSCommand extends DartdevCommand<int> {
 
   @override
   FutureOr<int> run() async {
+    if (!Sdk.checkSnapshotExists(sdk.dart2js)) {
+      return 255;
+    }
     // We expect a single rest argument; the dart entry point.
     if (argResults.rest.length != 1) {
       log.stderr('Missing Dart entry point.');
@@ -176,6 +179,10 @@ Remove debugging information from the output and save it separately to the speci
 
   @override
   FutureOr<int> run() async {
+    if (!Sdk.checkSnapshotExists(genKernel) ||
+        !Sdk.checkSnapshotExists(genSnapshot)) {
+      return 255;
+    }
     // We expect a single rest argument; the dart entry point.
     if (argResults.rest.length != 1) {
       log.stderr('Missing Dart entry point.');
