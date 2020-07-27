@@ -1,0 +1,3 @@
+T f<T>() => null;
+main() {}
+test() {}

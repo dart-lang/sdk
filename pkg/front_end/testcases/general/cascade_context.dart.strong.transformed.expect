@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method f<T extends core::Object* = dynamic>() → self::f::T*
+  return null;
+static method test() → dynamic {
+  core::int* v1 = self::f<core::int*>();
+  core::int* v2 = let final core::int* #t1 = self::f<core::int*>() in block {
+    #t1.{core::int::isEven};
+  } =>#t1;
+  core::int* v3 = let final core::int* #t2 = self::f<core::int*>() in block {
+    #t2.{core::int::isEven};
+    #t2.{core::int::isEven};
+  } =>#t2;
+}
+static method main() → dynamic {}
