@@ -53,9 +53,6 @@ class OffsetsExtractor : public AllStatic {
                "_element_size = "                                              \
             << Class::ArrayTraits::kElementSize << ";\n";
 
-#define PRINT_ARRAY_STRUCTFIELD_OFFSET(Class, Name, ElementOffsetName,         \
-                                       FieldOffset)
-
 #define PRINT_SIZEOF(Class, Name, What)                                        \
   std::cout << "static constexpr dart::compiler::target::word AOT_" #Class     \
                "_" #Name " = "                                                 \
@@ -81,8 +78,6 @@ class OffsetsExtractor : public AllStatic {
                "_" #Name " = "                                                 \
             << Class::Name << ";\n";
 
-#define PRECOMP_NO_CHECK(Code)
-
 #else  // defined(DART_PRECOMPILED_RUNTIME)
 
 #define PRINT_FIELD_OFFSET(Class, Name)                                        \
@@ -97,9 +92,6 @@ class OffsetsExtractor : public AllStatic {
   std::cout << "static constexpr dart::compiler::target::word " #Class         \
                "_element_size = "                                              \
             << Class::ArrayTraits::kElementSize << ";\n";
-
-#define PRINT_ARRAY_STRUCTFIELD_OFFSET(Class, Name, ElementOffsetName,         \
-                                       FieldOffset)
 
 #define PRINT_SIZEOF(Class, Name, What)                                        \
   std::cout << "static constexpr dart::compiler::target::word " #Class         \
@@ -126,21 +118,19 @@ class OffsetsExtractor : public AllStatic {
                "_" #Name " = "                                                 \
             << Class::Name << ";\n";
 
-#define PRECOMP_NO_CHECK(Code) Code
+    JIT_OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT, PRINT_SIZEOF,
+                     PRINT_RANGE, PRINT_CONSTANT)
 
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-    OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT,
-                 PRINT_ARRAY_STRUCTFIELD_OFFSET, PRINT_SIZEOF, PRINT_RANGE,
-                 PRINT_CONSTANT, PRECOMP_NO_CHECK)
+    COMMON_OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT, PRINT_SIZEOF,
+                        PRINT_RANGE, PRINT_CONSTANT)
 
 #undef PRINT_FIELD_OFFSET
 #undef PRINT_ARRAY_LAYOUT
-#undef PRINT_ARRAY_STRUCTFIELD_OFFSET
 #undef PRINT_SIZEOF
 #undef PRINT_RANGE
 #undef PRINT_CONSTANT
-#undef PRECOMP_NO_CHECK
   }
 };
 

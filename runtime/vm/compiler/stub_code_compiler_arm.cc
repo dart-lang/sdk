@@ -2201,6 +2201,10 @@ void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement(
     Assembler* assembler) {
   Register ic_reg = R9;
   Register func_reg = R8;
+  if (FLAG_precompiled_mode) {
+    __ Breakpoint();
+    return;
+  }
   if (FLAG_trace_optimized_ic_calls) {
     __ EnterStubFrame();
     __ PushList((1 << R9) | (1 << R8));  // Preserve.
@@ -2219,6 +2223,10 @@ void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement(
 // Loads function into 'temp_reg'.
 void StubCodeCompiler::GenerateUsageCounterIncrement(Assembler* assembler,
                                                      Register temp_reg) {
+  if (FLAG_precompiled_mode) {
+    __ Breakpoint();
+    return;
+  }
   if (FLAG_optimization_counter_threshold >= 0) {
     Register ic_reg = R9;
     Register func_reg = temp_reg;
@@ -2333,6 +2341,11 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     Optimized optimized,
     CallType type,
     Exactness exactness) {
+  if (FLAG_precompiled_mode) {
+    __ Breakpoint();
+    return;
+  }
+
   const bool save_entry_point = kind == Token::kILLEGAL;
   if (save_entry_point) {
     GenerateRecordEntryPoint(assembler);

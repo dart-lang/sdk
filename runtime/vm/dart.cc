@@ -106,26 +106,48 @@ static void CheckOffsets() {
     ok = false;                                                                \
   }
 
-#define CHECK_FIELD(Class, Name) CHECK_OFFSET(Class::Name(), Class##_##Name)
+#if defined(DART_PRECOMPILED_RUNTIME)
+#define CHECK_FIELD(Class, Name)                                               \
+  CHECK_OFFSET(Class::Name(), AOT_##Class##_##Name);
 #define CHECK_ARRAY(Class, Name)                                               \
   CHECK_OFFSET(Class::ArrayTraits::elements_start_offset(),                    \
-               Class##_elements_start_offset)                                  \
-  CHECK_OFFSET(Class::ArrayTraits::kElementSize, Class##_element_size)
-#define CHECK_ARRAY_STRUCTFIELD(Class, Name, ElementOffsetName, FieldOffset)
-
-#if defined(DART_PRECOMPILED_RUNTIME)
+               AOT_##Class##_elements_start_offset);                           \
+  CHECK_OFFSET(Class::ArrayTraits::kElementSize, AOT_##Class##_element_size)
 #define CHECK_SIZEOF(Class, Name, What)                                        \
-  CHECK_OFFSET(sizeof(What), AOT_##Class##_##Name)
+  CHECK_OFFSET(sizeof(What), AOT_##Class##_##Name);
+#define CHECK_RANGE(Class, Getter, Type, First, Last, Filter)                  \
+  for (intptr_t i = static_cast<intptr_t>(First);                              \
+       i <= static_cast<intptr_t>(Last); i++) {                                \
+    if (Filter(static_cast<Type>(i))) {                                        \
+      CHECK_OFFSET(Class::Getter(static_cast<Type>(i)),                        \
+                   AOT_##Class##_##Getter[i]);                                 \
+    }                                                                          \
+  }
+#define CHECK_CONSTANT(Class, Name)                                            \
+  CHECK_OFFSET(Class::Name, AOT_##Class##_##Name);
 #else
+#define CHECK_FIELD(Class, Name) CHECK_OFFSET(Class::Name(), Class##_##Name);
+#define CHECK_ARRAY(Class, Name)                                               \
+  CHECK_OFFSET(Class::ArrayTraits::elements_start_offset(),                    \
+               Class##_elements_start_offset);                                 \
+  CHECK_OFFSET(Class::ArrayTraits::kElementSize, Class##_element_size);
 #define CHECK_SIZEOF(Class, Name, What)                                        \
-  CHECK_OFFSET(sizeof(What), Class##_##Name)
-#endif
+  CHECK_OFFSET(sizeof(What), Class##_##Name);
+#define CHECK_RANGE(Class, Getter, Type, First, Last, Filter)                  \
+  for (intptr_t i = static_cast<intptr_t>(First);                              \
+       i <= static_cast<intptr_t>(Last); i++) {                                \
+    if (Filter(static_cast<Type>(i))) {                                        \
+      CHECK_OFFSET(Class::Getter(static_cast<Type>(i)), Class##_##Getter[i]);  \
+    }                                                                          \
+  }
+#define CHECK_CONSTANT(Class, Name) CHECK_OFFSET(Class::Name, Class##_##Name);
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-#define CHECK_RANGE(Class, Name, Type, First, Last, Filter)
-#define CHECK_CONSTANT(Class, Name) CHECK_OFFSET(Class::Name, Class##_##Name)
+  COMMON_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF, CHECK_RANGE,
+                      CHECK_CONSTANT)
 
-  OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_ARRAY_STRUCTFIELD, CHECK_SIZEOF,
-               CHECK_RANGE, CHECK_CONSTANT, NOT_IN_PRECOMPILED_RUNTIME)
+  NOT_IN_PRECOMPILED_RUNTIME(JIT_OFFSETS_LIST(
+      CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF, CHECK_RANGE, CHECK_CONSTANT))
 
   if (!ok) {
     FATAL(

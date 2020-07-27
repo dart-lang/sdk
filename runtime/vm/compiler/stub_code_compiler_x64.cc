@@ -2240,6 +2240,10 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub(
 // function and not the top-scope function.
 void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement(
     Assembler* assembler) {
+  if (FLAG_precompiled_mode) {
+    __ Breakpoint();
+    return;
+  }
   Register ic_reg = RBX;
   Register func_reg = RDI;
   if (FLAG_trace_optimized_ic_calls) {
@@ -2261,6 +2265,10 @@ void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement(
 // Loads function into 'temp_reg', preserves 'ic_reg'.
 void StubCodeCompiler::GenerateUsageCounterIncrement(Assembler* assembler,
                                                      Register temp_reg) {
+  if (FLAG_precompiled_mode) {
+    __ Breakpoint();
+    return;
+  }
   if (FLAG_optimization_counter_threshold >= 0) {
     Register ic_reg = RBX;
     Register func_reg = temp_reg;
@@ -2380,6 +2388,11 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     Optimized optimized,
     CallType type,
     Exactness exactness) {
+  if (FLAG_precompiled_mode) {
+    __ Breakpoint();
+    return;
+  }
+
   const bool save_entry_point = kind == Token::kILLEGAL;
   if (save_entry_point) {
     GenerateRecordEntryPoint(assembler);
@@ -2558,8 +2571,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
             FieldAddress(RBX, target::ICData::receivers_static_type_offset()));
     __ movq(RCX, FieldAddress(RCX, target::Type::arguments_offset()));
     // RAX contains an offset to type arguments in words as a smi,
-    // hence TIMES_4. RDX is guaranteed to be non-smi because it is expected to
-    // have type arguments.
+    // hence TIMES_4. RDX is guaranteed to be non-smi because it is expected
+    // to have type arguments.
     __ cmpq(RCX, FieldAddress(RDX, RAX, TIMES_4, 0));
     __ j(EQUAL, &call_target_function_through_unchecked_entry);
 

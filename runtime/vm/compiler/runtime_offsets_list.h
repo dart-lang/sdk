@@ -21,16 +21,17 @@
 // FIELD(Class, Name) Offset of a field within a class.
 // ARRAY(Class, Name) Offset of the first element and the size of the elements
 //     in an array of this class.
-// ARRAY_STRUCTFIELD(Class, Name, Element, Field) Offset of a field within a
-//     struct in an array of that struct, relative to the start of the array.
 // SIZEOF(Class, Name, What) Size of an object.
 // RANGE(Class, Name, Type, First, Last, Filter) An array of offsets generated
 //     by passing a value of the given Type in the range from First to Last to
 //     Class::Name() if Filter returns true for that value.
 // CONSTANT(Class, Name) Miscellaneous constant.
-// PRECOMP_NO_CHECK(Code) Don't check this offset in the precompiled runtime.
-#define OFFSETS_LIST(FIELD, ARRAY, ARRAY_STRUCTFIELD, SIZEOF, RANGE, CONSTANT, \
-                     PRECOMP_NO_CHECK)                                         \
+//
+// COMMON_OFFSETS_LIST is for declarations that are valid in all contexts.
+// JIT_OFFSETS_LIST is for declarations that are only valid in JIT mode.
+// A declaration that is not valid in product mode can be wrapped with
+// NOT_IN_PRODUCT().
+#define COMMON_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, RANGE, CONSTANT)             \
   ARRAY(ObjectPool, element_offset)                                            \
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
@@ -85,15 +86,14 @@
   FIELD(Float64x2, value_offset)                                               \
   FIELD(Field, initializer_function_offset)                                    \
   FIELD(Field, host_offset_or_field_id_offset)                                 \
-  PRECOMP_NO_CHECK(FIELD(Field, guarded_cid_offset))                           \
-  PRECOMP_NO_CHECK(FIELD(Field, guarded_list_length_in_object_offset_offset))  \
-  PRECOMP_NO_CHECK(FIELD(Field, guarded_list_length_offset))                   \
-  PRECOMP_NO_CHECK(FIELD(Field, is_nullable_offset))                           \
-  PRECOMP_NO_CHECK(FIELD(Field, kind_bits_offset))                             \
+  FIELD(Field, guarded_cid_offset)                                             \
+  FIELD(Field, guarded_list_length_in_object_offset_offset)                    \
+  FIELD(Field, guarded_list_length_offset)                                     \
+  FIELD(Field, is_nullable_offset)                                             \
+  FIELD(Field, kind_bits_offset)                                               \
   FIELD(Function, code_offset)                                                 \
   RANGE(Function, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,   \
         CodeEntryKind::kUnchecked, [](CodeEntryKind value) { return true; })   \
-  PRECOMP_NO_CHECK(FIELD(Function, usage_counter_offset))                      \
   FIELD(FutureOr, type_arguments_offset)                                       \
   FIELD(GrowableObjectArray, data_offset)                                      \
   FIELD(GrowableObjectArray, length_offset)                                    \
@@ -103,9 +103,8 @@
   FIELD(ICData, NumArgsTestedMask)                                             \
   FIELD(ICData, NumArgsTestedShift)                                            \
   FIELD(ICData, entries_offset)                                                \
-  PRECOMP_NO_CHECK(FIELD(ICData, owner_offset))                                \
-  PRECOMP_NO_CHECK(FIELD(ICData, state_bits_offset))                           \
-  NOT_IN_PRECOMPILED_RUNTIME(FIELD(ICData, receivers_static_type_offset))      \
+  FIELD(ICData, owner_offset)                                                  \
+  FIELD(ICData, state_bits_offset)                                             \
   FIELD(Isolate, shared_class_table_offset)                                    \
   FIELD(Isolate, cached_class_table_table_offset)                              \
   FIELD(Isolate, current_tag_offset)                                           \
@@ -354,5 +353,9 @@
   SIZEOF(WeakProperty, InstanceSize, WeakPropertyLayout)                       \
   SIZEOF(WeakSerializationReference, InstanceSize,                             \
          WeakSerializationReferenceLayout)
+
+#define JIT_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, RANGE, CONSTANT)                \
+  FIELD(Function, usage_counter_offset)                                        \
+  FIELD(ICData, receivers_static_type_offset)
 
 #endif  // RUNTIME_VM_COMPILER_RUNTIME_OFFSETS_LIST_H_
