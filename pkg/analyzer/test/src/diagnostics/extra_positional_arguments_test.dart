@@ -16,6 +16,34 @@ main() {
 
 @reflectiveTest
 class ExtraPositionalArgumentsCouldBeNamedTest extends DriverResolutionTest {
+  test_constConstructor() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A({int x});
+}
+main() {
+  const A(0);
+}
+''', [
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 50,
+          3),
+    ]);
+  }
+
+  test_constConstructor_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A({int x});
+}
+class B extends A {
+  const B() : super(0);
+}
+''', [
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 71,
+          3),
+    ]);
+  }
+
   test_functionExpressionInvocation() async {
     await assertErrorsInCode('''
 main() {
@@ -42,6 +70,32 @@ main() {
 
 @reflectiveTest
 class ExtraPositionalArgumentsTest extends DriverResolutionTest {
+  test_constConstructor() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+}
+main() {
+  const A(0);
+}
+''', [
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 43, 3),
+    ]);
+  }
+
+  test_constConstructor_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+}
+class B extends A {
+  const B() : super(0);
+}
+''', [
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 64, 3),
+    ]);
+  }
+
   test_functionExpressionInvocation() async {
     await assertErrorsInCode('''
 main() {

@@ -89,6 +89,10 @@ import 'const_spread_expected_list_or_set_test.dart'
     as const_spread_expected_list_or_set;
 import 'const_spread_expected_map_test.dart' as const_spread_expected_map;
 import 'const_with_non_const_test.dart' as const_with_non_const;
+import 'const_with_non_type_test.dart' as const_with_non_type;
+import 'const_with_type_parameters_test.dart' as const_with_type_parameters;
+import 'const_with_undefined_constructor_test.dart'
+    as const_with_undefined_constructor;
 import 'dead_code_test.dart' as dead_code;
 import 'dead_null_aware_expression_test.dart' as dead_null_aware_expression;
 import 'default_list_constructor_test.dart' as default_list_constructor;
@@ -185,6 +189,8 @@ import 'for_in_of_invalid_element_type_test.dart'
     as for_in_of_invalid_element_type;
 import 'for_in_of_invalid_type_test.dart' as for_in_of_invalid_type;
 import 'for_in_with_const_variable_test.dart' as for_in_with_const_variable;
+import 'generic_function_type_cannot_be_bound_test.dart'
+    as generic_function_type_cannot_be_bound;
 import 'generic_struct_subclass_test.dart' as generic_struct_subclass;
 import 'getter_not_assignable_setter_types_test.dart'
     as getter_not_assignable_setter_types;
@@ -205,6 +211,7 @@ import 'implicit_this_reference_in_initializer_test.dart'
     as implicit_this_reference_in_initializer;
 import 'import_deferred_library_with_load_function_test.dart'
     as import_deferred_library_with_load_function;
+import 'import_internal_library_test.dart' as import_internal_library;
 import 'import_of_non_library_test.dart' as import_of_non_library;
 import 'inconsistent_case_expression_types_test.dart'
     as inconsistent_case_expression_types;
@@ -660,6 +667,9 @@ main() {
     const_spread_expected_list_or_set.main();
     const_spread_expected_map.main();
     const_with_non_const.main();
+    const_with_non_type.main();
+    const_with_type_parameters.main();
+    const_with_undefined_constructor.main();
     dead_code.main();
     dead_null_aware_expression.main();
     default_list_constructor.main();
@@ -724,6 +734,7 @@ main() {
     for_in_of_invalid_element_type.main();
     for_in_of_invalid_type.main();
     for_in_with_const_variable.main();
+    generic_function_type_cannot_be_bound.main();
     generic_struct_subclass.main();
     getter_not_assignable_setter_types.main();
     getter_not_subtype_setter_types.main();
@@ -737,6 +748,7 @@ main() {
     implements_super_class.main();
     implicit_this_reference_in_initializer.main();
     import_deferred_library_with_load_function.main();
+    import_internal_library.main();
     import_of_non_library.main();
     inconsistent_case_expression_types.main();
     inconsistent_inheritance_getter_and_method.main();
