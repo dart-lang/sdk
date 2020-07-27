@@ -19,7 +19,7 @@ class AddMissingRequiredArgumentTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT;
 
-  Future<void> test_cons_flutter_children() async {
+  Future<void> test_constructor_flutter_children() async {
     addFlutterPackage();
     addMetaPackage();
     await resolveTestUnit('''
@@ -48,7 +48,7 @@ build() {
 ''');
   }
 
-  Future<void> test_cons_flutter_hasTrailingComma() async {
+  Future<void> test_constructor_flutter_hasTrailingComma() async {
     addFlutterPackage();
     addMetaPackage();
     await resolveTestUnit('''
@@ -77,7 +77,35 @@ build() {
 ''');
   }
 
-  Future<void> test_cons_single() async {
+  Future<void> test_constructor_named() async {
+    addMetaPackage();
+    await resolveTestUnit('''
+import 'package:meta/meta.dart';
+
+class A {
+  A.named({@required int a}) {}
+}
+
+void f() {
+  A a = new A.named();
+  print(a);
+}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class A {
+  A.named({@required int a}) {}
+}
+
+void f() {
+  A a = new A.named(a: null);
+  print(a);
+}
+''');
+  }
+
+  Future<void> test_constructor_single() async {
     addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
@@ -104,7 +132,7 @@ main() {
 ''');
   }
 
-  Future<void> test_cons_single_closure() async {
+  Future<void> test_constructor_single_closure() async {
     addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
@@ -133,7 +161,7 @@ main() {
 ''');
   }
 
-  Future<void> test_cons_single_closure_2() async {
+  Future<void> test_constructor_single_closure2() async {
     addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
@@ -162,7 +190,7 @@ main() {
 ''');
   }
 
-  Future<void> test_cons_single_closure_3() async {
+  Future<void> test_constructor_single_closure3() async {
     addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
@@ -191,7 +219,7 @@ main() {
 ''');
   }
 
-  Future<void> test_cons_single_closure_4() async {
+  Future<void> test_constructor_single_closure4() async {
     addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';
@@ -220,7 +248,7 @@ main() {
 ''');
   }
 
-  Future<void> test_cons_single_list() async {
+  Future<void> test_constructor_single_list() async {
     addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
 import 'package:meta/meta.dart';

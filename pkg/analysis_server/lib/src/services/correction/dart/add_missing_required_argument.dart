@@ -27,7 +27,7 @@ class AddMissingRequiredArgument extends CorrectionProducer {
     Element targetElement;
     ArgumentList argumentList;
 
-    if (node is SimpleIdentifier) {
+    if (node is SimpleIdentifier || node is ConstructorName) {
       var invocation = node.parent;
       if (invocation is MethodInvocation) {
         targetElement = invocation.methodName.staticElement;
