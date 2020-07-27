@@ -20,7 +20,6 @@ DART_GIT = "https://dart.googlesource.com/sdk"
 DART_GERRIT = "https://dart-review.googlesource.com/"
 
 GOMA_RBE = {
-    "enable_ats": True,
     "server_host": "goma.chromium.org",
     "use_luci_auth": True,
 }
@@ -383,10 +382,19 @@ def dart_recipe(name):
         cipd_package = "dart/recipe_bundles/dart.googlesource.com/recipes",
     )
 
-def use_goma_rbe(goma_rbe, dimensions):
-    if goma_rbe == None:
-        return dimensions["os"] == "Linux"
-    return goma_rbe
+def set_goma_rbe_properties(goma_rbe, dimensions, properties):
+    """Sets the $build/goma property when goma on RBE is used.
+
+    Args:
+        goma_rbe: Opt-in (True), opt-out (False) or default (None).
+        dimensions: The dimensions of the builder.
+        properties: The properties object to set $build/goma on (if opted-in).
+    """
+    if goma_rbe or (goma_rbe == None and dimensions["os"] == "Linux"):
+        goma_properties = {}
+        goma_properties.update(GOMA_RBE)
+        goma_properties["enable_ats"] = dimensions["os"] != "Mac"
+        properties.setdefault("$build/goma", goma_properties)
 
 def dart_try_builder(
         name,
@@ -418,8 +426,7 @@ def dart_try_builder(
     dimensions = defaults.dimensions(dimensions)
     dimensions["pool"] = "luci.dart.try"
     properties = defaults.properties(properties)
-    if use_goma_rbe(goma_rbe, dimensions):
-        properties.setdefault("$build/goma", GOMA_RBE)
+    goma_properties = set_goma_rbe_properties(goma_rbe, dimensions, properties)
     builder = name + "-try"
 
     luci.builder(
@@ -510,8 +517,7 @@ def dart_builder(
     """
     dimensions = defaults.dimensions(dimensions)
     properties = defaults.properties(properties)
-    if use_goma_rbe(goma_rbe, dimensions):
-        properties.setdefault("$build/goma", GOMA_RBE)
+    set_goma_rbe_properties(goma_rbe, dimensions, properties)
 
     def builder(channel, triggered_by):
         if channel == "try":
@@ -1108,6 +1114,7 @@ dart_ci_builder(
     category = "sdk|m",
     channels = CHANNELS,
     dimensions = mac(),
+    goma_rbe = True,
 )
 dart_ci_builder(
     "dart-sdk-win",
