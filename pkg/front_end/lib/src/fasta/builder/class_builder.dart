@@ -1419,15 +1419,15 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     InterfaceType supertype = cls.supertype.asInterfaceType;
     Substitution substitution = Substitution.fromSupertype(cls.mixedInType);
     for (Supertype constraint in cls.mixedInClass.superclassConstraints()) {
-      InterfaceType interface =
+      InterfaceType requiredInterface =
           substitution.substituteSupertype(constraint).asInterfaceType;
-      if (hierarchy.getTypeAsInstanceOf(
-              supertype, interface.classNode, library.library, coreTypes) !=
-          interface) {
+      InterfaceType implementedInterface = hierarchy.getTypeAsInstanceOf(
+          supertype, requiredInterface.classNode, library.library, coreTypes);
+      if (implementedInterface != requiredInterface) {
         library.addProblem(
             templateMixinApplicationIncompatibleSupertype.withArguments(
                 supertype,
-                interface,
+                requiredInterface,
                 cls.mixedInType.asInterfaceType,
                 library.isNonNullableByDefault),
             cls.fileOffset,

@@ -715,6 +715,19 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   @override
   List<DartType> getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass) {
+    if (type.classNode == superclass) {
+      // TODO(johnniwinther): This is necessary because [getClassAsInstanceOf]
+      // returns a [Supertype] whose type arguments are type parameter types
+      // whose nullability is set to the default nullability of the
+      // enclosing library. If for instance [type] is `A<int!>` but `A` is
+      // declared in an opt-out library, the substitution below will combine
+      // nullabilities of the type arguments in [type] with the type parameters
+      // and thus give the result `A<int*>`. See issue #42792.
+      // For now we bypass the substitution but long term we need to ensure
+      // that [getClassAsInstanceOf] doesn't cause similar problems in other
+      // situations.
+      return type.typeArguments;
+    }
     Supertype castedType = getClassAsInstanceOf(type.classNode, superclass);
     if (castedType == null) return null;
     if (superclass.typeParameters.isEmpty) return const <DartType>[];
