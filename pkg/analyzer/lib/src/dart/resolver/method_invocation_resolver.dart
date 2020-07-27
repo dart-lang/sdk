@@ -97,7 +97,7 @@ class MethodInvocationResolver {
     if (receiver is SimpleIdentifier) {
       var receiverElement = receiver.staticElement;
       if (receiverElement is PrefixElement) {
-        _resolveReceiverPrefix(node, receiver, receiverElement, nameNode, name);
+        _resolveReceiverPrefix(node, receiverElement, nameNode, name);
         return;
       }
     }
@@ -236,11 +236,13 @@ class MethodInvocationResolver {
   }
 
   void _reportUndefinedFunction(
-      MethodInvocation node, Identifier ignorableIdentifier) {
+    MethodInvocation node, {
+    @required String prefix,
+    @required String name,
+  }) {
     _setDynamicResolution(node);
 
-    // TODO(scheglov) This is duplication.
-    if (nameScope.shouldIgnoreUndefined(ignorableIdentifier)) {
+    if (nameScope.shouldIgnoreUndefined2(prefix: prefix, name: name)) {
       return;
     }
 
@@ -513,7 +515,11 @@ class MethodInvocationResolver {
     } else if (_resolver.enclosingExtension != null) {
       receiverType = _resolver.enclosingExtension.extendedType;
     } else {
-      return _reportUndefinedFunction(node, node.methodName);
+      return _reportUndefinedFunction(
+        node,
+        prefix: null,
+        name: node.methodName.name,
+      );
     }
 
     _resolveReceiverType(
@@ -526,8 +532,8 @@ class MethodInvocationResolver {
     );
   }
 
-  void _resolveReceiverPrefix(MethodInvocation node, SimpleIdentifier receiver,
-      PrefixElement prefix, SimpleIdentifier nameNode, String name) {
+  void _resolveReceiverPrefix(MethodInvocation node, PrefixElement prefix,
+      SimpleIdentifier nameNode, String name) {
     // Note: prefix?.bar is reported as an error in ElementResolver.
 
     if (name == FunctionElement.LOAD_LIBRARY_NAME) {
@@ -543,9 +549,6 @@ class MethodInvocationResolver {
       }
     }
 
-    // TODO(scheglov) I don't like how we resolve prefixed names.
-    // But maybe this is the only one solution.
-    var prefixedName = PrefixedIdentifierImpl.temp(receiver, nameNode);
     var element = prefix.scope.lookup2(name).getter;
     element = _resolver.toLegacyElement(element);
     nameNode.staticElement = element;
@@ -563,7 +566,11 @@ class MethodInvocationResolver {
       return _setResolution(node, element.type);
     }
 
-    _reportUndefinedFunction(node, prefixedName);
+    _reportUndefinedFunction(
+      node,
+      prefix: prefix.name,
+      name: name,
+    );
   }
 
   void _resolveReceiverSuper(MethodInvocation node, SuperExpression receiver,
