@@ -1305,6 +1305,10 @@ static int SizeInBytes(Dart_TypedData_Type type) {
     case Dart_TypedData_kUint64:
     case Dart_TypedData_kFloat64:
       return 8;
+    case Dart_TypedData_kInt32x4:
+    case Dart_TypedData_kFloat32x4:
+    case Dart_TypedData_kFloat64x2:
+      return 16;
     default:
       break;
   }

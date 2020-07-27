@@ -2358,7 +2358,9 @@ typedef enum {
   Dart_TypedData_kUint64,
   Dart_TypedData_kFloat32,
   Dart_TypedData_kFloat64,
+  Dart_TypedData_kInt32x4,
   Dart_TypedData_kFloat32x4,
+  Dart_TypedData_kFloat64x2,
   Dart_TypedData_kInvalid
 } Dart_TypedData_Type;
 
