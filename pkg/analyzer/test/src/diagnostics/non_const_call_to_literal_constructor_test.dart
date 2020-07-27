@@ -40,10 +40,7 @@ class A {
   @literal
   const A();
 }
-
-void main() {
-  const a = A();
-}
+const a = A();
 ''');
   }
 
@@ -54,10 +51,7 @@ class A {
   @literal
   const A();
 }
-
-void main() {
-  const a = const A();
-}
+const a = const A();
 ''');
   }
 
@@ -68,12 +62,9 @@ class A {
   @literal
   const A.named();
 }
-void main() {
-  var a = A.named();
-}
+var a = A.named();
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 95, 1),
-      error(HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 99, 9),
+      error(HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 83, 9),
     ]);
   }
 
@@ -84,12 +75,9 @@ class A {
   @literal
   const A();
 }
-void main() {
-  var a = A();
-}
+var a = A();
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 89, 1),
-      error(HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 93, 3),
+      error(HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 77, 3),
     ]);
   }
 
@@ -100,10 +88,7 @@ class A {
   @literal
   const A(List list);
 }
-
-void main() {
-  var a = A(new List());
-}
+var a = A(new List());
 ''');
   }
 
@@ -114,12 +99,9 @@ class A {
   @literal
   const A();
 }
-void main() {
-  var a = new A();
-}
+var a = new A();
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 89, 1),
-      error(HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW, 93, 7),
+      error(HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW, 77, 7),
     ]);
   }
 }

@@ -380,6 +380,10 @@ import 'non_bool_condition_test.dart' as non_bool_condition;
 import 'non_bool_expression_test.dart' as non_bool_expression;
 import 'non_bool_negation_expression_test.dart' as non_bool_negation_expression;
 import 'non_bool_operand_test.dart' as non_bool_operand;
+import 'non_const_call_to_literal_constructor_test.dart'
+    as non_const_call_to_literal_constructor;
+import 'non_const_map_as_expression_statement_test.dart'
+    as non_const_map_as_expression_statement;
 import 'non_constant_annotation_constructor_test.dart'
     as non_constant_annotation_constructor;
 import 'non_constant_case_expression_from_deferred_library_test.dart'
@@ -885,6 +889,8 @@ main() {
     non_void_return_for_setter.main();
     not_a_type.main();
     not_assigned_potentially_non_nullable_local_variable.main();
+    non_const_call_to_literal_constructor.main();
+    non_const_map_as_expression_statement.main();
     not_enough_positional_arguments.main();
     not_initialized_non_nullable_instance_field.main();
     not_initialized_non_nullable_variable.main();

@@ -46,6 +46,30 @@ f() {
     ]);
   }
 
+  test_for_declaration() async {
+    // https://github.com/dart-lang/sdk/issues/24713
+    await assertErrorsInCode(r'''
+f() {
+  for (int i = 0; 3;) {}
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 24, 1),
+    ]);
+  }
+
+  test_for_expression() async {
+    // https://github.com/dart-lang/sdk/issues/24713
+    await assertErrorsInCode(r'''
+f() {
+  int i;
+  for (i = 0; 3;) {}
+}''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 29, 1),
+    ]);
+  }
+
   test_forElement() async {
     await assertErrorsInCode('''
 var v = [for (; 0;) 1];

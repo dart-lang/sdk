@@ -3433,6 +3433,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
+    /// TODO(srawlins): Add any tests showing this is reported.
     _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT, literal);
   }
