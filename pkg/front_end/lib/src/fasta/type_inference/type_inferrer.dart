@@ -3175,7 +3175,7 @@ class TypeInferrerImpl implements TypeInferrer {
       DartType step1 = resolveOneStep(hare);
       if (step1 == null) return hare;
       DartType step2 = resolveOneStep(step1);
-      if (step2 == null) return hare;
+      if (step2 == null) return step1;
       hare = step2;
 
       // Tortoise takes one step

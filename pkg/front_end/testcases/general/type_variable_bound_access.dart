@@ -22,6 +22,25 @@ class NumClass<T extends num, S extends T> {
   num method2() => field1 + field2.length;
 }
 
+class Class<X5 extends X4, X4 extends X3, X3 extends X2, X2 extends X1,
+    X1 extends X0, X0 extends int> {
+  X0 field0;
+  X1 field1;
+  X2 field2;
+  X3 field3;
+  X4 field4;
+  X5 field5;
+
+  method() {
+    field0.isEven;
+    field1.isEven;
+    field2.isEven;
+    field3.isEven;
+    field4.isEven;
+    field5.isEven;
+  }
+}
+
 main() {
   new DynamicClass<num, int>(0.5, 2).method();
   new NumClass<num, double>(2, 0.5).method1();

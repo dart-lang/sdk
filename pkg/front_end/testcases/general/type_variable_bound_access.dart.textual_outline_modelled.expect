@@ -1,3 +1,14 @@
+class Class<X5 extends X4, X4 extends X3, X3 extends X2, X2 extends X1,
+    X1 extends X0, X0 extends int> {
+  X0 field0;
+  X1 field1;
+  X2 field2;
+  X3 field3;
+  X4 field4;
+  X5 field5;
+  method() {}
+}
+
 class DynamicClass<T extends dynamic, S extends T> {
   DynamicClass(this.field1, this.field2);
   T field1;
