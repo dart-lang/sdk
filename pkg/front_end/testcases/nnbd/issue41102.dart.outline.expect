@@ -11,7 +11,7 @@ static final field core::int? s2;
 static final field core::List<core::int> s3;
 static final field dynamic s4;
 static field core::int? s5;
-static final field core::int? s6;
+static final field core::num s6;
 static field core::List<dynamic>? s7;
 static final field dynamic s8;
 static final field core::int s9;

@@ -443,7 +443,7 @@ extension Extension on self::Class {
   get extensionFunctionTypeGetter = self::Extension|get#extensionFunctionTypeGetter;
   set extensionProperty = self::Extension|set#extensionProperty;
 }
-static field core::int? topLevelBinary = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:37:34: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
+static field core::num topLevelBinary = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:37:34: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
 var topLevelBinary = nullableInt + 0;
                                  ^" in self::nullableInt.{core::num::+}(0);
 static field core::int topLevelUnary = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:38:21: Error: Operator 'unary-' cannot be called on 'int?' because it is potentially null.
@@ -650,7 +650,7 @@ static get nullableMap() → core::Map<dynamic, dynamic>?
 static get nullableClass() → self::Class?
   return new self::Class::•();
 static method test() → dynamic {
-  core::int? localBinary = let final<BottomType> #t62 = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:76:33: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
+  core::num localBinary = let final<BottomType> #t62 = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:76:33: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
   var localBinary = nullableInt + 0;
                                 ^" in self::nullableInt.{core::num::+}(0);
   core::int localUnary = let final<BottomType> #t63 = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:77:20: Error: Operator 'unary-' cannot be called on 'int?' because it is potentially null.

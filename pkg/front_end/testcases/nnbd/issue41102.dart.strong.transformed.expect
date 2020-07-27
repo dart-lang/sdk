@@ -90,7 +90,7 @@ static final field dynamic s4 = (() → core::Null? {
   }
 }).call();
 static field core::int? s5;
-static final field core::int? s6 = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:31:15: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
+static final field core::num s6 = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:31:15: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
 final s6 = s5 + 0;
               ^" in self::s5.{core::num::+}(0);
 static field core::List<dynamic>? s7;

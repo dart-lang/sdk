@@ -152,19 +152,103 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   }
 
   @override
-  DartType getTypeOfOverloadedArithmetic(DartType type1, DartType type2) {
-    // TODO(paulberry): this matches what is defined in the spec.  It would be
-    // nice if we could change kernel to match the spec and not have to
-    // override.
-    if (type1 is InterfaceType && type1.classNode == coreTypes.intClass) {
-      if (type2 is InterfaceType && type2.classNode == coreTypes.intClass) {
-        return type2.withDeclaredNullability(type1.nullability);
+  DartType getTypeOfSpecialCasedBinaryOperator(DartType type1, DartType type2,
+      {bool isNonNullableByDefault: false}) {
+    if (isNonNullableByDefault) {
+      return super.getTypeOfSpecialCasedBinaryOperator(type1, type2,
+          isNonNullableByDefault: isNonNullableByDefault);
+    } else {
+      // TODO(paulberry): this matches what is defined in the spec.  It would be
+      // nice if we could change kernel to match the spec and not have to
+      // override.
+      if (type1 is InterfaceType && type1.classNode == coreTypes.intClass) {
+        if (type2 is InterfaceType && type2.classNode == coreTypes.intClass) {
+          return type2.withDeclaredNullability(type1.nullability);
+        }
+        if (type2 is InterfaceType &&
+            type2.classNode == coreTypes.doubleClass) {
+          return type2.withDeclaredNullability(type1.nullability);
+        }
       }
-      if (type2 is InterfaceType && type2.classNode == coreTypes.doubleClass) {
-        return type2.withDeclaredNullability(type1.nullability);
+      return coreTypes.numRawType(type1.nullability);
+    }
+  }
+
+  DartType getContextTypeOfSpecialCasedBinaryOperator(
+      DartType contextType, DartType type1, DartType type2,
+      {bool isNonNullableByDefault: false}) {
+    if (isNonNullableByDefault) {
+      if (contextType is! NeverType &&
+          type1 is! NeverType &&
+          isSubtypeOf(contextType, coreTypes.numNonNullableRawType,
+              SubtypeCheckMode.withNullabilities) &&
+          isSubtypeOf(type1, coreTypes.numNonNullableRawType,
+              SubtypeCheckMode.withNullabilities)) {
+        // If e is an expression of the form e1 + e2, e1 - e2, e1 * e2, e1 % e2
+        // or e1.remainder(e2), where C is the context type of e and T is the
+        // static type of e1, and where T is a non-Never subtype of num, then:
+        if (isSubtypeOf(coreTypes.intNonNullableRawType, contextType,
+                SubtypeCheckMode.withNullabilities) &&
+            !isSubtypeOf(coreTypes.numNonNullableRawType, contextType,
+                SubtypeCheckMode.withNullabilities) &&
+            isSubtypeOf(type1, coreTypes.intNonNullableRawType,
+                SubtypeCheckMode.withNullabilities)) {
+          // If int <: C, not num <: C, and T <: int, then the context type of
+          // e2 is int.
+          return coreTypes.intNonNullableRawType;
+        } else if (isSubtypeOf(coreTypes.doubleNonNullableRawType, contextType,
+                SubtypeCheckMode.withNullabilities) &&
+            !isSubtypeOf(coreTypes.numNonNullableRawType, contextType,
+                SubtypeCheckMode.withNullabilities) &&
+            !isSubtypeOf(type1, coreTypes.doubleNonNullableRawType,
+                SubtypeCheckMode.withNullabilities)) {
+          // If double <: C, not num <: C, and not T <: double, then the context
+          // type of e2 is double.
+          return coreTypes.doubleNonNullableRawType;
+        } else {
+          // Otherwise, the context type of e2 is num.
+          return coreTypes.numNonNullableRawType;
+        }
       }
     }
-    return coreTypes.numRawType(type1.nullability);
+    return type2;
+  }
+
+  DartType getContextTypeOfSpecialCasedTernaryOperator(
+      DartType contextType, DartType receiverType, DartType operandType,
+      {bool isNonNullableByDefault: false}) {
+    if (isNonNullableByDefault) {
+      if (receiverType is! NeverType &&
+          isSubtypeOf(receiverType, coreTypes.numNonNullableRawType,
+              SubtypeCheckMode.withNullabilities)) {
+        // If e is an expression of the form e1.clamp(e2, e3) where C is the
+        // context type of e and T is the static type of e1 where T is a
+        // non-Never subtype of num, then:
+        if (isSubtypeOf(coreTypes.intNonNullableRawType, contextType,
+                SubtypeCheckMode.withNullabilities) &&
+            !isSubtypeOf(coreTypes.numNonNullableRawType, contextType,
+                SubtypeCheckMode.withNullabilities) &&
+            isSubtypeOf(receiverType, coreTypes.intNonNullableRawType,
+                SubtypeCheckMode.withNullabilities)) {
+          // If int <: C, not num <: C, and T <: int, then the context type of
+          // e2 and e3 is int.
+          return coreTypes.intNonNullableRawType;
+        } else if (isSubtypeOf(coreTypes.doubleNonNullableRawType, contextType,
+                SubtypeCheckMode.withNullabilities) &&
+            !isSubtypeOf(coreTypes.numNonNullableRawType, contextType,
+                SubtypeCheckMode.withNullabilities) &&
+            isSubtypeOf(receiverType, coreTypes.doubleNonNullableRawType,
+                SubtypeCheckMode.withNullabilities)) {
+          // If double <: C, not num <: C, and T <: double, then the context
+          // type of e2 and e3 is double.
+          return coreTypes.doubleNonNullableRawType;
+        } else {
+          // Otherwise the context type of e2 an e3 is num
+          return coreTypes.numNonNullableRawType;
+        }
+      }
+    }
+    return operandType;
   }
 
   /// Infers a generic type, function, method, or list/map literal
@@ -380,17 +464,22 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   ///
   /// This is a case of type-based overloading, which in Dart is only supported
   /// by giving special treatment to certain arithmetic operators.
-  bool isOverloadedArithmeticOperatorAndType(
-      Procedure member, DartType receiverType) {
-    // TODO(paulberry): this matches what is defined in the spec.  It would be
-    // nice if we could change kernel to match the spec and not have to
-    // override.
-    if (member.name.name == 'remainder') return false;
-    if (!(receiverType is InterfaceType &&
-        identical(receiverType.classNode, coreTypes.intClass))) {
-      return false;
+  bool isSpecialCasesBinaryForReceiverType(
+      Procedure member, DartType receiverType,
+      {bool isNonNullableByDefault}) {
+    assert(isNonNullableByDefault != null);
+    if (!isNonNullableByDefault) {
+      // TODO(paulberry): this matches what is defined in the spec.  It would be
+      // nice if we could change kernel to match the spec and not have to
+      // override.
+      if (member.name.name == 'remainder') return false;
+      if (!(receiverType is InterfaceType &&
+          identical(receiverType.classNode, coreTypes.intClass))) {
+        return false;
+      }
     }
-    return isOverloadedArithmeticOperator(member);
+    return isSpecialCasedBinaryOperator(member,
+        isNonNullableByDefault: isNonNullableByDefault);
   }
 
   @override

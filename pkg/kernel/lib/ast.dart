@@ -3480,8 +3480,8 @@ class DirectMethodInvocation extends InvocationExpression {
       v.visitDirectMethodInvocation(this, arg);
 
   DartType getStaticType(StaticTypeContext context) {
-    if (context.typeEnvironment.isOverloadedArithmeticOperator(target)) {
-      return context.typeEnvironment.getTypeOfOverloadedArithmetic(
+    if (context.typeEnvironment.isSpecialCasedBinaryOperator(target)) {
+      return context.typeEnvironment.getTypeOfSpecialCasedBinaryOperator(
           receiver.getStaticType(context),
           arguments.positional[0].getStaticType(context));
     }
@@ -3883,8 +3883,8 @@ class MethodInvocation extends InvocationExpression {
     if (interfaceTarget != null) {
       if (interfaceTarget is Procedure &&
           context.typeEnvironment
-              .isOverloadedArithmeticOperator(interfaceTarget)) {
-        return context.typeEnvironment.getTypeOfOverloadedArithmetic(
+              .isSpecialCasedBinaryOperator(interfaceTarget)) {
+        return context.typeEnvironment.getTypeOfSpecialCasedBinaryOperator(
             receiver.getStaticType(context),
             arguments.positional[0].getStaticType(context));
       }

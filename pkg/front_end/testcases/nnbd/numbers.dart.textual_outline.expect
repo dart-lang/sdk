@@ -1,0 +1,13 @@
+add<X extends num, Y extends int, Z extends double>(
+    num n, int i, double d, X x, Y y, Z z) {}
+sub<X extends num, Y extends int, Z extends double>(
+    num n, int i, double d, X x, Y y, Z z) {}
+mul<X extends num, Y extends int, Z extends double>(
+    num n, int i, double d, X x, Y y, Z z) {}
+mod<X extends num, Y extends int, Z extends double>(
+    num n, int i, double d, X x, Y y, Z z) {}
+remainder<X extends num, Y extends int, Z extends double>(
+    num n, int i, double d, X x, Y y, Z z) {}
+clamp<X extends num, Y extends int, Z extends double>(
+    num n, int i, double d, X x, Y y, Z z) {}
+main() {}
