@@ -528,8 +528,8 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
 class LowerBoundTest extends _BoundsTestBase {
   test_bottom_any() {
     void check(DartType T1, DartType T2) {
-      expect(typeSystem.isBottom(T1), isTrue, reason: _typeString(T1));
-      expect(typeSystem.isBottom(T2), isFalse, reason: _typeString(T2));
+      _assertBottom(T1);
+      _assertNotBottom(T2);
       _checkGreatestLowerBound(T1, T2, T1);
     }
 
@@ -571,8 +571,8 @@ class LowerBoundTest extends _BoundsTestBase {
 
   test_bottom_bottom() {
     void check(DartType T1, DartType T2) {
-      expect(typeSystem.isBottom(T1), isTrue, reason: _typeString(T1));
-      expect(typeSystem.isBottom(T2), isTrue, reason: _typeString(T2));
+      _assertBottom(T1);
+      _assertBottom(T2);
       _checkGreatestLowerBound(T1, T2, T1);
     }
 
@@ -1097,11 +1097,9 @@ class LowerBoundTest extends _BoundsTestBase {
 
   test_null_any() {
     void check(DartType T2, DartType expected) {
-      var T2_str = _typeString(T2);
-
-      expect(typeSystem.isNull(T2), isFalse, reason: 'isNull: $T2_str');
-      expect(typeSystem.isTop(T2), isFalse, reason: 'isTop: $T2_str');
-      expect(typeSystem.isBottom(T2), isFalse, reason: 'isBottom: $T2_str');
+      _assertNotBottom(T2);
+      _assertNotNull(T2);
+      _assertNotTop(T2);
 
       _checkGreatestLowerBound(nullNone, T2, expected);
     }
@@ -1143,14 +1141,11 @@ class LowerBoundTest extends _BoundsTestBase {
 
   test_null_null() {
     void check(DartType T1, DartType T2) {
-      var T1_str = _typeString(T1);
-      var T2_str = _typeString(T2);
+      _assertNull(T1);
+      _assertNull(T2);
 
-      expect(typeSystem.isNull(T1), isTrue, reason: 'isNull: $T1_str');
-      expect(typeSystem.isNull(T2), isTrue, reason: 'isNull: $T2_str');
-
-      expect(typeSystem.isBottom(T1), isFalse, reason: 'isBottom: $T1_str');
-      expect(typeSystem.isBottom(T2), isFalse, reason: 'isBottom: $T2_str');
+      _assertNotBottom(T1);
+      _assertNotBottom(T2);
 
       _checkGreatestLowerBound(T1, T2, T1);
     }
@@ -1161,8 +1156,7 @@ class LowerBoundTest extends _BoundsTestBase {
 
   test_object_any() {
     void check(DartType T2, DartType expected) {
-      var T2_str = _typeString(T2);
-      expect(typeSystem.isObject(T2), isFalse, reason: 'isObject: $T2_str');
+      _assertNotObject(T2);
 
       _checkGreatestLowerBound(objectNone, T2, expected);
     }
@@ -1216,11 +1210,8 @@ class LowerBoundTest extends _BoundsTestBase {
 
   test_object_object() {
     void check(DartType T1, DartType T2) {
-      var T1_str = _typeString(T1);
-      var T2_str = _typeString(T2);
-
-      expect(typeSystem.isObject(T1), isTrue, reason: 'isObject: $T1_str');
-      expect(typeSystem.isObject(T2), isTrue, reason: 'isObject: $T2_str');
+      _assertObject(T1);
+      _assertObject(T2);
 
       _checkGreatestLowerBound(T1, T2, T1);
     }
@@ -1309,8 +1300,8 @@ class LowerBoundTest extends _BoundsTestBase {
 
   test_top_any() {
     void check(DartType T1, DartType T2) {
-      expect(typeSystem.isTop(T1), isTrue, reason: _typeString(T1));
-      expect(typeSystem.isTop(T2), isFalse, reason: _typeString(T2));
+      _assertTop(T1);
+      _assertNotTop(T2);
       _checkGreatestLowerBound(T1, T2, T2);
     }
 
@@ -1357,8 +1348,8 @@ class LowerBoundTest extends _BoundsTestBase {
 
   test_top_top() {
     void check(DartType T1, DartType T2) {
-      expect(typeSystem.isTop(T1), isTrue, reason: _typeString(T1));
-      expect(typeSystem.isTop(T2), isTrue, reason: _typeString(T2));
+      _assertTop(T1);
+      _assertTop(T2);
       _checkGreatestLowerBound(T1, T2, T2);
     }
 
@@ -1458,8 +1449,8 @@ actual: $resultStr
 class UpperBoundTest extends _BoundsTestBase {
   test_bottom_any() {
     void check(DartType T1, DartType T2) {
-      expect(typeSystem.isBottom(T1), isTrue, reason: _typeString(T1));
-      expect(typeSystem.isBottom(T2), isFalse, reason: _typeString(T2));
+      _assertBottom(T1);
+      _assertNotBottom(T2);
       _checkLeastUpperBound(T1, T2, T2);
     }
 
@@ -1501,8 +1492,8 @@ class UpperBoundTest extends _BoundsTestBase {
 
   test_bottom_bottom() {
     void check(DartType T1, DartType T2) {
-      expect(typeSystem.isBottom(T1), isTrue, reason: _typeString(T1));
-      expect(typeSystem.isBottom(T2), isTrue, reason: _typeString(T2));
+      _assertBottom(T1);
+      _assertBottom(T2);
       _checkLeastUpperBound(T1, T2, T2);
     }
 
@@ -1894,17 +1885,14 @@ class UpperBoundTest extends _BoundsTestBase {
 
   test_null_any() {
     void check(DartType T1, DartType T2, DartType expected) {
-      var T1_str = _typeString(T1);
-      var T2_str = _typeString(T2);
+      _assertNull(T1);
+      _assertNotNull(T2);
 
-      expect(typeSystem.isNull(T1), isTrue, reason: 'isNull: $T1_str');
-      expect(typeSystem.isNull(T2), isFalse, reason: 'isNull: $T2_str');
+      _assertNotTop(T1);
+      _assertNotTop(T2);
 
-      expect(typeSystem.isTop(T1), isFalse, reason: 'isTop: $T1_str');
-      expect(typeSystem.isTop(T2), isFalse, reason: 'isTop: $T2_str');
-
-      expect(typeSystem.isBottom(T1), isFalse, reason: 'isBottom: $T1_str');
-      expect(typeSystem.isBottom(T2), isFalse, reason: 'isBottom: $T2_str');
+      _assertNotBottom(T1);
+      _assertNotBottom(T2);
 
       _checkLeastUpperBound(T1, T2, expected);
     }
@@ -1943,14 +1931,11 @@ class UpperBoundTest extends _BoundsTestBase {
 
   test_null_null() {
     void check(DartType T1, DartType T2) {
-      var T1_str = _typeString(T1);
-      var T2_str = _typeString(T2);
+      _assertNull(T1);
+      _assertNull(T2);
 
-      expect(typeSystem.isNull(T1), isTrue, reason: 'isNull: $T1_str');
-      expect(typeSystem.isNull(T2), isTrue, reason: 'isNull: $T2_str');
-
-      expect(typeSystem.isBottom(T1), isFalse, reason: 'isBottom: $T1_str');
-      expect(typeSystem.isBottom(T2), isFalse, reason: 'isBottom: $T2_str');
+      _assertNotBottom(T1);
+      _assertNotBottom(T2);
 
       _checkLeastUpperBound(T1, T2, T2);
     }
@@ -1961,11 +1946,8 @@ class UpperBoundTest extends _BoundsTestBase {
 
   test_object_any() {
     void check(DartType T1, DartType T2, DartType expected) {
-      var T1_str = _typeString(T1);
-      var T2_str = _typeString(T2);
-
-      expect(typeSystem.isObject(T1), isTrue, reason: 'isObject: $T1_str');
-      expect(typeSystem.isObject(T2), isFalse, reason: 'isObject: $T2_str');
+      _assertObject(T1);
+      _assertNotObject(T2);
 
       _checkLeastUpperBound(T1, T2, expected);
     }
@@ -1983,11 +1965,8 @@ class UpperBoundTest extends _BoundsTestBase {
 
   test_object_object() {
     void check(DartType T1, DartType T2) {
-      var T1_str = _typeString(T1);
-      var T2_str = _typeString(T2);
-
-      expect(typeSystem.isObject(T1), isTrue, reason: 'isObject: $T1_str');
-      expect(typeSystem.isObject(T2), isTrue, reason: 'isObject: $T2_str');
+      _assertObject(T1);
+      _assertObject(T2);
 
       _checkLeastUpperBound(T1, T2, T2);
     }
@@ -2052,8 +2031,8 @@ class UpperBoundTest extends _BoundsTestBase {
 
   test_top_any() {
     void check(DartType T1, DartType T2) {
-      expect(typeSystem.isTop(T1), isTrue, reason: _typeString(T1));
-      expect(typeSystem.isTop(T2), isFalse, reason: _typeString(T2));
+      _assertTop(T1);
+      _assertNotTop(T2);
       _checkLeastUpperBound(T1, T2, T1);
     }
 
@@ -2092,8 +2071,8 @@ class UpperBoundTest extends _BoundsTestBase {
 
   test_top_top() {
     void check(DartType T1, DartType T2) {
-      expect(typeSystem.isTop(T1), isTrue, reason: _typeString(T1));
-      expect(typeSystem.isTop(T2), isTrue, reason: _typeString(T2));
+      _assertTop(T1);
+      _assertTop(T2);
       _checkLeastUpperBound(T1, T2, T1);
     }
 
@@ -2214,6 +2193,12 @@ actual: $resultStr
 
 @reflectiveTest
 class _BoundsTestBase extends AbstractTypeSystemNullSafetyTest {
+  void _assertBottom(DartType type) {
+    if (!typeSystem.isBottom(type)) {
+      fail('isBottom must be true: ' + _typeString(type));
+    }
+  }
+
   void _assertNotBottom(DartType type) {
     if (typeSystem.isBottom(type)) {
       fail('isBottom must be false: ' + _typeString(type));
@@ -2245,6 +2230,12 @@ class _BoundsTestBase extends AbstractTypeSystemNullSafetyTest {
     }
   }
 
+  void _assertNull(DartType type) {
+    if (!typeSystem.isNull(type)) {
+      fail('isNull must be true: ' + _typeString(type));
+    }
+  }
+
   void _assertNullability(DartType type, NullabilitySuffix expected) {
     if (type.nullabilitySuffix != expected) {
       fail('Expected $expected in ' + _typeString(type));
@@ -2261,6 +2252,18 @@ class _BoundsTestBase extends AbstractTypeSystemNullSafetyTest {
 
   void _assertNullabilityStar(DartType type) {
     _assertNullability(type, NullabilitySuffix.star);
+  }
+
+  void _assertObject(DartType type) {
+    if (!typeSystem.isObject(type)) {
+      fail('isObject must be true: ' + _typeString(type));
+    }
+  }
+
+  void _assertTop(DartType type) {
+    if (!typeSystem.isTop(type)) {
+      fail('isTop must be true: ' + _typeString(type));
+    }
   }
 
   String _typeParametersStr(TypeImpl type) {
