@@ -200,37 +200,41 @@ class LibraryAnalyzer {
   void _checkForInconsistentLanguageVersionOverride(
     Map<FileState, CompilationUnit> units,
   ) {
-    var libraryUnit = units.values.first;
+    var libraryEntry = units.entries.first;
+    var libraryUnit = libraryEntry.value;
     var libraryOverrideToken = libraryUnit.languageVersionToken;
 
-    for (var partEntry in units.entries.skip(1)) {
-      var partUnit = partEntry.value;
-      var partOverrideToken = partUnit.languageVersionToken;
-      if (libraryOverrideToken != null) {
-        if (partOverrideToken != null) {
-          if (partOverrideToken.major != libraryOverrideToken.major ||
-              partOverrideToken.minor != libraryOverrideToken.minor) {
-            _getErrorReporter(partEntry.key).reportErrorForToken(
-              CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE,
-              partOverrideToken,
-            );
+    var elementToUnit = <CompilationUnitElement, CompilationUnit>{};
+    for (var entry in units.entries) {
+      var unit = entry.value;
+      elementToUnit[unit.declaredElement] = unit;
+    }
+
+    for (var directive in libraryUnit.directives) {
+      if (directive is PartDirective) {
+        var partUnit = elementToUnit[directive.uriElement];
+        if (partUnit != null) {
+          var shouldReport = false;
+          var partOverrideToken = partUnit.languageVersionToken;
+          if (libraryOverrideToken != null) {
+            if (partOverrideToken != null) {
+              if (partOverrideToken.major != libraryOverrideToken.major ||
+                  partOverrideToken.minor != libraryOverrideToken.minor) {
+                shouldReport = true;
+              }
+            } else {
+              shouldReport = true;
+            }
+          } else if (partOverrideToken != null) {
+            shouldReport = true;
           }
-        } else {
-          var partDirectives = partUnit.directives;
-          for (var partOf in partDirectives.whereType<PartOfDirective>()) {
-            var partOffset = partOf.partKeyword.offset;
-            _getErrorReporter(partEntry.key).reportErrorForOffset(
+          if (shouldReport) {
+            _getErrorReporter(_library).reportErrorForNode(
               CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE,
-              partOffset,
-              partOf.ofKeyword.end - partOffset,
+              directive.uri,
             );
           }
         }
-      } else if (partOverrideToken != null) {
-        _getErrorReporter(partEntry.key).reportErrorForToken(
-          CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE,
-          partOverrideToken,
-        );
       }
     }
   }
