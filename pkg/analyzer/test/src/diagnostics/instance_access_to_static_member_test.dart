@@ -28,7 +28,7 @@ f(C c) {
   g(c).a;
 }
 ''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 93, 1),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 93, 1),
     ]);
     assertElement(
       findNode.simple('a;'),
@@ -48,7 +48,7 @@ f(C c) {
   c.a();
 }
 ''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 68, 1),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 68, 1),
     ]);
     assertElement(
       findNode.methodInvocation('a();'),
@@ -68,7 +68,7 @@ f(C c) {
   c.a = 2;
 }
 ''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 68, 1),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 68, 1),
     ]);
     assertElement(
       findNode.simple('a = 2;'),
@@ -85,7 +85,7 @@ main(A a) {
   a.m;
 }
 ''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 44, 1),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 44, 1),
     ]);
   }
 
@@ -98,7 +98,7 @@ main(A a) {
   a.f;
 }
 ''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 44, 1),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 44, 1),
     ]);
   }
 
@@ -111,7 +111,7 @@ main(A a) {
   a.f;
 }
 ''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 50, 1),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 50, 1),
     ]);
   }
 
@@ -124,7 +124,7 @@ main(A a) {
   a.f = 42;
 }
 ''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 49, 1),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 49, 1),
     ]);
   }
 }

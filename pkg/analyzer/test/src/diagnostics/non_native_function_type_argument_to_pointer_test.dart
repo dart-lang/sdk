@@ -28,7 +28,7 @@ class C {
 ''', [
       // This changed from a method to a extension method, uses Dart semantics
       // instead of manual check now.
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 98, 10),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 98, 10),
     ]);
   }
 

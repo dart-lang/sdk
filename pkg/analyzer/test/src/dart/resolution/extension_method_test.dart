@@ -149,7 +149,7 @@ f(C c) {
   c.a;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 40, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 1),
     ]);
   }
 
@@ -167,7 +167,7 @@ f(C c) {
   c.a;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 40, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 1),
     ]);
   }
 

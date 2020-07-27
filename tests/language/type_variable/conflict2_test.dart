@@ -14,13 +14,13 @@ class C<T> {
   // This is equivalent to (T).call(). See issue 19725
   foo() => T();
   //       ^
-  // [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION
+  // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION
   // [cfe] Method not found: 'T'.
 
   // T is in scope, even in static context. Compile-time error to call this.T().
   static bar() => T();
   //              ^
-  // [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION
+  // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION
   // [cfe] Method not found: 'T'.
   //              ^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
@@ -28,26 +28,26 @@ class C<T> {
   // X is not in scope. NoSuchMethodError.
   static baz() => X();
   //              ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   // [cfe] Method not found: 'X'.
 
   // Class 'C' has no static method 'T': NoSuchMethodError.
   static qux() => C.T();
   //                ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   // [cfe] Method not found: 'C.T'.
 
   // Class '_Type' has no instance method 'call': NoSuchMethodError.
   quux() => (T)();
   //        ^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+  // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
   //           ^
   // [cfe] The method 'call' isn't defined for the class 'Type'.
 
   // Runtime type T not accessible from static context. Compile-time error.
   static corge() => (T)();
   //                ^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+  // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
   //                 ^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
   // [cfe] Type variables can't be used in static members.
@@ -57,7 +57,7 @@ class C<T> {
   // Class '_Type' has no [] operator: NoSuchMethodError.
   grault() => T[0];
   //           ^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '[]' isn't defined for the class 'Type'.
 
   // Runtime type T not accessible from static context. Compile-time error.
@@ -66,13 +66,13 @@ class C<T> {
   // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
   // [cfe] Type variables can't be used in static members.
   //                  ^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '[]' isn't defined for the class 'Type'.
 
   // Class '_Type' has no member m: NoSuchMethodError.
   waldo() => T.m;
   //           ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'm' isn't defined for the class 'Type'.
 
   // Runtime type T not accessible from static context. Compile-time error.
@@ -81,7 +81,7 @@ class C<T> {
   // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
   // [cfe] Type variables can't be used in static members.
   //                 ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'm' isn't defined for the class 'Type'.
 }
 

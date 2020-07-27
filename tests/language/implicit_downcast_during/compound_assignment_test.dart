@@ -15,16 +15,16 @@ void main() {
   //^
   // [cfe] A value of type 'Object' can't be assigned to a variable of type 'B'.
   //   ^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
 
   ++b;
 //^^^
-// [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+// [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
 // [cfe] A value of type 'Object' can't be assigned to a variable of type 'B'.
 
   b++;
 //^^^
-// [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+// [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
 // ^
 // [cfe] A value of type 'Object' can't be assigned to a variable of type 'B'.
 }

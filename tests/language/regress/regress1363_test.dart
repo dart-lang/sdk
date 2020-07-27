@@ -24,7 +24,7 @@ class C {
     C contents = myCup.getContents(); // expect no warning or error
     contents = libCup.getContents();
     //         ^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                ^
     // [cfe] A value of type 'C/*1*/' can't be assigned to a variable of type 'C/*2*/'.
   }

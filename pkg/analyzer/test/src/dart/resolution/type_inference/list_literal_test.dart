@@ -43,7 +43,7 @@ List<String> a = [];
   test_context_noTypeArgs_noElements_typeParameter() async {
     var expectedErrors = expectedErrorsByNullability(
       nullable: [
-        error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 39, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 39, 2),
       ],
       legacy: [
         error(CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, 39, 2),
@@ -60,7 +60,7 @@ class A<E extends List<int>> {
   test_context_noTypeArgs_noElements_typeParameter_dynamic() async {
     var expectedErrors = expectedErrorsByNullability(
       nullable: [
-        error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 43, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 43, 2),
       ],
       legacy: [
         error(CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, 43, 2),
@@ -78,7 +78,7 @@ class A<E extends List<dynamic>> {
     await assertErrorsInCode('''
 List<String> a = <int>[0];
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 17, 8),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 17, 8),
     ]);
     assertType(findNode.listLiteral('['), 'List<int>');
   }
@@ -113,7 +113,7 @@ List<String> a = <String>['a'];
     await assertErrorsInCode('''
 List<String> a = <int>[];
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 17, 7),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 17, 7),
     ]);
     assertType(findNode.listLiteral('['), 'List<int>');
   }

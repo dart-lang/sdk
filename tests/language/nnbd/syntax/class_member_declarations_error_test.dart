@@ -31,7 +31,7 @@ class A {
   // [analyzer] SYNTACTIC_ERROR.MODIFIER_OUT_OF_ORDER
   // [cfe] The modifier 'late' should be before the modifier 'final'.
   //                        ^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
 
   covariant late x15;
   //        ^^^^

@@ -23,7 +23,7 @@ bool f(int left, bool right) {
   return left && right;
 }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_OPERAND, 40, 4),
+      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 40, 4),
     ]);
   }
 
@@ -33,7 +33,7 @@ bool f(bool left, String right) {
   return left && right;
 }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_OPERAND, 51, 5),
+      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 51, 5),
     ]);
   }
 
@@ -43,7 +43,7 @@ bool f(List<int> left, bool right) {
   return left || right;
 }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_OPERAND, 46, 4),
+      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 46, 4),
     ]);
   }
 
@@ -53,7 +53,7 @@ bool f(bool left, double right) {
   return left || right;
 }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_OPERAND, 51, 5),
+      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 51, 5),
     ]);
   }
 }
@@ -68,7 +68,7 @@ m() {
   if(x && true) {}
 }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_OPERAND, 21, 1),
+      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 21, 1),
     ]);
   }
 
@@ -79,7 +79,7 @@ m() {
   if(x || false) {}
 }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_OPERAND, 21, 1),
+      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 21, 1),
     ]);
   }
 }

@@ -39,7 +39,7 @@ main() {
   // No `i_num` extension declared.
   i_num.i_num;
   //    ^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'i_num' isn't defined for the class 'Iterable<num>'.
 
   Expect.equals("Iterable<int>.i_num", ii.i_num);

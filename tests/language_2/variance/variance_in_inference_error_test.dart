@@ -32,7 +32,7 @@ main() {
   var inferredMiddle = inferContraContra(Contravariant<Upper>(), Contravariant<Middle>());
   upper = inferredMiddle;
   //      ^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'Exactly<Middle>' can't be assigned to a variable of type 'Exactly<Upper>'.
 
   // T <: Upper and T <: Lower.
@@ -40,7 +40,7 @@ main() {
   var inferredLower = inferContraContra(Contravariant<Upper>(), Contravariant<Lower>());
   upper = inferredLower;
   //      ^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'Exactly<Lower>' can't be assigned to a variable of type 'Exactly<Upper>'.
 
   // int <: T <: String is not a valid constraint.
@@ -88,7 +88,7 @@ main() {
   var inferredContraUpper = inferContraBound(ContraBound(Lower(), (Upper x) {}));
   lower = inferredContraUpper;
   //      ^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'Exactly<Upper>' can't be assigned to a variable of type 'Exactly<Lower>'.
 
   // Inference for Contrabound(...) produces Lower <: T <: Middle.
@@ -96,6 +96,6 @@ main() {
   var inferredContraMiddle = inferContraBound(ContraBound(Lower(), (Middle x) {}));
   lower = inferredContraMiddle;
   //      ^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'Exactly<Middle>' can't be assigned to a variable of type 'Exactly<Lower>'.
 }

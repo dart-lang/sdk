@@ -29,7 +29,7 @@ extension GenericExtension<T> on T {
   void shadowTypeParam<T>(T x) {
     T y = self;
     //    ^^^^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     // [cfe] A value of type '#T' can't be assigned to a variable of type 'T'.
   }
 

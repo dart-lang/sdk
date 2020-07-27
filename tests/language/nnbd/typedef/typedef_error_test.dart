@@ -13,7 +13,7 @@ int? takesNonNullable(int x) {}
 void main() {
   F f = null; // typedefs from opted out libraries are treated as non-nullable
   //    ^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'Null' can't be assigned to a variable of type 'int Function(int)'.
 
   f = takesNonNullable; // F is int* Function(int*)

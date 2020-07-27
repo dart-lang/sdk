@@ -17,30 +17,30 @@ void foo(H<A> ha, H<B> hb, H<C> hc) {
   H<A> haa = ha;
   H<A> hab = hb;
   //         ^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'void Function<Y extends B>()' can't be assigned to a variable of type 'void Function<Y extends A>()'.
   H<A> hac = hc;
   //         ^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'void Function<Y extends C>()' can't be assigned to a variable of type 'void Function<Y extends A>()'.
 
   H<B> hba = ha;
   //         ^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'void Function<Y extends A>()' can't be assigned to a variable of type 'void Function<Y extends B>()'.
   H<B> hbb = hb;
   H<B> hbc = hc;
   //         ^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'void Function<Y extends C>()' can't be assigned to a variable of type 'void Function<Y extends B>()'.
 
   H<C> hca = ha;
   //         ^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'void Function<Y extends A>()' can't be assigned to a variable of type 'void Function<Y extends C>()'.
   H<C> hcb = hb;
   //         ^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'void Function<Y extends B>()' can't be assigned to a variable of type 'void Function<Y extends C>()'.
   H<C> hcc = hc;
 }

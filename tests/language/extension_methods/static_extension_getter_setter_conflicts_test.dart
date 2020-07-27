@@ -44,15 +44,15 @@ void test0() {
   c0.m2 = 0;
   c0.m2;
   // ^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'm2' isn't defined for the class 'C0'.
   c0.m2 += 0;
   // ^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'm2' isn't defined for the class 'C0'.
   c0.m2++;
   // ^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'm2' isn't defined for the class 'C0'.
 
   E0(c0).m2;
@@ -60,7 +60,7 @@ void test0() {
   c0[0];
   c0[0] = 0;
   //^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '[]=' isn't defined for the class 'C0'.
   E0(c0)[0];
   //    ^^^
@@ -70,11 +70,11 @@ void test0() {
 
   c0[0] += 0;
   //^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '[]=' isn't defined for the class 'C0'.
   c0[0]++;
   //^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '[]=' isn't defined for the class 'C0'.
 
   E0(c0)[0] += 0;
@@ -114,24 +114,24 @@ void test1() {
 
   c1a.m2;
   //  ^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'm2' isn't defined for the class 'C1<int>'.
 
   c1a.m2 = 0;
 
   c1a[0] = 0;
   // ^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '[]=' isn't defined for the class 'C1<int>'.
 
   c1a[0] += 0;
   // ^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '[]=' isn't defined for the class 'C1<int>'.
 
   c1a[0]++;
   // ^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '[]=' isn't defined for the class 'C1<int>'.
 
   c1a[0];
@@ -200,7 +200,7 @@ void test1() {
 
   c1c.m2;
   //  ^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'm2' isn't defined for the class 'C1<Object>'.
 }
 
@@ -230,23 +230,23 @@ extension E2 on C2 {
     this.m2 = 0;
     this.m2;
     //   ^^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
     // [cfe] The getter 'm2' isn't defined for the class 'C2'.
 
     this[0] = 0;
     this[0];
     //  ^^^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
     // [cfe] The operator '[]' isn't defined for the class 'C2'.
 
     this[0] += 0;
     //  ^^^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
     // [cfe] The operator '[]' isn't defined for the class 'C2'.
 
     this[0]++;
     //  ^^^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
     // [cfe] The operator '[]' isn't defined for the class 'C2'.
 
     // Check that `this.mc` refers to `C2.mc`.

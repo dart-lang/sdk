@@ -74,7 +74,7 @@ main() {
   // Type 'A' has no method named 'b'
   instance1.field.b();
   //              ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   // [cfe] The method 'b' isn't defined for the class 'A'.
 
   instance3.field = new B();

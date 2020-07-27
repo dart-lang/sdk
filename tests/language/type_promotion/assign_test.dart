@@ -39,7 +39,7 @@ void main() {
     print(a.a);
     print(a.b);
     //      ^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
     // [cfe] The getter 'b' isn't defined for the class 'A'.
   }
   if (a is B) {
@@ -51,7 +51,7 @@ void main() {
     print(a.a);
     print(a.b);
     //      ^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
     // [cfe] The getter 'b' isn't defined for the class 'A'.
   }
 }

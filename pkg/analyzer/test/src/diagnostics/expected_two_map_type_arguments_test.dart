@@ -22,7 +22,7 @@ class ExpectedTwoMapTypeArgumentsTest extends DriverResolutionTest {
 main() {
   <int, int, int>{};
 }''', [
-      error(StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, 11, 15),
+      error(CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, 11, 15),
     ]);
   }
 
@@ -31,7 +31,7 @@ main() {
 main() {
   <int, int, int>{1: 2};
 }''', [
-      error(StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, 11, 15),
+      error(CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, 11, 15),
     ]);
   }
 

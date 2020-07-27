@@ -6,11 +6,11 @@ void main() {
   Object b = true;
   assert(b);
   //     ^
-  // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_EXPRESSION
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_EXPRESSION
   // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
   assert(b, 'should not fail');
   //     ^
-  // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_EXPRESSION
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_EXPRESSION
   // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
   assert(false, b);
   // OK, the message can have any type.

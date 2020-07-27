@@ -232,7 +232,7 @@ void main() {
 ''', [
       // TODO(mfairhurst) suppress UNDEFINED_OPERATOR
       error(HintCode.UNUSED_LOCAL_VARIABLE, 21, 1),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 26, 1),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 26, 1),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 27, 1),
     ]);
   }
@@ -582,7 +582,7 @@ dynamic main() {
   return x;
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 36, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 36, 1),
     ]);
   }
 

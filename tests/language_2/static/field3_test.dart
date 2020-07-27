@@ -21,7 +21,7 @@ main() {
     // [cfe] Getter not found: 'm'.
     Foo.m = 1;
     //  ^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
     // [cfe] Setter not found: 'm'.
     Foo.x = 1;
     //  ^

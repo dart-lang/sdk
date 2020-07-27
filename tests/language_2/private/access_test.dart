@@ -10,13 +10,13 @@ import 'access_lib.dart' as private;
 main() {
   _function();
 //^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.UNDEFINED_FUNCTION
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
 // [cfe] Method not found: '_function'.
   private._function();
 //^
 // [cfe] Method not found: '_function'.
 //        ^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.UNDEFINED_FUNCTION
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
   new _Class();
   //  ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
@@ -25,7 +25,7 @@ main() {
 //^
 // [cfe] Method not found: '_Class'.
 //        ^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.UNDEFINED_FUNCTION
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
   new Class._constructor();
   //        ^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR

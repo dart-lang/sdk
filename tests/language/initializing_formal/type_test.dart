@@ -10,7 +10,7 @@ class A {
   A(int this.x) : y = x { // OK.
     int z = x;
     //      ^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
   }
 }

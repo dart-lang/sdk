@@ -681,7 +681,7 @@ class B extends A {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_GETTER, 58, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 58, 1),
     ]);
   }
 
@@ -694,7 +694,7 @@ class B extends A {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_METHOD, 56, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 56, 1),
     ]);
   }
 
@@ -707,7 +707,7 @@ class B extends A {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR, 70, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 70, 1),
     ]);
   }
 
@@ -720,8 +720,8 @@ class B extends A {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR, 70, 7),
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR, 70, 7),
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 70, 7),
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 70, 7),
     ]);
   }
 
@@ -734,7 +734,7 @@ class B extends A {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR, 70, 11),
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 70, 11),
     ]);
   }
 
@@ -747,7 +747,7 @@ class B extends A {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR, 71, 7),
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 71, 7),
     ]);
   }
 
@@ -760,7 +760,7 @@ class B extends A {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_SETTER, 49, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_SETTER, 49, 1),
     ]);
   }
 }

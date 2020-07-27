@@ -406,7 +406,7 @@ class InvocationInferenceHelper {
     List<DartType> typeArguments;
     if (typeArgumentList.arguments.length != typeParameters.length) {
       _errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
+        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
         typeArgumentList,
         [
           rawType,

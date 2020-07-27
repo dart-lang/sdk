@@ -21,7 +21,7 @@ class NonBoolConditionTest extends DriverResolutionTest {
     await assertErrorsInCode('''
 f() { return 3 ? 2 : 1; }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_CONDITION, 13, 1),
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 13, 1),
     ]);
   }
 
@@ -31,7 +31,7 @@ f() {
   do {} while (3);
 }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_CONDITION, 21, 1),
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 21, 1),
     ]);
   }
 
@@ -42,7 +42,7 @@ f() {
   for (;3;) {}
 }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_CONDITION, 14, 1),
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 14, 1),
     ]);
   }
 
@@ -50,7 +50,7 @@ f() {
     await assertErrorsInCode('''
 var v = [for (; 0;) 1];
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_CONDITION, 16, 1),
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 16, 1),
     ]);
   }
 
@@ -60,7 +60,7 @@ f() {
   if (3) return 2; else return 1;
 }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_CONDITION, 12, 1),
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 12, 1),
     ]);
   }
 
@@ -68,7 +68,7 @@ f() {
     await assertErrorsInCode('''
 var v = [if (3) 1];
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_CONDITION, 13, 1),
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 13, 1),
     ]);
   }
 
@@ -78,7 +78,7 @@ f() {
   while (3) {}
 }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_CONDITION, 15, 1),
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 15, 1),
     ]);
   }
 }
@@ -93,7 +93,7 @@ m() {
   if (x) {}
 }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_CONDITION, 22, 1),
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 22, 1),
     ]);
   }
 
@@ -104,7 +104,7 @@ m() {
   x ? 0 : 1;
 }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_CONDITION, 18, 1),
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 18, 1),
     ]);
   }
 }

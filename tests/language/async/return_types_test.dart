@@ -18,13 +18,13 @@ Future<int>
 foo3() async {
   return "String";
   //     ^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.RETURN_OF_INVALID_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'FutureOr<int>'.
 }
 
 Future<int, String>
 // [error line 25, column 1, length 19]
-// [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
 // [cfe] Expected 1 type arguments.
 foo4() async {
   return "String";
@@ -32,7 +32,7 @@ foo4() async {
 
 int
 // [error line 33, column 1, length 3]
-// [analyzer] STATIC_TYPE_WARNING.ILLEGAL_ASYNC_RETURN_TYPE
+// [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ASYNC_RETURN_TYPE
 foo5() async {
 // [error line 36, column 1, length 3]
 // [cfe] Functions marked 'async' must have a return type assignable to 'Future'.

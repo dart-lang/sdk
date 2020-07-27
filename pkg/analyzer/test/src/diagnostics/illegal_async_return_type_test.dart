@@ -19,7 +19,7 @@ class IllegalAsyncReturnTypeTest extends DriverResolutionTest {
     await assertErrorsInCode('''
 int f() async {}
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
+      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
     ]);
   }
 
@@ -35,7 +35,7 @@ int f() async {
   return 2;
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
+      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
     ]);
   }
 
@@ -47,7 +47,7 @@ SubFuture<int> f() async {
   return 0;
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 73, 14),
+      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 73, 14),
     ]);
   }
 
@@ -57,7 +57,7 @@ class C {
   int m() async {}
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 12, 3),
+      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 12, 3),
     ]);
   }
 
@@ -79,7 +79,7 @@ class C {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 85, 14),
+      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 85, 14),
     ]);
   }
 }

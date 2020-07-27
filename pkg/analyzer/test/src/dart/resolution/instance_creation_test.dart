@@ -19,7 +19,7 @@ class InstanceCreationDriverResolutionTest extends DriverResolutionTest {
     await assertErrorsInCode(r'''
 final foo = Map<int>();
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 12, 8),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 12, 8),
     ]);
 
     var creation = findNode.instanceCreation('Map<int>');
@@ -42,7 +42,7 @@ main() {
   new Foo.bar<int>();
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
           53, 5),
     ]);
 
@@ -70,7 +70,7 @@ main() {
   new p.Foo.bar<int>();
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
           44, 3),
     ]);
 
@@ -97,7 +97,7 @@ main() {
   Foo.bar<int>();
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
           49, 5),
     ]);
 
@@ -129,7 +129,7 @@ main() {
   p.Foo.bar<int>();
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
           43, 5),
     ]);
 

@@ -5,14 +5,14 @@
 // Test top level field.
 dynamic<int> x1 = 42;
 // [error line 6, column 1, length 12]
-// [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
 // [cfe] Expected 0 type arguments.
 
 class Foo {
   // Test class member.
   dynamic<int> x2 = 42;
 // [error line 13, column 3, length 12]
-// [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
 // [cfe] Expected 0 type arguments.
 
   Foo() {
@@ -28,7 +28,7 @@ main() {
   // Test local variable.
   dynamic<int> x3 = 42;
 // [error line 29, column 3, length 12]
-// [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
 // [cfe] Expected 0 type arguments.
   print(x3);
 
@@ -38,7 +38,7 @@ main() {
 // Test parameter.
 void foo(dynamic<int> x4) {
 // [error line 39, column 10, length 12]
-// [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
 // [cfe] Expected 0 type arguments.
   print(x4);
 }

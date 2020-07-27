@@ -35,7 +35,7 @@ f(bool e) async {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE, 41, 1),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 41, 1),
     ]);
   }
 
@@ -57,7 +57,7 @@ f(bool e) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE, 29, 1),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 29, 1),
     ]);
   }
 }

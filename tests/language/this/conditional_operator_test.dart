@@ -21,7 +21,7 @@ class B {
     //^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INITIALIZER_FOR_NON_EXISTENT_FIELD
     // [error line 15, column 11, length 0]
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
     // [cfe] Expected '.' before this.
     //    ^^
     // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN

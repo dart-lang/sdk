@@ -3,8 +3,8 @@ ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/i
 ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1659|7|5|Superinterfaces don't have a valid override for '>>': JSNumber.>> (num Function(num)), int.>> (int Function(int)).
 ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1659|7|5|Superinterfaces don't have a valid override for '\|': JSNumber.\| (num Function(num)), int.\| (int Function(int)).
 ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1659|7|5|Superinterfaces don't have a valid override for '^': JSNumber.^ (num Function(num)), int.^ (int Function(int)).
-ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1676|28|1|The operator '&' isn't defined for the type 'JSInt'.
-ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1678|27|1|The operator '&' isn't defined for the type 'JSInt'.
-ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1681|17|1|The operator '&' isn't defined for the type 'JSInt'.
-ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1686|18|1|The operator '&' isn't defined for the type 'JSInt'.
-ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1686|44|1|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|COMPILE_TIME_ERROR|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1676|28|1|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|COMPILE_TIME_ERROR|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1678|27|1|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|COMPILE_TIME_ERROR|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1681|17|1|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|COMPILE_TIME_ERROR|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1686|18|1|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|COMPILE_TIME_ERROR|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1686|44|1|The operator '&' isn't defined for the type 'JSInt'.

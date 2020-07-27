@@ -51,7 +51,7 @@ int Function() foo() {
   return B().a; // ref
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 85, 5),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 85, 5),
     ]);
 
     var identifier = findNode.simple('a; // ref');

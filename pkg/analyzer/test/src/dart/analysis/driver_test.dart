@@ -1666,7 +1666,7 @@ String z = "string";
       ResolvedUnitResult result = await driver.getResult(b);
       List<AnalysisError> errors = result.errors;
       expect(errors, hasLength(1));
-      expect(errors[0].errorCode, StaticTypeWarningCode.INVALID_ASSIGNMENT);
+      expect(errors[0].errorCode, CompileTimeErrorCode.INVALID_ASSIGNMENT);
     }
   }
 

@@ -18,7 +18,7 @@ void promoteViaIsCheck(Object x, Object? y) {
   // Since the `y is Never?` branch was reachable, `x` is not promoted to `int`.
   x.isEven;
 //  ^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
 // [cfe] unspecified
 }
 

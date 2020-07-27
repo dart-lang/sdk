@@ -73,7 +73,7 @@ class PostfixExpressionResolver {
     var operandWriteType = _getWriteType(operand);
     if (!_typeSystem.isAssignableTo2(type, operandWriteType)) {
       _resolver.errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.INVALID_ASSIGNMENT,
+        CompileTimeErrorCode.INVALID_ASSIGNMENT,
         node,
         [type, operandWriteType],
       );
@@ -149,13 +149,13 @@ class PostfixExpressionResolver {
     if (_shouldReportInvalidMember(receiverType, result)) {
       if (operand is SuperExpression) {
         _errorReporter.reportErrorForToken(
-          StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+          CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
           node.operator,
           [methodName, receiverType],
         );
       } else {
         _errorReporter.reportErrorForToken(
-          StaticTypeWarningCode.UNDEFINED_OPERATOR,
+          CompileTimeErrorCode.UNDEFINED_OPERATOR,
           node.operator,
           [methodName, receiverType],
         );

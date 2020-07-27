@@ -24,7 +24,7 @@ class B extends A {
       //   ^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.INITIALIZER_FOR_NON_EXISTENT_FIELD
       //        ^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
 
   B.c3() : super;
   //            ^
@@ -45,7 +45,7 @@ class B extends A {
       //   ^^^^
       // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNMENT_IN_INITIALIZER
       // [error line 39, column 16, length 0]
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
       // [cfe] Expected '.' before this.
       //       ^
       // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN

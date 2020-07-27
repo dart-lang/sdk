@@ -93,11 +93,11 @@ main() {
   // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
   // [cfe] Expected an identifier, but got '37'.
   // [error line 91, column 8, length 0]
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   a.."foo";
   // ^^^^^
   // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
   // [cfe] Expected an identifier, but got '"foo"'.
   // [error line 97, column 11, length 0]
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
 }

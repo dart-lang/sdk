@@ -334,7 +334,7 @@ class A {
 }
 var v = const A();
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 45, 5),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 45, 5),
       error(
           CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
           64,
@@ -404,7 +404,7 @@ const int y = 1;
 var v = const C<String>();
 ''',
       [
-        error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 27, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 27, 1),
         error(
             CheckedModeCompileTimeErrorCode
                 .CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
@@ -437,7 +437,7 @@ const int y = 1;
 var v = const C<int>();
 ''',
       [
-        error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 27, 1),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 27, 1),
       ],
     );
   }
@@ -620,7 +620,7 @@ const Unresolved x = null;
 const int x = 'foo';
 ''', [
       error(CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 14, 5),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 14, 5),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 14, 5),
     ]);
   }
 

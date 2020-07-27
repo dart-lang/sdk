@@ -30,7 +30,7 @@ class SdkVersionGtGtGtOperatorTest extends SdkConstraintVerifierTest {
     await verifyVersion('2.5.0', '''
 const a = 42 >>> 3;
 ''', expectedErrors: [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 13, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 13, 3),
     ]);
   }
 
@@ -41,7 +41,7 @@ const a = 42 >>> 3;
 const a = 42 >>> 3;
 ''', expectedErrors: [
       error(HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, 13, 3),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 13, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 13, 3),
     ]);
   }
 
@@ -69,7 +69,7 @@ class A {
     await verifyVersion('2.5.0', '''
 var a = 42 >>> 3;
 ''', expectedErrors: [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 11, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 11, 3),
     ]);
   }
 
@@ -80,7 +80,7 @@ var a = 42 >>> 3;
 var a = 42 >>> 3;
 ''', expectedErrors: [
       error(HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, 11, 3),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 11, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 11, 3),
     ]);
   }
 }

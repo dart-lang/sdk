@@ -76,7 +76,7 @@ class C {
     //                   ^
     // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
     //                   ^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   }
 
   test() {

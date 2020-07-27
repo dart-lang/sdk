@@ -711,7 +711,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         node.staticElement == null &&
         !_isFunctionType(expressionType)) {
       _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
           functionExpression);
     } else if (expressionType is FunctionType) {
       _typeArgumentsVerifier.checkFunctionExpressionInvocation(node);
@@ -2241,7 +2241,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     if (!_typeSystem.isAssignableTo2(iterableType, requiredSequenceType)) {
       _errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,
+        CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
         node.iterable,
         [iterableType, loopTypeName],
       );
@@ -2265,7 +2265,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     if (!_typeSystem.isAssignableTo2(sequenceElementType, variableType)) {
       _errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
+        CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
         node.iterable,
         [iterableType, loopTypeName, variableType],
       );
@@ -2765,7 +2765,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// Check that the given [typeReference] is not a type reference and that then
   /// the [name] is reference to an instance member.
   ///
-  /// See [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER].
+  /// See [CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER].
   void _checkForInstanceAccessToStaticMember(
       ClassElement typeReference, Expression target, SimpleIdentifier name) {
     if (_isInComment) {
@@ -2802,7 +2802,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         }
       }
       _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+          CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
           name,
           [name.name, _getKind(element), element.enclosingElement.name]);
     }
@@ -2838,7 +2838,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// Verify that the given left hand side ([lhs]) and right hand side ([rhs])
   /// represent a valid assignment.
   ///
-  /// See [StaticTypeWarningCode.INVALID_ASSIGNMENT].
+  /// See [CompileTimeErrorCode.INVALID_ASSIGNMENT].
   void _checkForInvalidAssignment(Expression lhs, Expression rhs) {
     if (lhs == null || rhs == null) {
       return;
@@ -2863,7 +2863,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     _checkForAssignableExpression(
-        rhs, leftType, StaticTypeWarningCode.INVALID_ASSIGNMENT);
+        rhs, leftType, CompileTimeErrorCode.INVALID_ASSIGNMENT);
   }
 
   /// Check the given [initializer] to ensure that the field being initialized
@@ -4051,7 +4051,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   /// Check that none of the type [parameters] references itself in its bound.
   ///
-  /// See [StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
+  /// See [CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
   void _checkForTypeParameterBoundRecursion(List<TypeParameter> parameters) {
     Map<TypeParameterElement, TypeParameter> elementToNode;
     for (var parameter in parameters) {
@@ -4074,7 +4074,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           if (step == parameters.length) {
             var element = parameter.declaredElement;
             _errorReporter.reportErrorForNode(
-              StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+              CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
               parameter,
               [element.displayName, element.bound],
             );
@@ -4256,7 +4256,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// defined in the enclosing class rather than in a superclass.
   ///
   /// See
-  /// [StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER].
+  /// [CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER].
   void _checkForUnqualifiedReferenceToNonLocalStaticMember(
       SimpleIdentifier name) {
     Element element = name.staticElement;
@@ -4289,7 +4289,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           [enclosingElement.displayName]);
     } else {
       _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode
+          CompileTimeErrorCode
               .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
           name,
           [enclosingElement.displayName]);

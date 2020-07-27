@@ -16,7 +16,7 @@ class C extends A implements B {
     Object y = x;
     String z = x;
     //         ^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     // [cfe] A value of type 'Object' can't be assigned to a variable of type 'String'.
   }
 }

@@ -6,17 +6,17 @@ void main() {
   Object o = new Object();
   o || o;
 //^
-// [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
 // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
 //     ^
-// [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
 // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
 
   o && o;
 //^
-// [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
 // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
 //     ^
-// [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
 // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
 }

@@ -19,7 +19,7 @@ main() {
 //     ^
 // [cfe] A generic function type can't be used as a type argument.
 //            ^^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+// [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
 //                ^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 // [cfe] Generic function type 'void Function<TypeY>()' inferred as a type argument.

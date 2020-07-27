@@ -13,7 +13,7 @@ class A {
   const A.a2(this.x);
   const A.a3([this.x = 'foo']);
   //                   ^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
   const A.a4(String this.x);
   //         ^^^^^^^^^^^^^

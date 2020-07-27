@@ -22,7 +22,7 @@ class ErrorSuppressionTest extends DriverResolutionTest with PackageMixin {
     await assertErrorsInCode('''
 int x = ''; // ignore: invalid_assignment
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 8, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 8, 2),
     ]);
   }
 
@@ -31,7 +31,7 @@ int x = ''; // ignore: invalid_assignment
 // ignore: unused_import, undefined_function
 f() => g();
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_FUNCTION, 52, 1),
+      error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 52, 1),
     ]);
   }
 
@@ -41,7 +41,7 @@ f() => g();
 int x = '';
 int _y = 0; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 34, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 34, 2),
       error(HintCode.UNUSED_ELEMENT, 42, 2),
     ]);
   }
@@ -139,7 +139,7 @@ int x = (0 as int); // ignore: UNNECESSARY_CAST
 int x = '';
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 43, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 43, 2),
       error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 57,
           1),
     ]);
@@ -153,7 +153,7 @@ const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VA
 ''', [
       error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 43,
           1),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 43, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 43, 1),
     ]);
   }
 
@@ -162,7 +162,7 @@ const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VA
 // ignore invalid_assignment
 String y = 3; //INVALID_ASSIGNMENT
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 40, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 40, 1),
     ]);
   }
 
@@ -228,7 +228,7 @@ int _y = x as int; //UNNECESSARY_CAST, UNUSED_ELEMENT
 int x = ''; //INVALID_ASSIGNMENT
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 8, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 8, 2),
       error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 43,
           1),
     ]);
@@ -260,7 +260,7 @@ f() => g();
       '''
 f() => g();
 ''',
-      [error(StaticTypeWarningCode.UNDEFINED_FUNCTION, 7, 1)],
+      [error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 7, 1)],
     );
   }
 

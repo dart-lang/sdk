@@ -912,7 +912,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     // Test that FutureOr does not have the constituent type methods
     MethodInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<int> x) => x.abs();
-    ''', errors: [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    ''', errors: [CompileTimeErrorCode.UNDEFINED_METHOD]);
     _isDynamic(invoke.staticType);
   }
 
@@ -920,7 +920,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     // Test that FutureOr does not have the Future type methods
     MethodInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<int> x) => x.then((x) => x);
-    ''', errors: [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    ''', errors: [CompileTimeErrorCode.UNDEFINED_METHOD]);
     _isDynamic(invoke.staticType);
   }
 
@@ -928,7 +928,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     // Test that FutureOr<dynamic> does not have all methods
     MethodInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<dynamic> x) => x.abs();
-    ''', errors: [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    ''', errors: [CompileTimeErrorCode.UNDEFINED_METHOD]);
     _isDynamic(invoke.staticType);
   }
 
@@ -3667,7 +3667,7 @@ void main() {
   test_returnOfInvalidType_object_void() async {
     await assertErrorsInCode(
         "Object f() { void voidFn() => null; return voidFn(); }", [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 43, 8),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 43, 8),
     ]);
   }
 
@@ -3702,7 +3702,7 @@ class A {
 }
 set g(int x) => 42;
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 41, 4),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 41, 4),
     ]);
   }
 

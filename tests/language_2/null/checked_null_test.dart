@@ -25,6 +25,6 @@ bar() {
   // crash.
   new A().a.foo();
   //        ^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   // [cfe] The method 'foo' isn't defined for the class 'Map<dynamic, dynamic>'.
 }

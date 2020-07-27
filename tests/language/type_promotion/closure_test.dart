@@ -70,7 +70,7 @@ void test2() {
     print(a.a);
     print(a.b);
     //      ^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
     // [cfe] The getter 'b' isn't defined for the class 'A'.
   }
 }
@@ -85,7 +85,7 @@ void test3() {
     print(a.a);
     print(a.b);
     //      ^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
     // [cfe] The getter 'b' isn't defined for the class 'A'.
     void foo() {
       a = new D();
@@ -94,7 +94,7 @@ void test3() {
     print(a.a);
     print(a.b);
     //      ^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
     // [cfe] The getter 'b' isn't defined for the class 'A'.
   }
 }
@@ -109,7 +109,7 @@ void test3a() {
     print(a.a);
     print(a.b);
     //      ^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
     // [cfe] The getter 'b' isn't defined for the class 'A'.
     void foo() {
       a = new D();
@@ -118,7 +118,7 @@ void test3a() {
     print(a.a);
     print(a.b);
     //      ^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
     // [cfe] The getter 'b' isn't defined for the class 'A'.
   }
 }
@@ -137,7 +137,7 @@ void test5() {
   if (a is B) {
     func(() => a.b);
     //           ^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
     // [cfe] The getter 'b' isn't defined for the class 'A'.
     print(a.a);
   }
@@ -178,7 +178,7 @@ void test8() {
   if (a is B
       && func(() => a.b)
       //              ^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
       // [cfe] The getter 'b' isn't defined for the class 'A'.
       ) {
     print(a.a);
@@ -190,7 +190,7 @@ void test9() {
   A a = new E();
   var b = a is B ? func(() => a.b) : false;
   //                            ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'b' isn't defined for the class 'A'.
   a = A();
 }
@@ -220,7 +220,7 @@ void test12() {
     print(a.a);
     print(a.b);
     //      ^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
     // [cfe] The getter 'b' isn't defined for the class 'A'.
   }
   a = A();

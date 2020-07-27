@@ -14,7 +14,7 @@ class StaticField1Test {
       var foo = new Foo();
       var x = foo.x;
       //          ^
-      // [analyzer] STATIC_TYPE_WARNING.INSTANCE_ACCESS_TO_STATIC_MEMBER
+      // [analyzer] COMPILE_TIME_ERROR.INSTANCE_ACCESS_TO_STATIC_MEMBER
       // [cfe] The getter 'x' isn't defined for the class 'Foo'.
     }
   }

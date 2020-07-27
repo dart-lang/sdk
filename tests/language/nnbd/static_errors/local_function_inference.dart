@@ -12,7 +12,7 @@ void main() {
 
   f().arglebargle;
   //  ^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'arglebargle' isn't defined for the class 'int'.
   f().isEven; // Inferred type is int
 

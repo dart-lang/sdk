@@ -51,7 +51,7 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(StaticTypeWarningCode.NON_BOOL_CONDITION, 24, 1),
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 24, 1),
     ]);
   }
 
@@ -63,7 +63,7 @@ f() {
   for (i = 0; 3;) {}
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
-      error(StaticTypeWarningCode.NON_BOOL_CONDITION, 29, 1),
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 29, 1),
     ]);
   }
 

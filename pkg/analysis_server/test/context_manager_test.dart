@@ -1544,7 +1544,7 @@ abstract class ContextManagerTest with ResourceProviderMixin {
   ]);
 
   AnalysisError invalid_assignment_error =
-      AnalysisError(null, 0, 1, StaticTypeWarningCode.INVALID_ASSIGNMENT, [
+      AnalysisError(null, 0, 1, CompileTimeErrorCode.INVALID_ASSIGNMENT, [
     ['x'],
     ['y']
   ]);

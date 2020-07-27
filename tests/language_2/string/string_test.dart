@@ -33,7 +33,7 @@ class StringTest {
     String a = "Hello";
     a[1] = 12;
 //   ^^^
-// [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
 // [cfe] The operator '[]=' isn't defined for the class 'String'.
   }
 

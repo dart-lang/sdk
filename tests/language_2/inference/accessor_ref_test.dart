@@ -35,14 +35,14 @@ test() {
   x = new E();
   x = new B();
   //  ^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //      ^
   // [cfe] A value of type 'B' can't be assigned to a variable of type 'C'.
   y = new C();
   y = new E();
   y = new B();
   //  ^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //      ^
   // [cfe] A value of type 'B' can't be assigned to a variable of type 'C'.
 }

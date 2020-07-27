@@ -11,7 +11,7 @@ class C {
   const C.bc01(this.x, y)
       : assert(staticTrue)
       //       ^^^^^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_EXPRESSION
+      // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_EXPRESSION
       // [cfe] A value of type 'bool Function()' can't be assigned to a variable of type 'bool'.
       ;
 }

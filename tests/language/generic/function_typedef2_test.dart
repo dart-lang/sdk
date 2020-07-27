@@ -27,7 +27,7 @@ typedef J = List<int>;
 // [cfe] Can't create typedef from non-function type.
 typedef K = Function(Function<A>(A<int>));
 //                               ^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
 // [cfe] Can't use type arguments with type variable 'A'.
 typedef L = Function({x});
 //                    ^

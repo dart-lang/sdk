@@ -190,13 +190,13 @@ class MethodInvocationResolver {
       );
     } else if (nullReceiver) {
       _resolver.errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+        CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
         nameNode,
         [element.enclosingElement.displayName],
       );
     } else {
       _resolver.errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+        CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
         nameNode,
         [
           nameNode.name,
@@ -210,7 +210,7 @@ class MethodInvocationResolver {
   void _reportInvocationOfNonFunction(MethodInvocation node) {
     _setDynamicResolution(node, setNameTypeToDynamic: false);
     _resolver.errorReporter.reportErrorForNode(
-      StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
+      CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION,
       node.methodName,
       [node.methodName.name],
     );
@@ -245,7 +245,7 @@ class MethodInvocationResolver {
     }
 
     _resolver.errorReporter.reportErrorForNode(
-      StaticTypeWarningCode.UNDEFINED_FUNCTION,
+      CompileTimeErrorCode.UNDEFINED_FUNCTION,
       node.methodName,
       [node.methodName.name],
     );
@@ -255,7 +255,7 @@ class MethodInvocationResolver {
       MethodInvocation node, String name, ClassElement typeReference) {
     _setDynamicResolution(node);
     _resolver.errorReporter.reportErrorForNode(
-      StaticTypeWarningCode.UNDEFINED_METHOD,
+      CompileTimeErrorCode.UNDEFINED_METHOD,
       node.methodName,
       [name, typeReference.displayName],
     );
@@ -609,7 +609,7 @@ class MethodInvocationResolver {
     // Nothing help, there is no target at all.
     _setDynamicResolution(node);
     _resolver.errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
+        CompileTimeErrorCode.UNDEFINED_SUPER_METHOD,
         nameNode,
         [name, enclosingClass.displayName]);
   }
@@ -664,7 +664,7 @@ class MethodInvocationResolver {
 
     if (!nameNode.isSynthetic) {
       _resolver.errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.UNDEFINED_METHOD,
+        CompileTimeErrorCode.UNDEFINED_METHOD,
         nameNode,
         [name, receiverClassName],
       );

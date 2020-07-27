@@ -9,7 +9,7 @@ class B extends A {}
 Iterable<B> f(Iterable<A> a) sync* {
   yield* a;
   //     ^
-  // [analyzer] STATIC_TYPE_WARNING.YIELD_OF_INVALID_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.YIELD_OF_INVALID_TYPE
   // [cfe] A value of type 'Iterable<A>' can't be assigned to a variable of type 'Iterable<B>'.
 }
 

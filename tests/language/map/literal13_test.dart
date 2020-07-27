@@ -7,7 +7,7 @@
 main() {
   var map = new Map<int>{ "a": 1, "b": 2, "c": 3 };
   //            ^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
   // [cfe] Expected 2 type arguments.
   //                   ^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN

@@ -9,6 +9,6 @@ class A {
 void main() {
   new A().e = "String";
   //          ^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
 }

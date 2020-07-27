@@ -9,18 +9,18 @@ class B extends A {}
 A a1 = new B();
 B b1 = a1;
 //     ^^
-// [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+// [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
 // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
 
 class C {
   static B b3 = a1;
   //            ^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
 
   B b5 = a1;
   //     ^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
 }
 

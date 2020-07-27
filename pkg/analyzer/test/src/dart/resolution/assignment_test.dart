@@ -153,10 +153,10 @@ main(int i) {
   i %= 1.2;
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 21, 3),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 33, 3),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 45, 3),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 57, 3),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 21, 3),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 33, 3),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 45, 3),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 57, 3),
     ]);
     assertType(findNode.assignment('+='), 'double');
     assertType(findNode.assignment('-='), 'double');
@@ -187,7 +187,7 @@ main(double a, int b) {
   a ??= b;
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 32, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 32, 1),
     ]);
     assertType(findNode.assignment('??='), 'num');
   }

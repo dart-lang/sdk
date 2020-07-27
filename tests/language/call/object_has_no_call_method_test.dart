@@ -6,20 +6,20 @@ void test(dynamic d, Object o, Function f) {
   d();
   o();
 //^
-// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
 // ^
 // [cfe] The method 'call' isn't defined for the class 'Object'.
   f();
   d.call;
   o.call;
   //^^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'call' isn't defined for the class 'Object'.
   f.call;
   d.call();
   o.call();
   //^^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   // [cfe] The method 'call' isn't defined for the class 'Object'.
   f.call();
 }

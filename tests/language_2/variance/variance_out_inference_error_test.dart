@@ -31,7 +31,7 @@ main() {
   var inferredMiddle = inferCovCov(Covariant<Lower>(), Covariant<Middle>());
   lower = inferredMiddle;
   //      ^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'Exactly<Middle>' can't be assigned to a variable of type 'Exactly<Lower>'.
 
   // Lower <: T <: Upper.
@@ -39,7 +39,7 @@ main() {
   var inferredUpper = inferCovCov(Covariant<Lower>(), Covariant<Upper>());
   lower = inferredUpper;
   //      ^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'Exactly<Upper>' can't be assigned to a variable of type 'Exactly<Lower>'.
 
   // Inference for Covbound(...) produces Lower <: T <: Upper.
@@ -47,7 +47,7 @@ main() {
   var inferredCovLower = inferCovBound(CovBound(Lower(), (Upper x) {}));
   upper = inferredCovLower;
   //      ^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'Exactly<Lower>' can't be assigned to a variable of type 'Exactly<Upper>'.
 
   // Inference for Covbound(...) produces Lower <: T <: Middle.
@@ -55,6 +55,6 @@ main() {
   var inferredCovLower2 = inferCovBound(CovBound(Lower(), (Middle x) {}));
   middle = inferredCovLower2;
   //       ^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'Exactly<Lower>' can't be assigned to a variable of type 'Exactly<Middle>'.
 }

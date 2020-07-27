@@ -31,7 +31,7 @@ main() {
   Expect.equals(42, s.superInstanceMethod());
   Expect.equals(42, sup.superInstanceMethod());
   //                    ^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   // [cfe] The method 'superInstanceMethod' isn't defined for the class 'Super'.
   Expect.equals(42, sub.superInstanceMethod());
 }

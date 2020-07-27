@@ -14,8 +14,11 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 /// Return true if this [errorCode] is likely to have a fix associated with it.
 bool hasFix(ErrorCode errorCode) =>
-    errorCode == CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN ||
+    errorCode == CompileTimeErrorCode.CAST_TO_NON_TYPE ||
     errorCode == CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER ||
+    errorCode == CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE ||
+    errorCode == CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER ||
+    errorCode == CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION ||
     errorCode == CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR ||
     errorCode ==
         CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE ||
@@ -29,7 +32,7 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode ==
         CompileTimeErrorCode
             .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS ||
-    errorCode == CompileTimeErrorCode.CAST_TO_NON_TYPE ||
+    errorCode == CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT ||
     errorCode == CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME ||
     errorCode == CompileTimeErrorCode.FINAL_NOT_INITIALIZED ||
     errorCode == CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 ||
@@ -44,8 +47,13 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT ||
     errorCode == CompileTimeErrorCode.PART_OF_NON_PART ||
     errorCode == CompileTimeErrorCode.UNDEFINED_ANNOTATION ||
+    errorCode == CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN ||
     errorCode ==
         CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT ||
+    errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION ||
+    errorCode == CompileTimeErrorCode.UNDEFINED_GETTER ||
+    errorCode == CompileTimeErrorCode.UNDEFINED_METHOD ||
+    errorCode == CompileTimeErrorCode.UNDEFINED_SETTER ||
     errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST ||
     errorCode == CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED ||
     errorCode == HintCode.CAN_BE_NULL_AFTER_NULL_AWARE ||
@@ -60,14 +68,6 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == ParserErrorCode.EXPECTED_TOKEN ||
     errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS ||
     errorCode == ParserErrorCode.VAR_AS_TYPE_NAME ||
-    errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE ||
-    errorCode == StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER ||
-    errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION ||
-    errorCode == StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT ||
-    errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION ||
-    errorCode == StaticTypeWarningCode.UNDEFINED_GETTER ||
-    errorCode == StaticTypeWarningCode.UNDEFINED_METHOD ||
-    errorCode == StaticTypeWarningCode.UNDEFINED_SETTER ||
     errorCode == CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER ||
     (errorCode is LintCode &&
         (errorCode.name == LintNames.always_require_non_null_named_parameters ||

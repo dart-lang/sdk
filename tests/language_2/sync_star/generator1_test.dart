@@ -48,7 +48,7 @@ dreiVier() sync* {
   // Throws type error: yielded object is not an iterable.
   yield* 3;
   //     ^
-  // [analyzer] STATIC_TYPE_WARNING.YIELD_OF_INVALID_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.YIELD_OF_INVALID_TYPE
   // [cfe] A value of type 'int' can't be assigned to a variable of type 'Iterable<dynamic>'.
 }
 

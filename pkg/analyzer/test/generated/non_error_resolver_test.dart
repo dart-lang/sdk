@@ -2181,7 +2181,7 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 93, 1),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 97, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 97, 1),
     ]);
     var z = result.unit.declaredElement.topLevelVariables
         .where((e) => e.name == 'z')
@@ -2796,8 +2796,8 @@ main() {
   null[0];
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 0, 0),
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 0, 0),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 0, 0),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 0, 0),
     ]);
   }
 

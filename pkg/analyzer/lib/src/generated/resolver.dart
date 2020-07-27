@@ -616,7 +616,7 @@ class ResolverVisitor extends ScopedVisitor {
     node.condition?.accept(this);
     boolExpressionVerifier.checkForNonBoolExpression(
       node.condition,
-      errorCode: StaticTypeWarningCode.NON_BOOL_EXPRESSION,
+      errorCode: CompileTimeErrorCode.NON_BOOL_EXPRESSION,
     );
     _flowAnalysis?.flow?.assert_afterCondition(node.condition);
     node.message?.accept(this);
@@ -630,7 +630,7 @@ class ResolverVisitor extends ScopedVisitor {
     node.condition?.accept(this);
     boolExpressionVerifier.checkForNonBoolExpression(
       node.condition,
-      errorCode: StaticTypeWarningCode.NON_BOOL_EXPRESSION,
+      errorCode: CompileTimeErrorCode.NON_BOOL_EXPRESSION,
     );
     _flowAnalysis?.flow?.assert_afterCondition(node.condition);
     node.message?.accept(this);

@@ -25,7 +25,7 @@ class B {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 58, 2),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 58, 2),
     ]);
   }
 
@@ -38,7 +38,7 @@ f(var a) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 44, 1),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 44, 1),
     ]);
   }
 
@@ -47,7 +47,7 @@ f(var a) {
 enum E { A }
 f(E e) => e + 1;
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 25, 1),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 25, 1),
     ]);
   }
 
@@ -63,7 +63,7 @@ f(var a) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 87, 1),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 87, 1),
     ]);
   }
 
@@ -72,7 +72,7 @@ f(var a) {
 mixin M {}
 f(M m) => m + 1;
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 1),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 1),
     ]);
   }
 
@@ -84,8 +84,8 @@ f(A a) {
   a[0]++;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 24, 3),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 24, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 24, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 24, 3),
     ]);
   }
 
@@ -109,7 +109,7 @@ f(E e) {
   e[0];
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 25, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 25, 3),
     ]);
   }
 
@@ -141,7 +141,7 @@ f(A a) {
   a[0];
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 125, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 125, 3),
     ]);
   }
 
@@ -153,7 +153,7 @@ f(A a) {
   a[0];
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 24, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 24, 3),
     ]);
   }
 
@@ -164,7 +164,7 @@ f(M m) {
   m[0];
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 3),
     ]);
   }
 
@@ -174,7 +174,7 @@ f(Null x) {
   x[0];
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 15, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 15, 3),
     ]);
   }
 
@@ -192,7 +192,7 @@ f(A a) {
   a[0] = 1;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 125, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 125, 3),
     ]);
   }
 
@@ -218,7 +218,7 @@ f(A a) {
   a[0] = 1;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 24, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 24, 3),
     ]);
   }
 
@@ -229,8 +229,8 @@ f(A a) {
   a[0]++;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 3),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 3),
     ]);
   }
 
@@ -241,7 +241,7 @@ f(A a) {
   a[0];
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 3),
     ]);
   }
 
@@ -252,7 +252,7 @@ f(A a) {
   a[0] = 1;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 3),
     ]);
   }
 
@@ -263,7 +263,7 @@ m() {
   x - 3;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 20, 1),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 20, 1),
     ]);
   }
 
@@ -275,7 +275,7 @@ m() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 20, 2),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 20, 2),
     ]);
   }
 
@@ -286,7 +286,7 @@ m() {
   x + 3;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 20, 1),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 20, 1),
     ]);
   }
 
@@ -297,7 +297,7 @@ f(A a) {
   a + 1;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 24, 1),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 24, 1),
     ]);
   }
 
@@ -309,7 +309,7 @@ m() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 20, 2),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 20, 2),
     ]);
   }
 
@@ -321,7 +321,7 @@ m() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 19, 2),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 19, 2),
     ]);
   }
 
@@ -357,7 +357,7 @@ f(M m) {
   m++;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 2),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 2),
     ]);
   }
 
@@ -368,7 +368,7 @@ f(A a) {
   a++;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 2),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 2),
     ]);
   }
 
@@ -380,7 +380,7 @@ m() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 19, 2),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 19, 2),
     ]);
   }
 
@@ -392,7 +392,7 @@ m() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 18, 2),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 18, 2),
     ]);
   }
 
@@ -428,7 +428,7 @@ f(M m) {
   -m;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 22, 1),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 22, 1),
     ]);
   }
 
@@ -439,7 +439,7 @@ f(A a) {
   ++a;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 22, 2),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 22, 2),
     ]);
   }
 
@@ -451,7 +451,7 @@ m() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 18, 2),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 18, 2),
     ]);
   }
 
@@ -470,7 +470,7 @@ m() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 18, 1),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 18, 1),
     ]);
   }
 }

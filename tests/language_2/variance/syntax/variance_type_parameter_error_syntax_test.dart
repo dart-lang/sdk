@@ -17,7 +17,7 @@ void A(out int foo) {
 // [cfe] Expected ')' before this.
   List<out String> bar;
   //  ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '<' isn't defined for the class 'Type'.
   //   ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
@@ -26,7 +26,7 @@ void A(out int foo) {
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
   // [cfe] Getter not found: 'out'.
   //             ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '>' isn't defined for the class 'Type'.
   //               ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER

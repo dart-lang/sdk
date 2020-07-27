@@ -14,7 +14,7 @@ void forLoopAssignInCondition(Object x) {
       // int at the time de-promotion occurs.
       print(x.isEven);
       //      ^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
       // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
     }
   }
@@ -29,7 +29,7 @@ void forLoopAssignInUpdater(Object x) {
       // int at the time de-promotion occurs.
       print(x.isEven);
       //      ^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
       // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
     }
   }
@@ -44,7 +44,7 @@ void forLoopAssignInBody(Object x) {
       // int at the time de-promotion occurs.
       print(x.isEven);
       //      ^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
       // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
       x = 0;
     }
@@ -60,7 +60,7 @@ void forEachAssignInBody(Object x) {
       // int at the time de-promotion occurs.
       print(x.isEven);
       //      ^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
       // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
       x = 0;
     }
@@ -76,7 +76,7 @@ void whileAssignInCondition(Object x) {
       // int at the time de-promotion occurs.
       print(x.isEven);
       //      ^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
       // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
     }
   }
@@ -91,7 +91,7 @@ void whileAssignInBody(Object x) {
       // int at the time de-promotion occurs.
       print(x.isEven);
       //      ^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
       // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
       x = 0;
     }
@@ -107,7 +107,7 @@ void doAssignInCondition(Object x) {
       // int at the time de-promotion occurs.
       print(x.isEven);
       //      ^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
       // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
     } while ((x = 0) == 0);
   }
@@ -122,7 +122,7 @@ void doAssignInBody(Object x) {
       // int at the time de-promotion occurs.
       print(x.isEven);
       //      ^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
       // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
       x = 0;
     } while (true);

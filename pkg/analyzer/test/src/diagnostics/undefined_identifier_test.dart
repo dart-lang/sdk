@@ -169,7 +169,7 @@ main(int p) {
 }
 ''', [
       error(ParserErrorCode.MISSING_IDENTIFIER, 30, 1),
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 30, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 1),
       error(ParserErrorCode.MISSING_IDENTIFIER, 31, 1),
     ]);
   }

@@ -17,6 +17,6 @@ main() {
   a.x = 37;
   a.setX(42);
   //^^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   // [cfe] The method 'setX' isn't defined for the class 'A'.
 }

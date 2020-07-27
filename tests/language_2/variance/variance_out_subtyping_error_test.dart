@@ -70,7 +70,7 @@ main() {
   List<Covariant<Middle>> listMiddle = [new Covariant<Middle>()];
   iterableLower = listMiddle;
   //              ^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'List<Covariant<Middle>>' can't be assigned to a variable of type 'Iterable<Covariant<Lower>>'.
 
   testCall(listMiddle);

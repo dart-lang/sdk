@@ -17,6 +17,6 @@ main() {
   // this is a static error.
   void Function([int]) f = i;
   //                       ^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] unspecified
 }

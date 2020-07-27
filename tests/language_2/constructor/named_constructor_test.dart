@@ -24,12 +24,12 @@ void main() {
   //        ^
   // [cfe] A constructor invocation can't have type arguments on the constructor name.
   //             ^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
 
   // 'Class<int>.named<int>' doesn't fit the grammar syntax T.id:
   new Class<int>.named<int>().value;
   //             ^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   // [cfe] A constructor invocation can't have type arguments on the constructor name.
 
   new prefix.Class().value;
@@ -45,7 +45,7 @@ void main() {
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   // [cfe] Method not found: 'prefix.Class'.
   //              ^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   // [cfe] A constructor invocation can't have type arguments on the constructor name.
 
   new prefix.Class.named().value;
@@ -64,7 +64,7 @@ void main() {
   // 'prefix.Class.named<int>' doesn't fit the grammar syntax T.id:
   new prefix.Class.named<int>().value;
   //               ^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   // [cfe] A constructor invocation can't have type arguments on the constructor name.
 
   // 'prefix<int>.Class<int>' doesn't fit the grammar syntax T.id:
@@ -73,7 +73,7 @@ void main() {
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   // [cfe] Method not found: 'prefix.Class'.
   //              ^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   // [cfe] A constructor invocation can't have type arguments on the constructor name.
 
 
@@ -90,7 +90,7 @@ void main() {
   // 'prefix.Class<int>.named<int>' doesn't fit the grammar syntax T.id:
   new prefix.Class<int>.named<int>().value;
   //                    ^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   // [cfe] A constructor invocation can't have type arguments on the constructor name.
 
   // 'prefix<int>.Class<int>.named<int>' doesn't fit the grammar syntax T.id:
@@ -99,6 +99,6 @@ void main() {
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   // [cfe] Method not found: 'prefix.Class'.
   //              ^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   // [cfe] A constructor invocation can't have type arguments on the constructor name.
 }

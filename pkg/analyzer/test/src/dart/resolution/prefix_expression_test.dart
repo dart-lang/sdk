@@ -64,7 +64,7 @@ f(int x) {
   !x;
 }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION, 14, 1),
+      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 14, 1),
     ]);
 
     assertPrefixExpression(

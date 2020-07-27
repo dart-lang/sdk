@@ -138,7 +138,7 @@ f() {
   prefix.A.named<int>(0);
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
           50, 5),
     ]);
 
@@ -220,7 +220,7 @@ f() {
   A.named<int, String>(0);
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
           52, 13),
     ]);
 

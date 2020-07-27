@@ -1110,7 +1110,7 @@ class OptionsTest extends BaseTest {
 
     // missing_return: error
     var undefined_function = AnalysisError(
-        TestSource(), 0, 1, StaticTypeWarningCode.UNDEFINED_FUNCTION, [
+        TestSource(), 0, 1, CompileTimeErrorCode.UNDEFINED_FUNCTION, [
       ['x']
     ]);
     expect(processorFor(undefined_function).severity, ErrorSeverity.WARNING);

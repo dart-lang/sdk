@@ -48,7 +48,7 @@ class TypeArgumentsVerifier {
         );
       }
       _checkTypeArgumentCount(typeArguments, 1,
-          StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS);
+          CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS);
     }
     _checkForImplicitDynamicTypedLiteral(node);
   }
@@ -63,7 +63,7 @@ class TypeArgumentsVerifier {
         );
       }
       _checkTypeArgumentCount(typeArguments, 2,
-          StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS);
+          CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS);
     }
     _checkForImplicitDynamicTypedLiteral(node);
   }
@@ -83,7 +83,7 @@ class TypeArgumentsVerifier {
         );
       }
       _checkTypeArgumentCount(typeArguments, 1,
-          StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS);
+          CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS);
     }
     _checkForImplicitDynamicTypedLiteral(node);
   }

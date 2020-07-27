@@ -4,7 +4,7 @@
 
 final foo = Map<int>();
 //          ^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
 // [cfe] Expected 2 type arguments.
 
 main() {}

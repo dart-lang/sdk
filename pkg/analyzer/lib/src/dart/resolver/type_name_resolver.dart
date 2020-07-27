@@ -122,7 +122,7 @@ class TypeNameResolver {
 
     if (argumentCount != parameterCount) {
       errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
+        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
         node,
         [node.name.name, parameterCount, argumentCount],
       );
@@ -333,7 +333,7 @@ class TypeNameResolver {
       var typeArguments = node.typeArguments;
       if (typeArguments != null) {
         errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
           typeArguments,
           [classIdentifier.name, constructorIdentifier.name],
         );
@@ -454,7 +454,7 @@ class _ErrorHelper {
 
     if (_isTypeInTypeArgumentList(node)) {
       errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
+        CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT,
         identifier,
         [identifier.name],
       );

@@ -29,25 +29,25 @@ checkIsUnresolved(var v) {
 checkIsListUnresolved(var v) {
   v is List<Unresolved>;
   //        ^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.NON_TYPE_AS_TYPE_ARGUMENT
+  // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
   // [cfe] 'Unresolved' isn't a type.
   v is List<Unresolved<int>>;
   //        ^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.NON_TYPE_AS_TYPE_ARGUMENT
+  // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
   // [cfe] 'Unresolved' isn't a type.
   v is List<prefix.Unresolved>;
   //        ^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.NON_TYPE_AS_TYPE_ARGUMENT
+  // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
   //               ^
   // [cfe] 'Unresolved' isn't a type.
   v is List<prefix.Unresolved<int>>;
   //        ^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.NON_TYPE_AS_TYPE_ARGUMENT
+  // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
   //               ^
   // [cfe] 'Unresolved' isn't a type.
   v is List<int, String>;
   //   ^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
   // [cfe] Expected 1 type arguments.
 }
 
@@ -75,25 +75,25 @@ checkAsUnresolved(var v) {
 checkAsListUnresolved(var v) {
   v as List<Unresolved>;
   //        ^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.NON_TYPE_AS_TYPE_ARGUMENT
+  // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
   // [cfe] 'Unresolved' isn't a type.
   v as List<Unresolved<int>>;
   //        ^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.NON_TYPE_AS_TYPE_ARGUMENT
+  // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
   // [cfe] 'Unresolved' isn't a type.
   v as List<prefix.Unresolved>;
   //        ^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.NON_TYPE_AS_TYPE_ARGUMENT
+  // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
   //               ^
   // [cfe] 'Unresolved' isn't a type.
   v as List<prefix.Unresolved<int>>;
   //        ^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.NON_TYPE_AS_TYPE_ARGUMENT
+  // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
   //               ^
   // [cfe] 'Unresolved' isn't a type.
   v as List<int, String>;
   //   ^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
   // [cfe] Expected 1 type arguments.
 }
 

@@ -34,7 +34,7 @@ main() {
   // "(a ?? b) || c" would allow b to have any type provided that a is bool.
   falsity ?? 1 || true;
   //         ^
-  // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
   // [cfe] A value of type 'int' can't be assigned to a variable of type 'bool'.
 
   // "a || b ?? c" should parse as "(a || b) ?? c", therefore it is a static
@@ -42,7 +42,7 @@ main() {
   // "a || (b ?? c)" would allow b to have any type provided that c is bool.
   falsity || 1 ?? true;
 //           ^
-// [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
 // [cfe] A value of type 'int' can't be assigned to a variable of type 'bool'.
 //                ^^^^
 // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
@@ -51,7 +51,7 @@ main() {
   // error.
   Expect.throwsAssertionError(() => false || null ?? true);
   //                                         ^^^^
-  // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
   // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
   //                                                 ^^^^
   // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION

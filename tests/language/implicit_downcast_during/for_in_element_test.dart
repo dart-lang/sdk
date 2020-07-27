@@ -11,21 +11,21 @@ void main() {
   Object o = listOfA;
   for (B x in o) {}
   //          ^
-  // [analyzer] STATIC_TYPE_WARNING.FOR_IN_OF_INVALID_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.FOR_IN_OF_INVALID_TYPE
   // [cfe] The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
   for (B x in listOfA) {}
   //     ^
   // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
   //          ^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.FOR_IN_OF_INVALID_ELEMENT_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.FOR_IN_OF_INVALID_ELEMENT_TYPE
   B y;
   for (y in o) {}
   //        ^
-  // [analyzer] STATIC_TYPE_WARNING.FOR_IN_OF_INVALID_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.FOR_IN_OF_INVALID_TYPE
   // [cfe] The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
   for (y in listOfA) {}
   //     ^
   // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
   //        ^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.FOR_IN_OF_INVALID_ELEMENT_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.FOR_IN_OF_INVALID_ELEMENT_TYPE
 }

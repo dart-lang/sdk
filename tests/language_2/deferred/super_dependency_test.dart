@@ -8,7 +8,7 @@
 
 import "package:expect/expect.dart";
 //        ^^^
-// [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SUPER_SETTER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_SETTER
 // [cfe] Superclass has no setter named 'foo'.
 import "super_dependency_lib.dart" deferred as lib;
 

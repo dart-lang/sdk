@@ -21,7 +21,7 @@ int A;
 class B<E> {}
 f(B<A> b) {}
 ''', [
-      error(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, 25, 1),
+      error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 25, 1),
     ]);
   }
 
@@ -30,7 +30,7 @@ f(B<A> b) {}
 class B<E> {}
 f(B<A> b) {}
 ''', [
-      error(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, 18, 1),
+      error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 18, 1),
     ]);
   }
 }

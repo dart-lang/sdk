@@ -119,7 +119,7 @@ class ReturnTypeVerifier {
       } else {
         checkElement(
           _typeProvider.futureElement,
-          StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE,
+          CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE,
         );
       }
     } else if (enclosingExecutable.isGenerator) {
@@ -157,25 +157,25 @@ class ReturnTypeVerifier {
     void reportTypeError() {
       if (enclosingExecutable.isClosure) {
         _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
           expression,
           [S, T],
         );
       } else if (enclosingExecutable.isConstructor) {
         _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
           expression,
           [S, T, enclosingExecutable.displayName],
         );
       } else if (enclosingExecutable.isFunction) {
         _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
           expression,
           [S, T, enclosingExecutable.displayName],
         );
       } else if (enclosingExecutable.isMethod) {
         _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
           expression,
           [S, T, enclosingExecutable.displayName],
         );
@@ -258,25 +258,25 @@ class ReturnTypeVerifier {
     void reportTypeError() {
       if (enclosingExecutable.isClosure) {
         _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
           expression,
           [S, T],
         );
       } else if (enclosingExecutable.isConstructor) {
         _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
           expression,
           [S, T, enclosingExecutable.displayName],
         );
       } else if (enclosingExecutable.isFunction) {
         _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
           expression,
           [S, T, enclosingExecutable.displayName],
         );
       } else if (enclosingExecutable.isMethod) {
         _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
           expression,
           [S, T, enclosingExecutable.displayName],
         );

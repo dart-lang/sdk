@@ -18,7 +18,7 @@ void tryCatchAssignInBody(Object x) {
       // account for RHS types)
       print(x.isEven);
       //      ^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
       // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
     }
   }
@@ -36,7 +36,7 @@ void tryFinallyAssignInBody(Object x) {
       // account for RHS types)
       print(x.isEven);
       //      ^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
       // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
     }
   }

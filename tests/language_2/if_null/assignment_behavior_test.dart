@@ -214,11 +214,11 @@ main() {
   check(1, () => C?.x ??= bad(), ['C.x']);
   h.C.xgetValue = 1;
   //  ^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
   // [cfe] Setter not found: 'xgetValue'.
   check(1, () => h.c?.x ??= bad(), ['h.C.x']);
   //               ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_PREFIXED_NAME
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME
   // [cfe] Getter not found: 'c'.
   yGetValue = 1;
   check(1, () => C?.x ??= y, ['C.x', 'y', 'C.x=1']);

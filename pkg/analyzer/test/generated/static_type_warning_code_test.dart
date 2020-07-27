@@ -34,7 +34,7 @@ f(Object x) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 65, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 65, 3),
     ]);
   }
 
@@ -59,7 +59,7 @@ f() async {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 68, 1),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 72, 10),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 72, 10),
     ]);
   }
 
@@ -84,7 +84,7 @@ f() async {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 75, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 80, 6),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 80, 6),
     ]);
   }
 
@@ -135,7 +135,7 @@ f() async {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 64, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 85, 6),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 85, 6),
     ]);
   }
 
@@ -185,8 +185,8 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 271, 4),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 289, 2),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 304, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 289, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 304, 2),
     ]);
   }
 
@@ -207,7 +207,7 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 22, 10),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 22, 10),
     ]);
   }
 
@@ -272,7 +272,7 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 27, 10),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 27, 10),
     ]);
   }
 
@@ -306,7 +306,7 @@ class Foo<T extends Iterable<int>> {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 81, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 86, 8),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 86, 8),
     ]);
   }
 
@@ -344,7 +344,7 @@ main(Object p) {
   p = 0;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 71, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 71, 6),
     ]);
   }
 
@@ -354,7 +354,7 @@ main(Object p) {
   ((p is String) && ((p = 42) == 42)) && p.length != 0;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 60, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 60, 6),
     ]);
   }
 
@@ -364,7 +364,7 @@ main(Object p) {
   (p is String) && (((p = 42) == 42) && p.length != 0);
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 59, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 59, 6),
     ]);
   }
 
@@ -376,7 +376,7 @@ main(Object p) {
   p = 42;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 68, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 68, 6),
     ]);
   }
 
@@ -388,7 +388,7 @@ main(Object p) {
   p is String ? callMe(() { p.length; }) : 0;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 78, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 78, 6),
     ]);
   }
 
@@ -398,7 +398,7 @@ main(Object p) {
   p is String ? (p.length + (p = 42)) : 0;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 36, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 36, 6),
     ]);
   }
 
@@ -414,7 +414,7 @@ main(Object p) {
   p = 0;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 83, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 83, 6),
     ]);
   }
 
@@ -426,7 +426,7 @@ main(Object p) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 66, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 66, 6),
     ]);
   }
 
@@ -444,7 +444,7 @@ main(A<V> p) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 100, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 100, 1),
     ]);
   }
 
@@ -462,7 +462,7 @@ main(A<V> p) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 105, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 105, 1),
     ]);
   }
 
@@ -475,7 +475,7 @@ main(Object p) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 44, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 44, 6),
     ]);
   }
 
@@ -488,7 +488,7 @@ main(Object p) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 55, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 55, 6),
     ]);
   }
 
@@ -501,7 +501,7 @@ main(Object p) {
   () {p = 0;};
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 44, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 44, 6),
     ]);
   }
 
@@ -514,7 +514,7 @@ main(Object p) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 59, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 59, 6),
     ]);
   }
 
@@ -527,7 +527,7 @@ main(Object p) {
   f() {p = 0;};
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 44, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 44, 6),
       error(HintCode.UNUSED_ELEMENT, 58, 1),
     ]);
   }
@@ -542,7 +542,7 @@ main(Object p) {
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 19, 1),
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 60, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 60, 6),
     ]);
   }
 
@@ -560,7 +560,7 @@ main(A<V> p) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 103, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 103, 1),
     ]);
   }
 
@@ -578,7 +578,7 @@ main(A<V> p) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 112, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 112, 1),
     ]);
   }
 
@@ -591,7 +591,7 @@ main(A<NoSuchType> a) {
   a.element.anyGetterExistsInDynamic;
 }
 ''', [
-      error(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, 35, 10),
+      error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 35, 10),
     ]);
   }
 }

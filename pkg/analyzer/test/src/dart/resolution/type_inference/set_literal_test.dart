@@ -57,7 +57,7 @@ FutureOr<Set<int>> f() {
   test_context_noTypeArgs_noElements_typeParameter() async {
     var expectedErrors = expectedErrorsByNullability(
       nullable: [
-        error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 38, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 38, 2),
       ],
       legacy: [
         error(CompileTimeErrorCode.INVALID_CAST_LITERAL_SET, 38, 2),
@@ -74,7 +74,7 @@ class A<E extends Set<int>> {
   test_context_noTypeArgs_noElements_typeParameter_dynamic() async {
     var expectedErrors = expectedErrorsByNullability(
       nullable: [
-        error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 42, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 42, 2),
       ],
       legacy: [
         error(CompileTimeErrorCode.INVALID_CAST_LITERAL_SET, 42, 2),
@@ -116,7 +116,7 @@ Set<String> a = <String>{'a'};
     await assertErrorsInCode('''
 Set<String> a = <int>{};
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 16, 7),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 16, 7),
     ]);
     assertType(setLiteral('{'), 'Set<int>');
   }

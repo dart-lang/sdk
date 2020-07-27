@@ -22,7 +22,7 @@ class TypeParameterSupertypeOfItsBoundTest extends DriverResolutionTest {
 class A<T extends T> {
 }
 ''', [
-      error(StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 11),
+      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 11),
     ]);
   }
 
@@ -34,7 +34,7 @@ class A<T extends T> {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 11),
+      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 11),
     ]);
   }
 
@@ -43,9 +43,9 @@ class A<T extends T> {
 class A<T1 extends T3, T2, T3 extends T1> {
 }
 ''', [
-      error(StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 13),
+      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 13),
       error(
-          StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 27, 13),
+          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 27, 13),
     ]);
   }
 }

@@ -14,12 +14,12 @@ void foo() {
   F1 f11 = f1;
   F1 f12 = f2;
   //       ^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'void Function<Y2 extends String>()' can't be assigned to a variable of type 'void Function<X1 extends num>()'.
 
   F2 f21 = f1;
   //       ^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'void Function<Y1 extends num>()' can't be assigned to a variable of type 'void Function<X2 extends String>()'.
   F2 f22 = f2;
 }

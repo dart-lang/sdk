@@ -17,7 +17,7 @@ Future<void> testList() async {
   Object obj = stream([1, 2, 3, 4]);
   var a = <int>[await for (var n in obj) n];
   //                                ^^^
-  // [analyzer] STATIC_TYPE_WARNING.FOR_IN_OF_INVALID_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.FOR_IN_OF_INVALID_TYPE
   // [cfe] The type 'Object' used in the 'for' loop must implement 'Stream<dynamic>'.
 
   // Downcast variable.
@@ -26,7 +26,7 @@ Future<void> testList() async {
     //             ^
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
     //                  ^^^^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.FOR_IN_OF_INVALID_ELEMENT_TYPE
+    // [analyzer] COMPILE_TIME_ERROR.FOR_IN_OF_INVALID_ELEMENT_TYPE
   ];
 
   // Downcast element.
@@ -43,7 +43,7 @@ Future<void> testMap() async {
   Object obj = stream([1, 2, 3, 4]);
   var a = <int, int>{await for (var n in obj) n: n};
   //                                     ^^^
-  // [analyzer] STATIC_TYPE_WARNING.FOR_IN_OF_INVALID_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.FOR_IN_OF_INVALID_TYPE
   // [cfe] The type 'Object' used in the 'for' loop must implement 'Stream<dynamic>'.
 
   // Downcast variable.
@@ -52,7 +52,7 @@ Future<void> testMap() async {
     //             ^
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
     //                  ^^^^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.FOR_IN_OF_INVALID_ELEMENT_TYPE
+    // [analyzer] COMPILE_TIME_ERROR.FOR_IN_OF_INVALID_ELEMENT_TYPE
   };
 
   // Downcast element.
@@ -72,7 +72,7 @@ Future<void> testSet() async {
   Object obj = stream([1, 2, 3, 4]);
   var a = <int>{await for (var n in obj) n};
   //                                ^^^
-  // [analyzer] STATIC_TYPE_WARNING.FOR_IN_OF_INVALID_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.FOR_IN_OF_INVALID_TYPE
   // [cfe] The type 'Object' used in the 'for' loop must implement 'Stream<dynamic>'.
 
   // Downcast variable.
@@ -81,7 +81,7 @@ Future<void> testSet() async {
     //             ^
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
     //                  ^^^^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.FOR_IN_OF_INVALID_ELEMENT_TYPE
+    // [analyzer] COMPILE_TIME_ERROR.FOR_IN_OF_INVALID_ELEMENT_TYPE
   };
 
   // Downcast element.

@@ -9,7 +9,7 @@ const double d = intValue;
 // [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.VARIABLE_TYPE_MISMATCH
 // [cfe] A value of type 'int' can't be assigned to a variable of type 'double'.
 //               ^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+// [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
 
 main() {
   print(c);

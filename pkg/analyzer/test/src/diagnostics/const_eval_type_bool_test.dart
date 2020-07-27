@@ -20,7 +20,7 @@ class ConstEvalTypeBoolTest extends DriverResolutionTest {
 const c = true && '';
 ''', [
       error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, 10, 10),
-      error(StaticTypeWarningCode.NON_BOOL_OPERAND, 18, 2),
+      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 18, 2),
     ]);
   }
 
@@ -29,7 +29,7 @@ const c = true && '';
 const c = (true || 0);
 ''', [
       error(HintCode.DEAD_CODE, 19, 1),
-      error(StaticTypeWarningCode.NON_BOOL_OPERAND, 19, 1),
+      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 19, 1),
     ]);
   }
 
@@ -38,7 +38,7 @@ const c = (true || 0);
 const c = false || '';
 ''', [
       error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, 10, 11),
-      error(StaticTypeWarningCode.NON_BOOL_OPERAND, 19, 2),
+      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 19, 2),
     ]);
   }
 

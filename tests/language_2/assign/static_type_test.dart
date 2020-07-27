@@ -7,7 +7,7 @@
 
 int a = "String";
 //      ^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+// [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
 // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
 
 class A {
@@ -16,19 +16,19 @@ class A {
   // [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.VARIABLE_TYPE_MISMATCH
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
   //                   ^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   final int d = "String";
   //            ^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
   int e = "String";
   //      ^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
   A() {
      int f = "String";
      //      ^^^^^^^^
-     // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
      // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
   }
   method(
@@ -36,7 +36,7 @@ class A {
      int
       g = "String"]) {
       //  ^^^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
       // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
     return g;
   }

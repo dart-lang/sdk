@@ -27,7 +27,7 @@ main() {
     var result = 0;
     result = lib10.Library10.static_fld;
     //             ^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
     // [cfe] The getter 'Library10' isn't defined for the class 'int'.
     Expect.equals(4, result);
   }

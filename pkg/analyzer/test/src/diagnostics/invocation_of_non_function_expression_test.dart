@@ -21,7 +21,7 @@ f() {
   3(5);
 }
 ''', [
-      error(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 8, 1),
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 8, 1),
     ]);
   }
 }

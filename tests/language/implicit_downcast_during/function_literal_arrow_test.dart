@@ -10,6 +10,6 @@ void main() {
   A a = new B();
   B Function(A) f = (A a) => a;
   //                         ^
-  // [analyzer] STATIC_TYPE_WARNING.RETURN_OF_INVALID_TYPE_FROM_CLOSURE
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE_FROM_CLOSURE
   // [cfe] A value of type 'A' can't be returned from a function with return type 'B'.
 }

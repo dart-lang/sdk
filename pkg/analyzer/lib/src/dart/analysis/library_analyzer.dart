@@ -442,8 +442,8 @@ class LibraryAnalyzer {
         // non-internal code from importing internal code.
         bool privileged = false;
 
-        if (code == StaticTypeWarningCode.UNDEFINED_FUNCTION ||
-            code == StaticTypeWarningCode.UNDEFINED_PREFIXED_NAME) {
+        if (code == CompileTimeErrorCode.UNDEFINED_FUNCTION ||
+            code == CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME) {
           // Special case a small number of errors in Flutter code which are
           // ignored. The erroneous code is found in a conditionally imported
           // library, which uses a special version of the "dart:ui" library
