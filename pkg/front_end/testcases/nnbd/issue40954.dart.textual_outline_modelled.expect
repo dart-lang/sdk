@@ -1,0 +1,12 @@
+class A {}
+
+class C {
+  static void test1(var v, [A a]) {}
+  static void test2(var v, {A a}) {}
+  void test11(var v, [A a]) {}
+  void test22(var v, {A a}) {}
+}
+
+main() {}
+void test1(var v, [A a]) {}
+void test2(var v, {A a}) {}
