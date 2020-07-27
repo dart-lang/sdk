@@ -1,0 +1,32 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/issue42181.dart:10:9: Error: A value of type 'Null' can't be assigned to a variable of type 'int Function(int)'.
+//   F f = null; // Static error
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue42181_lib.dart";
+
+static method f1(core::int x) → core::int?
+  return x;
+static method test() → void {
+  (core::int*) → core::int* f = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue42181.dart:10:9: Error: A value of type 'Null' can't be assigned to a variable of type 'int Function(int)'.
+  F f = null; // Static error
+        ^" in null;
+  f = #C1;
+}
+static method main() → dynamic {}
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+typedef F = (core::int*) →* core::int*;
+
+constants  {
+  #C1 = tearoff self::f1
+}
