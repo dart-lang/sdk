@@ -28,7 +28,7 @@ import 'package:kernel/type_environment.dart';
 import 'package:kernel/src/hierarchy_based_type_environment.dart'
     show HierarchyBasedTypeEnvironment;
 
-import 'standard_bounds.dart' show StandardBounds;
+import 'standard_bounds.dart' show TypeSchemaStandardBounds;
 
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 
@@ -37,8 +37,6 @@ import 'type_demotion.dart';
 import 'type_schema.dart' show UnknownType, typeSchemaToString, isKnown;
 
 import 'type_schema_elimination.dart' show greatestClosure, leastClosure;
-
-import '../problems.dart';
 
 // TODO(paulberry): try to push this functionality into kernel.
 FunctionType substituteTypeParams(
@@ -101,7 +99,7 @@ class TypeConstraint {
 }
 
 class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
-    with StandardBounds {
+    with TypeSchemaStandardBounds {
   final ClassHierarchy hierarchy;
 
   TypeSchemaEnvironment(CoreTypes coreTypes, this.hierarchy)
@@ -117,24 +115,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
   InterfaceType objectRawType(Nullability nullability) {
     return coreTypes.objectRawType(nullability);
-  }
-
-  bool areMutualSubtypes(DartType s, DartType t, SubtypeCheckMode mode) {
-    IsSubtypeOf result = performNullabilityAwareMutualSubtypesCheck(s, t);
-    switch (mode) {
-      case SubtypeCheckMode.ignoringNullabilities:
-        return result.isSubtypeWhenIgnoringNullabilities();
-      case SubtypeCheckMode.withNullabilities:
-        return result.isSubtypeWhenUsingNullabilities();
-    }
-    return unhandled(
-        "$mode", "TypeSchemaEnvironment.areMutualSubtypes", -1, null);
-  }
-
-  InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2, Library clientLibrary) {
-    return hierarchy.getLegacyLeastUpperBound(
-        type1, type2, clientLibrary, this.coreTypes);
   }
 
   /// Modify the given [constraint]'s lower bound to include [lower].

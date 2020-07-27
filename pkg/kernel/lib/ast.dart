@@ -8245,12 +8245,13 @@ class TypeParameterType extends DartType {
   /// null, it is an equivalent of setting the overall nullability.
   @override
   TypeParameterType withDeclaredNullability(Nullability declaredNullability) {
+    if (declaredNullability == this.declaredNullability) {
+      return this;
+    }
     // TODO(dmitryas): Consider removing the assert.
     assert(promotedBound == null,
         "Can't change the nullability attribute of an intersection type.");
-    return declaredNullability == this.declaredNullability
-        ? this
-        : new TypeParameterType(parameter, declaredNullability, promotedBound);
+    return new TypeParameterType(parameter, declaredNullability, promotedBound);
   }
 
   /// Gets the nullability of a type-parameter type based on the bound.

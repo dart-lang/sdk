@@ -4,8 +4,6 @@
 
 import "package:kernel/ast.dart" show DartType, Library;
 
-import "package:kernel/core_types.dart" show CoreTypes;
-
 import "package:kernel/target/targets.dart" show NoneTarget, TargetFlags;
 
 import "package:front_end/src/api_prototype/compiler_options.dart"
@@ -55,8 +53,8 @@ class FastaLegacyUpperBoundTest extends LegacyUpperBoundTest {
 
   @override
   DartType getLegacyLeastUpperBound(
-      DartType a, DartType b, Library clientLibrary, CoreTypes coreTypes) {
-    return hierarchy.getKernelLegacyLeastUpperBound(a, b, clientLibrary);
+      DartType a, DartType b, Library clientLibrary) {
+    return hierarchy.getLegacyLeastUpperBound(a, b, clientLibrary);
   }
 }
 

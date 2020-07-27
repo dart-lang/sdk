@@ -31,10 +31,27 @@ import '../type_algebra.dart'
 
 import '../type_environment.dart' show IsSubtypeOf, SubtypeCheckMode;
 
-class Types {
+import '../src/standard_bounds.dart';
+
+class Types with StandardBounds {
+  @override
   final ClassHierarchyBase hierarchy;
 
   Types(this.hierarchy);
+
+  @override
+  CoreTypes get coreTypes => hierarchy.coreTypes;
+
+  bool areMutualSubtypes(DartType s, DartType t, SubtypeCheckMode mode) {
+    IsSubtypeOf result = performNullabilityAwareMutualSubtypesCheck(s, t);
+    switch (mode) {
+      case SubtypeCheckMode.ignoringNullabilities:
+        return result.isSubtypeWhenIgnoringNullabilities();
+      case SubtypeCheckMode.withNullabilities:
+        return result.isSubtypeWhenUsingNullabilities();
+    }
+    return throw new StateError("Unhandled subtype check mode '$mode'.");
+  }
 
   bool _isSubtypeFromMode(IsSubtypeOf isSubtypeOf, SubtypeCheckMode mode) {
     switch (mode) {
@@ -48,6 +65,7 @@ class Types {
   }
 
   /// Returns true if [s] is a subtype of [t].
+  @override
   bool isSubtypeOf(DartType s, DartType t, SubtypeCheckMode mode) {
     IsSubtypeOf result = performNullabilityAwareSubtypeCheck(s, t);
     return _isSubtypeFromMode(result, mode);

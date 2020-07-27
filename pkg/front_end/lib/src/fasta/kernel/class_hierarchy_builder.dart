@@ -17,6 +17,7 @@ import 'package:kernel/type_environment.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/nnbd_top_merge.dart';
 import 'package:kernel/src/norm.dart';
+import 'package:kernel/src/standard_bounds.dart';
 import 'package:kernel/src/types.dart' show Types;
 
 import '../../testing/id_testing_utils.dart' show typeToText;
@@ -67,7 +68,7 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../source/source_loader.dart' show SourceLoader;
 
-import '../type_inference/standard_bounds.dart' show StandardBounds;
+import '../type_inference/standard_bounds.dart' show TypeSchemaStandardBounds;
 
 import '../type_inference/type_constraint_gatherer.dart'
     show TypeConstraintGatherer;
@@ -512,7 +513,8 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
     return asSupertypeOf(type, superclass)?.typeArguments;
   }
 
-  InterfaceType getKernelLegacyLeastUpperBound(
+  @override
+  InterfaceType getLegacyLeastUpperBound(
       InterfaceType type1, InterfaceType type2, Library clientLibrary) {
     if (type1 == type2) return type1;
 
@@ -2529,7 +2531,7 @@ class BuilderMixinInferrer extends MixinInferrer {
 }
 
 class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
-    with StandardBounds {
+    with StandardBounds, TypeSchemaStandardBounds {
   final ClassHierarchyBuilder hierarchy;
 
   TypeBuilderConstraintGatherer(this.hierarchy,
@@ -2586,13 +2588,6 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   @override
   bool areMutualSubtypes(DartType s, DartType t, SubtypeCheckMode mode) {
     return isSubtypeOf(s, t, mode) && isSubtypeOf(t, s, mode);
-  }
-
-  @override
-  InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2, Library clientLibrary) {
-    return hierarchy.getKernelLegacyLeastUpperBound(
-        type1, type2, clientLibrary);
   }
 }
 

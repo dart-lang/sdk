@@ -8,8 +8,6 @@ import "package:kernel/ast.dart" show DartType, Library;
 
 import "package:kernel/class_hierarchy.dart" show ClassHierarchy;
 
-import "package:kernel/core_types.dart" show CoreTypes;
-
 class KernelLegacyUpperBoundTest extends LegacyUpperBoundTest {
   ClassHierarchy hierarchy;
 
@@ -22,8 +20,8 @@ class KernelLegacyUpperBoundTest extends LegacyUpperBoundTest {
 
   @override
   DartType getLegacyLeastUpperBound(
-      DartType a, DartType b, Library clientLibrary, CoreTypes coreTypes) {
-    return hierarchy.getLegacyLeastUpperBound(a, b, clientLibrary, coreTypes);
+      DartType a, DartType b, Library clientLibrary) {
+    return hierarchy.getLegacyLeastUpperBound(a, b, clientLibrary);
   }
 }
 
