@@ -247,16 +247,30 @@ static void AddFunctionServiceId(const JSONObject& jsobj,
   }
   if (id != -1) {
     ASSERT(selector != NULL);
-    jsobj.AddFixedServiceId("classes/%" Pd "/%s/%" Pd "", cls.id(), selector,
-                            id);
+    if (cls.IsTopLevel()) {
+      const auto& library = Library::Handle(cls.library());
+      const auto& private_key = String::Handle(library.private_key());
+      jsobj.AddFixedServiceId("libraries/%s/%s/%" Pd "",
+                              private_key.ToCString(), selector, id);
+    } else {
+      jsobj.AddFixedServiceId("classes/%" Pd "/%s/%" Pd "", cls.id(), selector,
+                              id);
+    }
     return;
   }
   // Regular functions known to their owner use their name (percent-encoded).
   String& name = String::Handle(f.name());
   if (cls.LookupFunction(name) == f.raw()) {
     const char* encoded_name = String::EncodeIRI(name);
-    jsobj.AddFixedServiceId("classes/%" Pd "/functions/%s", cls.id(),
-                            encoded_name);
+    if (cls.IsTopLevel()) {
+      const auto& library = Library::Handle(cls.library());
+      const auto& private_key = String::Handle(library.private_key());
+      jsobj.AddFixedServiceId("libraries/%s/functions/%s",
+                              private_key.ToCString(), encoded_name);
+    } else {
+      jsobj.AddFixedServiceId("classes/%" Pd "/functions/%s", cls.id(),
+                              encoded_name);
+    }
     return;
   }
   // Oddball functions (not known to their owner) fall back to use the object
@@ -356,8 +370,15 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   String& field_name = String::Handle(name());
   const char* encoded_field_name = String::EncodeIRI(field_name);
   AddCommonObjectProperties(&jsobj, "Field", ref);
-  jsobj.AddFixedServiceId("classes/%" Pd "/fields/%s", cls.id(),
-                          encoded_field_name);
+  if (cls.IsTopLevel()) {
+    const auto& library = Library::Handle(cls.library());
+    const auto& private_key = String::Handle(library.private_key());
+    jsobj.AddFixedServiceId("libraries/%s/fields/%s", private_key.ToCString(),
+                            encoded_field_name);
+  } else {
+    jsobj.AddFixedServiceId("classes/%" Pd "/fields/%s", cls.id(),
+                            encoded_field_name);
+  }
 
   const char* user_name = UserVisibleNameCString();
   const String& vm_name = String::Handle(name());

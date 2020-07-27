@@ -1697,6 +1697,84 @@ static ObjectPtr LookupObjectId(Thread* thread,
   return ring->GetObjectForId(id, kind);
 }
 
+static ObjectPtr LookupClassMembers(Thread* thread,
+                                    const Class& klass,
+                                    char** parts,
+                                    int num_parts) {
+  auto isolate = thread->isolate();
+  auto zone = thread->zone();
+
+  if (num_parts != 4) {
+    return Object::sentinel().raw();
+  }
+
+  const char* encoded_id = parts[3];
+  auto& id = String::Handle(String::New(encoded_id));
+  id = String::DecodeIRI(id);
+  if (id.IsNull()) {
+    return Object::sentinel().raw();
+  }
+
+  if (strcmp(parts[2], "fields") == 0) {
+    // Field ids look like: "classes/17/fields/name"
+    const auto& field = Field::Handle(klass.LookupField(id));
+    if (field.IsNull()) {
+      return Object::sentinel().raw();
+    }
+    return field.raw();
+  }
+  if (strcmp(parts[2], "functions") == 0) {
+    // Function ids look like: "classes/17/functions/name"
+    const auto& function = Function::Handle(klass.LookupFunction(id));
+    if (function.IsNull()) {
+      return Object::sentinel().raw();
+    }
+    return function.raw();
+  }
+  if (strcmp(parts[2], "implicit_closures") == 0) {
+    // Function ids look like: "classes/17/implicit_closures/11"
+    intptr_t id;
+    if (!GetIntegerId(parts[3], &id)) {
+      return Object::sentinel().raw();
+    }
+    const auto& func =
+        Function::Handle(zone, klass.ImplicitClosureFunctionFromIndex(id));
+    if (func.IsNull()) {
+      return Object::sentinel().raw();
+    }
+    return func.raw();
+  }
+  if (strcmp(parts[2], "dispatchers") == 0) {
+    // Dispatcher Function ids look like: "classes/17/dispatchers/11"
+    intptr_t id;
+    if (!GetIntegerId(parts[3], &id)) {
+      return Object::sentinel().raw();
+    }
+    const auto& func =
+        Function::Handle(zone, klass.InvocationDispatcherFunctionFromIndex(id));
+    if (func.IsNull()) {
+      return Object::sentinel().raw();
+    }
+    return func.raw();
+  }
+  if (strcmp(parts[2], "closures") == 0) {
+    // Closure ids look like: "classes/17/closures/11"
+    intptr_t id;
+    if (!GetIntegerId(parts[3], &id)) {
+      return Object::sentinel().raw();
+    }
+    Function& func = Function::Handle(zone);
+    func = isolate->ClosureFunctionFromIndex(id);
+    if (func.IsNull()) {
+      return Object::sentinel().raw();
+    }
+    return func.raw();
+  }
+
+  UNREACHABLE();
+  return Object::sentinel().raw();
+}
+
 static ObjectPtr LookupHeapObjectLibraries(Isolate* isolate,
                                            char** parts,
                                            int num_parts) {
@@ -1724,9 +1802,30 @@ static ObjectPtr LookupHeapObjectLibraries(Isolate* isolate,
   if (!lib_found) {
     return Object::sentinel().raw();
   }
+
+  const auto& klass = Class::Handle(lib.toplevel_class());
+  ASSERT(!klass.IsNull());
+
   if (num_parts == 2) {
     return lib.raw();
   }
+  if (strcmp(parts[2], "fields") == 0) {
+    // Library field ids look like: "libraries/17/fields/name"
+    return LookupClassMembers(Thread::Current(), klass, parts, num_parts);
+  }
+  if (strcmp(parts[2], "functions") == 0) {
+    // Library function ids look like: "libraries/17/functions/name"
+    return LookupClassMembers(Thread::Current(), klass, parts, num_parts);
+  }
+  if (strcmp(parts[2], "closures") == 0) {
+    // Library function ids look like: "libraries/17/closures/name"
+    return LookupClassMembers(Thread::Current(), klass, parts, num_parts);
+  }
+  if (strcmp(parts[2], "implicit_closures") == 0) {
+    // Library function ids look like: "libraries/17/implicit_closures/name"
+    return LookupClassMembers(Thread::Current(), klass, parts, num_parts);
+  }
+
   if (strcmp(parts[2], "scripts") == 0) {
     // Script ids look like "libraries/35/scripts/library%2Furl.dart/12345"
     if (num_parts != 5) {
@@ -1783,86 +1882,19 @@ static ObjectPtr LookupHeapObjectClasses(Thread* thread,
   }
   if (strcmp(parts[2], "closures") == 0) {
     // Closure ids look like: "classes/17/closures/11"
-    if (num_parts != 4) {
-      return Object::sentinel().raw();
-    }
-    intptr_t id;
-    if (!GetIntegerId(parts[3], &id)) {
-      return Object::sentinel().raw();
-    }
-    Function& func = Function::Handle(zone);
-    func = isolate->ClosureFunctionFromIndex(id);
-    if (func.IsNull()) {
-      return Object::sentinel().raw();
-    }
-    return func.raw();
-
+    return LookupClassMembers(thread, cls, parts, num_parts);
   } else if (strcmp(parts[2], "fields") == 0) {
     // Field ids look like: "classes/17/fields/name"
-    if (num_parts != 4) {
-      return Object::sentinel().raw();
-    }
-    const char* encoded_id = parts[3];
-    String& id = String::Handle(zone, String::New(encoded_id));
-    id = String::DecodeIRI(id);
-    if (id.IsNull()) {
-      return Object::sentinel().raw();
-    }
-    Field& field = Field::Handle(zone, cls.LookupField(id));
-    if (field.IsNull()) {
-      return Object::sentinel().raw();
-    }
-    return field.raw();
-
+    return LookupClassMembers(thread, cls, parts, num_parts);
   } else if (strcmp(parts[2], "functions") == 0) {
     // Function ids look like: "classes/17/functions/name"
-    if (num_parts != 4) {
-      return Object::sentinel().raw();
-    }
-    const char* encoded_id = parts[3];
-    String& id = String::Handle(zone, String::New(encoded_id));
-    id = String::DecodeIRI(id);
-    if (id.IsNull()) {
-      return Object::sentinel().raw();
-    }
-    Function& func = Function::Handle(zone, cls.LookupFunction(id));
-    if (func.IsNull()) {
-      return Object::sentinel().raw();
-    }
-    return func.raw();
-
+    return LookupClassMembers(thread, cls, parts, num_parts);
   } else if (strcmp(parts[2], "implicit_closures") == 0) {
     // Function ids look like: "classes/17/implicit_closures/11"
-    if (num_parts != 4) {
-      return Object::sentinel().raw();
-    }
-    intptr_t id;
-    if (!GetIntegerId(parts[3], &id)) {
-      return Object::sentinel().raw();
-    }
-    Function& func = Function::Handle(zone);
-    func = cls.ImplicitClosureFunctionFromIndex(id);
-    if (func.IsNull()) {
-      return Object::sentinel().raw();
-    }
-    return func.raw();
-
+    return LookupClassMembers(thread, cls, parts, num_parts);
   } else if (strcmp(parts[2], "dispatchers") == 0) {
     // Dispatcher Function ids look like: "classes/17/dispatchers/11"
-    if (num_parts != 4) {
-      return Object::sentinel().raw();
-    }
-    intptr_t id;
-    if (!GetIntegerId(parts[3], &id)) {
-      return Object::sentinel().raw();
-    }
-    Function& func = Function::Handle(zone);
-    func = cls.InvocationDispatcherFunctionFromIndex(id);
-    if (func.IsNull()) {
-      return Object::sentinel().raw();
-    }
-    return func.raw();
-
+    return LookupClassMembers(thread, cls, parts, num_parts);
   } else if (strcmp(parts[2], "types") == 0) {
     // Type ids look like: "classes/17/types/11"
     if (num_parts != 4) {
@@ -2707,7 +2739,8 @@ static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
         cls = instance.clazz();
         isStatic = false;
       }
-      if (cls.id() < kInstanceCid || cls.id() == kTypeArgumentsCid) {
+      if (!cls.IsTopLevel() &&
+          (cls.id() < kInstanceCid || cls.id() == kTypeArgumentsCid)) {
         js->PrintError(
             kInvalidParams,
             "Expressions can be evaluated only with regular Dart instances");
