@@ -84,6 +84,7 @@ cc
 ccc
 charcode
 charset
+checkme
 checkout
 cipd
 circular
