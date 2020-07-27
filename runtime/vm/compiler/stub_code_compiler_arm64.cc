@@ -209,7 +209,7 @@ static void GenerateSharedStubGeneric(
   }
   __ LeaveStubFrame();
   __ PopRegisters(all_registers);
-  __ Pop(LR);
+  __ Drop(1);  // We use the LR restored via LeaveStubFrame.
   __ ret(LR);
 }
 
@@ -1331,12 +1331,13 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub(
   // For test purpose call allocation stub without inline allocation attempt.
   if (!FLAG_use_slow_path) {
     Label slow_case;
-    __ TryAllocate(compiler::MintClass(), &slow_case, /*instance_reg=*/R0,
-                   /*temp_reg=*/R1);
+    __ TryAllocate(compiler::MintClass(), &slow_case,
+                   AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
     __ Ret();
 
     __ Bind(&slow_case);
   }
+  COMPILE_ASSERT(AllocateMintABI::kResultReg == R0);
   GenerateSharedStub(assembler, /*save_fpu_registers=*/true,
                      &kAllocateMintRuntimeEntry,
                      target::Thread::allocate_mint_with_fpu_regs_stub_offset(),
@@ -1349,12 +1350,13 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
   // For test purpose call allocation stub without inline allocation attempt.
   if (!FLAG_use_slow_path) {
     Label slow_case;
-    __ TryAllocate(compiler::MintClass(), &slow_case, /*instance_reg=*/R0,
-                   /*temp_reg=*/R1);
+    __ TryAllocate(compiler::MintClass(), &slow_case,
+                   AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
     __ Ret();
 
     __ Bind(&slow_case);
   }
+  COMPILE_ASSERT(AllocateMintABI::kResultReg == R0);
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/false, &kAllocateMintRuntimeEntry,
       target::Thread::allocate_mint_without_fpu_regs_stub_offset(),

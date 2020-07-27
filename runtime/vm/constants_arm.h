@@ -387,6 +387,12 @@ struct RangeErrorABI {
   static const Register kIndexReg = R1;
 };
 
+// ABI for AllocateMint*Stub.
+struct AllocateMintABI {
+  static const Register kResultReg = R0;
+  static const Register kTempReg = R1;
+};
+
 // TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
 // of reusing the constants of the instantiation stubs ABI.
 

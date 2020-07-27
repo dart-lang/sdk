@@ -194,14 +194,11 @@ static void GenerateSharedStubGeneric(
     return;
   }
   __ LeaveStubFrame();
-
-  // Drop "official" return address -- we can just use the one stored above the
-  // saved registers.
-  __ Drop(1);
-
+  // Copy up the return address (in case it was changed).
+  __ popq(TMP);
+  __ movq(Address(RSP, kAllSavedRegistersSlots * target::kWordSize), TMP);
   __ PopRegisters(kDartAvailableCpuRegs,
                   save_fpu_registers ? kAllFpuRegistersList : 0);
-
   __ ret();
 }
 
@@ -209,9 +206,20 @@ static void GenerateSharedStub(Assembler* assembler,
                                bool save_fpu_registers,
                                const RuntimeEntry* target,
                                intptr_t self_code_stub_offset_from_thread,
-                               bool allow_return) {
+                               bool allow_return,
+                               bool store_runtime_result_in_rax = false) {
   auto perform_runtime_call = [&]() {
+    if (store_runtime_result_in_rax) {
+      __ PushImmediate(Immediate(0));
+    }
     __ CallRuntime(*target, /*argument_count=*/0);
+    if (store_runtime_result_in_rax) {
+      __ PopRegister(RAX);
+      __ movq(Address(RBP,
+                      target::kWordSize *
+                          StubCodeCompiler::WordOffsetFromFpToCpuRegister(RAX)),
+              RAX);
+    }
   };
   GenerateSharedStubGeneric(assembler, save_fpu_registers,
                             self_code_stub_offset_from_thread, allow_return,
@@ -1241,12 +1249,40 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
 
 void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub(
     Assembler* assembler) {
-  __ Stop("Unimplemented");
+  // For test purpose call allocation stub without inline allocation attempt.
+  if (!FLAG_use_slow_path) {
+    Label slow_case;
+    __ TryAllocate(compiler::MintClass(), &slow_case, /*near_jump=*/true,
+                   AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
+    __ Ret();
+
+    __ Bind(&slow_case);
+  }
+  COMPILE_ASSERT(AllocateMintABI::kResultReg == RAX);
+  GenerateSharedStub(assembler, /*save_fpu_registers=*/true,
+                     &kAllocateMintRuntimeEntry,
+                     target::Thread::allocate_mint_with_fpu_regs_stub_offset(),
+                     /*allow_return=*/true,
+                     /*store_runtime_result_in_rax=*/true);
 }
 
 void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
     Assembler* assembler) {
-  __ Stop("Unimplemented");
+  // For test purpose call allocation stub without inline allocation attempt.
+  if (!FLAG_use_slow_path) {
+    Label slow_case;
+    __ TryAllocate(compiler::MintClass(), &slow_case, /*near_jump=*/true,
+                   AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
+    __ Ret();
+
+    __ Bind(&slow_case);
+  }
+  COMPILE_ASSERT(AllocateMintABI::kResultReg == RAX);
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/false, &kAllocateMintRuntimeEntry,
+      target::Thread::allocate_mint_without_fpu_regs_stub_offset(),
+      /*allow_return=*/true,
+      /*store_runtime_result_in_rax=*/true);
 }
 
 // Called when invoking Dart code from C++ (VM code).

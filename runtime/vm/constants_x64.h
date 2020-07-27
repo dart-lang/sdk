@@ -200,6 +200,12 @@ struct RangeErrorABI {
   static const Register kIndexReg = RBX;
 };
 
+// ABI for AllocateMint*Stub.
+struct AllocateMintABI {
+  static const Register kResultReg = RAX;
+  static const Register kTempReg = RBX;
+};
+
 // Registers used inside the implementation of type testing stubs.
 struct TTSInternalRegs {
   static const Register kInstanceTypeArgumentsReg = RSI;
