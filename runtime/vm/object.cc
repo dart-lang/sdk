@@ -1125,6 +1125,9 @@ void Object::Init(Isolate* isolate) {
   error_str = String::New("Background Compilation Failed", Heap::kOld);
   *background_compilation_error_ =
       LanguageError::New(error_str, Report::kBailout, Heap::kOld);
+  error_str = String::New("Out of memory", Heap::kOld);
+  *out_of_memory_error_ =
+      LanguageError::New(error_str, Report::kBailout, Heap::kOld);
 
   // Allocate the parameter arrays for method extractor types and names.
   *extractor_parameter_types_ = Array::New(1, Heap::kOld);
@@ -1215,6 +1218,8 @@ void Object::Init(Isolate* isolate) {
   ASSERT(speculative_inlining_error_->IsLanguageError());
   ASSERT(!background_compilation_error_->IsSmi());
   ASSERT(background_compilation_error_->IsLanguageError());
+  ASSERT(!out_of_memory_error_->IsSmi());
+  ASSERT(out_of_memory_error_->IsLanguageError());
   ASSERT(!vm_isolate_snapshot_object_table_->IsSmi());
   ASSERT(vm_isolate_snapshot_object_table_->IsArray());
   ASSERT(!extractor_parameter_types_->IsSmi());
@@ -2645,8 +2650,11 @@ ObjectPtr Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
           Instance::Handle(thread->isolate()->object_store()->out_of_memory());
       Exceptions::Throw(thread, exception);
       UNREACHABLE();
+    } else if (thread->long_jump_base() != nullptr) {
+      Report::LongJump(Object::out_of_memory_error());
+      UNREACHABLE();
     } else {
-      // No Dart to propagate an exception to.
+      // Nowhere to propagate an exception to.
       OUT_OF_MEMORY();
     }
   }
