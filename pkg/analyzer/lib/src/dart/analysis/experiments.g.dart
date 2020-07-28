@@ -22,6 +22,7 @@ const _knownFeatures = <String, ExperimentalFeature>{
   EnableString.set_literals: ExperimentalFeatures.set_literals,
   EnableString.spread_collections: ExperimentalFeatures.spread_collections,
   EnableString.triple_shift: ExperimentalFeatures.triple_shift,
+  EnableString.value_class: ExperimentalFeatures.value_class,
   EnableString.variance: ExperimentalFeatures.variance,
 };
 
@@ -34,6 +35,7 @@ List<bool> _buildExperimentalFlagsArray() => <bool>[
       true, // set-literals
       true, // spread-collections
       IsEnabledByDefault.triple_shift,
+      IsEnabledByDefault.value_class,
       IsEnabledByDefault.variance,
     ];
 
@@ -63,6 +65,9 @@ class EnableString {
 
   /// String to enable the experiment "triple-shift"
   static const String triple_shift = 'triple-shift';
+
+  /// String to enable the experiment "value-class"
+  static const String value_class = 'value-class';
 
   /// String to enable the experiment "variance"
   static const String variance = 'variance';
@@ -141,8 +146,17 @@ class ExperimentalFeatures {
     firstSupportedVersion: null,
   );
 
-  static const variance = ExperimentalFeature(
+  static const value_class = ExperimentalFeature(
     index: 8,
+    enableString: EnableString.value_class,
+    isEnabledByDefault: IsEnabledByDefault.value_class,
+    isExpired: IsExpired.value_class,
+    documentation: 'Value class',
+    firstSupportedVersion: null,
+  );
+
+  static const variance = ExperimentalFeature(
+    index: 9,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -178,6 +192,9 @@ class IsEnabledByDefault {
   /// Default state of the experiment "triple-shift"
   static const bool triple_shift = false;
 
+  /// Default state of the experiment "value-class"
+  static const bool value_class = false;
+
   /// Default state of the experiment "variance"
   static const bool variance = false;
 }
@@ -209,6 +226,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "triple-shift"
   static const bool triple_shift = false;
+
+  /// Expiration status of the experiment "value-class"
+  static const bool value_class = false;
 
   /// Expiration status of the experiment "variance"
   static const bool variance = false;
@@ -243,6 +263,9 @@ mixin _CurrentState {
 
   /// Current state for the flag "triple-shift"
   bool get triple_shift => isEnabled(ExperimentalFeatures.triple_shift);
+
+  /// Current state for the flag "value-class"
+  bool get value_class => isEnabled(ExperimentalFeatures.value_class);
 
   /// Current state for the flag "variance"
   bool get variance => isEnabled(ExperimentalFeatures.variance);
