@@ -8,6 +8,15 @@ import 'package:path/path.dart' as p;
 /// Emit the given word with the correct pluralization.
 String pluralize(String word, int count) => count == 1 ? word : '${word}s';
 
+/// Make an absolute [filePath] relative to [dir] (for display purposes).
+String relativePath(String filePath, Directory dir) {
+  var root = dir.absolute.path;
+  if (filePath.startsWith(root)) {
+    return filePath.substring(root.length + 1);
+  }
+  return filePath;
+}
+
 /// String utility to trim some suffix from the end of a [String].
 String trimEnd(String s, String suffix) {
   if (s != null && suffix != null && suffix.isNotEmpty && s.endsWith(suffix)) {

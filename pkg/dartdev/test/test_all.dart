@@ -8,6 +8,7 @@ import 'analytics_test.dart' as analytics;
 import 'commands/analyze_test.dart' as analyze;
 import 'commands/compile_test.dart' as compile;
 import 'commands/create_test.dart' as create;
+import 'commands/fix_test.dart' as fix;
 import 'commands/flag_test.dart' as flag;
 import 'commands/format_test.dart' as format;
 import 'commands/help_test.dart' as help;
@@ -24,6 +25,7 @@ void main() {
     analytics.main();
     analyze.main();
     create.main();
+    fix.main();
     flag.main();
     format.main();
     help.main();
