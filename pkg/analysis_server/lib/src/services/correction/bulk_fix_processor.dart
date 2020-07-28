@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_documentati
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
@@ -31,6 +32,7 @@ class BulkFixProcessor {
   /// generators used for non-lint diagnostics are in the [nonLintProducerMap].
   static const Map<String, ProducerGenerator> lintProducerMap = {
     LintNames.annotate_overrides: AddOverride.newInstance,
+    LintNames.avoid_annotating_with_dynamic: RemoveTypeAnnotation.newInstance,
     LintNames.avoid_init_to_null: RemoveInitializer.newInstance,
     LintNames.avoid_single_cascade_in_expression_statements:
         ReplaceCascadeWithDot.newInstance,
