@@ -1239,26 +1239,24 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
   /// library code.
   TypeInformation handleIntrisifiedSelector(
       Selector selector, AbstractValue mask, InferrerEngine inferrer) {
-    JClosedWorld closedWorld = inferrer.closedWorld;
+    AbstractValueDomain abstractValueDomain = inferrer.abstractValueDomain;
     if (mask == null) return null;
-    if (inferrer.abstractValueDomain.isIntegerOrNull(mask).isPotentiallyFalse) {
+    if (abstractValueDomain.isIntegerOrNull(mask).isPotentiallyFalse) {
       return null;
     }
     if (!selector.isCall && !selector.isOperator) return null;
     if (!arguments.named.isEmpty) return null;
     if (arguments.positional.length > 1) return null;
 
-    ClassEntity uint31Implementation = closedWorld.commonElements.jsUInt31Class;
-    bool isInt(info) => info.type.containsOnlyInt(closedWorld);
-    bool isEmpty(info) => info.type.isEmpty;
-    bool isUInt31(info) {
-      return info.type.satisfies(uint31Implementation, closedWorld);
-    }
-
-    bool isPositiveInt(info) {
-      return info.type.satisfies(
-          closedWorld.commonElements.jsPositiveIntClass, closedWorld);
-    }
+    bool isInt(info) =>
+        abstractValueDomain.isIntegerOrNull(info.type).isDefinitelyTrue;
+    bool isEmpty(info) =>
+        abstractValueDomain.isEmpty(info.type).isDefinitelyTrue;
+    bool isUInt31(info) => abstractValueDomain
+        .isUInt31(abstractValueDomain.excludeNull(info.type))
+        .isDefinitelyTrue;
+    bool isPositiveInt(info) =>
+        abstractValueDomain.isPositiveIntegerOrNull(info.type).isDefinitelyTrue;
 
     TypeInformation tryLater() => inferrer.types.nonNullEmptyType;
 

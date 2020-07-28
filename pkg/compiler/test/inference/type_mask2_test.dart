@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/world.dart' show JClosedWorld;
 import '../helpers/type_test_helper.dart';
@@ -32,26 +33,27 @@ checkMasks(JClosedWorld closedWorld, List<ClassEntity> allClasses,
     List<FlatTypeMask> disjointMasks,
     FlatTypeMask flattened,
     List<ClassEntity> containedClasses}) {
+  AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
   bool isNullable = masks.any((FlatTypeMask mask) => mask.isNullable);
   List<FlatTypeMask> disjoint = <FlatTypeMask>[];
-  UnionTypeMask.unionOfHelper(masks, disjoint, closedWorld);
+  UnionTypeMask.unionOfHelper(masks, disjoint, commonMasks);
   Expect.listEquals(disjointMasks, disjoint,
       'Unexpected disjoint masks: $disjoint, expected $disjointMasks.');
   if (flattened == null) {
     Expect.throws(
-        () => UnionTypeMask.flatten(disjoint, isNullable, closedWorld),
+        () => UnionTypeMask.flatten(disjoint, isNullable, commonMasks),
         (e) => e is ArgumentError,
         'Expect argument error on flattening of $disjoint.');
   } else {
     TypeMask flattenResult =
-        UnionTypeMask.flatten(disjoint, isNullable, closedWorld);
+        UnionTypeMask.flatten(disjoint, isNullable, commonMasks);
     Expect.equals(
         flattened,
         flattenResult,
         'Unexpected flattening of $disjoint: '
         '$flattenResult, expected $flattened.');
   }
-  dynamic union = UnionTypeMask.unionOf(masks, closedWorld);
+  dynamic union = UnionTypeMask.unionOf(masks, commonMasks);
   if (result == null) {
     Expect.isTrue(union is UnionTypeMask,
         'Expected union of $masks to be a union-type: $union.');

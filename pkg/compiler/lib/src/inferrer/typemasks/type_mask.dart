@@ -110,9 +110,9 @@ enum TypeMaskKind {
 /// yield conservative answers that contain too many classes.
 abstract class TypeMask implements AbstractValue {
   factory TypeMask(
-      ClassEntity base, int kind, bool isNullable, JClosedWorld closedWorld) {
+      ClassEntity base, int kind, bool isNullable, CommonMasks domain) {
     return new FlatTypeMask.normalized(
-        base, (kind << 1) | (isNullable ? 1 : 0), closedWorld);
+        base, (kind << 1) | (isNullable ? 1 : 0), domain);
   }
 
   const factory TypeMask.empty() = FlatTypeMask.empty;
@@ -217,8 +217,8 @@ abstract class TypeMask implements AbstractValue {
     }
   }
 
-  factory TypeMask.unionOf(Iterable<TypeMask> masks, JClosedWorld closedWorld) {
-    return UnionTypeMask.unionOf(masks, closedWorld);
+  factory TypeMask.unionOf(Iterable<TypeMask> masks, CommonMasks domain) {
+    return UnionTypeMask.unionOf(masks, domain);
   }
 
   /// Deserializes a [TypeMask] object from [source].
@@ -394,13 +394,13 @@ abstract class TypeMask implements AbstractValue {
   ClassEntity singleClass(JClosedWorld closedWorld);
 
   /// Returns a type mask representing the union of [this] and [other].
-  TypeMask union(TypeMask other, JClosedWorld closedWorld);
+  TypeMask union(TypeMask other, CommonMasks domain);
 
   /// Returns whether the intersection of this and [other] is empty.
   bool isDisjoint(TypeMask other, JClosedWorld closedWorld);
 
   /// Returns a type mask representing the intersection of [this] and [other].
-  TypeMask intersection(TypeMask other, JClosedWorld closedWorld);
+  TypeMask intersection(TypeMask other, CommonMasks domain);
 
   /// Returns whether [element] is a potential target when being invoked on this
   /// type mask.

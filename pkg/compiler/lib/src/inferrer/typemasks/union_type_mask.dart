@@ -50,33 +50,33 @@ class UnionTypeMask implements TypeMask {
     sink.end(tag);
   }
 
-  static TypeMask unionOf(Iterable<TypeMask> masks, JClosedWorld closedWorld) {
-    assert(
-        masks.every((mask) => TypeMask.assertIsNormalized(mask, closedWorld)));
+  static TypeMask unionOf(Iterable<TypeMask> masks, CommonMasks domain) {
+    assert(masks.every(
+        (mask) => TypeMask.assertIsNormalized(mask, domain._closedWorld)));
     List<FlatTypeMask> disjoint = <FlatTypeMask>[];
     bool isNullable = masks.any((TypeMask mask) => mask.isNullable);
-    unionOfHelper(masks, disjoint, closedWorld);
+    unionOfHelper(masks, disjoint, domain);
     if (disjoint.isEmpty)
       return isNullable ? TypeMask.empty() : TypeMask.nonNullEmpty();
     if (disjoint.length > MAX_UNION_LENGTH) {
-      return flatten(disjoint, isNullable, closedWorld);
+      return flatten(disjoint, isNullable, domain);
     }
     if (disjoint.length == 1)
       return isNullable ? disjoint[0].nullable() : disjoint[0];
     UnionTypeMask union = new UnionTypeMask._internal(disjoint, isNullable);
-    assert(TypeMask.assertIsNormalized(union, closedWorld));
+    assert(TypeMask.assertIsNormalized(union, domain._closedWorld));
     return union;
   }
 
   static void unionOfHelper(Iterable<TypeMask> masks,
-      List<FlatTypeMask> disjoint, JClosedWorld closedWorld) {
+      List<FlatTypeMask> disjoint, CommonMasks domain) {
     // TODO(johnniwinther): Impose an order on the mask to ensure subclass masks
     // are preferred to subtype masks.
     for (TypeMask mask in masks) {
       mask = TypeMask.nonForwardingMask(mask).nonNullable();
       if (mask.isUnion) {
         UnionTypeMask union = mask;
-        unionOfHelper(union.disjointMasks, disjoint, closedWorld);
+        unionOfHelper(union.disjointMasks, disjoint, domain);
       } else if (mask.isEmpty) {
         continue;
       } else {
@@ -89,7 +89,7 @@ class UnionTypeMask implements TypeMask {
         for (int i = 0; i < disjoint.length; i++) {
           FlatTypeMask current = disjoint[i];
           if (current == null) continue;
-          TypeMask newMask = flatMask.union(current, closedWorld);
+          TypeMask newMask = flatMask.union(current, domain);
           // If we have found a disjoint union, continue iterating.
           if (newMask.isUnion) continue;
           covered = true;
@@ -122,7 +122,7 @@ class UnionTypeMask implements TypeMask {
   }
 
   static TypeMask flatten(
-      List<FlatTypeMask> masks, bool includeNull, JClosedWorld closedWorld) {
+      List<FlatTypeMask> masks, bool includeNull, CommonMasks domain) {
     // TODO(johnniwinther): Move this computation to [ClosedWorld] and use the
     // class set structures.
     if (masks.isEmpty) throw ArgumentError.value(masks, 'masks');
@@ -132,7 +132,7 @@ class UnionTypeMask implements TypeMask {
 
     List<ClassEntity> masksBases = masks.map((mask) => mask.base).toList();
     Iterable<ClassEntity> candidates =
-        closedWorld.commonSupertypesOf(masksBases);
+        domain._closedWorld.commonSupertypesOf(masksBases);
 
     // Compute the best candidate and its kind.
     ClassEntity bestElement;
@@ -141,8 +141,8 @@ class UnionTypeMask implements TypeMask {
     for (ClassEntity candidate in candidates) {
       bool isInstantiatedStrictSubclass(cls) =>
           cls != candidate &&
-          closedWorld.classHierarchy.isExplicitlyInstantiated(cls) &&
-          closedWorld.classHierarchy.isSubclassOf(cls, candidate);
+          domain._closedWorld.classHierarchy.isExplicitlyInstantiated(cls) &&
+          domain._closedWorld.classHierarchy.isSubclassOf(cls, candidate);
 
       int size;
       int kind;
@@ -155,12 +155,13 @@ class UnionTypeMask implements TypeMask {
         // TODO(sigmund, johnniwinther): computing length here (and below) is
         // expensive. If we can't prevent `flatten` from being called a lot, it
         // might be worth caching results.
-        size = closedWorld.classHierarchy.strictSubclassCount(candidate);
-        assert(
-            size <= closedWorld.classHierarchy.strictSubtypeCount(candidate));
+        size =
+            domain._closedWorld.classHierarchy.strictSubclassCount(candidate);
+        assert(size <=
+            domain._closedWorld.classHierarchy.strictSubtypeCount(candidate));
       } else {
         kind = FlatTypeMask.SUBTYPE;
-        size = closedWorld.classHierarchy.strictSubtypeCount(candidate);
+        size = domain._closedWorld.classHierarchy.strictSubtypeCount(candidate);
       }
       // Update the best candidate if the new one is better.
       if (bestElement == null || size < bestSize) {
@@ -169,11 +170,11 @@ class UnionTypeMask implements TypeMask {
         bestKind = kind;
       }
     }
-    return new TypeMask(bestElement, bestKind, includeNull, closedWorld);
+    return new TypeMask(bestElement, bestKind, includeNull, domain);
   }
 
   @override
-  TypeMask union(dynamic other, JClosedWorld closedWorld) {
+  TypeMask union(dynamic other, CommonMasks domain) {
     other = TypeMask.nonForwardingMask(other);
     if (other is UnionTypeMask) {
       if (_containsNonNullableUnion(other)) {
@@ -195,12 +196,12 @@ class UnionTypeMask implements TypeMask {
       assert(other is UnionTypeMask);
       newList.addAll(other.disjointMasks);
     }
-    TypeMask newMask = new TypeMask.unionOf(newList, closedWorld);
+    TypeMask newMask = new TypeMask.unionOf(newList, domain);
     return isNullable || other.isNullable ? newMask.nullable() : newMask;
   }
 
   @override
-  TypeMask intersection(dynamic other, JClosedWorld closedWorld) {
+  TypeMask intersection(dynamic other, CommonMasks domain) {
     other = TypeMask.nonForwardingMask(other);
     if (other is UnionTypeMask) {
       if (_containsNonNullableUnion(other)) {
@@ -223,14 +224,14 @@ class UnionTypeMask implements TypeMask {
           intersections.add(current);
         } else {
           for (FlatTypeMask flatOther in other.disjointMasks) {
-            intersections.add(current.intersection(flatOther, closedWorld));
+            intersections.add(current.intersection(flatOther, domain));
           }
         }
       } else {
-        intersections.add(current.intersection(other, closedWorld));
+        intersections.add(current.intersection(other, domain));
       }
     }
-    TypeMask newMask = TypeMask.unionOf(intersections, closedWorld);
+    TypeMask newMask = TypeMask.unionOf(intersections, domain);
     return isNullable && other.isNullable ? newMask.nullable() : newMask;
   }
 

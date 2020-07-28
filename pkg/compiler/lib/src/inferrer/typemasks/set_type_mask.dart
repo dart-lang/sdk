@@ -79,14 +79,14 @@ class SetTypeMask extends AllocationTypeMask {
   }
 
   @override
-  TypeMask intersection(TypeMask other, JClosedWorld closedWorld) {
-    TypeMask forwardIntersection = forwardTo.intersection(other, closedWorld);
+  TypeMask intersection(TypeMask other, CommonMasks domain) {
+    TypeMask forwardIntersection = forwardTo.intersection(other, domain);
     if (forwardIntersection.isEmptyOrNull) return forwardIntersection;
     return forwardIntersection.isNullable ? nullable() : nonNullable();
   }
 
   @override
-  TypeMask union(dynamic other, JClosedWorld closedWorld) {
+  TypeMask union(dynamic other, CommonMasks domain) {
     if (this == other) {
       return this;
     } else if (equalsDisregardNull(other)) {
@@ -96,12 +96,11 @@ class SetTypeMask extends AllocationTypeMask {
     } else if (other.isSet &&
         elementType != null &&
         other.elementType != null) {
-      TypeMask newElementType =
-          elementType.union(other.elementType, closedWorld);
-      TypeMask newForwardTo = forwardTo.union(other.forwardTo, closedWorld);
+      TypeMask newElementType = elementType.union(other.elementType, domain);
+      TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);
       return new SetTypeMask(newForwardTo, null, null, newElementType);
     } else {
-      return forwardTo.union(other, closedWorld);
+      return forwardTo.union(other, domain);
     }
   }
 

@@ -53,25 +53,24 @@ class FlatTypeMask implements TypeMask {
   /// Ensures that the generated mask is normalized, i.e., a call to
   /// [TypeMask.assertIsNormalized] with the factory's result returns `true`.
   factory FlatTypeMask.normalized(
-      ClassEntity base, int flags, JClosedWorld world) {
-    if (base == world.commonElements.nullClass) {
+      ClassEntity base, int flags, CommonMasks domain) {
+    if (base == domain.commonElements.nullClass) {
       return FlatTypeMask.empty();
     }
     if ((flags >> 1) == EMPTY || ((flags >> 1) == EXACT)) {
       return new FlatTypeMask._(base, flags);
     }
     if ((flags >> 1) == SUBTYPE) {
-      if (!world.classHierarchy.hasAnyStrictSubtype(base) ||
-          world.classHierarchy.hasOnlySubclasses(base)) {
+      if (!domain._closedWorld.classHierarchy.hasAnyStrictSubtype(base) ||
+          domain._closedWorld.classHierarchy.hasOnlySubclasses(base)) {
         flags = (flags & 0x1) | (SUBCLASS << 1);
       }
     }
     if (((flags >> 1) == SUBCLASS) &&
-        !world.classHierarchy.hasAnyStrictSubclass(base)) {
+        !domain._closedWorld.classHierarchy.hasAnyStrictSubclass(base)) {
       flags = (flags & 0x1) | (EXACT << 1);
     }
-    CommonMasks commonMasks = world.abstractValueDomain;
-    return commonMasks.getCachedMask(
+    return domain.getCachedMask(
         base, flags, () => new FlatTypeMask._(base, flags));
   }
 
@@ -298,26 +297,27 @@ class FlatTypeMask implements TypeMask {
   }
 
   @override
-  TypeMask union(TypeMask other, JClosedWorld closedWorld) {
+  TypeMask union(TypeMask other, CommonMasks domain) {
+    JClosedWorld closedWorld = domain._closedWorld;
     assert(other != null);
     assert(TypeMask.assertIsNormalized(this, closedWorld));
     assert(TypeMask.assertIsNormalized(other, closedWorld));
-    if (other is! FlatTypeMask) return other.union(this, closedWorld);
+    if (other is! FlatTypeMask) return other.union(this, domain);
     FlatTypeMask flatOther = other;
     if (isEmptyOrNull) {
       return isNullable ? flatOther.nullable() : flatOther;
     } else if (flatOther.isEmptyOrNull) {
       return flatOther.isNullable ? nullable() : this;
     } else if (base == flatOther.base) {
-      return unionSame(flatOther, closedWorld);
+      return unionSame(flatOther, domain);
     } else if (closedWorld.classHierarchy.isSubclassOf(flatOther.base, base)) {
-      return unionStrictSubclass(flatOther, closedWorld);
+      return unionStrictSubclass(flatOther, domain);
     } else if (closedWorld.classHierarchy.isSubclassOf(base, flatOther.base)) {
-      return flatOther.unionStrictSubclass(this, closedWorld);
+      return flatOther.unionStrictSubclass(this, domain);
     } else if (closedWorld.classHierarchy.isSubtypeOf(flatOther.base, base)) {
-      return unionStrictSubtype(flatOther, closedWorld);
+      return unionStrictSubtype(flatOther, domain);
     } else if (closedWorld.classHierarchy.isSubtypeOf(base, flatOther.base)) {
-      return flatOther.unionStrictSubtype(this, closedWorld);
+      return flatOther.unionStrictSubtype(this, domain);
     } else {
       return new UnionTypeMask._internal(
           <FlatTypeMask>[this.nonNullable(), flatOther.nonNullable()],
@@ -325,10 +325,10 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
-  TypeMask unionSame(FlatTypeMask other, JClosedWorld closedWorld) {
+  TypeMask unionSame(FlatTypeMask other, CommonMasks domain) {
     assert(base == other.base);
-    assert(TypeMask.assertIsNormalized(this, closedWorld));
-    assert(TypeMask.assertIsNormalized(other, closedWorld));
+    assert(TypeMask.assertIsNormalized(this, domain._closedWorld));
+    assert(TypeMask.assertIsNormalized(other, domain._closedWorld));
     // The two masks share the base type, so we must chose the least
     // constraining kind (the highest) of the two. If either one of
     // the masks are nullable the result should be nullable too.
@@ -341,18 +341,18 @@ class FlatTypeMask implements TypeMask {
     } else if (other.flags == combined) {
       return other;
     } else {
-      return new FlatTypeMask.normalized(base, combined, closedWorld);
+      return new FlatTypeMask.normalized(base, combined, domain);
     }
   }
 
-  TypeMask unionStrictSubclass(FlatTypeMask other, JClosedWorld closedWorld) {
+  TypeMask unionStrictSubclass(FlatTypeMask other, CommonMasks domain) {
     assert(base != other.base);
-    assert(closedWorld.classHierarchy.isSubclassOf(other.base, base));
-    assert(TypeMask.assertIsNormalized(this, closedWorld));
-    assert(TypeMask.assertIsNormalized(other, closedWorld));
+    assert(domain._closedWorld.classHierarchy.isSubclassOf(other.base, base));
+    assert(TypeMask.assertIsNormalized(this, domain._closedWorld));
+    assert(TypeMask.assertIsNormalized(other, domain._closedWorld));
     int combined;
     if ((isExact && other.isExact) ||
-        base == closedWorld.commonElements.objectClass) {
+        base == domain.commonElements.objectClass) {
       // Since the other mask is a subclass of this mask, we need the
       // resulting union to be a subclass too. If either one of the
       // masks are nullable the result should be nullable too.
@@ -368,16 +368,16 @@ class FlatTypeMask implements TypeMask {
     // If we weaken the constraint on this type, we have to make sure that
     // the result is normalized.
     return (flags != combined)
-        ? new FlatTypeMask.normalized(base, combined, closedWorld)
+        ? new FlatTypeMask.normalized(base, combined, domain)
         : this;
   }
 
-  TypeMask unionStrictSubtype(FlatTypeMask other, JClosedWorld closedWorld) {
+  TypeMask unionStrictSubtype(FlatTypeMask other, CommonMasks domain) {
     assert(base != other.base);
-    assert(!closedWorld.classHierarchy.isSubclassOf(other.base, base));
-    assert(closedWorld.classHierarchy.isSubtypeOf(other.base, base));
-    assert(TypeMask.assertIsNormalized(this, closedWorld));
-    assert(TypeMask.assertIsNormalized(other, closedWorld));
+    assert(!domain._closedWorld.classHierarchy.isSubclassOf(other.base, base));
+    assert(domain._closedWorld.classHierarchy.isSubtypeOf(other.base, base));
+    assert(TypeMask.assertIsNormalized(this, domain._closedWorld));
+    assert(TypeMask.assertIsNormalized(other, domain._closedWorld));
     // Since the other mask is a subtype of this mask, we need the
     // resulting union to be a subtype too. If either one of the masks
     // are nullable the result should be nullable too.
@@ -385,16 +385,16 @@ class FlatTypeMask implements TypeMask {
     // We know there is at least one subtype, [other.base], so no need
     // to normalize.
     return (flags != combined)
-        ? new FlatTypeMask.normalized(base, combined, closedWorld)
+        ? new FlatTypeMask.normalized(base, combined, domain)
         : this;
   }
 
   @override
-  TypeMask intersection(TypeMask other, JClosedWorld closedWorld) {
+  TypeMask intersection(TypeMask other, CommonMasks domain) {
     assert(other != null);
-    if (other is! FlatTypeMask) return other.intersection(this, closedWorld);
-    assert(TypeMask.assertIsNormalized(this, closedWorld));
-    assert(TypeMask.assertIsNormalized(other, closedWorld));
+    if (other is! FlatTypeMask) return other.intersection(this, domain);
+    assert(TypeMask.assertIsNormalized(this, domain._closedWorld));
+    assert(TypeMask.assertIsNormalized(other, domain._closedWorld));
     FlatTypeMask flatOther = other;
 
     ClassEntity otherBase = flatOther.base;
@@ -407,14 +407,12 @@ class FlatTypeMask implements TypeMask {
       return includeNull ? other : other.nonNullable();
     }
 
-    SubclassResult result = closedWorld.classHierarchy
+    SubclassResult result = domain._closedWorld.classHierarchy
         .commonSubclasses(base, _classQuery, otherBase, flatOther._classQuery);
 
     switch (result.kind) {
       case SubclassResultKind.EMPTY:
-        return includeNull
-            ? closedWorld.abstractValueDomain.nullType
-            : closedWorld.abstractValueDomain.emptyType;
+        return includeNull ? domain.nullType : domain.emptyType;
       case SubclassResultKind.EXACT1:
         assert(isExact);
         return includeNull ? this : nonNullable();
@@ -436,20 +434,19 @@ class FlatTypeMask implements TypeMask {
       case SubclassResultKind.SET:
       default:
         if (result.classes.isEmpty) {
-          return includeNull
-              ? closedWorld.abstractValueDomain.nullType
-              : closedWorld.abstractValueDomain.emptyType;
+          return includeNull ? domain.nullType : domain.emptyType;
         } else if (result.classes.length == 1) {
           ClassEntity cls = result.classes.first;
           return includeNull
-              ? new TypeMask.subclass(cls, closedWorld)
-              : new TypeMask.nonNullSubclass(cls, closedWorld);
+              ? new TypeMask.subclass(cls, domain._closedWorld)
+              : new TypeMask.nonNullSubclass(cls, domain._closedWorld);
         }
 
         List<FlatTypeMask> masks = List.from(result.classes.map(
-            (ClassEntity cls) => TypeMask.nonNullSubclass(cls, closedWorld)));
+            (ClassEntity cls) =>
+                TypeMask.nonNullSubclass(cls, domain._closedWorld)));
         if (masks.length > UnionTypeMask.MAX_UNION_LENGTH) {
-          return UnionTypeMask.flatten(masks, includeNull, closedWorld);
+          return UnionTypeMask.flatten(masks, includeNull, domain);
         }
         return new UnionTypeMask._internal(masks, includeNull);
     }
@@ -501,7 +498,7 @@ class FlatTypeMask implements TypeMask {
     return true;
   }
 
-  TypeMask intersectionSame(FlatTypeMask other, JClosedWorld closedWorld) {
+  TypeMask intersectionSame(FlatTypeMask other, CommonMasks domain) {
     assert(base == other.base);
     // The two masks share the base type, so we must chose the most
     // constraining kind (the lowest) of the two. Only if both masks
@@ -515,14 +512,13 @@ class FlatTypeMask implements TypeMask {
     } else if (other.flags == combined) {
       return other;
     } else {
-      return new FlatTypeMask.normalized(base, combined, closedWorld);
+      return new FlatTypeMask.normalized(base, combined, domain);
     }
   }
 
-  TypeMask intersectionStrictSubclass(
-      FlatTypeMask other, JClosedWorld closedWorld) {
+  TypeMask intersectionStrictSubclass(FlatTypeMask other, CommonMasks domain) {
     assert(base != other.base);
-    assert(closedWorld.classHierarchy.isSubclassOf(other.base, base));
+    assert(domain._closedWorld.classHierarchy.isSubclassOf(other.base, base));
     // If this mask isn't at least a subclass mask, then the
     // intersection with the other mask is empty.
     if (isExact) return intersectionEmpty(other);
@@ -535,7 +531,7 @@ class FlatTypeMask implements TypeMask {
     if (other.flags == combined) {
       return other;
     } else {
-      return new FlatTypeMask.normalized(other.base, combined, closedWorld);
+      return new FlatTypeMask.normalized(other.base, combined, domain);
     }
   }
 

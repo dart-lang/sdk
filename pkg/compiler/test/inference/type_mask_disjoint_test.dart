@@ -9,6 +9,7 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/world.dart';
 
@@ -48,6 +49,7 @@ main() {
     Compiler compiler = result.compiler;
     JClosedWorld world = compiler.backendClosedWorldForTesting;
     ElementEnvironment elementEnvironment = world.elementEnvironment;
+    AbstractValueDomain commonMasks = world.abstractValueDomain;
 
     /// Checks the expectation of `isDisjoint` for two mask. Also checks that
     /// the result is consistent with an equivalent (but slower) implementation
@@ -56,9 +58,9 @@ main() {
       print('masks: $m1 $m2');
       Expect.equals(areDisjoint, m1.isDisjoint(m2, world));
       Expect.equals(areDisjoint, m2.isDisjoint(m1, world));
-      var i1 = m1.intersection(m2, world);
+      var i1 = m1.intersection(m2, commonMasks);
       Expect.equals(areDisjoint, i1.isEmpty && !i1.isNullable);
-      var i2 = m2.intersection(m1, world);
+      var i2 = m2.intersection(m1, commonMasks);
       Expect.equals(areDisjoint, i2.isEmpty && !i2.isNullable);
     }
 
@@ -123,8 +125,10 @@ main() {
     checkUnions(List<String> descriptors1, List<String> descriptors2,
         {areDisjoint: true}) {
       print('[$descriptors1] & [$descriptors2]');
-      var m1 = new TypeMask.unionOf(descriptors1.map(maskOf).toList(), world);
-      var m2 = new TypeMask.unionOf(descriptors2.map(maskOf).toList(), world);
+      var m1 =
+          new TypeMask.unionOf(descriptors1.map(maskOf).toList(), commonMasks);
+      var m2 =
+          new TypeMask.unionOf(descriptors2.map(maskOf).toList(), commonMasks);
       checkMask(m1, m2, areDisjoint: areDisjoint);
     }
 
