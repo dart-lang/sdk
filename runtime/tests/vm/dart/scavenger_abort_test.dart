@@ -102,13 +102,22 @@ makeC(n) {
   return c;
 }
 
-triggerOOM() {
-  makeA(50);
+readFields(x) {
+  print(x.field1);
+  print(x.field2);
+  print(x.field3);
+  print(x.field4);
 }
 
 main(List<String> argsIn) async {
   if (argsIn.contains("--testee")) {
-    triggerOOM();
+    // Trigger OOM.
+    // Must read the fields to prevent the writes from being optimized away. If
+    // the writes are optimized away, most of the tree is collectible right away
+    // and we timeout instead of triggering OOM.
+    readFields(makeA(50));
+    readFields(makeB(50));
+    readFields(makeC(50));
     return;
   }
 
