@@ -394,6 +394,7 @@ class Scavenger {
   SemiSpace* Prologue();
   intptr_t ParallelScavenge(SemiSpace* from);
   intptr_t SerialScavenge(SemiSpace* from);
+  void ReverseScavenge(SemiSpace** from);
   void IterateIsolateRoots(ObjectPointerVisitor* visitor);
   template <bool parallel>
   void IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor);
@@ -441,7 +442,8 @@ class Scavenger {
   // The total size of external data associated with objects in this scavenger.
   RelaxedAtomic<intptr_t> external_size_;
 
-  bool failed_to_promote_;
+  RelaxedAtomic<bool> failed_to_promote_;
+  RelaxedAtomic<bool> abort_;
 
   bool growth_control_;
 
