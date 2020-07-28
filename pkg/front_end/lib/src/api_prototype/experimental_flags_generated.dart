@@ -108,6 +108,15 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   "collection": {
     ExperimentalFlag.nonNullable,
   },
+  "convert": {
+    ExperimentalFlag.nonNullable,
+  },
+  "crypto": {
+    ExperimentalFlag.nonNullable,
+  },
+  "csslib": {
+    ExperimentalFlag.nonNullable,
+  },
   "dart_internal": {
     ExperimentalFlag.nonNullable,
   },
