@@ -249,7 +249,7 @@ class TypeCheckingVisitor
     while (type is TypeParameterType) {
       type = (type as TypeParameterType).bound;
     }
-    if (type is BottomType) {
+    if (type is BottomType || type is NeverType || type == coreTypes.nullType) {
       // The bottom type is a subtype of all types, so it should be allowed.
       return Substitution.bottomForClass(superclass);
     }

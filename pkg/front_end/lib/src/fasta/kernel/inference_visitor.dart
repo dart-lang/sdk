@@ -1328,21 +1328,27 @@ class InferenceVisitor
   }
 
   DartType getSpreadElementType(DartType spreadType, bool isNullAware) {
-    if (spreadType is InterfaceType) {
-      if (spreadType.classNode == inferrer.coreTypes.nullClass) {
-        if (inferrer.isNonNullableByDefault) {
-          return isNullAware ? const NeverType(Nullability.nonNullable) : null;
-        } else {
-          return isNullAware ? spreadType : null;
-        }
+    DartType typeBound = inferrer.resolveTypeParameter(spreadType);
+    if (inferrer.coreTypes.isNull(typeBound)) {
+      if (inferrer.isNonNullableByDefault) {
+        return isNullAware ? const NeverType(Nullability.nonNullable) : null;
+      } else {
+        return isNullAware ? inferrer.coreTypes.nullType : null;
       }
+    }
+    if (typeBound is InterfaceType) {
       List<DartType> supertypeArguments = inferrer.typeSchemaEnvironment
           .getTypeArgumentsAsInstanceOf(
-              spreadType, inferrer.coreTypes.iterableClass);
-      if (supertypeArguments == null) return null;
+              typeBound, inferrer.coreTypes.iterableClass);
+      if (supertypeArguments == null) {
+        return null;
+      }
       return supertypeArguments.single;
+    } else if (spreadType is DynamicType) {
+      return const DynamicType();
+    } else if (inferrer.coreTypes.isBottom(spreadType)) {
+      return const NeverType(Nullability.nonNullable);
     }
-    if (spreadType is DynamicType) return const DynamicType();
     return null;
   }
 
@@ -1374,11 +1380,12 @@ class InferenceVisitor
         DartType spreadElementType =
             getSpreadElementType(spreadType, element.isNullAware);
         if (spreadElementType == null) {
-          if (spreadType is InterfaceType &&
-              spreadType.classNode == inferrer.coreTypes.nullClass &&
+          if (inferrer.coreTypes
+                  .isNull(inferrer.resolveTypeParameter(spreadType)) &&
               !element.isNullAware) {
             replacement = inferrer.helper.buildProblem(
-                messageNonNullAwareSpreadIsNull,
+                templateNonNullAwareSpreadIsNull.withArguments(
+                    spreadType, inferrer.isNonNullableByDefault),
                 element.expression.fileOffset,
                 1);
           } else {
@@ -1734,28 +1741,28 @@ class InferenceVisitor
   // is a function type, the original values in output are preserved.
   void storeSpreadMapEntryElementTypes(DartType spreadMapEntryType,
       bool isNullAware, List<DartType> output, int offset) {
-    if (spreadMapEntryType is InterfaceType) {
-      if (spreadMapEntryType.classNode == inferrer.coreTypes.nullClass) {
-        if (isNullAware) {
-          if (inferrer.isNonNullableByDefault) {
-            output[offset] =
-                output[offset + 1] = const NeverType(Nullability.nonNullable);
-          } else {
-            output[offset] = output[offset + 1] = spreadMapEntryType;
-          }
-        }
-      } else {
-        List<DartType> supertypeArguments = inferrer.typeSchemaEnvironment
-            .getTypeArgumentsAsInstanceOf(
-                spreadMapEntryType, inferrer.coreTypes.mapClass);
-        if (supertypeArguments != null) {
-          output[offset] = supertypeArguments[0];
-          output[offset + 1] = supertypeArguments[1];
+    DartType typeBound = inferrer.resolveTypeParameter(spreadMapEntryType);
+    if (inferrer.coreTypes.isNull(typeBound)) {
+      if (isNullAware) {
+        if (inferrer.isNonNullableByDefault) {
+          output[offset] =
+              output[offset + 1] = const NeverType(Nullability.nonNullable);
+        } else {
+          output[offset] = output[offset + 1] = inferrer.coreTypes.nullType;
         }
       }
-    }
-    if (spreadMapEntryType is DynamicType) {
+    } else if (typeBound is InterfaceType) {
+      List<DartType> supertypeArguments = inferrer.typeSchemaEnvironment
+          .getTypeArgumentsAsInstanceOf(typeBound, inferrer.coreTypes.mapClass);
+      if (supertypeArguments != null) {
+        output[offset] = supertypeArguments[0];
+        output[offset + 1] = supertypeArguments[1];
+      }
+    } else if (spreadMapEntryType is DynamicType) {
       output[offset] = output[offset + 1] = const DynamicType();
+    } else if (inferrer.coreTypes.isBottom(spreadMapEntryType)) {
+      output[offset] =
+          output[offset + 1] = const NeverType(Nullability.nonNullable);
     }
   }
 
@@ -1800,12 +1807,15 @@ class InferenceVisitor
       MapEntry replacement = entry;
       if (typeChecksNeeded) {
         if (actualKeyType == null) {
-          if (spreadType is InterfaceType &&
-              spreadType.classNode == inferrer.coreTypes.nullClass &&
+          if (inferrer.coreTypes
+                  .isNull(inferrer.resolveTypeParameter(spreadType)) &&
               !entry.isNullAware) {
             replacement = new MapEntry(
-                inferrer.helper.buildProblem(messageNonNullAwareSpreadIsNull,
-                    entry.expression.fileOffset, 1),
+                inferrer.helper.buildProblem(
+                    templateNonNullAwareSpreadIsNull.withArguments(
+                        spreadType, inferrer.isNonNullableByDefault),
+                    entry.expression.fileOffset,
+                    1),
                 new NullLiteral())
               ..fileOffset = entry.fileOffset;
           } else if (actualElementType != null) {

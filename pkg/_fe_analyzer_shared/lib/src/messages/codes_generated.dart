@@ -6380,14 +6380,6 @@ const MessageCode messageNonInstanceTypeVariableUse = const MessageCode(
     message: r"""Can only use type variables in instance methods.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeNonNullAwareSpreadIsNull = messageNonNullAwareSpreadIsNull;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonNullAwareSpreadIsNull = const MessageCode(
-    "NonNullAwareSpreadIsNull",
-    message: r"""Can't spread a value with static type Null.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateNonNullableLateDefinitelyAssignedError =
     const Template<Message Function(String name)>(

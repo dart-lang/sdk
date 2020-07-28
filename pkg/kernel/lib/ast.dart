@@ -3021,6 +3021,9 @@ abstract class Expression extends TreeNode {
     if (type == context.typeEnvironment.nullType) {
       return context.typeEnvironment.coreTypes
           .bottomInterfaceType(superclass, context.nullable);
+    } else if (type is NeverType) {
+      return context.typeEnvironment.coreTypes
+          .bottomInterfaceType(superclass, type.nullability);
     }
     if (type is InterfaceType) {
       List<DartType> upcastTypeArguments = context.typeEnvironment

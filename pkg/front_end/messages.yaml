@@ -3914,7 +3914,7 @@ SpreadMapElement:
   severity: CONTEXT
 
 NonNullAwareSpreadIsNull:
-  template: "Can't spread a value with static type Null."
+  template: "Can't spread a value with static type '#type'."
   script: >
     main() {
       <int>[...null];
