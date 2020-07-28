@@ -741,10 +741,6 @@ dart_vm_extra_builder(
     category = "vm|dartkb|sr",
 )
 dart_vm_extra_builder("vm-dartkb-linux-release-x64", category = "vm|dartkb|r")
-dart_vm_extra_builder(
-    "vm-dartkb-linux-release-x64-abi",
-    category = "vm|dartkb|abi",
-)
 
 #vm|kernel
 dart_vm_extra_builder(
