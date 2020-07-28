@@ -45,8 +45,7 @@ class InvocationInferenceHelper {
   /// type that is being invoked.
   DartType computeInvokeReturnType(DartType type) {
     if (type is FunctionType) {
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/41065
-      return type.returnType ?? DynamicTypeImpl.instance;
+      return type.returnType;
     } else {
       return DynamicTypeImpl.instance;
     }

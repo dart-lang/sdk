@@ -8,14 +8,14 @@ void main() async {
   Stream<int>? nullStream;
   var a = <int>[await for (var i in nullStream) 1];
   //                                ^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   // [cfe] The type 'Stream<int>?' used in the 'for' loop must implement 'Stream<dynamic>'.
   var b = <int, int>{await for (var i in nullStream) 1: 1};
   //                                     ^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   // [cfe] The type 'Stream<int>?' used in the 'for' loop must implement 'Stream<dynamic>'.
   var c = <int>{await for (var i in nullStream) 1};
   //                                ^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   // [cfe] The type 'Stream<int>?' used in the 'for' loop must implement 'Stream<dynamic>'.
 }

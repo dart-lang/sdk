@@ -11,7 +11,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstNotInitializedTest);
-    defineReflectiveTests(ConstNotInitializedWithNnbdTest);
+    defineReflectiveTests(ConstNotInitializedWithNullSafetyTest);
   });
 }
 
@@ -57,5 +57,5 @@ const F;
 }
 
 @reflectiveTest
-class ConstNotInitializedWithNnbdTest extends ConstNotInitializedTest
+class ConstNotInitializedWithNullSafetyTest extends ConstNotInitializedTest
     with WithNullSafetyMixin {}

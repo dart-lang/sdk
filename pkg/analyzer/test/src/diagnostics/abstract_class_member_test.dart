@@ -11,7 +11,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AbstractClassMemberTest);
-    defineReflectiveTests(AbstractClassMemberTest_NNBD);
+    defineReflectiveTests(AbstractClassMemberWithNullSafetyTest);
   });
 }
 
@@ -55,5 +55,5 @@ abstract class A {
 }
 
 @reflectiveTest
-class AbstractClassMemberTest_NNBD extends AbstractClassMemberTest
+class AbstractClassMemberWithNullSafetyTest extends AbstractClassMemberTest
     with WithNullSafetyMixin {}

@@ -39,7 +39,7 @@ vars = {
 
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
   # cipd package used to run Dart scripts in the build and test infrastructure.
-  "sdk_tag": "version:2.10.0-0.2-preview",
+  "sdk_tag": "version:2.10.0-0.0.dev",
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
@@ -54,10 +54,10 @@ vars = {
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
   # The list of revisions for these tools comes from Fuchsia, here:
-  # https://fuchsia.googlesource.com/buildtools/+/master/fuchsia.ensure
+  # https://fuchsia.googlesource.com/integration/+/HEAD/prebuilts
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
   "clang_revision": "7e9747b50bcb1be28d4a3236571e8050835497a6",
-  "gn_revision": "239533d2d91a04b3317ca9101cf7189f4e651e4d",
+  "gn_revision": "1e3fd10c5df6b704fc764ee388149e4f32862823",
 
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "c09c8deeac31f05bd801995c475e7c8070f9ecda",
@@ -539,7 +539,7 @@ deps = {
     "packages": [
       {
         "package": "dart/cfe/dart2js_dills",
-        "version": "binary_version:43_2",
+        "version": "binary_version:44_2",
       }
     ],
     "dep_type": "cipd",

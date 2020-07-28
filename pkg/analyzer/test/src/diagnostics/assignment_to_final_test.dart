@@ -11,7 +11,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentToFinalTest);
-    defineReflectiveTests(AssignmentToFinalWithNnbdTest);
+    defineReflectiveTests(AssignmentToFinalWithNullSafetyTest);
   });
 }
 
@@ -26,7 +26,7 @@ f() {
   A a = new A();
   a.v = 1;
 }''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL, 54, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 54, 1),
     ]);
   }
 
@@ -39,13 +39,13 @@ f() {
   A a = new A();
   a.v += 1;
 }''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL, 54, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 54, 1),
     ]);
   }
 }
 
 @reflectiveTest
-class AssignmentToFinalWithNnbdTest extends AssignmentToFinalTest
+class AssignmentToFinalWithNullSafetyTest extends AssignmentToFinalTest
     with WithNullSafetyMixin {
   test_field_late() async {
     await assertNoErrorsInCode('''

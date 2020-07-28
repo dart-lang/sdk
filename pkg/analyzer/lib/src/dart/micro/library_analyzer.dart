@@ -127,12 +127,16 @@ class LibraryAnalyzer {
     // Resolve URIs in directives to corresponding sources.
     FeatureSet featureSet = units[_library].featureSet;
 
-    units.forEach((file, unit) {
-      _validateFeatureSet(unit, featureSet);
-      _resolveUriBasedDirectives(file, unit);
+    performance.run('resolveUriDirectives', (performance) {
+      units.forEach((file, unit) {
+        _validateFeatureSet(unit, featureSet);
+        _resolveUriBasedDirectives(file, unit);
+      });
     });
 
-    _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
+    performance.run('libraryElement', (performance) {
+      _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
+    });
 
     performance.run('resolveDirectives', (performance) {
       _resolveDirectives(units, forCompletion);
@@ -628,7 +632,7 @@ class LibraryAnalyzer {
                     [name]);
               } else if (libraryNameNode.name != name) {
                 libraryErrorReporter.reportErrorForNode(
-                    StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
+                    CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
                     partUri,
                     [libraryNameNode.name, name]);
               }
@@ -636,7 +640,7 @@ class LibraryAnalyzer {
               Source source = nameOrSource.source;
               if (source != _library.source) {
                 libraryErrorReporter.reportErrorForNode(
-                    StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
+                    CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
                     partUri,
                     [_library.uriStr, source.uri]);
               }
@@ -712,7 +716,7 @@ class LibraryAnalyzer {
         featureSet: unit.featureSet, flowAnalysisHelper: flowAnalysisHelper);
 
     if (completionOffset != null) {
-      var node = NodeLocator2(completionOffset).searchWithin(unit);
+      var node = NodeLocator(completionOffset).searchWithin(unit);
       var enclosingExecutable = node?.thisOrAncestorMatching((e) {
         return e.parent is ClassDeclaration || e.parent is CompilationUnit;
       });

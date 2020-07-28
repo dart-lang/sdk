@@ -17,26 +17,24 @@ main() {
 class SuperInRedirectingConstructorTest extends DriverResolutionTest {
   test_redirectionSuper() async {
     await assertErrorsInCode(r'''
-class A {}
-class B {
-  B() : this.name(), super();
-  B.name() {}
+class A {
+  A() : this.name(), super();
+  A.name() {}
 }
 ''', [
-      error(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR, 42, 7),
+      error(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR, 31, 7),
     ]);
   }
 
   test_superRedirection() async {
     await assertErrorsInCode(r'''
-class A {}
-class B {
-  B() : super(), this.name();
-  B.name() {}
+class A {
+  A() : super(), this.name();
+  A.name() {}
 }
 ''', [
-      error(StrongModeCode.INVALID_SUPER_INVOCATION, 29, 7),
-      error(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR, 29, 7),
+      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 18, 7),
+      error(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR, 18, 7),
     ]);
   }
 }

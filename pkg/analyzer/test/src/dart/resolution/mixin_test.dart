@@ -300,7 +300,7 @@ mixin M {
   final int f;
 }
 ''', [
-      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 22, 1),
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 22, 1),
     ]);
   }
 

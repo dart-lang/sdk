@@ -11,8 +11,7 @@ import 'dart:collection';
 import 'dart:io';
 
 import 'package:args/args.dart';
-
-import 'results.dart';
+import 'package:test_runner/bot_results.dart';
 
 class Result {
   final String configuration;

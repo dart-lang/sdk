@@ -184,15 +184,15 @@ ConstantPool {
   [0] = ObjectRef 'danger!'
   [1] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
   [2] = Reserved
-  [3] = Type dart:core::TypeError
+  [3] = Type dart:core::TypeError*
   [4] = InterfaceCall 'dart:core::Object::_simpleInstanceOf', ArgDesc num-args 2, num-type-args 0, names []
   [5] = Reserved
   [6] = ObjectRef 'caught type error'
-  [7] = Type dart:core::AssertionError
+  [7] = Type dart:core::AssertionError*
   [8] = ObjectRef 'caught assertion error '
   [9] = DirectCall 'dart:core::_StringBase::_interpolate', ArgDesc num-args 1, num-type-args 0, names []
   [10] = Reserved
-  [11] = Type dart:core::Error
+  [11] = Type dart:core::Error*
   [12] = ObjectRef 'caught error '
   [13] = ObjectRef ' '
   [14] = Type dynamic
@@ -328,7 +328,7 @@ ConstantPool {
   [18] = Reserved
   [19] = ClosureFunction 1
   [20] = ObjectRef 'danger bar'
-  [21] = Type dart:core::Error
+  [21] = Type dart:core::Error*
   [22] = InterfaceCall 'dart:core::Object::_simpleInstanceOf', ArgDesc num-args 2, num-type-args 0, names []
   [23] = Reserved
   [24] = ObjectRef 'error '
@@ -436,7 +436,7 @@ L1:
 
 
 Function 'testRethrow', static, reflectable, debuggable
-    parameters [dart:core::bool 'cond'] (required: 1)
+    parameters [dart:core::bool* 'cond'] (required: 1)
     return-type dynamic
 
 Bytecode {
@@ -582,7 +582,7 @@ ConstantPool {
 
 
 Function 'testTryFinally2', static, reflectable, debuggable
-    parameters [dart:core::int 'x'] (required: 1)
+    parameters [dart:core::int* 'x'] (required: 1)
     return-type dynamic
 
 Bytecode {
@@ -828,7 +828,7 @@ ConstantPool {
   [15] = DynamicCall 'call', ArgDesc num-args 1, num-type-args 0, names []
   [16] = Reserved
 }
-Closure #lib::testTryFinally3::'<anonymous closure>' () -> dart:core::int
+Closure #lib::testTryFinally3::'<anonymous closure>' () -> dart:core::int*
 ClosureCode {
   EntryFixed           1, 6
   Push                 FP[-5]

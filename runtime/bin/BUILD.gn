@@ -199,7 +199,7 @@ template("build_gen_snapshot") {
     }
 
     if (is_mac) {
-      libs = [
+      frameworks = [
         "CoreFoundation.framework",
         "CoreServices.framework",
       ]
@@ -445,13 +445,13 @@ template("dart_io") {
     defines = []
     deps = [ "//third_party/zlib" ] + extra_deps
     if (is_mac || is_ios) {
-      libs = [
+      frameworks = [
         "CoreFoundation.framework",
         "Security.framework",
       ]
 
       if (is_mac) {
-        libs += [ "CoreServices.framework" ]
+        frameworks += [ "CoreServices.framework" ]
       }
     }
 

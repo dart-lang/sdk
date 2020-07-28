@@ -721,11 +721,7 @@ class CompletionMetricsComputer {
       suggestions = await DartCompletionManager(
         dartdocDirectiveInfo: DartdocDirectiveInfo(),
         listener: listener,
-      ).computeSuggestions(
-        performance,
-        request,
-        enableUriContributor: true,
-      );
+      ).computeSuggestions(performance, request);
     } else {
       // available suggestions == true
       var includedElementKinds = <protocol.ElementKind>{};
@@ -739,11 +735,7 @@ class CompletionMetricsComputer {
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTagList,
         listener: listener,
-      ).computeSuggestions(
-        performance,
-        request,
-        enableUriContributor: true,
-      );
+      ).computeSuggestions(performance, request);
 
       computeIncludedSetList(declarationsTracker, request.result,
           includedSuggestionSetList, includedElementNames);

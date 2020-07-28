@@ -9,7 +9,7 @@ class A {
   // [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
   //                 ^^^^^
-  // [analyzer] STATIC_WARNING.FIELD_INITIALIZER_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_NOT_ASSIGNABLE
   const A.a2(this.x);
   const A.a3([this.x = 'foo']);
   //                   ^^^^^
@@ -17,9 +17,7 @@ class A {
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
   const A.a4(String this.x);
   //         ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_PARAMETER_DECLARATION
-  //         ^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE
   //                     ^
   // [cfe] The type of parameter 'x', 'String' is not a subtype of the corresponding field's type, 'int'.
   const A.a5(String x) : this.x = x;
@@ -27,7 +25,7 @@ class A {
   // [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
   //                              ^
-  // [analyzer] STATIC_WARNING.FIELD_INITIALIZER_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_NOT_ASSIGNABLE
   const A.a6(int x) : this.x = x;
 }
 
@@ -39,7 +37,7 @@ const a2 = const A.a2('foo');
 // [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
 // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
 //                    ^^^^^
-// [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 const a3 = const A.a3();
 //         ^^^^^^^^^^^^
 // [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
@@ -56,7 +54,7 @@ const a6 = const A.a6('foo');
 // [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
 // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
 //                    ^^^^^
-// [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 
 main() {
   print(a1);

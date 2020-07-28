@@ -10,14 +10,12 @@ class C {
   C.subType(int this.a);
   C.superType(dynamic this.a);
   //          ^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_PARAMETER_DECLARATION
+  // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE
   //                       ^
   // [cfe] The type of parameter 'a', 'dynamic' is not a subtype of the corresponding field's type, 'num'.
   C.unrelatedType(String this.a);
   //              ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_PARAMETER_DECLARATION
-  //              ^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE
   //                          ^
   // [cfe] The type of parameter 'a', 'String' is not a subtype of the corresponding field's type, 'num'.
 }

@@ -12,7 +12,7 @@ import 'with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PostfixExpressionResolutionTest);
-    defineReflectiveTests(PostfixExpressionResolutionWithNnbdTest);
+    defineReflectiveTests(PostfixExpressionResolutionWithNullSafetyTest);
   });
 }
 
@@ -81,7 +81,7 @@ f() {
 }
 
 @reflectiveTest
-class PostfixExpressionResolutionWithNnbdTest
+class PostfixExpressionResolutionWithNullSafetyTest
     extends PostfixExpressionResolutionTest with WithNullSafetyMixin {
   test_inc_localVariable_depromote() async {
     await assertNoErrorsInCode(r'''

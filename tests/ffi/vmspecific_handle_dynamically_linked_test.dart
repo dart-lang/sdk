@@ -17,7 +17,7 @@ void main() {
 
 void doDynamicLinking() {
   Expect.isTrue(NativeApi.majorVersion == 1);
-  Expect.isTrue(NativeApi.minorVersion >= 0);
+  Expect.isTrue(NativeApi.minorVersion >= 1);
   final initializeApi = testLibrary.lookupFunction<
       IntPtr Function(Pointer<Void>),
       int Function(Pointer<Void>)>("InitDartApiDL");

@@ -12,7 +12,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FinalNotInitializedTest);
-    defineReflectiveTests(FinalNotInitializedWithNnbdTest);
+    defineReflectiveTests(FinalNotInitializedWithNullSafetyTest);
   });
 }
 
@@ -32,7 +32,7 @@ class A {
 extension E on String {
   static final F;
 }''', [
-      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 39, 1),
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 39, 1),
     ]);
   }
 
@@ -41,7 +41,7 @@ extension E on String {
 class A {
   final F;
 }''', [
-      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 18, 1),
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 18, 1),
     ]);
   }
 
@@ -50,7 +50,7 @@ class A {
 class A {
   static final F;
 }''', [
-      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 25, 1),
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 25, 1),
     ]);
   }
 
@@ -58,7 +58,7 @@ class A {
     await assertErrorsInCode('''
 final F;
 ''', [
-      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 6, 1),
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 6, 1),
     ]);
   }
 
@@ -68,7 +68,7 @@ f() {
   final int x;
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 18, 1),
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 18, 1),
     ]);
   }
 
@@ -78,13 +78,13 @@ mixin M {
   final int x;
 }
 ''', [
-      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 22, 1),
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 22, 1),
     ]);
   }
 }
 
 @reflectiveTest
-class FinalNotInitializedWithNnbdTest extends DriverResolutionTest
+class FinalNotInitializedWithNullSafetyTest extends DriverResolutionTest
     with WithNullSafetyMixin {
   test_field_noConstructor_initializer() async {
     await assertNoErrorsInCode('''

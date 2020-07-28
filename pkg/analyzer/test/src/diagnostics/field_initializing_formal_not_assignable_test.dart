@@ -15,6 +15,18 @@ main() {
 
 @reflectiveTest
 class FieldInitializingFormalNotAssignableTest extends DriverResolutionTest {
+  test_dynamic() async {
+    await assertErrorsInCode('''
+class A {
+  int x;
+  A(dynamic this.x) {}
+}
+''', [
+      error(CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, 23,
+          14),
+    ]);
+  }
+
   test_unrelated() async {
     await assertErrorsInCode('''
 class A {
@@ -22,8 +34,8 @@ class A {
   A(String this.x) {}
 }
 ''', [
-      error(StrongModeCode.INVALID_PARAMETER_DECLARATION, 23, 13),
-      error(StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, 23, 13),
+      error(CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, 23,
+          13),
     ]);
   }
 }

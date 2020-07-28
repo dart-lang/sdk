@@ -2154,16 +2154,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitBlock(Block node) {
-    Scope outerScope = nameScope;
-    try {
-      var enclosedScope = LocalScope(nameScope);
-      BlockScope.elementsInBlock(node).forEach(enclosedScope.add);
-      nameScope = enclosedScope;
-      _setNodeNameScope(node, nameScope);
+    _withDeclaredLocals(node, node.statements, () {
       super.visitBlock(node);
-    } finally {
-      nameScope = outerScope;
-    }
+    });
   }
 
   @override
@@ -2296,11 +2289,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
-    VariableElement element = node.declaredElement;
-    // TODO(scheglov) Do we need this?
-    if (element != null) {
-      _define(element);
-    }
+    _define(node.declaredElement);
     super.visitDeclaredIdentifier(node);
   }
 
@@ -2467,15 +2456,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    ExecutableElement element = node.declaredElement;
-    // TODO(scheglov) Do we need this?
-    if (element != null &&
-        element.enclosingElement is! CompilationUnitElement) {
-      _define(element);
-    }
-
     Scope outerScope = nameScope;
     try {
+      var element = node.declaredElement;
       nameScope = TypeParameterScope(
         nameScope,
         element.typeParameters,
@@ -2678,26 +2661,17 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   @override
   void visitSwitchCase(SwitchCase node) {
     node.expression.accept(this);
-    Scope outerNameScope = nameScope;
-    try {
-      nameScope = LocalScope(nameScope);
-      _setNodeNameScope(node, nameScope);
+
+    _withDeclaredLocals(node, node.statements, () {
       node.statements.accept(this);
-    } finally {
-      nameScope = outerNameScope;
-    }
+    });
   }
 
   @override
   void visitSwitchDefault(SwitchDefault node) {
-    Scope outerNameScope = nameScope;
-    try {
-      nameScope = LocalScope(nameScope);
-      _setNodeNameScope(node, nameScope);
+    _withDeclaredLocals(node, node.statements, () {
       node.statements.accept(this);
-    } finally {
-      nameScope = outerNameScope;
-    }
+    });
   }
 
   @override
@@ -2728,13 +2702,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
-    if (node.parent.parent is! TopLevelVariableDeclaration &&
-        node.parent.parent is! FieldDeclaration) {
-      // TODO(scheglov) Do we need this?
-      VariableElement element = node.declaredElement;
-      if (element != null) {
-        _define(element);
-      }
+
+    if (node.parent.parent is ForParts) {
+      _define(node.declaredElement);
     }
   }
 
@@ -2767,6 +2737,25 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   void _define(Element element) {
     (nameScope as LocalScope).add(element);
+  }
+
+  void _withDeclaredLocals(
+    AstNode node,
+    List<Statement> statements,
+    void Function() f,
+  ) {
+    var outerScope = nameScope;
+    try {
+      var enclosedScope = LocalScope(nameScope);
+      BlockScope.elementsInStatements(statements).forEach(enclosedScope.add);
+
+      nameScope = enclosedScope;
+      _setNodeNameScope(node, nameScope);
+
+      f();
+    } finally {
+      nameScope = outerScope;
+    }
   }
 
   /// Return the [Scope] to use while resolving inside the [node].

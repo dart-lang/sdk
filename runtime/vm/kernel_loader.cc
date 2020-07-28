@@ -376,7 +376,6 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
   const intptr_t source_table_size = helper_.SourceTableSize();
   const Array& scripts =
       Array::Handle(Z, Array::New(source_table_size, Heap::kOld));
-  patch_classes_ = Array::New(source_table_size, Heap::kOld);
 
   // Copy the Kernel string offsets out of the binary and into the VM's heap.
   ASSERT(program_->string_table_offset() >= 0);
@@ -489,11 +488,7 @@ KernelLoader::KernelLoader(const Script& script,
       expression_evaluation_library_(Library::Handle(Z)) {
   ASSERT(T.active_class_ == &active_class_);
   T.finalize_ = false;
-
-  const Array& scripts = Array::Handle(Z, kernel_program_info_.scripts());
-  patch_classes_ = Array::New(scripts.Length(), Heap::kOld);
   library_kernel_data_ = kernel_data.raw();
-
   H.InitFromKernelProgramInfo(kernel_program_info_);
 }
 
@@ -2107,6 +2102,13 @@ const Object& KernelLoader::ClassForScriptAt(const Class& klass,
                                              intptr_t source_uri_index) {
   const Script& correct_script = Script::Handle(Z, ScriptAt(source_uri_index));
   if (klass.script() != correct_script.raw()) {
+    // Lazily create the [patch_classes_] array in case we need it.
+    if (patch_classes_.IsNull()) {
+      const Array& scripts = Array::Handle(Z, kernel_program_info_.scripts());
+      ASSERT(!scripts.IsNull());
+      patch_classes_ = Array::New(scripts.Length(), Heap::kOld);
+    }
+
     // Use cache for patch classes. This works best for in-order usages.
     PatchClass& patch_class = PatchClass::ZoneHandle(Z);
     patch_class ^= patch_classes_.At(source_uri_index);

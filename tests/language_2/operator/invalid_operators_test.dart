@@ -673,7 +673,7 @@ class Operators7 {
 class Operators8 {
   /*space*/ int operator []=(a, b) {}
   //        ^^^
-  // [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_OPERATOR
   // [cfe] unspecified
 }
 

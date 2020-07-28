@@ -490,6 +490,9 @@ class FixProcessor extends BaseProcessor {
   /// generators used for lint rules are in the [lintMultiProducerMap].
   static const Map<ErrorCode, List<MultiProducerGenerator>>
       nonLintMultiProducerMap = {
+    CompileTimeErrorCode.CAST_TO_NON_TYPE: [
+      ImportLibrary.forType,
+    ],
     CompileTimeErrorCode.CONST_WITH_NON_TYPE: [
       ImportLibrary.forType,
     ],
@@ -512,12 +515,24 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
       ImportLibrary.forType,
     ],
+    CompileTimeErrorCode.NEW_WITH_NON_TYPE: [
+      ImportLibrary.forType,
+    ],
     CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT: [
       AddSuperConstructorInvocation.newInstance,
     ],
     CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT: [
       AddSuperConstructorInvocation.newInstance,
       CreateConstructorSuper.newInstance,
+    ],
+    CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE: [
+      ImportLibrary.forType,
+    ],
+    CompileTimeErrorCode.NOT_A_TYPE: [
+      ImportLibrary.forType,
+    ],
+    CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
+      ImportLibrary.forType,
     ],
     CompileTimeErrorCode.UNDEFINED_ANNOTATION: [
       ImportLibrary.forTopLevelVariable,
@@ -528,6 +543,12 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT: [
       AddSuperConstructorInvocation.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
+      ImportLibrary.forExtension,
+      ImportLibrary.forFunction,
+      ImportLibrary.forTopLevelVariable,
+      ImportLibrary.forType,
     ],
     CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
       ChangeArgumentName.newInstance,
@@ -540,27 +561,6 @@ class FixProcessor extends BaseProcessor {
     ],
     HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
       ImportLibrary.dartAsync,
-    ],
-    StaticWarningCode.CAST_TO_NON_TYPE: [
-      ImportLibrary.forType,
-    ],
-    StaticWarningCode.NEW_WITH_NON_TYPE: [
-      ImportLibrary.forType,
-    ],
-    StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE: [
-      ImportLibrary.forType,
-    ],
-    StaticWarningCode.NOT_A_TYPE: [
-      ImportLibrary.forType,
-    ],
-    StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
-      ImportLibrary.forType,
-    ],
-    StaticWarningCode.UNDEFINED_IDENTIFIER: [
-      ImportLibrary.forExtension,
-      ImportLibrary.forFunction,
-      ImportLibrary.forTopLevelVariable,
-      ImportLibrary.forType,
     ],
     StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT: [
       ImportLibrary.forType,
@@ -584,11 +584,30 @@ class FixProcessor extends BaseProcessor {
   /// correction producers used to build fixes for those diagnostics. The
   /// generators used for lint rules are in the [lintProducerMap].
   static const Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {
+    CompileTimeErrorCode.ASSIGNMENT_TO_FINAL: [
+      MakeFieldNotFinal.newInstance,
+    ],
+    CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL: [
+      MakeVariableNotFinal.newInstance,
+    ],
+    CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [
+      WrapInText.newInstance,
+    ],
     CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT: [
       AddAsync.newInstance,
     ],
     CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT: [
       AddAsync.newInstance,
+    ],
+    CompileTimeErrorCode.CAST_TO_NON_TYPE: [
+      ChangeTo.classOrMixin,
+      CreateClass.newInstance,
+      CreateMixin.newInstance,
+    ],
+    CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER: [
+      CreateMissingOverrides.newInstance,
+      CreateNoSuchMethod.newInstance,
+      MakeClassAbstract.newInstance,
     ],
     CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE: [
       UseConst.newInstance,
@@ -619,6 +638,19 @@ class FixProcessor extends BaseProcessor {
       CreateConstructor.newInstance,
       ConvertToNamedArguments.newInstance,
     ],
+    CompileTimeErrorCode.FINAL_NOT_INITIALIZED: [
+      AddLate.newInstance,
+      CreateConstructorForFinalFields.newInstance,
+    ],
+    CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1: [
+      AddFieldFormalParameters.newInstance,
+    ],
+    CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2: [
+      AddFieldFormalParameters.newInstance,
+    ],
+    CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS: [
+      AddFieldFormalParameters.newInstance,
+    ],
     CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
       ChangeTo.classOrMixin,
       CreateClass.newInstance,
@@ -643,6 +675,43 @@ class FixProcessor extends BaseProcessor {
       ChangeTo.classOrMixin,
       CreateClass.newInstance,
     ],
+    CompileTimeErrorCode.NEW_WITH_NON_TYPE: [
+      ChangeTo.classOrMixin,
+    ],
+    CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR: [
+      CreateConstructor.newInstance,
+    ],
+    CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS:
+        [
+      CreateMissingOverrides.newInstance,
+      CreateNoSuchMethod.newInstance,
+      MakeClassAbstract.newInstance,
+    ],
+    CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR: [
+      CreateMissingOverrides.newInstance,
+      CreateNoSuchMethod.newInstance,
+      MakeClassAbstract.newInstance,
+    ],
+    CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE: [
+      CreateMissingOverrides.newInstance,
+      CreateNoSuchMethod.newInstance,
+      MakeClassAbstract.newInstance,
+    ],
+    CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE: [
+      CreateMissingOverrides.newInstance,
+      CreateNoSuchMethod.newInstance,
+      MakeClassAbstract.newInstance,
+    ],
+    CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO: [
+      CreateMissingOverrides.newInstance,
+      CreateNoSuchMethod.newInstance,
+      MakeClassAbstract.newInstance,
+    ],
+    CompileTimeErrorCode.NOT_A_TYPE: [
+      ChangeTo.classOrMixin,
+      CreateClass.newInstance,
+      CreateMixin.newInstance,
+    ],
     CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD: [
       AddLate.newInstance,
     ],
@@ -658,6 +727,11 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE: [
       RemoveQuestionMark.newInstance,
     ],
+    CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
+      ChangeTo.classOrMixin,
+      CreateClass.newInstance,
+      CreateMixin.newInstance,
+    ],
     CompileTimeErrorCode.UNDEFINED_ANNOTATION: [
       ChangeTo.annotation,
       CreateClass.newInstance,
@@ -666,6 +740,9 @@ class FixProcessor extends BaseProcessor {
       ChangeTo.classOrMixin,
       CreateClass.newInstance,
       CreateMixin.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN: [
+      ReplaceBooleanWithBool.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [
       ChangeTo.getterOrSetter,
@@ -678,6 +755,19 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER: [
       ChangeTo.getterOrSetter,
       CreateSetter.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
+      ChangeTo.getterOrSetter,
+      CreateClass.newInstance,
+      CreateField.newInstance,
+      CreateGetter.newInstance,
+      CreateLocalVariable.newInstance,
+      CreateMethodOrFunction.newInstance,
+      CreateMixin.newInstance,
+      CreateSetter.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT: [
+      AddAsync.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
       AddMissingParameterNamed.newInstance,
@@ -908,100 +998,11 @@ class FixProcessor extends BaseProcessor {
       //  updated so that only the appropriate subset is generated.
       QualifyReference.newInstance,
     ],
-    StaticWarningCode.ASSIGNMENT_TO_FINAL: [
-      MakeFieldNotFinal.newInstance,
-    ],
-    StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL: [
-      MakeVariableNotFinal.newInstance,
-    ],
-    StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [
-      WrapInText.newInstance,
-    ],
-    StaticWarningCode.CAST_TO_NON_TYPE: [
-      ChangeTo.classOrMixin,
-      CreateClass.newInstance,
-      CreateMixin.newInstance,
-    ],
-    StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
-    ],
     StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [
       RemoveDeadIfNull.newInstance,
     ],
-    StaticWarningCode.FINAL_NOT_INITIALIZED: [
-      AddLate.newInstance,
-      CreateConstructorForFinalFields.newInstance,
-    ],
-    StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1: [
-      AddFieldFormalParameters.newInstance,
-    ],
-    StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2: [
-      AddFieldFormalParameters.newInstance,
-    ],
-    StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS: [
-      AddFieldFormalParameters.newInstance,
-    ],
     StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH: [
       AddMissingEnumCaseClauses.newInstance,
-    ],
-    StaticWarningCode.NEW_WITH_NON_TYPE: [
-      ChangeTo.classOrMixin,
-    ],
-    StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR: [
-      CreateConstructor.newInstance,
-    ],
-    StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
-    ],
-    StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
-    ],
-    StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
-    ],
-    StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
-    ],
-    StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
-    ],
-    StaticWarningCode.NOT_A_TYPE: [
-      ChangeTo.classOrMixin,
-      CreateClass.newInstance,
-      CreateMixin.newInstance,
-    ],
-    StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
-      ChangeTo.classOrMixin,
-      CreateClass.newInstance,
-      CreateMixin.newInstance,
-    ],
-    StaticWarningCode.UNDEFINED_CLASS_BOOLEAN: [
-      ReplaceBooleanWithBool.newInstance,
-    ],
-    StaticWarningCode.UNDEFINED_IDENTIFIER: [
-      ChangeTo.getterOrSetter,
-      CreateClass.newInstance,
-      CreateField.newInstance,
-      CreateGetter.newInstance,
-      CreateLocalVariable.newInstance,
-      CreateMethodOrFunction.newInstance,
-      CreateMixin.newInstance,
-      CreateSetter.newInstance,
-    ],
-    StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT: [
-      AddAsync.newInstance,
     ],
   };
 

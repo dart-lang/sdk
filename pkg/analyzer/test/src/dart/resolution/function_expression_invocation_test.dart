@@ -11,7 +11,7 @@ import 'with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FunctionExpressionInvocationTest);
-    defineReflectiveTests(FunctionExpressionInvocationWithNnbdTest);
+    defineReflectiveTests(FunctionExpressionInvocationWithNullSafetyTest);
   });
 }
 
@@ -51,8 +51,8 @@ main() {
 }
 
 @reflectiveTest
-class FunctionExpressionInvocationWithNnbdTest extends DriverResolutionTest
-    with WithNullSafetyMixin {
+class FunctionExpressionInvocationWithNullSafetyTest
+    extends DriverResolutionTest with WithNullSafetyMixin {
   test_call_infer_fromArguments() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -165,7 +165,7 @@ main(Never? x) {
   x<int>(1 + 2);
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
     ]);
 
     assertFunctionExpressionInvocation(

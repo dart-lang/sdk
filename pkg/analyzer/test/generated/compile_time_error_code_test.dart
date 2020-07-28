@@ -31,7 +31,7 @@ class ControlFlowCollectionsTest extends DriverResolutionTest {
     await assertErrorsInCode('''
 var v = const <String>[42];
 ''', [
-      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 23, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 23, 2),
     ]);
   }
 
@@ -39,7 +39,7 @@ var v = const <String>[42];
     await assertErrorsInCode('''
 var v = const <String, String>{'a' : 2};
 ''', [
-      error(StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 37, 1),
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 37, 1),
     ]);
   }
 
@@ -122,7 +122,7 @@ f() {
     await assertErrorsInCode('''
 var v = const <String>{42};
 ''', [
-      error(StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 23, 2),
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 23, 2),
     ]);
   }
 }

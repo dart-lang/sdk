@@ -36,30 +36,21 @@ class BulkFixesTest extends AbstractAnalysisTest {
     handler = EditDomainHandler(server);
   }
 
-  Future<void> test_missingOverride() async {
+  Future<void> test_unnecessaryNew() async {
     createProject();
     addAnalysisOptionsFile('''
 linter:
   rules:
-    - annotate_overrides
+    - unnecessary_new
 ''');
     addTestFile('''
-class A {
-  void f() {}
-}
-class B extends A {
-  void f() { }
-}
+class A {}
+A f() => new A();
 ''');
 
     await assertEditEquals('''
-class A {
-  void f() {}
-}
-class B extends A {
-  @override
-  void f() { }
-}
+class A {}
+A f() => A();
 ''');
   }
 

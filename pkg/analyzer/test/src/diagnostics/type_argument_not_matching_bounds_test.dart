@@ -12,7 +12,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeArgumentNotMatchingBoundsTest);
     defineReflectiveTests(
-      TypeArgumentNotMatchingBoundsWithNnbdTest,
+      TypeArgumentNotMatchingBoundsWithNullSafetyTest,
     );
   });
 }
@@ -348,7 +348,7 @@ class X<T extends A> {
   factory X.name(int x, int y) = X<B>;
 }
 ''', [
-      error(StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE, 99, 4),
+      error(CompileTimeErrorCode.REDIRECT_TO_INVALID_RETURN_TYPE, 99, 4),
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 101, 1),
     ]);
   }
@@ -401,7 +401,7 @@ class C extends Object with G<B>{}
 }
 
 @reflectiveTest
-class TypeArgumentNotMatchingBoundsWithNnbdTest
+class TypeArgumentNotMatchingBoundsWithNullSafetyTest
     extends TypeArgumentNotMatchingBoundsTest with WithNullSafetyMixin {
   test_extends_optIn_fromOptOut_Null() async {
     newFile('/test/lib/a.dart', content: r'''

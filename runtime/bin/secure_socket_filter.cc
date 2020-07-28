@@ -62,9 +62,7 @@ static SSLFilter* GetFilter(Dart_NativeArguments args) {
   return filter;
 }
 
-static void DeleteFilter(void* isolate_data,
-                         Dart_WeakPersistentHandle handle,
-                         void* context_pointer) {
+static void DeleteFilter(void* isolate_data, void* context_pointer) {
   SSLFilter* filter = reinterpret_cast<SSLFilter*>(context_pointer);
   filter->Release();
 }
@@ -78,8 +76,8 @@ static Dart_Handle SetFilter(Dart_NativeArguments args, SSLFilter* filter) {
       dart_this, SSLFilter::kSSLFilterNativeFieldIndex,
       reinterpret_cast<intptr_t>(filter));
   RETURN_IF_ERROR(err);
-  Dart_NewWeakPersistentHandle(dart_this, reinterpret_cast<void*>(filter),
-                               SSLFilter::kApproximateSize, DeleteFilter);
+  Dart_NewFinalizableHandle(dart_this, reinterpret_cast<void*>(filter),
+                            SSLFilter::kApproximateSize, DeleteFilter);
   return Dart_Null();
 }
 

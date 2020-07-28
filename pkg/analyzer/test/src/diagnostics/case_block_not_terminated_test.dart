@@ -36,7 +36,7 @@ void f(int a) {
       return;
   }
 }''', [
-      error(StaticWarningCode.CASE_BLOCK_NOT_TERMINATED, 35, 4),
+      error(CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED, 35, 4),
     ]);
   }
 

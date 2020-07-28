@@ -40,7 +40,7 @@ dynamic x;
     await assertErrorsInCode('''
 f() { new C(); }
 ''', [
-      error(StaticWarningCode.NEW_WITH_NON_TYPE, 10, 1),
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 10, 1),
     ]);
   }
 

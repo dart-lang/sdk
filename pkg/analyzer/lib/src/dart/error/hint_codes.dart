@@ -204,19 +204,19 @@ class HintCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
+   * `Function` should not be extended anymore.
+   */
+  static const HintCode DEPRECATED_EXTENDS_FUNCTION = HintCode(
+      'DEPRECATED_EXTENDS_FUNCTION', "Extending 'Function' is deprecated.",
+      correction: "Try removing 'Function' from the 'extends' clause.");
+
+  /**
    * Users should not create a class named `Function` anymore.
    */
   static const HintCode DEPRECATED_FUNCTION_CLASS_DECLARATION = HintCode(
       'DEPRECATED_FUNCTION_CLASS_DECLARATION',
       "Declaring a class named 'Function' is deprecated.",
       correction: "Try renaming the class.");
-
-  /**
-   * `Function` should not be extended anymore.
-   */
-  static const HintCode DEPRECATED_EXTENDS_FUNCTION = HintCode(
-      'DEPRECATED_EXTENDS_FUNCTION', "Extending 'Function' is deprecated.",
-      correction: "Try removing 'Function' from the 'extends' clause.");
 
   /**
    * Parameters:
@@ -323,6 +323,14 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Try re-writing the expression to use the '~/' operator.");
 
   /**
+   * Duplicate hidden names.
+   */
+  static const HintCode DUPLICATE_HIDDEN_NAME =
+      HintCode('DUPLICATE_HIDDEN_NAME', "Duplicate hidden name.",
+          correction: "Try removing the repeated name from the list of hidden "
+              "members.");
+
+  /**
    * Duplicate imports.
    *
    * No parameters.
@@ -357,14 +365,6 @@ class HintCode extends AnalyzerErrorCode {
       'DUPLICATE_IMPORT', "Duplicate import.",
       correction: "Try removing all but one import of the library.",
       hasPublishedDocs: true);
-
-  /**
-   * Duplicate hidden names.
-   */
-  static const HintCode DUPLICATE_HIDDEN_NAME =
-      HintCode('DUPLICATE_HIDDEN_NAME', "Duplicate hidden name.",
-          correction: "Try removing the repeated name from the list of hidden "
-              "members.");
 
   /**
    * Duplicate shown names.
@@ -595,6 +595,157 @@ class HintCode extends AnalyzerErrorCode {
       'INVALID_IMMUTABLE_ANNOTATION',
       "Only classes can be annotated as being immutable.");
 
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN =
+      HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN',
+          "The Dart language version override number must begin with '@dart'",
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS =
+      HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS',
+          "The Dart language version override comment must be specified with "
+              "an '=' character",
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER =
+      HintCodeWithUniqueName(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    'INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER',
+    "The language version override can't specify a version greater than the "
+        "latest known language version: {0}.{1}",
+    correction: "Try removing the language version override.",
+  );
+
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION =
+      HintCodeWithUniqueName(
+    'INVALID_LANGUAGE_VERSION_OVERRIDE',
+    'INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION',
+    "The language version override must be before any declaration or "
+        "directive.",
+    correction:
+        "Try moving the language version override to the top of the file.",
+  );
+
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE =
+      HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE',
+          "The Dart language version override comment must be specified with "
+              "the word 'dart' in all lower case",
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER =
+      HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER',
+          "The Dart language version override comment must be specified with a "
+              "version number, like '2.0', after the '=' character.",
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX =
+      HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX',
+          "The Dart language version override number can't be prefixed with "
+              "a letter",
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS =
+      HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS',
+          "The Dart language version override comment can't be followed by "
+              "any non-whitespace characters",
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
+  /// Invalid Dart language version comments don't follow the specification [1].
+  /// If a comment begins with "@dart" or "dart" (letters in any case),
+  /// followed by optional whitespace, followed by optional non-alphanumeric,
+  /// non-whitespace characters, followed by optional whitespace, followed by
+  /// an optional alphabetical character, followed by a digit, then the
+  /// comment is considered to be an attempt at a language version override
+  /// comment. If this attempted language version override comment is not a
+  /// valid language version override comment, it is reported.
+  ///
+  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
+  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES =
+      HintCodeWithUniqueName(
+          'INVALID_LANGUAGE_VERSION_OVERRIDE',
+          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES',
+          'The Dart language version override comment must be specified with '
+              'exactly two slashes.',
+          correction: "Specify a Dart language version override with a comment "
+              "like '// @dart = 2.0'.");
+
   /**
    * No parameters.
    */
@@ -789,157 +940,6 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER = HintCode(
       'INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER',
       "The member '{0}' can only be used within '{1}' or a test.");
-
-  /// Invalid Dart language version comments don't follow the specification [1].
-  /// If a comment begins with "@dart" or "dart" (letters in any case),
-  /// followed by optional whitespace, followed by optional non-alphanumeric,
-  /// non-whitespace characters, followed by optional whitespace, followed by
-  /// an optional alphabetical character, followed by a digit, then the
-  /// comment is considered to be an attempt at a language version override
-  /// comment. If this attempted language version override comment is not a
-  /// valid language version override comment, it is reported.
-  ///
-  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
-  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN =
-      HintCodeWithUniqueName(
-          'INVALID_LANGUAGE_VERSION_OVERRIDE',
-          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN',
-          "The Dart language version override number must begin with '@dart'",
-          correction: "Specify a Dart language version override with a comment "
-              "like '// @dart = 2.0'.");
-
-  /// Invalid Dart language version comments don't follow the specification [1].
-  /// If a comment begins with "@dart" or "dart" (letters in any case),
-  /// followed by optional whitespace, followed by optional non-alphanumeric,
-  /// non-whitespace characters, followed by optional whitespace, followed by
-  /// an optional alphabetical character, followed by a digit, then the
-  /// comment is considered to be an attempt at a language version override
-  /// comment. If this attempted language version override comment is not a
-  /// valid language version override comment, it is reported.
-  ///
-  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
-  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS =
-      HintCodeWithUniqueName(
-          'INVALID_LANGUAGE_VERSION_OVERRIDE',
-          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS',
-          "The Dart language version override comment must be specified with "
-              "an '=' character",
-          correction: "Specify a Dart language version override with a comment "
-              "like '// @dart = 2.0'.");
-
-  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER =
-      HintCodeWithUniqueName(
-    'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    'INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER',
-    "The language version override can't specify a version greater than the "
-        "latest known language version: {0}.{1}",
-    correction: "Try removing the language version override.",
-  );
-
-  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION =
-      HintCodeWithUniqueName(
-    'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    'INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION',
-    "The language version override must be before any declaration or "
-        "directive.",
-    correction:
-        "Try moving the language version override to the top of the file.",
-  );
-
-  /// Invalid Dart language version comments don't follow the specification [1].
-  /// If a comment begins with "@dart" or "dart" (letters in any case),
-  /// followed by optional whitespace, followed by optional non-alphanumeric,
-  /// non-whitespace characters, followed by optional whitespace, followed by
-  /// an optional alphabetical character, followed by a digit, then the
-  /// comment is considered to be an attempt at a language version override
-  /// comment. If this attempted language version override comment is not a
-  /// valid language version override comment, it is reported.
-  ///
-  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
-  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE =
-      HintCodeWithUniqueName(
-          'INVALID_LANGUAGE_VERSION_OVERRIDE',
-          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE',
-          "The Dart language version override comment must be specified with "
-              "the word 'dart' in all lower case",
-          correction: "Specify a Dart language version override with a comment "
-              "like '// @dart = 2.0'.");
-
-  /// Invalid Dart language version comments don't follow the specification [1].
-  /// If a comment begins with "@dart" or "dart" (letters in any case),
-  /// followed by optional whitespace, followed by optional non-alphanumeric,
-  /// non-whitespace characters, followed by optional whitespace, followed by
-  /// an optional alphabetical character, followed by a digit, then the
-  /// comment is considered to be an attempt at a language version override
-  /// comment. If this attempted language version override comment is not a
-  /// valid language version override comment, it is reported.
-  ///
-  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
-  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER =
-      HintCodeWithUniqueName(
-          'INVALID_LANGUAGE_VERSION_OVERRIDE',
-          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER',
-          "The Dart language version override comment must be specified with a "
-              "version number, like '2.0', after the '=' character.",
-          correction: "Specify a Dart language version override with a comment "
-              "like '// @dart = 2.0'.");
-
-  /// Invalid Dart language version comments don't follow the specification [1].
-  /// If a comment begins with "@dart" or "dart" (letters in any case),
-  /// followed by optional whitespace, followed by optional non-alphanumeric,
-  /// non-whitespace characters, followed by optional whitespace, followed by
-  /// an optional alphabetical character, followed by a digit, then the
-  /// comment is considered to be an attempt at a language version override
-  /// comment. If this attempted language version override comment is not a
-  /// valid language version override comment, it is reported.
-  ///
-  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
-  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX =
-      HintCodeWithUniqueName(
-          'INVALID_LANGUAGE_VERSION_OVERRIDE',
-          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX',
-          "The Dart language version override number can't be prefixed with "
-              "a letter",
-          correction: "Specify a Dart language version override with a comment "
-              "like '// @dart = 2.0'.");
-
-  /// Invalid Dart language version comments don't follow the specification [1].
-  /// If a comment begins with "@dart" or "dart" (letters in any case),
-  /// followed by optional whitespace, followed by optional non-alphanumeric,
-  /// non-whitespace characters, followed by optional whitespace, followed by
-  /// an optional alphabetical character, followed by a digit, then the
-  /// comment is considered to be an attempt at a language version override
-  /// comment. If this attempted language version override comment is not a
-  /// valid language version override comment, it is reported.
-  ///
-  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
-  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS =
-      HintCodeWithUniqueName(
-          'INVALID_LANGUAGE_VERSION_OVERRIDE',
-          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS',
-          "The Dart language version override comment can't be followed by "
-              "any non-whitespace characters",
-          correction: "Specify a Dart language version override with a comment "
-              "like '// @dart = 2.0'.");
-
-  /// Invalid Dart language version comments don't follow the specification [1].
-  /// If a comment begins with "@dart" or "dart" (letters in any case),
-  /// followed by optional whitespace, followed by optional non-alphanumeric,
-  /// non-whitespace characters, followed by optional whitespace, followed by
-  /// an optional alphabetical character, followed by a digit, then the
-  /// comment is considered to be an attempt at a language version override
-  /// comment. If this attempted language version override comment is not a
-  /// valid language version override comment, it is reported.
-  ///
-  /// [1] https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/feature-specification.md#individual-library-language-version-override
-  static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES =
-      HintCodeWithUniqueName(
-          'INVALID_LANGUAGE_VERSION_OVERRIDE',
-          'HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES',
-          'The Dart language version override comment must be specified with '
-              'exactly two slashes.',
-          correction: "Specify a Dart language version override with a comment "
-              "like '// @dart = 2.0'.");
 
   /**
    * This hint is generated anywhere where a private declaration is annotated
@@ -1458,20 +1458,6 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Try implementing 'hashCode'.");
 
   /**
-   * A getter with the override annotation does not override an existing getter.
-   *
-   * No parameters.
-   */
-  static const HintCode OVERRIDE_ON_NON_OVERRIDING_GETTER =
-      HintCodeWithUniqueName(
-          'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
-          'HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER',
-          "The getter doesn't override an inherited getter.",
-          correction: "Try updating this class to match the superclass, or "
-              "removing the override annotation.",
-          hasPublishedDocs: true);
-
-  /**
    * A field with the override annotation does not override a getter or setter.
    *
    * No parameters.
@@ -1481,6 +1467,20 @@ class HintCode extends AnalyzerErrorCode {
           'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
           'HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD',
           "The field doesn't override an inherited getter or setter.",
+          correction: "Try updating this class to match the superclass, or "
+              "removing the override annotation.",
+          hasPublishedDocs: true);
+
+  /**
+   * A getter with the override annotation does not override an existing getter.
+   *
+   * No parameters.
+   */
+  static const HintCode OVERRIDE_ON_NON_OVERRIDING_GETTER =
+      HintCodeWithUniqueName(
+          'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
+          'HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER',
+          "The getter doesn't override an inherited getter.",
           correction: "Try updating this class to match the superclass, or "
               "removing the override annotation.",
           hasPublishedDocs: true);
@@ -1583,61 +1583,6 @@ class HintCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when either the class `Future` or
-  // `Stream` is referenced in a library that doesn't import `dart:async` in
-  // code that has an SDK constraint whose lower bound is less than 2.1.0. In
-  // earlier versions, these classes weren't defined in `dart:core`, so the
-  // import was necessary.
-  //
-  // #### Examples
-  //
-  // Here's an example of a pubspec that defines an SDK constraint with a lower
-  // bound of less than 2.1.0:
-  //
-  // ```yaml
-  // %uri="pubspec.yaml"
-  // environment:
-  //   sdk: '>=2.0.0 <2.4.0'
-  // ```
-  //
-  // In the package that has that pubspec, code like the following produces this
-  // diagnostic:
-  //
-  // ```dart
-  // void f([!Future!] f) {}
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If you don't need to support older versions of the SDK, then you can
-  // increase the SDK constraint to allow the classes to be referenced:
-  //
-  // ```yaml
-  // environment:
-  //   sdk: '>=2.1.0 <2.4.0'
-  // ```
-  //
-  // If you need to support older versions of the SDK, then import the
-  // `dart:async` library.
-  //
-  // ```dart
-  // import 'dart:async';
-  //
-  // void f(Future f) {}
-  // ```
-  static const HintCode SDK_VERSION_ASYNC_EXPORTED_FROM_CORE = HintCode(
-      'SDK_VERSION_ASYNC_EXPORTED_FROM_CORE',
-      "The class '{0}' wasn't exported from 'dart:core' until version 2.1, "
-          "but this code is required to be able to run on earlier versions.",
-      correction:
-          "Try either importing 'dart:async' or updating the SDK constraints.",
-      hasPublishedDocs: true);
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
   // The analyzer produces this diagnostic when an `as` expression inside a
   // [constant context](#constant-context) is found in code that has an SDK
   // constraint whose lower bound is less than 2.3.2. Using an `as` expression
@@ -1688,6 +1633,61 @@ class HintCode extends AnalyzerErrorCode {
           "supported until version 2.3.2, but this code is required to be able "
           "to run on earlier versions.",
       correction: "Try updating the SDK constraints.",
+      hasPublishedDocs: true);
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when either the class `Future` or
+  // `Stream` is referenced in a library that doesn't import `dart:async` in
+  // code that has an SDK constraint whose lower bound is less than 2.1.0. In
+  // earlier versions, these classes weren't defined in `dart:core`, so the
+  // import was necessary.
+  //
+  // #### Examples
+  //
+  // Here's an example of a pubspec that defines an SDK constraint with a lower
+  // bound of less than 2.1.0:
+  //
+  // ```yaml
+  // %uri="pubspec.yaml"
+  // environment:
+  //   sdk: '>=2.0.0 <2.4.0'
+  // ```
+  //
+  // In the package that has that pubspec, code like the following produces this
+  // diagnostic:
+  //
+  // ```dart
+  // void f([!Future!] f) {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you don't need to support older versions of the SDK, then you can
+  // increase the SDK constraint to allow the classes to be referenced:
+  //
+  // ```yaml
+  // environment:
+  //   sdk: '>=2.1.0 <2.4.0'
+  // ```
+  //
+  // If you need to support older versions of the SDK, then import the
+  // `dart:async` library.
+  //
+  // ```dart
+  // import 'dart:async';
+  //
+  // void f(Future f) {}
+  // ```
+  static const HintCode SDK_VERSION_ASYNC_EXPORTED_FROM_CORE = HintCode(
+      'SDK_VERSION_ASYNC_EXPORTED_FROM_CORE',
+      "The class '{0}' wasn't exported from 'dart:core' until version 2.1, "
+          "but this code is required to be able to run on earlier versions.",
+      correction:
+          "Try either importing 'dart:async' or updating the SDK constraints.",
       hasPublishedDocs: true);
 
   /**
@@ -1989,57 +1989,6 @@ class HintCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a set literal is found in code
-  // that has an SDK constraint whose lower bound is less than 2.2.0. Set
-  // literals weren't supported in earlier versions, so this code won't be able
-  // to run against earlier versions of the SDK.
-  //
-  // #### Examples
-  //
-  // Here's an example of a pubspec that defines an SDK constraint with a lower
-  // bound of less than 2.2.0:
-  //
-  // ```yaml
-  // %uri="pubspec.yaml"
-  // environment:
-  //   sdk: '>=2.1.0 <2.4.0'
-  // ```
-  //
-  // In the package that has that pubspec, code like the following produces this
-  // diagnostic:
-  //
-  // ```dart
-  // var s = [!<int>{}!];
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If you don't need to support older versions of the SDK, then you can
-  // increase the SDK constraint to allow the syntax to be used:
-  //
-  // ```yaml
-  // environment:
-  //   sdk: '>=2.2.0 <2.4.0'
-  // ```
-  //
-  // If you do need to support older versions of the SDK, then replace the set
-  // literal with code that creates the set without the use of a literal:
-  //
-  // ```dart
-  // var s = new Set<int>();
-  // ```
-  static const HintCode SDK_VERSION_SET_LITERAL = HintCode(
-      'SDK_VERSION_SET_LITERAL',
-      "Set literals weren't supported until version 2.2, but this code is "
-          "required to be able to run on earlier versions.",
-      correction: "Try updating the SDK constraints.",
-      hasPublishedDocs: true);
-
-  /**
-   * No parameters.
-   */
   /* // #### Description
   //
   // The analyzer produces this diagnostic when a reference to the class `Never`
@@ -2088,6 +2037,57 @@ class HintCode extends AnalyzerErrorCode {
       //    is required to be able to run on earlier versions.
       'SDK_VERSION_NEVER',
       "The type Never isn't yet supported.");
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a set literal is found in code
+  // that has an SDK constraint whose lower bound is less than 2.2.0. Set
+  // literals weren't supported in earlier versions, so this code won't be able
+  // to run against earlier versions of the SDK.
+  //
+  // #### Examples
+  //
+  // Here's an example of a pubspec that defines an SDK constraint with a lower
+  // bound of less than 2.2.0:
+  //
+  // ```yaml
+  // %uri="pubspec.yaml"
+  // environment:
+  //   sdk: '>=2.1.0 <2.4.0'
+  // ```
+  //
+  // In the package that has that pubspec, code like the following produces this
+  // diagnostic:
+  //
+  // ```dart
+  // var s = [!<int>{}!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you don't need to support older versions of the SDK, then you can
+  // increase the SDK constraint to allow the syntax to be used:
+  //
+  // ```yaml
+  // environment:
+  //   sdk: '>=2.2.0 <2.4.0'
+  // ```
+  //
+  // If you do need to support older versions of the SDK, then replace the set
+  // literal with code that creates the set without the use of a literal:
+  //
+  // ```dart
+  // var s = new Set<int>();
+  // ```
+  static const HintCode SDK_VERSION_SET_LITERAL = HintCode(
+      'SDK_VERSION_SET_LITERAL',
+      "Set literals weren't supported until version 2.2, but this code is "
+          "required to be able to run on earlier versions.",
+      correction: "Try updating the SDK constraints.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.

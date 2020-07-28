@@ -43,7 +43,7 @@ testFuncAtoDyn() {
   b = funcAtoDyn(new B());
   c = funcAtoDyn(new C());
   //             ^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //                 ^
   // [cfe] The argument type 'C' can't be assigned to the parameter type 'A'.
 
@@ -76,7 +76,7 @@ testFuncDynToDyn() {
     // Returned value has type `void`, usage is restricted.
     Object o = funcDynToDyn(null);
     //         ^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
     //                     ^
     // [cfe] This expression has type 'void' and can't be used.
   }
@@ -97,17 +97,17 @@ testFuncDynToVoid() {
   FuncDynToVoid funcDynToVoid = func;
   a = funcDynToVoid(new A());
   //  ^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //               ^
   // [cfe] This expression has type 'void' and can't be used.
   b = funcDynToVoid(new B());
   //  ^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //               ^
   // [cfe] This expression has type 'void' and can't be used.
   c = funcDynToVoid(new C());
   //  ^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //               ^
   // [cfe] This expression has type 'void' and can't be used.
 

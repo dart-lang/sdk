@@ -33,7 +33,7 @@ Future<void> testList() async {
   var c = <int>[
     await for (num n in numStream([1, 2, 3, 4])) n
     //                                           ^
-    // [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
   ];
 }
@@ -59,10 +59,10 @@ Future<void> testMap() async {
   var c = <int, int>{
     await for (num n in numStream([1, 2, 3, 4])) n: n
     //                                           ^
-    // [analyzer] STATIC_WARNING.MAP_KEY_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.MAP_KEY_TYPE_NOT_ASSIGNABLE
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
     //                                              ^
-    // [analyzer] STATIC_WARNING.MAP_VALUE_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.MAP_VALUE_TYPE_NOT_ASSIGNABLE
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
   };
 }
@@ -88,7 +88,7 @@ Future<void> testSet() async {
   var c = <int>{
     await for (num n in numStream([1, 2, 3, 4])) n
     //                                           ^
-    // [analyzer] STATIC_WARNING.SET_ELEMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.SET_ELEMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
   };
 }

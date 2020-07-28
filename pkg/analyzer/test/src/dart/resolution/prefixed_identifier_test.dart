@@ -11,7 +11,7 @@ import 'with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PrefixedIdentifierResolutionTest);
-    defineReflectiveTests(PrefixedIdentifierResolutionWithNnbdTest);
+    defineReflectiveTests(PrefixedIdentifierResolutionWithNullSafetyTest);
   });
 }
 
@@ -59,7 +59,7 @@ int Function() foo() {
 }
 
 @reflectiveTest
-class PrefixedIdentifierResolutionWithNnbdTest
+class PrefixedIdentifierResolutionWithNullSafetyTest
     extends PrefixedIdentifierResolutionTest with WithNullSafetyMixin {
   test_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
     newFile('/test/lib/a.dart', content: r'''

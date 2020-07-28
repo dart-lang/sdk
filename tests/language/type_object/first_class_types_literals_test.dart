@@ -51,13 +51,13 @@ main() {
   // Test that operator calls on class literals go to Type.
   Expect.throwsNoSuchMethodError(() => C = 1);
   //                                   ^
-  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
   // [cfe] Can't assign to a type literal.
   //                                       ^
   // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
   Expect.throwsNoSuchMethodError(() => C++);
   //                                   ^
-  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
   // [cfe] Can't assign to a type literal.
   //                                    ^^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR

@@ -1091,7 +1091,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     }
 
     _responseCompleter.future.then((response) {
-      _timeline?.instant('Response receieved');
+      _timeline?.instant('Response received');
       Map formatConnectionInfo() => {
             'localPort': response.connectionInfo?.localPort,
             'remoteAddress': response.connectionInfo?.remoteAddress.address,

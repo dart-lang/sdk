@@ -11,7 +11,7 @@ class C<T> {
   static staticFunction(bool b) =>
     b ? T :
     //  ^
-    // [analyzer] STATIC_WARNING.TYPE_PARAMETER_REFERENCED_BY_STATIC
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
     // [cfe] Type variables can't be used in static members.
       null;
   factory C.factoryConstructor(bool b) => new C(

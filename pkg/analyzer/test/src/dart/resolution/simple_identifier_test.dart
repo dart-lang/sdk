@@ -11,7 +11,7 @@ import 'with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SimpleIdentifierResolutionTest);
-    defineReflectiveTests(SimpleIdentifierResolutionWithNnbdTest);
+    defineReflectiveTests(SimpleIdentifierResolutionWithNullSafetyTest);
   });
 }
 
@@ -41,7 +41,7 @@ main() {
   dynamic;
 }
 ''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 42, 7),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 42, 7),
     ]);
 
     assertSimpleIdentifier(
@@ -113,7 +113,7 @@ class A {
 }
 
 @reflectiveTest
-class SimpleIdentifierResolutionWithNnbdTest
+class SimpleIdentifierResolutionWithNullSafetyTest
     extends SimpleIdentifierResolutionTest with WithNullSafetyMixin {
   test_functionReference() async {
     await assertErrorsInCode('''
@@ -127,7 +127,7 @@ class A {
 @A([min])
 main() {}
 ''', [
-      error(StrongModeCode.COULD_NOT_INFER, 66, 5),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 66, 5),
     ]);
 
     var identifier = findNode.simple('min]');

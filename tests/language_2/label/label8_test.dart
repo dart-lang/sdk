@@ -13,7 +13,7 @@ main() {
   {
     case 111:
 //  ^^^^
-// [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 // [cfe] Expected ';' after this.
 //  ^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN

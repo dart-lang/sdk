@@ -11,9 +11,9 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryTypeCheckFalseTest);
-    defineReflectiveTests(UnnecessaryTypeCheckFalseWithNnbdTest);
+    defineReflectiveTests(UnnecessaryTypeCheckFalseWithNullSafetyTest);
     defineReflectiveTests(UnnecessaryTypeCheckTrueTest);
-    defineReflectiveTests(UnnecessaryTypeCheckTrueWithNnbdTest);
+    defineReflectiveTests(UnnecessaryTypeCheckTrueWithNullSafetyTest);
   });
 }
 
@@ -49,7 +49,7 @@ void f<T>(T a) {
 }
 
 @reflectiveTest
-class UnnecessaryTypeCheckFalseWithNnbdTest
+class UnnecessaryTypeCheckFalseWithNullSafetyTest
     extends UnnecessaryTypeCheckFalseTest with WithNullSafetyMixin {
   @override
   test_type_not_object() async {
@@ -103,8 +103,8 @@ void f<T>(T a) {
 }
 
 @reflectiveTest
-class UnnecessaryTypeCheckTrueWithNnbdTest extends UnnecessaryTypeCheckTrueTest
-    with WithNullSafetyMixin {
+class UnnecessaryTypeCheckTrueWithNullSafetyTest
+    extends UnnecessaryTypeCheckTrueTest with WithNullSafetyMixin {
   @override
   test_type_is_object() async {
     await assertNoErrorsInCode(r'''

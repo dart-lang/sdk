@@ -17,7 +17,7 @@ var tests = <VMTest>[
     result = await vm.invokeRpcNoUpgrade('_createDevFS', params);
     expect(result['type'], equals('FileSystem'));
     expect(result['name'], equals('alpha'));
-    expect(result['uri'], new isInstanceOf<String>());
+    expect(result['uri'], isA<String>());
 
     result = await vm.invokeRpcNoUpgrade('_listDevFS', {});
     expect(result['type'], equals('FileSystemList'));
@@ -62,7 +62,7 @@ var tests = <VMTest>[
     result = await vm.invokeRpcNoUpgrade('_createDevFS', {'fsName': fsId});
     expect(result['type'], equals('FileSystem'));
     expect(result['name'], equals(fsId));
-    expect(result['uri'], new isInstanceOf<String>());
+    expect(result['uri'], isA<String>());
 
     bool caughtException = false;
     try {

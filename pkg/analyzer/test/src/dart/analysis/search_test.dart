@@ -21,7 +21,7 @@ import 'base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SearchTest);
-    defineReflectiveTests(SearchWithNnbdTest);
+    defineReflectiveTests(SearchWithNullSafetyTest);
   });
 }
 
@@ -1817,7 +1817,7 @@ class NoMatchABCDEF {}
 }
 
 @reflectiveTest
-class SearchWithNnbdTest extends SearchTest {
+class SearchWithNullSafetyTest extends SearchTest {
   @override
   AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
     ..contextFeatures = FeatureSet.forTesting(

@@ -325,6 +325,28 @@ abstract class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_avoid_redundant_future_or() async {
+    // FutureOr<int?> and FutureOr<int?>? are equivalent types; we never insert
+    // the redundant second `?`.
+    var content = '''
+import 'dart:async';
+abstract class C {
+  FutureOr<int/*?*/> f();
+  FutureOr<int>/*?*/ g();
+  FutureOr<int> h(bool b) => b ? f() : g();
+}
+''';
+    var expected = '''
+import 'dart:async';
+abstract class C {
+  FutureOr<int?> f();
+  FutureOr<int>? g();
+  FutureOr<int?> h(bool b) => b ? f() : g();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void>
       test_back_propagation_stops_at_implicitly_typed_variables() async {
     var content = '''
@@ -3018,7 +3040,7 @@ void f(
     FutureOr<int> foi1,
     FutureOr<int?> foi2,
     FutureOr<int>? foi3,
-    FutureOr<int?>? foi4
+    FutureOr<int?> foi4
 ) {
   int i1 = foi1 as int;
   int? i2 = foi2 as int?;
@@ -5557,6 +5579,20 @@ class C {
   C.two({required bool this.x}) : assert(x != null);
 }
 test() => C.one();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_return_future_or_null_from_async_method() async {
+    var content = '''
+import 'dart:async';
+Future<Null> f() async => g();
+FutureOr<Null> g() => null;
+''';
+    var expected = '''
+import 'dart:async';
+Future<Null> f() async => g();
+FutureOr<Null> g() => null;
 ''';
     await _checkSingleFileChanges(content, expected);
   }

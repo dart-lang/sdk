@@ -9,12 +9,11 @@ import 'test_helper.dart';
 
 var tests = <VMTest>[
   (VM vm) async {
-    isInstanceOf<int> isInt = new isInstanceOf<int>();
     // Just iterate over all the isolates to confirm they have
     // the correct fields needed to examine zone memory usage.
     for (Isolate isolate in new List.from(vm.isolates)) {
       await isolate.reload();
-      expect(isolate.zoneHighWatermark, isInt);
+      expect(isolate.zoneHighWatermark, isA<int>());
       expect(isolate.threads, isNotNull);
       List<Thread> threads = isolate.threads;
 
@@ -22,8 +21,8 @@ var tests = <VMTest>[
         expect(thread.type, equals('_Thread'));
         expect(thread.id, isNotNull);
         expect(thread.kind, isNotNull);
-        expect(thread.zoneHighWatermark, isInt);
-        expect(thread.zoneCapacity, isInt);
+        expect(thread.zoneHighWatermark, isA<int>());
+        expect(thread.zoneCapacity, isA<int>());
       }
     }
   },

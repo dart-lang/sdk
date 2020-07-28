@@ -982,7 +982,7 @@ class Pass2Visitor : public ObjectVisitor,
     writer_->WriteUnsigned(weak_persistent_handle->external_size());
     // Attempt to include a native symbol name.
     auto const name = NativeSymbolResolver::LookupSymbolName(
-        reinterpret_cast<uword>(weak_persistent_handle->callback()), nullptr);
+        weak_persistent_handle->callback_address(), nullptr);
     writer_->WriteUtf8((name == nullptr) ? "Unknown native function" : name);
     if (name != nullptr) {
       NativeSymbolResolver::FreeSymbolName(name);

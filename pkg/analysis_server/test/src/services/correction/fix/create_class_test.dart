@@ -196,7 +196,7 @@ main() {}
 class Test {
 }
 ''', errorFilter: (error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER;
+      return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER;
     });
     assertLinkedGroup(change.linkedEditGroups[0], ['Test])', 'Test {']);
   }

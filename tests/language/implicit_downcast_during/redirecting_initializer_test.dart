@@ -9,7 +9,7 @@ class B extends A {}
 class C {
   C(A a) : this._(a);
   //              ^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'A' can't be assigned to the parameter type 'B'.
   C._(B b);
 }

@@ -7,10 +7,12 @@ import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingReturnTest);
+    defineReflectiveTests(MissingReturnWithNullSafetyTest);
   });
 }
 
@@ -211,5 +213,25 @@ class B extends A {
 ''', [
       error(HintCode.MISSING_RETURN, 55, 1),
     ]);
+  }
+}
+
+@reflectiveTest
+class MissingReturnWithNullSafetyTest extends DriverResolutionTest
+    with WithNullSafetyMixin {
+  test_returnNever() async {
+    newFile('/test/lib/a.dart', content: r'''
+Never foo() {
+  throw 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+// @dart = 2.8
+import 'a.dart';
+
+int f() {
+  foo();
+}
+''');
   }
 }

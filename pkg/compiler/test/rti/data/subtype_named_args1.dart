@@ -40,16 +40,16 @@ main() {
   Expect.isTrue(/*needsSignature*/ ({A a}) {} is t1);
   Expect.isTrue(/*needsSignature*/ ({B a}) {} is t1);
   Expect.isTrue(
-      /*spec.needsSignature*/ ({C a}) {} is t1);
+      /*needsSignature*/ ({C a}) {} is t1);
   Expect.isTrue(
-      /*spec.needsSignature*/ ({D a}) {} is t1);
+      /*needsSignature*/ ({D a}) {} is t1);
   Expect.isTrue(/*needsSignature*/ ({Object a}) {} is t1);
   Expect.isTrue(/*needsSignature*/ ({var a}) {} is t1);
 
   Expect.isTrue(/*needsSignature*/ ({A c}) {} is t2);
   Expect.isTrue(/*needsSignature*/ ({B c}) {} is t2);
   Expect.isTrue(/*needsSignature*/ ({C c}) {} is t2);
-  Expect.isTrue(({D c}) {} is t2);
+  Expect.isTrue(/*needsSignature*/({D c}) {} is t2);
   Expect.isTrue(/*needsSignature*/ ({Object c}) {} is t2);
   Expect.isTrue(/*needsSignature*/ ({var c}) {} is t2);
 
@@ -58,34 +58,34 @@ main() {
   Expect.isTrue(/*needsSignature*/ ({Object i}) {} is t3);
   Expect.isTrue(/*needsSignature*/ ({var i}) {} is t3);
 
-  Expect.isTrue(({A v}) {} is t4);
-  Expect.isTrue(({B v}) {} is t4);
-  Expect.isTrue(({C v}) {} is t4);
-  Expect.isTrue(({D v}) {} is t4);
+  Expect.isTrue(/*needsSignature*/({A v}) {} is t4);
+  Expect.isTrue(/*needsSignature*/({B v}) {} is t4);
+  Expect.isTrue(/*needsSignature*/({C v}) {} is t4);
+  Expect.isTrue(/*needsSignature*/({D v}) {} is t4);
   Expect.isTrue(/*needsSignature*/ ({Object v}) {} is t4);
   Expect.isTrue(/*needsSignature*/ ({var v}) {} is t4);
-  Expect.isTrue(({num v}) {} is t4);
-  Expect.isTrue(({int v}) {} is t4);
-  Expect.isTrue(({Map v}) {} is t4);
-  Expect.isTrue(({Map<List<Map<List, List<int>>>, List> v}) {} is t4);
-  Expect.isTrue(({List v}) {} is t4);
-  Expect.isTrue(({t8 v}) {} is t4);
-  Expect.isTrue(({t7 v}) {} is t4);
+  Expect.isTrue(/*needsSignature*/({num v}) {} is t4);
+  Expect.isTrue(/*needsSignature*/({int v}) {} is t4);
+  Expect.isTrue(/*needsSignature*/({Map v}) {} is t4);
+  Expect.isTrue(/*needsSignature*/({Map<List<Map<List, List<int>>>, List> v}) {} is t4);
+  Expect.isTrue(/*needsSignature*/({List v}) {} is t4);
+  Expect.isTrue(/*needsSignature*/({t8 v}) {} is t4);
+  Expect.isTrue(/*needsSignature*/({t7 v}) {} is t4);
 
   Expect.isTrue(/*needsSignature*/ ({Map m}) {} is t5);
-  Expect.isTrue(({Map<List, t8> m}) {} is t5);
+  Expect.isTrue(/*needsSignature*/({Map<List, t8> m}) {} is t5);
   Expect.isTrue(/*needsSignature*/ ({Object m}) {} is t5);
   Expect.isTrue(/*needsSignature*/ ({var m}) {} is t5);
-  Expect.isTrue(({Map<List, List> m}) {} is t5);
-  Expect.isTrue(({Map<int, t8> m}) {} is t5);
+  Expect.isTrue(/*needsSignature*/({Map<List, List> m}) {} is t5);
+  Expect.isTrue(/*needsSignature*/({Map<int, t8> m}) {} is t5);
 
   Expect.isTrue(/*needsSignature*/ ({Map<num, num> m}) {} is t6);
-  Expect.isTrue(({Map<int, int> m}) {} is t6);
+  Expect.isTrue(/*needsSignature*/({Map<int, int> m}) {} is t6);
   Expect.isTrue(/*needsSignature*/ ({Map m}) {} is t6);
   Expect.isTrue(/*needsSignature*/ ({Object m}) {} is t6);
   Expect.isTrue(/*needsSignature*/ ({var m}) {} is t6);
 
-  Expect.isTrue(({okWithT1_1 f}) {} is t7);
+  Expect.isTrue(/*needsSignature*/({okWithT1_1 f}) {} is t7);
   Expect.isTrue(/*needsSignature*/ ({okWithT1_2 f}) {} is t7);
   Expect.isTrue(/*needsSignature*/ ({okWithT1_3 f}) {} is t7);
   Expect.isTrue(/*needsSignature*/ ({okWithT1_4 f}) {} is t7);
@@ -93,14 +93,14 @@ main() {
   Expect.isTrue(/*needsSignature*/ ({A a}) {} is t8);
   Expect.isTrue(/*needsSignature*/ ({B a}) {} is t8);
   Expect.isTrue(
-      /*spec.needsSignature*/ ({C a}) {} is t8);
+      /*needsSignature*/ ({C a}) {} is t8);
   Expect.isTrue(
-      /*spec.needsSignature*/ ({D a}) {} is t8);
+      /*needsSignature*/ ({D a}) {} is t8);
   Expect.isTrue(/*needsSignature*/ ({Object a}) {} is t8);
   Expect.isTrue(/*needsSignature*/ ({var a}) {} is t8);
-  Expect.isTrue(({num a}) {} is t8);
-  Expect.isTrue(({int a}) {} is t8);
-  Expect.isTrue(({Map a}) {} is t8);
-  Expect.isTrue(({Map<List<Map<List, List<int>>>, List> a}) {} is t8);
-  Expect.isTrue(({List a}) {} is t8);
+  Expect.isTrue(/*needsSignature*/({num a}) {} is t8);
+  Expect.isTrue(/*needsSignature*/({int a}) {} is t8);
+  Expect.isTrue(/*needsSignature*/({Map a}) {} is t8);
+  Expect.isTrue(/*needsSignature*/({Map<List<Map<List, List<int>>>, List> a}) {} is t8);
+  Expect.isTrue(/*needsSignature*/({List a}) {} is t8);
 }

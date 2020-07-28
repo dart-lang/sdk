@@ -53,8 +53,8 @@ f() {
 }
 ''', [
       error(ParserErrorCode.EXPECTED_TOKEN, 8, 7),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 8, 7),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 16, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 8, 7),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 16, 1),
     ]);
   }
 
@@ -163,7 +163,7 @@ class Foo {
 }
 ''', [
       error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 94, 3),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 94, 3),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 94, 3),
     ]);
   }
 
@@ -178,143 +178,15 @@ f(p) { return const A(p); }
     ]);
   }
 
-  test_constWithNonType() async {
-    await assertErrorsInCode(r'''
-int A;
-f() {
-  return const A();
-}
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_TYPE, 28, 1),
-    ]);
-  }
-
-  test_constWithNonType_fromLibrary() async {
-    newFile('/test/lib/lib1.dart');
-    await assertErrorsInCode('''
-import 'lib1.dart' as lib;
-void f() {
-  const lib.A();
-}
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_TYPE, 50, 1),
-    ]);
-  }
-
-  test_constWithTypeParameters_direct() async {
-    await assertErrorsInCode(r'''
-class A<T> {
-  static const V = const A<T>();
-  const A();
-}
-''', [
-      error(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 40, 1),
-      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 40, 1),
-    ]);
-  }
-
-  test_constWithTypeParameters_indirect() async {
-    await assertErrorsInCode(r'''
-class A<T> {
-  static const V = const A<List<T>>();
-  const A();
-}
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, 45, 1),
-      error(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 45, 1),
-    ]);
-  }
-
-  test_constWithUndefinedConstructor() async {
-    await assertErrorsInCode(r'''
-class A {
-  const A();
-}
-f() {
-  return const A.noSuchConstructor();
-}
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR, 48, 17),
-    ]);
-  }
-
-  test_constWithUndefinedConstructorDefault() async {
-    await assertErrorsInCode(r'''
-class A {
-  const A.name();
-}
-f() {
-  return const A();
-}
-''', [
-      error(
-          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 51, 1),
-    ]);
-  }
-
-  test_extraPositionalArguments_const() async {
-    await assertErrorsInCode(r'''
-class A {
-  const A();
-}
-main() {
-  const A(0);
-}
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 43, 3),
-    ]);
-  }
-
-  test_extraPositionalArguments_const_super() async {
-    await assertErrorsInCode(r'''
-class A {
-  const A();
-}
-class B extends A {
-  const B() : super(0);
-}
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 64, 3),
-    ]);
-  }
-
-  test_extraPositionalArgumentsCouldBeNamed_const() async {
-    await assertErrorsInCode(r'''
-class A {
-  const A({int x});
-}
-main() {
-  const A(0);
-}
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 50,
-          3),
-    ]);
-  }
-
-  test_extraPositionalArgumentsCouldBeNamed_const_super() async {
-    await assertErrorsInCode(r'''
-class A {
-  const A({int x});
-}
-class B extends A {
-  const B() : super(0);
-}
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 71,
-          3),
-    ]);
-  }
-
   test_fromEnvironment_bool_badArgs() async {
     await assertErrorsInCode(r'''
 var b1 = const bool.fromEnvironment(1);
 var b2 = const bool.fromEnvironment('x', defaultValue: 1);
 ''', [
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 9, 29),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 36, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 36, 1),
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 49, 48),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 81, 15),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 81, 15),
     ]);
   }
 
@@ -326,7 +198,7 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);
 var b = const bool.fromEnvironment('x', defaultValue: 1);
 ''', [
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 8, 48),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 40, 15),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 40, 15),
     ]);
   }
 
@@ -335,7 +207,7 @@ var b = const bool.fromEnvironment('x', defaultValue: 1);
 T f<T>(T t) => null;
 main() { f(<S>(S s) => s); }
 ''', [
-      error(StrongModeCode.COULD_NOT_INFER, 30, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 30, 1),
     ]);
   }
 
@@ -344,7 +216,7 @@ main() { f(<S>(S s) => s); }
 T Function<T>(T) f;
 main() { f(<S>(S s) => s); }
 ''', [
-      error(StrongModeCode.COULD_NOT_INFER, 29, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 29, 1),
     ]);
   }
 
@@ -355,46 +227,7 @@ class C {
 }
 main() { new C().f(<S>(S s) => s); }
 ''', [
-      error(StrongModeCode.COULD_NOT_INFER, 52, 1),
-    ]);
-  }
-
-  test_genericFunctionTypeAsBound_class() async {
-    await assertErrorsInCode(r'''
-class C<T extends S Function<S>(S)> {
-}
-''', [
-      error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND, 18, 16),
-    ]);
-  }
-
-  test_genericFunctionTypeAsBound_genericFunction() async {
-    await assertErrorsInCode(r'''
-T Function<T extends S Function<S>(S)>(T) fun;
-''', [
-      error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND, 21, 16),
-    ]);
-  }
-
-  test_genericFunctionTypeAsBound_genericFunctionTypedef() async {
-    await assertErrorsInCode(r'''
-typedef foo = T Function<T extends S Function<S>(S)>(T t);
-''', [
-      error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND, 35, 16),
-    ]);
-  }
-
-  test_genericFunctionTypeAsBound_parameterOfFunction() async {
-    await assertNoErrorsInCode(r'''
-class C<T extends void Function(S Function<S>(S))> {}
-''');
-  }
-
-  test_genericFunctionTypeAsBound_typedef() async {
-    await assertErrorsInCode(r'''
-typedef T foo<T extends S Function<S>(S)>(T t);
-''', [
-      error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND, 24, 16),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 52, 1),
     ]);
   }
 
@@ -403,34 +236,6 @@ typedef T foo<T extends S Function<S>(S)>(T t);
 void g(T f<T>(T x)) {}
 ''';
     await assertNoErrorsInCode(code);
-  }
-
-  test_importInternalLibrary() async {
-    // Note, in these error cases we may generate an UNUSED_IMPORT hint, while
-    // we could prevent the hint from being generated by testing the import
-    // directive for the error, this is such a minor corner case that we don't
-    // think we should add the additional computation time to figure out such
-    // cases.
-    await assertErrorsInCode('''
-import 'dart:_interceptors';
-''', [
-      error(CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, 7, 20),
-      error(HintCode.UNUSED_IMPORT, 7, 20),
-    ]);
-  }
-
-  test_importOfNonLibrary() async {
-    newFile("/test/lib/part.dart", content: r'''
-part of lib;
-class A{}
-''');
-    await assertErrorsInCode(r'''
-library lib;
-import 'part.dart';
-A a;
-''', [
-      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 20, 11),
-    ]);
   }
 
   test_length_of_erroneous_constant() async {
@@ -503,7 +308,7 @@ class MyClass {
   const MyClass([p = foo]);
 }
 ''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 37, 3),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 37, 3),
       error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 37, 3),
     ]);
   }
@@ -518,7 +323,7 @@ var s5 = const Symbol('x', foo: 'x');
 ''', [
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 9, 17),
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 37, 15),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 50, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 50, 1),
       error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 75, 2),
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 100, 10),
       error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 139, 3),
@@ -532,7 +337,7 @@ const _ = $expr;
 ''', [
       error(HintCode.UNUSED_ELEMENT, 23, 1),
       error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT, 27, 6),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 2),
     ]);
   }
 
@@ -543,7 +348,7 @@ const _ = $expr;
 ''', [
       error(HintCode.UNUSED_ELEMENT, 23, 1),
       error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT, 27, 6),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 2),
     ]);
   }
 
@@ -554,7 +359,7 @@ const _ = $expr;
 ''', [
       error(HintCode.UNUSED_ELEMENT, 23, 1),
       error(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM, 27, 6),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 2),
     ]);
   }
 }

@@ -13,7 +13,7 @@ String test(int n) {
       break;
     case 1:
 //  ^^^^
-// [analyzer] STATIC_WARNING.CASE_BLOCK_NOT_TERMINATED
+// [analyzer] COMPILE_TIME_ERROR.CASE_BLOCK_NOT_TERMINATED
 // [cfe] Switch case may fall through to the next case.
       result = "one";
   // fall-through, error if case is non-empty

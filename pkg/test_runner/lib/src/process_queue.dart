@@ -1186,7 +1186,6 @@ class BatchRunnerProcess {
       // it will always fail. So rather than re-trying a 1000+ times, we
       // exit.
       io.exit(1);
-      return true;
     });
   }
 

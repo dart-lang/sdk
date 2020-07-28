@@ -7,20 +7,20 @@ class A<T> {
   // Can't instantiate type parameter (within static or instance method).
   m1() => new T();
   //          ^
-  // [analyzer] STATIC_WARNING.CREATION_WITH_NON_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   // [cfe] Method not found: 'T'.
   static m2() => new T();
   //                 ^
-  // [analyzer] STATIC_WARNING.CREATION_WITH_NON_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   // [cfe] Method not found: 'T'.
   //                 ^
-  // [analyzer] STATIC_WARNING.TYPE_PARAMETER_REFERENCED_BY_STATIC
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
 
   // OK when used within instance method, but not in static method.
   m3() => new A<T>();
   static m4() => new A<T>();
   //                   ^
-  // [analyzer] STATIC_WARNING.TYPE_PARAMETER_REFERENCED_BY_STATIC
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
   // [cfe] Type variables can't be used in static members.
 }
 

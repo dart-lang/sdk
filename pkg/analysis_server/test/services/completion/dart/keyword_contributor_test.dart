@@ -16,7 +16,7 @@ import 'completion_contributor_util.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(KeywordContributorTest);
-    defineReflectiveTests(KeywordContributorWithNnbdTest);
+    defineReflectiveTests(KeywordContributorWithNullSafetyTest);
   });
 }
 
@@ -2348,7 +2348,7 @@ f() => [...^];
 }
 
 @reflectiveTest
-class KeywordContributorWithNnbdTest extends KeywordContributorTest {
+class KeywordContributorWithNullSafetyTest extends KeywordContributorTest {
   @override
   void setupResourceProvider() {
     super.setupResourceProvider();

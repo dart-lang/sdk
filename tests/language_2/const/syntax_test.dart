@@ -92,15 +92,11 @@ const A2 = A3 + 1;
 //    ^^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_COMPILE_TIME_CONSTANT
 // [cfe] Can't infer the type of 'A2': circularity found during type inference.
-//         ^^
-// [analyzer] COMPILE_TIME_ERROR.TOP_LEVEL_CYCLE
 //            ^
 // [cfe] Constant evaluation error:
 const A3 = A2 + 1;
 //    ^^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_COMPILE_TIME_CONSTANT
-//         ^^
-// [analyzer] COMPILE_TIME_ERROR.TOP_LEVEL_CYCLE
 
 class C0 {
   static const X = const C1();
@@ -112,7 +108,7 @@ class C1 {
   const C1()
       : x = C0.X
       //^
-      // [analyzer] STATIC_WARNING.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
+      // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
       //  ^
       // [cfe] 'x' is a final instance variable that has already been initialized.
       //  ^
@@ -129,7 +125,7 @@ const B3 = B0 + B1;
 //         ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_NUM
 //              ^^
-// [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] A value of type 'String' can't be assigned to a variable of type 'num'.
 
 // Check identical.

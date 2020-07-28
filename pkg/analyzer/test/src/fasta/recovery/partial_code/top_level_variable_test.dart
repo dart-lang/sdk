@@ -134,7 +134,7 @@ class TopLevelVariableTest extends PartialCodeTest {
               'setter'
             ],
             expectedErrorsInValidCode: [
-              StaticWarningCode.FINAL_NOT_INITIALIZED
+              CompileTimeErrorCode.FINAL_NOT_INITIALIZED
             ],
           ),
           TestDescriptor(
@@ -142,12 +142,12 @@ class TopLevelVariableTest extends PartialCodeTest {
             'final a',
             [
               ParserErrorCode.EXPECTED_TOKEN,
-              StaticWarningCode.FINAL_NOT_INITIALIZED
+              CompileTimeErrorCode.FINAL_NOT_INITIALIZED
             ],
             "final a;",
             failing: ['functionNonVoid', 'getter', 'setter', 'mixin'],
             expectedErrorsInValidCode: [
-              StaticWarningCode.FINAL_NOT_INITIALIZED
+              CompileTimeErrorCode.FINAL_NOT_INITIALIZED
             ],
           ),
           TestDescriptor(
@@ -155,11 +155,11 @@ class TopLevelVariableTest extends PartialCodeTest {
             'final int a',
             [
               ParserErrorCode.EXPECTED_TOKEN,
-              StaticWarningCode.FINAL_NOT_INITIALIZED
+              CompileTimeErrorCode.FINAL_NOT_INITIALIZED
             ],
             "final int a;",
             expectedErrorsInValidCode: [
-              StaticWarningCode.FINAL_NOT_INITIALIZED
+              CompileTimeErrorCode.FINAL_NOT_INITIALIZED
             ],
           ),
           TestDescriptor(

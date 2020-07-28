@@ -11,7 +11,7 @@ import 'with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IndexExpressionTest);
-    defineReflectiveTests(IndexExpressionWithNnbdTest);
+    defineReflectiveTests(IndexExpressionWithNullSafetyTest);
   });
 }
 
@@ -237,7 +237,7 @@ main(A<double> a) {
 }
 
 @reflectiveTest
-class IndexExpressionWithNnbdTest extends IndexExpressionTest
+class IndexExpressionWithNullSafetyTest extends IndexExpressionTest
     with WithNullSafetyMixin {
   test_read_cascade_nullShorting() async {
     await assertNoErrorsInCode(r'''

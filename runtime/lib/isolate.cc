@@ -615,7 +615,6 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 0, 2) {
 }
 
 static void ExternalTypedDataFinalizer(void* isolate_callback_data,
-                                       Dart_WeakPersistentHandle handle,
                                        void* peer) {
   free(peer);
 }
@@ -725,7 +724,8 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_materialize, 0, 1) {
                              thread->heap()->SpaceForExternal(length)));
   FinalizablePersistentHandle::New(thread->isolate(), typed_data,
                                    /* peer= */ data,
-                                   &ExternalTypedDataFinalizer, length);
+                                   &ExternalTypedDataFinalizer, length,
+                                   /*auto_delete=*/true);
   return typed_data.raw();
 }
 

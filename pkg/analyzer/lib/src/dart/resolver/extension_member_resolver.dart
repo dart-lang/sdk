@@ -160,7 +160,7 @@ class ExtensionMemberResolver {
 
     if (receiverType.isVoid) {
       _errorReporter.reportErrorForNode(
-          StaticWarningCode.USE_OF_VOID_RESULT, receiverExpression);
+          CompileTimeErrorCode.USE_OF_VOID_RESULT, receiverExpression);
     } else if (!_typeSystem.isAssignableTo2(receiverType, node.extendedType)) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,

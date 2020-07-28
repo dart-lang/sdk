@@ -25,7 +25,7 @@ import 'lib1.dart' deferred as a;
 f(var v) {
   v as a.A;
 }''', [
-      error(StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS, 66, 3),
+      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 66, 3),
     ]);
   }
 
@@ -41,7 +41,7 @@ f(var v) {
   } on a.A {
   }
 }''', [
-      error(StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS, 74, 3),
+      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 74, 3),
     ]);
   }
 
@@ -56,7 +56,7 @@ class C {
   var v;
   C(a.A this.v);
 }''', [
-      error(StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS, 71, 3),
+      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 71, 3),
     ]);
   }
 
@@ -68,7 +68,7 @@ class A {}''');
 library root;
 import 'lib1.dart' deferred as a;
 a.A f() { return null; }''', [
-      error(StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS, 48, 3),
+      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 48, 3),
     ]);
   }
 
@@ -80,7 +80,7 @@ class A {}''');
 library root;
 import 'lib1.dart' deferred as a;
 f(a.A g()) {}''', [
-      error(StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS, 50, 3),
+      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 50, 3),
     ]);
   }
 
@@ -95,7 +95,7 @@ f(var v) {
   bool b = v is a.A;
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 66, 1),
-      error(StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS, 75, 3),
+      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 75, 3),
     ]);
   }
 
@@ -109,7 +109,7 @@ import 'lib1.dart' deferred as a;
 class C {
   a.A m() { return null; }
 }''', [
-      error(StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS, 60, 3),
+      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 60, 3),
     ]);
   }
 
@@ -121,7 +121,7 @@ class A {}''');
 library root;
 import 'lib1.dart' deferred as a;
 f(a.A v) {}''', [
-      error(StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS, 50, 3),
+      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 50, 3),
     ]);
   }
 
@@ -134,7 +134,7 @@ library root;
 import 'lib1.dart' deferred as a;
 class C<E> {}
 C<a.A> c;''', [
-      error(StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS, 64, 3),
+      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 64, 3),
     ]);
   }
 
@@ -147,8 +147,8 @@ library root;
 import 'lib1.dart' deferred as a;
 class C<E, F> {}
 C<a.A, a.A> c;''', [
-      error(StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS, 67, 3),
-      error(StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS, 72, 3),
+      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 67, 3),
+      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 72, 3),
     ]);
   }
 
@@ -160,7 +160,7 @@ class A {}''');
 library root;
 import 'lib1.dart' deferred as a;
 class C<E extends a.A> {}''', [
-      error(StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS, 66, 3),
+      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 66, 3),
     ]);
   }
 
@@ -172,7 +172,7 @@ class A {}''');
 library root;
 import 'lib1.dart' deferred as a;
 a.A v;''', [
-      error(StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS, 48, 3),
+      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 48, 3),
     ]);
   }
 }

@@ -167,7 +167,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       if (element == null) {
         // TODO(brianwilkerson) Report this error?
         //        resolver.reportError(
-        //            StaticWarningCode.UNDEFINED_IDENTIFIER,
+        //            CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
         //            simpleIdentifier,
         //            simpleIdentifier.getName());
       } else {
@@ -193,7 +193,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       SimpleIdentifier name = identifier.identifier;
       Element element = _resolveSimpleIdentifier(prefix);
       if (element == null) {
-//        resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, prefix, prefix.getName());
+//        resolver.reportError(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, prefix, prefix.getName());
       } else {
         prefix.staticElement = element;
         if (element is PrefixElement) {
@@ -293,7 +293,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
 //        if (((InstanceCreationExpression) parent).isConst()) {
 //          // CompileTimeErrorCode.CONST_WITH_NON_TYPE
 //        } else {
-//          // StaticWarningCode.NEW_WITH_NON_TYPE
+//          // CompileTimeErrorCode.NEW_WITH_NON_TYPE
 //        }
 //      } else {
 //        // This is part of a redirecting factory constructor; not sure which error code to use
@@ -721,12 +721,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
             [element.name]);
       } else if (node.name == "await" && _resolver.enclosingFunction != null) {
         _errorReporter.reportErrorForNode(
-          StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT,
+          CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
           node,
         );
       } else if (!_resolver.nameScope.shouldIgnoreUndefined(node)) {
         _errorReporter.reportErrorForNode(
-          StaticWarningCode.UNDEFINED_IDENTIFIER,
+          CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
           node,
           [node.name],
         );
@@ -844,7 +844,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     if (element.isStatic) return;
 
     _errorReporter.reportErrorForNode(
-      StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
+      CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
       identifier,
       [identifier.name],
     );
@@ -893,7 +893,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       );
     } else if (staticType.isVoid) {
       _errorReporter.reportErrorForOffset(
-        StaticWarningCode.USE_OF_VOID_RESULT,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
         offset,
         length,
       );
@@ -1455,7 +1455,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
     if (staticType.isVoid) {
       _errorReporter.reportErrorForNode(
-        StaticWarningCode.USE_OF_VOID_RESULT,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
         propertyName,
       );
       return;

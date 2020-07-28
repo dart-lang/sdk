@@ -173,13 +173,23 @@ void DartDevIsolate::DartDevRunner::DartDevResultCallback(
 void DartDevIsolate::DartDevRunner::RunCallback(uword args) {
   MonitorLocker locker_(DartDevRunner::monitor_);
   DartDevRunner* runner = reinterpret_cast<DartDevRunner*>(args);
+
+  // TODO(bkonyi): bring up DartDev from kernel instead of a app-jit snapshot.
+  // See https://github.com/dart-lang/sdk/issues/42804
   const char* dartdev_path = DartDevIsolate::TryResolveDartDevSnapshotPath();
   if (dartdev_path == nullptr) {
     ProcessError("Failed to find DartDev snapshot.", kErrorExitCode);
     return;
   }
+
+  // Hardcode flags to match those used to generate the DartDev snapshot.
   Dart_IsolateFlags flags;
   Dart_IsolateFlagsInitialize(&flags);
+  flags.enable_asserts = false;
+  flags.null_safety = false;
+  flags.use_field_guards = true;
+  flags.use_osr = true;
+
   char* error;
   Dart_Isolate dartdev_isolate = runner->create_isolate_(
       dartdev_path, "dartdev", nullptr, runner->packages_file_, &flags,

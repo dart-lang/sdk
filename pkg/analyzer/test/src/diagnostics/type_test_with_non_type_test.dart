@@ -22,7 +22,7 @@ f(var p) {
   if (p is A) {
   }
 }''', [
-      error(StaticWarningCode.TYPE_TEST_WITH_NON_TYPE, 33, 1),
+      error(CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE, 33, 1),
     ]);
   }
 }

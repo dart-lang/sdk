@@ -20,53 +20,53 @@ set tooMany(var value, var extra) {}
 
 /*space*/ int set wrongReturnType1(_) {}
 //        ^^^
-// [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+// [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
 // [cfe] unspecified
 
 /*space*/ FutureOr<void> set wrongReturnType2(_) {}
 //        ^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+// [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
 // [cfe] unspecified
 
 /*space*/ Never set wrongReturnType3(_) {}
 //        ^^^^^
-// [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+// [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
 // [cfe] unspecified
 
 class C {
   static int set staticWrongReturnType1(_) => 1;
   //     ^^^
-  // [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
   // [cfe] unspecified
 
   static FutureOr<void> set staticWrongReturnType2(_) {}
   //     ^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
   // [cfe] unspecified
 
   static Never set staticWrongReturnType3(_) => throw 1;
   //     ^^^^^
-  // [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
   // [cfe] unspecified
 
   /*space*/ int set wrongReturnType1(_) {}
   //        ^^^
-  // [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
   // [cfe] unspecified
 
   /*space*/ FutureOr<void> set wrongReturnType2(_) {}
   //        ^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
   // [cfe] unspecified
 
   /*space*/ Never set wrongReturnType3(_) => throw 1;
   //        ^^^^^
-  // [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
   // [cfe] unspecified
 
   static int get staticNonAssignableTypes1 => 1;
   //             ^^^^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.GETTER_NOT_ASSIGNABLE_SETTER_TYPES
+  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_ASSIGNABLE_SETTER_TYPES
   // [cfe] unspecified
   static set staticNonAssignableTypes1(String _) {}
 
@@ -81,7 +81,7 @@ class C {
 
   int get nonAssignableTypes1 => 1;
   //      ^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.GETTER_NOT_ASSIGNABLE_SETTER_TYPES
+  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_ASSIGNABLE_SETTER_TYPES
   // [cfe] unspecified
   set nonAssignableTypes1(String _) {}
 

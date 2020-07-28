@@ -109,10 +109,10 @@ void allEventsHaveIsolateNumber(List events) {
       continue;
     }
     Map arguments = event['args'];
-    expect(arguments, new isInstanceOf<Map>());
-    expect(arguments['isolateGroupId'], new isInstanceOf<String>());
+    expect(arguments, isA<Map>());
+    expect(arguments['isolateGroupId'], isA<String>());
     if (event['cat'] != 'GC') {
-      expect(arguments['isolateId'], new isInstanceOf<String>());
+      expect(arguments['isolateId'], isA<String>());
     }
   }
 }
@@ -121,7 +121,7 @@ var tests = <VMTest>[
   (VM vm) async {
     Map result = await vm.invokeRpcNoUpgrade('getVMTimeline', {});
     expect(result['type'], equals('Timeline'));
-    expect(result['traceEvents'], new isInstanceOf<List>());
+    expect(result['traceEvents'], isA<List>());
     final int numEvents = result['traceEvents'].length;
     List dartEvents = filterForDartEvents(result['traceEvents']);
     expect(dartEvents.length, greaterThanOrEqualTo(11));

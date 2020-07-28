@@ -235,7 +235,7 @@ var foo = 0;
     expect(result.path, convertPath('/workspace/dart/test/lib/test.dart'));
     expect(result.uri.toString(), 'package:dart.test/test.dart');
     assertErrorsInList(result.errors, [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 8, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 8, 1),
     ]);
     expect(result.lineInfo.lineStarts, [0, 11, 24]);
   }

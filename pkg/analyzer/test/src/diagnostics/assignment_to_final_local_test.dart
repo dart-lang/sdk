@@ -12,7 +12,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentToFinalLocalTest);
-    defineReflectiveTests(AssignmentToFinalLocalWithNnbdTest);
+    defineReflectiveTests(AssignmentToFinalLocalWithNullSafetyTest);
   });
 }
 
@@ -25,7 +25,7 @@ f() {
   x = 1;
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL, 23, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 23, 1),
     ]);
   }
 
@@ -37,7 +37,7 @@ f() {
     print(x);
   }
 }''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL, 28, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 28, 1),
     ]);
   }
 
@@ -48,7 +48,7 @@ f() {
   x += 1;
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL, 23, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 23, 1),
     ]);
   }
 
@@ -57,7 +57,7 @@ f() {
 f(final x) {
   x = 1;
 }''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL, 15, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 15, 1),
     ]);
   }
 
@@ -68,7 +68,7 @@ f() {
   x--;
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL, 23, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 23, 1),
     ]);
   }
 
@@ -79,7 +79,7 @@ f() {
   x++;
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL, 23, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 23, 1),
     ]);
   }
 
@@ -90,7 +90,7 @@ f() {
   --x;
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL, 25, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 25, 1),
     ]);
   }
 
@@ -101,7 +101,7 @@ f() {
   ++x;
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL, 25, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 25, 1),
     ]);
   }
 
@@ -112,7 +112,7 @@ f() {
   x--;
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL, 23, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 23, 1),
     ]);
   }
 
@@ -123,7 +123,7 @@ f() {
   x++;
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL, 23, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 23, 1),
     ]);
   }
 
@@ -131,13 +131,13 @@ f() {
     await assertErrorsInCode('''
 final x = 0;
 f() { x = 1; }''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL, 19, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 19, 1),
     ]);
   }
 }
 
 @reflectiveTest
-class AssignmentToFinalLocalWithNnbdTest extends DriverResolutionTest
+class AssignmentToFinalLocalWithNullSafetyTest extends DriverResolutionTest
     with WithNullSafetyMixin {
   test_localVariable_late() async {
     await assertNoErrorsInCode('''

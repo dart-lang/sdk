@@ -335,9 +335,9 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
 
   test_constrainedByBounds5() async {
     // Test that upwards inference with two type variables does not
-    // propogate from the constrained variable to the unconstrained
+    // propagate from the constrained variable to the unconstrained
     // variable if they are ordered right to left, when the variable
-    // appears co and contra variantly, and that an error is issued
+    // appears co- and contra-variantly, and that an error is issued
     // for the non-matching bound.
     String code = r'''
     typedef To Func1<From, To>(From x);
@@ -346,7 +346,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
    ''';
     Source source = addSource(code);
     TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertErrors(source, [StrongModeCode.COULD_NOT_INFER]);
+    assertErrors(source, [CompileTimeErrorCode.COULD_NOT_INFER]);
     verify([source]);
     CompilationUnit unit = analysisResult.unit;
     List<Statement> statements =
@@ -981,7 +981,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     MethodInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T extends Future<Object>>(FutureOr<T> x) => null;
     dynamic test() => mk(new Future<int>.value(42));
-    ''', errors: [StrongModeCode.COULD_NOT_INFER]);
+    ''', errors: [CompileTimeErrorCode.COULD_NOT_INFER]);
     _isFutureOfInt(invoke.staticType);
   }
 
@@ -1093,8 +1093,8 @@ test() {
  ''');
     await computeAnalysisResult(source);
     _expectInferenceError(source, [
-      StrongModeCode.COULD_NOT_INFER,
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      CompileTimeErrorCode.COULD_NOT_INFER,
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ], r'''
 Couldn't infer type parameter 'T'.
 
@@ -1119,9 +1119,9 @@ test() {
  ''');
     await computeAnalysisResult(source);
     _expectInferenceError(source, [
-      StrongModeCode.COULD_NOT_INFER,
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      CompileTimeErrorCode.COULD_NOT_INFER,
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ], r'''
 Couldn't infer type parameter 'T'.
 
@@ -1170,7 +1170,7 @@ test() {
  ''');
     await computeAnalysisResult(source);
     _expectInferenceError(source, [
-      StrongModeCode.COULD_NOT_INFER,
+      CompileTimeErrorCode.COULD_NOT_INFER,
     ], r'''
 Couldn't infer type parameter 'T'.
 
@@ -1198,8 +1198,8 @@ test(Iterable values) {
  ''');
     await computeAnalysisResult(source);
     _expectInferenceError(source, [
-      StrongModeCode.COULD_NOT_INFER,
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      CompileTimeErrorCode.COULD_NOT_INFER,
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ], r'''
 Couldn't infer type parameter 'T'.
 
@@ -1223,7 +1223,7 @@ test() {
 }
  ''');
     await computeAnalysisResult(source);
-    _expectInferenceError(source, [StrongModeCode.COULD_NOT_INFER], r'''
+    _expectInferenceError(source, [CompileTimeErrorCode.COULD_NOT_INFER], r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'num' for 'T' which doesn't work:
@@ -1364,8 +1364,8 @@ num test(Iterable values) => values.fold(values.first as num, max);
     ''');
     var analysisResult = await computeAnalysisResult(source);
     assertErrors(source, [
-      StrongModeCode.COULD_NOT_INFER,
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      CompileTimeErrorCode.COULD_NOT_INFER,
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
     var unit = analysisResult.unit;
@@ -2375,7 +2375,7 @@ class B<T2, U2> {
     assertErrors(source, errorCodes);
     var errors = analysisResults[source]
         .errors
-        .where((e) => e.errorCode == StrongModeCode.COULD_NOT_INFER)
+        .where((e) => e.errorCode == CompileTimeErrorCode.COULD_NOT_INFER)
         .map((e) => e.message)
         .toList();
     expect(errors.length, 1);
@@ -3262,10 +3262,10 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 3),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 106, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 106, 1),
     ]);
     // Note: this correctly reports the error
-    // StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE when run with the driver;
+    // CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE when run with the driver;
     // when run without the driver, it reports no errors.  So we don't bother
     // checking whether the correct errors were reported.
     expectInitializerType('foo', 'Future<String>');
@@ -3341,7 +3341,7 @@ void test() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 73, 1),
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 81, 1),
-      error(StrongModeCode.COULD_NOT_INFER, 81, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 81, 1),
     ]);
     _assertLocalVarType('c', 'C<List<dynamic>, List<List<dynamic>>>');
   }
@@ -3456,7 +3456,7 @@ void g() {
 ''', [
       error(HintCode.MISSING_RETURN, 3, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 69, 1),
-      error(StrongModeCode.COULD_NOT_INFER, 73, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 73, 1),
     ]);
     _assertLocalVarType('c', 'List<dynamic>');
   }
@@ -3678,8 +3678,8 @@ class A {
 }
 dynamic set g(int x) => null;
 ''', [
-      error(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, 12, 7),
-      error(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, 47, 7),
+      error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 12, 7),
+      error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 47, 7),
     ]);
   }
 
@@ -3723,8 +3723,8 @@ class A {
 }
 Object set g(x) => null;
 ''', [
-      error(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, 12, 6),
-      error(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, 46, 6),
+      error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 12, 6),
+      error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 46, 6),
     ]);
   }
 

@@ -122,6 +122,8 @@ ConstEvalNegativeShift/example: Fail
 ConstEvalNonConstantVariableGet/example: Fail
 ConstEvalNotListOrSetInSpread/example: Fail
 ConstEvalNotMapInSpread/example: Fail
+ConstEvalNonNull/analyzerCode: Fail
+ConstEvalNonNull/example: Fail
 ConstEvalNullValue/example: Fail
 ConstEvalStartingPoint/analyzerCode: Fail # This is just used for displaying the starting point.
 ConstEvalStartingPoint/example: Fail # This is just used for displaying the starting point.

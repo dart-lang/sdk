@@ -20,7 +20,7 @@ class ConcreteClassWithAbstractMemberTest extends DriverResolutionTest {
 class A {
   m();
 }''', [
-      error(StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 4),
+      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 4),
     ]);
   }
 
@@ -32,7 +32,7 @@ class I {
 class A implements I {
   m();
 }''', [
-      error(StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 62, 4),
+      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 62, 4),
     ]);
   }
 }

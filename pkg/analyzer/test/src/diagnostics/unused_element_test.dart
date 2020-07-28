@@ -11,7 +11,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnusedElementTest);
-    defineReflectiveTests(UnusedElementWithNnbdTest);
+    defineReflectiveTests(UnusedElementWithNullSafetyTest);
   });
 }
 
@@ -1402,7 +1402,7 @@ int _a = 7;
 }
 
 @reflectiveTest
-class UnusedElementWithNnbdTest extends DriverResolutionTest
+class UnusedElementWithNullSafetyTest extends DriverResolutionTest
     with WithNullSafetyMixin {
   test_optionalParameter_isUsed_overrideRequiredNamed() async {
     await assertNoErrorsInCode(r'''

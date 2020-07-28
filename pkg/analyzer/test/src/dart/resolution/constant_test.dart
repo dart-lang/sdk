@@ -17,7 +17,7 @@ import 'with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantResolutionTest);
-    defineReflectiveTests(ConstantResolutionWithNnbdTest);
+    defineReflectiveTests(ConstantResolutionWithNullSafetyTest);
   });
 }
 
@@ -236,7 +236,7 @@ extension E on int {
 }
 
 @reflectiveTest
-class ConstantResolutionWithNnbdTest extends DriverResolutionTest
+class ConstantResolutionWithNullSafetyTest extends DriverResolutionTest
     with WithNullSafetyMixin {
   test_context_eliminateTypeVariables() async {
     await assertNoErrorsInCode(r'''

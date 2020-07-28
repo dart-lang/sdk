@@ -23,7 +23,7 @@ class C<T> {
   // [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION
   // [cfe] Method not found: 'T'.
   //              ^
-  // [analyzer] STATIC_WARNING.TYPE_PARAMETER_REFERENCED_BY_STATIC
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
 
   // X is not in scope. NoSuchMethodError.
   static baz() => X();
@@ -49,7 +49,7 @@ class C<T> {
   //                ^^^
   // [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
   //                 ^
-  // [analyzer] STATIC_WARNING.TYPE_PARAMETER_REFERENCED_BY_STATIC
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
   // [cfe] Type variables can't be used in static members.
   //                   ^
   // [cfe] The method 'call' isn't defined for the class 'Type'.
@@ -63,7 +63,7 @@ class C<T> {
   // Runtime type T not accessible from static context. Compile-time error.
   static garply() => T[0];
   //                 ^
-  // [analyzer] STATIC_WARNING.TYPE_PARAMETER_REFERENCED_BY_STATIC
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
   // [cfe] Type variables can't be used in static members.
   //                  ^^^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
@@ -78,7 +78,7 @@ class C<T> {
   // Runtime type T not accessible from static context. Compile-time error.
   static fred() => T.m;
   //               ^
-  // [analyzer] STATIC_WARNING.TYPE_PARAMETER_REFERENCED_BY_STATIC
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
   // [cfe] Type variables can't be used in static members.
   //                 ^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER

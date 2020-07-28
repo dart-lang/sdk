@@ -13,7 +13,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceCascadeWithDotTest);
-    defineReflectiveTests(ReplaceCascadeWithDotWithNNBDTest);
+    defineReflectiveTests(ReplaceCascadeWithDotWithNullSafetyTest);
   });
 }
 
@@ -99,7 +99,8 @@ void f(String s) {
 }
 
 @reflectiveTest
-class ReplaceCascadeWithDotWithNNBDTest extends ReplaceCascadeWithDotTest {
+class ReplaceCascadeWithDotWithNullSafetyTest
+    extends ReplaceCascadeWithDotTest {
   @override
   List<String> get experiments => [EnableString.non_nullable];
 

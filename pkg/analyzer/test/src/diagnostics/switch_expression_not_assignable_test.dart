@@ -22,7 +22,7 @@ f(int p) {
     case 'a': break;
   }
 }''', [
-      error(StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE, 21, 1),
+      error(CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE, 21, 1),
     ]);
   }
 }

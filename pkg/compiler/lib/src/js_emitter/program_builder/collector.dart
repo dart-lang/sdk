@@ -196,26 +196,6 @@ class Collector {
 
     neededClasses.addAll(classesOnlyNeededForRti);
 
-    // TODO(18175, floitsch): remove once issue 18175 is fixed.
-    if (neededClasses.contains(_commonElements.jsIntClass)) {
-      neededClasses.add(_commonElements.intClass);
-    }
-    if (neededClasses.contains(_commonElements.jsDoubleClass)) {
-      neededClasses.add(_commonElements.doubleClass);
-    }
-    if (neededClasses.contains(_commonElements.jsNumberClass)) {
-      neededClasses.add(_commonElements.numClass);
-    }
-    if (neededClasses.contains(_commonElements.jsStringClass)) {
-      neededClasses.add(_commonElements.stringClass);
-    }
-    if (neededClasses.contains(_commonElements.jsBoolClass)) {
-      neededClasses.add(_commonElements.boolClass);
-    }
-    if (neededClasses.contains(_commonElements.jsArrayClass)) {
-      neededClasses.add(_commonElements.listClass);
-    }
-
     // 4. Finally, sort the classes.
     List<ClassEntity> sortedClasses = _sorter.sortClasses(neededClasses);
 

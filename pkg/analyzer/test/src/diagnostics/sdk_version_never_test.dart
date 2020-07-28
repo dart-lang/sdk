@@ -13,7 +13,7 @@ import 'sdk_constraint_verifier_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SdkVersionNeverTest);
-    defineReflectiveTests(SdkVersionNeverWithNnbdTest);
+    defineReflectiveTests(SdkVersionNeverWithNullSafetyTest);
   });
 }
 
@@ -33,7 +33,7 @@ Never foo;
 }
 
 @reflectiveTest
-class SdkVersionNeverWithNnbdTest extends SdkConstraintVerifierTest
+class SdkVersionNeverWithNullSafetyTest extends SdkConstraintVerifierTest
     with WithNullSafetyMixin {
   test_experimentEnabled() async {
     await verifyVersion('2.7.0', r'''

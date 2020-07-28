@@ -34,8 +34,8 @@ main() {
     ['x']
   ]);
 
-  AnalysisError use_of_void_result =
-      AnalysisError(TestSource(), 0, 1, StaticWarningCode.USE_OF_VOID_RESULT, [
+  AnalysisError use_of_void_result = AnalysisError(
+      TestSource(), 0, 1, CompileTimeErrorCode.USE_OF_VOID_RESULT, [
     ['x']
   ]);
 

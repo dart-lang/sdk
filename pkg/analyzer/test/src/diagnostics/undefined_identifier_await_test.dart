@@ -19,7 +19,7 @@ class UndefinedIdentifierAwaitTest extends DriverResolutionTest {
     await assertErrorsInCode('''
 void a() { await; }
 ''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT, 11, 5),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT, 11, 5),
     ]);
   }
 }

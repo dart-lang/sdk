@@ -20,11 +20,11 @@ main() {
   // Unrelated types (not assignable)
   f(intToInt);
   //^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'int Function(int)' can't be assigned to the parameter type 'num Function(num)'.
   f(objectToObject);
   //^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'Object Function(Object)' can't be assigned to the parameter type 'num Function(num)'.
 
   // Assignable but fails at runtime.

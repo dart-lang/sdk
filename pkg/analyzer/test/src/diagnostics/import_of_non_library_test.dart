@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class ImportOfNonLibraryTest extends DriverResolutionTest {
-  test_part() async {
+  test_deferred() async {
     newFile("/test/lib/lib1.dart", content: '''
 part of lib;
 class A {}
@@ -24,6 +24,20 @@ class A {}
 library lib;
 import 'lib1.dart' deferred as p;
 var a = new p.A();
+''', [
+      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 20, 11),
+    ]);
+  }
+
+  test_part() async {
+    newFile("/test/lib/part.dart", content: r'''
+part of lib;
+class A{}
+''');
+    await assertErrorsInCode(r'''
+library lib;
+import 'part.dart';
+A a;
 ''', [
       error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 20, 11),
     ]);

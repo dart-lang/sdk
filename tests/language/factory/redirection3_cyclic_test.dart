@@ -28,7 +28,7 @@ class C implements B {
   // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
   // [cfe] Expected an identifier, but got '('.
   //                     ^^^
-  // [analyzer] STATIC_WARNING.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
   C();
 }
 

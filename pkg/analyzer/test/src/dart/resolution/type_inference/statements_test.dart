@@ -9,16 +9,17 @@ import '../with_null_safety_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AssertWithNnbdTest);
-    defineReflectiveTests(DoWithNnbdTest);
-    defineReflectiveTests(ForWithNnbdTest);
-    defineReflectiveTests(IfWithNnbdTest);
-    defineReflectiveTests(WhileWithNnbdTest);
+    defineReflectiveTests(AssertWithNullSafetyTest);
+    defineReflectiveTests(DoWithNullSafetyTest);
+    defineReflectiveTests(ForWithNullSafetyTest);
+    defineReflectiveTests(IfWithNullSafetyTest);
+    defineReflectiveTests(WhileWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class AssertWithNnbdTest extends DriverResolutionTest with WithNullSafetyMixin {
+class AssertWithNullSafetyTest extends DriverResolutionTest
+    with WithNullSafetyMixin {
   test_downward() async {
     await resolveTestCode('''
 void f() {
@@ -31,7 +32,8 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class DoWithNnbdTest extends DriverResolutionTest with WithNullSafetyMixin {
+class DoWithNullSafetyTest extends DriverResolutionTest
+    with WithNullSafetyMixin {
   test_downward() async {
     await resolveTestCode('''
 void f() {
@@ -44,7 +46,8 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class ForWithNnbdTest extends DriverResolutionTest with WithNullSafetyMixin {
+class ForWithNullSafetyTest extends DriverResolutionTest
+    with WithNullSafetyMixin {
   test_awaitForIn_dynamic_downward() async {
     await resolveTestCode('''
 void f() async {
@@ -100,7 +103,8 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class IfWithNnbdTest extends DriverResolutionTest with WithNullSafetyMixin {
+class IfWithNullSafetyTest extends DriverResolutionTest
+    with WithNullSafetyMixin {
   test_downward() async {
     await resolveTestCode('''
 void f() {
@@ -113,7 +117,8 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class WhileWithNnbdTest extends DriverResolutionTest with WithNullSafetyMixin {
+class WhileWithNullSafetyTest extends DriverResolutionTest
+    with WithNullSafetyMixin {
   test_downward() async {
     await resolveTestCode('''
 void f() {

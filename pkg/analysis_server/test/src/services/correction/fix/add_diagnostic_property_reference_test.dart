@@ -31,6 +31,7 @@ class AddDiagnosticPropertyReferenceTest extends FixProcessorLintTest {
   }
 
   Future<void> test_boolField() async {
+    // todo(pq): when linter 0.1.118 is integrated, update DiagnosticableMixin to Diagnosticable
     await resolveTestUnit('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';

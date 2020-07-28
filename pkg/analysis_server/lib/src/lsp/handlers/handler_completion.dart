@@ -217,7 +217,6 @@ class CompletionHandler
         final serverSuggestions = await contributor.computeSuggestions(
           perf,
           completionRequest,
-          enableUriContributor: true,
         );
 
         if (token.isCancellationRequested) {

@@ -22,7 +22,7 @@ class B extends A {
   B() : super(), super() {}
 }
 ''', [
-      error(StrongModeCode.INVALID_SUPER_INVOCATION, 39, 7),
+      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 39, 7),
       error(CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS, 48, 7),
     ]);
   }

@@ -15,7 +15,7 @@ import '../resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InheritanceManager3Test);
-    defineReflectiveTests(InheritanceManager3WithNnbdTest);
+    defineReflectiveTests(InheritanceManager3WithNullSafetyTest);
   });
 }
 
@@ -1042,7 +1042,7 @@ class B extends A {
 }
 
 @reflectiveTest
-class InheritanceManager3WithNnbdTest extends _InheritanceManager3Base
+class InheritanceManager3WithNullSafetyTest extends _InheritanceManager3Base
     with WithNullSafetyMixin {
   test_getInheritedMap_topMerge_method() async {
     newFile('/test/lib/a.dart', content: r'''

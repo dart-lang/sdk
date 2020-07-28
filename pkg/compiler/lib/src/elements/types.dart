@@ -651,7 +651,7 @@ class FunctionType extends DartType {
 
   final List<FunctionTypeVariable> typeVariables;
 
-  FunctionType._(
+  FunctionType._allocate(
       this.returnType,
       this.parameterTypes,
       this.optionalParameterTypes,
@@ -659,17 +659,42 @@ class FunctionType extends DartType {
       this.requiredNamedParameters,
       this.namedParameterTypes,
       this.typeVariables) {
-    assert(returnType != null, "Invalid return type in $this.");
-    assert(!parameterTypes.contains(null), "Invalid parameter types in $this.");
+    assert(returnType != null, 'Invalid return type in $this.');
+    assert(!parameterTypes.contains(null), 'Invalid parameter types in $this.');
     assert(!optionalParameterTypes.contains(null),
-        "Invalid optional parameter types in $this.");
+        'Invalid optional parameter types in $this.');
     assert(
-        !namedParameters.contains(null), "Invalid named parameters in $this.");
+        !namedParameters.contains(null), 'Invalid named parameters in $this.');
     assert(!requiredNamedParameters.contains(null),
-        "Invalid required named parameters in $this.");
+        'Invalid required named parameters in $this.');
     assert(!namedParameterTypes.contains(null),
-        "Invalid named parameter types in $this.");
-    assert(!typeVariables.contains(null), "Invalid type variables in $this.");
+        'Invalid named parameter types in $this.');
+    assert(!typeVariables.contains(null), 'Invalid type variables in $this.');
+  }
+
+  factory FunctionType._(
+      DartType returnType,
+      List<DartType> parameterTypes,
+      List<DartType> optionalParameterTypes,
+      List<String> namedParameters,
+      Set<String> requiredNamedParameters,
+      List<DartType> namedParameterTypes,
+      List<FunctionTypeVariable> typeVariables) {
+    // Canonicalize empty collections to constants to save storage.
+    if (parameterTypes.isEmpty) parameterTypes = const [];
+    if (optionalParameterTypes.isEmpty) optionalParameterTypes = const [];
+    if (namedParameterTypes.isEmpty) namedParameterTypes = const [];
+    if (requiredNamedParameters.isEmpty) requiredNamedParameters = const {};
+    if (typeVariables.isEmpty) typeVariables = const [];
+
+    return FunctionType._allocate(
+        returnType,
+        parameterTypes,
+        optionalParameterTypes,
+        namedParameters,
+        requiredNamedParameters,
+        namedParameterTypes,
+        typeVariables);
   }
 
   factory FunctionType._readFromDataSource(
@@ -1915,6 +1940,11 @@ abstract class DartTypes {
 
   bool _subtypeHelper(DartType s, DartType t,
       {bool allowPotentialSubtypes: false, bool assumeInstantiations: false}) {
+    assert(allowPotentialSubtypes || !assumeInstantiations);
+
+    // TODO(fishythefish): Add constraint solving for potential subtypes.
+    if (allowPotentialSubtypes) return true;
+
     /// Based on
     /// https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md.
     /// See also [_isSubtype] in `dart:_rti`.
@@ -1927,10 +1957,6 @@ abstract class DartTypes {
           env.isAssumed(s, t)) return true;
 
       if (s is AnyType) return true;
-      if (allowPotentialSubtypes &&
-          (s is TypeVariableType || t is TypeVariableType)) return true;
-      if (assumeInstantiations &&
-          (s is FunctionTypeVariable || t is FunctionTypeVariable)) return true;
 
       // Right Top:
       if (isTopType(t)) return true;
@@ -2039,10 +2065,10 @@ abstract class DartTypes {
           List<FunctionTypeVariable> sTypeVariables = s.typeVariables;
           List<FunctionTypeVariable> tTypeVariables = t.typeVariables;
           int length = tTypeVariables.length;
-          if (length == sTypeVariables.length) {
-            env ??= _Assumptions();
-            env.assumePairs(sTypeVariables, tTypeVariables);
-          } else if (!assumeInstantiations || length > 0) return false;
+          if (length != sTypeVariables.length) return false;
+
+          env ??= _Assumptions();
+          env.assumePairs(sTypeVariables, tTypeVariables);
           try {
             for (int i = 0; i < length; i++) {
               DartType sBound = sTypeVariables[i].bound;

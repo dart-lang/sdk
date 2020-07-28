@@ -15,13 +15,13 @@ import 'with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionMethodsDeclarationTest);
-    defineReflectiveTests(ExtensionMethodsDeclarationWithNnbdTest);
+    defineReflectiveTests(ExtensionMethodsDeclarationWithNullSafetyTest);
     defineReflectiveTests(ExtensionMethodsExtendedTypeTest);
-    defineReflectiveTests(ExtensionMethodsExtendedTypeWithNnbdTest);
+    defineReflectiveTests(ExtensionMethodsExtendedTypeWithNullSafetyTest);
     defineReflectiveTests(ExtensionMethodsExternalReferenceTest);
-    defineReflectiveTests(ExtensionMethodsExternalReferenceWithNnbdTest);
+    defineReflectiveTests(ExtensionMethodsExternalReferenceWithNullSafetyTest);
     defineReflectiveTests(ExtensionMethodsInternalReferenceTest);
-    defineReflectiveTests(ExtensionMethodsInternalReferenceWithNnbdTest);
+    defineReflectiveTests(ExtensionMethodsInternalReferenceWithNullSafetyTest);
   });
 }
 
@@ -315,7 +315,7 @@ f(p.C c) {
 /// Tests that show that extension declarations and the members inside them are
 /// resolved correctly.
 @reflectiveTest
-class ExtensionMethodsDeclarationWithNnbdTest extends DriverResolutionTest
+class ExtensionMethodsDeclarationWithNullSafetyTest extends DriverResolutionTest
     with WithNullSafetyMixin {
   test_this_type_interface() async {
     await assertNoErrorsInCode('''
@@ -475,7 +475,7 @@ extension on M {}
 }
 
 @reflectiveTest
-class ExtensionMethodsExtendedTypeWithNnbdTest
+class ExtensionMethodsExtendedTypeWithNullSafetyTest
     extends ExtensionMethodsExtendedTypeTest with WithNullSafetyMixin {}
 
 /// Tests that extension members can be correctly resolved when referenced
@@ -948,8 +948,8 @@ f(C c) {
 extension on Object {}
 var a = b + c;
 ''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 31, 1),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 35, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 31, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 35, 1),
     ]);
   }
 
@@ -1420,7 +1420,7 @@ extension E on Function {
 }
 
 @reflectiveTest
-class ExtensionMethodsExternalReferenceWithNnbdTest
+class ExtensionMethodsExternalReferenceWithNullSafetyTest
     extends ExtensionMethodsExternalReferenceTest with WithNullSafetyMixin {
   test_instance_getter_fromInstance_Never() async {
     await assertNoErrorsInCode('''
@@ -2218,5 +2218,5 @@ extension E on C {
 }
 
 @reflectiveTest
-class ExtensionMethodsInternalReferenceWithNnbdTest
+class ExtensionMethodsInternalReferenceWithNullSafetyTest
     extends ExtensionMethodsInternalReferenceTest with WithNullSafetyMixin {}

@@ -49,8 +49,6 @@ class ExpectationSet {
     } on SyntaxError catch (error) {
       stderr.writeln(error.toString());
       exit(1);
-
-      throw "unreachable";
     }
   }
 

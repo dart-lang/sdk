@@ -4,7 +4,7 @@
 
 final foo = A<B>.foo();
 //          ^
-// [analyzer] STATIC_WARNING.CREATION_WITH_NON_TYPE
+// [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
 // [cfe] Method not found: 'A'.
 //            ^
 // [analyzer] STATIC_TYPE_WARNING.NON_TYPE_AS_TYPE_ARGUMENT

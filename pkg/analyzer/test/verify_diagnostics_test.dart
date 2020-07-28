@@ -38,6 +38,8 @@ class DocumentationValidator {
   /// ony include docs that cannot be verified because of missing support in the
   /// verifier.
   static const List<String> unverifiedDocs = [
+    // Needs to be able to specify two expected diagnostics.
+    'CompileTimeErrorCode.AMBIGUOUS_IMPORT',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE',
     // Produces two diagnostics when it should only produce one. We could get
@@ -46,17 +48,15 @@ class DocumentationValidator {
     'CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.INVALID_URI',
+    // Produces two diagnostics when it should only produce one.
+    'CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE',
     // Need a way to make auxiliary files that (a) are not included in the
     // generated docs or (b) can be made persistent for fixes.
     'CompileTimeErrorCode.PART_OF_NON_PART',
+    // Produces the diagnostic HintCode.UNUSED_LOCAL_VARIABLE when it shouldn't.
+    'CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT',
     // The code has been replaced but is not yet removed.
     'HintCode.DEPRECATED_MEMBER_USE',
-    // Needs to be able to specify two expected diagnostics.
-    'StaticWarningCode.AMBIGUOUS_IMPORT',
-    // Produces two diagnostics when it should only produce one.
-    'StaticWarningCode.INVALID_USE_OF_NULL_VALUE',
-    // Produces the diagnostic HintCode.UNUSED_LOCAL_VARIABLE when it shouldn't.
-    'StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT',
   ];
 
   /// The prefix used on directive lines to specify the experiments that should

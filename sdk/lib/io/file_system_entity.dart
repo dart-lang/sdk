@@ -240,6 +240,10 @@ FileStat: type $type
  *   files and directories.
  */
 abstract class FileSystemEntity {
+  static const _backslashChar = 0x5c;
+  static const _slashChar = 0x2f;
+  static const _colonChar = 0x3a;
+
   String get _path;
   Uint8List get _rawPath;
 
@@ -531,16 +535,31 @@ abstract class FileSystemEntity {
   }
 
   static final RegExp _absoluteWindowsPathPattern =
-      new RegExp(r'^(\\\\|[a-zA-Z]:[/\\])');
+      new RegExp(r'^(?:\\\\|[a-zA-Z]:[/\\])');
 
   /**
-   * Returns a [bool] indicating whether this object's path is absolute.
+   * Whether this object's path is absolute.
    *
-   * On Windows, a path is absolute if it starts with \\\\ or a drive letter
-   * between a and z (upper or lower case) followed by :\\ or :/.
-   * On non-Windows, a path is absolute if it starts with /.
+   * An absolute path is independent of the current working
+   * directory ([Directory.current]).
+   * A non-absolute path must be interpreted relative to
+   * the current working directory.
+   *
+   * On Windows, a path is absolute if it starts with `\\`
+   * (two backslashesor representing a UNC path) or with a drive letter
+   * between `a` and `z` (upper or lower case) followed by `:\` or `:/`.
+   * The makes, for example, `\file.ext` a non-absolute path
+   * because it depends on the current drive letter.
+   *
+   * On non-Windows, a path is absolute if it starts with `/`.
+   *
+   * If the path is not absolute, use [absolute] to get an entity
+   * with an absolute path referencing the same object in the file system,
+   * if possible.
    */
-  bool get isAbsolute {
+  bool get isAbsolute => _isAbsolute(path);
+
+  static bool _isAbsolute(String path) {
     if (Platform.isWindows) {
       return path.startsWith(_absoluteWindowsPathPattern);
     } else {
@@ -553,37 +572,86 @@ abstract class FileSystemEntity {
    *
    * The type of the returned instance is the type of [this].
    *
-   * The absolute path is computed by prefixing
-   * a relative path with the current working directory, and returning
-   * an absolute path unchanged.
+   * A file system entity with an already absolute path
+   * (as reported by [isAbsolute]) is returned directly.
+   * For a non-absolute path, the returned entity is absolute ([isAbsolute])
+   * *if possible*, but still refers to the same file system object.
    */
   FileSystemEntity get absolute;
 
   String get _absolutePath {
     if (isAbsolute) return path;
+    if (Platform.isWindows) return _absoluteWindowsPath(path);
     String current = Directory.current.path;
-    if (current.endsWith('/') ||
-        (Platform.isWindows && current.endsWith('\\'))) {
+    if (current.endsWith('/')) {
       return '$current$path';
     } else {
       return '$current${Platform.pathSeparator}$path';
     }
   }
 
-  Uint8List get _rawAbsolutePath {
-    if (isAbsolute) return _rawPath;
-    var current = Directory.current._rawPath.toList();
-    assert(current.last == 0);
-    current.removeLast(); // Remove null terminator.
-    if ((current.last == '/'.codeUnitAt(0)) ||
-        (Platform.isWindows && (current.last == '\\'.codeUnitAt(0)))) {
-      current.addAll(_rawPath);
-      return new Uint8List.fromList(current);
-    } else {
-      current.addAll(utf8.encode(Platform.pathSeparator));
-      current.addAll(_rawPath);
-      return new Uint8List.fromList(current);
+  /// The ASCII code of the Windows drive letter if [entity], if any.
+  ///
+  /// Returns the ASCII code of the upper-cased drive letter of
+  /// the path of [entity], if it has a drive letter (starts with `[a-zA-z]:`),
+  /// or `-1` if it has no drive letter.
+  static int _windowsDriveLetter(String path) {
+    if (!path.startsWith(':', 1)) return -1;
+    var first = path.codeUnitAt(0) & ~0x20;
+    if (first >= 0x41 && first <= 0x5b) return first;
+    return -1;
+  }
+
+  /// The relative [path] converted to an absolute path.
+  static String _absoluteWindowsPath(String path) {
+    assert(Platform.isWindows);
+    assert(!_isAbsolute(path));
+    // Could perhaps use something like
+    // https://docs.microsoft.com/en-us/windows/win32/api/pathcch/nf-pathcch-pathalloccombine
+    var current = Directory.current.path;
+    if (path.startsWith(r'\')) {
+      assert(!path.startsWith(r'\', 1));
+      // Absolute path, no drive letter.
+      var currentDrive = _windowsDriveLetter(current);
+      if (currentDrive >= 0) {
+        return '${current[0]}:$path';
+      }
+      // If `current` is a UNC path \\server\share[...],
+      // we make the absolute path relative to the share.
+      // Also works with `\\?\c:\` paths.
+      if (current.startsWith(r'\\')) {
+        var serverEnd = current.indexOf(r'\', 2);
+        if (serverEnd >= 0) {
+          // We may want to recognize UNC paths of the form:
+          //   \\?\UNC\Server\share\...
+          // specially, and be relative to the *share* not to UNC\.
+          var shareEnd = current.indexOf(r'\', serverEnd + 1);
+          if (shareEnd < 0) shareEnd = current.length;
+          return '${current.substring(0, shareEnd)}$path';
+        }
+      }
+      // If `current` is not in the drive-letter:path format,
+      // or not \\server\share[\path],
+      // we ignore it and return a relative path.
+      return path;
     }
+    var entityDrive = _windowsDriveLetter(path);
+    if (entityDrive >= 0) {
+      if (entityDrive != _windowsDriveLetter(current)) {
+        // Need to resolve relative to current directory of the drive.
+        // Windows remembers the last CWD of each drive.
+        // We currently don't have that information, so we assume the root of that drive.
+        return '${path[0]}:\\$path';
+      }
+
+      /// A `c:relative\path` path on the same drive as `current`.
+      path = path.substring(2);
+      assert(!path.startsWith(r'\\'));
+    }
+    if (current.endsWith(r'\') || current.endsWith('/')) {
+      return '$current$path';
+    }
+    return '$current\\$path';
   }
 
   static bool _identicalSync(String path1, String path2) {

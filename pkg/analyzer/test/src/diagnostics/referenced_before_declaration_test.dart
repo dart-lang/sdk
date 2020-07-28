@@ -69,7 +69,7 @@ print(x) {}
     ]);
   }
 
-  test_hideInBlock_subBlock() async {
+  test_hideInBlock_local_subBlock() async {
     await assertErrorsInCode(r'''
 var v = 1;
 main() {
@@ -83,6 +83,82 @@ print(x) {}
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 34, 1,
           contextMessages: [message('/test/lib/test.dart', 48, 1)]),
     ]);
+  }
+
+  test_hideInSwitchCase_function() async {
+    await assertErrorsInCode(r'''
+var v = 0;
+
+void f(int a) {
+  switch (a) {
+    case 0:
+      v;
+      void v() {}
+  }
+}
+''', [
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 61, 1,
+          contextMessages: [message('/test/lib/test.dart', 75, 1)]),
+    ]);
+
+    assertElement(findNode.simple('v;'), findElement.localFunction('v'));
+  }
+
+  test_hideInSwitchCase_local() async {
+    await assertErrorsInCode(r'''
+var v = 0;
+
+void f(int a) {
+  switch (a) {
+    case 0:
+      v;
+      var v = 1;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 61, 1,
+          contextMessages: [message('/test/lib/test.dart', 74, 1)]),
+    ]);
+
+    assertElement(findNode.simple('v;'), findElement.localVar('v'));
+  }
+
+  test_hideInSwitchDefault_function() async {
+    await assertErrorsInCode(r'''
+var v = 0;
+
+void f(int a) {
+  switch (a) {
+    default:
+      v;
+      void v() {}
+  }
+}
+''', [
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 62, 1,
+          contextMessages: [message('/test/lib/test.dart', 76, 1)]),
+    ]);
+
+    assertElement(findNode.simple('v;'), findElement.localFunction('v'));
+  }
+
+  test_hideInSwitchDefault_local() async {
+    await assertErrorsInCode(r'''
+var v = 0;
+
+void f(int a) {
+  switch (a) {
+    default:
+      v;
+      var v = 1;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 62, 1,
+          contextMessages: [message('/test/lib/test.dart', 75, 1)]),
+    ]);
+
+    assertElement(findNode.simple('v;'), findElement.localVar('v'));
   }
 
   test_inInitializer_closure() async {
@@ -105,6 +181,30 @@ main() {
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 19, 1,
           contextMessages: [message('/test/lib/test.dart', 15, 1)]),
     ]);
+  }
+
+  test_labeledStatement_function() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  // ignore:unused_label
+  label: void v() {}
+  v;
+}
+''');
+
+    assertElement(findNode.simple('v;'), findElement.localFunction('v'));
+  }
+
+  test_labeledStatement_local() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  // ignore:unused_label
+  label: var v = 0;
+  v; 
+}
+''');
+
+    assertElement(findNode.simple('v;'), findElement.localVar('v'));
   }
 
   test_type_localFunction() async {

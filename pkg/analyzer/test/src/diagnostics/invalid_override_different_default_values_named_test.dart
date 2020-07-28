@@ -12,7 +12,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidOverrideDifferentDefaultValuesNamedTest);
     defineReflectiveTests(
-      InvalidOverrideDifferentDefaultValuesNamedWithNnbdTest,
+      InvalidOverrideDifferentDefaultValuesNamedWithNullSafetyTest,
     );
   });
 }
@@ -241,7 +241,7 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 26, 9),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 26, 9),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 26, 9),
     ]);
   }
 
@@ -257,9 +257,9 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 26, 9),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 26, 9),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 26, 9),
       error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 85, 10),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 85, 10),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 85, 10),
     ]);
   }
 
@@ -275,7 +275,7 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 71, 9),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 71, 9),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 71, 9),
     ]);
   }
 
@@ -298,7 +298,7 @@ class B extends A {
 }
 
 @reflectiveTest
-class InvalidOverrideDifferentDefaultValuesNamedWithNnbdTest
+class InvalidOverrideDifferentDefaultValuesNamedWithNullSafetyTest
     extends InvalidOverrideDifferentDefaultValuesNamedTest
     with WithNullSafetyMixin {
   test_concrete_equal_optIn_extends_optOut() async {

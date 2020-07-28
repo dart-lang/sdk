@@ -18,7 +18,7 @@ class IsNotClass2NegativeTest {
 
     if (a is aa) {
     //       ^^
-    // [analyzer] STATIC_WARNING.TYPE_TEST_WITH_NON_TYPE
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_NON_TYPE
     // [cfe] 'aa' isn't a type.
       return 0;
     }

@@ -15,11 +15,35 @@ main() {
 
 @reflectiveTest
 class NotATypeTest extends DriverResolutionTest {
+  test_class_constructor() async {
+    await assertErrorsInCode('''
+class A {
+  A.foo();
+}
+
+A.foo bar() {}
+''', [
+      error(CompileTimeErrorCode.NOT_A_TYPE, 24, 5),
+    ]);
+  }
+
+  test_class_method() async {
+    await assertErrorsInCode('''
+class A {
+  static void foo() {}
+}
+
+A.foo bar() {}
+''', [
+      error(CompileTimeErrorCode.NOT_A_TYPE, 36, 5),
+    ]);
+  }
+
   test_extension() async {
     await assertErrorsInCode('''
 extension E on int {}
 E a;
-''', [error(StaticWarningCode.NOT_A_TYPE, 22, 1)]);
+''', [error(CompileTimeErrorCode.NOT_A_TYPE, 22, 1)]);
     var typeName = findNode.typeName('E a;');
     assertTypeDynamic(typeName.type);
     assertTypeNull(typeName.name);
@@ -31,7 +55,7 @@ f() {}
 main() {
   f v = null;
 }''', [
-      error(StaticWarningCode.NOT_A_TYPE, 18, 1),
+      error(CompileTimeErrorCode.NOT_A_TYPE, 18, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 20, 1),
     ]);
   }

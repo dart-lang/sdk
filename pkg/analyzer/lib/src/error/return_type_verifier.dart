@@ -366,7 +366,7 @@ class ReturnTypeVerifier {
     }
 
     _errorReporter.reportErrorForToken(
-      StaticWarningCode.RETURN_WITHOUT_VALUE,
+      CompileTimeErrorCode.RETURN_WITHOUT_VALUE,
       statement.returnKeyword,
     );
   }

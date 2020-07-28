@@ -26,10 +26,10 @@ main() {
 //^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
   //          ^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'Invariant<Middle>' can't be assigned to the parameter type 'Invariant<Object>'.
   //                               ^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'Invariant<int>' can't be assigned to the parameter type 'Invariant<Object>'.
 
   // Middle <: T <: Middle and Upper <: T <: Upper are not valid constraints.
@@ -37,7 +37,7 @@ main() {
 //^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
   //          ^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'Invariant<Middle>' can't be assigned to the parameter type 'Invariant<Upper>'.
 
   // Middle <: T <: Middle and Lower <: T <: Lower are not valid constraints.
@@ -45,7 +45,7 @@ main() {
 //^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
   //                               ^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'Invariant<Lower>' can't be assigned to the parameter type 'Invariant<Middle>'.
 
   // Upper <: T
@@ -55,7 +55,7 @@ main() {
 //^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
   //          ^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'Invariant<Middle>' can't be assigned to the parameter type 'Invariant<Upper>'.
 
   // T <: Lower

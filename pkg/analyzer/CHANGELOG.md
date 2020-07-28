@@ -1,7 +1,10 @@
-## 0.39.15-dev
+## 0.39.15
 * Move `asInstanceOf(ClassElement)` to `DartType`, so that it is also
   supported for `TypeParameterType` when its bound implements the
   requested interface.
+* Fixed invalid implicit downcast in `InterfaceType.allSupertypes`.
+* The internal `currentVersion` of the language updated to `2.10`.
+* Bug fixes: 41065, 42797, 42770, 42668.
 
 ## 0.39.14
 * Removed `defaultSdkDirectory()` and `getSdkProperty()` from internal

@@ -10,7 +10,7 @@ int bar = 499;
 
 int get foo => bar;
 //      ^^^
-// [analyzer] STATIC_WARNING.GETTER_NOT_ASSIGNABLE_SETTER_TYPES
+// [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_ASSIGNABLE_SETTER_TYPES
 
 void set foo(String str) {
   bar = str.length;

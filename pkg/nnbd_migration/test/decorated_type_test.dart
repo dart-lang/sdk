@@ -540,8 +540,10 @@ class DecoratedTypeTest extends Object
   }
 
   void test_toFinalType_null_non_nullable() {
+    // We never change explicit `Null` types to `Never`, even if we can't find
+    // any reason they need to be nullable.
     var type = _variables.toFinalType(DecoratedType(null_.type, never));
-    assertDartType(type, 'Never');
+    assertDartType(type, 'Null');
   }
 
   void test_toFinalType_null_nullable() {

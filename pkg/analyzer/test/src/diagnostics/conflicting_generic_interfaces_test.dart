@@ -11,7 +11,7 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConflictingGenericInterfacesTest);
-    defineReflectiveTests(ConflictingGenericInterfacesWithNnbdTest);
+    defineReflectiveTests(ConflictingGenericInterfacesWithNullSafetyTest);
   });
 }
 
@@ -72,7 +72,7 @@ class C extends A implements B {}
 }
 
 @reflectiveTest
-class ConflictingGenericInterfacesWithNnbdTest
+class ConflictingGenericInterfacesWithNullSafetyTest
     extends ConflictingGenericInterfacesTest with WithNullSafetyMixin {
   test_class_extends_implements_never() async {
     await assertNoErrorsInCode('''

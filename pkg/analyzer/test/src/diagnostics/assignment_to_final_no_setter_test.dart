@@ -24,7 +24,7 @@ f() {
   0.foo = 1;
 }
 ''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 3),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 3),
     ]);
   }
 
@@ -37,7 +37,7 @@ main() {
   A a = new A();
   a.x = 0;
 }''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 60, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 60, 1),
     ]);
   }
 
@@ -52,7 +52,7 @@ class B {
 main() {
   B.a.x = 0;
 }''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 71, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 71, 1),
     ]);
   }
 }

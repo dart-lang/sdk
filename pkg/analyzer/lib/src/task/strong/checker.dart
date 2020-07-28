@@ -307,7 +307,12 @@ class CodeChecker extends RecursiveAstVisitor {
     for (int i = 0, last = init.length - 1; i < last; i++) {
       final node = init[i];
       if (node is SuperConstructorInvocation) {
-        _recordMessage(node, StrongModeCode.INVALID_SUPER_INVOCATION, [node]);
+        // TODO(srawlins): Don't report this when
+        //  [CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR] or
+        //  [CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS] is reported for
+        //  this constructor.
+        _recordMessage(
+            node, CompileTimeErrorCode.INVALID_SUPER_INVOCATION, [node]);
       }
     }
   }
@@ -344,23 +349,6 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     _checkReturnOrYield(node.expression, node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitFieldFormalParameter(FieldFormalParameter node) {
-    var element = node.declaredElement;
-    var typeName = node.type;
-    if (typeName != null) {
-      var type = _elementType(element);
-      var fieldElement =
-          node.identifier.staticElement as FieldFormalParameterElement;
-      var fieldType = _elementType(fieldElement.field);
-      if (!rules.isSubtypeOf2(type, fieldType)) {
-        _recordMessage(node, StrongModeCode.INVALID_PARAMETER_DECLARATION,
-            [node, fieldType]);
-      }
-    }
     node.visitChildren(this);
   }
 
@@ -1071,8 +1059,12 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
       TopLevelInferenceError error = variable.typeInferenceError;
       if (error != null) {
         if (error.kind == TopLevelInferenceErrorKind.dependencyCycle) {
-          _codeChecker._recordMessage(
-              n, StrongModeCode.TOP_LEVEL_CYCLE, [_name, error.arguments]);
+          // Errors on const should have been reported with
+          // [CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT].
+          if (!variable.isConst) {
+            _codeChecker._recordMessage(n, CompileTimeErrorCode.TOP_LEVEL_CYCLE,
+                [_name, error.arguments]);
+          }
         } else {
           _codeChecker._recordMessage(
               n, StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE, [_name, e.name]);

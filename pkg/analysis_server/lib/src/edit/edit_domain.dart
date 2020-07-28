@@ -21,6 +21,7 @@ import 'package:analysis_server/src/services/completion/postfix/postfix_completi
 import 'package:analysis_server/src/services/completion/statement/statement_completion.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
@@ -37,7 +38,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' as engine;
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -111,34 +111,11 @@ class EditDomainHandler extends AbstractRequestHandler {
         resource.collectDartFilePaths(paths);
       }
 
-      var errors = await _getErrors(params.included);
-
-      var sourceChange = SourceChange('bulk_fix');
-
-      // todo (pq): push loop into a BulkFixProcessor
-      for (var error in errors) {
-        // todo (pq): filtering will happen in processor
-        List<AnalysisErrorFixes> fixes;
-        while (fixes == null) {
-          try {
-            fixes = await _computeServerErrorFixes(
-                request, error.source.fullName, error.offset);
-          } on InconsistentAnalysisException {
-            // Loop around to try again to compute the fixes.
-          }
-        }
-
-        // In the long run we'll want to support the case where the desired fix
-        // is the first one.  For now, we just assume that the first way is the
-        // only or best way.
-        var edits = fixes[0].fixes[0].edits;
-        for (var edit in edits) {
-          sourceChange.addFileEdit(edit);
-        }
-      }
-
-      var response =
-          EditBulkFixesResult(sourceChange.edits).toResponse(request.id);
+      var workspace = DartChangeWorkspace(server.currentSessions);
+      var processor = BulkFixProcessor(workspace);
+      var changeBuilder = await processor.fixErrorsInLibraries(paths);
+      var response = EditBulkFixesResult(changeBuilder.sourceChange.edits)
+          .toResponse(request.id);
       server.sendResponse(response);
     } catch (exception, stackTrace) {
       server.sendServerErrorNotification('Exception while getting bulk fixes',
@@ -857,39 +834,6 @@ error.errorCode: ${error.errorCode}
     // respond
     var result = EditGetAvailableRefactoringsResult(kinds);
     server.sendResponse(result.toResponse(request.id));
-  }
-
-  /// todo (pq): (temporary) -> to be moved and redesigned in BulkFixesProcessor
-  Future<List<AnalysisError>> _getErrors(List<String> pathsToProcess) async {
-    var errors = <AnalysisError>[];
-
-    var pathsProcessed = <String>{};
-    for (var path in pathsToProcess) {
-      var driver = server.getAnalysisDriver(path);
-      switch (await driver.getSourceKind(path)) {
-        case SourceKind.PART:
-          // todo (pq): ensure parts are processed (see `edit_dartfix.dart`)
-          continue;
-          break;
-        case SourceKind.LIBRARY:
-          var result = await driver.getResolvedLibrary(path);
-          if (result != null) {
-            for (var unit in result.units) {
-              if (pathsToProcess.contains(unit.path) &&
-                  !pathsProcessed.contains(unit.path)) {
-                for (var error in unit.errors) {
-                  errors.add(error);
-                }
-                pathsProcessed.add(unit.path);
-              }
-            }
-          }
-          break;
-        default:
-          break;
-      }
-    }
-    return errors;
   }
 
   YamlMap _getOptions(SourceFactory sourceFactory, String content) {

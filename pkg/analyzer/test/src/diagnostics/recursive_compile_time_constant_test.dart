@@ -21,9 +21,7 @@ const x = y + 1;
 const y = x + 1;
 ''', [
       error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 6, 1),
-      error(StrongModeCode.TOP_LEVEL_CYCLE, 10, 1),
       error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 23, 1),
-      error(StrongModeCode.TOP_LEVEL_CYCLE, 27, 1),
     ]);
   }
 
@@ -72,7 +70,6 @@ class C {
 const x = x;
 ''', [
       error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 6, 1),
-      error(StrongModeCode.TOP_LEVEL_CYCLE, 10, 1),
     ]);
   }
 
@@ -85,7 +82,6 @@ const elems = const [
 ];
 ''', [
       error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 6, 5),
-      error(StrongModeCode.TOP_LEVEL_CYCLE, 39, 5),
     ]);
   }
 }

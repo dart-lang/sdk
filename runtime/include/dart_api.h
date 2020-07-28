@@ -239,17 +239,26 @@ typedef struct _Dart_IsolateGroup* Dart_IsolateGroup;
  * The type Dart_PersistentHandle is a Dart_Handle and it is used to
  * document that a persistent handle is expected as a parameter to a call
  * or the return value from a call is a persistent handle.
+ *
+ * FinalizableHandles are persistent handles which are auto deleted when
+ * the object is garbage collected. It is never safe to use these handles
+ * unless you know the object is still reachable.
+ *
+ * WeakPersistentHandles are persistent handles which are auto deleted
+ * when the object is garbage collected.
  */
 typedef struct _Dart_Handle* Dart_Handle;
 typedef Dart_Handle Dart_PersistentHandle;
 typedef struct _Dart_WeakPersistentHandle* Dart_WeakPersistentHandle;
-// These three structs are versioned by DART_API_DL_MAJOR_VERSION, bump the
+typedef struct _Dart_FinalizableHandle* Dart_FinalizableHandle;
+// These structs are versioned by DART_API_DL_MAJOR_VERSION, bump the
 // version when changing this struct.
 
 typedef void (*Dart_WeakPersistentHandleFinalizer)(
     void* isolate_callback_data,
     Dart_WeakPersistentHandle handle,
     void* peer);
+typedef void (*Dart_HandleFinalizer)(void* isolate_callback_data, void* peer);
 
 /**
  * Is this an error handle?
@@ -444,6 +453,8 @@ DART_EXPORT void Dart_SetPersistentHandle(Dart_PersistentHandle obj1,
 
 /**
  * Deallocates a persistent handle.
+ *
+ * Requires there to be a current isolate group.
  */
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
 
@@ -457,16 +468,17 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
  * calling Dart_DeleteWeakPersistentHandle.
  *
  * If the object becomes unreachable the callback is invoked with the weak
- * persistent handle and the peer as arguments. The callback can be executed
- * on any thread, will not have a current isolate, and can only call
- * Dart_DeletePersistentHandle or Dart_DeleteWeakPersistentHandle. The callback
- * must not call Dart_DeleteWeakPersistentHandle for the handle being finalized,
- * as it is automatically deleted by the VM after the callback returns.
- * This gives the embedder the ability to cleanup data associated with the
- * object and clear out any cached references to the handle. All references to
- * this handle after the callback will be invalid. It is illegal to call into
- * the VM from the callback. If the handle is deleted before the object becomes
- * unreachable, the callback is never invoked.
+ * persistent handle and the peer as arguments. The callback can be executed on
+ * any thread, will have an isolate group, but will not have a current isolate.
+ * The callback can only call Dart_DeletePersistentHandle or
+ * Dart_DeleteWeakPersistentHandle. The callback must not call
+ * Dart_DeleteWeakPersistentHandle for the handle being finalized, as it is
+ * automatically deleted by the VM after the callback returns. This gives the
+ * embedder the ability to cleanup data associated with the object and clear
+ * out any cached references to the handle. All references to this handle after
+ * the callback will be invalid. It is illegal to call into the VM with any
+ * other Dart_* functions from the callback. If the handle is deleted before
+ * the object becomes unreachable, the callback is never invoked.
  *
  * Requires there to be a current isolate.
  *
@@ -488,11 +500,85 @@ Dart_NewWeakPersistentHandle(Dart_Handle object,
                              intptr_t external_allocation_size,
                              Dart_WeakPersistentHandleFinalizer callback);
 
+/**
+ * Deletes the given weak persistent [object] handle.
+ *
+ * Requires there to be a current isolate group.
+ */
 DART_EXPORT void Dart_DeleteWeakPersistentHandle(
     Dart_WeakPersistentHandle object);
 
+/**
+ * Updates the external memory size for the given weak persistent handle.
+ *
+ * May trigger garbage collection.
+ */
 DART_EXPORT void Dart_UpdateExternalSize(Dart_WeakPersistentHandle object,
                                          intptr_t external_allocation_size);
+
+/**
+ * Allocates a finalizable handle for an object.
+ *
+ * This handle has the lifetime of the current isolate group unless the object
+ * pointed to by the handle is garbage collected, in this case the VM
+ * automatically deletes the handle after invoking the callback associated
+ * with the handle. The handle can also be explicitly deallocated by
+ * calling Dart_DeleteFinalizableHandle.
+ *
+ * If the object becomes unreachable the callback is invoked with the
+ * the peer as argument. The callback can be executed on any thread, will have
+ * an isolate group, but will not have a current isolate. The callback can only
+ * call Dart_DeletePersistentHandle or Dart_DeleteWeakPersistentHandle.
+ * This gives the embedder the ability to cleanup data associated with the
+ * object and clear out any cached references to the handle. All references to
+ * this handle after the callback will be invalid. It is illegal to call into
+ * the VM with any other Dart_* functions from the callback. If the handle is
+ * deleted before the object becomes unreachable, the callback is never
+ * invoked.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \param object An object.
+ * \param peer A pointer to a native object or NULL.  This value is
+ *   provided to callback when it is invoked.
+ * \param external_allocation_size The number of externally allocated
+ *   bytes for peer. Used to inform the garbage collector.
+ * \param callback A function pointer that will be invoked sometime
+ *   after the object is garbage collected, unless the handle has been deleted.
+ *   A valid callback needs to be specified it cannot be NULL.
+ *
+ * \return The finalizable handle or NULL. NULL is returned in case of bad
+ *   parameters.
+ */
+DART_EXPORT Dart_FinalizableHandle
+Dart_NewFinalizableHandle(Dart_Handle object,
+                          void* peer,
+                          intptr_t external_allocation_size,
+                          Dart_HandleFinalizer callback);
+
+/**
+ * Deletes the given finalizable [object] handle.
+ *
+ * The caller has to provide the actual Dart object the handle was created from
+ * to prove the object (and therefore the finalizable handle) is still alive.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT void Dart_DeleteFinalizableHandle(Dart_FinalizableHandle object,
+                                              Dart_Handle strong_ref_to_object);
+
+/**
+ * Updates the external memory size for the given finalizable handle.
+ *
+ * The caller has to provide the actual Dart object the handle was created from
+ * to prove the object (and therefore the finalizable handle) is still alive.
+ *
+ * May trigger garbage collection.
+ */
+DART_EXPORT void Dart_UpdateFinalizableExternalSize(
+    Dart_FinalizableHandle object,
+    Dart_Handle strong_ref_to_object,
+    intptr_t external_allocation_size);
 
 /*
  * ==========================

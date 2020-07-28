@@ -47,7 +47,7 @@ class FastaErrorReporter {
         return;
       case "CONCRETE_CLASS_WITH_ABSTRACT_MEMBER":
         errorReporter?.reportErrorForOffset(
-            StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+            CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
             offset,
             length);
         return;
@@ -104,12 +104,12 @@ class FastaErrorReporter {
       case "FINAL_NOT_INITIALIZED":
         String name = arguments['name'];
         errorReporter?.reportErrorForOffset(
-            StaticWarningCode.FINAL_NOT_INITIALIZED, offset, length, [name]);
+            CompileTimeErrorCode.FINAL_NOT_INITIALIZED, offset, length, [name]);
         return;
       case "FINAL_NOT_INITIALIZED_CONSTRUCTOR_1":
         String name = arguments['name'];
         errorReporter?.reportErrorForOffset(
-            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
+            CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
             offset,
             length,
             [name]);
@@ -197,7 +197,7 @@ class FastaErrorReporter {
         return;
       case "INVALID_SUPER_INVOCATION":
         errorReporter?.reportErrorForOffset(
-            StrongModeCode.INVALID_SUPER_INVOCATION, offset, length);
+            CompileTimeErrorCode.INVALID_SUPER_INVOCATION, offset, length);
         return;
       case "MISSING_DIGIT":
         errorReporter?.reportErrorForOffset(

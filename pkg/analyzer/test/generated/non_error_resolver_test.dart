@@ -1324,27 +1324,6 @@ class A {
 ''');
   }
 
-  test_for_in_scope() async {
-    await assertNoErrorsInCode('''
-main() {
-  List<List<int>> x = [[1]];
-  for (int x in x.first) {
-    print(x.isEven);
-  }
-}
-''');
-  }
-
-  test_forEach_genericFunctionType() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  for (Null Function<T>(T, Null) e in <dynamic>[]) {
-    e;
-  }
-}
-''');
-  }
-
   test_functionDeclaration_scope_returnType() async {
     await assertNoErrorsInCode('''
 int f(int) { return 0; }

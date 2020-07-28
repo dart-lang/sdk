@@ -11,9 +11,9 @@ import '../dart/resolution/with_null_safety_mixin.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AmbiguousSetOrMapLiteralBothTest);
-    defineReflectiveTests(AmbiguousSetOrMapLiteralBothWithNnbdTest);
+    defineReflectiveTests(AmbiguousSetOrMapLiteralBothWithNullSafetyTest);
     defineReflectiveTests(AmbiguousSetOrMapLiteralEitherTest);
-    defineReflectiveTests(AmbiguousSetOrMapLiteralEitherWithNnbdTest);
+    defineReflectiveTests(AmbiguousSetOrMapLiteralEitherWithNullSafetyTest);
   });
 }
 
@@ -63,7 +63,7 @@ f(Map<int, int> map, Set<int> set) {
 }
 
 @reflectiveTest
-class AmbiguousSetOrMapLiteralBothWithNnbdTest
+class AmbiguousSetOrMapLiteralBothWithNullSafetyTest
     extends AmbiguousSetOrMapLiteralBothTest with WithNullSafetyMixin {
   test_map_keyNonNullable_valueNullable() async {
     await assertNoErrorsInCode('''
@@ -131,5 +131,5 @@ var c = {...set, ...map};
 }
 
 @reflectiveTest
-class AmbiguousSetOrMapLiteralEitherWithNnbdTest
+class AmbiguousSetOrMapLiteralEitherWithNullSafetyTest
     extends AmbiguousSetOrMapLiteralEitherTest with WithNullSafetyMixin {}
