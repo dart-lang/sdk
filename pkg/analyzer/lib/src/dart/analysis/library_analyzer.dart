@@ -559,7 +559,7 @@ class LibraryAnalyzer {
 
     LineInfo lineInfo = unit.lineInfo;
     _fileToLineInfo[file] = lineInfo;
-    _fileToIgnoreInfo[file] = IgnoreInfo.calculateIgnores(content, lineInfo);
+    _fileToIgnoreInfo[file] = IgnoreInfo.forDart(unit, content);
 
     return unit;
   }
