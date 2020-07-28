@@ -303,7 +303,15 @@ class _SyncClosureContext implements ClosureContext {
     assert(_needToInferReturnType);
     assert(hasImplicitReturn != null);
     DartType inferredType;
-    if (_returnStatements.isNotEmpty) {
+    if (inferrer.isNonNullableByDefault) {
+      if (hasImplicitReturn) {
+        // No explicit returns we have an implicit `return null`.
+        inferredType = inferrer.typeSchemaEnvironment.nullType;
+      } else {
+        // No explicit return and the function doesn't complete normally; that
+        // is, it throws.
+        inferredType = new NeverType(inferrer.library.nonNullable);
+      }
       // Use the types seen from the explicit return statements.
       for (int i = 0; i < _returnStatements.length; i++) {
         ReturnStatement statement = _returnStatements[i];
@@ -322,15 +330,32 @@ class _SyncClosureContext implements ClosureContext {
               inferredType, type, inferrer.library.library);
         }
       }
-    } else if (hasImplicitReturn) {
-      // No explicit returns we have an implicit `return null`.
-      inferredType = inferrer.typeSchemaEnvironment.nullType;
     } else {
-      // No explicit return and the function doesn't complete normally; that is,
-      // it throws.
-      if (inferrer.isNonNullableByDefault) {
-        inferredType = new NeverType(inferrer.library.nonNullable);
+      if (_returnStatements.isNotEmpty) {
+        // Use the types seen from the explicit return statements.
+        for (int i = 0; i < _returnStatements.length; i++) {
+          ReturnStatement statement = _returnStatements[i];
+          DartType type = _returnExpressionTypes[i];
+          // The return expression has to be assignable to the return type
+          // expectation from the downwards inference context.
+          if (statement.expression != null) {
+            if (!inferrer.isAssignable(_returnContext, type)) {
+              type = inferrer.computeGreatestClosure(_returnContext);
+            }
+          }
+          if (inferredType == null) {
+            inferredType = type;
+          } else {
+            inferredType = inferrer.typeSchemaEnvironment.getStandardUpperBound(
+                inferredType, type, inferrer.library.library);
+          }
+        }
+      } else if (hasImplicitReturn) {
+        // No explicit returns we have an implicit `return null`.
+        inferredType = inferrer.typeSchemaEnvironment.nullType;
       } else {
+        // No explicit return and the function doesn't complete normally; that
+        // is, it throws.
         inferredType = inferrer.typeSchemaEnvironment.nullType;
       }
     }
@@ -649,23 +674,20 @@ class _AsyncClosureContext implements ClosureContext {
     assert(_needToInferReturnType);
     assert(hasImplicitReturn != null);
     DartType inferredType;
-    if (_returnStatements.isNotEmpty) {
+
+    if (inferrer.isNonNullableByDefault) {
+      if (hasImplicitReturn) {
+        // No explicit returns we have an implicit `return null`.
+        inferredType = inferrer.typeSchemaEnvironment.nullType;
+      } else {
+        // No explicit return and the function doesn't complete normally; that
+        // is, it throws.
+        inferredType = new NeverType(inferrer.library.nonNullable);
+      }
       // Use the types seen from the explicit return statements.
       for (int i = 0; i < _returnStatements.length; i++) {
-        ReturnStatement statement = _returnStatements[i];
         DartType type = _returnExpressionTypes[i];
 
-        // The return expression has to be assignable to the return type
-        // expectation from the downwards inference context.
-        if (!inferrer.isNonNullableByDefault) {
-          if (statement.expression != null) {
-            if (!inferrer.isAssignable(
-                computeAssignableType(inferrer, _returnContext, type), type)) {
-              // Not assignable, use the expectation.
-              type = inferrer.computeGreatestClosure(_returnContext);
-            }
-          }
-        }
         DartType unwrappedType = inferrer.typeSchemaEnvironment.flatten(type);
         if (inferredType == null) {
           inferredType = unwrappedType;
@@ -674,20 +696,6 @@ class _AsyncClosureContext implements ClosureContext {
               inferredType, unwrappedType, inferrer.library.library);
         }
       }
-    } else if (hasImplicitReturn) {
-      // No explicit returns we have an implicit `return null`.
-      inferredType = inferrer.typeSchemaEnvironment.nullType;
-    } else {
-      // No explicit return and the function doesn't complete normally; that is,
-      // it throws.
-      if (inferrer.isNonNullableByDefault) {
-        inferredType = new NeverType(inferrer.library.nonNullable);
-      } else {
-        inferredType = inferrer.typeSchemaEnvironment.nullType;
-      }
-    }
-
-    if (inferrer.isNonNullableByDefault) {
       if (!inferrer.typeSchemaEnvironment.isSubtypeOf(
           inferredType, _returnContext, SubtypeCheckMode.withNullabilities)) {
         // If the inferred return type isn't a subtype of the context, we use
@@ -698,6 +706,37 @@ class _AsyncClosureContext implements ClosureContext {
           inferrer.typeSchemaEnvironment.flatten(inferredType),
           inferrer.library.nonNullable);
     } else {
+      if (_returnStatements.isNotEmpty) {
+        // Use the types seen from the explicit return statements.
+        for (int i = 0; i < _returnStatements.length; i++) {
+          ReturnStatement statement = _returnStatements[i];
+          DartType type = _returnExpressionTypes[i];
+
+          // The return expression has to be assignable to the return type
+          // expectation from the downwards inference context.
+          if (statement.expression != null) {
+            if (!inferrer.isAssignable(
+                computeAssignableType(inferrer, _returnContext, type), type)) {
+              // Not assignable, use the expectation.
+              type = inferrer.computeGreatestClosure(_returnContext);
+            }
+          }
+          DartType unwrappedType = inferrer.typeSchemaEnvironment.flatten(type);
+          if (inferredType == null) {
+            inferredType = unwrappedType;
+          } else {
+            inferredType = inferrer.typeSchemaEnvironment.getStandardUpperBound(
+                inferredType, unwrappedType, inferrer.library.library);
+          }
+        }
+      } else if (hasImplicitReturn) {
+        // No explicit returns we have an implicit `return null`.
+        inferredType = inferrer.typeSchemaEnvironment.nullType;
+      } else {
+        // No explicit return and the function doesn't complete normally;
+        // that is, it throws.
+        inferredType = inferrer.typeSchemaEnvironment.nullType;
+      }
       inferredType =
           inferrer.wrapFutureType(inferredType, inferrer.library.nonNullable);
 

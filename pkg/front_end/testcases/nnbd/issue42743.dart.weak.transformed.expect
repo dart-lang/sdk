@@ -1,0 +1,64 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method main() → dynamic /* originally async */ {
+  final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
+  FutureOr<dynamic>? :return_value;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L1:
+      {
+        core::bool b = true;
+        (dynamic _) → core::int? {
+          if(b)
+            return 42;
+        };
+        (dynamic _) → asy::Future<core::int?> /* originally async */ {
+          final asy::_AsyncAwaitCompleter<core::int?> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int?>();
+          FutureOr<core::int?>? :return_value;
+          dynamic :async_stack_trace;
+          (dynamic) → dynamic :async_op_then;
+          (core::Object, core::StackTrace) → dynamic :async_op_error;
+          core::int :await_jump_var = 0;
+          dynamic :await_ctx_var;
+          function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+            try {
+              #L2:
+              {
+                if(b) {
+                  :return_value = 42;
+                  break #L2;
+                }
+              }
+              asy::_completeOnAsyncReturn(:async_completer, :return_value);
+              return;
+            }
+            on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+              :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+            }
+          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+          :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+          :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+          :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+          return :async_completer.{asy::Completer::future};
+        };
+      }
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
