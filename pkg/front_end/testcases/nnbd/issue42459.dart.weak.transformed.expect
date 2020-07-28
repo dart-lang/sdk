@@ -1,0 +1,32 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue42459.dart:10:7: Error: A value must be explicitly returned from a non-void function.
+//       return;
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  (dynamic x) → core::int? {
+    if(x as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool) {
+      return 1;
+    }
+    else {
+      return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue42459.dart:10:7: Error: A value must be explicitly returned from a non-void function.
+      return;
+      ^" in null;
+    }
+  };
+  function local(dynamic x) → void {
+    if(x as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool) {
+      return core::print("");
+    }
+    else {
+      return;
+    }
+  }
+}
+static method main() → dynamic {}
