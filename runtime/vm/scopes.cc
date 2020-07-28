@@ -249,7 +249,8 @@ VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
   if (chained_future != nullptr) {
     AllocateContextVariable(chained_future, &context_owner);
     *found_captured_variables = true;
-    ASSERT(chained_future->index().value() == Context::kChainedFutureIndex);
+    ASSERT(chained_future->index().value() ==
+           chained_future->expected_context_index());
   }
 
   while (pos < num_parameters) {
@@ -279,7 +280,7 @@ VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
     LocalVariable* variable = VariableAt(pos);
     if (variable->owner() == this) {
       if (variable->is_captured()) {
-        // Skip the two variables already pre-allocated above.
+        // Skip the variables already pre-allocated above.
         if (variable != await_jump_var && variable != async_completer &&
             variable != controller && variable != chained_future) {
           AllocateContextVariable(variable, &context_owner);

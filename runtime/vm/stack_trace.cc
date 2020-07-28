@@ -131,8 +131,7 @@ class CallerClosureFinder {
         var_data_field(Field::Handle(zone)),
         state_field(Field::Handle(zone)),
         on_data_field(Field::Handle(zone)),
-        state_data_field(Field::Handle(zone)),
-        future_timeout_method_(Function::Handle(zone)) {
+        state_data_field(Field::Handle(zone)) {
     const auto& async_lib = Library::Handle(zone, Library::AsyncLibrary());
     // Look up classes:
     // - async:
@@ -197,11 +196,6 @@ class CallerClosureFinder {
     state_data_field =
         stream_iterator_class.LookupFieldAllowPrivate(Symbols::_stateData());
     ASSERT(!state_data_field.IsNull());
-
-    // Functions:
-    future_timeout_method_ =
-        future_impl_class.LookupFunction(Symbols::timeout());
-    ASSERT(!future_timeout_method_.IsNull());
   }
 
   ClosurePtr GetCallerInFutureImpl(const Object& future_) {
@@ -296,7 +290,14 @@ class CallerClosureFinder {
       parent_function_ = receiver_function_.parent_function();
       if (parent_function_.recognized_kind() ==
           MethodRecognizer::kFutureTimeout) {
-        context_entry_ = receiver_context_.At(Context::kChainedFutureIndex);
+        context_entry_ =
+            receiver_context_.At(Context::kFutureTimeoutFutureIndex);
+        return GetCallerInFutureImpl(context_entry_);
+      } else if (parent_function_.recognized_kind() ==
+                 MethodRecognizer::kFutureWait) {
+        receiver_context_ = receiver_context_.parent();
+        ASSERT(!receiver_context_.IsNull());
+        context_entry_ = receiver_context_.At(Context::kFutureWaitFutureIndex);
         return GetCallerInFutureImpl(context_entry_);
       }
     }
@@ -363,8 +364,6 @@ class CallerClosureFinder {
   Field& state_field;
   Field& on_data_field;
   Field& state_data_field;
-
-  Function& future_timeout_method_;
 };
 
 void StackTraceUtils::CollectFramesLazy(

@@ -409,7 +409,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     }
     case FunctionLayout::kNoSuchMethodDispatcher:
     case FunctionLayout::kInvokeFieldDispatcher:
-    case FunctionLayout::kFfiTrampoline:
+    case FunctionLayout::kFfiTrampoline: {
       for (intptr_t i = 0; i < function.NumParameters(); ++i) {
         LocalVariable* variable = MakeVariable(
             TokenPosition::kNoSource, TokenPosition::kNoSource,
@@ -433,6 +433,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         --depth_.catch_;
       }
       break;
+    }
     case FunctionLayout::kSignatureFunction:
     case FunctionLayout::kIrregexpFunction:
       UNREACHABLE();
@@ -443,6 +444,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
   if (parsed_function_->function().MayHaveUncheckedEntryPoint()) {
     scope_->AddVariable(parsed_function_->EnsureEntryPointsTemp());
   }
+
   parsed_function_->AllocateVariables();
 
   return result_;
@@ -633,6 +635,13 @@ void ScopeBuilder::VisitFunctionNode() {
     LocalVariable* future = scope_->LookupVariable(Symbols::_future(), true);
     ASSERT(future != nullptr);
     future->set_is_chained_future();
+    future->set_expected_context_index(Context::kFutureTimeoutFutureIndex);
+  } else if (function.recognized_kind() == MethodRecognizer::kFutureWait &&
+             depth_.function_ == 1) {
+    LocalVariable* future = scope_->LookupVariable(Symbols::_future(), true);
+    ASSERT(future != nullptr);
+    future->set_is_chained_future();
+    future->set_expected_context_index(Context::kFutureWaitFutureIndex);
   }
 }
 
@@ -1313,7 +1322,8 @@ void ScopeBuilder::VisitVariableDeclaration() {
     variable->set_is_late();
     variable->set_late_init_offset(initializer_offset);
   }
-  // Lift the two special async vars out of the function body scope, into the
+
+  // Lift the special async vars out of the function body scope, into the
   // outer function declaration scope.
   // This way we can allocate them in the outermost context at fixed indices,
   // allowing support for --lazy-async-stacks implementation to find awaiters.
