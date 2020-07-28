@@ -1,0 +1,20 @@
+class C {
+  bool operator ==(Object other) => true;
+}
+
+class D extends C {
+  bool operator ==(Object? other) => super == other;
+  bool method1(dynamic o) => super == o;
+  bool method2(Null o) => super == o;
+}
+
+class E {
+  bool operator ==() => true;
+}
+
+class F extends E {
+  bool operator ==(Object? other) => super == other;
+}
+
+main() {}
+expect(expected, actual) {}

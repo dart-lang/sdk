@@ -3031,7 +3031,15 @@ class TypeInferrerImpl implements TypeInferrer {
         isSpecialCasedBinaryOperatorForReceiverType(target, receiverType);
     DartType calleeType = getGetterType(target, receiverType);
     FunctionType functionType = getFunctionType(target, receiverType);
-
+    if (isNonNullableByDefault &&
+        expression.name == equalsName &&
+        functionType.positionalParameters.length == 1) {
+      // operator == always allows nullable arguments.
+      functionType = new FunctionType([
+        functionType.positionalParameters.single
+            .withDeclaredNullability(library.nullable)
+      ], functionType.returnType, functionType.declaredNullability);
+    }
     InvocationInferenceResult result = inferInvocation(
         typeContext, fileOffset, functionType, arguments,
         isSpecialCasedBinaryOperator: isSpecialCasedBinaryOperator,
