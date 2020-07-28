@@ -913,9 +913,6 @@
         ]
       }
     },
-    "dartkb-abi-linux-release-x64": {
-      "__comment__": "This configuration is only used for a custom test runner. If it conflicts with a new configuration you are adding, you can make this configuration more specific by adding options."
-    },
     "dartdevk-checked-(linux|mac|win)-(debug|product|release)-(chrome|firefox)": {
       "options": {
         "checked": true,
@@ -3438,30 +3435,6 @@
           ],
           "shards": 100,
           "fileset": "fuzzer"
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-dartkb-linux-release-x64-abi"
-      ],
-      "meta": {
-        "description": "This configuration runs tests for each supported ABI version."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--bytecode",
-            "create_sdk_with_abi_versions"
-          ]
-        },
-        {
-          "name": "run tests",
-          "script": "tools/run_abi_tests.py",
-          "testRunner": true,
-          "arguments": ["-ndartkb-abi-linux-release-x64"]
         }
       ]
     },
