@@ -5534,7 +5534,7 @@ bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {
   return LoadFieldInstr::IsFixedLengthArrayCid(cid);
 }
 
-Definition* CheckArrayBoundInstr::Canonicalize(FlowGraph* flow_graph) {
+Definition* CheckBoundBase::Canonicalize(FlowGraph* flow_graph) {
   return IsRedundant() ? index()->definition() : this;
 }
 
