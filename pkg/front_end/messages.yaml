@@ -1902,37 +1902,12 @@ DuplicatedExport:
     lib2.dart: "class A {}"
     main.dart: "export 'lib1.dart'; export 'lib2.dart';"
 
-DuplicatedLibraryExport:
-  template: "A library with name '#name' is exported more than once."
-  analyzerCode: EXPORT_DUPLICATED_LIBRARY_NAMED
-  script:
-    lib1.dart: "library foo;"
-    lib2.dart: "library foo;"
-    main.dart: "export 'lib1.dart'; export 'lib2.dart';"
-
-DuplicatedLibraryExportContext:
-  template: "'#name' is also exported here."
-  severity: CONTEXT
-
 DuplicatedExportInType:
   template: "'#name' is exported from both '#uri' and '#uri2'."
 
 DuplicatedImport:
   template: "'#name' is imported from both '#uri' and '#uri2'."
   severity: IGNORED
-
-DuplicatedLibraryImport:
-  template: "A library with name '#name' is imported more than once."
-  severity: WARNING
-  analyzerCode: IMPORT_DUPLICATED_LIBRARY_NAMED
-  script:
-    lib1.dart: "library foo;"
-    lib2.dart: "library foo;"
-    main.dart: "import 'lib1.dart'; import 'lib2.dart';"
-
-DuplicatedLibraryImportContext:
-  template: "'#name' is also imported here."
-  severity: CONTEXT
 
 DuplicatedImportInType:
   template: "'#name' is imported from both '#uri' and '#uri2'."

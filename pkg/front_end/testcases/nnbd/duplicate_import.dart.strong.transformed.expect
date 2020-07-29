@@ -1,0 +1,16 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "org-dartlang-testcase:///duplicate_import_lib1.dart";
+import "org-dartlang-testcase:///duplicate_import_lib2.dart";
+export "org-dartlang-testcase:///duplicate_import_lib1.dart";
+export "org-dartlang-testcase:///duplicate_import_lib2.dart";
+
+static method main() → dynamic {}
+
+library foo /*isNonNullableByDefault*/;
+import self as self2;
+
+
+library foo /*isNonNullableByDefault*/;
+import self as self3;
