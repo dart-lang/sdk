@@ -527,6 +527,9 @@ class TypeCheck extends Statement {
   VariableDeclaration get parameter =>
       node is VariableDeclaration ? node : null;
 
+  bool isExpressionConst = false;
+  bool get isIsExpression => node is IsExpression;
+
   bool canAlwaysSkip = true;
 
   TypeCheck(this.arg, this.type, this.node, this.staticType) {
@@ -564,6 +567,10 @@ class TypeCheck extends Statement {
       argType = argType.intersection(
           typeHierarchy.fromStaticType(checkType.representedTypeRaw, true),
           typeHierarchy);
+
+      if (canSkip && isIsExpression) {
+        isExpressionConst = true;
+      }
     } else {
       assertx(false, details: "Cannot see $checkType on RHS of TypeCheck.");
     }

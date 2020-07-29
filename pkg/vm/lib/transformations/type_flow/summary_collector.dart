@@ -527,6 +527,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   final Map<TreeNode, Call> callSites = <TreeNode, Call>{};
   final Map<AsExpression, TypeCheck> explicitCasts =
       <AsExpression, TypeCheck>{};
+  final Map<IsExpression, TypeCheck> explicitDefs =
+      <IsExpression, TypeCheck>{};
   final Map<TreeNode, NarrowNotNull> nullTests = <TreeNode, NarrowNotNull>{};
   final _FallthroughDetector _fallthroughDetector = new _FallthroughDetector();
   final Set<Name> _nullMethodsAndGetters = <Name>{};
@@ -1564,7 +1566,9 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitIsExpression(IsExpression node) {
-    _visit(node.operand);
+    TypeExpr operand = _visit(node.operand);
+    final TypeExpr result = _typeCheck(operand, node.type, node);
+    explicitDefs[node] = result;
     return _boolType;
   }
 

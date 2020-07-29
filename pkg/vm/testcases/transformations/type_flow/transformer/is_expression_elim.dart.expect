@@ -1,0 +1,22 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    : super self::A::•()
+    ;
+}
+static method main() → dynamic {
+  self::A* a = new self::A::•();
+  self::B* b = new self::B::•();
+  core::print(true);
+  core::print(true);
+  core::print(true);
+  core::print(a is self::B*);
+}
