@@ -482,7 +482,7 @@ abstract class ListMixin<E> implements List<E> {
     }
   }
 
-  int indexOf(Object? element, [int start = 0]) {
+  int indexOf(E? element, [int start = 0]) {
     if (start < 0) start = 0;
     for (int i = start; i < this.length; i++) {
       if (this[i] == element) return i;
@@ -498,7 +498,7 @@ abstract class ListMixin<E> implements List<E> {
     return -1;
   }
 
-  int lastIndexOf(Object? element, [int? start]) {
+  int lastIndexOf(E? element, [int? start]) {
     if (start == null || start >= this.length) start = this.length - 1;
 
     // TODO(38493): The previous line should promote.
