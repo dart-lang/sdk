@@ -632,31 +632,20 @@ class TreeShaker {
 
   bool isClassReferencedFromNativeCode(Class c) =>
       typeFlowAnalysis.nativeCodeOracle.isClassReferencedFromNativeCode(c);
-
   bool isClassUsed(Class c) => _usedClasses.contains(c);
-
   bool isClassUsedInType(Class c) => _classesUsedInType.contains(c);
-
   bool isClassAllocated(Class c) => typeFlowAnalysis.isClassAllocated(c);
-
   bool isMemberUsed(Member m) => _usedMembers.contains(m);
-
   bool isExtensionUsed(Extension e) => _usedExtensions.contains(e);
-
   bool isMemberBodyReachable(Member m) =>
       typeFlowAnalysis.isMemberUsed(m) ||
       fieldMorpher.isExtraMemberWithReachableBody(m);
-
   bool isFieldInitializerReachable(Field f) =>
       typeFlowAnalysis.isFieldInitializerUsed(f);
-
   bool isFieldGetterReachable(Field f) => typeFlowAnalysis.isFieldGetterUsed(f);
-
   bool isFieldSetterReachable(Field f) => typeFlowAnalysis.isFieldSetterUsed(f);
-
   bool isMemberReferencedFromNativeCode(Member m) =>
       typeFlowAnalysis.nativeCodeOracle.isMemberReferencedFromNativeCode(m);
-
   bool isTypedefUsed(Typedef t) => _usedTypedefs.contains(t);
 
   bool retainField(Field f) =>
@@ -908,7 +897,6 @@ class _TreeShakerPass1 extends Transformer {
       _staticTypeContext ??= StaticTypeContext(currentMember, environment);
 
   Member get currentMember => _currentMember;
-
   set currentMember(Member m) {
     _currentMember = m;
     _staticTypeContext = null;
@@ -1447,7 +1435,7 @@ class _TreeShakerPass1 extends Transformer {
     node.transformChildren(this);
     TypeCheck check = shaker.typeFlowAnalysis.explicitDefs(node);
     if (check != null && check.canAlwaysSkip) {
-      return check.isExpressionConst ? BoolLiteral(true) : BoolLiteral(false);
+        return check.isExpressionConst ? BoolLiteral(true) : BoolLiteral(false);
     }
     return super.visitIsExpression(node);
   }
@@ -1675,7 +1663,6 @@ class _SignatureShaker {
   final TypeFlowAnalysis analysis;
   final List<Member> deferred = [];
   final bool treeShakeSignatures;
-
   _SignatureShaker(this.analysis, {this.treeShakeSignatures});
 
   bool isShakingSignature(Member member) {
