@@ -1,0 +1,17 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+@#C1
+class Animal extends core::Object {
+  final field core::int numLegs = 4;
+  synthetic constructor •() → self::Animal
+    : super core::Object::•()
+    ;
+}
+static const field core::String valueClass = #C1;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = "valueClass"
+}

@@ -1,0 +1,12 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+@self::valueClass
+class EmptyClass extends core::Object {
+  synthetic constructor •() → self::EmptyClass
+    ;
+}
+static const field core::String valueClass = "valueClass";
+static method main() → dynamic
+  ;
