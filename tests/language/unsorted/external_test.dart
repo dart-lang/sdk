@@ -70,13 +70,13 @@ class Foo {
 }
 
 external int t06(int i) { return 1; }
-// [error line 78, column 1, length 8]
+// [error line 72, column 1, length 8]
 // [analyzer] SYNTACTIC_ERROR.EXTERNAL_METHOD_WITH_BODY
 // [cfe] An external or native method can't have a body.
 //                      ^
 // [cfe] An external or native method can't have a body.
 external int t07(int i) => i + 1;
-// [error line 84, column 1, length 8]
+// [error line 78, column 1, length 8]
 // [analyzer] SYNTACTIC_ERROR.EXTERNAL_METHOD_WITH_BODY
 // [cfe] An external or native method can't have a body.
 //                         ^
