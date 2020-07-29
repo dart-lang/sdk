@@ -41,6 +41,8 @@ class BulkFixProcessor {
     LintNames.avoid_return_types_on_setters: RemoveTypeAnnotation.newInstance,
     LintNames.avoid_single_cascade_in_expression_statements:
         ReplaceCascadeWithDot.newInstance,
+    LintNames.avoid_types_on_closure_parameters:
+        RemoveTypeAnnotation.newInstance,
     LintNames.prefer_contains: ConvertToContains.newInstance,
     LintNames.prefer_equal_for_default_values:
         ReplaceColonWithEquals.newInstance,
