@@ -11,6 +11,7 @@
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/resolver.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
@@ -510,14 +511,11 @@ DEFINE_NATIVE_ENTRY(NoSuchMethodError_existingMethodSignature, 0, 3) {
     function = Closure::Cast(receiver).function();
   } else {
     Class& cls = Class::Handle(receiver.clazz());
-    if (level != InvocationMirror::kSuper) {
-      function = cls.LookupDynamicFunction(method_name);
-    }
-    while (function.IsNull()) {
+    if (level == InvocationMirror::kSuper) {
       cls = cls.SuperClass();
-      if (cls.IsNull()) break;
-      function = cls.LookupDynamicFunction(method_name);
     }
+    function = Resolver::ResolveDynamicAnyArgs(zone, cls, method_name,
+                                               /*allow_add=*/false);
   }
   if (!function.IsNull()) {
     return function.UserVisibleSignature();

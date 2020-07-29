@@ -245,38 +245,31 @@ ObjectPtr DartEntry::ResolveCallable(const Array& arguments,
       break;
     }
 
+    cls = instance.clazz();
     // Find a call getter, if any, in the class hierarchy.
-    for (cls = instance.clazz(); !cls.IsNull(); cls = cls.SuperClass()) {
-      function = cls.LookupDynamicFunction(getter_name);
-      if (function.IsNull()) {
-        continue;
-      }
-
-      if (!OSThread::Current()->HasStackHeadroom()) {
-        const Instance& exception =
-            Instance::Handle(zone, isolate->object_store()->stack_overflow());
-        return UnhandledException::New(exception, StackTrace::Handle(zone));
-      }
-
-      const Array& getter_arguments = Array::Handle(zone, Array::New(1));
-      getter_arguments.SetAt(0, instance);
-      const Object& getter_result = Object::Handle(
-          zone, DartEntry::InvokeFunction(function, getter_arguments));
-      if (getter_result.IsError()) {
-        return getter_result.raw();
-      }
-      ASSERT(getter_result.IsNull() || getter_result.IsInstance());
-
-      // We have a new possibly compatible callable, so set the first argument
-      // accordingly so it gets picked up in the main loop.
-      arguments.SetAt(receiver_index, getter_result);
+    function = Resolver::ResolveDynamicAnyArgs(zone, cls, getter_name,
+                                               /*allow_add=*/false);
+    if (function.IsNull()) {
       break;
     }
-
-    // No call getter was found in the hierarchy, so stop the search.
-    if (cls.IsNull()) {
-      break;
+    if (!OSThread::Current()->HasStackHeadroom()) {
+      const Instance& exception =
+          Instance::Handle(zone, isolate->object_store()->stack_overflow());
+      return UnhandledException::New(exception, StackTrace::Handle(zone));
     }
+
+    const Array& getter_arguments = Array::Handle(zone, Array::New(1));
+    getter_arguments.SetAt(0, instance);
+    const Object& getter_result = Object::Handle(
+        zone, DartEntry::InvokeFunction(function, getter_arguments));
+    if (getter_result.IsError()) {
+      return getter_result.raw();
+    }
+    ASSERT(getter_result.IsNull() || getter_result.IsInstance());
+
+    // We have a new possibly compatible callable, so set the first argument
+    // accordingly so it gets picked up in the main loop.
+    arguments.SetAt(receiver_index, getter_result);
   }
 
   // No compatible callable was found.
