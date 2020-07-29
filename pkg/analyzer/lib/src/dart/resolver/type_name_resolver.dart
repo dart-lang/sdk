@@ -354,8 +354,10 @@ class TypeNameResolver {
     }
 
     if (_isInstanceCreation(node)) {
+      node.type = dynamicType;
       _ErrorHelper(errorReporter).reportNewWithNonType(node);
     } else {
+      node.type = dynamicType;
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.NOT_A_TYPE,
         typeIdentifier,

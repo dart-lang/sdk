@@ -322,7 +322,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(ref, type);
   }
 
-  void assertImportPrefix(SimpleIdentifier identifier, PrefixElement element) {
+  /// In valid code [element] must be a [PrefixElement], but for invalid code
+  /// like `int.double v;` we want to resolve `int` somehow. Still not type.
+  void assertImportPrefix(SimpleIdentifier identifier, Element element) {
     assertElement(identifier, element);
     assertTypeNull(identifier);
   }
@@ -655,7 +657,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertTypeName(
       TypeName node, Element expectedElement, String expectedType,
-      {PrefixElement expectedPrefix}) {
+      {Element expectedPrefix}) {
     assertType(node, expectedType);
 
     if (expectedPrefix == null) {
