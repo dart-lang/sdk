@@ -2153,12 +2153,15 @@ class TypeInferrerImpl implements TypeInferrer {
       if (formal.isImplicitlyTyped) {
         DartType inferredType;
         if (formalTypesFromContext[i] != null) {
-          if (coreTypes.isBottom(formalTypesFromContext[i]) ||
-              coreTypes.isNull(formalTypesFromContext[i])) {
+          inferredType = computeGreatestClosure2(
+              substitution.substituteType(formalTypesFromContext[i]));
+          if (typeSchemaEnvironment.isSubtypeOf(
+              inferredType,
+              coreTypes.nullType,
+              isNonNullableByDefault
+                  ? SubtypeCheckMode.withNullabilities
+                  : SubtypeCheckMode.ignoringNullabilities)) {
             inferredType = coreTypes.objectRawType(library.nullable);
-          } else {
-            inferredType = computeGreatestClosure2(
-                substitution.substituteType(formalTypesFromContext[i]));
           }
         } else {
           inferredType = const DynamicType();

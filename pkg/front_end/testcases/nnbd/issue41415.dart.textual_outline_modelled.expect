@@ -1,1 +1,2 @@
 main() {}
+test<X extends Null, Y extends Never?, Z extends Never>() {}
