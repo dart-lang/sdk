@@ -26,6 +26,7 @@ allowlisting
 alt
 amortized
 analyses
+animal
 anon
 aoo
 approval
@@ -333,6 +334,7 @@ launching
 lc
 ld
 le
+legs
 lengths
 lightly
 likewise
@@ -597,6 +599,7 @@ waiting
 walt
 warmup
 wherever
+whiskers
 wins
 workflow
 worlds
