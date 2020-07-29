@@ -25,6 +25,7 @@ Trigger mirroring of github repository
 Force build after DEPS format revert
 Force build while trybots are broken, to check builders for brokenness.
 Force build to test recipe changes
+Force build to test recipe changes
 
 Analyzer branch commits:
 Force build on new analyzer-branch linux build with new workflow
