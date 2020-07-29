@@ -8,6 +8,7 @@ import 'add_override_test.dart' as add_override;
 import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
 import 'convert_to_contains_test.dart' as convert_to_contains;
+import 'remove_empty_else_test.dart' as remove_empty_else;
 import 'remove_initializer_test.dart' as remove_initializer;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
@@ -20,6 +21,7 @@ void main() {
     convert_documentation_into_line.main();
     convert_to_contains.main();
     remove_initializer.main();
+    remove_empty_else.main();
     remove_type_annotation.main();
     remove_unnecessary_const.main();
     remove_unnecessary_new.main();

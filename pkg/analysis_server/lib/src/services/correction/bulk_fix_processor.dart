@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/correction/dart/add_override.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_empty_else.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
@@ -33,6 +34,7 @@ class BulkFixProcessor {
   static const Map<String, ProducerGenerator> lintProducerMap = {
     LintNames.annotate_overrides: AddOverride.newInstance,
     LintNames.avoid_annotating_with_dynamic: RemoveTypeAnnotation.newInstance,
+    LintNames.avoid_empty_else: RemoveEmptyElse.newInstance,
     LintNames.avoid_init_to_null: RemoveInitializer.newInstance,
     LintNames.avoid_single_cascade_in_expression_statements:
         ReplaceCascadeWithDot.newInstance,
