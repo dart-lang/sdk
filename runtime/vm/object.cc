@@ -18743,24 +18743,23 @@ void Instance::SetNativeFields(uint16_t num_native_fields,
 bool Instance::IsCallable(Function* function) const {
   Class& cls = Class::Handle(clazz());
   if (cls.IsClosureClass()) {
-    if (function != NULL) {
+    if (function != nullptr) {
       *function = Closure::Cast(*this).function();
     }
     return true;
   }
   // Try to resolve a "call" method.
-  Function& call_function = Function::Handle();
-  do {
-    call_function = cls.LookupDynamicFunction(Symbols::Call());
-    if (!call_function.IsNull()) {
-      if (function != NULL) {
-        *function = call_function.raw();
-      }
-      return true;
-    }
-    cls = cls.SuperClass();
-  } while (!cls.IsNull());
-  return false;
+  Zone* zone = Thread::Current()->zone();
+  Function& call_function = Function::Handle(
+      zone, Resolver::ResolveDynamicAnyArgs(zone, cls, Symbols::Call(),
+                                            /*allow_add=*/false));
+  if (call_function.IsNull()) {
+    return false;
+  }
+  if (function != nullptr) {
+    *function = call_function.raw();
+  }
+  return true;
 }
 
 InstancePtr Instance::New(const Class& cls, Heap::Space space) {

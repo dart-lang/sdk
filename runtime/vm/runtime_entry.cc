@@ -562,17 +562,10 @@ DEFINE_RUNTIME_ENTRY(ResolveCallFunction, 2) {
   ArgumentsDescriptor args_desc(descriptor);
   ASSERT(!receiver.IsClosure());  // Interpreter tests for closure.
   Class& cls = Class::Handle(zone, receiver.clazz());
-  Function& call_function = Function::Handle(zone);
-  do {
-    call_function = cls.LookupDynamicFunction(Symbols::Call());
-    if (!call_function.IsNull()) {
-      if (!call_function.AreValidArguments(args_desc, NULL)) {
-        call_function = Function::null();
-      }
-      break;
-    }
-    cls = cls.SuperClass();
-  } while (!cls.IsNull());
+  Function& call_function = Function::Handle(
+      zone,
+      Resolver::ResolveDynamicForReceiverClass(cls, Symbols::Call(), args_desc,
+                                               /*allow_add=*/false));
   arguments.SetReturn(call_function);
 }
 
@@ -1491,8 +1484,8 @@ static bool IsSingleTarget(Isolate* isolate,
     cls = table->At(cid);
     if (cls.is_abstract()) continue;
     if (!cls.is_allocated()) continue;
-    other_target =
-        Resolver::ResolveDynamicAnyArgs(zone, cls, name, false /* allow_add */);
+    other_target = Resolver::ResolveDynamicAnyArgs(zone, cls, name,
+                                                   /*allow_add=*/false);
     if (other_target.raw() != target.raw()) {
       return false;
     }
