@@ -56,19 +56,19 @@ main() {
   // The static type of e1?.v = e2 is the static type of e2.
   { D d = new D(new E()); G g = new G(); F f = (d?.v = g); Expect.identical(f, g); }
   { D d = new D(new E()); E e = new G(); F f = (d?.v = e); }
-  //                                           ^^^^^^^^^^
+  //                                            ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                            ^
   // [cfe] A value of type 'E' can't be assigned to a variable of type 'F'.
   { D.staticE = new E(); G g = new G(); F f = (D?.staticE = g); Expect.identical(f, g); }
   { h.D.staticE = new h.E(); h.G g = new h.G(); h.F f = (h.D?.staticE = g); Expect.identical(f, g); }
   { D.staticE = new E(); E e = new G(); F f = (D?.staticE = e); }
-  //                                          ^^^^^^^^^^^^^^^^
+  //                                           ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                              ^
   // [cfe] A value of type 'E' can't be assigned to a variable of type 'F'.
   { h.D.staticE = new h.E(); h.E e = new h.G(); h.F f = (h.D?.staticE = e); }
-  //                                                    ^^^^^^^^^^^^^^^^^^
+  //                                                     ^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                                          ^
   // [cfe] A value of type 'E' can't be assigned to a variable of type 'F'.
@@ -115,7 +115,7 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'C' can't be assigned to a variable of type 'int'.
   { D d = new D(new E()); H h = (d?.v += 1); }
-  //                            ^^^^^^^^^^^
+  //                             ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                             ^
   // [cfe] A value of type 'G' can't be assigned to a variable of type 'H'.
@@ -128,12 +128,12 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'C' can't be assigned to a variable of type 'int'.
   { D.staticE = new E(); H h = (D?.staticE += 1); }
-  //                           ^^^^^^^^^^^^^^^^^
+  //                            ^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                               ^
   // [cfe] A value of type 'G' can't be assigned to a variable of type 'H'.
   { h.D.staticE = new h.E(); h.H hh = (h.D?.staticE += 1); }
-  //                                  ^^^^^^^^^^^^^^^^^^^
+  //                                   ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                        ^
   // [cfe] A value of type 'G' can't be assigned to a variable of type 'H'.

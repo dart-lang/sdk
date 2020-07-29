@@ -106,6 +106,17 @@ f() {
     ]);
   }
 
+  test_cascadeExpression() async {
+    await assertErrorsInCode(r'''
+void f(int a) {
+  // ignore:unused_local_variable
+  String v = (a)..isEven;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 64, 1),
+    ]);
+  }
+
   test_compoundAssignment() async {
     await assertErrorsInCode(r'''
 class byte {
@@ -330,6 +341,17 @@ f(var y) {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 44, 1),
+    ]);
+  }
+
+  test_parenthesizedExpression() async {
+    await assertErrorsInCode(r'''
+void f(int a) {
+  // ignore:unused_local_variable
+  String v = (a);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 64, 1),
     ]);
   }
 

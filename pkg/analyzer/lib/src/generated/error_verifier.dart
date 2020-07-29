@@ -1537,8 +1537,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       DartType expectedStaticType,
       ErrorCode errorCode) {
     if (!_typeSystem.isAssignableTo2(actualStaticType, expectedStaticType)) {
+      AstNode getErrorNode(AstNode node) {
+        if (node is CascadeExpression) {
+          return getErrorNode(node.target);
+        }
+        if (node is ParenthesizedExpression) {
+          return getErrorNode(node.expression);
+        }
+        return node;
+      }
+
       _errorReporter.reportErrorForNode(
-          errorCode, expression, [actualStaticType, expectedStaticType]);
+        errorCode,
+        getErrorNode(expression),
+        [actualStaticType, expectedStaticType],
+      );
       return false;
     }
     return true;
@@ -4290,8 +4303,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           [enclosingElement.displayName]);
     } else {
       _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode
-              .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+          CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
           name,
           [enclosingElement.displayName]);
     }
