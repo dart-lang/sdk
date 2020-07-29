@@ -118,7 +118,7 @@ function mixin(cls, mixin) {
 // A lazy field has a storage entry, [name], which holds the value, and a
 // getter ([getterName]) to access the field. If the field wasn't set before
 // the first access, it is initialized with the [initializer].
-function lazy(holder, name, getterName, initializer) {
+function lazyOld(holder, name, getterName, initializer) {
   var uninitializedSentinel = holder;
   holder[name] = uninitializedSentinel;
   holder[getterName] = function() {
@@ -141,6 +141,32 @@ function lazy(holder, name, getterName, initializer) {
         // the initialization failed.
         holder[name] = null;
       }
+      // TODO(floitsch): for performance reasons the function should probably
+      // be unique for each static.
+      holder[getterName] = function() { return this[name]; };
+    }
+    return result;
+  };
+}
+
+// Creates a lazy field that uses non-nullable initialization semantics.
+//
+// A lazy field has a storage entry, [name], which holds the value, and a
+// getter ([getterName]) to access the field. If the field wasn't set before
+// the first access, it is initialized with the [initializer].
+function lazy(holder, name, getterName, initializer) {
+  var uninitializedSentinel = holder;
+  holder[name] = uninitializedSentinel;
+  holder[getterName] = function() {
+    var result;
+    try {
+      if (holder[name] === uninitializedSentinel) {
+        result = holder[name] = initializer();
+      } else {
+        result = holder[name];
+      }
+    } finally {
+      // Use try-finally, not try-catch/throw as it destroys the stack trace.
       // TODO(floitsch): for performance reasons the function should probably
       // be unique for each static.
       holder[getterName] = function() { return this[name]; };
@@ -350,6 +376,7 @@ var #hunkHelpers = (function(){
 
     makeConstList: makeConstList,
     lazy: lazy,
+    lazyOld: lazyOld,
     updateHolder: updateHolder,
     convertToFastObject: convertToFastObject,
     setFunctionNamesIfNecessary: setFunctionNamesIfNecessary,
@@ -1732,7 +1759,9 @@ class FragmentEmitter {
     for (StaticField field in fields) {
       assert(field.holder.isStaticStateHolder);
       js.Statement statement = js.js.statement("#(#, #, #, #);", [
-        locals.find('_lazy', 'hunkHelpers.lazy'),
+        field.usesNonNullableInitialization
+            ? locals.find('_lazy', 'hunkHelpers.lazy')
+            : locals.find('_lazyOld', 'hunkHelpers.lazyOld'),
         field.holder.name,
         js.quoteName(field.name),
         js.quoteName(field.getterName),

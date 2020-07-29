@@ -24,16 +24,19 @@ class JLibrary extends IndexedLibrary {
   final String name;
   @override
   final Uri canonicalUri;
+  @override
+  final bool isNonNullableByDefault;
 
-  JLibrary(this.name, this.canonicalUri);
+  JLibrary(this.name, this.canonicalUri, this.isNonNullableByDefault);
 
   /// Deserializes a [JLibrary] object from [source].
   factory JLibrary.readFromDataSource(DataSource source) {
     source.begin(tag);
     String name = source.readString();
     Uri canonicalUri = source.readUri();
+    bool isNonNullableByDefault = source.readBool();
     source.end(tag);
-    return new JLibrary(name, canonicalUri);
+    return new JLibrary(name, canonicalUri, isNonNullableByDefault);
   }
 
   /// Serializes this [JLibrary] to [sink].
@@ -41,6 +44,7 @@ class JLibrary extends IndexedLibrary {
     sink.begin(tag);
     sink.writeString(name);
     sink.writeUri(canonicalUri);
+    sink.writeBool(isNonNullableByDefault);
     sink.end(tag);
   }
 
