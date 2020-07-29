@@ -847,16 +847,6 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
       CODE_REG, Code::entry_point_offset(Code::EntryKind::kUnchecked)));
 }
 
-void FlowGraphCompiler::GenerateGetterIntrinsic(intptr_t offset) {
-  // TOS: return address.
-  // +1 : receiver.
-  // Sequence node has one return node, its input is load field node.
-  __ Comment("Intrinsic Getter");
-  __ movq(RAX, compiler::Address(RSP, 1 * kWordSize));
-  __ movq(RAX, compiler::FieldAddress(RAX, offset));
-  __ ret();
-}
-
 // NOTE: If the entry code shape changes, ReturnAddressLocator in profiler.cc
 // needs to be updated to match.
 void FlowGraphCompiler::EmitFrameEntry() {

@@ -25,13 +25,11 @@ bool MethodCanSkipTypeChecksForNonCovariantArguments(
   // and non-generic-covariant parameters. The same applies to type parameters
   // bounds for type parameters of generic functions.
   //
-  // In JIT mode we dynamically generate trampolines (dynamic invocation
-  // forwarders) that perform type checks when arriving to a method from a
-  // dynamic call-site.
+  // Normally dynamic call sites will call dyn:* forwarders which perform type
+  // checks.
   //
-  // In AOT mode we don't dynamically generate such trampolines but instead rely
-  // on a static analysis to discover which methods can be invoked dynamically,
-  // and generate the necessary trampolines during precompilation.
+  // Though for some kinds of methods (e.g. ffi trampolines called from native
+  // code) we do have to perform type checks for all parameters.
   return !method.CanReceiveDynamicInvocation();
 }
 

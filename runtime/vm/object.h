@@ -3957,6 +3957,10 @@ class Field : public Object {
     return !raw_ptr()->owner_->IsField();
   }
 
+  // Returns whether fields must be cloned via [CloneFromOriginal] for the
+  // current compilation thread.
+  static bool ShouldCloneFields();
+
   // Returns a field cloned from 'this'. 'this' is set as the
   // original field of result.
   FieldPtr CloneFromOriginal() const;

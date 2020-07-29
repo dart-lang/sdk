@@ -102,7 +102,7 @@ class BlockBuilder : public ValueObject {
       // adjust reaching type. This is done manually because there is no type
       // propagation when building intrinsics.
       unboxed_value->AsUnbox()->value()->SetReachingType(
-          new CompileType(CompileType::FromCid(CidForRepresentation(rep))));
+          TypeForRepresentation(rep));
     }
     return unboxed_value;
   }
@@ -139,21 +139,22 @@ class BlockBuilder : public ValueObject {
   }
 
  private:
-  static intptr_t CidForRepresentation(Representation rep) {
+  static CompileType* TypeForRepresentation(Representation rep) {
     switch (rep) {
       case kUnboxedDouble:
-        return kDoubleCid;
+        return new CompileType(CompileType::FromCid(kDoubleCid));
       case kUnboxedFloat32x4:
-        return kFloat32x4Cid;
+        return new CompileType(CompileType::FromCid(kFloat32x4Cid));
       case kUnboxedInt32x4:
-        return kInt32x4Cid;
+        return new CompileType(CompileType::FromCid(kInt32x4Cid));
       case kUnboxedFloat64x2:
-        return kFloat64x2Cid;
+        return new CompileType(CompileType::FromCid(kFloat64x2Cid));
       case kUnboxedUint32:
-        return kDynamicCid;  // smi or mint.
+      case kUnboxedInt64:
+        return new CompileType(CompileType::Int());
       default:
         UNREACHABLE();
-        return kIllegalCid;
+        return nullptr;
     }
   }
 

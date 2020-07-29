@@ -957,6 +957,7 @@ class FlowGraphCompiler : public ValueObject {
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
   friend class CheckedSmiSlowPath;          // Same.
   friend class CheckedSmiComparisonSlowPath;  // Same.
+  friend class GraphInstrinsicCodeGenScope;   // For optimizing_.
 
   // Architecture specific implementation of simple native moves.
   void EmitNativeMoveArchitecture(const compiler::ffi::NativeLocation& dst,
@@ -1083,7 +1084,7 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateMethodExtractorIntrinsic(const Function& extracted_method,
                                         intptr_t type_arguments_field_offset);
 
-  void GenerateGetterIntrinsic(intptr_t offset);
+  void GenerateGetterIntrinsic(const Function& accessor, const Field& field);
 
   // Perform a greedy local register allocation.  Consider all registers free.
   void AllocateRegistersLocally(Instruction* instr);
@@ -1206,7 +1207,7 @@ class FlowGraphCompiler : public ValueObject {
   // The table selectors of all dispatch table calls in the current function.
   GrowableArray<const compiler::TableSelector*> dispatch_table_call_targets_;
   GrowableArray<IndirectGotoInstr*> indirect_gotos_;
-  const bool is_optimizing_;
+  bool is_optimizing_;
   SpeculativeInliningPolicy* speculative_policy_;
   // Set to true if optimized code has IC calls.
   bool may_reoptimize_;

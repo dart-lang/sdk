@@ -13,6 +13,7 @@
 #include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/compiler_pass.h"
+#include "vm/compiler/intrinsifier.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 #include "vm/flag_list.h"
@@ -22,9 +23,29 @@ namespace dart {
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
 
+class GraphInstrinsicCodeGenScope {
+ public:
+  explicit GraphInstrinsicCodeGenScope(FlowGraphCompiler* compiler)
+      : compiler_(compiler), old_is_optimizing_(compiler->is_optimizing()) {
+    compiler_->is_optimizing_ = true;
+  }
+  ~GraphInstrinsicCodeGenScope() {
+    compiler_->is_optimizing_ = old_is_optimizing_;
+  }
+
+ private:
+  FlowGraphCompiler* compiler_;
+  bool old_is_optimizing_;
+};
+
 namespace compiler {
 
 static void EmitCodeFor(FlowGraphCompiler* compiler, FlowGraph* graph) {
+  // For graph intrinsics we run the linearscan register allocator, which will
+  // pass opt=true for MakeLocationSummary. We therefore also have to ensure
+  // `compiler->is_optimizing()` is set to true during EmitNativeCode.
+  GraphInstrinsicCodeGenScope optimizing_scope(compiler);
+
   // The FlowGraph here is constructed by the intrinsics builder methods, and
   // is different from compiler->flow_graph(), the original method's flow graph.
   compiler->assembler()->Comment("Graph intrinsic begin");
@@ -75,6 +96,7 @@ bool GraphIntrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
   FlowGraph* graph =
       new FlowGraph(parsed_function, graph_entry, block_id, prologue_info);
   const Function& function = parsed_function.function();
+
   switch (function.recognized_kind()) {
 #define EMIT_CASE(class_name, function_name, enum_name, fp)                    \
   case MethodRecognizer::k##enum_name:                                         \
@@ -82,9 +104,15 @@ bool GraphIntrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
     break;
 
     GRAPH_INTRINSICS_LIST(EMIT_CASE);
-    default:
-      return false;
 #undef EMIT_CASE
+    default:
+      if (function.IsImplicitGetterFunction()) {
+        if (!Build_ImplicitGetter(graph)) return false;
+      } else if (function.IsImplicitSetterFunction()) {
+        if (!Build_ImplicitSetter(graph)) return false;
+      } else {
+        return false;
+      }
   }
 
   if (FLAG_support_il_printer && FLAG_print_flow_graph &&
@@ -1052,6 +1080,95 @@ bool GraphIntrinsifier::Build_DoubleRound(FlowGraph* flow_graph) {
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleRound,
                                   flow_graph);
+}
+
+bool GraphIntrinsifier::Build_ImplicitGetter(FlowGraph* flow_graph) {
+  // This code will only be invoked if our assumptions have been met (see
+  // [Intrinsifier::CanIntrinsifyFieldAccessor])
+  auto zone = flow_graph->zone();
+  const auto& function = flow_graph->function();
+  ASSERT(Intrinsifier::CanIntrinsifyFieldAccessor(function));
+
+  auto& field = Field::Handle(zone, function.accessor_field());
+  if (Field::ShouldCloneFields()) {
+    field = field.CloneFromOriginal();
+  }
+  ASSERT(field.is_instance() && !field.is_late() && !field.needs_load_guard());
+
+  const auto& slot = Slot::Get(field, &flow_graph->parsed_function());
+
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  auto normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  auto receiver = builder.AddParameter(0, /*with_frame=*/false);
+  auto field_value = builder.AddDefinition(new (zone) LoadFieldInstr(
+      new (zone) Value(receiver), slot, builder.TokenPos()));
+  builder.AddReturn(new (zone) Value(field_value));
+  return true;
+}
+
+bool GraphIntrinsifier::Build_ImplicitSetter(FlowGraph* flow_graph) {
+  // This code will only be invoked if our assumptions have been met (see
+  // [Intrinsifier::CanIntrinsifyFieldAccessor])
+  auto zone = flow_graph->zone();
+  const auto& function = flow_graph->function();
+  ASSERT(Intrinsifier::CanIntrinsifyFieldAccessor(function));
+
+  auto& field = Field::Handle(zone, function.accessor_field());
+  if (Field::ShouldCloneFields()) {
+    field = field.CloneFromOriginal();
+  }
+  ASSERT(field.is_instance() && !field.is_final());
+  ASSERT(!function.HasUnboxedParameters() ||
+         FlowGraphCompiler::IsUnboxedField(field));
+
+  const auto& slot = Slot::Get(field, &flow_graph->parsed_function());
+
+  const auto barrier_mode = FlowGraphCompiler::IsUnboxedField(field)
+                                ? kNoStoreBarrier
+                                : kEmitStoreBarrier;
+
+  flow_graph->CreateCommonConstants();
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  auto normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  auto receiver = builder.AddParameter(0, /*with_frame=*/false);
+  auto value = builder.AddParameter(1, /*with_frame=*/false);
+
+  if (!function.HasUnboxedParameters() &&
+      FlowGraphCompiler::IsUnboxedField(field)) {
+    // We do not support storing to possibly guarded fields in JIT in graph
+    // intrinsics.
+    ASSERT(FLAG_precompiled_mode);
+
+    Representation representation = kNoRepresentation;
+    switch (field.guarded_cid()) {
+      case kDoubleCid:
+        representation = kUnboxedDouble;
+        break;
+      case kFloat32x4Cid:
+        representation = kUnboxedFloat32x4;
+        break;
+      case kFloat64x2Cid:
+        representation = kUnboxedFloat64x2;
+        break;
+      default:
+        ASSERT(field.is_non_nullable_integer());
+        representation = kUnboxedInt64;
+        break;
+    }
+    value = builder.AddUnboxInstr(representation, new Value(value),
+                                  /*is_checked=*/true);
+  }
+
+  builder.AddInstruction(new (zone) StoreInstanceFieldInstr(
+      slot, new (zone) Value(receiver), new (zone) Value(value), barrier_mode,
+      builder.TokenPos()));
+
+  builder.AddReturn(new (zone) Value(flow_graph->constant_null()));
+  return true;
 }
 
 }  // namespace compiler

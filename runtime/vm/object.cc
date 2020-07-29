@@ -9875,6 +9875,11 @@ const char* FfiTrampolineData::ToCString() const {
       signature_type_name.IsNull() ? "null" : signature_type_name.ToCString());
 }
 
+bool Field::ShouldCloneFields() {
+  return Compiler::IsBackgroundCompilation() ||
+         FLAG_force_clone_compiler_objects;
+}
+
 FieldPtr Field::CloneFromOriginal() const {
   return this->Clone(*this);
 }

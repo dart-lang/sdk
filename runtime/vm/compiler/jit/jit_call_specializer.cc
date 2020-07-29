@@ -30,15 +30,12 @@ namespace dart {
 #define I (isolate())
 #define Z (zone())
 
-static bool ShouldCloneFields() {
-  return Compiler::IsBackgroundCompilation() ||
-         FLAG_force_clone_compiler_objects;
-}
-
 JitCallSpecializer::JitCallSpecializer(
     FlowGraph* flow_graph,
     SpeculativeInliningPolicy* speculative_policy)
-    : CallSpecializer(flow_graph, speculative_policy, ShouldCloneFields()) {}
+    : CallSpecializer(flow_graph,
+                      speculative_policy,
+                      Field::ShouldCloneFields()) {}
 
 bool JitCallSpecializer::IsAllowedForInlining(intptr_t deopt_id) const {
   return true;
