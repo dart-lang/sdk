@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
@@ -1884,10 +1885,10 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
         requiredParameter(type: numNone),
         namedParameter(name: 'n', type: numNone),
       ],
-      returnType: intStar,
+      returnType: intNone,
     );
 
-    var T2 = functionTypeStar(
+    var T2 = functionTypeNone(
       parameters: [
         requiredParameter(type: stringNone),
         requiredParameter(type: intNone),
@@ -1938,7 +1939,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
         requiredParameter(type: numNone),
         positionalParameter(type: doubleNone),
       ],
-      returnType: intStar,
+      returnType: intNone,
     );
 
     _checkLeastUpperBound(T1, T2, expected);
@@ -2018,6 +2019,39 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     var typeC = interfaceTypeNone(C);
 
     _checkLeastUpperBound(typeB, typeC, typeB);
+  }
+
+  test_directInterface_legacy() {
+    typeSystem = analysisContext.typeSystemLegacy;
+
+    // (null safe) class A<T> {}
+    // (legacy)    class B implements A<int> {}
+    // (null safe) class C implements A<int> {}
+
+    var A = class_(
+      name: 'A',
+      typeParameters: [typeParameter('T')],
+    );
+
+    var B = class_(
+      name: 'B',
+      interfaces: [
+        interfaceTypeStar(A, typeArguments: [intStar])
+      ],
+    );
+
+    var C = class_(
+      name: 'C',
+      interfaces: [
+        interfaceTypeNone(A, typeArguments: [intNone])
+      ],
+    );
+
+    _checkLeastUpperBound(
+      interfaceTypeNone(B),
+      interfaceTypeNone(C),
+      interfaceTypeNone(A, typeArguments: [intStar]),
+    );
   }
 
   test_directSuperclass() {
@@ -2577,7 +2611,7 @@ class UpperBoundTest extends _BoundsTestBase {
     _checkLeastUpperBound(
       interfaceTypeNone(A),
       functionTypeNone(returnType: voidNone),
-      objectStar,
+      objectNone,
     );
   }
 
@@ -2929,7 +2963,7 @@ class UpperBoundTest extends _BoundsTestBase {
     _checkLeastUpperBound(
       typeParameterTypeNone(T),
       functionTypeNone(returnType: voidNone),
-      objectNone,
+      objectQuestion,
     );
   }
 
@@ -2957,7 +2991,7 @@ class UpperBoundTest extends _BoundsTestBase {
     _checkLeastUpperBound(
       typeParameterTypeNone(T),
       interfaceTypeNone(A),
-      objectNone,
+      objectQuestion,
     );
   }
 
@@ -3199,26 +3233,28 @@ class _BoundsTestBase extends AbstractTypeSystemNullSafetyTest {
   }
 
   void _checkLeastUpperBound(DartType T1, DartType T2, DartType expected) {
-    var expectedStr = _typeString(expected);
+    NullSafetyUnderstandingFlag.enableNullSafetyTypes(() async {
+      var expectedStr = _typeString(expected);
 
-    var result = typeSystem.getLeastUpperBound(T1, T2);
-    var resultStr = _typeString(result);
-    expect(result, expected, reason: '''
+      var result = typeSystem.getLeastUpperBound(T1, T2);
+      var resultStr = _typeString(result);
+      expect(result, expected, reason: '''
 expected: $expectedStr
 actual: $resultStr
 ''');
 
-    // Check that the result is an upper bound.
-    expect(typeSystem.isSubtypeOf2(T1, result), true);
-    expect(typeSystem.isSubtypeOf2(T2, result), true);
+      // Check that the result is an upper bound.
+      expect(typeSystem.isSubtypeOf2(T1, result), true);
+      expect(typeSystem.isSubtypeOf2(T2, result), true);
 
-    // Check for symmetry.
-    result = typeSystem.getLeastUpperBound(T2, T1);
-    resultStr = _typeString(result);
-    expect(result, expected, reason: '''
+      // Check for symmetry.
+      result = typeSystem.getLeastUpperBound(T2, T1);
+      resultStr = _typeString(result);
+      expect(result, expected, reason: '''
 expected: $expectedStr
 actual: $resultStr
 ''');
+    });
   }
 
   String _typeParametersStr(TypeImpl type) {
