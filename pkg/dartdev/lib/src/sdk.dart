@@ -48,23 +48,45 @@ class Sdk {
   String get dart => Platform.resolvedExecutable;
 
   String get analysisServerSnapshot => path.absolute(
-      sdkPath, 'bin', 'snapshots', 'analysis_server.dart.snapshot');
+        sdkPath,
+        'bin',
+        'snapshots',
+        'analysis_server.dart.snapshot',
+      );
 
-  String get dart2js => path.absolute(sdkPath, 'bin', _binName('dart2js'));
+  String get dart2js => path.absolute(
+        sdkPath,
+        'bin',
+        'snapshots',
+        'dart2js.dart.snapshot',
+      );
 
-  String get dartfmt => path.absolute(sdkPath, 'bin', _binName('dartfmt'));
+  String get dartfmt => path.absolute(
+        sdkPath,
+        'bin',
+        _binName('dartfmt'),
+      );
 
-  String get ddsSnapshot =>
-      path.absolute(sdkPath, 'bin', 'snapshots', 'dds.dart.snapshot');
+  String get ddsSnapshot => path.absolute(
+        sdkPath,
+        'bin',
+        'snapshots',
+        'dds.dart.snapshot',
+      );
 
-  String get pub => path.absolute(sdkPath, 'bin', _binName('pub'));
+  String get pub => path.absolute(
+        sdkPath,
+        'bin',
+        'snapshots',
+        'pub.dart.snapshot',
+      );
 
   static String _binName(String base) =>
       Platform.isWindows ? '$base.bat' : base;
 
-  static bool checkSnapshotExists(String snapshotPath) {
-    if (!File(snapshotPath).existsSync()) {
-      log.stderr('Could not find $snapshotPath. Have you built the full '
+  static bool checkArtifactExists(String path) {
+    if (!File(path).existsSync()) {
+      log.stderr('Could not find $path. Have you built the full '
           'Dart SDK?');
       return false;
     }

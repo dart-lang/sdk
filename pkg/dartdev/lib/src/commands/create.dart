@@ -96,7 +96,7 @@ class CreateCommand extends DartdevCommand {
     );
 
     if (argResults['pub']) {
-      if (!Sdk.checkSnapshotExists(sdk.pub)) {
+      if (!Sdk.checkArtifactExists(sdk.pub)) {
         return 255;
       }
       log.stdout('');

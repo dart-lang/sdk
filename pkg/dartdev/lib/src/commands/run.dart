@@ -142,7 +142,7 @@ class _DebuggingSession {
     final ddsSnapshot = (dirname(sdk.dart).endsWith('bin'))
         ? sdk.ddsSnapshot
         : absolute(dirname(sdk.dart), 'gen', 'dds.dart.snapshot');
-    if (!Sdk.checkSnapshotExists(ddsSnapshot)) {
+    if (!Sdk.checkArtifactExists(ddsSnapshot)) {
       return false;
     }
     final process = await Process.start(

@@ -102,9 +102,7 @@ void DartDevIsolate::DartDevRunner::Run(
     // Clear the DartDev dart_options and replace them with the processed
     // options provided by DartDev.
     dart_options_->Reset();
-    for (intptr_t i = 0; i < argc_; ++i) {
-      dart_options_->AddArguments(const_cast<const char**>(argv_.get()), argc_);
-    }
+    dart_options_->AddArguments(const_cast<const char**>(argv_.get()), argc_);
   }
 }
 
@@ -136,7 +134,6 @@ void DartDevIsolate::DartDevRunner::DartDevResultCallback(
         }
         delete[] args;
       };
-
       argv_ =
           std::unique_ptr<char*[], void (*)(char**)>(new char*[argc_], deleter);
       for (intptr_t i = 0; i < argc_; ++i) {
