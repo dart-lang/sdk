@@ -79,7 +79,7 @@ vars = {
   "collection_rev": "583693680fc067e34ca5b72503df25e8b80579f9",
   "convert_rev": "49bde5b371eb5c2c8e721557cf762f17c75e49fc",
   "crypto_rev": "7422fb2f6584fe1839eb30bc4ca56e9f9760b801",
-  "csslib_rev": "bf372d4fdc6dfa232ad93f77a0a3de0891edd04c",
+  "csslib_rev": "451448a9ac03f87a8d0377fc0b411d8c388a6cb4",
   "dart2js_info_tag" : "0.6.0",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
