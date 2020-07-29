@@ -655,7 +655,7 @@ class AnalysisServerOptions {
 
   /// Return `true` if the new relevance computations should be used when
   /// computing code completion suggestions.
-  bool useNewRelevance = false;
+  bool useNewRelevance = true;
 
   /// The set of enabled features.
   FeatureSet featureSet = FeatureSet();

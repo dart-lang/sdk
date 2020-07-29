@@ -590,12 +590,15 @@ class B extends A {
   }
 
   Future<void> test_invocation_sdk_relevancy_on() {
-    addTestFile('main() {Map m; m.^}');
-    return getSuggestions().then((_) {
-      // Assert that the CommonUsageComputer is working
-      expect(suggestions.any((s) => s.relevance == DART_RELEVANCE_COMMON_USAGE),
-          isTrue);
-    });
+    if (!server.options.useNewRelevance) {
+      addTestFile('main() {Map m; m.^}');
+      return getSuggestions().then((_) {
+        // Assert that the CommonUsageComputer is working
+        expect(
+            suggestions.any((s) => s.relevance == DART_RELEVANCE_COMMON_USAGE),
+            isTrue);
+      });
+    }
   }
 
   Future<void> test_invocation_withTrailingStmt() {

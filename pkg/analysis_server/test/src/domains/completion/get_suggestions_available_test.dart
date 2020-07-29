@@ -253,7 +253,57 @@ void f(MyEnum e) {
       testCode.indexOf(' // ref'),
     );
 
-    assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    if (server.options.useNewRelevance) {
+      assertJsonText(results.includedSuggestionRelevanceTags, r'''
+[
+  {
+    "tag": "ElementKind.PREFIX",
+    "relevanceBoost": 0
+  },
+  {
+    "tag": "ElementKind.TOP_LEVEL_VARIABLE",
+    "relevanceBoost": 1
+  },
+  {
+    "tag": "ElementKind.FUNCTION",
+    "relevanceBoost": 2
+  },
+  {
+    "tag": "ElementKind.METHOD",
+    "relevanceBoost": 4
+  },
+  {
+    "tag": "ElementKind.ENUM",
+    "relevanceBoost": 9
+  },
+  {
+    "tag": "ElementKind.CLASS",
+    "relevanceBoost": 28
+  },
+  {
+    "tag": "ElementKind.LOCAL_VARIABLE",
+    "relevanceBoost": 40
+  },
+  {
+    "tag": "ElementKind.CONSTRUCTOR",
+    "relevanceBoost": 53
+  },
+  {
+    "tag": "ElementKind.FIELD",
+    "relevanceBoost": 68
+  },
+  {
+    "tag": "ElementKind.PARAMETER",
+    "relevanceBoost": 100
+  },
+  {
+    "tag": "package:test/a.dart::MyEnum",
+    "relevanceBoost": 250
+  }
+]
+''');
+    } else {
+      assertJsonText(results.includedSuggestionRelevanceTags, r'''
 [
   {
     "tag": "package:test/a.dart::MyEnum",
@@ -261,6 +311,7 @@ void f(MyEnum e) {
   }
 ]
 ''');
+    }
   }
 
   Future<void> test_relevanceTags_location_argumentList_named() async {
@@ -277,7 +328,57 @@ main() {
       testCode.indexOf('); // ref'),
     );
 
-    assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    if (server.options.useNewRelevance) {
+      assertJsonText(results.includedSuggestionRelevanceTags, r'''
+[
+  {
+    "tag": "ElementKind.PREFIX",
+    "relevanceBoost": 0
+  },
+  {
+    "tag": "ElementKind.FUNCTION",
+    "relevanceBoost": 1
+  },
+  {
+    "tag": "ElementKind.METHOD",
+    "relevanceBoost": 1
+  },
+  {
+    "tag": "ElementKind.TOP_LEVEL_VARIABLE",
+    "relevanceBoost": 3
+  },
+  {
+    "tag": "ElementKind.ENUM",
+    "relevanceBoost": 5
+  },
+  {
+    "tag": "ElementKind.CLASS",
+    "relevanceBoost": 20
+  },
+  {
+    "tag": "ElementKind.LOCAL_VARIABLE",
+    "relevanceBoost": 30
+  },
+  {
+    "tag": "ElementKind.FIELD",
+    "relevanceBoost": 41
+  },
+  {
+    "tag": "ElementKind.PARAMETER",
+    "relevanceBoost": 56
+  },
+  {
+    "tag": "ElementKind.CONSTRUCTOR",
+    "relevanceBoost": 100
+  },
+  {
+    "tag": "dart:core::String",
+    "relevanceBoost": 10
+  }
+]
+''');
+    } else {
+      assertJsonText(results.includedSuggestionRelevanceTags, r'''
 [
   {
     "tag": "dart:core::String",
@@ -285,6 +386,7 @@ main() {
   }
 ]
 ''');
+    }
   }
 
   Future<void> test_relevanceTags_location_argumentList_positional() async {
@@ -301,7 +403,65 @@ main() {
       testCode.indexOf('); // ref'),
     );
 
-    assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    if (server.options.useNewRelevance) {
+      assertJsonText(results.includedSuggestionRelevanceTags, r'''
+[
+  {
+    "tag": "ElementKind.MIXIN",
+    "relevanceBoost": 0
+  },
+  {
+    "tag": "ElementKind.TYPE_PARAMETER",
+    "relevanceBoost": 0
+  },
+  {
+    "tag": "ElementKind.PREFIX",
+    "relevanceBoost": 0
+  },
+  {
+    "tag": "ElementKind.ENUM",
+    "relevanceBoost": 3
+  },
+  {
+    "tag": "ElementKind.METHOD",
+    "relevanceBoost": 4
+  },
+  {
+    "tag": "ElementKind.FUNCTION",
+    "relevanceBoost": 9
+  },
+  {
+    "tag": "ElementKind.CLASS",
+    "relevanceBoost": 13
+  },
+  {
+    "tag": "ElementKind.TOP_LEVEL_VARIABLE",
+    "relevanceBoost": 18
+  },
+  {
+    "tag": "ElementKind.CONSTRUCTOR",
+    "relevanceBoost": 27
+  },
+  {
+    "tag": "ElementKind.FIELD",
+    "relevanceBoost": 42
+  },
+  {
+    "tag": "ElementKind.LOCAL_VARIABLE",
+    "relevanceBoost": 60
+  },
+  {
+    "tag": "ElementKind.PARAMETER",
+    "relevanceBoost": 100
+  },
+  {
+    "tag": "dart:core::double",
+    "relevanceBoost": 10
+  }
+]
+''');
+    } else {
+      assertJsonText(results.includedSuggestionRelevanceTags, r'''
 [
   {
     "tag": "dart:core::double",
@@ -309,6 +469,7 @@ main() {
   }
 ]
 ''');
+    }
   }
 
   Future<void> test_relevanceTags_location_assignment() async {
@@ -324,7 +485,57 @@ main() {
       testCode.indexOf(' // ref'),
     );
 
-    assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    if (server.options.useNewRelevance) {
+      assertJsonText(results.includedSuggestionRelevanceTags, r'''
+[
+  {
+    "tag": "ElementKind.PREFIX",
+    "relevanceBoost": 0
+  },
+  {
+    "tag": "ElementKind.TOP_LEVEL_VARIABLE",
+    "relevanceBoost": 1
+  },
+  {
+    "tag": "ElementKind.FUNCTION",
+    "relevanceBoost": 2
+  },
+  {
+    "tag": "ElementKind.METHOD",
+    "relevanceBoost": 4
+  },
+  {
+    "tag": "ElementKind.ENUM",
+    "relevanceBoost": 9
+  },
+  {
+    "tag": "ElementKind.CLASS",
+    "relevanceBoost": 28
+  },
+  {
+    "tag": "ElementKind.LOCAL_VARIABLE",
+    "relevanceBoost": 40
+  },
+  {
+    "tag": "ElementKind.CONSTRUCTOR",
+    "relevanceBoost": 53
+  },
+  {
+    "tag": "ElementKind.FIELD",
+    "relevanceBoost": 68
+  },
+  {
+    "tag": "ElementKind.PARAMETER",
+    "relevanceBoost": 100
+  },
+  {
+    "tag": "dart:core::int",
+    "relevanceBoost": 10
+  }
+]
+''');
+    } else {
+      assertJsonText(results.includedSuggestionRelevanceTags, r'''
 [
   {
     "tag": "dart:core::int",
@@ -332,6 +543,7 @@ main() {
   }
 ]
 ''');
+    }
   }
 
   Future<void> test_relevanceTags_location_initializer() async {
@@ -344,7 +556,65 @@ int v = // ref;
       testCode.indexOf(' // ref'),
     );
 
-    assertJsonText(results.includedSuggestionRelevanceTags, r'''
+    if (server.options.useNewRelevance) {
+      assertJsonText(results.includedSuggestionRelevanceTags, r'''
+[
+  {
+    "tag": "ElementKind.MIXIN",
+    "relevanceBoost": 0
+  },
+  {
+    "tag": "ElementKind.TYPE_PARAMETER",
+    "relevanceBoost": 0
+  },
+  {
+    "tag": "ElementKind.PREFIX",
+    "relevanceBoost": 1
+  },
+  {
+    "tag": "ElementKind.ENUM",
+    "relevanceBoost": 1
+  },
+  {
+    "tag": "ElementKind.METHOD",
+    "relevanceBoost": 4
+  },
+  {
+    "tag": "ElementKind.TOP_LEVEL_VARIABLE",
+    "relevanceBoost": 6
+  },
+  {
+    "tag": "ElementKind.FUNCTION",
+    "relevanceBoost": 16
+  },
+  {
+    "tag": "ElementKind.PARAMETER",
+    "relevanceBoost": 26
+  },
+  {
+    "tag": "ElementKind.FIELD",
+    "relevanceBoost": 35
+  },
+  {
+    "tag": "ElementKind.CLASS",
+    "relevanceBoost": 56
+  },
+  {
+    "tag": "ElementKind.LOCAL_VARIABLE",
+    "relevanceBoost": 68
+  },
+  {
+    "tag": "ElementKind.CONSTRUCTOR",
+    "relevanceBoost": 100
+  },
+  {
+    "tag": "dart:core::int",
+    "relevanceBoost": 10
+  }
+]
+''');
+    } else {
+      assertJsonText(results.includedSuggestionRelevanceTags, r'''
 [
   {
     "tag": "dart:core::int",
@@ -352,6 +622,7 @@ int v = // ref;
   }
 ]
 ''');
+    }
   }
 
   Future<void> test_relevanceTags_location_listLiteral() async {

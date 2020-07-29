@@ -70,7 +70,9 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
       fail('expected $expectationText, but found\n $completions');
     }
     expect(cs.kind, equals(kind));
-    expect(cs.relevance, equals(relevance));
+    if (!server.options.useNewRelevance) {
+      expect(cs.relevance, equals(relevance));
+    }
     expect(cs.selectionOffset, selectionOffset ?? completion.length);
     expect(cs.selectionLength, equals(0));
     expect(cs.isDeprecated, equals(isDeprecated));

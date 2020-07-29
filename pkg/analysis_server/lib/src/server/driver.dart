@@ -827,6 +827,7 @@ class Driver implements ServerStarter {
     // Temporary flags.
     //
     parser.addFlag(USE_NEW_RELEVANCE,
+        defaultsTo: true,
         help: 'Use the new relevance computation for code completion.');
 
     return parser;
