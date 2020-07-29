@@ -14,8 +14,6 @@ main() {
   });
 }
 
-/// TODO(paulberry): move other tests from [CheckedModeCompileTimeErrorCodeTest]
-/// to this class.
 @reflectiveTest
 class ConstConstructorParamTypeMismatchTest extends DriverResolutionTest {
   test_int_to_double_reference_from_other_library_other_file_after() async {

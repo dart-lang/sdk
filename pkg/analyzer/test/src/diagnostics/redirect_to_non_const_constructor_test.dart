@@ -35,6 +35,20 @@ class A {
 ''');
   }
 
+  test_constRedirector_constRedirectee_generic() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  const A(T value) : this._(value);
+  const A._(T value) : value = value;
+  final T value;
+}
+
+void main(){
+  const A<int>(1);
+}
+''');
+  }
+
   test_constRedirector_constRedirectee_viaInitializer() async {
     await assertNoErrorsInCode(r'''
 class A {

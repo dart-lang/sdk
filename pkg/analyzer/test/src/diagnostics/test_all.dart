@@ -71,9 +71,12 @@ import 'const_constructor_with_non_final_field_test.dart'
     as const_constructor_with_non_final_field;
 import 'const_deferred_class_test.dart' as const_deferred_class;
 import 'const_eval_throws_exception_test.dart' as const_eval_throws_exception;
+import 'const_eval_throws_idbze_test.dart' as const_eval_throws_idbze;
+import 'const_eval_type_bool_int_test.dart' as const_eval_type_bool_int;
 import 'const_eval_type_bool_num_string_test.dart'
     as const_eval_type_bool_num_string;
 import 'const_eval_type_bool_test.dart' as const_eval_type_bool;
+import 'const_eval_type_num_test.dart' as const_eval_type_num;
 import 'const_formal_parameter_test.dart' as const_formal_parameter;
 import 'const_initialized_with_non_constant_value_from_deferred_library_test.dart'
     as const_initialized_with_non_constant_value_from_deferred_library;
@@ -89,10 +92,13 @@ import 'const_spread_expected_list_or_set_test.dart'
     as const_spread_expected_list_or_set;
 import 'const_spread_expected_map_test.dart' as const_spread_expected_map;
 import 'const_with_non_const_test.dart' as const_with_non_const;
+import 'const_with_non_constant_argument_test.dart'
+    as const_with_non_constant_argument;
 import 'const_with_non_type_test.dart' as const_with_non_type;
 import 'const_with_type_parameters_test.dart' as const_with_type_parameters;
 import 'const_with_undefined_constructor_test.dart'
     as const_with_undefined_constructor;
+import 'could_not_infer_test.dart' as could_not_infer;
 import 'dead_code_test.dart' as dead_code;
 import 'dead_null_aware_expression_test.dart' as dead_null_aware_expression;
 import 'default_list_constructor_test.dart' as default_list_constructor;
@@ -659,8 +665,11 @@ main() {
     const_constructor_with_non_final_field.main();
     const_deferred_class.main();
     const_eval_throws_exception.main();
+    const_eval_throws_idbze.main();
+    const_eval_type_bool_int.main();
     const_eval_type_bool_num_string.main();
     const_eval_type_bool.main();
+    const_eval_type_num.main();
     const_formal_parameter.main();
     const_initialized_with_non_constant_value_from_deferred_library.main();
     const_initialized_with_non_constant_value.main();
@@ -671,9 +680,11 @@ main() {
     const_spread_expected_list_or_set.main();
     const_spread_expected_map.main();
     const_with_non_const.main();
+    const_with_non_constant_argument.main();
     const_with_non_type.main();
     const_with_type_parameters.main();
     const_with_undefined_constructor.main();
+    could_not_infer.main();
     dead_code.main();
     dead_null_aware_expression.main();
     default_list_constructor.main();

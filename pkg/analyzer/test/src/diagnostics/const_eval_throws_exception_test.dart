@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -20,8 +21,6 @@ main() {
   });
 }
 
-/// TODO(paulberry): move other tests from [CompileTimeErrorCodeTestBase] to
-/// this class.
 @reflectiveTest
 class ConstEvalThrowsExceptionTest extends DriverResolutionTest {
   test_CastError_intToDouble_constructor_importAnalyzedAfter() async {
@@ -168,6 +167,30 @@ main() {
 ''');
   }
 
+  test_fromEnvironment_bool_badArgs() async {
+    await assertErrorsInCode(r'''
+var b1 = const bool.fromEnvironment(1);
+var b2 = const bool.fromEnvironment('x', defaultValue: 1);
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 9, 29),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 36, 1),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 49, 48),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 81, 15),
+    ]);
+  }
+
+  test_fromEnvironment_bool_badDefault_whenDefined() async {
+    // The type of the defaultValue needs to be correct even when the default
+    // value isn't used (because the variable is defined in the environment).
+    driver.declaredVariables = DeclaredVariables.fromMap({'x': 'true'});
+    await assertErrorsInCode('''
+var b = const bool.fromEnvironment('x', defaultValue: 1);
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 8, 48),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 40, 15),
+    ]);
+  }
+
   test_ifElement_false_thenNotEvaluated() async {
     await assertErrorsInCode(
         '''
@@ -254,6 +277,23 @@ import 'lib.dart';
 const a = const A();
 ''', [
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 29, 9),
+    ]);
+  }
+
+  test_symbolConstructor_badStringArgument() async {
+    await assertErrorsInCode(r'''
+var s1 = const Symbol('3');
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 9, 17),
+    ]);
+  }
+
+  test_symbolConstructor_nonStringArgument() async {
+    await assertErrorsInCode(r'''
+var s2 = const Symbol(3);
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 9, 15),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 22, 1),
     ]);
   }
 
