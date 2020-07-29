@@ -38,6 +38,7 @@ class BulkFixProcessor {
     LintNames.avoid_empty_else: RemoveEmptyElse.newInstance,
     LintNames.avoid_init_to_null: RemoveInitializer.newInstance,
     LintNames.avoid_redundant_argument_values: RemoveArgument.newInstance,
+    LintNames.avoid_return_types_on_setters: RemoveTypeAnnotation.newInstance,
     LintNames.avoid_single_cascade_in_expression_statements:
         ReplaceCascadeWithDot.newInstance,
     LintNames.prefer_contains: ConvertToContains.newInstance,
