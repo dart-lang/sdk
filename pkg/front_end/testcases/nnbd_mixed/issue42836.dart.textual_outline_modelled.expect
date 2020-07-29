@@ -1,0 +1,10 @@
+// @dart = 2.7
+import 'issue42836_lib.dart';
+
+class Legacy extends Generic<int> {
+  int legacyMethod() => 3;
+}
+
+main() {}
+test(bool b) {}
+var legacyInstance = Legacy();

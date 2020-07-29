@@ -669,6 +669,10 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
             ? type2
             : Substitution.fromInterfaceType(type2).substituteType(
                 info2.genericSuperType[next.classNode].asInterfaceType);
+        if (!clientLibrary.isNonNullableByDefault) {
+          superType1 = legacyErasure(coreTypes, superType1);
+          superType2 = legacyErasure(coreTypes, superType2);
+        }
         if (superType1 == superType2) {
           candidate = superType1.withDeclaredNullability(
               uniteNullabilities(type1.nullability, type2.nullability));
