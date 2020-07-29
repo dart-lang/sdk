@@ -486,10 +486,10 @@ class ComplexTypeInfo implements TypeInfo {
 
     final List<Token> typeVariableEndGroups = <Token>[];
     for (Link<Token> t = typeVariableStarters; t.isNotEmpty; t = t.tail) {
+      parser.listener.beginFunctionType(start);
       typeVariableEndGroups.add(
           computeTypeParamOrArg(t.head, /* inDeclaration = */ true)
               .parseVariables(t.head, parser));
-      parser.listener.beginFunctionType(start);
     }
 
     if (gftHasReturnType == false) {

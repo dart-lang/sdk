@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef E1<unrelated T extends core::Object* = dynamic> = () →* void;
+typedef E2<unrelated T extends core::num* = core::num*> = () →* void;
+typedef E3<unrelated T extends core::Object* = dynamic, unrelated S extends core::Object* = dynamic> = () →* void;
+typedef E4<unrelated T extends core::num* = core::num*, unrelated S extends core::num* = core::num*> = () →* void;
+typedef E5<unrelated T extends S* = core::num*, unrelated S extends core::num* = core::num*> = () →* void;
+typedef E6<unrelated T extends core::num* = core::num*, unrelated S extends T* = core::num*> = () →* void;
+typedef F1 = <T extends core::Object* = dynamic>() →* void;
+typedef F2 = <T extends core::num* = dynamic>() →* void;
+typedef F3 = <T extends core::Object* = dynamic, S extends core::Object* = dynamic>() →* void;
+typedef F4 = <T extends core::num* = dynamic, S extends core::num* = dynamic>() →* void;
+typedef F5 = <T extends S* = dynamic, S extends core::num* = dynamic>() →* void;
+typedef F6 = <T extends core::num* = dynamic, S extends T* = dynamic>() →* void;
+typedef G1<invariant X extends core::Object* = dynamic> = <T extends X* = dynamic>() →* void;
+typedef G2<invariant X extends core::num* = core::num*> = <T extends X* = dynamic>() →* void;
+typedef G3<invariant X extends core::Object* = dynamic, invariant Y extends core::Object* = dynamic> = <T extends X* = dynamic, S extends Y* = dynamic>() →* void;
+typedef G4<invariant X extends core::num* = core::num*, invariant Y extends core::num* = core::num*> = <T extends X* = dynamic, S extends Y* = dynamic>() →* void;
+typedef G5<invariant X extends core::num* = core::num*> = <T extends S* = dynamic, S extends X* = dynamic>() →* void;
+typedef G6<invariant X extends core::num* = core::num*> = <T extends X* = dynamic, S extends T* = dynamic>() →* void;
+typedef H1 = (<T extends core::Object* = dynamic>() →* void) →* void;
+typedef H2 = (<T extends core::num* = dynamic>() →* void) →* void;
+typedef H3 = (<T extends core::Object* = dynamic, S extends core::Object* = dynamic>() →* void) →* void;
+typedef H4 = (<T extends core::num* = dynamic, S extends core::num* = dynamic>() →* void) →* void;
+typedef H5 = (<T extends S* = dynamic, S extends core::num* = dynamic>() →* void) →* void;
+typedef H6 = (<T extends core::num* = dynamic, S extends T* = dynamic>() →* void) →* void;
+static field <T extends core::Object* = dynamic>() →* void f1;
+static field <T extends core::num* = dynamic>() →* void f2;
+static field <T extends core::Object* = dynamic, S extends core::Object* = dynamic>() →* void f3;
+static field <T extends core::num* = dynamic, S extends core::num* = dynamic>() →* void f4;
+static field <T extends S* = dynamic, S extends core::num* = dynamic>() →* void f5;
+static field <T extends core::num* = dynamic, S extends T* = dynamic>() →* void f6;
+static method main() → dynamic
+  ;

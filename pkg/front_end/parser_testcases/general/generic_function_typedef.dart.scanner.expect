@@ -1,0 +1,77 @@
+typedef E1<T> = void Function();
+typedef E2<T extends num> = void Function();
+typedef E3<T, S> = void Function();
+typedef E4<T extends num, S extends num> = void Function();
+typedef E5<T extends S, S extends num> = void Function();
+typedef E6<T extends num, S extends T> = void Function();
+
+typedef F1 = void Function<T>();
+typedef F2 = void Function<T extends num>();
+typedef F3 = void Function<T, S>();
+typedef F4 = void Function<T extends num, S extends num>();
+typedef F5 = void Function<T extends S, S extends num>();
+typedef F6 = void Function<T extends num, S extends T>();
+
+typedef G1<X> = void Function<T extends X>();
+typedef G2<X extends num> = void Function<T extends X>();
+typedef G3<X, Y> = void Function<T extends X, S extends Y>();
+typedef G4<X extends num, Y extends num> = void
+Function<T extends X, S extends Y>();
+typedef G5<X extends num> = void Function<T extends S, S extends X>();
+typedef G6<X extends num> = void Function<T extends X, S extends T>();
+
+typedef H1 = void Function(void Function<T>());
+typedef H2 = void Function(void Function<T extends num>());
+typedef H3 = void Function(void Function<T, S>());
+typedef H4 = void Function(void Function<T extends num, S extends num>());
+typedef H5 = void Function(void Function<T extends S, S extends num>());
+typedef H6 = void Function(void Function<T extends num, S extends T>());
+
+void Function<T>() f1;
+void Function<T extends num>() f2;
+void Function<T, S>() f3;
+void Function<T extends num, S extends num>() f4;
+void Function<T extends S, S extends num>() f5;
+void Function<T extends num, S extends T>() f6;
+
+main() {}
+
+
+typedef[KeywordToken] E1[StringToken]<[BeginToken]T[StringToken]>[SimpleToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] E2[StringToken]<[BeginToken]T[StringToken] extends[KeywordToken] num[StringToken]>[SimpleToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] E3[StringToken]<[BeginToken]T[StringToken],[SimpleToken] S[StringToken]>[SimpleToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] E4[StringToken]<[BeginToken]T[StringToken] extends[KeywordToken] num[StringToken],[SimpleToken] S[StringToken] extends[KeywordToken] num[StringToken]>[SimpleToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] E5[StringToken]<[BeginToken]T[StringToken] extends[KeywordToken] S[StringToken],[SimpleToken] S[StringToken] extends[KeywordToken] num[StringToken]>[SimpleToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] E6[StringToken]<[BeginToken]T[StringToken] extends[KeywordToken] num[StringToken],[SimpleToken] S[StringToken] extends[KeywordToken] T[StringToken]>[SimpleToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+typedef[KeywordToken] F1[StringToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] F2[StringToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken] extends[KeywordToken] num[StringToken]>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] F3[StringToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken],[SimpleToken] S[StringToken]>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] F4[StringToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken] extends[KeywordToken] num[StringToken],[SimpleToken] S[StringToken] extends[KeywordToken] num[StringToken]>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] F5[StringToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken] extends[KeywordToken] S[StringToken],[SimpleToken] S[StringToken] extends[KeywordToken] num[StringToken]>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] F6[StringToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken] extends[KeywordToken] num[StringToken],[SimpleToken] S[StringToken] extends[KeywordToken] T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+typedef[KeywordToken] G1[StringToken]<[BeginToken]X[StringToken]>[SimpleToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken] extends[KeywordToken] X[StringToken]>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] G2[StringToken]<[BeginToken]X[StringToken] extends[KeywordToken] num[StringToken]>[SimpleToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken] extends[KeywordToken] X[StringToken]>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] G3[StringToken]<[BeginToken]X[StringToken],[SimpleToken] Y[StringToken]>[SimpleToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken] extends[KeywordToken] X[StringToken],[SimpleToken] S[StringToken] extends[KeywordToken] Y[StringToken]>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] G4[StringToken]<[BeginToken]X[StringToken] extends[KeywordToken] num[StringToken],[SimpleToken] Y[StringToken] extends[KeywordToken] num[StringToken]>[SimpleToken] =[SimpleToken] void[KeywordToken]
+Function[KeywordToken]<[BeginToken]T[StringToken] extends[KeywordToken] X[StringToken],[SimpleToken] S[StringToken] extends[KeywordToken] Y[StringToken]>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] G5[StringToken]<[BeginToken]X[StringToken] extends[KeywordToken] num[StringToken]>[SimpleToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken] extends[KeywordToken] S[StringToken],[SimpleToken] S[StringToken] extends[KeywordToken] X[StringToken]>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] G6[StringToken]<[BeginToken]X[StringToken] extends[KeywordToken] num[StringToken]>[SimpleToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken] extends[KeywordToken] X[StringToken],[SimpleToken] S[StringToken] extends[KeywordToken] T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+typedef[KeywordToken] H1[StringToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken]void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] H2[StringToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken]void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken] extends[KeywordToken] num[StringToken]>[SimpleToken]([BeginToken])[SimpleToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] H3[StringToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken]void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken],[SimpleToken] S[StringToken]>[SimpleToken]([BeginToken])[SimpleToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] H4[StringToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken]void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken] extends[KeywordToken] num[StringToken],[SimpleToken] S[StringToken] extends[KeywordToken] num[StringToken]>[SimpleToken]([BeginToken])[SimpleToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] H5[StringToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken]void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken] extends[KeywordToken] S[StringToken],[SimpleToken] S[StringToken] extends[KeywordToken] num[StringToken]>[SimpleToken]([BeginToken])[SimpleToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] H6[StringToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken]void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken] extends[KeywordToken] num[StringToken],[SimpleToken] S[StringToken] extends[KeywordToken] T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken])[SimpleToken];[SimpleToken]
+
+void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] f1[StringToken];[SimpleToken]
+void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken] extends[KeywordToken] num[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] f2[StringToken];[SimpleToken]
+void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken],[SimpleToken] S[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] f3[StringToken];[SimpleToken]
+void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken] extends[KeywordToken] num[StringToken],[SimpleToken] S[StringToken] extends[KeywordToken] num[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] f4[StringToken];[SimpleToken]
+void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken] extends[KeywordToken] S[StringToken],[SimpleToken] S[StringToken] extends[KeywordToken] num[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] f5[StringToken];[SimpleToken]
+void[KeywordToken] Function[KeywordToken]<[BeginToken]T[StringToken] extends[KeywordToken] num[StringToken],[SimpleToken] S[StringToken] extends[KeywordToken] T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] f6[StringToken];[SimpleToken]
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]
