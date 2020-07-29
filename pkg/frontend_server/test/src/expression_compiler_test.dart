@@ -252,7 +252,7 @@ class TestDriver {
   }
 }
 
-int main() {
+void main() {
   SetupCompilerOptions options = SetupCompilerOptions();
 
   group('Expression compiler tests in extension method:', () {
@@ -1212,6 +1212,4 @@ int main() {
           ''');
     });
   });
-
-  return 0;
 }
