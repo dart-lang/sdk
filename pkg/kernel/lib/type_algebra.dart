@@ -4,6 +4,7 @@
 library kernel.type_algebra;
 
 import 'ast.dart';
+import 'core_types.dart';
 
 /// Returns a type where all occurrences of the given type parameters have been
 /// replaced with the corresponding types.
@@ -1020,4 +1021,78 @@ class _PrimitiveTypeVerifier implements DartTypeVisitor<bool> {
 
   @override
   bool visitVoidType(VoidType node) => true;
+}
+
+/// Removes the application of ? or * from the type.
+///
+/// Some types are nullable even without the application of the nullable type
+/// constructor at the top level, for example, Null or FutureOr<int?>.
+// TODO(dmitryas): Remove [coreTypes] parameter when NullType is landed.
+DartType unwrapNullabilityConstructor(DartType type, CoreTypes coreTypes) {
+  return type.accept1(const _NullabilityConstructorUnwrapper(), coreTypes);
+}
+
+/// Implementation of [unwrapNullabilityConstructor] as a visitor.
+///
+/// Implementing the function as a visitor makes the necessity of supporting a new implementation of [DartType] visible at compile time.
+// TODO(dmitryas): Remove CoreTypes as the second argument when NullType is landed.
+class _NullabilityConstructorUnwrapper
+    implements DartTypeVisitor1<DartType, CoreTypes> {
+  const _NullabilityConstructorUnwrapper();
+
+  @override
+  DartType defaultDartType(DartType node, CoreTypes coreTypes) {
+    throw new UnsupportedError(
+        "Unsupported operation: _NullabilityConstructorUnwrapper(${node.runtimeType})");
+  }
+
+  @override
+  DartType visitBottomType(BottomType node, CoreTypes coreTypes) => node;
+
+  @override
+  DartType visitDynamicType(DynamicType node, CoreTypes coreTypes) => node;
+
+  @override
+  DartType visitFunctionType(FunctionType node, CoreTypes coreTypes) {
+    return node.withDeclaredNullability(Nullability.nonNullable);
+  }
+
+  @override
+  DartType visitFutureOrType(FutureOrType node, CoreTypes coreTypes) {
+    return node.withDeclaredNullability(Nullability.nonNullable);
+  }
+
+  @override
+  DartType visitInterfaceType(InterfaceType node, CoreTypes coreTypes) {
+    return node == coreTypes.nullType
+        ? node
+        : node.withDeclaredNullability(Nullability.nonNullable);
+  }
+
+  @override
+  DartType visitInvalidType(InvalidType node, CoreTypes coreTypes) => node;
+
+  @override
+  DartType visitNeverType(NeverType node, CoreTypes coreTypes) {
+    return node.withDeclaredNullability(Nullability.nonNullable);
+  }
+
+  @override
+  DartType visitTypeParameterType(TypeParameterType node, CoreTypes coreTypes) {
+    if (node.promotedBound != null) {
+      // Intersection types don't have their own nullabilities.
+      return node;
+    } else {
+      return node.withDeclaredNullability(
+          TypeParameterType.computeNullabilityFromBound(node.parameter));
+    }
+  }
+
+  @override
+  DartType visitTypedefType(TypedefType node, CoreTypes coreTypes) {
+    return node.withDeclaredNullability(Nullability.nonNullable);
+  }
+
+  @override
+  DartType visitVoidType(VoidType node, CoreTypes coreTypes) => node;
 }

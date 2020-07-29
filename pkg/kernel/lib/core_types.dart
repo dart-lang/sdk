@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.core_types;
 
+import 'package:kernel/type_algebra.dart';
+
 import 'ast.dart';
 import 'library_index.dart';
 
@@ -1254,13 +1256,10 @@ class CoreTypes {
     // TOP(T*) is true iff TOP(T) or OBJECT(T).
     if (type.declaredNullability == Nullability.nullable ||
         type.declaredNullability == Nullability.legacy) {
-      DartType nonNullableType =
-          type.withDeclaredNullability(Nullability.nonNullable);
-      assert(
-          !identical(type, nonNullableType),
-          "Setting the declared nullability of type '${type}' "
-          "to non-nullable was supposed to change the type, but it remained the same.");
-      return isTop(nonNullableType) || isObject(nonNullableType);
+      DartType nonNullableType = unwrapNullabilityConstructor(type, this);
+      if (!identical(type, nonNullableType)) {
+        return isTop(nonNullableType) || isObject(nonNullableType);
+      }
     }
 
     // TOP(FutureOr<T>) is TOP(T).
