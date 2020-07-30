@@ -13,6 +13,17 @@ import 'typescript.dart';
 /// of type names for inline types.
 const fieldNameForIndexer = 'indexer';
 
+final _keywords = const <String, TokenType>{
+  'class': TokenType.CLASS_KEYWORD,
+  'const': TokenType.CONST_KEYWORD,
+  'enum': TokenType.ENUM_KEYWORD,
+  'export': TokenType.EXPORT_KEYWORD,
+  'extends': TokenType.EXTENDS_KEYWORD,
+  'interface': TokenType.INTERFACE_KEYWORD,
+  'namespace': TokenType.NAMESPACE_KEYWORD,
+  'readonly': TokenType.READONLY_KEYWORD,
+};
+
 final _validIdentifierCharacters = RegExp('[a-zA-Z0-9_]');
 
 bool isAnyType(TypeBase t) =>
@@ -246,6 +257,18 @@ class Parser {
       return _advance();
     }
 
+    // The scanner currently reads keywords with specific token types
+    // (eg. TokenType.NAMESPACE_KEYWORD) however v3.16 of the LSP spec also uses
+    // some of these words as identifiers. If the requested type is an identifier
+    // but we have a keyword token, then treat it as an identifier.
+    if (type == TokenType.IDENTIFIER) {
+      final next = !_isAtEnd ? _peek() : null;
+      if (_isKeyword(next?.type)) {
+        _advance();
+        return Token(TokenType.IDENTIFIER, next.lexeme);
+      }
+    }
+
     throw '$message\n\n${_peek()}';
   }
 
@@ -270,7 +293,6 @@ class Parser {
 
   Const _enumValue(String enumName) {
     final leadingComment = _comment();
-    _eatUnwantedKeywords();
     final name = _consume(TokenType.IDENTIFIER, 'Expected identifier');
     TypeBase type;
     if (_match([TokenType.COLON])) {
@@ -420,6 +442,8 @@ class Parser {
 
     return Interface(leadingComment, name, typeArgs, baseTypes, members);
   }
+
+  bool _isKeyword(TokenType type) => _keywords.values.contains(type);
 
   String _joinNames(String parent, String child) {
     return '$parent${capitalize(child)}';
@@ -668,23 +692,13 @@ class Scanner {
       : throw 'Cannot advance past end of source';
 
   void _identifier() {
-    const keywords = <String, TokenType>{
-      'class': TokenType.CLASS_KEYWORD,
-      'const': TokenType.CONST_KEYWORD,
-      'enum': TokenType.ENUM_KEYWORD,
-      'export': TokenType.EXPORT_KEYWORD,
-      'extends': TokenType.EXTENDS_KEYWORD,
-      'interface': TokenType.INTERFACE_KEYWORD,
-      'namespace': TokenType.NAMESPACE_KEYWORD,
-      'readonly': TokenType.READONLY_KEYWORD,
-    };
     while (_isAlpha(_peek())) {
       _advance();
     }
 
     final string = _source.substring(_startOfToken, _currentPos);
-    if (keywords.containsKey(string)) {
-      _addToken(keywords[string]);
+    if (_keywords.containsKey(string)) {
+      _addToken(_keywords[string]);
     } else {
       _addToken(TokenType.IDENTIFIER);
     }
