@@ -130,12 +130,9 @@ Run a Dart file.''');
         return 255;
       }
     }
-
-    final script = Directory.current.uri
-        .resolve(args.firstWhere((e) => !e.startsWith('-')))
-        .toFilePath();
+    final path = args.firstWhere((e) => !e.startsWith('-'));
     final runArgs = args.length == 1 ? <String>[] : args.sublist(1);
-    VmInteropHandler.run(script, runArgs);
+    VmInteropHandler.run(path, runArgs);
     return 0;
   }
 }
