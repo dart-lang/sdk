@@ -5905,6 +5905,21 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "explicitly invoking a different constructor in '{0}'.");
 
   /**
+   * User friendly specialized error for [NON_GENERATIVE_CONSTRUCTOR]. This
+   * handles the case of `class E extends Exception` which will never work
+   * because [Exception] has no generative constructors.
+   */
+  static const CompileTimeErrorCode NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS =
+      CompileTimeErrorCode(
+          'NO_GENERATIVE_CONSTRUCTOR_IN_SUPERCLASS',
+          "The class '{0}' cannot extend '{1}' because '{1}' only has factory"
+              " constructors (no generative constructors), and '{0}' has at"
+              ' least one generative constructor.',
+          correction: 'Try implementing the class instead, adding a generative'
+              " (not factory) constructor to the superclass {0}, or a factory"
+              ' constructor to the subclass.');
+
+  /**
    * Parameters:
    * 0: the name of the superclass that does not define an implicitly invoked
    *    constructor

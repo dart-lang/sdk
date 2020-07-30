@@ -787,7 +787,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
       return;
     } else {
-      if (element.isFactory) {
+      if (element.isFactory &&
+          // Check if we've reported [NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS].
+          !element.enclosingElement.constructors
+              .every((constructor) => constructor.isFactory)) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, node, [element]);
       }
