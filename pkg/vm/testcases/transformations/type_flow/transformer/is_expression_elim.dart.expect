@@ -12,11 +12,25 @@ class B extends self::A {
     : super self::A::•()
     ;
 }
+abstract class _C&Object&A extends core::Object implements self::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C&Object&A*
+    : super core::Object::•()
+    ;
+}
+class C extends self::_C&Object&A {
+  synthetic constructor •() → self::C*
+    : super self::_C&Object&A::•()
+    ;
+}
+[@vm.inferred-type.metadata=#lib::A?]static field self::A* a = new self::A::•();
+[@vm.inferred-type.metadata=#lib::B?]static field self::B* b = new self::B::•();
+[@vm.inferred-type.metadata=#lib::C?]static field self::A* c = new self::C::•();
 static method main() → dynamic {
-  self::A* a = new self::A::•();
-  self::B* b = new self::B::•();
   core::print(true);
   core::print(true);
   core::print(true);
-  core::print(a is self::B*);
+  core::print([@vm.inferred-type.metadata=#lib::A?] self::a is self::B*);
+  core::print(true);
+  core::print([@vm.inferred-type.metadata=#lib::C?] self::c is self::B*);
+  core::print(true);
 }

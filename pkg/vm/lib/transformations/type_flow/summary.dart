@@ -568,8 +568,8 @@ class TypeCheck extends Statement {
           typeHierarchy.fromStaticType(checkType.representedTypeRaw, true),
           typeHierarchy);
 
-      if (canSkip && isIsExpression) {
-        isExpressionConst = true;
+      if (isIsExpression) {
+        isExpressionConst = canSkip;
       }
     } else {
       assertx(false, details: "Cannot see $checkType on RHS of TypeCheck.");
