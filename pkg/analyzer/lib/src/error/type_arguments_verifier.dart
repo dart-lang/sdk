@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -237,8 +236,7 @@ class TypeArgumentsVerifier {
 
         if (!_typeSystem.isSubtypeOf2(argType, boundType)) {
           if (_shouldAllowSuperBoundedTypes(typeName)) {
-            var replacedType =
-                (argType as TypeImpl).replaceTopAndBottom(_typeProvider);
+            var replacedType = _typeSystem.replaceTopAndBottom(argType);
             if (!identical(replacedType, argType) &&
                 _typeSystem.isSubtypeOf2(replacedType, boundType)) {
               // Bound is satisfied under super-bounded rules, so we're ok.

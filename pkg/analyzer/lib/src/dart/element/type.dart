@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
@@ -77,16 +76,6 @@ class DynamicTypeImpl extends TypeImpl implements DynamicType {
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeDynamicType();
-  }
-
-  @override
-  DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant = true}) {
-    if (isCovariant) {
-      return NeverTypeImpl.instance;
-    } else {
-      return this;
-    }
   }
 
   @override
@@ -306,33 +295,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       returnType: substitution.substituteType(returnType),
       typeFormals: const [],
       parameters: _transformOrShare(parameters, transformParameter),
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
-  @override
-  DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant = true}) {
-    var returnType = (this.returnType as TypeImpl)
-        .replaceTopAndBottom(typeProvider, isCovariant: isCovariant);
-    ParameterElement transformParameter(ParameterElement p) {
-      TypeImpl type = p.type;
-      var newType = type.replaceTopAndBottom(
-        typeProvider,
-        isCovariant: !isCovariant,
-      );
-      return p.copyWith(type: newType);
-    }
-
-    var parameters = _transformOrShare(this.parameters, transformParameter);
-    if (identical(returnType, this.returnType) &&
-        identical(parameters, this.parameters)) {
-      return this;
-    }
-    return FunctionTypeImpl(
-      typeFormals: typeFormals,
-      parameters: parameters,
-      returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
     );
   }
@@ -1372,34 +1334,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant = true}) {
-    // First check if this is actually an instance of Bottom
-    if (this.isDartCoreNull) {
-      if (isCovariant) {
-        return this;
-      } else {
-        return typeProvider.objectType;
-      }
-    }
-
-    // Otherwise, recurse over type arguments.
-    var typeArguments = _transformOrShare(
-        this.typeArguments,
-        (t) => (t as TypeImpl)
-            .replaceTopAndBottom(typeProvider, isCovariant: isCovariant));
-    if (identical(typeArguments, this.typeArguments)) {
-      return this;
-    } else {
-      return InterfaceTypeImpl(
-        element: element,
-        typeArguments: typeArguments,
-        nullabilitySuffix: nullabilitySuffix,
-      );
-    }
-  }
-
-  @override
   @deprecated
   InterfaceTypeImpl substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes) {
@@ -1700,24 +1634,6 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
   }
 
   @override
-  DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant = true}) {
-    if (isCovariant) {
-      return this;
-    } else {
-      // In theory this should never happen, since we only need to do this
-      // replacement when checking super-boundedness of explicitly-specified
-      // types, or types produced by mixin inference or instantiate-to-bounds,
-      // and bottom can't occur in any of those cases.
-      assert(false,
-          'Attempted to check super-boundedness of a type including "bottom"');
-      // But just in case it does, return `dynamic` since that's similar to what
-      // we do with Null.
-      return typeProvider.objectType;
-    }
-  }
-
-  @override
   @deprecated
   NeverTypeImpl substitute2(
           List<DartType> argumentTypes, List<DartType> parameterTypes) =>
@@ -1838,14 +1754,6 @@ abstract class TypeImpl implements DartType {
     appendTo(builder);
     return builder.toString();
   }
-
-  /// Replaces all covariant occurrences of `dynamic`, `Object`, and `void` with
-  /// `Null` and all contravariant occurrences of `Null` with `Object`.
-  ///
-  /// The boolean `isCovariant` indicates whether this type is in covariant or
-  /// contravariant position.
-  DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant = true});
 
   @override
   DartType resolveToBound(DartType objectType) => this;
@@ -2004,12 +1912,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
-  DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant = true}) {
-    return this;
-  }
-
-  @override
   DartType resolveToBound(DartType objectType) {
     if (promotedBound != null) {
       return promotedBound;
@@ -2142,16 +2044,6 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeVoidType();
-  }
-
-  @override
-  DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant = true}) {
-    if (isCovariant) {
-      return typeProvider.nullType;
-    } else {
-      return this;
-    }
   }
 
   @override

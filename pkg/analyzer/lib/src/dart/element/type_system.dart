@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/element/greatest_lower_bound.dart';
 import 'package:analyzer/src/dart/element/least_upper_bound.dart';
 import 'package:analyzer/src/dart/element/normalize.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
+import 'package:analyzer/src/dart/element/replace_top_bottom_visitor.dart';
 import 'package:analyzer/src/dart/element/runtime_type_equality.dart';
 import 'package:analyzer/src/dart/element/subtype.dart';
 import 'package:analyzer/src/dart/element/top_merge.dart';
@@ -1428,6 +1429,27 @@ class TypeSystemImpl extends TypeSystem {
     }
     // default
     return currentType;
+  }
+
+  /// Replaces all covariant occurrences of `dynamic`, `void`, and `Object` or
+  /// `Object?` with `Null` or `Never` and all contravariant occurrences of
+  /// `Null` or `Never` with `Object` or `Object?`.
+  DartType replaceTopAndBottom(DartType dartType) {
+    if (isNonNullableByDefault) {
+      return ReplaceTopBottomVisitor.run(
+        topType: objectQuestion,
+        bottomType: NeverTypeImpl.instance,
+        typeSystem: this,
+        type: dartType,
+      );
+    } else {
+      return ReplaceTopBottomVisitor.run(
+        topType: DynamicTypeImpl.instance,
+        bottomType: typeProvider.nullType,
+        typeSystem: this,
+        type: dartType,
+      );
+    }
   }
 
   /// Return `true` if runtime types [T1] and [T2] are equal.

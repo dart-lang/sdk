@@ -353,6 +353,19 @@ class X<T extends A> {
     ]);
   }
 
+  test_regression_42196_Null() async {
+    await assertNoErrorsInCode(r'''
+typedef G<X> = Function(X);
+class A<X extends G<A<X,Y>>, Y extends X> {}
+
+test<X>() { print("OK"); }
+
+main() {
+  test<A<G<A<Null, Null>>, dynamic>>();
+}
+''');
+  }
+
   test_typeArgumentList() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -431,6 +444,62 @@ class B extends A {}
 
 main() {
   foo<B, A>();
+}
+''');
+  }
+
+  test_regression_42196() async {
+    await assertNoErrorsInCode(r'''
+typedef G<X> = Function(X);
+class A<X extends G<A<X,Y>>, Y extends X> {}
+
+test<X>() { print("OK"); }
+
+main() {
+  test<A<G<A<Never, Never>>, dynamic>>();
+}
+''');
+  }
+
+  @override
+  test_regression_42196_Null() async {
+    await assertErrorsInCode(r'''
+typedef G<X> = Function(X);
+class A<X extends G<A<X,Y>>, Y extends X> {}
+
+test<X>() { print("OK"); }
+
+main() {
+  test<A<G<A<Null, Null>>, dynamic>>();
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 120, 16),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 124, 4),
+    ]);
+  }
+
+  test_regression_42196_object() async {
+    await assertNoErrorsInCode(r'''
+typedef G<X> = Function(X);
+class A<X extends G<A<X, Y>>, Y extends Never> {}
+
+test<X>() { print("OK"); }
+
+main() {
+  test<A<G<A<Never, Never>>, Object?>>();
+}
+''');
+  }
+
+  test_regression_42196_void() async {
+    await assertNoErrorsInCode(r'''
+typedef G<X> = Function(X);
+class A<X extends G<A<X, Y>>, Y extends Never> {}
+
+test<X>() { print("OK"); }
+
+main() {
+  test<A<G<A<Never, Never>>, void>>();
 }
 ''');
   }
