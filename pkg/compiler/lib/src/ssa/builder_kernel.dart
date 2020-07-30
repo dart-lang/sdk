@@ -1237,27 +1237,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         parameterStructure: function.parameterStructure,
         checks: _checksForFunction(function));
 
-    // If [functionNode] is `operator==` we explicitly add a null check at the
-    // beginning of the method. This is to avoid having call sites do the null
-    // check.
-    if (function.name == '==') {
-      if (!_commonElements.operatorEqHandlesNullArgument(function)) {
-        _handleIf(
-            visitCondition: () {
-              HParameterValue parameter = parameters.values.first;
-              push(new HIdentity(parameter, graph.addConstantNull(closedWorld),
-                  _abstractValueDomain.boolType));
-            },
-            visitThen: () {
-              _closeAndGotoExit(HReturn(
-                  _abstractValueDomain,
-                  graph.addConstantBool(false, closedWorld),
-                  _sourceInformationBuilder.buildReturn(functionNode)));
-            },
-            visitElse: null,
-            sourceInformation: _sourceInformationBuilder.buildIf(functionNode));
-      }
-    }
     if (const bool.fromEnvironment('unreachable-throw')) {
       var emptyParameters = parameters.values.where((p) =>
           _abstractValueDomain.isEmpty(p.instructionType).isDefinitelyTrue);
@@ -1616,6 +1595,29 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
     _addClassTypeVariablesIfNeeded(member);
     _addFunctionTypeVariablesIfNeeded(member);
+
+    // If [member] is `operator==` we explicitly add a null check at the
+    // beginning of the method. This is to avoid having call sites do the null
+    // check. The null check is added before the argument type checks since in
+    // strong mode, the parameter type might be non-nullable.
+    if (member.name == '==') {
+      if (!_commonElements.operatorEqHandlesNullArgument(member)) {
+        _handleIf(
+            visitCondition: () {
+              HParameterValue parameter = parameters.values.first;
+              push(new HIdentity(parameter, graph.addConstantNull(closedWorld),
+                  _abstractValueDomain.boolType));
+            },
+            visitThen: () {
+              _closeAndGotoExit(HReturn(
+                  _abstractValueDomain,
+                  graph.addConstantBool(false, closedWorld),
+                  _sourceInformationBuilder.buildReturn(functionNode)));
+            },
+            visitElse: null,
+            sourceInformation: _sourceInformationBuilder.buildIf(functionNode));
+      }
+    }
 
     if (functionNode != null) {
       _potentiallyAddFunctionParameterTypeChecks(functionNode, checks);
@@ -5493,10 +5495,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
       // Don't inline operator== methods if the parameter can be null.
       if (function.name == '==') {
-        if (function.enclosingClass != _commonElements.objectClass &&
-            providedArguments[1]
-                .isNull(_abstractValueDomain)
-                .isPotentiallyTrue) {
+        if (providedArguments[1]
+            .isNull(_abstractValueDomain)
+            .isPotentiallyTrue) {
           return false;
         }
       }
