@@ -415,5 +415,5 @@ abstract class TypeMask implements AbstractValue {
 
   /// Returns the [element] that is known to always be hit at runtime
   /// on this mask. Returns null if there is none.
-  MemberEntity locateSingleMember(Selector selector, JClosedWorld closedWorld);
+  MemberEntity locateSingleMember(Selector selector, CommonMasks domain);
 }

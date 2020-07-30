@@ -593,10 +593,13 @@ class FlatTypeMask implements TypeMask {
   }
 
   @override
-  MemberEntity locateSingleMember(Selector selector, JClosedWorld closedWorld) {
+  MemberEntity locateSingleMember(Selector selector, CommonMasks domain) {
     if (isEmptyOrNull) return null;
-    if (closedWorld.includesClosureCall(selector, this)) return null;
-    Iterable<MemberEntity> targets = closedWorld.locateMembers(selector, this);
+    JClosedWorld closedWorld = domain._closedWorld;
+    if (closedWorld.includesClosureCallInDomain(selector, this, domain))
+      return null;
+    Iterable<MemberEntity> targets =
+        closedWorld.locateMembersInDomain(selector, this, domain);
     if (targets.length != 1) return null;
     MemberEntity result = targets.first;
     ClassEntity enclosing = result.enclosingClass;

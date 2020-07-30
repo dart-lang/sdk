@@ -421,11 +421,11 @@ class UnionTypeMask implements TypeMask {
   }
 
   @override
-  MemberEntity locateSingleMember(Selector selector, JClosedWorld closedWorld) {
+  MemberEntity locateSingleMember(Selector selector, CommonMasks domain) {
     MemberEntity candidate;
     for (FlatTypeMask mask in disjointMasks) {
       if (isNullable) mask = mask.nullable();
-      MemberEntity current = mask.locateSingleMember(selector, closedWorld);
+      MemberEntity current = mask.locateSingleMember(selector, domain);
       if (current == null) {
         return null;
       } else if (candidate == null) {

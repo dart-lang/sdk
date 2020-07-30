@@ -785,7 +785,7 @@ class CommonMasks implements AbstractValueDomain {
   @override
   MemberEntity locateSingleMember(
       covariant TypeMask receiver, Selector selector) {
-    return receiver.locateSingleMember(selector, _closedWorld);
+    return receiver.locateSingleMember(selector, this);
   }
 
   @override
