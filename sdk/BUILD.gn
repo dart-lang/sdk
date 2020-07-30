@@ -124,7 +124,7 @@ _platform_sdk_snapshots = [
   ],
   [
     "dartdev",
-    "../utils/dartdev:generate_dartdev_snapshot",
+    "../utils/dartdev:dartdev",
   ],
   [
     "dartdoc",
@@ -136,7 +136,7 @@ _platform_sdk_snapshots = [
   ],
   [
     "dds",
-    "../utils/dds:generate_dds_snapshot",
+    "../utils/dds:dds",
   ],
   [
     "pub",
@@ -173,7 +173,7 @@ _full_sdk_snapshots = [
   ],
   [
     "dartdev",
-    "../utils/dartdev:generate_dartdev_snapshot",
+    "../utils/dartdev:dartdev",
   ],
   [
     "dartdevc",
@@ -189,7 +189,7 @@ _full_sdk_snapshots = [
   ],
   [
     "dds",
-    "../utils/dds:generate_dds_snapshot",
+    "../utils/dds:dds",
   ],
   [
     "kernel_worker",
