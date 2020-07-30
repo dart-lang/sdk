@@ -18,10 +18,10 @@ class A<T> {
 /*class: B:checkedInstance,checkedTypeArgument,checks=[],instance,typeArgument*/
 class B<T> {}
 
-/*class: C:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
+/*class: C:checkedInstance,checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
 class C {}
 
-/*class: D:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
+/*class: D:checkedInstance,checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
 class D {}
 
 main() {

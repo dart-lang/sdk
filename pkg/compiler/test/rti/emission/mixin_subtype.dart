@@ -12,19 +12,19 @@ import "package:expect/expect.dart";
 
 // A mixin with multiple super-types and implemented types.
 
-/*class: A:checkedInstance,checks=[],typeArgument*/
+/*class: A:checkedInstance,checks=[],onlyForRti,typeArgument*/
 class A {}
 
-/*class: B:checkedInstance,checks=[],typeArgument*/
+/*class: B:checkedInstance,checks=[],onlyForRti,typeArgument*/
 class B {}
 
-/*class: I:checkedInstance,checks=[],typeArgument*/
+/*class: I:checkedInstance,checks=[],onlyForRti,typeArgument*/
 class I {}
 
-/*class: J:checkedInstance,checks=[],typeArgument*/
+/*class: J:checkedInstance,checks=[],onlyForRti,typeArgument*/
 class J {}
 
-/*class: M1:checkedInstance,checks=[$isA,$isB,$isI,$isJ],typeArgument*/
+/*class: M1:checkedInstance,checks=[$isA,$isB,$isI,$isJ],onlyForRti,typeArgument*/
 mixin M1 on A, B implements I, J {}
 
 /*class: M2:checkedInstance,checks=[$isA,$isB,$isI,$isJ],typeArgument*/
@@ -42,13 +42,13 @@ class M5 implements A, B, I, J {}
 /*class: C:checkedInstance,checks=[$isA,$isB],indirectInstance,typeArgument*/
 class C implements A, B {}
 
-/*class: D1:checkedInstance,checks=[$isI,$isJ,$isM1],typeArgument*/
+/*class: D1:checkedInstance,checks=[$isI,$isJ,$isM1],onlyForRti,typeArgument*/
 class D1 = C with M1;
 
 /*class: D2:checkedInstance,checks=[$isI,$isJ],instance,typeArgument*/
 class D2 = C with M2;
 
-/*class: D3:checkedInstance,checks=[$isI,$isJ,$isM3],typeArgument*/
+/*class: D3:checkedInstance,checks=[$isI,$isJ,$isM3],onlyForRti,typeArgument*/
 class D3 = C with M3;
 
 /*class: D4:checkedInstance,checks=[$isI,$isJ],instance,typeArgument*/
@@ -61,25 +61,25 @@ class D5 extends C with M5 {}
 class E5 extends D5 {}
 
 // Same, with generics.
-/*class: GA:checkedInstance,checks=[],typeArgument*/
+/*class: GA:checkedInstance,checks=[],onlyForRti,typeArgument*/
 class GA<T> {}
 
-/*class: GB:checkedInstance,checks=[],typeArgument*/
+/*class: GB:checkedInstance,checks=[],onlyForRti,typeArgument*/
 class GB<T> {}
 
-/*class: GI:checkedInstance,checks=[],typeArgument*/
+/*class: GI:checkedInstance,checks=[],onlyForRti,typeArgument*/
 class GI<T> {}
 
-/*class: GJ:checkedInstance,checks=[],typeArgument*/
+/*class: GJ:checkedInstance,checks=[],onlyForRti,typeArgument*/
 class GJ<T> {}
 
-/*class: GM:checkedInstance,checks=[$isGA,$isGB,$isGI,$isGJ],typeArgument*/
+/*class: GM:checkedInstance,checks=[$isGA,$isGB,$isGI,$isGJ],onlyForRti,typeArgument*/
 mixin GM<T> on GA<T>, GB<List<T>> implements GI<Iterable<T>>, GJ<Set<T>> {}
 
-/*class: GC:checkedInstance,checks=[$isGA,$isGB],typeArgument*/
+/*class: GC:checkedInstance,checks=[$isGA,$isGB],onlyForRti,typeArgument*/
 class GC<T> implements GA<T>, GB<List<T>> {}
 
-/*class: GD:checkedInstance,checks=[$isGI,$isGJ,$isGM],typeArgument*/
+/*class: GD:checkedInstance,checks=[$isGI,$isGJ,$isGM],onlyForRti,typeArgument*/
 class GD<T> = GC<T> with GM<T>;
 
 @pragma('dart2js:noInline')

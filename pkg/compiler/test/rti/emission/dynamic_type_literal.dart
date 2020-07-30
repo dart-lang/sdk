@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-/*class: global#Type:checks=[],instance,typeLiteral*/
+/*class: global#Type:checks=[],instance,onlyForRti,typeLiteral*/
 
 import "package:expect/expect.dart";
 

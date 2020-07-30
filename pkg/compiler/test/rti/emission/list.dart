@@ -9,12 +9,12 @@
 
 /*class: global#Iterable:checkedInstance*/
 
-/*spec.class: A:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
-/*prod.class: A:checkedTypeArgument,checks=[],typeArgument*/
+/*spec.class: A:checkedInstance,checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
+/*prod.class: A:checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
 class A {}
 
-/*spec.class: B:checkedInstance,checks=[],typeArgument*/
-/*prod.class: B:checks=[],typeArgument*/
+/*spec.class: B:checkedInstance,checks=[],onlyForRti,typeArgument*/
+/*prod.class: B:checks=[],onlyForRti,typeArgument*/
 class B {}
 
 @pragma('dart2js:noInline')

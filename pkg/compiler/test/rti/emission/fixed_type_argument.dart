@@ -4,12 +4,12 @@
 
 // @dart = 2.7
 
-/*spec.class: A:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
-/*prod.class: A:checkedTypeArgument,checks=[],typeArgument*/
+/*spec.class: A:checkedInstance,checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
+/*prod.class: A:checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
 class A {}
 
-/*spec.class: B:checkedInstance,checks=[$isA],typeArgument*/
-/*prod.class: B:checks=[$isA],typeArgument*/
+/*spec.class: B:checkedInstance,checks=[$isA],onlyForRti,typeArgument*/
+/*prod.class: B:checks=[$isA],onlyForRti,typeArgument*/
 class B implements A {}
 
 /*class: C:checks=[],indirectInstance*/

@@ -225,6 +225,9 @@ class CodegenEnqueuer extends EnqueuerImpl {
       case TypeUseKind.TYPE_ARGUMENT:
         _worldBuilder.registerTypeArgument(type);
         break;
+      case TypeUseKind.CONSTRUCTOR_REFERENCE:
+        _worldBuilder.registerConstructorReference(type);
+        break;
       case TypeUseKind.CONST_INSTANTIATION:
         failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected type use: $typeUse.");
         break;

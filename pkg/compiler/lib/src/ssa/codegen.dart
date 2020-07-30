@@ -3032,7 +3032,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                 !dartType.baseType.isObject &&
                 dartType.baseType is! NeverType));
         InterfaceType type = dartType.withoutNullability;
-        _registry.registerTypeUse(TypeUse.instanceConstructor(type));
+        _registry.registerTypeUse(TypeUse.constructorReference(type));
         test = handleNegative(js.js('# instanceof #',
             [value, _emitter.constructorAccess(type.element)]));
     }

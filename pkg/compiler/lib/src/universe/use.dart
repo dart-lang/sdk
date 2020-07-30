@@ -698,6 +698,7 @@ enum TypeUseKind {
   INSTANTIATION,
   NATIVE_INSTANTIATION,
   CONST_INSTANTIATION,
+  CONSTRUCTOR_REFERENCE,
   IMPLICIT_CAST,
   PARAMETER_CHECK,
   RTI_VALUE,
@@ -759,6 +760,9 @@ class TypeUse {
         break;
       case TypeUseKind.CONST_INSTANTIATION:
         sb.write('const:');
+        break;
+      case TypeUseKind.CONSTRUCTOR_REFERENCE:
+        sb.write('constructor:');
         break;
       case TypeUseKind.NATIVE_INSTANTIATION:
         sb.write('native:');
@@ -851,11 +855,9 @@ class TypeUse {
     return new TypeUse.internal(type, TypeUseKind.RTI_VALUE);
   }
 
-  /// [type] used in a `instanceof` check.
-  factory TypeUse.instanceConstructor(DartType type) {
-    // TODO(johnniwinther,sra): Use a separate use kind if constructors is no
-    // longer used for RTI.
-    return new TypeUse.internal(type, TypeUseKind.RTI_VALUE);
+  /// [type] constructor used, for example in a `instanceof` check.
+  factory TypeUse.constructorReference(DartType type) {
+    return new TypeUse.internal(type, TypeUseKind.CONSTRUCTOR_REFERENCE);
   }
 
   /// [type] used directly as a type argument.

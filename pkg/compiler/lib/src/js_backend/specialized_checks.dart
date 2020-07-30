@@ -97,6 +97,7 @@ class SpecializedChecks {
       OutputUnitData outputUnitData = closedWorld.outputUnitData;
 
       if (classHierarchy.hasOnlySubclasses(element) &&
+          classHierarchy.isInstantiated(element) &&
           !interceptorData.isInterceptedClass(element) &&
           outputUnitData.hasOnlyNonDeferredImportPathsToClass(
               graph.element, element)) {

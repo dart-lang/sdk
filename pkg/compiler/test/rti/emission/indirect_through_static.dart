@@ -4,10 +4,10 @@
 
 // @dart = 2.7
 
-/*class: A:checkedInstance,checks=[],typeArgument*/
+/*class: A:checkedInstance,checks=[],onlyForRti,typeArgument*/
 abstract class A {}
 
-/*class: B:checks=[$isA],typeArgument*/
+/*class: B:checks=[$isA],onlyForRti,typeArgument*/
 class B implements A {}
 
 /*class: C:checkedInstance,checks=[],instance,typeArgument*/
