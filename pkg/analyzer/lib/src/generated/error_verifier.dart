@@ -3404,9 +3404,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (superUnnamedConstructor != null) {
       if (superUnnamedConstructor.isFactory) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
+            CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR,
             declaration.name,
-            [superUnnamedConstructor]);
+            [superElement.name, _enclosingClass.name, superUnnamedConstructor]);
         return;
       }
       if (superUnnamedConstructor.isDefaultConstructor) {

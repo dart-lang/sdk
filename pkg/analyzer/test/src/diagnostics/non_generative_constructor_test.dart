@@ -66,17 +66,4 @@ class B extends A {
       error(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, 73, 1),
     ]);
   }
-
-  test_implicit2() async {
-    await assertErrorsInCode(r'''
-class A {
-  factory A() => throw 0;
-  A.named();
-}
-class B extends A {
-}
-''', [
-      error(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, 57, 1),
-    ]);
-  }
 }

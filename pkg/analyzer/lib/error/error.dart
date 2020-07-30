@@ -318,6 +318,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT,
   CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
+  CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR,
   CompileTimeErrorCode.NON_SYNC_FACTORY,
   CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT,
   CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE,

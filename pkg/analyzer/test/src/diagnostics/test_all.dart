@@ -413,6 +413,8 @@ import 'non_constant_map_value_test.dart' as non_constant_map_value;
 import 'non_constant_set_element_test.dart' as non_constant_set_element;
 import 'non_constant_type_argument_test.dart' as non_constant_type_argument;
 import 'non_generative_constructor_test.dart' as non_generative_constructor;
+import 'non_generative_implicit_constructor_test.dart'
+    as non_generative_implicit_constructor;
 import 'non_native_function_type_argument_to_pointer_test.dart'
     as non_native_function_type_argument_to_pointer;
 import 'non_null_opt_out_test.dart' as non_null_opt_out;
@@ -895,6 +897,7 @@ main() {
     non_constant_set_element.main();
     non_constant_type_argument.main();
     non_generative_constructor.main();
+    non_generative_implicit_constructor.main();
     non_native_function_type_argument_to_pointer.main();
     non_null_opt_out.main();
     non_type_as_type_argument.main();

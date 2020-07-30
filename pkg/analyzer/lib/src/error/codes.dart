@@ -6651,13 +6651,38 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Let <i>k</i> be a generative constructor. It is a compile-time error if
    * class <i>S</i> does not declare a generative constructor named <i>S</i>
    * (respectively <i>S.id</i>)
+   *
+   * Parameters:
+   * 0: the non-generative constructor
    */
   static const CompileTimeErrorCode NON_GENERATIVE_CONSTRUCTOR =
-      CompileTimeErrorCode('NON_GENERATIVE_CONSTRUCTOR',
-          "The generative constructor '{0}' expected, but factory found.",
+      CompileTimeErrorCode(
+          'NON_GENERATIVE_CONSTRUCTOR',
+          "The constructor '{0}' is a factory constructor, but must be a"
+              " generative constructor to be a valid superinitializer.",
           correction:
-              "Try calling a different constructor in the superclass, or "
+              "Try calling a different constructor of the superclass, or "
               "making the called constructor not be a factory constructor.");
+
+  /**
+   * An error code for when a class has no explicit constructor, and therefore
+   * a constructor is implicitly defined which uses a factory as a
+   * superinitializer. See [NON_GENERATIVE_CONSTRUCTOR].
+   *
+   * Parameters:
+   * 0: the name of the superclass
+   * 1: the name of the current class
+   * 2: the implicitly called factory constructor of the superclass
+   */
+  static const CompileTimeErrorCode NON_GENERATIVE_IMPLICIT_CONSTRUCTOR =
+      CompileTimeErrorCode(
+          'NON_GENERATIVE_IMPLICIT_CONSTRUCTOR',
+          "The default constructor of superclass '{0}' (called by the implicit"
+              " default constructor of '{1}') must be a generative constructor,"
+              " but factory found.",
+          correction: 'Try adding an explicit constructor that has a different'
+              " superinitializer or changing the superclass constructor '{2}'"
+              " to not be a factory constructor.");
 
   static const CompileTimeErrorCode NON_SYNC_FACTORY = CompileTimeErrorCode(
       'NON_SYNC_FACTORY',
