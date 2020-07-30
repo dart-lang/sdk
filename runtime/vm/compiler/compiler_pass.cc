@@ -224,6 +224,15 @@ void CompilerPass::PrintGraph(CompilerPassState* state,
 #define INVOKE_PASS(Name)                                                      \
   CompilerPass::Get(CompilerPass::k##Name)->Run(pass_state);
 
+#if defined(DART_PRECOMPILER)
+#define INVOKE_PASS_AOT(Name)                                                  \
+  if (mode == kAOT) {                                                          \
+    INVOKE_PASS(Name);                                                         \
+  }
+#else
+#define INVOKE_PASS_AOT(Name)
+#endif
+
 void CompilerPass::RunGraphIntrinsicPipeline(CompilerPassState* pass_state) {
   INVOKE_PASS(AllocateRegistersForGraphIntrinsic);
 }
@@ -241,9 +250,7 @@ void CompilerPass::RunInliningPipeline(PipelineMode mode,
   // may open more opportunities for call specialization.
   // Call specialization during inlining may cause more call
   // sites to be discovered and more functions inlined.
-  if (mode == kAOT) {
-    INVOKE_PASS(ApplyClassIds);
-  }
+  INVOKE_PASS_AOT(ApplyClassIds);
   // Optimize (a << b) & c patterns, merge instructions. Must occur
   // before 'SelectRepresentations' which inserts conversion nodes.
   INVOKE_PASS(TryOptimizePatterns);
@@ -272,13 +279,10 @@ FlowGraph* CompilerPass::RunForceOptimizedPipeline(
   // so it should not be lifted earlier than that pass.
   INVOKE_PASS(DCE);
   INVOKE_PASS(Canonicalize);
+  INVOKE_PASS_AOT(DelayAllocations);
   INVOKE_PASS(EliminateWriteBarriers);
   INVOKE_PASS(FinalizeGraph);
-#if defined(DART_PRECOMPILER)
-  if (mode == kAOT) {
-    INVOKE_PASS(SerializeGraph);
-  }
-#endif
+  INVOKE_PASS_AOT(SerializeGraph);
   if (FLAG_late_round_trip_serialization) {
     INVOKE_PASS(RoundTripSerialization);
   }
@@ -293,12 +297,8 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   if (FLAG_early_round_trip_serialization) {
     INVOKE_PASS(RoundTripSerialization);
   }
-#if defined(DART_PRECOMPILER)
-  if (mode == kAOT) {
-    INVOKE_PASS(ApplyClassIds);
-    INVOKE_PASS(TypePropagation);
-  }
-#endif
+  INVOKE_PASS_AOT(ApplyClassIds);
+  INVOKE_PASS_AOT(TypePropagation);
   INVOKE_PASS(ApplyICData);
   INVOKE_PASS(TryOptimizePatterns);
   INVOKE_PASS(SetOuterInliningId);
@@ -316,18 +316,12 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(ConstantPropagation);
   INVOKE_PASS(OptimisticallySpecializeSmiPhis);
   INVOKE_PASS(TypePropagation);
-#if defined(DART_PRECOMPILER)
-  if (mode == kAOT) {
-    // The extra call specialization pass in AOT is able to specialize more
-    // calls after ConstantPropagation, which removes unreachable code, and
-    // TypePropagation, which can infer more accurate types after removing
-    // unreachable code.
-    INVOKE_PASS(ApplyICData);
-  }
-  if (mode == kAOT) {
-    INVOKE_PASS(OptimizeTypedDataAccesses);
-  }
-#endif
+  // The extra call specialization pass in AOT is able to specialize more
+  // calls after ConstantPropagation, which removes unreachable code, and
+  // TypePropagation, which can infer more accurate types after removing
+  // unreachable code.
+  INVOKE_PASS_AOT(ApplyICData);
+  INVOKE_PASS_AOT(OptimizeTypedDataAccesses);
   INVOKE_PASS(WidenSmiToInt32);
   INVOKE_PASS(SelectRepresentations);
   INVOKE_PASS(CSE);
@@ -345,6 +339,7 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   // so it should not be lifted earlier than that pass.
   INVOKE_PASS(DCE);
   INVOKE_PASS(Canonicalize);
+  INVOKE_PASS_AOT(DelayAllocations);
   // Repeat branches optimization after DCE, as it could make more
   // empty blocks.
   INVOKE_PASS(OptimizeBranches);
@@ -360,13 +355,9 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(AllocationSinking_DetachMaterializations);
   INVOKE_PASS(EliminateWriteBarriers);
   INVOKE_PASS(FinalizeGraph);
-#if defined(DART_PRECOMPILER)
-  if (mode == kAOT) {
-    // If we are serializing the flow graph, do it now before we start
-    // doing register allocation.
-    INVOKE_PASS(SerializeGraph);
-  }
-#endif
+  // If we are serializing the flow graph, do it now before we start
+  // doing register allocation.
+  INVOKE_PASS_AOT(SerializeGraph);
   if (FLAG_late_round_trip_serialization) {
     INVOKE_PASS(RoundTripSerialization);
   }
@@ -497,6 +488,8 @@ COMPILER_PASS(EliminateDeadPhis,
               { DeadCodeElimination::EliminateDeadPhis(flow_graph); });
 
 COMPILER_PASS(DCE, { DeadCodeElimination::EliminateDeadCode(flow_graph); });
+
+COMPILER_PASS(DelayAllocations, { DelayAllocations::Optimize(flow_graph); });
 
 COMPILER_PASS(AllocationSinking_Sink, {
   // TODO(vegorov): Support allocation sinking with try-catch.

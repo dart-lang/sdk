@@ -1539,6 +1539,142 @@ void LICM::Optimize() {
   }
 }
 
+void DelayAllocations::Optimize(FlowGraph* graph) {
+  // Go through all AllocateObject instructions and move them down to their
+  // dominant use when doing so is sound.
+  DirectChainedHashMap<IdentitySetKeyValueTrait<Instruction*>> moved;
+  for (BlockIterator block_it = graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+
+    for (ForwardInstructionIterator instr_it(block); !instr_it.Done();
+         instr_it.Advance()) {
+      Definition* def = instr_it.Current()->AsDefinition();
+      if (def != nullptr && (def->IsAllocateObject() || def->IsCreateArray()) &&
+          def->env() == nullptr && !moved.HasKey(def)) {
+        Instruction* use = DominantUse(def);
+        if (use != nullptr && IsOneTimeUse(use, def)) {
+          instr_it.RemoveCurrentFromGraph();
+          def->InsertBefore(use);
+          moved.Insert(def);
+        }
+      }
+    }
+  }
+}
+
+Instruction* DelayAllocations::DominantUse(Definition* def) {
+  // Find the use that dominates all other uses.
+
+  // Quick case for no uses or only one use.
+  Value* maybe_only_use = def->input_use_list();
+  if (maybe_only_use == nullptr) return nullptr;
+  if (def->HasOnlyUse(maybe_only_use)) {
+    Instruction* use = maybe_only_use->instruction();
+    return use->IsPhi() ? nullptr : use;
+  }
+
+  // Collect all blocks containing uses.
+  DirectChainedHashMap<IdentitySetKeyValueTrait<BlockEntryInstr*>> use_blocks;
+  for (Value::Iterator it(def->input_use_list()); !it.Done(); it.Advance()) {
+    Instruction* use = it.Current()->instruction();
+    if (auto phi = use->AsPhi()) {
+      // For phi uses, the dominant use only has to dominate the
+      // predecessor block corresponding to the phi input.
+      use_blocks.Insert(phi->block()->PredecessorAt(it.Current()->use_index()));
+    } else {
+      use_blocks.Insert(use->GetBlock());
+    }
+  }
+  for (Value::Iterator it(def->env_use_list()); !it.Done(); it.Advance()) {
+    Instruction* use = it.Current()->instruction();
+    use_blocks.Insert(use->GetBlock());
+  }
+
+  // Find the common dominator block of all blocks containing uses.
+  BlockEntryInstr* common_dominator = nullptr;
+  auto block_it = use_blocks.GetIterator();
+  while (auto block = block_it.Next()) {
+    bool dominated = false;
+    for (auto dom = (*block)->dominator(); dom != nullptr;
+         dom = dom->dominator()) {
+      if (use_blocks.HasKey(dom)) {
+        dominated = true;
+        break;
+      }
+    }
+    if (!dominated) {
+      // Potential common dominator block.
+      if (common_dominator != nullptr && common_dominator != *block) {
+        // No common dominator of all uses.
+        return nullptr;
+      }
+      common_dominator = *block;
+    }
+  }
+
+  // Collect uses in block.
+  DirectChainedHashMap<IdentitySetKeyValueTrait<Instruction*>> uses_in_block;
+  for (Value::Iterator it(def->input_use_list()); !it.Done(); it.Advance()) {
+    Instruction* use = it.Current()->instruction();
+    if (!use->IsPhi() && use->GetBlock() == common_dominator) {
+      uses_in_block.Insert(use);
+    }
+  }
+  for (Value::Iterator it(def->env_use_list()); !it.Done(); it.Advance()) {
+    Instruction* use = it.Current()->instruction();
+    if (use->GetBlock() == common_dominator) {
+      uses_in_block.Insert(use);
+    }
+  }
+
+  // Find first use in block.
+  Instruction* first_use = nullptr;
+  auto use_it = uses_in_block.GetIterator();
+  while (auto use = use_it.Next()) {
+    bool dominated = false;
+    for (auto instr = (*use)->previous(); instr != nullptr;
+         instr = instr->previous()) {
+      if (uses_in_block.HasKey(instr)) {
+        dominated = true;
+        break;
+      }
+    }
+    if (!dominated) {
+      first_use = *use;
+      break;
+    }
+  }
+
+  return first_use;
+}
+
+bool DelayAllocations::IsOneTimeUse(Instruction* use, Definition* def) {
+  // Check that this use is always executed at most once for each execution of
+  // the definition, i.e. that there is no path from the use to itself that
+  // doesn't pass through the definition.
+  BlockEntryInstr* use_block = use->GetBlock();
+  BlockEntryInstr* def_block = def->GetBlock();
+  if (use_block == def_block) return true;
+
+  DirectChainedHashMap<IdentitySetKeyValueTrait<BlockEntryInstr*>> seen;
+  GrowableArray<BlockEntryInstr*> worklist;
+  worklist.Add(use_block);
+
+  while (!worklist.is_empty()) {
+    BlockEntryInstr* block = worklist.RemoveLast();
+    for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
+      BlockEntryInstr* pred = block->PredecessorAt(i);
+      if (pred == use_block) return false;
+      if (pred == def_block) continue;
+      if (seen.HasKey(pred)) continue;
+      seen.Insert(pred);
+      worklist.Add(pred);
+    }
+  }
+  return true;
+}
+
 class LoadOptimizer : public ValueObject {
  public:
   LoadOptimizer(FlowGraph* graph, AliasedSet* aliased_set)
