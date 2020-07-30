@@ -408,11 +408,11 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     while (entity is AstNode) {
       if (entity is SimpleIdentifier) {
         var identifier = entity.name;
-        if (offset >= entity.offset &&
-            offset - entity.offset < identifier.length) {
+        if (offset >= entity.offset && offset < entity.end) {
           return identifier.substring(0, offset - entity.offset);
+        } else if (offset == entity.end) {
+          return identifier;
         }
-        return identifier;
       }
       var children = (entity as AstNode).childEntities;
       entity = children.isEmpty ? null : children.first;
