@@ -718,7 +718,11 @@ dart_vm_extra_builder(
 )
 dart_vm_extra_builder(
     "vm-kernel-precomp-nnbd-linux-release-x64",
-    category = "vm|nnbd|pr",
+    category = "vm|nnbd|aot|r",
+)
+dart_vm_extra_builder(
+    "vm-kernel-precomp-nnbd-linux-release-simarm64",
+    category = "vm|nnbd|aot|a64",
 )
 
 # vm|app-kernel
