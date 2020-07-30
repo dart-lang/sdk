@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/correction/dart/add_override.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_else.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
@@ -43,6 +44,7 @@ class BulkFixProcessor {
         ReplaceCascadeWithDot.newInstance,
     LintNames.avoid_types_on_closure_parameters:
         RemoveTypeAnnotation.newInstance,
+    LintNames.await_only_futures: RemoveAwait.newInstance,
     LintNames.prefer_contains: ConvertToContains.newInstance,
     LintNames.prefer_equal_for_default_values:
         ReplaceColonWithEquals.newInstance,
