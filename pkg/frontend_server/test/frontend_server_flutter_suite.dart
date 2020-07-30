@@ -234,8 +234,6 @@ main([List<String> arguments = const <String>[]]) async {
   resultsPort.close();
   logsPort.close();
 
-  if (exitCode != 0) timeoutOrCrash = true;
-
   // Write results.json and logs.json.
   Uri resultJsonUri = options.outputDirectory.resolve("results.json");
   Uri logsJsonUri = options.outputDirectory.resolve("logs.json");
