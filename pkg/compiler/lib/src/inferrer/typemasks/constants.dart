@@ -52,7 +52,7 @@ class ConstantValueTypeMasks
   @override
   TypeMask visitDummyInterceptor(
       DummyInterceptorConstantValue constant, JClosedWorld closedWorld) {
-    return constant.abstractValue;
+    return _abstractValueDomain.dynamicType;
   }
 
   @override
