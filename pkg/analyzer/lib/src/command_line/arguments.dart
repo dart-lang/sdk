@@ -55,16 +55,34 @@ void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
 }
 
 /// Use the command-line [args] to create a context builder.
-ContextBuilderOptions createContextBuilderOptions(ArgResults args) {
+ContextBuilderOptions createContextBuilderOptions(
+  ResourceProvider resourceProvider,
+  ArgResults args,
+) {
+  String absoluteNormalizedPath(String path) {
+    if (path == null) {
+      return null;
+    }
+    var pathContext = resourceProvider.pathContext;
+    return pathContext.normalize(
+      pathContext.absolute(path),
+    );
+  }
+
   ContextBuilderOptions builderOptions = ContextBuilderOptions();
   builderOptions.argResults = args;
   //
   // File locations.
   //
-  builderOptions.dartSdkSummaryPath = args[sdkSummaryPathOption];
-  builderOptions.defaultAnalysisOptionsFilePath =
-      args[analysisOptionsFileOption];
-  builderOptions.defaultPackageFilePath = args[packagesOption];
+  builderOptions.dartSdkSummaryPath = absoluteNormalizedPath(
+    args[sdkSummaryPathOption],
+  );
+  builderOptions.defaultAnalysisOptionsFilePath = absoluteNormalizedPath(
+    args[analysisOptionsFileOption],
+  );
+  builderOptions.defaultPackageFilePath = absoluteNormalizedPath(
+    args[packagesOption],
+  );
   //
   // Analysis options.
   //

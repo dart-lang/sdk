@@ -105,7 +105,7 @@ const Map<String, LibraryInfo> libraries = const {
     defineAnalysisArguments(argParser);
     ArgResults argResults = argParser.parse(['--$lintsFlag']);
     var builder = ContextBuilder(resourceProvider, sdkManager, contentCache,
-        options: createContextBuilderOptions(argResults));
+        options: createContextBuilderOptions(resourceProvider, argResults));
 
     AnalysisOptionsImpl expected = AnalysisOptionsImpl();
     expected.lint = true;
@@ -130,7 +130,7 @@ linter:
     defineAnalysisArguments(argParser);
     ArgResults argResults = argParser.parse(['--no-$lintsFlag']);
     var builder = ContextBuilder(resourceProvider, sdkManager, contentCache,
-        options: createContextBuilderOptions(argResults));
+        options: createContextBuilderOptions(resourceProvider, argResults));
 
     AnalysisOptionsImpl expected = AnalysisOptionsImpl();
     expected.lint = false;
@@ -155,7 +155,7 @@ linter:
     defineAnalysisArguments(argParser);
     ArgResults argResults = argParser.parse([]);
     var builder = ContextBuilder(resourceProvider, sdkManager, contentCache,
-        options: createContextBuilderOptions(argResults));
+        options: createContextBuilderOptions(resourceProvider, argResults));
 
     AnalysisOptionsImpl expected = AnalysisOptionsImpl();
     expected.lint = true;
@@ -180,7 +180,7 @@ linter:
     defineAnalysisArguments(argParser);
     ArgResults argResults = argParser.parse([]);
     var builder = ContextBuilder(resourceProvider, sdkManager, contentCache,
-        options: createContextBuilderOptions(argResults));
+        options: createContextBuilderOptions(resourceProvider, argResults));
 
     AnalysisOptionsImpl expected = AnalysisOptionsImpl();
     expected.lint = false;
@@ -599,7 +599,7 @@ analyzer:
     ArgParser argParser = ArgParser();
     defineAnalysisArguments(argParser);
     ArgResults argResults = argParser.parse([]);
-    builderOptions = createContextBuilderOptions(argResults);
+    builderOptions = createContextBuilderOptions(resourceProvider, argResults);
     builder = ContextBuilder(resourceProvider, sdkManager, contentCache,
         options: builderOptions);
     AnalysisOptionsImpl expected = AnalysisOptionsImpl();
