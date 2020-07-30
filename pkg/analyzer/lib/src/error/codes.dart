@@ -10445,7 +10445,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
           'INVALID_NULL_AWARE_OPERATOR',
           "The target expression can't be null, so the null-aware operator "
               "'{0}' can't be used.",
-          correction: "Try replace the operator '{0}' with '{1}'.",
+          correction: "Try replacing the operator '{0}' with '{1}'.",
           hasPublishedDocs: true);
 
   /**
@@ -10460,7 +10460,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
           'INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT',
           "The target expression can't be null because of short-circuiting, so "
               "the null-aware operator '{0}' can't be used.",
-          correction: "Try replace the operator '{0}' with '{1}'.",
+          correction: "Try replacing the operator '{0}' with '{1}'.",
           hasPublishedDocs: true);
 
   /**
