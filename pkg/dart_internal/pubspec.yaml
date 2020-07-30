@@ -16,4 +16,4 @@ description: >
 environment:
   # Restrict the upper bound so that we can remove support for this in a later
   # version of the SDK without it being a breaking change.
-  sdk: ">=2.0.0-dev.12.0 <2.10.0"
+  sdk: ">=2.0.0 <2.10.0"
