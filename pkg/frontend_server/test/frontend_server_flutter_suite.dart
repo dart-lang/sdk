@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'dart:async' show Timer;
+import 'dart:async' show StreamSubscription, Timer;
 import 'dart:convert' show jsonEncode;
 import 'dart:io' show File, exitCode;
 import 'dart:isolate' show Isolate, ReceivePort, SendPort;
@@ -190,6 +190,7 @@ main([List<String> arguments = const <String>[]]) async {
 
   // Start the test suite in a new isolate.
   ReceivePort exitPort = new ReceivePort();
+  ReceivePort errorPort = new ReceivePort();
   SuiteConfiguration configuration = new SuiteConfiguration(
     resultsPort.sendPort,
     logsPort.sendPort,
@@ -205,7 +206,12 @@ main([List<String> arguments = const <String>[]]) async {
     print("Running suite");
     Isolate isolate = await Isolate.spawn<SuiteConfiguration>(
         runSuite, configuration,
-        onExit: exitPort.sendPort);
+        onExit: exitPort.sendPort, onError: errorPort.sendPort);
+    bool gotError = false;
+    StreamSubscription errorSubscription = errorPort.listen((message) {
+      gotError = true;
+      logs.add("$message");
+    });
     bool timedOut = false;
     Timer timer = Timer(timeoutDuration, () {
       timedOut = true;
@@ -214,18 +220,21 @@ main([List<String> arguments = const <String>[]]) async {
       isolate.kill(priority: Isolate.immediate);
     });
     await exitPort.first;
+    errorSubscription.cancel();
     timer.cancel();
-    if (!timedOut) {
+    if (!timedOut && !gotError) {
       int seconds = stopwatch.elapsedMilliseconds ~/ 1000;
       print("Suite finished (took ${seconds} seconds)");
     }
-    return timedOut;
+    return timedOut || gotError;
   });
 
   // Wait for isolate to terminate and clean up.
-  bool timeout = await future;
+  bool timeoutOrCrash = await future;
   resultsPort.close();
   logsPort.close();
+
+  if (exitCode != 0) timeoutOrCrash = true;
 
   // Write results.json and logs.json.
   Uri resultJsonUri = options.outputDirectory.resolve("results.json");
@@ -235,5 +244,5 @@ main([List<String> arguments = const <String>[]]) async {
   print("Log files written to ${resultJsonUri.toFilePath()} and"
       " ${logsJsonUri.toFilePath()}");
 
-  exitCode = timeout ? 1 : 0;
+  exitCode = timeoutOrCrash ? 1 : 0;
 }
