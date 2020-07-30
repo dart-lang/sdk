@@ -707,7 +707,7 @@
         "builder-tag": "canary"
       }
     },
-    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-(simarm64|x64)": {
+    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-x64": {
       "options": {
         "enable-experiment": [
           "non-nullable"
@@ -716,6 +716,22 @@
           "--no-sound-null-safety"
         ],
         "enable-asserts": true,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ],
+        "builder-tag": "vm_nnbd"
+      }
+    },
+    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-simarm64": {
+      "options": {
+        "enable-experiment": [
+          "non-nullable"
+        ],
+        "gen-kernel-options": [
+          "--no-sound-null-safety"
+        ],
+        "enable-asserts": true,
+        "use-elf": true,
         "vm-options": [
           "--no-sound-null-safety"
         ],
@@ -761,7 +777,7 @@
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartkp-strong-(linux|mac)-(debug|product|release)-(simarm64|x64)": {
+    "dartkp-strong-(linux|mac)-(debug|product|release)-x64": {
       "options": {
         "enable-experiment": [
           "non-nullable"
@@ -769,6 +785,21 @@
         "gen-kernel-options": [
           "--sound-null-safety"
         ],
+        "vm-options": [
+          "--sound-null-safety"
+        ],
+        "builder-tag": "vm_nnbd"
+      }
+    },
+    "dartkp-strong-(linux|mac)-(debug|product|release)-simarm64": {
+      "options": {
+        "enable-experiment": [
+          "non-nullable"
+        ],
+        "gen-kernel-options": [
+          "--sound-null-safety"
+        ],
+        "use-elf": true,
         "vm-options": [
           "--sound-null-safety"
         ],
