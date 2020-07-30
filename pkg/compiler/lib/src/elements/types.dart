@@ -2303,4 +2303,32 @@ abstract class DartTypes {
             canAssignGenericFunctionTo(getTypeVariableBound(type.element)) ||
         type is FunctionTypeVariable && canAssignGenericFunctionTo(type.bound);
   }
+
+  /// Returns `true` if [type] occuring in a program with no sound null safety
+  /// cannot accept `null` under sound rules.
+  bool isNonNullableIfSound(DartType type) {
+    if (type is DynamicType ||
+        type is VoidType ||
+        type is AnyType ||
+        type is ErasedType) {
+      return false;
+    }
+    if (type is NullableType) return false;
+    if (type is LegacyType) {
+      return isNonNullableIfSound(type.baseType);
+    }
+    if (type is InterfaceType) {
+      if (type.isNull) return false;
+      return true;
+    }
+    if (type is FunctionType) return true;
+    if (type is NeverType) return true;
+    if (type is TypeVariableType) {
+      return isNonNullableIfSound(getTypeVariableBound(type.element));
+    }
+    if (type is FutureOrType) {
+      return isNonNullableIfSound(type.typeArgument);
+    }
+    throw UnimplementedError('isNonNullableIfSound $type');
+  }
 }

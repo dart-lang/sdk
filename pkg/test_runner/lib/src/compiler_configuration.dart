@@ -419,12 +419,8 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
 
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
-    // TODO(#42403) Handle this option if dart2js supports non-nullable asserts
-    // on non-nullable method arguments.
-    var options = testFile.sharedOptions.toList();
-    options.remove('--null-assertions');
     return [
-      ...options,
+      ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       ...testFile.dart2jsOptions,
