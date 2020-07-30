@@ -1,3 +1,6 @@
+## 0.39.16-dev
+* Added `TypeVisitorWithArgument` and `DartType.acceptWithArgument`.
+
 ## 0.39.15
 * Move `asInstanceOf(ClassElement)` to `DartType`, so that it is also
   supported for `TypeParameterType` when its bound implements the

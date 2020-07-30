@@ -74,6 +74,14 @@ class DynamicTypeImpl extends TypeImpl implements DynamicType {
   }
 
   @override
+  R acceptWithArgument<R, A>(
+    TypeVisitorWithArgument<R, A> visitor,
+    A argument,
+  ) {
+    return visitor.visitDynamicType(this, argument);
+  }
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeDynamicType();
   }
@@ -266,6 +274,14 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   R accept<R>(TypeVisitor<R> visitor) {
     return visitor.visitFunctionType(this);
+  }
+
+  @override
+  R acceptWithArgument<R, A>(
+    TypeVisitorWithArgument<R, A> visitor,
+    A argument,
+  ) {
+    return visitor.visitFunctionType(this, argument);
   }
 
   @override
@@ -857,6 +873,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   R accept<R>(TypeVisitor<R> visitor) {
     return visitor.visitInterfaceType(this);
+  }
+
+  @override
+  R acceptWithArgument<R, A>(
+    TypeVisitorWithArgument<R, A> visitor,
+    A argument,
+  ) {
+    return visitor.visitInterfaceType(this, argument);
   }
 
   @override
@@ -1629,6 +1653,14 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
   }
 
   @override
+  R acceptWithArgument<R, A>(
+    TypeVisitorWithArgument<R, A> visitor,
+    A argument,
+  ) {
+    return visitor.visitNeverType(this, argument);
+  }
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeNeverType(this);
   }
@@ -1902,6 +1934,14 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
+  R acceptWithArgument<R, A>(
+    TypeVisitorWithArgument<R, A> visitor,
+    A argument,
+  ) {
+    return visitor.visitTypeParameterType(this, argument);
+  }
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeTypeParameterType(this);
   }
@@ -2039,6 +2079,14 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   @override
   R accept<R>(TypeVisitor<R> visitor) {
     return visitor.visitVoidType(this);
+  }
+
+  @override
+  R acceptWithArgument<R, A>(
+    TypeVisitorWithArgument<R, A> visitor,
+    A argument,
+  ) {
+    return visitor.visitVoidType(this, argument);
   }
 
   @override

@@ -48,6 +48,19 @@ class UnknownInferredType extends TypeImpl {
   }
 
   @override
+  R acceptWithArgument<R, A>(
+    TypeVisitorWithArgument<R, A> visitor,
+    A argument,
+  ) {
+    if (visitor is InferenceTypeVisitor1<R, A>) {
+      var visitor2 = visitor as InferenceTypeVisitor1<R, A>;
+      return visitor2.visitUnknownInferredType(this, argument);
+    } else {
+      throw StateError('Should not happen outside inference.');
+    }
+  }
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeUnknownInferredType();
   }

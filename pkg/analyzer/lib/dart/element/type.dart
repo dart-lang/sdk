@@ -126,6 +126,12 @@ abstract class DartType {
   /// Use the given [visitor] to visit this type.
   R accept<R>(TypeVisitor<R> visitor);
 
+  /// Use the given [visitor] to visit this type.
+  R acceptWithArgument<R, A>(
+    TypeVisitorWithArgument<R, A> visitor,
+    A argument,
+  );
+
   /// Return the canonical interface that this type implements for [element],
   /// or `null` if such an interface does not exist.
   ///
