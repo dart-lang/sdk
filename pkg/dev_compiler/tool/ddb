@@ -280,7 +280,7 @@ void main(List<String> args) async {
       sdk.dart.nonNullAsserts($nonNullAsserts);
     }
     sdk._debugger.registerDevtoolsFormatter();
-    app.$libname.main();
+    app.$libname.main([]);
   });
 </script>
 ''';
@@ -347,7 +347,7 @@ try {
     dart.nonNullAsserts($nonNullAsserts);
   }
   _isolate_helper.startRootIsolate(() => {}, []);
-  main();
+  main([]);
 } catch(e) {
   console.error(e);
 }
