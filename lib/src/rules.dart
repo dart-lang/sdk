@@ -169,6 +169,7 @@ import 'rules/use_full_hex_values_for_flutter_colors.dart';
 import 'rules/use_function_type_syntax_for_parameters.dart';
 import 'rules/use_is_even_rather_than_modulo.dart';
 import 'rules/use_key_in_widget_constructors.dart';
+import 'rules/use_late_for_private_fields_and_variables.dart';
 import 'rules/use_raw_strings.dart';
 import 'rules/use_rethrow_when_possible.dart';
 import 'rules/use_setters_to_change_properties.dart';
@@ -348,6 +349,7 @@ void registerLintRules() {
     ..register(UseFunctionTypeSyntaxForParameters())
     ..register(UseIsEvenRatherThanModuloCheck())
     ..register(UseKeyInWidgetConstructors())
+    ..register(UseLateForPrivateFieldsAndVariables())
     ..register(UseRethrowWhenPossible())
     ..register(UseRawStrings())
     ..register(UseSettersToChangeAProperty())
