@@ -2003,15 +2003,15 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
           fieldNumber++;
         }
       } else if (variable is TypeVariableTypeWithContext) {
-        _constructClosureField(
-            localsMap.getLocalTypeVariable(variable.type, this),
-            closureClassInfo,
-            memberThisType,
-            memberMap,
-            variable.type.parameter,
-            true,
-            false,
-            fieldNumber);
+        Local capturedLocal =
+            localsMap.getLocalTypeVariable(variable.type, this);
+        // We can have distinct TypeVariableTypeWithContexts that have the same
+        // local variable but with different nullabilities. We only want to
+        // construct a closure field once for each local variable.
+        if (closureClassInfo.localToFieldMap.containsKey(capturedLocal))
+          continue;
+        _constructClosureField(capturedLocal, closureClassInfo, memberThisType,
+            memberMap, variable.type.parameter, true, false, fieldNumber);
         fieldNumber++;
       } else {
         throw new UnsupportedError("Unexpected field node type: $variable");
