@@ -2,20 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:kernel/ast.dart'
-    show
-        DartType,
-        DynamicType,
-        FunctionType,
-        FutureOrType,
-        InterfaceType,
-        Library,
-        NamedType,
-        NeverType,
-        Nullability,
-        Procedure,
-        TypeParameter,
-        Variance;
+import 'package:kernel/ast.dart' hide MapEntry;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -370,46 +357,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
             preferUpwardsInference: !typeParam.isLegacyCovariant);
       }
     }
-
-    // If the downwards infer phase has failed, we'll catch this in the upwards
-    // phase later on.
-    if (downwardsInferPhase) {
-      return;
-    }
-
-    // Check the inferred types against all of the constraints.
-    Map<TypeParameter, DartType> knownTypes = <TypeParameter, DartType>{};
-    for (int i = 0; i < typeParametersToInfer.length; i++) {
-      TypeParameter typeParam = typeParametersToInfer[i];
-      TypeConstraint constraint = constraints[typeParam];
-      DartType typeParamBound =
-          Substitution.fromPairs(typeParametersToInfer, inferredTypes)
-              .substituteType(typeParam.bound);
-
-      DartType inferred = inferredTypes[i];
-      bool success = typeSatisfiesConstraint(inferred, constraint);
-      if (success && !hasOmittedBound(typeParam)) {
-        // If everything else succeeded, check the `extends` constraint.
-        DartType extendsConstraint = typeParamBound;
-        success = isSubtypeOf(
-            inferred, extendsConstraint, SubtypeCheckMode.withNullabilities);
-      }
-
-      if (!success) {
-        // TODO(paulberry): report error.
-
-        // Heuristic: even if we failed, keep the erroneous type.
-        // It should satisfy at least some of the constraints (e.g. the return
-        // context). If we fall back to instantiateToBounds, we'll typically get
-        // more errors (e.g. because `dynamic` is the most common bound).
-      }
-
-      if (isKnown(inferred)) {
-        knownTypes[typeParam] = inferred;
-      }
-    }
-
-    // TODO(paulberry): report any errors from instantiateToBounds.
   }
 
   @override
@@ -480,7 +427,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// If [isContravariant] is `true`, then we are solving for a contravariant
   /// type parameter which means we choose the upper bound rather than the
   /// lower bound for normally covariant type parameters.
-  DartType solveTypeConstraint(TypeConstraint constraint, DartType bottomType,
+  DartType solveTypeConstraint(
+      TypeConstraint constraint, DartType topType, DartType bottomType,
       {bool grounded: false, bool isContravariant: false}) {
     assert(bottomType == const NeverType(Nullability.nonNullable) ||
         bottomType == coreTypes.nullType);
@@ -493,12 +441,14 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       // e.g. `Iterable<?>`
       if (constraint.lower is! UnknownType) {
         return grounded
-            ? leastClosure(constraint.lower, const DynamicType(), bottomType)
+            ? leastClosure(constraint.lower, topType, bottomType)
             : constraint.lower;
-      } else {
+      } else if (constraint.upper is! UnknownType) {
         return grounded
-            ? greatestClosure(constraint.upper, const DynamicType(), bottomType)
+            ? greatestClosure(constraint.upper, topType, bottomType)
             : constraint.upper;
+      } else {
+        return grounded ? const DynamicType() : const UnknownType();
       }
     } else {
       // Prefer the known bound, if any.
@@ -509,12 +459,14 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       // e.g. `Iterable<?>`
       if (constraint.upper is! UnknownType) {
         return grounded
-            ? greatestClosure(constraint.upper, const DynamicType(), bottomType)
+            ? greatestClosure(constraint.upper, topType, bottomType)
             : constraint.upper;
-      } else {
+      } else if (constraint.lower is! UnknownType) {
         return grounded
-            ? leastClosure(constraint.lower, const DynamicType(), bottomType)
+            ? leastClosure(constraint.lower, topType, bottomType)
             : constraint.lower;
+      } else {
+        return grounded ? bottomType : const UnknownType();
       }
     }
   }
@@ -548,6 +500,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     return solveTypeConstraint(
         constraint,
         clientLibrary.isNonNullableByDefault
+            ? coreTypes.objectNullableRawType
+            : const DynamicType(),
+        clientLibrary.isNonNullableByDefault
             ? const NeverType(Nullability.nonNullable)
             : nullType,
         grounded: true,
@@ -558,6 +513,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       DartType extendsConstraint, Library clientLibrary) {
     DartType t = solveTypeConstraint(
         constraint,
+        clientLibrary.isNonNullableByDefault
+            ? coreTypes.objectNullableRawType
+            : const DynamicType(),
         clientLibrary.isNonNullableByDefault
             ? const NeverType(Nullability.nonNullable)
             : nullType);
@@ -577,6 +535,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       addUpperBound(constraint, extendsConstraint, clientLibrary);
       return solveTypeConstraint(
           constraint,
+          clientLibrary.isNonNullableByDefault
+              ? coreTypes.objectNullableRawType
+              : const DynamicType(),
           clientLibrary.isNonNullableByDefault
               ? const NeverType(Nullability.nonNullable)
               : nullType);

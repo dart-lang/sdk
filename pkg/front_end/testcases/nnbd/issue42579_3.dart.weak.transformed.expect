@@ -1,0 +1,56 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue42579_3.dart:16:25: Error: The method 'unknown' isn't defined for the class 'Object'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the name to the name of an existing method, or defining a method named 'unknown'.
+//   foo(() => B()..y1[0]?.unknown());
+//                         ^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue42579_3.dart:17:25: Error: The method 'unknown' isn't defined for the class 'Object'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the name to the name of an existing method, or defining a method named 'unknown'.
+//   foo(() => B()..y2[0]?.unknown());
+//                         ^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X%>
+    : super core::Object::•()
+    ;
+}
+class B<Y1 extends core::Object? = dynamic, Y2 extends core::List<self::B::Y3%> = core::List<dynamic>, Y3 extends core::Object? = dynamic> extends self::A<self::B::Y1%> {
+  synthetic constructor •() → self::B<self::B::Y1%, self::B::Y2, self::B::Y3%>
+    : super self::A::•()
+    ;
+  get y1() → self::B::Y1%
+    return throw "B.y1";
+  get y2() → self::B::Y2
+    return throw "B.y2";
+  get y3() → self::B::Y3%
+    return throw "B.y3";
+}
+static method foo<Z extends core::Object? = dynamic>(() → self::A<core::List<self::foo::Z%>> f) → dynamic {}
+static method bar() → dynamic {
+  self::foo<core::Object?>(() → self::B<core::List<core::Object?>, core::List<core::Object?>, dynamic> => let final self::B<core::List<core::Object?>, core::List<core::Object?>, dynamic> #t1 = new self::B::•<core::List<core::Object?>, core::List<core::Object?>, dynamic>() in block {
+    let final core::Object? #t2 = #t1.{self::B::y1}.{core::List::[]}(0) in #t2.{core::Object::==}(null) ?{dynamic} null : invalid-expression "pkg/front_end/testcases/nnbd/issue42579_3.dart:16:25: Error: The method 'unknown' isn't defined for the class 'Object'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing method, or defining a method named 'unknown'.
+  foo(() => B()..y1[0]?.unknown());
+                        ^^^^^^^";
+  } =>#t1);
+  self::foo<core::Object?>(() → self::B<core::List<core::Object?>, core::List<core::Object?>, dynamic> => let final self::B<core::List<core::Object?>, core::List<core::Object?>, dynamic> #t3 = new self::B::•<core::List<core::Object?>, core::List<core::Object?>, dynamic>() in block {
+    let final core::Object? #t4 = #t3.{self::B::y2}.{core::List::[]}(0) in #t4.{core::Object::==}(null) ?{dynamic} null : invalid-expression "pkg/front_end/testcases/nnbd/issue42579_3.dart:17:25: Error: The method 'unknown' isn't defined for the class 'Object'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing method, or defining a method named 'unknown'.
+  foo(() => B()..y2[0]?.unknown());
+                        ^^^^^^^";
+  } =>#t3);
+  self::foo<core::Object?>(() → self::B<core::List<core::Object?>, core::List<core::Object?>, dynamic> => let final self::B<core::List<core::Object?>, core::List<core::Object?>, dynamic> #t5 = new self::B::•<core::List<core::Object?>, core::List<core::Object?>, dynamic>() in block {
+    let final dynamic #t6 = #t5.{self::B::y3} in #t6.{core::Object::==}(null) ?{dynamic} null : #t6.unknown();
+  } =>#t5);
+}
+static method main() → dynamic {}
