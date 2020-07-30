@@ -552,6 +552,8 @@ t\u0008\f\u
 tails
 talk
 templates
+test3a
+test3b
 thereof
 thing
 threw

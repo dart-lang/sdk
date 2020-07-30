@@ -2112,7 +2112,8 @@ class TypeInferrerImpl implements TypeInferrer {
     Substitution substitution;
     List<DartType> formalTypesFromContext =
         new List<DartType>.filled(formals.length, null);
-    if (typeContext is FunctionType) {
+    if (typeContext is FunctionType &&
+        typeContext.typeParameters.length == typeParameters.length) {
       for (int i = 0; i < formals.length; i++) {
         if (i < function.positionalParameters.length) {
           formalTypesFromContext[i] =
