@@ -24,7 +24,7 @@ you just want a function.
 
 **GOOD:**
 ```
-typedef bool Predicate(item);
+typedef Predicate = bool Function(item);
 ```
 
 **BAD:**
