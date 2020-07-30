@@ -28,6 +28,9 @@ RELEASE_CHANNELS = ["beta", "dev", "stable"]
 CHANNELS = RELEASE_CHANNELS + ["try"]
 BRANCHES = ["master"] + RELEASE_CHANNELS
 
+# TODO(athom): remove this when 89fe12b gets merged into stable.
+RBE_MAC_CHANNELS = [None, "dev", "try"]
+
 TEST_PY_PATHS = "pkg/(async_helper|expect|smith|status_file|test_runner)/.+"
 
 STANDARD_PATHS = [
@@ -382,19 +385,28 @@ def dart_recipe(name):
         cipd_package = "dart/recipe_bundles/dart.googlesource.com/recipes",
     )
 
-def set_goma_rbe_properties(goma_rbe, dimensions, properties):
+def with_goma_rbe(goma_rbe, channel, dimensions, properties):
     """Sets the $build/goma property when goma on RBE is used.
 
     Args:
         goma_rbe: Opt-in (True), opt-out (False) or default (None).
+        channel: The channel of the builder.
         dimensions: The dimensions of the builder.
         properties: The properties object to set $build/goma on (if opted-in).
+
+    Returns:
+        A copy of the properties with GOMA on RBE properties set if applicable.
     """
+    if dimensions["os"] == "Mac" and channel not in RBE_MAC_CHANNELS:
+        return properties
     if goma_rbe or (goma_rbe == None and dimensions["os"] == "Linux"):
         goma_properties = {}
         goma_properties.update(GOMA_RBE)
         goma_properties["enable_ats"] = dimensions["os"] != "Mac"
-        properties.setdefault("$build/goma", goma_properties)
+        updated_properties = dict(properties)
+        updated_properties.setdefault("$build/goma", goma_properties)
+        return updated_properties
+    return properties
 
 def dart_try_builder(
         name,
@@ -426,7 +438,7 @@ def dart_try_builder(
     dimensions = defaults.dimensions(dimensions)
     dimensions["pool"] = "luci.dart.try"
     properties = defaults.properties(properties)
-    goma_properties = set_goma_rbe_properties(goma_rbe, dimensions, properties)
+    builder_properties = with_goma_rbe(goma_rbe, "try", dimensions, properties)
     builder = name + "-try"
 
     luci.builder(
@@ -438,7 +450,7 @@ def dart_try_builder(
         executable = dart_recipe(recipe),
         execution_timeout = execution_timeout,
         priority = HIGH,
-        properties = properties,
+        properties = builder_properties,
         service_account = TRY_ACCOUNT,
         swarming_tags = ["vpython:native-python-wrapper"],
     )
@@ -517,7 +529,6 @@ def dart_builder(
     """
     dimensions = defaults.dimensions(dimensions)
     properties = defaults.properties(properties)
-    set_goma_rbe_properties(goma_rbe, dimensions, properties)
 
     def builder(channel, triggered_by):
         if channel == "try":
@@ -533,6 +544,12 @@ def dart_builder(
                 location_regexp = location_regexp,
             )
         else:
+            builder_properties = with_goma_rbe(
+                goma_rbe,
+                channel,
+                dimensions,
+                properties,
+            )
             builder = name + "-" + channel if channel else name
             branch = channel if channel else "master"
             if schedule == "triggered" and triggered_by:
@@ -556,7 +573,7 @@ def dart_builder(
                 execution_timeout = execution_timeout,
                 expiration_timeout = expiration_timeout,
                 priority = priority,
-                properties = properties,
+                properties = builder_properties,
                 notifies = [notifies] if notifies and not channel and enabled else None,
                 schedule = schedule if enabled else None,
                 service_account = service_account,
