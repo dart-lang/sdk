@@ -233,7 +233,7 @@ class VmTarget extends Target {
     bool isGetter = false, isSetter = false, isMethod = false;
     if (name.startsWith("set:")) {
       isSetter = true;
-      name = name.substring(4) + "=";
+      name = name.substring(4);
     } else if (name.startsWith("get:")) {
       isGetter = true;
       name = name.substring(4);

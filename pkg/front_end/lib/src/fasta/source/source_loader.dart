@@ -1204,12 +1204,6 @@ class SourceLoader extends Loader {
     }
   }
 
-  Expression instantiateInvocation(Expression receiver, String name,
-      Arguments arguments, int offset, bool isSuper) {
-    return target.backendTarget.instantiateInvocation(
-        coreTypes, receiver, name, arguments, offset, isSuper);
-  }
-
   Expression instantiateNoSuchMethodError(
       Expression receiver, String name, Arguments arguments, int offset,
       {bool isMethod: false,

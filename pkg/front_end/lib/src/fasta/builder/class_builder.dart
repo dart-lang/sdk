@@ -857,10 +857,12 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       Member noSuchMethodInterface, KernelTarget target, Procedure procedure) {
     String prefix =
         procedure.isGetter ? 'get:' : procedure.isSetter ? 'set:' : '';
+    String invocationName = prefix + procedure.name.name;
+    if (procedure.isSetter) invocationName += '=';
     Expression invocation = target.backendTarget.instantiateInvocation(
         target.loader.coreTypes,
         new ThisExpression(),
-        prefix + procedure.name.name,
+        invocationName,
         new Arguments.forwarded(procedure.function, library.library),
         procedure.fileOffset,
         /*isSuper=*/ false);
