@@ -50,11 +50,11 @@ abstract class LegacyUpperBoundTest {
   }
 
   DartType getLegacyLeastUpperBound(
-      DartType a, DartType b, Library clientLibrary, CoreTypes coreTypes);
+      DartType a, DartType b, Library clientLibrary);
 
   void checkGetLegacyLeastUpperBound(
       DartType a, DartType b, Library clientLibrary, DartType expected) {
-    DartType actual = getLegacyLeastUpperBound(a, b, clientLibrary, coreTypes);
+    DartType actual = getLegacyLeastUpperBound(a, b, clientLibrary);
     Expect.equals(expected, actual);
   }
 

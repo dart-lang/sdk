@@ -20,7 +20,7 @@ class ExpectedOneSetTypeArgumentsTest extends DriverResolutionTest {
 main() {
   <int, int, int>{2, 3};
 }''', [
-      error(StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS, 11, 15),
+      error(CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS, 11, 15),
     ]);
   }
 }

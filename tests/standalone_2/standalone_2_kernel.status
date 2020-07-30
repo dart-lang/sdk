@@ -13,8 +13,10 @@ no_lazy_dispatchers_test: SkipByDesign # KBC interpreter doesn't support --no_la
 
 [ $system == android ]
 entrypoints_verification_test: Skip # Requires shared objects which the test script doesn't "adb push".
-io/http_ban_http_embedder_test: Skip # Requires http server bound to non-loopback; not provided by system.
-io/http_ban_http_normal_test: Skip # Requires http server bound to non-loopback; not provided by system.
+io/network_policy_configuration_test: Skip # Can't pass -D params containing quotes to adb.
+io/network_policy_invalid_domain_test: Skip # Can't pass -D params containing quotes to adb.
+io/network_policy_tie_breaker_test: Skip # Can't pass -D params containing quotes to adb.
+io/socket_network_policy_test: Skip # Can't pass -D params containing quotes to adb.
 
 [ $arch == ia32 && $builder_tag == optimization_counter_threshold ]
 io/file_lock_test: SkipSlow # Timeout

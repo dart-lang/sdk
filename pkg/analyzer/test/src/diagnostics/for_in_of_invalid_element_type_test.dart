@@ -24,7 +24,7 @@ f() async {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 75, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 80, 6),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 80, 6),
     ]);
   }
 
@@ -38,7 +38,7 @@ f() async {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 64, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 85, 6),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 85, 6),
     ]);
   }
 
@@ -51,7 +51,7 @@ class Foo<T extends Iterable<int>> {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 81, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 86, 8),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 86, 8),
     ]);
   }
 
@@ -62,7 +62,7 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 22, 10),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 22, 10),
     ]);
   }
 
@@ -74,7 +74,7 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 27, 10),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 27, 10),
     ]);
   }
 }

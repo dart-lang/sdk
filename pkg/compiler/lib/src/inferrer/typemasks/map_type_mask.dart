@@ -90,14 +90,14 @@ class MapTypeMask extends AllocationTypeMask {
   }
 
   @override
-  TypeMask intersection(TypeMask other, JClosedWorld closedWorld) {
-    TypeMask forwardIntersection = forwardTo.intersection(other, closedWorld);
+  TypeMask intersection(TypeMask other, CommonMasks domain) {
+    TypeMask forwardIntersection = forwardTo.intersection(other, domain);
     if (forwardIntersection.isEmptyOrNull) return forwardIntersection;
     return forwardIntersection.isNullable ? nullable() : nonNullable();
   }
 
   @override
-  TypeMask union(dynamic other, JClosedWorld closedWorld) {
+  TypeMask union(dynamic other, CommonMasks domain) {
     if (this == other) {
       return this;
     } else if (equalsDisregardNull(other)) {
@@ -109,9 +109,9 @@ class MapTypeMask extends AllocationTypeMask {
         other.keyType != null &&
         valueType != null &&
         other.valueType != null) {
-      TypeMask newKeyType = keyType.union(other.keyType, closedWorld);
-      TypeMask newValueType = valueType.union(other.valueType, closedWorld);
-      TypeMask newForwardTo = forwardTo.union(other.forwardTo, closedWorld);
+      TypeMask newKeyType = keyType.union(other.keyType, domain);
+      TypeMask newValueType = valueType.union(other.valueType, domain);
+      TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);
       return new MapTypeMask(
           newForwardTo, null, null, newKeyType, newValueType);
     } else if (other.isDictionary) {
@@ -119,11 +119,11 @@ class MapTypeMask extends AllocationTypeMask {
       // doesn't need the compiler.
       assert(other.keyType ==
           new TypeMask.nonNullExact(
-              closedWorld.commonElements.jsStringClass, closedWorld));
-      TypeMask newKeyType = keyType.union(other.keyType, closedWorld);
+              domain.commonElements.jsStringClass, domain._closedWorld));
+      TypeMask newKeyType = keyType.union(other.keyType, domain);
       TypeMask newValueType =
-          other.typeMap.values.fold(keyType, (p, n) => p.union(n, closedWorld));
-      TypeMask newForwardTo = forwardTo.union(other.forwardTo, closedWorld);
+          other.typeMap.values.fold(keyType, (p, n) => p.union(n, domain));
+      TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);
       MapTypeMask newMapTypeMask = new MapTypeMask(
           newForwardTo,
           allocationNode == other.allocationNode ? allocationNode : null,
@@ -134,7 +134,7 @@ class MapTypeMask extends AllocationTypeMask {
           newValueType);
       return newMapTypeMask;
     } else {
-      return forwardTo.union(other, closedWorld);
+      return forwardTo.union(other, domain);
     }
   }
 

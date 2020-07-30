@@ -1,0 +1,5 @@
+import 'issue42181_lib.dart';
+
+int? f1(int x) => x;
+main() {}
+void test() {}

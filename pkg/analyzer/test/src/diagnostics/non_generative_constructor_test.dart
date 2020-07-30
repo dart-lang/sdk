@@ -19,12 +19,13 @@ class NonGenerativeConstructorTest extends DriverResolutionTest {
     await assertErrorsInCode(r'''
 class A {
   factory A.named() => throw 0;
+  A.generative();
 }
 class B extends A {
   B() : super.named();
 }
 ''', [
-      error(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, 72, 13),
+      error(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, 90, 13),
     ]);
   }
 
@@ -56,24 +57,13 @@ class B extends A {
     await assertErrorsInCode(r'''
 class A {
   factory A() => throw 0;
+  A.named();
 }
 class B extends A {
   B();
 }
 ''', [
-      error(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, 60, 1),
-    ]);
-  }
-
-  test_implicit2() async {
-    await assertErrorsInCode(r'''
-class A {
-  factory A() => throw 0;
-}
-class B extends A {
-}
-''', [
-      error(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, 44, 1),
+      error(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, 73, 1),
     ]);
   }
 }

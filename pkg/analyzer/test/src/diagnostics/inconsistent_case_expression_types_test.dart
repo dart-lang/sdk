@@ -17,6 +17,29 @@ main() {
 
 @reflectiveTest
 class InconsistentCaseExpressionTypesTest extends DriverResolutionTest {
+  test_dynamic() async {
+    // Even though A.S and S have a static type of "dynamic", we should see
+    // that they match 'abc', because they are constant strings.
+    await assertNoErrorsInCode(r'''
+class A {
+  static const S = 'A.S';
+}
+
+const S = 'S';
+
+foo(var p) {
+  switch (p) {
+    case S:
+      break;
+    case A.S:
+      break;
+    case 'abc':
+      break;
+  }
+}
+''');
+  }
+
   test_int() async {
     await assertNoErrorsInCode(r'''
 void f(var e) {

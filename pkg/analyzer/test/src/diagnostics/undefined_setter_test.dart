@@ -32,7 +32,7 @@ main() {
 class T {}
 f(T e1) { e1.m = 0; }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SETTER, 24, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 24, 1),
     ]);
   }
 
@@ -42,7 +42,7 @@ mixin M {
   f() { this.m = 0; }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SETTER, 23, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 23, 1),
     ]);
   }
 
@@ -58,7 +58,7 @@ f(var a) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SETTER, 80, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 80, 1),
     ]);
   }
 
@@ -71,7 +71,7 @@ f(var a) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SETTER, 43, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 43, 1),
     ]);
   }
 
@@ -95,7 +95,7 @@ class C extends S {}
 f(var p) {
   f(C.s = 1);
 }''', [
-      error(StaticTypeWarningCode.UNDEFINED_SETTER, 75, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 75, 1),
     ]);
   }
 
@@ -104,7 +104,7 @@ f(var p) {
 class A {}
 f() { A.B = 0;}
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SETTER, 19, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 19, 1),
     ]);
   }
 
@@ -117,7 +117,7 @@ main() {
   T..foo = 42;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SETTER, 54, 3),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 54, 3),
     ]);
   }
 
@@ -131,7 +131,7 @@ f(C c) {
   c.a = 1;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SETTER, 46, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 46, 1),
     ]);
   }
 }

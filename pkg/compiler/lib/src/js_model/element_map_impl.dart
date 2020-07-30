@@ -148,8 +148,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       IndexedLibrary oldLibrary = _elementMap.libraries.getEntity(libraryIndex);
       KLibraryEnv oldEnv = _elementMap.libraries.getEnv(oldLibrary);
       KLibraryData data = _elementMap.libraries.getData(oldLibrary);
-      IndexedLibrary newLibrary =
-          new JLibrary(oldLibrary.name, oldLibrary.canonicalUri);
+      IndexedLibrary newLibrary = new JLibrary(oldLibrary.name,
+          oldLibrary.canonicalUri, oldLibrary.isNonNullableByDefault);
       JLibraryEnv newEnv = oldEnv.convert(_elementMap, liveMemberUsage);
       libraryMap[oldEnv.library] =
           libraries.register<IndexedLibrary, JLibraryData, JLibraryEnv>(

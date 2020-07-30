@@ -5,19 +5,19 @@
 void main() {
   var a = <int>[if (true as Object) 1];
   //                ^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
   //                     ^
   // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
 
   var b = <int, int>{if (true as Object) 1: 1};
   //                     ^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
   //                          ^
   // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
 
   var c = <int>{if (true as Object) 1};
   //                ^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
   //                     ^
   // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
 }

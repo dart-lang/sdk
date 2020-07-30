@@ -87,7 +87,7 @@ class YieldStatementResolver {
     if (declaredReturnType != null) {
       if (!_typeSystem.isAssignableTo2(impliedReturnType, declaredReturnType)) {
         _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
+          CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
           expression,
           [impliedReturnType, declaredReturnType],
         );
@@ -108,7 +108,7 @@ class YieldStatementResolver {
 
       if (!_typeSystem.isAssignableTo2(impliedReturnType, requiredReturnType)) {
         _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
+          CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
           expression,
           [impliedReturnType, requiredReturnType],
         );

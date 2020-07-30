@@ -10,10 +10,10 @@ void main() {
   Object o = 1;
   OnObject(o).onObject;
 //^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.UNDEFINED_FUNCTION
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
 // [cfe] Method not found: 'OnObject'.
   o.onObject;
   //^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'onObject' isn't defined for the class 'Object'.
 }

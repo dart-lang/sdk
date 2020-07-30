@@ -20,7 +20,7 @@ class FunctionExpressionTest extends DriverResolutionTest {
   test_contextFunctionType_returnType_async_blockBody_futureOrVoid() async {
     var expectedErrors = expectedErrorsByNullability(
       nullable: [
-        error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 72, 1),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 72, 1),
       ],
       legacy: [],
     );
@@ -43,7 +43,7 @@ FutureOr<void> Function() v = () async {
   test_contextFunctionType_returnType_async_blockBody_futureVoid() async {
     var expectedErrors = expectedErrorsByNullability(
       nullable: [
-        error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 48, 1),
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 48, 1),
       ],
       legacy: [],
     );
@@ -164,7 +164,7 @@ int Function() v = () {
 
   test_contextFunctionType_returnType_sync_blockBody_void() async {
     var expectedErrors = expectedErrorsByNullability(nullable: [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 34, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 34, 1),
     ], legacy: []);
     await assertErrorsInCode('''
 void Function() v = () {

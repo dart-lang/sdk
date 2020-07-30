@@ -6,6 +6,6 @@ void main() {
   Object b = true;
   if (b) {}
   //  ^
-  // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
   // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
 }

@@ -125,7 +125,7 @@ class C {
 // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
 // [cfe] The setter 'finalOne' isn't defined for the class 'C'.
 //               ^^^^
-// [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+// [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
 //               ^^^^
 // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
     yGetValue = 1;
@@ -172,7 +172,7 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
   // [cfe] Can't assign to the final variable 'l'.
   //                   ^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                   ^^^^
   // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
   C ??= null;
@@ -180,7 +180,7 @@ main() {
 // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
 // [cfe] Can't assign to a type literal.
 //      ^^^^
-// [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+// [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
 //      ^^^^
 // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
   h ??= null;
@@ -228,11 +228,11 @@ main() {
   check(1, () => C?.x ??= bad(), ['C.x']);
   h.C.xgetValue = 1;
   //  ^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
   // [cfe] Setter not found: 'xgetValue'.
   check(1, () => h.c?.x ??= bad(), ['h.C.x']);
   //               ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_PREFIXED_NAME
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME
   // [cfe] Getter not found: 'c'.
   yGetValue = 1;
   check(1, () => C?.x ??= y, ['C.x', 'y', 'C.x=1']);

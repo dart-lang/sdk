@@ -7,7 +7,7 @@ final foo = A<B>.foo();
 // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
 // [cfe] Method not found: 'A'.
 //            ^
-// [analyzer] STATIC_TYPE_WARNING.NON_TYPE_AS_TYPE_ARGUMENT
+// [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
 // [cfe] 'B' isn't a type.
 
 main() {}

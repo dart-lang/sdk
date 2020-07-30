@@ -65,7 +65,7 @@ class FixErrorTask {
   static void fixNamedConstructorTypeArgs(DartFixRegistrar registrar,
       DartFixListener listener, EditDartfixParams params) {
     registrar.registerErrorTask(
-        StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
         FixErrorTask(listener));
   }
 }

@@ -241,6 +241,40 @@ main() {
     );
   }
 
+  test_invalid_prefixedIdentifier_instanceCreation() async {
+    await assertErrorsInCode(r'''
+void f() {
+  new int.double.other();
+}
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10),
+    ]);
+
+    assertTypeName(
+      findNode.typeName('int.double'),
+      null,
+      'dynamic',
+      expectedPrefix: intElement,
+    );
+  }
+
+  test_invalid_prefixedIdentifier_literal() async {
+    await assertErrorsInCode(r'''
+void f() {
+  0 as int.double;
+}
+''', [
+      error(CompileTimeErrorCode.NOT_A_TYPE, 18, 10),
+    ]);
+
+    assertTypeName(
+      findNode.typeName('int.double'),
+      null,
+      'dynamic',
+      expectedPrefix: intElement,
+    );
+  }
+
   test_never() async {
     await assertNoErrorsInCode(r'''
 f(Never a) {}

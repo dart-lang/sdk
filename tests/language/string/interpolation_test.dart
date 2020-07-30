@@ -60,7 +60,7 @@ class StringInterpolationTest {
     if (alwaysFalse) {
       "${i.toHorse()}";
       //   ^^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
       // [cfe] The method 'toHorse' isn't defined for the class 'int'.
     }
 

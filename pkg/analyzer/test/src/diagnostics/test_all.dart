@@ -71,9 +71,12 @@ import 'const_constructor_with_non_final_field_test.dart'
     as const_constructor_with_non_final_field;
 import 'const_deferred_class_test.dart' as const_deferred_class;
 import 'const_eval_throws_exception_test.dart' as const_eval_throws_exception;
+import 'const_eval_throws_idbze_test.dart' as const_eval_throws_idbze;
+import 'const_eval_type_bool_int_test.dart' as const_eval_type_bool_int;
 import 'const_eval_type_bool_num_string_test.dart'
     as const_eval_type_bool_num_string;
 import 'const_eval_type_bool_test.dart' as const_eval_type_bool;
+import 'const_eval_type_num_test.dart' as const_eval_type_num;
 import 'const_formal_parameter_test.dart' as const_formal_parameter;
 import 'const_initialized_with_non_constant_value_from_deferred_library_test.dart'
     as const_initialized_with_non_constant_value_from_deferred_library;
@@ -89,10 +92,13 @@ import 'const_spread_expected_list_or_set_test.dart'
     as const_spread_expected_list_or_set;
 import 'const_spread_expected_map_test.dart' as const_spread_expected_map;
 import 'const_with_non_const_test.dart' as const_with_non_const;
+import 'const_with_non_constant_argument_test.dart'
+    as const_with_non_constant_argument;
 import 'const_with_non_type_test.dart' as const_with_non_type;
 import 'const_with_type_parameters_test.dart' as const_with_type_parameters;
 import 'const_with_undefined_constructor_test.dart'
     as const_with_undefined_constructor;
+import 'could_not_infer_test.dart' as could_not_infer;
 import 'dead_code_test.dart' as dead_code;
 import 'dead_null_aware_expression_test.dart' as dead_null_aware_expression;
 import 'default_list_constructor_test.dart' as default_list_constructor;
@@ -374,12 +380,18 @@ import 'no_annotation_constructor_arguments_test.dart'
     as no_annotation_constructor_arguments;
 import 'no_combined_super_signature_test.dart' as no_combined_super_signature;
 import 'no_default_super_constructor_test.dart' as no_default_super_constructor;
+import 'no_generative_constructors_in_superclass_test.dart'
+    as no_generative_constructors_in_superclass;
 import 'non_abstract_class_inherits_abstract_member_test.dart'
     as non_abstract_class_inherits_abstract_member;
 import 'non_bool_condition_test.dart' as non_bool_condition;
 import 'non_bool_expression_test.dart' as non_bool_expression;
 import 'non_bool_negation_expression_test.dart' as non_bool_negation_expression;
 import 'non_bool_operand_test.dart' as non_bool_operand;
+import 'non_const_call_to_literal_constructor_test.dart'
+    as non_const_call_to_literal_constructor;
+import 'non_const_map_as_expression_statement_test.dart'
+    as non_const_map_as_expression_statement;
 import 'non_constant_annotation_constructor_test.dart'
     as non_constant_annotation_constructor;
 import 'non_constant_case_expression_from_deferred_library_test.dart'
@@ -401,6 +413,8 @@ import 'non_constant_map_value_test.dart' as non_constant_map_value;
 import 'non_constant_set_element_test.dart' as non_constant_set_element;
 import 'non_constant_type_argument_test.dart' as non_constant_type_argument;
 import 'non_generative_constructor_test.dart' as non_generative_constructor;
+import 'non_generative_implicit_constructor_test.dart'
+    as non_generative_implicit_constructor;
 import 'non_native_function_type_argument_to_pointer_test.dart'
     as non_native_function_type_argument_to_pointer;
 import 'non_null_opt_out_test.dart' as non_null_opt_out;
@@ -655,8 +669,11 @@ main() {
     const_constructor_with_non_final_field.main();
     const_deferred_class.main();
     const_eval_throws_exception.main();
+    const_eval_throws_idbze.main();
+    const_eval_type_bool_int.main();
     const_eval_type_bool_num_string.main();
     const_eval_type_bool.main();
+    const_eval_type_num.main();
     const_formal_parameter.main();
     const_initialized_with_non_constant_value_from_deferred_library.main();
     const_initialized_with_non_constant_value.main();
@@ -667,9 +684,11 @@ main() {
     const_spread_expected_list_or_set.main();
     const_spread_expected_map.main();
     const_with_non_const.main();
+    const_with_non_constant_argument.main();
     const_with_non_type.main();
     const_with_type_parameters.main();
     const_with_undefined_constructor.main();
+    could_not_infer.main();
     dead_code.main();
     dead_null_aware_expression.main();
     default_list_constructor.main();
@@ -857,6 +876,7 @@ main() {
     no_annotation_constructor_arguments.main();
     no_combined_super_signature.main();
     no_default_super_constructor.main();
+    no_generative_constructors_in_superclass.main();
     non_abstract_class_inherits_abstract_member.main();
     non_bool_condition.main();
     non_bool_expression.main();
@@ -877,6 +897,7 @@ main() {
     non_constant_set_element.main();
     non_constant_type_argument.main();
     non_generative_constructor.main();
+    non_generative_implicit_constructor.main();
     non_native_function_type_argument_to_pointer.main();
     non_null_opt_out.main();
     non_type_as_type_argument.main();
@@ -885,6 +906,8 @@ main() {
     non_void_return_for_setter.main();
     not_a_type.main();
     not_assigned_potentially_non_nullable_local_variable.main();
+    non_const_call_to_literal_constructor.main();
+    non_const_map_as_expression_statement.main();
     not_enough_positional_arguments.main();
     not_initialized_non_nullable_instance_field.main();
     not_initialized_non_nullable_variable.main();

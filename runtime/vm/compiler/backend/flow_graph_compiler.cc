@@ -1279,58 +1279,24 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
   set_intrinsic_slow_path_label(&exit);
 
   if (FLAG_intrinsify) {
-    // Intrinsification skips arguments checks, therefore disable if in checked
-    // mode or strong mode.
-    //
-    // Though for implicit getters, which have only the receiver as parameter,
-    // there are no checks necessary in any case and we can therefore intrinsify
-    // them even in checked mode and strong mode.
-    switch (parsed_function().function().kind()) {
-      case FunctionLayout::kImplicitGetter: {
-        Field& field = Field::Handle(function().accessor_field());
-        ASSERT(!field.IsNull());
-#if defined(DEBUG)
-        // HACK: Clone the field to ignore assertion in Field::guarded_cid().
-        // The assertion is intended to ensure that the background compiler sees
-        // consistent cids, but that's not important in this case because
-        // IsPotentialUnboxedField can go from true to false, but not false to
-        // true, and we only do this optimisation if it is false.
-        field = field.CloneFromOriginal();
-#endif
-
-        // Only intrinsify getter if the field cannot contain a mutable double.
-        // Reading from a mutable double box requires allocating a fresh double.
-        if (field.is_instance() && !field.needs_load_guard() &&
-            !field.is_late() && !IsPotentialUnboxedField(field)) {
-          SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
-          GenerateGetterIntrinsic(compiler::target::Field::OffsetOf(field));
-          SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
-          return true;
-        }
-        return false;
-      }
-      case FunctionLayout::kImplicitSetter:
-        break;
+    const auto& function = parsed_function().function();
+    if (function.IsMethodExtractor()) {
 #if !defined(TARGET_ARCH_IA32)
-      case FunctionLayout::kMethodExtractor: {
-        auto& extracted_method = Function::ZoneHandle(
-            parsed_function().function().extracted_method_closure());
-        auto& klass = Class::Handle(extracted_method.Owner());
-        const intptr_t type_arguments_field_offset =
-            compiler::target::Class::HasTypeArgumentsField(klass)
-                ? (compiler::target::Class::TypeArgumentsFieldOffset(klass) -
-                   kHeapObjectTag)
-                : 0;
+      auto& extracted_method =
+          Function::ZoneHandle(function.extracted_method_closure());
+      auto& klass = Class::Handle(extracted_method.Owner());
+      const intptr_t type_arguments_field_offset =
+          compiler::target::Class::HasTypeArgumentsField(klass)
+              ? (compiler::target::Class::TypeArgumentsFieldOffset(klass) -
+                 kHeapObjectTag)
+              : 0;
 
-        SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
-        GenerateMethodExtractorIntrinsic(extracted_method,
-                                         type_arguments_field_offset);
-        SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
-        return true;
-      }
+      SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
+      GenerateMethodExtractorIntrinsic(extracted_method,
+                                       type_arguments_field_offset);
+      SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
+      return true;
 #endif  // !defined(TARGET_ARCH_IA32)
-      default:
-        break;
     }
   }
 

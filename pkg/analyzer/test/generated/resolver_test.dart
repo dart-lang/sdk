@@ -314,7 +314,7 @@ int f(num n) {
   assert (n is int);
   return n & 0x0F;
 }''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 47, 1),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 47, 1),
     ]);
   }
 
@@ -337,7 +337,7 @@ int f(num n) {
 int f(num n) {
   return (n is! int) ? 0 : n & 0x0F;
 }''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 44, 1),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 44, 1),
     ]);
   }
 
@@ -346,7 +346,7 @@ int f(num n) {
 int f(num n) {
   return (n is! int || n < 0) ? 0 : n & 0x0F;
 }''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 53, 1),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 53, 1),
     ]);
   }
 
@@ -373,7 +373,7 @@ int f(List<int> list) {
 }''', [
       error(HintCode.MISSING_RETURN, 4, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 3),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 76, 1),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 76, 1),
     ]);
   }
 
@@ -406,7 +406,7 @@ int f(num n) {
     return n & 0x0F;
   }
 }''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 72, 1),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 72, 1),
     ]);
   }
 
@@ -418,7 +418,7 @@ int f(num n) {
   }
   return n & 0x0F;
 }''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 63, 1),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 63, 1),
     ]);
   }
 
@@ -431,7 +431,7 @@ int f(num n) {
     return n & 0x0F;
   }
 }''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 81, 1),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 81, 1),
     ]);
   }
 
@@ -441,7 +441,7 @@ int f() {
   num n = 1234;
   return n & 0x0F;
 }''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 37, 1),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 37, 1),
     ]);
   }
 }

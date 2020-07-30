@@ -59,6 +59,12 @@ void fn({var a}) => print(a);
     ]);
   }
 
+  test_namedParameter_withVar_unreferenced() async {
+    await assertNoErrorsInCode(r'''
+void fn({var a}) {}
+''');
+  }
+
   test_parameter() async {
     await assertErrorsInCode(r'''
 void fn(a) => print(a);
@@ -70,11 +76,53 @@ void fn(a) => print(a);
   test_parameter_inConstructor() async {
     await assertErrorsInCode(r'''
 class C {
-  C(var a) {}
+  C(var a) {
+    a;
+  }
 }
 ''', [
       error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 14, 5),
     ]);
+  }
+
+  test_parameter_inConstructor_fieldFormal() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  int a;
+  C(this.a) {
+    a;
+  }
+}
+''');
+  }
+
+  test_parameter_inConstructor_fieldFormal_withVar() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  int a;
+  C(var this.a) {
+    a;
+  }
+}
+''');
+  }
+
+  test_parameter_inConstructor_referencedInInitializer() async {
+    await assertErrorsInCode(r'''
+class C {
+  C(var a) : assert(a != null);
+}
+''', [
+      error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 14, 5),
+    ]);
+  }
+
+  test_parameter_inConstructor_unreferenced() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C(var a);
+}
+''');
   }
 
   test_parameter_inConstructor_withType() async {
@@ -88,7 +136,7 @@ class C {
   test_parameter_inFunctionLiteral() async {
     await assertErrorsInCode(r'''
 void fn() {
-  var f = (var a) {};
+  var f = (var a) => a;
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
@@ -115,13 +163,9 @@ void Function(int, dynamic) fn() {
   }
 
   test_parameter_inFunctionLiteral_withType() async {
-    await assertErrorsInCode(r'''
-void fn() {
-  var f = (int a) {};
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-    ]);
+    await assertNoErrorsInCode(r'''
+var f = (int a) => false;
+''');
   }
 
   test_parameter_inGenericFunction_withType() async {
@@ -137,6 +181,16 @@ class C {
 }
 ''', [
       error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 20, 5),
+    ]);
+  }
+
+  test_parameter_inMethod_abstract() async {
+    await assertErrorsInCode(r'''
+abstract class C {
+  void fn(var a);
+}
+''', [
+      error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 29, 5),
     ]);
   }
 
@@ -202,6 +256,14 @@ class D extends C {
   void fn(num a) => print(a);
 }
 ''');
+  }
+
+  test_parameter_inTypedef_withoutType() async {
+    await assertErrorsInCode(r'''
+typedef void cb(a);
+''', [
+      error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 16, 1),
+    ]);
   }
 
   test_parameter_inTypedef_withType() async {

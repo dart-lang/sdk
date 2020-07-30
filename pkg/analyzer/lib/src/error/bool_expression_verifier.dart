@@ -35,11 +35,11 @@ class BoolExpressionVerifier {
   /// Check to ensure that the [condition] is of type bool, are. Otherwise an
   /// error is reported on the expression.
   ///
-  /// See [StaticTypeWarningCode.NON_BOOL_CONDITION].
+  /// See [CompileTimeErrorCode.NON_BOOL_CONDITION].
   void checkForNonBoolCondition(Expression condition) {
     checkForNonBoolExpression(
       condition,
-      errorCode: StaticTypeWarningCode.NON_BOOL_CONDITION,
+      errorCode: CompileTimeErrorCode.NON_BOOL_CONDITION,
     );
   }
 
@@ -62,7 +62,7 @@ class BoolExpressionVerifier {
   void checkForNonBoolNegationExpression(Expression expression) {
     checkForNonBoolExpression(
       expression,
-      errorCode: StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION,
+      errorCode: CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION,
     );
   }
 

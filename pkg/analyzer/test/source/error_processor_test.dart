@@ -19,7 +19,7 @@ import '../src/util/yaml_test.dart';
 
 main() {
   AnalysisError invalid_assignment = AnalysisError(
-      TestSource(), 0, 1, StaticTypeWarningCode.INVALID_ASSIGNMENT, [
+      TestSource(), 0, 1, CompileTimeErrorCode.INVALID_ASSIGNMENT, [
     ['x'],
     ['y']
   ]);

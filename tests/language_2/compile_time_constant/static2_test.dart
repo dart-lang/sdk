@@ -13,7 +13,7 @@ class A {
   const A.a2(this.x);
   const A.a3([this.x = 'foo']);
   //                   ^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
   const A.a4(String this.x);
   //         ^^^^^^^^^^^^^
@@ -34,16 +34,16 @@ const a1 = const A.a1();
 // [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH
 const a2 = const A.a2('foo');
 //                    ^^^^^
-// [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
+// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
 // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
 //                    ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 const a3 = const A.a3();
 //         ^^^^^^^^^^^^
-// [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
+// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
 const a4 = const A.a4('foo');
 //                    ^^^^^
-// [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
+// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
 const a5 = const A.a5('foo');
 //         ^^^^^^^^^^^^^^^^^
 // [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH
@@ -51,7 +51,7 @@ const a6 = const A.a6('foo');
 //         ^^^^^^^^^^^^^^^^^
 // [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH
 //                    ^^^^^
-// [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
+// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
 // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
 //                    ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE

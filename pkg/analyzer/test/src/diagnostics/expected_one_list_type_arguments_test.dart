@@ -28,7 +28,7 @@ main() {
 main() {
   <int, int>[];
 }''', [
-      error(StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS, 11, 10),
+      error(CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS, 11, 10),
     ]);
   }
 }

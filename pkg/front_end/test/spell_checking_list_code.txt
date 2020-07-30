@@ -168,6 +168,7 @@ ck
 cl
 claim
 claimed
+clamp
 clarification
 clashes
 class's
@@ -1199,6 +1200,7 @@ unpleasant
 unreachable
 unseen
 unshadowed
+unwrapper
 unwraps
 unzip
 upcast

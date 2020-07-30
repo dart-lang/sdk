@@ -22,7 +22,7 @@ f() {
   assert(makeAssertion);
 }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_EXPRESSION, 45, 13),
+      error(CompileTimeErrorCode.NON_BOOL_EXPRESSION, 45, 13),
     ]);
   }
 
@@ -33,7 +33,7 @@ f() {
   assert(makeAssertion);
 }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_EXPRESSION, 41, 13),
+      error(CompileTimeErrorCode.NON_BOOL_EXPRESSION, 41, 13),
     ]);
   }
 
@@ -43,7 +43,7 @@ f() {
   assert(0);
 }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_EXPRESSION, 15, 1),
+      error(CompileTimeErrorCode.NON_BOOL_EXPRESSION, 15, 1),
     ]);
   }
 }

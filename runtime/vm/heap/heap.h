@@ -416,6 +416,7 @@ class Heap {
   bool gc_new_space_in_progress_;
   bool gc_old_space_in_progress_;
   bool last_gc_was_old_space_;
+  bool assume_scavenge_will_fail_;
 
   static const intptr_t kNoForcedGarbageCollection = -1;
 

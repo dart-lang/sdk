@@ -36,11 +36,11 @@ ${_argParser.usage}
 
 const int _badUsageExitCode = 1;
 
-int main(List<String> arguments) {
+void main(List<String> arguments) {
   final ArgResults options = _argParser.parse(arguments);
   if ((options.rest.length != 1) || (options['output'] == null)) {
     print(_usage);
-    return _badUsageExitCode;
+    io.exit(_badUsageExitCode);
   }
 
   final basicBlocks = options['basic-blocks'];
@@ -54,12 +54,11 @@ int main(List<String> arguments) {
   if (!(new io.File(input).existsSync())) {
     print("The file '$input' does not exist");
     print(_usage);
-    return _badUsageExitCode;
+    io.exit(_badUsageExitCode);
   }
 
   NGramReader nGramReader = new NGramReader(input);
   nGramReader.readAllNGrams(windowSize,
       basicBlocks: basicBlocks, mergePushes: mergePushes);
   nGramReader.writeNGramStats(output, sort: sort, minCount: threshold);
-  return 0;
 }

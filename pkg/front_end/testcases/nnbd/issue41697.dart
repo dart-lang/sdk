@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-typedef G<T> = void Function<S extends T>(S);
-typedef H<T> = void Function<S extends FutureOr<T>>(S, FutureOr<T>);
+typedef G<T> = dynamic Function<S extends T>(S);
+typedef H<T> = dynamic Function<S extends FutureOr<T>>(S, FutureOr<T>);
 // TODO(johnniwinther): Enable and use these when #41951 is fixed to test that
 //  updating self referencing type parameters works.
 //typedef I<T> = void Function<S extends FutureOr<S>>(S, T);

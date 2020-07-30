@@ -786,7 +786,7 @@ f() {
   List<List<int>> b;
   b[0][0] = 'hi';
 }''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 39, 4),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 39, 4),
     ]);
     verifyTestResolved();
   }

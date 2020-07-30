@@ -449,6 +449,7 @@ class Object {
   V(LanguageError, branch_offset_error)                                        \
   V(LanguageError, speculative_inlining_error)                                 \
   V(LanguageError, background_compilation_error)                               \
+  V(LanguageError, out_of_memory_error)                                        \
   V(Array, vm_isolate_snapshot_object_table)                                   \
   V(Type, dynamic_type)                                                        \
   V(Type, void_type)                                                           \
@@ -3956,6 +3957,10 @@ class Field : public Object {
     return !raw_ptr()->owner_->IsField();
   }
 
+  // Returns whether fields must be cloned via [CloneFromOriginal] for the
+  // current compilation thread.
+  static bool ShouldCloneFields();
+
   // Returns a field cloned from 'this'. 'this' is set as the
   // original field of result.
   FieldPtr CloneFromOriginal() const;
@@ -6804,7 +6809,10 @@ class Context : public Object {
   static const intptr_t kAwaitJumpVarIndex = 0;
   static const intptr_t kAsyncCompleterIndex = 1;
   static const intptr_t kControllerIndex = 1;
-  static const intptr_t kChainedFutureIndex = 2;
+  // Expected context index of chained futures in recognized async functions.
+  // These are used to unwind async stacks.
+  static const intptr_t kFutureTimeoutFutureIndex = 2;
+  static const intptr_t kFutureWaitFutureIndex = 2;
 
   static intptr_t variable_offset(intptr_t context_index) {
     return OFFSET_OF_RETURNED_VALUE(ContextLayout, data) +

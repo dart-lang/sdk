@@ -9,6 +9,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/inferrer/types.dart';
 import 'package:compiler/src/world.dart' show JClosedWorld;
@@ -46,6 +47,7 @@ runTest() async {
       memorySourceFiles: MEMORY_SOURCE_FILES, options: [Flags.testMode]);
   Compiler compiler = result.compiler;
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
   Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
 
   void testTypeMatch(FunctionEntity function, TypeMask expectedParameterType,
@@ -54,12 +56,12 @@ runTest() async {
         closedWorld.globalLocalsMap, function, (Local parameter) {
       TypeMask type = results.resultOfParameter(parameter);
       Expect.equals(
-          expectedParameterType, simplify(type, closedWorld), "$parameter");
+          expectedParameterType, simplify(type, commonMasks), "$parameter");
     });
     if (expectedReturnType != null) {
       TypeMask type = results.resultOfMember(function).returnType;
       Expect.equals(
-          expectedReturnType, simplify(type, closedWorld), "$function");
+          expectedReturnType, simplify(type, commonMasks), "$function");
     }
   }
 

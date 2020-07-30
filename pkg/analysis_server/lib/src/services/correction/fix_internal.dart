@@ -528,6 +528,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE: [
       ImportLibrary.forType,
     ],
+    CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT: [
+      ImportLibrary.forType,
+    ],
     CompileTimeErrorCode.NOT_A_TYPE: [
       ImportLibrary.forType,
     ],
@@ -544,10 +547,23 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT: [
       AddSuperConstructorInvocation.newInstance,
     ],
+    CompileTimeErrorCode.UNDEFINED_FUNCTION: [
+      ImportLibrary.forExtension,
+      ImportLibrary.forFunction,
+      ImportLibrary.forType,
+    ],
+    CompileTimeErrorCode.UNDEFINED_GETTER: [
+      ImportLibrary.forTopLevelVariable,
+      ImportLibrary.forType,
+    ],
     CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
       ImportLibrary.forExtension,
       ImportLibrary.forFunction,
       ImportLibrary.forTopLevelVariable,
+      ImportLibrary.forType,
+    ],
+    CompileTimeErrorCode.UNDEFINED_METHOD: [
+      ImportLibrary.forFunction,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
@@ -561,22 +577,6 @@ class FixProcessor extends BaseProcessor {
     ],
     HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
       ImportLibrary.dartAsync,
-    ],
-    StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT: [
-      ImportLibrary.forType,
-    ],
-    StaticTypeWarningCode.UNDEFINED_FUNCTION: [
-      ImportLibrary.forExtension,
-      ImportLibrary.forFunction,
-      ImportLibrary.forType,
-    ],
-    StaticTypeWarningCode.UNDEFINED_GETTER: [
-      ImportLibrary.forTopLevelVariable,
-      ImportLibrary.forType,
-    ],
-    StaticTypeWarningCode.UNDEFINED_METHOD: [
-      ImportLibrary.forFunction,
-      ImportLibrary.forType,
     ],
   };
 
@@ -651,6 +651,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS: [
       AddFieldFormalParameters.newInstance,
     ],
+    CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE: [
+      ReplaceReturnTypeFuture.newInstance,
+    ],
     CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
       ChangeTo.classOrMixin,
       CreateClass.newInstance,
@@ -658,12 +661,22 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD: [
       CreateField.newInstance,
     ],
+    CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER: [
+      ChangeToStaticAccess.newInstance,
+    ],
     CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE: [
       ChangeToNearestPreciseValue.newInstance,
     ],
     CompileTimeErrorCode.INVALID_ANNOTATION: [
       ChangeTo.annotation,
       CreateClass.newInstance,
+    ],
+    CompileTimeErrorCode.INVALID_ASSIGNMENT: [
+      AddExplicitCast.newInstance,
+      ChangeTypeAnnotation.newInstance,
+    ],
+    CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION: [
+      RemoveParenthesesInGetterInvocation.newInstance,
     ],
     CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER: [
       AddRequiredKeyword.newInstance,
@@ -706,6 +719,13 @@ class FixProcessor extends BaseProcessor {
       CreateMissingOverrides.newInstance,
       CreateNoSuchMethod.newInstance,
       MakeClassAbstract.newInstance,
+    ],
+    CompileTimeErrorCode.NON_BOOL_CONDITION: [
+      AddNeNull.newInstance,
+    ],
+    CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT: [
+      CreateClass.newInstance,
+      CreateMixin.newInstance,
     ],
     CompileTimeErrorCode.NOT_A_TYPE: [
       ChangeTo.classOrMixin,
@@ -756,6 +776,20 @@ class FixProcessor extends BaseProcessor {
       ChangeTo.getterOrSetter,
       CreateSetter.newInstance,
     ],
+    CompileTimeErrorCode.UNDEFINED_FUNCTION: [
+      ChangeTo.function,
+      CreateClass.newInstance,
+      CreateFunction.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_GETTER: [
+      ChangeTo.getterOrSetter,
+      CreateClass.newInstance,
+      CreateField.newInstance,
+      CreateGetter.newInstance,
+      CreateLocalVariable.newInstance,
+      CreateMethodOrFunction.newInstance,
+      CreateMixin.newInstance,
+    ],
     CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
       ChangeTo.getterOrSetter,
       CreateClass.newInstance,
@@ -769,10 +803,27 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT: [
       AddAsync.newInstance,
     ],
+    CompileTimeErrorCode.UNDEFINED_METHOD: [
+      ChangeTo.method,
+      CreateClass.newInstance,
+      CreateFunction.newInstance,
+      CreateMethod.method,
+    ],
     CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
       AddMissingParameterNamed.newInstance,
       ConvertFlutterChild.newInstance,
       ConvertFlutterChildren.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_SETTER: [
+      ChangeTo.getterOrSetter,
+      CreateField.newInstance,
+      CreateSetter.newInstance,
+    ],
+    CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER: [
+      // TODO(brianwilkerson) Consider adding fixes to create a field, getter,
+      //  method or setter. The existing _addFix methods would need to be
+      //  updated so that only the appropriate subset is generated.
+      QualifyReference.newInstance,
     ],
     CompileTimeErrorCode
         .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE: [
@@ -783,6 +834,10 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.URI_DOES_NOT_EXIST: [
       CreateFile.newInstance,
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
+      MoveTypeArgumentsToClass.newInstance,
+      RemoveTypeArguments.newInstance,
     ],
 
     HintCode.CAN_BE_NULL_AFTER_NULL_AWARE: [
@@ -942,61 +997,6 @@ class FixProcessor extends BaseProcessor {
     ],
     ParserErrorCode.VAR_AS_TYPE_NAME: [
       ReplaceVarWithDynamic.newInstance,
-    ],
-    StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE: [
-      ReplaceReturnTypeFuture.newInstance,
-    ],
-    StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER: [
-      ChangeToStaticAccess.newInstance,
-    ],
-    StaticTypeWarningCode.INVALID_ASSIGNMENT: [
-      AddExplicitCast.newInstance,
-      ChangeTypeAnnotation.newInstance,
-    ],
-    StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION: [
-      RemoveParenthesesInGetterInvocation.newInstance,
-    ],
-    StaticTypeWarningCode.NON_BOOL_CONDITION: [
-      AddNeNull.newInstance,
-    ],
-    StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT: [
-      CreateClass.newInstance,
-      CreateMixin.newInstance,
-    ],
-    StaticTypeWarningCode.UNDEFINED_FUNCTION: [
-      ChangeTo.function,
-      CreateClass.newInstance,
-      CreateFunction.newInstance,
-    ],
-    StaticTypeWarningCode.UNDEFINED_GETTER: [
-      ChangeTo.getterOrSetter,
-      CreateClass.newInstance,
-      CreateField.newInstance,
-      CreateGetter.newInstance,
-      CreateLocalVariable.newInstance,
-      CreateMethodOrFunction.newInstance,
-      CreateMixin.newInstance,
-    ],
-    StaticTypeWarningCode.UNDEFINED_METHOD: [
-      ChangeTo.method,
-      CreateClass.newInstance,
-      CreateFunction.newInstance,
-      CreateMethod.method,
-    ],
-    StaticTypeWarningCode.UNDEFINED_SETTER: [
-      ChangeTo.getterOrSetter,
-      CreateField.newInstance,
-      CreateSetter.newInstance,
-    ],
-    StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
-      MoveTypeArgumentsToClass.newInstance,
-      RemoveTypeArguments.newInstance,
-    ],
-    StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER: [
-      // TODO(brianwilkerson) Consider adding fixes to create a field, getter,
-      //  method or setter. The existing _addFix methods would need to be
-      //  updated so that only the appropriate subset is generated.
-      QualifyReference.newInstance,
     ],
     StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [
       RemoveDeadIfNull.newInstance,

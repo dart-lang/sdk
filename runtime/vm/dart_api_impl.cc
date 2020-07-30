@@ -3820,10 +3820,20 @@ static Dart_TypedData_Type GetType(intptr_t class_id) {
     case kExternalTypedDataFloat64ArrayCid:
       type = Dart_TypedData_kFloat64;
       break;
+    case kTypedDataInt32x4ArrayCid:
+    case kTypedDataInt32x4ArrayViewCid:
+    case kExternalTypedDataInt32x4ArrayCid:
+      type = Dart_TypedData_kInt32x4;
+      break;
     case kTypedDataFloat32x4ArrayCid:
     case kTypedDataFloat32x4ArrayViewCid:
     case kExternalTypedDataFloat32x4ArrayCid:
       type = Dart_TypedData_kFloat32x4;
+      break;
+    case kTypedDataFloat64x2ArrayCid:
+    case kTypedDataFloat64x2ArrayViewCid:
+    case kExternalTypedDataFloat64x2ArrayCid:
+      type = Dart_TypedData_kFloat64x2;
       break;
     default:
       type = Dart_TypedData_kInvalid;
@@ -4000,8 +4010,12 @@ DART_EXPORT Dart_Handle Dart_NewTypedData(Dart_TypedData_Type type,
       return NewTypedData(T, kTypedDataFloat32ArrayCid, length);
     case Dart_TypedData_kFloat64:
       return NewTypedData(T, kTypedDataFloat64ArrayCid, length);
+    case Dart_TypedData_kInt32x4:
+      return NewTypedData(T, kTypedDataInt32x4ArrayCid, length);
     case Dart_TypedData_kFloat32x4:
       return NewTypedData(T, kTypedDataFloat32x4ArrayCid, length);
+    case Dart_TypedData_kFloat64x2:
+      return NewTypedData(T, kTypedDataFloat64x2ArrayCid, length);
     default:
       return Api::NewError("%s expects argument 'type' to be of 'TypedData'",
                            CURRENT_FUNC);
@@ -4077,8 +4091,16 @@ DART_EXPORT Dart_Handle Dart_NewExternalTypedDataWithFinalizer(
       return NewExternalTypedData(T, kExternalTypedDataFloat64ArrayCid, data,
                                   length, peer, external_allocation_size,
                                   callback);
+    case Dart_TypedData_kInt32x4:
+      return NewExternalTypedData(T, kExternalTypedDataInt32x4ArrayCid, data,
+                                  length, peer, external_allocation_size,
+                                  callback);
     case Dart_TypedData_kFloat32x4:
       return NewExternalTypedData(T, kExternalTypedDataFloat32x4ArrayCid, data,
+                                  length, peer, external_allocation_size,
+                                  callback);
+    case Dart_TypedData_kFloat64x2:
+      return NewExternalTypedData(T, kExternalTypedDataFloat64x2ArrayCid, data,
                                   length, peer, external_allocation_size,
                                   callback);
     default:

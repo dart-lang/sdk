@@ -40,8 +40,13 @@ class RemoveUnusedParameter extends CorrectionProducer {
               // The parameter to be removed and the following parameter are not
               // of the same kind, so there is a delimiter between them that we
               // can't delete.
-              builder.addDeletion(
-                  range.startStart(parameter, parameterList.leftDelimiter));
+              var leftDelimiter = parameterList.leftDelimiter;
+              if (leftDelimiter != null) {
+                builder.addDeletion(range.startStart(parameter, leftDelimiter));
+              } else {
+                // Invalid code `C(foo, bar = 1)`.
+                builder.addDeletion(range.startStart(parameter, following));
+              }
             } else {
               // The parameter to be removed and the following parameter are of
               // the same kind, so there is no delimiter between them.

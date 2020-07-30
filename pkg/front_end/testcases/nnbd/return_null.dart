@@ -114,7 +114,7 @@ localFunctions() {
   }
 
   bool b = false;
-  var local1 = () /* error */ {
+  var local1 = () /* ok */ {
     if (b) return 0;
   }();
   var local2 = () /* ok */ {

@@ -44,11 +44,11 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "d79951e06e443213243e54c2c32694b79a221b65",
-  "co19_2_rev": "620c1148c8b7a3d7f74afacf348c46f109eb64f2",
+  "co19_rev": "86c948fbe7c8a9e74f572038f2ec70dfce7f20b0",
+  "co19_2_rev": "e48b3090826cf40b8037648f19d211e8eab1b4b6",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
-  "benchmarks_internal_rev": "0e59a6bc3ee912273865b87709cdb698be358e30",
+  "benchmarks_internal_rev": "9bc9e373b3d3cacdd7aba906caea77075c6cd2e3",
   "checkout_benchmarks_internal": False,
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -79,7 +79,7 @@ vars = {
   "collection_rev": "583693680fc067e34ca5b72503df25e8b80579f9",
   "convert_rev": "49bde5b371eb5c2c8e721557cf762f17c75e49fc",
   "crypto_rev": "7422fb2f6584fe1839eb30bc4ca56e9f9760b801",
-  "csslib_rev": "bf372d4fdc6dfa232ad93f77a0a3de0891edd04c",
+  "csslib_rev": "451448a9ac03f87a8d0377fc0b411d8c388a6cb4",
   "dart2js_info_tag" : "0.6.0",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
@@ -97,7 +97,7 @@ vars = {
   "dart_style_tag": "1.3.6",  # Please see the note above before updating.
 
   "chromedriver_tag": "83.0.4103.39",
-  "dartdoc_tag" : "v0.32.2",
+  "dartdoc_rev" : "6d5396c2b4bc415ab9cb3d8212b87ecffd90a272",
   "ffi_rev": "454ab0f9ea6bd06942a983238d8a6818b1357edb",
   "fixnum_rev": "300c3f025e94a72b7b6770e15f76a4de15f77668",
   "glob_rev": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
@@ -116,7 +116,7 @@ vars = {
   "linter_tag": "0.1.117",
   "logging_rev": "9561ba016ae607747ae69b846c0e10958ca58ed4",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
-  "markdown_rev": "dd150bb64c5f3b41d31f20f399ae2a855f7f8c00",
+  "markdown_rev": "acaddfe74217f62498b5cf0cf5429efa6a700be3",
   "matcher_rev": "9cae8faa7868bf3a88a7ba45eb0bd128e66ac515",
   "mime_rev": "179b5e6a88f4b63f36dc1b8fcbc1e83e5e0cd3a7",
   "mockito_rev": "d39ac507483b9891165e422ec98d9fb480037c8b",
@@ -326,7 +326,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/dart2js_info":
       Var("dart_git") + "dart2js_info.git" + "@" + Var("dart2js_info_tag"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
-      Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_tag"),
+      Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_rev"),
   Var("dart_root") + "/third_party/pkg/ffi":
       Var("dart_git") + "ffi.git" + "@" + Var("ffi_rev"),
   Var("dart_root") + "/third_party/pkg/fixnum":

@@ -10,7 +10,12 @@ import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_empty_else.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
@@ -29,8 +34,16 @@ class BulkFixProcessor {
   /// generators used for non-lint diagnostics are in the [nonLintProducerMap].
   static const Map<String, ProducerGenerator> lintProducerMap = {
     LintNames.annotate_overrides: AddOverride.newInstance,
+    LintNames.avoid_annotating_with_dynamic: RemoveTypeAnnotation.newInstance,
+    LintNames.avoid_empty_else: RemoveEmptyElse.newInstance,
+    LintNames.avoid_init_to_null: RemoveInitializer.newInstance,
+    LintNames.avoid_redundant_argument_values: RemoveArgument.newInstance,
+    LintNames.avoid_return_types_on_setters: RemoveTypeAnnotation.newInstance,
     LintNames.avoid_single_cascade_in_expression_statements:
         ReplaceCascadeWithDot.newInstance,
+    LintNames.avoid_types_on_closure_parameters:
+        RemoveTypeAnnotation.newInstance,
+    LintNames.prefer_contains: ConvertToContains.newInstance,
     LintNames.prefer_equal_for_default_values:
         ReplaceColonWithEquals.newInstance,
     LintNames.slash_for_doc_comments: ConvertDocumentationIntoLine.newInstance,

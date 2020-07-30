@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:args/args.dart';
 
 import '../core.dart';
 import '../experiments.dart';
 import '../sdk.dart';
+import '../vm_interop_handler.dart';
 
 class TestCommand extends DartdevCommand<int> {
   TestCommand() : super('test', 'Runs tests in this project.');
@@ -19,29 +19,34 @@ class TestCommand extends DartdevCommand<int> {
 
   @override
   void printUsage() {
+    if (!Sdk.checkArtifactExists(sdk.pub)) {
+      return;
+    }
+    if ((project.packageConfig != null) &&
+        !project.packageConfig.hasDependency('test')) {
+      _printPackageTestInstructions();
+    }
     final command = sdk.pub;
     final args = ['run', 'test', '--help'];
 
     log.trace('$command ${args.join(' ')}');
-
-    final result = Process.runSync(command, args);
-    if (result.stderr.isNotEmpty) {
-      stderr.write(result.stderr);
-    }
-    if (result.stdout.isNotEmpty) {
-      stdout.write(result.stdout);
-    }
-
-    // "Could not find package "test". Did you forget to add a dependency?"
-    if (result.exitCode == 65 && project.hasPackageConfigFile) {
-      if (!project.packageConfig.hasDependency('test')) {
-        _printPackageTestInstructions();
-      }
-    }
+    VmInteropHandler.run(command, args);
   }
 
   @override
   FutureOr<int> run() async {
+    if (!Sdk.checkArtifactExists(sdk.pub)) {
+      return 255;
+    }
+    // "Could not find package "test". Did you forget to add a dependency?"
+    if (project.hasPackageConfigFile) {
+      if ((project.packageConfig != null) &&
+          !project.packageConfig.hasDependency('test')) {
+        _printPackageTestInstructions();
+        return 65;
+      }
+    }
+
     final command = sdk.pub;
     final testArgs = argResults.arguments.toList();
 
@@ -54,22 +59,8 @@ class TestCommand extends DartdevCommand<int> {
     ];
 
     log.trace('$command ${args.join(' ')}');
-
-    // Starting in ProcessStartMode.inheritStdio mode means the child process
-    // can detect support for ansi chars.
-    var process =
-        await Process.start(command, args, mode: ProcessStartMode.inheritStdio);
-
-    int exitCode = await process.exitCode;
-
-    // "Could not find package "test". Did you forget to add a dependency?"
-    if (exitCode == 65 && project.hasPackageConfigFile) {
-      if (!project.packageConfig.hasDependency('test')) {
-        _printPackageTestInstructions();
-      }
-    }
-
-    return exitCode;
+    VmInteropHandler.run(command, args);
+    return 0;
   }
 
   void _printPackageTestInstructions() {

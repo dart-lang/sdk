@@ -13,7 +13,8 @@ import 'package:observatory/src/elements/helpers/custom_element.dart';
 class ObservatoryApplicationElement extends CustomElement {
   ObservatoryApplication app;
 
-  ObservatoryApplicationElement.created() : super.created('observatory-application');
+  ObservatoryApplicationElement.created()
+      : super.created('observatory-application');
 
   @override
   void attached() {

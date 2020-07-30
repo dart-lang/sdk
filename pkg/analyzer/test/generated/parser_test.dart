@@ -6880,7 +6880,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     InstanceCreationExpressionImpl expression =
         parseExpression('new a.b.c<C>()', errors: [
       expectedError(
-          StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
           8,
           1)
     ]);
@@ -15153,7 +15153,7 @@ main() {
     }
     var statement = parseStatement('const A<B>.c<C>();') as ExpressionStatement;
     assertErrorsWithCodes(
-        [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR]);
+        [CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR]);
     expect(statement.expression, isNotNull);
   }
 

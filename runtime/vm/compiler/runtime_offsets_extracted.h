@@ -18,6 +18,10 @@
 #if !defined(PRODUCT)
 
 #if defined(TARGET_ARCH_ARM)
+static constexpr dart::compiler::target::word Function_usage_counter_offset =
+    76;
+static constexpr dart::compiler::target::word
+    ICData_receivers_static_type_offset = 16;
 static constexpr dart::compiler::target::word ObjectPool_elements_start_offset =
     8;
 static constexpr dart::compiler::target::word ObjectPool_element_size = 4;
@@ -118,8 +122,6 @@ static constexpr dart::compiler::target::word Field_kind_bits_offset = 58;
 static constexpr dart::compiler::target::word Function_code_offset = 44;
 static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
     4, 8};
-static constexpr dart::compiler::target::word Function_usage_counter_offset =
-    76;
 static constexpr dart::compiler::target::word FutureOr_type_arguments_offset =
     4;
 static constexpr dart::compiler::target::word GrowableObjectArray_data_offset =
@@ -136,8 +138,6 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 12;
 static constexpr dart::compiler::target::word ICData_owner_offset = 20;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 28;
-static constexpr dart::compiler::target::word
-    ICData_receivers_static_type_offset = 16;
 static constexpr dart::compiler::target::word
     Isolate_shared_class_table_offset = 36;
 static constexpr dart::compiler::target::word
@@ -510,6 +510,10 @@ static constexpr dart::compiler::target::word
 #endif  // defined(TARGET_ARCH_ARM)
 
 #if defined(TARGET_ARCH_X64)
+static constexpr dart::compiler::target::word Function_usage_counter_offset =
+    132;
+static constexpr dart::compiler::target::word
+    ICData_receivers_static_type_offset = 32;
 static constexpr dart::compiler::target::word ObjectPool_elements_start_offset =
     16;
 static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
@@ -612,8 +616,6 @@ static constexpr dart::compiler::target::word Field_kind_bits_offset = 98;
 static constexpr dart::compiler::target::word Function_code_offset = 88;
 static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
     8, 16};
-static constexpr dart::compiler::target::word Function_usage_counter_offset =
-    132;
 static constexpr dart::compiler::target::word FutureOr_type_arguments_offset =
     8;
 static constexpr dart::compiler::target::word GrowableObjectArray_data_offset =
@@ -630,8 +632,6 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 24;
 static constexpr dart::compiler::target::word ICData_owner_offset = 40;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 52;
-static constexpr dart::compiler::target::word
-    ICData_receivers_static_type_offset = 32;
 static constexpr dart::compiler::target::word
     Isolate_shared_class_table_offset = 72;
 static constexpr dart::compiler::target::word
@@ -1010,6 +1010,10 @@ static constexpr dart::compiler::target::word
 #endif  // defined(TARGET_ARCH_X64)
 
 #if defined(TARGET_ARCH_IA32)
+static constexpr dart::compiler::target::word Function_usage_counter_offset =
+    76;
+static constexpr dart::compiler::target::word
+    ICData_receivers_static_type_offset = 16;
 static constexpr dart::compiler::target::word ObjectPool_elements_start_offset =
     8;
 static constexpr dart::compiler::target::word ObjectPool_element_size = 4;
@@ -1110,8 +1114,6 @@ static constexpr dart::compiler::target::word Field_kind_bits_offset = 58;
 static constexpr dart::compiler::target::word Function_code_offset = 44;
 static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
     4, 8};
-static constexpr dart::compiler::target::word Function_usage_counter_offset =
-    76;
 static constexpr dart::compiler::target::word FutureOr_type_arguments_offset =
     4;
 static constexpr dart::compiler::target::word GrowableObjectArray_data_offset =
@@ -1128,8 +1130,6 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 12;
 static constexpr dart::compiler::target::word ICData_owner_offset = 20;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 28;
-static constexpr dart::compiler::target::word
-    ICData_receivers_static_type_offset = 16;
 static constexpr dart::compiler::target::word
     Isolate_shared_class_table_offset = 36;
 static constexpr dart::compiler::target::word
@@ -1499,6 +1499,10 @@ static constexpr dart::compiler::target::word
 #endif  // defined(TARGET_ARCH_IA32)
 
 #if defined(TARGET_ARCH_ARM64)
+static constexpr dart::compiler::target::word Function_usage_counter_offset =
+    132;
+static constexpr dart::compiler::target::word
+    ICData_receivers_static_type_offset = 32;
 static constexpr dart::compiler::target::word ObjectPool_elements_start_offset =
     16;
 static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
@@ -1601,8 +1605,6 @@ static constexpr dart::compiler::target::word Field_kind_bits_offset = 98;
 static constexpr dart::compiler::target::word Function_code_offset = 88;
 static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
     8, 16};
-static constexpr dart::compiler::target::word Function_usage_counter_offset =
-    132;
 static constexpr dart::compiler::target::word FutureOr_type_arguments_offset =
     8;
 static constexpr dart::compiler::target::word GrowableObjectArray_data_offset =
@@ -1619,8 +1621,6 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 24;
 static constexpr dart::compiler::target::word ICData_owner_offset = 40;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 52;
-static constexpr dart::compiler::target::word
-    ICData_receivers_static_type_offset = 32;
 static constexpr dart::compiler::target::word
     Isolate_shared_class_table_offset = 72;
 static constexpr dart::compiler::target::word
@@ -2002,6 +2002,10 @@ static constexpr dart::compiler::target::word
 #else  // !defined(PRODUCT)
 
 #if defined(TARGET_ARCH_ARM)
+static constexpr dart::compiler::target::word Function_usage_counter_offset =
+    76;
+static constexpr dart::compiler::target::word
+    ICData_receivers_static_type_offset = 16;
 static constexpr dart::compiler::target::word ObjectPool_elements_start_offset =
     8;
 static constexpr dart::compiler::target::word ObjectPool_element_size = 4;
@@ -2100,8 +2104,6 @@ static constexpr dart::compiler::target::word Field_kind_bits_offset = 58;
 static constexpr dart::compiler::target::word Function_code_offset = 44;
 static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
     4, 8};
-static constexpr dart::compiler::target::word Function_usage_counter_offset =
-    76;
 static constexpr dart::compiler::target::word FutureOr_type_arguments_offset =
     4;
 static constexpr dart::compiler::target::word GrowableObjectArray_data_offset =
@@ -2118,8 +2120,6 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 12;
 static constexpr dart::compiler::target::word ICData_owner_offset = 20;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 28;
-static constexpr dart::compiler::target::word
-    ICData_receivers_static_type_offset = 16;
 static constexpr dart::compiler::target::word
     Isolate_shared_class_table_offset = 36;
 static constexpr dart::compiler::target::word
@@ -2488,6 +2488,10 @@ static constexpr dart::compiler::target::word
 #endif  // defined(TARGET_ARCH_ARM)
 
 #if defined(TARGET_ARCH_X64)
+static constexpr dart::compiler::target::word Function_usage_counter_offset =
+    132;
+static constexpr dart::compiler::target::word
+    ICData_receivers_static_type_offset = 32;
 static constexpr dart::compiler::target::word ObjectPool_elements_start_offset =
     16;
 static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
@@ -2588,8 +2592,6 @@ static constexpr dart::compiler::target::word Field_kind_bits_offset = 98;
 static constexpr dart::compiler::target::word Function_code_offset = 88;
 static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
     8, 16};
-static constexpr dart::compiler::target::word Function_usage_counter_offset =
-    132;
 static constexpr dart::compiler::target::word FutureOr_type_arguments_offset =
     8;
 static constexpr dart::compiler::target::word GrowableObjectArray_data_offset =
@@ -2606,8 +2608,6 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 24;
 static constexpr dart::compiler::target::word ICData_owner_offset = 40;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 52;
-static constexpr dart::compiler::target::word
-    ICData_receivers_static_type_offset = 32;
 static constexpr dart::compiler::target::word
     Isolate_shared_class_table_offset = 72;
 static constexpr dart::compiler::target::word
@@ -2982,6 +2982,10 @@ static constexpr dart::compiler::target::word
 #endif  // defined(TARGET_ARCH_X64)
 
 #if defined(TARGET_ARCH_IA32)
+static constexpr dart::compiler::target::word Function_usage_counter_offset =
+    76;
+static constexpr dart::compiler::target::word
+    ICData_receivers_static_type_offset = 16;
 static constexpr dart::compiler::target::word ObjectPool_elements_start_offset =
     8;
 static constexpr dart::compiler::target::word ObjectPool_element_size = 4;
@@ -3080,8 +3084,6 @@ static constexpr dart::compiler::target::word Field_kind_bits_offset = 58;
 static constexpr dart::compiler::target::word Function_code_offset = 44;
 static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
     4, 8};
-static constexpr dart::compiler::target::word Function_usage_counter_offset =
-    76;
 static constexpr dart::compiler::target::word FutureOr_type_arguments_offset =
     4;
 static constexpr dart::compiler::target::word GrowableObjectArray_data_offset =
@@ -3098,8 +3100,6 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 12;
 static constexpr dart::compiler::target::word ICData_owner_offset = 20;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 28;
-static constexpr dart::compiler::target::word
-    ICData_receivers_static_type_offset = 16;
 static constexpr dart::compiler::target::word
     Isolate_shared_class_table_offset = 36;
 static constexpr dart::compiler::target::word
@@ -3465,6 +3465,10 @@ static constexpr dart::compiler::target::word
 #endif  // defined(TARGET_ARCH_IA32)
 
 #if defined(TARGET_ARCH_ARM64)
+static constexpr dart::compiler::target::word Function_usage_counter_offset =
+    132;
+static constexpr dart::compiler::target::word
+    ICData_receivers_static_type_offset = 32;
 static constexpr dart::compiler::target::word ObjectPool_elements_start_offset =
     16;
 static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
@@ -3565,8 +3569,6 @@ static constexpr dart::compiler::target::word Field_kind_bits_offset = 98;
 static constexpr dart::compiler::target::word Function_code_offset = 88;
 static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
     8, 16};
-static constexpr dart::compiler::target::word Function_usage_counter_offset =
-    132;
 static constexpr dart::compiler::target::word FutureOr_type_arguments_offset =
     8;
 static constexpr dart::compiler::target::word GrowableObjectArray_data_offset =
@@ -3583,8 +3585,6 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 24;
 static constexpr dart::compiler::target::word ICData_owner_offset = 40;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 52;
-static constexpr dart::compiler::target::word
-    ICData_receivers_static_type_offset = 32;
 static constexpr dart::compiler::target::word
     Isolate_shared_class_table_offset = 72;
 static constexpr dart::compiler::target::word
@@ -4059,6 +4059,13 @@ static constexpr dart::compiler::target::word
     AOT_Field_initializer_function_offset = 16;
 static constexpr dart::compiler::target::word
     AOT_Field_host_offset_or_field_id_offset = 20;
+static constexpr dart::compiler::target::word AOT_Field_guarded_cid_offset = 40;
+static constexpr dart::compiler::target::word
+    AOT_Field_guarded_list_length_in_object_offset_offset = 44;
+static constexpr dart::compiler::target::word
+    AOT_Field_guarded_list_length_offset = 24;
+static constexpr dart::compiler::target::word AOT_Field_is_nullable_offset = 42;
+static constexpr dart::compiler::target::word AOT_Field_kind_bits_offset = 46;
 static constexpr dart::compiler::target::word AOT_Function_code_offset = 44;
 static constexpr dart::compiler::target::word
     AOT_Function_entry_point_offset[] = {4, 8};
@@ -4077,6 +4084,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask = 3;
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedShift = 0;
 static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 12;
+static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 16;
+static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset = 20;
 static constexpr dart::compiler::target::word
     AOT_Isolate_shared_class_table_offset = 36;
 static constexpr dart::compiler::target::word
@@ -4596,6 +4605,13 @@ static constexpr dart::compiler::target::word
     AOT_Field_initializer_function_offset = 32;
 static constexpr dart::compiler::target::word
     AOT_Field_host_offset_or_field_id_offset = 40;
+static constexpr dart::compiler::target::word AOT_Field_guarded_cid_offset = 72;
+static constexpr dart::compiler::target::word
+    AOT_Field_guarded_list_length_in_object_offset_offset = 76;
+static constexpr dart::compiler::target::word
+    AOT_Field_guarded_list_length_offset = 48;
+static constexpr dart::compiler::target::word AOT_Field_is_nullable_offset = 74;
+static constexpr dart::compiler::target::word AOT_Field_kind_bits_offset = 78;
 static constexpr dart::compiler::target::word AOT_Function_code_offset = 88;
 static constexpr dart::compiler::target::word
     AOT_Function_entry_point_offset[] = {8, 16};
@@ -4614,6 +4630,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask = 3;
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedShift = 0;
 static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 24;
+static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 32;
+static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset = 40;
 static constexpr dart::compiler::target::word
     AOT_Isolate_shared_class_table_offset = 72;
 static constexpr dart::compiler::target::word
@@ -5139,6 +5157,13 @@ static constexpr dart::compiler::target::word
     AOT_Field_initializer_function_offset = 32;
 static constexpr dart::compiler::target::word
     AOT_Field_host_offset_or_field_id_offset = 40;
+static constexpr dart::compiler::target::word AOT_Field_guarded_cid_offset = 72;
+static constexpr dart::compiler::target::word
+    AOT_Field_guarded_list_length_in_object_offset_offset = 76;
+static constexpr dart::compiler::target::word
+    AOT_Field_guarded_list_length_offset = 48;
+static constexpr dart::compiler::target::word AOT_Field_is_nullable_offset = 74;
+static constexpr dart::compiler::target::word AOT_Field_kind_bits_offset = 78;
 static constexpr dart::compiler::target::word AOT_Function_code_offset = 88;
 static constexpr dart::compiler::target::word
     AOT_Function_entry_point_offset[] = {8, 16};
@@ -5157,6 +5182,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask = 3;
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedShift = 0;
 static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 24;
+static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 32;
+static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset = 40;
 static constexpr dart::compiler::target::word
     AOT_Isolate_shared_class_table_offset = 72;
 static constexpr dart::compiler::target::word
@@ -5679,6 +5706,13 @@ static constexpr dart::compiler::target::word
     AOT_Field_initializer_function_offset = 16;
 static constexpr dart::compiler::target::word
     AOT_Field_host_offset_or_field_id_offset = 20;
+static constexpr dart::compiler::target::word AOT_Field_guarded_cid_offset = 40;
+static constexpr dart::compiler::target::word
+    AOT_Field_guarded_list_length_in_object_offset_offset = 44;
+static constexpr dart::compiler::target::word
+    AOT_Field_guarded_list_length_offset = 24;
+static constexpr dart::compiler::target::word AOT_Field_is_nullable_offset = 42;
+static constexpr dart::compiler::target::word AOT_Field_kind_bits_offset = 46;
 static constexpr dart::compiler::target::word AOT_Function_code_offset = 44;
 static constexpr dart::compiler::target::word
     AOT_Function_entry_point_offset[] = {4, 8};
@@ -5697,6 +5731,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask = 3;
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedShift = 0;
 static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 12;
+static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 16;
+static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset = 20;
 static constexpr dart::compiler::target::word
     AOT_Isolate_shared_class_table_offset = 36;
 static constexpr dart::compiler::target::word
@@ -6209,6 +6245,13 @@ static constexpr dart::compiler::target::word
     AOT_Field_initializer_function_offset = 32;
 static constexpr dart::compiler::target::word
     AOT_Field_host_offset_or_field_id_offset = 40;
+static constexpr dart::compiler::target::word AOT_Field_guarded_cid_offset = 72;
+static constexpr dart::compiler::target::word
+    AOT_Field_guarded_list_length_in_object_offset_offset = 76;
+static constexpr dart::compiler::target::word
+    AOT_Field_guarded_list_length_offset = 48;
+static constexpr dart::compiler::target::word AOT_Field_is_nullable_offset = 74;
+static constexpr dart::compiler::target::word AOT_Field_kind_bits_offset = 78;
 static constexpr dart::compiler::target::word AOT_Function_code_offset = 88;
 static constexpr dart::compiler::target::word
     AOT_Function_entry_point_offset[] = {8, 16};
@@ -6227,6 +6270,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask = 3;
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedShift = 0;
 static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 24;
+static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 32;
+static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset = 40;
 static constexpr dart::compiler::target::word
     AOT_Isolate_shared_class_table_offset = 72;
 static constexpr dart::compiler::target::word
@@ -6745,6 +6790,13 @@ static constexpr dart::compiler::target::word
     AOT_Field_initializer_function_offset = 32;
 static constexpr dart::compiler::target::word
     AOT_Field_host_offset_or_field_id_offset = 40;
+static constexpr dart::compiler::target::word AOT_Field_guarded_cid_offset = 72;
+static constexpr dart::compiler::target::word
+    AOT_Field_guarded_list_length_in_object_offset_offset = 76;
+static constexpr dart::compiler::target::word
+    AOT_Field_guarded_list_length_offset = 48;
+static constexpr dart::compiler::target::word AOT_Field_is_nullable_offset = 74;
+static constexpr dart::compiler::target::word AOT_Field_kind_bits_offset = 78;
 static constexpr dart::compiler::target::word AOT_Function_code_offset = 88;
 static constexpr dart::compiler::target::word
     AOT_Function_entry_point_offset[] = {8, 16};
@@ -6763,6 +6815,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask = 3;
 static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedShift = 0;
 static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 24;
+static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 32;
+static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset = 40;
 static constexpr dart::compiler::target::word
     AOT_Isolate_shared_class_table_offset = 72;
 static constexpr dart::compiler::target::word

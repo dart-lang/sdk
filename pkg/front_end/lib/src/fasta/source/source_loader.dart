@@ -81,11 +81,8 @@ import '../builder/type_declaration_builder.dart';
 
 import '../export.dart' show Export;
 
-import '../import.dart' show Import;
-
 import '../fasta_codes.dart'
     show
-        LocatedMessage,
         Message,
         SummaryTemplate,
         Template,
@@ -100,10 +97,6 @@ import '../fasta_codes.dart'
         templateAmbiguousSupertypes,
         templateCantReadFile,
         templateCyclicClassHierarchy,
-        templateDuplicatedLibraryExport,
-        templateDuplicatedLibraryExportContext,
-        templateDuplicatedLibraryImport,
-        templateDuplicatedLibraryImportContext,
         templateExtendingEnum,
         templateExtendingRestricted,
         templateIllegalMixin,
@@ -916,82 +909,7 @@ class SourceLoader extends Loader {
 
   List<SourceClassBuilder> checkSemantics(ClassBuilder objectClass) {
     checkObjectClassHierarchy(objectClass);
-    List<SourceClassBuilder> classes = handleHierarchyCycles(objectClass);
-
-    // Check imports and exports for duplicate names.
-    // This is rather silly, e.g. it makes importing 'foo' and exporting another
-    // 'foo' ok.
-    builders.forEach((Uri uri, LibraryBuilder library) {
-      if (library is SourceLibraryBuilder && library.loader == this) {
-        // Check exports.
-        if (library.exports.isNotEmpty) {
-          Map<String, List<Export>> nameToExports;
-          bool errorExports = false;
-          for (Export export in library.exports) {
-            String name = export.exported?.name ?? '';
-            if (name != '') {
-              nameToExports ??= new Map<String, List<Export>>();
-              List<Export> exports = nameToExports[name] ??= <Export>[];
-              exports.add(export);
-              if (exports[0].exported != export.exported) errorExports = true;
-            }
-          }
-          if (errorExports) {
-            for (String name in nameToExports.keys) {
-              List<Export> exports = nameToExports[name];
-              if (exports.length < 2) continue;
-              List<LocatedMessage> context = <LocatedMessage>[];
-              for (Export export in exports.skip(1)) {
-                context.add(templateDuplicatedLibraryExportContext
-                    .withArguments(name)
-                    .withLocation(uri, export.charOffset, noLength));
-              }
-              library.addProblem(
-                  templateDuplicatedLibraryExport.withArguments(name),
-                  exports[0].charOffset,
-                  noLength,
-                  uri,
-                  context: context);
-            }
-          }
-        }
-
-        // Check imports.
-        if (library.imports.isNotEmpty) {
-          Map<String, List<Import>> nameToImports;
-          bool errorImports;
-          for (Import import in library.imports) {
-            String name = import.imported?.name ?? '';
-            if (name != '') {
-              nameToImports ??= new Map<String, List<Import>>();
-              List<Import> imports = nameToImports[name] ??= <Import>[];
-              imports.add(import);
-              if (imports[0].imported != import.imported) errorImports = true;
-            }
-          }
-          if (errorImports != null) {
-            for (String name in nameToImports.keys) {
-              List<Import> imports = nameToImports[name];
-              if (imports.length < 2) continue;
-              List<LocatedMessage> context = <LocatedMessage>[];
-              for (Import import in imports.skip(1)) {
-                context.add(templateDuplicatedLibraryImportContext
-                    .withArguments(name)
-                    .withLocation(uri, import.charOffset, noLength));
-              }
-              library.addProblem(
-                  templateDuplicatedLibraryImport.withArguments(name),
-                  imports[0].charOffset,
-                  noLength,
-                  uri,
-                  context: context);
-            }
-          }
-        }
-      }
-    });
-    ticker.logMs("Checked imports and exports for duplicate names");
-    return classes;
+    return handleHierarchyCycles(objectClass);
   }
 
   void buildComponent() {
@@ -1284,12 +1202,6 @@ class SourceLoader extends Loader {
       }
       transformer.exitLibrary();
     }
-  }
-
-  Expression instantiateInvocation(Expression receiver, String name,
-      Arguments arguments, int offset, bool isSuper) {
-    return target.backendTarget.instantiateInvocation(
-        coreTypes, receiver, name, arguments, offset, isSuper);
   }
 
   Expression instantiateNoSuchMethodError(

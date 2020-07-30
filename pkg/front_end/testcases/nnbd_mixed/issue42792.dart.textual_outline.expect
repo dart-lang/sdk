@@ -1,0 +1,7 @@
+import 'issue42792_lib.dart';
+
+mixin M<T> on A<T> {}
+
+class B extends A<int> with M {}
+
+void main() {}

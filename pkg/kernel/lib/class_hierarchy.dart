@@ -48,6 +48,24 @@ abstract class ClassHierarchyBase {
   /// If multiple members with that name are inherited and not overridden, the
   /// member from the first declared supertype is returned.
   Member getInterfaceMember(Class class_, Name name, {bool setter: false});
+
+  /// Returns the least upper bound of two interface types, as defined by Dart
+  /// 1.0.
+  ///
+  /// Given two interfaces I and J, let S_I be the set of superinterfaces of I,
+  /// let S_J be the set of superinterfaces of J, and let
+  /// S = (I union S_I) intersect (J union S_J).  Furthermore, we define
+  /// S_n = {T | T in S and depth(T) = n} for any finite n where depth(T) is
+  /// the number of steps in the longest inheritance path from T to Object.  Let
+  /// q be the largest number such that S_q has cardinality one.  The least
+  /// upper bound of I and J is the sole element of S_q.
+  ///
+  /// This is called the "legacy" least upper bound to distinguish it from the
+  /// Dart 2 least upper bound, which has special behaviors in the case where
+  /// one type is a subtype of the other, or where both types are based on the
+  /// same class.
+  InterfaceType getLegacyLeastUpperBound(
+      InterfaceType type1, InterfaceType type2, Library clientLibrary);
 }
 
 /// Interface for answering various subclassing queries.
@@ -80,24 +98,6 @@ abstract class ClassHierarchy implements ClassHierarchyBase {
   // class (e.g. getClassAsInstanceOf applied to all superclasses and
   // interfaces).
   List<Supertype> genericSupertypesOf(Class class_);
-
-  /// Returns the least upper bound of two interface types, as defined by Dart
-  /// 1.0.
-  ///
-  /// Given two interfaces I and J, let S_I be the set of superinterfaces of I,
-  /// let S_J be the set of superinterfaces of J, and let
-  /// S = (I union S_I) intersect (J union S_J).  Furthermore, we define
-  /// S_n = {T | T in S and depth(T) = n} for any finite n where depth(T) is
-  /// the number of steps in the longest inheritance path from T to Object.  Let
-  /// q be the largest number such that S_q has cardinality one.  The least
-  /// upper bound of I and J is the sole element of S_q.
-  ///
-  /// This is called the "legacy" least upper bound to distinguish it from the
-  /// Dart 2 least upper bound, which has special behaviors in the case where
-  /// one type is a subtype of the other, or where both types are based on the
-  /// same class.
-  InterfaceType getLegacyLeastUpperBound(InterfaceType type1,
-      InterfaceType type2, Library clientLibrary, CoreTypes coreTypes);
 
   /// Returns the instantiation of [superclass] that is implemented by [class_],
   /// or `null` if [class_] does not implement [superclass] at all.
@@ -571,8 +571,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  InterfaceType getLegacyLeastUpperBound(InterfaceType type1,
-      InterfaceType type2, Library clientLibrary, CoreTypes coreTypes) {
+  InterfaceType getLegacyLeastUpperBound(
+      InterfaceType type1, InterfaceType type2, Library clientLibrary) {
     // The algorithm is: first we compute a list of superclasses for both types,
     // ordered from greatest to least depth, and ordered by topological sort
     // index within each depth.  Due to the sort order, we can find the
@@ -669,6 +669,10 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
             ? type2
             : Substitution.fromInterfaceType(type2).substituteType(
                 info2.genericSuperType[next.classNode].asInterfaceType);
+        if (!clientLibrary.isNonNullableByDefault) {
+          superType1 = legacyErasure(coreTypes, superType1);
+          superType2 = legacyErasure(coreTypes, superType2);
+        }
         if (superType1 == superType2) {
           candidate = superType1.withDeclaredNullability(
               uniteNullabilities(type1.nullability, type2.nullability));
@@ -715,6 +719,19 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   @override
   List<DartType> getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass) {
+    if (type.classNode == superclass) {
+      // TODO(johnniwinther): This is necessary because [getClassAsInstanceOf]
+      // returns a [Supertype] whose type arguments are type parameter types
+      // whose nullability is set to the default nullability of the
+      // enclosing library. If for instance [type] is `A<int!>` but `A` is
+      // declared in an opt-out library, the substitution below will combine
+      // nullabilities of the type arguments in [type] with the type parameters
+      // and thus give the result `A<int*>`. See issue #42792.
+      // For now we bypass the substitution but long term we need to ensure
+      // that [getClassAsInstanceOf] doesn't cause similar problems in other
+      // situations.
+      return type.typeArguments;
+    }
     Supertype castedType = getClassAsInstanceOf(type.classNode, superclass);
     if (castedType == null) return null;
     if (superclass.typeParameters.isEmpty) return const <DartType>[];

@@ -1191,7 +1191,8 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       String path = canonicalUri.path;
       name = path.substring(path.lastIndexOf('/') + 1);
     }
-    IndexedLibrary library = createLibrary(name, canonicalUri);
+    IndexedLibrary library =
+        createLibrary(name, canonicalUri, node.isNonNullableByDefault);
     return libraries.register(library, new KLibraryData(node),
         libraryEnv ?? env.lookupLibrary(canonicalUri));
   }
@@ -1597,8 +1598,9 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         isJsInterop: isJsInterop);
   }
 
-  IndexedLibrary createLibrary(String name, Uri canonicalUri) {
-    return new KLibrary(name, canonicalUri);
+  IndexedLibrary createLibrary(
+      String name, Uri canonicalUri, bool isNonNullableByDefault) {
+    return new KLibrary(name, canonicalUri, isNonNullableByDefault);
   }
 
   IndexedClass createClass(LibraryEntity library, String name,

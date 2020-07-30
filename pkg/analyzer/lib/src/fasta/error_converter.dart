@@ -130,7 +130,7 @@ class FastaErrorReporter {
         var type1 = arguments['type'];
         var type2 = arguments['type2'];
         errorReporter?.reportErrorForOffset(
-            StaticTypeWarningCode.INVALID_ASSIGNMENT,
+            CompileTimeErrorCode.INVALID_ASSIGNMENT,
             offset,
             length,
             [type1, type2]);
@@ -288,15 +288,15 @@ class FastaErrorReporter {
         return;
       case "UNDEFINED_GETTER":
         errorReporter?.reportErrorForOffset(
-            StaticTypeWarningCode.UNDEFINED_GETTER, offset, length);
+            CompileTimeErrorCode.UNDEFINED_GETTER, offset, length);
         return;
       case "UNDEFINED_METHOD":
         errorReporter?.reportErrorForOffset(
-            StaticTypeWarningCode.UNDEFINED_METHOD, offset, length);
+            CompileTimeErrorCode.UNDEFINED_METHOD, offset, length);
         return;
       case "UNDEFINED_SETTER":
         errorReporter?.reportErrorForOffset(
-            StaticTypeWarningCode.UNDEFINED_SETTER, offset, length);
+            CompileTimeErrorCode.UNDEFINED_SETTER, offset, length);
         return;
       case "UNEXPECTED_DOLLAR_IN_STRING":
         errorReporter?.reportErrorForOffset(
@@ -322,7 +322,7 @@ class FastaErrorReporter {
         return;
       case "WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR":
         errorReporter?.reportErrorMessage(
-            StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+            CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
             offset,
             length,
             message);

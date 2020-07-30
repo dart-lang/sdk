@@ -56,7 +56,7 @@ bool DartDevIsolate::ShouldParseCommand(const char* script_uri) {
           (strncmp(script_uri, "google3://", 10) != 0));
 }
 
-const char* DartDevIsolate::TryResolveDartDevSnapshotPath() {
+Utils::CStringUniquePtr DartDevIsolate::TryResolveDartDevSnapshotPath() {
   // |dir_prefix| includes the last path seperator.
   auto dir_prefix = EXEUtils::GetDirectoryPrefixFromExeName();
 
@@ -64,7 +64,7 @@ const char* DartDevIsolate::TryResolveDartDevSnapshotPath() {
   char* snapshot_path =
       Utils::SCreate("%ssnapshots/dartdev.dart.snapshot", dir_prefix.get());
   if (File::Exists(nullptr, snapshot_path)) {
-    return snapshot_path;
+    return Utils::CreateCStringUniquePtr(snapshot_path);
   }
   free(snapshot_path);
 
@@ -72,12 +72,12 @@ const char* DartDevIsolate::TryResolveDartDevSnapshotPath() {
   // directories. Try to use a snapshot rom a previously built SDK.
   snapshot_path = Utils::SCreate("%sdartdev.dart.snapshot", dir_prefix.get());
   if (File::Exists(nullptr, snapshot_path)) {
-    return snapshot_path;
+    return Utils::CreateCStringUniquePtr(snapshot_path);
   }
   free(snapshot_path);
 
   Syslog::PrintErr("Could not find DartDev snapshot.\n");
-  return nullptr;
+  return Utils::CreateCStringUniquePtr(nullptr);
 }
 
 void DartDevIsolate::DartDevRunner::Run(
@@ -102,9 +102,7 @@ void DartDevIsolate::DartDevRunner::Run(
     // Clear the DartDev dart_options and replace them with the processed
     // options provided by DartDev.
     dart_options_->Reset();
-    for (intptr_t i = 0; i < argc_; ++i) {
-      dart_options_->AddArguments(const_cast<const char**>(argv_.get()), argc_);
-    }
+    dart_options_->AddArguments(const_cast<const char**>(argv_.get()), argc_);
   }
 }
 
@@ -136,7 +134,6 @@ void DartDevIsolate::DartDevRunner::DartDevResultCallback(
         }
         delete[] args;
       };
-
       argv_ =
           std::unique_ptr<char*[], void (*)(char**)>(new char*[argc_], deleter);
       for (intptr_t i = 0; i < argc_; ++i) {
@@ -176,7 +173,7 @@ void DartDevIsolate::DartDevRunner::RunCallback(uword args) {
 
   // TODO(bkonyi): bring up DartDev from kernel instead of a app-jit snapshot.
   // See https://github.com/dart-lang/sdk/issues/42804
-  const char* dartdev_path = DartDevIsolate::TryResolveDartDevSnapshotPath();
+  auto dartdev_path = DartDevIsolate::TryResolveDartDevSnapshotPath();
   if (dartdev_path == nullptr) {
     ProcessError("Failed to find DartDev snapshot.", kErrorExitCode);
     return;
@@ -192,9 +189,8 @@ void DartDevIsolate::DartDevRunner::RunCallback(uword args) {
 
   char* error;
   Dart_Isolate dartdev_isolate = runner->create_isolate_(
-      dartdev_path, "dartdev", nullptr, runner->packages_file_, &flags,
+      dartdev_path.get(), "dartdev", nullptr, runner->packages_file_, &flags,
       NULL /* callback_data */, const_cast<char**>(&error));
-  free(const_cast<char*>(dartdev_path));
 
   if (dartdev_isolate == nullptr) {
     ProcessError(error, kErrorExitCode);

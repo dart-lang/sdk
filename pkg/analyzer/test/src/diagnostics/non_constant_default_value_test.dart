@@ -61,6 +61,21 @@ void bar<T>([void Function(T Function()) p = f]) {}
 ''', [ExpectedError(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 67, 1)]);
   }
 
+  test_constructor_inDifferentFile() async {
+    newFile('/test/lib/a.dart', content: '''
+import 'b.dart';
+const v = const MyClass();
+''');
+    await assertErrorsInCode('''
+class MyClass {
+  const MyClass([p = foo]);
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 37, 3),
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 37, 3),
+    ]);
+  }
+
   test_constructor_named() async {
     await assertErrorsInCode(r'''
 class A {

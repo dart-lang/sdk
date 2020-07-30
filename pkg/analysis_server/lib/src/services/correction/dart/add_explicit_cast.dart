@@ -27,6 +27,10 @@ class AddExplicitCast extends CorrectionProducer {
     var fromType = target.staticType;
     DartType toType;
     var parent = target.parent;
+    if (parent is CascadeExpression && target == parent.target) {
+      target = parent;
+      parent = target.parent;
+    }
     if (parent is AssignmentExpression && target == parent.rightHandSide) {
       toType = parent.leftHandSide.staticType;
     } else if (parent is VariableDeclaration && target == parent.initializer) {

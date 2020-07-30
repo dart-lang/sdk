@@ -102,7 +102,7 @@ class BinaryExpressionResolver {
   void _checkNonBoolOperand(Expression operand, String operator) {
     _resolver.boolExpressionVerifier.checkForNonBoolExpression(
       operand,
-      errorCode: StaticTypeWarningCode.NON_BOOL_OPERAND,
+      errorCode: CompileTimeErrorCode.NON_BOOL_OPERAND,
       arguments: [operator],
     );
   }
@@ -335,13 +335,13 @@ class BinaryExpressionResolver {
     if (_shouldReportInvalidMember(leftType, result)) {
       if (leftOperand is SuperExpression) {
         _errorReporter.reportErrorForToken(
-          StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+          CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
           node.operator,
           [methodName, leftType],
         );
       } else {
         _errorReporter.reportErrorForToken(
-          StaticTypeWarningCode.UNDEFINED_OPERATOR,
+          CompileTimeErrorCode.UNDEFINED_OPERATOR,
           node.operator,
           [methodName, leftType],
         );

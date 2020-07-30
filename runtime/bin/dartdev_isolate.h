@@ -13,6 +13,7 @@
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 #include "platform/globals.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -83,7 +84,7 @@ class DartDevIsolate {
  private:
   // Attempts to find the DartDev snapshot. If the snapshot cannot be found,
   // the VM will shutdown.
-  static const char* TryResolveDartDevSnapshotPath();
+  static Utils::CStringUniquePtr TryResolveDartDevSnapshotPath();
 
   static DartDevRunner runner_;
   static bool should_run_dart_dev_;

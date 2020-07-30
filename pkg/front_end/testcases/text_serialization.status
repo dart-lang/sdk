@@ -171,6 +171,7 @@ late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/issue41180: RuntimeError
 nnbd/issue42546: TypeCheckError
+nnbd/issue42603: TypeCheckError
 nnbd/nullable_object_access: TypeCheckError
 nnbd/nullable_receiver: TypeCheckError
 nnbd/potentially_nullable_access: TypeCheckError

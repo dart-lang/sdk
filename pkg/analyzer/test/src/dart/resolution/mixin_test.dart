@@ -958,7 +958,7 @@ mixin M on A {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_METHOD, 52, 3),
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 52, 3),
     ]);
 
     var invocation = findNode.methodInvocation('foo(42)');

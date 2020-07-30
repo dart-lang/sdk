@@ -5300,11 +5300,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Generate `is` as `dart.is` or `typeof` depending on the RHS type.
     var lhs = _visitExpression(operand);
     var typeofName = _typeRep.typeFor(type).primitiveTypeOf;
-    // Inline primitives other than int (which requires a Math.floor check).
+    // Inline non-nullable primitive types other than int (which requires a
+    // Math.floor check).
     if (typeofName != null &&
-        type != _types.coreTypes.intLegacyRawType &&
-        type != _types.coreTypes.intNonNullableRawType &&
-        type != _types.coreTypes.intNullableRawType) {
+        type.nullability == Nullability.nonNullable &&
+        type != _types.coreTypes.intNonNullableRawType) {
       return js.call('typeof # == #', [lhs, js.string(typeofName, "'")]);
     } else {
       return js.call('#.is(#)', [_emitType(type), lhs]);

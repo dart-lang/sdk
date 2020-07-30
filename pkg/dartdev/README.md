@@ -24,8 +24,17 @@ Available commands:
 Run "dart help <command>" for more information about a command.
 ```
 
+## Contributing
+
+If you'd like to contribute to the Dart CLI tool, please start by reading the
+[contribution guidelines][contributing] for the Dart project. Then familiarize
+yourself with the [design principles][design] that guide this tool's UX.
+
 ## Features and bugs
 
-Please file feature requests and bugs in the Dart SDK [issue tracker][tracker] with label `area-dart-cli`.
+Please file feature requests and bugs in the Dart SDK [issue tracker][tracker]
+with label `area-dart-cli`.
 
+[contributing]: https://github.com/dart-lang/sdk/blob/master/CONTRIBUTING.md
+[design] https://github.com/dart-lang/sdk/blob/master/pkg/dartdev/doc/design.md
 [tracker]: https://github.com/dart-lang/sdk/labels/area-dart-cli

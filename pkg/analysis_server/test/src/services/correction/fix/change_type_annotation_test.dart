@@ -78,7 +78,7 @@ int foo =
 ''');
     await assertNoFix(
       errorFilter: (e) {
-        return e.errorCode == StaticTypeWarningCode.INVALID_ASSIGNMENT;
+        return e.errorCode == CompileTimeErrorCode.INVALID_ASSIGNMENT;
       },
     );
   }

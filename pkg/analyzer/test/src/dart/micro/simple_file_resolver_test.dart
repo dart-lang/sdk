@@ -152,7 +152,7 @@ analyzer:
 num a = 0;
 int b = a;
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 19, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
     ]);
   }
 
@@ -167,7 +167,7 @@ analyzer:
 num a = 0;
 int b = a;
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 19, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
     ]);
   }
 
@@ -184,7 +184,7 @@ analyzer:
 num a = 0;
 int b = a;
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 19, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
     ]);
   }
 
@@ -383,7 +383,7 @@ analyzer:
 num a = 0;
 int b = a;
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 19, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
     ]);
 
     // Implicit casts are enabled in 'bbb'.
@@ -398,7 +398,7 @@ int b = a;
 num a = 0;
 int b = a;
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 19, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
     ]);
   }
 

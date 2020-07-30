@@ -98,7 +98,7 @@ abstract class ForwardingTypeMask implements TypeMask {
   }
 
   @override
-  TypeMask union(other, JClosedWorld closedWorld) {
+  TypeMask union(other, CommonMasks domain) {
     if (this == other) {
       return this;
     } else if (equalsDisregardNull(other)) {
@@ -106,7 +106,7 @@ abstract class ForwardingTypeMask implements TypeMask {
     } else if (other.isEmptyOrNull) {
       return other.isNullable ? this.nullable() : this;
     }
-    return forwardTo.union(other, closedWorld);
+    return forwardTo.union(other, domain);
   }
 
   @override
@@ -115,8 +115,8 @@ abstract class ForwardingTypeMask implements TypeMask {
   }
 
   @override
-  TypeMask intersection(TypeMask other, JClosedWorld closedWorld) {
-    return forwardTo.intersection(other, closedWorld);
+  TypeMask intersection(TypeMask other, CommonMasks domain) {
+    return forwardTo.intersection(other, domain);
   }
 
   @override

@@ -225,7 +225,7 @@ class CommonMasks implements AbstractValueDomain {
   @override
   AbstractBool couldBeTypedArray(TypeMask mask) {
     bool intersects(TypeMask type1, TypeMask type2) =>
-        !type1.intersection(type2, _closedWorld).isEmpty;
+        !type1.intersection(type2, this).isEmpty;
     // TODO(herhut): Maybe cache the TypeMask for typedDataClass and
     //               jsIndexingBehaviourInterface.
     ClassEntity typedDataClass = _closedWorld.commonElements.typedDataClass;
@@ -428,7 +428,7 @@ class CommonMasks implements AbstractValueDomain {
     AbstractValue typeMask = (cls == commonElements.nullClass)
         ? createNullableSubtype(cls)
         : createNonNullSubtype(cls);
-    if (expressionMask.union(typeMask, _closedWorld) == typeMask) {
+    if (expressionMask.union(typeMask, this) == typeMask) {
       return AbstractBool.True;
     } else if (expressionMask.isDisjoint(typeMask, _closedWorld)) {
       return AbstractBool.False;
@@ -674,11 +674,10 @@ class CommonMasks implements AbstractValueDomain {
   }
 
   @override
-  TypeMask union(TypeMask a, TypeMask b) => a.union(b, _closedWorld);
+  TypeMask union(TypeMask a, TypeMask b) => a.union(b, this);
 
   @override
-  TypeMask intersection(TypeMask a, TypeMask b) =>
-      a.intersection(b, _closedWorld);
+  TypeMask intersection(TypeMask a, TypeMask b) => a.intersection(b, this);
 
   @override
   AbstractBool areDisjoint(TypeMask a, TypeMask b) =>
@@ -738,7 +737,7 @@ class CommonMasks implements AbstractValueDomain {
   AbstractValue unionOfMany(Iterable<AbstractValue> values) {
     TypeMask result = const TypeMask.nonNullEmpty();
     for (TypeMask value in values) {
-      result = result.union(value, _closedWorld);
+      result = result.union(value, this);
     }
     return result;
   }
@@ -761,7 +760,7 @@ class CommonMasks implements AbstractValueDomain {
             return const TypeMask.empty();
           }
         }),
-        _closedWorld);
+        this);
   }
 
   @override

@@ -229,7 +229,7 @@ class ConstantEvaluationEngine {
         if (dartObject != null && constant.isConst) {
           if (!runtimeTypeMatch(dartObject, constant.type)) {
             // TODO(brianwilkerson) This should not be reported if
-            //  StaticTypeWarningCode.INVALID_ASSIGNMENT has already been
+            //  CompileTimeErrorCode.INVALID_ASSIGNMENT has already been
             //  reported (that is, if the static types are also wrong).
             errorReporter.reportErrorForNode(
                 CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
@@ -621,8 +621,7 @@ class ConstantEvaluationEngine {
       if (argumentValue != null) {
         if (!runtimeTypeMatch(argumentValue, parameter.type)) {
           errorReporter.reportErrorForNode(
-              CheckedModeCompileTimeErrorCode
-                  .CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+              CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
               errorTarget,
               [argumentValue.type, parameter.type]);
         }
@@ -636,8 +635,7 @@ class ConstantEvaluationEngine {
               // the field.
               if (!runtimeTypeMatch(argumentValue, fieldType)) {
                 errorReporter.reportErrorForNode(
-                    CheckedModeCompileTimeErrorCode
-                        .CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+                    CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
                     errorTarget,
                     [argumentValue.type, fieldType]);
               }

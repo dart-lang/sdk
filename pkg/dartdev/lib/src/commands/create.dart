@@ -96,6 +96,9 @@ class CreateCommand extends DartdevCommand {
     );
 
     if (argResults['pub']) {
+      if (!Sdk.checkArtifactExists(sdk.pub)) {
+        return 255;
+      }
       log.stdout('');
       var progress = log.progress('Running pub get');
       var process = await startProcess(

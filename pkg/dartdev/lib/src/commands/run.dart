@@ -119,24 +119,33 @@ Run a Dart file.''');
     // service intermediary which implements the VM service protocol and
     // provides non-VM specific extensions (e.g., log caching, client
     // synchronization).
+    // TODO(bkonyi): Handle race condition made possible by Observatory
+    // listening message being printed to console before DDS is started.
+    // See https://github.com/dart-lang/sdk/issues/42727
+    launchDds = false;
     _DebuggingSession debugSession;
     if (launchDds) {
       debugSession = _DebuggingSession();
-      await debugSession.start();
+      if (!await debugSession.start()) {
+        return 255;
+      }
     }
-
-    final script = Directory.current.uri
-        .resolve(args.firstWhere((e) => !e.startsWith('-')))
-        .toFilePath();
+    final path = args.firstWhere((e) => !e.startsWith('-'));
     final runArgs = args.length == 1 ? <String>[] : args.sublist(1);
-    VmInteropHandler.run(script, runArgs);
+    VmInteropHandler.run(path, runArgs);
     return 0;
   }
 }
 
 class _DebuggingSession {
-  Future<void> start() async {
+  Future<bool> start() async {
     final serviceInfo = await Service.getInfo();
+    final ddsSnapshot = (dirname(sdk.dart).endsWith('bin'))
+        ? sdk.ddsSnapshot
+        : absolute(dirname(sdk.dart), 'gen', 'dds.dart.snapshot');
+    if (!Sdk.checkArtifactExists(ddsSnapshot)) {
+      return false;
+    }
     final process = await Process.start(
         sdk.dart,
         [
@@ -157,5 +166,6 @@ class _DebuggingSession {
     });
 
     await completer.future;
+    return true;
   }
 }

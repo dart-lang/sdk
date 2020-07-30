@@ -85,7 +85,8 @@ class MegamorphicCacheViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  MegamorphicCacheViewElement.created() : super.created('megamorphiccache-view');
+  MegamorphicCacheViewElement.created()
+      : super.created('megamorphiccache-view');
 
   @override
   attached() {

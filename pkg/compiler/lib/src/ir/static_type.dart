@@ -350,9 +350,9 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     ir.DartType receiverType = visitNode(node.receiver);
     ArgumentTypes argumentTypes = _visitArguments(node.arguments);
     ir.DartType returnType;
-    if (typeEnvironment.isOverloadedArithmeticOperator(node.target)) {
+    if (typeEnvironment.isSpecialCasedBinaryOperator(node.target)) {
       ir.DartType argumentType = argumentTypes.positional[0];
-      returnType = typeEnvironment.getTypeOfOverloadedArithmetic(
+      returnType = typeEnvironment.getTypeOfSpecialCasedBinaryOperator(
           receiverType, argumentType);
     } else {
       ir.Class superclass = node.target.enclosingClass;
@@ -386,7 +386,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   /// target as to avoid visiting the argument twice.
   bool isSpecialCasedBinaryOperator(ir.Member interfaceTarget) {
     return interfaceTarget is ir.Procedure &&
-        typeEnvironment.isOverloadedArithmeticOperator(interfaceTarget);
+        typeEnvironment.isSpecialCasedBinaryOperator(interfaceTarget);
   }
 
   ir.Member _getMember(ir.Class cls, String name) {
@@ -639,7 +639,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
           node, argumentTypes, getterType, interfaceTarget);
       if (isSpecialCasedBinaryOperator(interfaceTarget)) {
         ir.DartType argumentType = argumentTypes.positional[0];
-        return typeEnvironment.getTypeOfOverloadedArithmetic(
+        return typeEnvironment.getTypeOfSpecialCasedBinaryOperator(
             receiverType, argumentType);
       } else if (getterType is ir.FunctionType) {
         return getterType.returnType;

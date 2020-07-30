@@ -329,6 +329,17 @@ class C {
 ''');
   }
 
+  test_typeBeforeAnnotation() async {
+    await _assertCanBeAnalyzed('''
+class A {
+  const A([x]);
+}
+class B {
+  dynamic @A(const A()) x;
+}
+''');
+  }
+
   Future<void> _assertCanBeAnalyzed(String text) async {
     await resolveTestCode(text);
     assertHasTestErrors();

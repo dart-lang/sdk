@@ -31,12 +31,12 @@ class CallThroughGetterTest {
 
     TOP_LEVEL_CONST();
 //  ^^^^^^^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
 //                 ^
 // [cfe] The method 'call' isn't defined for the class 'int'.
     (TOP_LEVEL_CONST)();
 //  ^^^^^^^^^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
 //                   ^
 // [cfe] The method 'call' isn't defined for the class 'int'.
   }

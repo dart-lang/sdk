@@ -26,6 +26,7 @@ allowlisting
 alt
 amortized
 analyses
+animal
 anon
 aoo
 approval
@@ -84,6 +85,7 @@ cc
 ccc
 charcode
 charset
+checkme
 checkout
 cipd
 circular
@@ -332,6 +334,7 @@ launching
 lc
 ld
 le
+legs
 lengths
 lightly
 likewise
@@ -389,9 +392,11 @@ miss
 misspelled
 mistake
 mistakes
+mod
 modelled
 month
 moo
+mul
 mx
 mysdk
 naturally
@@ -451,6 +456,7 @@ px
 py
 python
 quot
+qux
 r"
 r"\s
 r"k
@@ -594,6 +600,7 @@ waiting
 walt
 warmup
 wherever
+whiskers
 wins
 workflow
 worlds

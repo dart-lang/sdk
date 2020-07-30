@@ -80,7 +80,7 @@ analyzer:
       ['x']
     ]);
     var invalid_assignment = AnalysisError(
-        TestSource(), 0, 1, StaticTypeWarningCode.INVALID_ASSIGNMENT, [
+        TestSource(), 0, 1, CompileTimeErrorCode.INVALID_ASSIGNMENT, [
       ['x'],
       ['y']
     ]);

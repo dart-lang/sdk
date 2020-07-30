@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 int badReturnTypeAsync() async => 0;
 // [error line 7, column 1, length 3]
-// [analyzer] STATIC_TYPE_WARNING.ILLEGAL_ASYNC_RETURN_TYPE
+// [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ASYNC_RETURN_TYPE
 //  ^
 // [cfe] Functions marked 'async' must have a return type assignable to 'Future'.
 int badReturnTypeAsyncStar() async* {}

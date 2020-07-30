@@ -73,7 +73,7 @@ class PrefixExpressionResolver {
     var operandWriteType = _getStaticType(operand);
     if (!_typeSystem.isAssignableTo2(type, operandWriteType)) {
       _resolver.errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.INVALID_ASSIGNMENT,
+        CompileTimeErrorCode.INVALID_ASSIGNMENT,
         node,
         [type, operandWriteType],
       );
@@ -205,13 +205,13 @@ class PrefixExpressionResolver {
       if (_shouldReportInvalidMember(staticType, result)) {
         if (operand is SuperExpression) {
           _errorReporter.reportErrorForToken(
-            StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+            CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
             operator,
             [methodName, staticType],
           );
         } else {
           _errorReporter.reportErrorForToken(
-            StaticTypeWarningCode.UNDEFINED_OPERATOR,
+            CompileTimeErrorCode.UNDEFINED_OPERATOR,
             operator,
             [methodName, staticType],
           );

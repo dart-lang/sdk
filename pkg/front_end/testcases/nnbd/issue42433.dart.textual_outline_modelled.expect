@@ -1,0 +1,6 @@
+checkme<T extends X>(T? t) {}
+
+class X {}
+
+main() {}
+typedef Test<T extends X>(T? t);

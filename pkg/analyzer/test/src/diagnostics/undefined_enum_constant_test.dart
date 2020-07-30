@@ -31,7 +31,7 @@ E e() {
   return E.TWO;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_ENUM_CONSTANT, 34, 3),
+      error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT, 34, 3),
     ]);
   }
 }

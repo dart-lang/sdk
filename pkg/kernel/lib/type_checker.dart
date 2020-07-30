@@ -249,7 +249,7 @@ class TypeCheckingVisitor
     while (type is TypeParameterType) {
       type = (type as TypeParameterType).bound;
     }
-    if (type is BottomType) {
+    if (type is BottomType || type is NeverType || type == coreTypes.nullType) {
       // The bottom type is a subtype of all types, so it should be allowed.
       return Substitution.bottomForClass(superclass);
     }
@@ -632,11 +632,12 @@ class TypeCheckingVisitor
       checkUnresolvedInvocation(receiver, node);
       return handleDynamicCall(receiver, node.arguments);
     } else if (target is Procedure &&
-        environment.isOverloadedArithmeticOperator(target)) {
+        environment.isSpecialCasedBinaryOperator(target)) {
       assert(node.arguments.positional.length == 1);
       var receiver = visitExpression(node.receiver);
       var argument = visitExpression(node.arguments.positional[0]);
-      return environment.getTypeOfOverloadedArithmetic(receiver, argument);
+      return environment.getTypeOfSpecialCasedBinaryOperator(
+          receiver, argument);
     } else {
       return handleCall(node.arguments, target.getterType,
           receiver: getReceiverType(node, node.receiver, node.interfaceTarget));

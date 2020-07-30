@@ -8640,6 +8640,8 @@ class CheckBoundBase : public TemplateDefinition<2, NoThrow, Pure> {
   Value* length() const { return inputs_[kLengthPos]; }
   Value* index() const { return inputs_[kIndexPos]; }
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
   virtual CheckBoundBase* AsCheckBoundBase() { return this; }
   virtual const CheckBoundBase* AsCheckBoundBase() const { return this; }
   virtual Value* RedefinedValue() const;
@@ -8675,8 +8677,6 @@ class CheckArrayBoundInstr : public CheckBoundBase {
   virtual bool ComputeCanDeoptimize() const { return true; }
 
   void mark_generalized() { generalized_ = true; }
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   // Returns the length offset for array and string types.
   static intptr_t LengthOffsetFor(intptr_t class_id);

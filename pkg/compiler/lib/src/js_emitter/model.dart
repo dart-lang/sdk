@@ -225,9 +225,13 @@ class StaticField {
   final bool isFinal;
   final bool isLazy;
   final bool isInitializedByConstant;
+  final bool usesNonNullableInitialization;
 
   StaticField(this.element, this.name, this.getterName, this.holder, this.code,
-      {this.isFinal, this.isLazy, this.isInitializedByConstant: false});
+      {this.isFinal,
+      this.isLazy,
+      this.isInitializedByConstant: false,
+      this.usesNonNullableInitialization: false});
 
   @override
   String toString() {

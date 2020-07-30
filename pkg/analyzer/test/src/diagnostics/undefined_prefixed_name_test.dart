@@ -21,7 +21,7 @@ class UndefinedPrefixedNameTest extends DriverResolutionTest {
 import 'lib.dart' as p;
 f() => p.c;
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_PREFIXED_NAME, 33, 1),
+      error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 33, 1),
     ]);
   }
 
@@ -33,7 +33,7 @@ f() {
   p.c = 0;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_PREFIXED_NAME, 34, 1),
+      error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 34, 1),
     ]);
   }
 }

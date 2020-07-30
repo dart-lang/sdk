@@ -29,7 +29,7 @@ main() {
   // "(a ?? b) || c" would allow b to have any type provided that a is bool.
   false ?? 1 || true;
   //       ^
-  // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
   // [cfe] A value of type 'int' can't be assigned to a variable of type 'bool'.
 
   // "a || b ?? c" should parse as "(a || b) ?? c", therefore it is a static
@@ -37,7 +37,7 @@ main() {
   // "a || (b ?? c)" would allow b to have any type provided that c is bool.
   false || 1 ?? true;
   //       ^
-  // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
   // [cfe] A value of type 'int' can't be assigned to a variable of type 'bool'.
 
   // An incorrect parse of "a || (b ?? c)" would result in no checked-mode

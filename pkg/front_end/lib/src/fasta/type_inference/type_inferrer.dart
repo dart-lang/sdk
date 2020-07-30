@@ -1651,7 +1651,8 @@ class TypeInferrerImpl implements TypeInferrer {
   InvocationInferenceResult inferInvocation(DartType typeContext, int offset,
       FunctionType calleeType, Arguments arguments,
       {List<VariableDeclaration> hoistedExpressions,
-      bool isOverloadedArithmeticOperator: false,
+      bool isSpecialCasedBinaryOperator: false,
+      bool isSpecialCasedTernaryOperator: false,
       DartType returnType,
       DartType receiverType,
       bool skipTypeArgumentInference: false,
@@ -1668,7 +1669,8 @@ class TypeInferrerImpl implements TypeInferrer {
           "Unexpected explicit return type for extension method invocation.");
       return _inferGenericExtensionMethodInvocation(extensionTypeParameterCount,
           typeContext, offset, calleeType, arguments, hoistedExpressions,
-          isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
+          isSpecialCasedBinaryOperator: isSpecialCasedBinaryOperator,
+          isSpecialCasedTernaryOperator: isSpecialCasedTernaryOperator,
           receiverType: receiverType,
           skipTypeArgumentInference: skipTypeArgumentInference,
           isConst: isConst,
@@ -1676,7 +1678,8 @@ class TypeInferrerImpl implements TypeInferrer {
     }
     return _inferInvocation(
         typeContext, offset, calleeType, arguments, hoistedExpressions,
-        isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
+        isSpecialCasedBinaryOperator: isSpecialCasedBinaryOperator,
+        isSpecialCasedTernaryOperator: isSpecialCasedTernaryOperator,
         receiverType: receiverType,
         returnType: returnType,
         skipTypeArgumentInference: skipTypeArgumentInference,
@@ -1692,7 +1695,8 @@ class TypeInferrerImpl implements TypeInferrer {
       FunctionType calleeType,
       Arguments arguments,
       List<VariableDeclaration> hoistedExpressions,
-      {bool isOverloadedArithmeticOperator: false,
+      {bool isSpecialCasedBinaryOperator: false,
+      bool isSpecialCasedTernaryOperator: false,
       DartType receiverType,
       bool skipTypeArgumentInference: false,
       bool isConst: false,
@@ -1737,7 +1741,8 @@ class TypeInferrerImpl implements TypeInferrer {
         named: arguments.named, types: getExplicitTypeArguments(arguments));
     InvocationInferenceResult result = _inferInvocation(typeContext, offset,
         targetFunctionType, targetArguments, hoistedExpressions,
-        isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
+        isSpecialCasedBinaryOperator: isSpecialCasedBinaryOperator,
+        isSpecialCasedTernaryOperator: isSpecialCasedTernaryOperator,
         skipTypeArgumentInference: skipTypeArgumentInference,
         isConst: isConst,
         isImplicitCall: isImplicitCall);
@@ -1762,7 +1767,8 @@ class TypeInferrerImpl implements TypeInferrer {
       FunctionType calleeType,
       Arguments arguments,
       List<VariableDeclaration> hoistedExpressions,
-      {bool isOverloadedArithmeticOperator: false,
+      {bool isSpecialCasedBinaryOperator: false,
+      bool isSpecialCasedTernaryOperator: false,
       DartType receiverType,
       DartType returnType,
       bool skipTypeArgumentInference: false,
@@ -1854,13 +1860,25 @@ class TypeInferrerImpl implements TypeInferrer {
             "invocation.");
         continue;
       } else {
+        if (isSpecialCasedBinaryOperator) {
+          inferredFormalType =
+              typeSchemaEnvironment.getContextTypeOfSpecialCasedBinaryOperator(
+                  typeContext, receiverType, inferredFormalType,
+                  isNonNullableByDefault: isNonNullableByDefault);
+        } else if (isSpecialCasedTernaryOperator) {
+          inferredFormalType =
+              typeSchemaEnvironment.getContextTypeOfSpecialCasedTernaryOperator(
+                  typeContext, receiverType, inferredFormalType,
+                  isNonNullableByDefault: isNonNullableByDefault);
+        }
         ExpressionInferenceResult result = inferExpression(
             arguments.positional[position],
             isNonNullableByDefault
                 ? inferredFormalType
                 : legacyErasure(coreTypes, inferredFormalType),
             inferenceNeeded ||
-                isOverloadedArithmeticOperator ||
+                isSpecialCasedBinaryOperator ||
+                isSpecialCasedTernaryOperator ||
                 typeChecksNeeded);
         inferredType = result.inferredType == null || isNonNullableByDefault
             ? result.inferredType
@@ -1873,10 +1891,14 @@ class TypeInferrerImpl implements TypeInferrer {
         formalTypes.add(formalType);
         actualTypes.add(inferredType);
       }
-      if (isOverloadedArithmeticOperator) {
-        returnType = typeSchemaEnvironment.getTypeOfOverloadedArithmetic(
-            receiverType, inferredType);
-      }
+    }
+    if (isSpecialCasedBinaryOperator) {
+      returnType = typeSchemaEnvironment.getTypeOfSpecialCasedBinaryOperator(
+          receiverType, actualTypes[0],
+          isNonNullableByDefault: isNonNullableByDefault);
+    } else if (isSpecialCasedTernaryOperator) {
+      returnType = typeSchemaEnvironment.getTypeOfSpecialCasedTernaryOperator(
+          receiverType, actualTypes[0], actualTypes[1], library.library);
     }
     for (NamedExpression namedArgument in arguments.named) {
       DartType formalType =
@@ -1889,9 +1911,7 @@ class TypeInferrerImpl implements TypeInferrer {
           isNonNullableByDefault
               ? inferredFormalType
               : legacyErasure(coreTypes, inferredFormalType),
-          inferenceNeeded ||
-              isOverloadedArithmeticOperator ||
-              typeChecksNeeded);
+          inferenceNeeded || isSpecialCasedBinaryOperator || typeChecksNeeded);
       DartType inferredType =
           result.inferredType == null || isNonNullableByDefault
               ? result.inferredType
@@ -2134,12 +2154,15 @@ class TypeInferrerImpl implements TypeInferrer {
       if (formal.isImplicitlyTyped) {
         DartType inferredType;
         if (formalTypesFromContext[i] != null) {
-          if (coreTypes.isBottom(formalTypesFromContext[i]) ||
-              coreTypes.isNull(formalTypesFromContext[i])) {
+          inferredType = computeGreatestClosure2(
+              substitution.substituteType(formalTypesFromContext[i]));
+          if (typeSchemaEnvironment.isSubtypeOf(
+              inferredType,
+              coreTypes.nullType,
+              isNonNullableByDefault
+                  ? SubtypeCheckMode.withNullabilities
+                  : SubtypeCheckMode.ignoringNullabilities)) {
             inferredType = coreTypes.objectRawType(library.nullable);
-          } else {
-            inferredType = computeGreatestClosure2(
-                substitution.substituteType(formalTypesFromContext[i]));
           }
         } else {
           inferredType = const DynamicType();
@@ -2479,8 +2502,12 @@ class TypeInferrerImpl implements TypeInferrer {
       Arguments arguments,
       DartType typeContext,
       List<VariableDeclaration> hoistedExpressions,
-      {bool isImplicitCall}) {
+      {bool isImplicitCall,
+      bool isSpecialCasedBinaryOperator,
+      bool isSpecialCasedTernaryOperator}) {
     assert(isImplicitCall != null);
+    assert(isSpecialCasedBinaryOperator != null);
+    assert(isSpecialCasedTernaryOperator != null);
     assert(target.isInstanceMember || target.isNullableInstanceMember);
     Procedure method = target.member;
     assert(method.kind == ProcedureKind.Method,
@@ -2521,7 +2548,9 @@ class TypeInferrerImpl implements TypeInferrer {
         typeContext, fileOffset, functionType, arguments,
         hoistedExpressions: hoistedExpressions,
         receiverType: receiverType,
-        isImplicitCall: isImplicitCall);
+        isImplicitCall: isImplicitCall,
+        isSpecialCasedBinaryOperator: isSpecialCasedBinaryOperator,
+        isSpecialCasedTernaryOperator: isSpecialCasedTernaryOperator);
 
     Expression replacement;
     if (contravariantCheck) {
@@ -2837,6 +2866,7 @@ class TypeInferrerImpl implements TypeInferrer {
     ObjectAccessTarget target = findInterfaceMember(
         receiverType, name, fileOffset,
         instrumented: true, includeExtensionMethods: true);
+
     switch (target.kind) {
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
@@ -2854,6 +2884,9 @@ class TypeInferrerImpl implements TypeInferrer {
                 hoistedExpressions,
                 isExpressionInvocation: isExpressionInvocation);
           } else {
+            bool isSpecialCasedBinaryOperator =
+                isSpecialCasedBinaryOperatorForReceiverType(
+                    target, receiverType);
             return _inferInstanceMethodInvocation(
                 fileOffset,
                 nullAwareGuards,
@@ -2863,7 +2896,10 @@ class TypeInferrerImpl implements TypeInferrer {
                 arguments,
                 typeContext,
                 hoistedExpressions,
-                isImplicitCall: isImplicitCall);
+                isImplicitCall: isImplicitCall,
+                isSpecialCasedBinaryOperator: isSpecialCasedBinaryOperator,
+                isSpecialCasedTernaryOperator:
+                    isSpecialCasedTernaryOperator(target));
           }
         } else {
           return _inferInstanceFieldInvocation(
@@ -2969,12 +3005,20 @@ class TypeInferrerImpl implements TypeInferrer {
     }
   }
 
-  bool isOverloadedArithmeticOperatorAndType(
+  bool isSpecialCasedBinaryOperatorForReceiverType(
       ObjectAccessTarget target, DartType receiverType) {
     return (target.isInstanceMember || target.isNullableInstanceMember) &&
         target.member is Procedure &&
-        typeSchemaEnvironment.isOverloadedArithmeticOperatorAndType(
-            target.member, receiverType);
+        typeSchemaEnvironment.isSpecialCasesBinaryForReceiverType(
+            target.member, receiverType,
+            isNonNullableByDefault: isNonNullableByDefault);
+  }
+
+  bool isSpecialCasedTernaryOperator(ObjectAccessTarget target) {
+    return (target.isInstanceMember || target.isNullableInstanceMember) &&
+        target.member is Procedure &&
+        typeSchemaEnvironment.isSpecialCasedTernaryOperator(target.member,
+            isNonNullableByDefault: isNonNullableByDefault);
   }
 
   /// Performs the core type inference algorithm for super method invocations.
@@ -2987,14 +3031,22 @@ class TypeInferrerImpl implements TypeInferrer {
     Name methodName = expression.name;
     Arguments arguments = expression.arguments;
     DartType receiverType = thisType;
-    bool isOverloadedArithmeticOperator =
-        isOverloadedArithmeticOperatorAndType(target, receiverType);
+    bool isSpecialCasedBinaryOperator =
+        isSpecialCasedBinaryOperatorForReceiverType(target, receiverType);
     DartType calleeType = getGetterType(target, receiverType);
     FunctionType functionType = getFunctionType(target, receiverType);
-
+    if (isNonNullableByDefault &&
+        expression.name == equalsName &&
+        functionType.positionalParameters.length == 1) {
+      // operator == always allows nullable arguments.
+      functionType = new FunctionType([
+        functionType.positionalParameters.single
+            .withDeclaredNullability(library.nullable)
+      ], functionType.returnType, functionType.declaredNullability);
+    }
     InvocationInferenceResult result = inferInvocation(
         typeContext, fileOffset, functionType, arguments,
-        isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
+        isSpecialCasedBinaryOperator: isSpecialCasedBinaryOperator,
         receiverType: receiverType,
         isImplicitExtensionMember: target.isExtensionMember);
     DartType inferredType = result.inferredType;
@@ -3175,7 +3227,7 @@ class TypeInferrerImpl implements TypeInferrer {
       DartType step1 = resolveOneStep(hare);
       if (step1 == null) return hare;
       DartType step2 = resolveOneStep(step1);
-      if (step2 == null) return hare;
+      if (step2 == null) return step1;
       hare = step2;
 
       // Tortoise takes one step

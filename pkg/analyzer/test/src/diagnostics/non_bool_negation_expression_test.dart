@@ -23,7 +23,7 @@ f() {
   !42;
 }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION, 9, 2),
+      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 9, 2),
     ]);
   }
 }
@@ -39,7 +39,7 @@ m() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION, 19, 1),
+      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 19, 1),
     ]);
   }
 }

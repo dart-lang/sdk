@@ -15,7 +15,7 @@ void testList() {
   Object obj = <int>[1, 2, 3, 4];
   var a = <int>[for (var n in obj) n];
   //                          ^^^
-  // [analyzer] STATIC_TYPE_WARNING.FOR_IN_OF_INVALID_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.FOR_IN_OF_INVALID_TYPE
   // [cfe] The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
 
   // Downcast variable.
@@ -24,7 +24,7 @@ void testList() {
     //       ^
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
     //            ^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.FOR_IN_OF_INVALID_ELEMENT_TYPE
+    // [analyzer] COMPILE_TIME_ERROR.FOR_IN_OF_INVALID_ELEMENT_TYPE
   ];
 
   // Downcast element.
@@ -38,7 +38,7 @@ void testList() {
   // Downcast condition.
   var d = <int>[for (var i = 1; (i < 2) as Object; i++) i];
   //                            ^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
   //                                    ^
   // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
 }
@@ -48,7 +48,7 @@ void testMap() {
   Object obj = <int>[1, 2, 3, 4];
   var a = <int, int>{for (var n in obj) n: n};
   //                               ^^^
-  // [analyzer] STATIC_TYPE_WARNING.FOR_IN_OF_INVALID_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.FOR_IN_OF_INVALID_TYPE
   // [cfe] The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
 
   // Downcast variable.
@@ -57,7 +57,7 @@ void testMap() {
     //       ^
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
     //            ^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.FOR_IN_OF_INVALID_ELEMENT_TYPE
+    // [analyzer] COMPILE_TIME_ERROR.FOR_IN_OF_INVALID_ELEMENT_TYPE
   };
 
   // Downcast element.
@@ -74,7 +74,7 @@ void testMap() {
   // Downcast condition.
   var d = <int, int>{for (var i = 1; (i < 2) as Object; i++) i: i};
   //                                 ^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
   //                                         ^
   // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
 }
@@ -84,7 +84,7 @@ void testSet() {
   Object obj = <int>[1, 2, 3, 4];
   var a = <int>{for (var n in obj) n};
   //                          ^^^
-  // [analyzer] STATIC_TYPE_WARNING.FOR_IN_OF_INVALID_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.FOR_IN_OF_INVALID_TYPE
   // [cfe] The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
 
   // Downcast variable.
@@ -93,7 +93,7 @@ void testSet() {
     //       ^
     // [cfe] A value of type 'num' can't be assigned to a variable of type 'int'.
     //            ^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.FOR_IN_OF_INVALID_ELEMENT_TYPE
+    // [analyzer] COMPILE_TIME_ERROR.FOR_IN_OF_INVALID_ELEMENT_TYPE
   };
 
   // Downcast element.
@@ -107,7 +107,7 @@ void testSet() {
   // Downcast condition.
   var d = <int>{for (var i = 1; (i < 2) as Object; i++) i};
   //                            ^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
   //                                    ^
   // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
 }

@@ -20,7 +20,7 @@ class WrongNumberOfTypeArgumentsTest extends DriverResolutionTest {
 class A<E, F> {}
 A<A> a = null;
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 17, 4),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 17, 4),
     ]);
   }
 
@@ -29,7 +29,7 @@ A<A> a = null;
 class A<E> {}
 A<A, A> a = null;
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 14, 7),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 14, 7),
     ]);
   }
 
@@ -39,7 +39,7 @@ class A {}
 class M {}
 class B<F extends num> = A<F> with M;
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 47, 4),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 47, 4),
     ]);
   }
 
@@ -53,7 +53,7 @@ f() {
   return const C<int>();
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 47, 6),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 47, 6),
     ]);
   }
 
@@ -67,7 +67,7 @@ f() {
   return const C<int>();
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 53, 6),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 53, 6),
     ]);
   }
 
@@ -81,7 +81,7 @@ f() {
   return const C<int, int>();
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 50, 11),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 50, 11),
     ]);
   }
 
@@ -89,7 +89,7 @@ f() {
     await assertErrorsInCode(r'''
 dynamic<int> v;
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 0, 12),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 0, 12),
     ]);
   }
 
@@ -101,7 +101,7 @@ f() {
   return new C<int>();
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 31, 6),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 31, 6),
     ]);
   }
 
@@ -113,7 +113,7 @@ f() {
   return new C<int>();
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 37, 6),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 37, 6),
     ]);
   }
 
@@ -125,7 +125,7 @@ f() {
   return new C<int, int>();
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 34, 11),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 34, 11),
     ]);
   }
 
@@ -138,7 +138,7 @@ main(A<int> a) {
   a.element.anyGetterExistsInDynamic;
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 36, 6),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 36, 6),
     ]);
   }
 
@@ -151,7 +151,7 @@ main(A<int,int> a) {
   a.element.anyGetterExistsInDynamic;
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 33, 10),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 33, 10),
     ]);
   }
 
@@ -161,7 +161,7 @@ class C<T> {
   T<int> f;
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 15, 6),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 15, 6),
     ]);
   }
 
@@ -173,7 +173,7 @@ f(p) {
   return p is C<A>;
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 49, 4),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 49, 4),
     ]);
   }
 
@@ -185,7 +185,7 @@ f(p) {
   return p is C<A, A>;
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 46, 7),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 46, 7),
     ]);
   }
 }

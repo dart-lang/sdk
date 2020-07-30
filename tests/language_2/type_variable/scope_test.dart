@@ -24,10 +24,10 @@ class Foo<T> implements I<T> {
     // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
     // [cfe] Type variables can't be used in static members.
     //         ^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     return new Foo<String>();
     //     ^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.RETURN_OF_INVALID_TYPE
+    // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
   }
 
   // T is in scope for a factory method.
@@ -52,7 +52,7 @@ class Foo<T> implements I<T> {
       // [cfe] Can only use type variables in instance methods.
     return new Foo<String>();
     //     ^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.RETURN_OF_INVALID_TYPE
+    // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
   }
 
   static void set f(
@@ -76,7 +76,7 @@ main() {
   new I(new Foo<String>());
   Foo.f1 = new Foo<String>();
   //       ^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //           ^
   // [cfe] A value of type 'Foo<String>' can't be assigned to a variable of type 'Foo<T>'.
   var x = Foo.f;

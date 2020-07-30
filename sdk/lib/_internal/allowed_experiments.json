@@ -34,6 +34,15 @@
     "collection": {
       "experimentSet": "nullSafety"
     },
+    "convert": {
+      "experimentSet": "nullSafety"
+    },
+    "crypto": {
+      "experimentSet": "nullSafety"
+    },
+    "csslib": {
+      "experimentSet": "nullSafety"
+    },
     "dart_internal": {
       "experimentSet": "nullSafety"
     },

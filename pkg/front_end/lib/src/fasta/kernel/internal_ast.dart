@@ -3555,6 +3555,16 @@ class BinaryExpression extends InternalExpression {
   String toString() {
     return "BinaryExpression(${toStringInternal()})";
   }
+
+  @override
+  int get precedence => Precedence.binaryPrecedence[binaryName.name];
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(left, minimumPrecedence: precedence);
+    printer.write(' ${binaryName.name} ');
+    printer.writeExpression(right, minimumPrecedence: precedence);
+  }
 }
 
 /// Internal expression for a unary expression.
@@ -3589,8 +3599,21 @@ class UnaryExpression extends InternalExpression {
   }
 
   @override
+  int get precedence => Precedence.PREFIX;
+
+  @override
   String toString() {
     return "UnaryExpression(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    if (unaryName == unaryMinusName) {
+      printer.write('-');
+    } else {
+      printer.write('${unaryName.name}');
+    }
+    printer.writeExpression(expression, minimumPrecedence: precedence);
   }
 }
 
@@ -3625,8 +3648,18 @@ class ParenthesizedExpression extends InternalExpression {
   }
 
   @override
+  int get precedence => Precedence.CALLEE;
+
+  @override
   String toString() {
     return "ParenthesizedExpression(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('(');
+    printer.writeExpression(expression);
+    printer.write(')');
   }
 }
 

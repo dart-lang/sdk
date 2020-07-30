@@ -521,7 +521,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
               [identifier.name]);
         } else {
           _errorReporter.reportErrorForNode(
-              StaticTypeWarningCode.UNDEFINED_PREFIXED_NAME,
+              CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
               identifier,
               [identifier.name, prefixElement.name]);
         }
@@ -787,7 +787,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
       return;
     } else {
-      if (element.isFactory) {
+      if (element.isFactory &&
+          // Check if we've reported [NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS].
+          !element.enclosingElement.constructors
+              .every((constructor) => constructor.isFactory)) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, node, [element]);
       }
@@ -851,7 +854,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   /// Check that the given index [expression] was resolved, otherwise a
-  /// [StaticTypeWarningCode.UNDEFINED_OPERATOR] is generated. The [target] is
+  /// [CompileTimeErrorCode.UNDEFINED_OPERATOR] is generated. The [target] is
   /// the target of the expression. The [methodName] is the name of the operator
   /// associated with the context of using of the given index expression.
   void _checkForUndefinedIndexOperator(
@@ -886,7 +889,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       );
     } else if (target is SuperExpression) {
       _errorReporter.reportErrorForOffset(
-        StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+        CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
         offset,
         length,
         [methodName, staticType],
@@ -904,7 +907,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       );
     } else {
       _errorReporter.reportErrorForOffset(
-        StaticTypeWarningCode.UNDEFINED_OPERATOR,
+        CompileTimeErrorCode.UNDEFINED_OPERATOR,
         offset,
         length,
         [methodName, staticType],
@@ -1320,8 +1323,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
           _checkForStaticAccessToInstanceMember(propertyName, element);
         } else {
           var code = typeReference.isEnum
-              ? StaticTypeWarningCode.UNDEFINED_ENUM_CONSTANT
-              : StaticTypeWarningCode.UNDEFINED_GETTER;
+              ? CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT
+              : CompileTimeErrorCode.UNDEFINED_GETTER;
           _errorReporter.reportErrorForNode(
             code,
             propertyName,
@@ -1356,7 +1359,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
             // The error will be reported in ErrorVerifier.
           } else {
             _errorReporter.reportErrorForNode(
-              StaticTypeWarningCode.UNDEFINED_SETTER,
+              CompileTimeErrorCode.UNDEFINED_SETTER,
               propertyName,
               [propertyName.name, typeReference.name],
             );
@@ -1392,7 +1395,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
               );
             } else {
               _errorReporter.reportErrorForNode(
-                StaticTypeWarningCode.UNDEFINED_SUPER_GETTER,
+                CompileTimeErrorCode.UNDEFINED_SUPER_GETTER,
                 propertyName,
                 [propertyName.name, staticType],
               );
@@ -1433,7 +1436,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
               }
             } else {
               _errorReporter.reportErrorForNode(
-                StaticTypeWarningCode.UNDEFINED_SUPER_SETTER,
+                CompileTimeErrorCode.UNDEFINED_SUPER_SETTER,
                 propertyName,
                 [propertyName.name, staticType],
               );
@@ -1494,7 +1497,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
       if (shouldReportUndefinedGetter) {
         _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.UNDEFINED_GETTER,
+          CompileTimeErrorCode.UNDEFINED_GETTER,
           propertyName,
           [propertyName.name, staticType],
         );
@@ -1517,7 +1520,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           // OK
         } else {
           _errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.UNDEFINED_SETTER,
+            CompileTimeErrorCode.UNDEFINED_SETTER,
             propertyName,
             [propertyName.name, staticType],
           );

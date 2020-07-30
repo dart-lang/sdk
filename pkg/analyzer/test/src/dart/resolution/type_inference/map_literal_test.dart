@@ -66,7 +66,7 @@ Map<String, String> a = {};
   test_context_noTypeArgs_noEntries_typeParameters() async {
     var expectedErrors = expectedErrorsByNullability(
       nullable: [
-        error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 46, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 46, 2),
       ],
       legacy: [
         error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 46, 2),
@@ -83,7 +83,7 @@ class A<E extends Map<int, String>> {
   test_context_noTypeArgs_noEntries_typeParameters_dynamic() async {
     var expectedErrors = expectedErrorsByNullability(
       nullable: [
-        error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 51, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 51, 2),
       ],
       legacy: [
         error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 51, 2),
@@ -126,7 +126,7 @@ Map<String, String> a = <String, String>{'a' : 'b'};
     await assertErrorsInCode('''
 Map<String, String> a = <int, int>{};
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 24, 12),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 24, 12),
     ]);
     assertType(setOrMapLiteral('{'), 'Map<int, int>');
   }

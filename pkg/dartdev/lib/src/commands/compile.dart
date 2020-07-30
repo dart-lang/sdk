@@ -11,6 +11,7 @@ import 'package:path/path.dart' as path;
 
 import '../core.dart';
 import '../sdk.dart';
+import '../vm_interop_handler.dart';
 
 const int compileErrorExitCode = 64;
 
@@ -65,6 +66,19 @@ class CompileJSCommand extends DartdevCommand<int> {
 
   @override
   FutureOr<int> run() async {
+    if (!Sdk.checkArtifactExists(sdk.dart2js)) {
+      return 255;
+    }
+    final String librariesPath = path.absolute(
+      sdk.sdkPath,
+      'lib',
+      'libraries.json',
+    );
+
+    if (!Sdk.checkArtifactExists(librariesPath)) {
+      return 255;
+    }
+
     // We expect a single rest argument; the dart entry point.
     if (argResults.rest.length != 1) {
       log.stderr('Missing Dart entry point.');
@@ -76,9 +90,11 @@ class CompileJSCommand extends DartdevCommand<int> {
       return -1;
     }
 
-    final process = await startProcess(sdk.dart2js, argResults.arguments);
-    routeToStdout(process);
-    return process.exitCode;
+    VmInteropHandler.run(sdk.dart2js, [
+      '--libraries-spec=$librariesPath',
+      ...argResults.arguments,
+    ]);
+    return 0;
   }
 }
 
@@ -135,6 +151,7 @@ class CompileSnapshotCommand extends DartdevCommand<int> {
     args.add(path.canonicalize(sourcePath));
 
     log.stdout('Compiling $sourcePath to $commandName file $outputFile.');
+    // TODO(bkonyi): perform compilation in same process.
     final process = await startProcess(sdk.dart, args);
     routeToStdout(process);
     return process.exitCode;
@@ -176,6 +193,10 @@ Remove debugging information from the output and save it separately to the speci
 
   @override
   FutureOr<int> run() async {
+    if (!Sdk.checkArtifactExists(genKernel) ||
+        !Sdk.checkArtifactExists(genSnapshot)) {
+      return 255;
+    }
     // We expect a single rest argument; the dart entry point.
     if (argResults.rest.length != 1) {
       log.stderr('Missing Dart entry point.');

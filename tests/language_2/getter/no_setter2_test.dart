@@ -18,7 +18,7 @@ class Example {
     // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
     // [cfe] The getter 'nextVar' isn't defined for the class 'Example'.
     //   ^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.INSTANCE_ACCESS_TO_STATIC_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.INSTANCE_ACCESS_TO_STATIC_MEMBER
     // [cfe] The setter 'nextVar' isn't defined for the class 'Example'.
   }
   static test() {
@@ -31,7 +31,7 @@ class Example {
 // [analyzer] COMPILE_TIME_ERROR.INVALID_REFERENCE_TO_THIS
 // [cfe] Expected identifier, but got 'this'.
 //       ^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.INSTANCE_ACCESS_TO_STATIC_MEMBER
+// [analyzer] COMPILE_TIME_ERROR.INSTANCE_ACCESS_TO_STATIC_MEMBER
 //       ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
   }

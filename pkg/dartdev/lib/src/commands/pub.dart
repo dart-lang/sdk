@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:args/args.dart';
 
 import '../core.dart';
 import '../experiments.dart';
 import '../sdk.dart';
+import '../vm_interop_handler.dart';
 
 class PubCommand extends DartdevCommand<int> {
   PubCommand() : super('pub', 'Work with packages.');
@@ -22,26 +22,23 @@ class PubCommand extends DartdevCommand<int> {
     // Override [printUsage] for invocations of 'dart help pub' which won't
     // execute [run] below.  Without this, the 'dart help pub' reports the
     // command pub with no commands or flags.
+    if (!Sdk.checkArtifactExists(sdk.pub)) {
+      return;
+    }
     final command = sdk.pub;
     final args = ['help'];
 
     log.trace('$command ${args.first}');
 
     // Call 'pub help'
-    // Process.runSync(..) is used since [printUsage] is not an async method,
-    // and we want to guarantee that the result (the help text for the console)
-    // is printed before command exits.
-    final result = Process.runSync(command, args);
-    if (result.stderr.isNotEmpty) {
-      stderr.write(result.stderr);
-    }
-    if (result.stdout.isNotEmpty) {
-      stdout.write(result.stdout);
-    }
+    VmInteropHandler.run(command, args);
   }
 
   @override
   FutureOr<int> run() async {
+    if (!Sdk.checkArtifactExists(sdk.pub)) {
+      return 255;
+    }
     final command = sdk.pub;
     var args = argResults.arguments;
 
@@ -65,12 +62,7 @@ class PubCommand extends DartdevCommand<int> {
     }
 
     log.trace('$command ${args.join(' ')}');
-
-    // Starting in ProcessStartMode.inheritStdio mode means the child process
-    // can detect support for ansi chars.
-    var process =
-        await Process.start(command, args, mode: ProcessStartMode.inheritStdio);
-
-    return process.exitCode;
+    VmInteropHandler.run(command, args);
+    return 0;
   }
 }

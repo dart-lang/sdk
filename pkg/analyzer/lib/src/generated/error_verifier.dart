@@ -401,7 +401,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _duplicateDefinitionVerifier.checkClass(node);
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
-      _checkForNoDefaultSuperConstructorImplicit(node);
       _checkForConflictingClassTypeVariableErrorCodes();
       TypeName superclass = node.extendsClause?.superclass;
       ImplementsClause implementsClause = node.implementsClause;
@@ -711,7 +710,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         node.staticElement == null &&
         !_isFunctionType(expressionType)) {
       _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
           functionExpression);
     } else if (expressionType is FunctionType) {
       _typeArgumentsVerifier.checkFunctionExpressionInvocation(node);
@@ -1250,7 +1249,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // class.
     if (!_checkForExtendsDisallowedClass(superclass) &&
         !_checkForImplementsClauseErrorCodes(implementsClause) &&
-        !_checkForAllMixinErrorCodes(withClause)) {
+        !_checkForAllMixinErrorCodes(withClause) &&
+        !_checkForNoGenerativeConstructorsInSuperclass(superclass)) {
       _checkForImplicitDynamicType(superclass);
       _checkForExtendsDeferredClass(superclass);
       _checkForRepeatedType(implementsClause?.interfaces,
@@ -1260,6 +1260,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkMixinInference(node, withClause);
       _checkForMixinWithConflictingPrivateMember(withClause, superclass);
       _checkForConflictingGenerics(node);
+      if (node is ClassDeclaration) {
+        _checkForNoDefaultSuperConstructorImplicit(node);
+      }
     }
   }
 
@@ -1537,8 +1540,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       DartType expectedStaticType,
       ErrorCode errorCode) {
     if (!_typeSystem.isAssignableTo2(actualStaticType, expectedStaticType)) {
+      AstNode getErrorNode(AstNode node) {
+        if (node is CascadeExpression) {
+          return getErrorNode(node.target);
+        }
+        if (node is ParenthesizedExpression) {
+          return getErrorNode(node.expression);
+        }
+        return node;
+      }
+
       _errorReporter.reportErrorForNode(
-          errorCode, expression, [actualStaticType, expectedStaticType]);
+        errorCode,
+        getErrorNode(expression),
+        [actualStaticType, expectedStaticType],
+      );
       return false;
     }
     return true;
@@ -2241,7 +2257,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     if (!_typeSystem.isAssignableTo2(iterableType, requiredSequenceType)) {
       _errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,
+        CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
         node.iterable,
         [iterableType, loopTypeName],
       );
@@ -2265,7 +2281,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     if (!_typeSystem.isAssignableTo2(sequenceElementType, variableType)) {
       _errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
+        CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
         node.iterable,
         [iterableType, loopTypeName, variableType],
       );
@@ -2765,7 +2781,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// Check that the given [typeReference] is not a type reference and that then
   /// the [name] is reference to an instance member.
   ///
-  /// See [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER].
+  /// See [CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER].
   void _checkForInstanceAccessToStaticMember(
       ClassElement typeReference, Expression target, SimpleIdentifier name) {
     if (_isInComment) {
@@ -2802,7 +2818,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         }
       }
       _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+          CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
           name,
           [name.name, _getKind(element), element.enclosingElement.name]);
     }
@@ -2838,7 +2854,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// Verify that the given left hand side ([lhs]) and right hand side ([rhs])
   /// represent a valid assignment.
   ///
-  /// See [StaticTypeWarningCode.INVALID_ASSIGNMENT].
+  /// See [CompileTimeErrorCode.INVALID_ASSIGNMENT].
   void _checkForInvalidAssignment(Expression lhs, Expression rhs) {
     if (lhs == null || rhs == null) {
       return;
@@ -2863,7 +2879,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     _checkForAssignableExpression(
-        rhs, leftType, StaticTypeWarningCode.INVALID_ASSIGNMENT);
+        rhs, leftType, CompileTimeErrorCode.INVALID_ASSIGNMENT);
   }
 
   /// Check the given [initializer] to ensure that the field being initialized
@@ -3388,9 +3404,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (superUnnamedConstructor != null) {
       if (superUnnamedConstructor.isFactory) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
+            CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR,
             declaration.name,
-            [superUnnamedConstructor]);
+            [superElement.name, _enclosingClass.name, superUnnamedConstructor]);
         return;
       }
       if (superUnnamedConstructor.isDefaultConstructor) {
@@ -3406,6 +3422,35 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           declaration.name,
           [superType, _enclosingClass.displayName]);
     }
+  }
+
+  bool _checkForNoGenerativeConstructorsInSuperclass(TypeName superclass) {
+    InterfaceType superType = _enclosingClass.supertype;
+    if (superType == null) {
+      return false;
+    }
+    if (_enclosingClass.constructors
+        .every((constructor) => constructor.isFactory)) {
+      // A class with no generative constructors *can* be extended if the
+      // subclass has only factory constructors.
+      return false;
+    }
+    ClassElement superElement = superType.element;
+    if (superElement.constructors.isEmpty) {
+      // Exclude empty constructor set, which indicates other errors occurred.
+      return false;
+    }
+    if (superElement.constructors
+        .every((constructor) => constructor.isFactory)) {
+      // For `E extends Exception`, etc., this will never work, because it has
+      // no generative constructors. State this clearly to users.
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS,
+          superclass,
+          [_enclosingClass.name, superElement.name]);
+      return true;
+    }
+    return false;
   }
 
   /// Verify the given map [literal] either:
@@ -3433,6 +3478,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
+    /// TODO(srawlins): Add any tests showing this is reported.
     _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT, literal);
   }
@@ -4051,7 +4097,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   /// Check that none of the type [parameters] references itself in its bound.
   ///
-  /// See [StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
+  /// See [CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
   void _checkForTypeParameterBoundRecursion(List<TypeParameter> parameters) {
     Map<TypeParameterElement, TypeParameter> elementToNode;
     for (var parameter in parameters) {
@@ -4074,7 +4120,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           if (step == parameters.length) {
             var element = parameter.declaredElement;
             _errorReporter.reportErrorForNode(
-              StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+              CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
               parameter,
               [element.displayName, element.bound],
             );
@@ -4141,6 +4187,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     ClassElement superElement = superType.element;
+    if (superElement.constructors
+        .every((constructor) => constructor.isFactory)) {
+      // Already reported [NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS].
+      return;
+    }
     ConstructorElement superUnnamedConstructor =
         superElement.unnamedConstructor;
     if (superUnnamedConstructor != null) {
@@ -4256,7 +4307,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// defined in the enclosing class rather than in a superclass.
   ///
   /// See
-  /// [StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER].
+  /// [CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER].
   void _checkForUnqualifiedReferenceToNonLocalStaticMember(
       SimpleIdentifier name) {
     Element element = name.staticElement;
@@ -4289,8 +4340,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           [enclosingElement.displayName]);
     } else {
       _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode
-              .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+          CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
           name,
           [enclosingElement.displayName]);
     }

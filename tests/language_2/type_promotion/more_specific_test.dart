@@ -48,7 +48,7 @@ void testInterface() {
     // No promotion C !<< A.
     x = a.c;
     //    ^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
     // [cfe] The getter 'c' isn't defined for the class 'A'.
   }
   B b = new B();
@@ -60,7 +60,7 @@ void testInterface() {
     // Promotion A << dynamic.
     y = x.b;
     //    ^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
     // [cfe] The getter 'b' isn't defined for the class 'A'.
   }
 }
@@ -78,12 +78,12 @@ testGeneric() {
     // Promotion: E<A> << D.
     int a = d1.d;
     //      ^^^^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //         ^
     // [cfe] A value of type 'A' can't be assigned to a variable of type 'int'.
     String b = d1.d;
     //         ^^^^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //            ^
     // [cfe] A value of type 'A' can't be assigned to a variable of type 'String'.
     x = d1.e;
@@ -94,7 +94,7 @@ testGeneric() {
     // No promotion: E !<< D<A>
     x = d2.e;
     //     ^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
     // [cfe] The getter 'e' isn't defined for the class 'D<A>'.
   }
 

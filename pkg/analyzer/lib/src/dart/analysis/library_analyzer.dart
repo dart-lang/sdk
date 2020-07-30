@@ -200,37 +200,41 @@ class LibraryAnalyzer {
   void _checkForInconsistentLanguageVersionOverride(
     Map<FileState, CompilationUnit> units,
   ) {
-    var libraryUnit = units.values.first;
+    var libraryEntry = units.entries.first;
+    var libraryUnit = libraryEntry.value;
     var libraryOverrideToken = libraryUnit.languageVersionToken;
 
-    for (var partEntry in units.entries.skip(1)) {
-      var partUnit = partEntry.value;
-      var partOverrideToken = partUnit.languageVersionToken;
-      if (libraryOverrideToken != null) {
-        if (partOverrideToken != null) {
-          if (partOverrideToken.major != libraryOverrideToken.major ||
-              partOverrideToken.minor != libraryOverrideToken.minor) {
-            _getErrorReporter(partEntry.key).reportErrorForToken(
-              CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE,
-              partOverrideToken,
-            );
+    var elementToUnit = <CompilationUnitElement, CompilationUnit>{};
+    for (var entry in units.entries) {
+      var unit = entry.value;
+      elementToUnit[unit.declaredElement] = unit;
+    }
+
+    for (var directive in libraryUnit.directives) {
+      if (directive is PartDirective) {
+        var partUnit = elementToUnit[directive.uriElement];
+        if (partUnit != null) {
+          var shouldReport = false;
+          var partOverrideToken = partUnit.languageVersionToken;
+          if (libraryOverrideToken != null) {
+            if (partOverrideToken != null) {
+              if (partOverrideToken.major != libraryOverrideToken.major ||
+                  partOverrideToken.minor != libraryOverrideToken.minor) {
+                shouldReport = true;
+              }
+            } else {
+              shouldReport = true;
+            }
+          } else if (partOverrideToken != null) {
+            shouldReport = true;
           }
-        } else {
-          var partDirectives = partUnit.directives;
-          for (var partOf in partDirectives.whereType<PartOfDirective>()) {
-            var partOffset = partOf.partKeyword.offset;
-            _getErrorReporter(partEntry.key).reportErrorForOffset(
+          if (shouldReport) {
+            _getErrorReporter(_library).reportErrorForNode(
               CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE,
-              partOffset,
-              partOf.ofKeyword.end - partOffset,
+              directive.uri,
             );
           }
         }
-      } else if (partOverrideToken != null) {
-        _getErrorReporter(partEntry.key).reportErrorForToken(
-          CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE,
-          partOverrideToken,
-        );
       }
     }
   }
@@ -442,8 +446,8 @@ class LibraryAnalyzer {
         // non-internal code from importing internal code.
         bool privileged = false;
 
-        if (code == StaticTypeWarningCode.UNDEFINED_FUNCTION ||
-            code == StaticTypeWarningCode.UNDEFINED_PREFIXED_NAME) {
+        if (code == CompileTimeErrorCode.UNDEFINED_FUNCTION ||
+            code == CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME) {
           // Special case a small number of errors in Flutter code which are
           // ignored. The erroneous code is found in a conditionally imported
           // library, which uses a special version of the "dart:ui" library
@@ -555,7 +559,7 @@ class LibraryAnalyzer {
 
     LineInfo lineInfo = unit.lineInfo;
     _fileToLineInfo[file] = lineInfo;
-    _fileToIgnoreInfo[file] = IgnoreInfo.calculateIgnores(content, lineInfo);
+    _fileToIgnoreInfo[file] = IgnoreInfo.forDart(unit, content);
 
     return unit;
   }

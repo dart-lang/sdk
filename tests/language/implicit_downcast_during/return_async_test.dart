@@ -11,14 +11,14 @@ class B extends A {}
 Future<B> f1(A a) async {
   return a as FutureOr<A>;
   //     ^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.RETURN_OF_INVALID_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
   //       ^
   // [cfe] A value of type 'FutureOr<A>' can't be returned from an async function with return type 'Future<B>'.
 }
 
 Future<B> f2(A a) async => a as FutureOr<A>;
 //                         ^^^^^^^^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.RETURN_OF_INVALID_TYPE
+// [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
 //                           ^
 // [cfe] A value of type 'FutureOr<A>' can't be returned from an async function with return type 'Future<B>'.
 

@@ -25,7 +25,7 @@ f(C c) {
   c.foo += 1;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 46, 3),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 46, 3),
     ]);
   }
 
@@ -39,7 +39,7 @@ f() {
   C.foo += 1;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 50, 3),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 50, 3),
     ]);
   }
 
@@ -57,7 +57,7 @@ extension E on C {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 95, 3),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 95, 3),
     ]);
   }
 
@@ -70,7 +70,7 @@ f() {
   0.foo;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 58, 3),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 58, 3),
     ]);
   }
 
@@ -79,7 +79,7 @@ f() {
 extension E on int {}
 var a = 3.v;
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 32, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 32, 1),
     ]);
   }
 
@@ -93,7 +93,7 @@ f(C c) {
   c.a;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 46, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 46, 1),
     ]);
   }
 
@@ -111,7 +111,7 @@ f(C c) {
   c.foo;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 93, 3),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 93, 3),
     ]);
   }
 
@@ -132,7 +132,7 @@ f(int x) {
   return [if (x is String) x.length];
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 40, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 6),
     ]);
   }
 
@@ -150,7 +150,7 @@ f(int x) {
   return {if (x is String) x : x.length};
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 44, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 44, 6),
     ]);
   }
 
@@ -168,7 +168,7 @@ f(int x) {
   return {if (x is String) x.length};
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 40, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 6),
     ]);
   }
 
@@ -188,7 +188,7 @@ f(int x) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 38, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 38, 6),
     ]);
   }
 
@@ -207,7 +207,7 @@ f(Object x) {
 class T {}
 f(T e) { return e.m; }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 29, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 29, 1),
     ]);
   }
 
@@ -217,7 +217,7 @@ mixin M {
   f() { return this.m; }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 30, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 1),
     ]);
   }
 
@@ -228,7 +228,7 @@ m() {
   _null.foo;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 28, 3),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
     ]);
   }
 
@@ -238,7 +238,7 @@ f(Object o) {
   return o.call;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 25, 4),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 25, 4),
     ]);
   }
 
@@ -250,7 +250,7 @@ void f<X extends num, Y extends X>(Y y) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 66, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 66, 6),
     ]);
   }
 
@@ -266,7 +266,7 @@ main() {
   new PrefixProxy().foo;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 127, 3),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 127, 3),
     ]);
   }
 
@@ -290,7 +290,7 @@ class C extends S {}
 f(var p) {
   f(C.g);
 }''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 75, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 75, 1),
     ]);
   }
 
@@ -300,7 +300,7 @@ class C {}
 f(var p) {
   f(C.m);
 }''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 28, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 1),
     ]);
   }
 
@@ -313,7 +313,7 @@ main() {
   T..foo;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 54, 3),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 54, 3),
     ]);
   }
 
@@ -324,7 +324,7 @@ main() {
 class A {}
 f() => A?.hashCode;
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 21, 8),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 21, 8),
     ]);
   }
 

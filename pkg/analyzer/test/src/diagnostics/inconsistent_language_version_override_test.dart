@@ -30,8 +30,8 @@ part 'b.dart';
 // @dart = 2.6
 part of 'a.dart';
 ''',
-      partErrors: [
-        error(_errorCode, 0, 14),
+      libraryErrors: [
+        error(_errorCode, 20, 8),
       ],
     );
   }
@@ -46,7 +46,7 @@ part 'b.dart';
 // @dart = 2.5
 part of 'a.dart';
 ''',
-      partErrors: [],
+      libraryErrors: [],
     );
   }
 
@@ -58,7 +58,7 @@ part 'b.dart';
       partContent: r'''
 part of 'a.dart';
 ''',
-      partErrors: [],
+      libraryErrors: [],
     );
   }
 
@@ -71,8 +71,8 @@ part 'b.dart';
       partContent: r'''
 part of 'a.dart';
 ''',
-      partErrors: [
-        error(_errorCode, 0, 7),
+      libraryErrors: [
+        error(_errorCode, 20, 8),
       ],
     );
   }
@@ -86,8 +86,8 @@ part 'b.dart';
 // @dart = 2.5
 part of 'a.dart';
 ''',
-      partErrors: [
-        error(_errorCode, 0, 14),
+      libraryErrors: [
+        error(_errorCode, 5, 8),
       ],
     );
   }
@@ -95,7 +95,7 @@ part of 'a.dart';
   Future<void> _checkLibraryAndPart({
     @required String libraryContent,
     @required String partContent,
-    @required List<ExpectedError> partErrors,
+    @required List<ExpectedError> libraryErrors,
   }) async {
     var libraryPath = convertPath('/test/lib/a.dart');
     var partPath = convertPath('/test/lib/b.dart');
@@ -104,8 +104,6 @@ part of 'a.dart';
 
     newFile(partPath, content: partContent);
 
-    await resolveFile(libraryPath);
-
-    await assertErrorsInFile2(partPath, partErrors);
+    await assertErrorsInFile2(libraryPath, libraryErrors);
   }
 }

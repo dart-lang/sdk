@@ -87,7 +87,7 @@ testFuncDynToDyn() {
     b = funcDynToDyn(new B()) as B;
     c = funcDynToDyn(new C());
     //  ^^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //              ^
     // [cfe] A value of type 'A' can't be assigned to a variable of type 'C'.
   }
@@ -124,7 +124,7 @@ testFuncDynToVoid() {
     b = funcDynToVoid(new B()) as B;
     c = funcDynToVoid(new C());
     //  ^^^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //               ^
     // [cfe] A value of type 'A' can't be assigned to a variable of type 'C'.
   }
@@ -136,7 +136,7 @@ testFuncDynToA() {
   b = funcDynToA(new B()) as B;
   c = funcDynToA(new C());
   //  ^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //            ^
   // [cfe] A value of type 'A' can't be assigned to a variable of type 'C'.
 
@@ -146,7 +146,7 @@ testFuncDynToA() {
     b = funcDynToA(new B()) as B;
     c = funcDynToA(new C());
     //  ^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //            ^
     // [cfe] A value of type 'A' can't be assigned to a variable of type 'C'.
   }
@@ -157,7 +157,7 @@ testFuncDynToA() {
     b = funcDynToA(new B()) as B;
     c = funcDynToA(new C());
     //  ^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //            ^
     // [cfe] A value of type 'A' can't be assigned to a variable of type 'C'.
   }

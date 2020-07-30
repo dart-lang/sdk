@@ -7,7 +7,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'all_the_rest_test.dart' as all_the_rest;
 import 'checked_mode_compile_time_error_code_test.dart'
     as checked_mode_compile_time_error_code;
-import 'compile_time_error_code_test.dart' as compile_time_error_code;
 // ignore: deprecated_member_use_from_same_package
 import 'constant_test.dart' as constant_test;
 import 'element_resolver_test.dart' as element_resolver_test;
@@ -37,7 +36,6 @@ main() {
   defineReflectiveSuite(() {
     all_the_rest.main();
     checked_mode_compile_time_error_code.main();
-    compile_time_error_code.main();
     constant_test.main();
     element_resolver_test.main();
     error_suppression.main();

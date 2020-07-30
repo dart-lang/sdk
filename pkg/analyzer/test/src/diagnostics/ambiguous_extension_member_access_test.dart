@@ -31,7 +31,7 @@ int f(A a) => a();
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 110, 1),
       error(
-          StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 110, 1),
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 110, 1),
     ]);
   }
 

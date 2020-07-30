@@ -17,7 +17,8 @@ abstract class VmInteropHandler {
     final message = List<dynamic>.filled(3, null)
       ..[0] = _kResultRun
       ..[1] = script
-      ..[2] = args;
+      // Copy the list so it doesn't get GC'd underneath us.
+      ..[2] = args.toList();
     _port.send(message);
   }
 

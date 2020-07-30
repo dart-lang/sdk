@@ -115,6 +115,11 @@ class InstantiatedClass {
     return false;
   }
 
+  InstantiatedClass mapArguments(DartType Function(DartType) f) {
+    var mappedArguments = arguments.map(f).toList();
+    return InstantiatedClass(element, mappedArguments);
+  }
+
   @override
   String toString() {
     var buffer = StringBuffer();
@@ -232,6 +237,20 @@ class InterfaceLeastUpperBoundHelper {
     return result.withNullability(nullability);
   }
 
+  /// Return all of the superinterfaces of the given [type].
+  @visibleForTesting
+  Set<InstantiatedClass> computeSuperinterfaceSet(InstantiatedClass type) {
+    var result = <InstantiatedClass>{};
+    _addSuperinterfaces(result, type);
+    if (typeSystem.isNonNullableByDefault) {
+      return result;
+    } else {
+      return result.map((e) {
+        return e.mapArguments(typeSystem.toLegacyType);
+      }).toSet();
+    }
+  }
+
   /// Compute the least upper bound of types [i] and [j], both of which are
   /// known to be interface types.
   ///
@@ -263,15 +282,6 @@ class InterfaceLeastUpperBoundHelper {
       0,
       <ClassElement>{},
     );
-  }
-
-  /// Return all of the superinterfaces of the given [type].
-  @visibleForTesting
-  static Set<InstantiatedClass> computeSuperinterfaceSet(
-      InstantiatedClass type) {
-    var result = <InstantiatedClass>{};
-    _addSuperinterfaces(result, type);
-    return result;
   }
 
   /// Add all of the superinterfaces of the given [type] to the given [set].

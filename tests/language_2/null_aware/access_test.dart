@@ -35,19 +35,19 @@ main() {
   { int i = new C(1)?.v; Expect.equals(1, i); }
   { String s = new C(null)?.v; Expect.equals(null, s); }
   //           ^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //               ^
   // [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
   { C.staticInt = 1; int i = C?.staticInt; Expect.equals(1, i); }
   { h.C.staticInt = 1; int i = h.C?.staticInt; Expect.equals(1, i); }
   { C.staticInt = null; String s = C?.staticInt; Expect.equals(null, s); }
   //                               ^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                  ^
   // [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
   { h.C.staticInt = null; String s = h.C?.staticInt; Expect.equals(null, s); }
   //                                 ^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                      ^
   // [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
 
@@ -56,11 +56,11 @@ main() {
   // generated in the case of e1?.id.
   Expect.equals(null, nullC()?.bad);
   //                           ^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'bad' isn't defined for the class 'C'.
   { B b = new C(1); Expect.equals(1, b?.v); }
   //                                    ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'v' isn't defined for the class 'B'.
 
   // '?.' cannot be used to access toplevel properties in libraries imported via
@@ -73,10 +73,10 @@ main() {
   // Nor can it be used to access the hashCode getter on the class Type.
   Expect.throwsNoSuchMethodError(() => C?.hashCode);
   //                                      ^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] Getter not found: 'hashCode'.
   Expect.throwsNoSuchMethodError(() => h.C?.hashCode);
   //                                        ^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] Getter not found: 'hashCode'.
 }

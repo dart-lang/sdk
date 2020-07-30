@@ -392,16 +392,16 @@
       }
     },
     "unittest-weak-asserts-no-sdk-(linux|mac|win)": {
-       "options": {
-         "compiler": "dartk",
-         "enable-asserts": true,
-         "mode": "release",
-         "runtime": "vm",
-         "timeout": 240,
-         "enable-experiment": [
-           "non-nullable"
-         ]
-       }
+      "options": {
+        "compiler": "dartk",
+        "enable-asserts": true,
+        "mode": "release",
+        "runtime": "vm",
+        "timeout": 240,
+        "enable-experiment": [
+          "non-nullable"
+        ]
+      }
     },
     "analyzer-unittest-asserts-(debug|product|release)-(linux|mac|win)": {
       "options": {
@@ -707,32 +707,32 @@
         "builder-tag": "canary"
       }
     },
-    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-x64": {
+    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-(simarm64|x64)": {
       "options": {
         "enable-experiment": [
           "non-nullable"
         ],
-	"gen-kernel-options": [
+        "gen-kernel-options": [
           "--no-sound-null-safety"
         ],
         "enable-asserts": true,
-	"vm-options": [
+        "vm-options": [
           "--no-sound-null-safety"
         ],
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartkp-weak-asserts-win-(debug|product|release)-x64": {
+    "dartkp-weak-asserts-win-(debug|product|release)-(simarm64|x64)": {
       "options": {
         "enable-experiment": [
           "non-nullable"
         ],
-	"gen-kernel-options": [
+        "gen-kernel-options": [
           "--no-sound-null-safety"
         ],
         "enable-asserts": true,
         "use-elf": true,
-	"vm-options": [
+        "vm-options": [
           "--no-sound-null-safety"
         ],
         "builder-tag": "vm_nnbd"
@@ -744,7 +744,7 @@
           "non-nullable"
         ],
         "enable-asserts": true,
-	"vm-options": [
+        "vm-options": [
           "--no-sound-null-safety"
         ],
         "builder-tag": "vm_nnbd"
@@ -761,7 +761,7 @@
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartkp-strong-(linux|mac)-(debug|product|release)-x64": {
+    "dartkp-strong-(linux|mac)-(debug|product|release)-(simarm64|x64)": {
       "options": {
         "enable-experiment": [
           "non-nullable"
@@ -775,7 +775,7 @@
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartkp-strong-win-(debug|product|release)-x64": {
+    "dartkp-strong-win-(debug|product|release)-(simarm64|x64)": {
       "options": {
         "use-elf": true,
         "enable-experiment": [
@@ -912,9 +912,6 @@
           "--enable_interpreter"
         ]
       }
-    },
-    "dartkb-abi-linux-release-x64": {
-      "__comment__": "This configuration is only used for a custom test runner. If it conflicts with a new configuration you are adding, you can make this configuration more specific by adding options."
     },
     "dartdevk-checked-(linux|mac|win)-(debug|product|release)-(chrome|firefox)": {
       "options": {
@@ -1295,6 +1292,7 @@
     },
     {
       "builders": [
+        "vm-kernel-precomp-nnbd-linux-release-simarm64",
         "vm-kernel-precomp-nnbd-linux-release-x64"
       ],
       "meta": {
@@ -1316,7 +1314,7 @@
             "co19"
           ],
           "fileset": "vm-kernel",
-          "shards": 2
+          "shards": 3
         },
         {
           "name": "co19 nnbd tests in strong mode",
@@ -1325,7 +1323,7 @@
             "co19"
           ],
           "fileset": "vm-kernel",
-          "shards": 2
+          "shards": 3
         },
         {
           "name": "vm nnbd tests in weak mode with asserts",
@@ -1351,7 +1349,9 @@
             "lib",
             "standalone/io",
             "vm"
-          ]
+          ],
+          "fileset": "vm-kernel",
+          "shards": 3
         }
       ]
     },
@@ -3438,30 +3438,6 @@
           ],
           "shards": 100,
           "fileset": "fuzzer"
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-dartkb-linux-release-x64-abi"
-      ],
-      "meta": {
-        "description": "This configuration runs tests for each supported ABI version."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--bytecode",
-            "create_sdk_with_abi_versions"
-          ]
-        },
-        {
-          "name": "run tests",
-          "script": "tools/run_abi_tests.py",
-          "testRunner": true,
-          "arguments": ["-ndartkb-abi-linux-release-x64"]
         }
       ]
     },

@@ -3021,6 +3021,9 @@ abstract class Expression extends TreeNode {
     if (type == context.typeEnvironment.nullType) {
       return context.typeEnvironment.coreTypes
           .bottomInterfaceType(superclass, context.nullable);
+    } else if (type is NeverType) {
+      return context.typeEnvironment.coreTypes
+          .bottomInterfaceType(superclass, type.nullability);
     }
     if (type is InterfaceType) {
       List<DartType> upcastTypeArguments = context.typeEnvironment
@@ -3480,8 +3483,8 @@ class DirectMethodInvocation extends InvocationExpression {
       v.visitDirectMethodInvocation(this, arg);
 
   DartType getStaticType(StaticTypeContext context) {
-    if (context.typeEnvironment.isOverloadedArithmeticOperator(target)) {
-      return context.typeEnvironment.getTypeOfOverloadedArithmetic(
+    if (context.typeEnvironment.isSpecialCasedBinaryOperator(target)) {
+      return context.typeEnvironment.getTypeOfSpecialCasedBinaryOperator(
           receiver.getStaticType(context),
           arguments.positional[0].getStaticType(context));
     }
@@ -3883,8 +3886,8 @@ class MethodInvocation extends InvocationExpression {
     if (interfaceTarget != null) {
       if (interfaceTarget is Procedure &&
           context.typeEnvironment
-              .isOverloadedArithmeticOperator(interfaceTarget)) {
-        return context.typeEnvironment.getTypeOfOverloadedArithmetic(
+              .isSpecialCasedBinaryOperator(interfaceTarget)) {
+        return context.typeEnvironment.getTypeOfSpecialCasedBinaryOperator(
             receiver.getStaticType(context),
             arguments.positional[0].getStaticType(context));
       }
@@ -8245,12 +8248,13 @@ class TypeParameterType extends DartType {
   /// null, it is an equivalent of setting the overall nullability.
   @override
   TypeParameterType withDeclaredNullability(Nullability declaredNullability) {
+    if (declaredNullability == this.declaredNullability) {
+      return this;
+    }
     // TODO(dmitryas): Consider removing the assert.
     assert(promotedBound == null,
         "Can't change the nullability attribute of an intersection type.");
-    return declaredNullability == this.declaredNullability
-        ? this
-        : new TypeParameterType(parameter, declaredNullability, promotedBound);
+    return new TypeParameterType(parameter, declaredNullability, promotedBound);
   }
 
   /// Gets the nullability of a type-parameter type based on the bound.
