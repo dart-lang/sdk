@@ -119,6 +119,10 @@ Run a Dart file.''');
     // service intermediary which implements the VM service protocol and
     // provides non-VM specific extensions (e.g., log caching, client
     // synchronization).
+    // TODO(bkonyi): Handle race condition made possible by Observatory
+    // listening message being printed to console before DDS is started.
+    // See https://github.com/dart-lang/sdk/issues/42727
+    launchDds = false;
     _DebuggingSession debugSession;
     if (launchDds) {
       debugSession = _DebuggingSession();
