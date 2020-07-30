@@ -17,6 +17,7 @@ import 'least_upper_bound_helper_test.dart' as least_upper_bound_helper;
 import 'normalize_type_test.dart' as normalize_type;
 import 'nullability_eliminator_test.dart' as nullability_eliminator;
 import 'nullable_test.dart' as nullable;
+import 'replace_top_bottom_test.dart' as replace_top_bottom;
 import 'runtime_type_equality_test.dart' as runtime_type_equality;
 import 'subtype_test.dart' as subtype;
 import 'top_merge_test.dart' as top_merge;
@@ -42,6 +43,7 @@ main() {
     normalize_type.main();
     nullability_eliminator.main();
     nullable.main();
+    replace_top_bottom.main();
     runtime_type_equality.main();
     subtype.main();
     top_merge.main();
