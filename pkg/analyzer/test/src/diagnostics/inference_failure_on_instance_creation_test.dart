@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,7 +17,8 @@ main() {
 }
 
 @reflectiveTest
-class InferenceFailureOnInstanceCreationTest extends DriverResolutionTest {
+class InferenceFailureOnInstanceCreationTest extends DriverResolutionTest
+    with PackageMixin {
   @override
   AnalysisOptionsImpl get analysisOptions =>
       AnalysisOptionsImpl()..strictInference = true;
@@ -72,6 +74,18 @@ void f() {
 ''', [
       error(HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 39, 7),
     ]);
+  }
+
+  test_missingTypeArgument_noInference_optionalTypeArgs() async {
+    addMetaPackage();
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+@optionalTypeArgs
+class C<T> {}
+void f() {
+  C();
+}
+''');
   }
 
   test_missingTypeArgument_upwardInference() async {

@@ -224,7 +224,10 @@ class GenericInferrer {
         // by [infer], with [typeParam] filled in as its bounds. This is
         // considered a failure of inference, under the "strict-inference"
         // mode.
-        if (errorNode is ConstructorName) {
+        if (errorNode is ConstructorName &&
+            !(errorNode.type.type as InterfaceType)
+                .element
+                .hasOptionalTypeArgs) {
           String constructorName = errorNode.name == null
               ? errorNode.type.name.name
               : '${errorNode.type}.${errorNode.name}';
