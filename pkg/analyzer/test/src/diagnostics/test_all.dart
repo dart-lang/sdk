@@ -230,6 +230,8 @@ import 'inference_failure_on_collection_literal_test.dart'
     as inference_failure_on_collection_literal;
 import 'inference_failure_on_function_return_type_test.dart'
     as inference_failure_on_function_return_type;
+import 'inference_failure_on_instance_creation_test.dart'
+    as inference_failure_on_instance_creation;
 import 'inference_failure_on_uninitialized_variable_test.dart'
     as inference_failure_on_uninitialized_variable;
 import 'inference_failure_on_untyped_parameter_test.dart'
@@ -775,6 +777,7 @@ main() {
     inconsistent_language_version_override.main();
     inference_failure_on_collection_literal.main();
     inference_failure_on_function_return_type.main();
+    inference_failure_on_instance_creation.main();
     inference_failure_on_uninitialized_variable.main();
     inference_failure_on_untyped_parameter.main();
     initializer_for_non_existent_field.main();

@@ -225,7 +225,9 @@ class GenericInferrer {
         // considered a failure of inference, under the "strict-inference"
         // mode.
         if (errorNode is ConstructorName) {
-          String constructorName = '${errorNode.type}.${errorNode.name}';
+          String constructorName = errorNode.name == null
+              ? errorNode.type.name.name
+              : '${errorNode.type}.${errorNode.name}';
           errorReporter?.reportErrorForNode(
               HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
               errorNode,
