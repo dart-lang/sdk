@@ -42,60 +42,6 @@ class CheckedModeCompileTimeErrorCode extends AnalyzerErrorCode {
               "has type '{2}'.");
 
   /**
-   * Parameters:
-   * 0: The type of the runtime value of the argument
-   * 1: The static type of the parameter
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the runtime type of a constant
-  // value can't be assigned to the static type of a constant constructor's
-  // parameter.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic because the runtime type of `i`
-  // is `int`, which can't be assigned to the static type of `s`:
-  //
-  // ```dart
-  // class C {
-  //   final String s;
-  //
-  //   const C(this.s);
-  // }
-  //
-  // const dynamic i = 0;
-  //
-  // void f() {
-  //   const C([!i!]);
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Pass a value of the correct type to the constructor:
-  //
-  // ```dart
-  // class C {
-  //   final String s;
-  //
-  //   const C(this.s);
-  // }
-  //
-  // const dynamic i = 0;
-  //
-  // void f() {
-  //   const C('$i');
-  // }
-  // ```
-  static const CheckedModeCompileTimeErrorCode
-      CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH = CheckedModeCompileTimeErrorCode(
-          'CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
-          "A value of type '{0}' can't be assigned to a parameter of type "
-              "'{1}'.",
-          hasPublishedDocs: true);
-
-  /**
    * 7.6.1 Generative Constructors: In checked mode, it is a dynamic type error
    * if o is not <b>null</b> and the interface of the class of <i>o</i> is not a
    * subtype of the static type of the field <i>v</i>.
@@ -1442,6 +1388,60 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "'{0}' can't be used to name both a type variable and a member in "
               "this extension.",
           correction: "Try renaming either the type variable or the member.");
+
+  /**
+   * Parameters:
+   * 0: The type of the runtime value of the argument
+   * 1: The static type of the parameter
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the runtime type of a constant
+  // value can't be assigned to the static type of a constant constructor's
+  // parameter.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the runtime type of `i`
+  // is `int`, which can't be assigned to the static type of `s`:
+  //
+  // ```dart
+  // class C {
+  //   final String s;
+  //
+  //   const C(this.s);
+  // }
+  //
+  // const dynamic i = 0;
+  //
+  // void f() {
+  //   const C([!i!]);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Pass a value of the correct type to the constructor:
+  //
+  // ```dart
+  // class C {
+  //   final String s;
+  //
+  //   const C(this.s);
+  // }
+  //
+  // const dynamic i = 0;
+  //
+  // void f() {
+  //   const C('$i');
+  // }
+  // ```
+  static const CompileTimeErrorCode CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH =
+      CompileTimeErrorCode(
+          'CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
+          "A value of type '{0}' can't be assigned to a parameter of type "
+              "'{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * 16.12.2 Const: It is a compile-time error if evaluation of a constant
