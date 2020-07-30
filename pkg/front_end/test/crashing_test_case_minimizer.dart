@@ -56,6 +56,7 @@ String targetString = "VM";
 String expectedCrashLine;
 bool byteDelete = false;
 bool askAboutRedirectCrashTarget = false;
+int stackTraceMatches = 1;
 Set<String> askedAboutRedirect = {};
 
 main(List<String> arguments) async {
@@ -85,6 +86,9 @@ main(List<String> arguments) async {
         byteDelete = true;
       } else if (arg == "--ask-redirect-target") {
         askAboutRedirectCrashTarget = true;
+      } else if (arg.startsWith("--stack-matches=")) {
+        String stackMatches = arg.substring("--stack-matches=".length);
+        stackTraceMatches = int.parse(stackMatches);
       } else {
         throw "Unknown option $arg";
       }
@@ -487,16 +491,22 @@ Future<bool> crashesOnCompile(Component initialComponent) async {
     // Find line with #0 in it.
     String eWithSt = "$e\n\n$st";
     List<String> lines = eWithSt.split("\n");
-    String foundLine;
+    String foundLine = "";
+    int lookFor = 0;
     for (String line in lines) {
-      if (line.startsWith("#0")) {
-        foundLine = line;
-        break;
+      if (line.startsWith("#$lookFor")) {
+        foundLine += line;
+        lookFor++;
+        if (lookFor >= stackTraceMatches) {
+          break;
+        } else {
+          foundLine += "\n";
+        }
       }
     }
     if (foundLine == null) throw "Unexpected crash without stacktrace: $e";
     if (expectedCrashLine == null) {
-      print("Got $foundLine");
+      print("Got '$foundLine'");
       expectedCrashLine = foundLine;
       return true;
     } else if (foundLine == expectedCrashLine) {
