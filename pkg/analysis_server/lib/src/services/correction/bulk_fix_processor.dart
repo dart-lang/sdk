@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_contains
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_empty_catch.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_else.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
@@ -48,6 +49,7 @@ class BulkFixProcessor {
     LintNames.await_only_futures: RemoveAwait.newInstance,
     LintNames.curly_braces_in_flow_control_structures:
         UseCurlyBraces.newInstance,
+    LintNames.empty_catches: RemoveEmptyCatch.newInstance,
     LintNames.prefer_contains: ConvertToContains.newInstance,
     LintNames.prefer_equal_for_default_values:
         ReplaceColonWithEquals.newInstance,
