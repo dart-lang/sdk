@@ -455,7 +455,7 @@ void FUNCTION_NAME(Socket_CreateUnixDomainBindConnect)(
 void FUNCTION_NAME(Socket_CreateUnixDomainConnect)(Dart_NativeArguments args) {
 #if defined(HOST_OS_WINDOWS) || defined(HOST_OS_FUCHSIA)
   OSError os_error(
-      -1, "Unix domain sockets are only available on linux, android and macos.",
+      -1, "Unix domain sockets are not available on this operating system.",
       OSError::kUnknown);
   Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
 #else
@@ -855,7 +855,7 @@ void FUNCTION_NAME(ServerSocket_CreateUnixDomainBindListen)(
     Dart_NativeArguments args) {
 #if defined(HOST_OS_WINDOWS)
   OSError os_error(
-      -1, "Unix domain sockets are only available on linux, android and macos.",
+      -1, "Unix domain sockets are not available on this operating system.",
       OSError::kUnknown);
   Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
 #else
@@ -1104,7 +1104,8 @@ void FUNCTION_NAME(Socket_SetOption)(Dart_NativeArguments args) {
           DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 3)));
       break;
     default:
-      Dart_PropagateError(Dart_NewApiError("Value outside expected range"));
+      Dart_PropagateError(
+          Dart_NewApiError("option to setOption() is outside expected range"));
       break;
   }
   if (!result) {
@@ -1202,7 +1203,8 @@ void FUNCTION_NAME(RawSocketOption_GetOptionValue)(Dart_NativeArguments args) {
       Dart_SetIntegerReturnValue(args, IPPROTO_UDP);
       break;
     default:
-      Dart_PropagateError(Dart_NewApiError("Value outside of expected range"));
+      Dart_PropagateError(Dart_NewApiError(
+          "option to getOptionValue() is outside expected range"));
       break;
   }
 }
