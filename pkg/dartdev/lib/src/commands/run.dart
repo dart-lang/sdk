@@ -18,6 +18,9 @@ import '../vm_interop_handler.dart';
 
 class RunCommand extends DartdevCommand<int> {
   static bool launchDds = false;
+
+  // kErrorExitCode, as defined in runtime/bin/error_exit.h
+  static const errorExitCode = 255;
   @override
   final ArgParser argParser = ArgParser.allowAnything();
 
@@ -100,8 +103,7 @@ Run a Dart file.''');
           'Could not find the implicit file to run: '
           'bin$separator$cwdName.dart.',
         );
-        // Error exit code, as defined in runtime/bin/error_exit.h
-        return 255;
+        return errorExitCode;
       }
     }
 
@@ -127,11 +129,15 @@ Run a Dart file.''');
     if (launchDds) {
       debugSession = _DebuggingSession();
       if (!await debugSession.start()) {
-        return 255;
+        return errorExitCode;
       }
     }
+
     final path = args.firstWhere((e) => !e.startsWith('-'));
-    final runArgs = args.length == 1 ? <String>[] : args.sublist(1);
+    final pathIndex = args.indexOf(path);
+    final runArgs = (pathIndex + 1 == args.length)
+        ? <String>[]
+        : args.sublist(pathIndex + 1);
     VmInteropHandler.run(path, runArgs);
     return 0;
   }

@@ -82,4 +82,20 @@ void run() {
         contains('Could not find the implicit file to run: bin'));
     expect(result.exitCode, 255);
   });
+
+  test('arguments are properly passed', () {
+    p = project();
+    p.file('main.dart', 'void main(args) { print(args); }');
+    ProcessResult result = p.runSync('run', [
+      '--enable-experiment=non-nullable',
+      'main.dart',
+      'argument1',
+      'argument2'
+    ]);
+
+    // --enable-experiment and main.dart should not be passed.
+    expect(result.stdout, equals('[argument1, argument2]\n'));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+  });
 }
