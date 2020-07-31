@@ -20,6 +20,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_type_annotat
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
+import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
@@ -45,6 +46,8 @@ class BulkFixProcessor {
     LintNames.avoid_types_on_closure_parameters:
         RemoveTypeAnnotation.newInstance,
     LintNames.await_only_futures: RemoveAwait.newInstance,
+    LintNames.curly_braces_in_flow_control_structures:
+        UseCurlyBraces.newInstance,
     LintNames.prefer_contains: ConvertToContains.newInstance,
     LintNames.prefer_equal_for_default_values:
         ReplaceColonWithEquals.newInstance,
