@@ -815,7 +815,7 @@ class CommonMasks implements AbstractValueDomain {
         mask.containsOnly(
             _closedWorld.commonElements.jsUnmodifiableArrayClass) ||
         mask.containsOnlyString(_closedWorld) ||
-        _closedWorld.abstractValueDomain.isTypedArray(mask).isDefinitelyTrue) {
+        isTypedArray(mask).isDefinitelyTrue) {
       return AbstractBool.True;
     }
     return AbstractBool.Maybe;
