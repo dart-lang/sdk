@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
+import 'package:analysis_server/src/services/correction/dart/create_method.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
@@ -54,6 +55,7 @@ class BulkFixProcessor {
     LintNames.empty_catches: RemoveEmptyCatch.newInstance,
     LintNames.empty_constructor_bodies: RemoveEmptyConstructorBody.newInstance,
     LintNames.empty_statements: RemoveEmptyStatement.newInstance,
+    LintNames.hash_and_equals: CreateMethod.equalsOrHashCode,
     LintNames.prefer_contains: ConvertToContains.newInstance,
     LintNames.prefer_equal_for_default_values:
         ReplaceColonWithEquals.newInstance,
