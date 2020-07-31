@@ -215,7 +215,7 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
       var shortName = pathContext.basename(completion.path);
       buf.writeln('<tr>'
           '<td class="pre right">${printMilliseconds(completion.elapsedInMilliseconds)}</td>'
-          '<td class="right">${completion.suggestionCount}</td>'
+          '<td class="right">${completion.suggestionCountStr}</td>'
           '<td>${escape(shortName)}</td>'
           '<td><code>${escape(completion.snippet)}</code></td>'
           '</tr>');
@@ -447,15 +447,8 @@ class ContextsPage extends DiagnosticPageWithNav {
     b.write(writeOption('Feature set', options.contextFeatures.toString()));
     b.write('<br>');
 
-    b.write(
-        writeOption('Analyze function bodies', options.analyzeFunctionBodies));
     b.write(writeOption('Generate dart2js hints', options.dart2jsHint));
-    b.write(writeOption(
-        'Generate errors in implicit files', options.generateImplicitErrors));
-    b.write(
-        writeOption('Generate errors in SDK files', options.generateSdkErrors));
     b.write(writeOption('Generate hints', options.hint));
-    b.write(writeOption('Preserve comments', options.preserveComments));
 
     return b.toString();
   }
@@ -523,10 +516,6 @@ class ContextsPage extends DiagnosticPageWithNav {
     if (sdkOptions != null) {
       h3('SDK analysis options');
       p(describe(sdkOptions), raw: true);
-
-      if (sdk is FolderBasedDartSdk) {
-        p(writeOption('Use summaries', sdk.useSummary), raw: true);
-      }
     }
 
     buf.writeln('</div>');
@@ -689,7 +678,7 @@ abstract class DiagnosticPage extends Page {
       <nav class="masthead-nav">
         <a href="/status" ${isNavPage ? ' class="active"' : ''}>Diagnostics</a>
         <a href="/feedback" ${isCurrentPage('/feedback') ? ' class="active"' : ''}>Feedback</a>
-        <a href="https://www.dartlang.org/tools/analyzer" target="_blank">Docs</a>
+        <a href="https://dart.dev/tools/dartanalyzer" target="_blank">Docs</a>
         <a href="https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html" target="_blank">Spec</a>
       </nav>
     </div>
@@ -792,10 +781,10 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     // sorted later.
     var server = socketServer.analysisServer;
     pages.add(MLCompletionPage(this, server));
+    pages.add(PluginsPage(this, server));
 
     if (server is AnalysisServer) {
       pages.add(CompletionPage(this, server));
-      pages.add(PluginsPage(this, server));
       pages.add(SubscriptionsPage(this, server));
     } else if (server is LspAnalysisServer) {
       pages.add(LspCompletionPage(this, server));
@@ -1207,7 +1196,7 @@ class NotFoundPage extends DiagnosticPage {
 
 class PluginsPage extends DiagnosticPageWithNav {
   @override
-  AnalysisServer server;
+  AbstractAnalysisServer server;
 
   PluginsPage(DiagnosticsSite site, this.server)
       : super(site, 'plugins', 'Plugins', description: 'Plugins in use.');

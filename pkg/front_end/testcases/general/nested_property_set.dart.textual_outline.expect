@@ -1,0 +1,13 @@
+class NumField {
+  num field;
+}
+
+class IntField {
+  int field;
+}
+
+class DoubleField {
+  double field;
+}
+
+main() {}

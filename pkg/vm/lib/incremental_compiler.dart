@@ -79,12 +79,14 @@ class IncrementalCompiler {
 
   _combinePendingDeltas(bool includePlatform) {
     Procedure mainMethod;
+    NonNullableByDefaultCompiledMode compilationMode;
     Map<Uri, Library> combined = <Uri, Library>{};
     Map<Uri, Source> uriToSource = new Map<Uri, Source>();
     for (Component delta in _pendingDeltas) {
       if (delta.mainMethod != null) {
         mainMethod = delta.mainMethod;
       }
+      compilationMode = delta.mode;
       uriToSource.addAll(delta.uriToSource);
       for (Library library in delta.libraries) {
         bool isPlatform =
@@ -97,7 +99,7 @@ class IncrementalCompiler {
     // TODO(vegorov) this needs to merge metadata repositories from deltas.
     return new Component(
         libraries: combined.values.toList(), uriToSource: uriToSource)
-      ..mainMethod = mainMethod;
+      ..setMainMethodAndMode(mainMethod?.reference, true, compilationMode);
   }
 
   CoreTypes getCoreTypes() => _generator.getCoreTypes();
@@ -132,7 +134,8 @@ class IncrementalCompiler {
     _lastKnownGood = new Component(
       libraries: combined.values.toList(),
       uriToSource: uriToSource,
-    )..mainMethod = candidate.mainMethod;
+    )..setMainMethodAndMode(
+        candidate.mainMethod?.reference, true, candidate.mode);
     for (final repo in candidate.metadata.values) {
       _lastKnownGood.addMetadataRepository(repo);
     }
@@ -153,6 +156,14 @@ class IncrementalCompiler {
     if (incrementalSerializer != null) {
       incrementalSerializer = new IncrementalSerializer();
     }
+    // Make sure the last known good component is linked to itself, i.e. if the
+    // rejected delta was an "advanced incremental recompilation" that updated
+    // old libraries to point to a new library (that we're now rejecting), make
+    // sure it's "updated back".
+    // Note that if accept was never called [_lastKnownGood] is null (and
+    // loading from it below is basically nonsense, it will just start over).
+    _lastKnownGood?.relink();
+
     _generator = new IncrementalKernelGenerator.fromComponent(_compilerOptions,
         _entryPoint, _lastKnownGood, false, incrementalSerializer);
     await _generator.computeDelta(entryPoints: [_entryPoint]);

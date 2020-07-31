@@ -5,6 +5,7 @@
 import 'dart:convert' as convert;
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/variables.dart';

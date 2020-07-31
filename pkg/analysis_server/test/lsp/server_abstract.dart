@@ -12,12 +12,17 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
+import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -38,10 +43,34 @@ abstract class AbstractLspAnalysisServerTest
         ClientCapabilitiesHelperMixin,
         LspAnalysisServerTestMixin {
   MockLspServerChannel channel;
+  TestPluginManager pluginManager;
   LspAnalysisServer server;
 
   @override
   Stream<Message> get serverToClient => channel.serverToClient;
+
+  DiscoveredPluginInfo configureTestPlugin({
+    plugin.ResponseResult respondWith,
+    plugin.Notification notification,
+    Duration respondAfter = Duration.zero,
+  }) {
+    final info = DiscoveredPluginInfo('a', 'b', 'c', null, null);
+    pluginManager.plugins.add(info);
+
+    if (respondWith != null) {
+      pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
+        info: Future.delayed(respondAfter)
+            .then((_) => respondWith.toResponse('-', 1))
+      };
+    }
+
+    if (notification != null) {
+      server.notificationManager
+          .handlePluginNotification(info.pluginId, notification);
+    }
+
+    return info;
+  }
 
   /// Sends a request to the server and unwraps the result. Throws if the
   /// response was not successful or returned an error.
@@ -53,6 +82,15 @@ abstract class AbstractLspAnalysisServerTest
     } else {
       return resp.result as T;
     }
+  }
+
+  /// Finds the registration for a given LSP method.
+  Registration registrationFor(
+    List<Registration> registrations,
+    Method method,
+  ) {
+    return registrations.singleWhere((r) => r.method == method.toJson(),
+        orElse: () => null);
   }
 
   @override
@@ -75,13 +113,15 @@ abstract class AbstractLspAnalysisServerTest
     channel = MockLspServerChannel(debugPrintCommunication);
     // Create an SDK in the mock file system.
     MockSdk(resourceProvider: resourceProvider);
+    pluginManager = TestPluginManager();
     server = LspAnalysisServer(
         channel,
         resourceProvider,
         AnalysisServerOptions(),
-        DartSdkManager(convertPath('/sdk'), false),
+        DartSdkManager(convertPath('/sdk')),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);
+    server.pluginManager = pluginManager;
 
     projectFolderPath = convertPath('/home/test');
     projectFolderUri = Uri.file(projectFolderPath);
@@ -240,11 +280,34 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
+  WorkspaceClientCapabilities withConfigurationSupport(
+    WorkspaceClientCapabilities source,
+  ) {
+    return extendWorkspaceCapabilities(source, {'configuration': true});
+  }
+
+  WorkspaceClientCapabilities withDidChangeConfigurationDynamicRegistration(
+    WorkspaceClientCapabilities source,
+  ) {
+    return extendWorkspaceCapabilities(source, {
+      'didChangeConfiguration': {'dynamicRegistration': true}
+    });
+  }
+
   WorkspaceClientCapabilities withDocumentChangesSupport(
     WorkspaceClientCapabilities source,
   ) {
     return extendWorkspaceCapabilities(source, {
       'workspaceEdit': {'documentChanges': true}
+    });
+  }
+
+  TextDocumentClientCapabilities withDocumentFormattingDynamicRegistration(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'formatting': {'dynamicRegistration': true},
+      'onTypeFormatting': {'dynamicRegistration': true},
     });
   }
 
@@ -869,6 +932,38 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return RequestMessage(id, method, params, jsonRpcVersion);
   }
 
+  /// Watches for `client/registerCapability` requests and updates
+  /// `registrations`.
+  Future<ResponseMessage> monitorDynamicRegistrations(
+    List<Registration> registrations,
+    Future<ResponseMessage> Function() f,
+  ) {
+    return handleExpectedRequest<ResponseMessage, RegistrationParams, void>(
+      Method.client_registerCapability,
+      f,
+      handler: (registrationParams) {
+        registrations.addAll(registrationParams.registrations);
+      },
+    );
+  }
+
+  /// Watches for `client/unregisterCapability` requests and updates
+  /// `registrations`.
+  Future<ResponseMessage> monitorDynamicUnregistrations(
+    List<Registration> registrations,
+    Future<ResponseMessage> Function() f,
+  ) {
+    return handleExpectedRequest<ResponseMessage, UnregistrationParams, void>(
+      Method.client_unregisterCapability,
+      f,
+      handler: (unregistrationParams) {
+        registrations.removeWhere((element) => unregistrationParams
+            .unregisterations
+            .any((u) => u.id == element.id));
+      },
+    );
+  }
+
   Future openFile(Uri uri, String content, {num version = 1}) async {
     var notification = makeNotification(
       Method.textDocument_didOpen,
@@ -906,6 +1001,18 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       ),
     );
     return expectSuccessfulResponseTo<RangeAndPlaceholder>(request);
+  }
+
+  /// Calls the supplied function and responds to any `workspace/configuration`
+  /// request with the supplied config.
+  Future<ResponseMessage> provideConfig(
+      Future<ResponseMessage> Function() f, Map<String, dynamic> config) {
+    return handleExpectedRequest<ResponseMessage, ConfigurationParams,
+        List<Map<String, dynamic>>>(
+      Method.workspace_configuration,
+      f,
+      handler: (configurationParams) => [config],
+    );
   }
 
   /// Returns the range surrounded by `[[markers]]` in the provided string,
@@ -1002,6 +1109,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         ResponseMessage(request.id, responseParams, null, jsonRpcVersion));
   }
 
+  Future<ResponseMessage> sendDidChangeConfiguration() {
+    final request = makeRequest(
+      Method.workspace_didChangeConfiguration,
+      DidChangeConfigurationParams(null),
+    );
+    return sendRequestToServer(request);
+  }
+
   void sendExit() {
     final request = makeRequest(Method.exit, null);
     sendRequestToServer(request);
@@ -1020,6 +1135,15 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   WorkspaceFolder toWorkspaceFolder(Uri uri) {
     return WorkspaceFolder(uri.toString(), path.basename(uri.toFilePath()));
+  }
+
+  /// Tells the server the config has changed, and provides the supplied config
+  /// when it requests the updated config.
+  Future<ResponseMessage> updateConfig(Map<String, dynamic> config) {
+    return provideConfig(
+      sendDidChangeConfiguration,
+      config,
+    );
   }
 
   Future<AnalyzerStatusParams> waitForAnalysisComplete() =>

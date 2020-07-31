@@ -1,0 +1,34 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/sink_hierarchy.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.6
+// ^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+abstract class Sink<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Sink<self::Sink::T%>
+    ;
+  abstract method close() → void;
+}
+abstract class EventSink<T extends core::Object? = dynamic> extends core::Object implements self::Sink<self::EventSink::T%> {
+  synthetic constructor •() → self::EventSink<self::EventSink::T%>
+    ;
+  abstract method close() → void;
+}
+abstract class StreamConsumer<S extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::StreamConsumer<self::StreamConsumer::S%>
+    ;
+  abstract method close() → asy::Future<dynamic>;
+}
+abstract class StreamSink<S extends core::Object? = dynamic> extends core::Object implements self::EventSink<self::StreamSink::S%>, self::StreamConsumer<self::StreamSink::S%> {
+  synthetic constructor •() → self::StreamSink<self::StreamSink::S%>
+    ;
+  abstract method close() → asy::Future<dynamic>;
+}
+static method main() → dynamic
+  ;

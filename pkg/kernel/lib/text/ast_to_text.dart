@@ -10,6 +10,7 @@ import 'dart:convert' show json;
 
 import '../ast.dart';
 import '../import_table.dart';
+import '../src/text_util.dart';
 
 abstract class Namer<T> {
   int index = 0;
@@ -158,6 +159,13 @@ String debugVariableDeclarationName(VariableDeclaration node) {
 String debugNodeToString(Node node) {
   StringBuffer buffer = new StringBuffer();
   new Printer(buffer, syntheticNames: globalDebuggingNames).writeNode(node);
+  return '$buffer';
+}
+
+String debugLibraryToString(Library library) {
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: globalDebuggingNames)
+      .writeLibraryFile(library);
   return '$buffer';
 }
 
@@ -1379,47 +1387,6 @@ class Printer extends Visitor<Null> {
     writeExpression(node.otherwise);
   }
 
-  String getEscapedCharacter(int codeUnit) {
-    switch (codeUnit) {
-      case 9:
-        return r'\t';
-      case 10:
-        return r'\n';
-      case 11:
-        return r'\v';
-      case 12:
-        return r'\f';
-      case 13:
-        return r'\r';
-      case 34:
-        return r'\"';
-      case 36:
-        return r'\$';
-      case 92:
-        return r'\\';
-      default:
-        if (codeUnit < 32 || codeUnit > 126) {
-          return r'\u' + '$codeUnit'.padLeft(4, '0');
-        } else {
-          return null;
-        }
-    }
-  }
-
-  String escapeString(String string) {
-    StringBuffer buffer;
-    for (int i = 0; i < string.length; ++i) {
-      String character = getEscapedCharacter(string.codeUnitAt(i));
-      if (character != null) {
-        buffer ??= new StringBuffer(string.substring(0, i));
-        buffer.write(character);
-      } else {
-        buffer?.write(string[i]);
-      }
-    }
-    return buffer == null ? string : buffer.toString();
-  }
-
   visitStringConcatenation(StringConcatenation node) {
     if (state == WORD) {
       writeSpace();
@@ -2193,6 +2160,14 @@ class Printer extends Visitor<Null> {
     writeNullability(node.nullability);
   }
 
+  visitFutureOrType(FutureOrType node) {
+    writeWord('FutureOr');
+    writeSymbol('<');
+    writeNode(node.typeArgument);
+    writeSymbol('>');
+    writeNullability(node.declaredNullability);
+  }
+
   visitFunctionType(FunctionType node) {
     writeFunctionType(node);
   }
@@ -2207,13 +2182,13 @@ class Printer extends Visitor<Null> {
 
   visitTypeParameterType(TypeParameterType node) {
     writeTypeParameterReference(node.parameter);
-    writeNullability(node.typeParameterTypeNullability);
+    writeNullability(node.declaredNullability);
     if (node.promotedBound != null) {
       writeSpaced('&');
       writeType(node.promotedBound);
 
       writeWord("/* '");
-      writeNullability(node.typeParameterTypeNullability, inComment: true);
+      writeNullability(node.declaredNullability, inComment: true);
       writeWord("' & '");
       writeDartTypeNullability(node.promotedBound, inComment: true);
       writeWord("' = '");
@@ -2254,7 +2229,45 @@ class Printer extends Visitor<Null> {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
-    endLine('$node');
+    endLine('${node.runtimeType}');
+  }
+
+  visitNullConstant(NullConstant node) {
+    writeIndentation();
+    writeConstantReference(node);
+    writeSpaced('=');
+    endLine('${node.value}');
+  }
+
+  visitBoolConstant(BoolConstant node) {
+    writeIndentation();
+    writeConstantReference(node);
+    writeSpaced('=');
+    endLine('${node.value}');
+  }
+
+  visitIntConstant(IntConstant node) {
+    writeIndentation();
+    writeConstantReference(node);
+    writeSpaced('=');
+    endLine('${node.value}');
+  }
+
+  visitDoubleConstant(DoubleConstant node) {
+    writeIndentation();
+    writeConstantReference(node);
+    writeSpaced('=');
+    endLine('${node.value}');
+  }
+
+  visitSymbolConstant(SymbolConstant node) {
+    writeIndentation();
+    writeConstantReference(node);
+    writeSpaced('=');
+    String text = node.libraryReference != null
+        ? '#${node.libraryReference.asLibrary.importUri}::${node.name}'
+        : '#${node.name}';
+    endLine('${text}');
   }
 
   visitListConstant(ListConstant node) {

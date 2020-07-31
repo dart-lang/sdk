@@ -1,0 +1,37 @@
+// @dart = 2.6
+class UnusedClass {
+  UnusedClass() {}
+}
+
+abstract class UsedAsBaseClass {
+  void usedInSubclass() {}
+  void calledFromB() {}
+  void calledFromSubclass() {}
+}
+
+class UsedAsInterface {
+  void usedInSubclass() {}
+}
+
+class InstantiatedButMethodsUnused {
+  void usedInSubclass() {}
+}
+
+class ClassA extends UsedAsBaseClass
+    implements UsedAsInterface, InstantiatedButMethodsUnused {
+  void usedInSubclass() {}
+}
+
+class ClassB extends UsedAsBaseClass
+    implements UsedAsInterface, InstantiatedButMethodsUnused {
+  void usedInSubclass() {}
+  void calledFromSubclass() {}
+}
+
+void baseClassCall(UsedAsBaseClass object) {}
+void interfaceCall(UsedAsInterface object) {}
+void exactCallA(ClassA object) {}
+void exactCallB(ClassB object) {}
+unusedTopLevel() {}
+usedTopLevel() {}
+main() {}

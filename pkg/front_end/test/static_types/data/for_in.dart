@@ -25,17 +25,20 @@ forInDynamic(List<dynamic> list) {
 }
 
 forInInt(List<int> list) {
-  /*current: int*/
+  /*cfe.current: int*/
+  /*cfe:nnbd.current: int!*/
   for (var e in
       /*cfe.List<int>*/
       /*cfe:nnbd.List<int!>!*/ list) {
-    /*int*/
+    /*cfe.int*/
+    /*cfe:nnbd.int!*/
     e;
   }
 }
 
 forInIntToNum(List<int> list) {
-  /*current: int*/
+  /*cfe.current: int*/
+  /*cfe:nnbd.current: int!*/
   for (num e in
       /*cfe.List<int>*/
       /*cfe:nnbd.List<int!>!*/ list) {
@@ -72,7 +75,8 @@ asyncForInInt(Stream<int> stream) async {
       /*cfe.Stream<int>*/
       /*cfe:nnbd.Stream<int!>!*/
       stream) {
-    /*int*/
+    /*cfe.int*/
+    /*cfe:nnbd.int!*/
     e;
   }
 }
@@ -169,7 +173,7 @@ void genericIterable<T extends Iterable<T>>(T x) {
       /*cfe.T*/
       /*cfe:nnbd.T!*/
       x) {
-    /*T*/ y;
+    /*cfe.T*/ /*cfe:nnbd.T!*/ y;
   }
 }
 
@@ -180,6 +184,6 @@ void genericStream<T extends Stream<T>>(T x) async {
       /*cfe.T*/
       /*cfe:nnbd.T!*/
       x) {
-    /*T*/ y;
+    /*cfe.T*/ /*cfe:nnbd.T!*/ y;
   }
 }

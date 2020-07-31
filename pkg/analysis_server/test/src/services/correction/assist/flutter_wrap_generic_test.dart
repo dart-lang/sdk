@@ -94,7 +94,7 @@ class FakeFlutter {
     return Container(
       child: /*caret*/DefaultTextStyle(
         child: Row(
-          children: <Widget>[
+          children: [
             Container(
             ),
           ],
@@ -112,7 +112,7 @@ class FakeFlutter {
       child: widget(
         child: DefaultTextStyle(
           child: Row(
-            children: <Widget>[
+            children: [
               Container(
               ),
             ],
@@ -134,7 +134,7 @@ class FakeFlutter {\r
     return Container(\r
       child: /*caret*/DefaultTextStyle(\r
         child: Row(\r
-          children: <Widget>[\r
+          children: [\r
             Container(\r
             ),\r
           ],\r
@@ -152,7 +152,7 @@ class FakeFlutter {\r
       child: widget(\r
         child: DefaultTextStyle(\r
           child: Row(\r
-            children: <Widget>[\r
+            children: [\r
               Container(\r
               ),\r
             ],\r

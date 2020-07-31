@@ -3,16 +3,16 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  covariant field core::int? _#C#x;
+  field core::int? _#C#x;
   synthetic constructor •() → self::C
     ;
   get x() → core::int;
-  set x(core::int #t1) → void;
+  set x(covariant core::int #t1) → void;
 }
 class D extends self::C {
   synthetic constructor •() → self::D
     ;
-  set x(core::num value) → void
+  set x(covariant core::num value) → void
     ;
 }
 static method main() → dynamic

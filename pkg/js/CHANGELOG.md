@@ -1,6 +1,6 @@
-## 0.6.3
+## 0.6.3-dev
 
-* Added promiseToFuture function.
+* Opt in to null safety.
 
 ## 0.6.2
 

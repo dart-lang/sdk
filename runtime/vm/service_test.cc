@@ -55,7 +55,7 @@ class ServiceTestMessageHandler : public MessageHandler {
     if (response_obj.IsString()) {
       String& response = String::Handle();
       response ^= response_obj.raw();
-      _msg = strdup(response.ToCString());
+      _msg = Utils::StrDup(response.ToCString());
     } else {
       ASSERT(response_obj.IsArray());
       Array& response_array = Array::Handle();
@@ -63,7 +63,7 @@ class ServiceTestMessageHandler : public MessageHandler {
       ASSERT(response_array.Length() == 1);
       ExternalTypedData& response = ExternalTypedData::Handle();
       response ^= response_array.At(0);
-      _msg = strdup(reinterpret_cast<char*>(response.DataAddr(0)));
+      _msg = Utils::StrDup(reinterpret_cast<char*>(response.DataAddr(0)));
     }
 
     return kOK;
@@ -77,7 +77,7 @@ class ServiceTestMessageHandler : public MessageHandler {
   char* _msg;
 };
 
-static RawArray* Eval(Dart_Handle lib, const char* expr) {
+static ArrayPtr Eval(Dart_Handle lib, const char* expr) {
   const String& dummy_isolate_id = String::Handle(String::New("isolateId"));
   Dart_Handle expr_val;
   {
@@ -103,7 +103,7 @@ static RawArray* Eval(Dart_Handle lib, const char* expr) {
   return result.raw();
 }
 
-static RawArray* EvalF(Dart_Handle lib, const char* fmt, ...) {
+static ArrayPtr EvalF(Dart_Handle lib, const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
   intptr_t len = Utils::VSNPrint(NULL, 0, fmt, args);
@@ -118,14 +118,14 @@ static RawArray* EvalF(Dart_Handle lib, const char* fmt, ...) {
   return Eval(lib, buffer);
 }
 
-static RawFunction* GetFunction(const Class& cls, const char* name) {
+static FunctionPtr GetFunction(const Class& cls, const char* name) {
   const Function& result = Function::Handle(
       cls.LookupDynamicFunction(String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
   return result.raw();
 }
 
-static RawClass* GetClass(const Library& lib, const char* name) {
+static ClassPtr GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
@@ -186,7 +186,7 @@ ISOLATE_UNIT_TEST_CASE(Service_IsolateStickyError) {
 ISOLATE_UNIT_TEST_CASE(Service_IdZones) {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  ObjectIdRing* ring = isolate->object_id_ring();
+  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
 
   const String& test_a = String::Handle(zone, String::New("a"));
   const String& test_b = String::Handle(zone, String::New("b"));
@@ -384,7 +384,7 @@ ISOLATE_UNIT_TEST_CASE(Service_PcDescriptors) {
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code_c.pc_descriptors());
   EXPECT(!descriptors.IsNull());
-  ObjectIdRing* ring = isolate->object_id_ring();
+  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
   intptr_t id = ring->GetIdForObject(descriptors.raw());
 
   // Build a mock message handler and wrap it in a dart port.
@@ -455,7 +455,7 @@ ISOLATE_UNIT_TEST_CASE(Service_LocalVarDescriptors) {
   const LocalVarDescriptors& descriptors =
       LocalVarDescriptors::Handle(code_c.GetLocalVarDescriptors());
   // Generate an ID for this object.
-  ObjectIdRing* ring = isolate->object_id_ring();
+  ObjectIdRing* ring = isolate->EnsureObjectIdRing();
   intptr_t id = ring->GetIdForObject(descriptors.raw());
 
   // Build a mock message handler and wrap it in a dart port.
@@ -567,7 +567,7 @@ static bool alpha_callback(const char* name,
                            intptr_t num_options,
                            void* user_data,
                            const char** result) {
-  *result = strdup("alpha");
+  *result = Utils::StrDup("alpha");
   return true;
 }
 
@@ -577,7 +577,7 @@ static bool beta_callback(const char* name,
                           intptr_t num_options,
                           void* user_data,
                           const char** result) {
-  *result = strdup("beta");
+  *result = Utils::StrDup("beta");
   return false;
 }
 

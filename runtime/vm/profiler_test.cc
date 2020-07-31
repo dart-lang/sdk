@@ -155,7 +155,7 @@ TEST_CASE(Profiler_AllocationSampleTest) {
   delete sample_buffer;
 }
 
-static RawLibrary* LoadTestScript(const char* script) {
+static LibraryPtr LoadTestScript(const char* script) {
   Dart_Handle api_lib;
   {
     TransitionVMToNative transition(Thread::Current());
@@ -167,7 +167,7 @@ static RawLibrary* LoadTestScript(const char* script) {
   return lib.raw();
 }
 
-static RawClass* GetClass(const Library& lib, const char* name) {
+static ClassPtr GetClass(const Library& lib, const char* name) {
   Thread* thread = Thread::Current();
   const Class& cls = Class::Handle(
       lib.LookupClassAllowPrivate(String::Handle(Symbols::New(thread, name))));
@@ -175,7 +175,7 @@ static RawClass* GetClass(const Library& lib, const char* name) {
   return cls.raw();
 }
 
-static RawFunction* GetFunction(const Library& lib, const char* name) {
+static FunctionPtr GetFunction(const Library& lib, const char* name) {
   Thread* thread = Thread::Current();
   const Function& func = Function::Handle(lib.LookupFunctionAllowPrivate(
       String::Handle(Symbols::New(thread, name))));
@@ -464,7 +464,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
       EXPECT_STREQ("[Bytecode] main", walker.CurrentName());
       EXPECT(!walker.Down());
     } else {
+#if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
       EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+#else
+      EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+#endif
       EXPECT(walker.Down());
       EXPECT_STREQ("[Unoptimized] B.boo", walker.CurrentName());
       EXPECT(walker.Down());
@@ -660,7 +664,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
       EXPECT_STREQ("[Bytecode] main", walker.CurrentName());
       EXPECT(!walker.Down());
     } else {
+#if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
       EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+#else
+      EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+#endif
       EXPECT(walker.Down());
       EXPECT_STREQ("[Unoptimized] B.boo", walker.CurrentName());
       EXPECT(walker.Down());
@@ -755,7 +763,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_CodeTicks) {
       EXPECT_EQ(0, walker.CurrentExclusiveTicks());
       EXPECT(!walker.Down());
     } else {
+#if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
       EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+#else
+      EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+#endif
       EXPECT_EQ(3, walker.CurrentExclusiveTicks());
       EXPECT(walker.Down());
       EXPECT_STREQ("[Unoptimized] B.boo", walker.CurrentName());
@@ -828,7 +840,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionTicks) {
     EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
 
     if (!FLAG_enable_interpreter) {
+#if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
       EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+#else
+      EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+#endif
       EXPECT_EQ(3, walker.CurrentExclusiveTicks());
       EXPECT(walker.Down());
     }
@@ -920,8 +936,8 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
-      "List foo() => new List(4);\n"
-      "List bar() => new List();\n";
+      "List foo() => List.filled(4, null);\n"
+      "List bar() => List.filled(0, null, growable: true);\n";
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
   Isolate* isolate = thread->isolate();
 
@@ -1116,7 +1132,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ClosureAllocation) {
 
     EXPECT_SUBSTRING("DRT_AllocateObject", walker.VMTagName());
     if (!FLAG_enable_interpreter) {
+#if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
       EXPECT_STREQ("[Stub] Allocate _Closure", walker.CurrentName());
+#else
+      EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+#endif
       EXPECT(walker.Down());
     }
     EXPECT_SUBSTRING("foo", walker.CurrentName());
@@ -1353,18 +1373,22 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile);
 
-    EXPECT_STREQ("OneByteString_allocate", walker.VMTagName());
+    EXPECT_STREQ("Internal_allocateOneByteString", walker.VMTagName());
     if (FLAG_enable_interpreter) {
-      EXPECT_STREQ("[Bytecode] _OneByteString._allocate", walker.CurrentName());
+      EXPECT_STREQ("Internal_allocateOneByteString", walker.VMTagName());
       EXPECT(walker.Down());
-      EXPECT_STREQ("[Bytecode] _OneByteString._concatAll",
+      EXPECT_STREQ("[Unoptimized] String._allocate", walker.CurrentName());
+      EXPECT(walker.Down());
+      EXPECT_STREQ("[Unoptimized] String._concatAll", walker.CurrentName());
+      EXPECT(walker.Down());
+      EXPECT_STREQ("[Unoptimized] _StringBase._interpolate",
                    walker.CurrentName());
-      EXPECT(walker.Down());
-      EXPECT_STREQ("[Bytecode] _StringBase._interpolate", walker.CurrentName());
       EXPECT(walker.Down());
       EXPECT_STREQ("[Bytecode] foo", walker.CurrentName());
       EXPECT(!walker.Down());
     } else {
+      EXPECT_STREQ("Internal_allocateOneByteString", walker.VMTagName());
+      EXPECT(walker.Down());
       EXPECT_STREQ("[Unoptimized] String._allocate", walker.CurrentName());
       EXPECT(walker.Down());
       EXPECT_STREQ("[Unoptimized] String._concatAll", walker.CurrentName());
@@ -1480,7 +1504,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionInline) {
       ProfileStackWalker walker(&profile);
       // We have two code objects: mainA and B.boo.
       EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
+#if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
       EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+#else
+      EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+#endif
       EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
       EXPECT(walker.Down());
       EXPECT_STREQ("[Optimized] B.boo", walker.CurrentName());
@@ -1496,7 +1524,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionInline) {
       // Inline expansion should show us the complete call chain:
       // mainA -> B.boo -> B.foo -> B.choo.
       EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
+#if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
       EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+#else
+      EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+#endif
       EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
       EXPECT(walker.Down());
       EXPECT_STREQ("B.choo", walker.CurrentName());
@@ -1618,7 +1650,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_InliningIntervalBoundry) {
 
     // Inline expansion should show us the complete call chain:
     EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
+#if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
     EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+#else
+    EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+#endif
     EXPECT(walker.Down());
     EXPECT_STREQ("maybeAlloc", walker.CurrentName());
     EXPECT(walker.Down());
@@ -1732,7 +1768,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ChainedSamples) {
       EXPECT_STREQ("[Bytecode] main", walker.CurrentName());
       EXPECT(!walker.Down());
     } else {
+#if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
       EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+#else
+      EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+#endif
       EXPECT(walker.Down());
       EXPECT_STREQ("[Unoptimized] B.boo", walker.CurrentName());
       EXPECT(walker.Down());
@@ -1825,7 +1865,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePosition) {
 
     EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
     if (!FLAG_enable_interpreter) {
+#if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
       EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+#else
+      EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+#endif
       EXPECT_EQ(1, walker.CurrentExclusiveTicks());
       EXPECT(walker.Down());
     }
@@ -1906,7 +1950,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePositionOptimized) {
 
     // Move down from the root.
     EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
+#if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
     EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+#else
+    EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+#endif
     EXPECT_EQ(1, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
@@ -1980,7 +2028,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_SourcePosition) {
 
     EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
     if (!FLAG_enable_interpreter) {
+#if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
       EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+#else
+      EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+#endif
       EXPECT_EQ(1, walker.CurrentExclusiveTicks());
       EXPECT(walker.Down());
     }
@@ -2088,7 +2140,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_SourcePositionOptimized) {
     ProfileStackWalker walker(&profile, true);
 
     EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
+#if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
     EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+#else
+    EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+#endif
     EXPECT_EQ(1, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
@@ -2180,7 +2236,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
 
     EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
     if (!FLAG_enable_interpreter) {
+#if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
       EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+#else
+      EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+#endif
       EXPECT_EQ(1, walker.CurrentExclusiveTicks());
       EXPECT(walker.Down());
     }
@@ -2296,7 +2356,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
     ProfileStackWalker walker(&profile, true);
 
     EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
+#if defined(TARGET_ARCH_IA32)  // Alloc. stub not impl. for ia32.
     EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+#else
+    EXPECT_STREQ("[Stub] AllocateObjectSlow", walker.CurrentName());
+#endif
     EXPECT_EQ(1, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
@@ -2373,20 +2437,20 @@ static uword FindPCForTokenPosition(const Code& code, TokenPosition tp) {
 ISOLATE_UNIT_TEST_CASE(Profiler_GetSourceReport) {
   EnableProfiler();
   const char* kScript =
-      "doWork(i) => i * i;\n"
-      "main() {\n"
-      "  var sum = 0;\n"
-      "  for (var i = 0; i < 100; i++) {\n"
+      "int doWork(i) => i * i;\n"
+      "int main() {\n"
+      "  int sum = 0;\n"
+      "  for (int i = 0; i < 100; i++) {\n"
       "     sum += doWork(i);\n"
       "  }\n"
       "  return sum;\n"
       "}\n";
 
   // Token position of * in `i * i`.
-  const TokenPosition squarePosition = TokenPosition(15);
+  const TokenPosition squarePosition = TokenPosition(19);
 
   // Token position of the call to `doWork`.
-  const TokenPosition callPosition = TokenPosition(90);
+  const TokenPosition callPosition = TokenPosition(95);
 
   DisableNativeProfileScope dnps;
   // Disable profiling for this thread.
@@ -2478,14 +2542,14 @@ ISOLATE_UNIT_TEST_CASE(Profiler_GetSourceReport) {
   }
 
   // Verify positions in do_work.
-  EXPECT_SUBSTRING("\"positions\":[\"ControlFlow\",15]", js.ToCString());
+  EXPECT_SUBSTRING("\"positions\":[\"ControlFlow\",19]", js.ToCString());
   // Verify exclusive ticks in do_work.
   EXPECT_SUBSTRING("\"exclusiveTicks\":[1,2]", js.ToCString());
   // Verify inclusive ticks in do_work.
   EXPECT_SUBSTRING("\"inclusiveTicks\":[1,2]", js.ToCString());
 
   // Verify positions in main.
-  EXPECT_SUBSTRING("\"positions\":[90]", js.ToCString());
+  EXPECT_SUBSTRING("\"positions\":[95]", js.ToCString());
   // Verify exclusive ticks in main.
   EXPECT_SUBSTRING("\"exclusiveTicks\":[0]", js.ToCString());
   // Verify inclusive ticks in main.

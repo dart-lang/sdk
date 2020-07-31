@@ -1,0 +1,21 @@
+// @dart = 2.6
+class A {
+  var field;
+}
+
+class B {
+  var field;
+}
+
+class C {
+  operator ==(x) => false;
+}
+
+class X implements A, B {
+  var field;
+}
+
+main() {}
+void escape(x) {}
+void useAsA(A object) {}
+void useAsB(B object) {}

@@ -1,0 +1,3 @@
+import 'issue42003_lib.dart';
+
+main() {}

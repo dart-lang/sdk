@@ -52,6 +52,7 @@ void main() {
     if (m.group(1) != null) return "-";
     if (m.group(2) != null) return "+";
     if (m.group(3) != null) return "=";
+    throw 'Unexpected match $m';
   });
   assertEquals("= -. +, or + -. There is - =.", str);
 
@@ -88,6 +89,7 @@ void main() {
     if (m.group(1) != null) return "-";
     if (m.group(2) != null) return "+";
     if (m.group(3) != null) return "=";
+    throw 'Unexpected match $m';
   });
   assertEquals("= -. +, or + -. There is - =.", str);
 

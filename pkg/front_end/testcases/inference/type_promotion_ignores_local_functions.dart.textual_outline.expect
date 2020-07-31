@@ -1,0 +1,4 @@
+library test;
+
+typedef int FunctionReturningInt();
+main() {}

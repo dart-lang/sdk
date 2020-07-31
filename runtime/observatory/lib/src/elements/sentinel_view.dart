@@ -8,7 +8,7 @@ import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
@@ -16,15 +16,6 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class SentinelViewElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<SentinelViewElement>('sentinel-view', dependencies: const [
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavNotifyElement.tag,
-    ViewFooterElement.tag
-  ]);
-
   RenderingScheduler<SentinelViewElement> _r;
 
   Stream<RenderedEvent<SentinelViewElement>> get onRendered => _r.onRendered;
@@ -59,7 +50,7 @@ class SentinelViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  SentinelViewElement.created() : super.created(tag);
+  SentinelViewElement.created() : super.created('sentinel-view');
 
   @override
   void attached() {

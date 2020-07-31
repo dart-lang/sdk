@@ -1,0 +1,13 @@
+class Bar {
+  var _field;
+}
+
+class BarValue {}
+
+class Foo {
+  var _field;
+}
+
+class FooValue {}
+
+main() {}

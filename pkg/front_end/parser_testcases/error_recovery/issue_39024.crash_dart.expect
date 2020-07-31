@@ -16,6 +16,14 @@ parser/error_recovery/issue_39024.crash:1:7: Expected a function body, but got '
 n<S e(
       ^...
 
+parser/error_recovery/issue_39024.crash:1:6: Can't find ')' to match '('.
+n<S e(
+     ^
+
+parser/error_recovery/issue_39024.crash:1:2: Can't find '>' to match '<'.
+n<S e(
+ ^
+
 beginCompilationUnit(n)
   beginMetadataStar(n)
   endMetadataStar(0)
@@ -41,5 +49,7 @@ beginCompilationUnit(n)
     endTopLevelMethod(n, null, })
   endTopLevelDeclaration()
   handleErrorToken(UnmatchedToken(())
+  handleRecoverableError(Message[UnmatchedToken, Can't find ')' to match '('., null, {string: ), token: (}], UnmatchedToken((), UnmatchedToken(())
   handleErrorToken(UnmatchedToken(<))
+  handleRecoverableError(Message[UnmatchedToken, Can't find '>' to match '<'., null, {string: >, token: <}], UnmatchedToken(<), UnmatchedToken(<))
 endCompilationUnit(1, )

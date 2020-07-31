@@ -1,0 +1,16 @@
+library test;
+
+class C {
+  num x;
+}
+
+class D implements C {
+  covariant int x;
+}
+
+class E implements D {
+  int get x => 0;
+  void set x(int value) {}
+}
+
+main() {}

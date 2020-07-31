@@ -1,0 +1,16 @@
+library test;
+
+class Foo {
+  const Foo(List<String> l);
+}
+
+class C<@Foo(const []) T> {}
+
+typedef void F<@Foo(const []) T>();
+void f<@Foo(const []) T>() {}
+
+class D {
+  void m<@Foo(const []) T>() {}
+}
+
+main() {}

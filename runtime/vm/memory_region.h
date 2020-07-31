@@ -6,6 +6,7 @@
 #define RUNTIME_VM_MEMORY_REGION_H_
 
 #include "platform/assert.h"
+#include "platform/unaligned.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
 
@@ -40,6 +41,11 @@ class MemoryRegion : public ValueObject {
   template <typename T>
   void Store(uword offset, T value) const {
     *ComputeInternalPointer<T>(offset) = value;
+  }
+
+  template <typename T>
+  void StoreUnaligned(uword offset, T value) const {
+    dart::StoreUnaligned(ComputeInternalPointer<T>(offset), value);
   }
 
   template <typename T>

@@ -8,9 +8,12 @@
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/regexp_assembler_bytecode.h"
-#include "vm/regexp_assembler_ir.h"
 #include "vm/regexp_parser.h"
 #include "vm/thread.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/regexp_assembler_ir.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -110,9 +113,9 @@ DEFINE_NATIVE_ENTRY(RegExp_getGroupNameMap, 0, 1) {
   return Object::null();
 }
 
-static RawObject* ExecuteMatch(Zone* zone,
-                               NativeArguments* arguments,
-                               bool sticky) {
+static ObjectPtr ExecuteMatch(Zone* zone,
+                              NativeArguments* arguments,
+                              bool sticky) {
   const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(String, subject, arguments->NativeArgAt(1));

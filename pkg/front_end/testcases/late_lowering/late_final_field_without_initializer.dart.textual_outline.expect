@@ -1,0 +1,17 @@
+late ;
+final int lateTopLevelField;
+class Class {
+  static late ;
+  final int lateStaticField1;
+  static late ;
+  final int lateStaticField2;
+  static staticMethod() { }
+  late ;
+  final int lateInstanceField;
+  instanceMethod() { }
+}
+extension Extension ;
+on Class (){ }
+main() { }
+expect(expected, actual) { }
+throws(f(), String message) { }

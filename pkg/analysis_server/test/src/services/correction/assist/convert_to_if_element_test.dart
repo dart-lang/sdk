@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,13 +19,6 @@ void main() {
 class ConvertToIfElementTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_IF_ELEMENT;
-
-  @override
-  void setUp() {
-    createAnalysisOptionsFile(
-        experiments: [EnableString.control_flow_collections]);
-    super.setUp();
-  }
 
   Future<void> test_conditional_list() async {
     await resolveTestUnit('''

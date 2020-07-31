@@ -15,19 +15,14 @@ _injectJs() {
     ..type = 'text/javascript'
     ..innerHtml = r"""
   var Foo = {
-    get42: function(b) { return arguments.length >= 1 ? b : 42; },
-    get43: function(b) { return arguments.length >= 1 ? b : 43; }
+    get42: function(b) { return arguments.length >= 1 ? b : 42; }
   };
 """);
 }
 
 @JS()
 class Foo {
-  // Note: it's invalid to provide a default value.
-  external static num get42([num b
-      = 3 // //# default_value: compile-time error
-      ]);
-  external static num get43([num b]);
+  external static num get42([num b]);
 }
 
 main() {
@@ -40,16 +35,11 @@ main() {
 
   test('call tearoff from dart with arg', () {
     var f = Foo.get42;
-    expect(f(2), 2); //# explicit_argument: ok
+    expect(f(2), 2);
   });
 
-  test('call tearoff from dart with default', () {
+  test('call tearoff from dart with no arg', () {
     var f = Foo.get42;
-    // Note: today both SSA and CPS remove the extra argument on static calls,
-    // but they fail to do so on tearoffs.
-    expect(f(), 3); //# default_value: continued
-
-    f = Foo.get43;
-    expect(f(), 43);
+    expect(f(), 42);
   });
 }

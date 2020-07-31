@@ -25,7 +25,10 @@ void testModifiableList(l1) {
   // Index must be integer and in range.
   Expect.throwsRangeError(() => l1.removeAt(-1), "negative");
   Expect.throwsRangeError(() => l1.removeAt(5), "too large");
-  Expect.throwsArgumentError(() => l1.removeAt(null), "too large");
+  Expect.throws(() => l1.removeAt(null),
+      // With --null-safety a TypeError is thrown
+      // With --no-null-safety an ArgumentError is thrown
+      (e) => e is TypeError || e is ArgumentError, "is null");
 
   Expect.equals(2, l1.removeAt(2), "l1-remove2");
   Expect.equals(1, l1[1], "l1-1[1]");
@@ -47,7 +50,7 @@ void main() {
   testModifiableList(new MyList([0, 1, 2, 3, 4]));
 
   // Fixed size list.
-  var l2 = new List(5);
+  var l2 = new List<int?>.filled(5, null);
   for (var i = 0; i < 5; i++) l2[i] = i;
   Expect.throwsUnsupportedError(() => l2.removeAt(2), "fixed-length");
 

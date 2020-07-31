@@ -13,8 +13,8 @@ import 'package:source_maps/source_maps.dart';
  * It is furthermore expected that the js has been compiled from a file in the
  * same folder called test.dart.
  */
-ProcessResult runD8AndStep(
-    String outputPath, AnnotatedCode code, List<String> scriptD8Command) {
+ProcessResult runD8AndStep(String outputPath, String testFileName,
+    AnnotatedCode code, List<String> scriptD8Command) {
   var outputFile = path.join(outputPath, "js.js");
   SingleMapping sourceMap =
       parse(new File("${outputFile}.map").readAsStringSync());
@@ -37,12 +37,13 @@ ProcessResult runD8AndStep(
   // Annotations are 1-based, js breakpoints are 0-based.
   for (Annotation breakAt
       in code.annotations.where((a) => a.text.trim() == "bl")) {
-    breakpoints.add(_getJsBreakpointLine(sourceMap, breakAt.lineNo - 1));
+    breakpoints
+        .add(_getJsBreakpointLine(testFileName, sourceMap, breakAt.lineNo - 1));
   }
   for (Annotation breakAt
       in code.annotations.where((a) => a.text.trim().startsWith("bc:"))) {
     breakpoints.add(_getJsBreakpointLineAndColumn(
-        sourceMap, breakAt.lineNo - 1, breakAt.columnNo - 1));
+        testFileName, sourceMap, breakAt.lineNo - 1, breakAt.columnNo - 1));
   }
 
   File inspectorFile = new File.fromUri(
@@ -376,13 +377,16 @@ class _PointMapping {
  * frontend/blob/fa18d70a995f06cb73365b2e5b8ae974cf60bd3a/front_end/sources/
  * JavaScriptSourceFrame.js#L1520-L1523
  */
-String _getJsBreakpointLine(SingleMapping sourceMap, int breakOnLine) {
+String _getJsBreakpointLine(
+    String testFileName, SingleMapping sourceMap, int breakOnLine) {
   List<_PointMapping> mappingsOnLines = [];
   for (var line in sourceMap.lines) {
     for (var entry in line.entries) {
       if (entry.sourceLine == null) continue;
       if (entry.sourceLine >= breakOnLine &&
-          entry.sourceLine < breakOnLine + 4) {
+          entry.sourceLine < breakOnLine + 4 &&
+          entry.sourceUrlId != null &&
+          sourceMap.urls[entry.sourceUrlId] == testFileName) {
         mappingsOnLines.add(new _PointMapping(
             entry.sourceLine, entry.sourceColumn, line.line, entry.column));
       }
@@ -407,12 +411,14 @@ String _getJsBreakpointLine(SingleMapping sourceMap, int breakOnLine) {
 /**
  * Input and output is expected to be 0-based.
  */
-String _getJsBreakpointLineAndColumn(
+String _getJsBreakpointLineAndColumn(String testFileName,
     SingleMapping sourceMap, int breakOnLine, int breakOnColumn) {
   for (var line in sourceMap.lines) {
     for (var entry in line.entries) {
       if (entry.sourceLine == breakOnLine &&
-          entry.sourceColumn == breakOnColumn)
+          entry.sourceColumn == breakOnColumn &&
+          entry.sourceUrlId != null &&
+          sourceMap.urls[entry.sourceUrlId] == testFileName)
         return "${line.line}:${entry.column}";
     }
   }

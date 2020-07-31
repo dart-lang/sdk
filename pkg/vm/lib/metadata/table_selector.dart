@@ -9,22 +9,32 @@ import 'procedure_attributes.dart';
 // Information associated with a selector, used by the dispatch table generator.
 class TableSelectorInfo {
   static const int kCalledOnNullBit = 1 << 0;
-  static const int kCallCountShift = 1;
+  static const int kTornOffBit = 1 << 1;
 
   int callCount;
-  bool calledOnNull;
+  int flags;
+
+  bool get calledOnNull => (flags & kCalledOnNullBit) != 0;
+  set calledOnNull(bool value) {
+    flags = value ? (flags | kCalledOnNullBit) : (flags & ~kCalledOnNullBit);
+  }
+
+  bool get tornOff => (flags & kTornOffBit) != 0;
+  set tornOff(bool value) {
+    flags = value ? (flags | kTornOffBit) : (flags & ~kTornOffBit);
+  }
 
   TableSelectorInfo()
       : callCount = 0,
-        calledOnNull = false;
+        flags = 0;
 
   TableSelectorInfo.readFromBinary(BinarySource source)
       : callCount = source.readUInt(),
-        calledOnNull = source.readByte() != 0;
+        flags = source.readByte();
 
   void writeToBinary(BinarySink sink) {
     sink.writeUInt30(callCount);
-    sink.writeByte(calledOnNull ? 1 : 0);
+    sink.writeByte(flags);
   }
 }
 

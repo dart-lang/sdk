@@ -1,0 +1,29 @@
+class Operators1 {
+  operator >>( ){ }
+  operator>() => true;
+}
+class Operators2 {
+  operator >>( ){ }
+  operator>(a, b) => true;
+}
+class Operators3 {
+  operator >>( ){ }
+  operator>([a]) => true;
+}
+class Operators4 {
+  operator >>( ){ }
+  operator>({a}) => true;
+}
+class Operators5 {
+  operator >>( ){ }
+  operator>(a, [b]) => true;
+}
+class Operators6 {
+  operator >>( ){ }
+  operator>(a, {b}) => true;
+}
+class Operators7 {
+  operator >>( ){ }
+  operator><T>(a) => true;
+}
+main() { }

@@ -12,6 +12,8 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
@@ -468,10 +470,10 @@ class TypedLiteralResolver {
     }
     // Note: according to the spec, the following computations should be based
     // on the greatest closure of the context type (unless the context type is
-    // `?`).  In practice, we can just use the context type directly, because
+    // `_`).  In practice, we can just use the context type directly, because
     // the only way the greatest closure of the context type could possibly have
     // a different subtype relationship to `Iterable<Object>` and
-    // `Map<Object, Object>` is if the context type is `?`.
+    // `Map<Object, Object>` is if the context type is `_`.
     bool contextProvidesAmbiguityResolutionClues =
         contextType != null && contextType is! UnknownInferredType;
     bool contextIsIterable = contextProvidesAmbiguityResolutionClues &&
@@ -573,14 +575,12 @@ class TypedLiteralResolver {
     }
   }
 
-  /**
-   * Record that the static type of the given node is the given type.
-   *
-   * @param expression the node whose type is to be recorded
-   * @param type the static type of the node
-   *
-   * TODO(scheglov) Inline this.
-   */
+  /// Record that the static type of the given node is the given type.
+  ///
+  /// @param expression the node whose type is to be recorded
+  /// @param type the static type of the node
+  ///
+  /// TODO(scheglov) Inline this.
   void _recordStaticType(Expression expression, DartType type) {
     expression.staticType = type;
 //    if (type == null) {

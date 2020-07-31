@@ -31,8 +31,7 @@ testBadCreate() async {
   try {
     await badFile.create();
     Expect.fail('Should be unreachable');
-  } catch (e) {
-    Expect.isTrue(e is FileSystemException);
+  } on FileSystemException catch (e) {
     Expect.isNotNull(e.osError);
   }
   await tmp.delete(recursive: true);

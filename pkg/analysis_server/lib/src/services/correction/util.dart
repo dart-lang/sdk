@@ -1276,7 +1276,10 @@ class TokenUtils {
     try {
       var tokens = <Token>[];
       var scanner = Scanner(null, CharSequenceReader(s), null)
-        ..configureFeatures(featureSet);
+        ..configureFeatures(
+          featureSetForOverriding: featureSet,
+          featureSet: featureSet,
+        );
       var token = scanner.tokenize();
       while (token.type != TokenType.EOF) {
         tokens.add(token);

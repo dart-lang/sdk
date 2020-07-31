@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 
 import 'partial_code_support.dart';
@@ -85,9 +84,6 @@ class ExtensionDeclarationTest extends PartialCodeTest {
                 'var'
               ]),
         ],
-        PartialCodeTest.declarationSuffixes,
-        featureSet: FeatureSet.forTesting(
-            sdkVersion: '2.3.0',
-            additionalFeatures: [Feature.extension_methods]));
+        PartialCodeTest.declarationSuffixes);
   }
 }

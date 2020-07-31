@@ -21,10 +21,8 @@ main() {
   });
 }
 
-/**
- * Test how well the parser recovers when annotations are included in places
- * where they are not allowed.
- */
+/// Test how well the parser recovers when annotations are included in places
+/// where they are not allowed.
 @reflectiveTest
 class AnnotationTest extends AbstractRecoveryTest {
   void test_typeArgument() {
@@ -44,9 +42,7 @@ class C {
   }
 }
 
-/**
- * Test how well the parser recovers in other cases.
- */
+/// Test how well the parser recovers in other cases.
 @reflectiveTest
 class MiscellaneousTest extends AbstractRecoveryTest {
   void test_classTypeAlias_withBody() {
@@ -153,9 +149,7 @@ final Map v = {
   }
 }
 
-/**
- * Test how well the parser recovers when extra modifiers are provided.
- */
+/// Test how well the parser recovers when extra modifiers are provided.
 @reflectiveTest
 class ModifiersTest extends AbstractRecoveryTest {
   @failingTest
@@ -200,10 +194,8 @@ set foo(v) => 499;
   }
 }
 
-/**
- * Test how well the parser recovers when multiple type annotations are
- * provided.
- */
+/// Test how well the parser recovers when multiple type annotations are
+/// provided.
 @reflectiveTest
 class MultipleTypeTest extends AbstractRecoveryTest {
   @failingTest
@@ -219,9 +211,7 @@ String bar() { }
   }
 }
 
-/**
- * Test how well the parser recovers when there is extra punctuation.
- */
+/// Test how well the parser recovers when there is extra punctuation.
 @reflectiveTest
 class PunctuationTest extends AbstractRecoveryTest {
   @failingTest
@@ -310,9 +300,7 @@ bar() {}
   }
 }
 
-/**
- * Test how well the parser recovers when there is extra variance modifiers.
- */
+/// Test how well the parser recovers when there is extra variance modifiers.
 @reflectiveTest
 class VarianceModifierTest extends AbstractRecoveryTest {
   void test_extraModifier_inClass() {

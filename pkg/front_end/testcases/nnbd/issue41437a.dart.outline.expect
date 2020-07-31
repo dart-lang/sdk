@@ -1,0 +1,29 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method getNull() → dynamic
+  ;
+static method getFutureNull() → asy::Future<dynamic> async 
+  ;
+static method getFutureBool() → asy::Future<core::bool> async 
+  ;
+static method test1() → asy::Future<core::bool> async 
+  ;
+static method test2() → asy::Future<core::bool>
+  ;
+static method test3() → core::bool
+  ;
+static method test4() → asy::Future<core::bool> async 
+  ;
+static method test5() → asy::Future<core::bool>
+  ;
+static method test6() → asy::Future<core::bool>
+  ;
+static method test7() → asy::Future<core::bool> async 
+  ;
+static method test() → dynamic async 
+  ;
+static method main() → dynamic
+  ;

@@ -6,15 +6,11 @@
 Language/Expressions/Null/instance_of_class_null_t01: Skip # dart:mirrors not supported https://github.com/dart-lang/co19/issues/522.
 Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign
 Language/Metadata/before*: Skip # dart:mirrors not supported https://github.com/dart-lang/co19/issues/523.
-LayoutTests/*: Skip # These tests are going to be removed.
 LibTest/io/*: SkipByDesign # dart:io not supported.
 LibTest/isolate/*: SkipByDesign # dart:isolate not supported.
-WebPlatformTest/*: Skip # These tests are going to be removed.
 
 [ $compiler == dart2js && $runtime == d8 ]
-LayoutTests/*: SkipByDesign # d8 is not a browser
 LibTest/html/*: SkipByDesign # d8 is not a browser
-WebPlatformTest/*: SkipByDesign # d8 is not a browser
 
 [ $compiler == dart2js && $runtime == d8 && $host_checked ]
 LibTest/collection/ListBase/ListBase_class_A01_t04: Slow, Pass

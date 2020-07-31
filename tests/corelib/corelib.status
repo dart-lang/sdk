@@ -13,7 +13,7 @@ stopwatch_test: Skip # Flaky test due to expected performance behaviour.
 
 [ $builder_tag == obfuscated && $runtime == dart_precompiled ]
 apply_generic_function_test: SkipByDesign # Function.apply with named args
-apply_test: Skip # Uses new Symbol via symbolMapToStringMap helper
+apply_test: Skip # Uses new Symbol via symbolToStringMap helper
 dynamic_nosuchmethod_test: SkipByDesign # Expects names in NSM
 error_stack_trace1_test: SkipByDesign # Expects unobfuscated stack trace
 type_tostring_test: SkipByDesign # Expects names in Type.toString()
@@ -58,3 +58,6 @@ regexp/pcre_test: Slow, Pass
 bigint_parse_radix_test: Skip # Issue 31659. Issue 34361.
 bigint_test: Skip # Issue 31659
 integer_parsed_mul_div_vm_test: Slow, Pass # Slow
+
+[ $system == android ]
+throw_half_surrogate_pair_test/* : Skip # Issue http://dartbug.com/42094

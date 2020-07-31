@@ -1,0 +1,31 @@
+C1 c1;
+C2 c2;
+C3 c3;
+C4 c4;
+D1 d1;
+D2 d2;
+D3 d3;
+D4 d4;
+E e;
+
+class B<X, Y> {}
+
+class C1<X extends X Function(Y), Y extends X Function(Y)> {}
+
+class C2<X extends X Function(Y), Y extends Y Function(X)> {}
+
+class C3<X extends X Function(X, Y), Y extends X Function(X, Y)> {}
+
+class C4<X extends X Function(X, Y), Y extends Y Function(X, Y)> {}
+
+class D1<X extends B<X, Y>, Y extends X Function(Y)> {}
+
+class D2<X extends B<X, Y>, Y extends Y Function(X)> {}
+
+class D3<X extends B<X, Y>, Y extends X Function(X, Y)> {}
+
+class D4<X extends B<X, Y>, Y extends Y Function(X, Y)> {}
+
+class E<X extends X Function(X)> {}
+
+main() {}

@@ -30,8 +30,7 @@ _dart2js_annotations = monitored.Dict(
     'dartmetadata._dart2js_annotations',
     {
         'AnimationEffectTiming.duration': [
-            "@Creates('Null')",
-            "@Returns('num|String')",
+            "@Returns('num|String|Null')",
         ],
         'ArrayBufferView': [
             "@Creates('TypedData')",

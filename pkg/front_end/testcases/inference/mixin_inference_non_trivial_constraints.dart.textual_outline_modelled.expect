@@ -1,0 +1,11 @@
+class A extends M2<int> with M0 {}
+
+class I<X> {}
+
+class M0<T> extends I<List<T>> {}
+
+class M1<T> extends I<List<T>> {}
+
+class M2<T> extends M1<Map<T, T>> {}
+
+main() {}

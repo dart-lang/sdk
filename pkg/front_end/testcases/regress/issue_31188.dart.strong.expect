@@ -34,6 +34,6 @@ static field invalid-type T = invalid-expression "pkg/front_end/testcases/regres
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
 type T = Map<A, B>
-            ^" as{TypeError,ForDynamic} invalid-type;
+            ^";
 static field invalid-type B;
 static method main() → dynamic {}

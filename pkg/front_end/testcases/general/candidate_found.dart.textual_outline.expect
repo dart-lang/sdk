@@ -1,0 +1,9 @@
+class Fisk {
+  Fisk(int x) {}
+  Fisk.named(int x) {}
+  void method(int x) {}
+  static void staticMethod(int x) {}
+}
+
+test() {}
+main() {}

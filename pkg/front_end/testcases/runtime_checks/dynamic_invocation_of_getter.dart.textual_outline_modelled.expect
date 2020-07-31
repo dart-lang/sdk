@@ -1,0 +1,11 @@
+library test;
+
+class C {
+  C(this.f);
+  dynamic f;
+}
+
+main() {}
+void g(C c) {}
+void h(int i) {}
+void test() {}

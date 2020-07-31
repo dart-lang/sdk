@@ -1,0 +1,4 @@
+import "issue_39682_lib.dart" deferred as foo;
+
+String __loadLibrary_foo() {}
+main() {}

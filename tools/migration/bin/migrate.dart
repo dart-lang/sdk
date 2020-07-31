@@ -23,6 +23,10 @@ void main(List<String> arguments) {
   var step = arguments[0];
   var testDir = arguments[1];
 
+  // If the test directory is just a single identifier, assume it's a language
+  // test subdirectory.
+  if (!testDir.contains("/")) testDir = "language_2/$testDir";
+
   switch (step) {
     case "branch":
       _createBranch(testDir);
@@ -30,6 +34,10 @@ void main(List<String> arguments) {
 
     case "copy":
       _copyFiles(testDir);
+      break;
+
+    case "fork":
+      _forkFiles(testDir);
       break;
 
     case "analyze":
@@ -44,23 +52,15 @@ void main(List<String> arguments) {
 
 /// Creates a Git branch whose name matches [testDir].
 void _createBranch(String testDir) {
-  var dirName = toNnbdPath(testDir)
-      .replaceAll("/", "-")
-      .replaceAll("_", "-")
-      .replaceAll(RegExp("[^a-z0-9-]"), "");
-  var branchName = "migrate-$dirName";
-  if (runProcess("git", ["checkout", "-b", branchName])) {
-    print(green("Created and switched to Git branch '$branchName'."));
+  if (_createGitBranch(testDir)) {
     _showNextStep("Next, copy the migrated files over", "copy", testDir);
-  } else {
-    print(red("Failed to create Git branch '$branchName'."));
   }
 }
 
 /// Copies files from [testDir] to the corresponding NNBD test directory.
 ///
 /// Checks for collisions.
-void _copyFiles(String testDir) {
+void _copyFiles(String testDir, {bool showNextStep = false}) {
   for (var from in listFiles(testDir)) {
     var to = toNnbdPath(from);
     if (fileExists(to)) {
@@ -77,10 +77,36 @@ void _copyFiles(String testDir) {
   }
 
   print(green("Copied files from $testDir -> ${toNnbdPath(testDir)}."));
-  print("Next, commit the new files and upload a new CL with them:");
+  if (showNextStep) {
+    print("Next, commit the new files and upload a new CL with them:");
+    print("");
+    print(bold("  git add ."));
+    print(bold("  git commit -m \"Migrate $testDir to NNBD\"."));
+    print(bold("  git cl upload --bypass-hooks"));
+    _showNextStep("Then use analyzer to migrate the files", "analyze", testDir);
+  }
+}
+
+/// Same as "branch" + "copy" then a commit.
+///
+/// Creates a branch, copies files over, and then commits them.
+void _forkFiles(String testDir) {
+  if (!_createGitBranch(testDir)) return;
+  _copyFiles(testDir, showNextStep: false);
+
+  if (!runProcess("git", ["add", "."])) {
+    print(red("Failed to stage changes."));
+    return;
+  }
+
+  if (!runProcess("git", ["commit", "-m", "Migrate $testDir to NNBD."])) {
+    print(red("Failed to commit changes."));
+    return;
+  }
+
+  print(green("Copied files to a new branch and committed."));
+  print("Next, upload a new CL with them:");
   print("");
-  print(bold("  git add ."));
-  print(bold("  git commit -m \"Migrate $testDir to NNBD\"."));
   print(bold("  git cl upload --bypass-hooks"));
   _showNextStep("Then use analyzer to migrate the files", "analyze", testDir);
 }
@@ -109,4 +135,20 @@ void _showNextStep(String message, String step, String testDir) {
   print("");
   print(bold("  dart tools/migration/bin/migrate.dart "
       "${dryRun ? '--dry-run ' : ''}$step $testDir"));
+}
+
+bool _createGitBranch(String testDir) {
+  var dirName = toNnbdPath(testDir)
+      .replaceAll("/", "-")
+      .replaceAll("_", "-")
+      .replaceAll(RegExp("[^a-z0-9-]"), "");
+  var branchName = "migrate-$dirName";
+  var success = runProcess("git", ["checkout", "-b", branchName]);
+  if (success) {
+    print(green("Created and switched to Git branch '$branchName'."));
+  } else {
+    print(red("Failed to create Git branch '$branchName'."));
+  }
+
+  return success;
 }

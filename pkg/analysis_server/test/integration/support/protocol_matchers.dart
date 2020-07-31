@@ -701,6 +701,7 @@ final Matcher isFlutterWidgetPropertyValueEnumItem = LazyMatcher(() =>
 ///
 /// enum {
 ///   ANNOTATIONS
+///   BLOCK
 ///   CLASS_BODY
 ///   DIRECTIVES
 ///   DOCUMENTATION_COMMENT
@@ -711,6 +712,7 @@ final Matcher isFlutterWidgetPropertyValueEnumItem = LazyMatcher(() =>
 /// }
 final Matcher isFoldingKind = MatchesEnum('FoldingKind', [
   'ANNOTATIONS',
+  'BLOCK',
   'CLASS_BODY',
   'DIRECTIVES',
   'DOCUMENTATION_COMMENT',

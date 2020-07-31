@@ -1,0 +1,9 @@
+library test;
+
+class B<T> {
+  T x;
+}
+
+class C extends B<num> {}
+
+void main() {}

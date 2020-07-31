@@ -49,7 +49,6 @@ class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
 
   @override
   void setUp() {
-    generateSummaryFiles = true;
     super.setUp();
     createProject();
   }

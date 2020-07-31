@@ -17,23 +17,26 @@ class BlockKind {
 
   String toString() => 'BlockKind($name)';
 
-  static const BlockKind catchClause = const BlockKind._('catch clause', true);
-  static const BlockKind classDeclaration =
-      const BlockKind._('class declaration', false);
-  static const BlockKind enumDeclaration =
-      const BlockKind._('enum declaration', false);
-  static const BlockKind extensionDeclaration =
-      const BlockKind._('extension declaration', false);
+  static const BlockKind catchClause =
+      const BlockKind._('catch clause', /* useNameForMissingBlock = */ true);
+  static const BlockKind classDeclaration = const BlockKind._(
+      'class declaration', /* useNameForMissingBlock = */ false);
+  static const BlockKind enumDeclaration = const BlockKind._(
+      'enum declaration', /* useNameForMissingBlock = */ false);
+  static const BlockKind extensionDeclaration = const BlockKind._(
+      'extension declaration', /* useNameForMissingBlock = */ false);
   static const BlockKind finallyClause =
-      const BlockKind._('finally clause', true);
+      const BlockKind._('finally clause', /* useNameForMissingBlock = */ true);
   static const BlockKind functionBody =
-      const BlockKind._('function body', false);
-  static const BlockKind invalid = const BlockKind._('invalid', false);
-  static const BlockKind mixinDeclaration =
-      const BlockKind._('mixin declaration', false);
-  static const BlockKind statement = const BlockKind._('statement', false);
-  static const BlockKind switchStatement =
-      const BlockKind._('switch statement', false);
+      const BlockKind._('function body', /* useNameForMissingBlock = */ false);
+  static const BlockKind invalid =
+      const BlockKind._('invalid', /* useNameForMissingBlock = */ false);
+  static const BlockKind mixinDeclaration = const BlockKind._(
+      'mixin declaration', /* useNameForMissingBlock = */ false);
+  static const BlockKind statement =
+      const BlockKind._('statement', /* useNameForMissingBlock = */ false);
+  static const BlockKind switchStatement = const BlockKind._(
+      'switch statement', /* useNameForMissingBlock = */ false);
   static const BlockKind tryStatement =
-      const BlockKind._('try statement', true);
+      const BlockKind._('try statement', /* useNameForMissingBlock = */ true);
 }

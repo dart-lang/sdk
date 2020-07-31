@@ -1,0 +1,11 @@
+class Base {
+  int hashCode = 42;
+}
+
+class Sub extends Base {
+  foo() {}
+  get hashCode => _hashCode ??= super.hashCode;
+  int _hashCode = null;
+}
+
+main() {}

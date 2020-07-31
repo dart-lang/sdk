@@ -137,8 +137,8 @@ class AnalyzerDiagnostic {
     return kind == null
         ? "Malformed output from dartanalyzer:\n$message"
         : "${uri.toFilePath()}:$line:$startColumn: "
-        "${kind == 'INFO' ? 'warning: hint' : kind.toLowerCase()}:\n"
-        "[$code] $message";
+            "${kind == 'INFO' ? 'warning: hint' : kind.toLowerCase()}:\n"
+            "[$code] $message";
   }
 }
 
@@ -169,10 +169,18 @@ Future<Null> analyzeUris(
   } catch (e) {
     topLevel = Uri.base.toFilePath(windows: false);
   }
+  if (Platform.isWindows) {
+    // We need lowercase comparison on Windows to match C:/path with c:/path
+    topLevel = topLevel.toLowerCase();
+  }
 
   String toFilePath(Uri uri) {
     String path = uri.toFilePath(windows: false);
-    return path.startsWith(topLevel) ? path.substring(topLevel.length) : path;
+    return (Platform.isWindows
+            ? path.toLowerCase().startsWith(topLevel)
+            : path.startsWith(topLevel))
+        ? path.substring(topLevel.length)
+        : path;
   }
 
   Set<String> filesToAnalyze = new Set<String>();

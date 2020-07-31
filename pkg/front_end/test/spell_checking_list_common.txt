@@ -103,6 +103,7 @@ allocation
 allow
 allowed
 allowing
+allowlisted
 allows
 almost
 alone
@@ -137,6 +138,7 @@ ancillary
 and
 angle
 annotatable
+annotatables
 annotated
 annotating
 annotation
@@ -179,6 +181,7 @@ are
 aren't
 argument
 arguments
+arises
 arithmetic
 arose
 around
@@ -240,6 +243,7 @@ awaiter
 aware
 awareness
 away
+axiom
 back
 backend
 backends
@@ -294,7 +298,6 @@ bit
 bits
 bitwise
 black
-blacklisted
 block
 blocks
 blogs
@@ -468,6 +471,7 @@ closed
 closer
 closers
 closes
+closest
 closing
 closure
 closures
@@ -507,6 +511,7 @@ common
 commonly
 compact
 comparable
+comparator
 compare
 comparing
 comparison
@@ -655,7 +660,9 @@ correction
 correctly
 correctness
 correspond
+correspondence
 corresponding
+correspondingly
 corresponds
 cost
 could
@@ -681,6 +688,7 @@ created
 creates
 creating
 creation
+creations
 crossed
 curly
 current
@@ -767,6 +775,8 @@ denote
 denoted
 denotes
 denoting
+deny
+denylisted
 depend
 dependence
 dependencies
@@ -862,6 +872,7 @@ distance
 distinct
 distinction
 distinguish
+distinguishes
 divide
 division
 divisor
@@ -929,7 +940,9 @@ elapsed
 element
 elements
 eligible
+eliminate
 eliminated
+eliminates
 elimination
 eliminator
 else
@@ -993,6 +1006,7 @@ environment
 equal
 equality
 equals
+equate
 equivalence
 equivalent
 equivalents
@@ -1054,8 +1068,8 @@ exit
 exited
 exits
 expand
-expands
 expanding
+expands
 expansion
 expect
 expectation
@@ -1070,6 +1084,7 @@ experimentally
 experiments
 expired
 explanation
+explain
 explicit
 explicitly
 exponent
@@ -1082,6 +1097,7 @@ exporting
 exports
 exposed
 exposes
+expressed
 expression
 expressions
 extend
@@ -1155,6 +1171,7 @@ finalizes
 finalizing
 finally
 find
+finder
 finding
 finds
 fine
@@ -1170,6 +1187,7 @@ fixed
 fixes
 fixing
 flag
+flagged
 flags
 flat
 flatten
@@ -1369,6 +1387,7 @@ identify
 identity
 ie
 if
+ignorable
 ignorant
 ignore
 ignored
@@ -1384,6 +1403,7 @@ implement
 implementation
 implementations
 implemented
+implementer
 implementing
 implements
 implication
@@ -1410,6 +1430,7 @@ include
 included
 includes
 including
+inclusion
 inclusive
 incoming
 incompatible
@@ -1446,6 +1467,7 @@ inferrer
 inferring
 infers
 infinite
+infinity
 infix
 info
 inform
@@ -1512,6 +1534,7 @@ intent
 interaction
 intercept
 interceptors
+interdependent
 interest
 interesting
 interests
@@ -1532,6 +1555,7 @@ interpreted
 interpreter
 interpreting
 intersect
+intersecting
 intersection
 intertwined
 into
@@ -1704,6 +1728,7 @@ logger
 logging
 logic
 logical
+lone
 long
 longer
 longest
@@ -1726,6 +1751,7 @@ lowercase
 lowered
 lowering
 lowerings
+lowest
 machine
 made
 magenta
@@ -1754,7 +1780,6 @@ markers
 marking
 marks
 mask
-master
 match
 matched
 matcher
@@ -1766,6 +1791,7 @@ mathematical
 matter
 maturity
 max
+maximal
 maximum
 may
 maybe
@@ -1841,6 +1867,7 @@ modules
 modulo
 moment
 mongolian
+monotonous
 more
 moreover
 most
@@ -1875,6 +1902,7 @@ namely
 names
 namespace
 naming
+nan
 narrow
 narrower
 native
@@ -1941,6 +1969,7 @@ object's
 objects
 oblivious
 observation
+observations
 observed
 obtain
 obtained
@@ -2082,6 +2111,9 @@ patching
 paths
 pattern
 peek
+peel
+peeled
+peeling
 pending
 percent
 percolate
@@ -2201,6 +2233,7 @@ previous
 previously
 primary
 primitive
+primitiveness
 principle
 print
 printed
@@ -2244,12 +2277,14 @@ promotes
 promotion
 promotions
 propagate
+propagates
 propagating
 propagation
 proper
 properly
 properties
 property
+proposition
 prototype
 proves
 provide
@@ -2291,6 +2326,7 @@ quote
 quotes
 quoting
 raise
+raising
 random
 range
 rare
@@ -2324,6 +2360,8 @@ recognized
 recognizes
 recommend
 recommendations
+recomputation
+recomputes
 record
 recorded
 recording
@@ -2338,6 +2376,7 @@ recurse
 recursing
 recursive
 recursively
+recursor
 redirect
 redirected
 redirecting
@@ -2358,6 +2397,7 @@ referred
 refers
 refine
 refinement
+refinements
 reflecting
 regardless
 region
@@ -2392,6 +2432,7 @@ rely
 relying
 remain
 remainder
+remained
 remaining
 remains
 remember
@@ -2556,6 +2597,7 @@ searches
 searching
 second
 section
+security
 see
 seeing
 seem
@@ -2875,6 +2917,7 @@ targeted
 targeting
 targets
 task
+tasks
 tear
 tearing
 technically
@@ -2987,6 +3030,7 @@ translated
 translates
 translating
 translator
+traveling
 traversed
 treat
 treated
@@ -3013,6 +3057,8 @@ true
 truly
 truncate
 truncating
+trust
+trusts
 truth
 try
 trying
@@ -3222,7 +3268,6 @@ whether
 which
 while
 white
-whitelisted
 whitespace
 whole
 whose

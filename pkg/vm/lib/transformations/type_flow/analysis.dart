@@ -18,6 +18,7 @@ import 'package:kernel/type_environment.dart';
 
 import 'calls.dart';
 import 'native_code.dart';
+import 'protobuf_handler.dart' show ProtobufHandler;
 import 'summary.dart';
 import 'summary_collector.dart';
 import 'types.dart';
@@ -191,12 +192,17 @@ class _DirectInvocation extends _Invocation {
       case CallKind.PropertyGet:
         assertx(args.values.length == firstParamIndex);
         assertx(args.names.isEmpty);
+        fieldValue.isGetterUsed = true;
         return fieldValue.getValue(
             typeFlowAnalysis, field.isStatic ? null : args.values[0]);
 
       case CallKind.PropertySet:
+      case CallKind.SetFieldInConstructor:
         assertx(args.values.length == firstParamIndex + 1);
         assertx(args.names.isEmpty);
+        if (selector.callKind == CallKind.PropertySet) {
+          fieldValue.isSetterUsed = true;
+        }
         final Type setterArg = args.values[firstParamIndex];
         fieldValue.setValue(
             setterArg, typeFlowAnalysis, field.isStatic ? null : args.receiver);
@@ -206,6 +212,7 @@ class _DirectInvocation extends _Invocation {
         // Call via field.
         // TODO(alexmarkov): support function types and use inferred type
         // to get more precise return type.
+        fieldValue.isGetterUsed = true;
         final receiver = fieldValue.getValue(
             typeFlowAnalysis, field.isStatic ? null : args.values[0]);
         if (receiver != const EmptyType()) {
@@ -229,6 +236,9 @@ class _DirectInvocation extends _Invocation {
           // TODO(alexmarkov): Try to prove that static field initializer
           // does not throw exception.
           initializerResult = new Type.nullable(initializerResult);
+        }
+        if (kPrintTrace) {
+          tracePrint("Result of ${field} initializer: $initializerResult");
         }
         fieldValue.setValue(initializerResult, typeFlowAnalysis,
             field.isStatic ? null : args.receiver);
@@ -772,6 +782,12 @@ class _FieldValue extends _DependencyTracker {
   /// Flag indicating if field initializer was executed.
   bool isInitialized = false;
 
+  /// Flag indicating if field getter was executed.
+  bool isGetterUsed = false;
+
+  /// Flag indicating if field setter was executed.
+  bool isSetterUsed = false;
+
   _FieldValue(this.field, this.typeGuardSummary, TypesBuilder typesBuilder)
       : staticType = typesBuilder.fromStaticType(field.type, true) {
     if (field.initializer == null && _isDefaultValueOfFieldObservable()) {
@@ -820,7 +836,10 @@ class _FieldValue extends _DependencyTracker {
   Type getValue(TypeFlowAnalysis typeFlowAnalysis, Type receiverType) {
     ensureInitialized(typeFlowAnalysis, receiverType);
     addDependentInvocation(typeFlowAnalysis.currentInvocation);
-    return value;
+    return (typeGuardSummary != null)
+        ? typeGuardSummary.apply(Args([receiverType, value]),
+            typeFlowAnalysis.hierarchyCache, typeFlowAnalysis)
+        : value;
   }
 
   void setValue(
@@ -989,7 +1008,7 @@ class GenericInterfacesInfoImpl implements GenericInterfacesInfo {
     result = new List<Type>(flattenedTypeArgs.length);
     for (int i = 0; i < flattenedTypeArgs.length; ++i) {
       final translated = closedTypeTranslator.translate(flattenedTypeArgs[i]);
-      assertx(translated is RuntimeType || translated is AnyType);
+      assertx(translated is RuntimeType || translated is UnknownType);
       result[i] = translated;
     }
     cachedFlattenedTypeArgsForNonGeneric[klass] = result;
@@ -1045,7 +1064,6 @@ class _ClassHierarchyCache extends TypeHierarchy {
 
   ConcreteType addAllocatedClass(Class cl) {
     assertx(!cl.isAbstract);
-    assertx(cl != coreTypes.futureOrClass);
     assertx(!_sealed);
 
     final _TFClassImpl classImpl = getTFClass(cl);
@@ -1082,11 +1100,6 @@ class _ClassHierarchyCache extends TypeHierarchy {
       return true;
     }
 
-    // TODO(alexmarkov): handle FutureOr more precisely.
-    if (sup == coreTypes.futureOrClass) {
-      return true;
-    }
-
     _TFClassImpl subClassData = getTFClass(sub);
     _TFClassImpl superClassData = getTFClass(sup);
 
@@ -1103,10 +1116,7 @@ class _ClassHierarchyCache extends TypeHierarchy {
     // TODO(alexmarkov): consider approximating type if number of allocated
     // subtypes is too large
 
-    // TODO(alexmarkov): handle FutureOr more precisely.
-
-    if (baseClass.classNode == coreTypes.objectClass ||
-        baseClass.classNode == coreTypes.futureOrClass) {
+    if (baseClass.classNode == coreTypes.objectClass) {
       return const AnyType();
     }
 
@@ -1216,8 +1226,34 @@ class _WorkList {
     enqueueInvocation(invocation);
   }
 
+  bool invalidateProtobufFields() {
+    if (_typeFlowAnalysis.protobufHandler == null) {
+      return false;
+    }
+    final fields = _typeFlowAnalysis.protobufHandler.getInvalidatedFields();
+    if (fields.isEmpty) {
+      return false;
+    }
+    // Protobuf handler replaced contents of static field initializers.
+    for (var field in fields) {
+      assertx(field.isStatic);
+      // Reset summary in order to rebuild it.
+      _typeFlowAnalysis._summaries[field] = null;
+      // Invalidate (and enqueue) field initializer invocation.
+      final initializerInvocation = _typeFlowAnalysis._invocationsCache
+          .getInvocation(
+              DirectSelector(field, callKind: CallKind.FieldInitializer),
+              Args<Type>(const <Type>[]));
+      invalidateInvocation(initializerInvocation);
+    }
+    return true;
+  }
+
   void process() {
-    while (pending.isNotEmpty) {
+    for (;;) {
+      if (pending.isEmpty && !invalidateProtobufFields()) {
+        break;
+      }
       assertx(callStack.isEmpty && processing.isEmpty);
       Statistics.iterationsOverInvocationsWorkList++;
       processInvocation(pending.first);
@@ -1314,6 +1350,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   final TypeEnvironment environment;
   final LibraryIndex libraryIndex;
   final PragmaAnnotationParser annotationMatcher;
+  final ProtobufHandler protobufHandler;
   NativeCodeOracle nativeCodeOracle;
   _ClassHierarchyCache hierarchyCache;
   SummaryCollector summaryCollector;
@@ -1337,14 +1374,22 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
       this._genericInterfacesInfo,
       this.environment,
       this.libraryIndex,
-      {PragmaAnnotationParser matcher})
+      this.protobufHandler,
+      PragmaAnnotationParser matcher)
       : annotationMatcher =
             matcher ?? new ConstantPragmaAnnotationParser(coreTypes) {
     nativeCodeOracle = new NativeCodeOracle(libraryIndex, annotationMatcher);
     hierarchyCache = new _ClassHierarchyCache(this, hierarchy,
         _genericInterfacesInfo, environment, target.flags.enableNullSafety);
-    summaryCollector = new SummaryCollector(target, environment, hierarchy,
-        this, hierarchyCache, nativeCodeOracle, hierarchyCache);
+    summaryCollector = new SummaryCollector(
+        target,
+        environment,
+        hierarchy,
+        this,
+        hierarchyCache,
+        nativeCodeOracle,
+        hierarchyCache,
+        protobufHandler);
     _invocationsCache = new _InvocationsCache(this);
     workList = new _WorkList(this);
 
@@ -1359,13 +1404,17 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   }
 
   _FieldValue getFieldValue(Field field) {
-    Summary setterSummary = null;
-    if (field.isGenericCovariantImpl) {
-      setterSummary = summaryCollector.createSummary(field,
-          fieldSummaryType: FieldSummaryType.kFieldGuard);
+    _FieldValue fieldValue = _fieldValues[field];
+    if (fieldValue == null) {
+      Summary typeGuardSummary = null;
+      if (field.isGenericCovariantImpl) {
+        typeGuardSummary = summaryCollector.createSummary(field,
+            fieldSummaryType: FieldSummaryType.kFieldGuard);
+      }
+      fieldValue = _FieldValue(field, typeGuardSummary, hierarchyCache);
+      _fieldValues[field] = fieldValue;
     }
-    return _fieldValues[field] ??=
-        new _FieldValue(field, setterSummary, hierarchyCache);
+    return fieldValue;
   }
 
   void process() {
@@ -1393,12 +1442,34 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     return false;
   }
 
+  /// Returns true if analysis found that getter corresponding to the given
+  /// [field] could be executed.
+  bool isFieldGetterUsed(Field field) {
+    final fieldValue = _fieldValues[field];
+    if (fieldValue != null) {
+      return fieldValue.isGetterUsed;
+    }
+    return false;
+  }
+
+  /// Returns true if analysis found that setter corresponding to the given
+  /// [field] could be executed.
+  bool isFieldSetterUsed(Field field) {
+    final fieldValue = _fieldValues[field];
+    if (fieldValue != null) {
+      return fieldValue.isSetterUsed;
+    }
+    return false;
+  }
+
   bool isClassAllocated(Class c) => hierarchyCache.allocatedClasses.contains(c);
 
   Call callSite(TreeNode node) => summaryCollector.callSites[node];
 
   TypeCheck explicitCast(AsExpression cast) =>
       summaryCollector.explicitCasts[cast];
+
+  NarrowNotNull nullTest(TreeNode node) => summaryCollector.nullTests[node];
 
   Type fieldType(Field field) => _fieldValues[field]?.value;
 

@@ -6,6 +6,7 @@ import 'dart:io' show Directory, File, exit;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 
@@ -77,9 +78,10 @@ main(List<String> args) async {
 
   Stopwatch stopwatch = new Stopwatch()..start();
   CompilerOptions options = getOptions(flutterPatchedSdk.uri);
+  options.experimentalFlags[ExperimentalFlag.alternativeInvalidationStrategy] =
+      useExperimentalInvalidation;
   helper.TestIncrementalCompiler compiler =
       new helper.TestIncrementalCompiler(options, inputFile.uri);
-  compiler.useExperimentalInvalidation = useExperimentalInvalidation;
   Component c = await compiler.computeDelta();
   print("Compiled to Component with ${c.libraries.length} "
       "libraries in ${stopwatch.elapsedMilliseconds} ms.");

@@ -32,9 +32,15 @@ main() {
   Expect.throws(() {
     f("", p1: null, p2: null);
   });
+  Expect.throws(() {
+    Function.apply(f, [""], {#p1: null, #p2: null});
+  });
 
   // Invalid: Invocation that omits a required named argument.
   Expect.throws(() {
     f("", p1: 100);
+  });
+  Expect.throws(() {
+    Function.apply(f, [""], {#p1: 100});
   });
 }

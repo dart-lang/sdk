@@ -2,18 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // part of "core_patch.dart";
 
 // VM implementation of double.
 
 @patch
 class double {
-  static double _nativeParse(String str, int start, int end)
+  static double? _nativeParse(String str, int start, int end)
       native "Double_parse";
 
-  static double _tryParseDouble(var str, var start, var end) {
+  static double? _tryParseDouble(String str, int start, int end) {
     assert(start < end);
     const int _DOT = 0x2e; // '.'
     const int _ZERO = 0x30; // '0'
@@ -73,7 +71,7 @@ class double {
         i++;
         if (i == end) return null;
         // int._tryParseSmi treats its end argument as inclusive.
-        int expPart = int._tryParseSmi(str, i, end - 1);
+        final int? expPart = int._tryParseSmi(str, i, end - 1);
         if (expPart == null) return null;
         exponent += expPart;
         break;
@@ -93,11 +91,12 @@ class double {
     return sign * (doubleValue * P10[exponent]);
   }
 
-  static double _parse(var str) {
+  static double? _parse(String str) {
     int len = str.length;
-    int start = str._firstNonWhitespace();
+    final strbase = str as _StringBase;
+    int start = strbase._firstNonWhitespace();
     if (start == len) return null; // All whitespace.
-    int end = str._lastNonWhitespace() + 1;
+    int end = strbase._lastNonWhitespace() + 1;
     assert(start < end);
     var result = _tryParseDouble(str, start, end);
     if (result != null) return result;
@@ -106,7 +105,7 @@ class double {
 
   @patch
   static double parse(String source,
-      [@deprecated double onError(String source)]) {
+      [@deprecated double onError(String source)?]) {
     var result = _parse(source);
     if (result == null) {
       if (onError == null) throw new FormatException("Invalid double", source);
@@ -116,5 +115,5 @@ class double {
   }
 
   @patch
-  static double tryParse(String source) => _parse(source);
+  static double? tryParse(String source) => _parse(source);
 }

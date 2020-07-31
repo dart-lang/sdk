@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // part of "internal_patch.dart";
 
 @patch
@@ -12,7 +10,7 @@ class Symbol {
   const Symbol(String name) : this._name = name;
 
   @patch
-  toString() => 'Symbol("${computeUnmangledName(this)}")';
+  String toString() => 'Symbol("${computeUnmangledName(this)}")';
 
   @patch
   static String computeUnmangledName(Symbol symbol) {

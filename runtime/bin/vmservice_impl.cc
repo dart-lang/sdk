@@ -13,6 +13,7 @@
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "platform/text_buffer.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -24,7 +25,7 @@ namespace bin {
 
 #define SHUTDOWN_ON_ERROR(handle)                                              \
   if (Dart_IsError(handle)) {                                                  \
-    error_msg_ = strdup(Dart_GetError(handle));                                \
+    error_msg_ = Utils::StrDup(Dart_GetError(handle));                         \
     Dart_ExitScope();                                                          \
     Dart_ShutdownIsolate();                                                    \
     return false;                                                              \

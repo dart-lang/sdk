@@ -1,2 +1,0 @@
-strong=tests/compiler/dart2js/member_usage/member_usage_test.dart
-omit=tests/compiler/dart2js/member_usage/member_usage_test.dart

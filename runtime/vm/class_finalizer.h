@@ -27,7 +27,7 @@ class ClassFinalizer : public AllStatic {
 
   // Finalize given type while parsing class cls.
   // Also canonicalize and bound check type if applicable.
-  static RawAbstractType* FinalizeType(
+  static AbstractTypePtr FinalizeType(
       const Class& cls,
       const AbstractType& type,
       FinalizationKind finalization = kCanonicalize,
@@ -69,7 +69,7 @@ class ClassFinalizer : public AllStatic {
   // and fields of the class.
   //
   // Returns Error::null() if there is no loading error.
-  static RawError* LoadClassMembers(const Class& cls);
+  static ErrorPtr LoadClassMembers(const Class& cls);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Verify that the classes have been properly prefinalized. This is
@@ -79,8 +79,7 @@ class ClassFinalizer : public AllStatic {
 
  private:
   static void AllocateEnumValues(const Class& enum_cls);
-  static void FinalizeTypeParameters(const Class& cls,
-                                     PendingTypes* pending_types = NULL);
+  static void FinalizeTypeParameters(const Class& cls);
   static intptr_t ExpandAndFinalizeTypeArguments(const Class& cls,
                                                  const AbstractType& type,
                                                  PendingTypes* pending_types);

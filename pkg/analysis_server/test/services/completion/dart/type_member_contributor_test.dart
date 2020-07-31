@@ -15,9 +15,6 @@ import 'completion_contributor_util.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeMemberContributorTest);
-    defineReflectiveTests(TypeMemberContributorWithExtensionMethodsTest);
-    defineReflectiveTests(
-        TypeMemberContributorWithExtensionMethodsAndNewRelevanceTest);
     defineReflectiveTests(TypeMemberContributorWithNewRelevanceTest);
   });
 }
@@ -1743,6 +1740,20 @@ void main() {new A().f^}''');
     assertNoSuggestions();
   }
 
+  Future<void> test_extensionOverride() async {
+    addTestSource('''
+extension E on int {
+  int get foo => 0;
+}
+
+void f() {
+  E(1).^
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('toString');
+  }
+
   Future<void> test_FieldDeclaration_name_typed() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // FieldDeclaration
@@ -2021,8 +2032,8 @@ void f() {
 
     await computeSuggestions();
     assertSuggest(
-      'call()',
-      selectionOffset: 6,
+      'call',
+      selectionOffset: 4,
       elemKind: ElementKind.METHOD,
       isSynthetic: true,
     );
@@ -2254,8 +2265,8 @@ void f() {
 
     await computeSuggestions();
     assertSuggest(
-      'call()',
-      selectionOffset: 6,
+      'call',
+      selectionOffset: 4,
       elemKind: ElementKind.METHOD,
       isSynthetic: true,
     );
@@ -2272,6 +2283,7 @@ void f() {
 
     await computeSuggestions();
     assertNotSuggested('call');
+    assertNotSuggested('call()');
   }
 
   Future<void> test_InterfaceType_Function_implemented_call() async {
@@ -2285,6 +2297,7 @@ void f() {
 
     await computeSuggestions();
     assertNotSuggested('call');
+    assertNotSuggested('call()');
   }
 
   Future<void> test_InterpolationExpression() async {
@@ -3120,6 +3133,17 @@ void main() {int y = new C().^}''');
     addTestSource('''
 class C {
   set x(int value) {};
+}
+void main() {int y = new C().^}''');
+    await computeSuggestions();
+    var suggestion = assertSuggestSetter('x');
+    assertHasNoParameterInfo(suggestion);
+  }
+
+  Future<void> test_no_parameters_setter2() async {
+    addTestSource('''
+class C {
+  set x() {};
 }
 void main() {int y = new C().^}''');
     await computeSuggestions();
@@ -4143,6 +4167,29 @@ class C with M {
     assertNotSuggested('C2');
   }
 
+  Future<void> test_Typedef_members() async {
+    addTestSource('''
+        typedef Object Func();
+        class A  {
+          Func f;
+          void a() => f.^;
+        }
+        main() {}''');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertNotSuggested('a()');
+    assertNotSuggested('Func()');
+    assertSuggestMethod('call', null, 'void', skipLocationCheck: true);
+    assertSuggestGetter('hashCode', 'int');
+    assertSuggestGetter('runtimeType', 'Type');
+    assertSuggestMethod('toString', 'Object', 'String');
+    assertSuggestMethod('noSuchMethod', 'Object', 'dynamic');
+    assertNotSuggested('Object');
+    assertNotSuggested('A');
+    assertNotSuggested('==');
+  }
+
   Future<void> test_VariableDeclaration_name() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
@@ -4221,42 +4268,6 @@ class C with M {
     assertNotSuggested('f');
     assertNotSuggested('x');
     assertNotSuggested('e');
-  }
-}
-
-@reflectiveTest
-class TypeMemberContributorWithExtensionMethodsAndNewRelevanceTest
-    extends TypeMemberContributorWithExtensionMethodsTest {
-  @override
-  bool get useNewRelevance => true;
-}
-
-@reflectiveTest
-class TypeMemberContributorWithExtensionMethodsTest
-    extends DartCompletionContributorTest {
-  @override
-  DartCompletionContributor createContributor() {
-    return TypeMemberContributor();
-  }
-
-  @override
-  void setUp() {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
-    super.setUp();
-  }
-
-  Future<void> test_extensionOverride() async {
-    addTestSource('''
-extension E on int {
-  int get foo => 0;
-}
-
-void f() {
-  E(1).^
-}
-''');
-    await computeSuggestions();
-    assertNotSuggested('toString');
   }
 }
 

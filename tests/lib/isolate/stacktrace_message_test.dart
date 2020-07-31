@@ -14,7 +14,7 @@ void main() {
   ReceivePort reply = new ReceivePort();
   Isolate.spawn(runTest, reply.sendPort);
   reply.first.then((pair) {
-    StackTrace stack = pair[0];
+    StackTrace? stack = pair[0];
     String stackString = pair[1];
     if (stack == null) {
       print("Failed to send stack-trace");

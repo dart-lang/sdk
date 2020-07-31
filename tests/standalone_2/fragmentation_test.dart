@@ -18,6 +18,10 @@
 // VMOptions=--concurrent_mark --concurrent_sweep
 // VMOptions=--concurrent_mark --use_compactor
 // VMOptions=--concurrent_mark --use_compactor --force_evacuation
+// VMOptions=--scavenger_tasks=0
+// VMOptions=--scavenger_tasks=1
+// VMOptions=--scavenger_tasks=2
+// VMOptions=--scavenger_tasks=3
 
 main() {
   final List<List> arrays = [];

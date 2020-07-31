@@ -1,0 +1,17 @@
+library test;
+
+dynamic f() => null;
+
+abstract class A {
+  static int get x => 0;
+}
+
+class B extends A {
+  static var x = f();
+}
+
+class C extends A {
+  static var x;
+}
+
+main() {}

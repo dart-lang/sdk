@@ -695,7 +695,7 @@ void main() {
 
     // + Top level variables.
     assertSuggestion(
-        completion: 'PI',
+        completion: 'pi',
         file: '/sdk/lib/math/math.dart',
         element: ElementKind.TOP_LEVEL_VARIABLE,
         kind: CompletionSuggestionKind.INVOCATION);

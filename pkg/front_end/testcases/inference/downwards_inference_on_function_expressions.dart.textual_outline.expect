@@ -1,0 +1,5 @@
+library test;
+
+typedef T Function2<S, T>(S x);
+void test() {}
+main() {}

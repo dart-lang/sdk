@@ -1,0 +1,4 @@
+Null foo() => null;
+T map<T>(T Function() f1, T Function() f2) {}
+id<T>(T t) => t;
+main() {}

@@ -4755,14 +4755,16 @@ ASSEMBLER_TEST_GENERATE(TestRepMovsBytes, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(TestRepMovsBytes, test) {
-  const char* from = "0123456789";
-  const char* to = new char[10];
-  typedef void (*TestRepMovsBytes)(const char* from, const char* to, int count);
+  const char* from = "0123456789x";
+  char* to = new char[11]{0};
+  to[10] = 'y';
+  typedef void (*TestRepMovsBytes)(const char* from, char* to, int count);
   reinterpret_cast<TestRepMovsBytes>(test->entry())(from, to, 10);
   EXPECT_EQ(to[0], '0');
   for (int i = 0; i < 10; i++) {
     EXPECT_EQ(from[i], to[i]);
   }
+  EXPECT_EQ(to[10], 'y');
   delete[] to;
   EXPECT_DISASSEMBLY(
       "push esi\n"
@@ -4772,6 +4774,93 @@ ASSEMBLER_TEST_RUN(TestRepMovsBytes, test) {
       "mov edi,[esp+0x14]\n"
       "mov ecx,[esp+0x18]\n"
       "rep movsb\n"
+      "pop ecx\n"
+      "pop edi\n"
+      "pop esi\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(TestRepMovsWords, assembler) {
+  // Preserve registers.
+  __ pushl(ESI);
+  __ pushl(EDI);
+  __ pushl(ECX);
+  __ movl(ESI, Address(ESP, 4 * target::kWordSize));  // from.
+  __ movl(EDI, Address(ESP, 5 * target::kWordSize));  // to.
+  __ movl(ECX, Address(ESP, 6 * target::kWordSize));  // count.
+  __ rep_movsw();
+  __ popl(ECX);
+  __ popl(EDI);
+  __ popl(ESI);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TestRepMovsWords, test) {
+  const uint16_t from[11] = {0x0123, 0x1234, 0x2345, 0x3456, 0x4567, 0x5678,
+                             0x6789, 0x789A, 0x89AB, 0x9ABC, 0xABCD};
+  uint16_t* to = new uint16_t[11]{0};
+  to[10] = 0xFEFE;
+  typedef void (*TestRepMovsWords)(const uint16_t* from, uint16_t* to,
+                                   int count);
+  reinterpret_cast<TestRepMovsWords>(test->entry())(from, to, 10);
+  EXPECT_EQ(to[0], 0x0123u);
+  for (int i = 0; i < 10; i++) {
+    EXPECT_EQ(from[i], to[i]);
+  }
+  EXPECT_EQ(to[10], 0xFEFEu);
+  delete[] to;
+  EXPECT_DISASSEMBLY(
+      "push esi\n"
+      "push edi\n"
+      "push ecx\n"
+      "mov esi,[esp+0x10]\n"
+      "mov edi,[esp+0x14]\n"
+      "mov ecx,[esp+0x18]\n"
+      "rep movsw\n"
+      "pop ecx\n"
+      "pop edi\n"
+      "pop esi\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(TestRepMovsDwords, assembler) {
+  // Preserve registers.
+  __ pushl(ESI);
+  __ pushl(EDI);
+  __ pushl(ECX);
+  __ movl(ESI, Address(ESP, 4 * target::kWordSize));  // from.
+  __ movl(EDI, Address(ESP, 5 * target::kWordSize));  // to.
+  __ movl(ECX, Address(ESP, 6 * target::kWordSize));  // count.
+  __ rep_movsl();
+  __ popl(ECX);
+  __ popl(EDI);
+  __ popl(ESI);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TestRepMovsDwords, test) {
+  const uint32_t from[11] = {0x01234567, 0x12345678, 0x23456789, 0x3456789A,
+                             0x456789AB, 0x56789ABC, 0x6789ABCD, 0x789ABCDE,
+                             0x89ABCDEF, 0x9ABCDEF0, 0xABCDEF01};
+  uint32_t* to = new uint32_t[11]{0};
+  to[10] = 0xFEFEFEFE;
+  typedef void (*TestRepMovsDwords)(const uint32_t* from, uint32_t* to,
+                                    int count);
+  reinterpret_cast<TestRepMovsDwords>(test->entry())(from, to, 10);
+  EXPECT_EQ(to[0], 0x01234567u);
+  for (int i = 0; i < 10; i++) {
+    EXPECT_EQ(from[i], to[i]);
+  }
+  EXPECT_EQ(to[10], 0xFEFEFEFEu);
+  delete[] to;
+  EXPECT_DISASSEMBLY(
+      "push esi\n"
+      "push edi\n"
+      "push ecx\n"
+      "mov esi,[esp+0x10]\n"
+      "mov edi,[esp+0x14]\n"
+      "mov ecx,[esp+0x18]\n"
+      "rep movsl\n"
       "pop ecx\n"
       "pop edi\n"
       "pop esi\n"

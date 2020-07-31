@@ -23,7 +23,7 @@ Future<void> testDart2jsCompile() async {
   final Uri dart2jsUrl = Uri.base.resolve("pkg/compiler/bin/dart2js.dart");
   Stopwatch stopwatch = new Stopwatch()..start();
   List<int> bytes = await normalCompileToBytes(dart2jsUrl,
-      options: getOptions()..target = new NoneTarget(new TargetFlags()));
+      options: getOptions(target: new NoneTarget(new TargetFlags())));
   print("Compiled dart2js in ${stopwatch.elapsedMilliseconds} ms");
 
   stopwatch.reset();

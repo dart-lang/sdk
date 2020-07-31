@@ -25,7 +25,11 @@ abstract class KeywordState {
         strings[i] = analyzer.Keyword.values[i].lexeme;
       }
       strings.sort((a, b) => a.compareTo(b));
-      _KEYWORD_STATE = computeKeywordStateTable(0, strings, 0, strings.length);
+      _KEYWORD_STATE = computeKeywordStateTable(
+          /* start = */ 0,
+          strings,
+          /* offset = */ 0,
+          strings.length);
     }
     return _KEYWORD_STATE;
   }

@@ -7,6 +7,15 @@ library has_part;
 part 'the_part.dart';
 part 'the_part_2.dart';
 
+barz() {
+  print('in bar!');
+}
+
+fooz() {
+  print('in foo!');
+  bar();
+}
+
 main() {
   Foo10 foo = new Foo10("Foo!");
   print(foo);

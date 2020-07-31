@@ -6,12 +6,10 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M show IsolateRef, PcDescriptorsRef;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class PcDescriptorsRefElement extends CustomElement implements Renderable {
-  static const tag = const Tag<PcDescriptorsRefElement>('pc-ref');
-
   RenderingScheduler<PcDescriptorsRefElement> _r;
 
   Stream<RenderedEvent<PcDescriptorsRefElement>> get onRendered =>
@@ -35,7 +33,7 @@ class PcDescriptorsRefElement extends CustomElement implements Renderable {
     return e;
   }
 
-  PcDescriptorsRefElement.created() : super.created(tag);
+  PcDescriptorsRefElement.created() : super.created('pc-ref');
 
   @override
   void attached() {

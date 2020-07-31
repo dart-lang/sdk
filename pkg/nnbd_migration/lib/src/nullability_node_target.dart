@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 
 String _computeElementName(Element element) {
@@ -28,7 +29,8 @@ String _computeElementName(Element element) {
 /// code is referenced by a given nullability node.
 abstract class NullabilityNodeTarget {
   /// Creates a [NullabilityNodeTarget] referring to a particular element.
-  factory NullabilityNodeTarget.element(Element element) =
+  factory NullabilityNodeTarget.element(
+          Element element, LineInfo Function(String) getLineInfo) =
       _NullabilityNodeTarget_Element;
 
   /// Creates a [NullabilityNodeTarget] with a simple text description.
@@ -55,6 +57,8 @@ abstract class NullabilityNodeTarget {
     if (codeReference == null) return description;
     return '$description (${codeReference.shortName})';
   }
+
+  NullabilityNodeTarget get supertype => _NullabilityNodeTarget_Supertype(this);
 
   /// Creates a new [NullabilityNodeTarget] representing a named function
   /// parameter of this target.
@@ -105,8 +109,12 @@ class _NullabilityNodeTarget_CodeRef extends NullabilityNodeTarget {
 class _NullabilityNodeTarget_Element extends NullabilityNodeTarget {
   final String name;
 
-  _NullabilityNodeTarget_Element(Element element)
+  final CodeReference codeReference;
+
+  _NullabilityNodeTarget_Element(
+      Element element, LineInfo Function(String) getLineInfo)
       : name = _computeElementName(element),
+        codeReference = CodeReference.fromElement(element, getLineInfo),
         super._();
 
   @override
@@ -156,6 +164,14 @@ class _NullabilityNodeTarget_ReturnType extends _NullabilityNodeTarget_Part {
 
   @override
   String get description => 'return type of ${inner.description}';
+}
+
+/// Nullability node target representing one of a class's supertypes.
+class _NullabilityNodeTarget_Supertype extends _NullabilityNodeTarget_Part {
+  _NullabilityNodeTarget_Supertype(NullabilityNodeTarget inner) : super(inner);
+
+  @override
+  String get description => 'supertype of ${inner.description}';
 }
 
 /// Nullability node target for which we only know a string description.

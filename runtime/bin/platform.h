@@ -7,6 +7,7 @@
 
 #include "bin/builtin.h"
 #include "platform/globals.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -82,7 +83,7 @@ class Platform {
       // Try to resolve the executable path using platform specific APIs.
       const char* resolved_name = Platform::ResolveExecutablePath();
       if (resolved_name != NULL) {
-        resolved_executable_name_ = strdup(resolved_name);
+        resolved_executable_name_ = Utils::StrDup(resolved_name);
       }
     }
     return resolved_executable_name_;

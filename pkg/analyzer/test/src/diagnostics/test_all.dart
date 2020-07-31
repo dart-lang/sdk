@@ -28,8 +28,15 @@ import 'async_keyword_used_as_identifier_test.dart'
 import 'await_in_late_local_variable_initializer_test.dart'
     as await_in_late_local_variable_initializer;
 import 'body_might_complete_normally_test.dart' as body_might_complete_normally;
-import 'builtin_identifier_as_extension_name_test.dart'
-    as builtin_as_extension_name;
+import 'built_in_identifier_as_extension_name_test.dart'
+    as built_in_as_extension_name;
+import 'built_in_identifier_as_prefix_name_test.dart'
+    as built_in_as_prefix_name;
+import 'built_in_identifier_as_type_name_test.dart' as built_in_as_type_name;
+import 'built_in_identifier_as_type_parameter_name_test.dart'
+    as built_in_as_type_parameter_name;
+import 'built_in_identifier_as_typedef_name_test.dart'
+    as built_in_as_typedef_name;
 import 'can_be_null_after_null_aware_test.dart' as can_be_null_after_null_aware;
 import 'case_block_not_terminated_test.dart' as case_block_not_terminated;
 import 'case_expression_type_implements_equals_test.dart'
@@ -43,8 +50,14 @@ import 'conflicting_generic_interfaces_test.dart'
     as conflicting_generic_interfaces;
 import 'conflicting_static_and_instance_test.dart'
     as conflicting_static_and_instance;
+import 'conflicting_type_variable_and_container_test.dart'
+    as conflicting_type_variable_and_container;
+import 'conflicting_type_variable_and_member_test.dart'
+    as conflicting_type_variable_and_member;
 import 'const_constructor_param_type_mismatch_test.dart'
     as const_constructor_param_type_mismatch;
+import 'const_constructor_with_field_initialized_by_non_const_test.dart'
+    as const_constructor_with_field_initialized_by_non_const;
 import 'const_constructor_with_mixin_with_field_test.dart'
     as const_constructor_with_mixin_with_field;
 import 'const_eval_throws_exception_test.dart' as const_eval_throws_exception;
@@ -82,6 +95,8 @@ import 'duplicate_import_test.dart' as duplicate_import;
 import 'duplicate_named_argument_test.dart' as duplicate_named_argument;
 import 'duplicate_part_test.dart' as duplicate_part;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
+import 'enum_constant_same_name_as_enclosing.dart'
+    as enum_constant_same_name_as_enclosing;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
 import 'equal_elements_in_set_test.dart' as equal_elements_in_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
@@ -130,9 +145,15 @@ import 'field_initialized_in_initializer_and_declaration_test.dart'
     as field_initialized_in_initializer_and_declaration;
 import 'field_initialized_in_parameter_and_initializer_test.dart'
     as field_initialized_in_parameter_and_initializer;
+import 'field_initializer_factory_constructor_test.dart'
+    as field_initializer_factory_constructor;
 import 'field_initializer_in_struct_test.dart' as field_initializer_in_struct;
 import 'field_initializer_not_assignable_test.dart'
     as field_initializer_not_assignable;
+import 'field_initializer_outside_constructor_test.dart'
+    as field_initializer_outside_constructor;
+import 'field_initializer_redirecting_constructor_test.dart'
+    as field_initializer_redirecting_constructor;
 import 'field_initializing_formal_not_assignable_test.dart'
     as field_initializing_formal_not_assignable;
 import 'final_initialized_in_delcaration_and_constructor_test.dart'
@@ -154,6 +175,7 @@ import 'getter_not_subtype_setter_types_test.dart'
 import 'if_element_condition_from_deferred_library_test.dart'
     as if_element_condition_from_deferred_library;
 import 'illegal_async_return_type_test.dart' as illegal_async_return_type;
+import 'implements_deferred_class_test.dart' as implements_deferred_class;
 import 'implements_disallowed_class_test.dart' as implements_disallowed_class;
 import 'implements_non_class_test.dart' as implements_non_class;
 import 'implements_super_class_test.dart' as implements_super_class;
@@ -166,6 +188,9 @@ import 'import_duplicated_library_named_test.dart'
 import 'import_of_non_library_test.dart' as import_of_non_library;
 import 'inconsistent_case_expression_types_test.dart'
     as inconsistent_case_expression_types;
+import 'inconsistent_inheritance_getter_and_method_test.dart'
+    as inconsistent_inheritance_getter_and_method;
+import 'inconsistent_inheritance_test.dart' as inconsistent_inheritance;
 import 'inference_failure_on_collection_literal_test.dart'
     as inference_failure_on_collection_literal;
 import 'inference_failure_on_function_return_type_test.dart'
@@ -176,6 +201,8 @@ import 'inference_failure_on_untyped_parameter_test.dart'
     as inference_failure_on_untyped_parameter;
 import 'instance_access_to_static_member_test.dart'
     as instance_access_to_static_member;
+import 'instance_member_access_from_static_test.dart'
+    as instance_member_access_from_static;
 import 'instantiate_abstract_class_test.dart' as instantiate_abstract_class;
 import 'invalid_annotation_from_deferred_library_test.dart'
     as invalid_annotation_from_deferred_library;
@@ -194,6 +221,8 @@ import 'invalid_factory_name_not_a_class_test.dart'
     as invalid_factory_name_not_a_class;
 import 'invalid_field_type_in_struct_test.dart' as invalid_field_type_in_struct;
 import 'invalid_immutable_annotation_test.dart' as invalid_immutable_annotation;
+import 'invalid_language_override_greater_test.dart'
+    as invalid_language_override_greater;
 import 'invalid_language_override_test.dart' as invalid_language_override;
 import 'invalid_literal_annotation_test.dart' as invalid_literal_annotation;
 import 'invalid_modifier_on_constructor_test.dart'
@@ -275,7 +304,6 @@ import 'mixin_inherits_from_not_object_test.dart'
 import 'mixin_of_disallowed_class_test.dart' as mixin_of_disallowed_class;
 import 'mixin_of_non_class_test.dart' as mixin_of_non_class;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
-import 'mixin_references_super_test.dart' as mixin_references_super;
 import 'mixin_super_class_constraint_non_interface_test.dart'
     as mixin_super_class_constraint_non_interface;
 import 'mixin_with_non_class_superclass_test.dart'
@@ -288,10 +316,12 @@ import 'must_call_super_test.dart' as must_call_super;
 import 'new_with_non_type_test.dart' as new_with_non_type;
 import 'new_with_undefined_constructor_test.dart'
     as new_with_undefined_constructor;
+import 'no_combined_super_signature_test.dart' as no_combined_super_signature;
 import 'no_default_super_constructor_test.dart' as no_default_super_constructor;
 import 'non_abstract_class_inherits_abstract_member_test.dart'
     as non_abstract_class_inherits_abstract_member;
 import 'non_bool_condition_test.dart' as non_bool_condition;
+import 'non_bool_expression_test.dart' as non_bool_expression;
 import 'non_bool_negation_expression_test.dart' as non_bool_negation_expression;
 import 'non_bool_operand_test.dart' as non_bool_operand;
 import 'non_constant_case_expression_from_deferred_library_test.dart'
@@ -370,10 +400,14 @@ import 'recursive_compile_time_constant_test.dart'
 import 'recursive_constructor_redirect_test.dart'
     as recursive_constructor_redirect;
 import 'recursive_factory_redirect_test.dart' as recursive_factory_redirect;
+import 'recursive_interface_inheritance_test.dart'
+    as recursive_interface_inheritance;
 import 'redirect_generative_to_missing_constructor_test.dart'
     as redirect_generative_to_missing_constructor;
 import 'redirect_generative_to_non_generative_constructor_test.dart'
     as redirect_generative_to_non_generative_constructor;
+import 'redirect_to_abstract_class_constructor_test.dart'
+    as redirect_to_abstract_class_constructor;
 import 'redirect_to_invalid_function_type_test.dart'
     as redirect_to_invalid_function_type;
 import 'redirect_to_invalid_return_type_test.dart'
@@ -431,6 +465,7 @@ import 'switch_case_completes_normally_test.dart'
     as switch_case_completes_normally;
 import 'switch_expression_not_assignable_test.dart'
     as switch_expression_not_assignable;
+import 'throw_of_invalid_type_test.dart' as throw_of_invalid_type;
 import 'todo_test.dart' as todo_test;
 import 'top_level_instance_getter_test.dart' as top_level_instance_getter;
 import 'top_level_instance_method_test.dart' as top_level_instance_method;
@@ -523,7 +558,11 @@ main() {
     async_keyword_used_as_identifier.main();
     await_in_late_local_variable_initializer.main();
     body_might_complete_normally.main();
-    builtin_as_extension_name.main();
+    built_in_as_extension_name.main();
+    built_in_as_prefix_name.main();
+    built_in_as_type_name.main();
+    built_in_as_type_parameter_name.main();
+    built_in_as_typedef_name.main();
     can_be_null_after_null_aware.main();
     case_block_not_terminated.main();
     case_expression_type_implements_equals.main();
@@ -532,7 +571,10 @@ main() {
     concrete_class_with_abstract_member.main();
     conflicting_generic_interfaces.main();
     conflicting_static_and_instance.main();
+    conflicting_type_variable_and_container.main();
+    conflicting_type_variable_and_member.main();
     const_constructor_param_type_mismatch.main();
+    const_constructor_with_field_initialized_by_non_const.main();
     const_constructor_with_mixin_with_field.main();
     const_eval_throws_exception.main();
     const_map_key_expression_type_implements_equals.main();
@@ -560,6 +602,7 @@ main() {
     duplicate_named_argument.main();
     duplicate_part.main();
     duplicate_shown_name.main();
+    enum_constant_same_name_as_enclosing.main();
     equal_elements_in_const_set.main();
     equal_elements_in_set.main();
     equal_keys_in_const_map.main();
@@ -589,13 +632,16 @@ main() {
     extra_positional_arguments.main();
     field_in_struct_with_initializer.main();
     field_initialized_by_multiple_initializers.main();
+    final_initialized_in_declaration_and_constructor.main();
     field_initialized_in_initializer_and_declaration.main();
     field_initialized_in_parameter_and_initializer.main();
+    final_initialized_multiple_times.main();
+    field_initializer_factory_constructor.main();
     field_initializer_in_struct.main();
     field_initializer_not_assignable.main();
+    field_initializer_outside_constructor.main();
+    field_initializer_redirecting_constructor.main();
     field_initializing_formal_not_assignable.main();
-    final_initialized_in_declaration_and_constructor.main();
-    final_initialized_multiple_times.main();
     final_not_initialized_constructor.main();
     final_not_initialized.main();
     for_in_of_invalid_element_type.main();
@@ -606,19 +652,23 @@ main() {
     getter_not_subtype_setter_types.main();
     if_element_condition_from_deferred_library.main();
     illegal_async_return_type.main();
+    implements_deferred_class.main();
     implements_disallowed_class.main();
     implements_non_class.main();
     implements_super_class.main();
     implicit_this_reference_in_initializer.main();
     import_deferred_library_with_load_function.main();
     import_duplicated_library_named.main();
-    inconsistent_case_expression_types.main();
     import_of_non_library.main();
+    inconsistent_case_expression_types.main();
+    inconsistent_inheritance_getter_and_method.main();
+    inconsistent_inheritance.main();
     inference_failure_on_collection_literal.main();
     inference_failure_on_function_return_type.main();
     inference_failure_on_uninitialized_variable.main();
     inference_failure_on_untyped_parameter.main();
     instance_access_to_static_member.main();
+    instance_member_access_from_static.main();
     instantiate_abstract_class.main();
     invalid_annotation.main();
     invalid_annotation_from_deferred_library.main();
@@ -634,6 +684,7 @@ main() {
     invalid_factory_name_not_a_class.main();
     invalid_field_type_in_struct.main();
     invalid_immutable_annotation.main();
+    invalid_language_override_greater.main();
     invalid_language_override.main();
     invalid_literal_annotation.main();
     invalid_modifier_on_constructor.main();
@@ -688,7 +739,6 @@ main() {
     mixin_of_disallowed_class.main();
     mixin_of_non_class.main();
     mixin_on_sealed_class.main();
-    mixin_references_super.main();
     mixin_super_class_constraint_non_interface.main();
     mixin_with_non_class_superclass.main();
     must_be_a_native_function_type.main();
@@ -697,9 +747,11 @@ main() {
     must_call_super.main();
     new_with_non_type.main();
     new_with_undefined_constructor.main();
+    no_combined_super_signature.main();
     no_default_super_constructor.main();
     non_abstract_class_inherits_abstract_member.main();
     non_bool_condition.main();
+    non_bool_expression.main();
     non_bool_negation_expression.main();
     non_bool_operand.main();
     non_constant_list_element.main();
@@ -752,8 +804,10 @@ main() {
     recursive_compile_time_constant.main();
     recursive_constructor_redirect.main();
     recursive_factory_redirect.main();
+    recursive_interface_inheritance.main();
     redirect_generative_to_missing_constructor.main();
     redirect_generative_to_non_generative_constructor.main();
+    redirect_to_abstract_class_constructor.main();
     redirect_to_invalid_function_type.main();
     redirect_to_invalid_return_type.main();
     redirect_to_missing_constructor.main();
@@ -791,6 +845,7 @@ main() {
     super_initializer_in_object.main();
     switch_case_completes_normally.main();
     switch_expression_not_assignable.main();
+    throw_of_invalid_type.main();
     todo_test.main();
     top_level_instance_getter.main();
     top_level_instance_method.main();

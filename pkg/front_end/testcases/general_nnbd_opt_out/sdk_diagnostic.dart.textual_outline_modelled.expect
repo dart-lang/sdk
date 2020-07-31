@@ -1,0 +1,5 @@
+// @dart = 2.6
+class C extends Iterable<Object> {}
+
+main() {}
+test() {}

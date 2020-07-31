@@ -29,6 +29,9 @@ import 'package:observatory/src/elements/unlinkedcall_ref.dart';
 
 Element anyRef(M.IsolateRef isolate, ref, M.ObjectRepository objects,
     {RenderingQueue queue, bool expandable: true}) {
+  if (ref == null) {
+    return new SpanElement()..text = "???";
+  }
   if (ref is M.Guarded) {
     if (ref.isSentinel) {
       return anyRef(isolate, ref.asSentinel, objects,

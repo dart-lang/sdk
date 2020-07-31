@@ -29,7 +29,7 @@ void FieldTable::FreeOldTables() {
 }
 
 intptr_t FieldTable::FieldOffsetFor(intptr_t field_id) {
-  return field_id * sizeof(RawInstance*);  // NOLINT
+  return field_id * sizeof(InstancePtr);  // NOLINT
 }
 
 void FieldTable::Register(const Field& field) {
@@ -62,7 +62,7 @@ void FieldTable::Free(intptr_t field_id) {
   free_head_ = field_id;
 }
 
-void FieldTable::SetAt(intptr_t index, RawInstance* raw_instance) {
+void FieldTable::SetAt(intptr_t index, InstancePtr raw_instance) {
   ASSERT(index < capacity_);
   table_[index] = raw_instance;
 }
@@ -82,12 +82,18 @@ void FieldTable::AllocateIndex(intptr_t index) {
 void FieldTable::Grow(intptr_t new_capacity) {
   ASSERT(new_capacity > capacity_);
 
-  auto new_table = static_cast<RawInstance**>(
-      malloc(new_capacity * sizeof(RawInstance*)));  // NOLINT
-  memmove(new_table, table_, top_ * sizeof(RawInstance*));
-  memset(new_table + top_, 0, (new_capacity - top_) * sizeof(RawInstance*));
+  auto old_table = table_;
+  auto new_table = static_cast<InstancePtr*>(
+      malloc(new_capacity * sizeof(InstancePtr)));  // NOLINT
+  intptr_t i;
+  for (i = 0; i < top_; i++) {
+    new_table[i] = old_table[i];
+  }
+  for (; i < new_capacity; i++) {
+    new_table[i] = InstancePtr();
+  }
   capacity_ = new_capacity;
-  old_tables_->Add(table_);
+  old_tables_->Add(old_table);
   // Ensure that new_table_ is populated before it is published
   // via store to table_.
   std::atomic_thread_fence(std::memory_order_release);
@@ -95,11 +101,28 @@ void FieldTable::Grow(intptr_t new_capacity) {
   Thread::Current()->field_table_values_ = table_;
 }
 
+FieldTable* FieldTable::Clone() {
+  FieldTable* clone = new FieldTable();
+  auto new_table = static_cast<InstancePtr*>(
+      malloc(capacity_ * sizeof(InstancePtr)));  // NOLINT
+  memmove(new_table, table_, top_ * sizeof(InstancePtr));
+  ASSERT(clone->table_ == nullptr);
+  clone->table_ = new_table;
+  clone->capacity_ = capacity_;
+  clone->top_ = top_;
+  return clone;
+}
+
 void FieldTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  // GC might try to visit field table before it's isolate done setting it up.
+  if (table_ == nullptr) {
+    return;
+  }
+
   ASSERT(visitor != NULL);
   visitor->set_gc_root_type("static fields table");
-  visitor->VisitPointers(reinterpret_cast<RawObject**>(&table_[0]),
-                         reinterpret_cast<RawObject**>(&table_[top_ - 1]));
+  visitor->VisitPointers(reinterpret_cast<ObjectPtr*>(&table_[0]),
+                         reinterpret_cast<ObjectPtr*>(&table_[top_ - 1]));
   visitor->clear_gc_root_type();
 }
 

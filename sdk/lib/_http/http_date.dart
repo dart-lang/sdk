@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart._http;
 
 /**
@@ -123,7 +121,6 @@ class HttpDate {
 
     int index = 0;
     String tmp;
-    int format;
 
     void expect(String s) {
       if (date.length - index < s.length) {
@@ -147,21 +144,18 @@ class HttpDate {
         index = pos + 1;
         weekday = wkdays.indexOf(tmp);
         if (weekday != -1) {
-          format = formatAsctime;
-          return weekday;
+          return formatAsctime;
         }
       } else {
         tmp = date.substring(index, pos);
         index = pos + 1;
         weekday = wkdays.indexOf(tmp);
         if (weekday != -1) {
-          format = formatRfc1123;
-          return weekday;
+          return formatRfc1123;
         }
         weekday = weekdays.indexOf(tmp);
         if (weekday != -1) {
-          format = formatRfc850;
-          return weekday;
+          return formatRfc850;
         }
       }
       throw new HttpException("Invalid HTTP date $date");
@@ -200,10 +194,10 @@ class HttpDate {
       }
     }
 
-    int weekday = expectWeekday();
-    int day;
-    int month;
+    int format = expectWeekday();
     int year;
+    int month;
+    int day;
     int hours;
     int minutes;
     int seconds;
@@ -248,7 +242,7 @@ class HttpDate {
 
     int position = 0;
 
-    void error() {
+    Never error() {
       throw new HttpException("Invalid cookie date $date");
     }
 
@@ -302,10 +296,10 @@ class HttpDate {
       while (!isEnd() && isDelimiter(date[position])) position++;
     }
 
-    String timeStr;
-    String dayOfMonthStr;
-    String monthStr;
-    String yearStr;
+    String? timeStr;
+    String? dayOfMonthStr;
+    String? monthStr;
+    String? yearStr;
 
     for (var token in tokens) {
       if (token.length < 1) continue;

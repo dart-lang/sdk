@@ -1,0 +1,12 @@
+library test;
+
+A<num> a = new B<int>();
+
+class A<T> {}
+
+class B<T> extends A<T> {
+  foo() {}
+}
+
+main() {}
+var b = (a as B<int>);

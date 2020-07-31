@@ -14,6 +14,8 @@ class Result {
   final ProcessResult processResult;
 
   Result(this.cmdline, this.processResult);
+
+  String get output => processResult.stdout.trim();
 }
 
 void reportError(Result result, String msg) {
@@ -36,7 +38,7 @@ ${result.processResult.stderr}''');
 }
 
 void expectOutput(String what, Result result) {
-  if (result.processResult.stdout.trim() != what) {
+  if (result.output != what) {
     reportError(result, 'Expected test to print \'${what}\' to stdout');
   }
 }
@@ -46,6 +48,7 @@ final String executableSuffix = Platform.isWindows ? ".exe" : "";
 final String buildDir = p.dirname(Platform.executable);
 final String platformDill = p.join(buildDir, "vm_platform_strong.dill");
 final String genSnapshot = p.join(buildDir, "gen_snapshot${executableSuffix}");
+final String dart = p.join(buildDir, "dart${executableSuffix}");
 final String dartPrecompiledRuntime =
     p.join(buildDir, "dart_precompiled_runtime${executableSuffix}");
 final String genKernel = p.join("pkg", "vm", "bin", "gen_kernel.dart");
@@ -73,7 +76,7 @@ Future<Result> runGenSnapshot(String prefix, List<String> arguments) {
 }
 
 Future<Result> runBinary(String prefix, String binary, List<String> arguments,
-    {Map<String, String> environment, bool runInShell: false}) async {
+    {Map<String, String>? environment, bool runInShell: false}) async {
   print("+ $binary " + arguments.join(" "));
   final processResult = await Process.run(binary, arguments,
       environment: environment, runInShell: runInShell);
@@ -156,7 +159,11 @@ checkDeterministicSnapshot(String snapshotKind, String expectedStdout) async {
   });
 }
 
-runAppJitTest(Uri testScriptUri) async {
+runAppJitTest(Uri testScriptUri,
+    {Future<Result> Function(String snapshotPath)? runSnapshot}) async {
+  runSnapshot ??=
+      (snapshotPath) => runDart('RUN FROM SNAPSHOT', [snapshotPath]);
+
   await withTempDir((String temp) async {
     final snapshotPath = p.join(temp, 'app.jit');
     final testPath = testScriptUri.toFilePath();
@@ -168,7 +175,7 @@ runAppJitTest(Uri testScriptUri) async {
       '--train'
     ]);
     expectOutput("OK(Trained)", trainingResult);
-    final runResult = await runDart('RUN FROM SNAPSHOT', [snapshotPath]);
+    final runResult = await runSnapshot!(snapshotPath);
     expectOutput("OK(Run)", runResult);
   });
 }

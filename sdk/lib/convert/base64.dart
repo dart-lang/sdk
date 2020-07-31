@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.convert;
 
 /// A [base64](https://tools.ietf.org/html/rfc4648) encoder and decoder.
@@ -37,18 +35,18 @@ const Base64Codec base64Url = Base64Codec.urlSafe();
 
 /// Encodes [bytes] using [base64](https://tools.ietf.org/html/rfc4648) encoding.
 ///
-/// Shorthand for `base64.encode`. Useful if a local variable shadows the global
+/// Shorthand for `base64.encode(bytes)`. Useful if a local variable shadows the global
 /// [base64] constant.
 String base64Encode(List<int> bytes) => base64.encode(bytes);
 
 /// Encodes [bytes] using [base64url](https://tools.ietf.org/html/rfc4648) encoding.
 ///
-/// Shorthand for `base64url.encode`.
+/// Shorthand for `base64url.encode(bytes)`.
 String base64UrlEncode(List<int> bytes) => base64Url.encode(bytes);
 
 /// Decodes [base64](https://tools.ietf.org/html/rfc4648) or [base64url](https://tools.ietf.org/html/rfc4648) encoded bytes.
 ///
-/// Shorthand for `base64.decode`. Useful if a local variable shadows the
+/// Shorthand for `base64.decode(bytes)`. Useful if a local variable shadows the
 /// global [base64] constant.
 Uint8List base64Decode(String source) => base64.decode(source);
 
@@ -95,11 +93,15 @@ class Base64Codec extends Codec<List<int>, String> {
   /// * Validate that existing padding (trailing `=` characters) is correct.
   /// * If no padding exists, add correct padding if necessary and possible.
   /// * Validate that the length is correct (a multiple of four).
-  String normalize(String source, [int start = 0, int end]) {
+  String normalize(String source, [int start = 0, int? end]) {
     end = RangeError.checkValidRange(start, end, source.length);
+    // TODO(38725): Remove workaround when assignment promotion is implemented
+    if (end == null) {
+      throw RangeError("Invalid range");
+    }
     const percent = 0x25;
     const equals = 0x3d;
-    StringBuffer buffer;
+    StringBuffer? buffer;
     var sliceStart = start;
     var alphabet = _Base64Encoder._base64Alphabet;
     var inverseAlphabet = _Base64Decoder._inverseAlphabet;
@@ -142,9 +144,9 @@ class Base64Codec extends Codec<List<int>, String> {
           if (originalChar == equals) continue;
         }
         if (value != _Base64Decoder._invalid) {
-          buffer ??= StringBuffer();
-          buffer.write(source.substring(sliceStart, sliceEnd));
-          buffer.writeCharCode(char);
+          (buffer ??= StringBuffer())
+            ..write(source.substring(sliceStart, sliceEnd))
+            ..writeCharCode(char);
           sliceStart = i;
           continue;
         }
@@ -233,7 +235,7 @@ class Base64Encoder extends Converter<List<int>, String> {
   String convert(List<int> input) {
     if (input.isEmpty) return "";
     var encoder = _Base64Encoder(_urlSafe);
-    var buffer = encoder.encode(input, 0, input.length, true);
+    var buffer = encoder.encode(input, 0, input.length, true)!;
     return String.fromCharCodes(buffer);
   }
 
@@ -302,10 +304,10 @@ class _Base64Encoder {
   /// with the necessary padding.
   ///
   /// Returns `null` if there is no output.
-  Uint8List encode(List<int> bytes, int start, int end, bool isLast) {
+  Uint8List? encode(List<int> bytes, int start, int end, bool isLast) {
     assert(0 <= start);
     assert(start <= end);
-    assert(bytes == null || end <= bytes.length);
+    assert(end <= bytes.length);
     var length = end - start;
 
     var count = _stateCount(_state);
@@ -395,17 +397,21 @@ class _BufferCachingBase64Encoder extends _Base64Encoder {
   ///
   /// When the buffer isn't released to the sink, only used to create another
   /// value (a string), the buffer can be reused between chunks.
-  Uint8List bufferCache;
+  Uint8List? bufferCache;
 
   _BufferCachingBase64Encoder(bool urlSafe) : super(urlSafe);
 
   Uint8List createBuffer(int bufferLength) {
-    if (bufferCache == null || bufferCache.length < bufferLength) {
-      bufferCache = Uint8List(bufferLength);
+    Uint8List? buffer = bufferCache;
+    if (buffer == null || buffer.length < bufferLength) {
+      bufferCache = buffer = Uint8List(bufferLength);
+    }
+    // TODO(38725): Remove workaround when assignment promotion is implemented
+    if (buffer == null) {
+      throw "unreachable";
     }
     // Return a view of the buffer, so it has the requested length.
-    return Uint8List.view(
-        bufferCache.buffer, bufferCache.offsetInBytes, bufferLength);
+    return Uint8List.view(buffer.buffer, buffer.offsetInBytes, bufferLength);
   }
 }
 
@@ -415,7 +421,7 @@ abstract class _Base64EncoderSink extends ByteConversionSinkBase {
   }
 
   void close() {
-    _add(null, 0, 0, true);
+    _add(const [], 0, 0, true);
   }
 
   void addSlice(List<int> source, int start, int end, bool isLast) {
@@ -481,11 +487,15 @@ class Base64Decoder extends Converter<String, List<int>> {
   /// The returned [Uint8List] contains exactly the decoded bytes,
   /// so the [Uint8List.length] is precisely the number of decoded bytes.
   /// The [Uint8List.buffer] may be larger than the decoded bytes.
-  Uint8List convert(String input, [int start = 0, int end]) {
+  Uint8List convert(String input, [int start = 0, int? end]) {
     end = RangeError.checkValidRange(start, end, input.length);
+    // TODO(38725): Remove workaround when assignment promotion is implemented
+    if (end == null) {
+      throw RangeError("Invalid range");
+    }
     if (start == end) return Uint8List(0);
     var decoder = _Base64Decoder();
-    var buffer = decoder.decode(input, start, end);
+    var buffer = decoder.decode(input, start, end)!;
     decoder.close(input, end);
     return buffer;
   }
@@ -595,7 +605,7 @@ class _Base64Decoder {
   /// Returns a [Uint8List] with the decoded bytes.
   /// If a previous call had an incomplete four-character block, the bits from
   /// those are included in decoding
-  Uint8List decode(String input, int start, int end) {
+  Uint8List? decode(String input, int start, int end) {
     assert(0 <= start);
     assert(start <= end);
     assert(end <= input.length);
@@ -610,7 +620,7 @@ class _Base64Decoder {
   }
 
   /// Checks that [_state] represents a valid decoding.
-  void close(String input, int end) {
+  void close(String? input, int? end) {
     if (_state < _encodePaddingState(0)) {
       throw FormatException("Missing padding character", input, end);
     }
@@ -641,10 +651,11 @@ class _Base64Decoder {
     // all the characters in `charOr` and later validate that all characters
     // were ASCII.
     var charOr = 0;
+    final inverseAlphabet = _Base64Decoder._inverseAlphabet;
     for (var i = start; i < end; i++) {
       var char = input.codeUnitAt(i);
       charOr |= char;
-      var code = _inverseAlphabet[char & asciiMask];
+      var code = inverseAlphabet[char & asciiMask];
       if (code >= 0) {
         bits = ((bits << bitsPerCharacter) | code) & 0xFFFFFF;
         count = (count + 1) & 3;
@@ -694,6 +705,8 @@ class _Base64Decoder {
     throw FormatException("Invalid character", input, i);
   }
 
+  static Uint8List _emptyBuffer = Uint8List(0);
+
   /// Allocates a buffer with room for the decoding of a substring of [input].
   ///
   /// Includes room for the characters in [state], and handles padding correctly.
@@ -713,7 +726,7 @@ class _Base64Decoder {
     if (bufferLength > 0) return Uint8List(bufferLength);
     // If the input plus state is less than four characters, and it's not
     // at the end of input, no buffer is needed.
-    return null;
+    return _emptyBuffer;
   }
 
   /// Returns the position of the start of padding at the end of the input.
@@ -845,7 +858,7 @@ class _Base64DecoderSink extends StringConversionSinkBase {
   }
 
   void addSlice(String string, int start, int end, bool isLast) {
-    end = RangeError.checkValidRange(start, end, string.length);
+    RangeError.checkValidRange(start, end, string.length);
     if (start == end) return;
     var buffer = _decoder.decode(string, start, end);
     if (buffer != null) _sink.add(buffer);

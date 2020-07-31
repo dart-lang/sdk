@@ -6,9 +6,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 class TopMergeHelper {
@@ -16,14 +17,12 @@ class TopMergeHelper {
 
   TopMergeHelper(this.typeSystem);
 
-  /**
-   * Merges two types into a single type.
-   * Compute the canonical representation of [T].
-   *
-   * https://github.com/dart-lang/language/
-   * See `accepted/future-releases/nnbd/feature-specification.md`
-   * See `#classes-defined-in-opted-in-libraries`
-   */
+  /// Merges two types into a single type.
+  /// Compute the canonical representation of [T].
+  ///
+  /// https://github.com/dart-lang/language/
+  /// See `accepted/future-releases/nnbd/feature-specification.md`
+  /// See `#classes-defined-in-opted-in-libraries`
   DartType topMerge(DartType T, DartType S) {
     var T_nullability = T.nullabilitySuffix;
     var S_nullability = S.nullabilitySuffix;
@@ -44,6 +43,11 @@ class TopMergeHelper {
       return DynamicTypeImpl.instance;
     }
 
+    if (identical(T, NeverTypeImpl.instance) &&
+        identical(S, NeverTypeImpl.instance)) {
+      return NeverTypeImpl.instance;
+    }
+
     // NNBD_TOP_MERGE(void, void) = void
     var T_isVoid = identical(T, VoidTypeImpl.instance);
     var S_isVoid = identical(S, VoidTypeImpl.instance);
@@ -51,26 +55,26 @@ class TopMergeHelper {
       return VoidTypeImpl.instance;
     }
 
-    // NNBD_TOP_MERGE(void, Object?) = void
     // NNBD_TOP_MERGE(Object?, void) = void
-    if (T_isVoid && S_isObjectQuestion || T_isObjectQuestion && S_isVoid) {
-      return VoidTypeImpl.instance;
+    // NNBD_TOP_MERGE(void, Object?) = void
+    if (T_isObjectQuestion && S_isVoid || T_isVoid && S_isObjectQuestion) {
+      return typeSystem.objectQuestion;
     }
 
-    // NNBD_TOP_MERGE(void, Object*) = void
     // NNBD_TOP_MERGE(Object*, void) = void
+    // NNBD_TOP_MERGE(void, Object*) = void
     var T_isObjectStar =
         T_nullability == NullabilitySuffix.star && T.isDartCoreObject;
     var S_isObjectStar =
         S_nullability == NullabilitySuffix.star && S.isDartCoreObject;
-    if (T_isVoid && S_isObjectStar || T_isObjectStar && S_isVoid) {
-      return VoidTypeImpl.instance;
+    if (T_isObjectStar && S_isVoid || T_isVoid && S_isObjectStar) {
+      return typeSystem.objectQuestion;
     }
 
-    // NNBD_TOP_MERGE(void, dynamic) = void
     // NNBD_TOP_MERGE(dynamic, void) = void
-    if (T_isVoid && S_isDynamic || T_isDynamic && S_isVoid) {
-      return VoidTypeImpl.instance;
+    // NNBD_TOP_MERGE(void, dynamic) = void
+    if (T_isDynamic && S_isVoid || T_isVoid && S_isDynamic) {
+      return typeSystem.objectQuestion;
     }
 
     // NNBD_TOP_MERGE(Object?, dynamic) = Object?
@@ -250,11 +254,10 @@ class TopMergeHelper {
         R_type = mergeTypes(T_parameter.type, S_parameter.type);
       }
 
-      R_parameters[i] = ParameterElementImpl.synthetic(
-        T_parameter.name,
-        R_type,
-        R_kind,
-      )..isExplicitlyCovariant = R_isCovariant;
+      R_parameters[i] = T_parameter.copyWith(
+        type: R_type,
+        kind: R_kind,
+      );
     }
 
     return FunctionTypeImpl(

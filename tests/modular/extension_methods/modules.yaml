@@ -5,5 +5,3 @@
 dependencies:
   def2: [def]
   main: [def2, expect]
-flags: 
-  - extension-methods

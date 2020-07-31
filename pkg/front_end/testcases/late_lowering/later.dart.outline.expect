@@ -47,9 +47,9 @@ static method bar(core::int x) → dynamic
   ;
 static method baz() → dynamic
   ;
-static method hest() → dynamic
+static method hest() → dynamic async 
   ;
-static method fisk() → dynamic
+static method fisk() → dynamic async 
   ;
 static method main() → dynamic
   ;

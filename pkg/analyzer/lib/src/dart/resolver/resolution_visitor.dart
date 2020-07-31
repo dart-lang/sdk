@@ -19,7 +19,6 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/type_name_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 
@@ -85,7 +84,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   /// The flag specifying if currently visited class references 'super'
   /// expression.
-  /// TODO(scheglov) put into summary
   bool _hasReferenceToSuper = false;
 
   factory ResolutionVisitor({
@@ -178,10 +176,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
         exceptionNode.staticElement = element;
 
+        element.isFinal = true;
         if (exceptionTypeNode == null) {
           element.hasImplicitType = true;
-          element.type = _dynamicType;
-          exceptionNode.staticType = _dynamicType;
+          var type =
+              _isNonNullableByDefault ? _typeProvider.objectType : _dynamicType;
+          element.type = type;
+          exceptionNode.staticType = type;
         } else {
           element.type = exceptionTypeNode.type;
           exceptionNode.staticType = exceptionTypeNode.type;
@@ -201,6 +202,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
         stackTraceNode.staticElement = element;
 
+        element.isFinal = true;
         element.type = _typeProvider.stackTraceType;
         stackTraceNode.staticType = _typeProvider.stackTraceType;
 
@@ -521,11 +523,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
       FunctionBody body = node.functionExpression.body;
       if (node.externalKeyword != null || body is NativeFunctionBody) {
-        element.external = true;
+        element.isExternal = true;
       }
 
-      element.asynchronous = body.isAsynchronous;
-      element.generator = body.isGenerator;
+      element.isAsynchronous = body.isAsynchronous;
+      element.isGenerator = body.isGenerator;
       if (node.returnType == null) {
         element.hasImplicitReturnType = true;
       }
@@ -587,8 +589,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     element.hasImplicitReturnType = true;
 
     FunctionBody body = node.body;
-    element.asynchronous = body.isAsynchronous;
-    element.generator = body.isGenerator;
+    element.isAsynchronous = body.isAsynchronous;
+    element.isGenerator = body.isGenerator;
 
     var holder = ElementHolder(element);
     _withElementHolder(holder, () {
@@ -1109,10 +1111,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * For each [Annotation] found in [annotations], create a new
-   * [ElementAnnotation] object and set the [Annotation] to point to it.
-   */
+  /// For each [Annotation] found in [annotations], create a new
+  /// [ElementAnnotation] object and set the [Annotation] to point to it.
   List<ElementAnnotation> _createElementAnnotations(
       List<Annotation> annotations) {
     if (annotations.isEmpty) {

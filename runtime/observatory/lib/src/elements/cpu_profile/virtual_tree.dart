@@ -12,16 +12,13 @@ import 'package:observatory/src/elements/code_ref.dart';
 import 'package:observatory/src/elements/containers/virtual_tree.dart';
 import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/utils.dart';
 
 export 'package:observatory/src/elements/stack_trace_tree_config.dart'
     show ProfileTreeMode;
 
 class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<CpuProfileVirtualTreeElement>('cpu-profile-virtual-tree');
-
   RenderingScheduler<CpuProfileVirtualTreeElement> _r;
 
   Stream<RenderedEvent<CpuProfileVirtualTreeElement>> get onRendered =>
@@ -68,7 +65,7 @@ class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
     return e;
   }
 
-  CpuProfileVirtualTreeElement.created() : super.created(tag);
+  CpuProfileVirtualTreeElement.created() : super.created('cpu-profile-virtual-tree');
 
   @override
   attached() {

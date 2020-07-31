@@ -465,6 +465,20 @@ abstract class CiderLinkedLibraryCycle extends base.SummaryClass {
   List<int> get signature;
 }
 
+/// Errors for a single unit.
+@TopLevel('CUEr')
+abstract class CiderUnitErrors extends base.SummaryClass {
+  factory CiderUnitErrors.fromBuffer(List<int> buffer) =>
+      generated.readCiderUnitErrors(buffer);
+
+  @Id(1)
+  List<AnalysisDriverUnitError> get errors;
+
+  /// The hash signature of this data.
+  @Id(0)
+  List<int> get signature;
+}
+
 /// Information about a compilation unit, contains the content hash
 /// and unlinked summary.
 @TopLevel('CUUN')
@@ -619,6 +633,22 @@ enum IndexSyntheticElementKind {
 
   /// The containing unit itself.
   unit
+}
+
+abstract class LinkedLanguageVersion extends base.SummaryClass {
+  @Id(0)
+  int get major;
+
+  @Id(1)
+  int get minor;
+}
+
+abstract class LinkedLibraryLanguageVersion extends base.SummaryClass {
+  @Id(1)
+  LinkedLanguageVersion get override2;
+
+  @Id(0)
+  LinkedLanguageVersion get package;
 }
 
 /// Information about a linked AST node.
@@ -834,13 +864,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(3, variant: LinkedNodeKind.compilationUnit)
   List<LinkedNode> get compilationUnit_directives;
 
-  /// The major component of the actual language version (not just override).
-  @VariantId(15, variant: LinkedNodeKind.compilationUnit)
-  int get compilationUnit_languageVersionMajor;
-
-  /// The minor component of the actual language version (not just override).
-  @VariantId(16, variant: LinkedNodeKind.compilationUnit)
-  int get compilationUnit_languageVersionMinor;
+  /// The language version information.
+  @VariantId(40, variant: LinkedNodeKind.compilationUnit)
+  LinkedLibraryLanguageVersion get compilationUnit_languageVersion;
 
   @VariantId(6, variant: LinkedNodeKind.compilationUnit)
   LinkedNode get compilationUnit_scriptTag;
@@ -1480,6 +1506,7 @@ abstract class LinkedNode extends base.SummaryClass {
   LinkedNode get throwExpression_expression;
 
   @VariantId(32, variantList: [
+    LinkedNodeKind.methodDeclaration,
     LinkedNodeKind.simpleFormalParameter,
     LinkedNodeKind.variableDeclaration,
   ])
@@ -1825,6 +1852,9 @@ enum LinkedNodeTypeKind {
 
 /// Information about a type substitution.
 abstract class LinkedNodeTypeSubstitution extends base.SummaryClass {
+  @Id(2)
+  bool get isLegacy;
+
   @Id(1)
   List<LinkedNodeType> get typeArguments;
 
@@ -1871,23 +1901,28 @@ abstract class PackageBundle extends base.SummaryClass {
   /// The version 2 of the summary.
   @Id(0)
   LinkedNodeBundle get bundle2;
+
+  /// The SDK specific data, if this bundle is for SDK.
+  @Id(1)
+  PackageBundleSdk get sdk;
+}
+
+/// Summary information about a package.
+abstract class PackageBundleSdk extends base.SummaryClass {
+  /// The content of the `allowed_experiments.json` from SDK.
+  @Id(0)
+  String get allowedExperimentsJson;
 }
 
 /// Summary information about a top-level type inference error.
 abstract class TopLevelInferenceError extends base.SummaryClass {
   /// The [kind] specific arguments.
-  @Id(2)
+  @Id(1)
   List<String> get arguments;
 
   /// The kind of the error.
-  @Id(1)
-  TopLevelInferenceErrorKind get kind;
-
-  /// The slot id (which is unique within the compilation unit) identifying the
-  /// target of type inference with which this [TopLevelInferenceError] is
-  /// associated.
   @Id(0)
-  int get slot;
+  TopLevelInferenceErrorKind get kind;
 }
 
 /// Enum used to indicate the kind of the error during top-level inference.
@@ -1896,8 +1931,7 @@ enum TopLevelInferenceErrorKind {
   instanceGetter,
   dependencyCycle,
   overrideConflictFieldType,
-  overrideConflictReturnType,
-  overrideConflictParameterType
+  overrideNoCombinedSuperSignature,
 }
 
 @Variant('kind')
@@ -2238,6 +2272,10 @@ abstract class UnlinkedUnit2 extends base.SummaryClass {
   @informative
   @Id(5)
   List<int> get lineStarts;
+
+  /// URI of the `part of` directive.
+  @Id(8)
+  String get partOfUri;
 
   /// URIs of `part` directives.
   @Id(4)

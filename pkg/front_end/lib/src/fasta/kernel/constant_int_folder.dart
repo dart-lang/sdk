@@ -10,7 +10,10 @@ import 'package:kernel/target/targets.dart';
 import 'constant_evaluator.dart';
 
 import '../fasta_codes.dart'
-    show templateConstEvalNegativeShift, templateConstEvalZeroDivisor;
+    show
+        templateConstEvalNegativeShift,
+        templateConstEvalTruncateError,
+        templateConstEvalZeroDivisor;
 
 abstract class ConstantIntFolder {
   final ConstantEvaluator evaluator;
@@ -36,7 +39,7 @@ abstract class ConstantIntFolder {
   Constant foldBinaryOperator(MethodInvocation node, String op,
       covariant Constant left, covariant Constant right);
 
-  Constant truncatingDivide(num left, num right);
+  Constant truncatingDivide(MethodInvocation node, num left, num right);
 
   void _checkOperands(MethodInvocation node, String op, num left, num right) {
     if ((op == '<<' || op == '>>' || op == '>>>') && right < 0) {
@@ -120,8 +123,13 @@ class VmConstantIntFolder extends ConstantIntFolder {
   }
 
   @override
-  Constant truncatingDivide(num left, num right) {
-    return new IntConstant(left ~/ right);
+  Constant truncatingDivide(MethodInvocation node, num left, num right) {
+    try {
+      return new IntConstant(left ~/ right);
+    } catch (e) {
+      return evaluator.report(node,
+          templateConstEvalTruncateError.withArguments('$left', '$right'));
+    }
   }
 }
 
@@ -184,7 +192,7 @@ class JsConstantIntFolder extends ConstantIntFolder {
       case '/':
         return new DoubleConstant(a / b);
       case '~/':
-        return truncatingDivide(a, b);
+        return truncatingDivide(node, a, b);
       case '%':
         return new DoubleConstant(a % b);
       case '|':
@@ -220,8 +228,13 @@ class JsConstantIntFolder extends ConstantIntFolder {
   }
 
   @override
-  Constant truncatingDivide(num left, num right) {
-    double result = (left / right).truncateToDouble();
+  Constant truncatingDivide(MethodInvocation node, num left, num right) {
+    double division = (left / right);
+    if (division.isNaN || division.isInfinite) {
+      return evaluator.report(node,
+          templateConstEvalTruncateError.withArguments('$left', '${right}'));
+    }
+    double result = division.truncateToDouble();
     return new DoubleConstant(result == 0.0 ? 0.0 : result);
   }
 }

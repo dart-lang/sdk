@@ -256,7 +256,7 @@ void ARM64Decoder::PrintMemOperand(Instr* instr) {
 
 void ARM64Decoder::PrintPairMemOperand(Instr* instr) {
   const Register rn = instr->RnField();
-  const int32_t simm7 = instr->SImm7Field();
+  const uint32_t simm7 = instr->SImm7Field();
   const int32_t offset = simm7 << (2 + instr->Bit(31));
   Print("[");
   PrintRegister(rn, R31IsSP);
@@ -398,14 +398,14 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
       int64_t off;
       if (format[4] == '2') {
         ASSERT(STRING_STARTS_WITH(format, "dest26"));
-        off = instr->SImm26Field() << 2;
+        off = static_cast<uint64_t>(instr->SImm26Field()) << 2;
       } else {
         if (format[5] == '4') {
           ASSERT(STRING_STARTS_WITH(format, "dest14"));
-          off = instr->SImm14Field() << 2;
+          off = static_cast<uint64_t>(instr->SImm14Field()) << 2;
         } else {
           ASSERT(STRING_STARTS_WITH(format, "dest19"));
-          off = instr->SImm19Field() << 2;
+          off = static_cast<uint64_t>(instr->SImm19Field()) << 2;
         }
       }
       if (FLAG_disassemble_relative) {
@@ -542,19 +542,19 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
       if (format[1] == 'c') {
         if (format[2] == 'a') {
           ASSERT(STRING_STARTS_WITH(format, "pcadr"));
-          const int64_t immhi = instr->SImm19Field();
-          const int64_t immlo = instr->Bits(29, 2);
-          const int64_t off = (immhi << 2) | immlo;
-          const int64_t pc = reinterpret_cast<int64_t>(instr);
-          const int64_t dest = pc + off;
+          const uint64_t immhi = instr->SImm19Field();
+          const uint64_t immlo = instr->Bits(29, 2);
+          const uint64_t off = (immhi << 2) | immlo;
+          const uint64_t pc = reinterpret_cast<int64_t>(instr);
+          const uint64_t dest = pc + off;
           buffer_pos_ +=
               Utils::SNPrint(current_position_in_buffer(),
                              remaining_size_in_buffer(), "0x%" Px64, dest);
         } else {
           ASSERT(STRING_STARTS_WITH(format, "pcldr"));
-          const int64_t off = instr->SImm19Field() << 2;
-          const int64_t pc = reinterpret_cast<int64_t>(instr);
-          const int64_t dest = pc + off;
+          const uint64_t off = instr->SImm19Field() << 2;
+          const uint64_t pc = reinterpret_cast<int64_t>(instr);
+          const uint64_t dest = pc + off;
           buffer_pos_ +=
               Utils::SNPrint(current_position_in_buffer(),
                              remaining_size_in_buffer(), "0x%" Px64, dest);
@@ -740,7 +740,7 @@ void ARM64Decoder::DecodeLoadRegLiteral(Instr* instr) {
 }
 
 void ARM64Decoder::DecodeLoadStoreExclusive(Instr* instr) {
-  if ((instr->Bit(23) != 0) || (instr->Bit(21) != 0) || (instr->Bit(15) != 0)) {
+  if (instr->Bit(21) != 0 || instr->Bit(23) != instr->Bit(15)) {
     Unknown(instr);
   }
   const int32_t size = instr->Bits(30, 2);
@@ -749,10 +749,22 @@ void ARM64Decoder::DecodeLoadStoreExclusive(Instr* instr) {
   }
 
   const bool is_load = instr->Bit(22) == 1;
+  const bool is_exclusive = instr->Bit(23) == 0;
+  const bool is_ordered = instr->Bit(15) == 1;
   if (is_load) {
-    Format(instr, "ldxr 'rt, 'rn");
+    const bool is_load_acquire = !is_exclusive && is_ordered;
+    if (is_load_acquire) {
+      Format(instr, "ldar 'rt, 'rn");
+    } else {
+      Format(instr, "ldxr 'rt, 'rn");
+    }
   } else {
-    Format(instr, "stxr 'rs, 'rt, 'rn");
+    const bool is_store_release = !is_exclusive && is_ordered;
+    if (is_store_release) {
+      Format(instr, "stlr 'rt, 'rn");
+    } else {
+      Format(instr, "stxr 'rs, 'rt, 'rn");
+    }
   }
 }
 

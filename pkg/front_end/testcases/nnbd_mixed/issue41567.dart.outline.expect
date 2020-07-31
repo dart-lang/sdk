@@ -1,0 +1,77 @@
+//
+// Problems in component:
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41567.dart:9:7: Error: 'in1' can't implement both 'A<Object>' and 'A<dynamic>'
+//  - 'A' is from 'pkg/front_end/testcases/nnbd_mixed/issue41567_lib.dart'.
+//  - 'Object' is from 'dart:core'.
+// class in1 extends out_Object implements B {} // ok
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41567.dart:11:7: Error: 'in2' can't implement both 'A<dynamic>' and 'A<Object>'
+//  - 'A' is from 'pkg/front_end/testcases/nnbd_mixed/issue41567_lib.dart'.
+//  - 'Object' is from 'dart:core'.
+// class in2 extends B implements out_Object {} // ok
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41567.dart:13:7: Error: 'in3' can't implement both 'A<int>' and 'A<dynamic>'
+//  - 'A' is from 'pkg/front_end/testcases/nnbd_mixed/issue41567_lib.dart'.
+// class in3 extends out_int implements B {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41567.dart:15:7: Error: 'in4' can't implement both 'A<dynamic>' and 'A<int>'
+//  - 'A' is from 'pkg/front_end/testcases/nnbd_mixed/issue41567_lib.dart'.
+// class in4 extends B implements out_int {} // error
+//       ^
+//
+library /*isNonNullableByDefault*/;
+import self as self;
+import "issue41567_lib.dart" as iss;
+
+import "org-dartlang-testcase:///issue41567_lib.dart";
+
+class B extends iss::A<dynamic> {
+  synthetic constructor •() → self::B
+    ;
+}
+class in1 extends iss::out_Object implements self::B {
+  synthetic constructor •() → self::in1
+    ;
+}
+class in2 extends self::B implements iss::out_Object {
+  synthetic constructor •() → self::in2
+    ;
+}
+class in3 extends iss::out_int implements self::B {
+  synthetic constructor •() → self::in3
+    ;
+}
+class in4 extends self::B implements iss::out_int {
+  synthetic constructor •() → self::in4
+    ;
+}
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41567_lib.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.6
+// ^^^^^^^^^^^^
+//
+import self as iss;
+import "dart:core" as core;
+
+class A<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → iss::A<iss::A::T%>
+    ;
+}
+class out_int extends iss::A<core::int> {
+  synthetic constructor •() → iss::out_int
+    ;
+}
+class out_Object extends iss::A<core::Object> {
+  synthetic constructor •() → iss::out_Object
+    ;
+}

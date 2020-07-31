@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -10,29 +9,150 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 
-/// A visitor that finds dead code and unused labels.
+typedef _CatchClausesVerifierReporter = void Function(
+  CatchClause first,
+  CatchClause last,
+  ErrorCode,
+  List<Object> arguments,
+);
+
+/// A visitor that finds dead code, other than unreachable code that is
+/// handled in [NullSafetyDeadCodeVerifier] or [LegacyDeadCodeVerifier].
 class DeadCodeVerifier extends RecursiveAstVisitor<void> {
+  /// The error reporter by which errors will be reported.
+  final ErrorReporter _errorReporter;
+
+  /// The object used to track the usage of labels within a given label scope.
+  _LabelTracker labelTracker;
+
+  DeadCodeVerifier(this._errorReporter);
+
+  @override
+  void visitBreakStatement(BreakStatement node) {
+    labelTracker?.recordUsage(node.label?.name);
+  }
+
+  @override
+  void visitContinueStatement(ContinueStatement node) {
+    labelTracker?.recordUsage(node.label?.name);
+  }
+
+  @override
+  void visitExportDirective(ExportDirective node) {
+    ExportElement exportElement = node.element;
+    if (exportElement != null) {
+      // The element is null when the URI is invalid.
+      LibraryElement library = exportElement.exportedLibrary;
+      if (library != null && !library.isSynthetic) {
+        for (Combinator combinator in node.combinators) {
+          _checkCombinator(library, combinator);
+        }
+      }
+    }
+    super.visitExportDirective(node);
+  }
+
+  @override
+  void visitImportDirective(ImportDirective node) {
+    ImportElement importElement = node.element;
+    if (importElement != null) {
+      // The element is null when the URI is invalid, but not when the URI is
+      // valid but refers to a non-existent file.
+      LibraryElement library = importElement.importedLibrary;
+      if (library != null && !library.isSynthetic) {
+        for (Combinator combinator in node.combinators) {
+          _checkCombinator(library, combinator);
+        }
+      }
+    }
+    super.visitImportDirective(node);
+  }
+
+  @override
+  void visitLabeledStatement(LabeledStatement node) {
+    _pushLabels(node.labels);
+    try {
+      super.visitLabeledStatement(node);
+    } finally {
+      _popLabels();
+    }
+  }
+
+  @override
+  void visitSwitchStatement(SwitchStatement node) {
+    List<Label> labels = <Label>[];
+    for (SwitchMember member in node.members) {
+      labels.addAll(member.labels);
+    }
+    _pushLabels(labels);
+    try {
+      super.visitSwitchStatement(node);
+    } finally {
+      _popLabels();
+    }
+  }
+
+  /// Resolve the names in the given [combinator] in the scope of the given
+  /// [library].
+  void _checkCombinator(LibraryElement library, Combinator combinator) {
+    Namespace namespace =
+        NamespaceBuilder().createExportNamespaceForLibrary(library);
+    NodeList<SimpleIdentifier> names;
+    ErrorCode hintCode;
+    if (combinator is HideCombinator) {
+      names = combinator.hiddenNames;
+      hintCode = HintCode.UNDEFINED_HIDDEN_NAME;
+    } else {
+      names = (combinator as ShowCombinator).shownNames;
+      hintCode = HintCode.UNDEFINED_SHOWN_NAME;
+    }
+    for (SimpleIdentifier name in names) {
+      String nameStr = name.name;
+      Element element = namespace.get(nameStr);
+      element ??= namespace.get("$nameStr=");
+      if (element == null) {
+        _errorReporter
+            .reportErrorForNode(hintCode, name, [library.identifier, nameStr]);
+      }
+    }
+  }
+
+  /// Exit the most recently entered label scope after reporting any labels that
+  /// were not referenced within that scope.
+  void _popLabels() {
+    for (Label label in labelTracker.unusedLabels()) {
+      _errorReporter
+          .reportErrorForNode(HintCode.UNUSED_LABEL, label, [label.label.name]);
+    }
+    labelTracker = labelTracker.outerTracker;
+  }
+
+  /// Enter a new label scope in which the given [labels] are defined.
+  void _pushLabels(List<Label> labels) {
+    labelTracker = _LabelTracker(labelTracker, labels);
+  }
+}
+
+/// A visitor that finds dead code.
+class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// The error reporter by which errors will be reported.
   final ErrorReporter _errorReporter;
 
   ///  The type system for this visitor
   final TypeSystemImpl _typeSystem;
 
-  /// The object used to track the usage of labels within a given label scope.
-  _LabelTracker labelTracker;
-
   /// Initialize a newly created dead code verifier that will report dead code
   /// to the given [errorReporter] and will use the given [typeSystem] if one is
   /// provided.
-  DeadCodeVerifier(this._errorReporter, FeatureSet featureSet,
-      {TypeSystemImpl typeSystem})
+  LegacyDeadCodeVerifier(this._errorReporter, {TypeSystemImpl typeSystem})
       : this._typeSystem = typeSystem ??
             TypeSystemImpl(
               implicitCasts: true,
@@ -102,11 +222,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitBreakStatement(BreakStatement node) {
-    labelTracker?.recordUsage(node.label?.name);
-  }
-
-  @override
   void visitConditionalExpression(ConditionalExpression node) {
     Expression conditionExpression = node.condition;
     conditionExpression?.accept(this);
@@ -130,26 +245,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       }
     }
     super.visitConditionalExpression(node);
-  }
-
-  @override
-  void visitContinueStatement(ContinueStatement node) {
-    labelTracker?.recordUsage(node.label?.name);
-  }
-
-  @override
-  void visitExportDirective(ExportDirective node) {
-    ExportElement exportElement = node.element;
-    if (exportElement != null) {
-      // The element is null when the URI is invalid.
-      LibraryElement library = exportElement.exportedLibrary;
-      if (library != null && !library.isSynthetic) {
-        for (Combinator combinator in node.combinators) {
-          _checkCombinator(library, combinator);
-        }
-      }
-    }
-    super.visitExportDirective(node);
   }
 
   @override
@@ -210,32 +305,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitImportDirective(ImportDirective node) {
-    ImportElement importElement = node.element;
-    if (importElement != null) {
-      // The element is null when the URI is invalid, but not when the URI is
-      // valid but refers to a non-existent file.
-      LibraryElement library = importElement.importedLibrary;
-      if (library != null && !library.isSynthetic) {
-        for (Combinator combinator in node.combinators) {
-          _checkCombinator(library, combinator);
-        }
-      }
-    }
-    super.visitImportDirective(node);
-  }
-
-  @override
-  void visitLabeledStatement(LabeledStatement node) {
-    _pushLabels(node.labels);
-    try {
-      super.visitLabeledStatement(node);
-    } finally {
-      _popLabels();
-    }
-  }
-
-  @override
   void visitSwitchCase(SwitchCase node) {
     _checkForDeadStatementsInNodeList(node.statements, allowMandated: true);
     super.visitSwitchCase(node);
@@ -248,84 +317,30 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSwitchStatement(SwitchStatement node) {
-    List<Label> labels = <Label>[];
-    for (SwitchMember member in node.members) {
-      labels.addAll(member.labels);
-    }
-    _pushLabels(labels);
-    try {
-      super.visitSwitchStatement(node);
-    } finally {
-      _popLabels();
-    }
-  }
-
-  @override
   void visitTryStatement(TryStatement node) {
     node.body?.accept(this);
     node.finallyBlock?.accept(this);
-    NodeList<CatchClause> catchClauses = node.catchClauses;
-    int numOfCatchClauses = catchClauses.length;
-    List<DartType> visitedTypes = <DartType>[];
-    for (int i = 0; i < numOfCatchClauses; i++) {
-      CatchClause catchClause = catchClauses[i];
-      if (catchClause.onKeyword != null) {
-        // An on-catch clause was found; verify that the exception type is not a
-        // subtype of a previous on-catch exception type.
-        DartType currentType = catchClause.exceptionType?.type;
-        if (currentType != null) {
-          if (currentType.isObject) {
-            // Found catch clause clause that has Object as an exception type,
-            // this is equivalent to having a catch clause that doesn't have an
-            // exception type, visit the block, but generate an error on any
-            // following catch clauses (and don't visit them).
-            catchClause?.accept(this);
-            if (i + 1 != numOfCatchClauses) {
-              // This catch clause is not the last in the try statement.
-              CatchClause nextCatchClause = catchClauses[i + 1];
-              CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
-              int offset = nextCatchClause.offset;
-              int length = lastCatchClause.end - offset;
-              _errorReporter.reportErrorForOffset(
-                  HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
-              return;
-            }
-          }
-          int length = visitedTypes.length;
-          for (int j = 0; j < length; j++) {
-            DartType type = visitedTypes[j];
-            if (_typeSystem.isSubtypeOf2(currentType, type)) {
-              CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
-              int offset = catchClause.offset;
-              int length = lastCatchClause.end - offset;
-              _errorReporter.reportErrorForOffset(
-                  HintCode.DEAD_CODE_ON_CATCH_SUBTYPE,
-                  offset,
-                  length,
-                  [currentType, type]);
-              return;
-            }
-          }
-          visitedTypes.add(currentType);
-        }
-        catchClause?.accept(this);
-      } else {
-        // Found catch clause clause that doesn't have an exception type,
-        // visit the block, but generate an error on any following catch clauses
-        // (and don't visit them).
-        catchClause?.accept(this);
-        if (i + 1 != numOfCatchClauses) {
-          // This catch clause is not the last in the try statement.
-          CatchClause nextCatchClause = catchClauses[i + 1];
-          CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
-          int offset = nextCatchClause.offset;
-          int length = lastCatchClause.end - offset;
-          _errorReporter.reportErrorForOffset(
-              HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
-          return;
-        }
+
+    var verifier = _CatchClausesVerifier(
+      _typeSystem,
+      (first, last, errorCode, arguments) {
+        var offset = first.offset;
+        var length = last.end - offset;
+        _errorReporter.reportErrorForOffset(
+          errorCode,
+          offset,
+          length,
+          arguments,
+        );
+      },
+      node.catchClauses,
+    );
+    for (var catchClause in node.catchClauses) {
+      verifier.nextCatchClause(catchClause);
+      if (verifier._done) {
+        break;
       }
+      catchClause.accept(this);
     }
   }
 
@@ -345,33 +360,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       }
     }
     node.body?.accept(this);
-  }
-
-  /// Resolve the names in the given [combinator] in the scope of the given
-  /// [library].
-  void _checkCombinator(LibraryElement library, Combinator combinator) {
-    Namespace namespace =
-        NamespaceBuilder().createExportNamespaceForLibrary(library);
-    NodeList<SimpleIdentifier> names;
-    ErrorCode hintCode;
-    if (combinator is HideCombinator) {
-      names = combinator.hiddenNames;
-      hintCode = HintCode.UNDEFINED_HIDDEN_NAME;
-    } else {
-      names = (combinator as ShowCombinator).shownNames;
-      hintCode = HintCode.UNDEFINED_SHOWN_NAME;
-    }
-    for (SimpleIdentifier name in names) {
-      String nameStr = name.name;
-      Element element = namespace.get(nameStr);
-      if (element == null) {
-        element = namespace.get("$nameStr=");
-      }
-      if (element == null) {
-        _errorReporter
-            .reportErrorForNode(hintCode, name, [library.identifier, nameStr]);
-      }
-    }
   }
 
   /// Given some list of [statements], loop through the list searching for dead
@@ -455,20 +443,194 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     }
     return false;
   }
+}
 
-  /// Exit the most recently entered label scope after reporting any labels that
-  /// were not referenced within that scope.
-  void _popLabels() {
-    for (Label label in labelTracker.unusedLabels()) {
-      _errorReporter
-          .reportErrorForNode(HintCode.UNUSED_LABEL, label, [label.label.name]);
+/// Helper for tracking dead code - [CatchClause]s and unreachable code.
+///
+/// [CatchClause]s are checked separately, as we visit AST we may make some
+/// of them as dead, and record [_deadCatchClauseRanges].
+///
+/// When an unreachable node is found, and [_firstDeadNode] is `null`, we
+/// set [_firstDeadNode], so start a new dead nodes interval. The dead code
+/// interval ends when [flowEnd] is invoked with a node that is the start
+/// node, or contains it. So, we end the the end of the covering control flow.
+class NullSafetyDeadCodeVerifier {
+  final TypeSystemImpl _typeSystem;
+  final ErrorReporter _errorReporter;
+  final FlowAnalysisHelper _flowAnalysis;
+
+  /// The stack of verifiers of (potentially nested) try statements.
+  final List<_CatchClausesVerifier> _catchClausesVerifiers = [];
+
+  /// When a sequence [CatchClause]s is found to be dead, we don't want to
+  /// report additional dead code inside of already dead code.
+  final List<SourceRange> _deadCatchClauseRanges = [];
+
+  /// When this field is `null`, we are in reachable code.
+  /// Once we find the first unreachable node, we store it here.
+  ///
+  /// When this field is not `null`, and we see an unreachable node, this new
+  /// node is ignored, because it continues the same dead code range.
+  AstNode _firstDeadNode;
+
+  NullSafetyDeadCodeVerifier(
+    this._typeSystem,
+    this._errorReporter,
+    this._flowAnalysis,
+  );
+
+  /// The [node] ends a basic block in the control flow. If [_firstDeadNode] is
+  /// not `null`, and is covered by the [node], then we reached the end of
+  /// the current dead code interval.
+  void flowEnd(AstNode node) {
+    if (_firstDeadNode != null) {
+      if (!_containsFirstDeadNode(node)) {
+        return;
+      }
+
+      // We know that [node] is the first dead node, or contains it.
+      // So, technically the code code interval ends at the end of [node].
+      // But we trim it to the last statement for presentation purposes.
+      if (node != _firstDeadNode) {
+        if (node is FunctionDeclaration) {
+          node = (node as FunctionDeclaration).functionExpression.body;
+        }
+        if (node is FunctionExpression) {
+          node = (node as FunctionExpression).body;
+        }
+        if (node is MethodDeclaration) {
+          node = (node as MethodDeclaration).body;
+        }
+        if (node is BlockFunctionBody) {
+          node = (node as BlockFunctionBody).block;
+        }
+        if (node is Block && node.statements.isNotEmpty) {
+          node = (node as Block).statements.last;
+        }
+        if (node is SwitchMember && node.statements.isNotEmpty) {
+          node = (node as SwitchMember).statements.last;
+        }
+      }
+
+      var offset = _firstDeadNode.offset;
+      var length = node.end - offset;
+      _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length);
+
+      _firstDeadNode = null;
     }
-    labelTracker = labelTracker.outerTracker;
   }
 
-  /// Enter a new label scope in which the given [labels] are defined.
-  void _pushLabels(List<Label> labels) {
-    labelTracker = _LabelTracker(labelTracker, labels);
+  void tryStatementEnter(TryStatement node) {
+    var verifier = _CatchClausesVerifier(
+      _typeSystem,
+      (first, last, errorCode, arguments) {
+        var offset = first.offset;
+        var length = last.end - offset;
+        _errorReporter.reportErrorForOffset(
+          errorCode,
+          offset,
+          length,
+          arguments,
+        );
+        _deadCatchClauseRanges.add(SourceRange(offset, length));
+      },
+      node.catchClauses,
+    );
+    _catchClausesVerifiers.add(verifier);
+  }
+
+  void tryStatementExit(TryStatement node) {
+    _catchClausesVerifiers.removeLast();
+  }
+
+  void verifyCatchClause(CatchClause node) {
+    var verifier = _catchClausesVerifiers.last;
+    if (verifier._done) return;
+
+    verifier.nextCatchClause(node);
+  }
+
+  void visitNode(AstNode node) {
+    // Comments are visited after bodies of functions.
+    // So, they look unreachable, but this does not make sense.
+    if (node is Comment) return;
+
+    if (_flowAnalysis == null) return;
+    _flowAnalysis.checkUnreachableNode(node);
+
+    var flow = _flowAnalysis.flow;
+    if (flow == null) return;
+
+    if (flow.isReachable) return;
+
+    // If in a dead `CatchClause`, no need to report dead code.
+    for (var range in _deadCatchClauseRanges) {
+      if (range.contains(node.offset)) {
+        return;
+      }
+    }
+
+    if (_firstDeadNode != null) return;
+    _firstDeadNode = node;
+  }
+
+  bool _containsFirstDeadNode(AstNode parent) {
+    for (var node = _firstDeadNode; node != null; node = node.parent) {
+      if (node == parent) return true;
+    }
+    return false;
+  }
+}
+
+class _CatchClausesVerifier {
+  final TypeSystemImpl _typeSystem;
+  final _CatchClausesVerifierReporter _errorReporter;
+  final List<CatchClause> catchClauses;
+
+  bool _done = false;
+  final List<DartType> _visitedTypes = <DartType>[];
+
+  _CatchClausesVerifier(
+    this._typeSystem,
+    this._errorReporter,
+    this.catchClauses,
+  );
+
+  void nextCatchClause(CatchClause catchClause) {
+    var currentType = catchClause.exceptionType?.type;
+
+    // Found catch clause that doesn't have an exception type.
+    // Generate an error on any following catch clauses.
+    if (currentType == null || currentType.isDartCoreObject) {
+      if (catchClause != catchClauses.last) {
+        var index = catchClauses.indexOf(catchClause);
+        _errorReporter(
+          catchClauses[index + 1],
+          catchClauses.last,
+          HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH,
+          const [],
+        );
+        _done = true;
+      }
+      return;
+    }
+
+    // An on-catch clause was found; verify that the exception type is not a
+    // subtype of a previous on-catch exception type.
+    for (var type in _visitedTypes) {
+      if (_typeSystem.isSubtypeOf2(currentType, type)) {
+        _errorReporter(
+          catchClause,
+          catchClauses.last,
+          HintCode.DEAD_CODE_ON_CATCH_SUBTYPE,
+          [currentType, type],
+        );
+        _done = true;
+        return;
+      }
+    }
+
+    _visitedTypes.add(currentType);
   }
 }
 

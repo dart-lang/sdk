@@ -1,4 +1,5 @@
 name: analysis_tool
+# This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 
 environment:

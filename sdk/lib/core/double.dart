@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.core;
 
 // TODO: Convert this abstract class into a concrete class double
@@ -208,7 +206,7 @@ abstract class double extends num {
    * you should use `double.tryParse(string) ?? (...)`.
    */
   external static double parse(String source,
-      [@deprecated double onError(String source)]);
+      [@deprecated double onError(String source)?]);
 
   /**
    * Parse [source] as an double literal and return its value.
@@ -216,5 +214,5 @@ abstract class double extends num {
    * Like [parse] except that this function returns `null` for invalid inputs
    * instead of throwing, and the [source] must still not be `null`.
    */
-  external static double tryParse(String source);
+  external static double? tryParse(String source);
 }

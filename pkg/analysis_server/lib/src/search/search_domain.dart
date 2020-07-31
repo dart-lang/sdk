@@ -32,8 +32,6 @@ class SearchDomainHandler implements protocol.RequestHandler {
         searchEngine = server.searchEngine;
 
   Future findElementReferences(protocol.Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var params =
         protocol.SearchFindElementReferencesParams.fromRequest(request);
     var file = params.file;
@@ -65,8 +63,6 @@ class SearchDomainHandler implements protocol.RequestHandler {
   }
 
   Future findMemberDeclarations(protocol.Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var params =
         protocol.SearchFindMemberDeclarationsParams.fromRequest(request);
     await server.onAnalysisComplete;
@@ -81,8 +77,6 @@ class SearchDomainHandler implements protocol.RequestHandler {
   }
 
   Future findMemberReferences(protocol.Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var params = protocol.SearchFindMemberReferencesParams.fromRequest(request);
     await server.onAnalysisComplete;
     // respond
@@ -96,8 +90,6 @@ class SearchDomainHandler implements protocol.RequestHandler {
   }
 
   Future findTopLevelDeclarations(protocol.Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var params =
         protocol.SearchFindTopLevelDeclarationsParams.fromRequest(request);
     try {
@@ -122,8 +114,6 @@ class SearchDomainHandler implements protocol.RequestHandler {
 
   /// Implement the `search.getDeclarations` request.
   Future getDeclarations(protocol.Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var params =
         protocol.SearchGetElementDeclarationsParams.fromRequest(request);
 
@@ -203,8 +193,6 @@ class SearchDomainHandler implements protocol.RequestHandler {
 
   /// Implement the `search.getTypeHierarchy` request.
   Future getTypeHierarchy(protocol.Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var params = protocol.SearchGetTypeHierarchyParams.fromRequest(request);
     var file = params.file;
     // prepare element

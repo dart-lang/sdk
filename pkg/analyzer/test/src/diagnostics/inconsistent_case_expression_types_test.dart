@@ -5,11 +5,13 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/constant/potentially_constant_test.dart';
 import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InconsistentCaseExpressionTypesTest);
+    defineReflectiveTests(InconsistentCaseExpressionTypesWithNullSafetyTest);
   });
 }
 
@@ -85,5 +87,29 @@ void f(var e) {
       error(CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES, 120, 1),
       error(CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES, 145, 3),
     ]);
+  }
+}
+
+@reflectiveTest
+class InconsistentCaseExpressionTypesWithNullSafetyTest
+    extends DriverResolutionTest with WithNullSafetyMixin {
+  test_int_none_legacy() async {
+    newFile('/test/lib/a.dart', content: r'''
+const a = 0;
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.8
+import 'a.dart';
+
+void f(int e) {
+  switch (e) {
+    case a:
+      break;
+    case 1:
+      break;
+  }
+}
+''');
   }
 }

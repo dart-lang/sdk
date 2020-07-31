@@ -157,7 +157,7 @@ static void PrintUsage() {
 "--help                                                                      \n"
 "  Display this message (add --verbose for information about all VM options).\n"
 "--version                                                                   \n"
-"  Print the VM version.                                                     \n"
+"  Print the SDK version.                                                    \n"
 "                                                                            \n"
 "To create a core snapshot:                                                  \n"
 "--snapshot_kind=core                                                        \n"
@@ -235,7 +235,7 @@ static int ParseArguments(int argc,
     PrintUsage();
     Platform::Exit(0);
   } else if (version) {
-    Syslog::PrintErr("Dart VM version: %s\n", Dart_VersionString());
+    Syslog::PrintErr("Dart SDK version: %s\n", Dart_VersionString());
     Platform::Exit(0);
   }
 
@@ -578,7 +578,7 @@ static void StreamingWriteCallback(void* callback_data,
                                    const uint8_t* buffer,
                                    intptr_t size) {
   File* file = reinterpret_cast<File*>(callback_data);
-  if (!file->WriteFully(buffer, size)) {
+  if ((file != nullptr) && !file->WriteFully(buffer, size)) {
     Syslog::PrintErr("Error: Unable to write snapshot file\n\n");
     Dart_ExitScope();
     Dart_ShutdownIsolate();
@@ -659,18 +659,21 @@ static Dart_QualifiedFunctionName no_entry_points[] = {
 
 static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
   uint8_t* kernel_buffer = NULL;
-  intptr_t kernel_buffer_size = NULL;
+  intptr_t kernel_buffer_size = 0;
   ReadFile(inputs.GetArgument(0), &kernel_buffer, &kernel_buffer_size);
 
   Dart_IsolateFlags isolate_flags;
   Dart_IsolateFlagsInitialize(&isolate_flags);
+  isolate_flags.null_safety =
+      Dart_DetectNullSafety(nullptr, nullptr, nullptr, nullptr, nullptr,
+                            kernel_buffer, kernel_buffer_size);
   if (IsSnapshottingForPrecompilation()) {
     isolate_flags.obfuscate = obfuscate;
     isolate_flags.entry_points = no_entry_points;
   }
 
   auto isolate_group_data = std::unique_ptr<IsolateGroupData>(
-      new IsolateGroupData(nullptr, nullptr, nullptr, nullptr, false));
+      new IsolateGroupData(nullptr, nullptr, nullptr, false));
   Dart_Isolate isolate;
   char* error = NULL;
 

@@ -2,40 +2,56 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../constant/potentially_constant_test.dart';
 import '../driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalVariableTest);
+    defineReflectiveTests(LocalVariableWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class LocalVariableTest extends DriverResolutionTest {
-  void assertPromotedBound(DartType type, Matcher promotedBound) {
-    if (type is TypeParameterTypeImpl) {
-      expect(type.promotedBound, promotedBound);
-    }
-  }
-
-  test_demoteTypeParameterType() async {
-    await assertNoErrorsInCode('''
-void f<T>(T a, T b) {
-  if (a is String) {
-    var o = a;
-    o = b;
-    o; // ref
-  }
+  test_int() async {
+    await resolveTestCode('''
+void f() {
+  var v = 0;
+  v;
 }
 ''');
+    _assertTypeOfV('int');
+  }
 
-    var type = findNode.simple('o; // ref').staticType;
-    assertType(type, 'T');
-    assertPromotedBound(type, isNull);
+  test_null() async {
+    await resolveTestCode('''
+void f() {
+  var v = null;
+  v;
+}
+''');
+    _assertTypeOfV('dynamic');
+  }
+
+  void _assertTypeOfV(String expected) {
+    assertType(findElement.localVar('v').type, expected);
+    assertType(findNode.simple('v;'), expected);
+  }
+}
+
+@reflectiveTest
+class LocalVariableWithNullSafetyTest extends LocalVariableTest
+    with WithNullSafetyMixin {
+  test_Never() async {
+    await resolveTestCode('''
+void f(Never a) {
+  var v = a;
+  v;
+}
+''');
+    _assertTypeOfV('Never');
   }
 }

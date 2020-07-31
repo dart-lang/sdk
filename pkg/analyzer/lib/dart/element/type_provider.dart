@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 
 /// The interface `TypeProvider` defines the behavior of objects that provide
 /// access to types defined by the language.

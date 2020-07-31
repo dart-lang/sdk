@@ -1,0 +1,21 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  static field core::String? _#s;
+  static field core::bool _#s#isSet;
+  synthetic constructor •() → self::C
+    ;
+  static get s() → core::String?;
+  static set s(core::String? #t1) → void;
+}
+static field core::bool _called;
+static method init(core::String val) → core::String
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method throws(() → void f) → dynamic
+  ;

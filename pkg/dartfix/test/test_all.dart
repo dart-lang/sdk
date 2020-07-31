@@ -4,7 +4,6 @@
 
 import 'package:test/test.dart';
 
-import 'src/client_version_test.dart' as client_version;
 import 'src/driver_example_test.dart' as driver_example;
 import 'src/driver_exclude_test.dart' as driver_exclude;
 import 'src/driver_help_test.dart' as driver_help;
@@ -16,7 +15,6 @@ import 'src/migrate_command_test.dart' as migrate_command_test;
 import 'src/options_test.dart' as options_test;
 
 void main() {
-  group('version', client_version.main);
   group('driver', driver_example.main);
   group('driver', driver_exclude.main);
   group('driver', driver_help.main);

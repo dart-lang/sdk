@@ -1,0 +1,7 @@
+library test;
+
+class C<T> {
+  C(List<T> list);
+}
+
+main() {}

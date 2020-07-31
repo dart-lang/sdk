@@ -9,7 +9,7 @@ T f<T>(T t) => t;
 
 class C {
   final x;
-  C(int p) : x = /*@ typeArgs=int* */ f(1 /*@target=num::+*/ + p);
+  C(int p) : x = /*@ typeArgs=int* */ f(1 /*@target=num.+*/ + p);
 }
 
 main() {}

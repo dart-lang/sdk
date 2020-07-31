@@ -242,6 +242,17 @@ var a = [...b, ...c];
     assertType(findNode.listLiteral('[...'), 'List<Object>');
   }
 
+  test_noContext_noTypeArgs_spread_mixin() async {
+    await resolveTestCode(r'''
+mixin L on List<int> {}
+main() {
+  L l1;
+  var l2 = [...l1];
+}
+''');
+    assertType(findNode.listLiteral('[...'), 'List<int>');
+  }
+
   test_noContext_noTypeArgs_spread_nestedInIf_oneAmbiguous() async {
     await resolveTestCode('''
 List<int> c;

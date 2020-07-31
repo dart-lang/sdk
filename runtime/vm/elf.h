@@ -13,70 +13,100 @@
 
 namespace dart {
 
-class DynamicTable;
+class Dwarf;
+class ElfWriteStream;
 class Section;
+class Segment;
 class StringTable;
-class Symbol;
 class SymbolTable;
 
 class Elf : public ZoneAllocated {
  public:
-  Elf(Zone* zone, StreamingWriteStream* stream);
+  enum class Type {
+    // A snapshot that should include segment contents.
+    Snapshot,
+    // Separately compiled debugging information that should not include
+    // most segment contents.
+    DebugInfo,
+  };
+
+  Elf(Zone* zone,
+      StreamingWriteStream* stream,
+      Type type,
+      Dwarf* dwarf = nullptr);
 
   static const intptr_t kPageSize = 4096;
 
+  bool IsStripped() const { return dwarf_ == nullptr; }
+
+  Zone* zone() { return zone_; }
+  const Dwarf* dwarf() const { return dwarf_; }
+  Dwarf* dwarf() { return dwarf_; }
+
+  uword BssStart(bool vm) const;
+
+  // What the next memory offset for a kPageSize-aligned section would be.
+  //
+  // Only used by BlobImageWriter::WriteText() to determine the memory offset
+  // for the text section before it is added.
   intptr_t NextMemoryOffset() const;
-  intptr_t NextSectionIndex() const;
+  intptr_t AddNoBits(const char* name, const uint8_t* bytes, intptr_t size);
   intptr_t AddText(const char* name, const uint8_t* bytes, intptr_t size);
   intptr_t AddROData(const char* name, const uint8_t* bytes, intptr_t size);
-  intptr_t AddBSSData(const char* name, intptr_t size);
   void AddDebug(const char* name, const uint8_t* bytes, intptr_t size);
-  void AddStaticSymbol(intptr_t section,
-                       const char* name,
-                       intptr_t address,
-                       intptr_t size);
 
   void Finalize();
 
-  intptr_t position() const { return stream_->position(); }
-  void WriteBytes(const uint8_t* b, intptr_t size) {
-    stream_->WriteBytes(b, size);
-  }
-  void WriteByte(uint8_t value) {
-    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
-  }
-  void WriteHalf(uint16_t value) {
-    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
-  }
-  void WriteWord(uint32_t value) {
-    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
-  }
-  void WriteAddr(compiler::target::uword value) {
-    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
-  }
-  void WriteOff(compiler::target::uword value) {
-    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
-  }
-#if defined(TARGET_ARCH_IS_64_BIT)
-  void WriteXWord(uint64_t value) {
-    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
-  }
-#endif
-
  private:
-  void AddSection(Section* section, const char* name);
-  intptr_t AddSectionSymbol(const Section* section,
-                            const char* name,
-                            intptr_t size);
+  static Section* CreateBSS(Zone* zone, Type type, intptr_t size);
 
+  // Adds the section and also creates a PT_LOAD segment for the section if it
+  // is an allocated section.
+  //
+  // For allocated sections, if symbol_name is provided, a symbol for the
+  // section will be added to the dynamic table (if allocated) and static
+  // table (if not stripped) during finalization.
+  //
+  // Returns the memory offset if the section is allocated.
+  intptr_t AddSection(Section* section,
+                      const char* name,
+                      const char* symbol_name = nullptr);
+  void AddStaticSymbol(const char* name,
+                       intptr_t info,
+                       intptr_t section_index,
+                       intptr_t address,
+                       intptr_t size);
+  void AddDynamicSymbol(const char* name,
+                        intptr_t info,
+                        intptr_t section_index,
+                        intptr_t address,
+                        intptr_t size);
+
+  Segment* LastLoadSegment() const;
+  const Section* FindSectionForAddress(intptr_t address) const;
+  Section* GenerateBuildId();
+
+  void AddSectionSymbols();
+  void FinalizeDwarfSections();
+  void FinalizeProgramTable();
   void ComputeFileOffsets();
-  void WriteHeader();
-  void WriteSectionTable();
-  void WriteProgramTable();
-  void WriteSections();
+
+  void WriteHeader(ElfWriteStream* stream);
+  void WriteSectionTable(ElfWriteStream* stream);
+  void WriteProgramTable(ElfWriteStream* stream);
+  void WriteSections(ElfWriteStream* stream);
 
   Zone* const zone_;
-  StreamingWriteStream* const stream_;
+  StreamingWriteStream* const unwrapped_stream_;
+  const Type type_;
+
+  // If nullptr, then the ELF file should be stripped of static information like
+  // the static symbol table (and its corresponding string table).
+  Dwarf* const dwarf_;
+
+  // We always create a BSS section for all Elf files, though it may be NOBITS
+  // if this is separate debugging information.
+  Section* const bss_;
 
   // All our strings would fit in a single page. However, we use separate
   // .shstrtab and .dynstr to work around a bug in Android's strip utility.
@@ -84,15 +114,12 @@ class Elf : public ZoneAllocated {
   StringTable* const dynstrtab_;
   SymbolTable* const dynsym_;
 
-  // Can only be created once the dynamic symbol table is complete.
-  DynamicTable* dynamic_ = nullptr;
-
   // The static tables are lazily created when static symbols are added.
   StringTable* strtab_ = nullptr;
   SymbolTable* symtab_ = nullptr;
 
   GrowableArray<Section*> sections_;
-  GrowableArray<Section*> segments_;
+  GrowableArray<Segment*> segments_;
   intptr_t memory_offset_;
   intptr_t section_table_file_offset_ = -1;
   intptr_t section_table_file_size_ = -1;

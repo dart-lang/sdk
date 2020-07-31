@@ -65,7 +65,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   @override
   void setUp() {
-    var testRoot = '/home/test';
+    var testRoot = AbstractContextTest.testsPath;
     if (analyzeWithNnbd) {
       newFile(convertPath('$testRoot/analysis_options.yaml'), content: '''
 analyzer:
@@ -75,6 +75,6 @@ analyzer:
     }
     super.setUp();
     testFile = convertPath('$testRoot/lib/test.dart');
-    testUri = Uri.parse('package:test/test.dart');
+    testUri = Uri.parse('package:tests/test.dart');
   }
 }

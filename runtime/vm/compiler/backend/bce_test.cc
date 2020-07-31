@@ -145,7 +145,7 @@ ISOLATE_UNIT_TEST_CASE(BCEModulo) {
   const char* kScriptChars =
       R"(
       foo(int i) {
-        var l = new List<int>(3);
+        var l = List<int>.filled(3, 0);
         return l[i % 3] ?? l[i % (-3)];
       }
       main() {
@@ -278,7 +278,7 @@ ISOLATE_UNIT_TEST_CASE(BCEListNamedAndPlainLength) {
   const char* kScriptChars =
       R"(
       List<int> foo(int count) {
-        var x = new List<int>(count);
+        var x = new List<int>.filled(count, 42);
         for (int i = 0; i < count; i++) {
           x[i] = 0;
         }

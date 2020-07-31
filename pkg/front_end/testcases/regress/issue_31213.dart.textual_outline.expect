@@ -1,0 +1,4 @@
+typedef C<A, K> = int Function<B>(A x, K y, B v);
+typedef D<K> = C<A, K> Function<A>(int z);
+dynamic producer<K>() {}
+main() {}

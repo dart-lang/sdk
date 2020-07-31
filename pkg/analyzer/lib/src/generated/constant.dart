@@ -9,10 +9,10 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
+import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart' show RecordingErrorListener;
 import 'package:analyzer/src/generated/source.dart' show Source;
-import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 
 export 'package:analyzer/dart/analysis/declared_variables.dart';
 export 'package:analyzer/dart/constant/value.dart';
@@ -96,26 +96,18 @@ export 'package:analyzer/src/dart/constant/value.dart';
 /// indicate various conditions encountered during evaluation. These are
 /// documented with the static fields that define those values.
 class ConstantEvaluator {
-  /**
-   * The source containing the expression(s) that will be evaluated.
-   */
+  /// The source containing the expression(s) that will be evaluated.
   final Source _source;
 
-  /**
-   * The type provider used to access the known types.
-   */
+  /// The type provider used to access the known types.
   final TypeProvider _typeProvider;
 
-  /**
-   * The type system primitives.
-   */
+  /// The type system primitives.
   final TypeSystemImpl _typeSystem;
 
-  /**
-   * Initialize a newly created evaluator to evaluate expressions in the given
-   * [source]. The [typeProvider] is the type provider used to access known
-   * types.
-   */
+  /// Initialize a newly created evaluator to evaluate expressions in the given
+  /// [source]. The [typeProvider] is the type provider used to access known
+  /// types.
   ConstantEvaluator(this._source, TypeProvider typeProvider,
       {TypeSystemImpl typeSystem})
       : _typeSystem = typeSystem ??

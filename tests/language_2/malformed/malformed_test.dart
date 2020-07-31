@@ -105,11 +105,11 @@ void main() {
 
   new undeclared_prefix.Unresolved();
   //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+  // [analyzer] STATIC_WARNING.CREATION_WITH_NON_TYPE
   // [cfe] Method not found: 'undeclared_prefix.Unresolved'.
   new undeclared_prefix.Unresolved<int>();
   //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
+  // [analyzer] STATIC_WARNING.CREATION_WITH_NON_TYPE
   // [cfe] Method not found: 'undeclared_prefix.Unresolved'.
 
   try {

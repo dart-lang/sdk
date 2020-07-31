@@ -7,13 +7,10 @@ import 'dart:async';
 import 'package:observatory/models.dart' as M
     show IsolateRef, SingleTargetCacheRef;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class SingleTargetCacheRefElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<SingleTargetCacheRefElement>('singletargetcache-ref');
-
   RenderingScheduler<SingleTargetCacheRefElement> _r;
 
   Stream<RenderedEvent<SingleTargetCacheRefElement>> get onRendered =>
@@ -37,7 +34,7 @@ class SingleTargetCacheRefElement extends CustomElement implements Renderable {
     return e;
   }
 
-  SingleTargetCacheRefElement.created() : super.created(tag);
+  SingleTargetCacheRefElement.created() : super.created('singletargetcache-ref');
 
   @override
   void attached() {

@@ -456,16 +456,6 @@ class B implements A, A, A, A {}
     ]);
   }
 
-  test_error_memberWithClassName_getter() async {
-    await assertErrorsInCode(r'''
-class C {
-  int get C => null;
-}
-''', [
-      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 20, 1),
-    ]);
-  }
-
   test_error_memberWithClassName_field() async {
     await assertErrorsInCode(r'''
 class C {
@@ -473,6 +463,16 @@ class C {
 }
 ''', [
       error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 16, 1),
+    ]);
+  }
+
+  test_error_memberWithClassName_getter() async {
+    await assertErrorsInCode(r'''
+class C {
+  int get C => null;
+}
+''', [
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 20, 1),
     ]);
   }
 
@@ -513,78 +513,6 @@ class C {
     var method = findNode.methodDeclaration('C(_)');
     expect(method.isSetter, isTrue);
     expect(method.isStatic, isTrue);
-  }
-
-  test_inconsistentInheritance_parameterType() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  x(int i);
-}
-abstract class B {
-  x(String s);
-}
-abstract class C implements A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 84, 1),
-    ]);
-  }
-
-  test_inconsistentInheritance_requiredParameters() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  x();
-}
-abstract class B {
-  x(int y);
-}
-abstract class C implements A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 76, 1),
-    ]);
-  }
-
-  test_inconsistentInheritance_returnType() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  int x();
-}
-abstract class B {
-  String x();
-}
-abstract class C implements A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 82, 1),
-    ]);
-  }
-
-  test_inconsistentInheritanceGetterAndMethod_getter_method() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  int get x;
-}
-abstract class B {
-  int x();
-}
-abstract class C implements A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 81,
-          1),
-    ]);
-  }
-
-  test_inconsistentInheritanceGetterAndMethod_method_getter() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  int x();
-}
-abstract class B {
-  int get x;
-}
-abstract class C implements A, B {}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD, 81,
-          1),
-    ]);
   }
 
   test_issue32815() async {

@@ -137,7 +137,7 @@ class _LibraryManager {
     return matches.toList();
   }
 
-  static setLibrary([String name]) {
+  static setLibrary([String? name]) {
     // Bust cache in case library list has changed. Ideally we would listen for
     // when libraries are loaded and invalidate based on that.
     _validCache = false;
@@ -1084,16 +1084,16 @@ class _DOMWindowCrossFrame extends DartHtmlDomObject implements WindowBase {
     var history = _blink.BlinkWindow.instance.history_Getter_(this);
     return history is _HistoryCrossFrame
         ? history
-        : _blink.Blink_Utils
-            .setInstanceInterceptor(history, _HistoryCrossFrame);
+        : _blink.Blink_Utils.setInstanceInterceptor(
+            history, _HistoryCrossFrame);
   }
 
   LocationBase get location {
     var location = _blink.BlinkWindow.instance.location_Getter_(this);
     return location is _LocationCrossFrame
         ? location
-        : _blink.Blink_Utils
-            .setInstanceInterceptor(location, _LocationCrossFrame);
+        : _blink.Blink_Utils.setInstanceInterceptor(
+            location, _LocationCrossFrame);
   }
 
   bool get closed => _blink.BlinkWindow.instance.closed_Getter_(this);
@@ -1107,7 +1107,7 @@ class _DOMWindowCrossFrame extends DartHtmlDomObject implements WindowBase {
   // Methods.
   void close() => _blink.BlinkWindow.instance.close_Callback_0_(this);
   void postMessage(Object message, String targetOrigin,
-          [List<MessagePort> transfer]) =>
+          [List<MessagePort>? transfer]) =>
       _blink.BlinkWindow.instance.postMessage_Callback_3_(
           this,
           convertDartToNative_SerializedScriptValue(message),
@@ -1122,12 +1122,12 @@ class _DOMWindowCrossFrame extends DartHtmlDomObject implements WindowBase {
       'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
   void _addEventListener(
-          [String type, EventListener listener, bool useCapture]) =>
+          [String? type, EventListener? listener, bool? useCapture]) =>
       throw new UnsupportedError(
           'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void addEventListener(String type, EventListener listener,
-          [bool useCapture]) =>
+  void addEventListener(String type, EventListener? listener,
+          [bool? useCapture]) =>
       throw new UnsupportedError(
           'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
@@ -1135,12 +1135,12 @@ class _DOMWindowCrossFrame extends DartHtmlDomObject implements WindowBase {
       'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
   void _removeEventListener(
-          [String type, EventListener listener, bool useCapture]) =>
+          [String? type, EventListener? listener, bool? useCapture]) =>
       throw new UnsupportedError(
           'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void removeEventListener(String type, EventListener listener,
-          [bool useCapture]) =>
+  void removeEventListener(String type, EventListener? listener,
+          [bool? useCapture]) =>
       throw new UnsupportedError(
           'You can only attach EventListeners to your own window.');
 }
@@ -1151,7 +1151,7 @@ class _HistoryCrossFrame extends DartHtmlDomObject implements HistoryBase {
   // Methods.
   void back() => _blink.BlinkHistory.instance.back_Callback_0_(this);
   void forward() => _blink.BlinkHistory.instance.forward_Callback_0_(this);
-  void go([int delta]) {
+  void go([int? delta]) {
     if (delta != null) {
       _blink.BlinkHistory.instance.go_Callback_1_(this, delta);
       return;

@@ -6,6 +6,7 @@ library service_test_common;
 
 import 'dart:async';
 import 'dart:io' show Platform;
+import 'package:dds/dds.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_common.dart';
 import 'package:observatory/service_io.dart';
@@ -13,6 +14,7 @@ import 'package:test/test.dart';
 
 typedef Future IsolateTest(Isolate isolate);
 typedef Future VMTest(VM vm);
+typedef Future DDSTest(VM vm, DartDevelopmentService dds);
 typedef void ServiceEventHandler(ServiceEvent event);
 
 Map<String, StreamSubscription> streamSubscriptions = {};
@@ -278,7 +280,7 @@ IsolateTest stoppedAtLine(int line) {
     print("Checking we are at line $line");
 
     // Make sure that the isolate has stopped.
-    isolate.reload();
+    await isolate.reload();
     expect(isolate.pauseEvent is! M.ResumeEvent, isTrue);
 
     ServiceMap stack = await isolate.getStack();
@@ -341,6 +343,40 @@ IsolateTest stoppedInFunction(String functionName,
     } else {
       print('Program is stopped in function: $functionName');
     }
+  };
+}
+
+IsolateTest hasLocalVarInTopAwaiterStackFrame(String varName) {
+  return (Isolate isolate) async {
+    print("Checking we have variable '$varName' in the top frame");
+
+    // Make sure that the isolate has stopped.
+    await isolate.reload();
+    expect(isolate.pauseEvent is! M.ResumeEvent, isTrue);
+
+    final ServiceMap stack = await isolate.getStack();
+    expect(stack.type, equals('Stack'));
+
+    final List frames = stack['awaiterFrames'];
+    expect(frames.length, greaterThanOrEqualTo(1));
+
+    final Frame top = frames[0];
+    for (final variable in top.variables) {
+      if (variable.name == varName) {
+        return;
+      }
+    }
+    final sb = StringBuffer();
+    sb.write("Expected to find $varName in top awaiter stack frame, found ");
+    if (top.variables.isEmpty) {
+      sb.write("no variables\n");
+    } else {
+      sb.write("these instead:\n");
+      for (var variable in top.variables) {
+        sb.write("\t${variable.name}\n");
+      }
+    }
+    throw sb.toString();
   };
 }
 

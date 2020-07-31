@@ -1,0 +1,20 @@
+library test;
+
+class Bar<T> {
+  const Bar();
+}
+
+class Foo<T> {
+  Bar<F<F<T, T>, T>> get v4 => const Bar();
+  Bar<F<T, T>> get v3 => const Bar();
+  Bar<List<T>> get v2 => const Bar();
+  Bar<T> get v1 => const Bar();
+  List<F<T, T>> get v6 => const [];
+  List<T> get v5 => const [];
+  Map<F<T, T>, T> get v8 => const {};
+  Map<T, F<T, T>> get v9 => const {};
+  Map<T, T> get v7 => const {};
+}
+
+main() {}
+typedef V F<U, V>(U u);

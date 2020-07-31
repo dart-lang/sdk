@@ -4,15 +4,13 @@
 
 import 'dart:async';
 import 'dart:html';
-import 'package:charted/charted.dart';
-import "package:charted/charts/charts.dart";
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/containers/virtual_collection.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -39,17 +37,6 @@ enum _SortingField {
 enum _SortingDirection { ascending, descending }
 
 class AllocationProfileElement extends CustomElement implements Renderable {
-  static const tag = const Tag<AllocationProfileElement>('allocation-profile',
-      dependencies: const [
-        ClassRefElement.tag,
-        NavTopMenuElement.tag,
-        NavVMMenuElement.tag,
-        NavIsolateMenuElement.tag,
-        NavRefreshElement.tag,
-        NavNotifyElement.tag,
-        VirtualCollectionElement.tag
-      ]);
-
   RenderingScheduler<AllocationProfileElement> _r;
 
   Stream<RenderedEvent<AllocationProfileElement>> get onRendered =>
@@ -93,7 +80,7 @@ class AllocationProfileElement extends CustomElement implements Renderable {
     return e;
   }
 
-  AllocationProfileElement.created() : super.created(tag);
+  AllocationProfileElement.created() : super.created('allocation-profile');
 
   @override
   attached() {
@@ -159,12 +146,6 @@ class AllocationProfileElement extends CustomElement implements Renderable {
           ..children = <Element>[new HeadingElement.h2()..text = 'Loading...']
       ]);
     } else {
-      final newChartHost = new DivElement()..classes = ['host'];
-      final newChartLegend = new DivElement()..classes = ['legend'];
-      final oldChartHost = new DivElement()..classes = ['host'];
-      final oldChartLegend = new DivElement()..classes = ['legend'];
-      final totalChartHost = new DivElement()..classes = ['host'];
-      final totalChartLegend = new DivElement()..classes = ['legend'];
       children.addAll([
         new DivElement()
           ..classes = ['content-centered-big']
@@ -206,10 +187,6 @@ class AllocationProfileElement extends CustomElement implements Renderable {
                       new DivElement()
                         ..classes = ['memberList']
                         ..children = _createSpaceMembers(_profile.newSpace),
-                      new BRElement(),
-                      new DivElement()
-                        ..classes = ['chart']
-                        ..children = <Element>[newChartLegend, newChartHost]
                     ],
             new DivElement()
               ..classes = ['heap-space', 'left']
@@ -225,10 +202,6 @@ class AllocationProfileElement extends CustomElement implements Renderable {
                       new DivElement()
                         ..classes = ['memberList']
                         ..children = _createSpaceMembers(_profile.oldSpace),
-                      new BRElement(),
-                      new DivElement()
-                        ..classes = ['chart']
-                        ..children = <Element>[oldChartLegend, oldChartHost]
                     ],
             new DivElement()
               ..classes = ['heap-space', 'left']
@@ -244,10 +217,6 @@ class AllocationProfileElement extends CustomElement implements Renderable {
                       new DivElement()
                         ..classes = ['memberList']
                         ..children = _createSpaceMembers(_profile.totalSpace),
-                      new BRElement(),
-                      new DivElement()
-                        ..classes = ['chart']
-                        ..children = <Element>[totalChartLegend, totalChartHost]
                     ],
             new ButtonElement()
               ..classes = ['compact']
@@ -270,9 +239,6 @@ class AllocationProfileElement extends CustomElement implements Renderable {
                 .element
           ]
       ]);
-      _renderGraph(newChartHost, newChartLegend, _profile.newSpace);
-      _renderGraph(oldChartHost, oldChartLegend, _profile.oldSpace);
-      _renderGraph(totalChartHost, totalChartLegend, _profile.totalSpace);
     }
   }
 
@@ -542,31 +508,6 @@ class AllocationProfileElement extends CustomElement implements Renderable {
             ..text = avgCollectionTime
         ],
     ];
-  }
-
-  static final _columns = [
-    new ChartColumnSpec(label: 'Type', type: ChartColumnSpec.TYPE_STRING),
-    new ChartColumnSpec(label: 'Size', formatter: (v) => v.toString())
-  ];
-
-  static void _renderGraph(Element host, Element legend, M.HeapSpace space) {
-    final series = [
-      new ChartSeries("Work", [1], new PieChartRenderer(sortDataByValue: false))
-    ];
-    final rect = host.getBoundingClientRect();
-    final minSize = new Rect.size(rect.width, rect.height);
-    final config = new ChartConfig(series, [0])
-      ..minimumSize = minSize
-      ..legend = new ChartLegend(legend, showValues: true);
-    final data = new ChartData(_columns, <List>[
-      ['Used', space.used],
-      ['Free', space.capacity - space.used],
-      ['External', space.external]
-    ]);
-
-    new LayoutArea(host, data, config,
-        state: new ChartState(), autoUpdate: true)
-      ..draw();
   }
 
   Future _refresh({bool gc: false, bool reset: false}) async {

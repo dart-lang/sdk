@@ -17,5 +17,5 @@ class B extends A {
 
 main() {
   // Ok because the setter accepts `Object`.
-  new B(). /*@target=B::x*/ x = "hello";
+  new B(). /*@target=B.x*/ x = "hello";
 }

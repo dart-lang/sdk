@@ -1,0 +1,29 @@
+class Class {
+  late int ;
+  field1;
+  late int ;
+  field2;
+  late ;
+  final int field3;
+  late ;
+  final int field4;
+}
+class SubClass extends Class {
+  late int ;
+  field1;
+  late int ;
+  field2 = 0;
+  late ;
+  final int field3;
+  late ;
+  final int field4 = 0;
+  int get directField1 => super.field1;
+  void set directField1(int value) { }
+  int get directField2 => super.field2;
+  void set directField2(int value) { }
+  int get directField3 => super.field3;
+  int get directField4 => super.field4;
+}
+main() { }
+expect(expected, actual) { }
+throws(f(), String message) { }

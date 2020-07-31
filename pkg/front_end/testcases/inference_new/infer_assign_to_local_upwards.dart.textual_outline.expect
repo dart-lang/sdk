@@ -1,0 +1,9 @@
+library test;
+
+int getInt() => 0;
+num getNum() => 0;
+double getDouble() => 0.0;
+void test1(int t) {}
+void test2(num t) {}
+void test3(double t) {}
+main() {}

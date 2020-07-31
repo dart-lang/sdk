@@ -32,37 +32,25 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart';
 
-/**
- * An implementation of a context locator.
- */
+/// An implementation of a context locator.
 class ContextLocatorImpl implements ContextLocator {
-  /**
-   * The name of the analysis options file.
-   */
+  /// The name of the analysis options file.
   static const String ANALYSIS_OPTIONS_NAME = 'analysis_options.yaml';
 
-  /**
-   * The name of the packages file.
-   */
+  /// The name of the packages file.
   static const String PACKAGES_FILE_NAME = '.packages';
 
-  /**
-   * The resource provider used to access the file system.
-   */
+  /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
-  /**
-   * Initialize a newly created context locator. If a [resourceProvider] is
-   * supplied, it will be used to access the file system. Otherwise the default
-   * resource provider will be used.
-   */
+  /// Initialize a newly created context locator. If a [resourceProvider] is
+  /// supplied, it will be used to access the file system. Otherwise the default
+  /// resource provider will be used.
   ContextLocatorImpl({ResourceProvider resourceProvider})
       : this.resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
-  /**
-   * Return the path to the default location of the SDK.
-   */
+  /// Return the path to the default location of the SDK.
   String get _defaultSdkPath =>
       FolderBasedDartSdk.defaultSdkDirectory(resourceProvider).path;
 
@@ -84,8 +72,7 @@ class ContextLocatorImpl implements ContextLocator {
     }
     PerformanceLog performanceLog = PerformanceLog(StringBuffer());
     AnalysisDriverScheduler scheduler = AnalysisDriverScheduler(performanceLog);
-    DartSdkManager sdkManager =
-        DartSdkManager(sdkPath ?? _defaultSdkPath, true);
+    DartSdkManager sdkManager = DartSdkManager(sdkPath ?? _defaultSdkPath);
     scheduler.start();
     ContextBuilderOptions options = ContextBuilderOptions();
     ContextBuilder builder =
@@ -189,26 +176,23 @@ class ContextLocatorImpl implements ContextLocator {
     return roots;
   }
 
-  /**
-   * Return `true` if the given [resource] is contained in one or more of the
-   * given [folders].
-   */
+  /// Return `true` if the given [resource] is contained in one or more of the
+  /// given [folders].
   bool _containedInAny(Iterable<Folder> folders, Resource resource) =>
       folders.any((Folder folder) => folder.contains(resource.path));
 
-  /**
-   * If the given [folder] should be the root of a new analysis context, then
-   * create a new context root for it and add it to the list of context [roots].
-   * The [containingRoot] is the context root from an enclosing directory and is
-   * used to inherit configuration information that isn't overridden.
-   *
-   * If either the [optionsFile] or [packagesFile] is non-`null` then the given
-   * file will be used even if there is a local version of the file.
-   *
-   * For each directory within the given [folder] that is neither in the list of
-   * [excludedFolders] nor excluded by the [excludedFilePatterns], recursively
-   * search for nested context roots.
-   */
+  /// If the given [folder] should be the root of a new analysis context, then
+  /// create a new context root for it and add it to the list of context
+  /// [roots]. The [containingRoot] is the context root from an enclosing
+  /// directory and is used to inherit configuration information that isn't
+  /// overridden.
+  ///
+  /// If either the [optionsFile] or [packagesFile] is non-`null` then the given
+  /// file will be used even if there is a local version of the file.
+  ///
+  /// For each directory within the given [folder] that is neither in the list
+  /// of [excludedFolders] nor excluded by the [excludedFilePatterns],
+  /// recursively search for nested context roots.
   void _createContextRoots(
       List<ContextRoot> roots,
       Folder folder,
@@ -253,14 +237,13 @@ class ContextLocatorImpl implements ContextLocator {
         excludedFilePatterns, optionsFile, packagesFile);
   }
 
-  /**
-   * For each directory within the given [folder] that is neither in the list of
-   * [excludedFolders] nor excluded by the [excludedFilePatterns], recursively
-   * search for nested context roots and add them to the list of [roots].
-   *
-   * If either the [optionsFile] or [packagesFile] is non-`null` then the given
-   * file will be used even if there is a local version of the file.
-   */
+  /// For each directory within the given [folder] that is neither in the list
+  /// of [excludedFolders] nor excluded by the [excludedFilePatterns],
+  /// recursively search for nested context roots and add them to the list of
+  /// [roots].
+  ///
+  /// If either the [optionsFile] or [packagesFile] is non-`null` then the given
+  /// file will be used even if there is a local version of the file.
   void _createContextRootsIn(
       List<ContextRoot> roots,
       Folder folder,
@@ -303,11 +286,9 @@ class ContextLocatorImpl implements ContextLocator {
     }
   }
 
-  /**
-   * Return the analysis options file to be used to analyze files in the given
-   * [folder], or `null` if there is no analysis options file in the given
-   * folder or any parent folder.
-   */
+  /// Return the analysis options file to be used to analyze files in the given
+  /// [folder], or `null` if there is no analysis options file in the given
+  /// folder or any parent folder.
   File _findOptionsFile(Folder folder) {
     while (folder != null) {
       File packagesFile = _getOptionsFile(folder);
@@ -319,11 +300,9 @@ class ContextLocatorImpl implements ContextLocator {
     return null;
   }
 
-  /**
-   * Return the packages file to be used to analyze files in the given [folder],
-   * or `null` if there is no packages file in the given folder or any parent
-   * folder.
-   */
+  /// Return the packages file to be used to analyze files in the given
+  /// [folder], or `null` if there is no packages file in the given folder or
+  /// any parent folder.
   File _findPackagesFile(Folder folder) {
     while (folder != null) {
       File packagesFile = _getPackagesFile(folder);
@@ -375,10 +354,8 @@ class ContextLocatorImpl implements ContextLocator {
     return patterns;
   }
 
-  /**
-   * If the given [directory] contains a file with the given [name], then return
-   * the file. Otherwise, return `null`.
-   */
+  /// If the given [directory] contains a file with the given [name], then
+  /// return the file. Otherwise, return `null`.
   File _getFile(Folder directory, String name) {
     Resource resource = directory.getChild(name);
     if (resource is File && resource.exists) {
@@ -387,24 +364,18 @@ class ContextLocatorImpl implements ContextLocator {
     return null;
   }
 
-  /**
-   * Return the analysis options file in the given [folder], or `null` if the
-   * folder does not contain an analysis options file.
-   */
+  /// Return the analysis options file in the given [folder], or `null` if the
+  /// folder does not contain an analysis options file.
   File _getOptionsFile(Folder folder) =>
       _getFile(folder, ANALYSIS_OPTIONS_NAME);
 
-  /**
-   * Return the packages file in the given [folder], or `null` if the folder
-   * does not contain a packages file.
-   */
+  /// Return the packages file in the given [folder], or `null` if the folder
+  /// does not contain a packages file.
   File _getPackagesFile(Folder folder) => _getFile(folder, PACKAGES_FILE_NAME);
 
-  /**
-   * Add to the given lists of [folders] and [files] all of the resources in the
-   * given list of [paths] that exist and are not contained within one of the
-   * folders.
-   */
+  /// Add to the given lists of [folders] and [files] all of the resources in
+  /// the given list of [paths] that exist and are not contained within one of
+  /// the folders.
   void _resourcesFromPaths(
       List<String> paths, List<Folder> folders, List<File> files) {
     for (String path in _uniqueSortedPaths(paths)) {
@@ -421,10 +392,8 @@ class ContextLocatorImpl implements ContextLocator {
     }
   }
 
-  /**
-   * Return a list of paths that contains all of the unique elements from the
-   * given list of [paths], sorted such that shorter paths are first.
-   */
+  /// Return a list of paths that contains all of the unique elements from the
+  /// given list of [paths], sorted such that shorter paths are first.
   List<String> _uniqueSortedPaths(List<String> paths) {
     Set<String> uniquePaths = HashSet<String>.from(paths);
     List<String> sortedPaths = uniquePaths.toList();

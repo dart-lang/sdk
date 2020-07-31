@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.core;
 
 /**
@@ -79,13 +77,13 @@ abstract class Map<K, V> {
    * The resulting map behaves like the result of [Map.from],
    * except that the map returned by this constructor is not modifiable.
    */
-  external factory Map.unmodifiable(Map other);
+  external factory Map.unmodifiable(Map<dynamic, dynamic> other);
 
   /**
    * Creates an identity map with the default implementation, [LinkedHashMap].
    *
    * An identity map uses [identical] for equality and [identityHashCode]
-   * for hash codes of keys instead of the intrinsic [Object.==] and
+   * for hash codes of keys instead of the intrinsic [Object.operator==] and
    * [Object.hashCode] of the keys.
    *
    * The returned map allows `null` as a key.
@@ -131,7 +129,7 @@ abstract class Map<K, V> {
    * last occurrence of a key will simply overwrite any previous value.
    */
   factory Map.fromIterable(Iterable iterable,
-      {K key(element), V value(element)}) = LinkedHashMap<K, V>.fromIterable;
+      {K key(element)?, V value(element)?}) = LinkedHashMap<K, V>.fromIterable;
 
   /**
    * Creates a Map instance associating the given [keys] to [values].
@@ -201,13 +199,14 @@ abstract class Map<K, V> {
    * `Map<RK, RV>`.
    */
   Map<RK, RV> cast<RK, RV>();
+
   /**
    * Returns true if this map contains the given [value].
    *
    * Returns true if any of the values in the map are equal to `value`
    * according to the `==` operator.
    */
-  bool containsValue(Object value);
+  bool containsValue(Object? value);
 
   /**
    * Returns true if this map contains the given [key].
@@ -215,7 +214,7 @@ abstract class Map<K, V> {
    * Returns true if any of the keys in the map are equal to `key`
    * according to the equality used by the map.
    */
-  bool containsKey(Object key);
+  bool containsKey(Object? key);
 
   /**
    * Returns the value for the given [key] or null if [key] is not in the map.
@@ -226,7 +225,7 @@ abstract class Map<K, V> {
    * Methods like [containsKey] or [putIfAbsent] can be used if the distinction
    * is important.
    */
-  V operator [](Object key);
+  V? operator [](Object? key);
 
   /**
    * Associates the [key] with the given [value].
@@ -271,7 +270,7 @@ abstract class Map<K, V> {
    *
    * It's an error if the key is not present and [ifAbsent] is not provided.
    */
-  V update(K key, V update(V value), {V ifAbsent()});
+  V update(K key, V update(V value), {V ifAbsent()?});
 
   /**
    * Updates all values.
@@ -325,7 +324,7 @@ abstract class Map<K, V> {
    * Note that values can be `null` and a returned `null` value doesn't
    * always mean that the key was absent.
    */
-  V remove(Object key);
+  V? remove(Object? key);
 
   /**
    * Removes all pairs from the map.
@@ -402,5 +401,5 @@ class MapEntry<K, V> {
 
   const MapEntry._(this.key, this.value);
 
-  String toString() => "MapEntry($key: $value)";
+  String toString() => "MapEntry(${key.toString()}: ${value.toString()})";
 }

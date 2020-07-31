@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.collection;
 
 /// A specialized double-linked list of elements that extends [LinkedListEntry].
@@ -30,7 +28,7 @@ part of dart.collection;
 class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
   int _modificationCount = 0;
   int _length = 0;
-  E _first;
+  E? _first;
 
   /// Construct a new empty linked list.
   LinkedList();
@@ -72,10 +70,10 @@ class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
     _modificationCount++;
     if (isEmpty) return;
 
-    E next = _first;
+    E next = _first!;
     do {
       E entry = next;
-      next = entry._next;
+      next = entry._next!;
       entry._next = entry._previous = entry._list = null;
     } while (!identical(next, _first));
 
@@ -87,14 +85,14 @@ class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
     if (isEmpty) {
       throw StateError('No such element');
     }
-    return _first;
+    return _first!;
   }
 
   E get last {
     if (isEmpty) {
       throw StateError('No such element');
     }
-    return _first._previous;
+    return _first!._previous!;
   }
 
   E get single {
@@ -104,23 +102,23 @@ class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
     if (_length > 1) {
       throw StateError('Too many elements');
     }
-    return _first;
+    return _first!;
   }
 
   /// Call [action] with each entry in this linked list.
   ///
-  /// It's an error if [action] modify the linked list.
+  /// It's an error if [action] modifies the linked list.
   void forEach(void action(E entry)) {
     int modificationCount = _modificationCount;
     if (isEmpty) return;
 
-    E current = _first;
+    E current = _first!;
     do {
       action(current);
       if (modificationCount != _modificationCount) {
         throw ConcurrentModificationError(this);
       }
-      current = current._next;
+      current = current._next!;
     } while (!identical(current, _first));
   }
 
@@ -130,7 +128,7 @@ class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
   ///
   /// If [updateFirst] is true and [entry] is the first entry in the list,
   /// updates the [_first] field to point to the [newEntry] as first entry.
-  void _insertBefore(E entry, E newEntry, {bool updateFirst}) {
+  void _insertBefore(E? entry, E newEntry, {required bool updateFirst}) {
     if (newEntry.list != null) {
       throw StateError('LinkedListEntry is already in a LinkedList');
     }
@@ -144,7 +142,7 @@ class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
       _length++;
       return;
     }
-    E predecessor = entry._previous;
+    E predecessor = entry!._previous!;
     E successor = entry;
     newEntry._previous = predecessor;
     newEntry._next = successor;
@@ -158,8 +156,8 @@ class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
 
   void _unlink(E entry) {
     _modificationCount++;
-    entry._next._previous = entry._previous;
-    E next = entry._previous._next = entry._next;
+    entry._next!._previous = entry._previous;
+    E? next = entry._previous!._next = entry._next;
     _length--;
     entry._list = entry._next = entry._previous = null;
     if (isEmpty) {
@@ -173,8 +171,8 @@ class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
 class _LinkedListIterator<E extends LinkedListEntry<E>> implements Iterator<E> {
   final LinkedList<E> _list;
   final int _modificationCount;
-  E _current;
-  LinkedListEntry<E> _next;
+  E? _current;
+  E? _next;
   bool _visitedFirst;
 
   _LinkedListIterator(LinkedList<E> list)
@@ -183,7 +181,10 @@ class _LinkedListIterator<E extends LinkedListEntry<E>> implements Iterator<E> {
         _next = list._first,
         _visitedFirst = false;
 
-  E get current => _current;
+  E get current {
+    final cur = _current;
+    return (cur != null) ? cur : cur as E;
+  }
 
   bool moveNext() {
     if (_modificationCount != _list._modificationCount) {
@@ -195,7 +196,7 @@ class _LinkedListIterator<E extends LinkedListEntry<E>> implements Iterator<E> {
     }
     _visitedFirst = true;
     _current = _next;
-    _next = _next._next;
+    _next = _next!._next;
     return true;
   }
 }
@@ -213,28 +214,28 @@ class _LinkedListIterator<E extends LinkedListEntry<E>> implements Iterator<E> {
 ///
 /// When created, an entry is not in any linked list.
 abstract class LinkedListEntry<E extends LinkedListEntry<E>> {
-  LinkedList<E> _list;
-  E _next;
-  E _previous;
+  LinkedList<E>? _list;
+  E? _next;
+  E? _previous;
 
   /// Get the linked list containing this element.
   ///
   /// Returns `null` if this entry is not currently in any list.
-  LinkedList<E> get list => _list;
+  LinkedList<E>? get list => _list;
 
   /// Unlink the element from its linked list.
   ///
   /// The entry must currently be in a linked list when this method is called.
   void unlink() {
-    _list._unlink(this);
+    _list!._unlink(this as E);
   }
 
   /// Return the successor of this element in its linked list.
   ///
   /// Returns `null` if there is no successor in the linked list, or if this
   /// entry is not currently in any list.
-  E get next {
-    if (_list == null || identical(_list.first, _next)) return null;
+  E? get next {
+    if (_list == null || identical(_list!.first, _next)) return null;
     return _next;
   }
 
@@ -242,8 +243,8 @@ abstract class LinkedListEntry<E extends LinkedListEntry<E>> {
   ///
   /// Returns `null` if there is no predecessor in the linked list, or if this
   /// entry is not currently in any list.
-  E get previous {
-    if (_list == null || identical(this, _list.first)) return null;
+  E? get previous {
+    if (_list == null || identical(this, _list!.first)) return null;
     return _previous;
   }
 
@@ -252,7 +253,7 @@ abstract class LinkedListEntry<E extends LinkedListEntry<E>> {
   /// This entry must be in a linked list when this method is called.
   /// The [entry] must not be in a linked list.
   void insertAfter(E entry) {
-    _list._insertBefore(_next, entry, updateFirst: false);
+    _list!._insertBefore(_next, entry, updateFirst: false);
   }
 
   /// Insert an element before this element in this element's linked list.
@@ -260,6 +261,6 @@ abstract class LinkedListEntry<E extends LinkedListEntry<E>> {
   /// This entry must be in a linked list when this method is called.
   /// The [entry] must not be in a linked list.
   void insertBefore(E entry) {
-    _list._insertBefore(this, entry, updateFirst: true);
+    _list!._insertBefore(this as E, entry, updateFirst: true);
   }
 }

@@ -15,14 +15,6 @@ main() {
 
 @reflectiveTest
 class PrivateOptionalParameterTest extends DriverResolutionTest {
-  test_private() async {
-    await assertErrorsInCode('''
-f({var _p}) {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 3, 6),
-    ]);
-  }
-
   test_fieldFormal() async {
     await assertErrorsInCode(r'''
 class A {
@@ -32,6 +24,14 @@ class A {
 ''', [
       error(HintCode.UNUSED_FIELD, 16, 2),
       error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 25, 7),
+    ]);
+  }
+
+  test_private() async {
+    await assertErrorsInCode('''
+f({var _p}) {}
+''', [
+      error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 3, 6),
     ]);
   }
 

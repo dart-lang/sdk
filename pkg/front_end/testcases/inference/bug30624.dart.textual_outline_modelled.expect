@@ -1,0 +1,14 @@
+library test;
+
+class C<E> {
+  static int _default(a, b) {}
+  void barA([int cmp(E a, E b)]) {}
+  void barB([int cmp(E a, E b)]) {}
+  void barC([int cmp(E a, E b)]) {}
+  void barD([int cmp(E a, E b)]) {}
+  void barE([int cmp(E a, E b)]) {}
+  void barF([int cmp(E a, E b)]) {}
+}
+
+main() {}
+void foo<E>(C<E> c, int cmp(E a, E b)) {}

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 @pragma("vm:entry-point")
 class _NamespaceImpl extends NativeFieldWrapperClass1 implements _Namespace {
   _NamespaceImpl._();
@@ -16,7 +14,7 @@ class _NamespaceImpl extends NativeFieldWrapperClass1 implements _Namespace {
 
   // If the platform supports "namespaces", this method is called by the
   // embedder with the platform-specific namespace information.
-  static _NamespaceImpl _cachedNamespace = null;
+  static _NamespaceImpl? _cachedNamespace = null;
   static void _setupNamespace(var namespace) {
     _cachedNamespace = _create(new _NamespaceImpl._(), namespace);
   }
@@ -27,7 +25,7 @@ class _NamespaceImpl extends NativeFieldWrapperClass1 implements _Namespace {
       // instead use a safe-ish default value.
       _cachedNamespace = _create(new _NamespaceImpl._(), _getDefault());
     }
-    return _cachedNamespace;
+    return _cachedNamespace!;
   }
 
   static int get _namespacePointer => _getPointer(_namespace);

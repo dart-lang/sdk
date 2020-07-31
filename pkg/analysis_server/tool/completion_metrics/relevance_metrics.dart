@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math' as math;
 
@@ -37,6 +36,8 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:args/args.dart';
 import 'package:meta/meta.dart';
+
+import 'output_utilities.dart';
 
 /// Compute metrics to determine whether they should be used to compute a
 /// relevance score for completion suggestions.
@@ -138,27 +139,19 @@ class RelevanceData {
   /// A table mapping counter names to counts.
   Map<String, int> simpleCounts = {};
 
+  /// A table mapping the length of identifiers to the number of identifiers
+  /// found of that length.
+  Map<int, int> identifierLengths = {};
+
   /// A table mapping distances from an identifier to the nearest previous token
   /// with the same lexeme to the number of times that distance was found.
   Map<int, int> tokenDistances = {};
 
+  /// A table mapping percentage data names to the percentage data collected.
+  Map<String, _PercentageData> percentageData = {};
+
   /// Initialize a newly created set of relevance data to be empty.
   RelevanceData();
-
-  /// Initialize a newly created set of relevance data to reflect the data in
-  /// the given JSON encoded [content].
-  RelevanceData.fromJson(String content) {
-    _initializeFromJson(content);
-  }
-
-  /// Add the data from the given relevance [data] to this set of data.
-  void addDataFrom(RelevanceData data) {
-    _addToMap(byDistance, data.byDistance);
-    _addToMap(byElementKind, data.byElementKind);
-    _addToMap(byTokenType, data.byTokenType);
-    _addToMap(byTypeMatch, data.byTypeMatch);
-    _addToMap(distanceByDepthMap, distanceByDepthMap);
-  }
 
   /// Increment the count associated with the given [name] by one.
   void incrementCount(String name) {
@@ -189,6 +182,19 @@ class RelevanceData {
     contextMap[key] = (contextMap[key] ?? 0) + 1;
   }
 
+  /// Record that an identifier of the given [length] was found.
+  void recordIdentifierOfLength(int length) {
+    identifierLengths[length] = (identifierLengths[length] ?? 0) + 1;
+  }
+
+  /// Record that a data point for the percentage data with the given [name] was
+  /// found. If [wasPositive] is `true` then the data point is a positive data
+  /// point.
+  void recordPercentage(String name, bool wasPositive) {
+    var data = percentageData.putIfAbsent(name, () => _PercentageData());
+    data.addDataPoint(wasPositive);
+  }
+
   /// Record information about the distance between recurring tokens.
   void recordTokenStream(int distance) {
     tokenDistances[distance] = (tokenDistances[distance] ?? 0) + 1;
@@ -206,95 +212,6 @@ class RelevanceData {
   void recordTypeMatch(String kind, String matchKind) {
     var contextMap = byTypeMatch.putIfAbsent(kind, () => {});
     contextMap[matchKind] = (contextMap[matchKind] ?? 0) + 1;
-  }
-
-  /// Return a JSON encoded string representing the data that was collected.
-  String toJson() {
-    return json.encode({
-      'version': currentVersion,
-      'byDistance': byDistance,
-      'byElementKind': byElementKind,
-      'byTokenType': byTokenType,
-      'byTypeMatch': byTypeMatch,
-      'distanceByDepthMap': _encodeIntIntMap(distanceByDepthMap),
-    });
-  }
-
-  /// Add the data in the [source] map to the [target] map.
-  void _addToMap<K>(Map<K, Map<K, int>> target, Map<K, Map<K, int>> source) {
-    for (var outerEntry in source.entries) {
-      var innerTarget = target.putIfAbsent(outerEntry.key, () => {});
-      for (var innerEntry in outerEntry.value.entries) {
-        var innerKey = innerEntry.key;
-        innerTarget[innerKey] = (innerTarget[innerKey] ?? 0) + innerEntry.value;
-      }
-    }
-  }
-
-  Map<String, dynamic> _convert(dynamic value) {
-    if (value is Map<String, dynamic>) {
-      return value;
-    }
-    throw FormatException('Expected a JSON map.', value);
-  }
-
-  /// Decode the content of the [source] map into the [target] map, using the
-  /// [keyMapper] to map the inner keys from a string to a [T].
-  void _decodeIntIntMap(
-      Map<int, Map<int, int>> target, Map<String, dynamic> source) {
-    var outerMap = _convert(source);
-    for (var outerEntry in outerMap.entries) {
-      var outerKey = int.parse(outerEntry.key);
-      var innerMap = _convert(outerEntry.value);
-      for (var innerEntry in innerMap.entries) {
-        var innerKey = int.parse(innerEntry.key);
-        var count = innerEntry.value as int;
-        target.putIfAbsent(outerKey, () => {})[innerKey] = count;
-      }
-    }
-  }
-
-  /// Decode the content of the [source] map into the [target] map, using the
-  /// [keyMapper] to map the inner keys from a string to a [T].
-  void _decodeMap(
-      Map<String, Map<String, int>> target, Map<String, dynamic> source) {
-    var outerMap = _convert(source);
-    for (var outerEntry in outerMap.entries) {
-      var outerKey = outerEntry.key;
-      var innerMap = _convert(outerEntry.value);
-      for (var innerEntry in innerMap.entries) {
-        var innerKey = innerEntry.key;
-        var count = innerEntry.value as int;
-        target.putIfAbsent(outerKey, () => {})[innerKey] = count;
-      }
-    }
-  }
-
-  Map<String, Map<String, int>> _encodeIntIntMap(Map<int, Map<int, int>> map) {
-    var result = <String, Map<String, int>>{};
-    for (var outerEntry in map.entries) {
-      var convertedInner = <String, int>{};
-      for (var innerEntry in outerEntry.value.entries) {
-        convertedInner[innerEntry.key.toString()] = innerEntry.value;
-      }
-      result[outerEntry.key.toString()] = convertedInner;
-    }
-    return result;
-  }
-
-  /// Initialize the state of this object from the given JSON encoded [content].
-  void _initializeFromJson(String content) {
-    var contentObject = _convert(json.decode(content));
-    var version = contentObject['version'].toString();
-    if (version != currentVersion) {
-      throw StateError(
-          'Invalid version: expected $currentVersion, found $version');
-    }
-    _decodeMap(byDistance, contentObject['byDistance']);
-    _decodeMap(byElementKind, contentObject['byElementKind']);
-    _decodeMap(byTokenType, contentObject['byTokenType']);
-    _decodeMap(byTypeMatch, contentObject['byTypeMatch']);
-    _decodeIntIntMap(distanceByDepthMap, contentObject['distanceByDepthMap']);
   }
 }
 
@@ -357,6 +274,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// The library containing the compilation unit being visited.
   LibraryElement enclosingLibrary;
+
+  /// A flag indicating whether we are currently in a context in which type
+  /// parameters are visible.
+  bool inGenericContext = false;
 
   /// The type provider associated with the current compilation unit.
   TypeProvider typeProvider;
@@ -516,6 +437,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
+    data.recordPercentage(
+        'Classes with type parameters', node.typeParameters != null);
     var context = 'name';
     if (node.extendsClause != null) {
       _recordTokenType('ClassDeclaration ($context)', node.extendsClause,
@@ -534,10 +459,13 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           allowedKeywords: memberKeywords);
     }
     super.visitClassDeclaration(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     _recordDataForNode('ClassTypeAlias (superclass)', node.superclass);
     var context = 'superclass';
     if (node.withClause != null) {
@@ -546,6 +474,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     }
     _recordTokenType('ClassDeclaration ($context)', node.implementsClause);
     super.visitClassTypeAlias(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
@@ -573,7 +502,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     inheritanceManager = InheritanceManager3();
     featureComputer = FeatureComputer(typeSystem, typeProvider);
 
+    var hasPrefix = false;
     for (var directive in node.directives) {
+      if (directive is ImportDirective && directive.prefix != null) {
+        hasPrefix = true;
+      }
       _recordTokenType('CompilationUnit (directive)', directive,
           allowedKeywords: directiveKeywords);
     }
@@ -581,6 +514,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       _recordDataForNode('CompilationUnit (declaration)', declaration,
           allowedKeywords: declarationKeywords);
     }
+    data.recordPercentage(
+        'Compilation units with at least one prefix', hasPrefix);
     super.visitCompilationUnit(node);
 
     featureComputer = null;
@@ -735,12 +670,17 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
+    data.recordPercentage(
+        'Extensions with type parameters', node.typeParameters != null);
     _recordDataForNode('ExtensionDeclaration (type)', node.extendedType);
     for (var member in node.members) {
       _recordDataForNode('ExtensionDeclaration (member)', member,
           allowedKeywords: memberKeywords);
     }
     super.visitExtensionDeclaration(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
@@ -838,13 +778,15 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     // There are no completions.
+    data.recordPercentage(
+        'Functions with type parameters', node.typeParameters != null);
     super.visitFunctionExpression(node);
   }
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     // There are no completions.
-    var contextType = featureComputer.computeContextType(node);
+    var contextType = featureComputer.computeContextType(node, node.offset);
     if (contextType != null) {
       var memberType = _returnType(node.staticElement);
       if (memberType != null) {
@@ -858,8 +800,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     // There are no completions.
     super.visitFunctionTypeAlias(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
@@ -870,15 +815,21 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     // There are no completions.
     super.visitGenericFunctionType(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     _recordDataForNode('GenericTypeAlias (functionType)', node.functionType,
         allowedKeywords: [Keyword.FUNCTION]);
     super.visitGenericTypeAlias(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
@@ -1028,11 +979,15 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
     // There are no completions.
+    data.recordPercentage(
+        'Methods with type parameters', node.typeParameters != null);
     var element = node.declaredElement;
     if (!element.isStatic && element.enclosingElement is ClassElement) {
-      var overriddenMembers = inheritanceManager.getOverridden(
-          (element.enclosingElement as ClassElement).thisType,
+      var overriddenMembers = inheritanceManager.getOverridden2(
+          element.enclosingElement as ClassElement,
           Name(element.librarySource.uri, element.name));
       if (overriddenMembers != null) {
         // Consider limiting this to the most immediate override. If the
@@ -1045,6 +1000,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       }
     }
     super.visitMethodDeclaration(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
@@ -1062,7 +1018,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       }
     }
     if (node.target != null) {
-      var contextType = featureComputer.computeContextType(node);
+      var contextType = featureComputer.computeContextType(node, node.offset);
       if (contextType != null) {
         var memberType = _returnType(member);
         if (memberType != null) {
@@ -1076,6 +1032,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
+    var wasInGenericContext = inGenericContext;
+    inGenericContext = inGenericContext || node.typeParameters != null;
+    data.recordPercentage(
+        'Mixins with type parameters', node.typeParameters != null);
     var context = 'name';
     if (node.onClause != null) {
       _recordTokenType('MixinDeclaration ($context)', node.onClause,
@@ -1090,6 +1050,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           allowedKeywords: memberKeywords);
     }
     super.visitMixinDeclaration(node);
+    inGenericContext = wasInGenericContext;
   }
 
   @override
@@ -1178,7 +1139,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       }
     }
     if (!(member is PropertyAccessorElement && member.isSetter)) {
-      var contextType = featureComputer.computeContextType(node);
+      var contextType = featureComputer.computeContextType(node, node.offset);
       if (contextType != null) {
         var memberType = _returnType(member);
         if (memberType != null) {
@@ -1240,6 +1201,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     // There are no completions.
     super.visitSimpleFormalParameter(node);
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    data.recordIdentifierOfLength(node.name.length);
+    super.visitSimpleIdentifier(node);
   }
 
   @override
@@ -1501,7 +1468,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// identifier that is a child of the [node].
   ElementKind _leftMostKind(AstNode node) {
     if (node is InstanceCreationExpression) {
-      return convertElementToElementKind(node.staticElement);
+      return convertElementToElementKind(node.constructorName.staticElement);
     }
     var element = _leftMostElement(node);
     if (element == null) {
@@ -1526,72 +1493,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       return entity;
     }
     return null;
-  }
-
-  /// Return the distance between the [reference] and the referenced local
-  /// [variable], where the distance is defined to be the number of variable
-  /// declarations between the local variable and the reference.
-  int _localVariableDistance(AstNode reference, LocalVariableElement variable) {
-    var distance = 0;
-    var node = reference;
-    while (node != null) {
-      if (node is ForStatement || node is ForElement) {
-        var loopParts = node is ForStatement
-            ? node.forLoopParts
-            : (node as ForElement).forLoopParts;
-        if (loopParts is ForPartsWithDeclarations) {
-          for (var declaredVariable in loopParts.variables.variables.reversed) {
-            if (declaredVariable.declaredElement == variable) {
-              return distance;
-            }
-            distance++;
-          }
-        } else if (loopParts is ForEachPartsWithDeclaration) {
-          if (loopParts.loopVariable.declaredElement == variable) {
-            return distance;
-          }
-          distance++;
-        }
-      } else if (node is VariableDeclarationStatement) {
-        for (var declaredVariable in node.variables.variables.reversed) {
-          if (declaredVariable.declaredElement == variable) {
-            return distance;
-          }
-          distance++;
-        }
-      } else if (node is CatchClause) {
-        if (node.exceptionParameter?.staticElement == variable ||
-            node.stackTraceParameter?.staticElement == variable) {
-          return distance;
-        }
-      }
-      if (node is Statement) {
-        var parent = node.parent;
-        var statements = const <Statement>[];
-        if (parent is Block) {
-          statements = parent.statements;
-        } else if (parent is SwitchCase) {
-          statements = parent.statements;
-        } else if (parent is SwitchDefault) {
-          statements = parent.statements;
-        }
-        var index = statements.indexOf(node);
-        for (var i = 0; i < index; i++) {
-          var statement = statements[i];
-          if (statement is VariableDeclarationStatement) {
-            for (var declaredVariable
-                in statement.variables.variables.reversed) {
-              if (declaredVariable.declaredElement == variable) {
-                return distance;
-              }
-              distance++;
-            }
-          }
-        }
-      }
-      node = node.parent;
-    }
-    return -1;
   }
 
   /// Return the number of functions between the [reference] and the [function]
@@ -1634,11 +1535,16 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void _recordDataForNode(String context, AstNode node,
       {List<Keyword> allowedKeywords = noKeywords}) {
     _recordElementKind(context, node);
+    if (inGenericContext) {
+      _recordElementKind(context + ' - generic', node);
+    } else {
+      _recordElementKind(context + ' - non-generic', node);
+    }
     _recordReferenceDepth(node);
     _recordTokenDistance(node);
     _recordTokenType(context, node, allowedKeywords: allowedKeywords);
     if (node != null) {
-      var contextType = featureComputer.computeContextType(node);
+      var contextType = featureComputer.computeContextType(node, node.offset);
       _recordContextType(contextType);
       if (contextType != null) {
         var elementType = _returnType(_leftMostElement(node));
@@ -1806,10 +1712,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       //  additionally measuring the number of function boundaries that are
       //  crossed and then reporting the distance with a label such as
       //  'local variable ($boundaryCount)'.
-      var distance = _localVariableDistance(node, element);
-      if (distance < 0) {
-        DateTime.now();
-      }
+      var distance = featureComputer.localVariableDistance(node, element);
       _recordDistance('distance to local variable', distance);
     } else if (element != null) {
       // TODO(brianwilkerson) We might want to cross reference the depth of
@@ -1941,9 +1844,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           distance = featureComputer.inheritanceDistance(
               argumentType.element, parameterType.element);
         }
-        if (distance < 0) {
-          DateTime.now();
-        }
         data.recordDistance('Subtype of context type ($descriptor)', distance);
         data.recordDistance('Subtype of context type (all)', distance);
       }
@@ -2013,54 +1913,25 @@ class RelevanceMetricsComputer {
       }
     }
 
-    sink.writeln('');
+    sink.writeln();
     _writeCounts(sink, data.simpleCounts);
-    sink.writeln('');
+    sink.writeln();
+    _writePercentageData(sink, data.percentageData);
+    sink.writeln();
     _writeSideBySide(sink, [data.byTokenType, data.byElementKind],
         ['Token Types', 'Element Kinds']);
-    sink.writeln('');
+    sink.writeln();
     sink.writeln('Type relationships');
     _writeSideBySide(sink, [first, whole], ['First Token', 'Whole Expression']);
     _writeContextMap(sink, rest);
-    sink.writeln('');
+    sink.writeln();
     sink.writeln('Structural indicators');
     _writeContextMap(sink, data.byDistance);
-    sink.writeln('');
+    sink.writeln();
     sink.writeln('Distance to member (left) by depth of target class (top)');
     _writeMatrix(sink, data.distanceByDepthMap);
+    _writeIdentifierLengths(sink, data.identifierLengths);
     _writeTokenData(sink, data.tokenDistances);
-  }
-
-  /// Return the minimum widths for each of the columns in the given [table].
-  ///
-  /// The table is represented as a list or rows, where each row is a list of
-  /// the contents of the cells in that row.
-  ///
-  /// Throws an [ArgumentError] if the table is empty or if the rows do not
-  /// contain the same number of cells.
-  List<int> _computeColumnWidths(List<List<String>> table) {
-    if (table.isEmpty) {
-      throw ArgumentError('table cannot be empty');
-    }
-    var columnCount = table[0].length;
-    if (columnCount == 0) {
-      throw ArgumentError('rows cannot be empty');
-    }
-    var columnWidths = List<int>.filled(columnCount, 0);
-    for (var row in table) {
-      var rowLength = row.length;
-      if (rowLength > 0) {
-        if (rowLength != columnCount) {
-          throw ArgumentError(
-              'non-empty rows must contain the same number of columns');
-        }
-        for (var i = 0; i < rowLength; i++) {
-          var cellWidth = row[i].length;
-          columnWidths[i] = math.max(columnWidths[i], cellWidth);
-        }
-      }
-    }
-    return columnWidths;
   }
 
   /// Compute the metrics for the files in the context [root], creating a
@@ -2218,6 +2089,14 @@ class RelevanceMetricsComputer {
     }
   }
 
+  /// Write information about the [lengths] of identifiers to the given [sink].
+  void _writeIdentifierLengths(StringSink sink, Map<int, int> lengths) {
+    sink.writeln();
+    var column = _convertMap('identifier lengths', lengths);
+    var table = _convertColumnsToRows([column]).toList();
+    sink.writeTable(table);
+  }
+
   /// Write the given [matrix] to the [sink]. The keys of the outer map will be
   /// the row titles; the keys of the inner map will be the column titles.
   void _writeMatrix(StringSink sink, Map<int, Map<int, int>> matrix) {
@@ -2253,7 +2132,20 @@ class RelevanceMetricsComputer {
       }
       table.add(row);
     }
-    _writeTable(sink, table);
+    sink.writeTable(table);
+  }
+
+  /// Write a [percentageMap] containing one kind of metric data to the [sink].
+  void _writePercentageData(
+      StringSink sink, Map<String, _PercentageData> percentageMap) {
+    var names = percentageMap.keys.toList()..sort();
+    for (var name in names) {
+      var data = percentageMap[name];
+      var total = data.total;
+      var value = data.positive;
+      var percent = total == 0 ? '  0.0' : _formatPercent(value, total);
+      sink.writeln('$name = $percent ($value / $total)');
+    }
   }
 
   /// Write the given [maps] to the given [sink], formatting them as side-by-side
@@ -2261,37 +2153,7 @@ class RelevanceMetricsComputer {
   void _writeSideBySide(StringSink sink,
       List<Map<String, Map<String, int>>> maps, List<String> columnTitles) {
     var table = _createTable(maps, columnTitles);
-    _writeTable(sink, table);
-  }
-
-  /// Write the given [table] to the [sink].
-  ///
-  /// The table is represented as a list or rows, where each row is a list of the
-  /// contents of the cells in that row.
-  ///
-  /// Throws an [ArgumentError] if the table is empty or if the rows do not
-  /// contain the same number of cells.
-  void _writeTable(StringSink sink, List<List<String>> table) {
-    var columnWidths = _computeColumnWidths(table);
-    for (var row in table) {
-      var lastNonEmpty = row.length - 1;
-      while (lastNonEmpty > 0) {
-        if (row[lastNonEmpty].isNotEmpty) {
-          break;
-        }
-        lastNonEmpty--;
-      }
-      for (var i = 0; i <= lastNonEmpty; i++) {
-        var cellContent = row[i];
-        var columnWidth = columnWidths[i];
-        var padding = columnWidth - cellContent.length;
-        sink.write(cellContent);
-        if (i < lastNonEmpty) {
-          sink.write(' ' * (padding + 2));
-        }
-      }
-      sink.writeln();
-    }
+    sink.writeTable(table);
   }
 
   /// Write information about the number of identifiers that occur within a
@@ -2310,10 +2172,10 @@ class RelevanceMetricsComputer {
       secondColumn.add('  $percent%: $i');
     }
 
-    sink.writeln('');
+    sink.writeln();
     sink.writeln('Token stream analysis');
     var table = _convertColumnsToRows([firstColumn, secondColumn]).toList();
-    _writeTable(sink, table);
+    sink.writeTable(table);
   }
 
   /// Return `true` if the [result] contains an error.
@@ -2345,5 +2207,27 @@ class Timer {
   void stop() {
     stopwatch.stop();
     count++;
+  }
+}
+
+/// Information collected to compute a percentage of data points that were
+/// positive.
+class _PercentageData {
+  /// The total number of data points.
+  int total = 0;
+
+  /// The total number of positive data points.
+  int positive = 0;
+
+  /// Initialize a newly created keeper of percentage data.
+  _PercentageData();
+
+  /// Add a data point to the data being collected. If [wasPositive] is `true`
+  /// then the data point is a positive data point.
+  void addDataPoint(bool wasPositive) {
+    total++;
+    if (wasPositive) {
+      positive++;
+    }
   }
 }

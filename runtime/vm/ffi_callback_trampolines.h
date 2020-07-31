@@ -1,15 +1,17 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+#ifndef RUNTIME_VM_FFI_CALLBACK_TRAMPOLINES_H_
+#define RUNTIME_VM_FFI_CALLBACK_TRAMPOLINES_H_
 
 #include "platform/allocation.h"
 #include "platform/growable_array.h"
-#include "vm/compiler/stub_code_compiler.h"
 #include "vm/flag_list.h"
 #include "vm/virtual_memory.h"
 
-#ifndef RUNTIME_VM_FFI_CALLBACK_TRAMPOLINES_H_
-#define RUNTIME_VM_FFI_CALLBACK_TRAMPOLINES_H_
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/stub_code_compiler.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 

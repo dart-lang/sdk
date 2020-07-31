@@ -68,11 +68,21 @@ DartType substituteDeep(
 
 /// Returns true if [type] contains a reference to any of the given [variables].
 ///
+/// [unhandledTypeHandler] is a helper function invoked on unknown implementers
+/// of [DartType].  Its arguments are the unhandled type and the function that
+/// can be invoked from within the handler on parts of the unknown type to
+/// recursively call the visitor.  If not passed, an exception is thrown then an
+/// unhandled implementer of [DartType] is encountered.
+///
 /// It is an error to call this with a [type] that contains a [FunctionType]
 /// that declares one of the parameters in [variables].
-bool containsTypeVariable(DartType type, Set<TypeParameter> variables) {
+bool containsTypeVariable(DartType type, Set<TypeParameter> variables,
+    {bool Function(DartType type, bool Function(DartType type) recursor)
+        unhandledTypeHandler}) {
   if (variables.isEmpty) return false;
-  return new _OccurrenceVisitor(variables).visit(type);
+  return new _OccurrenceVisitor(variables,
+          unhandledTypeHandler: unhandledTypeHandler)
+      .visit(type);
 }
 
 /// Returns `true` if [type] contains any free type variables, that is, type
@@ -378,12 +388,22 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
   }
 
   TypeParameter freshTypeParameter(TypeParameter node) {
-    var fresh = new TypeParameter(node.name);
-    substitution[node] = new TypeParameterType.forAlphaRenaming(node, fresh);
+    TypeParameter fresh = new TypeParameter(node.name);
+    TypeParameterType typeParameterType = substitution[node] =
+        new TypeParameterType.forAlphaRenaming(node, fresh);
     fresh.bound = visit(node.bound);
     if (node.defaultType != null) {
       fresh.defaultType = visit(node.defaultType);
     }
+    // If the bound was changed from substituting the bound we need to update
+    // implicit nullability to be based on the new bound. If the bound wasn't
+    // changed the computation below results in the same nullability.
+    //
+    // If the type variable occurred in the bound then the bound was
+    // of the form `Foo<...T..>` or `FutureOr<T>` and the nullability therefore
+    // has not changed.
+    typeParameterType.declaredNullability =
+        TypeParameterType.computeNullabilityFromBound(fresh);
     return fresh;
   }
 }
@@ -397,7 +417,7 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
 /// and `int`.  The function computes the nullability for the replacement as
 /// per the following table:
 ///
-/// | arg \ var |  !  |  ?  |  *  |  %  |
+/// |  a  \  b  |  !  |  ?  |  *  |  %  |
 /// |-----------|-----|-----|-----|-----|
 /// |     !     |  !  |  ?  |  *  |  !  |
 /// |     ?     | N/A |  ?  |  ?  |  ?  |
@@ -413,7 +433,7 @@ Nullability combineNullabilitiesForSubstitution(Nullability a, Nullability b) {
   // with whatever is easier to implement.  In this implementation, we extend
   // the table function as follows:
   //
-  // | arg \ var |  !  |  ?  |  *  |  %  |
+  // |  a  \  b  |  !  |  ?  |  *  |  %  |
   // |-----------|-----|-----|-----|-----|
   // |     !     |  !  |  ?  |  *  |  !  |
   // |     ?     |  ?  |  ?  |  ?  |  ?  |
@@ -475,6 +495,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
   DartType visit(DartType node) => node.accept(this);
 
+  DartType defaultDartType(DartType node) => node;
   DartType visitInvalidType(InvalidType node) => node;
   DartType visitDynamicType(DynamicType node) => node;
   DartType visitVoidType(VoidType node) => node;
@@ -487,6 +508,13 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     var typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
     return new InterfaceType(node.classNode, node.nullability, typeArguments);
+  }
+
+  DartType visitFutureOrType(FutureOrType node) {
+    int before = useCounter;
+    DartType typeArgument = node.typeArgument.accept(this);
+    if (useCounter == before) return node;
+    return new FutureOrType(typeArgument, node.declaredNullability);
   }
 
   DartType visitTypedefType(TypedefType node) {
@@ -572,8 +600,9 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     DartType replacement = getSubstitute(node.parameter);
     if (replacement is InvalidType) return replacement;
     if (replacement != null) {
-      return replacement.withNullability(combineNullabilitiesForSubstitution(
-          replacement.nullability, node.nullability));
+      return replacement.withDeclaredNullability(
+          combineNullabilitiesForSubstitution(
+              replacement.nullability, node.nullability));
     }
     return node;
   }
@@ -746,8 +775,7 @@ class _TypeUnification {
     if (type1 is TypeParameterType &&
         type2 is TypeParameterType &&
         type1.parameter == type2.parameter &&
-        type1.typeParameterTypeNullability ==
-            type2.typeParameterTypeNullability) {
+        type1.declaredNullability == type2.declaredNullability) {
       return true;
     }
     if (type1 is TypeParameterType &&
@@ -782,7 +810,16 @@ class _TypeUnification {
 class _OccurrenceVisitor implements DartTypeVisitor<bool> {
   final Set<TypeParameter> variables;
 
-  _OccurrenceVisitor(this.variables);
+  /// Helper function invoked on unknown implementers of [DartType].
+  ///
+  /// Its arguments are the unhandled type and the function that can be invoked
+  /// from within the handler on parts of the unknown type to recursively call
+  /// the visitor.  If not set, an exception is thrown then an unhandled
+  /// implementer of [DartType] is encountered.
+  final bool Function(DartType node, bool Function(DartType node) recursor)
+      unhandledTypeHandler;
+
+  _OccurrenceVisitor(this.variables, {this.unhandledTypeHandler});
 
   bool visit(DartType node) => node.accept(this);
 
@@ -791,7 +828,11 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
   }
 
   bool defaultDartType(DartType node) {
-    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
+    if (unhandledTypeHandler == null) {
+      throw new UnsupportedError("Unsupported type '${node.runtimeType}'.");
+    } else {
+      return unhandledTypeHandler(node, visit);
+    }
   }
 
   bool visitBottomType(BottomType node) => false;
@@ -802,6 +843,10 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
 
   bool visitInterfaceType(InterfaceType node) {
     return node.typeArguments.any(visit);
+  }
+
+  bool visitFutureOrType(FutureOrType node) {
+    return visit(node.typeArgument);
   }
 
   bool visitTypedefType(TypedefType node) {
@@ -852,6 +897,10 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
     return node.typeArguments.any(visit);
   }
 
+  bool visitFutureOrType(FutureOrType node) {
+    return visit(node.typeArgument);
+  }
+
   bool visitTypedefType(TypedefType node) {
     return node.typeArguments.any(visit);
   }
@@ -876,4 +925,99 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
     if (node.defaultType == null) return false;
     return node.defaultType.accept(this);
   }
+}
+
+Nullability uniteNullabilities(Nullability a, Nullability b) {
+  if (a == Nullability.nullable || b == Nullability.nullable) {
+    return Nullability.nullable;
+  }
+  if (a == Nullability.legacy || b == Nullability.legacy) {
+    return Nullability.legacy;
+  }
+  if (a == Nullability.undetermined || b == Nullability.undetermined) {
+    return Nullability.undetermined;
+  }
+  return Nullability.nonNullable;
+}
+
+Nullability intersectNullabilities(Nullability a, Nullability b) {
+  if (a == Nullability.nonNullable || b == Nullability.nonNullable) {
+    return Nullability.nonNullable;
+  }
+  if (a == Nullability.undetermined || b == Nullability.undetermined) {
+    return Nullability.undetermined;
+  }
+  if (a == Nullability.legacy || b == Nullability.legacy) {
+    return Nullability.legacy;
+  }
+  return Nullability.nullable;
+}
+
+/// Tells if a [DartType] is primitive or not.
+///
+/// This is useful in recursive algorithms over types where the primitive types
+/// are the base cases of the recursion.  According to the visitor a primitive
+/// type is any [DartType] that doesn't include other [DartType]s as its parts.
+/// The nullability attributes don't affect the primitiveness of a type.
+bool isPrimitiveDartType(DartType type,
+    {bool Function(DartType unhandledType) unhandledTypeHandler}) {
+  return type.accept(const _PrimitiveTypeVerifier());
+}
+
+/// Visitors that implements the algorithm of [isPrimitiveDartType].
+///
+/// The visitor is shallow, that is, it doesn't recurse over the given type due
+/// to its purpose.  The reason for having a visitor is to make the need for an
+/// update visible when a new implementer of [DartType] is introduced in Kernel.
+class _PrimitiveTypeVerifier implements DartTypeVisitor<bool> {
+  const _PrimitiveTypeVerifier();
+
+  @override
+  bool defaultDartType(DartType node) {
+    throw new UnsupportedError(
+        "Unsupported operation: _PrimitiveTypeVerifier(${node.runtimeType})");
+  }
+
+  @override
+  bool visitBottomType(BottomType node) => true;
+
+  @override
+  bool visitDynamicType(DynamicType node) => true;
+
+  @override
+  bool visitFunctionType(FunctionType node) {
+    // Function types are never primitive because they at least include the
+    // return types as their parts.
+    return false;
+  }
+
+  @override
+  bool visitFutureOrType(FutureOrType node) => false;
+
+  @override
+  bool visitInterfaceType(InterfaceType node) {
+    return node.typeArguments.isEmpty;
+  }
+
+  @override
+  bool visitInvalidType(InvalidType node) {
+    throw new UnsupportedError(
+        "Unsupported operation: _PrimitiveTypeVerifier(InvalidType).");
+  }
+
+  @override
+  bool visitNeverType(NeverType node) => true;
+
+  @override
+  bool visitTypeParameterType(TypeParameterType node) {
+    return node.promotedBound == null;
+  }
+
+  @override
+  bool visitTypedefType(TypedefType node) {
+    return node.typeArguments.isEmpty;
+  }
+
+  @override
+  bool visitVoidType(VoidType node) => true;
 }

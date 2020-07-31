@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dartdev/src/utils.dart';
+import 'package:path/path.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -65,9 +67,30 @@ void main() {
       expect(packages, isList);
     });
   });
+
+  group('FileSystemEntityExtension', () {
+    test('isDartFile', () {
+      expect(File('foo.dart').isDartFile, isTrue);
+      expect(Directory('foo.dartt').isDartFile, isFalse);
+      expect(File('foo.dartt').isDartFile, isFalse);
+      expect(File('foo.darrt').isDartFile, isFalse);
+      expect(File('bar.bart').isDartFile, isFalse);
+      expect(File('bazdart').isDartFile, isFalse);
+    });
+
+    test('name', () {
+      expect(Directory('').name, '');
+      expect(Directory('dirName').name, 'dirName');
+      expect(Directory('dirName$separator').name, 'dirName');
+      expect(File('').name, '');
+      expect(File('foo.dart').name, 'foo.dart');
+      expect(File('${separator}foo.dart').name, 'foo.dart');
+      expect(File('bar.bart').name, 'bar.bart');
+    });
+  });
 }
 
-final String _packageData = '''{
+const String _packageData = '''{
   "configVersion": 2,
   "packages": [
     {

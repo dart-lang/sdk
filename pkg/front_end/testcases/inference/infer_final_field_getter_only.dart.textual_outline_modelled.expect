@@ -1,0 +1,12 @@
+library test;
+
+abstract class A {
+  int get x;
+}
+
+class B extends A {
+  B(this.x);
+  final x;
+}
+
+main() {}

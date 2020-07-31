@@ -1,0 +1,30 @@
+// @dart = 2.6
+import 'never_opt_out_lib.dart';
+
+Never optOutNever;
+
+class B extends A {
+  Null get neverProperty => null;
+  Null get nullProperty => null;
+  Null neverField;
+  Null neverMethod(Null value) => value;
+  Null nullField;
+  Null nullMethod(Null value) => value;
+  void set neverProperty(Null value) {}
+  void set nullProperty(Null value) {}
+}
+
+class C extends A {
+  Never get neverProperty => null;
+  Never get nullProperty => null;
+  Never neverField;
+  Never neverMethod(Never value) => value;
+  Never nullField;
+  Never nullMethod(Never value) => value;
+  void set neverProperty(Never value) {}
+  void set nullProperty(Never value) {}
+}
+
+main() {}
+throws(void Function() f) {}
+var inferredOptOutNever = optInNever;

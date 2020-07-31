@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_FLOW_GRAPH_H_
 #define RUNTIME_VM_COMPILER_BACKEND_FLOW_GRAPH_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/bit_vector.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/growable_array.h"
@@ -156,11 +160,10 @@ class FlowGraph : public ZoneAllocated {
   }
 
   intptr_t CurrentContextEnvIndex() const {
-#if !defined(DART_PRECOMPILED_RUNTIME)
     if (function().HasBytecode()) {
       return -1;
     }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
     return EnvIndex(parsed_function().current_context_var());
   }
 
@@ -233,7 +236,7 @@ class FlowGraph : public ZoneAllocated {
   // Return value indicates that the call needs no check at all,
   // just a null check, or a full class check.
   ToCheck CheckForInstanceCall(InstanceCallInstr* call,
-                               RawFunction::Kind kind) const;
+                               FunctionLayout::Kind kind) const;
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread()->zone(); }
@@ -272,6 +275,20 @@ class FlowGraph : public ZoneAllocated {
   void AddToGraphInitialDefinitions(Definition* defn);
   void AddToInitialDefinitions(BlockEntryWithInitialDefs* entry,
                                Definition* defn);
+
+  // Tries to create a constant definition with the given value which can be
+  // used to replace the given operation. Ensures that the representation of
+  // the replacement matches the representation of the original definition.
+  // If the given value can't be represented using matching representation
+  // then returns op itself.
+  Definition* TryCreateConstantReplacementFor(Definition* op,
+                                              const Object& value);
+
+  // Returns true if the given constant value can be represented in the given
+  // representation.
+  static bool IsConstantRepresentable(const Object& value,
+                                      Representation target_rep,
+                                      bool tagged_value_must_be_smi);
 
   enum UseKind { kEffect, kValue };
 

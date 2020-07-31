@@ -9,7 +9,6 @@ import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_error_task.dart';
 import 'package:analysis_server/src/edit/fix/fix_lint_task.dart';
-import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analysis_server/src/edit/fix/prefer_mixin_fix.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -63,6 +62,9 @@ final allFixes = <DartFixInfo>[
   LintFixInfo.preferAdjacentStringConcatenation,
   LintFixInfo.preferCollectionLiterals,
   LintFixInfo.preferConditionalAssignment,
+  LintFixInfo.preferConstConstructors,
+  LintFixInfo.preferConstConstructorsInImmutables,
+  LintFixInfo.preferConstDeclarations,
   LintFixInfo.preferContains,
   LintFixInfo.preferEqualForDefaultValues,
   LintFixInfo.preferFinalFields,
@@ -93,17 +95,6 @@ final allFixes = <DartFixInfo>[
   LintFixInfo.unnecessaryThis,
   LintFixInfo.useFunctionTypeSyntaxForParameters,
   LintFixInfo.useRethrowWhenPossible,
-  //
-  // Experimental fixes
-  //
-  DartFixInfo(
-    'non-nullable',
-    '''
-EXPERIMENTAL: Update sources to be non-nullable by default.
-This requires the experimental non-nullable flag to be enabled
-when running the updated application.''',
-    NonNullableFix.task,
-  ),
 ];
 
 /// [DartFixInfo] represents a fix that can be applied by [EditDartFix].
@@ -322,6 +313,24 @@ class LintFixInfo extends DartFixInfo {
     isPedantic: true,
   );
 
+  static final preferConstConstructors = LintFixInfo(
+    'prefer_const_constructors',
+    DartFixKind.ADD_CONST,
+    'Make the instantiation const.',
+  );
+
+  static final preferConstConstructorsInImmutables = LintFixInfo(
+    'prefer_const_constructors_in_immutables',
+    DartFixKind.ADD_CONST,
+    'Make the constructor const.',
+  );
+
+  static final preferConstDeclarations = LintFixInfo(
+    'prefer_const_declarations',
+    DartFixKind.REPLACE_FINAL_WITH_CONST,
+    'Make the declaration const.',
+  );
+
   static final preferContains = LintFixInfo(
     'prefer_contains',
     DartFixKind.CONVERT_TO_CONTAINS,
@@ -423,7 +432,7 @@ class LintFixInfo extends DartFixInfo {
   static final preferSingleQuotes = LintFixInfo(
     'prefer_single_quotes',
     DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING,
-    'Convert strings using a dobule quote to use a single quote.',
+    'Convert strings using a double quote to use a single quote.',
     isPedantic: true,
   );
 

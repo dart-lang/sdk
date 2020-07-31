@@ -8,6 +8,22 @@ parser/error_recovery/issue_38415.crash:1:15: Expected ';' after this.
 f() { m(T<R(<Z
               ^...
 
+parser/error_recovery/issue_38415.crash:1:12: Can't find ')' to match '('.
+f() { m(T<R(<Z
+           ^
+
+parser/error_recovery/issue_38415.crash:1:10: Can't find '>' to match '<'.
+f() { m(T<R(<Z
+         ^
+
+parser/error_recovery/issue_38415.crash:1:8: Can't find ')' to match '('.
+f() { m(T<R(<Z
+       ^
+
+parser/error_recovery/issue_38415.crash:1:5: Can't find '}' to match '{'.
+f() { m(T<R(<Z
+    ^
+
 beginCompilationUnit(f)
   beginMetadataStar(f)
   endMetadataStar(0)
@@ -49,7 +65,11 @@ beginCompilationUnit(f)
     endTopLevelMethod(f, null, })
   endTopLevelDeclaration()
   handleErrorToken(UnmatchedToken(())
+  handleRecoverableError(Message[UnmatchedToken, Can't find ')' to match '('., null, {string: ), token: (}], UnmatchedToken((), UnmatchedToken(())
   handleErrorToken(UnmatchedToken(<))
+  handleRecoverableError(Message[UnmatchedToken, Can't find '>' to match '<'., null, {string: >, token: <}], UnmatchedToken(<), UnmatchedToken(<))
   handleErrorToken(UnmatchedToken(())
+  handleRecoverableError(Message[UnmatchedToken, Can't find ')' to match '('., null, {string: ), token: (}], UnmatchedToken((), UnmatchedToken(())
   handleErrorToken(UnmatchedToken({))
+  handleRecoverableError(Message[UnmatchedToken, Can't find '}' to match '{'., null, {string: }, token: {}], UnmatchedToken({), UnmatchedToken({))
 endCompilationUnit(1, )

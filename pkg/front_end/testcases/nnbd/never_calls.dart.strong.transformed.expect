@@ -1,0 +1,34 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method propertyGet(Never never) → dynamic {
+  Never v1 = never.foo;
+  Never v2 = never.hashCode;
+  Never v3 = never.runtimeType;
+  Never v4 = never.toString;
+  Never v5 = never.noSuchMethod;
+}
+static method propertySet(Never never) → dynamic {
+  core::int v1 = never.foo = 42;
+}
+static method methodInvocation(Never never, core::Invocation invocation) → dynamic {
+  Never v1 = never.foo();
+  Never v2 = never.hashCode();
+  Never v3 = never.runtimeType();
+  Never v4 = never.toString();
+  Never v5 = never.toString(foo: 42);
+  Never v6 = never.noSuchMethod(invocation);
+  Never v7 = never.noSuchMethod(42);
+}
+static method equals(Never never) → dynamic {
+  Never v1 = never.==(null);
+  Never v2 = never.==(never);
+}
+static method operator(Never never) → dynamic {
+  Never v1 = never.+(never);
+  Never v2 = never.unary-();
+  Never v3 = never.[](never);
+  Never v4 = let final Never #t1 = never in let final Never #t2 = never in let final Never #t3 = never in let final void #t4 = #t1.[]=(#t2, #t3) in #t3;
+}
+static method main() → dynamic {}

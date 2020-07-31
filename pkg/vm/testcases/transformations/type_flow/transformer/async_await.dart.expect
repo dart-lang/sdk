@@ -1,0 +1,103 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+import "dart:_internal" as _in;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method bar(dynamic x) → asy::Future<dynamic>* /* originally async */ {
+    final asy::_AsyncAwaitCompleter<dynamic>* :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
+    FutureOr<dynamic>* :return_value;
+    dynamic :async_stack_trace;
+    (dynamic) →* dynamic :async_op_then;
+    (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+    core::int* :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L1:
+        {
+          :return_value = [@vm.inferred-type.metadata=dart.core::Null? (value: null)] core::print(x);
+          break #L1;
+        }
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+        [@vm.direct-call.metadata=dart.async::_AsyncAwaitCompleter.completeError] [@vm.inferred-type.metadata=!? (skip check)] :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+      }
+    :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+    :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+    [@vm.direct-call.metadata=dart.async::_AsyncAwaitCompleter.start] [@vm.inferred-type.metadata=!? (skip check)] :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+    return [@vm.direct-call.metadata=dart.async::_AsyncAwaitCompleter.future] [@vm.inferred-type.metadata=dart.async::_Future] :async_completer.{asy::Completer::future};
+  }
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B*
+    : super core::Object::•()
+    ;
+}
+static method foo() → dynamic
+  return new self::A::•();
+static method baz() → asy::Future<dynamic>* /* originally async */ {
+  final asy::_AsyncAwaitCompleter<dynamic>* :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
+  FutureOr<dynamic>* :return_value;
+  dynamic :async_stack_trace;
+  (dynamic) →* dynamic :async_op_then;
+  (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+  core::int* :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L2:
+      {
+        :return_value = new self::B::•();
+        break #L2;
+      }
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+      [@vm.direct-call.metadata=dart.async::_AsyncAwaitCompleter.completeError] [@vm.inferred-type.metadata=!? (skip check)] :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  [@vm.direct-call.metadata=dart.async::_AsyncAwaitCompleter.start] [@vm.inferred-type.metadata=!? (skip check)] :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+  return [@vm.direct-call.metadata=dart.async::_AsyncAwaitCompleter.future] [@vm.inferred-type.metadata=dart.async::_Future] :async_completer.{asy::Completer::future};
+}
+static method main() → dynamic /* originally async */ {
+  final asy::_AsyncAwaitCompleter<dynamic>* :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
+  FutureOr<dynamic>* :return_value;
+  dynamic :async_stack_trace;
+  (dynamic) →* dynamic :async_op_then;
+  (core::Object*, core::StackTrace*) →* dynamic :async_op_error;
+  core::int* :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  dynamic :saved_try_context_var0;
+  dynamic :async_temporary_0;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L3:
+      {
+        :async_temporary_0 = [@vm.inferred-type.metadata=#lib::A] self::foo();
+        [yield] let dynamic #t1 = asy::_awaitHelper([@vm.inferred-type.metadata=dart.async::_Future] self::baz(), :async_op_then, :async_op_error, :async_op) in null;
+        [yield] let dynamic #t2 = asy::_awaitHelper([@vm.direct-call.metadata=#lib::A.bar??] [@vm.inferred-type.metadata=dart.async::_Future (receiver not int)] _in::unsafeCast<dynamic>(:async_temporary_0).bar(:result), :async_op_then, :async_op_error, :async_op) in null;
+        :result;
+      }
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace* stack_trace) {
+      [@vm.direct-call.metadata=dart.async::_AsyncAwaitCompleter.completeError] [@vm.inferred-type.metadata=!? (skip check)] :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  [@vm.direct-call.metadata=dart.async::_AsyncAwaitCompleter.start] [@vm.inferred-type.metadata=!? (skip check)] :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+  return [@vm.direct-call.metadata=dart.async::_AsyncAwaitCompleter.future] [@vm.inferred-type.metadata=dart.async::_Future] :async_completer.{asy::Completer::future};
+}

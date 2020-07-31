@@ -19,7 +19,7 @@ void f1(NotGeneric x) {
 void f2(NotGeneric? x) {
   x?[0] + 1;
 //^^^^^
-// [analyzer] STATIC_WARNING.USE_OF_NULLABLE_VALUE
+// [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
 // [cfe] unspecified
   x?[0] = 1;
   useNonNullable(x?[0] = 1);
@@ -46,14 +46,14 @@ void f2(NotGeneric? x) {
 void f3<T extends num>(Generic<T>? x) {
   x?[0] + 1;
 //^^^^^
-// [analyzer] STATIC_WARNING.USE_OF_NULLABLE_VALUE
+// [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
 // [cfe] unspecified
 }
 
 void f4<T extends num>(Generic<T?> x) {
   x[0] + 1;
 //^^^^
-// [analyzer] STATIC_WARNING.USE_OF_NULLABLE_VALUE
+// [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
 // [cfe] unspecified
 }
 

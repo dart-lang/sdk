@@ -1,0 +1,3 @@
+// @dart = 2.6
+foo() => null;
+main() {}

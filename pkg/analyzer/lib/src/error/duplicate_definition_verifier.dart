@@ -11,6 +11,14 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 class DuplicateDefinitionVerifier {
+  static final Set<String> _enumInstanceMembers = {
+    'hashCode',
+    'index',
+    'noSuchMethod',
+    'runtimeType',
+    'toString',
+  };
+
   final LibraryElement _currentLibrary;
   final ErrorReporter _errorReporter;
 
@@ -39,27 +47,29 @@ class DuplicateDefinitionVerifier {
   void checkEnum(EnumDeclaration node) {
     ClassElement element = node.declaredElement;
 
-    Map<String, Element> instanceGetters = HashMap<String, Element>();
-    Map<String, Element> staticGetters = HashMap<String, Element>();
-
-    String indexName = 'index';
-    String valuesName = 'values';
-    instanceGetters[indexName] = element.getGetter(indexName);
-    staticGetters[valuesName] = element.getGetter(valuesName);
+    Map<String, Element> staticGetters = {
+      'values': element.getGetter('values')
+    };
 
     for (EnumConstantDeclaration constant in node.constants) {
       _checkDuplicateIdentifier(staticGetters, constant.name);
     }
 
+    String enumName = element.name;
     for (EnumConstantDeclaration constant in node.constants) {
       SimpleIdentifier identifier = constant.name;
       String name = identifier.name;
-      if (instanceGetters.containsKey(name)) {
-        String enumName = element.displayName;
+      if (name == enumName) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
-            identifier,
-            [enumName, name, enumName]);
+          CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING,
+          identifier,
+        );
+      } else if (_enumInstanceMembers.contains(name)) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+          identifier,
+          [enumName, name, enumName],
+        );
       }
     }
   }
@@ -137,9 +147,7 @@ class DuplicateDefinitionVerifier {
     _checkClassMembers(node.declaredElement, node.members);
   }
 
-  /**
-   * Check that all of the parameters have unique names.
-   */
+  /// Check that all of the parameters have unique names.
   void checkParameters(FormalParameterList node) {
     Map<String, Element> definedNames = HashMap<String, Element>();
     for (FormalParameter parameter in node.parameters) {

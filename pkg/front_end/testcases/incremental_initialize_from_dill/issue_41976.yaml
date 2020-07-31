@@ -1,0 +1,38 @@
+# Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# https://github.com/dart-lang/sdk/issues/41976
+
+type: newworld
+worlds:
+  - entry: foo.dart
+    sources:
+      foo.dart: |
+        abstract class Key {
+          const factory Key(String value) = ValueKey;
+          const Key.empty();
+        }
+
+        abstract class LocalKey extends Key {
+          const LocalKey() : super.empty();
+        }
+
+        class ValueKey implements LocalKey {
+          const ValueKey(this.value);
+          final String value;
+        }
+
+        void main() {
+          var k = Key('t');
+          /* breakpoint here */
+          print('$k');
+        }
+    expectedLibraryCount: 1
+    expressionCompilation:
+      - uri: foo.dart
+        expression: Key('t')
+        errors: false
+      - uri: foo.dart
+        expression: () { var x = new Key('t'); return x.hashCode; }()
+        errors: false

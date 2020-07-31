@@ -170,18 +170,6 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
   }
 
   @override
-  HInstruction visitIs(HIs node) {
-    if (node.kind == HIs.RAW_CHECK) {
-      HInstruction interceptor = node.interceptor;
-      if (interceptor != null) {
-        return new HIsViaInterceptor(
-            node.typeExpression, interceptor, _abstractValueDomain.boolType);
-      }
-    }
-    return node;
-  }
-
-  @override
   HInstruction visitIdentity(HIdentity node) {
     node.singleComparisonOp = simpleOp(node.left, node.right);
     return node;
@@ -810,23 +798,6 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
     }
   }
 
-  @override
-  void visitIs(HIs instruction) {
-    // In the general case the input might be used multple multiple times, so it
-    // must not be set generate at use site.
-
-    // If the code will generate 'instanceof' then we can generate at use site.
-    if (instruction.useInstanceOf) {
-      analyzeInputs(instruction, 0);
-    }
-
-    // Compound and variable checks use a separate instruction to compute the
-    // result.
-    if (instruction.isCompoundCheck || instruction.isVariableCheck) {
-      analyzeInputs(instruction, 0);
-    }
-  }
-
   // A bounds check method must not have its first input generated at use site,
   // because it's using it twice.
   @override
@@ -843,13 +814,6 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
       super.visitIdentity(instruction);
     }
     // Do nothing.
-  }
-
-  @override
-  void visitTypeConversion(HTypeConversion instruction) {
-    // Type checks and cast checks compile to code that only use their input
-    // once, so we can safely visit them and try to merge the input.
-    visitInstruction(instruction);
   }
 
   @override
@@ -1093,9 +1057,6 @@ class SsaConditionMerger extends HGraphVisitor with CodegenPhase {
     // A [HCheck] instruction with control flow uses its input
     // multiple times, so we avoid generating it at use site.
     if (user is HCheck && user.isControlFlow()) return false;
-    // A [HIs] instruction uses its input multiple times, so we
-    // avoid generating it at use site.
-    if (user is HIs) return false;
     // Avoid code motion into a loop.
     return user.hasSameLoopHeaderAs(input);
   }

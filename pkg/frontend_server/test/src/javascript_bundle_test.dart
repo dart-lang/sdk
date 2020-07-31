@@ -103,10 +103,11 @@ void main() {
     final manifestSink = _MemorySink();
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
+    final metadataSink = _MemorySink();
     final coreTypes = CoreTypes(testComponent);
 
     await javaScriptBundler.compile(ClassHierarchy(testComponent, coreTypes),
-        coreTypes, {}, codeSink, manifestSink, sourcemapSink);
+        coreTypes, {}, codeSink, manifestSink, sourcemapSink, metadataSink);
 
     final Map manifest = json.decode(utf8.decode(manifestSink.buffer));
     final String code = utf8.decode(codeSink.buffer);
@@ -143,10 +144,11 @@ void main() {
     final manifestSink = _MemorySink();
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
+    final metadataSink = _MemorySink();
     final coreTypes = CoreTypes(testComponent);
 
     await javaScriptBundler.compile(ClassHierarchy(testComponent, coreTypes),
-        coreTypes, {}, codeSink, manifestSink, sourcemapSink);
+        coreTypes, {}, codeSink, manifestSink, sourcemapSink, metadataSink);
 
     final Map manifest = json.decode(utf8.decode(manifestSink.buffer));
     final String code = utf8.decode(codeSink.buffer);
@@ -183,10 +185,11 @@ void main() {
     final manifestSink = _MemorySink();
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
+    final metadataSink = _MemorySink();
     final coreTypes = CoreTypes(testComponent);
 
     await javaScriptBundler.compile(ClassHierarchy(testComponent, coreTypes),
-        coreTypes, {}, codeSink, manifestSink, sourcemapSink);
+        coreTypes, {}, codeSink, manifestSink, sourcemapSink, metadataSink);
 
     final Map manifest = json.decode(utf8.decode(manifestSink.buffer));
     final String code = utf8.decode(codeSink.buffer);
@@ -232,18 +235,26 @@ void main() {
     final manifestSink = _MemorySink();
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
+    final metadataSink = _MemorySink();
     final coreTypes = CoreTypes(testComponent);
 
     javaScriptBundler.compile(ClassHierarchy(testComponent, coreTypes),
-        coreTypes, {}, codeSink, manifestSink, sourcemapSink);
+        coreTypes, {}, codeSink, manifestSink, sourcemapSink, metadataSink);
 
     final code = utf8.decode(codeSink.buffer);
     final manifest = json.decode(utf8.decode(manifestSink.buffer));
 
     // There should only be two modules since C and B should be combined.
-    const moduleHeader = r"define(['dart_sdk'], function(dart_sdk) {";
-
+    final moduleHeader = r"define(['dart_sdk'], (function load__";
     expect(moduleHeader.allMatches(code), hasLength(2));
+
+    // Expected module headers.
+    final aModuleHeader =
+        r"define(['dart_sdk'], (function load__a_dart(dart_sdk) {";
+    expect(code, contains(aModuleHeader));
+    final cModuleHeader =
+        r"define(['dart_sdk'], (function load__c_dart(dart_sdk) {";
+    expect(code, contains(cModuleHeader));
 
     // verify source map url is correct.
     expect(code, contains('sourceMappingURL=a.dart.lib.js.map'));

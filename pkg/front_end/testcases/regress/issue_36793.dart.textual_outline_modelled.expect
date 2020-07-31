@@ -1,0 +1,6 @@
+@y
+int x = 1;
+@y
+int x = 2;
+const int y = 42;
+main() {}

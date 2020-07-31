@@ -1,0 +1,40 @@
+const a0 = 0 ~/ 0;
+const a1 = 0.0 ~/ 0;
+const a2 = -0.0 ~/ 0;
+const a3 = double.nan ~/ 0;
+const a4 = double.infinity ~/ 0;
+const a5 = double.negativeInfinity ~/ 0;
+const b0 = 0 ~/ 0.0;
+const b1 = 0.0 ~/ 0.0;
+const b2 = -0.0 ~/ 0.0;
+const b3 = double.nan ~/ 0.0;
+const b4 = double.infinity ~/ 0.0;
+const b5 = double.negativeInfinity ~/ 0.0;
+const c0 = 0 ~/ -0.0;
+const c1 = 0.0 ~/ -0.0;
+const c2 = -0.0 ~/ -0.0;
+const c3 = double.nan ~/ -0.0;
+const c4 = double.infinity ~/ -0.0;
+const c5 = double.negativeInfinity ~/ -0.0;
+const d0 = 0 ~/ double.nan;
+const d1 = 0.0 ~/ double.nan;
+const d2 = -0.0 ~/ double.nan;
+const d3 = double.nan ~/ double.nan;
+const d4 = double.infinity ~/ double.nan;
+const d5 = double.negativeInfinity ~/ double.nan;
+const e0 = 0 ~/ double.infinity;
+const e1 = 0.0 ~/ double.infinity;
+const e2 = -0.0 ~/ double.infinity;
+const e3 = double.nan ~/ double.infinity;
+const e4 = double.infinity ~/ double.infinity;
+const e5 = double.negativeInfinity ~/ double.infinity;
+const f0 = 0 ~/ double.negativeInfinity;
+const f1 = 0.0 ~/ double.negativeInfinity;
+const f2 = -0.0 ~/ double.negativeInfinity;
+const f3 = double.nan ~/ double.negativeInfinity;
+const f4 = double.infinity ~/ double.negativeInfinity;
+const f5 = double.negativeInfinity ~/ double.negativeInfinity;
+main() {}
+void test(num a, num b, num Function() f) {}
+void expect(expected, actual) {}
+void throws(num Function() f) {}

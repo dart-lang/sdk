@@ -21,9 +21,11 @@
 
 namespace dart {
 
-RawLibrary* LoadTestScript(const char* script,
-                           Dart_NativeEntryResolver resolver,
-                           const char* lib_uri) {
+Definition* const FlowGraphBuilderHelper::kPhiSelfReference = nullptr;
+
+LibraryPtr LoadTestScript(const char* script,
+                          Dart_NativeEntryResolver resolver,
+                          const char* lib_uri) {
   Dart_Handle api_lib;
   {
     TransitionVMToNative transition(Thread::Current());
@@ -36,7 +38,7 @@ RawLibrary* LoadTestScript(const char* script,
   return lib.raw();
 }
 
-RawFunction* GetFunction(const Library& lib, const char* name) {
+FunctionPtr GetFunction(const Library& lib, const char* name) {
   Thread* thread = Thread::Current();
   const auto& func = Function::Handle(lib.LookupFunctionAllowPrivate(
       String::Handle(Symbols::New(thread, name))));
@@ -44,7 +46,7 @@ RawFunction* GetFunction(const Library& lib, const char* name) {
   return func.raw();
 }
 
-RawClass* GetClass(const Library& lib, const char* name) {
+ClassPtr GetClass(const Library& lib, const char* name) {
   Thread* thread = Thread::Current();
   const auto& cls = Class::Handle(
       lib.LookupClassAllowPrivate(String::Handle(Symbols::New(thread, name))));
@@ -52,15 +54,15 @@ RawClass* GetClass(const Library& lib, const char* name) {
   return cls.raw();
 }
 
-RawTypeParameter* GetClassTypeParameter(const Class& klass, const char* name) {
+TypeParameterPtr GetClassTypeParameter(const Class& klass, const char* name) {
   const auto& param = TypeParameter::Handle(
       klass.LookupTypeParameter(String::Handle(String::New(name))));
   EXPECT(!param.IsNull());
   return param.raw();
 }
 
-RawTypeParameter* GetFunctionTypeParameter(const Function& fun,
-                                           const char* name) {
+TypeParameterPtr GetFunctionTypeParameter(const Function& fun,
+                                          const char* name) {
   intptr_t fun_level = 0;
   const auto& param = TypeParameter::Handle(
       fun.LookupTypeParameter(String::Handle(String::New(name)), &fun_level));
@@ -68,7 +70,7 @@ RawTypeParameter* GetFunctionTypeParameter(const Function& fun,
   return param.raw();
 }
 
-RawObject* Invoke(const Library& lib, const char* name) {
+ObjectPtr Invoke(const Library& lib, const char* name) {
   // These tests rely on running unoptimized code to collect type feedback. The
   // interpreter does not collect type feedback for interface calls, so set
   // compilation threshold to 0 in order to compile invoked function
@@ -124,7 +126,7 @@ FlowGraph* TestPipeline::RunPasses(
     BlockScheduler::AssignEdgeWeights(flow_graph_);
   }
 
-  SpeculativeInliningPolicy speculative_policy(/*enable_blacklist=*/false);
+  SpeculativeInliningPolicy speculative_policy(/*enable_suppression=*/false);
   pass_state_ = new CompilerPassState(thread, flow_graph_, &speculative_policy);
   pass_state_->reorder_blocks = reorder_blocks;
 
@@ -161,7 +163,7 @@ void TestPipeline::CompileGraphAndAttachFunction() {
   Zone* zone = thread_->zone();
   const bool optimized = true;
 
-  SpeculativeInliningPolicy speculative_policy(/*enable_blacklist=*/false);
+  SpeculativeInliningPolicy speculative_policy(/*enable_suppression=*/false);
 
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
   const bool use_far_branches = false;
@@ -232,6 +234,11 @@ bool ILMatcher::TryMatch(std::initializer_list<MatchCode> match_codes,
   Instruction* cursor = cursor_;
   for (size_t i = 0; i < qcodes.size(); ++i) {
     Instruction** capture = qcodes[i].capture_;
+    if (parallel_moves_handling_ == ParallelMovesHandling::kSkip) {
+      while (cursor->IsParallelMove()) {
+        cursor = cursor->next();
+      }
+    }
     if (trace_) {
       OS::PrintErr("  matching %30s @ %s\n",
                    MatchOpCodeToCString(qcodes[i].opcode()),
@@ -271,6 +278,9 @@ Instruction* ILMatcher::MatchInternal(std::vector<MatchCode> match_codes,
     auto branch = cursor->AsBranch();
     if (branch == nullptr) return nullptr;
     return branch->false_successor();
+  }
+  if (opcode == kNop) {
+    return cursor;
   }
   if (opcode == kMoveAny) {
     return cursor->next();
@@ -339,6 +349,9 @@ const char* ILMatcher::MatchOpCodeToCString(MatchOpCode opcode) {
   }
   if (opcode == kMatchAndMoveBranchFalse) {
     return "kMatchAndMoveBranchFalse";
+  }
+  if (opcode == kNop) {
+    return "kNop";
   }
   if (opcode == kMoveAny) {
     return "kMoveAny";

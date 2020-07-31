@@ -25,6 +25,7 @@ import '../js_model/env.dart';
 import '../ordered_typeset.dart';
 import '../ssa/type_builder.dart';
 import '../universe/member_usage.dart';
+import 'element_map.dart';
 import 'element_map_impl.dart';
 
 /// Environment for fast lookup of component libraries.
@@ -388,26 +389,7 @@ class KClassEnvImpl implements KClassEnv {
 
     void addProcedure(ir.Procedure member,
         {bool includeStatic, bool includeNoSuchMethodForwarders}) {
-      if ((member.isMemberSignature || member.isForwardingStub) &&
-          member.isAbstract) {
-        // Skip abstract forwarding stubs. These are never emitted but they
-        // might shadow the inclusion of a mixed in method in code like:
-        //
-        //     class Super {}
-        //     class Mixin<T> {
-        //       void method(T t) {}
-        //     }
-        //     class Class extends Super with Mixin<int> {}
-        //     main() => new Class().method();
-        //
-        // Here a stub is created for `Super&Mixin.method` hiding that
-        // `Mixin.method` is inherited by `Class`.
-        return;
-      }
-      if ((member.isMemberSignature || member.isForwardingStub) &&
-          cls.isAnonymousMixin) {
-        return;
-      }
+      if (memberIsIgnorable(member, cls: cls)) return;
       if (!includeStatic && member.isStatic) return;
       if (member.isNoSuchMethodForwarder) {
         // TODO(sigmund): remove once #33732 is fixed.

@@ -27,6 +27,7 @@ import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 import 'compiler.dart';
+import 'module_metadata.dart';
 import 'target.dart';
 
 const _binaryName = 'dartdevc -k';
@@ -80,27 +81,21 @@ Future<CompilerResult> _compile(List<String> args,
   var argParser = ArgParser(allowTrailingOptions: true)
     ..addFlag('help',
         abbr: 'h', help: 'Display this message.', negatable: false)
-    ..addMultiOption('out', abbr: 'o', help: 'Output file (required).')
     ..addOption('packages', help: 'The package spec file to use.')
     // TODO(jmesserly): is this still useful for us, or can we remove it now?
     ..addFlag('summarize-text',
-        help: 'emit API summary in a .js.txt file',
+        help: 'Emit API summary in a .js.txt file.',
         defaultsTo: false,
         hide: true)
     ..addFlag('track-widget-creation',
-        help: 'enable inspecting of Flutter widgets', hide: true)
+        help: 'Enable inspecting of Flutter widgets.', hide: true)
     // TODO(jmesserly): add verbose help to show hidden options
     ..addOption('dart-sdk-summary',
         help: 'The path to the Dart SDK summary file.', hide: true)
-    ..addOption('multi-root-scheme',
-        help: 'The custom scheme to indicate a multi-root uri.',
-        defaultsTo: 'org-dartlang-app')
     ..addMultiOption('multi-root',
         help: 'The directories to search when encountering uris with the '
             'specified multi-root scheme.',
         defaultsTo: [Uri.base.path])
-    ..addOption('multi-root-output-path',
-        help: 'Path to set multi-root files relative to.', hide: true)
     ..addOption('dart-sdk',
         help: '(unsupported with --kernel) path to the Dart SDK.', hide: true)
     ..addFlag('compile-sdk',
@@ -197,13 +192,19 @@ Future<CompilerResult> _compile(List<String> args,
   var sdkSummaryPath = argResults['dart-sdk-summary'] as String;
   var librarySpecPath = argResults['libraries-file'] as String;
   if (sdkSummaryPath == null) {
-    sdkSummaryPath = defaultSdkSummaryPath;
+    sdkSummaryPath =
+        defaultSdkSummaryPath(soundNullSafety: options.soundNullSafety);
     librarySpecPath ??= defaultLibrarySpecPath;
   }
   var invalidSummary = summaryPaths.any((s) => !s.endsWith('.dill')) ||
       !sdkSummaryPath.endsWith('.dill');
   if (invalidSummary) {
     throw StateError('Non-dill file detected in input: $summaryPaths');
+  }
+
+  var inputs = [for (var arg in argResults.rest) sourcePathToCustomUri(arg)];
+  if (inputs.length == 1 && inputs.single.path.endsWith('.dill')) {
+    return compileSdkFromDill(args);
   }
 
   if (librarySpecPath == null) {
@@ -237,8 +238,6 @@ Future<CompilerResult> _compile(List<String> args,
   // This needs further investigation.
   var packageFile = argResults['packages'] as String ?? _findPackagesFilePath();
 
-  var inputs = argResults.rest.map(sourcePathToCustomUri).toList();
-
   var succeeded = true;
   void diagnosticMessageHandler(fe.DiagnosticMessage message) {
     if (message.severity == fe.Severity.error) {
@@ -260,6 +259,7 @@ Future<CompilerResult> _compile(List<String> args,
   fe.WorkerInputComponent cachedSdkInput;
   var recordUsedInputs = argResults['used-inputs-file'] != null;
   var additionalDills = summaryModules.keys.toList();
+
   if (!useIncrementalCompiler) {
     compilerState = await fe.initializeCompiler(
         oldCompilerState,
@@ -274,7 +274,9 @@ Future<CompilerResult> _compile(List<String> args,
             enableNullSafety: options.enableNullSafety)),
         fileSystem: fileSystem,
         experiments: experiments,
-        environmentDefines: declaredVariables);
+        environmentDefines: declaredVariables,
+        nnbdMode:
+            options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak);
   } else {
     // If digests weren't given and if not in worker mode, create fake data and
     // ensure we don't have a previous state (as that wouldn't be safe with
@@ -312,7 +314,9 @@ Future<CompilerResult> _compile(List<String> args,
         fileSystem: fileSystem,
         experiments: experiments,
         environmentDefines: declaredVariables,
-        trackNeededDillLibraries: recordUsedInputs);
+        trackNeededDillLibraries: recordUsedInputs,
+        nnbdMode:
+            options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak);
     incrementalCompiler = compilerState.incrementalCompiler;
     cachedSdkInput =
         compilerState.workerInputCache[sourcePathToUri(sdkSummaryPath)];
@@ -409,11 +413,13 @@ Future<CompilerResult> _compile(List<String> args,
     var moduleFormat = moduleFormats[i];
     var file = File(output);
     await file.parent.create(recursive: true);
+    var mapUrl = p.toUri('$output.map').toString();
     var jsCode = jsProgramToCode(jsModule, moduleFormat,
         buildSourceMap: options.sourceMap,
         inlineSourceMap: options.inlineSourceMap,
+        emitDebugMetadata: options.emitDebugMetadata,
         jsUrl: p.toUri(output).toString(),
-        mapUrl: p.toUri(output + '.map').toString(),
+        mapUrl: mapUrl,
         customScheme: multiRootScheme,
         multiRootOutputPath: multiRootOutputPath,
         component: compiledLibraries);
@@ -421,7 +427,11 @@ Future<CompilerResult> _compile(List<String> args,
     outFiles.add(file.writeAsString(jsCode.code));
     if (jsCode.sourceMap != null) {
       outFiles.add(
-          File(output + '.map').writeAsString(json.encode(jsCode.sourceMap)));
+          File('$output.map').writeAsString(json.encode(jsCode.sourceMap)));
+    }
+    if (jsCode.metadata != null) {
+      outFiles.add(
+          File('$output.metadata').writeAsString(json.encode(jsCode.metadata)));
     }
   }
 
@@ -458,13 +468,7 @@ Future<CompilerResult> _compile(List<String> args,
 // well.
 // TODO(sigmund): refactor the underlying pieces to reduce the code duplication.
 Future<CompilerResult> compileSdkFromDill(List<String> args) async {
-  var argParser = ArgParser(allowTrailingOptions: true)
-    ..addMultiOption('out', abbr: 'o', help: 'Output file (required).')
-    ..addOption('multi-root-scheme', defaultsTo: 'org-dartlang-sdk')
-    ..addOption('multi-root-output-path',
-        help: 'Path to set multi-root files relative to when generating'
-            ' source-maps.',
-        hide: true);
+  var argParser = ArgParser(allowTrailingOptions: true);
   SharedCompilerOptions.addArguments(argParser);
 
   ArgResults argResults;
@@ -473,6 +477,18 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   } on FormatException catch (error) {
     print(error);
     print(_usageMessage(argParser));
+    return CompilerResult(64);
+  }
+
+  var inputs = argResults.rest.toList();
+  if (inputs.length != 1) {
+    print('Only a single input file is supported to compile the sdk from dill'
+        'but found: \n${inputs.join('\n')}');
+    return CompilerResult(64);
+  }
+
+  if (!inputs.single.endsWith('.dill')) {
+    print('Input must be a .dill file: ${inputs.single}');
     return CompilerResult(64);
   }
 
@@ -488,7 +504,19 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
     return CompilerResult(64);
   }
 
-  var component = loadComponentFromBinary(argResults.rest[0]);
+  var component = loadComponentFromBinary(inputs.single);
+  var invalidLibraries = <Uri>[];
+  for (var library in component.libraries) {
+    if (library.importUri.scheme != 'dart') {
+      invalidLibraries.add(library.importUri);
+    }
+  }
+
+  if (invalidLibraries.isNotEmpty) {
+    print('Only the SDK libraries can be compiled from .dill but found:\n'
+        '${invalidLibraries.join('\n')}');
+    return CompilerResult(64);
+  }
   var coreTypes = CoreTypes(component);
   var hierarchy = ClassHierarchy(component, coreTypes);
   var multiRootScheme = argResults['multi-root-scheme'] as String;
@@ -569,7 +597,14 @@ class JSCode {
   /// using [placeSourceMap].
   final Map sourceMap;
 
-  JSCode(this.code, this.sourceMap);
+  /// Module and library information
+  ///
+  /// The [metadata] is a contract between compiler and the debugger,
+  /// helping the debugger map between libraries, modules, source paths.
+  /// see: https://goto.google.com/dart-web-debugger-metadata
+  final ModuleMetadata metadata;
+
+  JSCode(this.code, this.sourceMap, {this.metadata});
 }
 
 /// Converts [moduleTree] to [JSCode], using [format].
@@ -579,6 +614,7 @@ class JSCode {
 JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
     {bool buildSourceMap = false,
     bool inlineSourceMap = false,
+    bool emitDebugMetadata = false,
     String jsUrl,
     String mapUrl,
     String sourceMapBase,
@@ -637,7 +673,27 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
   };
   text = text.replaceFirst(
       SharedCompiler.metricsLocationID, '$compileTimeStatistics');
-  return JSCode(text, builtMap);
+
+  var debugMetadata = emitDebugMetadata
+      ? _emitMetadata(moduleTree, component, mapUrl, jsUrl)
+      : null;
+
+  return JSCode(text, builtMap, metadata: debugMetadata);
+}
+
+ModuleMetadata _emitMetadata(js_ast.Program program, Component component,
+    String sourceMapUri, String moduleUri) {
+  var metadata = ModuleMetadata(
+      program.name, loadFunctionName(program.name), sourceMapUri, moduleUri);
+
+  for (var lib in component.libraries) {
+    metadata.addLibrary(LibraryMetadata(
+        libraryUriToJsIdentifier(lib.importUri),
+        lib.importUri.toString(),
+        lib.fileUri.toString(),
+        [...lib.parts.map((p) => p.partUri)]));
+  }
+  return metadata;
 }
 
 /// Parses Dart's non-standard `-Dname=value` syntax for declared variables,
@@ -668,9 +724,12 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
   return declaredVariables;
 }
 
-/// The default path of the kernel summary for the Dart SDK.
-final defaultSdkSummaryPath =
-    p.join(getSdkPath(), 'lib', '_internal', 'ddc_sdk.dill');
+/// The default path of the kernel summary for the Dart SDK given the
+/// [soundNullSafety] mode.
+String defaultSdkSummaryPath({bool soundNullSafety}) {
+  var outlineDill = soundNullSafety ? 'ddc_outline_sound.dill' : 'ddc_sdk.dill';
+  return p.join(getSdkPath(), 'lib', '_internal', outlineDill);
+}
 
 final defaultLibrarySpecPath = p.join(getSdkPath(), 'lib', 'libraries.json');
 

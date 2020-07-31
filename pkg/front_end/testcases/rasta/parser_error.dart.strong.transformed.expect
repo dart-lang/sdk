@@ -23,7 +23,7 @@ import "package:expect/expect.dart";
 static method test(dynamic a, {dynamic b = #C1, dynamic c = #C1}) → core::int* {
   if((invalid-expression "pkg/front_end/testcases/rasta/parser_error.dart:10:7: Error: This couldn't be parsed.
   if (?b) return b;  /// 01: compile-time error
-      ^" as{TypeError,ForDynamic} core::bool* ?{dynamic} b : invalid-expression "pkg/front_end/testcases/rasta/parser_error.dart:10:9: Error: This couldn't be parsed.
+      ^" ?{dynamic} b : invalid-expression "pkg/front_end/testcases/rasta/parser_error.dart:10:9: Error: This couldn't be parsed.
   if (?b) return b;  /// 01: compile-time error
         ^") as{TypeError,ForDynamic} core::bool*)
     return b as{TypeError,ForDynamic} core::int*;

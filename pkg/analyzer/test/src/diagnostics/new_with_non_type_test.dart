@@ -15,6 +15,18 @@ main() {
 
 @reflectiveTest
 class NewWithNonTypeTest extends DriverResolutionTest {
+  test_functionTypeAlias() async {
+    await assertErrorsInCode('''
+typedef F = void Function();
+
+void foo() {
+  new F();
+}
+''', [
+      error(StaticWarningCode.NEW_WITH_NON_TYPE, 49, 1),
+    ]);
+  }
+
   test_imported() async {
     newFile("/test/lib/lib.dart", content: "class B {}");
     await assertErrorsInCode('''
@@ -36,6 +48,16 @@ void f() {
 }
 ''', [
       error(StaticWarningCode.NEW_WITH_NON_TYPE, 28, 1),
+    ]);
+  }
+
+  test_typeParameter() async {
+    await assertErrorsInCode('''
+void foo<T>() {
+  new T();
+}
+''', [
+      error(StaticWarningCode.NEW_WITH_NON_TYPE, 22, 1),
     ]);
   }
 }

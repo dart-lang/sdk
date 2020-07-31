@@ -68,7 +68,6 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
 
     var fix = EditDartFix(server, request);
     final response = await fix.compute();
-    fix.nonNullableFixTask?.server?.close();
     expect(response.id, id);
     return response;
   }
@@ -159,89 +158,6 @@ const double myDouble = 42.0;
 
     final result = await performFixRaw(includedFixes: ['not_a_fix']);
     expect(result.error, isNotNull);
-  }
-
-  Future<void> test_nonNullable() async {
-    createAnalysisOptionsFile(experiments: ['non-nullable']);
-    addTestFile('''
-int f(int i) => 0;
-int g(int i) => f(i);
-void test() {
-  g(null);
-}
-''');
-    createProject();
-    expectLater(() async => await performFix(includedFixes: ['non-nullable']),
-        throwsA(TypeMatcher<StateError>()));
-  }
-
-  Future<void> test_nonNullable_analysisOptions_created() async {
-    // Add pubspec for nnbd migration to detect
-    newFile('/project/pubspec.yaml', content: '''
-name: testnnbd
-''');
-    createProject();
-    var result = await performFix(includedFixes: ['non-nullable']);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.hasErrors, isFalse);
-    expect(result.edits, hasLength(1));
-    expectFileEdits('', result.edits[0], '''
-analyzer:
-  enable-experiment:
-    - non-nullable
-
-''');
-  }
-
-  Future<void> test_nonNullable_analysisOptions_experimentsAdded() async {
-    var originalOptions = '''
-analyzer:
-  something:
-    - other
-
-linter:
-  - boo
-''';
-    newFile('/project/analysis_options.yaml', content: originalOptions);
-    createProject();
-    var result = await performFix(includedFixes: ['non-nullable']);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.hasErrors, isFalse);
-    expect(result.edits, hasLength(1));
-    expectFileEdits(originalOptions, result.edits[0], '''
-analyzer:
-  something:
-    - other
-  enable-experiment:
-    - non-nullable
-
-linter:
-  - boo
-''');
-  }
-
-  Future<void> test_nonNullable_analysisOptions_nnbdAdded() async {
-    var originalOptions = '''
-analyzer:
-  enable-experiment:
-    - other
-linter:
-  - boo
-''';
-    newFile('/project/analysis_options.yaml', content: originalOptions);
-    createProject();
-    var result = await performFix(includedFixes: ['non-nullable']);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.hasErrors, isFalse);
-    expect(result.edits, hasLength(1));
-    expectFileEdits(originalOptions, result.edits[0], '''
-analyzer:
-  enable-experiment:
-    - other
-    - non-nullable
-linter:
-  - boo
-''');
   }
 
   Future<void> test_partFile() async {

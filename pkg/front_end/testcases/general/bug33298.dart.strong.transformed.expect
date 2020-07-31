@@ -15,6 +15,16 @@ class A extends core::Object {
     ;
   method call(core::String* s) → core::String*
     return "${s}${s}";
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::B<self::B::T*>*
@@ -22,6 +32,16 @@ class B<T extends core::Object* = dynamic> extends core::Object {
     ;
   method call(generic-covariant-impl self::B::T* t) → self::B::T*
     return t;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class C extends core::Object {
   synthetic constructor •() → self::C*
@@ -29,6 +49,16 @@ class C extends core::Object {
     ;
   method call<T extends core::Object* = dynamic>(self::C::call::T* t) → self::C::call::T*
     return t;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method test() → dynamic {
   self::A* a = new self::A::•();
@@ -41,6 +71,6 @@ static method test() → dynamic {
   core::List<core::String*>* list5 = <core::String*>["a", "b", "c"].{core::Iterable::map}<core::String*>(c.{self::C::call}<core::String*>).{core::Iterable::toList}();
   core::List<core::String*>* list6 = <core::String*>["a", "b", "c"].{core::Iterable::map}<dynamic>(let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/general/bug33298.dart:28:44: Error: The argument type 'T Function<T>(T)' can't be assigned to the parameter type 'dynamic Function(String)'.
   List<String> list6 = ['a', 'b', 'c'].map(c).toList();
-                                           ^" in (let final self::C* #t4 = c in #t4.==(null) ?{<T extends core::Object* = dynamic>(T*) →* T*} null : #t4.{self::C::call}) as{TypeError} (core::String*) →* dynamic).{core::Iterable::toList}() as{TypeError} core::List<core::String*>*;
+                                           ^" in (let final self::C* #t4 = c in #t4.==(null) ?{<T extends core::Object* = dynamic>(T*) →* T*} null : #t4.{self::C::call}) as{TypeError} (core::String*) → dynamic).{core::Iterable::toList}() as{TypeError} core::List<core::String*>*;
 }
 static method main() → dynamic {}

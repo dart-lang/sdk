@@ -29,6 +29,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
 import 'package:kernel/ast.dart'
     show
         Arguments,
+        AsyncMarker,
         BottomType,
         Class,
         Component,
@@ -42,7 +43,8 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         Reference,
         Supertype,
-        TreeNode;
+        TreeNode,
+        Version;
 
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, HandleAmbiguousSupertypes;
@@ -59,7 +61,7 @@ import '../../base/instrumentation.dart' show Instrumentation;
 
 import '../../base/nnbd_mode.dart';
 
-import '../blacklisted_classes.dart' show blacklistedCoreClasses;
+import '../denylisted_classes.dart' show denylistedCoreClasses;
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
@@ -88,6 +90,8 @@ import '../fasta_codes.dart'
         messageObjectImplements,
         messageObjectMixesIn,
         messagePartOrphan,
+        messageTypedefCause,
+        messageTypedefUnaliasedTypeCause,
         noLength,
         templateAmbiguousSupertypes,
         templateCantReadFile,
@@ -253,16 +257,16 @@ class SourceLoader extends Loader {
     ScannerResult result = scan(bytes,
         includeComments: includeComments,
         configuration: new ScannerConfiguration(
-            enableTripleShift: target.enableTripleShift,
-            enableExtensionMethods: target.enableExtensionMethods,
+            enableTripleShift: library.enableTripleShiftInLibrary,
+            enableExtensionMethods: library.enableExtensionMethodsInLibrary,
             enableNonNullable: library.isNonNullableByDefault),
         languageVersionChanged:
             (Scanner scanner, LanguageVersionToken version) {
-      library.setLanguageVersion(version.major, version.minor,
+      library.setLanguageVersion(new Version(version.major, version.minor),
           offset: version.offset, length: version.length, explicit: true);
       scanner.configuration = new ScannerConfiguration(
-          enableTripleShift: target.enableTripleShift,
-          enableExtensionMethods: target.enableExtensionMethods,
+          enableTripleShift: library.enableTripleShiftInLibrary,
+          enableExtensionMethods: library.enableExtensionMethodsInLibrary,
           enableNonNullable: library.isNonNullableByDefault);
     });
     Token token = result.tokens;
@@ -395,7 +399,8 @@ class SourceLoader extends Loader {
         -1,
         -1,
         null,
-        null)
+        null,
+        AsyncMarker.Sync)
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope,
@@ -660,10 +665,10 @@ class SourceLoader extends Loader {
       }
     }
 
-    Set<ClassBuilder> blackListedClasses = new Set<ClassBuilder>();
-    for (int i = 0; i < blacklistedCoreClasses.length; i++) {
-      blackListedClasses.add(coreLibrary
-          .lookupLocalMember(blacklistedCoreClasses[i], required: true));
+    Set<ClassBuilder> denyListedClasses = new Set<ClassBuilder>();
+    for (int i = 0; i < denylistedCoreClasses.length; i++) {
+      denyListedClasses.add(coreLibrary
+          .lookupLocalMember(denylistedCoreClasses[i], required: true));
     }
 
     // Sort the classes topologically.
@@ -675,8 +680,10 @@ class SourceLoader extends Loader {
       workList = <SourceClassBuilder>[];
       for (int i = 0; i < previousWorkList.length; i++) {
         SourceClassBuilder cls = previousWorkList[i];
-        List<TypeDeclarationBuilder> directSupertypes =
+        Map<TypeDeclarationBuilder, TypeAliasBuilder> directSupertypeMap =
             cls.computeDirectSupertypes(objectClass);
+        List<TypeDeclarationBuilder> directSupertypes =
+            directSupertypeMap.keys.toList();
         bool allSupertypesProcessed = true;
         for (int i = 0; i < directSupertypes.length; i++) {
           Builder supertype = directSupertypes[i];
@@ -693,7 +700,7 @@ class SourceLoader extends Loader {
         }
         if (allSupertypesProcessed) {
           topologicallySortedClasses.add(cls);
-          checkClassSupertypes(cls, directSupertypes, blackListedClasses);
+          checkClassSupertypes(cls, directSupertypeMap, denyListedClasses);
         } else {
           workList.add(cls);
         }
@@ -742,21 +749,36 @@ class SourceLoader extends Loader {
 
   void checkClassSupertypes(
       SourceClassBuilder cls,
-      List<TypeDeclarationBuilder> directSupertypes,
-      Set<ClassBuilder> blackListedClasses) {
-    // Check that the direct supertypes aren't black-listed or enums.
+      Map<TypeDeclarationBuilder, TypeAliasBuilder> directSupertypeMap,
+      Set<ClassBuilder> denyListedClasses) {
+    // Check that the direct supertypes aren't deny-listed or enums.
+    List<TypeDeclarationBuilder> directSupertypes =
+        directSupertypeMap.keys.toList();
     for (int i = 0; i < directSupertypes.length; i++) {
       TypeDeclarationBuilder supertype = directSupertypes[i];
       if (supertype is EnumBuilder) {
         cls.addProblem(templateExtendingEnum.withArguments(supertype.name),
             cls.charOffset, noLength);
       } else if (!cls.library.mayImplementRestrictedTypes &&
-          blackListedClasses.contains(supertype)) {
-        cls.addProblem(
-            templateExtendingRestricted
-                .withArguments(supertype.fullNameForErrors),
-            cls.charOffset,
-            noLength);
+          denyListedClasses.contains(supertype)) {
+        TypeAliasBuilder aliasBuilder = directSupertypeMap[supertype];
+        if (aliasBuilder != null) {
+          cls.addProblem(
+              templateExtendingRestricted
+                  .withArguments(supertype.fullNameForErrors),
+              cls.charOffset,
+              noLength,
+              context: [
+                messageTypedefCause.withLocation(
+                    aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+              ]);
+        } else {
+          cls.addProblem(
+              templateExtendingRestricted
+                  .withArguments(supertype.fullNameForErrors),
+              cls.charOffset,
+              noLength);
+        }
       }
     }
 
@@ -770,6 +792,29 @@ class SourceLoader extends Loader {
           TypeAliasBuilder aliasBuilder = builder;
           NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
           builder = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+          if (builder is! ClassBuilder) {
+            cls.addProblem(
+                templateIllegalMixin.withArguments(builder.fullNameForErrors),
+                cls.charOffset,
+                noLength,
+                context: [
+                  messageTypedefCause.withLocation(
+                      aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+                ]);
+            return;
+          } else if (!cls.library.mayImplementRestrictedTypes &&
+              denyListedClasses.contains(builder)) {
+            cls.addProblem(
+                templateExtendingRestricted
+                    .withArguments(mixedInTypeBuilder.fullNameForErrors),
+                cls.charOffset,
+                noLength,
+                context: [
+                  messageTypedefUnaliasedTypeCause.withLocation(
+                      builder.fileUri, builder.charOffset, noLength),
+                ]);
+            return;
+          }
         }
         if (builder is ClassBuilder) {
           isClassBuilder = true;
@@ -925,7 +970,7 @@ class SourceLoader extends Loader {
       hierarchy.onAmbiguousSupertypes = onAmbiguousSupertypes;
       Component component = computeFullComponent();
       hierarchy.coreTypes = coreTypes;
-      hierarchy.applyTreeChanges(const [], component.libraries,
+      hierarchy.applyTreeChanges(const [], component.libraries, const [],
           reissueAmbiguousSupertypesFor: component);
     }
     for (AmbiguousTypesRecord record in ambiguousTypesRecords) {
@@ -1238,33 +1283,78 @@ export 'dart:async' show Future, Stream;
 
 print(object) {}
 
-class Iterator {}
+class Iterator<E> {
+  bool moveNext() => null;
+  E get current => null;
+}
 
-class Iterable {}
+class Iterable<E> {
+  Iterator<E> get iterator => null;
+}
 
-class List extends Iterable {
+class List<E> extends Iterable {
+  factory List() => null;
   factory List.unmodifiable(elements) => null;
+  factory List.filled(int length, E fill, {bool growable = false}) => null;
+  void add(E) {}
+  E operator [](int index) => null;
 }
 
-class Map extends Iterable {
-  factory Map.unmodifiable(other) => null;
+class _GrowableList<E> {
+  factory _GrowableList() => null;
+  factory _GrowableList.filled() => null;
 }
+
+class _List<E> {
+  factory _List() => null;
+  factory _List.filled() => null;
+}
+
+class MapEntry<K, V> {
+  K key;
+  V value;
+}
+
+abstract class Map<K, V> extends Iterable {
+  factory Map.unmodifiable(other) => null;
+  Iterable<MapEntry<K, V>> get entries;
+  void operator []=(K key, V value) {}
+}
+
+abstract class _ImmutableMap<K, V> implements Map<K, V> {
+  dynamic _kvPairs;
+}
+
+abstract class pragma {
+  String name;
+  Object options;
+}
+
+class AbstractClassInstantiationError {}
 
 class NoSuchMethodError {
   NoSuchMethodError.withInvocation(receiver, invocation);
 }
 
+class StackTrace {}
+
 class Null {}
 
 class Object {
+  const Object();
   noSuchMethod(invocation) => null;
+  bool operator==(dynamic) {}
 }
 
 class String {}
 
 class Symbol {}
 
-class Set {}
+class Set<E> {
+  factory Set() = Set<E>._fake;
+  external factory Set._fake();
+  void add(E) {}
+}
 
 class Type {}
 
@@ -1296,6 +1386,10 @@ class Function {}
 const String defaultDartAsyncSource = """
 _asyncErrorWrapperHelper(continuation) {}
 
+void _asyncStarListenHelper(var object, var awaiter) {}
+
+void _asyncStarMoveNextHelper(var stream) {}
+
 _asyncStackTraceHelper(async_op) {}
 
 _asyncThenWrapperHelper(continuation) {}
@@ -1316,7 +1410,7 @@ class _AsyncStarStreamController {
   get stream => null;
 }
 
-class Completer {
+abstract class Completer {
   factory Completer.sync() => null;
 
   get future;
@@ -1326,7 +1420,7 @@ class Completer {
   completeError(error, [stackTrace]);
 }
 
-class Future {
+class Future<T> {
   factory Future.microtask(computation) => null;
 }
 
@@ -1339,6 +1433,8 @@ class _AsyncAwaitCompleter implements Completer {
   complete([value]) {}
 
   completeError(error, [stackTrace]) {}
+
+  void start(void Function() f) {}
 }
 
 class Stream {}
@@ -1367,6 +1463,8 @@ const String defaultDartInternalSource = """
 class Symbol {
   const Symbol(String name);
 }
+
+T unsafeCast<T>(Object v) {}
 """;
 
 /// A minimal implementation of dart:typed_data that is sufficient to create an

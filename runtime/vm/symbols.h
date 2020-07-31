@@ -44,6 +44,7 @@ class ObjectPointerVisitor;
   V(Call, "call")                                                              \
   V(Cancel, "cancel")                                                          \
   V(CastError, "_CastError")                                                   \
+  V(CheckLoaded, "_checkLoaded")                                               \
   V(Class, "Class")                                                            \
   V(ClassID, "ClassID")                                                        \
   V(ClearAsyncThreadStackTrace, "_clearAsyncThreadStackTrace")                 \
@@ -106,6 +107,7 @@ class ObjectPointerVisitor;
   V(DotWithType, "._withType")                                                 \
   V(Double, "double")                                                          \
   V(Dynamic, "dynamic")                                                        \
+  V(DynamicCall, "dyn:call")                                                   \
   V(DynamicPrefix, "dyn:")                                                     \
   V(EntryPointsTemp, ":entry_points_temp")                                     \
   V(EqualOperator, "==")                                                       \
@@ -139,6 +141,7 @@ class ObjectPointerVisitor;
   V(FfiUint64, "Uint64")                                                       \
   V(FfiUint8, "Uint8")                                                         \
   V(FfiVoid, "Void")                                                           \
+  V(FfiHandle, "Handle")                                                       \
   V(Field, "Field")                                                            \
   V(FinallyRetVal, ":finally_ret_val")                                         \
   V(FirstArg, "x")                                                             \
@@ -203,12 +206,13 @@ class ObjectPointerVisitor;
   V(LibraryPrefix, "LibraryPrefix")                                            \
   V(List, "List")                                                              \
   V(ListFactory, "List.")                                                      \
+  V(ListFilledFactory, "List.filled")                                          \
   V(ListLiteralFactory, "List._fromLiteral")                                   \
+  V(LoadLibrary, "_loadLibrary")                                               \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
   V(Map, "Map")                                                                \
   V(MapLiteralFactory, "Map._fromLiteral")                                     \
   V(MegamorphicCache, "MegamorphicCache")                                      \
-  V(MegamorphicMiss, "megamorphic_miss")                                       \
   V(MonomorphicSmiableCall, "MonomorphicSmiableCall")                          \
   V(MoveNext, "moveNext")                                                      \
   V(Namespace, "Namespace")                                                    \
@@ -270,6 +274,7 @@ class ObjectPointerVisitor;
   V(SymbolCtor, "Symbol.")                                                     \
   V(ThrowNew, "_throwNew")                                                     \
   V(ThrowNewInvocation, "_throwNewInvocation")                                 \
+  V(ThrowNewNullAssertion, "_throwNewNullAssertion")                           \
   V(TopLevel, "::")                                                            \
   V(TransferableTypedData, "TransferableTypedData")                            \
   V(TruncDivOperator, "~/")                                                    \
@@ -356,6 +361,7 @@ class ObjectPointerVisitor;
   V(_FutureListener, "_FutureListener")                                        \
   V(_GrowableList, "_GrowableList")                                            \
   V(_GrowableListFactory, "_GrowableList.")                                    \
+  V(_GrowableListFilledFactory, "_GrowableList.filled")                        \
   V(_GrowableListWithData, "_GrowableList._withData")                          \
   V(_ImmutableList, "_ImmutableList")                                          \
   V(_Int16ArrayFactory, "Int16List.")                                          \
@@ -383,6 +389,7 @@ class ObjectPointerVisitor;
   V(_LinkedHashSet, "_CompactLinkedHashSet")                                   \
   V(_List, "_List")                                                            \
   V(_ListFactory, "_List.")                                                    \
+  V(_ListFilledFactory, "_List.filled")                                        \
   V(_MethodMirror, "_MethodMirror")                                            \
   V(_Mint, "_Mint")                                                            \
   V(_MirrorReference, "_MirrorReference")                                      \
@@ -425,6 +432,7 @@ class ObjectPointerVisitor;
   V(_Uint8ClampedList, "_Uint8ClampedList")                                    \
   V(_Uint8List, "_Uint8List")                                                  \
   V(_UserTag, "_UserTag")                                                      \
+  V(_Utf8Decoder, "_Utf8Decoder")                                              \
   V(_VariableMirror, "_VariableMirror")                                        \
   V(_WeakProperty, "_WeakProperty")                                            \
   V(_classRangeCheck, "_classRangeCheck")                                      \
@@ -441,6 +449,7 @@ class ObjectPointerVisitor;
   V(_resultOrListeners, "_resultOrListeners")                                  \
   V(_runExtension, "_runExtension")                                            \
   V(_runPendingImmediateCallback, "_runPendingImmediateCallback")              \
+  V(_scanFlags, "_scanFlags")                                                  \
   V(_setLength, "_setLength")                                                  \
   V(_simpleInstanceOf, "_simpleInstanceOf")                                    \
   V(_simpleInstanceOfFalse, "_simpleInstanceOfFalse")                          \
@@ -645,62 +654,62 @@ class Symbols : public AllStatic {
   // Creates a Symbol given a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
   // TODO(7123) - Rename this to FromCString(....).
-  static RawString* New(Thread* thread, const char* cstr) {
+  static StringPtr New(Thread* thread, const char* cstr) {
     return New(thread, cstr, strlen(cstr));
   }
-  static RawString* New(Thread* thread, const char* cstr, intptr_t length);
+  static StringPtr New(Thread* thread, const char* cstr, intptr_t length);
 
   // Creates a new Symbol from an array of UTF-8 encoded characters.
-  static RawString* FromUTF8(Thread* thread,
-                             const uint8_t* utf8_array,
-                             intptr_t len);
+  static StringPtr FromUTF8(Thread* thread,
+                            const uint8_t* utf8_array,
+                            intptr_t len);
 
   // Creates a new Symbol from an array of Latin-1 encoded characters.
-  static RawString* FromLatin1(Thread* thread,
-                               const uint8_t* latin1_array,
-                               intptr_t len);
+  static StringPtr FromLatin1(Thread* thread,
+                              const uint8_t* latin1_array,
+                              intptr_t len);
 
   // Creates a new Symbol from an array of UTF-16 encoded characters.
-  static RawString* FromUTF16(Thread* thread,
-                              const uint16_t* utf16_array,
-                              intptr_t len);
+  static StringPtr FromUTF16(Thread* thread,
+                             const uint16_t* utf16_array,
+                             intptr_t len);
 
   // Creates a new Symbol from an array of UTF-32 encoded characters.
-  static RawString* FromUTF32(Thread* thread,
-                              const int32_t* utf32_array,
-                              intptr_t len);
+  static StringPtr FromUTF32(Thread* thread,
+                             const int32_t* utf32_array,
+                             intptr_t len);
 
-  static RawString* New(Thread* thread, const String& str);
-  static RawString* New(Thread* thread,
-                        const String& str,
-                        intptr_t begin_index,
-                        intptr_t length);
+  static StringPtr New(Thread* thread, const String& str);
+  static StringPtr New(Thread* thread,
+                       const String& str,
+                       intptr_t begin_index,
+                       intptr_t length);
 
-  static RawString* NewFormatted(Thread* thread, const char* format, ...)
+  static StringPtr NewFormatted(Thread* thread, const char* format, ...)
       PRINTF_ATTRIBUTE(2, 3);
-  static RawString* NewFormattedV(Thread* thread,
-                                  const char* format,
-                                  va_list args);
+  static StringPtr NewFormattedV(Thread* thread,
+                                 const char* format,
+                                 va_list args);
 
-  static RawString* FromConcat(Thread* thread,
-                               const String& str1,
-                               const String& str2);
+  static StringPtr FromConcat(Thread* thread,
+                              const String& str1,
+                              const String& str2);
 
-  static RawString* FromConcatAll(
+  static StringPtr FromConcatAll(
       Thread* thread,
       const GrowableHandlePtrArray<const String>& strs);
 
-  static RawString* FromGet(Thread* thread, const String& str);
-  static RawString* FromSet(Thread* thread, const String& str);
-  static RawString* FromDot(Thread* thread, const String& str);
+  static StringPtr FromGet(Thread* thread, const String& str);
+  static StringPtr FromSet(Thread* thread, const String& str);
+  static StringPtr FromDot(Thread* thread, const String& str);
 
   // Returns char* of predefined symbol.
   static const char* Name(SymbolId symbol);
 
-  static RawString* FromCharCode(Thread* thread, int32_t char_code);
+  static StringPtr FromCharCode(Thread* thread, int32_t char_code);
 
-  static RawString** PredefinedAddress() {
-    return reinterpret_cast<RawString**>(&predefined_);
+  static StringPtr* PredefinedAddress() {
+    return reinterpret_cast<StringPtr*>(&predefined_);
   }
 
   static void DumpStats(Isolate* isolate);
@@ -708,16 +717,16 @@ class Symbols : public AllStatic {
 
   // Returns Symbol::Null if no symbol is found.
   template <typename StringType>
-  static RawString* Lookup(Thread* thread, const StringType& str);
+  static StringPtr Lookup(Thread* thread, const StringType& str);
 
   // Returns Symbol::Null if no symbol is found.
-  static RawString* LookupFromConcat(Thread* thread,
-                                     const String& str1,
-                                     const String& str2);
+  static StringPtr LookupFromConcat(Thread* thread,
+                                    const String& str1,
+                                    const String& str2);
 
-  static RawString* LookupFromGet(Thread* thread, const String& str);
-  static RawString* LookupFromSet(Thread* thread, const String& str);
-  static RawString* LookupFromDot(Thread* thread, const String& str);
+  static StringPtr LookupFromGet(Thread* thread, const String& str);
+  static StringPtr LookupFromSet(Thread* thread, const String& str);
+  static StringPtr LookupFromDot(Thread* thread, const String& str);
 
   static void GetStats(Isolate* isolate, intptr_t* size, intptr_t* capacity);
 
@@ -725,10 +734,10 @@ class Symbols : public AllStatic {
   enum { kInitialVMIsolateSymtabSize = 1024, kInitialSymtabSize = 2048 };
 
   template <typename StringType>
-  static RawString* NewSymbol(Thread* thread, const StringType& str);
+  static StringPtr NewSymbol(Thread* thread, const StringType& str);
 
-  static intptr_t LookupPredefinedSymbol(RawObject* obj);
-  static RawObject* GetPredefinedSymbol(intptr_t object_id);
+  static intptr_t LookupPredefinedSymbol(ObjectPtr obj);
+  static ObjectPtr GetPredefinedSymbol(intptr_t object_id);
   static bool IsPredefinedSymbolId(intptr_t object_id) {
     return (object_id >= kMaxPredefinedObjectIds &&
             object_id < (kMaxPredefinedObjectIds + kMaxPredefinedId));
@@ -737,7 +746,7 @@ class Symbols : public AllStatic {
   // List of Latin1 characters stored in the vm isolate as symbols
   // in order to make Symbols::FromCharCode fast. This structure is
   // used in generated dart code for direct access to these objects.
-  static RawString* predefined_[kNumberOfOneCharCodeSymbols];
+  static StringPtr predefined_[kNumberOfOneCharCodeSymbols];
 
   // List of handles for predefined symbols.
   static String* symbol_handles_[kMaxPredefinedId];

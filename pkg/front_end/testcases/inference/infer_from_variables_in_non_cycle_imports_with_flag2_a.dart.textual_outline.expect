@@ -1,0 +1,5 @@
+class A {
+  static var x = 2;
+}
+
+main() {}

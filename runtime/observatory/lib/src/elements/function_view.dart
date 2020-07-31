@@ -16,7 +16,7 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/library_menu.dart';
@@ -30,26 +30,6 @@ import 'package:observatory/src/elements/source_link.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class FunctionViewElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<FunctionViewElement>('function-view', dependencies: const [
-    ClassRefElement.tag,
-    CodeRefElement.tag,
-    CurlyBlockElement.tag,
-    FieldRefElement.tag,
-    InstanceRefElement.tag,
-    NavClassMenuElement.tag,
-    NavLibraryMenuElement.tag,
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-    ObjectCommonElement.tag,
-    SourceLinkElement.tag,
-    SourceInsetElement.tag,
-    ViewFooterElement.tag
-  ]);
-
   RenderingScheduler<FunctionViewElement> _r;
 
   Stream<RenderedEvent<FunctionViewElement>> get onRendered => _r.onRendered;
@@ -123,7 +103,7 @@ class FunctionViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  FunctionViewElement.created() : super.created(tag);
+  FunctionViewElement.created() : super.created('function-view');
 
   @override
   attached() {

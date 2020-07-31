@@ -54,6 +54,17 @@ class A {
     await assertNoAssistAt('v;');
   }
 
+  Future<void> test_instanceCreation_freeStanding() async {
+    await resolveTestUnit('''
+class A {}
+
+main() {
+  A();
+}
+''');
+    await assertNoAssistAt('A();');
+  }
+
   Future<void> test_localVariable() async {
     await resolveTestUnit('''
 main() {
@@ -120,6 +131,23 @@ main() {
     await assertHasAssistAt('int ', '''
 main() {
   for(var i = 0; i < 3; i++) {}
+}
+''');
+  }
+
+  Future<void> test_loopVariable_nested() async {
+    await resolveTestUnit('''
+main() {
+  var v = () {
+    for (int x in <int>[]) {}
+  };
+}
+''');
+    await assertHasAssistAt('int x', '''
+main() {
+  var v = () {
+    for (var x in <int>[]) {}
+  };
 }
 ''');
   }

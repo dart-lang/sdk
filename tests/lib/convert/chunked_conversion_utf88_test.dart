@@ -112,16 +112,15 @@ main() {
   const LEADING_SURROGATE = 0xd801;
   const TRAILING_SURROGATE = 0xdc12;
   const UTF8_ENCODING = const [0xf0, 0x90, 0x90, 0x92];
-  const UTF8_LEADING = const [0xed, 0xa0, 0x81];
-  const UTF8_TRAILING = const [0xed, 0xb0, 0x92];
+  const UTF8_REPLACEMENT = const [0xef, 0xbf, 0xbd];
   const CHAR_A = 0x61;
 
   // Test surrogates at all kinds of locations.
   var codeUnits = <int>[];
   for (int i = 0; i < 2049; i++) {
     // Invariant: codeUnits[0..i - 1] is filled with CHAR_A (character 'a').
-    codeUnits.length = i + 1;
-    codeUnits[i] = CHAR_A;
+    codeUnits.add(CHAR_A);
+    Expect.equals(i + 1, codeUnits.length);
 
     // Only test for problem zones, close to powers of two.
     if (i > 20 && _nextPowerOf2(i - 2) - i > 10) continue;
@@ -129,20 +128,21 @@ main() {
     codeUnits[i] = LEADING_SURROGATE;
     var str = new String.fromCharCodes(codeUnits);
     var bytes = new List.filled(i + 3, CHAR_A);
-    bytes[i] = UTF8_LEADING[0];
-    bytes[i + 1] = UTF8_LEADING[1];
-    bytes[i + 2] = UTF8_LEADING[2];
+    bytes[i] = UTF8_REPLACEMENT[0];
+    bytes[i + 1] = UTF8_REPLACEMENT[1];
+    bytes[i + 2] = UTF8_REPLACEMENT[2];
     runTest([bytes, str]);
 
     codeUnits[i] = TRAILING_SURROGATE;
     str = new String.fromCharCodes(codeUnits);
     bytes = new List.filled(i + 3, CHAR_A);
-    bytes[i] = UTF8_TRAILING[0];
-    bytes[i + 1] = UTF8_TRAILING[1];
-    bytes[i + 2] = UTF8_TRAILING[2];
+    bytes[i] = UTF8_REPLACEMENT[0];
+    bytes[i + 1] = UTF8_REPLACEMENT[1];
+    bytes[i + 2] = UTF8_REPLACEMENT[2];
     runTest([bytes, str]);
 
-    codeUnits.length = i + 2;
+    codeUnits.add(CHAR_A);
+    Expect.equals(i + 2, codeUnits.length);
     codeUnits[i] = LEADING_SURROGATE;
     codeUnits[i + 1] = TRAILING_SURROGATE;
     str = new String.fromCharCodes(codeUnits);
@@ -157,39 +157,40 @@ main() {
     codeUnits[i + 1] = TRAILING_SURROGATE;
     str = new String.fromCharCodes(codeUnits);
     bytes = new List.filled(i + 6, CHAR_A);
-    bytes[i] = UTF8_TRAILING[0];
-    bytes[i + 1] = UTF8_TRAILING[1];
-    bytes[i + 2] = UTF8_TRAILING[2];
-    bytes[i + 3] = UTF8_TRAILING[0];
-    bytes[i + 4] = UTF8_TRAILING[1];
-    bytes[i + 5] = UTF8_TRAILING[2];
+    bytes[i] = UTF8_REPLACEMENT[0];
+    bytes[i + 1] = UTF8_REPLACEMENT[1];
+    bytes[i + 2] = UTF8_REPLACEMENT[2];
+    bytes[i + 3] = UTF8_REPLACEMENT[0];
+    bytes[i + 4] = UTF8_REPLACEMENT[1];
+    bytes[i + 5] = UTF8_REPLACEMENT[2];
     runTest([bytes, str]);
 
     codeUnits[i] = LEADING_SURROGATE;
     codeUnits[i + 1] = LEADING_SURROGATE;
     str = new String.fromCharCodes(codeUnits);
     bytes = new List.filled(i + 6, CHAR_A);
-    bytes[i] = UTF8_LEADING[0];
-    bytes[i + 1] = UTF8_LEADING[1];
-    bytes[i + 2] = UTF8_LEADING[2];
-    bytes[i + 3] = UTF8_LEADING[0];
-    bytes[i + 4] = UTF8_LEADING[1];
-    bytes[i + 5] = UTF8_LEADING[2];
+    bytes[i] = UTF8_REPLACEMENT[0];
+    bytes[i + 1] = UTF8_REPLACEMENT[1];
+    bytes[i + 2] = UTF8_REPLACEMENT[2];
+    bytes[i + 3] = UTF8_REPLACEMENT[0];
+    bytes[i + 4] = UTF8_REPLACEMENT[1];
+    bytes[i + 5] = UTF8_REPLACEMENT[2];
     runTest([bytes, str]);
 
     codeUnits[i] = TRAILING_SURROGATE;
     codeUnits[i + 1] = LEADING_SURROGATE;
     str = new String.fromCharCodes(codeUnits);
     bytes = new List.filled(i + 6, CHAR_A);
-    bytes[i] = UTF8_TRAILING[0];
-    bytes[i + 1] = UTF8_TRAILING[1];
-    bytes[i + 2] = UTF8_TRAILING[2];
-    bytes[i + 3] = UTF8_LEADING[0];
-    bytes[i + 4] = UTF8_LEADING[1];
-    bytes[i + 5] = UTF8_LEADING[2];
+    bytes[i] = UTF8_REPLACEMENT[0];
+    bytes[i + 1] = UTF8_REPLACEMENT[1];
+    bytes[i + 2] = UTF8_REPLACEMENT[2];
+    bytes[i + 3] = UTF8_REPLACEMENT[0];
+    bytes[i + 4] = UTF8_REPLACEMENT[1];
+    bytes[i + 5] = UTF8_REPLACEMENT[2];
     runTest([bytes, str]);
 
-    codeUnits.length = i + 3;
+    codeUnits.add(CHAR_A);
+    Expect.equals(i + 3, codeUnits.length);
     codeUnits[i] = LEADING_SURROGATE;
     codeUnits[i + 1] = TRAILING_SURROGATE;
     codeUnits[i + 2] = CHAR_A; // Add trailing 'a'.
@@ -208,12 +209,12 @@ main() {
     codeUnits[i + 2] = CHAR_A; // Add trailing 'a'.
     str = new String.fromCharCodes(codeUnits);
     bytes = new List.filled(i + 7, CHAR_A);
-    bytes[i] = UTF8_TRAILING[0];
-    bytes[i + 1] = UTF8_TRAILING[1];
-    bytes[i + 2] = UTF8_TRAILING[2];
-    bytes[i + 3] = UTF8_TRAILING[0];
-    bytes[i + 4] = UTF8_TRAILING[1];
-    bytes[i + 5] = UTF8_TRAILING[2];
+    bytes[i] = UTF8_REPLACEMENT[0];
+    bytes[i + 1] = UTF8_REPLACEMENT[1];
+    bytes[i + 2] = UTF8_REPLACEMENT[2];
+    bytes[i + 3] = UTF8_REPLACEMENT[0];
+    bytes[i + 4] = UTF8_REPLACEMENT[1];
+    bytes[i + 5] = UTF8_REPLACEMENT[2];
     runTest([bytes, str]);
 
     codeUnits[i] = LEADING_SURROGATE;
@@ -221,12 +222,12 @@ main() {
     codeUnits[i + 2] = CHAR_A; // Add trailing 'a'.
     str = new String.fromCharCodes(codeUnits);
     bytes = new List.filled(i + 7, CHAR_A);
-    bytes[i] = UTF8_LEADING[0];
-    bytes[i + 1] = UTF8_LEADING[1];
-    bytes[i + 2] = UTF8_LEADING[2];
-    bytes[i + 3] = UTF8_LEADING[0];
-    bytes[i + 4] = UTF8_LEADING[1];
-    bytes[i + 5] = UTF8_LEADING[2];
+    bytes[i] = UTF8_REPLACEMENT[0];
+    bytes[i + 1] = UTF8_REPLACEMENT[1];
+    bytes[i + 2] = UTF8_REPLACEMENT[2];
+    bytes[i + 3] = UTF8_REPLACEMENT[0];
+    bytes[i + 4] = UTF8_REPLACEMENT[1];
+    bytes[i + 5] = UTF8_REPLACEMENT[2];
     runTest([bytes, str]);
 
     codeUnits[i] = TRAILING_SURROGATE;
@@ -234,15 +235,16 @@ main() {
     codeUnits[i + 2] = CHAR_A; // Add trailing 'a'.
     str = new String.fromCharCodes(codeUnits);
     bytes = new List.filled(i + 7, CHAR_A);
-    bytes[i] = UTF8_TRAILING[0];
-    bytes[i + 1] = UTF8_TRAILING[1];
-    bytes[i + 2] = UTF8_TRAILING[2];
-    bytes[i + 3] = UTF8_LEADING[0];
-    bytes[i + 4] = UTF8_LEADING[1];
-    bytes[i + 5] = UTF8_LEADING[2];
+    bytes[i] = UTF8_REPLACEMENT[0];
+    bytes[i + 1] = UTF8_REPLACEMENT[1];
+    bytes[i + 2] = UTF8_REPLACEMENT[2];
+    bytes[i + 3] = UTF8_REPLACEMENT[0];
+    bytes[i + 4] = UTF8_REPLACEMENT[1];
+    bytes[i + 5] = UTF8_REPLACEMENT[2];
     runTest([bytes, str]);
 
     // Make sure the invariant is correct.
+    codeUnits.length = i + 1;
     codeUnits[i] = CHAR_A;
   }
 }

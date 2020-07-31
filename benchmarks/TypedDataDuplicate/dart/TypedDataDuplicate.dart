@@ -10,27 +10,30 @@ import 'package:benchmark_harness/benchmark_harness.dart';
 
 abstract class Uint8ListCopyBenchmark extends BenchmarkBase {
   final int size;
-  Uint8List input;
-  Uint8List result;
+  late Uint8List input;
+  late Uint8List result;
 
   Uint8ListCopyBenchmark(String method, this.size)
       : super('TypedDataDuplicate.Uint8List.$size.$method');
 
+  @override
   void setup() {
     input = Uint8List(size);
-    for (int i = 0; i < size; ++i) {
+    for (var i = 0; i < size; ++i) {
       input[i] = (i + 3) & 0xff;
     }
   }
 
+  @override
   void warmup() {
-    for (int i = 0; i < 100; ++i) {
+    for (var i = 0; i < 100; ++i) {
       run();
     }
   }
 
+  @override
   void teardown() {
-    for (int i = 0; i < size; ++i) {
+    for (var i = 0; i < size; ++i) {
       if (result[i] != ((i + 3) & 0xff)) {
         throw 'Unexpected result';
       }
@@ -41,6 +44,7 @@ abstract class Uint8ListCopyBenchmark extends BenchmarkBase {
 class Uint8ListCopyViaFromListBenchmark extends Uint8ListCopyBenchmark {
   Uint8ListCopyViaFromListBenchmark(int size) : super('fromList', size);
 
+  @override
   void run() {
     result = Uint8List.fromList(input);
   }
@@ -49,31 +53,36 @@ class Uint8ListCopyViaFromListBenchmark extends Uint8ListCopyBenchmark {
 class Uint8ListCopyViaLoopBenchmark extends Uint8ListCopyBenchmark {
   Uint8ListCopyViaLoopBenchmark(int size) : super('loop', size);
 
+  @override
   void run() {
-    result = Uint8List(input.length);
+    final input = this.input;
+    final result = Uint8List(input.length);
     for (var i = 0; i < input.length; i++) {
       result[i] = input[i];
     }
+    this.result = result;
   }
 }
 
 abstract class Float64ListCopyBenchmark extends BenchmarkBase {
   final int size;
-  Float64List input;
-  Float64List result;
+  late Float64List input;
+  late Float64List result;
 
   Float64ListCopyBenchmark(String method, this.size)
       : super('TypedDataDuplicate.Float64List.$size.$method');
 
+  @override
   void setup() {
     input = Float64List(size);
-    for (int i = 0; i < size; ++i) {
+    for (var i = 0; i < size; ++i) {
       input[i] = (i - 7).toDouble();
     }
   }
 
+  @override
   void teardown() {
-    for (int i = 0; i < size; ++i) {
+    for (var i = 0; i < size; ++i) {
       if (result[i] != (i - 7).toDouble()) {
         throw 'Unexpected result';
       }
@@ -84,6 +93,7 @@ abstract class Float64ListCopyBenchmark extends BenchmarkBase {
 class Float64ListCopyViaFromListBenchmark extends Float64ListCopyBenchmark {
   Float64ListCopyViaFromListBenchmark(int size) : super('fromList', size);
 
+  @override
   void run() {
     result = Float64List.fromList(input);
   }
@@ -92,15 +102,18 @@ class Float64ListCopyViaFromListBenchmark extends Float64ListCopyBenchmark {
 class Float64ListCopyViaLoopBenchmark extends Float64ListCopyBenchmark {
   Float64ListCopyViaLoopBenchmark(int size) : super('loop', size);
 
+  @override
   void run() {
-    result = Float64List(input.length);
+    final input = this.input;
+    final result = Float64List(input.length);
     for (var i = 0; i < input.length; i++) {
       result[i] = input[i];
     }
+    this.result = result;
   }
 }
 
-main() {
+void main() {
   final sizes = [8, 32, 256, 16384];
   final benchmarks = [
     for (int size in sizes) ...[

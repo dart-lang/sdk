@@ -1,0 +1,15 @@
+// @dart = 2.6
+class Fisk<T> {
+  const Fisk.fisk(this.x);
+  final T x;
+}
+
+const int hest = 42;
+enum Foo {
+  @hest
+  bar,
+  @Fisk.fisk(hest)
+  baz,
+  cafebabe,
+}
+main() {}

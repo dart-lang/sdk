@@ -25,7 +25,7 @@ class Test {
       }
       return "";
     } catch (e, stacktrace) {
-      var result = e + "\n" + stacktrace.toString();
+      var result = e.toString() + "\n" + stacktrace.toString();
       return result;
     }
   }

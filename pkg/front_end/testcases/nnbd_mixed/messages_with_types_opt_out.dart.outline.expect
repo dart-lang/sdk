@@ -1,0 +1,176 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:19:5: Error: The return type of the method 'SubOutOut.nullableBad' is 'T', which does not match the return type, 'int', of the overridden method, 'SuperOut.nullableBad'.
+// Change to a subtype of 'int'.
+//   T nullableBad<T>(T t) => null;
+//     ^
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:12:7: Context: This is the overridden method ('nullableBad').
+//   int nullableBad<T>(T t) => 1;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:20:5: Error: The return type of the method 'SubOutOut.nonNullableBad' is 'T', which does not match the return type, 'int', of the overridden method, 'SuperOut.nonNullableBad'.
+// Change to a subtype of 'int'.
+//   T nonNullableBad<T>(T t) => t;
+//     ^
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:13:7: Context: This is the overridden method ('nonNullableBad').
+//   int nonNullableBad<T>(T t) => 2;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:26:5: Error: The return type of the method 'SubInOut.nullableBad' is 'T', which does not match the return type, 'int?', of the overridden method, 'SuperIn.nullableBad'.
+// Change to a subtype of 'int?'.
+//   T nullableBad<T>(T t) => null;
+//     ^
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:10:8: Context: This is the overridden method ('nullableBad').
+//   int? nullableBad<T>(T t) => 1;
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:27:5: Error: The return type of the method 'SubInOut.nonNullableBad' is 'T', which does not match the return type, 'int', of the overridden method, 'SuperIn.nonNullableBad'.
+// Change to a subtype of 'int'.
+//   T nonNullableBad<T>(T t) => t;
+//     ^
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:11:7: Context: This is the overridden method ('nonNullableBad').
+//   int nonNullableBad<T>(T t) => 2;
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+import "messages_with_types_opt_in.dart" as mes;
+
+import "org-dartlang-testcase:///messages_with_types_opt_in.dart";
+
+class SuperOut extends core::Object {
+  synthetic constructor •() → self::SuperOut
+    ;
+  method nullableSame() → core::String
+    ;
+  method nonNullableSame() → core::String
+    ;
+  method nullableBad<T extends core::Object? = dynamic>(self::SuperOut::nullableBad::T% t) → core::int
+    ;
+  method nonNullableBad<T extends core::Object? = dynamic>(self::SuperOut::nonNullableBad::T% t) → core::int
+    ;
+}
+class SubOutOut extends self::SuperOut {
+  synthetic constructor •() → self::SubOutOut
+    ;
+  method nullableSame() → core::String
+    ;
+  method nonNullableSame() → core::String
+    ;
+  method nullableBad<T extends core::Object? = dynamic>(self::SubOutOut::nullableBad::T% t) → self::SubOutOut::nullableBad::T%
+    ;
+  method nonNullableBad<T extends core::Object? = dynamic>(self::SubOutOut::nonNullableBad::T% t) → self::SubOutOut::nonNullableBad::T%
+    ;
+}
+class SubInOut extends mes::SuperIn {
+  synthetic constructor •() → self::SubInOut
+    ;
+  method nullableSame() → core::String
+    ;
+  method nonNullableSame() → core::String
+    ;
+  method nullableBad<T extends core::Object? = dynamic>(self::SubInOut::nullableBad::T% t) → self::SubInOut::nullableBad::T%
+    ;
+  method nonNullableBad<T extends core::Object? = dynamic>(self::SubInOut::nonNullableBad::T% t) → self::SubInOut::nonNullableBad::T%
+    ;
+}
+static field core::String legacyVar;
+static method testOptOut() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:17:6: Error: The return type of the method 'SubInIn.nullableBad' is 'T?', which does not match the return type, 'int?', of the overridden method, 'SuperIn.nullableBad'.
+// Change to a subtype of 'int?'.
+//   T? nullableBad<T>(T t) => null;
+//      ^
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:10:8: Context: This is the overridden method ('nullableBad').
+//   int? nullableBad<T>(T t) => 1;
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:18:5: Error: The return type of the method 'SubInIn.nonNullableBad' is 'T', which does not match the return type, 'int', of the overridden method, 'SuperIn.nonNullableBad'.
+// Change to a subtype of 'int'.
+//   T nonNullableBad<T>(T t) => t;
+//     ^
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:11:7: Context: This is the overridden method ('nonNullableBad').
+//   int nonNullableBad<T>(T t) => 2;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:22:11: Error: The return type of the method 'SubOutIn.nullableSame' is 'String?', which does not match the return type, 'String', of the overridden method, 'SuperOut.nullableSame'.
+// Change to a subtype of 'String'.
+//   String? nullableSame() => "foo";
+//           ^
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:10:10: Context: This is the overridden method ('nullableSame').
+//   String nullableSame() => "foo";
+//          ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:24:6: Error: The return type of the method 'SubOutIn.nullableBad' is 'T?', which does not match the return type, 'int', of the overridden method, 'SuperOut.nullableBad'.
+// Change to a subtype of 'int'.
+//   T? nullableBad<T>(T t) => null;
+//      ^
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:12:7: Context: This is the overridden method ('nullableBad').
+//   int nullableBad<T>(T t) => 1;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:25:5: Error: The return type of the method 'SubOutIn.nonNullableBad' is 'T', which does not match the return type, 'int', of the overridden method, 'SuperOut.nonNullableBad'.
+// Change to a subtype of 'int'.
+//   T nonNullableBad<T>(T t) => t;
+//     ^
+// pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:13:7: Context: This is the overridden method ('nonNullableBad').
+//   int nonNullableBad<T>(T t) => 2;
+//       ^
+//
+import self as mes;
+import "dart:core" as core;
+import "messages_with_types_opt_out.dart" as self;
+
+import "org-dartlang-testcase:///messages_with_types_opt_out.dart";
+
+class SuperIn extends core::Object {
+  synthetic constructor •() → mes::SuperIn
+    ;
+  method nullableSame() → core::String?
+    ;
+  method nonNullableSame() → core::String
+    ;
+  method nullableBad<T extends core::Object? = dynamic>(mes::SuperIn::nullableBad::T% t) → core::int?
+    ;
+  method nonNullableBad<T extends core::Object? = dynamic>(mes::SuperIn::nonNullableBad::T% t) → core::int
+    ;
+}
+class SubInIn extends mes::SuperIn {
+  synthetic constructor •() → mes::SubInIn
+    ;
+  method nullableSame() → core::String?
+    ;
+  method nonNullableSame() → core::String
+    ;
+  method nullableBad<T extends core::Object? = dynamic>(mes::SubInIn::nullableBad::T% t) → mes::SubInIn::nullableBad::T?
+    ;
+  method nonNullableBad<T extends core::Object? = dynamic>(mes::SubInIn::nonNullableBad::T% t) → mes::SubInIn::nonNullableBad::T%
+    ;
+}
+class SubOutIn extends self::SuperOut {
+  synthetic constructor •() → mes::SubOutIn
+    ;
+  method nullableSame() → core::String?
+    ;
+  method nonNullableSame() → core::String
+    ;
+  method nullableBad<T extends core::Object? = dynamic>(mes::SubOutIn::nullableBad::T% t) → mes::SubOutIn::nullableBad::T?
+    ;
+  method nonNullableBad<T extends core::Object? = dynamic>(mes::SubOutIn::nonNullableBad::T% t) → mes::SubOutIn::nonNullableBad::T%
+    ;
+}
+static field () →? core::int nullableVar;
+static field core::double nonNullableVar;
+static method testOptIn() → dynamic
+  ;

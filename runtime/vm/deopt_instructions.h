@@ -4,10 +4,10 @@
 
 #ifndef RUNTIME_VM_DEOPT_INSTRUCTIONS_H_
 #define RUNTIME_VM_DEOPT_INSTRUCTIONS_H_
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/allocation.h"
 #include "vm/code_descriptors.h"
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/deferred_objects.h"
@@ -19,6 +19,7 @@
 
 namespace dart {
 
+class Location;
 class Value;
 class MaterializeObjectInstr;
 class StackFrame;
@@ -69,7 +70,7 @@ class DeoptContext {
   intptr_t GetCallerFp() const;
   void SetCallerFp(intptr_t callers_fp);
 
-  RawObject* ObjectAt(intptr_t index) const {
+  ObjectPtr ObjectAt(intptr_t index) const {
     const ObjectPool& object_pool = ObjectPool::Handle(object_pool_);
     return object_pool.ObjectAt(index);
   }
@@ -123,7 +124,7 @@ class DeoptContext {
   intptr_t source_frame_size() const { return source_frame_size_; }
   intptr_t dest_frame_size() const { return dest_frame_size_; }
 
-  RawCode* code() const { return code_; }
+  CodePtr code() const { return code_; }
 
   bool is_lazy_deopt() const { return is_lazy_deopt_; }
 
@@ -134,7 +135,7 @@ class DeoptContext {
     return (deopt_flags_ & flag) != 0;
   }
 
-  RawTypedData* deopt_info() const { return deopt_info_; }
+  TypedDataPtr deopt_info() const { return deopt_info_; }
 
   // Fills the destination frame but defers materialization of
   // objects.
@@ -149,53 +150,53 @@ class DeoptContext {
   // artificial arguments used during deoptimization.
   intptr_t MaterializeDeferredObjects();
 
-  RawArray* DestFrameAsArray();
+  ArrayPtr DestFrameAsArray();
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   void DeferMaterializedObjectRef(intptr_t idx, intptr_t* slot) {
     deferred_slots_ = new DeferredObjectRef(
-        idx, reinterpret_cast<RawObject**>(slot), deferred_slots_);
+        idx, reinterpret_cast<ObjectPtr*>(slot), deferred_slots_);
   }
 
-  void DeferMaterialization(double value, RawDouble** slot) {
+  void DeferMaterialization(double value, DoublePtr* slot) {
     deferred_slots_ = new DeferredDouble(
-        value, reinterpret_cast<RawObject**>(slot), deferred_slots_);
+        value, reinterpret_cast<ObjectPtr*>(slot), deferred_slots_);
   }
 
-  void DeferMintMaterialization(int64_t value, RawMint** slot) {
+  void DeferMintMaterialization(int64_t value, MintPtr* slot) {
     deferred_slots_ = new DeferredMint(
-        value, reinterpret_cast<RawObject**>(slot), deferred_slots_);
+        value, reinterpret_cast<ObjectPtr*>(slot), deferred_slots_);
   }
 
-  void DeferMaterialization(simd128_value_t value, RawFloat32x4** slot) {
+  void DeferMaterialization(simd128_value_t value, Float32x4Ptr* slot) {
     deferred_slots_ = new DeferredFloat32x4(
-        value, reinterpret_cast<RawObject**>(slot), deferred_slots_);
+        value, reinterpret_cast<ObjectPtr*>(slot), deferred_slots_);
   }
 
-  void DeferMaterialization(simd128_value_t value, RawFloat64x2** slot) {
+  void DeferMaterialization(simd128_value_t value, Float64x2Ptr* slot) {
     deferred_slots_ = new DeferredFloat64x2(
-        value, reinterpret_cast<RawObject**>(slot), deferred_slots_);
+        value, reinterpret_cast<ObjectPtr*>(slot), deferred_slots_);
   }
 
-  void DeferMaterialization(simd128_value_t value, RawInt32x4** slot) {
+  void DeferMaterialization(simd128_value_t value, Int32x4Ptr* slot) {
     deferred_slots_ = new DeferredInt32x4(
-        value, reinterpret_cast<RawObject**>(slot), deferred_slots_);
+        value, reinterpret_cast<ObjectPtr*>(slot), deferred_slots_);
   }
 
   void DeferRetAddrMaterialization(intptr_t index,
                                    intptr_t deopt_id,
                                    intptr_t* slot) {
     deferred_slots_ = new DeferredRetAddr(
-        index, deopt_id, reinterpret_cast<RawObject**>(slot), deferred_slots_);
+        index, deopt_id, reinterpret_cast<ObjectPtr*>(slot), deferred_slots_);
   }
 
   void DeferPcMarkerMaterialization(intptr_t index, intptr_t* slot) {
     deferred_slots_ = new DeferredPcMarker(
-        index, reinterpret_cast<RawObject**>(slot), deferred_slots_);
+        index, reinterpret_cast<ObjectPtr*>(slot), deferred_slots_);
   }
 
-  void DeferPpMaterialization(intptr_t index, RawObject** slot) {
+  void DeferPpMaterialization(intptr_t index, ObjectPtr* slot) {
     deferred_slots_ = new DeferredPp(index, slot, deferred_slots_);
   }
 
@@ -228,9 +229,9 @@ class DeoptContext {
 
   intptr_t DeferredObjectsCount() const { return deferred_objects_count_; }
 
-  RawCode* code_;
-  RawObjectPool* object_pool_;
-  RawTypedData* deopt_info_;
+  CodePtr code_;
+  ObjectPoolPtr object_pool_;
+  TypedDataPtr deopt_info_;
   bool dest_frame_is_allocated_;
   intptr_t* dest_frame_;
   intptr_t dest_frame_size_;
@@ -387,7 +388,8 @@ class RegisterSource {
       : source_index_(source_index) {}
 
   RegisterSource(Kind kind, intptr_t index)
-      : source_index_(KindField::encode(kind) | RawIndexField::encode(index)) {}
+      : source_index_(KindField::encode(kind) |
+                      IndexFieldLayout::encode(index)) {}
 
   template <typename T>
   T Value(DeoptContext* context) const {
@@ -417,13 +419,13 @@ class RegisterSource {
 
  private:
   class KindField : public BitField<intptr_t, intptr_t, 0, 1> {};
-  class RawIndexField
+  class IndexFieldLayout
       : public BitField<intptr_t, intptr_t, 1, kBitsPerWord - 1> {};
 
   bool is_register() const {
     return KindField::decode(source_index_) == kRegister;
   }
-  intptr_t raw_index() const { return RawIndexField::decode(source_index_); }
+  intptr_t raw_index() const { return IndexFieldLayout::decode(source_index_); }
 
   RegisterType reg() const { return static_cast<RegisterType>(raw_index()); }
 
@@ -479,7 +481,7 @@ class DeoptInfoBuilder : public ValueObject {
   // Returns the index of the next stack slot. Used for verification.
   intptr_t EmitMaterializationArguments(intptr_t dest_index);
 
-  RawTypedData* CreateDeoptInfo(const Array& deopt_table);
+  TypedDataPtr CreateDeoptInfo(const Array& deopt_table);
 
   // Mark the actual start of the frame description after all materialization
   // instructions were emitted. Used for verification purposes.
@@ -558,8 +560,8 @@ class DeoptTable : public AllStatic {
                        TypedData* info,
                        Smi* reason_and_flags);
 
-  static RawSmi* EncodeReasonAndFlags(ICData::DeoptReasonId reason,
-                                      uint32_t flags) {
+  static SmiPtr EncodeReasonAndFlags(ICData::DeoptReasonId reason,
+                                     uint32_t flags) {
     return Smi::New(ReasonField::encode(reason) | FlagsField::encode(flags));
   }
 
@@ -615,4 +617,5 @@ class DeoptInfo : public AllStatic {
 
 }  // namespace dart
 
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // RUNTIME_VM_DEOPT_INSTRUCTIONS_H_

@@ -287,7 +287,7 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
   return new File(new FileHandle(fd));
 }
 
-static Utils::CStringUniquePtr DecodeUri(const char* uri) {
+Utils::CStringUniquePtr File::UriToPath(const char* uri) {
   const char* path = (strlen(uri) >= 8 && strncmp(uri, "file:///", 8) == 0)
       ? uri + 7 : uri;
   UriDecoder uri_decoder(path);
@@ -299,7 +299,7 @@ static Utils::CStringUniquePtr DecodeUri(const char* uri) {
 }
 
 File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
-  auto path = DecodeUri(uri);
+  auto path = UriToPath(uri);
   if (path == nullptr) {
     return nullptr;
   }
@@ -321,7 +321,7 @@ bool File::Exists(Namespace* namespc, const char* name) {
 }
 
 bool File::ExistsUri(Namespace* namespc, const char* uri) {
-  auto path = DecodeUri(uri);
+  auto path = UriToPath(uri);
   if (path == nullptr) {
     return false;
   }
@@ -573,19 +573,25 @@ bool File::IsAbsolutePath(const char* pathname) {
   return (pathname != NULL && pathname[0] == '/');
 }
 
-const char* File::GetCanonicalPath(Namespace* namespc, const char* pathname) {
+const char* File::GetCanonicalPath(Namespace* namespc,
+                                   const char* pathname,
+                                   char* dest,
+                                   int dest_size) {
   char* abs_path = NULL;
   if (pathname != NULL) {
     // On some older MacOs versions the default behaviour of realpath allocating
-    // space for the resolved_path when a NULL is passed in does not seem to
-    // work, so we explicitly allocate space.
-    char* resolved_path = DartUtils::ScopedCString(PATH_MAX + 1);
-    ASSERT(resolved_path != NULL);
+    // space for the dest when a NULL is passed in does not seem to work, so we
+    // explicitly allocate space.
+    if (dest == NULL) {
+      dest = DartUtils::ScopedCString(PATH_MAX + 1);
+    } else {
+      ASSERT(dest_size >= PATH_MAX);
+    }
     do {
-      abs_path = realpath(pathname, resolved_path);
+      abs_path = realpath(pathname, dest);
     } while ((abs_path == NULL) && (errno == EINTR));
     ASSERT((abs_path == NULL) || IsAbsolutePath(abs_path));
-    ASSERT((abs_path == NULL) || (abs_path == resolved_path));
+    ASSERT((abs_path == NULL) || (abs_path == dest));
   }
   return abs_path;
 }

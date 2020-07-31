@@ -2,9 +2,9 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/infer_type_on_overridden_fields4.dart:17:69: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
-//   String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::x*/ x;
-//                                                                     ^
+// pkg/front_end/testcases/inference/infer_type_on_overridden_fields4.dart:17:68: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//   String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B.x*/ x;
+//                                                                    ^
 //
 import self as self;
 import "dart:core" as core;
@@ -14,6 +14,16 @@ class A extends core::Object {
   synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B extends core::Object implements self::A {
   synthetic constructor •() → self::B*
@@ -21,11 +31,21 @@ class B extends core::Object implements self::A {
     ;
   get x() → core::int*
     return 3;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method foo() → dynamic {
-  core::String* y = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_type_on_overridden_fields4.dart:17:69: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
-  String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::x*/ x;
-                                                                    ^" in new self::B::•().{self::B::x} as{TypeError} core::String*;
+  core::String* y = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_type_on_overridden_fields4.dart:17:68: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+  String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B.x*/ x;
+                                                                   ^" in new self::B::•().{self::B::x} as{TypeError} core::String*;
   core::int* z = new self::B::•().{self::B::x};
 }
 static method main() → dynamic {}

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart._http;
 
 class _CryptoUtils {
@@ -68,7 +66,7 @@ class _CryptoUtils {
     }
     final String lookup = urlSafe ? _encodeTableUrlSafe : _encodeTable;
     // Size of 24 bit chunks.
-    final int remainderLength = len.remainder(3);
+    final int remainderLength = len.remainder(3) as int;
     final int chunkLength = len - remainderLength;
     // Size of base output.
     int outputLen = ((len ~/ 3) * 4) + ((remainderLength > 0) ? 4 : 0);
@@ -76,7 +74,7 @@ class _CryptoUtils {
     if (addLineSeparator) {
       outputLen += ((outputLen - 1) ~/ LINE_LENGTH) << 1;
     }
-    List<int> out = new List<int>(outputLen);
+    List<int> out = new List<int>.filled(outputLen, 0);
 
     // Encode 24 bit chunks.
     int j = 0, i = 0, c = 0;
@@ -120,7 +118,7 @@ class _CryptoUtils {
       [bool ignoreInvalidCharacters = true]) {
     int len = input.length;
     if (len == 0) {
-      return new List<int>(0);
+      return new List<int>.empty();
     }
 
     // Count '\r', '\n' and illegal characters, For illegal characters,
@@ -149,7 +147,7 @@ class _CryptoUtils {
       if (currentCodeUnit == PAD) padLength++;
     }
     int outputLen = (((len - extrasLen) * 6) >> 3) - padLength;
-    List<int> out = new List<int>(outputLen);
+    List<int> out = new List<int>.filled(outputLen, 0);
 
     for (int i = 0, o = 0; o < outputLen;) {
       // Accumulate 4 valid 6 bit Base 64 characters into an int.
@@ -182,7 +180,6 @@ const _BYTES_PER_WORD = 4;
 abstract class _HashBase {
   // Hasher state.
   final int _chunkSizeInWords;
-  final int _digestSizeInWords;
   final bool _bigEndianWords;
   int _lengthInBytes = 0;
   List<int> _pendingData;
@@ -190,12 +187,10 @@ abstract class _HashBase {
   List<int> _h;
   bool _digestCalled = false;
 
-  _HashBase(
-      this._chunkSizeInWords, this._digestSizeInWords, this._bigEndianWords)
-      : _pendingData = [] {
-    _currentChunk = new List(_chunkSizeInWords);
-    _h = new List(_digestSizeInWords);
-  }
+  _HashBase(this._chunkSizeInWords, int digestSizeInWords, this._bigEndianWords)
+      : _pendingData = [],
+        _currentChunk = new List.filled(_chunkSizeInWords, 0),
+        _h = new List.filled(digestSizeInWords, 0);
 
   // Update the hasher with more data.
   add(List<int> data) {
@@ -271,7 +266,7 @@ abstract class _HashBase {
 
   // Convert a 32-bit word to four bytes.
   List<int> _wordToBytes(int word) {
-    List<int> bytes = new List(_BYTES_PER_WORD);
+    List<int> bytes = new List.filled(_BYTES_PER_WORD, 0);
     bytes[0] = (word >> (_bigEndianWords ? 24 : 0)) & _MASK_8;
     bytes[1] = (word >> (_bigEndianWords ? 16 : 8)) & _MASK_8;
     bytes[2] = (word >> (_bigEndianWords ? 8 : 16)) & _MASK_8;
@@ -397,9 +392,11 @@ class _MD5 extends _HashBase {
 
 // The SHA1 hasher is used to compute an SHA1 message digest.
 class _SHA1 extends _HashBase {
+  List<int> _w;
+
   // Construct a SHA1 hasher object.
   _SHA1()
-      : _w = new List(80),
+      : _w = List<int>.filled(80, 0),
         super(16, 5, true) {
     _h[0] = 0x67452301;
     _h[1] = 0xEFCDAB89;
@@ -455,6 +452,4 @@ class _SHA1 extends _HashBase {
     _h[3] = _add32(d, _h[3]);
     _h[4] = _add32(e, _h[4]);
   }
-
-  List<int> _w;
 }

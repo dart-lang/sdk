@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/pub.dart';
@@ -30,7 +30,7 @@ Pubspec _findAndParsePubspec(Directory root) {
 /// A semantic representation of a Dart project.
 ///
 /// Projects provide a semantic model of a Dart project based on the
-/// [pub package layout conventions](https://www.dartlang.org/tools/pub/package-layout.html).
+/// [pub package layout conventions](https://dart.dev/tools/pub/package-layout).
 /// This model allows clients to traverse project contents in a convenient and
 /// standardized way, access global information (such as whether elements are
 /// in the "public API") and resources that have special meanings in the
@@ -121,7 +121,7 @@ class _ApiModel {
     return false;
   }
 
-  _calculate() async {
+  void _calculate() async {
     if (sources == null || sources.isEmpty) {
       return;
     }

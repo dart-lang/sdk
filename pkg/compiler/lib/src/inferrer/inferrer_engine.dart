@@ -772,7 +772,7 @@ class InferrerEngine {
       int parameterIndex = 0;
       types.strategy.forEachParameter(callee, (Local parameter) {
         TypeInformation type;
-        if (parameterIndex < parameterStructure.requiredParameters) {
+        if (parameterIndex < parameterStructure.requiredPositionalParameters) {
           type = arguments.positional[parameterIndex];
         } else if (parameterStructure.namedParameters.isNotEmpty) {
           type = arguments.named[parameter.name];

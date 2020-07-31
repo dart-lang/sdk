@@ -4,15 +4,3 @@
 
 // ignore: import_internal_library
 import 'dart:_internal';
-
-@patch
-class Class1 {
-  int field;
-}
-
-@patch
-class Class2 {
-  int field;
-
-  Class2.constructor2(this.field);
-}

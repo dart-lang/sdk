@@ -34,7 +34,7 @@ void testCreateInNonExistent(Directory temp, Function done) {
   Expect.throws(() => inNonExistent.createSync(),
       (e) => checkCreateInNonExistentFileSystemException(e));
 
-  inNonExistent.create().catchError((error) {
+  Future<Directory?>.value(inNonExistent.create()).catchError((error) {
     checkCreateInNonExistentFileSystemException(error);
     done();
   });
@@ -59,7 +59,8 @@ void testCreateTempInNonExistent(Directory temp, Function done) {
   Expect.throws(() => nonExistent.createTempSync('tempdir'),
       (e) => checkCreateTempInNonExistentFileSystemException(e));
 
-  nonExistent.createTemp('tempdir').catchError((error) {
+  Future<Directory?>.value(nonExistent.createTemp('tempdir'))
+      .catchError((error) {
     checkCreateTempInNonExistentFileSystemException(error);
     done();
   });
@@ -79,7 +80,7 @@ void testDeleteNonExistent(Directory temp, Function done) {
   Expect.throws(() => nonExistent.deleteSync(),
       (e) => checkDeleteNonExistentFileSystemException(e));
 
-  nonExistent.delete().catchError((error) {
+  Future<FileSystemEntity?>.value(nonExistent.delete()).catchError((error) {
     checkDeleteNonExistentFileSystemException(error);
     done();
   });
@@ -100,7 +101,8 @@ void testDeleteRecursivelyNonExistent(Directory temp, Function done) {
   Expect.throws(() => nonExistent.deleteSync(recursive: true),
       (e) => checkDeleteRecursivelyNonExistentFileSystemException(e));
 
-  nonExistent.delete(recursive: true).catchError((error) {
+  Future<FileSystemEntity?>.value(nonExistent.delete(recursive: true))
+      .catchError((error) {
     checkDeleteRecursivelyNonExistentFileSystemException(error);
     done();
   });

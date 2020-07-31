@@ -48,6 +48,6 @@ main() async {
 }
 
 @pragma('vm:never-inline')
-produceGarbage() => all.add(List(1024));
+produceGarbage() => all.add(List.filled(1024, null));
 
 final all = [];

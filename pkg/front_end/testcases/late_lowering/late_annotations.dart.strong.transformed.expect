@@ -1,0 +1,172 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class Annotation extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::Annotation
+    : super core::Object::•()
+    ;
+}
+class A extends core::Object {
+  field core::int? _#A#instanceField = null;
+  field core::int? _#A#finalInstanceField = null;
+  field core::int? _#A#finalInstanceFieldWithInitializer = null;
+  field core::num? _#A#covariantInstanceField = null;
+  static field core::int? _#staticField = null;
+  static field core::int? _#finalStaticField = null;
+  static field core::int? _#finalStaticFieldWithInitializer = null;
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  @#C1
+  get instanceField() → core::int
+    return let final core::int? #t1 = this.{self::A::_#A#instanceField} in #t1.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'instanceField' has not been initialized.") : #t1{core::int};
+  @#C1
+  set instanceField(core::int #t2) → void
+    this.{self::A::_#A#instanceField} = #t2;
+  @#C1
+  get finalInstanceField() → core::int
+    return let final core::int? #t3 = this.{self::A::_#A#finalInstanceField} in #t3.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'finalInstanceField' has not been initialized.") : #t3{core::int};
+  @#C1
+  set finalInstanceField(core::int #t4) → void
+    if(this.{self::A::_#A#finalInstanceField}.==(null))
+      this.{self::A::_#A#finalInstanceField} = #t4;
+    else
+      throw new _in::LateInitializationErrorImpl::•("Field 'finalInstanceField' has already been initialized.");
+  @#C1
+  get finalInstanceFieldWithInitializer() → core::int
+    return let final core::int? #t5 = this.{self::A::_#A#finalInstanceFieldWithInitializer} in #t5.==(null) ?{core::int} let final core::int #t6 = 0 in this.{self::A::_#A#finalInstanceFieldWithInitializer}.==(null) ?{core::int} this.{self::A::_#A#finalInstanceFieldWithInitializer} = #t6 : throw new _in::LateInitializationErrorImpl::•("Field 'finalInstanceFieldWithInitializer' has been assigned during initialization.") : #t5{core::int};
+  @#C1
+  get covariantInstanceField() → core::num
+    return let final core::num? #t7 = this.{self::A::_#A#covariantInstanceField} in #t7.==(null) ?{core::num} throw new _in::LateInitializationErrorImpl::•("Field 'covariantInstanceField' has not been initialized.") : #t7{core::num};
+  @#C1
+  set covariantInstanceField(covariant core::num #t8) → void
+    this.{self::A::_#A#covariantInstanceField} = #t8;
+  @#C1
+  static get staticField() → core::int
+    return let final core::int? #t9 = self::A::_#staticField in #t9.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'staticField' has not been initialized.") : #t9{core::int};
+  @#C1
+  static set staticField(core::int #t10) → void
+    self::A::_#staticField = #t10;
+  @#C1
+  static get finalStaticField() → core::int
+    return let final core::int? #t11 = self::A::_#finalStaticField in #t11.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'finalStaticField' has not been initialized.") : #t11{core::int};
+  @#C1
+  static set finalStaticField(core::int #t12) → void
+    if(self::A::_#finalStaticField.==(null))
+      self::A::_#finalStaticField = #t12;
+    else
+      throw new _in::LateInitializationErrorImpl::•("Field 'finalStaticField' has already been initialized.");
+  @#C1
+  static get finalStaticFieldWithInitializer() → core::int
+    return let final core::int? #t13 = self::A::_#finalStaticFieldWithInitializer in #t13.==(null) ?{core::int} let final core::int #t14 = 0 in self::A::_#finalStaticFieldWithInitializer.==(null) ?{core::int} self::A::_#finalStaticFieldWithInitializer = #t14 : throw new _in::LateInitializationErrorImpl::•("Field 'finalStaticFieldWithInitializer' has been assigned during initialization.") : #t13{core::int};
+}
+abstract class B extends core::Object /*isMixinDeclaration*/  {
+  field core::int? _#B#instanceField = null;
+  field core::int? _#B#finalInstanceField = null;
+  field core::int? _#B#finalInstanceFieldWithInitializer = null;
+  field core::num? _#B#covariantInstanceField = null;
+  static field core::int? _#staticField = null;
+  static field core::int? _#finalStaticField = null;
+  static field core::int? _#finalStaticFieldWithInitializer = null;
+  @#C1
+  get instanceField() → core::int
+    return let final core::int? #t15 = this.{self::B::_#B#instanceField} in #t15.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'instanceField' has not been initialized.") : #t15{core::int};
+  @#C1
+  set instanceField(core::int #t16) → void
+    this.{self::B::_#B#instanceField} = #t16;
+  @#C1
+  get finalInstanceField() → core::int
+    return let final core::int? #t17 = this.{self::B::_#B#finalInstanceField} in #t17.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'finalInstanceField' has not been initialized.") : #t17{core::int};
+  @#C1
+  set finalInstanceField(core::int #t18) → void
+    if(this.{self::B::_#B#finalInstanceField}.==(null))
+      this.{self::B::_#B#finalInstanceField} = #t18;
+    else
+      throw new _in::LateInitializationErrorImpl::•("Field 'finalInstanceField' has already been initialized.");
+  @#C1
+  get finalInstanceFieldWithInitializer() → core::int
+    return let final core::int? #t19 = this.{self::B::_#B#finalInstanceFieldWithInitializer} in #t19.==(null) ?{core::int} let final core::int #t20 = 0 in this.{self::B::_#B#finalInstanceFieldWithInitializer}.==(null) ?{core::int} this.{self::B::_#B#finalInstanceFieldWithInitializer} = #t20 : throw new _in::LateInitializationErrorImpl::•("Field 'finalInstanceFieldWithInitializer' has been assigned during initialization.") : #t19{core::int};
+  @#C1
+  get covariantInstanceField() → core::num
+    return let final core::num? #t21 = this.{self::B::_#B#covariantInstanceField} in #t21.==(null) ?{core::num} throw new _in::LateInitializationErrorImpl::•("Field 'covariantInstanceField' has not been initialized.") : #t21{core::num};
+  @#C1
+  set covariantInstanceField(covariant core::num #t22) → void
+    this.{self::B::_#B#covariantInstanceField} = #t22;
+  @#C1
+  static get staticField() → core::int
+    return let final core::int? #t23 = self::B::_#staticField in #t23.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'staticField' has not been initialized.") : #t23{core::int};
+  @#C1
+  static set staticField(core::int #t24) → void
+    self::B::_#staticField = #t24;
+  @#C1
+  static get finalStaticField() → core::int
+    return let final core::int? #t25 = self::B::_#finalStaticField in #t25.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'finalStaticField' has not been initialized.") : #t25{core::int};
+  @#C1
+  static set finalStaticField(core::int #t26) → void
+    if(self::B::_#finalStaticField.==(null))
+      self::B::_#finalStaticField = #t26;
+    else
+      throw new _in::LateInitializationErrorImpl::•("Field 'finalStaticField' has already been initialized.");
+  @#C1
+  static get finalStaticFieldWithInitializer() → core::int
+    return let final core::int? #t27 = self::B::_#finalStaticFieldWithInitializer in #t27.==(null) ?{core::int} let final core::int #t28 = 0 in self::B::_#finalStaticFieldWithInitializer.==(null) ?{core::int} self::B::_#finalStaticFieldWithInitializer = #t28 : throw new _in::LateInitializationErrorImpl::•("Field 'finalStaticFieldWithInitializer' has been assigned during initialization.") : #t27{core::int};
+}
+extension Extension on self::A {
+  static field extensionStaticField = self::_#Extension|extensionStaticField;
+  static get extensionStaticField = get self::Extension|extensionStaticField;
+  static set extensionStaticField = set self::Extension|extensionStaticField;
+  static field finalExtensionStaticField = self::_#Extension|finalExtensionStaticField;
+  static get finalExtensionStaticField = get self::Extension|finalExtensionStaticField;
+  static set finalExtensionStaticField = set self::Extension|finalExtensionStaticField;
+  static field finalExtensionStaticFieldWithInitializer = self::_#Extension|finalExtensionStaticFieldWithInitializer;
+  static get finalExtensionStaticFieldWithInitializer = get self::Extension|finalExtensionStaticFieldWithInitializer;
+}
+static field core::int? _#topLevelField = null;
+static field core::int? _#finalTopLevelField = null;
+static field core::int? _#finalTopLevelFieldWithInitializer = null;
+static field core::int? _#Extension|extensionStaticField = null;
+static field core::int? _#Extension|finalExtensionStaticField = null;
+static field core::int? _#Extension|finalExtensionStaticFieldWithInitializer = null;
+@#C1
+static get topLevelField() → core::int
+  return let final core::int? #t29 = self::_#topLevelField in #t29.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'topLevelField' has not been initialized.") : #t29{core::int};
+@#C1
+static set topLevelField(core::int #t30) → void
+  self::_#topLevelField = #t30;
+@#C1
+static get finalTopLevelField() → core::int
+  return let final core::int? #t31 = self::_#finalTopLevelField in #t31.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'finalTopLevelField' has not been initialized.") : #t31{core::int};
+@#C1
+static set finalTopLevelField(core::int #t32) → void
+  if(self::_#finalTopLevelField.==(null))
+    self::_#finalTopLevelField = #t32;
+  else
+    throw new _in::LateInitializationErrorImpl::•("Field 'finalTopLevelField' has already been initialized.");
+@#C1
+static get finalTopLevelFieldWithInitializer() → core::int
+  return let final core::int? #t33 = self::_#finalTopLevelFieldWithInitializer in #t33.==(null) ?{core::int} let final core::int #t34 = 0 in self::_#finalTopLevelFieldWithInitializer.==(null) ?{core::int} self::_#finalTopLevelFieldWithInitializer = #t34 : throw new _in::LateInitializationErrorImpl::•("Field 'finalTopLevelFieldWithInitializer' has been assigned during initialization.") : #t33{core::int};
+@#C1
+static get Extension|extensionStaticField() → core::int
+  return let final core::int? #t35 = self::_#Extension|extensionStaticField in #t35.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'extensionStaticField' has not been initialized.") : #t35{core::int};
+@#C1
+static set Extension|extensionStaticField(core::int #t36) → void
+  self::_#Extension|extensionStaticField = #t36;
+@#C1
+static get Extension|finalExtensionStaticField() → core::int
+  return let final core::int? #t37 = self::_#Extension|finalExtensionStaticField in #t37.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'finalExtensionStaticField' has not been initialized.") : #t37{core::int};
+@#C1
+static set Extension|finalExtensionStaticField(core::int #t38) → void
+  if(self::_#Extension|finalExtensionStaticField.==(null))
+    self::_#Extension|finalExtensionStaticField = #t38;
+  else
+    throw new _in::LateInitializationErrorImpl::•("Field 'finalExtensionStaticField' has already been initialized.");
+@#C1
+static get Extension|finalExtensionStaticFieldWithInitializer() → core::int
+  return let final core::int? #t39 = self::_#Extension|finalExtensionStaticFieldWithInitializer in #t39.==(null) ?{core::int} let final core::int #t40 = 0 in self::_#Extension|finalExtensionStaticFieldWithInitializer.==(null) ?{core::int} self::_#Extension|finalExtensionStaticFieldWithInitializer = #t40 : throw new _in::LateInitializationErrorImpl::•("Field 'finalExtensionStaticFieldWithInitializer' has been assigned during initialization.") : #t39{core::int};
+static method main() → dynamic {}
+
+constants  {
+  #C1 = self::Annotation {}
+}

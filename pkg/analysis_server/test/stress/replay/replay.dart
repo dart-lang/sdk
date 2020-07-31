@@ -218,9 +218,13 @@ class Driver {
   /// to break the text when building edits.
   List<int> _getBreakOffsets(String text) {
     var breakOffsets = <int>[];
+    var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
     var scanner = Scanner(null, CharSequenceReader(text),
         error.AnalysisErrorListener.NULL_LISTENER)
-      ..configureFeatures(FeatureSet.forTesting(sdkVersion: '2.2.2'));
+      ..configureFeatures(
+        featureSetForOverriding: featureSet,
+        featureSet: featureSet,
+      );
     var token = scanner.tokenize();
     // TODO(brianwilkerson) Randomize. Sometimes add zero (0) as a break point.
     while (token.type != TokenType.EOF) {

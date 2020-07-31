@@ -1,0 +1,127 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_41265.crash_dart:9:53: Error: Unexpected token '>'.
+// class DND1 extends Object with M<dynamic> Function()> {
+//                                                     ^
+//
+// pkg/front_end/testcases/regress/issue_41265.crash_dart:9:7: Error: The type '() -> M<dynamic>' can't be mixed in.
+// class DND1 extends Object with M<dynamic> Function()> {
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_41265.crash_dart:12:7: Error: The type '() -> M<dynamic>' can't be mixed in.
+// class DND2 extends Object with M<dynamic> Function() {
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_41265.crash_dart:9:7: Error: Can't use a function type as supertype.
+// class DND1 extends Object with M<dynamic> Function()> {
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_41265.crash_dart:12:7: Error: Can't use a function type as supertype.
+// class DND2 extends Object with M<dynamic> Function() {
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_41265.crash_dart:15:7: Error: Can't use a function type as supertype.
+// class DND3 extends M<dynamic> Function() {
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_41265.crash_dart:18:7: Error: Can't use a function type as supertype.
+// class DND4 implements M<dynamic> Function() {
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T*>*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+abstract class M<T extends core::Object* = dynamic> extends core::Object /*isMixinDeclaration*/  {
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+abstract class _DND1&Object extends core::Object /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_DND1&Object*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+class DND1 extends self::_DND1&Object {
+  synthetic constructor •() → self::DND1*
+    ;
+}
+abstract class _DND2&Object extends core::Object /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_DND2&Object*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+class DND2 extends self::_DND2&Object {
+  synthetic constructor •() → self::DND2*
+    ;
+}
+class DND3 extends core::Object {
+  synthetic constructor •() → self::DND3*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+class DND4 extends core::Object {
+  synthetic constructor •() → self::DND4*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+static method main() → dynamic
+  ;

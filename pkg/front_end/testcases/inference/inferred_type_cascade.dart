@@ -12,8 +12,8 @@ class A {
 }
 
 var v = new A()
-  .. /*@target=A::a*/ a = 1
-  .. /*@target=A::b*/ b. /*@target=List::add*/ add(2)
-  .. /*@target=A::m*/ m();
+  .. /*@target=A.a*/ a = 1
+  .. /*@target=A.b*/ b. /*@target=List.add*/ add(2)
+  .. /*@target=A.m*/ m();
 
 main() {}

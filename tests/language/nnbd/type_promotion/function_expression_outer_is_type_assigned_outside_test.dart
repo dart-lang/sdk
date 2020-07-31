@@ -5,7 +5,7 @@
 // SharedOptions=--enable-experiment=non-nullable
 
 void f(Object x) {
-  void Function() g;
+  late void Function() g;
 
   if (x is String) {
     x.length;

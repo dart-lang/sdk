@@ -1,0 +1,3 @@
+const generatorConfigDefaultJson = <String, dynamic>{'a': 1};
+void helper(Map<String, dynamic> input) {}
+void main() {}

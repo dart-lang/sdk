@@ -1,0 +1,9 @@
+// @dart = 2.6
+library redirecting_factory_constructors.simple_test;
+
+class A {
+  A();
+  factory A.redir() = A;
+}
+
+main() {}

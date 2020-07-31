@@ -15,18 +15,24 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/constant/compute.dart';
+import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
+import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions;
-import 'package:analyzer/src/generated/resolver.dart'
-    show ConstantVerifier, ScopedVisitor;
+    show
+        AnalysisErrorInfo,
+        AnalysisErrorInfoImpl,
+        AnalysisOptions,
+        AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/resolver.dart' show ScopedVisitor;
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/lint/analysis.dart';
@@ -137,7 +143,7 @@ class DartLinter implements AnalysisErrorListener {
   }
 
   @override
-  onError(AnalysisError error) => errors.add(error);
+  void onError(AnalysisError error) => errors.add(error);
 
   Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
       lintPubspecSource(
@@ -239,15 +245,15 @@ abstract class LinterContext {
 
   TypeSystem get typeSystem;
 
-  /// Return `true` if it would be valid for the given instance creation
-  /// [expression] to have a keyword of `const`.
+  /// Return `true` if it would be valid for the given [expression] to have
+  /// a keyword of `const`.
   ///
   /// The [expression] is expected to be a node within one of the compilation
   /// units in [allUnits].
   ///
   /// Note that this method can cause constant evaluation to occur, which can be
   /// computationally expensive.
-  bool canBeConst(InstanceCreationExpression expression);
+  bool canBeConst(Expression expression);
 
   /// Return `true` if it would be valid for the given constructor declaration
   /// [node] to have a keyword of `const`.
@@ -307,29 +313,13 @@ class LinterContextImpl implements LinterContext {
   );
 
   @override
-  bool canBeConst(InstanceCreationExpression expression) {
-    //
-    // Verify that the invoked constructor is a const constructor.
-    //
-    ConstructorElement element = expression.staticElement;
-    if (element == null || !element.isConst) {
+  bool canBeConst(Expression expression) {
+    if (expression is InstanceCreationExpression) {
+      return _canBeConstInstanceCreation(expression);
+    } else if (expression is TypedLiteral) {
+      return _canBeConstTypedLiteral(expression);
+    } else {
       return false;
-    }
-
-    // Ensure that dependencies (e.g. default parameter values) are computed.
-    ConstructorElementImpl implElement = element.declaration;
-    implElement.computeConstantDependencies();
-
-    //
-    // Verify that the evaluation of the constructor would not produce an
-    // exception.
-    //
-    Token oldKeyword = expression.keyword;
-    try {
-      expression.keyword = KeywordToken(Keyword.CONST, expression.offset);
-      return !_hasConstantVerifierError(expression);
-    } finally {
-      expression.keyword = oldKeyword;
     }
   }
 
@@ -423,12 +413,58 @@ class LinterContextImpl implements LinterContext {
     return const LinterNameInScopeResolutionResult._none();
   }
 
+  bool _canBeConstInstanceCreation(InstanceCreationExpression node) {
+    //
+    // Verify that the invoked constructor is a const constructor.
+    //
+    ConstructorElement element = node.constructorName.staticElement;
+    if (element == null || !element.isConst) {
+      return false;
+    }
+
+    // Ensure that dependencies (e.g. default parameter values) are computed.
+    ConstructorElementImpl implElement = element.declaration;
+    implElement.computeConstantDependencies();
+
+    //
+    // Verify that the evaluation of the constructor would not produce an
+    // exception.
+    //
+    Token oldKeyword = node.keyword;
+    try {
+      node.keyword = KeywordToken(Keyword.CONST, node.offset);
+      return !_hasConstantVerifierError(node);
+    } finally {
+      node.keyword = oldKeyword;
+    }
+  }
+
+  bool _canBeConstTypedLiteral(TypedLiteral node) {
+    Token oldKeyword = node.constKeyword;
+    try {
+      node.constKeyword = KeywordToken(Keyword.CONST, node.offset);
+      return !_hasConstantVerifierError(node);
+    } finally {
+      node.constKeyword = oldKeyword;
+    }
+  }
+
   /// Return `true` if [ConstantVerifier] reports an error for the [node].
   bool _hasConstantVerifierError(AstNode node) {
     var unitElement = currentUnit.unit.declaredElement;
     var libraryElement = unitElement.library;
 
-    var listener = ConstantAnalysisErrorListener();
+    var dependenciesFinder = ConstantExpressionsDependenciesFinder();
+    node.accept(dependenciesFinder);
+    computeConstants(
+      typeProvider,
+      typeSystem,
+      declaredVariables,
+      dependenciesFinder.dependencies.toList(),
+      (analysisOptions as AnalysisOptionsImpl).experimentStatus,
+    );
+
+    var listener = _ConstantAnalysisErrorListener();
     var errorReporter = ErrorReporter(
       listener,
       unitElement.source,
@@ -590,6 +626,12 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     if (node != null && (!node.isSynthetic || !ignoreSyntheticNodes)) {
       reporter.reportErrorForNode(errorCode ?? lintCode, node, arguments);
     }
+  }
+
+  void reportLintForOffset(int offset, int length,
+      {List<Object> arguments = const [], ErrorCode errorCode}) {
+    reporter.reportErrorForOffset(
+        errorCode ?? lintCode, offset, length, arguments);
   }
 
   void reportLintForToken(Token token,
@@ -754,12 +796,53 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   }
 
   @override
-  onError(AnalysisError error) => errors.add(error);
+  void onError(AnalysisError error) => errors.add(error);
 
   @override
   Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
       lintPubspecSource(
           contents: sourceFile.readAsStringSync(), sourcePath: sourceFile.path);
+}
+
+/// An error listener that only records whether any constant related errors have
+/// been reported.
+class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
+  /// A flag indicating whether any constant related errors have been reported
+  /// to this listener.
+  bool hasConstError = false;
+
+  @override
+  void onError(AnalysisError error) {
+    ErrorCode errorCode = error.errorCode;
+    if (errorCode is CompileTimeErrorCode) {
+      switch (errorCode) {
+        case CompileTimeErrorCode
+            .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
+        case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
+        case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT:
+        case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
+        case CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
+        case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
+        case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
+        case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
+        case CompileTimeErrorCode
+            .CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS:
+        case CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS:
+        case CompileTimeErrorCode.CONST_WITH_NON_CONST:
+        case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
+        case CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS:
+        case CompileTimeErrorCode.INVALID_CONSTANT:
+        case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
+        case CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL:
+        case CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL:
+        case CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT:
+        case CompileTimeErrorCode.NON_CONSTANT_MAP_KEY:
+        case CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE:
+        case CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
+          hasConstError = true;
+      }
+    }
+  }
 }
 
 class _LintCode extends LintCode {

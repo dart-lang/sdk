@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.async;
 
 /**
@@ -15,7 +13,7 @@ part of dart.async;
 @Deprecated("Dart sdk v. 1.8")
 class DeferredLibrary {
   final String libraryName;
-  final String uri;
+  final String? uri;
 
   const DeferredLibrary(this.libraryName, {this.uri});
 
@@ -32,7 +30,7 @@ class DeferredLibrary {
  * Thrown when a deferred library fails to load.
  */
 class DeferredLoadException implements Exception {
-  DeferredLoadException(this._s);
+  DeferredLoadException(String message) : _s = message;
   String toString() => "DeferredLoadException: '$_s'";
   final String _s;
 }

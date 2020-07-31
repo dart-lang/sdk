@@ -1,0 +1,10 @@
+library test;
+
+abstract class C {}
+
+abstract class D<T> {
+  D(T t);
+}
+
+main() {}
+void test() {}

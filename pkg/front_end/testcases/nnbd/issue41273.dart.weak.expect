@@ -1,0 +1,31 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test(dynamic x) → void {
+  if(x is{ForNonNullableByDefault} Never) {
+    Never n1 = x{Never}.toString();
+    Never n2 = x{Never}.runtimeType;
+    Never n3 = x{Never}.someGetter;
+    Never n4 = x{Never}.someMethod();
+    Never n5 = x{Never}.+(x{Never});
+    Never n6 = x{Never}.[](x{Never});
+    Never n7 = x{Never}.call();
+    Never n8 = x{Never}.runtimeType();
+    Never n9 = x{Never}.toString;
+    x{Never}.runtimeType = core::Object;
+    x{Never}.toString = () → core::String => "";
+    Never v1 = x{Never}.toString();
+    Never v2 = x{Never}.runtimeType;
+    Never v3 = x{Never}.someGetter;
+    Never v4 = x{Never}.someMethod();
+    Never v5 = x{Never}.+(x{Never});
+    Never v6 = x{Never}.[](x{Never});
+    Never v7 = x{Never}.call();
+    Never v8 = x{Never}.runtimeType();
+    Never v9 = x{Never}.toString;
+  }
+}
+static method main() → dynamic {
+  self::test(null);
+}

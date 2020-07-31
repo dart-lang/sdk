@@ -7,3 +7,6 @@ const String migratedAlready =
 const String nnbdExperimentOff =
     'Analyzer seems to need the nnbd experiment on in the SDK.';
 const String sdkNnbdOff = 'Analysis seems to have an SDK without NNBD enabled.';
+const String sdkPathEnvironmentVariableSet =
+    r'Note: $SDK_PATH environment variable is set and may point to outdated '
+    'dart:core sources';

@@ -1,0 +1,27 @@
+// @dart = 2.6
+@a
+@A(1)
+library test;
+
+const Object a = const Object();
+
+class A {
+  const A(int value);
+}
+
+@a
+@A(2)
+class C {}
+
+@a
+@A(2)
+typedef void F1();
+@a
+@A(3)
+typedef F2 = void Function();
+@a
+@A(3)
+int f1, f2;
+@a
+@A(4)
+void main() {}

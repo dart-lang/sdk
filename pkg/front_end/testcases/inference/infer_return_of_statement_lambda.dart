@@ -7,11 +7,11 @@ library test;
 
 List<String> strings() {
   var /*@ type=Iterable<String*>* */ stuff = /*@ typeArgs=dynamic */ []
-      . /*@ typeArgs=String* */ /*@target=Iterable::expand*/ expand(
+      . /*@ typeArgs=String* */ /*@target=Iterable.expand*/ expand(
           /*@ returnType=List<String*>* */ (/*@ type=dynamic */ i) {
     return <String>[];
   });
-  return stuff. /*@target=Iterable::toList*/ toList();
+  return stuff. /*@target=Iterable.toList*/ toList();
 }
 
 main() {

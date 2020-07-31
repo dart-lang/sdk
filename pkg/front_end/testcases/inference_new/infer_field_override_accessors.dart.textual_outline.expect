@@ -1,0 +1,15 @@
+abstract class A {
+  A get x;
+  void set x(B value);
+  B get y;
+  void set y(A value);
+}
+
+abstract class B extends A {}
+
+class C extends B {
+  var x;
+  var y;
+}
+
+main() {}

@@ -4,7 +4,8 @@
 
 // @dart = 2.6
 
-// Requirements=nnbd
+// Can't run in strong mode since it contains a legacy library.
+// Requirements=nnbd-weak
 
 import 'package:expect/expect.dart';
 

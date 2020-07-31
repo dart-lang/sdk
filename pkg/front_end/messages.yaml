@@ -129,6 +129,9 @@ ConstEvalZeroDivisor:
 ConstEvalNegativeShift:
   template: "Binary operator '#string' on '#string2' requires non-negative operand, but was '#string3'."
 
+ConstEvalTruncateError:
+  template: "Binary operator '#string ~/ #string2' results is Infinity or NaN."
+
 ConstEvalInvalidMethodInvocation:
   template: "The method '#string' can't be invoked on '#constant' in a constant expression."
   analyzerCode: UNDEFINED_OPERATOR
@@ -233,8 +236,8 @@ Encoding:
 
 ExperimentNotEnabled:
   index: 48
-  template: "This requires the '#string' experiment to be enabled."
-  tip: "Try enabling this experiment by adding it to the command line when compiling and running."
+  template: "This requires the '#string' language feature to be enabled."
+  tip: "Try updating your pubspec.yaml to set the minimum SDK constraint to #string2 or higher, and running 'pub get'."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
 EmptyNamedParameterList:
@@ -1182,6 +1185,9 @@ UnterminatedToken:
 Unspecified:
   template: "#string"
 
+StrongModeNNBDButOptOut:
+  template: "A library can't opt out of null safety by default, when using sound null safety."
+
 AbstractNotSync:
   template: "Abstract methods can't use 'async', 'async*', or 'sync*'."
   analyzerCode: NON_SYNC_ABSTRACT_METHOD
@@ -1610,9 +1616,6 @@ FastaUsageLong:
         Location of the SDK sources for use when compiling additional platform
         libraries.
 
-      --supermixin
-        Ignored for now.
-
       --single-root-scheme=String
       --single-root-base=<dir>
         Specify a custom URI scheme and a location on disk where such URIs are
@@ -1732,6 +1735,10 @@ InternalProblemVerificationError:
     Verification of the generated program failed:
     #string
   severity: INTERNAL_PROBLEM
+
+VerificationErrorOriginContext:
+  template: "The node most likely is taken from here by a transformer."
+  severity: CONTEXT
 
 InternalProblemDebugAbort:
   template: "Compilation aborted due to fatal '#name' at:\n#string"
@@ -2229,6 +2236,14 @@ TypedefNullableType:
   template: "Can't create typedef from nullable type."
   configuration: nnbd-strong
   script: typedef F = void Function()?;
+
+TypedefUnaliasedTypeCause:
+  template: "This is the type denoted by the type alias."
+  severity: CONTEXT
+
+TypedefCause:
+  template: "The issue arises via this type alias."
+  severity: CONTEXT
 
 LibraryDirectiveNotFirst:
   index: 37
@@ -3386,6 +3401,18 @@ ReturnWithoutExpression:
   analyzerCode: RETURN_WITHOUT_VALUE
   declaration: "int foo() { return; }"
 
+ReturnWithoutExpressionSync:
+  template: "A value must be explicitly returned from a non-void function."
+  configuration: nnbd-strong
+  script: |
+    import "dart:async";
+    FutureOr<Object?> foo() { return; }
+
+ReturnWithoutExpressionAsync:
+  template: "A value must be explicitly returned from a non-void async function."
+  configuration: nnbd-strong
+  declaration: "Future<int> foo() async { return; }"
+
 ImplicitReturnNull:
   template: "A non-null value must be returned since the return type '#type' doesn't allow null."
   configuration: nnbd-strong
@@ -4038,7 +4065,7 @@ NonAgnosticConstant:
 
 ExportOptOutFromOptIn:
   template: "Null safe libraries are not allowed to export declarations from of opt-out libraries."
-  configuration: nnbd-strong
+  configuration: nnbd-weak
   script:
     main.dart: |
       export 'lib.dart';

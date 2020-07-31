@@ -2,40 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/backend/evaluator.h"
 
 namespace dart {
 
-static bool IsRepresentable(const Integer& value, Representation rep) {
-  switch (rep) {
-    case kTagged:  // Smi case.
-      return value.IsSmi();
-
-    case kUnboxedInt32:
-      if (value.IsSmi() || value.IsMint()) {
-        return Utils::IsInt(32, value.AsInt64Value());
-      }
-      return false;
-
-    case kUnboxedInt64:
-      return value.IsSmi() || value.IsMint();
-
-    case kUnboxedUint32:
-      if (value.IsSmi() || value.IsMint()) {
-        return Utils::IsUint(32, value.AsInt64Value());
-      }
-      return false;
-
-    default:
-      UNREACHABLE();
-  }
-}
-
-static RawInteger* BinaryIntegerEvaluateRaw(const Integer& left,
-                                            const Integer& right,
-                                            Token::Kind token_kind) {
+static IntegerPtr BinaryIntegerEvaluateRaw(const Integer& left,
+                                           const Integer& right,
+                                           Token::Kind token_kind) {
   switch (token_kind) {
     case Token::kTRUNCDIV:
       FALL_THROUGH;
@@ -73,9 +46,9 @@ static RawInteger* BinaryIntegerEvaluateRaw(const Integer& left,
   return Integer::null();
 }
 
-static RawInteger* UnaryIntegerEvaluateRaw(const Integer& value,
-                                           Token::Kind token_kind,
-                                           Zone* zone) {
+static IntegerPtr UnaryIntegerEvaluateRaw(const Integer& value,
+                                          Token::Kind token_kind,
+                                          Zone* zone) {
   switch (token_kind) {
     case Token::kNEGATE:
       return value.ArithmeticOp(Token::kMUL, Smi::Handle(zone, Smi::New(-1)),
@@ -112,12 +85,12 @@ int64_t Evaluator::TruncateTo(int64_t v, Representation r) {
   }
 }
 
-RawInteger* Evaluator::BinaryIntegerEvaluate(const Object& left,
-                                             const Object& right,
-                                             Token::Kind token_kind,
-                                             bool is_truncating,
-                                             Representation representation,
-                                             Thread* thread) {
+IntegerPtr Evaluator::BinaryIntegerEvaluate(const Object& left,
+                                            const Object& right,
+                                            Token::Kind token_kind,
+                                            bool is_truncating,
+                                            Representation representation,
+                                            Thread* thread) {
   if (!left.IsInteger() || !right.IsInteger()) {
     return Integer::null();
   }
@@ -132,8 +105,10 @@ RawInteger* Evaluator::BinaryIntegerEvaluate(const Object& left,
       const int64_t truncated =
           TruncateTo(result.AsTruncatedInt64Value(), representation);
       result = Integer::New(truncated, Heap::kOld);
-      ASSERT(IsRepresentable(result, representation));
-    } else if (!IsRepresentable(result, representation)) {
+      ASSERT(FlowGraph::IsConstantRepresentable(
+          result, representation, /*tagged_value_must_be_smi=*/true));
+    } else if (!FlowGraph::IsConstantRepresentable(
+                   result, representation, /*tagged_value_must_be_smi=*/true)) {
       // If this operation is not truncating it would deoptimize on overflow.
       // Check that we match this behavior and don't produce a value that is
       // larger than something this operation can produce. We could have
@@ -150,10 +125,10 @@ RawInteger* Evaluator::BinaryIntegerEvaluate(const Object& left,
   return result.raw();
 }
 
-RawInteger* Evaluator::UnaryIntegerEvaluate(const Object& value,
-                                            Token::Kind token_kind,
-                                            Representation representation,
-                                            Thread* thread) {
+IntegerPtr Evaluator::UnaryIntegerEvaluate(const Object& value,
+                                           Token::Kind token_kind,
+                                           Representation representation,
+                                           Thread* thread) {
   if (!value.IsInteger()) {
     return Integer::null();
   }
@@ -163,7 +138,9 @@ RawInteger* Evaluator::UnaryIntegerEvaluate(const Object& value,
       zone, UnaryIntegerEvaluateRaw(value_int, token_kind, zone));
 
   if (!result.IsNull()) {
-    if (!IsRepresentable(result, representation)) {
+    if (!FlowGraph::IsConstantRepresentable(
+            result, representation,
+            /*tagged_value_must_be_smi=*/true)) {
       // If this operation is not truncating it would deoptimize on overflow.
       // Check that we match this behavior and don't produce a value that is
       // larger than something this operation can produce. We could have
@@ -237,5 +214,3 @@ bool Evaluator::ToIntegerConstant(Value* value, int64_t* result) {
 }
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

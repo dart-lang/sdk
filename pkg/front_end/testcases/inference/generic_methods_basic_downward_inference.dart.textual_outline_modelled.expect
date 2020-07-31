@@ -1,0 +1,4 @@
+library test;
+
+T f<S, T>(S s) => null;
+main() {}

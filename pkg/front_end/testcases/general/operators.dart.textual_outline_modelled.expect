@@ -1,0 +1,24 @@
+class Operators {
+  operator %(other) => null;
+  operator &(other) => null;
+  operator *(other) => null;
+  operator +(other) => null;
+  operator -() => null;
+  operator -(other) => null;
+  operator /(other) => null;
+  operator <(other) => null;
+  operator <<(other) => null;
+  operator <=(other) => null;
+  operator ==(other) => null;
+  operator >(other) => null;
+  operator >=(other) => null;
+  operator >>(other) => null;
+  operator [](index) => null;
+  operator ^(other) => null;
+  operator |(other) => null;
+  operator ~() => null;
+  operator ~/(other) => null;
+  void operator []=(index, value) {}
+}
+
+main(arguments) {}

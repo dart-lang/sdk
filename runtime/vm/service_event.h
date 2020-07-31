@@ -30,7 +30,6 @@ class ServiceEvent {
     kIsolateExit,            // Isolate has exited
     kIsolateUpdate,          // Isolate identity information has changed
     kIsolateReload,          // Result of a reload request
-    kIsolateSpawn,           // Result of an isolate spawn request
     kServiceExtensionAdded,  // A service extension was registered
 
     kPauseStart,  // --pause-isolates-on-start
@@ -56,6 +55,8 @@ class ServiceEvent {
     kExtension,
 
     kTimelineEvents,
+    // Sent when SetVMTimelineFlags is called.
+    kTimelineStreamSubscriptionsUpdate,
 
     kIllegal,
   };
@@ -153,24 +154,6 @@ class ServiceEvent {
   void set_reload_error(const Error* error) {
     ASSERT(kind_ == kIsolateReload);
     reload_error_ = error;
-  }
-
-  const String* spawn_token() const {
-    ASSERT(kind_ == kIsolateSpawn);
-    return spawn_token_;
-  }
-  void set_spawn_token(const String* error) {
-    ASSERT(kind_ == kIsolateSpawn);
-    spawn_token_ = error;
-  }
-
-  const String* spawn_error() const {
-    ASSERT(kind_ == kIsolateSpawn);
-    return spawn_error_;
-  }
-  void set_spawn_error(const String* error) {
-    ASSERT(kind_ == kIsolateSpawn);
-    spawn_error_ = error;
   }
 
   bool at_async_jump() const { return at_async_jump_; }

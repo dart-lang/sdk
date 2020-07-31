@@ -1,0 +1,11 @@
+library test;
+
+class A {
+  var b = () => x;
+  var c = () => x;
+}
+
+var a = new A();
+var x = () => a.b;
+var y = () => a.c;
+main() {}

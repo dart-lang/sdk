@@ -3,6 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 export 'src/convert.dart'
-    show collectPCOffsets, DwarfStackTraceDecoder, StackTraceHeader;
+    show
+        collectPCOffsets,
+        tryParseSymbolOffset,
+        DwarfStackTraceDecoder,
+        StackTraceHeader;
 export 'src/dwarf.dart'
     show CallInfo, DartCallInfo, StubCallInfo, Dwarf, PCOffset;

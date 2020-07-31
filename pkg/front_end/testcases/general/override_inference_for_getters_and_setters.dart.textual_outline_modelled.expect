@@ -1,0 +1,57 @@
+abstract class A {
+  num get getterFromGetter;
+  num get getterFromGetterWithSetterConflict;
+  num get setterFromGetter;
+  num get setterFromSetterWithGetterConflict;
+  set getterFromGetterWithSetterConflict(num);
+  set getterFromSetter(num value);
+  set setterFromSetter(num value);
+  set setterFromSetterWithGetterConflict(num);
+}
+
+abstract class B {
+  int get getterFromGetter;
+  int get setterFromGetter;
+  int get setterFromSetterWithGetterConflict;
+  set getterFromGetterWithSetterConflict(int value);
+  set getterFromSetter(int value);
+  set setterFromSetter(int value);
+}
+
+abstract class C extends A {
+  get getterFromGetter;
+  get getterFromGetterWithSetterConflict;
+  get getterFromSetter;
+  set setterFromGetter(value);
+  set setterFromSetter(value);
+  set setterFromSetterWithGetterConflict(value);
+}
+
+abstract class D extends A implements B {
+  get getterFromGetter;
+  get getterFromGetterWithSetterConflict;
+  get getterFromSetter;
+  set setterFromGetter(value);
+  set setterFromSetter(value);
+  set setterFromSetterWithGetterConflict(value);
+}
+
+abstract class E implements A {
+  get getterFromGetter;
+  get getterFromGetterWithSetterConflict;
+  get getterFromSetter;
+  set setterFromGetter(value);
+  set setterFromSetter(value);
+  set setterFromSetterWithGetterConflict(value);
+}
+
+abstract class F implements A, B {
+  get getterFromGetter;
+  get getterFromGetterWithSetterConflict;
+  get getterFromSetter;
+  set setterFromGetter(value);
+  set setterFromSetter(value);
+  set setterFromSetterWithGetterConflict(value);
+}
+
+main() {}

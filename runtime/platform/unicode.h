@@ -7,6 +7,7 @@
 
 #include "platform/allocation.h"
 #include "platform/globals.h"
+#include "platform/unaligned.h"
 
 namespace dart {
 
@@ -16,6 +17,8 @@ class Utf : AllStatic {
  public:
   static const int32_t kMaxCodePoint = 0x10FFFF;
   static const int32_t kInvalidChar = 0xFFFFFFFF;
+
+  static const int32_t kReplacementChar = 0xFFFD;
 
   static bool IsLatin1(int32_t code_point) {
     return (code_point >= 0) && (code_point <= 0xFF);
@@ -132,9 +135,9 @@ class Utf16 : AllStatic {
   // Returns the character at i and advances i to the next character
   // boundary.
   static int32_t Next(const uint16_t* characters, intptr_t* i, intptr_t len) {
-    int32_t ch = characters[*i];
+    int32_t ch = LoadUnaligned(&characters[*i]);
     if (Utf16::IsLeadSurrogate(ch) && (*i < (len - 1))) {
-      int32_t ch2 = characters[*i + 1];
+      int32_t ch2 = LoadUnaligned(&characters[*i + 1]);
       if (Utf16::IsTrailSurrogate(ch2)) {
         ch = Utf16::Decode(ch, ch2);
         *i += 1;

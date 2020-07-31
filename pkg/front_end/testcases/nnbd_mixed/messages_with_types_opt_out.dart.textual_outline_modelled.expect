@@ -1,0 +1,27 @@
+// @dart = 2.5
+import 'messages_with_types_opt_in.dart';
+
+String legacyVar = "legacy";
+
+class SubInOut extends SuperIn {
+  String nonNullableSame() => "bar";
+  String nullableSame() => "foo";
+  T nonNullableBad<T>(T t) => t;
+  T nullableBad<T>(T t) => null;
+}
+
+class SubOutOut extends SuperOut {
+  String nonNullableSame() => "bar";
+  String nullableSame() => "foo";
+  T nonNullableBad<T>(T t) => t;
+  T nullableBad<T>(T t) => null;
+}
+
+class SuperOut {
+  String nonNullableSame() => "bar";
+  String nullableSame() => "foo";
+  int nonNullableBad<T>(T t) => 2;
+  int nullableBad<T>(T t) => 1;
+}
+
+testOptOut() {}

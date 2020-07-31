@@ -4,7 +4,7 @@
 interface WaveShaperNode {
   // TODO(ager): Auto-generate this custom method when the info about retaining
   // typed arrays is in the IDL.
-  [Custom=Setter] attribute Float32Array curve;
+  [Custom=Setter] attribute Float32Array? curve;
 };
 
 [DartSupplemental]
@@ -40,14 +40,14 @@ interface ScriptProcessorNode {
 
 [DartSupplemental]
 interface Element {
-  readonly attribute Element nextElementSibling;
-  readonly attribute Element previousElementSibling;
+  readonly attribute Element? nextElementSibling;
+  readonly attribute Element? previousElementSibling;
 };
 
 [DartSupplemental]
 interface CharacterData {
-  readonly attribute Element nextElementSibling;
-  readonly attribute Element previousElementSibling;
+  readonly attribute Element? nextElementSibling;
+  readonly attribute Element? previousElementSibling;
 };
 
 [Callback]
@@ -316,15 +316,19 @@ interface SVGNumber {
 };
 
 [DartSupplemental]
-interface MediaDevices {
-  [DartSuppress] Promise<MediaStream> getUserMedia(optional MediaStreamConstraints constraints);
-};
-
-[DartSupplemental]
 interface Navigator {
   [DartSuppress] void getUserMedia(MediaStreamConstraints constraints,
                                    NavigatorUserMediaSuccessCallback successCallback,
                                    NavigatorUserMediaErrorCallback errorCallback);
+  // Marked as nullable to address browser compatibility. See 41905.
+  [DartSuppress, MeasureAs=NavigatorDeviceMemory,RuntimeEnabled=NavigatorDeviceMemory,SecureContext]
+  readonly attribute float deviceMemory;
+  [MeasureAs=NavigatorDeviceMemory,RuntimeEnabled=NavigatorDeviceMemory,SecureContext]
+  readonly attribute float? deviceMemory;
+  // Defined as part of NavigatorNetworkInformation. Marked as nullable to
+  // address browser compatibility. See 41905.
+  [DartSuppress, MeasureAs=NetInfo] readonly attribute NetworkInformation connection;
+  [MeasureAs=NetInfo] readonly attribute NetworkInformation? connection;
 };
 
 [DartSupplemental,
@@ -418,6 +422,9 @@ interface Window : EventTarget {
   [DartSuppress] void scroll(long x, long y);
   [DartSuppress] void scroll(long x, long y, Dictionary scrollOptions);
   [RaisesException] void scroll(long x, long y, optional Dictionary scrollOptions);
+
+  [RuntimeEnabled=VisualViewportAPI, Replaceable, SameObject, DartSuppress] readonly attribute VisualViewport visualViewport;
+  [RuntimeEnabled=VisualViewportAPI, Replaceable, SameObject] readonly attribute VisualViewport? visualViewport;
 };
 
 [DartSupplemental]
@@ -573,6 +580,9 @@ interface Performance {
     [DartSuppress] void webkitClearResourceTimings();
     [DartSuppress] void webkitSetResourceTimingBufferSize(unsigned long maxSize);
     [DartSuppress] attribute EventHandler onwebkitresourcetimingbufferfull;
+    // Marked as nullable to address browser compatibility. See 41905.
+    [DartSuppress, Measure] readonly attribute MemoryInfo memory;
+    [Measure] readonly attribute MemoryInfo? memory;
 };
 
 [DartSupplemental]
@@ -624,4 +634,17 @@ interface EventTarget {
     [DartSuppress] void removeEventListener(DOMString type, EventListener? listener, optional (EventListenerOptions or boolean) options);
     [Custom] void addEventListener(DOMString type, EventListener? listener, optional boolean options);
     [Custom] void removeEventListener(DOMString type, EventListener? listener, optional boolean options);
+};
+
+[DartSupplemental]
+interface NetworkInformation : EventTarget {
+    // Marked as nullable to address browser compatibility. See 41905.
+    [DartSuppress, RuntimeEnabled=NetInfoDownlink, MeasureAs=NetInfoDownlink] readonly attribute unrestricted double downlink;
+    [RuntimeEnabled=NetInfoDownlink, MeasureAs=NetInfoDownlink] readonly attribute unrestricted double? downlink;
+};
+
+interface NoncedElement {
+    // Marked as nullable to address browser compatibility. See 41905.
+    [DartSuppress, CEReactions] attribute DOMString nonce;
+    [CEReactions] attribute DOMString? nonce;
 };

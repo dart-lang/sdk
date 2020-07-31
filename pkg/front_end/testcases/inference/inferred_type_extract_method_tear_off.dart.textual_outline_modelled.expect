@@ -1,0 +1,10 @@
+library test;
+
+C f() => null;
+
+class C {
+  bool g() => true;
+}
+
+main() {}
+var x = f().g;

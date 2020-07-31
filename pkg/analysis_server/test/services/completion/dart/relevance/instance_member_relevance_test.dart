@@ -3,11 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../client/completion_driver_test.dart';
+import 'completion_relevance.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -16,27 +14,13 @@ void main() {
 }
 
 @reflectiveTest
-class InstanceMemberRelevanceTest extends AbstractCompletionDriverTest {
+class InstanceMemberRelevanceTest extends CompletionRelevanceTest {
   @override
   AnalysisServerOptions get serverOptions =>
       AnalysisServerOptions()..useNewRelevance = true;
 
   @override
   bool get supportsAvailableSuggestions => true;
-
-  /// Assert that all of the given completions were produced and that the
-  /// suggestions are ordered in decreasing order based on relevance scores.
-  void assertOrder(List<CompletionSuggestion> suggestions) {
-    var length = suggestions.length;
-    expect(length, greaterThan(1),
-        reason: 'Test must specify more than one suggestion');
-    var previous = suggestions[0];
-    for (var i = 1; i < length; i++) {
-      var current = suggestions[i];
-      expect(current.relevance, lessThan(previous.relevance));
-      previous = current;
-    }
-  }
 
   Future<void> test_contextType() async {
     await addTestFile(r'''
@@ -62,6 +46,28 @@ void g(E e) {
       suggestionWith(completion: 'c'), // subtype
       suggestionWith(completion: 'd'), // unrelated
       suggestionWith(completion: 'a'), // supertype
+    ]);
+  }
+
+  Future<void> test_elementKind() async {
+    await addTestFile('''
+class A {
+  int get g => 0;
+  void m() { }
+  set s(int x) {}
+}
+
+void f(A a) {
+  a.^
+}
+''');
+    // The order below is dependent on generated data, so it can validly change
+    // when the data is re-generated.
+    // Getters, setters and fields now all have the same relevance.
+    assertOrder([
+      suggestionWith(completion: 'g'),
+//      suggestionWith(completion: 's'),
+      suggestionWith(completion: 'm'),
     ]);
   }
 
@@ -100,7 +106,7 @@ void f(B b) {
     assertOrder([
       suggestionWith(completion: 'b'),
       suggestionWith(completion: 'a'),
-      suggestionWith(completion: 'hashCode'),
+      suggestionWith(completion: 'toString'),
     ]);
   }
 

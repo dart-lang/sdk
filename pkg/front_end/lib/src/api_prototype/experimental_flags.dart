@@ -1,87 +1,120 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
-//
-// Instead modify 'tools/experimental_features.yaml' and run
-// 'pkg/front_end/tool/fasta generate-experimental-flags' to update.
+import 'package:kernel/kernel.dart' show Version;
 
-enum ExperimentalFlag {
-  constantUpdate2018,
-  controlFlowCollections,
-  extensionMethods,
-  nonNullable,
-  nonfunctionTypeAliases,
-  setLiterals,
-  spreadCollections,
-  tripleShift,
-  variance,
-}
+part 'experimental_flags_generated.dart';
 
-const int enableConstantUpdate2018MajorVersion = 2;
-const int enableConstantUpdate2018MinorVersion = 4;
-const int enableControlFlowCollectionsMajorVersion = 2;
-const int enableControlFlowCollectionsMinorVersion = 2;
-const int enableExtensionMethodsMajorVersion = 2;
-const int enableExtensionMethodsMinorVersion = 6;
-const int enableNonNullableMajorVersion = 2;
-const int enableNonNullableMinorVersion = 8;
-const int enableNonfunctionTypeAliasesMajorVersion = 2;
-const int enableNonfunctionTypeAliasesMinorVersion = 8;
-const int enableSetLiteralsMajorVersion = 2;
-const int enableSetLiteralsMinorVersion = 2;
-const int enableSpreadCollectionsMajorVersion = 2;
-const int enableSpreadCollectionsMinorVersion = 2;
-const int enableTripleShiftMajorVersion = 2;
-const int enableTripleShiftMinorVersion = 8;
-const int enableVarianceMajorVersion = 2;
-const int enableVarianceMinorVersion = 8;
+/// The set of experiments enabled for SDK and packages.
+///
+/// This are derived from an `allowed_experiments.json` file whose default is
+/// located in `sdk/lib/_internal/allowed_experiments.json`.
+class AllowedExperimentalFlags {
+  /// The set of experiments that are enabled for all SDK libraries other than
+  /// for those which are specified in [sdkLibraryExperiments].
+  final Set<ExperimentalFlag> sdkDefaultExperiments;
 
-ExperimentalFlag parseExperimentalFlag(String flag) {
-  switch (flag) {
-    case "constant-update-2018":
-      return ExperimentalFlag.constantUpdate2018;
-    case "control-flow-collections":
-      return ExperimentalFlag.controlFlowCollections;
-    case "extension-methods":
-      return ExperimentalFlag.extensionMethods;
-    case "non-nullable":
-      return ExperimentalFlag.nonNullable;
-    case "nonfunction-type-aliases":
-      return ExperimentalFlag.nonfunctionTypeAliases;
-    case "set-literals":
-      return ExperimentalFlag.setLiterals;
-    case "spread-collections":
-      return ExperimentalFlag.spreadCollections;
-    case "triple-shift":
-      return ExperimentalFlag.tripleShift;
-    case "variance":
-      return ExperimentalFlag.variance;
+  /// Mapping from individual SDK libraries, e.g. 'core', to the set of
+  /// experiments that are enabled for this library.
+  final Map<String, Set<ExperimentalFlag>> sdkLibraryExperiments;
+
+  /// Mapping from package names, e.g. 'path', to the set of experiments that
+  /// are enabled for all files of this package.
+  final Map<String, Set<ExperimentalFlag>> packageExperiments;
+
+  const AllowedExperimentalFlags({
+    this.sdkDefaultExperiments: const {},
+    this.sdkLibraryExperiments: const {},
+    this.packageExperiments: const {},
+  });
+
+  /// Return the set of enabled experiments for the package with the [name],
+  /// e.g. "path", possibly `null`.
+  Set<ExperimentalFlag> forPackage(String name) {
+    return packageExperiments[name];
   }
-  return null;
+
+  /// Return the set of enabled experiments for the library with the [name],
+  /// e.g. "core".
+  Set<ExperimentalFlag> forSdkLibrary(String name) {
+    return sdkLibraryExperiments[name] ?? sdkDefaultExperiments;
+  }
 }
 
-const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
-  ExperimentalFlag.constantUpdate2018: true,
-  ExperimentalFlag.controlFlowCollections: true,
-  ExperimentalFlag.extensionMethods: true,
-  ExperimentalFlag.nonNullable: false,
-  ExperimentalFlag.nonfunctionTypeAliases: false,
-  ExperimentalFlag.setLiterals: true,
-  ExperimentalFlag.spreadCollections: true,
-  ExperimentalFlag.tripleShift: false,
-  ExperimentalFlag.variance: false,
-};
+/// Returns `true` if [flag] is enabled using global [experimentalFlags].
+///
+/// If [experimentalFlags] is `null` or doesn't contain [flag], the default
+/// value from [defaultExperimentalFlags] is returned.
+///
+/// If [flag] is marked as expired in [expiredExperimentalFlags], the value from
+/// [defaultExperimentalFlags] is always returned.
+bool isExperimentEnabled(ExperimentalFlag flag,
+    {Map<ExperimentalFlag, bool> experimentalFlags}) {
+  assert(defaultExperimentalFlags.containsKey(flag),
+      "No default value for $flag.");
+  assert(expiredExperimentalFlags.containsKey(flag),
+      "No expired value for $flag.");
+  if (expiredExperimentalFlags[flag]) {
+    return defaultExperimentalFlags[flag];
+  }
+  bool enabled;
+  if (experimentalFlags != null) {
+    enabled = experimentalFlags[flag];
+  }
+  enabled ??= defaultExperimentalFlags[flag];
+  return enabled;
+}
 
-const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
-  ExperimentalFlag.constantUpdate2018: true,
-  ExperimentalFlag.controlFlowCollections: true,
-  ExperimentalFlag.extensionMethods: false,
-  ExperimentalFlag.nonNullable: false,
-  ExperimentalFlag.nonfunctionTypeAliases: false,
-  ExperimentalFlag.setLiterals: true,
-  ExperimentalFlag.spreadCollections: true,
-  ExperimentalFlag.tripleShift: false,
-  ExperimentalFlag.variance: false,
-};
+/// Returns `true` if [flag] is enabled in the library with the [canonicalUri]
+/// either globally using [experimentalFlags] or per library using
+/// [allowedExperimentalFlags].
+///
+/// If [experimentalFlags] is `null` or doesn't contain [flag], the default
+/// value from [defaultExperimentalFlags] used as the global flag state.
+///
+/// If [allowedExperimentalFlags] is `null` [defaultAllowedExperimentalFlags] is
+/// used for the per library flag state.
+///
+/// If [flag] is marked as expired in [expiredExperimentalFlags], the value from
+/// [defaultExperimentalFlags] is always returned.
+///
+/// The canonical uri, also known as the import uri, is the absolute uri that
+/// defines the identity of a library, for instance `dart:core`, `package:foo`,
+/// or `file:///path/dir/file.dart`.
+bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri canonicalUri,
+    {Map<ExperimentalFlag, bool> experimentalFlags,
+    AllowedExperimentalFlags allowedExperimentalFlags}) {
+  assert(defaultExperimentalFlags.containsKey(flag),
+      "No default value for $flag.");
+  assert(expiredExperimentalFlags.containsKey(flag),
+      "No expired value for $flag.");
+  if (expiredExperimentalFlags[flag]) {
+    return defaultExperimentalFlags[flag];
+  }
+  bool enabled;
+  if (experimentalFlags != null) {
+    enabled = experimentalFlags[flag];
+  }
+  enabled ??= defaultExperimentalFlags[flag];
+  if (!enabled) {
+    allowedExperimentalFlags ??= defaultAllowedExperimentalFlags;
+    Set<ExperimentalFlag> allowedFlags;
+    if (canonicalUri.scheme == 'dart') {
+      allowedFlags = allowedExperimentalFlags.forSdkLibrary(canonicalUri.path);
+    } else if (canonicalUri.scheme == 'package') {
+      int index = canonicalUri.path.indexOf('/');
+      String packageName;
+      if (index >= 0) {
+        packageName = canonicalUri.path.substring(0, index);
+      } else {
+        packageName = canonicalUri.path;
+      }
+      allowedFlags = allowedExperimentalFlags.forPackage(packageName);
+    }
+    if (allowedFlags != null) {
+      enabled = allowedFlags.contains(flag);
+    }
+  }
+  return enabled;
+}

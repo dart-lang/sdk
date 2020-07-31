@@ -42,41 +42,7 @@ class TestVisitor extends LocalDeclarationVisitor {
   TestVisitor(int offset) : super(offset);
 
   @override
-  void declaredClass(ClassDeclaration declaration) {}
-
-  @override
-  void declaredClassTypeAlias(ClassTypeAlias declaration) {}
-
-  @override
-  void declaredExtension(ExtensionDeclaration declaration) {}
-
-  @override
-  void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {}
-
-  @override
-  void declaredFunction(FunctionDeclaration declaration) {}
-
-  @override
-  void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {}
-
-  @override
-  void declaredGenericTypeAlias(GenericTypeAlias declaration) {}
-
-  @override
-  void declaredLabel(Label label, bool isCaseLabel) {}
-
-  @override
   void declaredLocalVar(SimpleIdentifier name, TypeAnnotation type) {
     expect(name, isNotNull);
   }
-
-  @override
-  void declaredMethod(MethodDeclaration declaration) {}
-
-  @override
-  void declaredParam(SimpleIdentifier name, TypeAnnotation type) {}
-
-  @override
-  void declaredTopLevelVar(
-      VariableDeclarationList varList, VariableDeclaration varDecl) {}
 }

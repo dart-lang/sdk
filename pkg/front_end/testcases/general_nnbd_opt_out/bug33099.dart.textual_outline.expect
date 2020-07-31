@@ -1,0 +1,23 @@
+// @dart = 2.6
+import 'dart:mirrors';
+
+const _FailingTest failingTest = const _FailingTest();
+
+class _FailingTest {
+  const _FailingTest();
+}
+
+class MyTest {
+  @failingTest
+  void foo() {}
+}
+
+class MyTest2 extends Object with MyTest {}
+
+main() {}
+bool _hasFailingTestAnnotation(MethodMirror method) {}
+bool _hasAnnotationInstance(DeclarationMirror declaration, instance) =>
+    declaration.metadata.any((InstanceMirror annotation) {
+      print('annotation: ${annotation.reflectee}');
+      return identical(annotation.reflectee, instance);
+    });

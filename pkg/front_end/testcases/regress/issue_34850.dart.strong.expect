@@ -50,10 +50,6 @@ library;
 // Future<List<>> f3() async {
 // ^
 //
-// pkg/front_end/testcases/regress/issue_34850.dart:14:16: Error: Functions marked 'async' must have a return type assignable to 'Future'.
-// Future<List<>> f3() async {
-//                ^^
-//
 import self as self;
 import "dart:core" as core;
 

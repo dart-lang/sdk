@@ -92,6 +92,27 @@ main() {
     ]);
   }
 
+  test_nestedIn_instanceCreation() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+
+  bool operator ==(other) => false;
+}
+
+class B {
+  const B(_);
+}
+
+main() {
+  const B({A()});
+}
+''', [
+      error(CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 110,
+          3),
+    ]);
+  }
+
   test_spread_list() async {
     await assertErrorsInCode(
         r'''

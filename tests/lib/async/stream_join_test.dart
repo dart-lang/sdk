@@ -52,8 +52,7 @@ main() {
 
   test("join-error", () {
     StreamController c = new StreamController();
-    c.stream
-        .join("X")
+    Future<String?>.value(c.stream.join("X"))
         .catchError(expectAsync((String s) => expect(s, equals("BAD!"))));
     c.add(new Foo("foo"));
     c.add(new Foo("bar"));

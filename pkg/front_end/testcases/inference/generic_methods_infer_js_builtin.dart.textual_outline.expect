@@ -1,0 +1,6 @@
+library test;
+
+import 'dart:_foreign_helper' show JS;
+
+test() {}
+main() {}

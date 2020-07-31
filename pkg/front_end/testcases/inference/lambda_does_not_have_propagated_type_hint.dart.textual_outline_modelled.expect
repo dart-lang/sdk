@@ -1,0 +1,6 @@
+library test;
+
+List<String> getListOfString() => const <String>[];
+main() {}
+void bar() {}
+void foo() {}

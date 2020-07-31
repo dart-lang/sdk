@@ -1,0 +1,5 @@
+import 'mixin_from_opt_out_lib.dart';
+
+class Class extends Object with Mixin {}
+
+main() {}

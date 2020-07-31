@@ -95,7 +95,13 @@ class ClassStubGenerator {
 
         for (int i = 0; i < selector.argumentCount; i++) {
           String name = 'arg$i';
-          parameters.add(new jsAst.Parameter(name));
+          parameters.add(jsAst.Parameter(name));
+          arguments.add(js('#', name));
+        }
+
+        for (int i = 0; i < selector.typeArgumentCount; i++) {
+          String name = '\$T${i + 1}';
+          parameters.add(jsAst.Parameter(name));
           arguments.add(js('#', name));
         }
 

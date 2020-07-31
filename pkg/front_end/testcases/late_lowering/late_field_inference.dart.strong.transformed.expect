@@ -20,8 +20,8 @@ class A extends core::Object {
     this.{self::A::_#A#nonNullableInstanceField} = #t2;
   get nullableInstanceField() → core::int? {
     if(!this.{self::A::_#A#nullableInstanceField#isSet}) {
-      this.{self::A::_#A#nullableInstanceField#isSet} = true;
       this.{self::A::_#A#nullableInstanceField} = self::method();
+      this.{self::A::_#A#nullableInstanceField#isSet} = true;
     }
     return this.{self::A::_#A#nullableInstanceField};
   }
@@ -35,8 +35,8 @@ class A extends core::Object {
     self::A::_#nonNullableStaticField = #t5;
   static get nullableStaticField() → core::int? {
     if(!self::A::_#nullableStaticField#isSet) {
-      self::A::_#nullableStaticField#isSet = true;
       self::A::_#nullableStaticField = self::method();
+      self::A::_#nullableStaticField#isSet = true;
     }
     return self::A::_#nullableStaticField;
   }
@@ -68,8 +68,8 @@ static set nonNullableTopLevelField(core::int #t8) → void
   self::_#nonNullableTopLevelField = #t8;
 static get nullableTopLevelField() → core::int? {
   if(!self::_#nullableTopLevelField#isSet) {
-    self::_#nullableTopLevelField#isSet = true;
     self::_#nullableTopLevelField = self::method();
+    self::_#nullableTopLevelField#isSet = true;
   }
   return self::_#nullableTopLevelField;
 }

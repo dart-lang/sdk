@@ -5,6 +5,8 @@
 #include <memory>
 
 #include "vm/dart_api_message.h"
+
+#include "platform/undefined_behavior_sanitizer.h"
 #include "platform/unicode.h"
 #include "vm/object.h"
 #include "vm/snapshot_ids.h"
@@ -15,7 +17,8 @@ namespace dart {
 static const int kNumInitialReferences = 4;
 
 ApiMessageReader::ApiMessageReader(Message* msg)
-    : BaseReader(msg->IsRaw() ? reinterpret_cast<uint8_t*>(msg->raw_obj())
+    : BaseReader(msg->IsRaw() ? reinterpret_cast<uint8_t*>(
+                                    static_cast<uword>(msg->raw_obj()))
                               : msg->snapshot(),
                  msg->snapshot_length()),
       zone_(NULL),
@@ -49,8 +52,8 @@ Dart_CObject* ApiMessageReader::ReadMessage() {
     // Read the object out of the message.
     return ReadObject();
   } else {
-    const RawObject* raw_obj =
-        reinterpret_cast<const RawObject*>(CurrentBufferAddress());
+    const ObjectPtr raw_obj = static_cast<const ObjectPtr>(
+        reinterpret_cast<uword>(CurrentBufferAddress()));
     ASSERT(ApiObjectConverter::CanConvert(raw_obj));
     Dart_CObject* cobj =
         reinterpret_cast<Dart_CObject*>(allocator(sizeof(Dart_CObject)));
@@ -100,8 +103,6 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectInt64(int64_t val) {
   value->value.as_int64 = val;
   return value;
 }
-
-_Dart_CObject* ApiMessageReader::singleton_uint32_typed_data_ = NULL;
 
 Dart_CObject* ApiMessageReader::AllocateDartCObjectDouble(double val) {
   Dart_CObject* value = AllocateDartCObject(Dart_CObject_kDouble);
@@ -185,11 +186,11 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectArray(intptr_t length) {
 }
 
 Dart_CObject* ApiMessageReader::AllocateDartCObjectVmIsolateObj(intptr_t id) {
-  RawObject* raw = VmIsolateSnapshotObject(id);
+  ObjectPtr raw = VmIsolateSnapshotObject(id);
   intptr_t cid = raw->GetClassId();
   switch (cid) {
     case kOneByteStringCid: {
-      RawOneByteString* raw_str = reinterpret_cast<RawOneByteString*>(raw);
+      OneByteStringPtr raw_str = static_cast<OneByteStringPtr>(raw);
       const char* str = reinterpret_cast<const char*>(raw_str->ptr()->data());
       ASSERT(str != NULL);
       Dart_CObject* object = NULL;
@@ -207,7 +208,7 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectVmIsolateObj(intptr_t id) {
     }
 
     case kMintCid: {
-      const Mint& obj = Mint::Handle(reinterpret_cast<RawMint*>(raw));
+      const Mint& obj = Mint::Handle(static_cast<MintPtr>(raw));
       int64_t value64 = obj.value();
       if ((kMinInt32 <= value64) && (value64 <= kMaxInt32)) {
         return GetCanonicalMintObject(Dart_CObject_kInt32, value64);
@@ -323,9 +324,9 @@ intptr_t ApiMessageReader::NextAvailableObjectId() const {
   return backward_references_.length() + kMaxPredefinedObjectIds;
 }
 
-Dart_CObject* ApiMessageReader::CreateDartCObjectString(RawObject* raw) {
-  ASSERT(RawObject::IsOneByteStringClassId(raw->GetClassId()));
-  RawOneByteString* raw_str = reinterpret_cast<RawOneByteString*>(raw);
+Dart_CObject* ApiMessageReader::CreateDartCObjectString(ObjectPtr raw) {
+  ASSERT(IsOneByteStringClassId(raw->GetClassId()));
+  OneByteStringPtr raw_str = static_cast<OneByteStringPtr>(raw);
   intptr_t len = Smi::Value(raw_str->ptr()->length_);
   Dart_CObject* object = AllocateDartCObjectString(len);
   char* p = object->value.as_string;
@@ -788,6 +789,8 @@ ApiMessageWriter::~ApiMessageWriter() {
   delete finalizable_data_;
 }
 
+NO_SANITIZE_UNDEFINED(
+    "enum")  // TODO(https://github.com/dart-lang/sdk/issues/39427)
 void ApiMessageWriter::MarkCObject(Dart_CObject* object, intptr_t object_id) {
   // Mark the object as serialized by adding the object id to the
   // upper bits of the type field in the Dart_CObject structure. Add
@@ -798,16 +801,22 @@ void ApiMessageWriter::MarkCObject(Dart_CObject* object, intptr_t object_id) {
       ((mark_value) << kDartCObjectTypeBits) | object->type);
 }
 
+NO_SANITIZE_UNDEFINED(
+    "enum")  // TODO(https://github.com/dart-lang/sdk/issues/39427)
 void ApiMessageWriter::UnmarkCObject(Dart_CObject* object) {
   ASSERT(IsCObjectMarked(object));
   object->type =
       static_cast<Dart_CObject_Type>(object->type & kDartCObjectTypeMask);
 }
 
+NO_SANITIZE_UNDEFINED(
+    "enum")  // TODO(https://github.com/dart-lang/sdk/issues/39427)
 bool ApiMessageWriter::IsCObjectMarked(Dart_CObject* object) {
   return (object->type & kDartCObjectMarkMask) != 0;
 }
 
+NO_SANITIZE_UNDEFINED(
+    "enum")  // TODO(https://github.com/dart-lang/sdk/issues/39427)
 intptr_t ApiMessageWriter::GetMarkedCObjectMark(Dart_CObject* object) {
   ASSERT(IsCObjectMarked(object));
   intptr_t mark_value =
@@ -848,7 +857,7 @@ void ApiMessageWriter::AddToForwardList(Dart_CObject* object) {
 
 void ApiMessageWriter::WriteSmi(int64_t value) {
   ASSERT(Smi::IsValid(value));
-  Write<RawObject*>(Smi::New(static_cast<intptr_t>(value)));
+  Write<ObjectPtr>(Smi::New(static_cast<intptr_t>(value)));
 }
 
 void ApiMessageWriter::WriteNullObject() {
@@ -953,6 +962,8 @@ bool ApiMessageWriter::WriteCObjectRef(Dart_CObject* object) {
   return WriteCObjectInlined(object, type);
 }
 
+NO_SANITIZE_UNDEFINED(
+    "enum")  // TODO(https://github.com/dart-lang/sdk/issues/39427)
 bool ApiMessageWriter::WriteForwardedCObject(Dart_CObject* object) {
   ASSERT(IsCObjectMarked(object));
   Dart_CObject_Type type =

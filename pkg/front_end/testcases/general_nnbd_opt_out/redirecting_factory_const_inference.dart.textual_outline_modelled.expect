@@ -1,0 +1,19 @@
+// @dart = 2.6
+class A<T> {
+  A(this.x);
+  _X<T> x;
+}
+
+class B<T> extends A<T> {
+  B() : super(const _X());
+}
+
+class _X<T> {
+  const factory _X() = _Y<T>;
+}
+
+class _Y<T> implements _X<T> {
+  const _Y();
+}
+
+main() {}

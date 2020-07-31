@@ -18,6 +18,17 @@ assignmentDepromotes_partial(Object x) {
   }
 }
 
+assignmentDepromotes_partial_nonNull(Object? x) {
+  if (x is num?) {
+    /*num?*/ x;
+    if (/*num?*/ x is int?) {
+      /*int?*/ x;
+      x = 1.2;
+      /*num*/ x;
+    }
+  }
+}
+
 assignmentPreservesPromotion(Object x) {
   if (x is num) {
     x = 42;

@@ -400,11 +400,11 @@ build() => new Row(
 
     await computeSuggestions();
 
-    assertSuggest('children: <Widget>[],',
+    assertSuggest('children: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
         relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
-        selectionOffset: 19,
+        selectionOffset: 11,
         defaultArgumentListTextRanges: null);
   }
 
@@ -444,11 +444,11 @@ build() => new Row(
 
     await computeSuggestions();
 
-    assertSuggest('children: <Widget>[],',
+    assertSuggest('children: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
         relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
-        selectionOffset: 19,
+        selectionOffset: 11,
         defaultArgumentListTextRanges: null);
   }
 
@@ -466,11 +466,11 @@ build() => new Row(
 
     await computeSuggestions();
 
-    assertSuggest('children: <Widget>[],',
+    assertSuggest('children: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
         relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
-        selectionOffset: 19,
+        selectionOffset: 11,
         defaultArgumentListTextRanges: null);
   }
 
@@ -494,11 +494,11 @@ class DynamicRow extends Widget {
 
     await computeSuggestions();
 
-    assertSuggest('children: ,',
+    assertSuggest('children: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
         relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
-        selectionOffset: 10,
+        selectionOffset: 11,
         defaultArgumentListTextRanges: null);
   }
 
@@ -546,11 +546,11 @@ class CustomScrollView extends Widget {
 
     await computeSuggestions();
 
-    assertSuggest('slivers: <Widget>[],',
+    assertSuggest('slivers: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
         relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
-        selectionOffset: 18,
+        selectionOffset: 10,
         defaultArgumentListTextRanges: null);
   }
 

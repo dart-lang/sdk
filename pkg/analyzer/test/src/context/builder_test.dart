@@ -40,30 +40,20 @@ main() {
 
 @reflectiveTest
 class ContextBuilderTest with ResourceProviderMixin {
-  /**
-   * The SDK manager used by the tests;
-   */
+  /// The SDK manager used by the tests;
   DartSdkManager sdkManager;
 
-  /**
-   * The content cache used by the tests.
-   */
+  /// The content cache used by the tests.
   ContentCache contentCache;
 
-  /**
-   * The options passed to the context builder.
-   */
+  /// The options passed to the context builder.
   ContextBuilderOptions builderOptions = ContextBuilderOptions();
 
-  /**
-   * The context builder to be used in the test.
-   */
+  /// The context builder to be used in the test.
   ContextBuilder builder;
 
-  /**
-   * The path to the default SDK, or `null` if the test has not explicitly
-   * invoked [createDefaultSdk].
-   */
+  /// The path to the default SDK, or `null` if the test has not explicitly
+  /// invoked [createDefaultSdk].
   String defaultSdkPath;
 
   _MockLintRule _mockLintRule;
@@ -86,14 +76,14 @@ const Map<String, LibraryInfo> libraries = const {
   "core": const LibraryInfo("core/core.dart"),
 };
 ''');
-    sdkManager = DartSdkManager(defaultSdkPath, false);
+    sdkManager = DartSdkManager(defaultSdkPath);
     builder = ContextBuilder(resourceProvider, sdkManager, contentCache,
         options: builderOptions);
   }
 
   void setUp() {
     MockSdk(resourceProvider: resourceProvider);
-    sdkManager = DartSdkManager(convertPath('/sdk'), false);
+    sdkManager = DartSdkManager(convertPath('/sdk'));
     contentCache = ContentCache();
     builder = ContextBuilder(
       resourceProvider,
@@ -234,8 +224,6 @@ linter:
     // being returned.
     AnalysisOptionsImpl defaultOptions = AnalysisOptionsImpl();
     defaultOptions.dart2jsHint = !defaultOptions.dart2jsHint;
-    defaultOptions.enableLazyAssignmentOperators =
-        !defaultOptions.enableLazyAssignmentOperators;
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptions options = builder.createDefaultOptions();
     _expectEqualOptions(options, defaultOptions);
@@ -244,52 +232,6 @@ linter:
   void test_createDefaultOptions_noDefault() {
     AnalysisOptions options = builder.createDefaultOptions();
     _expectEqualOptions(options, AnalysisOptionsImpl());
-  }
-
-  void test_createPackageMap_fromPackageDirectory_explicit() {
-    // Use a package directory that is outside the project directory.
-    String rootPath = convertPath('/root');
-    String projectPath = join(rootPath, 'project');
-    String packageDirPath = join(rootPath, 'packages');
-    String fooName = 'foo';
-    String fooPath = join(packageDirPath, fooName);
-    String barName = 'bar';
-    String barPath = join(packageDirPath, barName);
-    newFolder(projectPath);
-    newFolder(fooPath);
-    newFolder(barPath);
-
-    builderOptions.defaultPackagesDirectoryPath = packageDirPath;
-
-    Packages packages = builder.createPackageMap(projectPath);
-    _assertPackages(
-      packages,
-      {
-        'foo': convertPath('/root/packages/foo/lib'),
-        'bar': convertPath('/root/packages/bar/lib'),
-      },
-    );
-  }
-
-  void test_createPackageMap_fromPackageDirectory_inRoot() {
-    // Use a package directory that is inside the project directory.
-    String projectPath = convertPath('/root/project');
-    String packageDirPath = join(projectPath, 'packages');
-    String fooName = 'foo';
-    String fooPath = join(packageDirPath, fooName);
-    String barName = 'bar';
-    String barPath = join(packageDirPath, barName);
-    newFolder(fooPath);
-    newFolder(barPath);
-
-    Packages packages = builder.createPackageMap(projectPath);
-    _assertPackages(
-      packages,
-      {
-        'foo': convertPath('/root/project/packages/foo/lib'),
-        'bar': convertPath('/root/project/packages/bar/lib'),
-      },
-    );
   }
 
   void test_createPackageMap_fromPackageFile_explicit() {
@@ -614,10 +556,8 @@ linter:
 
   void test_getAnalysisOptions_default_noOverrides() {
     AnalysisOptionsImpl defaultOptions = AnalysisOptionsImpl();
-    defaultOptions.enableLazyAssignmentOperators = true;
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptionsImpl expected = AnalysisOptionsImpl();
-    expected.enableLazyAssignmentOperators = true;
     String path = convertPath('/some/directory/path');
     String filePath = join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     newFile(filePath, content: '''
@@ -830,28 +770,19 @@ environment:
   void _expectEqualOptions(
       AnalysisOptionsImpl actual, AnalysisOptionsImpl expected) {
     // TODO(brianwilkerson) Consider moving this to AnalysisOptionsImpl.==.
-    expect(actual.analyzeFunctionBodiesPredicate,
-        same(expected.analyzeFunctionBodiesPredicate));
     expect(actual.dart2jsHint, expected.dart2jsHint);
-    expect(actual.enableLazyAssignmentOperators,
-        expected.enableLazyAssignmentOperators);
     expect(actual.enableTiming, expected.enableTiming);
-    expect(actual.generateImplicitErrors, expected.generateImplicitErrors);
-    expect(actual.generateSdkErrors, expected.generateSdkErrors);
     expect(actual.hint, expected.hint);
     expect(actual.lint, expected.lint);
     expect(
       actual.lintRules.map((l) => l.name),
       unorderedEquals(expected.lintRules.map((l) => l.name)),
     );
-    expect(actual.preserveComments, expected.preserveComments);
     expect(actual.strongMode, expected.strongMode);
     expect(actual.implicitCasts, expected.implicitCasts);
     expect(actual.implicitDynamic, expected.implicitDynamic);
     expect(actual.strictInference, expected.strictInference);
     expect(actual.strictRawTypes, expected.strictRawTypes);
-    expect(actual.trackCacheDependencies, expected.trackCacheDependencies);
-    expect(actual.disableCacheFlushing, expected.disableCacheFlushing);
   }
 
   Uri _relativeUri(String path, {String from}) {

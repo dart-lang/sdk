@@ -24,6 +24,9 @@ io/socket_info_ipv6_test: SkipByDesign
 io/socket_ipv6_test: SkipByDesign
 io/socket_source_address_test: SkipByDesign
 
+[ $builder_tag == obfuscated ]
+no_such_method_error_with_invocation_test: SkipByDesign # Checks the member names in the NSM error message.
+
 [ $compiler == dart2analyzer ]
 deferred_transitive_import_error_test: Skip
 

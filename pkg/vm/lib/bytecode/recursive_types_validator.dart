@@ -131,6 +131,11 @@ class _RecursiveTypesVisitor extends DartTypeVisitor<void> {
   }
 
   @override
+  void visitFutureOrType(FutureOrType node) {
+    visit(node.typeArgument);
+  }
+
+  @override
   void visitTypedefType(TypedefType node) => visit(node.unalias);
 
   @override

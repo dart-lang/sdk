@@ -1,0 +1,113 @@
+//
+// Problems in component:
+//
+// pkg/front_end/testcases/nnbd_mixed/inheritance_from_opt_in.dart:25:7: Error: 'LegacyClass4e' can't implement both 'GenericInterface<num>' and 'GenericInterface<num?>'
+//  - 'GenericInterface' is from 'pkg/front_end/testcases/nnbd_mixed/inheritance_from_opt_in_lib.dart'.
+// class LegacyClass4e implements Class4a, Class4b {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/inheritance_from_opt_in.dart:27:7: Error: 'LegacyClass5' can't implement both 'GenericInterface<dynamic>' and 'GenericInterface<Object>'
+//  - 'GenericInterface' is from 'pkg/front_end/testcases/nnbd_mixed/inheritance_from_opt_in_lib.dart'.
+//  - 'Object' is from 'dart:core'.
+// class LegacyClass5 extends Class5 implements GenericInterface<Object> {}
+//       ^
+//
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/inheritance_from_opt_in.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+import self as self;
+import "inheritance_from_opt_in_lib.dart" as inh;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///inheritance_from_opt_in_lib.dart";
+
+class LegacyClass1 extends inh::Class1 {
+  synthetic constructor •() → self::LegacyClass1
+    ;
+}
+class LegacyClass2<T extends core::Object? = dynamic> extends inh::Class2<self::LegacyClass2::T%> {
+  synthetic constructor •() → self::LegacyClass2<self::LegacyClass2::T%>
+    ;
+}
+class LegacyClass3a<T extends core::Object? = dynamic> extends inh::Class3<self::LegacyClass3a::T%> {
+  synthetic constructor •() → self::LegacyClass3a<self::LegacyClass3a::T%>
+    ;
+}
+class LegacyClass3b<T extends core::Object? = dynamic> extends inh::Class3<self::LegacyClass3b::T%> implements inh::GenericInterface<self::LegacyClass3b::T%> {
+  synthetic constructor •() → self::LegacyClass3b<self::LegacyClass3b::T%>
+    ;
+}
+class LegacyClass4a extends inh::Class4a {
+  synthetic constructor •() → self::LegacyClass4a
+    ;
+}
+class LegacyClass4b extends core::Object implements inh::GenericInterface<core::num> {
+  synthetic constructor •() → self::LegacyClass4b
+    ;
+}
+class LegacyClass4c extends core::Object implements inh::GenericInterface<core::num?> {
+  synthetic constructor •() → self::LegacyClass4c
+    ;
+}
+class LegacyClass4d extends inh::Class4a implements inh::GenericInterface<core::num> {
+  synthetic constructor •() → self::LegacyClass4d
+    ;
+}
+class LegacyClass4e extends core::Object implements inh::Class4a, inh::Class4b {
+  synthetic constructor •() → self::LegacyClass4e
+    ;
+}
+class LegacyClass5 extends inh::Class5 implements inh::GenericInterface<core::Object> {
+  synthetic constructor •() → self::LegacyClass5
+    ;
+}
+class LegacyClass6a<T extends core::Object? = dynamic> extends inh::Class3<self::LegacyClass6a::T%> implements inh::GenericSubInterface<self::LegacyClass6a::T%> {
+  synthetic constructor •() → self::LegacyClass6a<self::LegacyClass6a::T%>
+    ;
+}
+class LegacyClass6b<T extends core::Object? = dynamic> extends self::LegacyClass3a<self::LegacyClass6b::T%> implements inh::GenericSubInterface<self::LegacyClass6b::T%> {
+  synthetic constructor •() → self::LegacyClass6b<self::LegacyClass6b::T%>
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as inh;
+import "dart:core" as core;
+
+abstract class GenericInterface<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → inh::GenericInterface<inh::GenericInterface::T%>
+    ;
+}
+abstract class GenericSubInterface<T extends core::Object? = dynamic> extends inh::GenericInterface<inh::GenericSubInterface::T%> {
+  synthetic constructor •() → inh::GenericSubInterface<inh::GenericSubInterface::T%>
+    ;
+}
+class Class1 extends core::Object {
+  synthetic constructor •() → inh::Class1
+    ;
+}
+class Class2<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → inh::Class2<inh::Class2::T%>
+    ;
+}
+class Class3<T extends core::Object? = dynamic> extends core::Object implements inh::GenericInterface<inh::Class3::T%> {
+  synthetic constructor •() → inh::Class3<inh::Class3::T%>
+    ;
+}
+class Class4a extends core::Object implements inh::GenericInterface<core::num> {
+  synthetic constructor •() → inh::Class4a
+    ;
+}
+class Class4b extends core::Object implements inh::GenericInterface<core::num?> {
+  synthetic constructor •() → inh::Class4b
+    ;
+}
+class Class5 extends core::Object implements inh::GenericInterface<dynamic> {
+  synthetic constructor •() → inh::Class5
+    ;
+}

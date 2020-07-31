@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'customized_codes.dart';
+
 /// An error code associated with an [AnalysisError].
 ///
 /// Generally, messages should follow the [Guide for Writing
@@ -12,18 +14,9 @@ abstract class ErrorCode {
    */
   final String name;
 
-  /**
-   * The template used to create the message to be displayed for this error. The
-   * message should indicate what is wrong and why it is wrong.
-   */
-  final String message;
+  final String _message;
 
-  /**
-   * The template used to create the correction to be displayed for this error,
-   * or `null` if there is no correction information for this error. The
-   * correction should indicate how the user can fix the error.
-   */
-  final String correction;
+  final String _correction;
 
   /**
    * Return `true` if diagnostics with this code have documentation for them
@@ -42,9 +35,11 @@ abstract class ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const ErrorCode(this.name, this.message,
-      [this.correction, this.hasPublishedDocs = false])
-      : isUnresolvedIdentifier = false;
+  const ErrorCode(this.name, String message,
+      [String correction, this.hasPublishedDocs = false])
+      : isUnresolvedIdentifier = false,
+        _message = message,
+        _correction = correction;
 
   /**
    * Initialize a newly created error code to have the given [name]. The message
@@ -52,15 +47,34 @@ abstract class ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const ErrorCode.temporary(this.name, this.message,
-      {this.correction,
+  const ErrorCode.temporary(this.name, String message,
+      {String correction,
       this.isUnresolvedIdentifier: false,
-      this.hasPublishedDocs = false});
+      this.hasPublishedDocs = false})
+      : _message = message,
+        _correction = correction;
+
+  /**
+   * The template used to create the correction to be displayed for this error,
+   * or `null` if there is no correction information for this error. The
+   * correction should indicate how the user can fix the error.
+   */
+  String get correction => customizedCorrections[uniqueName] ?? _correction;
 
   /**
    * The severity of the error.
    */
   ErrorSeverity get errorSeverity;
+
+  /// Whether a finding of this error is ignorable via comments such as
+  /// `// ignore:` or `// ignore_for_file:`.
+  bool get isIgnorable => errorSeverity != ErrorSeverity.ERROR;
+
+  /**
+   * The template used to create the message to be displayed for this error. The
+   * message should indicate what is wrong and why it is wrong.
+   */
+  String get message => customizedMessages[uniqueName] ?? _message;
 
   /**
    * The type of the error.
@@ -225,7 +239,7 @@ class ErrorType implements Comparable<ErrorType> {
     STATIC_WARNING,
     STATIC_TYPE_WARNING,
     SYNTACTIC_ERROR,
-    LINT
+    LINT,
   ];
 
   /**

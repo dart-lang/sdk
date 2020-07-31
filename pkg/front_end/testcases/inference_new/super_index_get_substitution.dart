@@ -21,7 +21,7 @@ class C<U> extends B<Future<U>> {
   E<Future<U>> operator [](Object x) => null;
   void h() {
     var /*@ type=D<Future<C::U*>*>* */ x =
-        super /*@target=B::[]*/ [/*@ typeArgs=E<Future<C::U*>*>* */ f()];
+        super /*@target=B.[]*/ [/*@ typeArgs=E<Future<C::U*>*>* */ f()];
   }
 }
 

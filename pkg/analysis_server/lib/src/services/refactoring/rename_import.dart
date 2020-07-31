@@ -48,8 +48,6 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<void> fillChange() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     // update declaration
     {
       var prefix = element.prefix;

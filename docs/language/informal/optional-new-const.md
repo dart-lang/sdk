@@ -47,7 +47,7 @@ To allow all const constructor invocations to omit the `const`, the grammar need
 This syntax will only apply to unprefixed constructor invocations (at least unless we also introduce type-instantiated generic method tear-offs).
 
 ### Prior discussion
-See http://dartbug.com/4046 and https://github.com/lrhn/dep-const/blob/master/proposal.md
+See https://dartbug.com/4046 and https://github.com/lrhn/dep-const/blob/master/proposal.md
 
 The syntax for a constructor call is less ambiguous now than when these proposals were drafted, because generic methods have since been added to the language. The language has already decided how to resolve parsing of the otherwise ambiguous `Bar(Foo<int, bar>(42))`.
 
@@ -103,7 +103,7 @@ Having optional `new` means that changing a static method to be a constructor is
 
 ### Prior discussion
 
-See: http://dartbug.com/5680, http://dartbug.com/18241, http://dartbug.com/20750.
+See: https://dartbug.com/5680, https://dartbug.com/18241, https://dartbug.com/20750.
 
 ### Informal specification
 
@@ -258,7 +258,7 @@ This feature is more invasive and complicated than the previous three. If this f
 
 ### Prior discussion
 
-See: [issue 18241](http://dartbug.com/18241)
+See: [issue 18241](https://dartbug.com/18241)
 
 ### Informal specification
 
@@ -338,7 +338,7 @@ The changes in this document allows `Foo<T>` to occur:
 
 but doesn't allow `Foo<T>` by itself, not even for the non-named constructor.
 
-The syntax is available, and needs to be recognized in most settings anyway, so we could allow it as a type literal expression. That would allow the expression `List<int>` to evaluate to the *Type* object for the class *List<int>*. It's been a long time (refused) request: [issue 23221](http://dartbug.com/23221).
+The syntax is available, and needs to be recognized in most settings anyway, so we could allow it as a type literal expression. That would allow the expression `List<int>` to evaluate to the *Type* object for the class *List<int>*. It's been a long time (refused) request: [issue 23221](https://dartbug.com/23221).
 
 The syntax will also be useful for instantiated generic method tear-off like `var intContinuation = future.then<int>;`
 

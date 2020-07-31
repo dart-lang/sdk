@@ -5,87 +5,92 @@
 #ifndef RUNTIME_VM_REGEXP_ASSEMBLER_H_
 #define RUNTIME_VM_REGEXP_ASSEMBLER_H_
 
+#include "vm/object.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/il.h"
-#include "vm/object.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
 // Utility function for the DotPrinter
 void PrintUtf16(uint16_t c);
+
+extern "C" {
 // Compares two-byte strings case insensitively as UCS2.
 // Called from generated RegExp code.
-RawBool* CaseInsensitiveCompareUCS2(RawString* str_raw,
-                                    RawSmi* lhs_index_raw,
-                                    RawSmi* rhs_index_raw,
-                                    RawSmi* length_raw);
+uword /*BoolPtr*/ CaseInsensitiveCompareUCS2(uword /*StringPtr*/ str_raw,
+                                             uword /*SmiPtr*/ lhs_index_raw,
+                                             uword /*SmiPtr*/ rhs_index_raw,
+                                             uword /*SmiPtr*/ length_raw);
 
 // Compares two-byte strings case insensitively as UTF16.
 // Called from generated RegExp code.
-RawBool* CaseInsensitiveCompareUTF16(RawString* str_raw,
-                                     RawSmi* lhs_index_raw,
-                                     RawSmi* rhs_index_raw,
-                                     RawSmi* length_raw);
+uword /*BoolPtr*/ CaseInsensitiveCompareUTF16(uword /*StringPtr*/ str_raw,
+                                              uword /*SmiPtr*/ lhs_index_raw,
+                                              uword /*SmiPtr*/ rhs_index_raw,
+                                              uword /*SmiPtr*/ length_raw);
+}
 
 /// Convenience wrapper around a BlockEntryInstr pointer.
 class BlockLabel : public ValueObject {
   // Used by the IR assembler.
  public:
   BlockLabel();
-
-  JoinEntryInstr* block() const { return block_; }
-
-  bool IsBound() const { return is_bound_; }
-  void SetBound(intptr_t block_id) {
-    ASSERT(!is_bound_);
-    block_->set_block_id(block_id);
-    is_bound_ = true;
-  }
-
-  bool IsLinked() const { return !is_bound_ && is_linked_; }
-  void SetLinked() { is_linked_ = true; }
-
-  intptr_t Position() const {
-    ASSERT(IsBound());
-    return block_->block_id();
-  }
-
- private:
-  JoinEntryInstr* block_;
-
-  bool is_bound_;
-  bool is_linked_;
-
-  // Used by the bytecode assembler.
- public:
   ~BlockLabel() { ASSERT(!is_linked()); }
 
   intptr_t pos() const { return pos_; }
-  bool is_bound() const { return IsBound(); }
-  bool is_linked() const { return IsLinked(); }
+  bool is_bound() const { return is_bound_; }
+  bool is_linked() const { return !is_bound_ && is_linked_; }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  JoinEntryInstr* block() const { return block_; }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   void Unuse() {
-    pos_ = 0;
+    pos_ = -1;
     is_bound_ = false;
     is_linked_ = false;
   }
 
-  void bind_to(intptr_t pos) {
+  void BindTo(intptr_t pos) {
     pos_ = pos;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    if (block_ != nullptr) block_->set_block_id(pos);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     is_bound_ = true;
     is_linked_ = false;
     ASSERT(is_bound());
   }
 
-  void link_to(intptr_t pos) {
+  // Used by bytecode assembler to form a linked list out of
+  // forward jumps to an unbound label.
+  void LinkTo(intptr_t pos) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    ASSERT(block_ == nullptr);
+#endif
+    ASSERT(!is_bound_);
     pos_ = pos;
-    is_bound_ = false;
     is_linked_ = true;
-    ASSERT(is_linked());
+  }
+
+  // Used by IR builder to mark block label as used.
+  void SetLinked() {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    ASSERT(block_ != nullptr);
+#endif
+    if (!is_bound_) {
+      is_linked_ = true;
+    }
   }
 
  private:
-  intptr_t pos_;
+  bool is_bound_ = false;
+  bool is_linked_ = false;
+  intptr_t pos_ = -1;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  JoinEntryInstr* block_ = nullptr;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 
 class RegExpMacroAssembler : public ZoneAllocated {

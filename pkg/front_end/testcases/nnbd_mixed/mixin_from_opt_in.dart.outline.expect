@@ -1,0 +1,36 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.6
+// ^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "mixin_from_opt_in_lib.dart" as mix;
+
+import "org-dartlang-testcase:///mixin_from_opt_in_lib.dart";
+
+abstract class _Class&Object&Mixin = core::Object with mix::Mixin /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Class&Object&Mixin
+    : super core::Object::•()
+    ;
+}
+class Class extends self::_Class&Object&Mixin {
+  synthetic constructor •() → self::Class
+    ;
+}
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as mix;
+import "dart:core" as core;
+
+class Mixin extends core::Object {
+  synthetic constructor •() → mix::Mixin
+    ;
+  method method(core::int? i) → core::int
+    ;
+}

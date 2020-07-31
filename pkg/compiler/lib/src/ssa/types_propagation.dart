@@ -215,32 +215,6 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     return candidateType;
   }
 
-  @override
-  AbstractValue visitTypeConversion(HTypeConversion instruction) {
-    HInstruction input = instruction.checkedInput;
-    AbstractValue inputType = input.instructionType;
-    AbstractValue checkedType = instruction.checkedType;
-    AbstractValue outputType =
-        abstractValueDomain.intersection(checkedType, inputType);
-    outputType = _numericFixup(outputType, inputType, checkedType);
-    if (inputType != outputType) {
-      // Replace dominated uses of input with uses of this HTypeConversion so
-      // the uses benefit from the stronger type.
-      //
-      // The dependency on the checked value also improves the generated
-      // JavaScript. Many checks are compiled to a function call expression that
-      // returns the checked result, so the check can be generated as a
-      // subexpression rather than a separate statement.
-      //
-      // Do not replace local accesses, since the local must be a HLocalValue,
-      // not a HTypeConversion.
-      if (!(input is HParameterValue && input.usedAsVariable())) {
-        input.replaceAllUsersDominatedBy(instruction.next, instruction);
-      }
-    }
-    return outputType;
-  }
-
   AbstractValue _numericFixup(AbstractValue outputType, AbstractValue inputType,
       AbstractValue checkedType) {
     if (abstractValueDomain.isEmpty(outputType).isDefinitelyTrue) {
@@ -289,12 +263,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     if (inputType != outputType) {
       // Replace dominated uses of input with uses of this HPrimitiveCheck so
       // the uses benefit from the stronger type.
-      //
-      // Do not replace local variable accesses, since the local must be a
-      // HLocalValue, not another kind of instruction.
-      if (!(input is HParameterValue && input.usedAsVariable())) {
-        input.replaceAllUsersDominatedBy(instruction.next, instruction);
-      }
+      assert(!(input is HParameterValue && input.usedAsVariable()));
+      input.replaceAllUsersDominatedBy(instruction.next, instruction);
     }
     return outputType;
   }
@@ -508,12 +478,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     if (inputType != outputType) {
       // Replace dominated uses of input with uses of this check so the uses
       // benefit from the stronger type.
-      //
-      // Do not replace local accesses, since the local must be a HLocalValue,
-      // not a HNullCheck.
-      if (!(input is HParameterValue && input.usedAsVariable())) {
-        input.replaceAllUsersDominatedBy(instruction.next, instruction);
-      }
+      assert(!(input is HParameterValue && input.usedAsVariable()));
+      input.replaceAllUsersDominatedBy(instruction.next, instruction);
     }
     return outputType;
   }
@@ -539,12 +505,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     if (inputType != outputType) {
       // Replace dominated uses of input with uses of this check so the uses
       // benefit from the stronger type.
-      //
-      // Do not replace local accesses, since the local must be a HLocalValue,
-      // not a HAsCheck.
-      if (!(input is HParameterValue && input.usedAsVariable())) {
-        input.replaceAllUsersDominatedBy(instruction.next, instruction);
-      }
+      assert(!(input is HParameterValue && input.usedAsVariable()));
+      input.replaceAllUsersDominatedBy(instruction.next, instruction);
     }
     return outputType;
   }

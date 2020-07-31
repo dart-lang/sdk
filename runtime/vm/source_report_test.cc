@@ -10,7 +10,7 @@ namespace dart {
 
 #ifndef PRODUCT
 
-static RawObject* ExecuteScript(const char* script, bool allow_errors = false) {
+static ObjectPtr ExecuteScript(const char* script, bool allow_errors = false) {
   Dart_Handle lib;
   {
     TransitionVMToNative transition(Thread::Current());

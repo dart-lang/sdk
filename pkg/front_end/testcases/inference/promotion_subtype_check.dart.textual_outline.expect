@@ -1,0 +1,5 @@
+library test;
+
+void f(Object x) {}
+void g(int x) {}
+main() {}

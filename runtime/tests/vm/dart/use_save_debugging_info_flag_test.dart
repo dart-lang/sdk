@@ -110,20 +110,20 @@ main(List<String> args) async {
     // Stripped output should not change when --save-debugging-info is used.
     compareSnapshots(scriptStrippedOnlySnapshot, scriptStrippedSnapshot);
 
-    final stackTraceWithTerminators = strippedTrace.map((String s) => s + "\n");
-    print("\nOriginal stack trace:");
-    print(stackTraceWithTerminators.join());
+    print('');
+    print("Original stack trace:");
+    strippedTrace.forEach(print);
 
     final debugDwarf = Dwarf.fromFile(scriptDebuggingInfo);
     final wholeDwarf = Dwarf.fromFile(scriptWholeSnapshot);
 
-    final fromDebug = await Stream.fromIterable(stackTraceWithTerminators)
+    final fromDebug = await Stream.fromIterable(strippedTrace)
         .transform(DwarfStackTraceDecoder(debugDwarf))
         .toList();
     print("\nStack trace converted using separate debugging info:");
     print(fromDebug.join());
 
-    final fromWhole = await Stream.fromIterable(stackTraceWithTerminators)
+    final fromWhole = await Stream.fromIterable(strippedTrace)
         .transform(DwarfStackTraceDecoder(wholeDwarf))
         .toList();
     print("\nStack trace converted using unstripped ELF file:");
@@ -168,7 +168,7 @@ Map<int, List<int>> diffBinary(Uint8List bytes1, Uint8List bytes2) {
 void printDiff(Map<int, List<int>> map, [int maxOutput = 100]) {
   int lines = 0;
   for (var index in map.keys) {
-    final pair = map[index];
+    final pair = map[index]!;
     if (pair[0] == -1) {
       print('$index: <>, ${pair[1]}');
       lines++;

@@ -13,7 +13,6 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateGetterTest);
     defineReflectiveTests(CreateGetterMixinTest);
-    defineReflectiveTests(CreateGetterWithExtensionMethodsTest);
   });
 }
 
@@ -114,6 +113,36 @@ main(List p) {
     await assertNoFix();
   }
 
+  Future<void> test_internal_instance() async {
+    await resolveTestUnit('''
+extension E on String {
+  int m()  => g;
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  get g => null;
+
+  int m()  => g;
+}
+''');
+  }
+
+  Future<void> test_internal_static() async {
+    await resolveTestUnit('''
+extension E on String {
+  static int m()  => g;
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  static get g => null;
+
+  static int m()  => g;
+}
+''');
+  }
+
   Future<void> test_location_afterLastGetter() async {
     await resolveTestUnit('''
 class A {
@@ -172,6 +201,28 @@ class C {
 }
 main(C c) {
   int v = c.b.a.test;
+  print(v);
+}
+''');
+  }
+
+  Future<void> test_override() async {
+    await resolveTestUnit('''
+extension E on String {
+}
+
+main(String s) {
+  int v = E(s).test;
+  print(v);
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  int get test => null;
+}
+
+main(String s) {
+  int v = E(s).test;
   print(v);
 }
 ''');
@@ -326,6 +377,28 @@ main(A a) {
     await assertNoFix();
   }
 
+  Future<void> test_static() async {
+    await resolveTestUnit('''
+extension E on String {
+}
+
+main(String s) {
+  int v = E.test;
+  print(v);
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  static int get test => null;
+}
+
+main(String s) {
+  int v = E.test;
+  print(v);
+}
+''');
+  }
+
   Future<void> test_unqualified_instance_asInvocationArgument() async {
     await resolveTestUnit('''
 class A {
@@ -394,92 +467,6 @@ class A {
   main() {
     test;
   }
-}
-''');
-  }
-}
-
-@reflectiveTest
-class CreateGetterWithExtensionMethodsTest extends FixProcessorTest {
-  @override
-  FixKind get kind => DartFixKind.CREATE_GETTER;
-
-  @override
-  void setUp() {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
-    super.setUp();
-  }
-
-  Future<void> test_internal_instance() async {
-    await resolveTestUnit('''
-extension E on String {
-  int m()  => g;
-}
-''');
-    await assertHasFix('''
-extension E on String {
-  get g => null;
-
-  int m()  => g;
-}
-''');
-  }
-
-  Future<void> test_internal_static() async {
-    await resolveTestUnit('''
-extension E on String {
-  static int m()  => g;
-}
-''');
-    await assertHasFix('''
-extension E on String {
-  static get g => null;
-
-  static int m()  => g;
-}
-''');
-  }
-
-  Future<void> test_override() async {
-    await resolveTestUnit('''
-extension E on String {
-}
-
-main(String s) {
-  int v = E(s).test;
-  print(v);
-}
-''');
-    await assertHasFix('''
-extension E on String {
-  int get test => null;
-}
-
-main(String s) {
-  int v = E(s).test;
-  print(v);
-}
-''');
-  }
-
-  Future<void> test_static() async {
-    await resolveTestUnit('''
-extension E on String {
-}
-
-main(String s) {
-  int v = E.test;
-  print(v);
-}
-''');
-    await assertHasFix('''
-extension E on String {
-  static int get test => null;
-}
-
-main(String s) {
-  int v = E.test;
-  print(v);
 }
 ''');
   }

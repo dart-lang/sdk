@@ -27,9 +27,6 @@ import 'optimize.dart';
 /// the interceptor and then call the method.  This saves code size and makes the
 /// receiver of an intercepted call a candidate for being generated at use site.
 ///
-/// 5) Some HIs operations on an interceptor are replaced with a HIs version that
-/// uses 'instanceof' rather than testing a type flag.
-///
 class SsaSimplifyInterceptors extends HBaseVisitor
     implements OptimizationPhase {
   @override
@@ -243,8 +240,8 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     // Specialize the interceptor with set of classes it intercepts, considering
     // all uses.  (The specialized interceptor has a shorter dispatch chain).
     // This operation applies only where the interceptor is used to dispatch a
-    // method.  Other uses, e.g. as an ordinary argument or a HIs check use the
-    // most general interceptor.
+    // method.  Other uses, e.g. as an ordinary argument use the most general
+    // interceptor.
     //
     // TODO(sra): Take into account the receiver type at each call.  e.g:
     //
@@ -377,19 +374,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       return false;
     }
 
-    if (user is HIs) {
-      // See if we can rewrite the is-check to use 'instanceof', i.e. rewrite
-      // "getInterceptor(x).$isT" to "x instanceof T".
-      if (node == user.interceptor) {
-        if (_interceptorData.mayGenerateInstanceofCheck(
-            user.typeExpression, _closedWorld)) {
-          HInstruction instanceofCheck = new HIs.instanceOf(user.typeExpression,
-              user.expression, user.instructionType, user.sourceInformation);
-          instanceofCheck.sourceElement = user.sourceElement;
-          return replaceUserWith(instanceofCheck);
-        }
-      }
-    } else if (user is HInvokeDynamic) {
+    if (user is HInvokeDynamic) {
       if (node == user.inputs[0]) {
         // Replace the user with a [HOneShotInterceptor].
         HConstant nullConstant = _graph.addConstantNull(_closedWorld);
@@ -439,14 +424,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     }
 
     for (HInstruction user in node.usedBy.toList()) {
-      if (user is HIs) {
-        if (user.interceptor == node) {
-          HInstruction expression = user.expression;
-          if (canUseSelfForInterceptor(expression)) {
-            user.changeUse(node, expression);
-          }
-        }
-      } else if (user is HInvokeDynamic) {
+      if (user is HInvokeDynamic) {
         if (user.isCallOnInterceptor(_closedWorld) &&
             node == user.inputs[0] &&
             useCount(user, node) == 1) {

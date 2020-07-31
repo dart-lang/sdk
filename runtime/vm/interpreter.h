@@ -10,6 +10,7 @@
 
 #include "vm/compiler/method_recognizer.h"
 #include "vm/constants_kbc.h"
+#include "vm/tagged_pointer.h"
 
 namespace dart {
 
@@ -18,17 +19,6 @@ class Code;
 class InterpreterSetjmpBuffer;
 class Isolate;
 class ObjectPointerVisitor;
-class RawArray;
-class RawField;
-class RawFunction;
-class RawICData;
-class RawImmutableArray;
-class RawInstance;
-class RawObject;
-class RawObjectPool;
-class RawString;
-class RawSubtypeTestCache;
-class RawTypeArguments;
 class Thread;
 
 class LookupCache : public ValueObject {
@@ -41,20 +31,20 @@ class LookupCache : public ValueObject {
 
   void Clear();
   bool Lookup(intptr_t receiver_cid,
-              RawString* function_name,
-              RawArray* arguments_descriptor,
-              RawFunction** target) const;
+              StringPtr function_name,
+              ArrayPtr arguments_descriptor,
+              FunctionPtr* target) const;
   void Insert(intptr_t receiver_cid,
-              RawString* function_name,
-              RawArray* arguments_descriptor,
-              RawFunction* target);
+              StringPtr function_name,
+              ArrayPtr arguments_descriptor,
+              FunctionPtr target);
 
  private:
   struct Entry {
     intptr_t receiver_cid;
-    RawString* function_name;
-    RawArray* arguments_descriptor;
-    RawFunction* target;
+    StringPtr function_name;
+    ArrayPtr arguments_descriptor;
+    FunctionPtr target;
   };
 
   static const intptr_t kNumEntries = 1024;
@@ -69,8 +59,8 @@ class LookupCache : public ValueObject {
 // instruction returning the value in result. Otherwise interpreter proceeds to
 // execute the body of the function.
 typedef bool (*IntrinsicHandler)(Thread* thread,
-                                 RawObject** FP,
-                                 RawObject** result);
+                                 ObjectPtr* FP,
+                                 ObjectPtr* result);
 
 class Interpreter {
  public:
@@ -104,16 +94,16 @@ class Interpreter {
     return reinterpret_cast<word>(pc) == kEntryFramePcMarker;
   }
 
-  RawObject* Call(const Function& function,
-                  const Array& arguments_descriptor,
-                  const Array& arguments,
-                  Thread* thread);
+  ObjectPtr Call(const Function& function,
+                 const Array& arguments_descriptor,
+                 const Array& arguments,
+                 Thread* thread);
 
-  RawObject* Call(RawFunction* function,
-                  RawArray* argdesc,
-                  intptr_t argc,
-                  RawObject* const* argv,
-                  Thread* thread);
+  ObjectPtr Call(FunctionPtr function,
+                 ArrayPtr argdesc,
+                 intptr_t argc,
+                 ObjectPtr const* argv,
+                 Thread* thread);
 
   void JumpToFrame(uword pc, uword sp, uword fp, Thread* thread);
 
@@ -137,113 +127,113 @@ class Interpreter {
   uword overflow_stack_limit_;
   uword stack_limit_;
 
-  RawObject** volatile fp_;
+  ObjectPtr* volatile fp_;
   const KBCInstr* volatile pc_;
   DEBUG_ONLY(uint64_t icount_;)
 
   InterpreterSetjmpBuffer* last_setjmp_buffer_;
 
-  RawObjectPool* pp_;  // Pool Pointer.
-  RawArray* argdesc_;  // Arguments Descriptor: used to pass information between
-                       // call instruction and the function entry.
-  RawObject* special_[KernelBytecode::kSpecialIndexCount];
+  ObjectPoolPtr pp_;  // Pool Pointer.
+  ArrayPtr argdesc_;  // Arguments Descriptor: used to pass information between
+                      // call instruction and the function entry.
+  ObjectPtr special_[KernelBytecode::kSpecialIndexCount];
 
   LookupCache lookup_cache_;
 
   void Exit(Thread* thread,
-            RawObject** base,
-            RawObject** exit_frame,
+            ObjectPtr* base,
+            ObjectPtr* exit_frame,
             const KBCInstr* pc);
 
   bool Invoke(Thread* thread,
-              RawObject** call_base,
-              RawObject** call_top,
+              ObjectPtr* call_base,
+              ObjectPtr* call_top,
               const KBCInstr** pc,
-              RawObject*** FP,
-              RawObject*** SP);
+              ObjectPtr** FP,
+              ObjectPtr** SP);
 
   bool InvokeCompiled(Thread* thread,
-                      RawFunction* function,
-                      RawObject** call_base,
-                      RawObject** call_top,
+                      FunctionPtr function,
+                      ObjectPtr* call_base,
+                      ObjectPtr* call_top,
                       const KBCInstr** pc,
-                      RawObject*** FP,
-                      RawObject*** SP);
+                      ObjectPtr** FP,
+                      ObjectPtr** SP);
 
   bool InvokeBytecode(Thread* thread,
-                      RawFunction* function,
-                      RawObject** call_base,
-                      RawObject** call_top,
+                      FunctionPtr function,
+                      ObjectPtr* call_base,
+                      ObjectPtr* call_top,
                       const KBCInstr** pc,
-                      RawObject*** FP,
-                      RawObject*** SP);
+                      ObjectPtr** FP,
+                      ObjectPtr** SP);
 
   bool InstanceCall(Thread* thread,
-                    RawString* target_name,
-                    RawObject** call_base,
-                    RawObject** call_top,
+                    StringPtr target_name,
+                    ObjectPtr* call_base,
+                    ObjectPtr* call_top,
                     const KBCInstr** pc,
-                    RawObject*** FP,
-                    RawObject*** SP);
+                    ObjectPtr** FP,
+                    ObjectPtr** SP);
 
   bool CopyParameters(Thread* thread,
                       const KBCInstr** pc,
-                      RawObject*** FP,
-                      RawObject*** SP,
+                      ObjectPtr** FP,
+                      ObjectPtr** SP,
                       const intptr_t num_fixed_params,
                       const intptr_t num_opt_pos_params,
                       const intptr_t num_opt_named_params);
 
   bool AssertAssignable(Thread* thread,
                         const KBCInstr* pc,
-                        RawObject** FP,
-                        RawObject** call_top,
-                        RawObject** args,
-                        RawSubtypeTestCache* cache);
+                        ObjectPtr* FP,
+                        ObjectPtr* call_top,
+                        ObjectPtr* args,
+                        SubtypeTestCachePtr cache);
   template <bool is_getter>
   bool AssertAssignableField(Thread* thread,
                              const KBCInstr* pc,
-                             RawObject** FP,
-                             RawObject** SP,
-                             RawInstance* instance,
-                             RawField* field,
-                             RawInstance* value);
+                             ObjectPtr* FP,
+                             ObjectPtr* SP,
+                             InstancePtr instance,
+                             FieldPtr field,
+                             InstancePtr value);
 
   bool AllocateMint(Thread* thread,
                     int64_t value,
                     const KBCInstr* pc,
-                    RawObject** FP,
-                    RawObject** SP);
+                    ObjectPtr* FP,
+                    ObjectPtr* SP);
   bool AllocateDouble(Thread* thread,
                       double value,
                       const KBCInstr* pc,
-                      RawObject** FP,
-                      RawObject** SP);
+                      ObjectPtr* FP,
+                      ObjectPtr* SP);
   bool AllocateFloat32x4(Thread* thread,
                          simd128_value_t value,
                          const KBCInstr* pc,
-                         RawObject** FP,
-                         RawObject** SP);
+                         ObjectPtr* FP,
+                         ObjectPtr* SP);
   bool AllocateFloat64x2(Thread* thread,
                          simd128_value_t value,
                          const KBCInstr* pc,
-                         RawObject** FP,
-                         RawObject** SP);
+                         ObjectPtr* FP,
+                         ObjectPtr* SP);
   bool AllocateArray(Thread* thread,
-                     RawTypeArguments* type_args,
-                     RawObject* length,
+                     TypeArgumentsPtr type_args,
+                     ObjectPtr length,
                      const KBCInstr* pc,
-                     RawObject** FP,
-                     RawObject** SP);
+                     ObjectPtr* FP,
+                     ObjectPtr* SP);
   bool AllocateContext(Thread* thread,
                        intptr_t num_variables,
                        const KBCInstr* pc,
-                       RawObject** FP,
-                       RawObject** SP);
+                       ObjectPtr* FP,
+                       ObjectPtr* SP);
   bool AllocateClosure(Thread* thread,
                        const KBCInstr* pc,
-                       RawObject** FP,
-                       RawObject** SP);
+                       ObjectPtr* FP,
+                       ObjectPtr* SP);
 
 #if defined(DEBUG)
   // Returns true if tracing of executed instructions is enabled.

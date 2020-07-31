@@ -9,8 +9,8 @@ library test;
 // can be inferred for A.y and B.y.
 
 class A {
-  var x = /*@returnType=invalid-type*/ () => new B(). /*@target=B::x*/ x;
-  var y = /*@returnType=invalid-type*/ () => new B(). /*@target=B::x*/ x;
+  var x = /*@returnType=invalid-type*/ () => new B(). /*@target=B.x*/ x;
+  var y = /*@returnType=invalid-type*/ () => new B(). /*@target=B.x*/ x;
 }
 
 class B extends A {

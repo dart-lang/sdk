@@ -564,13 +564,13 @@ class B extends A {
   covariant num foo;
 }
 class C extends A {
-  covariant @virtual num foo;
+  covariant num foo;
 }
 class D extends C {
-  @virtual int foo;
+  int foo;
 }
 class E extends D {
-  @virtual num foo;
+  num foo;
 }
     ''');
   }
@@ -583,17 +583,17 @@ abstract class Right implements Top {}
 abstract class Bottom implements Left, Right {}
 
 abstract class TakesLeft {
-  m(Left x);
+  void m(Left x);
 }
 abstract class TakesRight {
-  m(Right x);
+  void m(Right x);
 }
 abstract class TakesTop implements TakesLeft, TakesRight {
-  m(Top x); // works today
+  void m(Top x); // works today
 }
 abstract class TakesBottom implements TakesLeft, TakesRight {
   // LUB(Left, Right) == Top, so this is an implicit cast from Top to Bottom.
-  m(covariant Bottom x);
+  void m(covariant Bottom x);
 }
     ''');
   }
@@ -779,36 +779,6 @@ class H implements F {
   final ToVoid<dynamic> g = null;
 }
  ''');
-  }
-
-  test_fieldOverride_virtual() async {
-    _addMetaLibrary();
-    await checkFile(r'''
-import 'meta.dart';
-class C {
-  @virtual int x;
-}
-class OverrideGetter extends C {
-  int get x => 42;
-}
-class OverrideSetter extends C {
-  set x(int v) {}
-}
-class OverrideBoth extends C {
-  int get x => 42;
-  set x(int v) {}
-}
-class OverrideWithField extends C {
-  int x;
-
-  // expose the hidden storage slot
-  int get superX => super.x;
-  set superX(int v) { super.x = v; }
-}
-class VirtualNotInherited extends OverrideWithField {
-  int x;
-}
-    ''');
   }
 
   test_fieldSetterOverride() async {
@@ -2649,7 +2619,6 @@ class T1 implements I {
 ''');
   }
 
-  @failingTest
   test_invalidOverrides_doubleOverride() async {
     await checkFile('''
 class A {}
@@ -2669,7 +2638,6 @@ class Test extends Parent {
 ''');
   }
 
-  @failingTest
   test_invalidOverrides_doubleOverride2() async {
     await checkFile('''
 class A {}
@@ -2747,20 +2715,13 @@ class M2 {
     int x;
 }
 
-class /*error:INCONSISTENT_INHERITANCE*/T1 extends Base
-    with /*error:INVALID_OVERRIDE*/M1 {}
-class /*error:INCONSISTENT_INHERITANCE*/T2 extends Base
-    with /*error:INVALID_OVERRIDE*/M1, M2 {}
-class /*error:INCONSISTENT_INHERITANCE*/T3 extends Base
-    with M2, /*error:INVALID_OVERRIDE*/M1 {}
+class T1 extends Base with /*error:INVALID_OVERRIDE*/M1 {}
+class T2 extends Base with /*error:INVALID_OVERRIDE*/M1, M2 {}
+class T3 extends Base with M2, /*error:INVALID_OVERRIDE*/M1 {}
 
-
-class /*error:INCONSISTENT_INHERITANCE*/U1 = Base
-    with /*error:INVALID_OVERRIDE*/M1;
-class /*error:INCONSISTENT_INHERITANCE*/U2 = Base
-    with /*error:INVALID_OVERRIDE*/M1, M2;
-class /*error:INCONSISTENT_INHERITANCE*/U3 = Base
-    with M2, /*error:INVALID_OVERRIDE*/M1;
+class U1 = Base with /*error:INVALID_OVERRIDE*/M1;
+class U2 = Base with /*error:INVALID_OVERRIDE*/M1, M2;
+class U3 = Base with M2, /*error:INVALID_OVERRIDE*/M1;
 ''');
   }
 
@@ -2782,13 +2743,9 @@ class M2 {
     int x;
 }
 
-class /*error:INCONSISTENT_INHERITANCE*/T1 extends Base
-    with M1,
-    /*error:INVALID_OVERRIDE*/M2 {}
+class T1 extends Base with M1, /*error:INVALID_OVERRIDE*/M2 {}
 
-class /*error:INCONSISTENT_INHERITANCE*/U1 = Base
-    with M1,
-    /*error:INVALID_OVERRIDE*/M2;
+class U1 = Base with M1, /*error:INVALID_OVERRIDE*/M2;
 ''');
   }
 
@@ -2833,11 +2790,11 @@ class A {}
 class B {}
 
 class Base {
-    m(A a) {}
+  void m(A a) {}
 }
 
 class I1 {
-    m(B a) {}
+  void m(B a) {}
 }
 
 class /*error:INCONSISTENT_INHERITANCE*/T1
@@ -2845,7 +2802,7 @@ class /*error:INCONSISTENT_INHERITANCE*/T1
     implements I1 {}
 
 class T2 extends Base implements I1 {
-    m(a) {}
+  void m(dynamic a) {}
 }
 
 class /*error:INCONSISTENT_INHERITANCE*/T3
@@ -2857,7 +2814,7 @@ class /*error:INCONSISTENT_INHERITANCE*/U3
     implements I1;
 
 class T4 extends Object with Base implements I1 {
-    m(a) {}
+  void m(dynamic a) {}
 }
 ''');
   }
@@ -3410,11 +3367,9 @@ class M {
     m(B a) {}
 }
 
-class /*error:INCONSISTENT_INHERITANCE*/T1 extends Base
-    with /*error:INVALID_OVERRIDE*/M {}
+class T1 extends Base with /*error:INVALID_OVERRIDE*/M {}
 
-class /*error:INCONSISTENT_INHERITANCE*/U1 = Base
-    with /*error:INVALID_OVERRIDE*/M;
+class U1 = Base with /*error:INVALID_OVERRIDE*/M;
 ''');
   }
 
@@ -3434,11 +3389,9 @@ class M {
     m(B a) {}
 }
 
-class /*error:INCONSISTENT_INHERITANCE*/T1 extends Base
-    with /*error:INVALID_OVERRIDE*/M {}
+class T1 extends Base with /*error:INVALID_OVERRIDE*/M {}
 
-class /*error:INCONSISTENT_INHERITANCE*/U1 = Base
-    with /*error:INVALID_OVERRIDE*/M;
+class U1 = Base with /*error:INVALID_OVERRIDE*/M;
 ''');
   }
 
@@ -3603,15 +3556,15 @@ class A {}
 class B {}
 
 abstract class I1 {
-    m(A a);
+  void m(A a);
 }
 
 class Base {
-    m(B a) {}
+  void m(B a) {}
 }
 
 class T1 extends Base implements I1 {
-  /*error:INVALID_OVERRIDE*/m(B a) {}
+  void /*error:INVALID_OVERRIDE*/m(B a) {}
 }
 
 class /*error:INCONSISTENT_INHERITANCE*/T2
@@ -3626,15 +3579,15 @@ class A {}
 class B {}
 
 abstract class I1 {
-    m(A a);
+  void m(A a);
 }
 
 class M {
-    m(B a) {}
+  void m(B a) {}
 }
 
 class T1 extends Object with M implements I1 {
-  /*error:INVALID_OVERRIDE*/m(B a) {}
+  void /*error:INVALID_OVERRIDE*/m(B a) {}
 }
 
 class /*error:INCONSISTENT_INHERITANCE*/T2
@@ -3647,7 +3600,6 @@ class /*error:INCONSISTENT_INHERITANCE*/U2
 ''');
   }
 
-  @failingTest
   test_noDuplicateReports_typeOverridesSomeMethodInMultipleInterfaces() async {
     await checkFile('''
 class A {}
@@ -4330,12 +4282,7 @@ abstract class Base implements I1 {
 }
 
 class T1 extends Base {
-    // we consider the base class incomplete because it is
-    // abstract, so we report the error here too.
-    // TODO(sigmund): consider tracking overrides in a fine-grain
-    // manner, then this and the double-overrides would not be
-    // reported.
-    /*error:INVALID_OVERRIDE*/m(B a) {}
+    m(B a) {}
 }
 ''');
   }
@@ -4354,7 +4301,7 @@ class Base implements I1 {
 }
 
 class T1 extends Base {
-    /*error:INVALID_OVERRIDE*/m(B a) {}
+    m(B a) {}
 }
 ''');
   }
@@ -4894,16 +4841,5 @@ void main () {
   Foo x = /*error:USE_OF_VOID_RESULT*/foo();
 }
 ''');
-  }
-
-  void _addMetaLibrary() {
-    addFile(r'''
-library meta;
-class _Checked { const _Checked(); }
-const Object checked = const _Checked();
-
-class _Virtual { const _Virtual(); }
-const Object virtual = const _Virtual();
-    ''', name: '/meta.dart');
   }
 }

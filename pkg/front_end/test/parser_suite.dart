@@ -237,11 +237,14 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
       }
     });
   }
+}
 
-  StringBuffer tokenStreamToString(Token firstToken, List<int> lineStarts,
-      {bool addTypes: false}) {
-    StringBuffer sb = new StringBuffer();
-    Token token = firstToken;
+StringBuffer tokenStreamToString(Token firstToken, List<int> lineStarts,
+    {bool addTypes: false}) {
+  StringBuffer sb = new StringBuffer();
+  Token token = firstToken;
+
+  Token process(Token token, bool errorTokens) {
     bool printed = false;
     int endOfLast = -1;
     int lineStartsIteratorLine = 1;
@@ -249,7 +252,16 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
     lineStartsIterator.moveNext();
     lineStartsIterator.moveNext();
     lineStartsIteratorLine++;
+
+    Set<Token> seenTokens = new Set<Token>.identity();
     while (token != null) {
+      if (errorTokens && token is! ErrorToken) return token;
+      if (!errorTokens && token is ErrorToken) {
+        if (token == token.next) break;
+        token = token.next;
+        continue;
+      }
+
       int prevLine = lineStartsIteratorLine;
       while (token.offset >= lineStartsIterator.current &&
           lineStartsIterator.moveNext()) {
@@ -275,9 +287,26 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
       endOfLast = token.end;
       if (token == token.next) break;
       token = token.next;
+      if (!seenTokens.add(token)) {
+        // Loop in tokens: Print error and break to avoid infinite loop.
+        sb.write("\n\nERROR: Loop in tokens: $token "
+            "(${token.runtimeType}, ${token.type}, ${token.offset})) "
+            "was seen before "
+            "(linking to ${token.next}, ${token.next.runtimeType}, "
+            "${token.next.type}, ${token.next.offset})!\n\n");
+        break;
+      }
     }
-    return sb;
+
+    return token;
   }
+
+  if (addTypes) {
+    token = process(token, true);
+  }
+  token = process(token, false);
+
+  return sb;
 }
 
 Token scanUri(Uri uri, String shortName, {List<int> lineStarts}) {
@@ -293,6 +322,11 @@ Token scanUri(Uri uri, String shortName, {List<int> lineStarts}) {
   File f = new File.fromUri(uri);
   List<int> rawBytes = f.readAsBytesSync();
 
+  return scanRawBytes(rawBytes, config, lineStarts);
+}
+
+Token scanRawBytes(
+    List<int> rawBytes, ScannerConfiguration config, List<int> lineStarts) {
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
   bytes.setRange(0, rawBytes.length, rawBytes);
 

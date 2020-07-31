@@ -1,0 +1,8 @@
+library test;
+
+class Foo {
+  var x = 1;
+  Foo([this.x = "1"]);
+}
+
+main() {}

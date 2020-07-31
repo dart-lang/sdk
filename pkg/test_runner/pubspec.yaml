@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 name: test_runner
+# This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 environment:
   sdk: "^2.3.0"

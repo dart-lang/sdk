@@ -96,7 +96,7 @@ class _NullabilityDataInterpreter implements DataInterpreter<String> {
   const _NullabilityDataInterpreter();
 
   @override
-  String getText(String actualData) => actualData;
+  String getText(String actualData, [String indentation]) => actualData;
 
   @override
   String isAsExpected(String actualData, String expectedData) {

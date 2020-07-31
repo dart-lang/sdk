@@ -286,7 +286,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 0, 2) {
   return result.raw();
 }
 
-DEFINE_NATIVE_ENTRY(OneByteString_allocate, 0, 1) {
+DEFINE_NATIVE_ENTRY(Internal_allocateOneByteString, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, length_obj, arguments->NativeArgAt(0));
   const int64_t length = length_obj.AsInt64Value();
   if ((length < 0) || (length > OneByteString::kMaxElements)) {
@@ -298,6 +298,20 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocate, 0, 1) {
     UNREACHABLE();
   }
   return OneByteString::New(static_cast<intptr_t>(length), Heap::kNew);
+}
+
+DEFINE_NATIVE_ENTRY(Internal_allocateTwoByteString, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, length_obj, arguments->NativeArgAt(0));
+  const int64_t length = length_obj.AsInt64Value();
+  if ((length < 0) || (length > TwoByteString::kMaxElements)) {
+    // Assume that negative lengths are the result of wrapping in code in
+    // string_patch.dart.
+    const Instance& exception =
+        Instance::Handle(thread->isolate()->object_store()->out_of_memory());
+    Exceptions::Throw(thread, exception);
+    UNREACHABLE();
+  }
+  return TwoByteString::New(static_cast<intptr_t>(length), Heap::kNew);
 }
 
 DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 0, 3) {
@@ -362,8 +376,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 0, 3) {
     }
     String& string = String::Handle(OneByteString::New(length, space));
     for (int i = 0; i < length; i++) {
-      intptr_t value =
-          Smi::Value(reinterpret_cast<RawSmi*>(array.At(start + i)));
+      intptr_t value = Smi::Value(static_cast<SmiPtr>(array.At(start + i)));
       OneByteString::SetCharAt(string, i, value);
     }
     return string.raw();
@@ -376,8 +389,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 0, 3) {
     }
     String& string = String::Handle(OneByteString::New(length, space));
     for (int i = 0; i < length; i++) {
-      intptr_t value =
-          Smi::Value(reinterpret_cast<RawSmi*>(array.At(start + i)));
+      intptr_t value = Smi::Value(static_cast<SmiPtr>(array.At(start + i)));
       OneByteString::SetCharAt(string, i, value);
     }
     return string.raw();
@@ -386,13 +398,23 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 0, 3) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(OneByteString_setAt, 0, 3) {
+DEFINE_NATIVE_ENTRY(Internal_writeIntoOneByteString, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, receiver, arguments->NativeArgAt(0));
   ASSERT(receiver.IsOneByteString());
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index_obj, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, code_point_obj, arguments->NativeArgAt(2));
   ASSERT((0 <= code_point_obj.Value()) && (code_point_obj.Value() <= 0xFF));
   OneByteString::SetCharAt(receiver, index_obj.Value(), code_point_obj.Value());
+  return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(Internal_writeIntoTwoByteString, 0, 3) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, receiver, arguments->NativeArgAt(0));
+  ASSERT(receiver.IsTwoByteString());
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, index_obj, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, code_point_obj, arguments->NativeArgAt(2));
+  ASSERT((0 <= code_point_obj.Value()) && (code_point_obj.Value() <= 0xFFFF));
+  TwoByteString::SetCharAt(receiver, index_obj.Value(), code_point_obj.Value());
   return Object::null();
 }
 
@@ -430,7 +452,7 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 0, 3) {
       Exceptions::ThrowArgumentError(end_obj);
     }
     return TwoByteString::New(array, start * sizeof(uint16_t), length, space);
-  } else if (RawObject::IsTypedDataViewClassId(list.GetClassId())) {
+  } else if (IsTypedDataViewClassId(list.GetClassId())) {
     const auto& view = TypedDataView::Cast(list);
     const intptr_t cid = list.GetClassId();
     if (cid != kTypedDataUint16ArrayViewCid) {
@@ -458,8 +480,7 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 0, 3) {
     const String& string =
         String::Handle(zone, TwoByteString::New(length, space));
     for (int i = 0; i < length; i++) {
-      intptr_t value =
-          Smi::Value(reinterpret_cast<RawSmi*>(array.At(start + i)));
+      intptr_t value = Smi::Value(static_cast<SmiPtr>(array.At(start + i)));
       TwoByteString::SetCharAt(string, i, value);
     }
     return string.raw();
@@ -471,8 +492,7 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 0, 3) {
     const String& string =
         String::Handle(zone, TwoByteString::New(length, space));
     for (int i = 0; i < length; i++) {
-      intptr_t value =
-          Smi::Value(reinterpret_cast<RawSmi*>(array.At(start + i)));
+      intptr_t value = Smi::Value(static_cast<SmiPtr>(array.At(start + i)));
       TwoByteString::SetCharAt(string, i, value);
     }
     return string.raw();

@@ -3,11 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/ffi_callback_trampolines.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/code_comments.h"
 #include "vm/code_observers.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/exceptions.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 

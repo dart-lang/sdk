@@ -43,6 +43,14 @@ class SetPriorityFilesTest extends AbstractAnalysisTest {
     _verifyPriorityFiles(testFile);
   }
 
+  Future<void> test_fileInAnalysisRootAddedLater() async {
+    var path = convertPath('/other/file.dart');
+    newFile(path);
+    await _setPriorityFile(path);
+    await _setAnalysisRoots('/other');
+    _verifyPriorityFiles(path);
+  }
+
   Future<void> test_fileInSdk() async {
     addTestFile('');
     // set priority files
@@ -132,6 +140,11 @@ analyzer:
     var params = pluginManager.analysisSetPriorityFilesParams;
     expect(params, isNotNull);
     expect(params.files, <String>[testFile]);
+  }
+
+  Future<Response> _setAnalysisRoots(String folder) async {
+    var request = AnalysisSetAnalysisRootsParams([folder], []).toRequest('1');
+    return await serverChannel.sendRequest(request);
   }
 
   Future<Response> _setPriorityFile(String file) async {

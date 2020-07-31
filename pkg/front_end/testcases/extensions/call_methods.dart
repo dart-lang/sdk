@@ -26,6 +26,15 @@ main() {
   ""();
 }
 
+var topLevel1 = 1(10);
+var topLevel2 = 1("10");
+var topLevel3 = 1.0(10);
+var topLevel4 = 1.0("10");
+A a = new A();
+var topLevel5 = a(2);
+B b = new B();
+var topLevel6 = a(2, "3");
+
 errors() {
   1(10);
   1("10");

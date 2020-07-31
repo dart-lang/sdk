@@ -45,8 +45,8 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
       final self::Class::T% #t7 = this.{self::Class::initLateGenericField}(this.{self::Class::field});
       if(this.{self::Class::_#Class#lateGenericField#isSet})
         throw new _in::LateInitializationErrorImpl::•("Field 'lateGenericField' has been assigned during initialization.");
-      this.{self::Class::_#Class#lateGenericField#isSet} = true;
       this.{self::Class::_#Class#lateGenericField} = #t7;
+      this.{self::Class::_#Class#lateGenericField#isSet} = true;
     }
     return let final self::Class::T? #t8 = this.{self::Class::_#Class#lateGenericField} in #t8{self::Class::T%};
   }

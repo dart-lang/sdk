@@ -118,10 +118,7 @@ config("compiler") {
       ldflags += [ "-fsanitize=thread" ]
     }
     if (is_ubsan) {
-      cflags += [
-        "-fsanitize=undefined",
-        "-fno-sanitize=null,alignment",
-      ]
+      cflags += [ "-fsanitize=undefined" ]
       ldflags += [ "-fsanitize=undefined" ]
     }
   }
@@ -246,7 +243,7 @@ config("compiler") {
   # 3. When using the sanitizers.
   # Otherwise there is a performance hit, in particular on ia32.
   if (is_android || is_asan || is_lsan || is_msan || is_tsan || is_ubsan ||
-      (is_linux && current_cpu != "x86")) {
+      (is_linux && current_cpu != "x86") || is_fuchsia) {
     cflags += [ "-fPIC" ]
     ldflags += [ "-fPIC" ]
   }
@@ -279,6 +276,8 @@ config("compiler") {
   if (is_win) {
     # Up-to-date toolchain MSVC doesn't support c++11 flag any longer.
     cc_std = [ "/std:c++14" ]
+  } else if (is_fuchsia) {
+    cc_std = [ "-std=c++17" ]
   } else {
     cc_std = [ "-std=c++11" ]
   }
@@ -515,19 +514,32 @@ if (is_win) {
     default_warning_flags += [ "/WX" ]  # Treat warnings as errors.
   }
 
-  default_warning_flags += [
-    # Permanent.
-    "/wd4091",  # typedef warning from dbghelp.h
-    "/wd4722",  # destructor never returns
+  if (is_clang) {
+    default_warning_flags += [
+      "-Wno-deprecated-declarations", # crashpad
+      "-Wno-ignored-pragma-optimize", # icu, double-conversion
+      "-Wno-implicit-int-float-conversion", # icu
+      "-Wno-macro-redefined",
+      "-Wno-microsoft-cast",
+      "-Wno-microsoft-unqualified-friend",
+      "-Wno-unknown-argument", # icu
+      "-Wno-unused-value", # crashpad
+    ]
+  } else {
+    default_warning_flags += [
+      # Permanent.
+      "/wd4091",  # typedef warning from dbghelp.h
+      "/wd4722",  # destructor never returns
 
-    # Investigate.
-    "/wd4312",  # int to pointer of greater size conversion.
-    "/wd4838",  # Narrowing conversion required.
-    "/wd4172",  # Returning address of local.
-    "/wd4005",  # Redefinition of macros for PRId64 etc.
-    "/wd4311",  # Pointer truncation from PVOID to DWORD.
-    "/wd4477",  # Format string requires wchar_t*
-  ]
+      # Investigate.
+      "/wd4312",  # int to pointer of greater size conversion.
+      "/wd4838",  # Narrowing conversion required.
+      "/wd4172",  # Returning address of local.
+      "/wd4005",  # Redefinition of macros for PRId64 etc.
+      "/wd4311",  # Pointer truncation from PVOID to DWORD.
+      "/wd4477",  # Format string requires wchar_t*
+    ]
+  }
 } else {
   # Common GCC warning setup.
   default_warning_flags += [
@@ -541,6 +553,9 @@ if (is_win) {
 
   if (is_clang) {
     default_warning_flags += [ "-Wno-tautological-constant-compare" ]
+  } else {
+    default_warning_flags +=
+        [ "-Wno-ignored-qualifiers" ]  # Warnings in BoringSSL headers
   }
 
   if (is_mac) {

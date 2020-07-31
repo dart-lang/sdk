@@ -13,38 +13,39 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 /// new List() => new _GrowableList(0)
 /// new List(n) => new _List(n)
 /// new List.filled(n, null, growable: true) => new _GrowableList(n)
+/// new List.filled(n, x, growable: true) => new _GrowableList.filled(n, x)
 /// new List.filled(n, null) => new _List(n)
+/// new List.filled(n, x) => new _List.filled(n, x)
 ///
-void transformLibraries(List<Library> libraries, CoreTypes coreTypes) {
-  final transformer = new _ListFactorySpecializer(coreTypes);
-  libraries.forEach(transformer.visitLibrary);
-}
-
-class _ListFactorySpecializer extends Transformer {
+class ListFactorySpecializer {
   final Procedure _defaultListFactory;
   final Procedure _listFilledFactory;
   final Procedure _growableListFactory;
+  final Procedure _growableListFilledFactory;
   final Procedure _fixedListFactory;
+  final Procedure _fixedListFilledFactory;
 
-  _ListFactorySpecializer(CoreTypes coreTypes)
+  ListFactorySpecializer(CoreTypes coreTypes)
       : _defaultListFactory =
             coreTypes.index.getMember('dart:core', 'List', ''),
         _listFilledFactory =
             coreTypes.index.getMember('dart:core', 'List', 'filled'),
         _growableListFactory =
             coreTypes.index.getMember('dart:core', '_GrowableList', ''),
-        _fixedListFactory =
-            coreTypes.index.getMember('dart:core', '_List', '') {
+        _growableListFilledFactory =
+            coreTypes.index.getMember('dart:core', '_GrowableList', 'filled'),
+        _fixedListFactory = coreTypes.index.getMember('dart:core', '_List', ''),
+        _fixedListFilledFactory =
+            coreTypes.index.getMember('dart:core', '_List', 'filled') {
     assert(_defaultListFactory.isFactory);
     assert(_listFilledFactory.isFactory);
     assert(_growableListFactory.isFactory);
+    assert(_growableListFilledFactory.isFactory);
     assert(_fixedListFactory.isFactory);
+    assert(_fixedListFilledFactory.isFactory);
   }
 
-  @override
-  visitStaticInvocation(StaticInvocation node) {
-    super.visitStaticInvocation(node);
-
+  TreeNode transformStaticInvocation(StaticInvocation node) {
     final target = node.target;
     if (target == _defaultListFactory) {
       final args = node.arguments;
@@ -61,10 +62,8 @@ class _ListFactorySpecializer extends Transformer {
       assert(args.positional.length == 2);
       final length = args.positional[0];
       final fill = args.positional[1];
-      if (fill is! NullLiteral &&
-          !(fill is ConstantExpression && fill.constant is NullConstant)) {
-        return node;
-      }
+      final fillingWithNull = fill is NullLiteral ||
+          (fill is ConstantExpression && fill.constant is NullConstant);
       bool growable;
       if (args.named.isEmpty) {
         growable = false;
@@ -86,13 +85,25 @@ class _ListFactorySpecializer extends Transformer {
         }
       }
       if (growable) {
-        return StaticInvocation(
-            _growableListFactory, Arguments([length], types: args.types))
-          ..fileOffset = node.fileOffset;
+        if (fillingWithNull) {
+          return StaticInvocation(
+              _growableListFactory, Arguments([length], types: args.types))
+            ..fileOffset = node.fileOffset;
+        } else {
+          return StaticInvocation(_growableListFilledFactory,
+              Arguments([length, fill], types: args.types))
+            ..fileOffset = node.fileOffset;
+        }
       } else {
-        return StaticInvocation(
-            _fixedListFactory, Arguments([length], types: args.types))
-          ..fileOffset = node.fileOffset;
+        if (fillingWithNull) {
+          return StaticInvocation(
+              _fixedListFactory, Arguments([length], types: args.types))
+            ..fileOffset = node.fileOffset;
+        } else {
+          return StaticInvocation(_fixedListFilledFactory,
+              Arguments([length, fill], types: args.types))
+            ..fileOffset = node.fileOffset;
+        }
       }
     }
 

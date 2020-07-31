@@ -1,0 +1,31 @@
+library test;
+
+abstract class A {
+  int get x;
+}
+
+class B {
+  int get x => 0;
+}
+
+class C extends A {
+  var x;
+}
+
+class D extends B {
+  var x;
+}
+
+class E implements A {
+  var x;
+}
+
+class F implements B {
+  var x;
+}
+
+class G extends Object with B {
+  var x;
+}
+
+main() {}

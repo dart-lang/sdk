@@ -1,0 +1,35 @@
+// @dart = 2.6
+abstract class Foo<T> implements FooBase {
+  factory Foo(int x) = Bar<String, T>;
+}
+
+abstract class FooBase<Tf> {
+  factory FooBase(int x) = Foo<Tf>;
+  int get x;
+}
+
+class Bar<Sb, Tb> implements Foo<Tb> {
+  Bar(this.x) {}
+  int x;
+}
+
+class Base<M> {}
+
+class Builder<X> {
+  method() {}
+}
+
+class Mixin<M> {}
+
+class SimpleCase<A, B> {
+  factory SimpleCase() = SimpleCaseImpl<A, B>;
+}
+
+class SimpleCaseImpl2<Ai2, Bi2> implements SimpleCaseImpl<Ai2, Bi2> {}
+
+class SimpleCaseImpl<Ai, Bi> implements SimpleCase<Ai, Bi> {
+  factory SimpleCaseImpl() = SimpleCaseImpl2<Ai, Bi>;
+}
+
+class Mix<M> = Base<M> with Mixin<M>;
+main() {}

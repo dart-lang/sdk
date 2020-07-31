@@ -114,7 +114,6 @@ class HtmlDartGenerator(object):
         for id in sorted(operationsByName.keys()):
             operations = operationsByName[id]
             info = AnalyzeOperation(interface, operations)
-            info.nnbd = self._nnbd
             self.AddOperation(info, declare_only, dart_js_interop)
             if ('%s.%s' % (interface.id,
                            info.declared_name) in convert_to_future_members):
@@ -519,8 +518,7 @@ class HtmlDartGenerator(object):
         if self._interface_type_info.list_item_type():
             item_type = self._type_registry.TypeInfo(
                 self._interface_type_info.list_item_type()).dart_type()
-            if self._nnbd and \
-                    self._interface_type_info.list_item_type_nullable():
+            if self._interface_type_info.list_item_type_nullable():
                 item_type += '?'
             implements.append('List<%s>' % item_type)
         return implements
@@ -530,8 +528,7 @@ class HtmlDartGenerator(object):
         if self._interface_type_info.list_item_type():
             item_type = self._type_registry.TypeInfo(
                 self._interface_type_info.list_item_type()).dart_type()
-            if self._nnbd and \
-                    self._interface_type_info.list_item_type_nullable():
+            if self._interface_type_info.list_item_type_nullable():
                 item_type += '?'
             mixins.append('ListMixin<%s>' % item_type)
             mixins.append('ImmutableListMixin<%s>' % item_type)
@@ -907,8 +904,7 @@ class HtmlDartGenerator(object):
             })
         if nullable:
             element_js = element_name + "|Null"
-            if self._nnbd:
-                element_name += '?'
+            element_name += '?'
         else:
             element_js = element_name
         self._members_emitter.Emit(
@@ -938,11 +934,10 @@ class HtmlDartGenerator(object):
         assert (dart_name != 'HistoryBase' and dart_name != 'LocationBase')
         if dart_name == 'Window':
             dart_name = _secure_base_types[dart_name]
-        if self._nnbd:
-            if type_name == 'any':
-                dart_name = 'Object'
-            if nullable and dart_name != 'dynamic':
-                dart_name = dart_name + '?'
+        if type_name == 'any':
+            dart_name = 'Object'
+        if nullable and dart_name != 'dynamic':
+            dart_name = dart_name + '?'
         return dart_name
 
     def SecureBaseName(self, type_name):
@@ -1006,7 +1001,7 @@ class HtmlDartGenerator(object):
                     NAME=temp_name,
                     CONVERT=conversion.function_name,
                     ARG=info.param_infos[position].name,
-                    NULLASSERT='!' if null_assert_needed and self._nnbd else '',
+                    NULLASSERT='!' if null_assert_needed else '',
                     ARITY=callBackInfo)
                 converted_arguments.append(temp_name)
                 param_type = temp_type

@@ -22,13 +22,13 @@ var c1 = /*@typeArgs=dynamic*/ [
 ]; // list literals
 var c2 = /*@typeArgs=dynamic*/ const [];
 var d = <dynamic, dynamic>{'a': 'b'}; // map literals
-var e = new A().. /*@target=A::x*/ x = 3; // cascades
+var e = new A().. /*@target=A.x*/ x = 3; // cascades
 var f =
-    2 /*@target=num::+*/ + 3; // binary expressions are OK if the left operand
+    2 /*@target=num.+*/ + 3; // binary expressions are OK if the left operand
 // is from a library in a different strongest
 // connected component.
-var g = /*@target=int::unary-*/ -3;
-var h = new A() /*@target=A::+*/ + 3;
+var g = /*@target=int.unary-*/ -3;
+var h = new A() /*@target=A.+*/ + 3;
 var i = /*error:UNDEFINED_OPERATOR,info:DYNAMIC_INVOKE*/ -new A();
 var j = /*info:UNNECESSARY_CAST*/ null as B;
 

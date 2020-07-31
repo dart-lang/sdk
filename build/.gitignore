@@ -1,7 +1,7 @@
 # Generated file containing information about the VS toolchain on Windows
 win_toolchain.json
 
-# Pulled Debian wheezy sysroots
+# Pulled Debian jessie sysroots
 linux/debian_jessie_arm-sysroot
 linux/debian_jessie_arm64-sysroot
 linux/debian_jessie_amd64-sysroot

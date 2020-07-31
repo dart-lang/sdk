@@ -33,16 +33,6 @@ m([@required a]) => null;
     ]);
   }
 
-  test_positionalParameter_withDefault() async {
-    await assertErrorsInCode(r'''
-import 'package:meta/meta.dart';
-
-m([@required a = 1]) => null;
-''', [
-      error(HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 37, 15),
-    ]);
-  }
-
   test_positionalParameter_noDefault_asSecond() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -50,6 +40,16 @@ import 'package:meta/meta.dart';
 m(a, [@required b]) => null;
 ''', [
       error(HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 40, 11),
+    ]);
+  }
+
+  test_positionalParameter_withDefault() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+m([@required a = 1]) => null;
+''', [
+      error(HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 37, 15),
     ]);
   }
 

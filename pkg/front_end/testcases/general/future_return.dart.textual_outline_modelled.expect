@@ -1,0 +1,22 @@
+import 'dart:async';
+
+Class returnClass() async => new Class();
+Class returnClassFromDynamic() async => returnDynamic();
+Class returnClassFromFutureClass() async => returnFutureClass();
+Class returnClassFromFutureOrClass() async => returnFutureOrClass();
+Future<Class> returnFutureClass() async => new Class();
+Future<Class> returnFutureClassDynamic() async => returnDynamic();
+Future<Class> returnFutureClassFromFutureClass() async => returnFutureClass();
+Future<Class> returnFutureClassFromFutureOrClass() async =>
+    returnFutureOrClass();
+FutureOr<Class> returnFutureOrClass() async => new Class();
+FutureOr<Class> returnFutureOrClassDynamic() async => returnDynamic();
+FutureOr<Class> returnFutureOrClassFromFutureClass() async =>
+    returnFutureClass();
+FutureOr<Class> returnFutureOrClassFromFutureOrClass() async =>
+    returnFutureOrClass();
+
+class Class {}
+
+dynamic returnDynamic() => new Class();
+main() async {}

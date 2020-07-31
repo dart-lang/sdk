@@ -1,0 +1,18 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:async" as asy;
+
+import "dart:async";
+
+static method throwSync() → asy::Future<void>
+  ;
+static method allYield() → asy::Future<void> async 
+  ;
+static method allYield2() → asy::Future<void> async 
+  ;
+static method allYield3() → asy::Future<void> async 
+  ;
+static method customErrorZone() → asy::Future<void> async 
+  ;
+static method main() → dynamic
+  ;

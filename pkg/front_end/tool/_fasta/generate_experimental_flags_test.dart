@@ -37,7 +37,7 @@ The generated file
   ${generatedFile.path}
 
 is out of date. To regenerate the file, run
-  pkg/front_end/tool/fasta generate-experimental-flags
+  dart pkg/front_end/tool/fasta.dart generate-experimental-flags
 
 ------------------------
 """);

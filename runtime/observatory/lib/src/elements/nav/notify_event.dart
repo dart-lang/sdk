@@ -6,7 +6,7 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class EventDeleteEvent {
@@ -15,9 +15,7 @@ class EventDeleteEvent {
 }
 
 class NavNotifyEventElement extends CustomElement implements Renderable {
-  static const tag = const Tag<NavNotifyEventElement>('nav-event');
-
-  RenderingScheduler _r;
+  RenderingScheduler<NavNotifyEventElement> _r;
 
   Stream<RenderedEvent<NavNotifyEventElement>> get onRendered => _r.onRendered;
 
@@ -37,7 +35,7 @@ class NavNotifyEventElement extends CustomElement implements Renderable {
     return e;
   }
 
-  NavNotifyEventElement.created() : super.created(tag);
+  NavNotifyEventElement.created() : super.created('nav-event');
 
   @override
   void attached() {

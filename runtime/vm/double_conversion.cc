@@ -50,7 +50,7 @@ void DoubleToCString(double d, char* buffer, int buffer_size) {
   ASSERT(result == buffer);
 }
 
-RawString* DoubleToStringAsFixed(double d, int fraction_digits) {
+StringPtr DoubleToStringAsFixed(double d, int fraction_digits) {
   static const int kMinFractionDigits = 0;
   static const int kMaxFractionDigits = 20;
   static const int kMaxDigitsBeforePoint = 20;
@@ -91,7 +91,7 @@ RawString* DoubleToStringAsFixed(double d, int fraction_digits) {
   return String::New(builder.Finalize());
 }
 
-RawString* DoubleToStringAsExponential(double d, int fraction_digits) {
+StringPtr DoubleToStringAsExponential(double d, int fraction_digits) {
   static const int kMinFractionDigits = -1;  // -1 represents shortest mode.
   static const int kMaxFractionDigits = 20;
   static const int kConversionFlags =
@@ -122,7 +122,7 @@ RawString* DoubleToStringAsExponential(double d, int fraction_digits) {
   return String::New(builder.Finalize());
 }
 
-RawString* DoubleToStringAsPrecision(double d, int precision) {
+StringPtr DoubleToStringAsPrecision(double d, int precision) {
   static const int kMinPrecisionDigits = 1;
   static const int kMaxPrecisionDigits = 21;
   static const int kMaxLeadingPaddingZeroes = 6;

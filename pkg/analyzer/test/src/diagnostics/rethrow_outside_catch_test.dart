@@ -15,16 +15,6 @@ main() {
 
 @reflectiveTest
 class RethrowOutsideCatchTest extends DriverResolutionTest {
-  test_withoutCatch() async {
-    await assertErrorsInCode(r'''
-f() {
-  rethrow;
-}
-''', [
-      error(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, 8, 7),
-    ]);
-  }
-
   test_insideCatch() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -33,5 +23,15 @@ class A {
   }
 }
 ''');
+  }
+
+  test_withoutCatch() async {
+    await assertErrorsInCode(r'''
+f() {
+  rethrow;
+}
+''', [
+      error(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, 8, 7),
+    ]);
   }
 }

@@ -9,6 +9,12 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'commandline_options.dart' show Flags;
 import 'util/util.dart';
 
+enum NullSafetyMode {
+  unspecified,
+  unsound,
+  sound,
+}
+
 /// Options used for controlling diagnostic messages.
 abstract class DiagnosticOptions {
   const DiagnosticOptions();
@@ -199,6 +205,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// after a transitional period.
   bool useDumpInfoBinaryFormat = false;
 
+  /// If set, SSA intermediate form is dumped for methods with names matching
+  /// this RegExp pattern.
+  String dumpSsaPattern = null;
+
   /// Whether we allow passing an extra argument to `assert`, containing a
   /// reason for why an assertion fails. (experimental)
   ///
@@ -329,22 +339,33 @@ class CompilerOptions implements DiagnosticOptions {
   /// called.
   bool experimentCallInstrumentation = false;
 
-  /// Whether to use the new RTI representation (default).
-  bool useNewRti = true;
-
-  /// Whether null-safety (non-nullable types) are enabled.
-  bool get useNullSafety =>
-      languageExperiments[fe.ExperimentalFlag.nonNullable];
+  /// Whether null-safety (non-nullable types) are enabled in the sdk.
+  ///
+  /// This may be true either when `--enable-experiment=non-nullable` is
+  /// provided on the command-line, or when the provided .dill file for the sdk
+  /// was built with null-safety enabled.
+  bool useNullSafety = false;
 
   /// When null-safety is enabled, whether the compiler should emit code with
-  /// weak or strong semantics.
-  bool _useWeakNullSafetySemantics = true;
+  /// unsound or sound semantics.
+  ///
+  /// If unspecified, the mode must be inferred from the entrypoint.
+  ///
+  /// This option should rarely need to be accessed directly. Consider using
+  /// [useLegacySubtyping] instead.
+  NullSafetyMode nullSafetyMode = NullSafetyMode.unspecified;
+  bool _soundNullSafety = false;
+  bool _noSoundNullSafety = false;
 
   /// Whether to use legacy subtype semantics rather than null-safe semantics.
   /// This is `true` if null-safety is disabled, i.e. all code is legacy code,
-  /// or if weak null-safety semantics are being used, since we do not emit
+  /// or if unsound null-safety semantics are being used, since we do not emit
   /// warnings.
-  bool get useLegacySubtyping => !useNullSafety || _useWeakNullSafetySemantics;
+  bool get useLegacySubtyping {
+    assert(nullSafetyMode != NullSafetyMode.unspecified,
+        "Null safety mode unspecified");
+    return !useNullSafety || (nullSafetyMode == NullSafetyMode.unsound);
+  }
 
   /// The path to the file that contains the profiled allocations.
   ///
@@ -376,22 +397,11 @@ class CompilerOptions implements DiagnosticOptions {
       void Function(String) onWarning}) {
     Map<fe.ExperimentalFlag, bool> languageExperiments =
         _extractExperiments(options, onError: onError, onWarning: onWarning);
-    if (equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
-      platformBinaries ??= fe.computePlatformBinariesLocation();
-    } else {
-      // TODO(sigmund): change these defaults before we unfork the sdk.
-      // To unfork the plan is to accept the same platform files regardless of
-      // the experiment flag (it will be enabled in the sdk regardless).
-      if (_hasOption(options, Flags.testMode) &&
-          languageExperiments[fe.ExperimentalFlag.nonNullable]) {
-        var experimentWithoutNullability = Map.of(languageExperiments);
-        experimentWithoutNullability[fe.ExperimentalFlag.nonNullable] = false;
-        if (equalMaps(
-            experimentWithoutNullability, fe.defaultExperimentalFlags)) {
-          platformBinaries ??= fe.computePlatformBinariesLocation();
-        }
-      }
-    }
+
+    // The null safety experiment can result in requiring different experiments
+    // for compiling user code vs. the sdk. To simplify things, we prebuild the
+    // sdk with the correct flags.
+    platformBinaries ??= fe.computePlatformBinariesLocation();
     return new CompilerOptions()
       ..librariesSpecificationUri = librariesSpecificationUri
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
@@ -423,6 +433,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..dumpInfo = _hasOption(options, Flags.dumpInfo)
       ..useDumpInfoBinaryFormat =
           _hasOption(options, "${Flags.dumpInfo}=binary")
+      ..dumpSsaPattern =
+          _extractStringOption(options, '${Flags.dumpSsa}=', null)
       ..enableMinification = _hasOption(options, Flags.minify)
       .._disableMinification = _hasOption(options, Flags.noMinify)
       ..enableNativeLiveTypeAnalysis =
@@ -438,11 +450,9 @@ class CompilerOptions implements DiagnosticOptions {
       ..experimentToBoolean = _hasOption(options, Flags.experimentToBoolean)
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
-      ..useNewRti = !_hasOption(options, Flags.useOldRti)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
       ..outputUri = _extractUriOption(options, '--out=')
-      ..platformBinaries =
-          platformBinaries ?? _extractUriOption(options, '--platform-binaries=')
+      ..platformBinaries = platformBinaries
       ..printLegacyStars = _hasOption(options, Flags.printLegacyStars)
       ..sourceMapUri = _extractUriOption(options, '--source-map=')
       ..omitImplicitChecks = _hasOption(options, Flags.omitImplicitChecks)
@@ -473,7 +483,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..codegenShards = _extractIntOption(options, '${Flags.codegenShards}=')
       ..cfeOnly = _hasOption(options, Flags.cfeOnly)
       ..debugGlobalInference = _hasOption(options, Flags.debugGlobalInference)
-      .._useWeakNullSafetySemantics = !_hasOption(options, Flags.nullSafety);
+      .._soundNullSafety = _hasOption(options, Flags.soundNullSafety)
+      .._noSoundNullSafety = _hasOption(options, Flags.noSoundNullSafety);
   }
 
   void validate() {
@@ -495,6 +506,14 @@ class CompilerOptions implements DiagnosticOptions {
       throw ArgumentError("'${Flags.legacyJavaScript}' incompatible with "
           "'${Flags.noLegacyJavaScript}'");
     }
+    if (_soundNullSafety && _noSoundNullSafety) {
+      throw ArgumentError("'${Flags.soundNullSafety}' incompatible with "
+          "'${Flags.noSoundNullSafety}'");
+    }
+    if (!useNullSafety && _soundNullSafety) {
+      throw ArgumentError("'${Flags.soundNullSafety}' requires the "
+          "'non-nullable' experiment to be enabled");
+    }
   }
 
   void deriveOptions() {
@@ -504,14 +523,19 @@ class CompilerOptions implements DiagnosticOptions {
     }
 
     if (benchmarkingExperiment) {
-      // TODO(sra): Set flags implied by '--benchmarking-x'. At this time we
-      // use it to run the old-rti to continue comparing data with new-rti, but
-      // we should remove it once we start benchmarking NNBD.
-      useNewRti = false;
+      // Set flags implied by '--benchmarking-x'.
+      // TODO(sra): Use this for some NNBD variant.
     }
 
     if (_noLegacyJavaScript) legacyJavaScript = false;
     if (_legacyJavaScript) legacyJavaScript = true;
+
+    if (languageExperiments[fe.ExperimentalFlag.nonNullable]) {
+      useNullSafety = true;
+    }
+
+    if (_soundNullSafety) nullSafetyMode = NullSafetyMode.sound;
+    if (_noSoundNullSafety) nullSafetyMode = NullSafetyMode.unsound;
 
     if (optimizationLevel != null) {
       if (optimizationLevel == 0) {

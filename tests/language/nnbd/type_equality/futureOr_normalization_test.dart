@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:async';
 
+// Requirements=nnbd
+
 import 'package:expect/expect.dart';
 
 import 'futureOr_normalization_null_safe_lib.dart';
-import 'futureOr_normalization_legacy_lib.dart' as legacy;
 
 class A {}
 
@@ -42,7 +43,4 @@ main() {
       extractType<Embed<FutureOr<int?>>>(), embedNullableFutureOrType<int?>());
   Expect.equals(
       extractType<Embed<FutureOr<A?>>>(), embedNullableFutureOrType<A?>());
-
-  // Object* == FutureOr<Object*>
-  Expect.equals(legacy.object, legacy.nonNullableFutureOrOfLegacyObject());
 }

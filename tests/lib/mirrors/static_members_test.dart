@@ -36,5 +36,5 @@ main() {
     const Symbol('staticVariable='),
     MirrorSystem.getSymbol('_staticVariable', lm),
     MirrorSystem.getSymbol('_staticVariable=', lm)
-  ], selectKeys(cm.staticMembers, (dm) => dm.isSynthetic));
+  ], selectKeys(cm.staticMembers, (dynamic dm) => dm.isSynthetic));
 }

@@ -8,6 +8,8 @@ import 'dart:io';
 
 import 'package:kernel/binary/tag.dart' show Tag;
 
+import 'package:front_end/src/base/command_line_options.dart';
+
 import 'package:testing/testing.dart'
     show ChainContext, Result, Step, TestDescription, Chain, runMe;
 
@@ -73,11 +75,11 @@ Future<Null> generateDill() async {
       [
         fastaCompile.toFilePath(),
         "sdkroot:/pkg/compiler/bin/dart2js.dart",
-        "-o",
+        "${Flags.output}",
         output.toFilePath(),
-        "--target=vm",
-        "--single-root-base=${Uri.base.toFilePath()}",
-        "--single-root-scheme=sdkroot",
+        "${Flags.target}=vm",
+        "${Flags.singleRootBase}=${Uri.base.toFilePath()}",
+        "${Flags.singleRootScheme}=sdkroot",
       ],
       workingDirectory: Uri.base.toFilePath());
   if (result.exitCode != 0) {

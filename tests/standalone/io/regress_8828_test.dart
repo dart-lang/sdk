@@ -24,7 +24,7 @@ void main() {
     client.get("127.0.0.1", server.port, "/").then((HttpClientRequest request) {
       return request.close();
     }).then((HttpClientResponse response) {
-      List<int> body = new List();
+      List<int> body = [];
       response.listen(body.addAll, onDone: () {
         Expect.equals(
             "first line\nsecond line\n", new String.fromCharCodes(body));

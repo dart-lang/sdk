@@ -44,7 +44,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
         messageFastaUsageShort,
         templateUnspecified;
 
-import 'package:front_end/src/fasta/problems.dart' show DebugAbort, unhandled;
+import 'package:front_end/src/fasta/problems.dart' show DebugAbort;
 
 import 'package:front_end/src/fasta/resolve_input_uri.dart'
     show resolveInputUri;
@@ -104,8 +104,8 @@ class ParsedArguments {
   /// All other options require an option value, either on the form `--option
   /// value` or `--option=value`.
   static ParsedArguments parse(
-      List<String> arguments, Map<String, dynamic> specification) {
-    specification ??= const <String, dynamic>{};
+      List<String> arguments, Map<String, ValueSpecification> specification) {
+    specification ??= const <String, ValueSpecification>{};
     ParsedArguments result = new ParsedArguments();
     int index = arguments.indexOf("--");
     Iterable<String> nonOptions = const <String>[];
@@ -128,26 +128,21 @@ class ParsedArguments {
             argument = argument.substring(0, index);
           }
         }
-        var valueSpecification = specification[argument];
+        ValueSpecification valueSpecification = specification[argument];
         if (valueSpecification == null) {
           throw new CommandLineProblem.deprecated(
               "Unknown option '$argument'.");
         }
         String canonicalArgument = argument;
-        if (valueSpecification is String &&
-            valueSpecification != "," &&
-            valueSpecification != "<define>") {
-          canonicalArgument = valueSpecification;
-          valueSpecification = specification[valueSpecification];
+        if (valueSpecification.alias != null) {
+          canonicalArgument = valueSpecification.alias;
+          valueSpecification = specification[valueSpecification.alias];
         }
-        if (valueSpecification == true || valueSpecification == false) {
-          valueSpecification = bool;
+        if (valueSpecification == null) {
+          throw new CommandLineProblem.deprecated(
+              "Unknown option alias '$canonicalArgument'.");
         }
-        if (valueSpecification is! String && valueSpecification is! Type) {
-          throw new CommandLineProblem.deprecated("Unrecognized type of value "
-              "specification: ${valueSpecification.runtimeType}.");
-        }
-        final bool requiresValue = valueSpecification != bool;
+        final bool requiresValue = valueSpecification.requiresValue;
         if (requiresValue && value == null) {
           if (!iterator.moveNext()) {
             throw new CommandLineProblem(
@@ -155,84 +150,15 @@ class ParsedArguments {
           }
           value = iterator.current;
         }
-        switch ("$valueSpecification") {
-          case ",":
-            result.options
-                .putIfAbsent(argument, () => <String>[])
-                .addAll(value.split(","));
-            break;
-
-          case "<define>":
-            int index = value.indexOf('=');
-            String name;
-            String expression;
-            if (index != -1) {
-              name = value.substring(0, index);
-              expression = value.substring(index + 1);
-            } else {
-              name = value;
-              expression = value;
-            }
-            result.defines[name] = expression;
-            break;
-
-          case "int":
-          case "bool":
-          case "String":
-          case "Uri":
-            if (result.options.containsKey(canonicalArgument)) {
-              return throw new CommandLineProblem.deprecated(
-                  "Multiple values for '$argument': "
-                  "'${result.options[canonicalArgument]}' and '$value'.");
-            }
-            var parsedValue;
-            if (valueSpecification == int) {
-              parsedValue = int.tryParse(value);
-              if (parsedValue == null) {
-                return throw new CommandLineProblem.deprecated(
-                    "Value for '$argument', '$value', isn't an int.");
-              }
-            } else if (valueSpecification == bool) {
-              if (value == null || value == "true" || value == "yes") {
-                parsedValue = true;
-              } else if (value == "false" || value == "no") {
-                parsedValue = false;
-              } else {
-                return throw new CommandLineProblem.deprecated(
-                    "Value for '$argument' is '$value', "
-                    "but expected one of: 'true', 'false', 'yes', or 'no'.");
-              }
-            } else if (valueSpecification == Uri) {
-              // TODO(ahe): resolve Uris lazily, so that schemes provided by
-              // other flags can be used for parsed command-line arguments too.
-              parsedValue = resolveInputUri(value);
-            } else if (valueSpecification == String) {
-              parsedValue = value;
-            } else if (valueSpecification is String) {
-              return throw new CommandLineProblem.deprecated(
-                  "Unrecognized value specification: "
-                  "'$valueSpecification', try using a type literal instead.");
-            } else {
-              // All possible cases should have been handled above.
-              return unhandled("${valueSpecification.runtimeType}",
-                  "CommandLine.parse", -1, null);
-            }
-            result.options[canonicalArgument] = parsedValue;
-            break;
-
-          default:
-            return throw new CommandLineProblem.deprecated(
-                "Unrecognized value specification: '$valueSpecification'.");
-        }
+        valueSpecification.processValue(
+            result, canonicalArgument, argument, value);
       } else {
         result.arguments.add(argument);
       }
     }
-    specification.forEach((String key, value) {
-      if (value == bool) {
-        result.options[key] ??= false;
-      } else if (value is bool) {
-        result.options[key] ??= value;
+    specification.forEach((String key, ValueSpecification value) {
+      if (value.defaultValue != null) {
+        result.options[key] ??= value.defaultValue;
       }
     });
     result.arguments.addAll(nonOptions);
@@ -243,76 +169,73 @@ class ParsedArguments {
 // Before adding new options here, you must:
 //  * Document the option.
 //  * Get an explicit approval from the front-end team.
-const Map<String, dynamic> optionSpecification = const <String, dynamic>{
-  "--bytecode": false,
-  "--compile-sdk": Uri,
-  "--dump-ir": false,
-  "--enable-experiment": ",",
-  "--exclude-source": false,
-  "--omit-platform": false,
-  "--fatal": ",",
-  "--fatal-skip": String,
-  Flags.forceLateLowering: false,
-  Flags.forceNoExplicitGetterCalls: false,
-  "--help": false,
-  // TODO(johnniwinther): Remove legacy option flags. Legacy mode is no longer
-  // supported.
-  "--legacy": "--legacy-mode",
-  "--legacy-mode": false,
-  "--libraries-json": Uri,
-  "--no-defines": false,
-  "--output": Uri,
-  "--packages": Uri,
-  "--platform": Uri,
-  "--sdk": Uri,
-  "--single-root-base": Uri,
-  "--single-root-scheme": String,
-  Flags.nnbdStrongMode: false,
-  Flags.nnbdAgnosticMode: false,
-  "--supermixin": true,
-  Flags.target: String,
-  "--enable-asserts": false,
-  "--verbose": false,
-  "--verify": false,
-  "-D": "<define>",
-  "-h": "--help",
-  "-o": "--output",
-  "-t": "--target",
-  "-v": "--verbose",
-  "/?": "--help",
-  "/h": "--help",
+const Map<String, ValueSpecification> optionSpecification =
+    const <String, ValueSpecification>{
+  Flags.bytecode: const BoolValue(false),
+  Flags.compileSdk: const UriValue(),
+  Flags.dumpIr: const BoolValue(false),
+  Flags.enableExperiment: const StringListValue(),
+  Flags.excludeSource: const BoolValue(false),
+  Flags.omitPlatform: const BoolValue(false),
+  Flags.fatal: const StringListValue(),
+  Flags.fatalSkip: const StringValue(),
+  Flags.forceLateLowering: const BoolValue(false),
+  Flags.forceNoExplicitGetterCalls: const BoolValue(false),
+  Flags.help: const BoolValue(false),
+  Flags.librariesJson: const UriValue(),
+  Flags.noDefines: const BoolValue(false),
+  Flags.output: const UriValue(),
+  Flags.packages: const UriValue(),
+  Flags.platform: const UriValue(),
+  Flags.sdk: const UriValue(),
+  Flags.singleRootBase: const UriValue(),
+  Flags.singleRootScheme: const StringValue(),
+  Flags.nnbdWeakMode: const BoolValue(false),
+  Flags.nnbdStrongMode: const BoolValue(false),
+  Flags.nnbdAgnosticMode: const BoolValue(false),
+  Flags.target: const StringValue(),
+  Flags.verbose: const BoolValue(false),
+  Flags.verify: const BoolValue(false),
+  Flags.linkDependencies: const UriListValue(),
+  "-D": const DefineValue(),
+  "-h": const AliasValue(Flags.help),
+  "--out": const AliasValue(Flags.output),
+  "-o": const AliasValue(Flags.output),
+  "-t": const AliasValue(Flags.target),
+  "-v": const AliasValue(Flags.verbose),
+  "/?": const AliasValue(Flags.help),
+  "/h": const AliasValue(Flags.help),
 };
 
 void throwCommandLineProblem(String message) {
   throw new CommandLineProblem.deprecated(message);
 }
 
-ProcessedOptions analyzeCommandLine(
-    String programName,
-    ParsedArguments parsedArguments,
-    bool areRestArgumentsInputs,
-    bool verbose) {
+ProcessedOptions analyzeCommandLine(String programName,
+    ParsedArguments parsedArguments, bool areRestArgumentsInputs) {
   final Map<String, dynamic> options = parsedArguments.options;
 
   final List<String> arguments = parsedArguments.arguments;
 
-  final bool help = options["--help"];
+  final bool help = options[Flags.help];
+
+  final bool verbose = options[Flags.verbose];
 
   if (help) {
     print(computeUsage(programName, verbose).message);
     exit(0);
   }
 
-  if (options.containsKey("--compile-sdk") &&
-      options.containsKey("--platform")) {
+  if (options.containsKey(Flags.compileSdk) &&
+      options.containsKey(Flags.platform)) {
     return throw new CommandLineProblem.deprecated(
-        "Can't specify both '--compile-sdk' and '--platform'.");
+        "Can't specify both '${Flags.compileSdk}' and '${Flags.platform}'.");
   }
 
-  final String targetName = options["--target"] ?? "vm";
+  final String targetName = options[Flags.target] ?? "vm";
 
   Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
-      parseExperimentalArguments(options["--enable-experiment"]),
+      parseExperimentalArguments(options[Flags.enableExperiment]),
       onError: throwCommandLineProblem,
       onWarning: print);
 
@@ -331,35 +254,37 @@ ProcessedOptions analyzeCommandLine(
         "Valid targets are:\n  ${targets.keys.join("\n  ")}");
   }
 
-  final bool noDefines = options["--no-defines"];
+  final bool noDefines = options[Flags.noDefines];
 
-  final bool verify = options["--verify"];
+  final bool verify = options[Flags.verify];
 
-  final bool dumpIr = options["--dump-ir"];
+  final bool dumpIr = options[Flags.dumpIr];
 
-  final bool excludeSource = options["--exclude-source"];
+  final bool excludeSource = options[Flags.excludeSource];
 
-  final bool omitPlatform = options["--omit-platform"];
+  final bool omitPlatform = options[Flags.omitPlatform];
 
-  final Uri packages = options["--packages"];
+  final Uri packages = options[Flags.packages];
 
   final Set<String> fatal =
-      new Set<String>.from(options["--fatal"] ?? <String>[]);
+      new Set<String>.from(options[Flags.fatal] ?? <String>[]);
 
   final bool errorsAreFatal = fatal.contains("errors");
 
   final bool warningsAreFatal = fatal.contains("warnings");
 
-  final int fatalSkip = int.tryParse(options["--fatal-skip"] ?? "0") ?? -1;
+  final int fatalSkip = int.tryParse(options[Flags.fatalSkip] ?? "0") ?? -1;
 
-  final bool bytecode = options["--bytecode"];
+  final bool bytecode = options[Flags.bytecode];
 
-  final bool compileSdk = options.containsKey("--compile-sdk");
+  final bool compileSdk = options.containsKey(Flags.compileSdk);
 
-  final String singleRootScheme = options["--single-root-scheme"];
-  final Uri singleRootBase = options["--single-root-base"];
+  final String singleRootScheme = options[Flags.singleRootScheme];
+  final Uri singleRootBase = options[Flags.singleRootBase];
 
   final bool nnbdStrongMode = options[Flags.nnbdStrongMode];
+
+  final bool nnbdWeakMode = options[Flags.nnbdWeakMode];
 
   final bool nnbdAgnosticMode = options[Flags.nnbdAgnosticMode];
 
@@ -367,9 +292,23 @@ ProcessedOptions analyzeCommandLine(
       ? NnbdMode.Agnostic
       : (nnbdStrongMode ? NnbdMode.Strong : NnbdMode.Weak);
 
+  final List<Uri> linkDependencies = options[Flags.linkDependencies] ?? [];
+
+  if (nnbdStrongMode && nnbdWeakMode) {
+    return throw new CommandLineProblem.deprecated(
+        "Can't specify both '${Flags.nnbdStrongMode}' and "
+        "'${Flags.nnbdWeakMode}'.");
+  }
+
   if (nnbdStrongMode && nnbdAgnosticMode) {
     return throw new CommandLineProblem.deprecated(
         "Can't specify both '${Flags.nnbdStrongMode}' and "
+        "'${Flags.nnbdAgnosticMode}'.");
+  }
+
+  if (nnbdWeakMode && nnbdAgnosticMode) {
+    return throw new CommandLineProblem.deprecated(
+        "Can't specify both '${Flags.nnbdWeakMode}' and "
         "'${Flags.nnbdAgnosticMode}'.");
   }
 
@@ -386,6 +325,24 @@ ProcessedOptions analyzeCommandLine(
     });
   }
 
+  CompilerOptions compilerOptions = new CompilerOptions()
+    ..compileSdk = compileSdk
+    ..fileSystem = fileSystem
+    ..packagesFileUri = packages
+    ..target = target
+    ..throwOnErrorsForDebugging = errorsAreFatal
+    ..throwOnWarningsForDebugging = warningsAreFatal
+    ..skipForDebugging = fatalSkip
+    ..embedSourceText = !excludeSource
+    ..debugDump = dumpIr
+    ..omitPlatform = omitPlatform
+    ..verbose = verbose
+    ..verify = verify
+    ..experimentalFlags = experimentalFlags
+    ..environmentDefines = noDefines ? null : parsedArguments.defines
+    ..nnbdMode = nnbdMode
+    ..additionalDills = linkDependencies;
+
   if (programName == "compile_platform") {
     if (arguments.length != 5) {
       return throw new CommandLineProblem.deprecated(
@@ -393,33 +350,19 @@ ProcessedOptions analyzeCommandLine(
     }
     if (compileSdk) {
       return throw new CommandLineProblem.deprecated(
-          "Cannot specify '--compile-sdk' option to compile_platform.");
+          "Cannot specify '${Flags.compileSdk}' option to compile_platform.");
     }
-    if (options.containsKey("--output")) {
+    if (options.containsKey(Flags.output)) {
       return throw new CommandLineProblem.deprecated(
-          "Cannot specify '--output' option to compile_platform.");
+          "Cannot specify '${Flags.output}' option to compile_platform.");
     }
 
     return new ProcessedOptions(
-        options: new CompilerOptions()
-          ..sdkSummary = options["--platform"]
+        options: compilerOptions
+          ..sdkSummary = options[Flags.platform]
           ..librariesSpecificationUri = resolveInputUri(arguments[1])
           ..setExitCodeOnProblem = true
-          ..fileSystem = fileSystem
-          ..packagesFileUri = packages
-          ..target = target
-          ..throwOnErrorsForDebugging = errorsAreFatal
-          ..throwOnWarningsForDebugging = warningsAreFatal
-          ..skipForDebugging = fatalSkip
-          ..embedSourceText = !excludeSource
-          ..debugDump = dumpIr
-          ..omitPlatform = omitPlatform
-          ..verbose = verbose
-          ..verify = verify
-          ..bytecode = bytecode
-          ..experimentalFlags = experimentalFlags
-          ..environmentDefines = noDefines ? null : parsedArguments.defines
-          ..nnbdMode = nnbdMode,
+          ..bytecode = bytecode,
         inputs: <Uri>[Uri.parse(arguments[0])],
         output: resolveInputUri(arguments[3]));
   } else if (arguments.isEmpty) {
@@ -428,9 +371,11 @@ ProcessedOptions analyzeCommandLine(
 
   final Uri defaultOutput = resolveInputUri("${arguments.first}.dill");
 
-  final Uri output = options["-o"] ?? options["--output"] ?? defaultOutput;
+  final Uri output = options[Flags.output] ?? defaultOutput;
 
-  final Uri sdk = options["--sdk"] ?? options["--compile-sdk"];
+  final Uri sdk = options[Flags.sdk] ?? options[Flags.compileSdk];
+
+  final Uri librariesJson = options[Flags.librariesJson];
 
   String computePlatformDillName() {
     switch (target.name) {
@@ -447,38 +392,21 @@ ProcessedOptions analyzeCommandLine(
       case 'none':
         return "vm_platform_strong.dill";
       default:
-        throwCommandLineProblem(
-            'Target "${target.name}" requires an explicit --platform option.');
+        throwCommandLineProblem("Target '${target.name}' requires an explicit "
+            "'${Flags.platform}' option.");
     }
     return null;
   }
 
   final Uri platform = compileSdk
       ? null
-      : (options["--platform"] ??
+      : (options[Flags.platform] ??
           computePlatformBinariesLocation(forceBuildDir: true)
               .resolve(computePlatformDillName()));
-
-  CompilerOptions compilerOptions = new CompilerOptions()
-    ..compileSdk = compileSdk
-    ..fileSystem = fileSystem
+  compilerOptions
     ..sdkRoot = sdk
     ..sdkSummary = platform
-    ..packagesFileUri = packages
-    ..target = target
-    ..throwOnErrorsForDebugging = errorsAreFatal
-    ..throwOnWarningsForDebugging = warningsAreFatal
-    ..skipForDebugging = fatalSkip
-    ..embedSourceText = !excludeSource
-    ..debugDump = dumpIr
-    ..omitPlatform = omitPlatform
-    ..verbose = verbose
-    ..verify = verify
-    ..experimentalFlags = experimentalFlags
-    ..environmentDefines = noDefines ? null : parsedArguments.defines
-    ..nnbdMode = nnbdMode;
-
-  // TODO(ahe): What about chase dependencies?
+    ..librariesSpecificationUri = librariesJson;
 
   List<Uri> inputs = <Uri>[];
   if (areRestArgumentsInputs) {
@@ -495,21 +423,13 @@ Future<T> withGlobalOptions<T>(
     List<String> arguments,
     bool areRestArgumentsInputs,
     Future<T> f(CompilerContext context, List<String> restArguments)) {
-  bool verbose = false;
-  for (String argument in arguments) {
-    if (argument == "--") break;
-    if (argument == "-v" || argument == "--verbose") {
-      verbose = true;
-      break;
-    }
-  }
   ParsedArguments parsedArguments;
   ProcessedOptions options;
   CommandLineProblem problem;
   try {
     parsedArguments = ParsedArguments.parse(arguments, optionSpecification);
     options = analyzeCommandLine(
-        programName, parsedArguments, areRestArgumentsInputs, verbose);
+        programName, parsedArguments, areRestArgumentsInputs);
   } on CommandLineProblem catch (e) {
     options = new ProcessedOptions();
     problem = e;
@@ -517,7 +437,7 @@ Future<T> withGlobalOptions<T>(
 
   return CompilerContext.runWithOptions<T>(options, (c) {
     if (problem != null) {
-      print(computeUsage(programName, verbose).message);
+      print(computeUsage(programName, options.verbose).message);
       print(c.formatWithoutLocation(problem.message, Severity.error));
       exit(1);
     }
@@ -579,4 +499,149 @@ Future<T> runProtectedFromAbort<T>(Future<T> Function() action,
     exit(255);
   }
   return failingValue;
+}
+
+abstract class ValueSpecification {
+  const ValueSpecification();
+
+  String get alias => null;
+
+  dynamic get defaultValue => null;
+
+  bool get requiresValue => true;
+
+  void processValue(ParsedArguments result, String canonicalArgument,
+      String argument, String value);
+}
+
+class AliasValue extends ValueSpecification {
+  final String alias;
+
+  const AliasValue(this.alias);
+
+  bool get requiresValue =>
+      throw new UnsupportedError("AliasValue.requiresValue");
+
+  void processValue(ParsedArguments result, String canonicalArgument,
+      String argument, String value) {
+    throw new UnsupportedError("AliasValue.processValue");
+  }
+}
+
+class UriValue extends ValueSpecification {
+  const UriValue();
+
+  void processValue(ParsedArguments result, String canonicalArgument,
+      String argument, String value) {
+    if (result.options.containsKey(canonicalArgument)) {
+      throw new CommandLineProblem.deprecated(
+          "Multiple values for '$argument': "
+          "'${result.options[canonicalArgument]}' and '$value'.");
+    }
+    // TODO(ahe): resolve Uris lazily, so that schemes provided by
+    // other flags can be used for parsed command-line arguments too.
+    result.options[canonicalArgument] = resolveInputUri(value);
+  }
+}
+
+class StringValue extends ValueSpecification {
+  const StringValue();
+
+  void processValue(ParsedArguments result, String canonicalArgument,
+      String argument, String value) {
+    if (result.options.containsKey(canonicalArgument)) {
+      throw new CommandLineProblem.deprecated(
+          "Multiple values for '$argument': "
+          "'${result.options[canonicalArgument]}' and '$value'.");
+    }
+    result.options[canonicalArgument] = value;
+  }
+}
+
+class BoolValue extends ValueSpecification {
+  final bool defaultValue;
+
+  const BoolValue(this.defaultValue);
+
+  bool get requiresValue => false;
+
+  void processValue(ParsedArguments result, String canonicalArgument,
+      String argument, String value) {
+    if (result.options.containsKey(canonicalArgument)) {
+      throw new CommandLineProblem.deprecated(
+          "Multiple values for '$argument': "
+          "'${result.options[canonicalArgument]}' and '$value'.");
+    }
+    bool parsedValue;
+    if (value == null || value == "true" || value == "yes") {
+      parsedValue = true;
+    } else if (value == "false" || value == "no") {
+      parsedValue = false;
+    } else {
+      throw new CommandLineProblem.deprecated(
+          "Value for '$argument' is '$value', "
+          "but expected one of: 'true', 'false', 'yes', or 'no'.");
+    }
+    result.options[canonicalArgument] = parsedValue;
+  }
+}
+
+class IntValue extends ValueSpecification {
+  const IntValue();
+
+  void processValue(ParsedArguments result, String canonicalArgument,
+      String argument, String value) {
+    if (result.options.containsKey(canonicalArgument)) {
+      throw new CommandLineProblem.deprecated(
+          "Multiple values for '$argument': "
+          "'${result.options[canonicalArgument]}' and '$value'.");
+    }
+    int parsedValue = int.tryParse(value);
+    if (parsedValue == null) {
+      throw new CommandLineProblem.deprecated(
+          "Value for '$argument', '$value', isn't an int.");
+    }
+    result.options[canonicalArgument] = parsedValue;
+  }
+}
+
+class DefineValue extends ValueSpecification {
+  const DefineValue();
+
+  void processValue(ParsedArguments result, String canonicalArgument,
+      String argument, String value) {
+    int index = value.indexOf('=');
+    String name;
+    String expression;
+    if (index != -1) {
+      name = value.substring(0, index);
+      expression = value.substring(index + 1);
+    } else {
+      name = value;
+      expression = value;
+    }
+    result.defines[name] = expression;
+  }
+}
+
+class StringListValue extends ValueSpecification {
+  const StringListValue();
+
+  void processValue(ParsedArguments result, String canonicalArgument,
+      String argument, String value) {
+    result.options
+        .putIfAbsent(canonicalArgument, () => <String>[])
+        .addAll(value.split(","));
+  }
+}
+
+class UriListValue extends ValueSpecification {
+  const UriListValue();
+
+  void processValue(ParsedArguments result, String canonicalArgument,
+      String argument, String value) {
+    result.options
+        .putIfAbsent(canonicalArgument, () => <Uri>[])
+        .addAll(value.split(",").map(resolveInputUri));
+  }
 }

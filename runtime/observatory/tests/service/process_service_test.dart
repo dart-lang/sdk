@@ -19,7 +19,11 @@ final dartJITBinary = path.join(path.dirname(io.Platform.executable),
 Future setupProcesses() async {
   var dir = await io.Directory.systemTemp.createTemp('file_service');
 
-  var args = ['--pause_isolates_on_start', io.Platform.script.toFilePath()];
+  var args = [
+    ...io.Platform.executableArguments,
+    '--pause_isolates_on_start',
+    io.Platform.script.toFilePath(),
+  ];
   var process1;
   var process2;
   var process3;
@@ -57,7 +61,8 @@ Future setupProcesses() async {
             await stdin.drain();
           }
           ''');
-      process3 = await io.Process.start(dartJITBinary, [codeFilePath]);
+      process3 = await io.Process.start(
+          dartJITBinary, [...io.Platform.executableArguments, codeFilePath]);
     } catch (e) {
       closeDown();
       throw e;

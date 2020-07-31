@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // part of "common_patch.dart";
 
 @patch
@@ -28,7 +26,7 @@ class X509Certificate {
 }
 
 class _SecureSocket extends _Socket implements SecureSocket {
-  _RawSecureSocket get _raw => super._raw as _RawSecureSocket;
+  _RawSecureSocket? get _raw => super._raw as _RawSecureSocket?;
 
   _SecureSocket(RawSecureSocket raw) : super(raw);
 
@@ -36,24 +34,24 @@ class _SecureSocket extends _Socket implements SecureSocket {
       {bool useSessionCache: true,
       bool requestClientCertificate: false,
       bool requireClientCertificate: false}) {
-    _raw.renegotiate(
+    _raw!.renegotiate(
         useSessionCache: useSessionCache,
         requestClientCertificate: requestClientCertificate,
         requireClientCertificate: requireClientCertificate);
   }
 
-  X509Certificate get peerCertificate {
+  X509Certificate? get peerCertificate {
     if (_raw == null) {
       throw new StateError("peerCertificate called on destroyed SecureSocket");
     }
-    return _raw.peerCertificate;
+    return _raw!.peerCertificate;
   }
 
-  String get selectedProtocol {
+  String? get selectedProtocol {
     if (_raw == null) {
       throw new StateError("selectedProtocol called on destroyed SecureSocket");
     }
-    return _raw.selectedProtocol;
+    return _raw!.selectedProtocol;
   }
 }
 
@@ -78,17 +76,17 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
   static final int ENCRYPTED_SIZE = 10 * 1024;
 
   _SecureFilterImpl._() {
-    buffers = new List<_ExternalBuffer>(_RawSecureSocket.bufferCount);
-    for (int i = 0; i < _RawSecureSocket.bufferCount; ++i) {
-      buffers[i] = new _ExternalBuffer(
-          _RawSecureSocket._isBufferEncrypted(i) ? ENCRYPTED_SIZE : SIZE);
-    }
+    buffers = <_ExternalBuffer>[
+      for (int i = 0; i < _RawSecureSocket.bufferCount; ++i)
+        new _ExternalBuffer(
+            _RawSecureSocket._isBufferEncrypted(i) ? ENCRYPTED_SIZE : SIZE),
+    ];
   }
 
   void connect(
       String hostName,
       SecurityContext context,
-      bool is_server,
+      bool isServer,
       bool requestClientCertificate,
       bool requireClientCertificate,
       Uint8List protocols) native "SecureSocket_Connect";
@@ -106,14 +104,14 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
 
   int processBuffer(int bufferIndex) => throw new UnimplementedError();
 
-  String selectedProtocol() native "SecureSocket_GetSelectedProtocol";
+  String? selectedProtocol() native "SecureSocket_GetSelectedProtocol";
 
   void renegotiate(bool useSessionCache, bool requestClientCertificate,
       bool requireClientCertificate) native "SecureSocket_Renegotiate";
 
   void init() native "SecureSocket_Init";
 
-  X509Certificate get peerCertificate native "SecureSocket_PeerCertificate";
+  X509Certificate? get peerCertificate native "SecureSocket_PeerCertificate";
 
   void registerBadCertificateCallback(Function callback)
       native "SecureSocket_RegisterBadCertificateCallback";
@@ -125,7 +123,7 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
   int _pointer() native "SecureSocket_FilterPointer";
 
   @pragma("vm:entry-point", "get")
-  List<_ExternalBuffer> buffers;
+  List<_ExternalBuffer>? buffers;
 }
 
 @patch
@@ -157,36 +155,36 @@ class _SecurityContext extends NativeFieldWrapperClass1
 
   static final SecurityContext defaultContext = new _SecurityContext(true);
 
-  void usePrivateKey(String file, {String password}) {
+  void usePrivateKey(String file, {String? password}) {
     List<int> bytes = (new File(file)).readAsBytesSync();
     usePrivateKeyBytes(bytes, password: password);
   }
 
-  void usePrivateKeyBytes(List<int> keyBytes, {String password})
+  void usePrivateKeyBytes(List<int> keyBytes, {String? password})
       native "SecurityContext_UsePrivateKeyBytes";
 
-  void setTrustedCertificates(String file, {String password}) {
+  void setTrustedCertificates(String file, {String? password}) {
     List<int> bytes = (new File(file)).readAsBytesSync();
     setTrustedCertificatesBytes(bytes, password: password);
   }
 
-  void setTrustedCertificatesBytes(List<int> certBytes, {String password})
+  void setTrustedCertificatesBytes(List<int> certBytes, {String? password})
       native "SecurityContext_SetTrustedCertificatesBytes";
 
-  void useCertificateChain(String file, {String password}) {
+  void useCertificateChain(String file, {String? password}) {
     List<int> bytes = (new File(file)).readAsBytesSync();
     useCertificateChainBytes(bytes, password: password);
   }
 
-  void useCertificateChainBytes(List<int> chainBytes, {String password})
+  void useCertificateChainBytes(List<int> chainBytes, {String? password})
       native "SecurityContext_UseCertificateChainBytes";
 
-  void setClientAuthorities(String file, {String password}) {
+  void setClientAuthorities(String file, {String? password}) {
     List<int> bytes = (new File(file)).readAsBytesSync();
     setClientAuthoritiesBytes(bytes, password: password);
   }
 
-  void setClientAuthoritiesBytes(List<int> authCertBytes, {String password})
+  void setClientAuthoritiesBytes(List<int> authCertBytes, {String? password})
       native "SecurityContext_SetClientAuthoritiesBytes";
 
   void setAlpnProtocols(List<String> protocols, bool isServer) {
@@ -210,32 +208,14 @@ class _X509CertificateImpl extends NativeFieldWrapperClass1
   // This is done by WrappedX509 in secure_socket.cc.
   _X509CertificateImpl._();
 
-  Uint8List _cachedDer;
   Uint8List get _der native "X509_Der";
-  Uint8List get der {
-    if (_cachedDer == null) {
-      _cachedDer = _der;
-    }
-    return _cachedDer;
-  }
+  late final Uint8List der = _der;
 
-  String _cachedPem;
   String get _pem native "X509_Pem";
-  String get pem {
-    if (_cachedPem == null) {
-      _cachedPem = _pem;
-    }
-    return _cachedPem;
-  }
+  late final String pem = _pem;
 
-  Uint8List _cachedSha1;
   Uint8List get _sha1 native "X509_Sha1";
-  Uint8List get sha1 {
-    if (_cachedSha1 == null) {
-      _cachedSha1 = _sha1;
-    }
-    return _cachedSha1;
-  }
+  late final Uint8List sha1 = _sha1;
 
   String get subject native "X509_Subject";
   String get issuer native "X509_Issuer";

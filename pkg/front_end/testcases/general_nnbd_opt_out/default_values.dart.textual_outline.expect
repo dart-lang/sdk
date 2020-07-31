@@ -1,0 +1,3 @@
+// @dart = 2.6
+topLevel([a = 42]) => a;
+main() {}

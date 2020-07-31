@@ -1,0 +1,18 @@
+library test.mixin_library;
+
+V() => 87;
+_private() => 117;
+
+class Mixin<T> {
+  T g(T a) => null;
+  T t;
+  _privateMethod() => 49;
+  foo() => super.foo() + f();
+  h() => V();
+  l() => _private();
+  publicMethod() => _privateMethod();
+  var x = f(), y, z;
+}
+
+f() => 2;
+foo(m) => m._privateMethod();

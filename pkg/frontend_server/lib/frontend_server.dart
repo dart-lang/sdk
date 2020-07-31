@@ -58,9 +58,16 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: false)
+  ..addFlag('tree-shake-write-only-fields',
+      help: 'Enable tree shaking of fields which are only written in AOT mode.',
+      defaultsTo: true)
   ..addFlag('protobuf-tree-shaker',
       help: 'Enable protobuf tree shaker transformation in AOT mode.',
       defaultsTo: false)
+  ..addFlag('protobuf-tree-shaker-v2',
+      help: 'Enable protobuf tree shaker v2 in AOT mode.', defaultsTo: false)
+  ..addFlag('minimal-kernel',
+      help: 'Produce minimal tree-shaken kernel file.', defaultsTo: false)
   ..addFlag('link-platform',
       help:
           'When in batch mode, link platform kernel file into result kernel file.'
@@ -70,6 +77,9 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       defaultsTo: true)
   ..addOption('import-dill',
       help: 'Import libraries from existing dill file', defaultsTo: null)
+  ..addOption('from-dill',
+      help: 'Read existing dill file instead of compiling from sources',
+      defaultsTo: null)
   ..addOption('output-dill',
       help: 'Output path for the generated dill', defaultsTo: null)
   ..addOption('output-incremental-dill',
@@ -147,7 +157,7 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('null-safety',
       help:
           'Respect the nullability of types at runtime in casts and instance checks.',
-      defaultsTo: false)
+      defaultsTo: null)
   ..addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features, eg set-literals.',
       hide: true)
@@ -162,7 +172,13 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addOption('libraries-spec',
       help: 'A path or uri to the libraries specification JSON file')
   ..addFlag('debugger-module-names',
-      help: 'Use debugger-friendly modules names', defaultsTo: false);
+      help: 'Use debugger-friendly modules names', defaultsTo: false)
+  ..addFlag('experimental-emit-debug-metadata',
+      help: 'Emit module and library metadata for the debugger',
+      defaultsTo: false)
+  ..addOption('dartdevc-module-format',
+      help: 'The module format to use on for the dartdevc compiler',
+      defaultsTo: 'amd');
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -309,7 +325,8 @@ class FrontendCompiler implements CompilerInterface {
       this.transformer,
       this.unsafePackageSerialization,
       this.incrementalSerialization: true,
-      this.useDebuggerModuleNames: false}) {
+      this.useDebuggerModuleNames: false,
+      this.emitDebugMetadata: false}) {
     _outputStream ??= stdout;
     printerFactory ??= new BinaryPrinterFactory();
   }
@@ -319,6 +336,7 @@ class FrontendCompiler implements CompilerInterface {
   bool unsafePackageSerialization;
   bool incrementalSerialization;
   bool useDebuggerModuleNames;
+  bool emitDebugMetadata;
 
   CompilerOptions _compilerOptions;
   BytecodeOptions _bytecodeOptions;
@@ -400,7 +418,8 @@ class FrontendCompiler implements CompilerInterface {
       ..experimentalFlags = parseExperimentalFlags(
           parseExperimentalArguments(options['enable-experiment']),
           onError: (msg) => errors.add(msg))
-      ..nnbdMode = options['null-safety'] ? NnbdMode.Strong : NnbdMode.Weak
+      ..nnbdMode =
+          (options['null-safety'] == true) ? NnbdMode.Strong : NnbdMode.Weak
       ..onDiagnostic = _onDiagnostic;
 
     if (options.wasParsed('libraries-spec')) {
@@ -443,6 +462,18 @@ class FrontendCompiler implements CompilerInterface {
       }
     }
 
+    if (options['incremental']) {
+      if (options['from-dill'] != null) {
+        print('Error: --from-dill option cannot be used with --incremental');
+        return false;
+      }
+    }
+
+    if (options['null-safety'] == null &&
+        compilerOptions.experimentalFlags[ExperimentalFlag.nonNullable]) {
+      await autoDetectNullSafetyMode(_mainSource, compilerOptions);
+    }
+
     compilerOptions.bytecode = options['gen-bytecode'];
     final BytecodeOptions bytecodeOptions = BytecodeOptions(
       enableAsserts: options['enable-asserts'],
@@ -456,7 +487,7 @@ class FrontendCompiler implements CompilerInterface {
     compilerOptions.target = createFrontEndTarget(
       options['target'],
       trackWidgetCreation: options['track-widget-creation'],
-      nullSafety: options['null-safety'],
+      nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
     );
     if (compilerOptions.target == null) {
       print('Failed to create front-end target ${options['target']}.');
@@ -517,17 +548,21 @@ class FrontendCompiler implements CompilerInterface {
           useGlobalTypeFlowAnalysis: options['tfa'],
           environmentDefines: environmentDefines,
           enableAsserts: options['enable-asserts'],
-          useProtobufTreeShaker: options['protobuf-tree-shaker']));
+          useProtobufTreeShaker: options['protobuf-tree-shaker'],
+          useProtobufTreeShakerV2: options['protobuf-tree-shaker-v2'],
+          minimalKernel: options['minimal-kernel'],
+          treeShakeWriteOnlyFields: options['tree-shake-write-only-fields'],
+          fromDillFile: options['from-dill']));
     }
     if (results.component != null) {
       transformer?.transform(results.component);
 
       if (_compilerOptions.target.name == 'dartdevc') {
-        await writeJavascriptBundle(
-            results, _kernelBinaryFilename, options['filesystem-scheme']);
+        await writeJavascriptBundle(results, _kernelBinaryFilename,
+            options['filesystem-scheme'], options['dartdevc-module-format']);
       }
       await writeDillFile(results, _kernelBinaryFilename,
-          filterExternal: importDill != null,
+          filterExternal: importDill != null || options['minimal-kernel'],
           incrementalSerializer: incrementalSerializer);
 
       _outputStream.writeln(boundaryKey);
@@ -596,7 +631,7 @@ class FrontendCompiler implements CompilerInterface {
 
   /// Write a JavaScript bundle containg the provided component.
   Future<void> writeJavascriptBundle(KernelCompilationResults results,
-      String filename, String fileSystemScheme) async {
+      String filename, String fileSystemScheme, String moduleFormat) async {
     var packageConfig = await loadPackageConfigUri(
         _compilerOptions.packagesFileUri ?? File('.packages').absolute.uri);
     final Component component = results.component;
@@ -609,26 +644,33 @@ class FrontendCompiler implements CompilerInterface {
     final File sourceFile = File('$filename.sources');
     final File manifestFile = File('$filename.json');
     final File sourceMapsFile = File('$filename.map');
+    final File metadataFile = File('$filename.metadata');
     if (!sourceFile.parent.existsSync()) {
       sourceFile.parent.createSync(recursive: true);
     }
     _bundler = JavaScriptBundler(
         component, strongComponents, fileSystemScheme, packageConfig,
-        useDebuggerModuleNames: useDebuggerModuleNames);
+        useDebuggerModuleNames: useDebuggerModuleNames,
+        emitDebugMetadata: emitDebugMetadata,
+        moduleFormat: moduleFormat);
     final sourceFileSink = sourceFile.openWrite();
     final manifestFileSink = manifestFile.openWrite();
     final sourceMapsFileSink = sourceMapsFile.openWrite();
+    final metadataFileSink =
+        emitDebugMetadata ? metadataFile.openWrite() : null;
     await _bundler.compile(
         results.classHierarchy,
         results.coreTypes,
         results.loadedLibraries,
         sourceFileSink,
         manifestFileSink,
-        sourceMapsFileSink);
+        sourceMapsFileSink,
+        metadataFileSink);
     await Future.wait([
       sourceFileSink.close(),
       manifestFileSink.close(),
-      sourceMapsFileSink.close()
+      sourceMapsFileSink.close(),
+      if (metadataFileSink != null) metadataFileSink.close()
     ]);
   }
 
@@ -858,8 +900,8 @@ class FrontendCompiler implements CompilerInterface {
         deltaProgram.uriToSource.keys);
 
     if (_compilerOptions.target.name == 'dartdevc') {
-      await writeJavascriptBundle(
-          results, _kernelBinaryFilename, _options['filesystem-scheme']);
+      await writeJavascriptBundle(results, _kernelBinaryFilename,
+          _options['filesystem-scheme'], _options['dartdevc-module-format']);
     } else {
       await writeDillFile(results, _kernelBinaryFilename,
           incrementalSerializer: _generator.incrementalSerializer);
@@ -907,49 +949,46 @@ class FrontendCompiler implements CompilerInterface {
       Map<String, String> jsFrameValues,
       String moduleName,
       String expression) async {
-    final String boundaryKey = Uuid().generateV4();
-    _outputStream.writeln('result $boundaryKey');
-
     _generator.accept();
     errors.clear();
 
-    if (_bundler != null) {
-      var kernel2jsCompiler = _bundler.compilers[moduleName];
-      if (kernel2jsCompiler == null) {
-        throw Exception('Cannot find kernel2js compiler for $moduleName. '
-            'Compilers are avaiable for modules: '
-            '\n\t${_bundler.compilers.keys.toString()}');
-      }
-      assert(kernel2jsCompiler != null);
+    if (_bundler == null) {
+      reportError('JavaScript bundler is null');
+      return;
+    }
+    if (!_bundler.compilers.containsKey(moduleName)) {
+      reportError('Cannot find kernel2js compiler for $moduleName.');
+      return;
+    }
 
-      Component component = _generator.lastKnownGoodComponent;
-      component.computeCanonicalNames();
+    final String boundaryKey = Uuid().generateV4();
+    _outputStream.writeln('result $boundaryKey');
 
-      var evaluator = new ExpressionCompiler(
-          _generator.generator, kernel2jsCompiler, component,
-          verbose: _compilerOptions.verbose,
-          onDiagnostic: _compilerOptions.onDiagnostic);
+    var kernel2jsCompiler = _bundler.compilers[moduleName];
+    Component component = _generator.lastKnownGoodComponent;
+    component.computeCanonicalNames();
+    var evaluator = new ExpressionCompiler(
+        _generator.generator, kernel2jsCompiler, component,
+        verbose: _compilerOptions.verbose,
+        onDiagnostic: _compilerOptions.onDiagnostic);
 
-      var procedure = await evaluator.compileExpressionToJs(libraryUri, line,
-          column, jsModules, jsFrameValues, moduleName, expression);
+    var procedure = await evaluator.compileExpressionToJs(libraryUri, line,
+        column, jsModules, jsFrameValues, moduleName, expression);
 
-      var result = errors.length > 0 ? errors[0] : procedure;
+    var result = errors.length > 0 ? errors[0] : procedure;
 
-      // TODO(annagrin): kernelBinaryFilename is too specific
-      // rename to _outputFileName?
-      await File(_kernelBinaryFilename).writeAsString(result);
+    // TODO(annagrin): kernelBinaryFilename is too specific
+    // rename to _outputFileName?
+    await File(_kernelBinaryFilename).writeAsString(result);
 
-      _outputStream
-          .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
+    _outputStream
+        .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
 
-      // TODO(annagrin): do we need to add asserts/error reporting if
-      // initial compilation didn't happen and _kernelBinaryFilename
-      // is different from below?
-      if (procedure != null) {
-        _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
-      }
-    } else {
-      _outputStream.writeln('$boundaryKey');
+    // TODO(annagrin): do we need to add asserts/error reporting if
+    // initial compilation didn't happen and _kernelBinaryFilename
+    // is different from below?
+    if (procedure != null) {
+      _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
     }
   }
 
@@ -1384,7 +1423,8 @@ Future<int> starter(
       printerFactory: binaryPrinterFactory,
       unsafePackageSerialization: options["unsafe-package-serialization"],
       incrementalSerialization: options["incremental-serialization"],
-      useDebuggerModuleNames: options['debugger-module-names']);
+      useDebuggerModuleNames: options['debugger-module-names'],
+      emitDebugMetadata: options['experimental-emit-debug-metadata']);
 
   if (options.rest.isNotEmpty) {
     return await compiler.compile(options.rest[0], options,

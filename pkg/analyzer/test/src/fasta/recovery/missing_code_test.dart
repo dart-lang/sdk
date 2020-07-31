@@ -18,9 +18,7 @@ main() {
   });
 }
 
-/**
- * Test how well the parser recovers when tokens are missing in a list literal.
- */
+/// Test how well the parser recovers when tokens are missing in a list literal.
 @reflectiveTest
 class ListLiteralTest extends AbstractRecoveryTest {
   void test_extraComma() {
@@ -56,9 +54,7 @@ f() => [a, if (x) b else y, c];
   }
 }
 
-/**
- * Test how well the parser recovers when tokens are missing in a map literal.
- */
+/// Test how well the parser recovers when tokens are missing in a map literal.
 @reflectiveTest
 class MapLiteralTest extends AbstractRecoveryTest {
   final beforeUiAsCode = FeatureSet.forTesting(sdkVersion: '2.2.0');
@@ -132,9 +128,7 @@ f() => {a: _s_, b: c};
   }
 }
 
-/**
- * Test how well the parser recovers when non-paired tokens are missing.
- */
+/// Test how well the parser recovers when non-paired tokens are missing.
 @reflectiveTest
 class MissingCodeTest extends AbstractRecoveryTest {
   void test_ampersand() {
@@ -539,10 +533,8 @@ class C {
   }
 }
 
-/**
- * Test how well the parser recovers when tokens are missing in a parameter
- * list.
- */
+/// Test how well the parser recovers when tokens are missing in a parameter
+/// list.
 @reflectiveTest
 class ParameterListTest extends AbstractRecoveryTest {
   @failingTest
@@ -804,9 +796,7 @@ f([a = 0]) {}
   }
 }
 
-/**
- * Test how well the parser recovers when tokens are missing in a typedef.
- */
+/// Test how well the parser recovers when tokens are missing in a typedef.
 @reflectiveTest
 class TypedefTest extends AbstractRecoveryTest {
   @failingTest

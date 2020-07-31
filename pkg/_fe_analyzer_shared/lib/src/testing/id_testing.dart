@@ -216,7 +216,9 @@ class MemberAnnotations<DataType> {
 // TODO(johnniwinther): Support an empty marker set.
 void computeExpectedMap(Uri sourceUri, String filename, AnnotatedCode code,
     Map<String, MemberAnnotations<IdValue>> maps,
-    {void onFailure(String message)}) {
+    {void onFailure(String message),
+    bool preserveWhitespaceInAnnotations: false,
+    bool preserveInfixWhitespaceInAnnotations: false}) {
   List<String> mapKeys = maps.keys.toList();
   Map<String, AnnotatedCode> split = splitByPrefixes(code, mapKeys);
 
@@ -226,7 +228,9 @@ void computeExpectedMap(Uri sourceUri, String filename, AnnotatedCode code,
     Map<Id, IdValue> expectedValues = fileAnnotations[sourceUri];
     for (Annotation annotation in code.annotations) {
       String text = annotation.text;
-      IdValue idValue = IdValue.decode(sourceUri, annotation, text);
+      IdValue idValue = IdValue.decode(sourceUri, annotation, text,
+          preserveWhitespaceInAnnotations: preserveWhitespaceInAnnotations,
+          preserveInfixWhitespace: preserveInfixWhitespaceInAnnotations);
       if (idValue.id.isGlobal) {
         if (fileAnnotations.globalData.containsKey(idValue.id)) {
           onFailure("Error in test '$filename': "
@@ -256,7 +260,9 @@ void computeExpectedMap(Uri sourceUri, String filename, AnnotatedCode code,
 TestData computeTestData(FileSystemEntity testFile,
     {Iterable<String> supportedMarkers,
     Uri createTestUri(Uri uri, String fileName),
-    void onFailure(String message)}) {
+    void onFailure(String message),
+    bool preserveWhitespaceInAnnotations: false,
+    bool preserveInfixWhitespaceInAnnotations: false}) {
   Uri entryPoint;
 
   String testName;
@@ -297,7 +303,10 @@ TestData computeTestData(FileSystemEntity testFile,
   }
   computeExpectedMap(entryPoint, testFile.uri.pathSegments.last,
       code[entryPoint], expectedMaps,
-      onFailure: onFailure);
+      onFailure: onFailure,
+      preserveWhitespaceInAnnotations: preserveWhitespaceInAnnotations,
+      preserveInfixWhitespaceInAnnotations:
+          preserveInfixWhitespaceInAnnotations);
   Map<String, String> memorySourceFiles = {
     entryPoint.path: code[entryPoint].sourceCode
   };
@@ -314,7 +323,10 @@ TestData computeTestData(FileSystemEntity testFile,
       code[libFileUri] = annotatedLibCode;
       computeExpectedMap(
           libFileUri, libFileName, annotatedLibCode, expectedMaps,
-          onFailure: onFailure);
+          onFailure: onFailure,
+          preserveWhitespaceInAnnotations: preserveWhitespaceInAnnotations,
+          preserveInfixWhitespaceInAnnotations:
+              preserveInfixWhitespaceInAnnotations);
     }
   }
 
@@ -434,7 +446,10 @@ abstract class DataInterpreter<T> {
   bool isEmpty(T actualData);
 
   /// Returns a textual representation of [actualData].
-  String getText(T actualData);
+  ///
+  /// If [indentation] is provided a multiline pretty printing can be returned
+  /// using [indentation] for additional lines.
+  String getText(T actualData, [String indentation]);
 }
 
 /// Default data interpreter for string data.
@@ -457,7 +472,7 @@ class StringDataInterpreter implements DataInterpreter<String> {
   }
 
   @override
-  String getText(String actualData) {
+  String getText(String actualData, [String indentation]) {
     return actualData;
   }
 }
@@ -707,7 +722,9 @@ Future<void> runTests<T>(Directory dataDir,
     void onFailure(String message),
     RunTestFunction<T> runTest,
     List<String> skipList,
-    Map<String, List<String>> skipMap}) async {
+    Map<String, List<String>> skipMap,
+    bool preserveWhitespaceInAnnotations: false,
+    bool preserveInfixWhitespaceInAnnotations: false}) async {
   MarkerOptions markerOptions =
       new MarkerOptions.fromDataDir(dataDir, shouldFindScript: shards == 1);
   // TODO(johnniwinther): Support --show to show actual data for an input.
@@ -725,6 +742,7 @@ Future<void> runTests<T>(Directory dataDir,
   bool continued = false;
   bool hasFailures = false;
   bool generateAnnotations = args.remove('-g');
+  bool forceUpdate = args.remove('-f');
 
   String relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
   print('Data dir: ${relativeDir}');
@@ -768,7 +786,10 @@ Future<void> runTests<T>(Directory dataDir,
     TestData testData = computeTestData(entity,
         supportedMarkers: markerOptions.supportedMarkers,
         createTestUri: createTestUri,
-        onFailure: onFailure);
+        onFailure: onFailure,
+        preserveWhitespaceInAnnotations: preserveWhitespaceInAnnotations,
+        preserveInfixWhitespaceInAnnotations:
+            preserveInfixWhitespaceInAnnotations);
     print('Test: ${testData.testFileUri}');
 
     Map<String, TestResult<T>> results = await runTest(testData,
@@ -791,7 +812,7 @@ Future<void> runTests<T>(Directory dataDir,
     if (hasErrors) {
       // Cannot generate annotations for erroneous tests.
       hasFailures = true;
-    } else if (hasMismatches) {
+    } else if (hasMismatches || (forceUpdate && generateAnnotations)) {
       if (generateAnnotations) {
         DataInterpreter dataInterpreter;
         Map<String, Map<Uri, Map<Id, ActualData<T>>>> actualData = {};
@@ -823,7 +844,8 @@ Future<void> runTests<T>(Directory dataDir,
             testData.expectedMaps,
             testData.entryPoint,
             actualData,
-            dataInterpreter);
+            dataInterpreter,
+            forceUpdate: forceUpdate);
         annotations.forEach((Uri uri, List<Annotation> annotations) {
           assert(uri != null, "Annotations without uri: $annotations");
           AnnotatedCode code = testData.code[uri];

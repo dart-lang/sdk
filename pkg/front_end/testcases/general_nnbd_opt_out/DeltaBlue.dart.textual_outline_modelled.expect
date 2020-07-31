@@ -1,0 +1,152 @@
+// @dart = 2.6
+Planner planner;
+
+abstract class BinaryConstraint extends Constraint {
+  BinaryConstraint(this.v1, this.v2, Strength strength) : super(strength) {}
+  Variable input() => direction == FORWARD ? v1 : v2;
+  Variable output() => direction == FORWARD ? v2 : v1;
+  Variable v1;
+  Variable v2;
+  bool inputsKnown(int mark) {}
+  bool isSatisfied() => direction != NONE;
+  int direction = NONE;
+  void addToGraph() {}
+  void chooseMethod(int mark) {}
+  void markInputs(int mark) {}
+  void markUnsatisfied() {}
+  void recalculate() {}
+  void removeFromGraph() {}
+}
+
+abstract class Constraint {
+  Constraint satisfy(mark) {}
+  Variable output();
+  bool inputsKnown(int mark);
+  bool isInput() => false;
+  bool isSatisfied();
+  const Constraint(this.strength);
+  final Strength strength;
+  void addConstraint() {}
+  void addToGraph();
+  void chooseMethod(int mark);
+  void destroyConstraint() {}
+  void execute();
+  void markInputs(int mark);
+  void markUnsatisfied();
+  void recalculate();
+  void removeFromGraph();
+}
+
+abstract class UnaryConstraint extends Constraint {
+  UnaryConstraint(this.myOutput, Strength strength) : super(strength) {}
+  Variable output() => myOutput;
+  bool inputsKnown(int mark) => true;
+  bool isSatisfied() => satisfied;
+  bool satisfied = false;
+  final Variable myOutput;
+  void addToGraph() {}
+  void chooseMethod(int mark) {}
+  void markInputs(int mark) {}
+  void markUnsatisfied() {}
+  void recalculate() {}
+  void removeFromGraph() {}
+}
+
+class DeltaBlue {
+  void run() {}
+}
+
+class EditConstraint extends UnaryConstraint {
+  EditConstraint(Variable v, Strength str) : super(v, str);
+  bool isInput() => true;
+  void execute() {}
+}
+
+class EqualityConstraint extends BinaryConstraint {
+  EqualityConstraint(Variable v1, Variable v2, Strength strength)
+      : super(v1, v2, strength);
+  void execute() {}
+}
+
+class Plan {
+  List<Constraint> list = <Constraint>[];
+  int size() => list.length;
+  void addConstraint(Constraint c) {}
+  void execute() {}
+}
+
+class Planner {
+  List<Constraint> removePropagateFrom(Variable out) {}
+  Plan extractPlanFromConstraints(List<Constraint> constraints) {}
+  Plan makePlan(List<Constraint> sources) {}
+  bool addPropagate(Constraint c, int mark) {}
+  int currentMark = 0;
+  int newMark() => ++currentMark;
+  void addConstraintsConsumingTo(Variable v, List<Constraint> coll) {}
+  void incrementalAdd(Constraint c) {}
+  void incrementalRemove(Constraint c) {}
+}
+
+class ScaleConstraint extends BinaryConstraint {
+  ScaleConstraint(
+      Variable src, this.scale, this.offset, Variable dest, Strength strength)
+      : super(src, dest, strength);
+  final Variable offset;
+  final Variable scale;
+  void addToGraph() {}
+  void execute() {}
+  void markInputs(int mark) {}
+  void recalculate() {}
+  void removeFromGraph() {}
+}
+
+class StayConstraint extends UnaryConstraint {
+  StayConstraint(Variable v, Strength str) : super(v, str);
+  void execute() {}
+}
+
+class Strength {
+  Strength nextWeaker() => const <Strength>[
+        STRONG_PREFERRED,
+        PREFERRED,
+        STRONG_DEFAULT,
+        NORMAL,
+        WEAK_DEFAULT,
+        WEAKEST
+      ][value];
+  const Strength(this.value, this.name);
+  final String name;
+  final int value;
+  static Strength strongest(Strength s1, Strength s2) {}
+  static Strength weakest(Strength s1, Strength s2) {}
+  static bool stronger(Strength s1, Strength s2) {}
+  static bool weaker(Strength s1, Strength s2) {}
+}
+
+class Variable {
+  Constraint determinedBy;
+  List<Constraint> constraints = <Constraint>[];
+  Strength walkStrength = WEAKEST;
+  Variable(this.name, this.value);
+  bool stay = true;
+  final String name;
+  int mark = 0;
+  int value;
+  void addConstraint(Constraint c) {}
+  void removeConstraint(Constraint c) {}
+}
+
+const NORMAL = const Strength(4, "normal");
+const PREFERRED = const Strength(2, "preferred");
+const REQUIRED = const Strength(0, "required");
+const STRONG_DEFAULT = const Strength(3, "strongDefault");
+const STRONG_PREFERRED = const Strength(1, "strongPreferred");
+const WEAKEST = const Strength(6, "weakest");
+const WEAK_DEFAULT = const Strength(5, "weakDefault");
+const int BACKWARD = 0;
+const int FORWARD = 2;
+const int NONE = 1;
+main() {}
+void chainTest(int n) {}
+void change(Variable v, int newValue) {}
+void projectionTest(int n) {}

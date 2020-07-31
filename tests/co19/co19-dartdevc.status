@@ -1,0 +1,96 @@
+# Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $compiler == dartdevc || $compiler == dartdevk ]
+Language/Classes/Constructors/Generative_Constructors/formal_parameter_t07: Skip # Times out
+Language/Classes/Constructors/Generative_Constructors/fresh_instance_t01: Skip # Times out
+Language/Classes/Constructors/Generative_Constructors/implicit_superinitializer_t01: Skip # Times out
+Language/Classes/Constructors/Generative_Constructors/implicit_superinitializer_t02: Skip # Times out
+Language/Classes/Constructors/Generative_Constructors/initializers_t01: Skip # Times out
+Language/Classes/Constructors/Generative_Constructors/initializers_t15: Skip # Times out
+Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t01: Skip # Times out
+Language/Classes/Constructors/Generative_Constructors/initializing_this_t01: Skip # Times out
+Language/Classes/Constructors/Generative_Constructors/redirection_t01: Skip # Times out
+Language/Classes/Constructors/Generative_Constructors/syntax_t01: Skip # Times out
+Language/Classes/Constructors/implicit_constructor_t01: Skip # Times out
+Language/Classes/Constructors/implicit_constructor_t02: Skip # Times out
+Language/Classes/Constructors/name_t01: Skip # Times out
+Language/Classes/Constructors/name_t02: Skip # Times out
+Language/Classes/Constructors/name_t03: Skip # Times out
+Language/Classes/Getters/instance_getter_t01: Skip # Times out
+Language/Classes/Getters/instance_getter_t02: Skip # Times out
+Language/Classes/Getters/instance_getter_t03: Skip # Times out
+Language/Classes/Getters/instance_getter_t04: Skip # Times out
+Language/Classes/Getters/instance_getter_t05: Skip # Times out
+Language/Classes/Getters/instance_getter_t06: Skip # Times out
+Language/Classes/Getters/override_t04: Skip # Times out
+Language/Classes/Getters/return_type_t01: Skip # Times out
+Language/Classes/Getters/static_t01/none: Skip # Times out
+Language/Classes/Getters/static_t02: Skip # Times out
+Language/Classes/Getters/syntax_t01: Skip # Times out
+Language/Classes/Getters/void_return_type_t01: Skip # Times out
+Language/Classes/Instance_Methods/Operators/allowed_names_t01: Skip # Times out
+Language/Classes/Instance_Methods/Operators/arity_0_or_1_t01: Skip # Times out
+Language/Classes/Instance_Methods/Operators/arity_0_t01: Skip # Times out
+Language/Classes/Instance_Methods/Operators/syntax_t01: Skip # Times out
+Language/Classes/Instance_Methods/Operators/syntax_t03: Skip # Times out
+Language/Classes/Instance_Methods/override_named_parameters_t03: Skip # Times out
+Language/Classes/Instance_Methods/override_named_parameters_t04: Skip # Times out
+Language/Classes/Instance_Methods/override_named_parameters_t06: Skip # Times out
+Language/Classes/Instance_Methods/override_subtype_t05: Skip # Times out
+Language/Classes/Instance_Methods/override_subtype_t06: Skip # Times out
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t01: Skip # Times out
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t02: Skip # Times out
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t04: Skip # Times out
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t05: Skip # Times out
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t06: Skip # Times out
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t07: Skip # Times out
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t08: Skip # Times out
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t09: Skip # Times out
+Language/Classes/Instance_Variables/definition_t01: Skip # Times out
+Language/Classes/Instance_Variables/definition_t02: Skip # Times out
+Language/Classes/Instance_Variables/definition_t04: Skip # Times out
+Language/Classes/Setters/instance_setter_t01: Skip # Times out
+Language/Expressions/Constants/integer_size_t03: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Constants/integer_size_t04: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Constants/literal_number_t01: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Constants/math_operators_t01: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Constants/math_operators_t06: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Function_Invocation/async_generator_invokation_t08: Skip # Times out
+Language/Expressions/Function_Invocation/async_generator_invokation_t10: Skip # Times out
+Language/Expressions/Null/instance_of_class_null_t01: Skip # dart:mirrors not supported https://github.com/dart-lang/co19/issues/522.
+Language/Expressions/Numbers/integer_size_t03: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Numbers/static_type_of_int_t01: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Numbers/syntax_t06: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Numbers/syntax_t09: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Object_Identity/object_t02: SkipByDesign # https://github.com/dart-lang/sdk/issues/42222#issuecomment-640431711
+Language/Expressions/Shift/integer_t01: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Shift/integer_t02: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign # dart:isolate not supported.
+Language/Metadata/before*: Skip # dart:mirrors not supported https://github.com/dart-lang/co19/issues/523.
+Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: SkipByDesign # binary '~' produces different results in JavaScript and Dart
+Language/Types/Interface_Types/subtype_t27: Skip # Times out
+Language/Types/Interface_Types/subtype_t28: Skip # Times out
+LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t03: Skip # Times out
+LibTest/html/Element/blur_A01_t01: Skip # Times out
+LibTest/html/Element/focus_A01_t01: Skip # Times out
+LibTest/html/Element/loadEvent_A01_t01: Skip # Times out
+LibTest/html/Element/mouseWheelEvent_A01_t01: Skip # Times out
+LibTest/html/Element/onLoad_A01_t01: Skip # Times out
+LibTest/html/Element/onMouseWheel_A01_t01: Skip # Times out
+LibTest/html/Element/onTransitionEnd_A01_t01: Skip # Times out
+LibTest/html/Element/transitionEndEvent_A01_t01: Skip # Times out
+LibTest/html/HttpRequest/onError_A01_t02: Skip # Times out
+LibTest/html/HttpRequest/responseText_A01_t02: Skip # Times out
+LibTest/html/HttpRequestUpload/onError_A01_t02: Skip # Times out
+LibTest/html/HttpRequestUpload/onLoadEnd_A01_t01: Skip # Times out
+LibTest/html/HttpRequestUpload/onLoadStart_A01_t01: Skip # Times out
+LibTest/html/HttpRequestUpload/onLoad_A01_t01: Skip # Times out
+LibTest/html/IFrameElement/blur_A01_t01: Skip # Times out
+LibTest/html/IFrameElement/enteredView_A01_t01: Skip # Times out
+LibTest/html/IFrameElement/focus_A01_t01: Skip # Times out
+LibTest/html/IFrameElement/onMouseWheel_A01_t01: Skip # Times out
+LibTest/html/IFrameElement/onTransitionEnd_A01_t01: Skip # Times out
+LibTest/io/*: SkipByDesign # dart:io not supported.
+LibTest/isolate/*: SkipByDesign # dart:isolate not supported.

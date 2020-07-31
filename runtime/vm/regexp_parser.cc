@@ -1242,7 +1242,7 @@ RegExpCapture* RegExpParser::GetCapture(intptr_t index) {
   return captures_->At(index - 1);
 }
 
-RawArray* RegExpParser::CreateCaptureNameMap() {
+ArrayPtr RegExpParser::CreateCaptureNameMap() {
   if (named_captures_ == nullptr || named_captures_->is_empty()) {
     return Array::null();
   }
@@ -1546,7 +1546,7 @@ bool LookupSpecialPropertyValueName(const char* name,
   return true;
 }
 
-// Explicitly whitelist supported binary properties. The spec forbids supporting
+// Explicitly list supported binary properties. The spec forbids supporting
 // properties outside of this set to ensure interoperability.
 bool IsSupportedBinaryProperty(UProperty property) {
   switch (property) {

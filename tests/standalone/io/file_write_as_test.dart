@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -10,7 +11,7 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 testWriteAsBytesSync(dir) {
-  var f = new File('${dir.path}/bytes_sync.txt');
+  var f = new File('${dir.path}${Platform.pathSeparator}bytes_sync.txt');
   var data = [50, 50, 50];
   f.writeAsBytesSync(data);
   Expect.listEquals(data, f.readAsBytesSync());
@@ -20,7 +21,7 @@ testWriteAsBytesSync(dir) {
 }
 
 testWriteAsStringSync(dir) {
-  var f = new File('${dir.path}/string_sync.txt');
+  var f = new File('${dir.path}${Platform.pathSeparator}string_sync.txt');
   var data = 'asdf';
   f.writeAsStringSync(data);
   Expect.equals(data, f.readAsStringSync());
@@ -49,7 +50,7 @@ testWriteWithLargeList(dir) {
 
 Future testWriteAsBytes(dir) {
   var completer = new Completer();
-  var f = new File('${dir.path}/bytes.txt');
+  var f = new File('${dir.path}${Platform.pathSeparator}bytes.txt');
   var data = [50, 50, 50];
   f.writeAsBytes(data).then((file) {
     Expect.equals(f, file);
@@ -70,7 +71,7 @@ Future testWriteAsBytes(dir) {
 
 Future testWriteAsString(dir) {
   var completer = new Completer();
-  var f = new File('${dir.path}/strings.txt');
+  var f = new File('${dir.path}${Platform.pathSeparator}strings.txt');
   var data = 'asdf';
   f.writeAsString(data).then((file) {
     Expect.equals(f, file);
@@ -88,12 +89,54 @@ Future testWriteAsString(dir) {
   return completer.future;
 }
 
+testWriteAsSubtypeSync(dir) {
+  var f = new File('${dir.path}${Platform.pathSeparator}bytes_sync.txt');
+  var input = Uint8List(5);
+  input[0] = 1;
+  input[1] = 2;
+  f.writeAsBytesSync(UnmodifiableUint8ListView(input));
+  var bytes = f.readAsBytesSync();
+  Expect.listEquals(input, bytes);
+}
+
+class MyUint8List extends ListBase<int> implements List<int> {
+  Uint8List _source;
+  MyUint8List(this._source);
+
+  // TypedData.
+  ByteBuffer get buffer => _source.buffer;
+  int get lengthInBytes => _source.lengthInBytes;
+  int get offsetInBytes => _source.offsetInBytes;
+
+  /// The methods that ListBase needs:
+  int operator [](int index) => _source[index];
+  operator []=(int index, int value) => _source[index] = value;
+  int get length => _source.length;
+  set length(_) => UnsupportedError("fixed length");
+  int get elementSizeInBytes => _source.elementSizeInBytes;
+
+  Uint8List sublist(int start, [int? end]) => _source.sublist(start, end);
+}
+
+void testCustomizedSubtypeSync(Directory dir) {
+  var f = new File('${dir.path}${Platform.pathSeparator}bytes_sync.txt');
+  var input = Uint8List(5);
+  input[0] = 1;
+  input[1] = 2;
+  MyUint8List list = MyUint8List(input);
+  f.writeAsBytesSync(list);
+  var bytes = f.readAsBytesSync();
+  Expect.listEquals(input, bytes);
+}
+
 main() {
   asyncStart();
   var tempDir = Directory.systemTemp.createTempSync('dart_file_write_as');
   testWriteAsBytesSync(tempDir);
   testWriteAsStringSync(tempDir);
   testWriteWithLargeList(tempDir);
+  testWriteAsSubtypeSync(tempDir);
+  testCustomizedSubtypeSync(tempDir);
   testWriteAsBytes(tempDir).then((_) {
     return testWriteAsString(tempDir);
   }).then((_) {

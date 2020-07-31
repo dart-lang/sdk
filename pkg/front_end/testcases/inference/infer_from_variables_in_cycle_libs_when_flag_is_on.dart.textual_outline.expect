@@ -1,0 +1,7 @@
+library test;
+
+import 'infer_from_variables_in_cycle_libs_when_flag_is_on_a.dart';
+
+var y = x;
+test1() {}
+main() {}

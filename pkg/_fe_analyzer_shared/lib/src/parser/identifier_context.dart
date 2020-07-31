@@ -7,8 +7,6 @@ import '../messages/codes.dart'
 
 import '../scanner/token.dart' show Token, TokenType;
 
-import '../scanner/token_constants.dart' show IDENTIFIER_TOKEN;
-
 import 'identifier_context_impl.dart';
 
 import 'parser_impl.dart' show Parser;
@@ -22,7 +20,7 @@ import 'util.dart' show isOneOfOrEof, optional;
 /// This can be used by the listener to determine the context in which the
 /// identifier appears; that in turn can help the listener decide how to resolve
 /// the identifier (if the listener is doing resolution).
-class IdentifierContext {
+abstract class IdentifierContext {
   /// Identifier is being declared as the name of an import prefix (i.e. `Foo`
   /// in `import "..." as Foo;`)
   static const ImportPrefixIdentifierContext importPrefixDeclaration =
@@ -292,12 +290,16 @@ class IdentifierContext {
   /// Ensure that the next token is an identifier (or keyword which should be
   /// treated as an identifier) and return that identifier.
   /// Report errors as necessary via [parser].
-  Token ensureIdentifier(Token token, Parser parser) {
-    assert(token.next.kind != IDENTIFIER_TOKEN);
-    // TODO(danrubel): Implement this method for each identifier context
-    // such that they return a non-null value.
-    return null;
-  }
+  Token ensureIdentifier(Token token, Parser parser);
+
+  /// Ensure that the next token is an identifier (or keyword which should be
+  /// treated as an identifier) and return that identifier.
+  /// Report errors as necessary via [parser].
+  /// If [recovered] implementers could allow 'token' to be used as an
+  /// identifier, even if it isn't a valid identifier.
+  Token ensureIdentifierPotentiallyRecovered(
+          Token token, Parser parser, bool isRecovered) =>
+      ensureIdentifier(token, parser);
 }
 
 /// Return `true` if the given [token] should be treated like the start of

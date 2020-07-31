@@ -1,0 +1,15 @@
+typedef F = void Function();
+void foo() {}
+F bar() => foo;
+F? baz() => foo;
+void Function() hest() => foo;
+void Function()? fisk() => foo;
+Function()? foobar(Function()? x) => null;
+
+class A<T> {}
+
+class B extends A<Function()?> {
+  Function()? method(Function()? x) => null;
+}
+
+main() {}

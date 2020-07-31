@@ -14,13 +14,10 @@
 namespace dart {
 namespace bin {
 
-// TODO(bkonyi): re-enable after 2.8 release.
-const bool kDartDevEnabled = false;
-
 bool DartDevUtils::ShouldParseCommand(const char* script_uri) {
   // If script_uri is not a file path or of a known URI scheme, we can assume
   // that this is a DartDev command.
-  return (kDartDevEnabled && !File::ExistsUri(nullptr, script_uri) &&
+  return (!File::ExistsUri(nullptr, script_uri) &&
           (strncmp(script_uri, "http://", 7) != 0) &&
           (strncmp(script_uri, "https://", 8) != 0) &&
           (strncmp(script_uri, "file://", 7) != 0) &&
@@ -30,12 +27,11 @@ bool DartDevUtils::ShouldParseCommand(const char* script_uri) {
 
 bool DartDevUtils::TryResolveDartDevSnapshotPath(char** script_name) {
   // |dir_prefix| includes the last path seperator.
-  auto dir_prefix = std::unique_ptr<char, void (*)(void*)>(
-      EXEUtils::GetDirectoryPrefixFromExeName(), free);
+  auto dir_prefix = EXEUtils::GetDirectoryPrefixFromExeName();
 
   // First assume we're in dart-sdk/bin.
   char* snapshot_path =
-      Utils::SCreate("%s/snapshots/dartdev.dart.snapshot", dir_prefix.get());
+      Utils::SCreate("%ssnapshots/dartdev.dart.snapshot", dir_prefix.get());
   if (File::Exists(nullptr, snapshot_path)) {
     *script_name = snapshot_path;
     return true;
@@ -44,8 +40,7 @@ bool DartDevUtils::TryResolveDartDevSnapshotPath(char** script_name) {
 
   // If we're not in dart-sdk/bin, we might be in one of the $SDK/out/*
   // directories. Try to use a snapshot from a previously built SDK.
-  snapshot_path = Utils::SCreate(
-      "%s/dart-sdk/bin/snapshots/dartdev.dart.snapshot", dir_prefix.get());
+  snapshot_path = Utils::SCreate("%sdartdev.dart.snapshot", dir_prefix.get());
   if (File::Exists(nullptr, snapshot_path)) {
     *script_name = snapshot_path;
     return true;

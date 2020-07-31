@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method getNull() → dynamic
+  ;
+static method getIterableNull() → core::Iterable<dynamic> sync* 
+  ;
+static method getIterableBool() → core::Iterable<core::bool> sync* 
+  ;
+static method test1() → core::Iterable<core::bool> sync* 
+  ;
+static method test2() → core::Iterable<core::bool>
+  ;
+static method test3() → core::bool
+  ;
+static method test4() → core::Iterable<core::bool> sync* 
+  ;
+static method test5() → core::Iterable<core::bool>
+  ;
+static method test6() → core::Iterable<core::bool>
+  ;
+static method test7() → core::Iterable<core::bool> sync* 
+  ;
+static method test() → dynamic async 
+  ;
+static method main() → dynamic
+  ;

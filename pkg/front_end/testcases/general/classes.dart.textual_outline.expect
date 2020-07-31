@@ -1,0 +1,13 @@
+class A {
+  final int x;
+  final int y;
+  A(this.y) : x = 42;
+  method() {}
+}
+
+class B extends A {
+  B(x) : super(x);
+  method() {}
+}
+
+main() {}

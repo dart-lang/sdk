@@ -16,9 +16,6 @@ import '../util/util.dart';
 /// A language feature that may be seen in the program.
 // TODO(johnniwinther): Should mirror usage be part of this?
 enum Feature {
-  /// Invocation of a generative construction on an abstract class.
-  ABSTRACT_CLASS_INSTANTIATION,
-
   /// An assert statement with no message.
   ASSERT,
 
@@ -218,7 +215,7 @@ class RuntimeTypeUse {
       case RuntimeTypeUseKind.equals:
         sb.write('equals:');
         sb.write(receiverType);
-        sb.write('/');
+        sb.write('==');
         sb.write(argumentType);
         break;
       case RuntimeTypeUseKind.unknown:

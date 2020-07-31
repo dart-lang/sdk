@@ -57,10 +57,15 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Member lookupInstanceMember(Name name, {bool isSetter, bool isSuper});
 
+  /// `true` if we are in the type of an as expression.
+  bool get inIsOrAsOperatorType;
+
   scopeLookup(Scope scope, String name, Token token,
       {bool isQualified: false, PrefixBuilder prefix});
 
-  finishSend(Object receiver, Arguments arguments, int offset);
+  finishSend(Object receiver, List<UnresolvedType> typeArguments,
+      Arguments arguments, int offset,
+      {bool isTypeArgumentsInForest = false});
 
   Initializer buildInvalidInitializer(Expression expression, [int offset]);
 
@@ -114,10 +119,11 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       String name,
       List<UnresolvedType> typeArguments,
       int charOffset,
-      Constness constness);
+      Constness constness,
+      {bool isTypeArgumentsInForest = false});
 
-  UnresolvedType validateTypeUse(
-      UnresolvedType unresolved, bool nonInstanceAccessIsError);
+  UnresolvedType validateTypeUse(UnresolvedType unresolved,
+      {bool nonInstanceAccessIsError, bool allowPotentiallyConstantType});
 
   void addProblemErrorIfConst(Message message, int charOffset, int length);
 

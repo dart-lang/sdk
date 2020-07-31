@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart._http;
 
 const String _DART_SESSION_ID = "DARTSESSID";
@@ -15,11 +13,11 @@ class _HttpSession implements HttpSession {
   bool _destroyed = false;
   bool _isNew = true;
   DateTime _lastSeen;
-  Function _timeoutCallback;
+  Function? _timeoutCallback;
   _HttpSessionManager _sessionManager;
   // Pointers in timeout queue.
-  _HttpSession _prev;
-  _HttpSession _next;
+  _HttpSession? _prev;
+  _HttpSession? _next;
   final String id;
 
   final Map _data = new HashMap();
@@ -27,6 +25,7 @@ class _HttpSession implements HttpSession {
   _HttpSession(this._sessionManager, this.id) : _lastSeen = new DateTime.now();
 
   void destroy() {
+    assert(!_destroyed);
     _destroyed = true;
     _sessionManager._removeFromTimeoutQueue(this);
     _sessionManager._sessions.remove(id);
@@ -43,7 +42,7 @@ class _HttpSession implements HttpSession {
 
   bool get isNew => _isNew;
 
-  void set onTimeout(void callback()) {
+  void set onTimeout(void callback()?) {
     _timeoutCallback = callback;
   }
 
@@ -80,7 +79,7 @@ class _HttpSession implements HttpSession {
   }
 
   Map<K, V> cast<K, V>() => _data.cast<K, V>();
-  update(key, update(value), {ifAbsent()}) =>
+  update(key, update(value), {ifAbsent()?}) =>
       _data.update(key, update, ifAbsent: ifAbsent);
 
   void updateAll(update(key, value)) {
@@ -104,9 +103,9 @@ class _HttpSession implements HttpSession {
 class _HttpSessionManager {
   Map<String, _HttpSession> _sessions;
   int _sessionTimeout = 20 * 60; // 20 mins.
-  _HttpSession _head;
-  _HttpSession _tail;
-  Timer _timer;
+  _HttpSession? _head;
+  _HttpSession? _tail;
+  Timer? _timer;
 
   _HttpSessionManager() : _sessions = {};
 
@@ -116,7 +115,7 @@ class _HttpSessionManager {
     return _CryptoUtils.bytesToHex(data);
   }
 
-  _HttpSession getSession(String id) => _sessions[id];
+  _HttpSession? getSession(String id) => _sessions[id];
 
   _HttpSession createSession() {
     var id = createSessionId();
@@ -152,55 +151,52 @@ class _HttpSessionManager {
       _startTimer();
     } else {
       assert(_timer != null);
-      assert(_tail != null);
+      var tail = _tail!;
       // Add to end.
-      _tail._next = session;
-      session._prev = _tail;
+      tail._next = session;
+      session._prev = tail;
       _tail = session;
     }
   }
 
   void _removeFromTimeoutQueue(_HttpSession session) {
-    if (session._next != null) {
-      session._next._prev = session._prev;
-    }
-    if (session._prev != null) {
-      session._prev._next = session._next;
+    var next = session._next;
+    var prev = session._prev;
+    session._next = session._prev = null;
+    next?._prev = prev;
+    prev?._next = next;
+    if (_tail == session) {
+      _tail = prev;
     }
     if (_head == session) {
+      _head = next;
       // We removed the head element, start new timer.
-      _head = session._next;
       _stopTimer();
       _startTimer();
     }
-    if (_tail == session) {
-      _tail = session._prev;
-    }
-    session._next = session._prev = null;
   }
 
   void _timerTimeout() {
     _stopTimer(); // Clear timer.
-    assert(_head != null);
-    var session = _head;
+    var session = _head!;
     session.destroy(); // Will remove the session from timeout queue and map.
-    if (session._timeoutCallback != null) {
-      session._timeoutCallback();
-    }
+    session._timeoutCallback?.call();
   }
 
   void _startTimer() {
     assert(_timer == null);
-    if (_head != null) {
-      int seconds = new DateTime.now().difference(_head.lastSeen).inSeconds;
+    var head = _head;
+    if (head != null) {
+      int seconds = new DateTime.now().difference(head.lastSeen).inSeconds;
       _timer = new Timer(
           new Duration(seconds: _sessionTimeout - seconds), _timerTimeout);
     }
   }
 
   void _stopTimer() {
-    if (_timer != null) {
-      _timer.cancel();
+    var timer = _timer;
+    if (timer != null) {
+      timer.cancel();
       _timer = null;
     }
   }

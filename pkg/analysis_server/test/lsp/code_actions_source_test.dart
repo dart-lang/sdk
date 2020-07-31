@@ -106,7 +106,7 @@ int minified(int x, int y) => min(x, y);
     );
   }
 
-  Future<void> test_failsIfFileHasErrors() async {
+  Future<void> test_failsSilentlyIfFileHasErrors() async {
     final content = 'invalid dart code';
     await newFile(mainFilePath, content: content);
     await initialize(
@@ -122,10 +122,10 @@ int minified(int x, int y) => min(x, y);
       (codeAction) => codeAction.command,
     );
 
-    // Ensure the request returned an error (error repsonses are thrown by
-    // the test helper to make consuming success results simpler).
-    await expectLater(executeCommand(command),
-        throwsA(isResponseError(ServerErrorCodes.FileHasErrors)));
+    final commandResponse = await executeCommand(command);
+    // Invalid code returns an empty success() response to avoid triggering
+    // errors in the editor if run automatically on every save.
+    expect(commandResponse, isNull);
   }
 
   Future<void> test_noEdits() async {

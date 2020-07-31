@@ -1,0 +1,10 @@
+library test;
+
+class C<T> {
+  void f<U extends T>(U x) {}
+  void g1<U extends T>() {}
+}
+
+void g2(C<Object> c) {}
+void test() {}
+void main() {}

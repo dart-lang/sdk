@@ -9,17 +9,32 @@ abstract class MyFuture extends core::Object implements asy::Future<core::int*> 
   synthetic constructor •() → self::MyFuture*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature method then<R extends core::Object* = dynamic>((core::int*) →* FutureOr<self::MyFuture::then::R*>* onValue, {core::Function* onError = #C1}) → asy::Future<self::MyFuture::then::R*>*;
+  abstract member-signature method catchError(core::Function* onError, {(core::Object*) →* core::bool* test = #C1}) → asy::Future<core::int*>*;
+  abstract member-signature method whenComplete(() →* FutureOr<void>* action) → asy::Future<core::int*>*;
+  abstract member-signature method asStream() → asy::Stream<core::int*>*;
+  abstract member-signature method timeout(core::Duration* timeLimit, {generic-covariant-impl () →* FutureOr<core::int*>onTimeout = #C1}) → asy::Future<core::int*>*;
 }
 static method test() → void async {
   core::int* x0;
   asy::Future<core::int*>* x1;
   asy::Future<asy::Future<core::int*>*>* x2;
-  asy::Future<asy::FutureOr<core::int*>*>* x3;
+  asy::Future<FutureOr<core::int*>*>* x3;
   asy::Future<self::MyFuture*>* x4;
-  asy::FutureOr<core::int*>* x5;
-  asy::FutureOr<asy::Future<core::int*>*>* x6;
-  asy::FutureOr<asy::FutureOr<core::int*>*>* x7;
-  asy::FutureOr<self::MyFuture*>* x8;
+  FutureOr<core::int*>* x5;
+  FutureOr<asy::Future<core::int*>*>* x6;
+  FutureOr<FutureOr<core::int*>*>* x7;
+  FutureOr<self::MyFuture*>* x8;
   self::MyFuture* x9;
   function test0() → asy::Future<core::int*>* async 
     return x0;
@@ -27,7 +42,7 @@ static method test() → void async {
     return x1;
   function test2() → asy::Future<asy::Future<core::int*>*>* async 
     return x2;
-  function test3() → asy::Future<asy::FutureOr<core::int*>*>* async 
+  function test3() → asy::Future<FutureOr<core::int*>*>* async 
     return x3;
   function test4() → asy::Future<self::MyFuture*>* async 
     return x4;
@@ -35,7 +50,7 @@ static method test() → void async {
     return x5;
   function test6() → asy::Future<asy::Future<core::int*>*>* async 
     return x6;
-  function test7() → asy::Future<asy::FutureOr<core::int*>*>* async 
+  function test7() → asy::Future<FutureOr<core::int*>*>* async 
     return x7;
   function test8() → asy::Future<self::MyFuture*>* async 
     return x8;
@@ -44,12 +59,16 @@ static method test() → void async {
   core::int* y0 = await x0;
   core::int* y1 = await x1;
   asy::Future<core::int*>* y2 = await x2;
-  asy::FutureOr<core::int*>* y3 = await x3;
+  FutureOr<core::int*>* y3 = await x3;
   self::MyFuture* y4 = await x4;
   core::int* y5 = await x5;
   asy::Future<core::int*>* y6 = await x6;
-  asy::FutureOr<core::int*>* y7 = await x7;
+  FutureOr<core::int*>* y7 = await x7;
   self::MyFuture* y8 = await x8;
   core::int* y9 = await x9;
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

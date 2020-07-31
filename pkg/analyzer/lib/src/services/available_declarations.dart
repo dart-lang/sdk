@@ -1333,6 +1333,9 @@ class _File {
       if (Identifier.isPrivateName(name.name)) {
         return null;
       }
+      if (isConst) {
+        relevanceTags = [...?relevanceTags, 'isConst'];
+      }
 
       var locationOffset = name.offset;
       var lineLocation = lineInfo.getLocation(locationOffset);

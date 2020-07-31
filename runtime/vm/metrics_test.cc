@@ -16,8 +16,7 @@
 
 namespace dart {
 
-#ifndef PRODUCT
-
+#if !defined(PRODUCT)
 VM_UNIT_TEST_CASE(Metric_Simple) {
   TestCase::CreateTestIsolate();
   {
@@ -75,6 +74,7 @@ VM_UNIT_TEST_CASE(Metric_OnDemand) {
   }
   Dart_ShutdownIsolate();
 }
+#endif  // !defined(PRODUCT)
 
 ISOLATE_UNIT_TEST_CASE(Metric_EmbedderAPI) {
   {
@@ -98,7 +98,9 @@ ISOLATE_UNIT_TEST_CASE(Metric_EmbedderAPI) {
     TransitionVMToNative transition(Thread::Current());
 
     Dart_Isolate isolate = Dart_CurrentIsolate();
+#if !defined(PRODUCT)
     EXPECT(Dart_VMIsolateCountMetric() > 0);
+#endif
     EXPECT(Dart_IsolateHeapOldUsedMetric(isolate) > 0);
     EXPECT(Dart_IsolateHeapOldUsedMaxMetric(isolate) > 0);
     EXPECT(Dart_IsolateHeapOldCapacityMetric(isolate) > 0);
@@ -111,7 +113,5 @@ ISOLATE_UNIT_TEST_CASE(Metric_EmbedderAPI) {
     EXPECT(Dart_IsolateHeapGlobalUsedMaxMetric(isolate) > 0);
   }
 }
-
-#endif  // !PRODUCT
 
 }  // namespace dart

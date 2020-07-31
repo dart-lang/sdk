@@ -74,6 +74,8 @@ List<DartType> flattenInstantiatorTypeArguments(
     }
   }
 
+  assert(typeParameters.length == typeArgs.length);
+
   final substitution = Substitution.fromPairs(typeParameters, typeArgs);
 
   List<DartType> flatTypeArgs = <DartType>[];
@@ -168,6 +170,9 @@ class FindFreeTypeParametersVisitor extends DartTypeVisitor<bool> {
   @override
   bool visitInterfaceType(InterfaceType node) =>
       node.typeArguments.any((t) => t.accept(this));
+
+  @override
+  bool visitFutureOrType(FutureOrType node) => node.typeArgument.accept(this);
 
   @override
   bool visitTypedefType(TypedefType node) =>

@@ -8,7 +8,7 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessageHandler;
 
 import 'package:kernel/default_language_version.dart' as kernel
-    show defaultLanguageVersionMajor, defaultLanguageVersionMinor;
+    show defaultLanguageVersion;
 
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -16,6 +16,7 @@ import '../base/nnbd_mode.dart';
 
 import 'experimental_flags.dart'
     show
+        AllowedExperimentalFlags,
         defaultExperimentalFlags,
         ExperimentalFlag,
         expiredExperimentalFlags,
@@ -129,6 +130,8 @@ class CompilerOptions {
   /// Features not mentioned in the map will have their default value.
   Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{};
 
+  AllowedExperimentalFlags allowedExperimentalFlags;
+
   /// Environment map used when evaluating `bool.fromEnvironment`,
   /// `int.fromEnvironment` and `String.fromEnvironment` during constant
   /// evaluation. If the map is `null`, all environment constants will be left
@@ -229,9 +232,9 @@ class CompilerOptions {
   /// The current sdk version string, e.g. "2.6.0-edge.sha1hash".
   /// For instance used for language versioning (specifying the maximum
   /// version).
-  String currentSdkVersion = "${kernel.defaultLanguageVersionMajor}"
+  String currentSdkVersion = "${kernel.defaultLanguageVersion.major}"
       "."
-      "${kernel.defaultLanguageVersionMinor}";
+      "${kernel.defaultLanguageVersion.minor}";
 
   bool equivalent(CompilerOptions other,
       {bool ignoreOnDiagnostic: true,

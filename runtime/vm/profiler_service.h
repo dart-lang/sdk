@@ -28,8 +28,6 @@ class JSONArray;
 class JSONStream;
 class ProfileFunctionTable;
 class ProfileCodeTable;
-class RawCode;
-class RawFunction;
 class SampleFilter;
 class ProcessedSample;
 class ProcessedSampleBuffer;

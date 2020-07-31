@@ -170,15 +170,13 @@ void generatePublicExtension(StringBuffer buffer, Config config) {
 $alignment  external $typedListType asTypedList(int length);
 """;
 
-  // TODO(38892): Stop generating documentation on setter.
   buffer.write("""
 /// Extension on [Pointer] specialized for the type argument [$nativeType].
 extension ${nativeType}Pointer on Pointer<$nativeType> {
   /// The $property at [address].
 $platform$truncate$alignment  external $dartType get value;
 
-  /// The $property at [address].
-$platform$truncate$alignment  external void set value($dartType value);
+  external void set value($dartType value);
 
   /// The $property at `address + ${sizeTimes}index`.
 $platform$truncate$alignment  external $dartType operator [](int index);

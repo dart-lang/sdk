@@ -18,18 +18,6 @@ main() {
 
 @reflectiveTest
 class MixinOfNonClassTest extends DriverResolutionTest {
-  @failingTest
-  test_non_class() async {
-    // TODO(brianwilkerson) Compare with MIXIN_WITH_NON_CLASS_SUPERCLASS.
-    // TODO(brianwilkerson) Fix the offset and length.
-    await assertErrorsInCode(r'''
-var A;
-class B extends Object mixin A {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 0, 0),
-    ]);
-  }
-
   test_class() async {
     await assertErrorsInCode(r'''
 int A = 7;
@@ -45,6 +33,18 @@ enum E { ONE }
 class A extends Object with E {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 43, 1),
+    ]);
+  }
+
+  @failingTest
+  test_non_class() async {
+    // TODO(brianwilkerson) Compare with MIXIN_WITH_NON_CLASS_SUPERCLASS.
+    // TODO(brianwilkerson) Fix the offset and length.
+    await assertErrorsInCode(r'''
+var A;
+class B extends Object mixin A {}
+''', [
+      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 0, 0),
     ]);
   }
 

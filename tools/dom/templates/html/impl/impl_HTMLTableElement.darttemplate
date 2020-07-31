@@ -34,7 +34,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   @JSName('createTBody')
   TableSectionElement _nativeCreateTBody() native;
 
-  DocumentFragment createFragment(String html,
+  DocumentFragment createFragment(String$NULLABLE html,
       {NodeValidator$NULLABLE validator,
        NodeTreeSanitizer$NULLABLE treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {

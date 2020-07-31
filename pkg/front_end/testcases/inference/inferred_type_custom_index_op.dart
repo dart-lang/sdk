@@ -11,5 +11,5 @@ class C {
 
 main() {
   C c = new C();
-  var /*@ type=bool* */ x = c /*@target=C::[]*/ [0];
+  var /*@ type=bool* */ x = c /*@target=C.[]*/ [0];
 }

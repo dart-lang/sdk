@@ -12,18 +12,14 @@ import 'package:path/path.dart' as path;
 
 export 'package:analyzer/src/generated/source.dart';
 
-/**
- * Instances of the class [ExplicitSourceResolver] map URIs to files on disk
- * using a fixed mapping provided at construction time.
- */
+/// Instances of the class [ExplicitSourceResolver] map URIs to files on disk
+/// using a fixed mapping provided at construction time.
 @deprecated
 class ExplicitSourceResolver extends UriResolver {
   final Map<Uri, JavaFile> uriToFileMap;
   final Map<String, Uri> pathToUriMap;
 
-  /**
-   * Construct an [ExplicitSourceResolver] based on the given [uriToFileMap].
-   */
+  /// Construct an [ExplicitSourceResolver] based on the given [uriToFileMap].
   ExplicitSourceResolver(Map<Uri, JavaFile> uriToFileMap)
       : uriToFileMap = uriToFileMap,
         pathToUriMap = _computePathToUriMap(uriToFileMap);
@@ -44,9 +40,7 @@ class ExplicitSourceResolver extends UriResolver {
     return pathToUriMap[source.fullName];
   }
 
-  /**
-   * Build the inverse mapping of [uriToSourceMap].
-   */
+  /// Build the inverse mapping of [uriToSourceMap].
   static Map<String, Uri> _computePathToUriMap(
       Map<Uri, JavaFile> uriToSourceMap) {
     Map<String, Uri> pathToUriMap = <String, Uri>{};
@@ -57,55 +51,38 @@ class ExplicitSourceResolver extends UriResolver {
   }
 }
 
-/**
- * Instances of the class `FileBasedSource` implement a source that represents a file.
- */
+/// Instances of the class `FileBasedSource` implement a source that represents
+/// a file.
 class FileBasedSource extends Source {
-  /**
-   * A function that changes the way that files are read off of disk.
-   */
+  /// A function that changes the way that files are read off of disk.
   static Function fileReadMode = (String s) => s;
 
-  /**
-   * Map from encoded URI/filepath pair to a unique integer identifier.  This
-   * identifier is used for equality tests and hash codes.
-   *
-   * The URI and filepath are joined into a pair by separating them with an '@'
-   * character.
-   */
+  /// Map from encoded URI/filepath pair to a unique integer identifier.  This
+  /// identifier is used for equality tests and hash codes.
+  ///
+  /// The URI and filepath are joined into a pair by separating them with an '@'
+  /// character.
   static final Map<String, int> _idTable = HashMap<String, int>();
 
-  /**
-   * The URI from which this source was originally derived.
-   */
+  /// The URI from which this source was originally derived.
   @override
   final Uri uri;
 
-  /**
-   * The unique ID associated with this [FileBasedSource].
-   */
+  /// The unique ID associated with this [FileBasedSource].
   final int id;
 
-  /**
-   * The file represented by this source.
-   */
+  /// The file represented by this source.
   final JavaFile file;
 
-  /**
-   * The cached absolute path of this source.
-   */
+  /// The cached absolute path of this source.
   String _absolutePath;
 
-  /**
-   * The cached encoding for this source.
-   */
+  /// The cached encoding for this source.
   String _encoding;
 
-  /**
-   * Initialize a newly created source object to represent the given [file]. If
-   * a [uri] is given, then it will be used as the URI from which the source was
-   * derived, otherwise a `file:` URI will be created based on the [file].
-   */
+  /// Initialize a newly created source object to represent the given [file]. If
+  /// a [uri] is given, then it will be used as the URI from which the source
+  /// was derived, otherwise a `file:` URI will be created based on the [file].
   FileBasedSource(JavaFile file, [Uri uri])
       : this.uri = uri ?? file.toURI(),
         this.file = file,
@@ -119,17 +96,16 @@ class FileBasedSource extends Source {
     });
   }
 
-  /**
-   * Get the contents and timestamp of the underlying file.
-   *
-   * Clients should consider using the method [AnalysisContext.getContents]
-   * because contexts can have local overrides of the content of a source that the source is not
-   * aware of.
-   *
-   * @return the contents of the source paired with the modification stamp of the source
-   * @throws Exception if the contents of this source could not be accessed
-   * See [contents].
-   */
+  /// Get the contents and timestamp of the underlying file.
+  ///
+  /// Clients should consider using the method [AnalysisContext.getContents]
+  /// because contexts can have local overrides of the content of a source that
+  /// the source is not aware of.
+  ///
+  /// @return the contents of the source paired with the modification stamp of
+  /// the source
+  /// @throws Exception if the contents of this source could not be accessed
+  /// See [contents].
   TimestampedData<String> get contentsFromFile {
     return TimestampedData<String>(
         file.lastModified(), fileReadMode(file.readAsStringSync()));
@@ -137,18 +113,12 @@ class FileBasedSource extends Source {
 
   @override
   String get encoding {
-    if (_encoding == null) {
-      _encoding = uri.toString();
-    }
-    return _encoding;
+    return _encoding ??= uri.toString();
   }
 
   @override
   String get fullName {
-    if (_absolutePath == null) {
-      _absolutePath = file.getAbsolutePath();
-    }
-    return _absolutePath;
+    return _absolutePath ??= file.getAbsolutePath();
   }
 
   @override
@@ -191,17 +161,13 @@ class FileBasedSource extends Source {
   }
 }
 
-/**
- * Instances of the class `FileUriResolver` resolve `file` URI's.
- *
- * This class is now deprecated, 'new FileUriResolver()' is equivalent to
- * 'new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)'.
- */
+/// Instances of the class `FileUriResolver` resolve `file` URI's.
+///
+/// This class is now deprecated, 'new FileUriResolver()' is equivalent to
+/// 'new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)'.
 @deprecated
 class FileUriResolver extends UriResolver {
-  /**
-   * The name of the `file` scheme.
-   */
+  /// The name of the `file` scheme.
   static String FILE_SCHEME = "file";
 
   @override
@@ -217,42 +183,30 @@ class FileUriResolver extends UriResolver {
     return Uri.file(source.fullName);
   }
 
-  /**
-   * Return `true` if the given URI is a `file` URI.
-   *
-   * @param uri the URI being tested
-   * @return `true` if the given URI is a `file` URI
-   */
+  /// Return `true` if the given URI is a `file` URI.
+  ///
+  /// @param uri the URI being tested
+  /// @return `true` if the given URI is a `file` URI
   static bool isFileUri(Uri uri) => uri.scheme == FILE_SCHEME;
 }
 
-/**
- * Instances of interface `LocalSourcePredicate` are used to determine if the given
- * [Source] is "local" in some sense, so can be updated.
- */
+/// Instances of interface `LocalSourcePredicate` are used to determine if the
+/// given [Source] is "local" in some sense, so can be updated.
 abstract class LocalSourcePredicate {
-  /**
-   * Instance of [LocalSourcePredicate] that always returns `false`.
-   */
+  /// Instance of [LocalSourcePredicate] that always returns `false`.
   static final LocalSourcePredicate FALSE = LocalSourcePredicate_FALSE();
 
-  /**
-   * Instance of [LocalSourcePredicate] that always returns `true`.
-   */
+  /// Instance of [LocalSourcePredicate] that always returns `true`.
   static final LocalSourcePredicate TRUE = LocalSourcePredicate_TRUE();
 
-  /**
-   * Instance of [LocalSourcePredicate] that returns `true` for all [Source]s
-   * except of SDK.
-   */
+  /// Instance of [LocalSourcePredicate] that returns `true` for all [Source]s
+  /// except of SDK.
   static final LocalSourcePredicate NOT_SDK = LocalSourcePredicate_NOT_SDK();
 
-  /**
-   * Determines if the given [Source] is local.
-   *
-   * @param source the [Source] to analyze
-   * @return `true` if the given [Source] is local
-   */
+  /// Determines if the given [Source] is local.
+  ///
+  /// @param source the [Source] to analyze
+  /// @return `true` if the given [Source] is local
   bool isLocal(Source source);
 }
 
@@ -271,48 +225,39 @@ class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
   bool isLocal(Source source) => true;
 }
 
-/**
- * Instances of the class `PackageUriResolver` resolve `package` URI's in the context of
- * an application.
- *
- * For the purposes of sharing analysis, the path to each package under the "packages" directory
- * should be canonicalized, but to preserve relative links within a package, the remainder of the
- * path from the package directory to the leaf should not.
- */
+/// Instances of the class `PackageUriResolver` resolve `package` URI's in the
+/// context of an application.
+///
+/// For the purposes of sharing analysis, the path to each package under the
+/// "packages" directory should be canonicalized, but to preserve relative links
+/// within a package, the remainder of the path from the package directory to
+/// the leaf should not.
 @deprecated
 class PackageUriResolver extends UriResolver {
-  /**
-   * The name of the `package` scheme.
-   */
+  /// The name of the `package` scheme.
   static String PACKAGE_SCHEME = "package";
 
-  /**
-   * Log exceptions thrown with the message "Required key not available" only once.
-   */
+  /// Log exceptions thrown with the message "Required key not available" only
+  /// once.
   static bool _CanLogRequiredKeyIoException = true;
 
-  /**
-   * The package directories that `package` URI's are assumed to be relative to.
-   */
+  /// The package directories that `package` URI's are assumed to be relative
+  /// to.
   final List<JavaFile> _packagesDirectories;
 
-  /**
-   * Initialize a newly created resolver to resolve `package` URI's relative to the given
-   * package directories.
-   *
-   * @param packagesDirectories the package directories that `package` URI's are assumed to be
-   *          relative to
-   */
+  /// Initialize a newly created resolver to resolve `package` URI's relative to
+  /// the given package directories.
+  ///
+  /// @param packagesDirectories the package directories that `package` URI's
+  ///          are assumed to be relative to
   PackageUriResolver(this._packagesDirectories) {
     if (_packagesDirectories.isEmpty) {
       throw ArgumentError("At least one package directory must be provided");
     }
   }
 
-  /**
-   * If the list of package directories contains one element, return it.
-   * Otherwise raise an exception.  Intended for testing.
-   */
+  /// If the list of package directories contains one element, return it.
+  /// Otherwise raise an exception.  Intended for testing.
   String get packagesDirectory_forTesting {
     int length = _packagesDirectories.length;
     if (length != 1) {
@@ -321,15 +266,13 @@ class PackageUriResolver extends UriResolver {
     return _packagesDirectories[0].getPath();
   }
 
-  /**
-   * Answer the canonical file for the specified package.
-   *
-   * @param packagesDirectory the "packages" directory (not `null`)
-   * @param pkgName the package name (not `null`, not empty)
-   * @param relPath the path relative to the package directory (not `null`, no leading slash,
-   *          but may be empty string)
-   * @return the file (not `null`)
-   */
+  /// Answer the canonical file for the specified package.
+  ///
+  /// @param packagesDirectory the "packages" directory (not `null`)
+  /// @param pkgName the package name (not `null`, not empty)
+  /// @param relPath the path relative to the package directory (not `null`, no
+  ///          leading slash, but may be empty string)
+  /// @return the file (not `null`)
   JavaFile getCanonicalFile(
       JavaFile packagesDirectory, String pkgName, String relPath) {
     JavaFile pkgDir = JavaFile.relative(packagesDirectory, pkgName);
@@ -420,10 +363,9 @@ class PackageUriResolver extends UriResolver {
     return null;
   }
 
-  /**
-   * @return `true` if "file" was found in "packagesDir", and it is part of the "lib" folder
-   *         of the application that contains in this "packagesDir".
-   */
+  /// @return `true` if "file" was found in "packagesDir", and it is part of
+  ///         the "lib" folder of the application that contains in this
+  ///         "packagesDir".
   bool _isSelfReference(JavaFile packagesDir, JavaFile file) {
     JavaFile rootDir = packagesDir.getParentFile();
     if (rootDir == null) {
@@ -434,49 +376,35 @@ class PackageUriResolver extends UriResolver {
     return filePath.startsWith("$rootPath/lib");
   }
 
-  /**
-   * Convert the given file path to a "file:" URI.  On Windows, this transforms
-   * backslashes to forward slashes.
-   */
+  /// Convert the given file path to a "file:" URI.  On Windows, this transforms
+  /// backslashes to forward slashes.
   String _toFileUri(String filePath) => path.context.toUri(filePath).toString();
 
-  /**
-   * Return `true` if the given URI is a `package` URI.
-   *
-   * @param uri the URI being tested
-   * @return `true` if the given URI is a `package` URI
-   */
+  /// Return `true` if the given URI is a `package` URI.
+  ///
+  /// @param uri the URI being tested
+  /// @return `true` if the given URI is a `package` URI
   static bool isPackageUri(Uri uri) => PACKAGE_SCHEME == uri.scheme;
 }
 
-/**
- * Instances of the class `RelativeFileUriResolver` resolve `file` URI's.
- *
- * This class is now deprecated, file URI resolution should be done with
- * ResourceUriResolver, i.e.
- * 'new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)'.
- */
+/// Instances of the class `RelativeFileUriResolver` resolve `file` URI's.
+///
+/// This class is now deprecated, file URI resolution should be done with
+/// ResourceUriResolver, i.e.
+/// 'new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)'.
 @deprecated
 class RelativeFileUriResolver extends UriResolver {
-  /**
-   * The name of the `file` scheme.
-   */
+  /// The name of the `file` scheme.
   static String FILE_SCHEME = "file";
 
-  /**
-   * The directories for the relatvie URI's
-   */
+  /// The directories for the relatvie URI's
   final List<JavaFile> _relativeDirectories;
 
-  /**
-   * The root directory for all the source trees
-   */
+  /// The root directory for all the source trees
   final JavaFile _rootDirectory;
 
-  /**
-   * Initialize a newly created resolver to resolve `file` URI's relative to the given root
-   * directory.
-   */
+  /// Initialize a newly created resolver to resolve `file` URI's relative to
+  /// the given root directory.
   RelativeFileUriResolver(this._rootDirectory, this._relativeDirectories)
       : super();
 
@@ -496,11 +424,9 @@ class RelativeFileUriResolver extends UriResolver {
     return null;
   }
 
-  /**
-   * Return `true` if the given URI is a `file` URI.
-   *
-   * @param uri the URI being tested
-   * @return `true` if the given URI is a `file` URI
-   */
+  /// Return `true` if the given URI is a `file` URI.
+  ///
+  /// @param uri the URI being tested
+  /// @return `true` if the given URI is a `file` URI
   static bool isFileUri(Uri uri) => uri.scheme == FILE_SCHEME;
 }

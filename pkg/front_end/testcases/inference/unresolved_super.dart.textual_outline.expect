@@ -1,0 +1,9 @@
+library test;
+
+T f<T>() => null;
+
+class C {
+  void test() {}
+}
+
+main() {}

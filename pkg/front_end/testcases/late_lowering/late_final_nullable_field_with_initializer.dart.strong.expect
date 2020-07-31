@@ -28,8 +28,8 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
       final core::int? #t1 = self::Class::initLateStaticField1(87);
       if(self::Class::_#lateStaticField1#isSet)
         throw new _in::LateInitializationErrorImpl::•("Field 'lateStaticField1' has been assigned during initialization.");
-      self::Class::_#lateStaticField1#isSet = true;
       self::Class::_#lateStaticField1 = #t1;
+      self::Class::_#lateStaticField1#isSet = true;
     }
     return self::Class::_#lateStaticField1;
   }
@@ -41,8 +41,8 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
       final core::int? #t2 = self::Class::initLateStaticField2(42);
       if(self::Class::_#lateStaticField2#isSet)
         throw new _in::LateInitializationErrorImpl::•("Field 'lateStaticField2' has been assigned during initialization.");
-      self::Class::_#lateStaticField2#isSet = true;
       self::Class::_#lateStaticField2 = #t2;
+      self::Class::_#lateStaticField2#isSet = true;
     }
     return self::Class::_#lateStaticField2;
   }
@@ -59,8 +59,8 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
       final core::int? #t3 = this.{self::Class::initLateInstanceField}(16);
       if(this.{self::Class::_#Class#lateInstanceField#isSet})
         throw new _in::LateInitializationErrorImpl::•("Field 'lateInstanceField' has been assigned during initialization.");
-      this.{self::Class::_#Class#lateInstanceField#isSet} = true;
       this.{self::Class::_#Class#lateInstanceField} = #t3;
+      this.{self::Class::_#Class#lateInstanceField#isSet} = true;
     }
     return this.{self::Class::_#Class#lateInstanceField};
   }
@@ -72,8 +72,8 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
       final self::Class::T? #t4 = this.{self::Class::initLateGenericInstanceField}(this.{self::Class::field});
       if(this.{self::Class::_#Class#lateGenericInstanceField#isSet})
         throw new _in::LateInitializationErrorImpl::•("Field 'lateGenericInstanceField' has been assigned during initialization.");
-      this.{self::Class::_#Class#lateGenericInstanceField#isSet} = true;
       this.{self::Class::_#Class#lateGenericInstanceField} = #t4;
+      this.{self::Class::_#Class#lateGenericInstanceField#isSet} = true;
     }
     return this.{self::Class::_#Class#lateGenericInstanceField};
   }
@@ -116,8 +116,8 @@ static get lateTopLevelField1() → core::int? {
     final core::int? #t5 = self::initLateTopLevelField1(123);
     if(self::_#lateTopLevelField1#isSet)
       throw new _in::LateInitializationErrorImpl::•("Field 'lateTopLevelField1' has been assigned during initialization.");
-    self::_#lateTopLevelField1#isSet = true;
     self::_#lateTopLevelField1 = #t5;
+    self::_#lateTopLevelField1#isSet = true;
   }
   return self::_#lateTopLevelField1;
 }
@@ -129,8 +129,8 @@ static get Extension|lateExtensionField1() → core::int? {
     final core::int? #t6 = self::Extension|initLateExtensionField1(87);
     if(self::_#Extension|lateExtensionField1#isSet)
       throw new _in::LateInitializationErrorImpl::•("Field 'lateExtensionField1' has been assigned during initialization.");
-    self::_#Extension|lateExtensionField1#isSet = true;
     self::_#Extension|lateExtensionField1 = #t6;
+    self::_#Extension|lateExtensionField1#isSet = true;
   }
   return self::_#Extension|lateExtensionField1;
 }
@@ -142,8 +142,8 @@ static get Extension|lateExtensionField2() → core::int? {
     final core::int? #t7 = self::Extension|initLateExtensionField2(42);
     if(self::_#Extension|lateExtensionField2#isSet)
       throw new _in::LateInitializationErrorImpl::•("Field 'lateExtensionField2' has been assigned during initialization.");
-    self::_#Extension|lateExtensionField2#isSet = true;
     self::_#Extension|lateExtensionField2 = #t7;
+    self::_#Extension|lateExtensionField2#isSet = true;
   }
   return self::_#Extension|lateExtensionField2;
 }

@@ -28,7 +28,7 @@ main() {
   var snd = Isolate.spawn(echo, msg);
 
   asyncStart();
-  snd.catchError((e) {
+  Future<Isolate?>.value(snd).catchError((e) {
     Expect.isTrue(e is ArgumentError);
     Expect.isTrue("$e".contains("NativeWrapper"));
     port.close();

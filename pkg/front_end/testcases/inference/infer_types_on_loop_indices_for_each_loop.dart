@@ -63,7 +63,7 @@ test() {
 
   // We're not properly inferring that map.keys is an Iterable<String>
   // and that x is a String.
-  for (var /*@ type=String* */ x in map. /*@target=Map::keys*/ keys) {
+  for (var /*@ type=String* */ x in map. /*@target=Map.keys*/ keys) {
     String y = x;
   }
 }

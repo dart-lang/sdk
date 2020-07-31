@@ -8,6 +8,7 @@
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "platform/globals.h"
+#include "platform/growable_array.h"
 #include "platform/hashmap.h"
 
 namespace dart {
@@ -18,7 +19,6 @@ namespace bin {
 // The value of the flag can then be accessed with Options::field_name().
 #define STRING_OPTIONS_LIST(V)                                                 \
   V(packages, packages_file)                                                   \
-  V(package_root, package_root)                                                \
   V(snapshot, snapshot_filename)                                               \
   V(snapshot_depfile, snapshot_deps_filename)                                  \
   V(depfile, depfile)                                                          \
@@ -68,7 +68,9 @@ namespace bin {
   V(ProcessEnvironmentOption)                                                  \
   V(ProcessEnableVmServiceOption)                                              \
   V(ProcessObserveOption)                                                      \
-  V(ProcessAbiVersionOption)
+  V(ProcessAbiVersionOption)                                                   \
+  V(ProcessEnableExperimentOption)                                             \
+  V(ProcessEnableDartDevOption)
 
 // This enum must match the strings in kSnapshotKindNames in main_options.cc.
 enum SnapshotKind {
@@ -127,6 +129,8 @@ class Options {
   static constexpr int kAbiVersionUnset = -1;
   static int target_abi_version() { return target_abi_version_; }
 
+  static bool disable_dart_dev() { return disable_dart_dev_; }
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
   static DFE* dfe() { return dfe_; }
   static void set_dfe(DFE* dfe) { dfe_ = dfe; }
@@ -167,6 +171,7 @@ class Options {
 
   // VM Service argument processing.
   static const char* vm_service_server_ip_;
+  static bool enable_vm_service_;
   static int vm_service_server_port_;
   static bool ExtractPortAndAddress(const char* option_value,
                                     int* out_port,
@@ -175,6 +180,8 @@ class Options {
                                     const char* default_ip);
 
   static int target_abi_version_;
+  static MallocGrowableArray<const char*> enabled_experiments_;
+  static bool disable_dart_dev_;
 
 #define OPTION_FRIEND(flag, variable) friend class OptionProcessor_##flag;
   STRING_OPTIONS_LIST(OPTION_FRIEND)

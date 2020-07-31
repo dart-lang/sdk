@@ -470,8 +470,8 @@ void testReplace() {
   });
   var params = uri.queryParametersAll;
   Expect.equals(2, params.length);
-  Expect.listEquals(["42", "37"], params["x"]);
-  Expect.listEquals(["43", "38"], params["y"]);
+  Expect.listEquals(["42", "37"], params["x"]!);
+  Expect.listEquals(["43", "38"], params["y"]!);
 }
 
 main() {

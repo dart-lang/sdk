@@ -1,0 +1,12 @@
+library test;
+
+class C<T> extends D<T> {
+  f<U>(x) {}
+}
+
+class D<T> {
+  F<U> f<U>(U u) => null;
+}
+
+typedef V F<V>();
+main() {}

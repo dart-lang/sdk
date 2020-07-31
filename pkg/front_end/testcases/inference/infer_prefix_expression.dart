@@ -6,8 +6,8 @@
 library test;
 
 var a_not = !true;
-var a_complement = /*@target=int::~*/ ~1;
-var a_negate = /*@target=int::unary-*/ -1;
+var a_complement = /*@target=int.~*/ ~1;
+var a_negate = /*@target=int.unary-*/ -1;
 
 main() {
   a_not;

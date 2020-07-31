@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.27.4</version>
+  <version>1.28.0</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -125,6 +125,13 @@
     consistency</a>.
   That is, in some cases it may return responses with the currently available
   results while it's catching up with unprocessed changes.
+</p>
+<h3>Enumerations</h3>
+<p>
+  Responses from the server may include enumerations indicating the kind of a
+  specific item. The enums may be extended with new values in future versions of
+  the server so clients should ensure unknown values are handled gracefully, either
+  ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Domains</h3>
 <p>
@@ -793,16 +800,6 @@
           mechanism.
         </p>
         <p>
-          If a package root is a directory, then
-          the analyzer will behave as though the associated
-          source directory in the map contains a special
-          pubspec.yaml file which resolves any package: URI to the
-          corresponding path within that package root directory. The
-          effect is the same as specifying the package root directory as
-          a "--package_root" parameter to the Dart VM when
-          executing any Dart file inside the source directory.
-        </p>
-        <p>
           If a package root is a file, then the analyzer
           will behave as though that file is a ".packages" file in the
           source directory. The effect is the same as specifying the file
@@ -1002,7 +999,7 @@
       </field>
     </params>
   </notification>
-  <notification event="closingLabels" experimental="true">
+  <notification event="closingLabels">
     <p>
       Reports closing labels relevant to a given file.
     </p>
@@ -2676,7 +2673,7 @@
     <p>
       Organizes all of the directives - removes unused imports and sorts
       directives of the given Dart file according to the
-      <a href="https://www.dartlang.org/articles/style-guide/">Dart Style
+      <a href="https://dart.dev/guides/language/effective-dart/style">Dart Style
         Guide</a>.
     </p>
     <p>

@@ -14,7 +14,7 @@ class HValidator extends HInstructionVisitor {
   }
 
   void markInvalid(String reason) {
-    print(reason);
+    print('Invalid: $reason');
     isValid = false;
   }
 
@@ -207,6 +207,16 @@ class HValidator extends HInstructionVisitor {
     }
     if (!hasCorrectUses()) {
       markInvalid("Incorrect uses");
+    }
+
+    if (instruction is HLocalGet) {
+      if (instruction.inputs.length != 1) {
+        markInvalid('HLocalGet has one input');
+      }
+      HInstruction input = instruction.inputs.first;
+      if (input is! HLocalValue) {
+        markInvalid('Incorrect input ${input.runtimeType} to HLocalGet');
+      }
     }
   }
 }

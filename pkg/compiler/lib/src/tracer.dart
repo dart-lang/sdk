@@ -5,19 +5,12 @@
 library tracer;
 
 import '../compiler_new.dart' as api;
+import 'options.dart' show CompilerOptions;
 import 'ssa/nodes.dart' as ssa show HGraph;
 import 'ssa/ssa_tracer.dart' show HTracer;
 import 'util/util.dart' show Indentation;
 import 'world.dart' show JClosedWorld;
 
-/// If non-null, we only trace methods whose name match the regexp defined by
-/// the given pattern.
-String get TRACE_FILTER_PATTERN => TRACE_FILTER_PATTERN_FROM_ENVIRONMENT != ''
-    ? TRACE_FILTER_PATTERN_FROM_ENVIRONMENT
-    : TRACE_FILTER_PATTERN_FOR_TEST;
-
-const String TRACE_FILTER_PATTERN_FROM_ENVIRONMENT =
-    String.fromEnvironment("DUMP_IR", defaultValue: "");
 String TRACE_FILTER_PATTERN_FOR_TEST;
 
 /// Dumps the intermediate representation after each phase in a format
@@ -29,14 +22,17 @@ class Tracer extends TracerUtil {
   final api.OutputSink output;
   final RegExp traceFilter;
 
-  Tracer(this.closedWorld, api.CompilerOutput compilerOutput)
-      : traceFilter = TRACE_FILTER_PATTERN == null
-            ? null
-            : new RegExp(TRACE_FILTER_PATTERN),
-        output = TRACE_FILTER_PATTERN != null
-            ? compilerOutput.createOutputSink(
-                'dart', 'cfg', api.OutputType.debug)
-            : null;
+  Tracer._(this.closedWorld, this.traceFilter, this.output);
+
+  factory Tracer(JClosedWorld closedWorld, CompilerOptions options,
+      api.CompilerOutput compilerOutput) {
+    String pattern = options.dumpSsaPattern ?? TRACE_FILTER_PATTERN_FOR_TEST;
+    if (pattern == null) return Tracer._(closedWorld, null, null);
+    var traceFilter = RegExp(pattern);
+    var output =
+        compilerOutput.createOutputSink('', 'cfg', api.OutputType.debug);
+    return Tracer._(closedWorld, traceFilter, output);
+  }
 
   bool get isEnabled => traceFilter != null;
 

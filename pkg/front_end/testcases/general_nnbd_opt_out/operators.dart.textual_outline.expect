@@ -1,0 +1,25 @@
+// @dart = 2.6
+class Operators {
+  operator +(other) => null;
+  operator &(other) => null;
+  operator ~() => null;
+  operator |(other) => null;
+  operator ^(other) => null;
+  operator /(other) => null;
+  operator ==(other) => null;
+  operator >(other) => null;
+  operator >=(other) => null;
+  operator [](index) => null;
+  void operator []=(index, value) {}
+  operator <<(other) => null;
+  operator <(other) => null;
+  operator <=(other) => null;
+  operator *(other) => null;
+  operator %(other) => null;
+  operator >>(other) => null;
+  operator -(other) => null;
+  operator ~/(other) => null;
+  operator -() => null;
+}
+
+main(arguments) {}

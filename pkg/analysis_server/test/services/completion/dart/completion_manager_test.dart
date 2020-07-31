@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -50,12 +51,15 @@ part 'test.dart';
         completionOffset,
         false,
         CompletionPerformance());
-    var requestCompleter = Completer<DartCompletionRequest>();
-    DartCompletionRequestImpl.from(baseRequest)
-        .then((DartCompletionRequest request) {
-      requestCompleter.complete(request);
+    await baseRequest.performance.runRequestOperation((performance) async {
+      var requestCompleter = Completer<DartCompletionRequest>();
+      DartCompletionRequestImpl.from(
+              performance, baseRequest, DartdocDirectiveInfo())
+          .then((DartCompletionRequest request) {
+        requestCompleter.complete(request);
+      });
+      request = await performAnalysis(200, requestCompleter);
     });
-    request = await performAnalysis(200, requestCompleter);
 
     var directives = request.target.unit.directives;
 

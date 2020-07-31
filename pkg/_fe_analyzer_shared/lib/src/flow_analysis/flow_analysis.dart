@@ -517,6 +517,13 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
   /// state.
   bool isUnassigned(Variable variable);
 
+  /// Call this method before visiting a labeled statement.
+  /// Call [labeledStatement_end] after visiting the statement.
+  void labeledStatement_begin(Node node);
+
+  /// Call this method after visiting a labeled statement.
+  void labeledStatement_end();
+
   /// Call this method after visiting the RHS of a logical binary operation
   /// ("||" or "&&").
   /// [wholeExpression] should be the whole logical binary expression.
@@ -938,6 +945,18 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
   }
 
   @override
+  void labeledStatement_begin(Node node) {
+    return _wrap('labeledStatement_begin($node)',
+        () => _wrapped.labeledStatement_begin(node));
+  }
+
+  @override
+  void labeledStatement_end() {
+    return _wrap(
+        'labeledStatement_end()', () => _wrapped.labeledStatement_end());
+  }
+
+  @override
   void logicalBinaryOp_end(Expression wholeExpression, Expression rightOperand,
       {@required bool isAnd}) {
     _wrap(
@@ -1142,10 +1161,13 @@ class FlowModel<Variable, Type> {
   /// variable is not in scope anymore.  This should not have any effect on
   /// analysis results for error-free code, because it is an error to refer to a
   /// variable that is no longer in scope.
-  final Map<Variable, VariableModel<Type> /*!*/ > variableInfo;
+  final Map<Variable, VariableModel<Variable, Type> /*!*/ > variableInfo;
 
   /// Variable model for variables that have never been seen before.
-  final VariableModel<Type> _freshVariableInfo;
+  final VariableModel<Variable, Type> _freshVariableInfo;
+
+  /// The empty map, used to [join] variables.
+  final Map<Variable, VariableModel<Variable, Type>> _emptyVariableMap = {};
 
   /// Creates a state object with the given [reachable] status.  All variables
   /// are assumed to be unpromoted and already assigned, so joining another
@@ -1159,73 +1181,16 @@ class FlowModel<Variable, Type> {
   FlowModel._(this.reachable, this.variableInfo)
       : _freshVariableInfo = new VariableModel.fresh() {
     assert(() {
-      for (VariableModel<Type> value in variableInfo.values) {
+      for (VariableModel<Variable, Type> value in variableInfo.values) {
         assert(value != null);
       }
       return true;
     }());
   }
 
-  /// Register a declaration of the [variable].
-  /// Should also be called for function parameters.
-  ///
-  /// A local variable is [initialized] if its declaration has an initializer.
-  /// A function parameter is always initialized, so [initialized] is `true`.
-  FlowModel<Variable, Type> declare(Variable variable, bool initialized) {
-    VariableModel<Type> newInfoForVar = _freshVariableInfo;
-    if (initialized) {
-      newInfoForVar = newInfoForVar.initialize();
-    }
-
-    return _updateVariableInfo(variable, newInfoForVar);
-  }
-
-  /// Gets the info for the given [variable], creating it if it doesn't exist.
-  VariableModel<Type> infoFor(Variable variable) =>
-      variableInfo[variable] ?? _freshVariableInfo;
-
-  /// Updates the state to indicate that variables that are not definitely
-  /// unassigned in the [other], or are [written], are also not definitely
-  /// unassigned in the result.
-  FlowModel<Variable, Type> joinUnassigned({
-    FlowModel<Variable, Type> other,
-    Iterable<Variable> written,
-  }) {
-    Map<Variable, VariableModel<Type>> newVariableInfo;
-
-    void markNotUnassigned(Variable variable) {
-      VariableModel<Type> info = variableInfo[variable];
-      if (info == null) return;
-
-      VariableModel<Type> newInfo = info.markNotUnassigned();
-      if (identical(newInfo, info)) return;
-
-      (newVariableInfo ??= new Map<Variable, VariableModel<Type>>.from(
-          variableInfo))[variable] = newInfo;
-    }
-
-    if (other != null) {
-      for (Variable variable in other.variableInfo.keys) {
-        VariableModel<Type> otherInfo = other.variableInfo[variable];
-        if (!otherInfo.unassigned) {
-          markNotUnassigned(variable);
-        }
-      }
-    }
-
-    if (written != null) {
-      for (Variable variable in written) {
-        markNotUnassigned(variable);
-      }
-    }
-
-    if (newVariableInfo == null) return this;
-
-    return FlowModel<Variable, Type>._(reachable, newVariableInfo);
-  }
-
   /// Updates the state to indicate that the given [writtenVariables] are no
-  /// longer promoted; they are presumed to have their declared types.
+  /// longer promoted and are no longer definitely unassigned, and the given
+  /// [capturedVariables] have been captured by closures.
   ///
   /// This is used at the top of loops to conservatively cancel the promotion of
   /// variables that are modified within the loop, so that we correctly analyze
@@ -1243,29 +1208,88 @@ class FlowModel<Variable, Type> {
   /// and only remove promotions if it can be shown that they aren't restored
   /// later in the loop body.  If we switch to a fixed point analysis, we should
   /// be able to remove this method.
-  FlowModel<Variable, Type> removePromotedAll(
+  FlowModel<Variable, Type> conservativeJoin(
       Iterable<Variable> writtenVariables,
       Iterable<Variable> capturedVariables) {
-    Map<Variable, VariableModel<Type>> newVariableInfo;
+    Map<Variable, VariableModel<Variable, Type>> newVariableInfo;
+
     for (Variable variable in writtenVariables) {
-      VariableModel<Type> info = infoFor(variable);
-      if (info.promotedTypes != null) {
-        (newVariableInfo ??= new Map<Variable, VariableModel<Type>>.from(
-            variableInfo))[variable] = info.discardPromotions();
+      VariableModel<Variable, Type> info = infoFor(variable);
+      VariableModel<Variable, Type> newInfo =
+          info.discardPromotionsAndMarkNotUnassigned();
+      if (!identical(info, newInfo)) {
+        (newVariableInfo ??=
+            new Map<Variable, VariableModel<Variable, Type>>.from(
+                variableInfo))[variable] = newInfo;
       }
     }
+
     for (Variable variable in capturedVariables) {
-      VariableModel<Type> info = variableInfo[variable];
+      VariableModel<Variable, Type> info = variableInfo[variable];
       if (info == null) {
-        (newVariableInfo ??= new Map<Variable, VariableModel<Type>>.from(
-                variableInfo))[variable] =
-            new VariableModel<Type>(null, const [], false, false, true);
+        (newVariableInfo ??=
+            new Map<Variable, VariableModel<Variable, Type>>.from(
+                variableInfo))[variable] = new VariableModel<Variable, Type>(
+            null, const [], false, false, true);
       } else if (!info.writeCaptured) {
-        (newVariableInfo ??= new Map<Variable, VariableModel<Type>>.from(
-            variableInfo))[variable] = info.writeCapture();
+        (newVariableInfo ??=
+            new Map<Variable, VariableModel<Variable, Type>>.from(
+                variableInfo))[variable] = info.writeCapture();
       }
     }
+
+    FlowModel<Variable, Type> result = newVariableInfo == null
+        ? this
+        : new FlowModel<Variable, Type>._(reachable, newVariableInfo);
+
+    return result;
+  }
+
+  /// Register a declaration of the [variable].
+  /// Should also be called for function parameters.
+  ///
+  /// A local variable is [initialized] if its declaration has an initializer.
+  /// A function parameter is always initialized, so [initialized] is `true`.
+  FlowModel<Variable, Type> declare(Variable variable, bool initialized) {
+    VariableModel<Variable, Type> newInfoForVar = _freshVariableInfo;
+    if (initialized) {
+      newInfoForVar = newInfoForVar.initialize();
+    }
+
+    return _updateVariableInfo(variable, newInfoForVar);
+  }
+
+  /// Gets the info for the given [variable], creating it if it doesn't exist.
+  VariableModel<Variable, Type> infoFor(Variable variable) =>
+      variableInfo[variable] ?? _freshVariableInfo;
+
+  /// Updates the state to indicate that variables that are not definitely
+  /// unassigned in the [other], are also not definitely unassigned in the
+  /// result.
+  FlowModel<Variable, Type> joinUnassigned(FlowModel<Variable, Type> other) {
+    Map<Variable, VariableModel<Variable, Type>> newVariableInfo;
+
+    void markNotUnassigned(Variable variable) {
+      VariableModel<Variable, Type> info = variableInfo[variable];
+      if (info == null) return;
+
+      VariableModel<Variable, Type> newInfo = info.markNotUnassigned();
+      if (identical(newInfo, info)) return;
+
+      (newVariableInfo ??=
+          new Map<Variable, VariableModel<Variable, Type>>.from(
+              variableInfo))[variable] = newInfo;
+    }
+
+    for (Variable variable in other.variableInfo.keys) {
+      VariableModel<Variable, Type> otherInfo = other.variableInfo[variable];
+      if (!otherInfo.unassigned) {
+        markNotUnassigned(variable);
+      }
+    }
+
     if (newVariableInfo == null) return this;
+
     return new FlowModel<Variable, Type>._(reachable, newVariableInfo);
   }
 
@@ -1295,20 +1319,20 @@ class FlowModel<Variable, Type> {
       Set<Variable> unsafe) {
     bool newReachable = reachable && other.reachable;
 
-    Map<Variable, VariableModel<Type>> newVariableInfo =
-        <Variable, VariableModel<Type>>{};
+    Map<Variable, VariableModel<Variable, Type>> newVariableInfo =
+        <Variable, VariableModel<Variable, Type>>{};
     bool variableInfoMatchesThis = true;
     bool variableInfoMatchesOther = true;
-    for (MapEntry<Variable, VariableModel<Type>> entry
+    for (MapEntry<Variable, VariableModel<Variable, Type>> entry
         in variableInfo.entries) {
       Variable variable = entry.key;
-      VariableModel<Type> thisModel = entry.value;
-      VariableModel<Type> otherModel = other.variableInfo[variable];
+      VariableModel<Variable, Type> thisModel = entry.value;
+      VariableModel<Variable, Type> otherModel = other.variableInfo[variable];
       if (otherModel == null) {
         variableInfoMatchesThis = false;
         continue;
       }
-      VariableModel<Type> restricted = thisModel.restrict(
+      VariableModel<Variable, Type> restricted = thisModel.restrict(
           typeOperations, otherModel, unsafe.contains(variable));
       newVariableInfo[variable] = restricted;
       if (!identical(restricted, thisModel)) variableInfoMatchesThis = false;
@@ -1353,47 +1377,99 @@ class FlowModel<Variable, Type> {
   /// potentially nullable.
   ExpressionInfo<Variable, Type> tryMarkNonNullable(
       TypeOperations<Variable, Type> typeOperations, Variable variable) {
-    VariableModel<Type> info = infoFor(variable);
+    VariableModel<Variable, Type> info = infoFor(variable);
     if (info.writeCaptured) {
       return new ExpressionInfo<Variable, Type>(this, this, this);
     }
+
     Type previousType = info.promotedTypes?.last;
     previousType ??= typeOperations.variableType(variable);
-    Type type = typeOperations.promoteToNonNull(previousType);
-    if (typeOperations.isSameType(type, previousType)) {
+
+    Type newType = typeOperations.promoteToNonNull(previousType);
+    if (typeOperations.isSameType(newType, previousType)) {
       return new ExpressionInfo<Variable, Type>(this, this, this);
     }
-    assert(typeOperations.isSubtypeOf(type, previousType));
-    return _finishTypeTest(typeOperations, variable, info, type);
+    assert(typeOperations.isSubtypeOf(newType, previousType));
+
+    FlowModel<Variable, Type> modelIfSuccessful =
+        _finishTypeTest(typeOperations, variable, info, null, newType);
+
+    FlowModel<Variable, Type> modelIfFailed = this;
+
+    return new ExpressionInfo<Variable, Type>(
+        this, modelIfSuccessful, modelIfFailed);
   }
 
-  /// Returns an [ExpressionInfo] indicating the result of checking whether the
-  /// given [variable] satisfies the given [type], e.g. as a consequence of an
-  /// `is` expression as the condition of an `if` statement.
+  /// Returns an [ExpressionInfo] indicating the result of casting the given
+  /// [variable] to the given [type], as a consequence of an `as` expression.
   ///
   /// Note that the state is only changed if [type] is a subtype of the
   /// variable's previous (possibly promoted) type.
   ///
   /// TODO(paulberry): if the type is non-nullable, should this method mark the
   /// variable as definitely assigned?  Does it matter?
-  ExpressionInfo<Variable, Type> tryPromote(
+  FlowModel<Variable, Type> tryPromoteForTypeCast(
       TypeOperations<Variable, Type> typeOperations,
       Variable variable,
       Type type) {
-    VariableModel<Type> info = infoFor(variable);
+    VariableModel<Variable, Type> info = infoFor(variable);
     if (info.writeCaptured) {
-      return new ExpressionInfo<Variable, Type>(this, this, this);
+      return this;
     }
+
     Type previousType = info.promotedTypes?.last;
     previousType ??= typeOperations.variableType(variable);
 
     Type newType = typeOperations.tryPromoteToType(type, previousType);
     if (newType == null || typeOperations.isSameType(newType, previousType)) {
-      return new ExpressionInfo<Variable, Type>(this, this, this);
+      return this;
     }
+
     assert(typeOperations.isSubtypeOf(newType, previousType),
         "Expected $newType to be a subtype of $previousType.");
-    return _finishTypeTest(typeOperations, variable, info, newType);
+    return _finishTypeTest(typeOperations, variable, info, type, newType);
+  }
+
+  /// Returns an [ExpressionInfo] indicating the result of checking whether the
+  /// given [variable] satisfies the given [type], e.g. as a consequence of an
+  /// `is` expression as the condition of an `if` statement.
+  ///
+  /// Note that the "ifTrue" state is only changed if [type] is a subtype of
+  /// the variable's previous (possibly promoted) type.
+  ///
+  /// TODO(paulberry): if the type is non-nullable, should this method mark the
+  /// variable as definitely assigned?  Does it matter?
+  ExpressionInfo<Variable, Type> tryPromoteForTypeCheck(
+      TypeOperations<Variable, Type> typeOperations,
+      Variable variable,
+      Type type) {
+    VariableModel<Variable, Type> info = infoFor(variable);
+    if (info.writeCaptured) {
+      return new ExpressionInfo<Variable, Type>(this, this, this);
+    }
+
+    Type previousType = info.promotedTypes?.last;
+    previousType ??= typeOperations.variableType(variable);
+
+    FlowModel<Variable, Type> modelIfSuccessful = this;
+    Type typeIfSuccess = typeOperations.tryPromoteToType(type, previousType);
+    if (typeIfSuccess != null &&
+        !typeOperations.isSameType(typeIfSuccess, previousType)) {
+      assert(typeOperations.isSubtypeOf(typeIfSuccess, previousType),
+          "Expected $typeIfSuccess to be a subtype of $previousType.");
+      modelIfSuccessful =
+          _finishTypeTest(typeOperations, variable, info, type, typeIfSuccess);
+    }
+
+    Type factoredType = typeOperations.factor(previousType, type);
+    Type typeIfFailed = typeOperations.isSameType(factoredType, previousType)
+        ? null
+        : factoredType;
+    FlowModel<Variable, Type> modelIfFailed =
+        _finishTypeTest(typeOperations, variable, info, type, typeIfFailed);
+
+    return new ExpressionInfo<Variable, Type>(
+        this, modelIfSuccessful, modelIfFailed);
   }
 
   /// Updates the state to indicate that an assignment was made to the given
@@ -1401,56 +1477,61 @@ class FlowModel<Variable, Type> {
   /// previous type promotion is removed.
   FlowModel<Variable, Type> write(Variable variable, Type writtenType,
       TypeOperations<Variable, Type> typeOperations) {
-    VariableModel<Type> infoForVar = variableInfo[variable];
+    VariableModel<Variable, Type> infoForVar = variableInfo[variable];
     if (infoForVar == null) return this;
 
-    VariableModel<Type> newInfoForVar =
-        infoForVar.write(writtenType, typeOperations);
+    VariableModel<Variable, Type> newInfoForVar =
+        infoForVar.write(variable, writtenType, typeOperations);
     if (identical(newInfoForVar, infoForVar)) return this;
 
     return _updateVariableInfo(variable, newInfoForVar);
   }
 
-  /// Common algorithm for [tryMarkNonNullable] and [tryPromote].  Builds an
-  /// [ExpressionInfo] object describing the effect of trying to promote
-  /// [variable] to [testedType], under the following preconditions:
+  /// Common algorithm for [tryMarkNonNullable], [tryPromoteForTypeCast],
+  /// and [tryPromoteForTypeCheck].  Builds a [FlowModel] object describing the
+  /// effect of updating the [variable] by adding the [testedType] to the
+  /// list of tested types (if not `null`, and not there already), adding the
+  /// [promotedType] to the chain of promoted types.
+  ///
+  /// Preconditions:
   /// - [info] should be the result of calling `infoFor(variable)`
-  /// - [testedType] should be a subtype of the currently-promoted type (i.e.
+  /// - [promotedType] should be a subtype of the currently-promoted type (i.e.
   ///   no redundant or side-promotions)
   /// - The variable should not be write-captured.
-  ExpressionInfo<Variable, Type> _finishTypeTest(
-      TypeOperations<Variable, Type> typeOperations,
-      Variable variable,
-      VariableModel<Type> info,
-      Type testedType) {
-    List<Type> newPromotedTypes =
-        VariableModel._addToPromotedTypes(info.promotedTypes, testedType);
-    List<Type> newTested = VariableModel._addTypeToUniqueList(
-        info.tested, testedType, typeOperations);
-    FlowModel<Variable, Type> modelIfFailed = identical(newTested, info.tested)
+  FlowModel<Variable, Type> _finishTypeTest(
+    TypeOperations<Variable, Type> typeOperations,
+    Variable variable,
+    VariableModel<Variable, Type> info,
+    Type testedType,
+    Type promotedType,
+  ) {
+    List<Type> newTested = info.tested;
+    if (testedType != null) {
+      newTested = VariableModel._addTypeToUniqueList(
+          info.tested, testedType, typeOperations);
+    }
+
+    List<Type> newPromotedTypes = info.promotedTypes;
+    if (promotedType != null) {
+      newPromotedTypes =
+          VariableModel._addToPromotedTypes(info.promotedTypes, promotedType);
+    }
+
+    return identical(newTested, info.tested) &&
+            identical(newPromotedTypes, info.promotedTypes)
         ? this
         : _updateVariableInfo(
             variable,
-            new VariableModel<Type>(info.promotedTypes, newTested,
+            new VariableModel<Variable, Type>(newPromotedTypes, newTested,
                 info.assigned, info.unassigned, info.writeCaptured));
-    FlowModel<Variable, Type> modelIfSuccessful =
-        identical(newPromotedTypes, info.promotedTypes) &&
-                identical(newTested, info.tested)
-            ? this
-            : _updateVariableInfo(
-                variable,
-                new VariableModel<Type>(newPromotedTypes, newTested,
-                    info.assigned, info.unassigned, info.writeCaptured));
-    return new ExpressionInfo<Variable, Type>(
-        this, modelIfSuccessful, modelIfFailed);
   }
 
   /// Returns a new [FlowModel] where the information for [variable] is replaced
   /// with [model].
   FlowModel<Variable, Type> _updateVariableInfo(
-      Variable variable, VariableModel<Type> model) {
-    Map<Variable, VariableModel<Type>> newVariableInfo =
-        new Map<Variable, VariableModel<Type>>.from(variableInfo);
+      Variable variable, VariableModel<Variable, Type> model) {
+    Map<Variable, VariableModel<Variable, Type>> newVariableInfo =
+        new Map<Variable, VariableModel<Variable, Type>>.from(variableInfo);
     newVariableInfo[variable] = model;
     return new FlowModel<Variable, Type>._(reachable, newVariableInfo);
   }
@@ -1468,6 +1549,7 @@ class FlowModel<Variable, Type> {
     TypeOperations<Variable, Type> typeOperations,
     FlowModel<Variable, Type> first,
     FlowModel<Variable, Type> second,
+    Map<Variable, VariableModel<Variable, Type>> emptyVariableMap,
   ) {
     if (first == null) return second;
     if (second == null) return first;
@@ -1476,9 +1558,9 @@ class FlowModel<Variable, Type> {
     if (!first.reachable && second.reachable) return second;
 
     bool newReachable = first.reachable || second.reachable;
-    Map<Variable, VariableModel<Type>> newVariableInfo =
-        FlowModel.joinVariableInfo(
-            typeOperations, first.variableInfo, second.variableInfo);
+    Map<Variable, VariableModel<Variable, Type>> newVariableInfo =
+        FlowModel.joinVariableInfo(typeOperations, first.variableInfo,
+            second.variableInfo, emptyVariableMap);
 
     return FlowModel._identicalOrNew(
         first, second, newReachable, newVariableInfo);
@@ -1486,26 +1568,32 @@ class FlowModel<Variable, Type> {
 
   /// Joins two "variable info" maps.  See [join] for details.
   @visibleForTesting
-  static Map<Variable, VariableModel<Type>> joinVariableInfo<Variable, Type>(
+  static Map<Variable, VariableModel<Variable, Type>>
+      joinVariableInfo<Variable, Type>(
     TypeOperations<Variable, Type> typeOperations,
-    Map<Variable, VariableModel<Type>> first,
-    Map<Variable, VariableModel<Type>> second,
+    Map<Variable, VariableModel<Variable, Type>> first,
+    Map<Variable, VariableModel<Variable, Type>> second,
+    Map<Variable, VariableModel<Variable, Type>> emptyMap,
   ) {
     if (identical(first, second)) return first;
-    if (first.isEmpty || second.isEmpty) return const {};
+    if (first.isEmpty || second.isEmpty) {
+      return emptyMap;
+    }
 
-    Map<Variable, VariableModel<Type>> result =
-        <Variable, VariableModel<Type>>{};
+    Map<Variable, VariableModel<Variable, Type>> result =
+        <Variable, VariableModel<Variable, Type>>{};
     bool alwaysFirst = true;
     bool alwaysSecond = true;
-    for (MapEntry<Variable, VariableModel<Type>> entry in first.entries) {
+    for (MapEntry<Variable, VariableModel<Variable, Type>> entry
+        in first.entries) {
       Variable variable = entry.key;
-      VariableModel<Type> secondModel = second[variable];
+      VariableModel<Variable, Type> secondModel = second[variable];
       if (secondModel == null) {
         alwaysFirst = false;
       } else {
-        VariableModel<Type> joined =
-            VariableModel.join<Type>(typeOperations, entry.value, secondModel);
+        VariableModel<Variable, Type> joined =
+            VariableModel.join<Variable, Type>(
+                typeOperations, entry.value, secondModel);
         result[variable] = joined;
         if (!identical(joined, entry.value)) alwaysFirst = false;
         if (!identical(joined, secondModel)) alwaysSecond = false;
@@ -1514,7 +1602,7 @@ class FlowModel<Variable, Type> {
 
     if (alwaysFirst) return first;
     if (alwaysSecond && result.length == second.length) return second;
-    if (result.isEmpty) return const {};
+    if (result.isEmpty) return emptyMap;
     return result;
   }
 
@@ -1524,7 +1612,7 @@ class FlowModel<Variable, Type> {
       FlowModel<Variable, Type> first,
       FlowModel<Variable, Type> second,
       bool newReachable,
-      Map<Variable, VariableModel<Type>> newVariableInfo) {
+      Map<Variable, VariableModel<Variable, Type>> newVariableInfo) {
     if (first.reachable == newReachable &&
         identical(first.variableInfo, newVariableInfo)) {
       return first;
@@ -1542,13 +1630,14 @@ class FlowModel<Variable, Type> {
   /// The equivalence check is shallow; if two variables' models are not
   /// identical, we return `false`.
   static bool _variableInfosEqual<Variable, Type>(
-      Map<Variable, VariableModel<Type>> p1,
-      Map<Variable, VariableModel<Type>> p2) {
+      Map<Variable, VariableModel<Variable, Type>> p1,
+      Map<Variable, VariableModel<Variable, Type>> p2) {
     if (p1.length != p2.length) return false;
     if (!p1.keys.toSet().containsAll(p2.keys)) return false;
-    for (MapEntry<Variable, VariableModel<Type>> entry in p1.entries) {
-      VariableModel<Type> p1Value = entry.value;
-      VariableModel<Type> p2Value = p2[entry.key];
+    for (MapEntry<Variable, VariableModel<Variable, Type>> entry
+        in p1.entries) {
+      VariableModel<Variable, Type> p1Value = entry.value;
+      VariableModel<Variable, Type> p2Value = p2[entry.key];
       if (!identical(p1Value, p2Value)) {
         return false;
       }
@@ -1559,6 +1648,25 @@ class FlowModel<Variable, Type> {
 
 /// Operations on types, abstracted from concrete type interfaces.
 abstract class TypeOperations<Variable, Type> {
+  /// Returns the "remainder" of [from] when [what] has been removed from
+  /// consideration by an instance check.
+  Type factor(Type from, Type what);
+
+  /// Whether the possible promotion from [from] to [to] should be forced, given
+  /// the current [promotedTypes], and [newPromotedTypes] resulting from
+  /// possible demotion.
+  ///
+  /// It is not expected that any implementation would override this except for
+  /// the migration engine.
+  bool forcePromotion(Type to, Type from, List<Type> promotedTypes,
+          List<Type> newPromotedTypes) =>
+      false;
+
+  /// Return `true` if the [variable] is a local variable (not a formal
+  /// parameter), and it has no declared type (no explicit type, and not
+  /// initializer).
+  bool isLocalVariableWithoutDeclaredType(Variable variable);
+
   /// Returns `true` if [type1] and [type2] are the same type.
   bool isSameType(Type type1, Type type2);
 
@@ -1570,6 +1678,15 @@ abstract class TypeOperations<Variable, Type> {
   /// Note that some types don't have a non-nullable version (e.g.
   /// `FutureOr<int?>`), so [type] may be returned even if it is nullable.
   Type /*!*/ promoteToNonNull(Type type);
+
+  /// Performs refinements on the [promotedTypes] chain which resulted in
+  /// intersecting [chain1] and [chain2].
+  ///
+  /// It is not expected that any implementation would override this except for
+  /// the migration engine.
+  List<Type> refinePromotedTypes(
+          List<Type> chain1, List<Type> chain2, List<Type> promotedTypes) =>
+      promotedTypes;
 
   /// Tries to promote to the first type from the second type, and returns the
   /// promoted type if it succeeds, otherwise null.
@@ -1586,7 +1703,7 @@ abstract class TypeOperations<Variable, Type> {
 /// Instances of this class are immutable, so the methods below that "update"
 /// the state actually leave `this` unchanged and return a new state object.
 @visibleForTesting
-class VariableModel<Type> {
+class VariableModel<Variable, Type> {
   /// Sequence of types that the variable has been promoted to, where each
   /// element of the sequence is a subtype of the previous.  Null if the
   /// variable hasn't been promoted.
@@ -1627,40 +1744,64 @@ class VariableModel<Type> {
         writeCaptured = false;
 
   /// Returns a new [VariableModel] in which any promotions present have been
-  /// dropped.
-  VariableModel<Type> discardPromotions() {
-    assert(promotedTypes != null, 'No promotions to discard');
-    return new VariableModel<Type>(
-        null, tested, assigned, unassigned, writeCaptured);
+  /// dropped, and the variable has been marked as "not unassigned".
+  VariableModel<Variable, Type> discardPromotionsAndMarkNotUnassigned() {
+    if (promotedTypes == null && !unassigned) {
+      return this;
+    }
+    return new VariableModel<Variable, Type>(
+        null, tested, assigned, false, writeCaptured);
   }
 
   /// Returns a new [VariableModel] reflecting the fact that the variable was
   /// just initialized.
-  VariableModel<Type> initialize() {
+  VariableModel<Variable, Type> initialize() {
     if (promotedTypes == null && tested.isEmpty && assigned && !unassigned) {
       return this;
     }
-    return new VariableModel<Type>(null, const [], true, false, writeCaptured);
+    return new VariableModel<Variable, Type>(
+        null, const [], true, false, writeCaptured);
   }
 
   /// Returns a new [VariableModel] reflecting the fact that the variable is
   /// not definitely unassigned.
-  VariableModel<Type> markNotUnassigned() {
+  VariableModel<Variable, Type> markNotUnassigned() {
     if (!unassigned) return this;
 
-    return new VariableModel<Type>(
+    return new VariableModel<Variable, Type>(
         promotedTypes, tested, assigned, false, writeCaptured);
   }
 
   /// Returns an updated model reflect a control path that is known to have
   /// previously passed through some [other] state.  See [FlowModel.restrict]
   /// for details.
-  VariableModel<Type> restrict(TypeOperations<Object, Type> typeOperations,
-      VariableModel<Type> otherModel, bool unsafe) {
+  VariableModel<Variable, Type> restrict(
+      TypeOperations<Variable, Type> typeOperations,
+      VariableModel<Variable, Type> otherModel,
+      bool unsafe) {
     List<Type> thisPromotedTypes = promotedTypes;
     List<Type> otherPromotedTypes = otherModel.promotedTypes;
     bool newAssigned = assigned || otherModel.assigned;
-    bool newUnassigned = unassigned;
+    // The variable can only be unassigned in this state if it was also
+    // unassigned in the other state or if the other state didn't complete
+    // normally. For the latter case the resulting state is unreachable but to
+    // avoid creating a variable model that is both assigned and unassigned we
+    // take the intersection below.
+    //
+    // This situation can occur in try-finally like:
+    //
+    //   method() {
+    //     var local;
+    //     try {
+    //       local = 0;
+    //       return; // assigned
+    //     } finally {
+    //       local; // unassigned
+    //     }
+    //     local; // unreachable state
+    //   }
+    //
+    bool newUnassigned = unassigned && otherModel.unassigned;
     bool newWriteCaptured = writeCaptured || otherModel.writeCaptured;
     List<Type> newPromotedTypes;
     if (unsafe) {
@@ -1718,45 +1859,87 @@ class VariableModel<Type> {
 
   /// Returns a new [VariableModel] reflecting the fact that the variable was
   /// just written to.
-  VariableModel<Type> write(
-      Type writtenType, TypeOperations<Object, Type> typeOperations) {
-    List<Type> newPromotedTypes;
-    if (promotedTypes == null) {
-      newPromotedTypes = null;
-    } else if (typeOperations.isSubtypeOf(writtenType, promotedTypes.last)) {
-      newPromotedTypes = promotedTypes;
-    } else {
-      int numChainElementsToKeep = promotedTypes.length - 1;
-      while (true) {
-        if (numChainElementsToKeep == 0) {
-          newPromotedTypes = null;
-          break;
-        } else if (typeOperations.isSubtypeOf(
-            writtenType, promotedTypes[numChainElementsToKeep - 1])) {
-          newPromotedTypes = promotedTypes.sublist(0, numChainElementsToKeep);
-          break;
-        } else {
-          numChainElementsToKeep--;
-        }
-      }
+  VariableModel<Variable, Type> write(Variable variable, Type writtenType,
+      TypeOperations<Variable, Type> typeOperations) {
+    if (writeCaptured) {
+      return new VariableModel<Variable, Type>(
+          promotedTypes, tested, true, false, writeCaptured);
     }
+
+    if (_isPromotableViaInitialization(typeOperations, variable)) {
+      return new VariableModel<Variable, Type>(
+          [writtenType], tested, true, false, writeCaptured);
+    }
+
+    List<Type> newPromotedTypes = _demoteViaAssignment(
+      writtenType,
+      typeOperations,
+    );
+
+    Type declaredType = typeOperations.variableType(variable);
     newPromotedTypes = _tryPromoteToTypeOfInterest(
-        typeOperations, newPromotedTypes, writtenType);
+        typeOperations, declaredType, newPromotedTypes, writtenType);
     if (identical(promotedTypes, newPromotedTypes) && assigned) return this;
+
     List<Type> newTested;
     if (newPromotedTypes == null && promotedTypes != null) {
       newTested = const [];
     } else {
       newTested = tested;
     }
-    return new VariableModel<Type>(
+
+    return new VariableModel<Variable, Type>(
         newPromotedTypes, newTested, true, false, writeCaptured);
   }
 
   /// Returns a new [VariableModel] reflecting the fact that the variable has
   /// been write-captured.
-  VariableModel<Type> writeCapture() {
-    return new VariableModel<Type>(null, const [], assigned, false, true);
+  VariableModel<Variable, Type> writeCapture() {
+    return new VariableModel<Variable, Type>(
+        null, const [], assigned, false, true);
+  }
+
+  List<Type> _demoteViaAssignment(
+    Type writtenType,
+    TypeOperations<Variable, Type> typeOperations,
+  ) {
+    if (promotedTypes == null) {
+      return null;
+    }
+
+    int numElementsToKeep = promotedTypes.length;
+    for (;; numElementsToKeep--) {
+      if (numElementsToKeep == 0) {
+        return null;
+      }
+      Type promoted = promotedTypes[numElementsToKeep - 1];
+      if (typeOperations.isSubtypeOf(writtenType, promoted)) {
+        if (numElementsToKeep == promotedTypes.length) {
+          return promotedTypes;
+        }
+        return promotedTypes.sublist(0, numElementsToKeep);
+      }
+    }
+  }
+
+  /// We say that a variable `x` is promotable via initialization given
+  /// variable model `VM` if `x` is a local variable (not a formal parameter)
+  /// and:
+  /// * VM = VariableModel(declared, promoted, tested,
+  ///                      assigned, unassigned, captured)
+  /// * and `captured` is false
+  /// * and `promoted` is empty
+  /// * and `x` is declared with no explicit type and no initializer
+  /// * and `assigned` is false and `unassigned` is true
+  bool _isPromotableViaInitialization<Variable>(
+    TypeOperations<Variable, Type> typeOperations,
+    Variable variable,
+  ) {
+    return !writeCaptured &&
+        !assigned &&
+        unassigned &&
+        promotedTypes == null &&
+        typeOperations.isLocalVariableWithoutDeclaredType(variable);
   }
 
   /// Determines whether a variable with the given [promotedTypes] should be
@@ -1764,37 +1947,88 @@ class VariableModel<Type> {
   /// returns an updated promotion chain; otherwise returns [promotedTypes]
   /// unchanged.
   ///
-  /// Note that since promotions chains are considered immutable, if promotion
+  /// Note that since promotion chains are considered immutable, if promotion
   /// is required, a new promotion chain will be created and returned.
   List<Type> _tryPromoteToTypeOfInterest(
-      TypeOperations<Object, Type> typeOperations,
+      TypeOperations<Variable, Type> typeOperations,
+      Type declaredType,
       List<Type> promotedTypes,
       Type writtenType) {
+    assert(!writeCaptured);
+
+    if (typeOperations.forcePromotion(
+        writtenType, declaredType, this.promotedTypes, promotedTypes)) {
+      return _addToPromotedTypes(promotedTypes, writtenType);
+    }
+
     // Figure out if we have any promotion candidates (types that are a
     // supertype of writtenType and a proper subtype of the currently-promoted
     // type).  If at any point we find an exact match, we take it immediately.
     Type currentlyPromotedType = promotedTypes?.last;
+
+    List<Type> result;
     List<Type> candidates = null;
-    for (int i = 0; i < tested.length; i++) {
-      Type type = tested[i];
+
+    void handleTypeOfInterest(Type type) {
+      // The written type must be a subtype of the type.
       if (!typeOperations.isSubtypeOf(writtenType, type)) {
-        // Can't promote to this type; the type written is not a subtype of
-        // it.
-      } else if (currentlyPromotedType != null &&
-          !typeOperations.isSubtypeOf(type, currentlyPromotedType)) {
-        // Can't promote to this type; it's less specific than the currently
-        // promoted type.
-      } else if (currentlyPromotedType != null &&
-          typeOperations.isSameType(type, currentlyPromotedType)) {
-        // Can't promote to this type; it's the same as the currently
-        // promoted type.
-      } else if (typeOperations.isSameType(type, writtenType)) {
-        // This is precisely the type we want to promote to; take it.
-        return _addToPromotedTypes(promotedTypes, writtenType);
-      } else {
-        (candidates ??= []).add(type);
+        return;
+      }
+
+      // Must be more specific that the currently promoted type.
+      if (currentlyPromotedType != null) {
+        if (typeOperations.isSameType(type, currentlyPromotedType)) {
+          return;
+        }
+        if (!typeOperations.isSubtypeOf(type, currentlyPromotedType)) {
+          return;
+        }
+      }
+
+      // This is precisely the type we want to promote to; take it.
+      if (typeOperations.isSameType(type, writtenType)) {
+        result = _addToPromotedTypes(promotedTypes, writtenType);
+      }
+
+      if (candidates == null) {
+        candidates = [type];
+        return;
+      }
+
+      // Add only unique candidates.
+      if (!_typeListContains(typeOperations, candidates, type)) {
+        candidates.add(type);
+        return;
       }
     }
+
+    // The declared type is always a type of interest, but we never promote
+    // to the declared type. So, try NonNull of it.
+    Type declaredTypeNonNull = typeOperations.promoteToNonNull(declaredType);
+    if (!typeOperations.isSameType(declaredTypeNonNull, declaredType)) {
+      handleTypeOfInterest(declaredTypeNonNull);
+      if (result != null) {
+        return result;
+      }
+    }
+
+    for (int i = 0; i < tested.length; i++) {
+      Type type = tested[i];
+
+      handleTypeOfInterest(type);
+      if (result != null) {
+        return result;
+      }
+
+      Type typeNonNull = typeOperations.promoteToNonNull(type);
+      if (!typeOperations.isSameType(typeNonNull, type)) {
+        handleTypeOfInterest(typeNonNull);
+        if (result != null) {
+          return result;
+        }
+      }
+    }
+
     if (candidates != null) {
       // Figure out if we have a unique promotion candidate that's a subtype
       // of all the others.
@@ -1824,12 +2058,14 @@ class VariableModel<Type> {
   }
 
   /// Joins two variable models.  See [FlowModel.join] for details.
-  static VariableModel<Type> join<Type>(
-      TypeOperations<Object, Type> typeOperations,
-      VariableModel<Type> first,
-      VariableModel<Type> second) {
+  static VariableModel<Variable, Type> join<Variable, Type>(
+      TypeOperations<Variable, Type> typeOperations,
+      VariableModel<Variable, Type> first,
+      VariableModel<Variable, Type> second) {
     List<Type> newPromotedTypes = joinPromotedTypes(
         first.promotedTypes, second.promotedTypes, typeOperations);
+    newPromotedTypes = typeOperations.refinePromotedTypes(
+        first.promotedTypes, second.promotedTypes, newPromotedTypes);
     bool newAssigned = first.assigned && second.assigned;
     bool newUnassigned = first.unassigned && second.unassigned;
     bool newWriteCaptured = first.writeCaptured || second.writeCaptured;
@@ -1844,8 +2080,8 @@ class VariableModel<Type> {
   /// chains.  Briefly, we intersect given chains.  The chains are totally
   /// ordered subsets of a global partial order.  Their intersection is a
   /// subset of each, and as such is also totally ordered.
-  static List<Type> joinPromotedTypes<Type>(List<Type> chain1,
-      List<Type> chain2, TypeOperations<Object, Type> typeOperations) {
+  static List<Type> joinPromotedTypes<Variable, Type>(List<Type> chain1,
+      List<Type> chain2, TypeOperations<Variable, Type> typeOperations) {
     if (chain1 == null) return chain1;
     if (chain2 == null) return chain2;
 
@@ -1855,8 +2091,8 @@ class VariableModel<Type> {
     bool skipped2 = false;
     List<Type> result;
     while (index1 < chain1.length && index2 < chain2.length) {
-      var type1 = chain1[index1];
-      var type2 = chain2[index2];
+      Type type1 = chain1[index1];
+      Type type2 = chain2[index2];
       if (typeOperations.isSameType(type1, type2)) {
         result ??= <Type>[];
         result.add(type1);
@@ -1888,8 +2124,8 @@ class VariableModel<Type> {
   /// - The sense of equality for the union operation is determined by
   ///   [TypeOperations.isSameType].
   /// - The types of interests lists are considered immutable.
-  static List<Type> joinTested<Type>(List<Type> types1, List<Type> types2,
-      TypeOperations<Object, Type> typeOperations) {
+  static List<Type> joinTested<Variable, Type>(List<Type> types1,
+      List<Type> types2, TypeOperations<Variable, Type> typeOperations) {
     // Ensure that types1 is the shorter list.
     if (types1.length > types2.length) {
       List<Type> tmp = types1;
@@ -1924,17 +2160,17 @@ class VariableModel<Type> {
           ? [promoted]
           : (promotedTypes.toList()..add(promoted));
 
-  static List<Type> _addTypeToUniqueList<Type>(List<Type> types, Type newType,
-      TypeOperations<Object, Type> typeOperations) {
+  static List<Type> _addTypeToUniqueList<Variable, Type>(List<Type> types,
+      Type newType, TypeOperations<Variable, Type> typeOperations) {
     if (_typeListContains(typeOperations, types, newType)) return types;
     return new List<Type>.from(types)..add(newType);
   }
 
   /// Creates a new [VariableModel] object, unless it is equivalent to either
   /// [first] or [second], in which case one of those objects is re-used.
-  static VariableModel<Type> _identicalOrNew<Type>(
-      VariableModel<Type> first,
-      VariableModel<Type> second,
+  static VariableModel<Variable, Type> _identicalOrNew<Variable, Type>(
+      VariableModel<Variable, Type> first,
+      VariableModel<Variable, Type> second,
       List<Type> newPromotedTypes,
       List<Type> newTested,
       bool newAssigned,
@@ -1953,13 +2189,13 @@ class VariableModel<Type> {
         second.writeCaptured == newWriteCaptured) {
       return second;
     } else {
-      return new VariableModel<Type>(newPromotedTypes, newTested, newAssigned,
-          newUnassigned, newWriteCaptured);
+      return new VariableModel<Variable, Type>(newPromotedTypes, newTested,
+          newAssigned, newUnassigned, newWriteCaptured);
     }
   }
 
-  static bool _typeListContains<Type>(
-      TypeOperations<Object, Type> typeOperations,
+  static bool _typeListContains<Variable, Type>(
+      TypeOperations<Variable, Type> typeOperations,
       List<Type> list,
       Type searchType) {
     for (Type type in list) {
@@ -2072,7 +2308,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     } else {
       return;
     }
-    _current = _current.tryPromote(typeOperations, variable, type).ifTrue;
+    _current = _current.tryPromoteForTypeCast(typeOperations, variable, type);
   }
 
   @override
@@ -2148,7 +2384,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     _BranchTargetContext<Variable, Type> context =
         new _BranchTargetContext<Variable, Type>();
     _stack.add(context);
-    _current = _current.removePromotedAll(info._written, info._captured);
+    _current = _current.conservativeJoin(info._written, info._captured);
     _statementToContext[doStatement] = context;
   }
 
@@ -2218,13 +2454,11 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void for_conditionBegin(Node node) {
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(node);
-    _current = _current.removePromotedAll(info._written, info._captured);
+    _current = _current.conservativeJoin(info._written, info._captured);
   }
 
   @override
   void for_end() {
-    FlowModel<Variable, Type> afterUpdate = _current;
-
     _WhileContext<Variable, Type> context =
         _stack.removeLast() as _WhileContext<Variable, Type>;
     // Tail of the stack: falseCondition, break
@@ -2232,7 +2466,6 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     FlowModel<Variable, Type> falseCondition = context._conditionInfo.ifFalse;
 
     _current = _join(falseCondition, breakState);
-    _current = _current.joinUnassigned(other: afterUpdate);
   }
 
   @override
@@ -2249,7 +2482,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     _SimpleStatementContext<Variable, Type> context =
         new _SimpleStatementContext<Variable, Type>(_current);
     _stack.add(context);
-    _current = _current.removePromotedAll(info._written, info._captured);
+    _current = _current.conservativeJoin(info._written, info._captured);
     if (loopVariable != null) {
       _current = _current.write(loopVariable, writtenType, typeOperations);
     }
@@ -2267,13 +2500,10 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(node);
     ++_functionNestingLevel;
-    _current = _current.removePromotedAll(const [], info._written);
+    _current = _current.conservativeJoin(const [], info._written);
     _stack.add(new _SimpleContext(_current));
-    _current = _current.removePromotedAll(_assignedVariables._anywhere._written,
+    _current = _current.conservativeJoin(_assignedVariables._anywhere._written,
         _assignedVariables._anywhere._captured);
-    _current = _current.joinUnassigned(
-      written: _assignedVariables._anywhere._written,
-    );
   }
 
   @override
@@ -2284,7 +2514,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     _SimpleContext<Variable, Type> context =
         _stack.removeLast() as _SimpleContext<Variable, Type>;
     _current = context._previous;
-    _current = _current.joinUnassigned(other: afterBody);
+    _current = _current.joinUnassigned(afterBody);
   }
 
   @override
@@ -2380,7 +2610,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
       return;
     }
     ExpressionInfo<Variable, Type> expressionInfo =
-        _current.tryPromote(typeOperations, variable, type);
+        _current.tryPromoteForTypeCheck(typeOperations, variable, type);
     _storeExpressionInfo(isExpression,
         isNot ? ExpressionInfo.invert(expressionInfo) : expressionInfo);
   }
@@ -2388,6 +2618,21 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   @override
   bool isUnassigned(Variable variable) {
     return _current.infoFor(variable).unassigned;
+  }
+
+  @override
+  void labeledStatement_begin(Node node) {
+    _BranchTargetContext<Variable, Type> context =
+        new _BranchTargetContext<Variable, Type>();
+    _stack.add(context);
+    _statementToContext[node] = context;
+  }
+
+  @override
+  void labeledStatement_end() {
+    _BranchTargetContext<Variable, Type> context =
+        _stack.removeLast() as _BranchTargetContext<Variable, Type>;
+    _current = _join(_current, context._breakModel);
   }
 
   @override
@@ -2482,7 +2727,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
         _stack.last as _SimpleStatementContext<Variable, Type>;
     if (hasLabel) {
       _current =
-          context._previous.removePromotedAll(info._written, info._captured);
+          context._previous.conservativeJoin(info._written, info._captured);
     } else {
       _current = context._previous;
     }
@@ -2519,15 +2764,19 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void tryCatchStatement_bodyEnd(Node body) {
-    AssignedVariablesNodeInfo<Variable> info =
-        _assignedVariables._getInfoForNode(body);
+    FlowModel<Variable, Type> afterBody = _current;
+
     _TryContext<Variable, Type> context =
         _stack.last as _TryContext<Variable, Type>;
     FlowModel<Variable, Type> beforeBody = context._previous;
+
+    AssignedVariablesNodeInfo<Variable> info =
+        _assignedVariables._getInfoForNode(body);
     FlowModel<Variable, Type> beforeCatch =
-        beforeBody.removePromotedAll(info._written, info._captured);
+        beforeBody.conservativeJoin(info._written, info._captured);
+
     context._beforeCatch = beforeCatch;
-    context._afterBodyAndCatches = _current;
+    context._afterBodyAndCatches = afterBody;
   }
 
   @override
@@ -2582,7 +2831,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
         _stack.last as _TryContext<Variable, Type>;
     context._afterBodyAndCatches = _current;
     _current = _join(_current,
-        context._previous.removePromotedAll(info._written, info._captured));
+        context._previous.conservativeJoin(info._written, info._captured));
   }
 
   @override
@@ -2606,16 +2855,14 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void whileStatement_conditionBegin(Node node) {
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(node);
-    _current = _current.removePromotedAll(info._written, info._captured);
+    _current = _current.conservativeJoin(info._written, info._captured);
   }
 
   @override
   void whileStatement_end() {
     _WhileContext<Variable, Type> context =
         _stack.removeLast() as _WhileContext<Variable, Type>;
-    var afterBody = _current;
     _current = _join(context._conditionInfo.ifFalse, context._breakModel);
-    _current = _current.joinUnassigned(other: afterBody);
   }
 
   @override
@@ -2661,7 +2908,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   FlowModel<Variable, Type> _join(
           FlowModel<Variable, Type> first, FlowModel<Variable, Type> second) =>
-      FlowModel.join(typeOperations, first, second);
+      FlowModel.join(typeOperations, first, second, _current._emptyVariableMap);
 
   /// Associates [expression], which should be the most recently visited
   /// expression, with the given [expressionInfo] object, and updates the

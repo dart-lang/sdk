@@ -5,16 +5,15 @@
 """Install Debian sysroots for building chromium.
 """
 
-# The sysroot is needed to ensure that binaries will run on Debian Wheezy,
-# the oldest supported linux distribution. For ARM64 linux, we have Debian
-# Jessie sysroot as Jessie is the first version with ARM64 support. This script
-# can be run manually but is more often run as part of gclient hooks. When run
-# from hooks this script is a no-op on non-linux platforms.
+# The sysroot is needed to ensure that binaries will run on Debian Jessie,
+# the oldest supported linux distribution. This script can be run manually
+# but is more often run as part of gclient hooks. When run from hooks this
+# script is a no-op on non-linux platforms.
 
 # The sysroot image could be constructed from scratch based on the current
-# state or Debian Wheezy/Jessie but for consistency we currently use a
-# pre-built root image. The image will normally need to be rebuilt every time
-# chrome's build dependencies are changed.
+# state or Debian Jessie but for consistency we currently use a pre-built root
+# image. The image will normally need to be rebuilt every time chrome's build
+# dependencies are changed.
 
 import hashlib
 import json

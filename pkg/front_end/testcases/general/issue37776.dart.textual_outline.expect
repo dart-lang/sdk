@@ -1,0 +1,9 @@
+class X {
+  const X.foo();
+}
+
+class X {
+  const X.foo();
+}
+
+void main() {}

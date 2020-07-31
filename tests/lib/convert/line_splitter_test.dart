@@ -26,7 +26,7 @@ void testManyLines() {
 
   var inputs = const ['line1', 'line2', 'long line 3', ' line 4 ', 'l5'];
 
-  var buffer = inputs.fold(new StringBuffer(), (buff, e) {
+  var buffer = inputs.fold(new StringBuffer(), (dynamic buff, dynamic e) {
     buff.write(e);
     buff.write(lineTerminators[breakIndex]);
 

@@ -9,10 +9,10 @@ import 'dart:ffi';
 /// Stripped down sample struct for dart:ffi library.
 class Coordinate extends Struct {
   @Double()
-  double x;
+  external double x;
 
   @Double()
-  double y;
+  external double y;
 
-  Pointer<Coordinate> next;
+  external Pointer<Coordinate> next;
 }

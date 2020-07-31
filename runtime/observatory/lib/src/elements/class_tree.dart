@@ -12,24 +12,14 @@ import 'package:observatory/src/elements/containers/virtual_tree.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 
 class ClassTreeElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<ClassTreeElement>('class-tree', dependencies: const [
-    ClassRefElement.tag,
-    NavIsolateMenuElement.tag,
-    NavNotifyElement.tag,
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    VirtualTreeElement.tag
-  ]);
-
-  RenderingScheduler _r;
+  RenderingScheduler<ClassTreeElement> _r;
 
   Stream<RenderedEvent<ClassTreeElement>> get onRendered => _r.onRendered;
 
@@ -64,7 +54,7 @@ class ClassTreeElement extends CustomElement implements Renderable {
     return e;
   }
 
-  ClassTreeElement.created() : super.created(tag);
+  ClassTreeElement.created() : super.created('class-tree');
 
   @override
   void attached() {

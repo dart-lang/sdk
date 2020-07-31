@@ -26,7 +26,7 @@ class ZoneTextBuffer : ValueObject {
   void AddString(const String& s);
 
   char* buffer() { return buffer_; }
-  intptr_t length() { return length_; }
+  intptr_t length() const { return length_; }
 
   void Clear();
 

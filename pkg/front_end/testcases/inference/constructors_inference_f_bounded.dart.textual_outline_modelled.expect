@@ -1,0 +1,13 @@
+library test;
+
+class Cloneable<T> {}
+
+class Pair<T extends Cloneable<T>, U extends Cloneable<U>> {
+  Pair(this.t, this.u);
+  Pair._();
+  Pair<U, T> get reversed => new Pair(u, t);
+  T t;
+  U u;
+}
+
+main() {}

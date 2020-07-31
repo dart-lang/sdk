@@ -8,13 +8,11 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/script_inset.dart';
 
 class SourceInsetElement extends CustomElement implements Renderable {
-  static const tag = const Tag<SourceInsetElement>('source-inset');
-
-  RenderingScheduler _r;
+  RenderingScheduler<SourceInsetElement> _r;
 
   Stream<RenderedEvent<SourceInsetElement>> get onRendered => _r.onRendered;
 
@@ -60,7 +58,7 @@ class SourceInsetElement extends CustomElement implements Renderable {
     return e;
   }
 
-  SourceInsetElement.created() : super.created(tag);
+  SourceInsetElement.created() : super.created('source-inset');
 
   @override
   void attached() {

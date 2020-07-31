@@ -1,0 +1,36 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39026_prime.crash_dart:2:17: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//     co operator <{
+//                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39026_prime.crash_dart:2:17: Error: Operator '<' should have exactly one parameter.
+//     co operator <{
+//                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/issue_39026_prime.crash_dart:2:5: Error: Type 'co' not found.
+//     co operator <{
+//     ^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    ;
+  operator <() → invalid-type
+    ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}

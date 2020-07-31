@@ -6,8 +6,7 @@ library js_backend.runtime_types_new;
 
 import 'package:js_runtime/shared/recipe_syntax.dart';
 
-import '../common_elements.dart'
-    show CommonElements, JCommonElements, JElementEnvironment;
+import '../common_elements.dart' show CommonElements, JCommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
@@ -19,7 +18,6 @@ import '../world.dart';
 import 'namer.dart';
 import 'native_data.dart';
 import 'runtime_types_codegen.dart' show RuntimeTypesSubstitutions;
-import 'runtime_types_resolution.dart' show RuntimeTypesNeed;
 
 class RecipeEncoding {
   final jsAst.Literal recipe;
@@ -43,24 +41,16 @@ abstract class RecipeEncoder {
   /// assumed to never be erased.
   jsAst.Literal encodeMetadataRecipe(ModularEmitter emitter,
       InterfaceType declaringType, DartType supertypeArgument);
-
-  // TODO(sra): Still need a $signature function when the function type is a
-  // function of closed type variables. See if the $signature method can always
-  // be generated through SSA in those cases.
-  jsAst.Expression encodeSignature(ModularNamer namer, ModularEmitter emitter,
-      DartType type, jsAst.Expression this_);
 }
 
 class RecipeEncoderImpl implements RecipeEncoder {
   final JClosedWorld _closedWorld;
   final RuntimeTypesSubstitutions _rtiSubstitutions;
   final NativeBasicData _nativeData;
-  final JElementEnvironment _elementEnvironment;
   final JCommonElements commonElements;
-  final RuntimeTypesNeed _rtiNeed;
 
   RecipeEncoderImpl(this._closedWorld, this._rtiSubstitutions, this._nativeData,
-      this._elementEnvironment, this.commonElements, this._rtiNeed);
+      this.commonElements);
 
   @override
   RecipeEncoding encodeRecipe(ModularEmitter emitter,
@@ -84,17 +74,6 @@ class RecipeEncoderImpl implements RecipeEncoder {
             metadata: true)
         .run()
         .recipe;
-  }
-
-  @override
-  jsAst.Expression encodeSignature(ModularNamer namer, ModularEmitter emitter,
-      DartType type, jsAst.Expression this_) {
-    // TODO(sra): These inputs (referenced to quell lints) are used by the old
-    // rti signature generator. Do we need them?
-    _rtiNeed;
-    commonElements;
-    _elementEnvironment;
-    throw UnimplementedError('RecipeEncoderImpl.getSignatureEncoding');
   }
 }
 
@@ -359,7 +338,8 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
       _emitCode(Recipe.endOptionalGroup);
     }
 
-    void emitNamedGroup(List<String> names, List<DartType> types) {
+    void emitNamedGroup(
+        List<String> names, Set<String> requiredNames, List<DartType> types) {
       assert(names.length == types.length);
       first = true;
       _emitCode(Recipe.startNamedGroup);
@@ -368,17 +348,18 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
           _emitCode(Recipe.separator);
         }
         _emitStringUnescaped(names[i]);
-        _emitCode(Recipe.nameSeparator);
+        _emitCode(requiredNames.contains(names[i])
+            ? Recipe.requiredNameSeparator
+            : Recipe.nameSeparator);
         visit(types[i], _);
         first = false;
       }
       _emitCode(Recipe.endNamedGroup);
     }
 
-    // TODO(sra): These are optional named parameters. Handle required named
-    // parameters the same way when they are implemented.
     if (type.namedParameterTypes.isNotEmpty) {
-      emitNamedGroup(type.namedParameters, type.namedParameterTypes);
+      emitNamedGroup(type.namedParameters, type.requiredNamedParameters,
+          type.namedParameterTypes);
     }
 
     _emitCode(Recipe.endFunctionArguments);

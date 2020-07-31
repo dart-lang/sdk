@@ -13,7 +13,6 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateSetterTest);
     defineReflectiveTests(CreateSetterMixinTest);
-    defineReflectiveTests(CreateSetterWithExtensionMethodsTest);
   });
 }
 
@@ -118,6 +117,36 @@ main(List p) {
     await assertNoFix();
   }
 
+  Future<void> test_internal_instance() async {
+    await resolveTestUnit('''
+extension E on String {
+  int m(int x) => s = x;
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  set s(int s) {}
+
+  int m(int x) => s = x;
+}
+''');
+  }
+
+  Future<void> test_internal_static() async {
+    await resolveTestUnit('''
+extension E on String {
+  static int m(int x) => s = x;
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  static set s(int s) {}
+
+  static int m(int x) => s = x;
+}
+''');
+  }
+
   Future<void> test_location_afterLastAccessor() async {
     await resolveTestUnit('''
 class A {
@@ -173,6 +202,26 @@ class C {
 }
 main(C c) {
   c.b.a.test = 0;
+}
+''');
+  }
+
+  Future<void> test_override() async {
+    await resolveTestUnit('''
+extension E on String {
+}
+
+main(String s) {
+  E(s).test = '0';
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  set test(String test) {}
+}
+
+main(String s) {
+  E(s).test = '0';
 }
 ''');
   }
@@ -308,6 +357,26 @@ main() {
 ''');
   }
 
+  Future<void> test_static() async {
+    await resolveTestUnit('''
+extension E on String {
+}
+
+main(String s) {
+  E.test = 0;
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  static set test(int test) {}
+}
+
+main(String s) {
+  E.test = 0;
+}
+''');
+  }
+
   Future<void> test_unqualified_instance_assignmentLhs() async {
     await resolveTestUnit('''
 class A {
@@ -336,87 +405,5 @@ class A {
 }
 ''');
     await assertNoFix();
-  }
-}
-
-@reflectiveTest
-class CreateSetterWithExtensionMethodsTest extends FixProcessorTest {
-  @override
-  FixKind get kind => DartFixKind.CREATE_SETTER;
-
-  @override
-  void setUp() {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
-    super.setUp();
-  }
-
-  Future<void> test_internal_instance() async {
-    await resolveTestUnit('''
-extension E on String {
-  int m(int x) => s = x;
-}
-''');
-    await assertHasFix('''
-extension E on String {
-  set s(int s) {}
-
-  int m(int x) => s = x;
-}
-''');
-  }
-
-  Future<void> test_internal_static() async {
-    await resolveTestUnit('''
-extension E on String {
-  static int m(int x) => s = x;
-}
-''');
-    await assertHasFix('''
-extension E on String {
-  static set s(int s) {}
-
-  static int m(int x) => s = x;
-}
-''');
-  }
-
-  Future<void> test_override() async {
-    await resolveTestUnit('''
-extension E on String {
-}
-
-main(String s) {
-  E(s).test = '0';
-}
-''');
-    await assertHasFix('''
-extension E on String {
-  set test(String test) {}
-}
-
-main(String s) {
-  E(s).test = '0';
-}
-''');
-  }
-
-  Future<void> test_static() async {
-    await resolveTestUnit('''
-extension E on String {
-}
-
-main(String s) {
-  E.test = 0;
-}
-''');
-    await assertHasFix('''
-extension E on String {
-  static set test(int test) {}
-}
-
-main(String s) {
-  E.test = 0;
-}
-''');
   }
 }

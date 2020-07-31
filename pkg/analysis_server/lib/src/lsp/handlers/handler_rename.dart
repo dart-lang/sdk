@@ -23,6 +23,10 @@ class PrepareRenameHandler
   @override
   Future<ErrorOr<RangeAndPlaceholder>> handle(
       TextDocumentPositionParams params, CancellationToken token) async {
+    if (!isDartDocument(params.textDocument)) {
+      return success(null);
+    }
+
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
@@ -78,6 +82,10 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
   @override
   Future<ErrorOr<WorkspaceEdit>> handle(
       RenameParams params, CancellationToken token) async {
+    if (!isDartDocument(params.textDocument)) {
+      return success(null);
+    }
+
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
     // If the client provided us a version doc identifier, we'll use it to ensure

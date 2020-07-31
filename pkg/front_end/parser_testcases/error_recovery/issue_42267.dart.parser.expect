@@ -1,0 +1,19 @@
+NOTICE: Stream was rewritten by parser!
+
+void main() {
+builder..foo[bar];
+FilterSet((builder) => builder..foo[bar]);
+builder..foo[];
+FilterSet((builder) => builder..foo[]);
+builder..foo[ ];
+FilterSet((builder) => builder..foo[ ]);
+}
+
+void[KeywordToken] main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+builder[StringToken]..[SimpleToken]foo[StringToken][[BeginToken]bar[StringToken]][SimpleToken];[SimpleToken]
+FilterSet[StringToken]([BeginToken]([BeginToken]builder[StringToken])[SimpleToken] =>[SimpleToken] builder[StringToken]..[SimpleToken]foo[StringToken][[BeginToken]bar[StringToken]][SimpleToken])[SimpleToken];[SimpleToken]
+builder[StringToken]..[SimpleToken]foo[StringToken][[BeginToken][SyntheticStringToken]][SimpleToken];[SimpleToken]
+FilterSet[StringToken]([BeginToken]([BeginToken]builder[StringToken])[SimpleToken] =>[SimpleToken] builder[StringToken]..[SimpleToken]foo[StringToken][[BeginToken][SyntheticStringToken]][SimpleToken])[SimpleToken];[SimpleToken]
+builder[StringToken]..[SimpleToken]foo[StringToken][[BeginToken] [SyntheticStringToken]][SimpleToken];[SimpleToken]
+FilterSet[StringToken]([BeginToken]([BeginToken]builder[StringToken])[SimpleToken] =>[SimpleToken] builder[StringToken]..[SimpleToken]foo[StringToken][[BeginToken] [SyntheticStringToken]][SimpleToken])[SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

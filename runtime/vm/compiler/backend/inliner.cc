@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/backend/inliner.h"
 
 #include "vm/compiler/aot/aot_call_specializer.h"
@@ -2287,7 +2285,7 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
   // replace them with inline FG before inlining introduces any superfluous
   // AssertAssignable instructions.
   if (function.IsDispatcherOrImplicitAccessor() &&
-      !(function.kind() == RawFunction::kDynamicInvocationForwarder &&
+      !(function.kind() == FunctionLayout::kDynamicInvocationForwarder &&
         function.IsRecognized())) {
     // Smaller or same size as the call.
     return true;
@@ -2300,7 +2298,7 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
 
   if (function.IsGetterFunction() || function.IsSetterFunction() ||
       IsInlineableOperator(function) ||
-      (function.kind() == RawFunction::kConstructor)) {
+      (function.kind() == FunctionLayout::kConstructor)) {
     const intptr_t count = function.optimized_instruction_count();
     if ((count != 0) && (count < FLAG_inline_getters_setters_smaller_than)) {
       return true;
@@ -2427,7 +2425,7 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
     // Load from the data from backing store which is a fixed-length array.
     *array = elements;
     array_cid = kArrayCid;
-  } else if (RawObject::IsExternalTypedDataClassId(array_cid)) {
+  } else if (IsExternalTypedDataClassId(array_cid)) {
     LoadUntaggedInstr* elements = new (Z)
         LoadUntaggedInstr(new (Z) Value(*array),
                           compiler::target::TypedDataBase::data_field_offset());
@@ -2438,6 +2436,8 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
 }
 
 static bool InlineGetIndexed(FlowGraph* flow_graph,
+                             bool can_speculate,
+                             bool is_dynamic_call,
                              MethodRecognizer::Kind kind,
                              Definition* call,
                              Definition* receiver,
@@ -2449,6 +2449,11 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
 
   Definition* array = receiver;
   Definition* index = call->ArgumentAt(1);
+
+  if (!can_speculate && is_dynamic_call && !index->Type()->IsInt()) {
+    return false;
+  }
+
   *entry =
       new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
                                  call->GetBlock()->try_index(), DeoptId::kNone);
@@ -2537,7 +2542,7 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
   }
 
   Instruction* cursor = *entry;
-  if (flow_graph->isolate()->argument_type_checks() && !is_unchecked_call &&
+  if (!is_unchecked_call &&
       (kind != MethodRecognizer::kObjectArraySetIndexedUnchecked &&
        kind != MethodRecognizer::kGrowableArraySetIndexedUnchecked)) {
     // Only type check for the value. A type check for the index is not
@@ -2613,11 +2618,12 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
     if (exactness != nullptr && exactness->is_exact) {
       exactness->emit_exactness_guard = true;
     } else {
+      auto const function_type_args = flow_graph->constant_null();
+      auto const dst_type = flow_graph->GetConstant(value_type);
       AssertAssignableInstr* assert_value = new (Z) AssertAssignableInstr(
-          token_pos, new (Z) Value(stored_value), new (Z) Value(type_args),
-          new (Z)
-              Value(flow_graph->constant_null()),  // Function type arguments.
-          value_type, Symbols::Value(), call->deopt_id());
+          token_pos, new (Z) Value(stored_value), new (Z) Value(dst_type),
+          new (Z) Value(type_args), new (Z) Value(function_type_args),
+          Symbols::Value(), call->deopt_id());
       cursor = flow_graph->AppendTo(cursor, assert_value, call->env(),
                                     FlowGraph::kValue);
     }
@@ -2628,9 +2634,8 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
 
   // Check if store barrier is needed. Byte arrays don't need a store barrier.
   StoreBarrierType needs_store_barrier =
-      (RawObject::IsTypedDataClassId(array_cid) ||
-       RawObject::IsTypedDataViewClassId(array_cid) ||
-       RawObject::IsExternalTypedDataClassId(array_cid))
+      (IsTypedDataClassId(array_cid) || IsTypedDataViewClassId(array_cid) ||
+       IsExternalTypedDataClassId(array_cid))
           ? kNoStoreBarrier
           : kEmitStoreBarrier;
 
@@ -2830,60 +2835,6 @@ static bool InlineLoadClassId(FlowGraph* flow_graph,
   return true;
 }
 
-// Adds an explicit bounds check for a typed getter/setter.
-static void PrepareInlineTypedArrayBoundsCheck(FlowGraph* flow_graph,
-                                               Instruction* call,
-                                               intptr_t array_cid,
-                                               intptr_t view_cid,
-                                               Definition* array,
-                                               Definition** byte_index,
-                                               Instruction** cursor) {
-  ASSERT(array_cid != kDynamicCid);
-
-  LoadFieldInstr* length = new (Z) LoadFieldInstr(
-      new (Z) Value(array), Slot::GetLengthFieldForArrayCid(array_cid),
-      call->token_pos());
-  *cursor = flow_graph->AppendTo(*cursor, length, NULL, FlowGraph::kValue);
-
-  intptr_t element_size = compiler::target::Instance::ElementSizeFor(array_cid);
-  ConstantInstr* bytes_per_element =
-      flow_graph->GetConstant(Smi::Handle(Z, Smi::New(element_size)));
-  BinarySmiOpInstr* len_in_bytes = new (Z)
-      BinarySmiOpInstr(Token::kMUL, new (Z) Value(length),
-                       new (Z) Value(bytes_per_element), call->deopt_id());
-  *cursor = flow_graph->AppendTo(*cursor, len_in_bytes, call->env(),
-                                 FlowGraph::kValue);
-
-  // adjusted_length = len_in_bytes - (element_size - 1).
-  Definition* adjusted_length = len_in_bytes;
-  intptr_t adjustment =
-      compiler::target::Instance::ElementSizeFor(view_cid) - 1;
-  if (adjustment > 0) {
-    ConstantInstr* length_adjustment =
-        flow_graph->GetConstant(Smi::Handle(Z, Smi::New(adjustment)));
-    adjusted_length = new (Z)
-        BinarySmiOpInstr(Token::kSUB, new (Z) Value(len_in_bytes),
-                         new (Z) Value(length_adjustment), call->deopt_id());
-    *cursor = flow_graph->AppendTo(*cursor, adjusted_length, call->env(),
-                                   FlowGraph::kValue);
-  }
-
-  // Check adjusted_length > 0.
-  // TODO(ajcbik): this is a synthetic check that cannot
-  // be directly linked to a use, is that a sign of wrong use?
-  ConstantInstr* zero = flow_graph->GetConstant(Object::smi_zero());
-  Definition* check =
-      flow_graph->CreateCheckBound(adjusted_length, zero, call->deopt_id());
-  *cursor =
-      flow_graph->AppendTo(*cursor, check, call->env(), FlowGraph::kValue);
-
-  // Check 0 <= byte_index < adjusted_length.
-  *byte_index = flow_graph->CreateCheckBound(adjusted_length, *byte_index,
-                                             call->deopt_id());
-  *cursor = flow_graph->AppendTo(*cursor, *byte_index, call->env(),
-                                 FlowGraph::kValue);
-}
-
 // Emits preparatory code for a typed getter/setter.
 // Handles three cases:
 //   (1) dynamic:  generates load untagged (internal or external)
@@ -2895,8 +2846,7 @@ static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
                                          intptr_t array_cid,
                                          Definition** array,
                                          Instruction** cursor) {
-  if (array_cid == kDynamicCid ||
-      RawObject::IsExternalTypedDataClassId(array_cid)) {
+  if (array_cid == kDynamicCid || IsExternalTypedDataClassId(array_cid)) {
     // Internal or External typed data: load untagged.
     auto elements = new (Z)
         LoadUntaggedInstr(new (Z) Value(*array),
@@ -2905,7 +2855,7 @@ static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
     *array = elements;
   } else {
     // Internal typed data: no action.
-    ASSERT(RawObject::IsTypedDataClassId(array_cid));
+    ASSERT(IsTypedDataClassId(array_cid));
   }
 }
 
@@ -2923,12 +2873,12 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
   // Dynamic calls are polymorphic due to:
   // (A) extra bounds check computations (length stored in receiver),
   // (B) external/internal typed data in receiver.
-  // For Dart2, both issues are resolved in the inlined code.
+  // Both issues are resolved in the inlined code.
+  // All getters that go through InlineByteArrayBaseLoad() have explicit
+  // bounds checks in all their clients in the library, so we can omit yet
+  // another inlined bounds check.
   if (array_cid == kDynamicCid) {
     ASSERT(call->IsStaticCall());
-    if (!flow_graph->isolate()->can_use_strong_mode_types()) {
-      return false;
-    }
   }
 
   Definition* array = receiver;
@@ -2939,15 +2889,6 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
 
-  // All getters that go through InlineByteArrayBaseLoad() have explicit
-  // bounds checks in all their clients in the library, so we can omit yet
-  // another inlined bounds check when compiling for Dart2 (resolves (A)).
-  const bool needs_bounds_check =
-      !flow_graph->isolate()->can_use_strong_mode_types();
-  if (needs_bounds_check) {
-    PrepareInlineTypedArrayBoundsCheck(flow_graph, call, array_cid, view_cid,
-                                       array, &index, &cursor);
-  }
 
   // Generates a template for the load, either a dynamic conditional
   // that dispatches on external and internal storage, or a single
@@ -3003,12 +2944,12 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
   // Dynamic calls are polymorphic due to:
   // (A) extra bounds check computations (length stored in receiver),
   // (B) external/internal typed data in receiver.
-  // For Dart2, both issues are resolved in the inlined code.
+  // Both issues are resolved in the inlined code.
+  // All setters that go through InlineByteArrayBaseLoad() have explicit
+  // bounds checks in all their clients in the library, so we can omit yet
+  // another inlined bounds check.
   if (array_cid == kDynamicCid) {
     ASSERT(call->IsStaticCall());
-    if (!flow_graph->isolate()->can_use_strong_mode_types()) {
-      return false;
-    }
   }
 
   Definition* array = receiver;
@@ -3018,16 +2959,6 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
                                  call->GetBlock()->try_index(), DeoptId::kNone);
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
-
-  // All setters that go through InlineByteArrayBaseLoad() have explicit
-  // bounds checks in all their clients in the library, so we can omit yet
-  // another inlined bounds check when compiling for Dart2 (resolves (A)).
-  const bool needs_bounds_check =
-      !flow_graph->isolate()->can_use_strong_mode_types();
-  if (needs_bounds_check) {
-    PrepareInlineTypedArrayBoundsCheck(flow_graph, call, array_cid, view_cid,
-                                       array, &index, &cursor);
-  }
 
   // Prepare additional checks. In AOT Dart2, we use an explicit null check and
   // non-speculative unboxing for most value types.
@@ -3041,8 +2972,7 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
     case kExternalTypedDataUint8ClampedArrayCid:
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid: {
-      if (CompilerState::Current().is_aot() &&
-          flow_graph->isolate()->can_use_strong_mode_types()) {
+      if (CompilerState::Current().is_aot()) {
         needs_null_check = true;
       } else {
         // Check that value is always smi.
@@ -3052,8 +2982,7 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
     }
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
-      if (CompilerState::Current().is_aot() &&
-          flow_graph->isolate()->can_use_strong_mode_types()) {
+      if (CompilerState::Current().is_aot()) {
         needs_null_check = true;
       } else {
         // On 64-bit platforms assume that stored value is always a smi.
@@ -3065,8 +2994,7 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid: {
       // Check that value is always double.
-      if (CompilerState::Current().is_aot() &&
-          flow_graph->isolate()->can_use_strong_mode_types()) {
+      if (CompilerState::Current().is_aot()) {
         needs_null_check = true;
       } else {
         value_check = Cids::CreateMonomorphic(Z, kDoubleCid);
@@ -3086,10 +3014,9 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
     case kTypedDataInt64ArrayCid:
     case kTypedDataUint64ArrayCid:
       // StoreIndexedInstr takes unboxed int64, so value is
-      // checked when unboxing. In AOT Dart2, we use an
+      // checked when unboxing. In AOT, we use an
       // explicit null check and non-speculative unboxing.
-      needs_null_check = CompilerState::Current().is_aot() &&
-                         flow_graph->isolate()->can_use_strong_mode_types();
+      needs_null_check = CompilerState::Current().is_aot();
       break;
     default:
       // Array cids are already checked in the caller.
@@ -3481,6 +3408,7 @@ static bool CheckMask(Definition* definition, intptr_t* mask_ptr) {
 }
 
 static bool InlineSimdOp(FlowGraph* flow_graph,
+                         bool is_dynamic_call,
                          Instruction* call,
                          Definition* receiver,
                          MethodRecognizer::Kind kind,
@@ -3490,13 +3418,6 @@ static bool InlineSimdOp(FlowGraph* flow_graph,
                          Definition** result) {
   if (!ShouldInlineSimd()) {
     return false;
-  }
-  bool is_dynamic_call = false;
-  if (auto instance_call = call->AsInstanceCallBase()) {
-    is_dynamic_call = Function::IsDynamicInvocationForwarderName(
-        instance_call->function_name());
-  } else if (auto static_call = call->AsStaticCall()) {
-    is_dynamic_call = static_call->function().IsDynamicInvocationForwarder();
   }
   if (is_dynamic_call && call->ArgumentCount() > 1) {
     // Issue(dartbug.com/37737): Dynamic invocation forwarders have the
@@ -3738,7 +3659,16 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     Definition** result,
     SpeculativeInliningPolicy* policy,
     FlowGraphInliner::ExactnessInfo* exactness) {
+  if (receiver_cid == kNeverCid) {
+    // Receiver was defined in dead code and was replaced by the sentinel.
+    // Original receiver cid is lost, so don't try to inline recognized
+    // methods.
+    return false;
+  }
+
   const bool can_speculate = policy->IsAllowedForInlining(call->deopt_id());
+  const bool is_dynamic_call = Function::IsDynamicInvocationForwarderName(
+      String::Handle(flow_graph->zone(), target.name()));
 
   const MethodRecognizer::Kind kind = target.recognized_kind();
   switch (kind) {
@@ -3753,36 +3683,36 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kExternalUint8ClampedArrayGetIndexed:
     case MethodRecognizer::kInt16ArrayGetIndexed:
     case MethodRecognizer::kUint16ArrayGetIndexed:
-      return InlineGetIndexed(flow_graph, kind, call, receiver, graph_entry,
-                              entry, last, result);
+      return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
+                              call, receiver, graph_entry, entry, last, result);
     case MethodRecognizer::kFloat32ArrayGetIndexed:
     case MethodRecognizer::kFloat64ArrayGetIndexed:
       if (!CanUnboxDouble()) {
         return false;
       }
-      return InlineGetIndexed(flow_graph, kind, call, receiver, graph_entry,
-                              entry, last, result);
+      return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
+                              call, receiver, graph_entry, entry, last, result);
     case MethodRecognizer::kFloat32x4ArrayGetIndexed:
     case MethodRecognizer::kFloat64x2ArrayGetIndexed:
       if (!ShouldInlineSimd()) {
         return false;
       }
-      return InlineGetIndexed(flow_graph, kind, call, receiver, graph_entry,
-                              entry, last, result);
+      return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
+                              call, receiver, graph_entry, entry, last, result);
     case MethodRecognizer::kInt32ArrayGetIndexed:
     case MethodRecognizer::kUint32ArrayGetIndexed:
       if (!CanUnboxInt32()) {
         return false;
       }
-      return InlineGetIndexed(flow_graph, kind, call, receiver, graph_entry,
-                              entry, last, result);
+      return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
+                              call, receiver, graph_entry, entry, last, result);
     case MethodRecognizer::kInt64ArrayGetIndexed:
     case MethodRecognizer::kUint64ArrayGetIndexed:
       if (!ShouldInlineInt64ArrayOps()) {
         return false;
       }
-      return InlineGetIndexed(flow_graph, kind, call, receiver, graph_entry,
-                              entry, last, result);
+      return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
+                              call, receiver, graph_entry, entry, last, result);
     case MethodRecognizer::kClassIDgetID:
       return InlineLoadClassId(flow_graph, call, graph_entry, entry, last,
                                result);
@@ -4113,8 +4043,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kFloat64x2Div:
     case MethodRecognizer::kFloat64x2Add:
     case MethodRecognizer::kFloat64x2Sub:
-      return InlineSimdOp(flow_graph, call, receiver, kind, graph_entry, entry,
-                          last, result);
+      return InlineSimdOp(flow_graph, is_dynamic_call, call, receiver, kind,
+                          graph_entry, entry, last, result);
 
     case MethodRecognizer::kMathSqrt:
     case MethodRecognizer::kMathDoublePow:
@@ -4193,11 +4123,11 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       Type& type = Type::ZoneHandle(Z);
       if (receiver_cid == kDynamicCid) {
         return false;
-      } else if (RawObject::IsStringClassId(receiver_cid)) {
+      } else if (IsStringClassId(receiver_cid)) {
         type = Type::StringType();
       } else if (receiver_cid == kDoubleCid) {
         type = Type::Double();
-      } else if (RawObject::IsIntegerClassId(receiver_cid)) {
+      } else if (IsIntegerClassId(receiver_cid)) {
         type = Type::IntType();
       } else if (receiver_cid != kClosureCid) {
         const Class& cls = Class::Handle(
@@ -4227,7 +4157,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       return false;
     }
 
-    case MethodRecognizer::kOneByteStringSetAt: {
+    case MethodRecognizer::kWriteIntoOneByteString:
+    case MethodRecognizer::kWriteIntoTwoByteString: {
       // This is an internal method, no need to check argument types nor
       // range.
       *entry = new (Z)
@@ -4248,11 +4179,13 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       value->AsUnboxInteger()->mark_truncating();
       flow_graph->AppendTo(*entry, value, env, FlowGraph::kValue);
 
+      const bool is_onebyte = kind == MethodRecognizer::kWriteIntoOneByteString;
+      const intptr_t index_scale = is_onebyte ? 1 : 2;
+      const intptr_t cid = is_onebyte ? kOneByteStringCid : kTwoByteStringCid;
       *last = new (Z) StoreIndexedInstr(
           new (Z) Value(str), new (Z) Value(index), new (Z) Value(value),
-          kNoStoreBarrier, /*index_unboxed=*/false,
-          /*index_scale=*/1, kOneByteStringCid, kAlignedAccess,
-          call->deopt_id(), call->token_pos());
+          kNoStoreBarrier, /*index_unboxed=*/false, index_scale, cid,
+          kAlignedAccess, call->deopt_id(), call->token_pos());
       flow_graph->AppendTo(value, *last, env, FlowGraph::kEffect);
 
       // We need a return value to replace uses of the original definition.
@@ -4267,5 +4200,3 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
 }
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

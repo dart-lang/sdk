@@ -1,0 +1,6 @@
+library test;
+
+var a_not = !true;
+var a_complement = ~1;
+var a_negate = -1;
+main() {}

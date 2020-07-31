@@ -1,0 +1,11 @@
+class Class {
+  int field;
+}
+extension Extension ;
+on Class (){ }
+class GenericClass<T> {
+}
+extension GenericExtension<T> ( ){ }
+on GenericClass<T> (){ }
+main() { }
+expect(expected, actual) { }

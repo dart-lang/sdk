@@ -1,0 +1,9 @@
+library test;
+
+class A {
+  int f;
+}
+
+A a = new A();
+var c = 0;
+main() {}

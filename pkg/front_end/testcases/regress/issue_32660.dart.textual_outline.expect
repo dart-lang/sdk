@@ -1,0 +1,22 @@
+class A {
+  foo(int x) => x;
+}
+
+class B {
+  foo(int x, {int y}) => y;
+}
+
+class C extends A implements B {
+  noSuchMethod(i) {}
+}
+
+class D {
+  foo(int x) => x;
+}
+
+class E extends D {
+  foo(int x, {int y});
+  noSuchMethod(i) {}
+}
+
+main() {}

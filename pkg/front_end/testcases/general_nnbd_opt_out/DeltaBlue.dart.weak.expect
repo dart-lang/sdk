@@ -10,6 +10,16 @@ class DeltaBlue extends core::Object {
     self::chainTest(100);
     self::projectionTest(100);
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class Strength extends core::Object /*hasConstConstructor*/  {
   final field core::int* value;
@@ -31,6 +41,16 @@ class Strength extends core::Object /*hasConstConstructor*/  {
   static method strongest(self::Strength* s1, self::Strength* s2) → self::Strength* {
     return self::Strength::stronger(s1, s2) ?{self::Strength*} s1 : s2;
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 abstract class Constraint extends core::Object /*hasConstConstructor*/  {
   final field self::Strength* strength;
@@ -54,7 +74,7 @@ abstract class Constraint extends core::Object /*hasConstConstructor*/  {
   method satisfy(dynamic mark) → self::Constraint* {
     this.{self::Constraint::chooseMethod}(mark as{TypeError,ForDynamic} core::int*);
     if(!this.{self::Constraint::isSatisfied}()) {
-      if(this.{self::Constraint::strength}.{core::Object::==}(#C22)) {
+      if(this.{self::Constraint::strength}.{self::Strength::==}(#C22)) {
         core::print("Could not satisfy a required constraint!");
       }
       return null;
@@ -62,7 +82,7 @@ abstract class Constraint extends core::Object /*hasConstConstructor*/  {
     this.{self::Constraint::markInputs}(mark as{TypeError,ForDynamic} core::int*);
     self::Variable* out = this.{self::Constraint::output}();
     self::Constraint* overridden = out.{self::Variable::determinedBy};
-    if(!overridden.{core::Object::==}(null))
+    if(!overridden.{self::Constraint::==}(null))
       overridden.{self::Constraint::markUnsatisfied}();
     out.{self::Variable::determinedBy} = this;
     if(!self::planner.{self::Planner::addPropagate}(this, mark as{TypeError,ForDynamic} core::int*))
@@ -77,6 +97,16 @@ abstract class Constraint extends core::Object /*hasConstConstructor*/  {
   }
   method isInput() → core::bool*
     return false;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 abstract class UnaryConstraint extends self::Constraint {
   final field self::Variable* myOutput;
@@ -109,7 +139,7 @@ abstract class UnaryConstraint extends self::Constraint {
   method inputsKnown(core::int* mark) → core::bool*
     return true;
   method removeFromGraph() → void {
-    if(!this.{self::UnaryConstraint::myOutput}.{core::Object::==}(null))
+    if(!this.{self::UnaryConstraint::myOutput}.{self::Variable::==}(null))
       this.{self::UnaryConstraint::myOutput}.{self::Variable::removeConstraint}(this);
     this.{self::UnaryConstraint::satisfied} = false;
   }
@@ -177,12 +207,12 @@ abstract class BinaryConstraint extends self::Constraint {
   }
   method inputsKnown(core::int* mark) → core::bool* {
     self::Variable* i = this.{self::BinaryConstraint::input}();
-    return i.{self::Variable::mark}.{core::num::==}(mark) || i.{self::Variable::stay} || i.{self::Variable::determinedBy}.{core::Object::==}(null);
+    return i.{self::Variable::mark}.{core::num::==}(mark) || i.{self::Variable::stay} || i.{self::Variable::determinedBy}.{self::Constraint::==}(null);
   }
   method removeFromGraph() → void {
-    if(!this.{self::BinaryConstraint::v1}.{core::Object::==}(null))
+    if(!this.{self::BinaryConstraint::v1}.{self::Variable::==}(null))
       this.{self::BinaryConstraint::v1}.{self::Variable::removeConstraint}(this);
-    if(!this.{self::BinaryConstraint::v2}.{core::Object::==}(null))
+    if(!this.{self::BinaryConstraint::v2}.{self::Variable::==}(null))
       this.{self::BinaryConstraint::v2}.{self::Variable::removeConstraint}(this);
     this.{self::BinaryConstraint::direction} = #C1;
   }
@@ -200,9 +230,9 @@ class ScaleConstraint extends self::BinaryConstraint {
   }
   method removeFromGraph() → void {
     super.{self::BinaryConstraint::removeFromGraph}();
-    if(!this.{self::ScaleConstraint::scale}.{core::Object::==}(null))
+    if(!this.{self::ScaleConstraint::scale}.{self::Variable::==}(null))
       this.{self::ScaleConstraint::scale}.{self::Variable::removeConstraint}(this);
-    if(!this.{self::ScaleConstraint::offset}.{core::Object::==}(null))
+    if(!this.{self::ScaleConstraint::offset}.{self::Variable::==}(null))
       this.{self::ScaleConstraint::offset}.{self::Variable::removeConstraint}(this);
   }
   method markInputs(core::int* mark) → void {
@@ -250,9 +280,19 @@ class Variable extends core::Object {
   }
   method removeConstraint(self::Constraint* c) → void {
     this.{self::Variable::constraints}.{core::List::remove}(c);
-    if(this.{self::Variable::determinedBy}.{core::Object::==}(c))
+    if(this.{self::Variable::determinedBy}.{self::Constraint::==}(c))
       this.{self::Variable::determinedBy} = null;
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class Planner extends core::Object {
   field core::int* currentMark = 0;
@@ -261,7 +301,7 @@ class Planner extends core::Object {
     ;
   method incrementalAdd(self::Constraint* c) → void {
     core::int* mark = this.{self::Planner::newMark}();
-    for (self::Constraint* overridden = c.{self::Constraint::satisfy}(mark); !overridden.{core::Object::==}(null); overridden = overridden.{self::Constraint::satisfy}(mark))
+    for (self::Constraint* overridden = c.{self::Constraint::satisfy}(mark); !overridden.{self::Constraint::==}(null); overridden = overridden.{self::Constraint::satisfy}(mark))
       ;
   }
   method incrementalRemove(self::Constraint* c) → void {
@@ -273,12 +313,12 @@ class Planner extends core::Object {
     do {
       for (core::int* i = 0; i.{core::num::<}(unsatisfied.{core::List::length}); i = i.{core::num::+}(1)) {
         self::Constraint* u = unsatisfied.{core::List::[]}(i);
-        if(u.{self::Constraint::strength}.{core::Object::==}(strength))
+        if(u.{self::Constraint::strength}.{self::Strength::==}(strength))
           this.{self::Planner::incrementalAdd}(u);
       }
       strength = strength.{self::Strength::nextWeaker}();
     }
-    while (!strength.{core::Object::==}(#C18))
+    while (!strength.{self::Strength::==}(#C18))
   }
   method newMark() → core::int*
     return this.{self::Planner::currentMark} = this.{self::Planner::currentMark}.{core::num::+}(1);
@@ -334,7 +374,7 @@ class Planner extends core::Object {
       self::Constraint* determining = v.{self::Variable::determinedBy};
       for (core::int* i = 0; i.{core::num::<}(v.{self::Variable::constraints}.{core::List::length}); i = i.{core::num::+}(1)) {
         self::Constraint* next = v.{self::Variable::constraints}.{core::List::[]}(i);
-        if(!next.{core::Object::==}(determining) && next.{self::Constraint::isSatisfied}()) {
+        if(!next.{self::Constraint::==}(determining) && next.{self::Constraint::isSatisfied}()) {
           next.{self::Constraint::recalculate}();
           todo.{core::List::add}(next.{self::Constraint::output}());
         }
@@ -346,10 +386,20 @@ class Planner extends core::Object {
     self::Constraint* determining = v.{self::Variable::determinedBy};
     for (core::int* i = 0; i.{core::num::<}(v.{self::Variable::constraints}.{core::List::length}); i = i.{core::num::+}(1)) {
       self::Constraint* c = v.{self::Variable::constraints}.{core::List::[]}(i);
-      if(!c.{core::Object::==}(determining) && c.{self::Constraint::isSatisfied}())
+      if(!c.{self::Constraint::==}(determining) && c.{self::Constraint::isSatisfied}())
         coll.{core::List::add}(c);
     }
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class Plan extends core::Object {
   field core::List<self::Constraint*>* list = <self::Constraint*>[];
@@ -366,6 +416,16 @@ class Plan extends core::Object {
       this.{self::Plan::list}.{core::List::[]}(i).{self::Constraint::execute}();
     }
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static const field self::Strength* REQUIRED = #C22;
 static const field self::Strength* STRONG_PREFERRED = #C3;
@@ -388,7 +448,7 @@ static method chainTest(core::int* n) → void {
   self::Variable* last = null;
   for (core::int* i = 0; i.{core::num::<=}(n); i = i.{core::num::+}(1)) {
     self::Variable* v = new self::Variable::•("v${i}", 0);
-    if(!prev.{core::Object::==}(null))
+    if(!prev.{self::Variable::==}(null))
       new self::EqualityConstraint::•(prev, v, #C22);
     if(i.{core::num::==}(0))
       first = v;

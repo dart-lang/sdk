@@ -1,0 +1,13 @@
+library test;
+
+var x = null;
+var y = 3;
+
+class A {
+  static var x = null;
+  static var y = 3;
+  var x2 = null;
+  var y2 = 3;
+}
+
+main() {}

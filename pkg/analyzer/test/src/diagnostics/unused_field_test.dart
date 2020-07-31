@@ -95,6 +95,13 @@ f() => print('${_Foo.a}${_Foo.b}');
 ''');
   }
 
+  test_isUsed_privateEnum_values() async {
+    await assertNoErrorsInCode(r'''
+enum _Foo {a}
+f() => _Foo.values;
+''');
+  }
+
   test_isUsed_publicEnum_privateValue() async {
     await assertNoErrorsInCode(r'''
 enum Foo {_a, _b}

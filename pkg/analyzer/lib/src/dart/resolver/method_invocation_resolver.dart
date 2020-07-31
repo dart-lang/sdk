@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -308,12 +309,8 @@ class MethodInvocationResolver {
     if (propertyName.inSetterContext()) {
       element = classElement.getSetter(name);
     }
-    if (element == null) {
-      element = classElement.getGetter(name);
-    }
-    if (element == null) {
-      element = classElement.getMethod(name);
-    }
+    element ??= classElement.getGetter(name);
+    element ??= classElement.getMethod(name);
     if (element != null && element.isAccessibleIn(_definingLibrary)) {
       return element;
     }
@@ -576,9 +573,8 @@ class MethodInvocationResolver {
       return;
     }
 
-    var receiverType = enclosingClass.thisType;
-    var target = _inheritance.getMember(
-      receiverType,
+    var target = _inheritance.getMember2(
+      enclosingClass,
       _currentName,
       forSuper: true,
     );
@@ -597,7 +593,7 @@ class MethodInvocationResolver {
     // Otherwise, this is an error.
     // But we would like to give the user at least some resolution.
     // So, we try to find the interface target.
-    target = _inheritance.getInherited(receiverType, _currentName);
+    target = _inheritance.getInherited2(enclosingClass, _currentName);
     if (target != null) {
       nameNode.staticElement = target;
       _setResolution(node, target.type);

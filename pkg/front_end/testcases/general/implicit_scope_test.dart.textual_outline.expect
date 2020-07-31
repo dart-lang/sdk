@@ -1,0 +1,8 @@
+import "package:expect/expect.dart";
+
+class ImplicitScopeTest {
+  static bool alwaysTrue() {}
+  static testMain() {}
+}
+
+main() {}

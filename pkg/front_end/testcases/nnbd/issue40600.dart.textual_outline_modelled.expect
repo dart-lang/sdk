@@ -1,0 +1,20 @@
+import 'dart:async';
+
+class A<X> {
+  final b = new B<X>();
+  foo([FutureOr<X>? x]) {}
+}
+
+class B<Y> {
+  bar(FutureOr<Y> y) {}
+}
+
+class C<T> {
+  FutureOr<T> baz<X extends FutureOr<T>>(FutureOr<T> x) => x;
+}
+
+class D<T> extends C<T> {
+  FutureOr<T> baz<X extends FutureOr<T>>(FutureOr<T> x) => x;
+}
+
+main() {}

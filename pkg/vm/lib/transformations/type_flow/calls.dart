@@ -16,7 +16,8 @@ enum CallKind {
   Method, // x.foo(..) or foo()
   PropertyGet, // ... x.foo ...
   PropertySet, // x.foo = ...
-  FieldInitializer,
+  FieldInitializer, // run initializer of a field
+  SetFieldInConstructor, // foo = ... in initializer list in a constructor
 }
 
 /// [Selector] encapsulates the way of calling (at the call site).
@@ -55,6 +56,7 @@ abstract class Selector {
         return member.getterType;
       case CallKind.PropertySet:
       case CallKind.FieldInitializer:
+      case CallKind.SetFieldInConstructor:
         return const BottomType();
     }
     return null;
@@ -72,7 +74,8 @@ abstract class Selector {
       case CallKind.PropertySet:
         return (member is Field) || ((member is Procedure) && member.isSetter);
       case CallKind.FieldInitializer:
-        return (member is Field);
+      case CallKind.SetFieldInConstructor:
+        return member is Field;
     }
     return false;
   }
@@ -84,6 +87,7 @@ abstract class Selector {
       case CallKind.PropertyGet:
         return 'get ';
       case CallKind.PropertySet:
+      case CallKind.SetFieldInConstructor:
         return 'set ';
       case CallKind.FieldInitializer:
         return 'init ';
@@ -112,7 +116,8 @@ class DirectSelector extends Selector {
       other is DirectSelector && super == (other) && other.member == member;
 
   @override
-  String toString() => 'direct ${_callKindPrefix}[$member]';
+  String toString() => 'direct ${_callKindPrefix}'
+      '[${nodeToText(member)}]';
 }
 
 /// Interface call via known interface target [member].
@@ -131,7 +136,8 @@ class InterfaceSelector extends Selector {
       other is InterfaceSelector && super == (other) && other.member == member;
 
   @override
-  String toString() => '${_callKindPrefix}[$member]';
+  String toString() => '${_callKindPrefix}'
+      '[${nodeToText(member)}]';
 }
 
 /// Virtual call (using 'this' as a receiver).
@@ -147,7 +153,8 @@ class VirtualSelector extends InterfaceSelector {
       identical(this, other) || other is VirtualSelector && super == (other);
 
   @override
-  String toString() => 'virtual ${_callKindPrefix}[$member]';
+  String toString() => 'virtual ${_callKindPrefix}'
+      '[${nodeToText(member)}]';
 }
 
 /// Dynamic call.
@@ -171,7 +178,7 @@ class DynamicSelector extends Selector {
       other is DynamicSelector && super == (other) && other.name == name;
 
   @override
-  String toString() => 'dynamic ${_callKindPrefix}[$name]';
+  String toString() => 'dynamic ${_callKindPrefix}[${nodeToText(name)}]';
 }
 
 /// Arguments passed to a call, including implicit receiver argument.

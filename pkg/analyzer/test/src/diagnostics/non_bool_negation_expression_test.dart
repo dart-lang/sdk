@@ -12,8 +12,22 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(NonBoolNegationExpressionTest);
     defineReflectiveTests(NonBoolNegationExpressionTest_NNBD);
   });
+}
+
+@reflectiveTest
+class NonBoolNegationExpressionTest extends DriverResolutionTest {
+  test_nonBool() async {
+    await assertErrorsInCode(r'''
+f() {
+  !42;
+}
+''', [
+      error(StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION, 9, 2),
+    ]);
+  }
 }
 
 @reflectiveTest

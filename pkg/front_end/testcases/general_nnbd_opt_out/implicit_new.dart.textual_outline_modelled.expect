@@ -1,0 +1,20 @@
+// @dart = 2.6
+import "implicit_new.dart" as prefix;
+
+class Bar {
+  Bar.named();
+  operator +(other) => null;
+}
+
+class Foo {
+  operator +(other) => null;
+}
+
+class IndexTester {
+  operator [](_) => null;
+  void operator []=(_a, _b) {}
+}
+
+f(x) => x;
+main() {}
+testNSM() {}

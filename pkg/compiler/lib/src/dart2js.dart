@@ -169,6 +169,11 @@ Future<api.CompilationResult> compile(List<String> argv,
           "supported levels are: 0, 1, 2, 3, 4");
       return;
     }
+    if (optimizationLevel != null) {
+      print("Optimization level '$argument' ignored "
+          "due to preceding '-O$optimizationLevel'");
+      return;
+    }
     optimizationLevel = value;
   }
 
@@ -461,8 +466,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.noLegacyJavaScript, passThrough),
     new OptionHandler(Flags.benchmarkingProduction, passThrough),
     new OptionHandler(Flags.benchmarkingExperiment, passThrough),
-    new OptionHandler(Flags.nullSafety, setNullSafetyMode),
-    new OptionHandler(Flags.noNullSafety, setNullSafetyMode),
+    new OptionHandler(Flags.soundNullSafety, setNullSafetyMode),
+    new OptionHandler(Flags.noSoundNullSafety, setNullSafetyMode),
 
     // TODO(floitsch): remove conditional directives flag.
     // We don't provide the info-message yet, since we haven't publicly
@@ -477,6 +482,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.useNewSourceInfo, passThrough),
     new OptionHandler(Flags.useOldRti, passThrough),
     new OptionHandler(Flags.testMode, passThrough),
+    new OptionHandler('${Flags.dumpSsa}=.+', passThrough),
 
     // Experimental features.
     // We don't provide documentation for these yet.
@@ -874,7 +880,7 @@ Supported options:
     Display verbose information.
 
   -D<name>=<value>
-    Define an environment variable.
+    Define an environment declaration.
 
   --version
     Display version information.

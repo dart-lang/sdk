@@ -11,14 +11,22 @@ import 'package:modular_test/src/io_pipeline.dart';
 import 'package:modular_test/src/pipeline.dart';
 import 'package:modular_test/src/suite.dart';
 import 'package:modular_test/src/runner.dart';
+import 'package:package_config/package_config.dart';
 
+String packageConfigJsonPath = '.dart_tool/package_config.json';
 Uri sdkRoot = Platform.script.resolve('../../../');
+Uri packageConfigUri = sdkRoot.resolve(packageConfigJsonPath);
 Options _options;
 String _dartdevcScript;
 String _kernelWorkerScript;
 
+// TODO(joshualitt): Figure out a way to support package configs in
+// tests/modular.
+PackageConfig _packageConfig;
+
 void main(List<String> args) async {
   _options = Options.parse(args);
+  _packageConfig = await loadPackageConfigUri(packageConfigUri);
   await _resolveScripts();
   await runSuite(
       sdkRoot.resolve('tests/modular/'),
@@ -26,7 +34,7 @@ void main(List<String> args) async {
       _options,
       IOPipeline([
         SourceToSummaryDillStep(),
-        DDKStep(),
+        DDCStep(),
         RunD8(),
       ], cacheSharedModules: true));
 }
@@ -34,6 +42,17 @@ void main(List<String> args) async {
 const dillId = DataId('dill');
 const jsId = DataId('js');
 const txtId = DataId('txt');
+
+String _packageConfigEntry(String name, Uri root,
+    {Uri packageRoot, LanguageVersion version}) {
+  var fields = [
+    '"name": "${name}"',
+    '"rootUri": "$root"',
+    if (packageRoot != null) '"packageUri": "$packageRoot"',
+    if (version != null) '"languageVersion": "$version"'
+  ];
+  return '{${fields.join(',')}}';
+}
 
 class SourceToSummaryDillStep implements IOModularStep {
   @override
@@ -75,7 +94,12 @@ class SourceToSummaryDillStep implements IOModularStep {
     List<String> extraArgs;
     if (module.isSdk) {
       sources = ['dart:core'];
-      extraArgs = ['--libraries-file', '$rootScheme:///sdk/lib/libraries.json'];
+      extraArgs = [
+        '--libraries-file',
+        '$rootScheme:///sdk/lib/libraries.json',
+        '--enable-experiment',
+        'non-nullable',
+      ];
       assert(transitiveDependencies.isEmpty);
     } else {
       sources = module.sources.map(sourceToImportUri).toList();
@@ -120,7 +144,7 @@ class SourceToSummaryDillStep implements IOModularStep {
   }
 }
 
-class DDKStep implements IOModularStep {
+class DDCStep implements IOModularStep {
   @override
   List<DataId> get resultData => const [jsId];
 
@@ -139,7 +163,7 @@ class DDKStep implements IOModularStep {
   @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
-    if (_options.verbose) print('\nstep: ddk on $module');
+    if (_options.verbose) print('\nstep: ddc on $module');
 
     var transitiveDependencies = computeTransitiveDependencies(module);
     await _createPackagesFile(module, root, transitiveDependencies);
@@ -149,7 +173,13 @@ class DDKStep implements IOModularStep {
     List<String> extraArgs;
     if (module.isSdk) {
       sources = ['dart:core'];
-      extraArgs = ['--compile-sdk'];
+      extraArgs = [
+        '--compile-sdk',
+        '--libraries-file',
+        '$rootScheme:///sdk/lib/libraries.json',
+        '--enable-experiment',
+        'non-nullable',
+      ];
       assert(transitiveDependencies.isEmpty);
     } else {
       var sdkModule = module.dependencies.firstWhere((m) => m.isSdk);
@@ -192,7 +222,7 @@ class DDKStep implements IOModularStep {
 
   @override
   void notifyCached(Module module) {
-    if (_options.verbose) print('\ncached step: ddk on $module');
+    if (_options.verbose) print('\ncached step: ddc on $module');
   }
 }
 
@@ -229,6 +259,8 @@ class RunD8 implements IOModularStep {
     var runjs = '''
     import { dart, _isolate_helper } from 'dart_sdk.js';
     import { main } from 'main.js';
+    // Run with weak null safety.
+    dart.nullSafety(false);
     _isolate_helper.startRootIsolate(() => {}, []);
     main.main();
     ''';
@@ -285,28 +317,49 @@ String get _d8executable {
 
 Future<void> _createPackagesFile(
     Module module, Uri root, Set<Module> transitiveDependencies) async {
-  // We create a .packages file which defines the location of this module if
-  // it is a package.  The CFE requires that if a `package:` URI of a
-  // dependency is used in an import, then we need that package entry in the
-  // .packages file. However, after it checks that the definition exists, the
-  // CFE will not actually use the resolved URI if a library for the import
-  // URI is already found in one of the provided .dill files of the
-  // dependencies. For that reason, and to ensure that a step only has access
-  // to the files provided in a module, we generate a .packages with invalid
-  // folders for other packages.
+  // We create both a .packages and package_config.json file which defines
+  // the location of this module if it is a package.  The CFE requires that
+  // if a `package:` URI of a dependency is used in an import, then we need
+  // that package entry in the associated file. However, after it checks that
+  // the definition exists, the CFE will not actually use the resolved URI if
+  // a library for the import URI is already found in one of the provide
+  // .dill files of the dependencies. For that reason, and to ensure that
+  // a step only has access to the files provided in a module, we generate a
+  // config file with invalid folders for other packages.
   // TODO(sigmund): follow up with the CFE to see if we can remove the need
-  // for the .packages entry altogether if they won't need to read the
-  // sources.
+  // for these dummy entries..
+  // TODO(joshualitt): Generate just the json file.
+  var packagesJson = [];
   var packagesContents = StringBuffer();
   if (module.isPackage) {
     packagesContents.write('${module.name}:${module.packageBase}\n');
+    packagesJson.add(_packageConfigEntry(
+        module.name, Uri.parse('../${module.packageBase}')));
   }
   var unusedNum = 0;
   for (var dependency in transitiveDependencies) {
     if (dependency.isPackage) {
+      // rootUri should be ignored for dependent modules, so we pass in a
+      // bogus value.
+      var rootUri = Uri.parse('unused$unusedNum');
       unusedNum++;
-      packagesContents.write('${dependency.name}:unused$unusedNum\n');
+      var dependentPackage = _packageConfig[dependency.name];
+      var packageJson = dependentPackage == null
+          ? _packageConfigEntry(dependency.name, rootUri)
+          : _packageConfigEntry(dependentPackage.name, rootUri,
+              version: dependentPackage.languageVersion);
+      packagesJson.add(packageJson);
+      packagesContents.write('${dependency.name}:$rootUri\n');
     }
+  }
+
+  if (module.isPackage) {
+    await File.fromUri(root.resolve(packageConfigJsonPath))
+        .create(recursive: true);
+    await File.fromUri(root.resolve(packageConfigJsonPath)).writeAsString('{'
+        '  "configVersion": ${_packageConfig.version},'
+        '  "packages": [ ${packagesJson.join(',')} ]'
+        '}');
   }
 
   await File.fromUri(root.resolve('.packages'))

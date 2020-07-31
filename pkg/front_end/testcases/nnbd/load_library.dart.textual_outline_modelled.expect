@@ -1,0 +1,3 @@
+import "dart:math" deferred as math;
+
+main() {}

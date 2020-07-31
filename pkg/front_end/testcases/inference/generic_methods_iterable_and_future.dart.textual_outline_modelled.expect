@@ -1,0 +1,7 @@
+library test;
+
+import 'dart:async';
+
+Future<int> make(int x) => (new Future(() => x));
+main() {}
+test() {}

@@ -5,17 +5,46 @@
 #ifndef RUNTIME_VM_COMPILER_STUB_CODE_COMPILER_H_
 #define RUNTIME_VM_COMPILER_STUB_CODE_COMPILER_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/allocation.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/constants.h"
+#include "vm/growable_array.h"
 #include "vm/stub_code_list.h"
+#include "vm/tagged_pointer.h"
 
 namespace dart {
+
+// Forward declarations.
+class Code;
 
 namespace compiler {
 
 // Forward declarations.
 class Assembler;
+
+// Represents an unresolved PC-relative Call/TailCall.
+class UnresolvedPcRelativeCall : public ZoneAllocated {
+ public:
+  UnresolvedPcRelativeCall(intptr_t offset,
+                           const dart::Code& target,
+                           bool is_tail_call)
+      : offset_(offset), target_(target), is_tail_call_(is_tail_call) {}
+
+  intptr_t offset() const { return offset_; }
+  const dart::Code& target() const { return target_; }
+  bool is_tail_call() const { return is_tail_call_; }
+
+ private:
+  const intptr_t offset_;
+  const dart::Code& target_;
+  const bool is_tail_call_;
+};
+
+using UnresolvedPcRelativeCalls = GrowableArray<UnresolvedPcRelativeCall*>;
 
 class StubCodeCompiler : public AllStatic {
  public:
@@ -26,15 +55,21 @@ class StubCodeCompiler : public AllStatic {
       const Object& context_allocation_stub);
 #endif
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+  static ArrayPtr BuildStaticCallsTable(
+      Zone* zone,
+      compiler::UnresolvedPcRelativeCalls* unresolved_calls);
+
 #define STUB_CODE_GENERATE(name)                                               \
   static void Generate##name##Stub(Assembler* assembler);
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE)
 #undef STUB_CODE_GENERATE
 
-  static void GenerateMegamorphicMissStub(Assembler* assembler);
-  static void GenerateAllocationStubForClass(Assembler* assembler,
-                                             const Class& cls);
+  static void GenerateAllocationStubForClass(
+      Assembler* assembler,
+      UnresolvedPcRelativeCalls* unresolved_calls,
+      const Class& cls,
+      const dart::Code& allocate_object,
+      const dart::Code& allocat_object_parametrized);
 
   enum Optimized {
     kUnoptimized,
@@ -90,29 +125,28 @@ class StubCodeCompiler : public AllStatic {
   static void GenerateJITCallbackTrampolines(Assembler* assembler,
                                              intptr_t next_callback_id);
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  // Calculates the offset (in words) from FP to the provided [cpu_register].
+  //
+  // Assumes
+  //   * all [kDartAvailableCpuRegs] followed by saved-PC, saved-FP were
+  //     pushed on the stack
+  //   * [cpu_register] is in [kDartAvailableCpuRegs]
+  //
+  // The intended use of this function is to find registers on the stack which
+  // were spilled in the
+  // `StubCode::*<stub-name>Shared{With,Without}FpuRegsStub()`
+  static intptr_t WordOffsetFromFpToCpuRegister(Register cpu_register);
+
+ private:
+  // Common function for generating InitLateInstanceField and
+  // InitLateFinalInstanceField stubs.
+  static void GenerateInitLateInstanceFieldStub(Assembler* assembler,
+                                                bool is_final);
 };
 
 }  // namespace compiler
 
 enum DeoptStubKind { kLazyDeoptFromReturn, kLazyDeoptFromThrow, kEagerDeopt };
-
-// Invocation mode for TypeCheck runtime entry that describes
-// where we are calling it from.
-enum TypeCheckMode {
-  // TypeCheck is invoked from LazySpecializeTypeTest stub.
-  // It should replace stub on the type with a specialized version.
-  kTypeCheckFromLazySpecializeStub,
-
-  // TypeCheck is invoked from the SlowTypeTest stub.
-  // This means that cache can be lazily created (if needed)
-  // and dst_name can be fetched from the pool.
-  kTypeCheckFromSlowStub,
-
-  // TypeCheck is invoked from normal inline AssertAssignable.
-  // Both cache and dst_name must be already populated.
-  kTypeCheckFromInline
-};
 
 // Zap value used to indicate unused CODE_REG in deopt.
 static const uword kZapCodeReg = 0xf1f1f1f1;

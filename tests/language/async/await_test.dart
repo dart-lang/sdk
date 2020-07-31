@@ -813,7 +813,7 @@ main() {
       f() async {
         try {
           await new Future.error(42);
-        } catch (e) {
+        } on dynamic catch (e) {
           return e;
         }
       }

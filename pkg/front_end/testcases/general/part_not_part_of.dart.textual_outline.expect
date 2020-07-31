@@ -1,0 +1,5 @@
+import 'part_not_part_of_lib2.dart';
+@override
+part 'part_not_part_of_lib1.dart';
+
+main() {}

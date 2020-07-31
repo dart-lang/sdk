@@ -59,7 +59,7 @@ def BuildOptions():
     result.add_option(
         "--os",
         help='Target OSs (comma-separated).',
-        metavar='[all,host,android]',
+        metavar='[all,host,android,fuchsia]',
         default='host')
     result.add_option(
         "--sanitizer",
@@ -67,13 +67,6 @@ def BuildOptions():
         help='Build variants (comma-separated).',
         metavar='[all,none,asan,lsan,msan,tsan,ubsan]',
         default='none')
-    # TODO(38701): Remove this and everything that references it once the
-    # forked NNBD SDK is merged back in.
-    result.add_option(
-        "--nnbd",
-        help='Use the NNBD fork of the SDK.',
-        default=False,
-        action='store_true')
     result.add_option(
         "-v",
         "--verbose",
@@ -95,7 +88,7 @@ def ProcessOptions(options, args):
     if options.mode == 'all':
         options.mode = 'debug,release,product'
     if options.os == 'all':
-        options.os = 'host,android'
+        options.os = 'host,android,fuchsia'
     if options.sanitizer == 'all':
         options.sanitizer = 'none,asan,lsan,msan,tsan,ubsan'
     options.mode = options.mode.split(',')
@@ -117,13 +110,12 @@ def ProcessOptions(options, args):
             return False
     options.os = [ProcessOsOption(os_name) for os_name in options.os]
     for os_name in options.os:
-        if not os_name in ['android', 'freebsd', 'linux', 'macos', 'win32']:
+        if not os_name in [
+                'android', 'freebsd', 'linux', 'macos', 'win32', 'fuchsia'
+        ]:
             print("Unknown os %s" % os_name)
             return False
-        if os_name != HOST_OS:
-            if os_name != 'android':
-                print("Unsupported target os %s" % os_name)
-                return False
+        if os_name == 'android':
             if not HOST_OS in ['linux', 'macos']:
                 print("Cross-compilation to %s is not supported on host os %s."
                       % (os_name, HOST_OS))
@@ -142,6 +134,19 @@ def ProcessOptions(options, args):
                     "For android builds you must specify a target, such as 'runtime'."
                 )
                 return False
+        elif os_name == 'fuchsia':
+            if HOST_OS != 'linux':
+                print("Cross-compilation to %s is not supported on host os %s."
+                      % (os_name, HOST_OS))
+                return False
+            if arch != 'x64':
+                print(
+                    "Cross-compilation to %s is not supported for architecture %s."
+                    % (os_name, arch))
+                return False
+        elif os_name != HOST_OS:
+            print("Unsupported target os %s" % os_name)
+            return False
     return True
 
 
@@ -218,7 +223,7 @@ def GenerateBuildfilesIfNeeded():
     return True
 
 
-def RunGNIfNeeded(out_dir, target_os, mode, arch, use_nnbd, sanitizer):
+def RunGNIfNeeded(out_dir, target_os, mode, arch, sanitizer):
     if os.path.isfile(os.path.join(out_dir, 'args.gn')):
         return
     gn_os = 'host' if target_os == HOST_OS else target_os
@@ -235,8 +240,6 @@ def RunGNIfNeeded(out_dir, target_os, mode, arch, use_nnbd, sanitizer):
         gn_os,
         '-v',
     ]
-    if use_nnbd:
-        gn_command.append('--nnbd')
 
     process = subprocess.Popen(gn_command)
     process.wait()
@@ -290,14 +293,12 @@ def EnsureGomaStarted(out_dir):
 
 # Returns a tuple (build_config, command to run, whether goma is used)
 def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer):
-    build_config = utils.GetBuildConf(mode, arch, target_os, sanitizer,
-                                      options.nnbd)
-    out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer,
-                                 options.nnbd)
+    build_config = utils.GetBuildConf(mode, arch, target_os, sanitizer)
+    out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer)
     using_goma = False
     # TODO(zra): Remove auto-run of gn, replace with prompt for user to run
     # gn.py manually.
-    RunGNIfNeeded(out_dir, target_os, mode, arch, options.nnbd, sanitizer)
+    RunGNIfNeeded(out_dir, target_os, mode, arch, sanitizer)
     command = ['ninja', '-C', out_dir]
     if options.verbose:
         command += ['-v']
@@ -350,8 +351,10 @@ def SanitizerEnvironmentVariables():
         if symbolizer_path:
             symbolizer_path = str(os.path.join(DART_ROOT, symbolizer_path))
             env['ASAN_SYMBOLIZER_PATH'] = symbolizer_path
+            env['LSAN_SYMBOLIZER_PATH'] = symbolizer_path
             env['MSAN_SYMBOLIZER_PATH'] = symbolizer_path
             env['TSAN_SYMBOLIZER_PATH'] = symbolizer_path
+            env['UBSAN_SYMBOLIZER_PATH'] = symbolizer_path
         return env
 
 

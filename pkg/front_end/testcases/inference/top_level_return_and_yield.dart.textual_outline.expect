@@ -1,0 +1,12 @@
+library test;
+
+import 'dart:async';
+
+typedef int IntToInt(int i);
+IntToInt a() {}
+Future<IntToInt> b() async {}
+Iterable<IntToInt> c() sync* {}
+Iterable<IntToInt> d() sync* {}
+Stream<IntToInt> e() async* {}
+Stream<IntToInt> f() async* {}
+main() {}

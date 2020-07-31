@@ -70,8 +70,8 @@ abstract class FeatureSet {
   /// Queries whether the given [feature] is contained in this feature set.
   bool isEnabled(Feature feature);
 
-  /// Computes a subset of this FeatureSet by removing any features that weren't
-  /// available in the given Dart SDK version.
+  /// Computes a subset of this FeatureSet by removing any features that are
+  /// not available in the given language version.
   FeatureSet restrictToVersion(Version version);
 }
 
@@ -82,7 +82,7 @@ enum FeatureStatus {
   future,
 
   /// The language feature has not yet shipped, but we are testing the effect of
-  /// enabling it by default.  It may be used in any library with an appopriate
+  /// enabling it by default.  It may be used in any library with an appropriate
   /// version constraint, unless an experimental flag is used to disable it.
   provisional,
 

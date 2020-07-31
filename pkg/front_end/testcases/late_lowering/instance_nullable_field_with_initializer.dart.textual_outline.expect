@@ -1,0 +1,20 @@
+int? initField() => 10;
+class Class {
+  late int;
+  operator? ( ){ }
+  field = initField();
+  Class.constructor1();
+  Class.constructor2(this.field);
+  Class.constructor3(int value) : this.field = value + 1;
+  Class.constructor4([this.field = 42]);
+}
+class Subclass extends Class {
+  Subclass.constructor1() : super.constructor1();
+  Subclass.constructor2(int value) : super.constructor2(value);
+  Subclass.constructor3(int value) : super.constructor3(value);
+  Subclass.constructor4([int value = 87]) : super.constructor4(value);
+}
+test1() { }
+test2() { }
+main() { }
+expect(expected, actual) { }

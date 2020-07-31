@@ -27,7 +27,6 @@ main(List<String> args) async {
   Sdk sdk = Sdk(parsedArgs['sdk'] as String);
 
   warnOnNoAssertions();
-  warnOnNoSdkNnbd(sdk);
 
   Playground playground =
       Playground(defaultPlaygroundPath, parsedArgs['clean'] as bool);
@@ -64,9 +63,12 @@ main(List<String> args) async {
       var localFiles =
           context.contextRoot.analyzedFiles().where((s) => s.endsWith('.dart'));
       files.addAll(localFiles);
-      var migration = NullabilityMigration(listener, permissive: true);
+      var session = context.currentSession;
+      LineInfo getLineInfo(String path) => session.getFile(path).lineInfo;
+      var migration =
+          NullabilityMigration(listener, getLineInfo, permissive: true);
       for (var file in localFiles) {
-        var resolvedUnit = await context.currentSession.getResolvedUnit(file);
+        var resolvedUnit = await session.getResolvedUnit(file);
         if (!resolvedUnit.errors.any((e) => e.severity == Severity.error)) {
           migration.prepareInput(resolvedUnit);
         } else {
@@ -74,13 +76,13 @@ main(List<String> args) async {
         }
       }
       for (var file in localFiles) {
-        var resolvedUnit = await context.currentSession.getResolvedUnit(file);
+        var resolvedUnit = await session.getResolvedUnit(file);
         if (!resolvedUnit.errors.any((e) => e.severity == Severity.error)) {
           migration.processInput(resolvedUnit);
         }
       }
       for (var file in localFiles) {
-        var resolvedUnit = await context.currentSession.getResolvedUnit(file);
+        var resolvedUnit = await session.getResolvedUnit(file);
         if (!resolvedUnit.errors.any((e) => e.severity == Severity.error)) {
           migration.finalizeInput(resolvedUnit);
         }
@@ -101,9 +103,13 @@ main(List<String> args) async {
       'seconds');
   print('${listener.numTypesMadeNullable} types made nullable');
   print('${listener.numNullChecksAdded} null checks added');
+  print('${listener.numVariablesMarkedLate} variables marked late');
+  print('${listener.numInsertedCasts} casts inserted');
+  print('${listener.numInsertedParenthesis} parenthesis groupings inserted');
   print('${listener.numMetaImportsAdded} meta imports added');
   print('${listener.numRequiredAnnotationsAdded} required annotations added');
   print('${listener.numDeadCodeSegmentsFound} dead code segments found');
+  print('and ${listener.numOtherEdits} other edits not categorized');
   print('${listener.numExceptions} exceptions in '
       '${listener.groupedExceptions.length} categories');
 
@@ -123,25 +129,6 @@ main(List<String> args) async {
     print('\n(Note: to show stack traces & nodes for a particular failure,'
         ' rerun with a search string as an argument.)');
   }
-}
-
-class ExceptionCategory {
-  final String topOfStack;
-  final List<MapEntry<String, int>> exceptionCountPerPackage;
-
-  ExceptionCategory(this.topOfStack, Map<String, int> exceptions)
-      : this.exceptionCountPerPackage = exceptions.entries.toList()
-          ..sort((e1, e2) => e2.value.compareTo(e1.value));
-
-  int get count => exceptionCountPerPackage.length;
-
-  List<String> get packageNames =>
-      [for (var entry in exceptionCountPerPackage) entry.key];
-
-  Iterable<String> get packageNamesAndCounts =>
-      exceptionCountPerPackage.map((entry) => '${entry.key} x${entry.value}');
-
-  String toString() => '$topOfStack (${packageNamesAndCounts.join(', ')})';
 }
 
 ArgResults parseArguments(List<String> args) {
@@ -230,15 +217,23 @@ void warnOnNoAssertions() {
   printWarning("You didn't --enable-asserts!");
 }
 
-void warnOnNoSdkNnbd(Sdk sdk) {
-  try {
-    if (sdk.isNnbdSdk) return;
-  } catch (e) {
-    printWarning('Unable to determine whether this SDK supports NNBD');
-    return;
-  }
-  printWarning(
-      'SDK at ${sdk.sdkPath} not compiled with --nnbd, use --sdk option');
+class ExceptionCategory {
+  final String topOfStack;
+  final List<MapEntry<String, int>> exceptionCountPerPackage;
+
+  ExceptionCategory(this.topOfStack, Map<String, int> exceptions)
+      : this.exceptionCountPerPackage = exceptions.entries.toList()
+          ..sort((e1, e2) => e2.value.compareTo(e1.value));
+
+  int get count => exceptionCountPerPackage.length;
+
+  List<String> get packageNames =>
+      [for (var entry in exceptionCountPerPackage) entry.key];
+
+  Iterable<String> get packageNamesAndCounts =>
+      exceptionCountPerPackage.map((entry) => '${entry.key} x${entry.value}');
+
+  String toString() => '$topOfStack (${packageNamesAndCounts.join(', ')})';
 }
 
 class _Listener implements NullabilityMigrationListener {
@@ -258,6 +253,12 @@ class _Listener implements NullabilityMigrationListener {
 
   int numTypesMadeNullable = 0;
 
+  int numVariablesMarkedLate = 0;
+
+  int numInsertedCasts = 0;
+
+  int numInsertedParenthesis = 0;
+
   int numNullChecksAdded = 0;
 
   int numMetaImportsAdded = 0;
@@ -266,31 +267,50 @@ class _Listener implements NullabilityMigrationListener {
 
   int numDeadCodeSegmentsFound = 0;
 
+  int numOtherEdits = 0;
+
   String currentPackage;
 
   _Listener(this.categoryOfInterest, {this.printExceptionNodeOnly = false});
 
   @override
   void addEdit(Source source, SourceEdit edit) {
+    if (edit.replacement == '') {
+      return;
+    }
+
+    if (edit.replacement.contains('!')) {
+      ++numNullChecksAdded;
+    }
+
+    if (edit.replacement.contains('(')) {
+      ++numInsertedParenthesis;
+    }
+
     if (edit.replacement == '?' && edit.length == 0) {
       ++numTypesMadeNullable;
-    } else if (edit.replacement == '!' && edit.length == 0) {
-      ++numNullChecksAdded;
     } else if (edit.replacement == "import 'package:meta/meta.dart';\n" &&
         edit.length == 0) {
       ++numMetaImportsAdded;
     } else if (edit.replacement == 'required ' && edit.length == 0) {
       ++numRequiredAnnotationsAdded;
+    } else if (edit.replacement == 'late ' && edit.length == 0) {
+      ++numVariablesMarkedLate;
+    } else if (edit.replacement.startsWith(' as ') && edit.length == 0) {
+      ++numInsertedCasts;
     } else if ((edit.replacement == '/* ' ||
             edit.replacement == ' /*' ||
             edit.replacement == '; /*') &&
         edit.length == 0) {
       ++numDeadCodeSegmentsFound;
-    } else if ((edit.replacement == '*/ ' || edit.replacement == ' */') &&
+    } else if ((edit.replacement == '*/ ' ||
+            edit.replacement == ' */' ||
+            edit.replacement == ')' ||
+            edit.replacement == '!' ||
+            edit.replacement == '(') &&
         edit.length == 0) {
-      // Already counted
     } else {
-      print('addEdit($source, $edit)');
+      numOtherEdits++;
     }
   }
 

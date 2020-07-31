@@ -1,0 +1,9 @@
+library test;
+
+class C<T> {
+  T t;
+  C();
+  factory C.named(T t) {}
+}
+
+main() {}

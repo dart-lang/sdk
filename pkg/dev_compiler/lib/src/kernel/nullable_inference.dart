@@ -246,6 +246,9 @@ class NullableInference extends ExpressionVisitor<bool> {
   bool visitLet(Let node) => isNullable(node.body);
 
   @override
+  bool visitBlockExpression(BlockExpression node) => isNullable(node.value);
+
+  @override
   bool visitInstantiation(Instantiation node) => false;
 
   bool isNotNullAnnotation(Expression value) =>

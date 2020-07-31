@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.collection;
 
 /// A hash-table based implementation of [Map].
@@ -69,9 +67,9 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// If you supply one of [equals] and [hashCode],
   /// you should generally also to supply the other.
   external factory LinkedHashMap(
-      {bool equals(K key1, K key2),
-      int hashCode(K key),
-      bool isValidKey(potentialKey)});
+      {bool Function(K, K)? equals,
+      int Function(K)? hashCode,
+      bool Function(dynamic)? isValidKey});
 
   /// Creates an insertion-ordered identity-based map.
   ///
@@ -85,10 +83,10 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   ///
   /// The keys must all be instances of [K] and the values to [V].
   /// The [other] map itself can have any type.
-  factory LinkedHashMap.from(Map other) {
+  factory LinkedHashMap.from(Map<dynamic, dynamic> other) {
     LinkedHashMap<K, V> result = LinkedHashMap<K, V>();
-    other.forEach((k, v) {
-      result[k] = v;
+    other.forEach((dynamic k, dynamic v) {
+      result[k as K] = v as V;
     });
     return result;
   }
@@ -109,7 +107,7 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// If no values are specified for [key] and [value] the default is the
   /// identity function.
   factory LinkedHashMap.fromIterable(Iterable iterable,
-      {K key(element), V value(element)}) {
+      {K Function(dynamic element)? key, V Function(dynamic element)? value}) {
     LinkedHashMap<K, V> map = LinkedHashMap<K, V>();
     MapBase._fillMapWithMappedIterable(map, iterable, key, value);
     return map;
@@ -139,5 +137,5 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// later occurrences overwrite the earlier ones.
   @Since("2.1")
   factory LinkedHashMap.fromEntries(Iterable<MapEntry<K, V>> entries) =>
-      <K, V>{}..addEntries(entries);
+      LinkedHashMap<K, V>()..addEntries(entries);
 }

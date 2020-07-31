@@ -1,0 +1,24 @@
+import 'constants_lib.dart' as lib;
+
+const instance = const lib.Class<int>(0);
+const instanceIdentical = identical(instance, lib.instance);
+const int Function(int) partialInstantiation = lib.id;
+const listConcatenation = <int>[...listLiteral];
+const listConcatenationIdentical =
+    identical(listConcatenation, lib.listConcatenation);
+const listLiteral = <int>[0];
+const listLiteralIdentical = identical(listLiteral, lib.listLiteral);
+const mapConcatenation = <int, String>{...mapLiteral};
+const mapConcatenationIdentical =
+    identical(mapConcatenation, lib.mapConcatenation);
+const mapLiteral = <int, String>{0: 'foo'};
+const mapLiteralIdentical = identical(mapLiteral, lib.mapLiteral);
+const partialInstantiationIdentical =
+    identical(partialInstantiation, lib.partialInstantiation);
+const setConcatenation = <int>{...setLiteral};
+const setConcatenationIdentical =
+    identical(setConcatenation, lib.setConcatenation);
+const setLiteral = <int>{0};
+const setLiteralIdentical = identical(setLiteral, lib.setLiteral);
+main() {}
+test(expected, actual) {}

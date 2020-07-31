@@ -1,0 +1,13 @@
+library test;
+
+class B {
+  void f(int x, int y) {}
+}
+
+abstract class I {
+  void f(covariant int x, Object y);
+}
+
+abstract class C extends B implements I {}
+
+void main() {}

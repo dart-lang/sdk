@@ -1,0 +1,7 @@
+class C {
+  var x;
+  void f() {}
+}
+
+main() {}
+void test(C c) {}

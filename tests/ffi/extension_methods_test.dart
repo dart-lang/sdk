@@ -61,5 +61,5 @@ testReifiedGeneric() {
 
 class Foo extends Struct {
   @Int8()
-  int a;
+  external int a;
 }

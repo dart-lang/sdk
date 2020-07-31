@@ -1,0 +1,4 @@
+main() {}
+typedef _BinaryFunction(args, message);
+typedef _NullaryFunction();
+typedef _UnaryFunction(args);

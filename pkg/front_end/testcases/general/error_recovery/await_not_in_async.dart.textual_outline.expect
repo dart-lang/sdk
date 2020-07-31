@@ -1,0 +1,2 @@
+Future<void> f() => Future.value();
+void g() {}

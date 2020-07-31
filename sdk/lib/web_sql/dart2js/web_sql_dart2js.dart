@@ -1,5 +1,3 @@
-// @dart = 2.6
-
 /**
  * An API for storing data in the browser that can be queried with SQL.
  *
@@ -99,9 +97,9 @@ class SqlDatabase extends Interceptor {
    * * [Database.changeVersion](http://www.w3.org/TR/webdatabase/#dom-database-changeversion) from W3C.
    */
   void _changeVersion(String oldVersion, String newVersion,
-      [SqlTransactionCallback callback,
-      SqlTransactionErrorCallback errorCallback,
-      VoidCallback successCallback]) native;
+      [SqlTransactionCallback? callback,
+      SqlTransactionErrorCallback? errorCallback,
+      VoidCallback? successCallback]) native;
 
   @JSName('changeVersion')
   /**
@@ -130,8 +128,8 @@ class SqlDatabase extends Interceptor {
 
   @JSName('readTransaction')
   void _readTransaction(SqlTransactionCallback callback,
-      [SqlTransactionErrorCallback errorCallback,
-      VoidCallback successCallback]) native;
+      [SqlTransactionErrorCallback? errorCallback,
+      VoidCallback? successCallback]) native;
 
   @JSName('readTransaction')
   Future<SqlTransaction> readTransaction() {
@@ -145,8 +143,8 @@ class SqlDatabase extends Interceptor {
   }
 
   void transaction(SqlTransactionCallback callback,
-      [SqlTransactionErrorCallback errorCallback,
-      VoidCallback successCallback]) native;
+      [SqlTransactionErrorCallback? errorCallback,
+      VoidCallback? successCallback]) native;
 
   @JSName('transaction')
   Future<SqlTransaction> transaction_future() {
@@ -226,7 +224,7 @@ class SqlResultSetRowList extends Interceptor
   Map operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
       throw new RangeError.index(index, this);
-    return this.item(index);
+    return this.item(index)!;
   }
 
   void operator []=(int index, Map value) {
@@ -266,7 +264,7 @@ class SqlResultSetRowList extends Interceptor
   Map elementAt(int index) => this[index];
   // -- end List<Map> mixins.
 
-  Map item(int index) {
+  Map? item(int index) {
     return convertNativeToDart_Dictionary(_item_1(index));
   }
 
@@ -290,12 +288,12 @@ class SqlTransaction extends Interceptor {
 
   @JSName('executeSql')
   void _executeSql(String sqlStatement,
-      [List arguments,
-      SqlStatementCallback callback,
-      SqlStatementErrorCallback errorCallback]) native;
+      [List? arguments,
+      SqlStatementCallback? callback,
+      SqlStatementErrorCallback? errorCallback]) native;
 
   @JSName('executeSql')
-  Future<SqlResultSet> executeSql(String sqlStatement, [List arguments]) {
+  Future<SqlResultSet> executeSql(String sqlStatement, [List? arguments]) {
     var completer = new Completer<SqlResultSet>();
     _executeSql(sqlStatement, arguments, (transaction, resultSet) {
       applyExtension('SQLResultSet', resultSet);

@@ -1,0 +1,729 @@
+/* Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file  */
+/* for details. All rights reserved. Use of this source code is governed by a */
+/* BSD-style license that can be found in the LICENSE file.                   */
+
+/*
+ * Colors mentioned in this file, e.g. "$dark-text-color" are from DartPad:
+ * https://github.com/dart-lang/dart-pad/blob/master/lib/scss/colors.scss
+ */
+
+/* Text selection */
+::selection {
+  background: #6e8eb1; /* $dark-selection-color */;
+}
+
+/* Material icons configuration */
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Material Icons'),
+  local('MaterialIcons-Regular'),
+  url(/MaterialIconsRegular.ttf) format('truetype');
+}
+
+/*
+ * Required for Material Icons:
+ * https://google.github.io/material-design-icons/
+ */
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;  /* Preferred icon size */
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+
+  /* Support for all WebKit browsers. */
+  -webkit-font-smoothing: antialiased;
+  /* Support for Safari and Chrome. */
+  text-rendering: optimizeLegibility;
+
+  /* Support for Firefox. */
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Support for IE. */
+  font-feature-settings: 'liga';
+}
+
+body {
+  background-color: #12202f;
+  color: #ccc;
+  font-family: "Roboto", sans-serif;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.proposed .after-apply {
+  display: none;
+}
+
+.applied .before-apply {
+  display: none;
+}
+
+.applied .apply-migration:not([disabled]), .needs-rerun .apply-migration:not([disabled]) {
+  display: none;
+}
+
+.proposed:not(.needs-rerun) .apply-migration[disabled] {
+  display: none;
+}
+
+header {
+  background-color: #1c2834;
+  height: 48px;
+  padding-left: 24px;
+  align-items: center;
+  z-index: 4;
+}
+
+header h1,
+header h2,
+header h3 {
+  display: inline-block;
+  font-family: "Google Sans","Roboto",sans-serif;
+  font-weight: 400;
+  margin-right: 24px;
+}
+
+h1 {
+  font-size: 1.5em;
+}
+
+header h2 {
+  font-size: 1.2em;
+
+  /* Shift text up */
+  position: relative;
+  top: -2px;
+}
+
+header h3 {
+  /* Shift text up */
+  position: relative;
+  top: -2px;
+}
+
+
+header .action-button, header a {
+  right: 0px;
+  float: right;
+  margin: 10px;
+}
+
+header img.logo {
+  height: 24px;
+  width: 24px;
+  margin-right: 8px;
+  position: relative;
+  top: 4px;
+}
+
+footer .report-problem {
+  right: 0px;
+  margin: 4px 8px;
+}
+
+.rerun-migration .required {
+  display: none;
+}
+
+.needs-rerun .rerun-migration .required {
+  display: initial;
+}
+
+.needs-rerun .rerun-migration .optional {
+  display:none;
+}
+
+footer {
+  color: #ccc;
+  background-color: #27323a;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 8px 0 8px 24px;
+}
+
+footer .wide {
+  flex: 1;
+}
+
+footer .sdk-version {
+  margin-right: 32px;
+}
+
+.horizontal {
+  display: flex;
+}
+
+.panels {
+  background-color: #121a25;
+  flex: 1;
+  overflow: hidden;
+}
+
+.panel-heading {
+  color: #676767;
+  margin: 8px;
+}
+
+.nav-link,
+.region {
+  cursor: pointer;
+}
+
+.nav-panel {
+  background-color: #12202f;
+  flex: 1 200px;
+  margin: 0;
+  overflow: scroll;
+  user-select: none;
+}
+
+.nav-inner {
+  padding: 0 0 7px 7px;
+}
+
+.fixed {
+  position: fixed;
+  top: 0;
+}
+
+.root {
+  margin: 0;
+  display: none;
+}
+
+.nav-tree > ul {
+  padding-left: 6px;
+}
+
+.nav-tree .material-icons {
+  font-size: 20px;
+  position: relative;
+  top: 5px;
+  margin-right: 8px;
+  color: #676767;
+}
+
+.nav-inner ul {
+  padding-left: 12px;
+  margin: 0;
+}
+
+.nav-inner li {
+  list-style-type: none;
+}
+
+.nav-inner li:not(.dir) {
+  margin-left: 20px;
+  margin-bottom: 3px;
+}
+
+.nav-inner li.dir .arrow {
+  cursor: pointer;
+  display: inline-block;
+  font-size: 10px;
+  margin-right: 4px;
+  transition: transform 0.5s ease-out;
+}
+
+.nav-inner li.dir .arrow.collapsed {
+  transform: rotate(-90deg);
+}
+
+.nav-inner ul {
+  max-height: 2000px;
+  transition: max-height 0.5s ease-out;
+}
+
+.nav-inner ul.collapsed {
+  max-height: 0 !important;
+  overflow: hidden;
+}
+
+.nav-inner .selected-file {
+  color: white;
+  cursor: inherit;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.edit-count {
+  background-color: #676767;
+  border-radius: 10px;
+  color: #fff;
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 5px;
+  min-width: 25px;
+  padding: 4px 0 2px 0;
+  text-align: center;
+  line-height: 1em;
+}
+
+.content {
+  flex: 4 300px;
+  background: #12202f;
+  font-family: "Roboto Mono", monospace;
+  margin: 0 6px;
+  position: relative;
+  white-space: pre;
+  overflow: scroll;
+}
+
+.code {
+  padding: 0.5em;
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin-left: 56px;
+}
+
+.code .welcome {
+  font-family: "Google Sans","Roboto",sans-serif;
+  font-size: 18px;
+  margin-right: 62px;
+  color: #777;
+}
+
+.code .nav-link {
+  color: #16adca;
+  text-decoration-line: none;
+}
+
+.code .nav-link:visited {
+  color: #139bb5; /* #16adca darkened 10% */
+  text-decoration-line: none;
+}
+
+.code .nav-link:hover {
+  text-decoration-line: underline;
+  font-weight: 600;
+}
+
+.regions {
+  padding: 0.5em;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.regions table {
+  border-spacing: 0;
+  font-size: inherit;
+}
+
+.regions td {
+  border: none;
+  /* The content of the regions is not visible; the user instead will see the
+   * highlighted copy of the content. */
+  color: rgba(255, 255, 255, 0);
+  padding: 0;
+  white-space: pre;
+}
+
+.regions td:empty:after {
+  content: "\00a0";
+}
+
+.regions tr.highlight td:last-child {
+  background-color: #444444;
+  color: white;
+}
+
+.regions td.line-no {
+  border-right: solid #12202f 2px;
+  color: #999999;
+  padding-right: 4px;
+  text-align: right;
+  visibility: visible;
+  width: 50px;
+  display: inline-block;
+}
+
+.regions tr.highlight td.line-no {
+  border-right: solid #ccc 2px;
+}
+
+.region {
+  display: inline-block;
+  position: relative;
+  visibility: visible;
+  z-index: 200;
+}
+
+.region.added-region {
+  background-color: #263952; /* $dark-selection-color */
+  color: #c0c2c5; /* $dark-editor-text */
+}
+
+.region.removed-region {
+  background-color: #FA557d; /* $dark-pink */
+  color: #fff;
+}
+
+.region.informative-region {
+  background-color: #178afd; /* $dark-selection-color */
+  color: #fff;
+  display: inline-block;
+  height: 14px;
+  position: relative;
+  top: 1px;
+}
+
+.target {
+  background-color: #444;
+  position: relative;
+  visibility: visible;
+  font-weight: 600;
+}
+
+.info-panel {
+  flex: 1 200px;
+  margin: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.info-panel .edit-panel {
+  background-color: #12202f;
+  overflow: auto;
+}
+
+.info-panel .panel-content {
+  padding: 7px;
+}
+
+.info-panel .panel-content> :first-child {
+  margin-top: 0;
+}
+
+.info-panel .nowrap {
+  white-space: nowrap;
+}
+
+.info-panel ul,
+.info-panel ol {
+  padding-left: 20px;
+}
+
+.info-panel li {
+  margin: 0 0 5px 0;
+}
+
+.info-panel a {
+  color: #139bb5;
+}
+
+.info-panel a:hover {
+  color: #1ec7e7; /* #139bb5 lightened 20% */
+}
+
+.info-panel .edit-list {
+  background-color: #12202f;
+  overflow: auto;
+}
+
+.edit-panel {
+  margin-top: 6px;
+  flex: 1 100px;
+}
+
+.edit-list {
+  flex: 2 100px;
+}
+
+.edit-list .edit {
+  margin: 3px 0;
+}
+
+.edit-list .edit-link {
+  cursor: pointer;
+}
+
+.popup-pane {
+  display: none;
+  position: fixed;
+  top: 150px;
+  left: 150px;
+  right: 150px;
+  bottom: 150px;
+  border: 1px solid black;
+  border-top: 2px solid black;
+  border-radius: 7px;
+  box-shadow: 0px 0px 20px 2px #b4bfcb22;
+  z-index: 400;
+  background: #2b3036;
+  padding: 20px;
+}
+
+.popup-pane .close {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  cursor: pointer;
+  text-shadow: 1px 1px 2px #888;
+  box-shadow: 1px 1px 2px #111;
+}
+
+.popup-pane h2 {
+  padding: 21px;
+  height: 10%;
+  margin: 0px;
+  box-sizing: border-box;
+}
+
+.popup-pane p {
+  height: 10%;
+  box-sizing: border-box;
+  padding: 0px 20px;
+}
+
+.popup-pane pre {
+  background: #12202f;
+  padding: 20px;
+  bottom: 0px;
+  overflow: auto scroll;
+  height: 65%;
+  margin: 0px;
+  box-sizing: border-box;
+}
+
+.popup-pane .button.bottom {
+  margin: 20px 0px;
+  display: block;
+  text-align: center;
+}
+
+.rerunning-pane {
+  display: none;
+}
+
+body.rerunning .rerunning-pane {
+  display: block;
+  position: fixed;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  background-color: #000000AA; /* translucent black */
+  z-index: 400;
+}
+
+.rerunning-pane h1 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.edit-panel .type-description {
+  /* From DartPad $dark-orange */
+  color: #ff916e;
+  font-family: monospace;
+}
+
+ul.trace {
+  font-size: 13px;
+  list-style-type: none;
+  padding-left: 0px;
+}
+
+ul.trace li {
+  color: white;
+}
+
+ul.trace li .function {
+  /* from .hljs-variable */
+  color: #16adca;
+  font-family: monospace;
+  font-weight: 600;
+}
+
+ul.trace li p.drawer {
+  margin: 3px 0px;
+  padding: 0px 0px 0px 14px;
+}
+
+ul.trace li p.drawer button {
+  margin-right: 3px;
+}
+
+.elevation-z4 {
+  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2),
+      0px 4px 5px 0px rgba(0, 0, 0, 0.14),
+      0px 1px 10px 0px rgba(0, 0, 0, .12);
+}
+
+a {
+  color: #ccc;
+  fill: #ccc;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #dbdbdb; /* #ccc lightented 30%*/
+  fill: #fff;
+}
+
+.add-hint-link {
+  display: inline-block;
+  margin: 3px;
+}
+
+.add-hint-link:hover {
+  color: #fff;
+}
+
+header button {
+  text-transform: uppercase;
+}
+
+header a {
+  margin: 0;
+}
+
+/* Careful here. `a.button` is repetitive but required to get correct
+ * specificity */
+button, .button, a.button {
+  background-color: rgba(22, 138, 253, 0.15);
+  border: none;
+  border-radius: 3px;
+  padding: 3px 10px;
+  font-weight: 500;
+  font-font: Roboto, sans-serif;
+  color: #fff;
+}
+
+button:hover, .button:hover {
+  background-color: rgba(22, 138, 253, 0.29);
+  cursor: pointer;
+}
+
+button[disabled] {
+  background-color: rgba(255,255,255,.12);
+  color: rgba(255,255,255,.37);
+  cursor: not-allowed;
+}
+
+/* Change edit panel button colors */
+.edit-panel .button, .edit-panel button {
+  background-color: rgba(63, 104, 148, 0.6);
+  color: white;
+}
+.edit-panel .button:hover, .edit-panel button:hover {
+  background-color: rgba(101, 153, 208, 0.6);
+  color: white;
+}
+
+/*
+ * Adjustments to align material icons in the toolbar buttons.
+*/
+.action-button > span {
+  position:relative;
+  top: -3px;
+}
+
+.action-button .material-icons {
+  top: 4px;
+}
+
+/* Don't shift the icon when it's a direct child of the button */
+.action-button > .material-icons {
+  top: 1px;
+}
+
+/* Shift the text to center with the icon. */
+.action-button > span.label {
+  position:relative;
+  top: -4px;
+}
+
+.action-button .material-icons {
+  font-size: 20px;
+  position: relative;
+}
+
+.placeholder {
+  color: #777;
+  text-align: center;
+  margin-top: 3em !important;
+}
+
+/**
+ * HLJS Overrides
+ */
+.hljs {
+  background-color: #12202f; /* $dark-code-background-color */
+  color: #c0c2c5; /* $dark-editor-text */
+  display: block;
+  overflow-x: auto;
+  padding: 0.5em;
+  /**
+   * This allows the per-line highlights to show.
+   */
+  background: none;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-deletion {
+  color: #51c686; /* cm-keyword */
+}
+
+.hljs-number {
+  color: #627978; /* cm-number */
+}
+
+.hljs-comment {
+  color: #9198b4; /* cm-comment */
+}
+
+.hljs-literal {
+  color: #ee8666; /* cm-atom */
+}
+
+.hljs-string {
+  color: #e55074; /* cm-string */
+}
+
+.hljs-variable {
+  color: #16adca; /* cm-variable */
+}
+
+.hljs-link {
+  color: #e55074; /* cm-string */
+}
+.hljs-section,
+.hljs-type,
+.hljs-built_in,
+.hljs-title {
+  color: #ee8666; /* cm-variable-2 */
+}
+
+.hljs-addition {
+  color: #263952; /* $dark-selection-color */
+}
+
+.hljs-meta {
+  color: #627978;
+}

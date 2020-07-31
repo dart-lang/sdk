@@ -22,4 +22,8 @@ var tests = <VMTest>[
   }
 ];
 
-main(args) async => runVMTests(args, tests);
+main(args) async => runVMTests(
+      args, tests,
+      // TODO(bkonyi): DDS doesn't forward Observatory assets properly yet.
+      enableDds: false,
+    );

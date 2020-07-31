@@ -1,0 +1,12 @@
+// @dart = 2.6
+baz() {}
+
+class A<X> {
+  bar<Y extends X>() => null;
+}
+
+class B {
+  static A<Y> foo<Y extends Object>() => null;
+}
+
+main() {}

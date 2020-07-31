@@ -16,16 +16,17 @@ class PortMapTestPeer {
  public:
   static bool IsActivePort(Dart_Port port) {
     MutexLocker ml(PortMap::mutex_);
-    return (PortMap::FindPort(port) >= 0);
+    auto it = PortMap::ports_->TryLookup(port);
+    return it != PortMap::ports_->end();
   }
 
   static bool IsLivePort(Dart_Port port) {
     MutexLocker ml(PortMap::mutex_);
-    intptr_t index = PortMap::FindPort(port);
-    if (index < 0) {
+    auto it = PortMap::ports_->TryLookup(port);
+    if (it == PortMap::ports_->end()) {
       return false;
     }
-    return PortMap::map_[index].state == PortMap::kLivePort;
+    return (*it).state == PortMap::kLivePort;
   }
 };
 
@@ -133,7 +134,7 @@ TEST_CASE(PortMap_PostMessage) {
   intptr_t message_len = strlen(message) + 1;
 
   EXPECT(PortMap::PostMessage(
-      Message::New(port, reinterpret_cast<uint8_t*>(strdup(message)),
+      Message::New(port, reinterpret_cast<uint8_t*>(Utils::StrDup(message)),
                    message_len, nullptr, Message::kNormalPriority)));
 
   // Check that the message notify callback was called.
@@ -177,7 +178,7 @@ TEST_CASE(PortMap_PostMessageClosedPort) {
   intptr_t message_len = strlen(message) + 1;
 
   EXPECT(!PortMap::PostMessage(
-      Message::New(port, reinterpret_cast<uint8_t*>(strdup(message)),
+      Message::New(port, reinterpret_cast<uint8_t*>(Utils::StrDup(message)),
                    message_len, nullptr, Message::kNormalPriority)));
 }
 

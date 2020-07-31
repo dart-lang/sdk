@@ -1,0 +1,20 @@
+class A {
+  var field;
+}
+
+class B {
+  var field;
+}
+
+class C {
+  operator ==(x) => false;
+}
+
+class X implements A, B {
+  var field;
+}
+
+void useAsA(A object) {}
+void useAsB(B object) {}
+void escape(x) {}
+main() {}

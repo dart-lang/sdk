@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/computer/computer_outline.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -415,7 +414,6 @@ enum MyEnum {
   }
 
   Future<void> test_extension_named() async {
-    createAnalysisOptionsFile(experiments: [EnableString.extension_methods]);
     var unitOutline = await _computeOutline('''
 extension MyExt on String {
   int get halfLength => length ~/ 2;
@@ -446,7 +444,6 @@ extension MyExt on String {
   }
 
   Future<void> test_extension_unnamed() async {
-    createAnalysisOptionsFile(experiments: [EnableString.extension_methods]);
     var unitOutline = await _computeOutline('''
 extension on String {
   int get halfLength => length ~/ 2;

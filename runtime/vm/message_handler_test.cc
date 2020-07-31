@@ -348,8 +348,8 @@ static void SendMessages(uword param) {
 }
 
 VM_UNIT_TEST_CASE(MessageHandler_Run) {
-  ThreadPool pool;
   TestMessageHandler handler;
+  ThreadPool pool;
   MessageHandlerTestPeer handler_peer(&handler);
 
   EXPECT(!handler.HasLivePorts());

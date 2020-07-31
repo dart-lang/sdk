@@ -4,6 +4,7 @@
 
 library dart2js.kernel.element_map;
 
+import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:js_runtime/shared/embedded_names.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -118,8 +119,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     _elementEnvironment = new KernelElementEnvironment(this);
     _typeConverter = new DartTypeConverter(options, this);
     _types = new KernelDartTypes(this, options);
-    _commonElements =
-        new CommonElementsImpl(_types, _elementEnvironment, options);
+    _commonElements = new CommonElementsImpl(_types, _elementEnvironment);
     _constantValuefier = new ConstantValuefier(this);
   }
 
@@ -325,17 +325,38 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         data.isMixinApplication = false;
         data.interfaces = const <InterfaceType>[];
       } else {
-        InterfaceType processSupertype(ir.Supertype node) {
-          InterfaceType supertype = _typeConverter.visitSupertype(node);
+        // Set of canonical supertypes.
+        //
+        // This is necessary to support when a class implements the same
+        // supertype in multiple non-conflicting ways, like implementing A<int*>
+        // and A<int?> or B<Object?> and B<dynamic>.
+        Set<InterfaceType> canonicalSupertypes = <InterfaceType>{};
+
+        InterfaceType processSupertype(ir.Supertype supertypeNode) {
+          supertypeNode = classHierarchy.getClassAsInstanceOf(
+              node, supertypeNode.classNode);
+          InterfaceType supertype =
+              _typeConverter.visitSupertype(supertypeNode);
+          canonicalSupertypes.add(supertype);
           IndexedClass superclass = supertype.element;
           KClassData superdata = classes.getData(superclass);
           _ensureSupertypes(superclass, superdata);
+          for (InterfaceType supertype in superdata.orderedTypeSet.supertypes) {
+            ir.Supertype canonicalSupertype = classHierarchy
+                .getClassAsInstanceOf(node, getClassNode(supertype.element));
+            if (canonicalSupertype != null) {
+              supertype = _typeConverter.visitSupertype(canonicalSupertype);
+            } else {
+              assert(supertype.typeArguments.isEmpty,
+                  "Generic synthetic supertypes are not supported");
+            }
+            canonicalSupertypes.add(supertype);
+          }
           return supertype;
         }
 
         InterfaceType supertype;
-        ir.LinkBuilder<InterfaceType> linkBuilder =
-            new ir.LinkBuilder<InterfaceType>();
+        List<InterfaceType> interfaces = <InterfaceType>[];
         if (node.isMixinDeclaration) {
           // A mixin declaration
           //
@@ -353,7 +374,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
           // so we need get the superclasses from the on-clause, A, B, and C,
           // through [superclassConstraints].
           for (ir.Supertype constraint in node.superclassConstraints()) {
-            linkBuilder.addLast(processSupertype(constraint));
+            interfaces.add(processSupertype(constraint));
           }
           // Set superclass to `Object`.
           supertype = _commonElements.objectType;
@@ -364,26 +385,26 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
           ClassEntity defaultSuperclass =
               _commonElements.getDefaultSuperclass(cls, nativeBasicData);
           data.supertype = _elementEnvironment.getRawType(defaultSuperclass);
+          assert(data.supertype.typeArguments.isEmpty,
+              "Generic default supertypes are not supported");
+          canonicalSupertypes.add(data.supertype);
         } else {
           data.supertype = supertype;
         }
         if (node.mixedInType != null) {
           data.isMixinApplication = true;
-          linkBuilder
-              .addLast(data.mixedInType = processSupertype(node.mixedInType));
+          interfaces.add(data.mixedInType = processSupertype(node.mixedInType));
         } else {
           data.isMixinApplication = false;
         }
         node.implementedTypes.forEach((ir.Supertype supertype) {
-          linkBuilder.addLast(processSupertype(supertype));
+          interfaces.add(processSupertype(supertype));
         });
-        ir.Link<InterfaceType> interfaces =
-            linkBuilder.toLink(const ir.Link<InterfaceType>());
         OrderedTypeSetBuilder setBuilder =
             new KernelOrderedTypeSetBuilder(this, cls);
-        data.orderedTypeSet = setBuilder.createOrderedTypeSet(
-            data.supertype, interfaces.reverse(const ir.Link<InterfaceType>()));
-        data.interfaces = new List<InterfaceType>.from(interfaces.toList());
+        data.orderedTypeSet =
+            setBuilder.createOrderedTypeSet(canonicalSupertypes);
+        data.interfaces = interfaces;
       }
     }
   }
@@ -511,12 +532,16 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       }
     }
     List<String> namedParameters = <String>[];
+    Set<String> requiredNamedParameters = <String>{};
     List<DartType> namedParameterTypes = <DartType>[];
     List<ir.VariableDeclaration> sortedNamedParameters =
         node.namedParameters.toList()..sort((a, b) => a.name.compareTo(b.name));
     for (ir.VariableDeclaration variable in sortedNamedParameters) {
       namedParameters.add(variable.name);
       namedParameterTypes.add(getParameterType(variable));
+      if (variable.isRequired && !options.useLegacySubtyping) {
+        requiredNamedParameters.add(variable.name);
+      }
     }
     List<FunctionTypeVariable> typeVariables;
     if (node.typeParameters.isNotEmpty) {
@@ -550,6 +575,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         parameterTypes,
         optionalParameterTypes,
         namedParameters,
+        requiredNamedParameters,
         namedParameterTypes,
         typeVariables);
   }
@@ -791,7 +817,10 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     },
         environment: _environment.toMap(),
         enableTripleShift:
-            options.languageExperiments[ir.ExperimentalFlag.tripleShift]);
+            options.languageExperiments[ir.ExperimentalFlag.tripleShift],
+        evaluationMode: options.useLegacySubtyping
+            ? ir.EvaluationMode.weak
+            : ir.EvaluationMode.strong);
   }
 
   @override
@@ -813,13 +842,25 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       // constructors like calling a generic method.
       {bool includeTypeParameters: true}) {
     // TODO(johnniwinther): Cache the computed function type.
-    int requiredParameters = node.requiredParameterCount;
+    int requiredPositionalParameters = node.requiredParameterCount;
     int positionalParameters = node.positionalParameters.length;
     int typeParameters = node.typeParameters.length;
-    List<String> namedParameters =
-        node.namedParameters.map((p) => p.name).toList()..sort();
-    return new ParameterStructure(requiredParameters, positionalParameters,
-        namedParameters, includeTypeParameters ? typeParameters : 0);
+    List<String> namedParameters = <String>[];
+    Set<String> requiredNamedParameters = <String>{};
+    List<ir.VariableDeclaration> sortedNamedParameters =
+        node.namedParameters.toList()..sort((a, b) => a.name.compareTo(b.name));
+    for (var variable in sortedNamedParameters) {
+      namedParameters.add(variable.name);
+      if (variable.isRequired && !options.useLegacySubtyping) {
+        requiredNamedParameters.add(variable.name);
+      }
+    }
+    return new ParameterStructure(
+        requiredPositionalParameters,
+        positionalParameters,
+        namedParameters,
+        requiredNamedParameters,
+        includeTypeParameters ? typeParameters : 0);
   }
 
   @override
@@ -873,8 +914,14 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     bool mayLookupInMain() {
       var mainUri = elementEnvironment.mainLibrary.canonicalUri;
       // Tests permit lookup outside of dart: libraries.
-      return mainUri.path.contains('tests/compiler/dart2js_native') ||
-          mainUri.path.contains('tests/compiler/dart2js_extra');
+      return mainUri.path
+              .contains(RegExp(r'(?<!generated_)tests/dart2js/internal')) ||
+          mainUri.path
+              .contains(RegExp(r'(?<!generated_)tests/dart2js/native')) ||
+          mainUri.path
+              .contains(RegExp(r'(?<!generated_)tests/dart2js_2/internal')) ||
+          mainUri.path
+              .contains(RegExp(r'(?<!generated_)tests/dart2js_2/native'));
     }
 
     DartType lookup(String typeName, {bool required}) {

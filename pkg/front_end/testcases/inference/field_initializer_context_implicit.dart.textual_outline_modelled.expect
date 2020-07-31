@@ -1,0 +1,14 @@
+library test;
+
+T f<T>() => null;
+
+abstract class B {
+  int get x;
+}
+
+class C implements B {
+  C() : x = f();
+  final x;
+}
+
+main() {}

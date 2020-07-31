@@ -362,17 +362,14 @@ class Parser {
         _tokenMatchesKeyword(afterReturnType, Keyword.FUNCTION)) {
       afterReturnType = skipGenericFunctionTypeAfterReturnType(afterReturnType);
     }
-    if (afterReturnType == null) {
-      // There was no return type, but it is optional, so go back to where we
-      // started.
-      afterReturnType = _currentToken;
-    }
+    // If there was no return type, because it was optional, go back
+    // to where we started.
+    afterReturnType ??= _currentToken;
     Token afterIdentifier = skipSimpleIdentifier(afterReturnType);
-    if (afterIdentifier == null) {
-      // It's possible that we parsed the function name as if it were a type
-      // name, so see whether it makes sense if we assume that there is no type.
-      afterIdentifier = skipSimpleIdentifier(_currentToken);
-    }
+
+    // It's possible that we parsed the function name as if it were a type
+    // name, so see whether it makes sense if we assume that there is no type.
+    afterIdentifier ??= skipSimpleIdentifier(_currentToken);
     if (afterIdentifier == null) {
       return false;
     }
@@ -407,9 +404,7 @@ class Parser {
       return false;
     }
     Token afterTypeParameters = _skipTypeParameterList(token);
-    if (afterTypeParameters == null) {
-      afterTypeParameters = token;
-    }
+    afterTypeParameters ??= token;
     Token afterParameters = _skipFormalParameterList(afterTypeParameters);
     if (afterParameters == null) {
       return false;
@@ -1613,7 +1608,10 @@ class Parser {
       BooleanErrorListener listener = BooleanErrorListener();
       Scanner scanner = Scanner(
           null, SubSequenceReader(referenceSource, sourceOffset), listener)
-        ..configureFeatures(_featureSet);
+        ..configureFeatures(
+          featureSetForOverriding: _featureSet,
+          featureSet: _featureSet,
+        );
       scanner.setSourceStart(1, 1);
       Token firstToken = scanner.tokenize();
       if (listener.errorReported) {
@@ -2066,12 +2064,8 @@ class Parser {
           getAndAdvance()));
     } else if (!_matchesIdentifier()) {
       Token keyword = modifiers.varKeyword;
-      if (keyword == null) {
-        keyword = modifiers.finalKeyword;
-      }
-      if (keyword == null) {
-        keyword = modifiers.constKeyword;
-      }
+      keyword ??= modifiers.finalKeyword;
+      keyword ??= modifiers.constKeyword;
       if (keyword != null) {
         //
         // We appear to have found an incomplete top-level variable declaration.

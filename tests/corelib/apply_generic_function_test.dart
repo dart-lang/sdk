@@ -13,7 +13,7 @@ test0<T extends num>(T i, T j, {required T a}) => i + j + a;
 
 main() {
   test(res, func, list, map) {
-    map = symbolMapToStringMap(map);
+    map = symbolToStringMap(map);
     Expect.equals(res, Function.apply(func, list, map));
   }
 

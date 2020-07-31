@@ -22,7 +22,7 @@ f() {
   return const A();
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 21, 1),
+      error(CompileTimeErrorCode.CONST_WITH_NON_TYPE, 21, 1),
     ]);
   }
 
@@ -40,7 +40,7 @@ dynamic x;
     await assertErrorsInCode('''
 f() { new C(); }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 10, 1),
+      error(StaticWarningCode.NEW_WITH_NON_TYPE, 10, 1),
     ]);
   }
 

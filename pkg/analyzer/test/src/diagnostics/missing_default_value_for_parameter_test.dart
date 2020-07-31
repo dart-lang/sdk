@@ -23,7 +23,62 @@ class MissingDefaultValueForParameterTest extends DriverResolutionTest {
     ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
-  test_constructor_nonNullable_named_optional_noDefault() async {
+  test_constructor_externalFactory_nonNullable_named_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+class C {
+  external factory C({int a});
+}
+''');
+  }
+
+  test_constructor_externalFactory_nonNullable_positional_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+class C {
+  external factory C([int a]);
+}
+''');
+  }
+
+  test_constructor_externalFactory_nullable_named_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+class C {
+  external factory C({int? a});
+}
+''');
+  }
+
+  test_constructor_factory_nonNullable_named_optional_noDefault() async {
+    await assertErrorsInCode('''
+class C {
+  factory C({int a}) => C._();
+  C._();
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 27, 1),
+    ]);
+  }
+
+  test_constructor_factory_nonNullable_positional_optional_noDefault() async {
+    await assertErrorsInCode('''
+class C {
+  factory C([int a]) => C._();
+  C._();
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 27, 1),
+    ]);
+  }
+
+  test_constructor_factory_nullable_named_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+class C {
+  factory C({int? a}) => C._();
+  C._();
+}
+''');
+  }
+
+  test_constructor_generative_nonNullable_named_optional_noDefault() async {
     await assertErrorsInCode('''
 class C {
   C({int a});
@@ -33,7 +88,7 @@ class C {
     ]);
   }
 
-  test_constructor_nonNullable_positional_optional_noDefault() async {
+  test_constructor_generative_nonNullable_positional_optional_noDefault() async {
     await assertErrorsInCode('''
 class C {
   C([int a]);
@@ -43,7 +98,7 @@ class C {
     ]);
   }
 
-  test_constructor_nullable_named_optional_noDefault() async {
+  test_constructor_generative_nullable_named_optional_noDefault() async {
     await assertNoErrorsInCode('''
 class C {
   C({int? a});
@@ -51,11 +106,47 @@ class C {
 ''');
   }
 
-  test_constructor_nullable_named_optional_noDefault_fieldFormal() async {
+  test_constructor_generative_nullable_named_optional_noDefault_fieldFormal() async {
     await assertNoErrorsInCode('''
 class C {
   int? f;
   C({this.f});
+}
+''');
+  }
+
+  test_constructor_redirectingFactory_nonNullable_named_optional() async {
+    await assertNoErrorsInCode('''
+class A {
+  factory A({int a}) = B;
+}
+
+class B implements A {
+  B({int a = 0});
+}
+''');
+  }
+
+  test_constructor_redirectingFactory_nonNullable_positional_optional() async {
+    await assertNoErrorsInCode('''
+class A {
+  factory A([int a]) = B;
+}
+
+class B implements A {
+  B([int a = 0]);
+}
+''');
+  }
+
+  test_constructor_redirectingFactory_nullable_named_optional() async {
+    await assertNoErrorsInCode('''
+class A {
+  factory A({int? a}) = B;
+}
+
+class B implements A {
+  B({int? a});
 }
 ''');
   }

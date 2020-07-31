@@ -18,21 +18,6 @@ main() {
 
 @reflectiveTest
 class ConflictingGenericInterfacesTest extends DriverResolutionTest {
-  disabled_test_hierarchyLoop_infinite() async {
-    // There is an interface conflict here due to a loop in the class
-    // hierarchy leading to an infinite set of implemented types; this loop
-    // shouldn't cause non-termination.
-
-    // TODO(paulberry): this test is currently disabled due to non-termination
-    // bugs elsewhere in the analyzer.
-    await assertErrorsInCode('''
-class A<T> implements B<List<T>> {}
-class B<T> implements A<List<T>> {}
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 0, 0),
-    ]);
-  }
-
   test_class_extends_implements() async {
     await assertErrorsInCode('''
 class I<T> {}
@@ -76,6 +61,15 @@ mixin M on A implements B {}
       error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 75, 28),
     ]);
   }
+
+  test_noConflict() async {
+    await assertNoErrorsInCode('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<int> {}
+class C extends A implements B {}
+''');
+  }
 }
 
 @reflectiveTest
@@ -85,6 +79,15 @@ class ConflictingGenericInterfacesWithNnbdTest
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
+
+  test_class_extends_implements_never() async {
+    await assertNoErrorsInCode('''
+class I<T> {}
+class A implements I<Never> {}
+class B implements I<Never> {}
+class C extends A implements B {}
+''');
+  }
 
   test_class_extends_implements_nullability() async {
     await assertErrorsInCode('''
@@ -122,6 +125,30 @@ class B extends A<int> {}
 import 'a.dart';
 
 class C extends B implements A<int> {}
+''');
+  }
+
+  test_class_mixed_viaLegacy() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A<T> {}
+
+class Bi implements A<int> {}
+
+class Biq implements A<int?> {}
+''');
+
+    // Both `Bi` and `Biq` implement `A<int*>` in legacy, so identical.
+    newFile('/test/lib/b.dart', content: r'''
+// @dart = 2.7
+import 'a.dart';
+
+class C extends Bi implements Biq {}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'b.dart';
+
+abstract class D implements C {}
 ''');
   }
 

@@ -54,30 +54,6 @@ var tests = <IsolateTest>[
     }
     expect(caughtException, isTrue);
   },
-
-  // illegal (dart:_*) library.
-  (Isolate isolate) async {
-    await isolate.load();
-    Library dartInternal = isolate.libraries
-        .firstWhere((Library library) => library.uri == 'dart:_internal');
-    var params = {
-      'libraryId': dartInternal.id,
-      'isDebuggable': false,
-    };
-    bool caughtException;
-    try {
-      await isolate.invokeRpcNoUpgrade('setLibraryDebuggable', params);
-      expect(false, isTrue, reason: 'Unreachable');
-    } on ServerRpcException catch (e) {
-      caughtException = true;
-      expect(e.code, equals(ServerRpcException.kInvalidParams));
-      expect(
-          e.message,
-          "setLibraryDebuggable: "
-          "illegal 'libraryId' parameter: ${dartInternal.id}");
-    }
-    expect(caughtException, isTrue);
-  },
 ];
 
 main(args) async => runIsolateTests(args, tests);

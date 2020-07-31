@@ -19,3 +19,13 @@ void conditional_then(bool b, Object x) {
 
 int conditional_in_expression_function_body(Object o) =>
     o is int ? /*int*/ o : 0;
+
+void conditional_factor_Null(int? x) {
+  x is Null ? /*Null*/ x : /*int*/ x;
+  x;
+}
+
+void conditional_factor_nullable(num? x) {
+  x is int? ? /*int?*/ x : /*num*/ x;
+  x;
+}

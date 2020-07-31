@@ -1,0 +1,6 @@
+library test;
+
+T run<T>(T f()) {}
+main() {}
+var x = run<dynamic>(printRunning);
+void printRunning() {}

@@ -1,0 +1,8 @@
+library test;
+
+class C<T extends num> {
+  T a;
+  void op(double b) {}
+}
+
+main() {}

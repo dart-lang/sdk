@@ -1,0 +1,8 @@
+library test;
+
+class C {
+  final x = y;
+}
+
+int get y => null;
+main() {}

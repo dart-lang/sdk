@@ -1,0 +1,11 @@
+List<A> list;
+List<S> f<S>(S s) {}
+List<T> g<T extends A>(T t) {}
+
+class A {}
+
+class B {}
+
+class C extends B implements A {}
+
+main() {}

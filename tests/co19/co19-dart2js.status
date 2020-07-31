@@ -1,0 +1,47 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $compiler == dart2js ]
+Language/Expressions/Constants/integer_size_t03: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Constants/integer_size_t04: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Constants/literal_number_t01: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Constants/math_operators_t01: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Constants/math_operators_t06: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Null/instance_of_class_null_t01: Skip # dart:mirrors not supported https://github.com/dart-lang/co19/issues/522.
+Language/Expressions/Numbers/integer_size_t03: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Numbers/static_type_of_int_t01: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Numbers/syntax_t06: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Numbers/syntax_t09: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Object_Identity/object_t02: SkipByDesign # https://github.com/dart-lang/sdk/issues/42222#issuecomment-640431711
+Language/Expressions/Shift/integer_t01: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Shift/integer_t02: SkipByDesign # big integer cannot be represented in JavaScript
+Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign
+Language/Metadata/before*: Skip # dart:mirrors not supported https://github.com/dart-lang/co19/issues/523.
+Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: SkipByDesign # binary '~' produces different results in JavaScript and Dart
+LibTest/io/*: SkipByDesign # dart:io not supported.
+LibTest/isolate/*: SkipByDesign # dart:isolate not supported.
+
+[ $compiler == dart2js && $runtime == d8 ]
+LibTest/html/*: SkipByDesign # d8 is not a browser
+
+[ $compiler == dart2js && $runtime == d8 && $host_checked ]
+LibTest/collection/ListBase/ListBase_class_A01_t04: Slow, Pass
+LibTest/collection/ListBase/ListBase_class_A01_t05: Slow, Pass
+LibTest/collection/ListBase/ListBase_class_A01_t06: Slow, Pass
+LibTest/collection/ListMixin/ListMixin_class_A01_t04: Slow, Pass
+LibTest/collection/ListMixin/ListMixin_class_A01_t05: Slow, Pass
+LibTest/collection/ListMixin/ListMixin_class_A01_t06: Slow, Pass
+LibTest/core/List/List_class_A01_t05: Slow, Pass
+LibTest/core/List/List_class_A01_t06: Slow, Pass
+
+[ $compiler == dart2js && $runtime == ie11 ]
+LibTest/collection/ListBase/ListBase_class_A01_t04: SkipSlow # slow babeljs transformation
+LibTest/collection/ListBase/ListBase_class_A01_t05: SkipSlow # slow babeljs transformation
+LibTest/collection/ListBase/ListBase_class_A01_t06: SkipSlow # slow babeljs transformation
+LibTest/collection/ListMixin/ListMixin_class_A01_t04: SkipSlow # slow babeljs transformation
+LibTest/collection/ListMixin/ListMixin_class_A01_t05: SkipSlow # slow babeljs transformation
+LibTest/collection/ListMixin/ListMixin_class_A01_t06: SkipSlow # slow babeljs transformation
+LibTest/core/List/List_class_A01_t04: SkipSlow # slow babeljs transformation
+LibTest/core/List/List_class_A01_t05: SkipSlow # slow babeljs transformation
+LibTest/core/List/List_class_A01_t06: SkipSlow # slow babeljs transformation

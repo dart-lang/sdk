@@ -108,7 +108,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element visitInstanceCreationExpression(InstanceCreationExpression node) {
-    return node.staticElement;
+    return node.constructorName.staticElement;
   }
 
   @override

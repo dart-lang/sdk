@@ -72,7 +72,6 @@ var webmVideoDataUrl =
 Future testWithThreeParams() async {
   setupFunc();
 
-  var playFuture = video.onCanPlay.first;
   video.onError.listen((_) {
     throw ('URL failed to load.');
   });
@@ -86,7 +85,13 @@ Future testWithThreeParams() async {
     window.console.log('Video is not supported on this system.');
   }
 
-  await playFuture;
+  // Without user interaction, playing the video requires autoplay to be enabled
+  // and autoplay can only be enabled if muted. We loop the video so there is
+  // always an active frame that can be drawn.
+  video.loop = true;
+  video.muted = true;
+  video.autoplay = true;
+  await video.play();
   context.drawImage(video, 50, 50);
 
   expectPixelFilled(50, 50);
@@ -101,7 +106,6 @@ Future testWithThreeParams() async {
 Future testWithFiveParams() async {
   setupFunc();
 
-  var playFuture = video.onCanPlay.first;
   video.onError.listen((_) {
     throw ('URL failed to load.');
   });
@@ -117,7 +121,10 @@ Future testWithFiveParams() async {
     window.console.log('Video is not supported on this system.');
   }
 
-  await playFuture;
+  video.loop = true;
+  video.muted = true;
+  video.autoplay = true;
+  await video.play();
   context.drawImageToRect(video, new Rectangle(50, 50, 20, 20));
 
   expectPixelFilled(50, 50);
@@ -134,7 +141,6 @@ Future testWithFiveParams() async {
 Future testWithNineParams() async {
   setupFunc();
 
-  var playFuture = video.onCanPlay.first;
   video.onError.listen((_) {
     throw ('URL failed to load.');
   });
@@ -150,7 +156,10 @@ Future testWithNineParams() async {
     window.console.log('Video is not supported on this system.');
   }
 
-  await playFuture;
+  video.loop = true;
+  video.muted = true;
+  video.autoplay = true;
+  await video.play();
   context.drawImageToRect(video, new Rectangle(50, 50, 20, 20),
       sourceRect: new Rectangle(2, 2, 6, 6));
 
@@ -171,7 +180,6 @@ Future testDataUrlWithNineParams() async {
   video = new VideoElement();
   canvas = new CanvasElement();
 
-  var playFuture = video.onCanPlay.first;
   video.onError.listen((_) {
     throw ('URL failed to load.');
   });
@@ -187,7 +195,10 @@ Future testDataUrlWithNineParams() async {
     window.console.log('Video is not supported on this system.');
   }
 
-  await playFuture;
+  video.loop = true;
+  video.muted = true;
+  video.autoplay = true;
+  await video.play();
   context.drawImageToRect(video, new Rectangle(50, 50, 20, 20),
       sourceRect: new Rectangle(2, 2, 6, 6));
 

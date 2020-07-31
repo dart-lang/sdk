@@ -5,9 +5,24 @@
 import("../configs.gni")
 import("platform_sources.gni")
 
+if (is_fuchsia) {
+  import("//build/fuchsia/sdk.gni")
+}
+
 library_for_all_configs("libdart_platform") {
   target_type = "source_set"
   public_configs = [ "../vm:libdart_vm_config" ]
   sources = platform_sources
   include_dirs = [ ".." ]
+  extra_deps = []
+
+  if (is_fuchsia) {
+    if (using_fuchsia_gn_sdk) {
+      extra_deps += [ "$fuchsia_sdk_root/pkg/sys_cpp" ]
+    } else if (using_fuchsia_sdk) {
+      extra_deps += [ "$fuchsia_sdk_root/pkg:sys_cpp" ]
+    } else {
+      extra_deps += [ "//sdk/lib/sys/cpp" ]
+    }
+  }
 }

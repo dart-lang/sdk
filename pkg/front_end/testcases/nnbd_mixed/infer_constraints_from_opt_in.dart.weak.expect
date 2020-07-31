@@ -1,0 +1,120 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "infer_constraints_from_opt_in_lib.dart" as inf;
+import "dart:collection" as col;
+
+import "org-dartlang-testcase:///infer_constraints_from_opt_in_lib.dart";
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  method baz(inf::B* b) → dynamic {
+    b.{inf::B::foo}(b.{inf::B::bar}<core::List<core::int*>*>());
+  }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+static method main() → dynamic {
+  core::List<dynamic>* local0 = <dynamic>[];
+  core::List<inf::C<dynamic>*>* local1a = <inf::C<dynamic>*>[inf::field1];
+  core::List<inf::C<dynamic>*>* local1b = <inf::C<dynamic>*>[inf::field2];
+  core::List<inf::C<core::int*>*>* local1c = <inf::C<core::int*>*>[inf::field3];
+  core::List<inf::C<core::int*>*>* local1d = <inf::C<core::int*>*>[inf::field4];
+  core::List<inf::C<core::int*>*>* local1e = <inf::C<core::int*>*>[inf::field5];
+  core::List<inf::C<core::int*>*>* local1f = <inf::C<core::int*>*>[inf::field6];
+  core::List<core::int*>* local1g = <core::int*>[inf::field7];
+  core::List<core::int*>* local1h = <core::int*>[inf::field8];
+  core::List<core::Null?>* local1i = <core::Null?>[null];
+  core::Set<inf::C<dynamic>*>* local2a = let final core::Set<inf::C<dynamic>*>* #t1 = col::LinkedHashSet::•<inf::C<dynamic>*>() in let final dynamic #t2 = #t1.{core::Set::add}(inf::field1) in let final dynamic #t3 = #t1.{core::Set::add}(null) in #t1;
+  core::Set<inf::C<dynamic>*>* local2b = let final core::Set<inf::C<dynamic>*>* #t4 = col::LinkedHashSet::•<inf::C<dynamic>*>() in let final dynamic #t5 = #t4.{core::Set::add}(inf::field2) in let final dynamic #t6 = #t4.{core::Set::add}(null) in #t4;
+  core::Set<inf::C<core::int*>*>* local2c = let final core::Set<inf::C<core::int*>*>* #t7 = col::LinkedHashSet::•<inf::C<core::int*>*>() in let final dynamic #t8 = #t7.{core::Set::add}(inf::field3) in let final dynamic #t9 = #t7.{core::Set::add}(null) in #t7;
+  core::Set<inf::C<core::int*>*>* local2d = let final core::Set<inf::C<core::int*>*>* #t10 = col::LinkedHashSet::•<inf::C<core::int*>*>() in let final dynamic #t11 = #t10.{core::Set::add}(inf::field4) in let final dynamic #t12 = #t10.{core::Set::add}(null) in #t10;
+  core::Set<inf::C<core::int*>*>* local2e = let final core::Set<inf::C<core::int*>*>* #t13 = col::LinkedHashSet::•<inf::C<core::int*>*>() in let final dynamic #t14 = #t13.{core::Set::add}(inf::field5) in let final dynamic #t15 = #t13.{core::Set::add}(null) in #t13;
+  core::Set<inf::C<core::int*>*>* local2f = let final core::Set<inf::C<core::int*>*>* #t16 = col::LinkedHashSet::•<inf::C<core::int*>*>() in let final dynamic #t17 = #t16.{core::Set::add}(inf::field6) in let final dynamic #t18 = #t16.{core::Set::add}(null) in #t16;
+  core::Set<core::int*>* local2g = let final core::Set<core::int*>* #t19 = col::LinkedHashSet::•<core::int*>() in let final dynamic #t20 = #t19.{core::Set::add}(inf::field7) in let final dynamic #t21 = #t19.{core::Set::add}(null) in #t19;
+  core::Set<core::int*>* local2h = let final core::Set<core::int*>* #t22 = col::LinkedHashSet::•<core::int*>() in let final dynamic #t23 = #t22.{core::Set::add}(inf::field8) in let final dynamic #t24 = #t22.{core::Set::add}(null) in #t22;
+  core::Set<inf::C<dynamic>*>* local3a = let final core::Set<inf::C<dynamic>*>* #t25 = col::LinkedHashSet::•<inf::C<dynamic>*>() in let final dynamic #t26 = #t25.{core::Set::add}(null) in let final dynamic #t27 = #t25.{core::Set::add}(inf::field1) in #t25;
+  core::Set<inf::C<dynamic>*>* local3b = let final core::Set<inf::C<dynamic>*>* #t28 = col::LinkedHashSet::•<inf::C<dynamic>*>() in let final dynamic #t29 = #t28.{core::Set::add}(null) in let final dynamic #t30 = #t28.{core::Set::add}(inf::field2) in #t28;
+  core::Set<inf::C<core::int*>*>* local3c = let final core::Set<inf::C<core::int*>*>* #t31 = col::LinkedHashSet::•<inf::C<core::int*>*>() in let final dynamic #t32 = #t31.{core::Set::add}(null) in let final dynamic #t33 = #t31.{core::Set::add}(inf::field3) in #t31;
+  core::Set<inf::C<core::int*>*>* local3d = let final core::Set<inf::C<core::int*>*>* #t34 = col::LinkedHashSet::•<inf::C<core::int*>*>() in let final dynamic #t35 = #t34.{core::Set::add}(null) in let final dynamic #t36 = #t34.{core::Set::add}(inf::field4) in #t34;
+  core::Set<inf::C<core::int*>*>* local3e = let final core::Set<inf::C<core::int*>*>* #t37 = col::LinkedHashSet::•<inf::C<core::int*>*>() in let final dynamic #t38 = #t37.{core::Set::add}(null) in let final dynamic #t39 = #t37.{core::Set::add}(inf::field5) in #t37;
+  core::Set<inf::C<core::int*>*>* local3f = let final core::Set<inf::C<core::int*>*>* #t40 = col::LinkedHashSet::•<inf::C<core::int*>*>() in let final dynamic #t41 = #t40.{core::Set::add}(null) in let final dynamic #t42 = #t40.{core::Set::add}(inf::field6) in #t40;
+  core::Set<core::int*>* local3g = let final core::Set<core::int*>* #t43 = col::LinkedHashSet::•<core::int*>() in let final dynamic #t44 = #t43.{core::Set::add}(null) in let final dynamic #t45 = #t43.{core::Set::add}(inf::field7) in #t43;
+  core::Set<core::int*>* local3h = let final core::Set<core::int*>* #t46 = col::LinkedHashSet::•<core::int*>() in let final dynamic #t47 = #t46.{core::Set::add}(null) in let final dynamic #t48 = #t46.{core::Set::add}(inf::field8) in #t46;
+}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/infer_constraints_from_opt_in_lib.dart:11:9: Error: Field 'field5' should be initialized because its type 'C<int?>' doesn't allow null.
+//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/infer_constraints_from_opt_in_lib.dart'.
+// C<int?> field5;
+//         ^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/infer_constraints_from_opt_in_lib.dart:13:5: Error: Field 'field7' should be initialized because its type 'int' doesn't allow null.
+// int field7;
+//     ^^^^^^
+//
+import self as inf;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+class C<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → inf::C<inf::C::T%>
+    : super core::Object::•()
+    ;
+}
+abstract class B extends core::Object {
+  synthetic constructor •() → inf::B
+    : super core::Object::•()
+    ;
+  abstract method bar<X extends core::List<core::int?>? = core::List<core::int?>?>() → inf::B::bar::X%;
+  abstract method foo(core::List<core::int> list) → dynamic;
+}
+static field inf::C<dynamic> field1 = new inf::C::•<dynamic>();
+static field inf::C<dynamic>? field2;
+static field inf::C<core::int> field3 = new inf::C::•<core::int>();
+static field inf::C<core::int>? field4;
+static field inf::C<core::int?> field5;
+static field inf::C<core::int?>? field6;
+static field core::int field7;
+static field core::int? field8;
+static method method() → dynamic {
+  core::List<dynamic> local0 = <dynamic>[];
+  core::List<inf::C<dynamic>> local1a = <inf::C<dynamic>>[inf::field1];
+  core::List<inf::C<dynamic>?> local1b = <inf::C<dynamic>?>[inf::field2];
+  core::List<inf::C<core::int>> local1c = <inf::C<core::int>>[inf::field3];
+  core::List<inf::C<core::int>?> local1d = <inf::C<core::int>?>[inf::field4];
+  core::List<inf::C<core::int?>> local1e = <inf::C<core::int?>>[inf::field5];
+  core::List<inf::C<core::int?>?> local1f = <inf::C<core::int?>?>[inf::field6];
+  core::List<core::int> local1g = <core::int>[inf::field7];
+  core::List<core::int?> local1h = <core::int?>[inf::field8];
+  core::List<core::Null?> local1i = <core::Null?>[null];
+  core::Set<inf::C<dynamic>?> local2a = let final core::Set<inf::C<dynamic>?> #t49 = col::LinkedHashSet::•<inf::C<dynamic>?>() in let final dynamic #t50 = #t49.{core::Set::add}(inf::field1) in let final dynamic #t51 = #t49.{core::Set::add}(null) in #t49;
+  core::Set<inf::C<dynamic>?> local2b = let final core::Set<inf::C<dynamic>?> #t52 = col::LinkedHashSet::•<inf::C<dynamic>?>() in let final dynamic #t53 = #t52.{core::Set::add}(inf::field2) in let final dynamic #t54 = #t52.{core::Set::add}(null) in #t52;
+  core::Set<inf::C<core::int>?> local2c = let final core::Set<inf::C<core::int>?> #t55 = col::LinkedHashSet::•<inf::C<core::int>?>() in let final dynamic #t56 = #t55.{core::Set::add}(inf::field3) in let final dynamic #t57 = #t55.{core::Set::add}(null) in #t55;
+  core::Set<inf::C<core::int>?> local2d = let final core::Set<inf::C<core::int>?> #t58 = col::LinkedHashSet::•<inf::C<core::int>?>() in let final dynamic #t59 = #t58.{core::Set::add}(inf::field4) in let final dynamic #t60 = #t58.{core::Set::add}(null) in #t58;
+  core::Set<inf::C<core::int?>?> local2e = let final core::Set<inf::C<core::int?>?> #t61 = col::LinkedHashSet::•<inf::C<core::int?>?>() in let final dynamic #t62 = #t61.{core::Set::add}(inf::field5) in let final dynamic #t63 = #t61.{core::Set::add}(null) in #t61;
+  core::Set<inf::C<core::int?>?> local2f = let final core::Set<inf::C<core::int?>?> #t64 = col::LinkedHashSet::•<inf::C<core::int?>?>() in let final dynamic #t65 = #t64.{core::Set::add}(inf::field6) in let final dynamic #t66 = #t64.{core::Set::add}(null) in #t64;
+  core::Set<core::int?> local2g = let final core::Set<core::int?> #t67 = col::LinkedHashSet::•<core::int?>() in let final dynamic #t68 = #t67.{core::Set::add}(inf::field7) in let final dynamic #t69 = #t67.{core::Set::add}(null) in #t67;
+  core::Set<core::int?> local2h = let final core::Set<core::int?> #t70 = col::LinkedHashSet::•<core::int?>() in let final dynamic #t71 = #t70.{core::Set::add}(inf::field8) in let final dynamic #t72 = #t70.{core::Set::add}(null) in #t70;
+  core::Set<inf::C<dynamic>?> local3a = let final core::Set<inf::C<dynamic>?> #t73 = col::LinkedHashSet::•<inf::C<dynamic>?>() in let final dynamic #t74 = #t73.{core::Set::add}(null) in let final dynamic #t75 = #t73.{core::Set::add}(inf::field1) in #t73;
+  core::Set<inf::C<dynamic>?> local3b = let final core::Set<inf::C<dynamic>?> #t76 = col::LinkedHashSet::•<inf::C<dynamic>?>() in let final dynamic #t77 = #t76.{core::Set::add}(null) in let final dynamic #t78 = #t76.{core::Set::add}(inf::field2) in #t76;
+  core::Set<inf::C<core::int>?> local3c = let final core::Set<inf::C<core::int>?> #t79 = col::LinkedHashSet::•<inf::C<core::int>?>() in let final dynamic #t80 = #t79.{core::Set::add}(null) in let final dynamic #t81 = #t79.{core::Set::add}(inf::field3) in #t79;
+  core::Set<inf::C<core::int>?> local3d = let final core::Set<inf::C<core::int>?> #t82 = col::LinkedHashSet::•<inf::C<core::int>?>() in let final dynamic #t83 = #t82.{core::Set::add}(null) in let final dynamic #t84 = #t82.{core::Set::add}(inf::field4) in #t82;
+  core::Set<inf::C<core::int?>?> local3e = let final core::Set<inf::C<core::int?>?> #t85 = col::LinkedHashSet::•<inf::C<core::int?>?>() in let final dynamic #t86 = #t85.{core::Set::add}(null) in let final dynamic #t87 = #t85.{core::Set::add}(inf::field5) in #t85;
+  core::Set<inf::C<core::int?>?> local3f = let final core::Set<inf::C<core::int?>?> #t88 = col::LinkedHashSet::•<inf::C<core::int?>?>() in let final dynamic #t89 = #t88.{core::Set::add}(null) in let final dynamic #t90 = #t88.{core::Set::add}(inf::field6) in #t88;
+  core::Set<core::int?> local3g = let final core::Set<core::int?> #t91 = col::LinkedHashSet::•<core::int?>() in let final dynamic #t92 = #t91.{core::Set::add}(null) in let final dynamic #t93 = #t91.{core::Set::add}(inf::field7) in #t91;
+  core::Set<core::int?> local3h = let final core::Set<core::int?> #t94 = col::LinkedHashSet::•<core::int?>() in let final dynamic #t95 = #t94.{core::Set::add}(null) in let final dynamic #t96 = #t94.{core::Set::add}(inf::field8) in #t94;
+}

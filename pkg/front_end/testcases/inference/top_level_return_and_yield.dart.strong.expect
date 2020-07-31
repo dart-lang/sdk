@@ -2,8 +2,8 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/top_level_return_and_yield.dart:18:36: Error: A value of type 'dynamic Function(dynamic)' can't be assigned to a variable of type 'FutureOr<int Function(int)>'.
-//  - 'FutureOr' is from 'dart:async'.
+// pkg/front_end/testcases/inference/top_level_return_and_yield.dart:18:36: Error: A value of type 'Future<dynamic Function(dynamic)>' can't be assigned to a variable of type 'FutureOr<int Function(int)>'.
+//  - 'Future' is from 'dart:async'.
 //   return /*@ returnType=dynamic */ (/*@ type=dynamic */ x) => x;
 //                                    ^
 //
@@ -18,10 +18,10 @@ static method a() → (core::int*) →* core::int* {
   return (core::int* x) → core::int* => x;
 }
 static method b() → asy::Future<(core::int*) →* core::int*>* async {
-  return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/top_level_return_and_yield.dart:18:36: Error: A value of type 'dynamic Function(dynamic)' can't be assigned to a variable of type 'FutureOr<int Function(int)>'.
- - 'FutureOr' is from 'dart:async'.
+  return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/top_level_return_and_yield.dart:18:36: Error: A value of type 'Future<dynamic Function(dynamic)>' can't be assigned to a variable of type 'FutureOr<int Function(int)>'.
+ - 'Future' is from 'dart:async'.
   return /*@ returnType=dynamic */ (/*@ type=dynamic */ x) => x;
-                                   ^" in ((dynamic x) → dynamic => x) as{TypeError} asy::FutureOr<(core::int*) →* core::int*>*;
+                                   ^" in ((dynamic x) → dynamic => x) as{TypeError} FutureOr<(core::int*) →* core::int*>*;
 }
 static method c() → core::Iterable<(core::int*) →* core::int*>* sync* {
   yield(core::int* x) → core::int* => x;

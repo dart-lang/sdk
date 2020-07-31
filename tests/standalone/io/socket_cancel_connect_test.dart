@@ -19,6 +19,7 @@ void main() {
   Socket.startConnect("8.8.8.7", 80).then((task) {
     task.socket.timeout(timeout, onTimeout: () {
       task.cancel();
+      return task.socket;
     });
     task.socket.then((socket) {
       Expect.fail("Unexpected connection made.");

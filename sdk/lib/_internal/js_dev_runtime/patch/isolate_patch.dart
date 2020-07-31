@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // Patch file for the dart:isolate library.
 
 import 'dart:_js_helper' show patch, NoReifyGeneric;
@@ -18,36 +16,37 @@ class Isolate {
   static Isolate get current => _unsupported();
 
   @patch
-  String get debugName => _unsupported();
+  String? get debugName => _unsupported();
 
   @patch
-  static Future<Uri> get packageRoot => _unsupported();
+  static Future<Uri?> get packageRoot => _unsupported();
 
   @patch
-  static Future<Uri> get packageConfig => _unsupported();
+  static Future<Uri?> get packageConfig => _unsupported();
 
   @patch
-  static Future<Uri> resolvePackageUri(Uri packageUri) => _unsupported();
+  static Future<Uri?> resolvePackageUri(Uri packageUri) => _unsupported();
 
   @patch
   static Future<Isolate> spawn<T>(void entryPoint(T message), T message,
           {bool paused = false,
-          bool errorsAreFatal,
-          SendPort onExit,
-          SendPort onError}) =>
+          bool errorsAreFatal = true,
+          SendPort? onExit,
+          SendPort? onError}) =>
       _unsupported();
 
   @patch
   static Future<Isolate> spawnUri(Uri uri, List<String> args, var message,
           {bool paused = false,
-          SendPort onExit,
-          SendPort onError,
-          bool errorsAreFatal,
-          bool checked,
-          Map<String, String> environment,
-          Uri packageRoot,
-          Uri packageConfig,
-          bool automaticPackageResolution = false}) =>
+          SendPort? onExit,
+          SendPort? onError,
+          bool errorsAreFatal = true,
+          bool? checked,
+          Map<String, String>? environment,
+          Uri? packageRoot,
+          Uri? packageConfig,
+          bool automaticPackageResolution = false,
+          String? debugName}) =>
       _unsupported();
 
   @patch
@@ -57,7 +56,7 @@ class Isolate {
   void resume(Capability resumeCapability) => _unsupported();
 
   @patch
-  void addOnExitListener(SendPort responsePort, {Object response}) =>
+  void addOnExitListener(SendPort responsePort, {Object? response}) =>
       _unsupported();
 
   @patch
@@ -70,7 +69,7 @@ class Isolate {
   void kill({int priority = beforeNextEvent}) => _unsupported();
   @patch
   void ping(SendPort responsePort,
-          {Object response, int priority = immediate}) =>
+          {Object? response, int priority = immediate}) =>
       _unsupported();
 
   @patch
@@ -99,13 +98,17 @@ class _ReceivePort extends Stream implements ReceivePort {
 
   get sendPort => _unsupported();
 
-  listen(onData, {onError, onDone, cancelOnError}) => _unsupported();
+  StreamSubscription listen(void Function(dynamic)? onData,
+          {Function? onError,
+          void Function()? onDone,
+          bool? cancelOnError = true}) =>
+      _unsupported();
 }
 
 @patch
 class RawReceivePort {
   @patch
-  factory RawReceivePort([void handler(event)]) => _unsupported();
+  factory RawReceivePort([Function? handler]) => _unsupported();
 }
 
 @patch

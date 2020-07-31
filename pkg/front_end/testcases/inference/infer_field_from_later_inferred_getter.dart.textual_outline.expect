@@ -1,0 +1,15 @@
+library test;
+
+class A implements B {
+  var x;
+}
+
+abstract class B implements C {
+  get x;
+}
+
+abstract class C {
+  int get x;
+}
+
+main() {}

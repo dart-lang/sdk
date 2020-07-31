@@ -156,7 +156,7 @@ void test5(int totalConnections) {
             // TODO(sgjesse): Make this test work with
             //request.response instead of request.close() return
             //return request.response;
-            request.done.catchError((e) {});
+            Future<HttpClientResponse?>.value(request.done).catchError((e) {});
             return request.close();
           })
           .then((response) {})

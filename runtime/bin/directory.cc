@@ -260,7 +260,7 @@ void Directory::SetSystemTemp(const char* path) {
     system_temp_path_override_ = NULL;
   }
   if (path != NULL) {
-    system_temp_path_override_ = strdup(path);
+    system_temp_path_override_ = Utils::StrDup(path);
   }
 }
 
@@ -453,7 +453,7 @@ bool AsyncDirectoryListing::AddFileSystemEntityToResponse(Response type,
     size_t len = strlen(arg);
     Dart_CObject* io_buffer = CObject::NewIOBuffer(len);
     uint8_t* data = io_buffer->value.as_external_typed_data.data;
-    strncpy(reinterpret_cast<char*>(data), arg, len);
+    memmove(reinterpret_cast<char*>(data), arg, len);
 
     CObjectExternalUint8Array* external_array =
         new CObjectExternalUint8Array(io_buffer);

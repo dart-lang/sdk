@@ -1,0 +1,14 @@
+import 'required_name_override_lib.dart';
+
+class A extends B implements C {
+  void test_default({required int? i}) {}
+  void test_legacy({required int? i}) {}
+  void test_nondefault({required int? i}) {}
+}
+
+class B {
+  void test_default({int? i}) {}
+  void test_nondefault({int? i = 1}) {}
+}
+
+main() {}

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file
 
-// @dart = 2.6
-
 /**
  * Foreign Function Interface for interoperability with the C programming language.
  *
@@ -15,8 +13,8 @@
  */
 library dart.ffi;
 
-import 'dart:typed_data';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 part "native_type.dart";
 part "annotations.dart";
@@ -30,7 +28,7 @@ external int sizeOf<T extends NativeType>();
 
 /// Represents a pointer into the native C memory corresponding to "NULL", e.g.
 /// a pointer with address 0.
-final Pointer<Null> nullptr = Pointer.fromAddress(0);
+final Pointer<Never> nullptr = Pointer.fromAddress(0);
 
 /// Represents a pointer into the native C memory. Cannot be extended.
 @pragma("vm:entry-point")
@@ -56,7 +54,7 @@ class Pointer<T extends NativeType> extends NativeType {
   /// [dynamic].
   external static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
       @DartRepresentationOf("T") Function f,
-      [Object exceptionalReturn]);
+      [Object? exceptionalReturn]);
 
   /// Access to the raw pointer value.
   /// On 32-bit systems, the upper 32-bits of the result are 0.
@@ -69,9 +67,10 @@ class Pointer<T extends NativeType> extends NativeType {
   external Pointer<U> cast<U extends NativeType>();
 
   /// Equality for Pointers only depends on their address.
-  bool operator ==(other) {
-    if (other == null) return false;
-    return address == other.address;
+  bool operator ==(Object other) {
+    if (other is! Pointer) return false;
+    Pointer otherPointer = other;
+    return address == otherPointer.address;
   }
 
   /// The hash code for a Pointer only depends on its address.
@@ -102,10 +101,6 @@ extension Int8Pointer on Pointer<Int8> {
   /// being stored, and the 8-bit value is sign-extended when it is loaded.
   external int get value;
 
-  /// The 8-bit two's complement integer at [address].
-  ///
-  /// A Dart integer is truncated to 8 bits (as if by `.toSigned(8)`) before
-  /// being stored, and the 8-bit value is sign-extended when it is loaded.
   external void set value(int value);
 
   /// The 8-bit two's complement integer at `address + index`.
@@ -140,12 +135,6 @@ extension Int16Pointer on Pointer<Int16> {
   /// The [address] must be 2-byte aligned.
   external int get value;
 
-  /// The 16-bit two's complement integer at [address].
-  ///
-  /// A Dart integer is truncated to 16 bits (as if by `.toSigned(16)`) before
-  /// being stored, and the 16-bit value is sign-extended when it is loaded.
-  ///
-  /// The [address] must be 2-byte aligned.
   external void set value(int value);
 
   /// The 16-bit two's complement integer at `address + 2 * index`.
@@ -186,12 +175,6 @@ extension Int32Pointer on Pointer<Int32> {
   /// The [address] must be 4-byte aligned.
   external int get value;
 
-  /// The 32-bit two's complement integer at [address].
-  ///
-  /// A Dart integer is truncated to 32 bits (as if by `.toSigned(32)`) before
-  /// being stored, and the 32-bit value is sign-extended when it is loaded.
-  ///
-  /// The [address] must be 4-byte aligned.
   external void set value(int value);
 
   /// The 32-bit two's complement integer at `address + 4 * index`.
@@ -229,9 +212,6 @@ extension Int64Pointer on Pointer<Int64> {
   /// The [address] must be 8-byte aligned.
   external int get value;
 
-  /// The 64-bit two's complement integer at [address].
-  ///
-  /// The [address] must be 8-byte aligned.
   external void set value(int value);
 
   /// The 64-bit two's complement integer at `address + 8 * index`.
@@ -264,10 +244,6 @@ extension Uint8Pointer on Pointer<Uint8> {
   /// being stored, and the 8-bit value is zero-extended when it is loaded.
   external int get value;
 
-  /// The 8-bit unsigned integer at [address].
-  ///
-  /// A Dart integer is truncated to 8 bits (as if by `.toUnsigned(8)`) before
-  /// being stored, and the 8-bit value is zero-extended when it is loaded.
   external void set value(int value);
 
   /// The 8-bit unsigned integer at `address + index`.
@@ -302,12 +278,6 @@ extension Uint16Pointer on Pointer<Uint16> {
   /// The [address] must be 2-byte aligned.
   external int get value;
 
-  /// The 16-bit unsigned integer at [address].
-  ///
-  /// A Dart integer is truncated to 16 bits (as if by `.toUnsigned(16)`) before
-  /// being stored, and the 16-bit value is zero-extended when it is loaded.
-  ///
-  /// The [address] must be 2-byte aligned.
   external void set value(int value);
 
   /// The 16-bit unsigned integer at `address + 2 * index`.
@@ -348,12 +318,6 @@ extension Uint32Pointer on Pointer<Uint32> {
   /// The [address] must be 4-byte aligned.
   external int get value;
 
-  /// The 32-bit unsigned integer at [address].
-  ///
-  /// A Dart integer is truncated to 32 bits (as if by `.toUnsigned(32)`) before
-  /// being stored, and the 32-bit value is zero-extended when it is loaded.
-  ///
-  /// The [address] must be 4-byte aligned.
   external void set value(int value);
 
   /// The 32-bit unsigned integer at `address + 4 * index`.
@@ -391,9 +355,6 @@ extension Uint64Pointer on Pointer<Uint64> {
   /// The [address] must be 8-byte aligned.
   external int get value;
 
-  /// The 64-bit unsigned integer at [address].
-  ///
-  /// The [address] must be 8-byte aligned.
   external void set value(int value);
 
   /// The 64-bit unsigned integer at `address + 8 * index`.
@@ -433,17 +394,6 @@ extension IntPtrPointer on Pointer<IntPtr> {
   /// platforms the [address] must be 8-byte aligned.
   external int get value;
 
-  /// The 32 or 64-bit two's complement integer at [address].
-  ///
-  /// On 32-bit platforms this is a 32-bit integer, and on 64-bit platforms
-  /// this is a 64-bit integer.
-  ///
-  /// On 32-bit platforms a Dart integer is truncated to 32 bits (as if by
-  /// `.toSigned(32)`) before being stored, and the 32-bit value is
-  /// sign-extended when it is loaded.
-  ///
-  /// On 32-bit platforms the [address] must be 4-byte aligned, and on 64-bit
-  /// platforms the [address] must be 8-byte aligned.
   external void set value(int value);
 
   /// The 32 or 64-bit two's complement integer at `address + (4 or 8) * index`.
@@ -483,12 +433,6 @@ extension FloatPointer on Pointer<Float> {
   /// The [address] must be 4-byte aligned.
   external double get value;
 
-  /// The float at [address].
-  ///
-  /// A Dart double loses precision before being stored, and the float value is
-  /// converted to a double when it is loaded.
-  ///
-  /// The [address] must be 4-byte aligned.
   external void set value(double value);
 
   /// The float at `address + 4 * index`.
@@ -526,9 +470,6 @@ extension DoublePointer on Pointer<Double> {
   /// The [address] must be 8-byte aligned.
   external double get value;
 
-  /// The double at [address].
-  ///
-  /// The [address] must be 8-byte aligned.
   external void set value(double value);
 
   /// The double at `address + 8 * index`.
@@ -568,13 +509,6 @@ extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
   /// platforms the [address] must be 8-byte aligned.
   external Pointer<T> get value;
 
-  /// Store a Dart value into this location.
-  ///
-  /// A [Pointer] is unboxed before being stored (as if by `.address`), and the
-  /// pointer is boxed (as if by `Pointer.fromAddress`) when loaded.
-  ///
-  /// On 32-bit platforms the [address] must be 4-byte aligned, and on 64-bit
-  /// platforms the [address] must be 8-byte aligned.
   external void set value(Pointer<T> value);
 
   /// Load a Dart value from this location offset by [index].
@@ -628,8 +562,19 @@ class Dart_CObject extends Struct {}
 
 typedef Dart_NativeMessageHandler = Void Function(Int64, Pointer<Dart_CObject>);
 
-/// Exposes function pointers to functions in `dart_native_api.h`.
+/// Utilities for accessing the Dart VM API from Dart code or
+/// from C code via `dart_api_dl.h`.
 abstract class NativeApi {
+  /// On breaking changes the major version is increased.
+  ///
+  /// The versioning covers the API surface in `dart_api_dl.h`.
+  external static int get majorVersion;
+
+  /// On backwards compatible changes the minor version is increased.
+  ///
+  /// The versioning covers the API surface in `dart_api_dl.h`.
+  external static int get minorVersion;
+
   /// A function pointer to
   /// `bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message)`
   /// in `dart_native_api.h`.
@@ -656,4 +601,8 @@ abstract class NativeApi {
   /// in `dart_native_api.h`.
   external static Pointer<NativeFunction<Int8 Function(Int64)>>
       get closeNativePort;
+
+  /// Pass this to `Dart_InitializeApiDL` in your native code to enable using the
+  /// symbols in `dart_api_dl.h`.
+  external static Pointer<Void> get initializeApiDLData;
 }

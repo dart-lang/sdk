@@ -26,13 +26,6 @@ VM_UNIT_TEST_CASE(SNPrint) {
   EXPECT_EQ(3, length);
 }
 
-// This test is expected to crash when it runs.
-VM_UNIT_TEST_CASE_WITH_EXPECTATION(SNPrint_BadArgs, "Crash") {
-  int width = kMaxInt32;
-  int num = 7;
-  Utils::SNPrint(NULL, 0, "%*d%*d", width, num, width, num);
-}
-
 VM_UNIT_TEST_CASE(OsFuncs) {
   EXPECT(Utils::IsPowerOfTwo(OS::ActivationFrameAlignment()));
   int procs = OS::NumberOfAvailableProcessors();

@@ -1,0 +1,24 @@
+T hest1<T>() => throw "hest";
+test1() { }
+class A2 {
+  String? foo;
+}
+test2(A2 a) { }
+test3() { }
+test4() { }
+class A5 {
+  void operator []=(int index, String? value) { }
+  String? operator [](int index) => null;
+}
+class B5 extends A5 {
+  test5() { }
+}
+extension E6 ;
+on double (){ }
+test6() { }
+class A7 {
+  String foo = "foo";
+  String? bar;
+}
+test7(A7? a) { }
+main() { }

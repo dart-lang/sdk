@@ -1,0 +1,55 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+static method test1(dynamic stringList) → dynamic {
+  core::Set<core::int*>* intSet = block {
+    final core::Set<core::int*>* #t1 = col::LinkedHashSet::•<core::int*>();
+    final core::Iterable<dynamic>* #t2 = stringList as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    if(!#t2.{core::Object::==}(null))
+      for (final dynamic #t3 in #t2) {
+        final core::int* #t4 = #t3 as{TypeError} core::int*;
+        #t1.{core::Set::add}(#t4);
+      }
+  } =>#t1;
+}
+static method test2(dynamic stringList) → dynamic {
+  core::List<core::int*>* intList = block {
+    final core::List<core::int*>* #t5 = <core::int*>[];
+    final core::Iterable<dynamic>* #t6 = stringList as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    if(!#t6.{core::Object::==}(null))
+      for (final dynamic #t7 in #t6) {
+        final core::int* #t8 = #t7 as{TypeError} core::int*;
+        #t5.{core::List::add}(#t8);
+      }
+  } =>#t5;
+}
+static method test3(dynamic stringMap) → dynamic {
+  core::Map<core::int*, core::int*>* intMap = block {
+    final core::Map<core::int*, core::int*>* #t9 = <core::int*, core::int*>{};
+    final core::Map<dynamic, dynamic>* #t10 = stringMap as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*;
+    if(!#t10.{core::Object::==}(null))
+      for (final core::MapEntry<dynamic, dynamic>* #t11 in #t10.{core::Map::entries}) {
+        final core::int* #t12 = #t11.{core::MapEntry::key} as{TypeError} core::int*;
+        final core::int* #t13 = #t11.{core::MapEntry::value} as{TypeError} core::int*;
+        #t9.{core::Map::[]=}(#t12, #t13);
+      }
+  } =>#t9;
+}
+static method main() → dynamic {
+  dynamic stringList = <core::String*>["string"];
+  exp::Expect::throwsTypeError(() → core::Null? {
+    self::test1(stringList);
+  });
+  exp::Expect::throwsTypeError(() → core::Null? {
+    self::test2(stringList);
+  });
+  dynamic stringMap = <core::String*, core::String*>{"a": "b"};
+  exp::Expect::throwsTypeError(() → core::Null? {
+    self::test3(stringMap);
+  });
+}

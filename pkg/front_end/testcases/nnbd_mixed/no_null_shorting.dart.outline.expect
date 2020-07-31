@@ -1,0 +1,38 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/no_null_shorting.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.6
+// ^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field self::Class field;
+  synthetic constructor •() → self::Class
+    ;
+  method method() → self::Class
+    ;
+  operator [](self::Class key) → self::Class
+    ;
+  operator []=(self::Class key, self::Class value) → void
+    ;
+  operator +(core::int value) → self::Class
+    ;
+  operator unary-() → self::Class
+    ;
+}
+static method main() → dynamic
+  ;
+static method propertyAccess(self::Class c) → void
+  ;
+static method indexAccess(self::Class c) → void
+  ;
+static method operatorAccess(self::Class c) → void
+  ;
+static method ifNull(self::Class c) → void
+  ;
+static method throws(() → void f) → void
+  ;

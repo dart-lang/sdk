@@ -1290,6 +1290,35 @@ const MessageCode messageConstEvalStartingPoint = const MessageCode(
     message: r"""Constant evaluation error:""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateConstEvalTruncateError = const Template<
+        Message Function(String string, String string2)>(
+    messageTemplate:
+        r"""Binary operator '#string ~/ #string2' results is Infinity or NaN.""",
+    withArguments: _withArgumentsConstEvalTruncateError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeConstEvalTruncateError =
+    const Code<Message Function(String string, String string2)>(
+  "ConstEvalTruncateError",
+  templateConstEvalTruncateError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalTruncateError(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeConstEvalTruncateError,
+      message:
+          """Binary operator '${string} ~/ ${string2}' results is Infinity or NaN.""",
+      arguments: {'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalUnevaluated = messageConstEvalUnevaluated;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2879,29 +2908,33 @@ const MessageCode messageExpectedUri =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        String string,
         String
-            string)> templateExperimentNotEnabled = const Template<
-        Message Function(String string)>(
+            string2)> templateExperimentNotEnabled = const Template<
+        Message Function(String string, String string2)>(
     messageTemplate:
-        r"""This requires the '#string' experiment to be enabled.""",
+        r"""This requires the '#string' language feature to be enabled.""",
     tipTemplate:
-        r"""Try enabling this experiment by adding it to the command line when compiling and running.""",
+        r"""Try updating your pubspec.yaml to set the minimum SDK constraint to #string2 or higher, and running 'pub get'.""",
     withArguments: _withArgumentsExperimentNotEnabled);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeExperimentNotEnabled =
-    const Code<Message Function(String string)>(
+const Code<Message Function(String string, String string2)>
+    codeExperimentNotEnabled =
+    const Code<Message Function(String string, String string2)>(
         "ExperimentNotEnabled", templateExperimentNotEnabled,
         index: 48);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExperimentNotEnabled(String string) {
+Message _withArgumentsExperimentNotEnabled(String string, String string2) {
   if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
   return new Message(codeExperimentNotEnabled,
-      message: """This requires the '${string}' experiment to be enabled.""",
+      message:
+          """This requires the '${string}' language feature to be enabled.""",
       tip:
-          """Try enabling this experiment by adding it to the command line when compiling and running.""",
-      arguments: {'string': string});
+          """Try updating your pubspec.yaml to set the minimum SDK constraint to ${string2} or higher, and running 'pub get'.""",
+      arguments: {'string': string, 'string2': string2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3405,9 +3438,6 @@ const MessageCode messageFastaUsageLong =
   --sdk=<sdk>
     Location of the SDK sources for use when compiling additional platform
     libraries.
-
-  --supermixin
-    Ignored for now.
 
   --single-root-scheme=String
   --single-root-base=<dir>
@@ -7512,6 +7542,26 @@ const MessageCode messageReturnWithoutExpression = const MessageCode(
     message: r"""Must explicitly return a value from a non-void function.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeReturnWithoutExpressionAsync =
+    messageReturnWithoutExpressionAsync;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageReturnWithoutExpressionAsync = const MessageCode(
+    "ReturnWithoutExpressionAsync",
+    message:
+        r"""A value must be explicitly returned from a non-void async function.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeReturnWithoutExpressionSync =
+    messageReturnWithoutExpressionSync;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageReturnWithoutExpressionSync = const MessageCode(
+    "ReturnWithoutExpressionSync",
+    message:
+        r"""A value must be explicitly returned from a non-void function.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_)> templateSdkRootNotFound =
     const Template<Message Function(Uri uri_)>(
         messageTemplate: r"""SDK root directory not found: #uri.""",
@@ -7812,6 +7862,15 @@ const MessageCode messageStaticOperator = const MessageCode("StaticOperator",
     index: 17,
     message: r"""Operators can't be static.""",
     tip: r"""Try removing the keyword 'static'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeStrongModeNNBDButOptOut = messageStrongModeNNBDButOptOut;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageStrongModeNNBDButOptOut = const MessageCode(
+    "StrongModeNNBDButOptOut",
+    message:
+        r"""A library can't opt out of null safety by default, when using sound null safety.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperAsExpression = messageSuperAsExpression;
@@ -8425,6 +8484,14 @@ const MessageCode messageTypeVariableSameNameAsEnclosing = const MessageCode(
         r"""A type variable can't have the same name as its enclosing declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeTypedefCause = messageTypedefCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageTypedefCause = const MessageCode("TypedefCause",
+    severity: Severity.context,
+    message: r"""The issue arises via this type alias.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeTypedefInClass = messageTypedefInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8477,6 +8544,16 @@ const MessageCode messageTypedefTypeVariableNotConstructorCause =
     const MessageCode("TypedefTypeVariableNotConstructorCause",
         severity: Severity.context,
         message: r"""This is the type variable ultimately denoted.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeTypedefUnaliasedTypeCause =
+    messageTypedefUnaliasedTypeCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageTypedefUnaliasedTypeCause = const MessageCode(
+    "TypedefUnaliasedTypeCause",
+    severity: Severity.context,
+    message: r"""This is the type denoted by the type alias.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeUnexpectedDollarInString = messageUnexpectedDollarInString;
@@ -8734,6 +8811,16 @@ const MessageCode messageVarReturnType = const MessageCode("VarReturnType",
     message: r"""The return type can't be 'var'.""",
     tip:
         r"""Try removing the keyword 'var', or replacing it with the name of the return type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeVerificationErrorOriginContext =
+    messageVerificationErrorOriginContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageVerificationErrorOriginContext = const MessageCode(
+    "VerificationErrorOriginContext",
+    severity: Severity.context,
+    message: r"""The node most likely is taken from here by a transformer.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeVoidExpression = messageVoidExpression;

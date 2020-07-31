@@ -28,6 +28,7 @@ DART="$BIN_DIR/dart"
 
 unset EXTRA_VM_OPTIONS
 declare -a EXTRA_VM_OPTIONS
+EXTRA_VM_OPTIONS+=("--enable_experiment=non-nullable")
 
 case $0 in
   *_developer)

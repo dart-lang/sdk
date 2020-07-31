@@ -291,7 +291,7 @@ static method throws(() → void f) → void {
   try {
     f.call();
   }
-  on dynamic catch(final dynamic _) {
+  on core::Object catch(final core::Object _) {
     return;
   }
   throw "Expected exception.";

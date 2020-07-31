@@ -11,6 +11,7 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/utils.h"
 
 namespace dart {
 
@@ -34,14 +35,12 @@ class Loader;
 class IsolateGroupData {
  public:
   IsolateGroupData(const char* url,
-                   const char* package_root,
                    const char* packages_file,
                    AppSnapshot* app_snapshot,
                    bool isolate_run_app_snapshot);
   ~IsolateGroupData();
 
   char* script_url;
-  char* package_root;
 
   const std::shared_ptr<uint8_t>& kernel_buffer() const {
     return kernel_buffer_;
@@ -85,7 +84,7 @@ class IsolateGroupData {
       free(resolved_packages_config_);
       resolved_packages_config_ = NULL;
     }
-    resolved_packages_config_ = strdup(packages_config);
+    resolved_packages_config_ = Utils::StrDup(packages_config);
   }
 
   bool RunFromAppSnapshot() const {
@@ -127,7 +126,7 @@ class IsolateData {
       free(packages_file_);
       packages_file_ = nullptr;
     }
-    packages_file_ = strdup(packages_file);
+    packages_file_ = Utils::StrDup(packages_file);
   }
 
   // While loading a loader is associated with the isolate.

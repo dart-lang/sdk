@@ -1,0 +1,72 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class A extends core::Object {
+[@vm.inferred-type.metadata=dart.core::_OneByteString] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  field core::String* nonNullable;
+[@vm.inferred-type.metadata=dart.core::_OneByteString?] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  field core::String* nullable;
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  field core::String* alwaysNull;
+  constructor •([@vm.inferred-type.metadata=dart.core::_OneByteString] core::String* nonNullable, [@vm.inferred-type.metadata=dart.core::_OneByteString?] core::String* nullable, {[@vm.inferred-type.metadata=dart.core::Null? (value: null)] core::String* alwaysNull = #C1}) → self::A*
+    : self::A::nonNullable = nonNullable, self::A::nullable = nullable, self::A::alwaysNull = alwaysNull, super core::Object::•()
+    ;
+}
+[@vm.inferred-type.metadata=#lib::A?]static field self::A* staticField = let core::String* #t1 = "hi" in let core::String* #t2 = "bye" in new self::A::•(#t1, #t2);
+static method testNonNullableIf1([@vm.inferred-type.metadata=#lib::A?] self::A* a) → dynamic {
+  if(let dynamic #t3 = [@vm.direct-call.metadata=#lib::A.nonNullable??] [@vm.inferred-type.metadata=dart.core::_OneByteString] a.{self::A::nonNullable} in false) {
+    core::print("null");
+  }
+}
+static method testNullableIf1([@vm.inferred-type.metadata=#lib::A?] self::A* a) → dynamic {
+  if([@vm.direct-call.metadata=#lib::A.nullable??] [@vm.inferred-type.metadata=dart.core::_OneByteString?] a.{self::A::nullable}.{core::String::==}(null)) {
+    core::print("null");
+  }
+}
+static method testAlwaysNullIf1([@vm.inferred-type.metadata=#lib::A?] self::A* a) → dynamic {
+  if(let dynamic #t4 = [@vm.direct-call.metadata=#lib::A.alwaysNull??] [@vm.inferred-type.metadata=dart.core::Null? (value: null)] a.{self::A::alwaysNull} in true) {
+    core::print("null");
+  }
+}
+static method testNonNullableIf2([@vm.inferred-type.metadata=#lib::A?] self::A* a) → dynamic {
+  if(!(let dynamic #t5 = [@vm.direct-call.metadata=#lib::A.nonNullable??] [@vm.inferred-type.metadata=dart.core::_OneByteString] a.{self::A::nonNullable} in false) && _in::unsafeCast<core::bool*>([@vm.inferred-type.metadata=dart.core::bool] self::someCondition())) {
+    core::print("not null");
+  }
+}
+static method testNullableIf2([@vm.inferred-type.metadata=#lib::A?] self::A* a) → dynamic {
+  if(![@vm.direct-call.metadata=#lib::A.nullable??] [@vm.inferred-type.metadata=dart.core::_OneByteString?] a.{self::A::nullable}.{core::String::==}(null) && _in::unsafeCast<core::bool*>([@vm.inferred-type.metadata=dart.core::bool] self::someCondition())) {
+    core::print("not null");
+  }
+}
+static method testAlwaysNullIf2([@vm.inferred-type.metadata=#lib::A?] self::A* a) → dynamic {
+  if(!(let dynamic #t6 = [@vm.direct-call.metadata=#lib::A.alwaysNull??] [@vm.inferred-type.metadata=dart.core::Null? (value: null)] a.{self::A::alwaysNull} in true) && _in::unsafeCast<core::bool*>([@vm.inferred-type.metadata=dart.core::bool] self::someCondition())) {
+    core::print("not null");
+  }
+}
+static method testNonNullableCondExpr([@vm.inferred-type.metadata=#lib::A?] self::A* a) → dynamic
+  return !(let dynamic #t7 = [@vm.direct-call.metadata=#lib::A.nonNullable??] [@vm.inferred-type.metadata=dart.core::_OneByteString] a.{self::A::nonNullable} in false) ?{core::String*} "not null" : "null";
+static method testNullableCondExpr([@vm.inferred-type.metadata=#lib::A?] self::A* a) → dynamic
+  return ![@vm.direct-call.metadata=#lib::A.nullable??] [@vm.inferred-type.metadata=dart.core::_OneByteString?] a.{self::A::nullable}.{core::String::==}(null) ?{core::String*} "not null" : "null";
+static method testAlwaysNullCondExpr([@vm.inferred-type.metadata=#lib::A?] self::A* a) → dynamic
+  return !(let dynamic #t8 = [@vm.direct-call.metadata=#lib::A.alwaysNull??] [@vm.inferred-type.metadata=dart.core::Null? (value: null)] a.{self::A::alwaysNull} in true) ?{core::String*} "not null" : "null";
+static method someCondition() → dynamic
+  return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1").{core::num::==}(1);
+static method main() → void {
+  final core::List<self::A*>* list = <self::A*>[let core::String* #t9 = "foo" in let core::Null? #t10 = null in let core::Null? #t11 = null in new self::A::•(#t9, #t10, alwaysNull: #t11), self::staticField];
+  {
+    core::Iterator<self::A*>* :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::A*>] list.{core::Iterable::iterator};
+    for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      self::A* a = [@vm.direct-call.metadata=dart._internal::ListIterator.current] [@vm.inferred-type.metadata=#lib::A?] :sync-for-iterator.{core::Iterator::current};
+      {
+        self::testNonNullableIf1(a);
+        self::testNullableIf1(a);
+        self::testAlwaysNullIf1(a);
+        self::testNonNullableIf2(a);
+        self::testNullableIf2(a);
+        self::testAlwaysNullIf2(a);
+        self::testNonNullableCondExpr(a);
+        self::testNullableCondExpr(a);
+        self::testAlwaysNullCondExpr(a);
+      }
+    }
+  }
+}

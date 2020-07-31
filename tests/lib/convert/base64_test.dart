@@ -118,7 +118,7 @@ void testRoundtrip(List<int> list, String name) {
       for (int j = i; j < encoded.length; j += increment) {
         {
           // Using add/close
-          List<List<int>> results;
+          late List<List<int>> results;
           var sink = new ChunkedConversionSink<List<int>>.withCallback((v) {
             results = v;
           });
@@ -132,7 +132,7 @@ void testRoundtrip(List<int> list, String name) {
         }
         {
           // Using addSlice
-          List<List<int>> results;
+          late List<List<int>> results;
           var sink = new ChunkedConversionSink<List<int>>.withCallback((v) {
             results = v;
           });

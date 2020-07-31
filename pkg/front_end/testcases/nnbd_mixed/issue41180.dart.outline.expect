@@ -1,0 +1,52 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41180.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart = 2.5
+// ^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "issue41180_lib.dart" as iss;
+
+import "org-dartlang-testcase:///issue41180_lib.dart";
+
+class D<Y extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::D<self::D::Y%>
+    ;
+  method method() → iss::C<self::D::Y%>
+    ;
+}
+static method main() → void
+  ;
+static method findKey(iss::Map<core::String, dynamic> m, dynamic search) → void
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as iss;
+import "dart:core" as core;
+
+class C<X extends core::Object? = dynamic> extends core::Object {
+  constructor •(() → iss::Map<core::String, core::String> f) → iss::C<iss::C::X%>
+    ;
+}
+class Map<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object {
+  final field iss::Map::K% key;
+  final field iss::Map::V% value;
+  constructor •(iss::Map::K% key, iss::Map::V% value) → iss::Map<iss::Map::K%, iss::Map::V%>
+    ;
+  get entries() → iss::Iterable<core::MapEntry<iss::Map::K%, iss::Map::V%>>
+    ;
+}
+class Iterable<E extends core::Object? = dynamic> extends core::Object {
+  final field iss::Iterable::E% element;
+  constructor •(iss::Iterable::E% element) → iss::Iterable<iss::Iterable::E%>
+    ;
+  method singleWhere((iss::Iterable::E%) → core::bool test, {generic-covariant-impl () →? iss::Iterable::E% orElse}) → iss::Iterable::E%
+    ;
+}
+static method foo(() → iss::Map<core::String, core::String> f) → void
+  ;
+static set bar(() → iss::Map<core::String, core::String> f) → void
+  ;

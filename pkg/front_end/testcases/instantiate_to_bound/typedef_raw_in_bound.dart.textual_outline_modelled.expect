@@ -1,0 +1,4 @@
+class B<T extends A> {}
+
+main() {}
+typedef A<T extends num>(T p);

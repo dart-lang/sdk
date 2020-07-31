@@ -1,0 +1,6 @@
+// @dart = 2.6
+import 'issue41499b_lib.dart' as opt_in;
+
+main() {}
+test(LegacyFoo f) {}
+typedef void LegacyFoo();

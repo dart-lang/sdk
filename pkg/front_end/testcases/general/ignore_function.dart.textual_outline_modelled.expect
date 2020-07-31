@@ -1,0 +1,15 @@
+import "dart:core" as core;
+
+class A implements core.Function {
+  operator ==(other) => false;
+}
+
+class B implements Function {
+  operator ==(other) => false;
+}
+
+class Function {
+  core.bool operator ==(core.Object other) => false;
+}
+
+main() {}

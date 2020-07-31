@@ -1,0 +1,12 @@
+library test;
+
+class C<T> extends D<T> {
+  f<U>(g) => null;
+}
+
+abstract class D<T> {
+  void f<U>(G<U> g);
+}
+
+typedef List<V> G<V>();
+main() {}

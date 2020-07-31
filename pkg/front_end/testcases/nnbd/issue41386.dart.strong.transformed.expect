@@ -1,0 +1,23 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue41386.dart:8:28: Error: The operator '%' isn't defined for the class 'Object?'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the operator to an existing operator, or defining a '%' operator.
+//   print(predicate((v) => v % 2 == 1)(3));
+//                            ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method predicate<T extends core::Object? = dynamic>((self::predicate::T%) → core::bool fn) → (self::predicate::T%) → core::bool
+  return (self::predicate::T% val) → core::bool => fn.call(val);
+static method test() → void {
+  core::print(self::predicate<core::Object?>((core::Object? v) → core::bool => invalid-expression "pkg/front_end/testcases/nnbd/issue41386.dart:8:28: Error: The operator '%' isn't defined for the class 'Object?'.
+ - 'Object' is from 'dart:core'.
+Try correcting the operator to an existing operator, or defining a '%' operator.
+  print(predicate((v) => v % 2 == 1)(3));
+                           ^".{core::Object::==}(1)).call(3));
+}
+static method main() → void {}

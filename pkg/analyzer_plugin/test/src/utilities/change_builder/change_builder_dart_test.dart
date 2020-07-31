@@ -2804,15 +2804,8 @@ class B extends A {
       }
     }
 
-    var targetType = targetElement.instantiate(
-      typeArguments: targetElement.typeParameters
-          .map((e) => e.instantiate(nullabilitySuffix: NullabilitySuffix.star))
-          .toList(),
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-
-    var inherited = InheritanceManager3().getInherited(
-      targetType,
+    var inherited = InheritanceManager3().getInherited2(
+      targetElement,
       Name(null, nameToOverride),
     );
 

@@ -17,7 +17,7 @@ class B2 extends B1 {
 }
 
 class C1 {
-  factory C1 = C2<int?>; // Error in strong mode and Warning in weak mode.
+  factory C1() = C2<int?>; // Error in strong mode and Warning in weak mode.
 }
 
 class C2<X extends int> implements C1 {}

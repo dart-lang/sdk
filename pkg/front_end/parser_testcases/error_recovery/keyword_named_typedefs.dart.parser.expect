@@ -1,0 +1,281 @@
+NOTICE: Stream was rewritten by parser!
+
+typedef void abstract();
+typedef abstract = void Function();
+typedef void as();
+typedef as = void Function();
+typedef void assert();
+typedef assert = void Function();
+typedef void async();
+typedef async = void Function();
+typedef void await();
+typedef await = void Function();
+typedef void break();
+typedef break = void Function();
+typedef void case();
+typedef case = void Function();
+typedef void catch();
+typedef catch = void Function();
+typedef void class();
+typedef class = void Function();
+typedef void const();
+typedef const = void Function();
+typedef void continue();
+typedef continue = void Function();
+typedef void covariant();
+typedef covariant = void Function();
+typedef void default();
+typedef default = void Function();
+typedef void deferred();
+typedef deferred = void Function();
+typedef void do();
+typedef do = void Function();
+typedef void dynamic();
+typedef dynamic = void Function();
+typedef void else();
+typedef else = void Function();
+typedef void enum();
+typedef enum = void Function();
+typedef void export();
+typedef export = void Function();
+typedef void extends();
+typedef extends = void Function();
+typedef void extension();
+typedef extension = void Function();
+typedef void external();
+typedef external = void Function();
+typedef void factory();
+typedef factory = void Function();
+typedef void false();
+typedef false = void Function();
+typedef void final();
+typedef final = void Function();
+typedef void finally();
+typedef finally = void Function();
+typedef void for();
+typedef for = void Function();
+typedef void Function();
+typedef Function = void Function();
+typedef void get();
+typedef get = void Function();
+typedef void hide();
+typedef hide = void Function();
+typedef void if();
+typedef if = void Function();
+typedef void implements();
+typedef implements = void Function();
+typedef void import();
+typedef import = void Function();
+typedef void in();
+typedef in = void Function();
+typedef void inout();
+typedef inout = void Function();
+typedef void interface();
+typedef interface = void Function();
+typedef void is();
+typedef is = void Function();
+typedef void late();
+typedef late = void Function();
+typedef void library();
+typedef library = void Function();
+typedef void mixin();
+typedef mixin = void Function();
+typedef void native();
+typedef native = void Function();
+typedef void new();
+typedef new = void Function();
+typedef void null();
+typedef null = void Function();
+typedef void of();
+typedef of = void Function();
+typedef void on();
+typedef on = void Function();
+typedef void operator();
+typedef operator = void Function();
+typedef void out();
+typedef out = void Function();
+typedef void part();
+typedef part = void Function();
+typedef void patch();
+typedef patch = void Function();
+typedef void required();
+typedef required = void Function();
+typedef void rethrow();
+typedef rethrow = void Function();
+typedef void return();
+typedef return = void Function();
+typedef void set();
+typedef set = void Function();
+typedef void show();
+typedef show = void Function();
+typedef void source();
+typedef source = void Function();
+typedef void static();
+typedef static = void Function();
+typedef void super();
+typedef super = void Function();
+typedef void switch();
+typedef switch = void Function();
+typedef void sync();
+typedef sync = void Function();
+typedef void this();
+typedef this = void Function();
+typedef void throw();
+typedef throw = void Function();
+typedef void true();
+typedef true = void Function();
+typedef void try();
+typedef try = void Function();
+typedef void typedef();
+typedef typedef = void Function();
+typedef void var();
+typedef var = void Function();
+typedef void void();
+typedef void ();= void Function();
+typedef void while();
+typedef while = void Function();
+typedef void with();
+typedef with = void Function();
+typedef void yield();
+typedef yield = void Function();
+
+
+typedef[KeywordToken] void[KeywordToken] abstract[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] abstract[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] as[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] as[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] assert[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] assert[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] async[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] async[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] await[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] await[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] break[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] break[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] case[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] case[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] catch[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] catch[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] class[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] class[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] const[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] const[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] continue[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] continue[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] covariant[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] covariant[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] default[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] default[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] deferred[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] deferred[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] do[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] do[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] dynamic[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] dynamic[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] else[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] else[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] enum[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] enum[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] export[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] export[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] extends[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] extends[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] extension[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] extension[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] external[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] external[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] factory[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] factory[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] false[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] false[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] final[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] final[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] finally[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] finally[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] for[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] for[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] Function[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] get[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] get[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] hide[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] hide[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] if[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] if[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] implements[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] implements[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] import[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] import[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] in[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] in[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] inout[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] inout[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] interface[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] interface[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] is[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] is[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] late[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] late[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] library[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] library[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] mixin[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] mixin[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] native[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] native[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] new[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] null[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] null[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] of[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] of[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] on[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] on[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] operator[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] operator[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] out[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] out[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] part[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] part[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] patch[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] patch[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] required[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] required[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] rethrow[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] rethrow[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] return[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] return[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] set[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] set[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] show[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] show[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] source[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] source[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] static[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] static[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] super[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] super[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] switch[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] switch[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] sync[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] sync[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] this[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] this[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] throw[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] throw[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] true[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] true[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] try[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] try[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] typedef[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] typedef[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] var[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] var[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] void[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] [SyntheticStringToken]([SyntheticBeginToken])[SyntheticToken];[SyntheticToken]=[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] while[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] while[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] with[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] with[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] void[KeywordToken] yield[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] yield[KeywordToken] =[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+[SimpleToken]

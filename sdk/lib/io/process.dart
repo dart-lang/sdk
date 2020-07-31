@@ -2,26 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.io;
 
 // TODO(ager): The only reason for this class is that we
 // cannot patch a top-level at this point.
 class _ProcessUtils {
-  external static void _exit(int status);
+  external static Never _exit(int status);
   external static void _setExitCode(int status);
   external static int _getExitCode();
   external static void _sleep(int millis);
-  external static int _pid(Process process);
+  external static int _pid(Process? process);
   external static Stream<ProcessSignal> _watchSignal(ProcessSignal signal);
 }
 
 /**
  * Exit the Dart VM process immediately with the given exit code.
  *
- * This does not wait for any asynchronous operations to terminate. Using
- * [exit] is therefore very likely to lose data.
+ * This does not wait for any asynchronous operations to terminate nor execute
+ * `finally` blocks. Using [exit] is therefore very likely to lose data.
  *
  * While debugging, the VM will not respect the `--pause-isolates-on-exit`
  * flag if [exit] is called as invoking this method causes the Dart VM
@@ -51,7 +49,7 @@ class _ProcessUtils {
  * program to the surrounding environment. This will avoid any
  * cross-platform issues.
  */
-void exit(int code) {
+Never exit(int code) {
   ArgumentError.checkNotNull(code, "code");
   if (!_EmbedderConfig._mayExit) {
     throw new UnsupportedError(
@@ -363,8 +361,8 @@ abstract class Process {
    */
   external static Future<Process> start(
       String executable, List<String> arguments,
-      {String workingDirectory,
-      Map<String, String> environment,
+      {String? workingDirectory,
+      Map<String, String>? environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
       ProcessStartMode mode: ProcessStartMode.normal});
@@ -412,12 +410,12 @@ abstract class Process {
    */
   external static Future<ProcessResult> run(
       String executable, List<String> arguments,
-      {String workingDirectory,
-      Map<String, String> environment,
+      {String? workingDirectory,
+      Map<String, String>? environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      Encoding stdoutEncoding: systemEncoding,
-      Encoding stderrEncoding: systemEncoding});
+      Encoding? stdoutEncoding: systemEncoding,
+      Encoding? stderrEncoding: systemEncoding});
 
   /**
    * Starts a process and runs it to completion. This is a synchronous
@@ -430,12 +428,12 @@ abstract class Process {
    */
   external static ProcessResult runSync(
       String executable, List<String> arguments,
-      {String workingDirectory,
-      Map<String, String> environment,
+      {String? workingDirectory,
+      Map<String, String>? environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      Encoding stdoutEncoding: systemEncoding,
-      Encoding stderrEncoding: systemEncoding});
+      Encoding? stdoutEncoding: systemEncoding,
+      Encoding? stderrEncoding: systemEncoding});
 
   /**
    * Kills the process with id [pid].
@@ -695,8 +693,7 @@ class ProcessException implements IOException {
   const ProcessException(this.executable, this.arguments,
       [this.message = "", this.errorCode = 0]);
   String toString() {
-    var msg = (message == null) ? 'OS error code: $errorCode' : message;
     var args = arguments.join(' ');
-    return "ProcessException: $msg\n  Command: $executable $args";
+    return "ProcessException: $message\n  Command: $executable $args";
   }
 }

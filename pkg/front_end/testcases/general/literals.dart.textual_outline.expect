@@ -1,0 +1,9 @@
+testString() {}
+testInt() {}
+testBool() {}
+testDouble() {}
+testNull() {}
+testList() {}
+testMap() {}
+testSymbol() {}
+main() {}

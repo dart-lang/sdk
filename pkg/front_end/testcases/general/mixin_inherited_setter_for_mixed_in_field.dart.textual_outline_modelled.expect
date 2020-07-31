@@ -1,0 +1,14 @@
+class A {}
+
+class B extends A {}
+
+class C<T extends A> {
+  T _field;
+  foo(T x) {}
+}
+
+class D extends C<B> {}
+
+class Foo extends Object with C<B> {}
+
+main() {}

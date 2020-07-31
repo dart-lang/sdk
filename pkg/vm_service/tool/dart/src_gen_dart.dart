@@ -16,7 +16,7 @@ class DartGenerator {
   final int colBoundary;
 
   String _indent = "";
-  final StringBuffer _buf = new StringBuffer();
+  final StringBuffer _buf = StringBuffer();
 
   bool _previousWasEol = false;
 
@@ -86,7 +86,7 @@ class DartGenerator {
         _buf.write(_indent);
       }
 
-      _buf.write(new String.fromCharCode(rune));
+      _buf.write(String.fromCharCode(rune));
 
       _previousWasEol = rune == RUNE_EOL;
     }

@@ -7,7 +7,7 @@ import 'path.dart';
 import 'test_suite.dart';
 
 class Co19TestSuite extends StandardTestSuite {
-  static final _testRegExp = RegExp(r"t[0-9]{2}.dart$");
+  static final _testRegExp = RegExp(r"t[0-9]{2,3}.dart$");
 
   Co19TestSuite(TestConfiguration configuration, String selector)
       : super(configuration, selector, Path("tests/$selector/src"), [

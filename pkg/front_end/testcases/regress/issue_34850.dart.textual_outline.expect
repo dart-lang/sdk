@@ -1,0 +1,6 @@
+<
+foo< int >f1() { }
+foo Future<List<int>> ( ){ }
+f2() async => null;
+Future<List<>> f3() async { }
+main() async { }

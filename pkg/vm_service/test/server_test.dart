@@ -193,7 +193,7 @@ void main() {
       expect(
           responsesController.stream.map((response) => '$response'),
           emits(startsWith(
-              '{jsonrpc: 2.0, id: 1, error: {code: -32603, message: UnimplementedError')));
+              '{jsonrpc: 2.0, id: 1, error: {code: -32603, message: getVersion: UnimplementedError')));
       requestsController.add(request);
     });
   });

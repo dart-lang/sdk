@@ -1,0 +1,16 @@
+class A {
+  final x = null;
+  const A.named1() sync* { }
+  const A.named2() : x = new Object();
+}
+external foo(String x) { }
+class B {
+}
+class C {
+  B b;
+}
+abstract class AbstractClass {
+  const AbstractClass.id();
+}
+m() { }
+main() { }

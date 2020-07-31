@@ -1,0 +1,16 @@
+library test;
+
+T f<T>() => null;
+
+class A {}
+
+A aTopLevel;
+void set aTopLevelSetter(A value) {}
+
+class C {
+  A aField;
+  void set aSetter(A value) {}
+  void test() {}
+}
+
+main() {}

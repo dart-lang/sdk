@@ -16,7 +16,7 @@ namespace dart {
 static const uint32_t kTestPcOffset = 0x4;
 static const intptr_t kTestSpillSlotBitCount = 0;
 
-static RawCompressedStackMaps* MapsFromBuilder(BitmapBuilder* bmap) {
+static CompressedStackMapsPtr MapsFromBuilder(BitmapBuilder* bmap) {
   CompressedStackMapsBuilder builder;
   builder.AddEntry(kTestPcOffset, bmap, kTestSpillSlotBitCount);
   return builder.Finalize();

@@ -243,6 +243,8 @@ typedef struct _Dart_IsolateGroup* Dart_IsolateGroup;
 typedef struct _Dart_Handle* Dart_Handle;
 typedef Dart_Handle Dart_PersistentHandle;
 typedef struct _Dart_WeakPersistentHandle* Dart_WeakPersistentHandle;
+// These three structs are versioned by DART_API_DL_MAJOR_VERSION, bump the
+// version when changing this struct.
 
 typedef void (*Dart_WeakPersistentHandleFinalizer)(
     void* isolate_callback_data,
@@ -489,6 +491,9 @@ Dart_NewWeakPersistentHandle(Dart_Handle object,
 DART_EXPORT void Dart_DeleteWeakPersistentHandle(
     Dart_WeakPersistentHandle object);
 
+DART_EXPORT void Dart_UpdateExternalSize(Dart_WeakPersistentHandle object,
+                                         intptr_t external_allocation_size);
+
 /*
  * ==========================
  * Initialization and Globals
@@ -518,7 +523,7 @@ typedef struct {
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x0000000b)
+#define DART_FLAGS_CURRENT_VERSION (0x0000000c)
 
 typedef struct {
   int32_t version;
@@ -528,7 +533,6 @@ typedef struct {
   bool obfuscate;
   Dart_QualifiedFunctionName* entry_points;
   bool load_vmservice_library;
-  bool unsafe_trust_strong_mode_types;
   bool copy_parent_code;
   bool null_safety;
 } Dart_IsolateFlags;
@@ -571,15 +575,11 @@ DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags);
  *   eventually run.  This is provided for advisory purposes only to
  *   improve debugging messages.  The main function is not invoked by
  *   this function.
- * \param package_root The package root path for this isolate to resolve
- *   package imports against. Only one of package_root and package_map
- *   parameters is non-NULL. If neither parameter is passed the package
- *   resolution of the parent isolate should be used.
- * \param package_map The package map for this isolate to resolve package
- *   imports against. The array contains alternating keys and values,
- *   terminated by a NULL key. Only one of package_root and package_map
- *   parameters is non-NULL. If neither parameter is passed the package
- *   resolution of the parent isolate should be used.
+ * \param package_root Ignored.
+ * \param package_config Uri of the package configuration file (either in format
+ *   of .packages or .dart_tool/package_config.json) for this isolate
+ *   to resolve package imports against. If this parameter is not passed the
+ *   package resolution of the parent isolate should be used.
  * \param flags Default flags for this isolate being spawned. Either inherited
  *   from the spawning isolate or passed as parameters when spawning the
  *   isolate from Dart code.
@@ -848,6 +848,9 @@ DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_Initialize(
  *
  * \return NULL if cleanup is successful. Returns an error message otherwise.
  *   The caller is responsible for freeing the error message.
+ *
+ * NOTE: This function must not be called on a thread that was created by the VM
+ * itself.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_Cleanup();
 
@@ -1980,6 +1983,10 @@ DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle str,
 
 /**
  * Gets a UTF-8 encoded representation of a String.
+ *
+ * Any unpaired surrogate code points in the string will be converted as
+ * replacement characters (U+FFFD, 0xEF 0xBF 0xBD in UTF-8). If you need
+ * to preserve unpaired surrogates, use the Dart_StringToUTF16 function.
  *
  * \param str A string.
  * \param utf8_array Returns the String represented as UTF-8 code
@@ -3313,8 +3320,8 @@ typedef enum {
 
 typedef struct {
   Dart_KernelCompilationStatus status;
+  bool null_safety;
   char* error;
-
   uint8_t* kernel;
   intptr_t kernel_size;
 } Dart_KernelCompilationResult;
@@ -3354,16 +3361,6 @@ typedef struct {
   const char* uri;
   const char* source;
 } Dart_SourceFile;
-DART_EXPORT Dart_KernelCompilationResult
-Dart_CompileSourcesToKernel(const char* script_uri,
-                            const uint8_t* platform_kernel,
-                            intptr_t platform_kernel_size,
-                            int source_files_count,
-                            Dart_SourceFile source_files[],
-                            bool incremental_compile,
-                            const char* package_config,
-                            const char* multiroot_filepaths,
-                            const char* multiroot_scheme);
 
 DART_EXPORT Dart_KernelCompilationResult Dart_KernelListDependencies();
 
@@ -3379,6 +3376,49 @@ DART_EXPORT Dart_KernelCompilationResult Dart_KernelListDependencies();
 DART_EXPORT void Dart_SetDartLibrarySourcesKernel(
     const uint8_t* platform_kernel,
     const intptr_t platform_kernel_size);
+
+/**
+ * Detect the null safety opt-in status.
+ *
+ * When running from source, it is based on the opt-in status of `script_uri`.
+ * When running from a kernel buffer, it is based on the mode used when
+ *   generating `kernel_buffer`.
+ * When running from an appJIT or AOT snapshot, it is based on the mode used
+ *   when generating `snapshot_data`.
+ *
+ * \param script_uri Uri of the script that contains the source code
+ *
+ * \param package_config Uri of the package configuration file (either in format
+ *   of .packages or .dart_tool/package_config.json) for the null safety
+ *   detection to resolve package imports against. If this parameter is not
+ *   passed the package resolution of the parent isolate should be used.
+ *
+ * \param original_working_directory current working directory when the VM
+ *   process was launched, this is used to correctly resolve the path specified
+ *   for package_config.
+ *
+ * \param snapshot_data
+ *
+ * \param snapshot_instructions Buffers containing a snapshot of the
+ *   isolate or NULL if no snapshot is provided. If provided, the buffers must
+ *   remain valid until the isolate shuts down.
+ *
+ * \param kernel_buffer
+ *
+ * \param kernel_buffer_size A buffer which contains a kernel/DIL program. Must
+ *   remain valid until isolate shutdown.
+ *
+ * \return Returns true if the null safety is opted in by the input being
+ *   run `script_uri`, `snapshot_data` or `kernel_buffer`.
+ *
+ */
+DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
+                                       const char* package_config,
+                                       const char* original_working_directory,
+                                       const uint8_t* snapshot_data,
+                                       const uint8_t* snapshot_instructions,
+                                       const uint8_t* kernel_buffer,
+                                       intptr_t kernel_buffer_size);
 
 #define DART_KERNEL_ISOLATE_NAME "kernel-service"
 
@@ -3490,17 +3530,20 @@ typedef void (*Dart_StreamingWriteCallback)(void* callback_data,
 // Use the '...CSymbol' definitions for resolving through 'dlsym'. The actual
 // symbol names in the objects are given by the '...AsmSymbol' definitions.
 #if defined(__APPLE__)
+#define kSnapshotBuildIdCSymbol "kDartSnapshotBuildId"
 #define kVmSnapshotDataCSymbol "kDartVmSnapshotData"
 #define kVmSnapshotInstructionsCSymbol "kDartVmSnapshotInstructions"
 #define kIsolateSnapshotDataCSymbol "kDartIsolateSnapshotData"
 #define kIsolateSnapshotInstructionsCSymbol "kDartIsolateSnapshotInstructions"
 #else
+#define kSnapshotBuildIdCSymbol "_kDartSnapshotBuildId"
 #define kVmSnapshotDataCSymbol "_kDartVmSnapshotData"
 #define kVmSnapshotInstructionsCSymbol "_kDartVmSnapshotInstructions"
 #define kIsolateSnapshotDataCSymbol "_kDartIsolateSnapshotData"
 #define kIsolateSnapshotInstructionsCSymbol "_kDartIsolateSnapshotInstructions"
 #endif
 
+#define kSnapshotBuildIdAsmSymbol "_kDartSnapshotBuildId"
 #define kVmSnapshotDataAsmSymbol "_kDartVmSnapshotData"
 #define kVmSnapshotInstructionsAsmSymbol "_kDartVmSnapshotInstructions"
 #define kIsolateSnapshotDataAsmSymbol "_kDartIsolateSnapshotData"

@@ -75,7 +75,7 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
 
   TreeNode currentParent;
 
-  TreeNode get context => currentMember ?? currentClass;
+  TreeNode get currentClassOrMember => currentMember ?? currentClass;
 
   static void check(Component component, {bool isOutline, bool afterConst}) {
     component.accept(
@@ -104,7 +104,7 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   }
 
   problem(TreeNode node, String details, {TreeNode context}) {
-    context ??= this.context;
+    context ??= currentClassOrMember;
     throw new VerificationError(context, node, details);
   }
 
@@ -177,6 +177,10 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
       if (parameter.bound == null) {
         problem(
             currentParent, "Missing bound for type parameter '$parameter'.");
+      }
+      if (parameter.defaultType == null) {
+        problem(currentParent,
+            "Missing default type for type parameter '$parameter'.");
       }
       if (!typeParametersInScope.add(parameter)) {
         problem(parameter, "Type parameter '$parameter' redeclared.");

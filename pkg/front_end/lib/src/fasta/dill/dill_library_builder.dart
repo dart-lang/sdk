@@ -26,7 +26,8 @@ import 'package:kernel/ast.dart'
         StaticGet,
         StringConstant,
         StringLiteral,
-        Typedef;
+        Typedef,
+        Version;
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
@@ -137,11 +138,13 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   bool get isNonNullableByDefault => library.isNonNullableByDefault;
 
   @override
-  void setLanguageVersion(int major, int minor,
+  void setLanguageVersion(Version version,
       {int offset: 0, int length, bool explicit}) {}
 
+  @override
   Uri get importUri => library.importUri;
 
+  @override
   Uri get fileUri => library.fileUri;
 
   @override

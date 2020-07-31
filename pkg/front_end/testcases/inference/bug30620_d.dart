@@ -7,7 +7,7 @@ library test;
 
 String foo(obj) => obj is String
     ? /*@ promotedType=String* */ obj
-        . /*@target=String::toUpperCase*/ toUpperCase()
+        . /*@target=String.toUpperCase*/ toUpperCase()
     : null;
 
 main() {}

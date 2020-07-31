@@ -1,0 +1,2 @@
+spec=pkg/compiler/test/field_analysis/kfield_analysis_test.dart
+prod=pkg/compiler/test/field_analysis/kfield_analysis_test.dart

@@ -10,7 +10,8 @@ import 'util.dart';
 
 /// [simpleEntry] is the first step for parsing a literal entry
 /// without any control flow or spread collection operator.
-const LiteralEntryInfo simpleEntry = const LiteralEntryInfo(true, 0);
+const LiteralEntryInfo simpleEntry =
+    const LiteralEntryInfo(/* hasEntry = */ true, /* ifConditionDelta = */ 0);
 
 /// [LiteralEntryInfo] represents steps for processing an entry
 /// in a literal list, map, or set. These steps will handle parsing

@@ -191,6 +191,22 @@ class MonitorLocker : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(MonitorLocker);
 };
 
+// Leaves the given monitor during the scope of the object.
+class MonitorLeaveScope : public ValueObject {
+ public:
+  explicit MonitorLeaveScope(MonitorLocker* monitor)
+      : monitor_locker_(monitor) {
+    monitor_locker_->Exit();
+  }
+
+  virtual ~MonitorLeaveScope() { monitor_locker_->Enter(); }
+
+ private:
+  MonitorLocker* const monitor_locker_;
+
+  DISALLOW_COPY_AND_ASSIGN(MonitorLeaveScope);
+};
+
 /*
  * Safepoint mutex locker :
  * This locker abstraction should be used when the enclosing code could

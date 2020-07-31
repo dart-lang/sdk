@@ -1,0 +1,11 @@
+class Class {
+  @pragma('dart2js:noInline')
+  instanceMethod() { }
+  @pragma('dart2js:noInline')
+  static staticMethod() { }
+}
+extension Extension ;
+on Class (){ }
+@pragma('dart2js:noInline')
+topLevelMethod() { }
+main() { }

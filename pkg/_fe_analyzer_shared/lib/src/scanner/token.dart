@@ -119,177 +119,226 @@ class DocumentationCommentToken extends CommentToken {
   CommentToken copy() => new DocumentationCommentToken(type, _value, offset);
 }
 
+enum KeywordStyle {
+  reserved,
+  builtIn,
+  pseudo,
+}
+
 /**
  * The keywords in the Dart programming language.
  *
  * Clients may not extend, implement or mix-in this class.
  */
 class Keyword extends TokenType {
-  static const Keyword ABSTRACT =
-      const Keyword("abstract", "ABSTRACT", isBuiltIn: true, isModifier: true);
+  static const Keyword ABSTRACT = const Keyword(
+      "abstract", "ABSTRACT", KeywordStyle.builtIn,
+      isModifier: true);
 
-  static const Keyword AS = const Keyword("as", "AS",
-      precedence: RELATIONAL_PRECEDENCE, isBuiltIn: true);
+  static const Keyword AS = const Keyword("as", "AS", KeywordStyle.builtIn,
+      precedence: RELATIONAL_PRECEDENCE);
 
-  static const Keyword ASSERT = const Keyword("assert", "ASSERT");
+  static const Keyword ASSERT =
+      const Keyword("assert", "ASSERT", KeywordStyle.reserved);
 
-  static const Keyword ASYNC = const Keyword("async", "ASYNC", isPseudo: true);
+  static const Keyword ASYNC =
+      const Keyword("async", "ASYNC", KeywordStyle.pseudo);
 
-  static const Keyword AWAIT = const Keyword("await", "AWAIT", isPseudo: true);
+  static const Keyword AWAIT =
+      const Keyword("await", "AWAIT", KeywordStyle.pseudo);
 
-  static const Keyword BREAK = const Keyword("break", "BREAK");
+  static const Keyword BREAK =
+      const Keyword("break", "BREAK", KeywordStyle.reserved);
 
-  static const Keyword CASE = const Keyword("case", "CASE");
+  static const Keyword CASE =
+      const Keyword("case", "CASE", KeywordStyle.reserved);
 
-  static const Keyword CATCH = const Keyword("catch", "CATCH");
+  static const Keyword CATCH =
+      const Keyword("catch", "CATCH", KeywordStyle.reserved);
 
-  static const Keyword CLASS =
-      const Keyword("class", "CLASS", isTopLevelKeyword: true);
+  static const Keyword CLASS = const Keyword(
+      "class", "CLASS", KeywordStyle.reserved,
+      isTopLevelKeyword: true);
 
   static const Keyword CONST =
-      const Keyword("const", "CONST", isModifier: true);
+      const Keyword("const", "CONST", KeywordStyle.reserved, isModifier: true);
 
-  static const Keyword CONTINUE = const Keyword("continue", "CONTINUE");
+  static const Keyword CONTINUE =
+      const Keyword("continue", "CONTINUE", KeywordStyle.reserved);
 
-  static const Keyword COVARIANT = const Keyword("covariant", "COVARIANT",
-      isBuiltIn: true, isModifier: true);
+  static const Keyword COVARIANT = const Keyword(
+      "covariant", "COVARIANT", KeywordStyle.builtIn,
+      isModifier: true);
 
-  static const Keyword DEFAULT = const Keyword("default", "DEFAULT");
+  static const Keyword DEFAULT =
+      const Keyword("default", "DEFAULT", KeywordStyle.reserved);
 
   static const Keyword DEFERRED =
-      const Keyword("deferred", "DEFERRED", isBuiltIn: true);
+      const Keyword("deferred", "DEFERRED", KeywordStyle.builtIn);
 
-  static const Keyword DO = const Keyword("do", "DO");
+  static const Keyword DO = const Keyword("do", "DO", KeywordStyle.reserved);
 
   static const Keyword DYNAMIC =
-      const Keyword("dynamic", "DYNAMIC", isBuiltIn: true);
+      const Keyword("dynamic", "DYNAMIC", KeywordStyle.builtIn);
 
-  static const Keyword ELSE = const Keyword("else", "ELSE");
+  static const Keyword ELSE =
+      const Keyword("else", "ELSE", KeywordStyle.reserved);
 
-  static const Keyword ENUM =
-      const Keyword("enum", "ENUM", isTopLevelKeyword: true);
+  static const Keyword ENUM = const Keyword(
+      "enum", "ENUM", KeywordStyle.reserved,
+      isTopLevelKeyword: true);
 
-  static const Keyword EXPORT = const Keyword("export", "EXPORT",
-      isBuiltIn: true, isTopLevelKeyword: true);
+  static const Keyword EXPORT = const Keyword(
+      "export", "EXPORT", KeywordStyle.builtIn,
+      isTopLevelKeyword: true);
 
-  static const Keyword EXTENDS = const Keyword("extends", "EXTENDS");
+  static const Keyword EXTENDS =
+      const Keyword("extends", "EXTENDS", KeywordStyle.reserved);
 
-  static const Keyword EXTENSION = const Keyword("extension", "EXTENSION",
-      isBuiltIn: true, isTopLevelKeyword: true);
+  static const Keyword EXTENSION = const Keyword(
+      "extension", "EXTENSION", KeywordStyle.builtIn,
+      isTopLevelKeyword: true);
 
-  static const Keyword EXTERNAL =
-      const Keyword("external", "EXTERNAL", isBuiltIn: true, isModifier: true);
+  static const Keyword EXTERNAL = const Keyword(
+      "external", "EXTERNAL", KeywordStyle.builtIn,
+      isModifier: true);
 
   static const Keyword FACTORY =
-      const Keyword("factory", "FACTORY", isBuiltIn: true);
+      const Keyword("factory", "FACTORY", KeywordStyle.builtIn);
 
-  static const Keyword FALSE = const Keyword("false", "FALSE");
+  static const Keyword FALSE =
+      const Keyword("false", "FALSE", KeywordStyle.reserved);
 
   static const Keyword FINAL =
-      const Keyword("final", "FINAL", isModifier: true);
+      const Keyword("final", "FINAL", KeywordStyle.reserved, isModifier: true);
 
-  static const Keyword FINALLY = const Keyword("finally", "FINALLY");
+  static const Keyword FINALLY =
+      const Keyword("finally", "FINALLY", KeywordStyle.reserved);
 
-  static const Keyword FOR = const Keyword("for", "FOR");
+  static const Keyword FOR = const Keyword("for", "FOR", KeywordStyle.reserved);
 
   static const Keyword FUNCTION =
-      const Keyword("Function", "FUNCTION", isPseudo: true);
+      const Keyword("Function", "FUNCTION", KeywordStyle.pseudo);
 
-  static const Keyword GET = const Keyword("get", "GET", isBuiltIn: true);
+  static const Keyword GET = const Keyword("get", "GET", KeywordStyle.builtIn);
 
-  static const Keyword HIDE = const Keyword("hide", "HIDE", isPseudo: true);
+  static const Keyword HIDE =
+      const Keyword("hide", "HIDE", KeywordStyle.pseudo);
 
-  static const Keyword IF = const Keyword("if", "IF");
+  static const Keyword IF = const Keyword("if", "IF", KeywordStyle.reserved);
 
   static const Keyword IMPLEMENTS =
-      const Keyword("implements", "IMPLEMENTS", isBuiltIn: true);
+      const Keyword("implements", "IMPLEMENTS", KeywordStyle.builtIn);
 
-  static const Keyword IMPORT = const Keyword("import", "IMPORT",
-      isBuiltIn: true, isTopLevelKeyword: true);
+  static const Keyword IMPORT = const Keyword(
+      "import", "IMPORT", KeywordStyle.builtIn,
+      isTopLevelKeyword: true);
 
-  static const Keyword IN = const Keyword("in", "IN");
+  static const Keyword IN = const Keyword("in", "IN", KeywordStyle.reserved);
 
-  static const Keyword INOUT = const Keyword("inout", "INOUT", isPseudo: true);
+  static const Keyword INOUT =
+      const Keyword("inout", "INOUT", KeywordStyle.pseudo);
 
   static const Keyword INTERFACE =
-      const Keyword("interface", "INTERFACE", isBuiltIn: true);
+      const Keyword("interface", "INTERFACE", KeywordStyle.builtIn);
 
-  static const Keyword IS =
-      const Keyword("is", "IS", precedence: RELATIONAL_PRECEDENCE);
+  static const Keyword IS = const Keyword("is", "IS", KeywordStyle.reserved,
+      precedence: RELATIONAL_PRECEDENCE);
 
   static const Keyword LATE =
-      const Keyword("late", "LATE", isModifier: true, isBuiltIn: true);
+      const Keyword("late", "LATE", KeywordStyle.builtIn, isModifier: true);
 
-  static const Keyword LIBRARY = const Keyword("library", "LIBRARY",
-      isBuiltIn: true, isTopLevelKeyword: true);
+  static const Keyword LIBRARY = const Keyword(
+      "library", "LIBRARY", KeywordStyle.builtIn,
+      isTopLevelKeyword: true);
 
-  static const Keyword MIXIN =
-      const Keyword("mixin", "MIXIN", isBuiltIn: true, isTopLevelKeyword: true);
+  static const Keyword MIXIN = const Keyword(
+      "mixin", "MIXIN", KeywordStyle.builtIn,
+      isTopLevelKeyword: true);
 
   static const Keyword NATIVE =
-      const Keyword("native", "NATIVE", isPseudo: true);
+      const Keyword("native", "NATIVE", KeywordStyle.pseudo);
 
-  static const Keyword NEW = const Keyword("new", "NEW");
+  static const Keyword NEW = const Keyword("new", "NEW", KeywordStyle.reserved);
 
-  static const Keyword NULL = const Keyword("null", "NULL");
+  static const Keyword NULL =
+      const Keyword("null", "NULL", KeywordStyle.reserved);
 
-  static const Keyword OF = const Keyword("of", "OF", isPseudo: true);
+  static const Keyword OF = const Keyword("of", "OF", KeywordStyle.pseudo);
 
-  static const Keyword ON = const Keyword("on", "ON", isPseudo: true);
+  static const Keyword ON = const Keyword("on", "ON", KeywordStyle.pseudo);
 
   static const Keyword OPERATOR =
-      const Keyword("operator", "OPERATOR", isBuiltIn: true);
+      const Keyword("operator", "OPERATOR", KeywordStyle.builtIn);
 
-  static const Keyword OUT = const Keyword("out", "OUT", isPseudo: true);
+  static const Keyword OUT = const Keyword("out", "OUT", KeywordStyle.pseudo);
 
-  static const Keyword PART =
-      const Keyword("part", "PART", isBuiltIn: true, isTopLevelKeyword: true);
+  static const Keyword PART = const Keyword(
+      "part", "PART", KeywordStyle.builtIn,
+      isTopLevelKeyword: true);
 
-  static const Keyword PATCH = const Keyword("patch", "PATCH", isPseudo: true);
+  static const Keyword PATCH =
+      const Keyword("patch", "PATCH", KeywordStyle.pseudo);
 
-  static const Keyword REQUIRED =
-      const Keyword("required", "REQUIRED", isBuiltIn: true, isModifier: true);
+  static const Keyword REQUIRED = const Keyword(
+      "required", "REQUIRED", KeywordStyle.builtIn,
+      isModifier: true);
 
-  static const Keyword RETHROW = const Keyword("rethrow", "RETHROW");
+  static const Keyword RETHROW =
+      const Keyword("rethrow", "RETHROW", KeywordStyle.reserved);
 
-  static const Keyword RETURN = const Keyword("return", "RETURN");
+  static const Keyword RETURN =
+      const Keyword("return", "RETURN", KeywordStyle.reserved);
 
-  static const Keyword SET = const Keyword("set", "SET", isBuiltIn: true);
+  static const Keyword SET = const Keyword("set", "SET", KeywordStyle.builtIn);
 
-  static const Keyword SHOW = const Keyword("show", "SHOW", isPseudo: true);
+  static const Keyword SHOW =
+      const Keyword("show", "SHOW", KeywordStyle.pseudo);
 
   static const Keyword SOURCE =
-      const Keyword("source", "SOURCE", isPseudo: true);
+      const Keyword("source", "SOURCE", KeywordStyle.pseudo);
 
   static const Keyword STATIC =
-      const Keyword("static", "STATIC", isBuiltIn: true, isModifier: true);
+      const Keyword("static", "STATIC", KeywordStyle.builtIn, isModifier: true);
 
-  static const Keyword SUPER = const Keyword("super", "SUPER");
+  static const Keyword SUPER =
+      const Keyword("super", "SUPER", KeywordStyle.reserved);
 
-  static const Keyword SWITCH = const Keyword("switch", "SWITCH");
+  static const Keyword SWITCH =
+      const Keyword("switch", "SWITCH", KeywordStyle.reserved);
 
-  static const Keyword SYNC = const Keyword("sync", "SYNC", isPseudo: true);
+  static const Keyword SYNC =
+      const Keyword("sync", "SYNC", KeywordStyle.pseudo);
 
-  static const Keyword THIS = const Keyword("this", "THIS");
+  static const Keyword THIS =
+      const Keyword("this", "THIS", KeywordStyle.reserved);
 
-  static const Keyword THROW = const Keyword("throw", "THROW");
+  static const Keyword THROW =
+      const Keyword("throw", "THROW", KeywordStyle.reserved);
 
-  static const Keyword TRUE = const Keyword("true", "TRUE");
+  static const Keyword TRUE =
+      const Keyword("true", "TRUE", KeywordStyle.reserved);
 
-  static const Keyword TRY = const Keyword("try", "TRY");
+  static const Keyword TRY = const Keyword("try", "TRY", KeywordStyle.reserved);
 
-  static const Keyword TYPEDEF = const Keyword("typedef", "TYPEDEF",
-      isBuiltIn: true, isTopLevelKeyword: true);
+  static const Keyword TYPEDEF = const Keyword(
+      "typedef", "TYPEDEF", KeywordStyle.builtIn,
+      isTopLevelKeyword: true);
 
-  static const Keyword VAR = const Keyword("var", "VAR", isModifier: true);
+  static const Keyword VAR =
+      const Keyword("var", "VAR", KeywordStyle.reserved, isModifier: true);
 
-  static const Keyword VOID = const Keyword("void", "VOID");
+  static const Keyword VOID =
+      const Keyword("void", "VOID", KeywordStyle.reserved);
 
-  static const Keyword WHILE = const Keyword("while", "WHILE");
+  static const Keyword WHILE =
+      const Keyword("while", "WHILE", KeywordStyle.reserved);
 
-  static const Keyword WITH = const Keyword("with", "WITH");
+  static const Keyword WITH =
+      const Keyword("with", "WITH", KeywordStyle.reserved);
 
-  static const Keyword YIELD = const Keyword("yield", "YIELD", isPseudo: true);
+  static const Keyword YIELD =
+      const Keyword("yield", "YIELD", KeywordStyle.pseudo);
 
   static const List<Keyword> values = const <Keyword>[
     ABSTRACT,
@@ -368,49 +417,33 @@ class Keyword extends TokenType {
    */
   static final Map<String, Keyword> keywords = _createKeywordMap();
 
-  /**
-   * A flag indicating whether the keyword is "built-in" identifier.
-   */
-  @override
-  final bool isBuiltIn;
-
-  @override
-  final bool isPseudo;
+  final KeywordStyle keywordStyle;
 
   /**
    * Initialize a newly created keyword.
    */
-  const Keyword(String lexeme, String name,
-      {this.isBuiltIn: false,
-      bool isModifier: false,
-      this.isPseudo: false,
+  const Keyword(String lexeme, String name, this.keywordStyle,
+      {bool isModifier: false,
       bool isTopLevelKeyword: false,
       int precedence: NO_PRECEDENCE})
       : super(lexeme, name, precedence, KEYWORD_TOKEN,
             isModifier: isModifier, isTopLevelKeyword: isTopLevelKeyword);
 
+  @override
+  bool get isBuiltIn => keywordStyle == KeywordStyle.builtIn;
+
+  @override
+  bool get isPseudo => keywordStyle == KeywordStyle.pseudo;
+
   bool get isBuiltInOrPseudo => isBuiltIn || isPseudo;
 
-  /**
-   * A flag indicating whether the keyword is "built-in" identifier.
-   * This method exists for backward compatibility and will be removed.
-   * Use [isBuiltIn] instead.
-   */
-  @deprecated
-  bool get isPseudoKeyword => isBuiltIn; // TODO (danrubel): remove this
+  @override
+  bool get isReservedWord => keywordStyle == KeywordStyle.reserved;
 
   /**
    * The name of the keyword type.
    */
   String get name => lexeme.toUpperCase();
-
-  /**
-   * The lexeme for the keyword.
-   *
-   * Deprecated - use [lexeme] instead.
-   */
-  @deprecated
-  String get syntax => lexeme;
 
   @override
   String toString() => name;
@@ -1687,6 +1720,9 @@ class TokenType {
    */
   bool get isBuiltIn => false;
 
+  /// A flag indicating whether the keyword is a "reserved word".
+  bool get isReservedWord => false;
+
   /**
    * Return `true` if this type of token represents an equality operator.
    */
@@ -1751,10 +1787,4 @@ class TokenType {
 
   @override
   String toString() => name;
-
-  /**
-   * Use [lexeme] instead of this method
-   */
-  @deprecated
-  String get value => lexeme;
 }

@@ -1,0 +1,13 @@
+class C1 {
+  int f;
+  C1() : =;
+}
+class C2 {
+  int f;
+  C2() : f=;
+}
+class C3 {
+  int f;
+  C3() : =f++;
+}
+main() { }

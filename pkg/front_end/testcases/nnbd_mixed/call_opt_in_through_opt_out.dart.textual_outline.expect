@@ -1,0 +1,5 @@
+// @dart = 2.6
+import 'call_opt_in_through_opt_out_lib.dart';
+
+test() {}
+main() {}

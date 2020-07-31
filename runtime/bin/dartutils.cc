@@ -242,7 +242,7 @@ const char* DartUtils::RemoveScheme(const char* url) {
 char* DartUtils::DirName(const char* url) {
   const char* slash = strrchr(url, File::PathSeparator()[0]);
   if (slash == NULL) {
-    return strdup(url);
+    return Utils::StrDup(url);
   } else {
     return Utils::StrNDup(url, slash - url + 1);
   }
@@ -652,8 +652,8 @@ bool DartUtils::PostInt64(Dart_Port port_id, int64_t value) {
 
 Dart_Handle DartUtils::GetDartType(const char* library_url,
                                    const char* class_name) {
-  return Dart_GetType(Dart_LookupLibrary(NewString(library_url)),
-                      NewString(class_name), 0, NULL);
+  return Dart_GetNonNullableType(Dart_LookupLibrary(NewString(library_url)),
+                                 NewString(class_name), 0, NULL);
 }
 
 Dart_Handle DartUtils::NewDartOSError() {
@@ -702,6 +702,10 @@ Dart_Handle DartUtils::NewDartExceptionWithMessage(const char* library_url,
 
 Dart_Handle DartUtils::NewDartArgumentError(const char* message) {
   return NewDartExceptionWithMessage(kCoreLibURL, "ArgumentError", message);
+}
+
+Dart_Handle DartUtils::NewDartFormatException(const char* message) {
+  return NewDartExceptionWithMessage(kCoreLibURL, "FormatException", message);
 }
 
 Dart_Handle DartUtils::NewDartUnsupportedError(const char* message) {

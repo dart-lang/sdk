@@ -31,8 +31,8 @@ class BuildingTranslationHelper : public TranslationHelper {
         library_lookup_handle_(Library::Handle(thread->zone())) {}
   virtual ~BuildingTranslationHelper() {}
 
-  virtual RawLibrary* LookupLibraryByKernelLibrary(NameIndex library);
-  virtual RawClass* LookupClassByKernelClass(NameIndex klass);
+  virtual LibraryPtr LookupLibraryByKernelLibrary(NameIndex library);
+  virtual ClassPtr LookupClassByKernelClass(NameIndex klass);
 
  private:
   KernelLoader* loader_;
@@ -188,15 +188,15 @@ class KernelLoader : public ValueObject {
 
   // Returns the library containing the main procedure, null if there
   // was no main procedure, or a failure object if there was an error.
-  RawObject* LoadProgram(bool process_pending_classes = true);
+  ObjectPtr LoadProgram(bool process_pending_classes = true);
 
   // Load given library.
   void LoadLibrary(const Library& library);
 
   // Returns the function which will evaluate the expression, or a failure
   // object if there was an error.
-  RawObject* LoadExpressionEvaluationFunction(const String& library_url,
-                                              const String& klass);
+  ObjectPtr LoadExpressionEvaluationFunction(const String& library_url,
+                                             const String& klass);
 
   // Finds all libraries that have been modified in this incremental
   // version of the kernel program file.
@@ -212,9 +212,9 @@ class KernelLoader : public ValueObject {
                                     intptr_t* p_num_classes,
                                     intptr_t* p_num_procedures);
 
-  static RawString* FindSourceForScript(const uint8_t* kernel_buffer,
-                                        intptr_t kernel_buffer_length,
-                                        const String& url);
+  static StringPtr FindSourceForScript(const uint8_t* kernel_buffer,
+                                       intptr_t kernel_buffer_length,
+                                       const String& url);
 
   void FinishTopLevelClassLoading(const Class& toplevel_class,
                                   const Library& library,
@@ -228,7 +228,7 @@ class KernelLoader : public ValueObject {
   // Check for the presence of a (possibly const) constructor for the
   // 'ExternalName' class. If found, returns the name parameter to the
   // constructor.
-  RawString* DetectExternalNameCtor();
+  StringPtr DetectExternalNameCtor();
 
   // Check for the presence of a (possibly const) constructor for the 'pragma'
   // class. Returns whether it was found (no details about the type of pragma).
@@ -255,7 +255,7 @@ class KernelLoader : public ValueObject {
   void InitializeFields(
       DirectChainedHashMap<UriToSourceTableTrait>* uri_to_source_table);
 
-  RawLibrary* LoadLibrary(intptr_t index);
+  LibraryPtr LoadLibrary(intptr_t index);
 
   const String& LibraryUri(intptr_t library_index) {
     return translation_helper_.DartSymbolPlain(
@@ -316,10 +316,10 @@ class KernelLoader : public ValueObject {
                      bool in_class,
                      intptr_t procedure_end);
 
-  RawArray* MakeFieldsArray();
-  RawArray* MakeFunctionsArray();
+  ArrayPtr MakeFieldsArray();
+  ArrayPtr MakeFunctionsArray();
 
-  RawScript* LoadScriptAt(
+  ScriptPtr LoadScriptAt(
       intptr_t index,
       DirectChainedHashMap<UriToSourceTableTrait>* uri_to_source_table);
 
@@ -327,7 +327,7 @@ class KernelLoader : public ValueObject {
   // for klass whose script corresponds to the uri index.
   // Otherwise return klass.
   const Object& ClassForScriptAt(const Class& klass, intptr_t source_uri_index);
-  RawScript* ScriptAt(intptr_t source_uri_index) {
+  ScriptPtr ScriptAt(intptr_t source_uri_index) {
     return kernel_program_info_.ScriptAt(source_uri_index);
   }
 
@@ -339,12 +339,12 @@ class KernelLoader : public ValueObject {
   void LoadLibraryImportsAndExports(Library* library,
                                     const Class& toplevel_class);
 
-  RawLibrary* LookupLibraryOrNull(NameIndex library);
-  RawLibrary* LookupLibrary(NameIndex library);
-  RawLibrary* LookupLibraryFromClass(NameIndex klass);
-  RawClass* LookupClass(const Library& library, NameIndex klass);
+  LibraryPtr LookupLibraryOrNull(NameIndex library);
+  LibraryPtr LookupLibrary(NameIndex library);
+  LibraryPtr LookupLibraryFromClass(NameIndex klass);
+  ClassPtr LookupClass(const Library& library, NameIndex klass);
 
-  RawFunction::Kind GetFunctionType(ProcedureHelper::Kind procedure_kind);
+  FunctionLayout::Kind GetFunctionType(ProcedureHelper::Kind procedure_kind);
 
   void EnsureExternalClassIsLookedUp() {
     if (external_name_class_.IsNull()) {
@@ -456,9 +456,9 @@ class KernelLoader : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(KernelLoader);
 };
 
-RawFunction* CreateFieldInitializerFunction(Thread* thread,
-                                            Zone* zone,
-                                            const Field& field);
+FunctionPtr CreateFieldInitializerFunction(Thread* thread,
+                                           Zone* zone,
+                                           const Field& field);
 
 }  // namespace kernel
 }  // namespace dart

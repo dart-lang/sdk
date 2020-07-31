@@ -12,11 +12,11 @@
 #include "vm/class_id.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
+#include "vm/tagged_pointer.h"
 
 namespace dart {
 
 class Field;
-class RawInstance;
 
 class FieldTable {
  public:
@@ -25,14 +25,14 @@ class FieldTable {
         capacity_(0),
         free_head_(-1),
         table_(nullptr),
-        old_tables_(new MallocGrowableArray<RawInstance**>()) {}
+        old_tables_(new MallocGrowableArray<InstancePtr*>()) {}
 
   ~FieldTable();
 
   intptr_t NumFieldIds() const { return top_; }
   intptr_t Capacity() const { return capacity_; }
 
-  RawInstance** table() { return table_; }
+  InstancePtr* table() { return table_; }
 
   void FreeOldTables();
 
@@ -49,11 +49,13 @@ class FieldTable {
   // to an existing static field value.
   void Free(intptr_t index);
 
-  RawInstance* At(intptr_t index) const {
+  InstancePtr At(intptr_t index) const {
     ASSERT(IsValidIndex(index));
     return table_[index];
   }
-  void SetAt(intptr_t index, RawInstance* raw_instance);
+  void SetAt(intptr_t index, InstancePtr raw_instance);
+
+  FieldTable* Clone();
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -75,10 +77,10 @@ class FieldTable {
   // element, last element contains -1.
   intptr_t free_head_;
 
-  RawInstance** table_;
+  InstancePtr* table_;
   // When table_ grows and have to reallocated, keep the old one here
   // so it will get freed when its are no longer in use.
-  MallocGrowableArray<RawInstance**>* old_tables_;
+  MallocGrowableArray<InstancePtr*>* old_tables_;
 
   DISALLOW_COPY_AND_ASSIGN(FieldTable);
 };

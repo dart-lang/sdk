@@ -6,6 +6,16 @@ class A extends core::Object {
   synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B extends self::A {
   static field self::B* staticVariable = null;
@@ -31,14 +41,14 @@ static method f<T extends core::Object* = dynamic>() → self::f::T*
   return null;
 static method test_topLevelVariable() → void {
   self::topLevelVariable = self::f<self::B*>();
-  self::topLevelVariable.{core::Object::==}(null) ?{self::B*} self::topLevelVariable = self::f<self::B*>() : null;
+  self::topLevelVariable.{self::A::==}(null) ?{self::B*} self::topLevelVariable = self::f<self::B*>() : null;
   self::topLevelVariable = self::topLevelVariable.{self::B::+}(self::f<self::C*>()) as{TypeError} self::B*;
   self::topLevelVariable = self::topLevelVariable.{self::B::*}(self::f<self::B*>());
   self::topLevelVariable = self::topLevelVariable.{self::B::&}(self::f<self::A*>());
   self::topLevelVariable = self::topLevelVariable.{self::B::-}(1);
   self::topLevelVariable = self::topLevelVariable.{self::B::-}(1);
   self::B* v1 = self::topLevelVariable = self::f<self::B*>();
-  self::B* v2 = let final self::B* #t1 = self::topLevelVariable in #t1.{core::Object::==}(null) ?{self::B*} self::topLevelVariable = self::f<self::B*>() : #t1;
+  self::B* v2 = let final self::B* #t1 = self::topLevelVariable in #t1.{self::A::==}(null) ?{self::B*} self::topLevelVariable = self::f<self::B*>() : #t1;
   self::A* v3 = self::topLevelVariable = self::topLevelVariable.{self::B::+}(self::f<self::C*>()) as{TypeError} self::B*;
   self::B* v4 = self::topLevelVariable = self::topLevelVariable.{self::B::*}(self::f<self::B*>());
   self::C* v5 = self::topLevelVariable = self::topLevelVariable.{self::B::&}(self::f<self::A*>());
@@ -47,14 +57,14 @@ static method test_topLevelVariable() → void {
 }
 static method test_staticVariable() → void {
   self::B::staticVariable = self::f<self::B*>();
-  self::B::staticVariable.{core::Object::==}(null) ?{self::B*} self::B::staticVariable = self::f<self::B*>() : null;
+  self::B::staticVariable.{self::A::==}(null) ?{self::B*} self::B::staticVariable = self::f<self::B*>() : null;
   self::B::staticVariable = self::B::staticVariable.{self::B::+}(self::f<self::C*>()) as{TypeError} self::B*;
   self::B::staticVariable = self::B::staticVariable.{self::B::*}(self::f<self::B*>());
   self::B::staticVariable = self::B::staticVariable.{self::B::&}(self::f<self::A*>());
   self::B::staticVariable = self::B::staticVariable.{self::B::-}(1);
   self::B::staticVariable = self::B::staticVariable.{self::B::-}(1);
   self::B* v1 = self::B::staticVariable = self::f<self::B*>();
-  self::B* v2 = let final self::B* #t4 = self::B::staticVariable in #t4.{core::Object::==}(null) ?{self::B*} self::B::staticVariable = self::f<self::B*>() : #t4;
+  self::B* v2 = let final self::B* #t4 = self::B::staticVariable in #t4.{self::A::==}(null) ?{self::B*} self::B::staticVariable = self::f<self::B*>() : #t4;
   self::A* v3 = self::B::staticVariable = self::B::staticVariable.{self::B::+}(self::f<self::C*>()) as{TypeError} self::B*;
   self::B* v4 = self::B::staticVariable = self::B::staticVariable.{self::B::*}(self::f<self::B*>());
   self::C* v5 = self::B::staticVariable = self::B::staticVariable.{self::B::&}(self::f<self::A*>());

@@ -1,0 +1,9 @@
+class C {
+  int call() => 0;
+}
+
+functionContext(int Function() f) {}
+nullableFunctionContext(int Function()? f) {}
+foo<T extends C?>(C? c, T t, T? nt) {}
+bar<T extends C>(C c, T t) {}
+main() {}

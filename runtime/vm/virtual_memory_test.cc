@@ -51,7 +51,7 @@ VM_UNIT_TEST_CASE(AllocateVirtualMemory) {
 }
 
 VM_UNIT_TEST_CASE(AllocateAlignedVirtualMemory) {
-  intptr_t kHeapPageSize = kPageSize;
+  intptr_t kHeapPageSize = kOldPageSize;
   intptr_t kVirtualPageSize = 4096;
 
   intptr_t kIterations = kHeapPageSize / kVirtualPageSize;

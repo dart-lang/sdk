@@ -1,12 +1,21 @@
 library test;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 class A extends core::Object {
   synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class C extends core::Object {
   field self::A* aField = null;
@@ -17,7 +26,7 @@ class C extends core::Object {
   method test() → void {
     self::A* aLocal;
     {
-      core::Iterator<self::A*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::A*>*>(self::f<core::Iterable<self::A*>*>()).{core::Iterable::iterator};
+      core::Iterator<self::A*>* :sync-for-iterator = self::f<core::Iterable<self::A*>*>().{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final self::A* #t1 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -26,7 +35,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<self::A*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::A*>*>(self::f<core::Iterable<self::A*>*>()).{core::Iterable::iterator};
+      core::Iterator<self::A*>* :sync-for-iterator = self::f<core::Iterable<self::A*>*>().{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final self::A* #t2 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -35,7 +44,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<self::A*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::A*>*>(self::f<core::Iterable<self::A*>*>()).{core::Iterable::iterator};
+      core::Iterator<self::A*>* :sync-for-iterator = self::f<core::Iterable<self::A*>*>().{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final self::A* #t3 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -44,7 +53,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<self::A*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::A*>*>(self::f<core::Iterable<self::A*>*>()).{core::Iterable::iterator};
+      core::Iterator<self::A*>* :sync-for-iterator = self::f<core::Iterable<self::A*>*>().{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final self::A* #t4 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -53,7 +62,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<self::A*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<self::A*>*>(self::f<core::Iterable<self::A*>*>()).{core::Iterable::iterator};
+      core::Iterator<self::A*>* :sync-for-iterator = self::f<core::Iterable<self::A*>*>().{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final self::A* #t5 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -62,6 +71,16 @@ class C extends core::Object {
       }
     }
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static field self::A* aTopLevel;
 static method f<T extends core::Object* = dynamic>() → self::f::T*

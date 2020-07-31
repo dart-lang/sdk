@@ -1,0 +1,9 @@
+bar(B b) {}
+
+class A<X> {
+  foo<Y extends X>() {}
+}
+
+class B extends A<dynamic> {}
+
+main() {}

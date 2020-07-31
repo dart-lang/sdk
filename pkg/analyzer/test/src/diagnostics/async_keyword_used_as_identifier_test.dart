@@ -16,6 +16,18 @@ main() {
 
 @reflectiveTest
 class AsyncKeywordUsedAsIdentifierTest extends DriverResolutionTest {
+  test_async_async() async {
+    await assertErrorsInCode(r'''
+class A {
+  m() async {
+    int async;
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 5),
+    ]);
+  }
+
   test_await_async() async {
     await assertErrorsInCode('''
 f() async {
@@ -79,18 +91,6 @@ f() sync* {
 ''', [
       error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 18, 5),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 5),
-    ]);
-  }
-
-  test_async_async() async {
-    await assertErrorsInCode(r'''
-class A {
-  m() async {
-    int async;
-  }
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 5),
     ]);
   }
 }

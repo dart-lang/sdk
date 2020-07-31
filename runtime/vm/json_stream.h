@@ -38,6 +38,7 @@ class Zone;
 //
 //  - runtime/vm/service/vmservice.dart
 //  - runtime/observatory/lib/src/service/object.dart
+//  - pkg/dds/lib/src/rpc_error_codes.dart
 //
 enum JSONRpcErrorCode {
   kParseError = -32700,
@@ -108,9 +109,9 @@ class JSONStream : ValueObject {
   Dart_Port reply_port() const { return reply_port_; }
 
   intptr_t NumObjectParameters() const;
-  RawObject* GetObjectParameterKey(intptr_t i) const;
-  RawObject* GetObjectParameterValue(intptr_t i) const;
-  RawObject* LookupObjectParam(const char* key) const;
+  ObjectPtr GetObjectParameterKey(intptr_t i) const;
+  ObjectPtr GetObjectParameterValue(intptr_t i) const;
+  ObjectPtr LookupObjectParam(const char* key) const;
 
   intptr_t num_params() const { return num_params_; }
   const char* GetParamKey(intptr_t i) const { return param_keys_[i]; }

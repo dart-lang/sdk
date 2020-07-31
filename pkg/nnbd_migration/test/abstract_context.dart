@@ -18,6 +18,9 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 /// TODO(paulberry): this logic is duplicated from other packages.  Find a way
 /// share it, or avoid relying on it.
 class AbstractContextTest with ResourceProviderMixin {
+  static const _homePath = '/home';
+  static const testsPath = '$_homePath/tests';
+
   OverlayResourceProvider overlayResourceProvider;
 
   AnalysisContextCollection _analysisContextCollection;
@@ -40,13 +43,25 @@ class Required {
 ''');
   }
 
-  /// Add a new file with the given [pathInLib] to the package with the
-  /// given [packageName].  Then ensure that the test package depends on the
-  /// [packageName].
+  /// Add a new file with the given [pathInLib] to the package with the given
+  /// [packageName].  Then ensure that the package under test depends on the
+  /// package.
   File addPackageFile(String packageName, String pathInLib, String content) {
     var packagePath = '/.pub-cache/$packageName';
     _addTestPackageDependency(packageName, packagePath);
     return newFile('$packagePath/lib/$pathInLib', content: content);
+  }
+
+  /// Add the quiver package and a library with URI,
+  /// "package:quiver/check.dart".
+  ///
+  /// Then ensure that the package under test depends on the package.
+  void addQuiverPackage() {
+    addPackageFile('quiver', 'check.dart', r'''
+library quiver.check;
+
+T checkNotNull<T>(T reference, {dynamic message}) => T;
+''');
   }
 
   Source addSource(String path, String content, [Uri uri]) {
@@ -57,17 +72,34 @@ class Required {
     return source;
   }
 
-  /// Create all analysis contexts in `/home`.
+  /// Add the test_core package and a library with URI,
+  /// "package:test_core/test_core.dart".
+  ///
+  /// Then ensure that the package under test depends on the package.
+  void addTestCorePackage() {
+    addPackageFile('test_core', 'test_core.dart', r'''
+library test_core;
+
+void setUp(dynamic callback()) {}
+void group(dynamic description, dynamic body()) {}
+void test(dynamic description, dynamic body()) {}
+''');
+    addPackageFile('test', 'test.dart', r'''
+library test;
+export 'package:test_core/test_core.dart';
+''');
+  }
+
+  /// Create all analysis contexts in [_homePath].
   void createAnalysisContexts() {
     _analysisContextCollection = AnalysisContextCollectionImpl(
-      includedPaths: [convertPath('/home')],
+      includedPaths: [convertPath(_homePath)],
       enableIndex: true,
       resourceProvider: overlayResourceProvider,
       sdkPath: convertPath('/sdk'),
     );
 
-    var testPath = convertPath('/home/test');
-    _driver = getDriver(testPath);
+    _driver = getDriver(convertPath(testsPath));
   }
 
   /// Return the existing analysis context that should be used to analyze the
@@ -87,15 +119,17 @@ class Required {
     return context.driver;
   }
 
+  LineInfo getLineInfo(String path) => session.getFile(path).lineInfo;
+
   void setUp() {
     setupResourceProvider();
     overlayResourceProvider = OverlayResourceProvider(resourceProvider);
 
     new MockSdk(resourceProvider: resourceProvider);
 
-    newFolder('/home/test');
-    newFile('/home/test/.packages', content: r'''
-test:file:///home/test/lib
+    newFolder(testsPath);
+    newFile('$testsPath/.packages', content: '''
+tests:file://$testsPath/lib
 ''');
 
     createAnalysisContexts();
@@ -108,7 +142,7 @@ test:file:///home/test/lib
   }
 
   void _addTestPackageDependency(String name, String rootPath) {
-    var packagesFile = getFile('/home/test/.packages');
+    var packagesFile = getFile('$testsPath/.packages');
     var packagesContent = packagesFile.readAsStringSync();
 
     // Ignore if there is already the same package dependency.
@@ -125,13 +159,13 @@ test:file:///home/test/lib
 
   void _createDriver() {
     var collection = AnalysisContextCollectionImpl(
-      includedPaths: [convertPath('/home')],
+      includedPaths: [convertPath(_homePath)],
       enableIndex: true,
       resourceProvider: resourceProvider,
       sdkPath: convertPath('/sdk'),
     );
 
-    var testPath = convertPath('/home/test');
+    var testPath = convertPath(testsPath);
     var context = collection.contextFor(testPath) as DriverBasedAnalysisContext;
 
     _driver = context.driver;

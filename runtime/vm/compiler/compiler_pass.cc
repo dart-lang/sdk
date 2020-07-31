@@ -4,8 +4,6 @@
 
 #include "vm/compiler/compiler_pass.h"
 
-#ifndef DART_PRECOMPILED_RUNTIME
-
 #include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
 #include "vm/compiler/backend/constant_propagator.h"
@@ -239,6 +237,13 @@ void CompilerPass::RunInliningPipeline(PipelineMode mode,
   // Run constant propagation to make sure we specialize for
   // (optional) constant arguments passed into the inlined method.
   INVOKE_PASS(ConstantPropagation);
+  // Constant propagation removes unreachable basic blocks and
+  // may open more opportunities for call specialization.
+  // Call specialization during inlining may cause more call
+  // sites to be discovered and more functions inlined.
+  if (mode == kAOT) {
+    INVOKE_PASS(ApplyClassIds);
+  }
   // Optimize (a << b) & c patterns, merge instructions. Must occur
   // before 'SelectRepresentations' which inserts conversion nodes.
   INVOKE_PASS(TryOptimizePatterns);
@@ -575,5 +580,3 @@ COMPILER_PASS(RoundTripSerialization, {
 })
 
 }  // namespace dart
-
-#endif  // DART_PRECOMPILED_RUNTIME

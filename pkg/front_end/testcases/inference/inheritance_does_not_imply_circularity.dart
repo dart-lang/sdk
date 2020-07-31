@@ -21,6 +21,6 @@ class C extends Object implements I1, I2 {
   int get x => 0;
 }
 
-var y = new C(). /*@target=C::x*/ x;
+var y = new C(). /*@target=C.x*/ x;
 
 main() {}

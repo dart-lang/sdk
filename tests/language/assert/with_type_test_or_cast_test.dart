@@ -12,7 +12,7 @@
 // VMOptions=--enable_asserts
 
 main() {
-  var names = new List<int>();
+  var names = <int>[];
 
   // Generic type test.
   assert(names is List<int>);

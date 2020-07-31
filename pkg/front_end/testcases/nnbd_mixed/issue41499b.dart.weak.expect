@@ -1,0 +1,59 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///issue41499b_lib.dart" as opt_in;
+
+typedef LegacyFoo = () →* void;
+static method test(() →* void f) → dynamic {}
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41499b_lib.dart:8:20: Error: A non-null value must be returned since the return type 'void Function()' doesn't allow null.
+//   static LegacyFoo sTest() {}
+//                    ^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41499b_lib.dart:10:13: Error: A non-null value must be returned since the return type 'void Function()' doesn't allow null.
+//   LegacyFoo mTest() {}
+//             ^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41499b_lib.dart:12:17: Error: A non-null value must be returned since the return type 'void Function()' doesn't allow null.
+//   LegacyFoo get gTest {}
+//                 ^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41499b_lib.dart:15:11: Error: A non-null value must be returned since the return type 'void Function()' doesn't allow null.
+// LegacyFoo test() {}
+//           ^
+//
+import self as self2;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue41499b.dart";
+
+class C extends core::Object {
+  synthetic constructor •() → self2::C
+    : super core::Object::•()
+    ;
+  static method sTest() → () → void {
+    return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41499b_lib.dart:8:20: Error: A non-null value must be returned since the return type 'void Function()' doesn't allow null.
+  static LegacyFoo sTest() {}
+                   ^" in null;
+  }
+  method mTest() → () → void {
+    return let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41499b_lib.dart:10:13: Error: A non-null value must be returned since the return type 'void Function()' doesn't allow null.
+  LegacyFoo mTest() {}
+            ^" in null;
+  }
+  get gTest() → () → void {
+    return let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41499b_lib.dart:12:17: Error: A non-null value must be returned since the return type 'void Function()' doesn't allow null.
+  LegacyFoo get gTest {}
+                ^" in null;
+  }
+}
+static method test() → () → void {
+  return let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41499b_lib.dart:15:11: Error: A non-null value must be returned since the return type 'void Function()' doesn't allow null.
+LegacyFoo test() {}
+          ^" in null;
+}

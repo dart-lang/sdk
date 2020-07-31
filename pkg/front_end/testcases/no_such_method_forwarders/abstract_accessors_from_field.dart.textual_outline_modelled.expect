@@ -1,0 +1,12 @@
+abstract class I {
+  int foo;
+}
+
+class A implements I {
+  dynamic noSuchMethod(i) => "bar";
+}
+
+class B extends A {}
+
+main() {}
+void expectTypeError(callback()) {}

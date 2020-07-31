@@ -13,55 +13,37 @@ import 'package:analyzer/src/generated/source.dart';
 /// clients that convert all text to an internal format.
 typedef FileReadMode = String Function(String s);
 
-/**
- * A source that represents a file.
- */
+/// A source that represents a file.
 class FileSource extends Source {
-  /**
-   * A function that changes the way that files are read off of disk.
-   */
+  /// A function that changes the way that files are read off of disk.
   static FileReadMode fileReadMode = (String s) => s;
 
-  /**
-   * Map from encoded URI/filepath pair to a unique integer identifier.  This
-   * identifier is used for equality tests and hash codes.
-   *
-   * The URI and filepath are joined into a pair by separating them with an '@'
-   * character.
-   */
+  /// Map from encoded URI/filepath pair to a unique integer identifier.  This
+  /// identifier is used for equality tests and hash codes.
+  ///
+  /// The URI and filepath are joined into a pair by separating them with an '@'
+  /// character.
   static final Map<String, int> _idTable = HashMap<String, int>();
 
-  /**
-   * The URI from which this source was originally derived.
-   */
+  /// The URI from which this source was originally derived.
   @override
   final Uri uri;
 
-  /**
-   * The unique ID associated with this source.
-   */
+  /// The unique ID associated with this source.
   final int id;
 
-  /**
-   * The file represented by this source.
-   */
+  /// The file represented by this source.
   final File file;
 
-  /**
-   * The cached absolute path of this source.
-   */
+  /// The cached absolute path of this source.
   String _absolutePath;
 
-  /**
-   * The cached encoding for this source.
-   */
+  /// The cached encoding for this source.
   String _encoding;
 
-  /**
-   * Initialize a newly created source object to represent the given [file]. If
-   * a [uri] is given, then it will be used as the URI from which the source was
-   * derived, otherwise a `file:` URI will be created based on the [file].
-   */
+  /// Initialize a newly created source object to represent the given [file]. If
+  /// a [uri] is given, then it will be used as the URI from which the source
+  /// was derived, otherwise a `file:` URI will be created based on the [file].
   FileSource(File file, [Uri uri])
       : this.uri = uri ?? file.toUri(),
         this.file = file,
@@ -75,16 +57,14 @@ class FileSource extends Source {
     });
   }
 
-  /**
-   * Get and return the contents and timestamp of the underlying file.
-   *
-   * Clients should consider using the method [AnalysisContext.getContents]
-   * because contexts can have local overrides of the content of a source that
-   * the source is not aware of.
-   *
-   * Throws an exception if the contents of this source could not be accessed.
-   * See [contents].
-   */
+  /// Get and return the contents and timestamp of the underlying file.
+  ///
+  /// Clients should consider using the method [AnalysisContext.getContents]
+  /// because contexts can have local overrides of the content of a source that
+  /// the source is not aware of.
+  ///
+  /// Throws an exception if the contents of this source could not be accessed.
+  /// See [contents].
   TimestampedData<String> get contentsFromFile {
     return TimestampedData<String>(
         modificationStamp, fileReadMode(file.readAsStringSync()));

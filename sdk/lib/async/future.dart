@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.async;
 
 /// A type representing values that are either `Future<T>` or `T`.
@@ -36,6 +34,7 @@ part of dart.async;
 /// As a corollary, `FutureOr<Object>` is equivalent to
 /// `FutureOr<FutureOr<Object>>`, `FutureOr<Future<Object>>` is equivalent to
 /// `Future<Object>`.
+@pragma("vm:entry-point")
 abstract class FutureOr<T> {
   // Private generative constructor, so that it is not subclassable, mixable, or
   // instantiable.
@@ -149,11 +148,11 @@ abstract class FutureOr<T> {
 abstract class Future<T> {
   /// A `Future<Null>` completed with `null`.
   static final _Future<Null> _nullFuture =
-      new _Future<Null>.zoneValue(null, Zone.root);
+      new _Future<Null>.zoneValue(null, _rootZone);
 
   /// A `Future<bool>` completed with `false`.
   static final _Future<bool> _falseFuture =
-      new _Future<bool>.zoneValue(false, Zone.root);
+      new _Future<bool>.zoneValue(false, _rootZone);
 
   /**
    * Creates a future containing the result of calling [computation]
@@ -225,14 +224,14 @@ abstract class Future<T> {
       if (result is Future<T>) {
         return result;
       } else {
-        return new _Future<T>.value(result);
+        // TODO(40014): Remove cast when type promotion works.
+        return new _Future<T>.value(result as dynamic);
       }
     } catch (error, stackTrace) {
       var future = new _Future<T>();
-      AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
+      AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
       if (replacement != null) {
-        future._asyncCompleteError(
-            _nonNullError(replacement.error), replacement.stackTrace);
+        future._asyncCompleteError(replacement.error, replacement.stackTrace);
       } else {
         future._asyncCompleteError(error, stackTrace);
       }
@@ -252,11 +251,15 @@ abstract class Future<T> {
    * with the [value] value,
    * equivalently to `new Future<T>.sync(() => value)`.
    *
+   * If [value] is omitted or `null`, it is converted to `FutureOr<T>` by
+   * `value as FutureOr<T>`. If `T` is not nullable, then the [value] is
+   * required, otherwise the construction throws.
+   *
    * Use [Completer] to create a future and complete it later.
    */
   @pragma("vm:entry-point")
-  factory Future.value([FutureOr<T> value]) {
-    return new _Future<T>.immediate(value);
+  factory Future.value([FutureOr<T>? value]) {
+    return new _Future<T>.immediate(value == null ? value as dynamic : value);
   }
 
   /**
@@ -267,16 +270,15 @@ abstract class Future<T> {
    * If an error handler isn't added before the future completes, the error
    * will be considered unhandled.
    *
-   * The [error] must not be `null`.
-   *
    * Use [Completer] to create a future and complete it later.
    */
-  factory Future.error(Object error, [StackTrace stackTrace]) {
+  factory Future.error(Object error, [StackTrace? stackTrace]) {
+    // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(error, "error");
     if (!identical(Zone.current, _rootZone)) {
-      AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
+      AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
       if (replacement != null) {
-        error = _nonNullError(replacement.error);
+        error = replacement.error;
         stackTrace = replacement.stackTrace;
       }
     }
@@ -301,6 +303,7 @@ abstract class Future<T> {
    * If [computation] is omitted,
    * it will be treated as if [computation] was `() => null`,
    * and the future will eventually complete with the `null` value.
+   * In that case, [T] must be nullable.
    *
    * If calling [computation] throws, the created future will complete with the
    * error.
@@ -308,11 +311,15 @@ abstract class Future<T> {
    * See also [Completer] for a way to create and complete a future at a
    * later time that isn't necessarily after a known fixed duration.
    */
-  factory Future.delayed(Duration duration, [FutureOr<T> computation()]) {
+  factory Future.delayed(Duration duration, [FutureOr<T> computation()?]) {
+    if (computation == null && !typeAcceptsNull<T>()) {
+      throw ArgumentError.value(
+          null, "computation", "The type parameter is not nullable");
+    }
     _Future<T> result = new _Future<T>();
     new Timer(duration, () {
       if (computation == null) {
-        result._complete(null);
+        result._complete(null as T);
       } else {
         try {
           result._complete(computation());
@@ -354,25 +361,25 @@ abstract class Future<T> {
    * uncaught asynchronous error.
    */
   static Future<List<T>> wait<T>(Iterable<Future<T>> futures,
-      {bool eagerError: false, void cleanUp(T successValue)}) {
+      {bool eagerError = false, void cleanUp(T successValue)?}) {
     final _Future<List<T>> result = new _Future<List<T>>();
-    List<T> values; // Collects the values. Set to null on error.
+    List<T?>? values; // Collects the values. Set to null on error.
     int remaining = 0; // How many futures are we waiting for.
-    var error; // The first error from a future.
-    StackTrace stackTrace; // The stackTrace that came with the error.
+    late Object error; // The first error from a future.
+    late StackTrace stackTrace; // The stackTrace that came with the error.
 
     // Handle an error from any of the futures.
-    // TODO(jmesserly): use `void` return type once it can be inferred for the
-    // `then` call below.
-    handleError(Object theError, StackTrace theStackTrace) {
+    void handleError(Object theError, StackTrace theStackTrace) {
       remaining--;
-      if (values != null) {
+      List<T?>? valueList = values;
+      if (valueList != null) {
         if (cleanUp != null) {
-          for (var value in values) {
+          for (var value in valueList) {
             if (value != null) {
               // Ensure errors from cleanUp are uncaught.
+              T cleanUpValue = value;
               new Future.sync(() {
-                cleanUp(value);
+                cleanUp(cleanUpValue);
               });
             }
           }
@@ -396,10 +403,11 @@ abstract class Future<T> {
         int pos = remaining;
         future.then((T value) {
           remaining--;
-          if (values != null) {
-            values[pos] = value;
+          List<T?>? valueList = values;
+          if (valueList != null) {
+            valueList[pos] = value;
             if (remaining == 0) {
-              result._completeWithValue(values);
+              result._completeWithValue(List<T>.from(valueList));
             }
           } else {
             if (cleanUp != null && value != null) {
@@ -409,6 +417,8 @@ abstract class Future<T> {
               });
             }
             if (remaining == 0 && !eagerError) {
+              // If eagerError is false, and valueList is null, then
+              // error and stackTrace have been set in handleError above.
               result._completeError(error, stackTrace);
             }
           }
@@ -419,12 +429,14 @@ abstract class Future<T> {
         remaining++;
       }
       if (remaining == 0) {
-        return new Future.value(const []);
+        return new Future<List<T>>.value(const <Never>[]);
       }
-      values = new List<T>(remaining);
+      values = new List<T?>.filled(remaining, null);
     } catch (e, st) {
       // The error must have been thrown while iterating over the futures
       // list, or while installing a callback handler on the future.
+      // This is a breach of the `Future` protocol, but we try to handle it
+      // gracefully.
       if (remaining == 0 || eagerError) {
         // Throw a new Future.error.
         // Don't just call `result._completeError` since that would propagate
@@ -457,12 +469,14 @@ abstract class Future<T> {
    */
   static Future<T> any<T>(Iterable<Future<T>> futures) {
     var completer = new Completer<T>.sync();
-    var onValue = (T value) {
+    void onValue(T value) {
       if (!completer.isCompleted) completer.complete(value);
-    };
-    var onError = (error, StackTrace stack) {
+    }
+
+    void onError(Object error, StackTrace stack) {
       if (!completer.isCompleted) completer.completeError(error, stack);
-    };
+    }
+
     for (var future in futures) {
       future.then(onValue, onError: onError);
     }
@@ -498,7 +512,7 @@ abstract class Future<T> {
   }
 
   // Constant `true` function, used as callback by [forEach].
-  static bool _kTrue(_) => true;
+  static bool _kTrue(Object? _) => true;
 
   /**
    * Performs an operation repeatedly until it returns `false`.
@@ -523,8 +537,8 @@ abstract class Future<T> {
    * until that future has completed.
    */
   static Future doWhile(FutureOr<bool> action()) {
-    _Future doneSignal = new _Future();
-    void Function(bool) nextIteration;
+    _Future<void> doneSignal = new _Future<void>();
+    late void Function(bool) nextIteration;
     // Bind this callback explicitly so that each iteration isn't bound in the
     // context of all the previous iterations' callbacks.
     // This avoids, e.g., deeply nested stack traces from the stack trace
@@ -544,7 +558,8 @@ abstract class Future<T> {
           result.then(nextIteration, onError: doneSignal._completeError);
           return;
         }
-        keepGoing = result;
+        // TODO(40014): Remove cast when type promotion works.
+        keepGoing = result as bool;
       }
       doneSignal._complete(null);
     });
@@ -600,7 +615,7 @@ abstract class Future<T> {
    * has completed with an error then the error is reported as unhandled error.
    * See the description on [Future].
    */
-  Future<R> then<R>(FutureOr<R> onValue(T value), {Function onError});
+  Future<R> then<R>(FutureOr<R> onValue(T value), {Function? onError});
 
   /**
    * Handles errors emitted by this [Future].
@@ -639,7 +654,7 @@ abstract class Future<T> {
   // - (dynamic, StackTrace) -> FutureOr<T>
   // Given that there is a `test` function that is usually used to do an
   // `isCheck` we should also expect functions that take a specific argument.
-  Future<T> catchError(Function onError, {bool test(Object error)});
+  Future<T> catchError(Function onError, {bool test(Object error)?});
 
   /**
    * Registers a function to be called when this future completes.
@@ -676,7 +691,7 @@ abstract class Future<T> {
    *       });
    *     }
    */
-  Future<T> whenComplete(FutureOr action());
+  Future<T> whenComplete(FutureOr<void> action());
 
   /**
    * Creates a [Stream] containing the result of this future.
@@ -703,7 +718,7 @@ abstract class Future<T> {
    * If `onTimeout` is omitted, a timeout will cause the returned future to
    * complete with a [TimeoutException].
    */
-  Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()});
+  Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()?});
 }
 
 /**
@@ -711,9 +726,9 @@ abstract class Future<T> {
  */
 class TimeoutException implements Exception {
   /** Description of the cause of the timeout. */
-  final String message;
+  final String? message;
   /** The duration that was exceeded. */
-  final Duration duration;
+  final Duration? duration;
 
   TimeoutException(this.message, [this.duration]);
 
@@ -857,6 +872,8 @@ abstract class Completer<T> {
    *
    * The value must be either a value of type [T]
    * or a future of type `Future<T>`.
+   * If the value is omitted or null, and `T` is not nullable, the call
+   * to `complete` throws.
    *
    * If the value is itself a future, the completer will wait for that future
    * to complete, and complete with the same result, whether it is a success
@@ -866,7 +883,7 @@ abstract class Completer<T> {
    *
    * All listeners on the future are informed about the value.
    */
-  void complete([FutureOr<T> value]);
+  void complete([FutureOr<T>? value]);
 
   /**
    * Complete [future] with an error.
@@ -875,8 +892,6 @@ abstract class Completer<T> {
    *
    * Completing a future with an error indicates that an exception was thrown
    * while trying to produce a value.
-   *
-   * The [error] must not be `null`.
    *
    * If `error` is a `Future`, the future itself is used as the error value.
    * If you want to complete with the result of the future, you can use:
@@ -888,7 +903,7 @@ abstract class Completer<T> {
    * theFuture.catchError(thisCompleter.completeError);
    * ```
    */
-  void completeError(Object error, [StackTrace stackTrace]);
+  void completeError(Object error, [StackTrace? stackTrace]);
 
   /**
    * Whether the [future] has been completed.
@@ -906,28 +921,32 @@ abstract class Completer<T> {
 }
 
 // Helper function completing a _Future with error, but checking the zone
-// for error replacement first and missing stack trace.
-void _completeWithErrorCallback(_Future result, error, StackTrace stackTrace) {
-  AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
+// for error replacement and missing stack trace first.
+void _completeWithErrorCallback(
+    _Future result, Object error, StackTrace? stackTrace) {
+  AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
   if (replacement != null) {
-    error = _nonNullError(replacement.error);
+    error = replacement.error;
     stackTrace = replacement.stackTrace;
+  } else {
+    stackTrace ??= AsyncError.defaultStackTrace(error);
   }
-  stackTrace ??= AsyncError.defaultStackTrace(error);
+  if (stackTrace == null) throw "unreachable"; // TODO(40088).
   result._completeError(error, stackTrace);
 }
 
 // Like [_completeWithErrorCallback] but completes asynchronously.
 void _asyncCompleteWithErrorCallback(
-    _Future result, error, StackTrace stackTrace) {
-  AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
+    _Future result, Object error, StackTrace? stackTrace) {
+  AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
   if (replacement != null) {
-    error = _nonNullError(replacement.error);
+    error = replacement.error;
     stackTrace = replacement.stackTrace;
+  } else {
+    stackTrace ??= AsyncError.defaultStackTrace(error);
   }
-  stackTrace ??= AsyncError.defaultStackTrace(error);
+  if (stackTrace == null) {
+    throw "unreachable"; // TODO(lrn): Remove when type promotion works.
+  }
   result._asyncCompleteError(error, stackTrace);
 }
-
-/** Helper function that converts `null` to a [NullThrownError]. */
-Object _nonNullError(Object error) => error ?? new NullThrownError();

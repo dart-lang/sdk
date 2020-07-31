@@ -16,36 +16,24 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:source_span/source_span.dart';
 
-/**
- * An object that listen for [AnalysisError]s being produced by the analysis
- * engine.
- */
+/// An object that listen for [AnalysisError]s being produced by the analysis
+/// engine.
 abstract class AnalysisErrorListener {
-  /**
-   * An error listener that ignores errors that are reported to it.
-   */
+  /// An error listener that ignores errors that are reported to it.
   static final AnalysisErrorListener NULL_LISTENER = _NullErrorListener();
 
-  /**
-   * This method is invoked when an [error] has been found by the analysis
-   * engine.
-   */
+  /// This method is invoked when an [error] has been found by the analysis
+  /// engine.
   void onError(AnalysisError error);
 }
 
-/**
- * An [AnalysisErrorListener] that keeps track of whether any error has been
- * reported to it.
- */
+/// An [AnalysisErrorListener] that keeps track of whether any error has been
+/// reported to it.
 class BooleanErrorListener implements AnalysisErrorListener {
-  /**
-   * A flag indicating whether an error has been reported to this listener.
-   */
+  /// A flag indicating whether an error has been reported to this listener.
   bool _errorReported = false;
 
-  /**
-   * Return `true` if an error has been reported to this listener.
-   */
+  /// Return `true` if an error has been reported to this listener.
   bool get errorReported => _errorReported;
 
   @override
@@ -54,36 +42,24 @@ class BooleanErrorListener implements AnalysisErrorListener {
   }
 }
 
-/**
- * An object used to create analysis errors and report then to an error
- * listener.
- */
+/// An object used to create analysis errors and report then to an error
+/// listener.
 class ErrorReporter {
-  /**
-   * The error listener to which errors will be reported.
-   */
+  /// The error listener to which errors will be reported.
   final AnalysisErrorListener _errorListener;
 
-  /**
-   * The default source to be used when reporting errors.
-   */
+  /// The default source to be used when reporting errors.
   final Source _defaultSource;
 
-  /**
-   * Is `true` if the library being analyzed is non-nullable by default.
-   */
+  /// Is `true` if the library being analyzed is non-nullable by default.
   final bool isNonNullableByDefault;
 
-  /**
-   * The source to be used when reporting errors.
-   */
+  /// The source to be used when reporting errors.
   Source _source;
 
-  /**
-   * Initialize a newly created error reporter that will report errors to the
-   * given [_errorListener]. Errors will be reported against the
-   * [_defaultSource] unless another source is provided later.
-   */
+  /// Initialize a newly created error reporter that will report errors to the
+  /// given [_errorListener]. Errors will be reported against the
+  /// [_defaultSource] unless another source is provided later.
   ErrorReporter(this._errorListener, this._defaultSource,
       {this.isNonNullableByDefault = false}) {
     if (_errorListener == null) {
@@ -96,26 +72,20 @@ class ErrorReporter {
 
   Source get source => _source;
 
-  /**
-   * Set the source to be used when reporting errors to the given [source].
-   * Setting the source to `null` will cause the default source to be used.
-   */
+  /// Set the source to be used when reporting errors to the given [source].
+  /// Setting the source to `null` will cause the default source to be used.
   @Deprecated('Create separate reporters for separate files')
   set source(Source source) {
     this._source = source ?? _defaultSource;
   }
 
-  /**
-   * Report the given [error].
-   */
+  /// Report the given [error].
   void reportError(AnalysisError error) {
     _errorListener.onError(error);
   }
 
-  /**
-   * Report an error with the given [errorCode] and [arguments]. The [element]
-   * is used to compute the location of the error.
-   */
+  /// Report an error with the given [errorCode] and [arguments]. The [element]
+  /// is used to compute the location of the error.
   void reportErrorForElement(ErrorCode errorCode, Element element,
       [List<Object> arguments]) {
     reportErrorForOffset(
@@ -138,19 +108,15 @@ class ErrorReporter {
     }
   }
 
-  /**
-   * Report an error with the given [errorCode] and [arguments].
-   * The [node] is used to compute the location of the error.
-   */
+  /// Report an error with the given [errorCode] and [arguments].
+  /// The [node] is used to compute the location of the error.
   void reportErrorForNode(ErrorCode errorCode, AstNode node,
       [List<Object> arguments]) {
     reportErrorForOffset(errorCode, node.offset, node.length, arguments);
   }
 
-  /**
-   * Report an error with the given [errorCode] and [arguments]. The location of
-   * the error is specified by the given [offset] and [length].
-   */
+  /// Report an error with the given [errorCode] and [arguments]. The location
+  /// of the error is specified by the given [offset] and [length].
   void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
       [List<Object> arguments]) {
     _convertElements(arguments);
@@ -159,45 +125,37 @@ class ErrorReporter {
         AnalysisError(_source, offset, length, errorCode, arguments, messages));
   }
 
-  /**
-   * Report an error with the given [errorCode] and [arguments]. The location of
-   * the error is specified by the given [span].
-   */
+  /// Report an error with the given [errorCode] and [arguments]. The location
+  /// of the error is specified by the given [span].
   void reportErrorForSpan(ErrorCode errorCode, SourceSpan span,
       [List<Object> arguments]) {
     reportErrorForOffset(errorCode, span.start.offset, span.length, arguments);
   }
 
-  /**
-   * Report an error with the given [errorCode] and [arguments]. The [token] is
-   * used to compute the location of the error.
-   */
+  /// Report an error with the given [errorCode] and [arguments]. The [token] is
+  /// used to compute the location of the error.
   void reportErrorForToken(ErrorCode errorCode, Token token,
       [List<Object> arguments]) {
     reportErrorForOffset(errorCode, token.offset, token.length, arguments);
   }
 
-  /**
-   * Report an error with the given [errorCode] and [message]. The location of
-   * the error is specified by the given [offset] and [length].
-   */
+  /// Report an error with the given [errorCode] and [message]. The location of
+  /// the error is specified by the given [offset] and [length].
   void reportErrorMessage(
       ErrorCode errorCode, int offset, int length, Message message) {
     _errorListener.onError(AnalysisError.forValues(
         _source, offset, length, errorCode, message.message, message.tip));
   }
 
-  /**
-   * Report an error with the given [errorCode] and [arguments]. The [node] is
-   * used to compute the location of the error. The arguments are expected to
-   * contain two or more types. Convert the types into strings by using the
-   * display names of the types, unless there are two or more types with the
-   * same names, in which case the extended display names of the types will be
-   * used in order to clarify the message.
-   *
-   * If there are not two or more types in the argument list, the method
-   * [reportErrorForNode] should be used instead.
-   */
+  /// Report an error with the given [errorCode] and [arguments]. The [node] is
+  /// used to compute the location of the error. The arguments are expected to
+  /// contain two or more types. Convert the types into strings by using the
+  /// display names of the types, unless there are two or more types with the
+  /// same names, in which case the extended display names of the types will be
+  /// used in order to clarify the message.
+  ///
+  /// If there are not two or more types in the argument list, the method
+  /// [reportErrorForNode] should be used instead.
   @Deprecated('Use reportErrorForNode(), it will convert types as well')
   void reportTypeErrorForNode(
       ErrorCode errorCode, AstNode node, List<Object> arguments) {
@@ -220,13 +178,11 @@ class ErrorReporter {
     }
   }
 
-  /**
-   * Given an array of [arguments] that is expected to contain two or more
-   * types, convert the types into strings by using the display names of the
-   * types, unless there are two or more types with the same names, in which
-   * case the extended display names of the types will be used in order to
-   * clarify the message.
-   */
+  /// Given an array of [arguments] that is expected to contain two or more
+  /// types, convert the types into strings by using the display names of the
+  /// types, unless there are two or more types with the same names, in which
+  /// case the extended display names of the types will be used in order to
+  /// clarify the message.
   List<DiagnosticMessage> _convertTypeNames(List<Object> arguments) {
     var messages = <DiagnosticMessage>[];
     if (arguments == null) {
@@ -295,16 +251,12 @@ class ErrorReporter {
   }
 }
 
-/**
- * An error listener that will record the errors that are reported to it in a
- * way that is appropriate for caching those errors within an analysis context.
- */
+/// An error listener that will record the errors that are reported to it in a
+/// way that is appropriate for caching those errors within an analysis context.
 class RecordingErrorListener implements AnalysisErrorListener {
   Set<AnalysisError> _errors;
 
-  /**
-   * Return the errors collected by the listener.
-   */
+  /// Return the errors collected by the listener.
   List<AnalysisError> get errors {
     if (_errors == null) {
       return const <AnalysisError>[];
@@ -312,9 +264,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
     return _errors.toList();
   }
 
-  /**
-   * Return the errors collected by the listener for the given [source].
-   */
+  /// Return the errors collected by the listener for the given [source].
   List<AnalysisError> getErrorsForSource(Source source) {
     if (_errors == null) {
       return const <AnalysisError>[];
@@ -329,9 +279,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
   }
 }
 
-/**
- * An [AnalysisErrorListener] that ignores error.
- */
+/// An [AnalysisErrorListener] that ignores error.
 class _NullErrorListener implements AnalysisErrorListener {
   @override
   void onError(AnalysisError event) {
@@ -339,10 +287,8 @@ class _NullErrorListener implements AnalysisErrorListener {
   }
 }
 
-/**
- * Used by `ErrorReporter._convertTypeNames` to keep track of a type that is
- * being converted.
- */
+/// Used by `ErrorReporter._convertTypeNames` to keep track of a type that is
+/// being converted.
 class _TypeToConvert {
   final int index;
   final DartType type;

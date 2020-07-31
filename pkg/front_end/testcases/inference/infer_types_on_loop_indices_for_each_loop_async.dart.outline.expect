@@ -9,24 +9,101 @@ class Foo extends core::Object {
   field core::int* bar;
   synthetic constructor •() → self::Foo*
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class Bar<T extends asy::Stream<core::String*>* = asy::Stream<core::String*>*> extends core::Object {
   synthetic constructor •() → self::Bar<self::Bar::T*>*
     ;
-  method foo(generic-covariant-impl self::Bar::T* t) → dynamic
+  method foo(generic-covariant-impl self::Bar::T* t) → dynamic async 
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class Baz<T extends core::Object* = dynamic, E extends asy::Stream<self::Baz::T*>* = asy::Stream<dynamic>*, S extends self::Baz::E* = asy::Stream<dynamic>*> extends core::Object {
   synthetic constructor •() → self::Baz<self::Baz::T*, self::Baz::E*, self::Baz::S*>*
     ;
-  method foo(generic-covariant-impl self::Baz::S* t) → dynamic
+  method foo(generic-covariant-impl self::Baz::S* t) → dynamic async 
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 abstract class MyStream<T extends core::Object* = dynamic> extends asy::Stream<self::MyStream::T*> {
   static factory •<T extends core::Object* = dynamic>() → self::MyStream<self::MyStream::•::T*>*
     ;
+  abstract member-signature get isBroadcast() → core::bool*;
+  abstract member-signature method asBroadcastStream({(asy::StreamSubscription<self::MyStream::T*>*) →* void onListen, (asy::StreamSubscription<self::MyStream::T*>*) →* void onCancel}) → asy::Stream<self::MyStream::T*>*;
+  abstract member-signature method listen((self::MyStream::T*) →* void onData, {core::Function* onError, () →* void onDone, core::bool* cancelOnError}) → asy::StreamSubscription<self::MyStream::T*>*;
+  abstract member-signature method where((self::MyStream::T*) →* core::bool* test) → asy::Stream<self::MyStream::T*>*;
+  abstract member-signature method map<S extends core::Object* = dynamic>((self::MyStream::T*) →* self::MyStream::map::S* convert) → asy::Stream<self::MyStream::map::S*>*;
+  abstract member-signature method asyncMap<E extends core::Object* = dynamic>((self::MyStream::T*) →* FutureOr<self::MyStream::asyncMap::E*>* convert) → asy::Stream<self::MyStream::asyncMap::E*>*;
+  abstract member-signature method asyncExpand<E extends core::Object* = dynamic>((self::MyStream::T*) →* asy::Stream<self::MyStream::asyncExpand::E*>* convert) → asy::Stream<self::MyStream::asyncExpand::E*>*;
+  abstract member-signature method handleError(core::Function* onError, {(dynamic) →* core::bool* test}) → asy::Stream<self::MyStream::T*>*;
+  abstract member-signature method expand<S extends core::Object* = dynamic>((self::MyStream::T*) →* core::Iterable<self::MyStream::expand::S*>* convert) → asy::Stream<self::MyStream::expand::S*>*;
+  abstract member-signature method pipe(generic-covariant-impl asy::StreamConsumer<self::MyStream::T*>* streamConsumer) → asy::Future<dynamic>*;
+  abstract member-signature method transform<S extends core::Object* = dynamic>(generic-covariant-impl asy::StreamTransformer<self::MyStream::T*, self::MyStream::transform::S*>* streamTransformer) → asy::Stream<self::MyStream::transform::S*>*;
+  abstract member-signature method reduce(generic-covariant-impl (self::MyStream::T*, self::MyStream::T*) →* self::MyStream::T* combine) → asy::Future<self::MyStream::T*>*;
+  abstract member-signature method fold<S extends core::Object* = dynamic>(self::MyStream::fold::S* initialValue, (self::MyStream::fold::S*, self::MyStream::T*) →* self::MyStream::fold::S* combine) → asy::Future<self::MyStream::fold::S*>*;
+  abstract member-signature method join([core::String* separator]) → asy::Future<core::String*>*;
+  abstract member-signature method contains(core::Object* needle) → asy::Future<core::bool*>*;
+  abstract member-signature method forEach((self::MyStream::T*) →* void action) → asy::Future<dynamic>*;
+  abstract member-signature method every((self::MyStream::T*) →* core::bool* test) → asy::Future<core::bool*>*;
+  abstract member-signature method any((self::MyStream::T*) →* core::bool* test) → asy::Future<core::bool*>*;
+  abstract member-signature get length() → asy::Future<core::int*>*;
+  abstract member-signature get isEmpty() → asy::Future<core::bool*>*;
+  abstract member-signature method cast<R extends core::Object* = dynamic>() → asy::Stream<self::MyStream::cast::R*>*;
+  abstract member-signature method toList() → asy::Future<core::List<self::MyStream::T*>*>*;
+  abstract member-signature method toSet() → asy::Future<core::Set<self::MyStream::T*>*>*;
+  abstract member-signature method drain<E extends core::Object* = dynamic>([self::MyStream::drain::E* futureValue]) → asy::Future<self::MyStream::drain::E*>*;
+  abstract member-signature method take(core::int* count) → asy::Stream<self::MyStream::T*>*;
+  abstract member-signature method takeWhile((self::MyStream::T*) →* core::bool* test) → asy::Stream<self::MyStream::T*>*;
+  abstract member-signature method skip(core::int* count) → asy::Stream<self::MyStream::T*>*;
+  abstract member-signature method skipWhile((self::MyStream::T*) →* core::bool* test) → asy::Stream<self::MyStream::T*>*;
+  abstract member-signature method distinct([(self::MyStream::T*, self::MyStream::T*) →* core::bool* equals]) → asy::Stream<self::MyStream::T*>*;
+  abstract member-signature get first() → asy::Future<self::MyStream::T*>*;
+  abstract member-signature get last() → asy::Future<self::MyStream::T*>*;
+  abstract member-signature get single() → asy::Future<self::MyStream::T*>*;
+  abstract member-signature method firstWhere((self::MyStream::T*) →* core::bool* test, {generic-covariant-impl () →* self::MyStream::T* orElse}) → asy::Future<self::MyStream::T*>*;
+  abstract member-signature method lastWhere((self::MyStream::T*) →* core::bool* test, {generic-covariant-impl () →* self::MyStream::T* orElse}) → asy::Future<self::MyStream::T*>*;
+  abstract member-signature method singleWhere((self::MyStream::T*) →* core::bool* test, {generic-covariant-impl () →* self::MyStream::T* orElse}) → asy::Future<self::MyStream::T*>*;
+  abstract member-signature method elementAt(core::int* index) → asy::Future<self::MyStream::T*>*;
+  abstract member-signature method timeout(core::Duration* timeLimit, {(asy::EventSink<self::MyStream::T*>*) →* void onTimeout}) → asy::Stream<self::MyStream::T*>*;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
-static method test() → dynamic
+static method test() → dynamic async 
   ;
 static method main() → dynamic
   ;

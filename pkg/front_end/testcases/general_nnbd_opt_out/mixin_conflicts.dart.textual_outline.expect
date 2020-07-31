@@ -1,0 +1,21 @@
+// @dart = 2.6
+class M {
+  foo() {}
+}
+
+class N = Object with M;
+
+class C extends Object with N {}
+
+abstract class M2 implements M {
+  bar() {}
+}
+
+class N2 = Object with M2;
+abstract class N3 = Object with M2;
+
+class C2 extends Object with M2 {}
+
+abstract class C3 extends Object with M2 {}
+
+main() {}

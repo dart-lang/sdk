@@ -10,12 +10,12 @@ import 'assist_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(JoinInWithInnerTest);
+    defineReflectiveTests(JoinIfWithInnerTest);
   });
 }
 
 @reflectiveTest
-class JoinInWithInnerTest extends AssistProcessorTest {
+class JoinIfWithInnerTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.JOIN_IF_WITH_INNER;
 

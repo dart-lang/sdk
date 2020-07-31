@@ -271,6 +271,8 @@ class DatabaseBuilder(object):
             res = node.id
             if res.startswith('unsigned '):
                 res = res[len('unsigned '):]
+            if hasattr(node, 'nullable') and node.nullable:
+                res += '?'
             return res
 
         res = []

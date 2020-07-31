@@ -92,7 +92,6 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:async" as asy;
 
 import "dart:async";
 
@@ -101,8 +100,8 @@ static field <T extends core::Object? = dynamic>(T%) → core::Null? fieldDirect
   late T% local2;
   core::int local3;
   late core::int local4;
-  asy::FutureOr<core::int> local5;
-  late asy::FutureOr<core::int> local6;
+  FutureOr<core::int>local5;
+  late FutureOr<core::int>local6;
   function #local7#initializer() → T%
     return value;
   late T% local7 = #local7#initializer.call();
@@ -131,8 +130,8 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → core::Null?
   late T% local2;
   core::int local3;
   late core::int local4;
-  asy::FutureOr<core::int> local5;
-  late asy::FutureOr<core::int> local6;
+  FutureOr<core::int>local5;
+  late FutureOr<core::int>local6;
   function #local7#initializer() → T%
     return value;
   late T% local7 = #local7#initializer.call();
@@ -174,8 +173,8 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
   late self::methodDirect::T% local2;
   core::int local3;
   late core::int local4;
-  asy::FutureOr<core::int> local5;
-  late asy::FutureOr<core::int> local6;
+  FutureOr<core::int>local5;
+  late FutureOr<core::int>local6;
   function #local7#initializer() → self::methodDirect::T%
     return value;
   late self::methodDirect::T% local7 = #local7#initializer.call();
@@ -204,8 +203,8 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
   late self::methodConditional::T% local2;
   core::int local3;
   late core::int local4;
-  asy::FutureOr<core::int> local5;
-  late asy::FutureOr<core::int> local6;
+  FutureOr<core::int>local5;
+  late FutureOr<core::int>local6;
   function #local7#initializer() → self::methodConditional::T%
     return value;
   late self::methodConditional::T% local7 = #local7#initializer.call();

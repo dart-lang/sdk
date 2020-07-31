@@ -1,0 +1,11 @@
+library test;
+
+abstract class A extends B {
+  f(x);
+}
+
+abstract class B extends A {
+  f(x);
+}
+
+main() {}

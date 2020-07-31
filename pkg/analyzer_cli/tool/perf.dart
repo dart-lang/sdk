@@ -220,7 +220,10 @@ Token tokenize(Source source) {
   // first converting to String?
   var scanner = Scanner(
       source, CharSequenceReader(contents), AnalysisErrorListener.NULL_LISTENER)
-    ..configureFeatures(featureSet)
+    ..configureFeatures(
+      featureSetForOverriding: featureSet,
+      featureSet: featureSet,
+    )
     ..preserveComments = false;
   var token = scanner.tokenize();
   scanTimer.stop();

@@ -27,6 +27,10 @@ On 64-bit architectures, the header of heap objects also contains a 32-bit ident
 
 See [Cheney's algorithm](https://en.wikipedia.org/wiki/Cheney's_algorithm).
 
+## Parallel Scavenge
+
+FLAG_scavenger_tasks (default 2) workers are started on separate threads. Each worker competes to process parts of the root set (including the remembered set). When a worker copies an object to to-space, it allocates from a worker-local bump allocation region. The same worker will process the copied object. When a worker promotes an object to old-space, it allocates from a worker-local freelist, which uses bump allocation for large free blocks. The promoted object is added to a work list that implements work stealing, so some other worker may process the promoted object. After the object is evacuated, the worker using a compare-and-swap to install the forwarding pointer into the from-space object's header. If it loses the race, it un-allocates the to-space or old-space object it just allocated, and uses the winner's object to update the pointer it was processing. Workers run until all of the work set have been processed, and every worker have processed its to-space objects and local part of the promoted work list.
+
 ## Mark-Sweep
 
 All objects have a bit in their header called the mark bit. At the start of a collection cycle, all objects have this bit clear.
@@ -51,6 +55,8 @@ To perform these operations, all mutators need to temporarily stop accessing the
 
 Note that a mutator can be at a safepoint without being suspended. It might be performing a long task that doesn't access the heap. It will, however, need to wait for any safepoint operation to complete in order to leave its safepoint and resume accessing the heap.
 
+Because a safepoint operation excludes excution of Dart code, it is sometimes used for non-GC tasks that requires only this property. For example, when a background compilation has completed and wants to install its result, it uses a safepoint operation to ensure no Dart execution sees the intermediate states during installation.
+
 ## Concurrent Marking
 
 To reduce the time the mutator is paused for old-space GCs, we allow the mutator to continue running during most of the marking work. 
@@ -61,7 +67,7 @@ With the mutator and marker running concurrently, the mutator could write a poin
 
 The barrier is equivalent to
 
-```
+```c++
 StorePoint(RawObject* source, RawObject** slot, RawObject* target) {
   *slot = target;
   if (target->IsSmi()) return;
@@ -78,7 +84,7 @@ StorePoint(RawObject* source, RawObject** slot, RawObject* target) {
 
 But we combine the generational and incremental checks with a shift-and-mask.
 
-```
+```c++
 enum HeaderBits {
   ...
   kOldAndNotMarkedBit,      // Incremental barrier target.

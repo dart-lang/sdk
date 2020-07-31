@@ -5,19 +5,11 @@
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/error/best_practices_verifier.dart';
-import 'package:analyzer/src/error/dart2js_verifier.dart';
-import 'package:analyzer/src/error/dead_code_verifier.dart';
-import 'package:analyzer/src/error/language_version_override_verifier.dart';
-import 'package:analyzer/src/error/override_verifier.dart';
-import 'package:analyzer/src/error/todo_finder.dart';
-import 'package:analyzer/src/error/unused_local_elements_verifier.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -29,12 +21,22 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart' show LibraryScope;
+import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/dart2js_verifier.dart';
+import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/imports_verifier.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
+import 'package:analyzer/src/error/language_version_override_verifier.dart';
+import 'package:analyzer/src/error/override_verifier.dart';
+import 'package:analyzer/src/error/todo_finder.dart';
+import 'package:analyzer/src/error/unused_local_elements_verifier.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
@@ -58,9 +60,7 @@ var timerLibraryAnalyzerResolve = Stopwatch();
 var timerLibraryAnalyzerSplicer = Stopwatch();
 var timerLibraryAnalyzerVerify = Stopwatch();
 
-/**
- * Analyzer of a single library.
- */
+/// Analyzer of a single library.
 class LibraryAnalyzer {
   /// A marker object used to prevent the initialization of
   /// [_versionConstraintFromPubspec] when the previous initialization attempt
@@ -108,18 +108,14 @@ class LibraryAnalyzer {
 
   TypeSystemImpl get _typeSystem => _libraryElement.typeSystem;
 
-  /**
-   * Compute analysis results for all units of the library.
-   */
+  /// Compute analysis results for all units of the library.
   Map<FileState, UnitAnalysisResult> analyze() {
     return PerformanceStatistics.analysis.makeCurrentWhile(() {
       return analyzeSync();
     });
   }
 
-  /**
-   * Compute analysis results for all units of the library.
-   */
+  /// Compute analysis results for all units of the library.
   Map<FileState, UnitAnalysisResult> analyzeSync() {
     timerLibraryAnalyzer.start();
     Map<FileState, CompilationUnit> units = {};
@@ -211,13 +207,11 @@ class LibraryAnalyzer {
       ErrorReporter errorReporter, CompilationUnit unit) {
     ConstantVerifier constantVerifier = ConstantVerifier(
         errorReporter, _libraryElement, _declaredVariables,
-        featureSet: unit.featureSet, forAnalysisDriver: true);
+        featureSet: unit.featureSet);
     unit.accept(constantVerifier);
   }
 
-  /**
-   * Compute [_constants] in all units.
-   */
+  /// Compute [_constants] in all units.
   void _computeConstants() {
     computeConstants(_typeProvider, _typeSystem, _declaredVariables,
         _constants.toList(), _analysisOptions.experimentStatus);
@@ -231,20 +225,36 @@ class LibraryAnalyzer {
     AnalysisErrorListener errorListener = _getErrorListener(file);
     ErrorReporter errorReporter = _getErrorReporter(file);
 
-    unit.accept(DeadCodeVerifier(errorReporter, unit.featureSet,
-        typeSystem: _typeSystem));
+    if (!_libraryElement.isNonNullableByDefault) {
+      unit.accept(
+        LegacyDeadCodeVerifier(
+          errorReporter,
+          typeSystem: _typeSystem,
+        ),
+      );
+    }
+
+    unit.accept(DeadCodeVerifier(errorReporter));
 
     // Dart2js analysis.
     if (_analysisOptions.dart2jsHint) {
       unit.accept(Dart2JSVerifier(errorReporter));
     }
 
-    unit.accept(BestPracticesVerifier(
-        errorReporter, _typeProvider, _libraryElement, unit, file.content,
+    unit.accept(
+      BestPracticesVerifier(
+        errorReporter,
+        _typeProvider,
+        _libraryElement,
+        unit,
+        file.content,
+        declaredVariables: _declaredVariables,
         typeSystem: _typeSystem,
         inheritanceManager: _inheritance,
         resourceProvider: _resourceProvider,
-        analysisOptions: _context.analysisOptions));
+        analysisOptions: _context.analysisOptions,
+      ),
+    );
 
     unit.accept(OverrideVerifier(
       _inheritance,
@@ -313,18 +323,7 @@ class LibraryAnalyzer {
     );
     for (Linter linter in _analysisOptions.lintRules) {
       linter.reporter = errorReporter;
-      if (linter is NodeLintRule) {
-        (linter as NodeLintRule).registerNodeProcessors(nodeRegistry, context);
-      } else {
-        AstVisitor visitor = linter.getVisitor();
-        if (visitor != null) {
-          if (_analysisOptions.enableTiming) {
-            var timer = lintRegistry.getTimer(linter);
-            visitor = TimedAstVisitor(visitor, timer);
-          }
-          visitors.add(visitor);
-        }
-      }
+      linter.registerNodeProcessors(nodeRegistry, context);
     }
 
     // Run lints that handle specific node types.
@@ -377,7 +376,7 @@ class LibraryAnalyzer {
     // Use the ErrorVerifier to compute errors.
     //
     ErrorVerifier errorVerifier = ErrorVerifier(
-        errorReporter, _libraryElement, _typeProvider, _inheritance, false);
+        errorReporter, _libraryElement, _typeProvider, _inheritance);
     unit.accept(errorVerifier);
 
     // Verify constraints on FFI uses. The CFE enforces these constraints as
@@ -385,10 +384,8 @@ class LibraryAnalyzer {
     unit.accept(FfiVerifier(_typeSystem, errorReporter));
   }
 
-  /**
-   * Return a subset of the given [errors] that are not marked as ignored in
-   * the [file].
-   */
+  /// Return a subset of the given [errors] that are not marked as ignored in
+  /// the [file].
   List<AnalysisError> _filterIgnoredErrors(
       FileState file, List<AnalysisError> errors) {
     if (errors.isEmpty) {
@@ -403,12 +400,49 @@ class LibraryAnalyzer {
     LineInfo lineInfo = _fileToLineInfo[file];
 
     bool isIgnored(AnalysisError error) {
+      var code = error.errorCode;
+      // Don't allow error severity issues to be ignored.
+      if (!code.isIgnorable) {
+        // The [code] is not ignorable, but we've allowed a few "privileged"
+        // cases. Each is annotated with an issue which represents technical
+        // debt. Once cleaned up, we may remove this notion of "privileged".
+        // In the case of [CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY], we may
+        // just decide that it happens enough in tests that it can be declared
+        // an ignorable error, and in practice other back ends will prevent
+        // non-internal code from importing internal code.
+        bool privileged = false;
+
+        if (code == StaticTypeWarningCode.UNDEFINED_FUNCTION ||
+            code == StaticTypeWarningCode.UNDEFINED_PREFIXED_NAME) {
+          // Special case a small number of errors in Flutter code which are
+          // ignored. The erroneous code is found in a conditionally imported
+          // library, which uses a special version of the "dart:ui" library
+          // which the Analyzer does not use during analysis. See
+          // https://github.com/flutter/flutter/issues/52899.
+          if (file.path.contains('flutter')) {
+            privileged = true;
+          }
+        }
+
+        if ((code == CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY ||
+                code == CompileTimeErrorCode.UNDEFINED_ANNOTATION ||
+                code == ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE) &&
+            (file.path.contains('tests/compiler/dart2js') ||
+                file.path.contains('pkg/compiler/test'))) {
+          // Special case the dart2js language tests. Some of these import
+          // various internal libraries.
+          privileged = true;
+        }
+
+        if (!privileged) return false;
+      }
+
       int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-      String name = error.errorCode.name.toLowerCase();
+      String name = code.name.toLowerCase();
       if (ignoreInfo.ignoredAt(name, errorLine)) {
         return true;
       }
-      String uniqueName = error.errorCode.uniqueName;
+      String uniqueName = code.uniqueName;
       int period = uniqueName.indexOf('.');
       if (period >= 0) {
         uniqueName = uniqueName.substring(period + 1);
@@ -462,10 +496,8 @@ class LibraryAnalyzer {
     return workspace?.findPackageFor(libraryPath);
   }
 
-  /**
-   * Return the name of the library that the given part is declared to be a
-   * part of, or `null` if the part does not contain a part-of directive.
-   */
+  /// Return the name of the library that the given part is declared to be a
+  /// part of, or `null` if the part does not contain a part-of directive.
   _NameOrSource _getPartLibraryNameOrUri(Source partSource,
       CompilationUnit partUnit, List<Directive> directivesToResolve) {
     for (Directive directive in partUnit.directives) {
@@ -497,16 +529,12 @@ class LibraryAnalyzer {
     return source == _library.source;
   }
 
-  /**
-   * Return `true` if the given [source] is a library.
-   */
+  /// Return `true` if the given [source] is a library.
   bool _isLibrarySource(Source source) {
     return _isLibraryUri(source.uri);
   }
 
-  /**
-   * Return a new parsed unresolved [CompilationUnit].
-   */
+  /// Return a new parsed unresolved [CompilationUnit].
   CompilationUnit _parse(FileState file) {
     AnalysisErrorListener errorListener = _getErrorListener(file);
     String content = file.content;
@@ -692,10 +720,8 @@ class LibraryAnalyzer {
         featureSet: unit.featureSet, flowAnalysisHelper: flowAnalysisHelper));
   }
 
-  /**
-   * Return the result of resolve the given [uriContent], reporting errors
-   * against the [uriLiteral].
-   */
+  /// Return the result of resolve the given [uriContent], reporting errors
+  /// against the [uriLiteral].
   Source _resolveUri(FileState file, bool isImport, StringLiteral uriLiteral,
       String uriContent) {
     UriValidationCode code =
@@ -738,6 +764,13 @@ class LibraryAnalyzer {
           _library.source,
           relativeUri,
         );
+        for (var configuration in directive.configurations) {
+          var uriLiteral = configuration.uri;
+          String uriContent = uriLiteral.stringValue?.trim();
+          Source defaultSource = _resolveUri(
+              file, directive is ImportDirective, uriLiteral, uriContent);
+          configuration.uriSource = defaultSource;
+        }
       }
     }
   }
@@ -762,10 +795,8 @@ class LibraryAnalyzer {
     }
   }
 
-  /**
-   * Check the given [directive] to see if the referenced source exists and
-   * report an error if it does not.
-   */
+  /// Check the given [directive] to see if the referenced source exists and
+  /// report an error if it does not.
   void _validateUriBasedDirective(
       FileState file, UriBasedDirectiveImpl directive) {
     String uriContent;
@@ -797,10 +828,8 @@ class LibraryAnalyzer {
         .reportErrorForNode(errorCode, uriLiteral, [uriContent]);
   }
 
-  /**
-   * Check each directive in the given [unit] to see if the referenced source
-   * exists and report an error if it does not.
-   */
+  /// Check each directive in the given [unit] to see if the referenced source
+  /// exists and report an error if it does not.
   void _validateUriBasedDirectives(FileState file, CompilationUnit unit) {
     for (Directive directive in unit.directives) {
       if (directive is UriBasedDirective) {
@@ -809,10 +838,8 @@ class LibraryAnalyzer {
     }
   }
 
-  /**
-   * Return `true` if the given [source] refers to a file that is assumed to be
-   * generated.
-   */
+  /// Return `true` if the given [source] refers to a file that is assumed to be
+  /// generated.
   static bool _isGenerated(Source source) {
     if (source == null) {
       return false;
@@ -836,9 +863,7 @@ class LibraryAnalyzer {
   }
 }
 
-/**
- * Analysis result for single file.
- */
+/// Analysis result for single file.
 class UnitAnalysisResult {
   final FileState file;
   final CompilationUnit unit;
@@ -847,9 +872,7 @@ class UnitAnalysisResult {
   UnitAnalysisResult(this.file, this.unit, this.errors);
 }
 
-/**
- * Either the name or the source associated with a part-of directive.
- */
+/// Either the name or the source associated with a part-of directive.
 class _NameOrSource {
   final String name;
   final Source source;

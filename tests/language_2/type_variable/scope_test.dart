@@ -25,8 +25,6 @@ class Foo<T> implements I<T> {
     // [cfe] Type variables can't be used in static members.
     //         ^^^^^^^^^^^^^^^^^
     // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
-    //             ^
-    // [cfe] A value of type 'Foo<String>' can't be assigned to a variable of type 'Foo<invalid-type>'.
     return new Foo<String>();
     //     ^^^^^^^^^^^^^^^^^
     // [analyzer] STATIC_TYPE_WARNING.RETURN_OF_INVALID_TYPE

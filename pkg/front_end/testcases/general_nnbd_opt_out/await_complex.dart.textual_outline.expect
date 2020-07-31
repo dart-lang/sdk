@@ -1,0 +1,41 @@
+// @dart = 2.6
+import 'dart:async';
+
+int globalVariable = 1;
+int topLevelFoo(int param) => 1;
+int get topLevelGetter => globalVariable;
+void set topLevelSetter(val) {}
+
+class C {
+  static int staticField = 1;
+  static int get staticGetter => staticField;
+  static void set staticSetter(val) {}
+  static int staticFoo(int param) => param;
+  int field = 1;
+  int get getter => field;
+  void set setter(val) {}
+  int foo(int param) => param;
+}
+
+dummy() => 1;
+staticMembers() async {}
+topLevelMembers() async {}
+instanceMembers() async {}
+others() async {}
+conditionals() async {}
+asserts() async {}
+controlFlow() async {}
+FutureOr<T> future<T>(T value) async => value;
+FutureOr<T> id<T>(T value) => value;
+Stream<int> intStream() async* {}
+final bool assertStatementsEnabled = () {
+  try {
+    assert(false);
+    return false;
+  } catch (_) {
+    return true;
+  }
+}();
+main() async {}
+expect(expected, actual) {}
+expectList(List expected, List actual) {}

@@ -1,0 +1,15 @@
+library test;
+
+class C {
+  var f = new CallableClass();
+}
+
+class CallableClass {
+  int call() => 0;
+}
+
+class D extends C {
+  void g() {}
+}
+
+main() {}

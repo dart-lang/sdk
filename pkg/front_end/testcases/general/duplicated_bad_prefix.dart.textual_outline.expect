@@ -1,0 +1,13 @@
+import 'duplicated_bad_prefix_lib1.dart' as dupe;
+import 'duplicated_bad_prefix_lib2.dart' as dupe;
+
+class Dupe {}
+
+class Dupe {}
+
+class C {
+  Dupe.a b;
+  dupe.C d;
+}
+
+main() {}

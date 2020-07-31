@@ -1,0 +1,3 @@
+// @dart = 2.6
+typedef F<W, X, Y, Z> = X Function(Y, Z Function(Z));
+main() {}

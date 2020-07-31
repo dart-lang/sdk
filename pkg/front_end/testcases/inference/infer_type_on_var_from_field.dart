@@ -9,13 +9,13 @@ class A {
   int x = 0;
 
   test1() {
-    var /*@ type=int* */ a = /*@target=A::x*/ x;
+    var /*@ type=int* */ a = /*@target=A.x*/ x;
     a = /*error:INVALID_ASSIGNMENT*/ "hi";
     a = 3;
-    var /*@ type=int* */ b = /*@target=A::y*/ y;
+    var /*@ type=int* */ b = /*@target=A.y*/ y;
     b = /*error:INVALID_ASSIGNMENT*/ "hi";
     b = 4;
-    var /*@ type=int* */ c = /*@target=A::z*/ z;
+    var /*@ type=int* */ c = /*@target=A.z*/ z;
     c = /*error:INVALID_ASSIGNMENT*/ "hi";
     c = 4;
   }

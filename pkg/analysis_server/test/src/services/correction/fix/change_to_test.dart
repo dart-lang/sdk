@@ -11,7 +11,6 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ChangeToTest);
-    defineReflectiveTests(ChangeToWithExtensionMethodsTest);
   });
 }
 
@@ -19,6 +18,54 @@ void main() {
 class ChangeToTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CHANGE_TO;
+
+  Future<void> test_annotation_constructor() async {
+    await resolveTestUnit('''
+@MyCalss()
+void f() {}
+
+class MyClass {
+  const MyClass();
+}
+''');
+    await assertHasFix('''
+@MyClass()
+void f() {}
+
+class MyClass {
+  const MyClass();
+}
+''');
+  }
+
+  @failingTest
+  Future<void> test_annotation_variable() async {
+    // TODO(brianwilkerson) Add support for suggesting similar top-level
+    //  variables.
+    await resolveTestUnit('''
+const annotation = '';
+@anontation
+void f() {}
+''');
+    await assertHasFix('''
+const annotation = '';
+@annotation
+void f() {}
+''');
+  }
+
+  Future<void> test_class_extends() async {
+    await resolveTestUnit('''
+class MyClass extends BaseClssa {}
+
+class BaseClass {}
+''');
+    await assertHasFix('''
+class MyClass extends BaseClass {}
+
+class BaseClass {}
+''');
+  }
 
   Future<void> test_class_fromImport() async {
     await resolveTestUnit('''
@@ -52,6 +99,19 @@ main() {
 ''');
   }
 
+  Future<void> test_class_implements() async {
+    await resolveTestUnit('''
+class MyClass implements BaseClssa {}
+
+class BaseClass {}
+''');
+    await assertHasFix('''
+class MyClass implements BaseClass {}
+
+class BaseClass {}
+''');
+  }
+
   Future<void> test_class_prefixed() async {
     await resolveTestUnit('''
 import 'dart:async' as c;
@@ -66,6 +126,19 @@ main() {
   c.Future v = null;
   print(v);
 }
+''');
+  }
+
+  Future<void> test_class_with() async {
+    await resolveTestUnit('''
+class MyClass with BaseClssa {}
+
+class BaseClass {}
+''');
+    await assertHasFix('''
+class MyClass with BaseClass {}
+
+class BaseClass {}
 ''');
   }
 
@@ -143,6 +216,25 @@ main(A a) {
 ''');
   }
 
+  Future<void> test_getter_override() async {
+    await resolveTestUnit('''
+extension E on int {
+  int get myGetter => 0;
+}
+void f() {
+  E(1).myGeter;
+}
+''');
+    await assertHasFix('''
+extension E on int {
+  int get myGetter => 0;
+}
+void f() {
+  E(1).myGetter;
+}
+''');
+  }
+
   Future<void> test_getter_qualified() async {
     await resolveTestUnit('''
 class A {
@@ -181,6 +273,25 @@ main() {
 ''');
   }
 
+  Future<void> test_getter_static() async {
+    await resolveTestUnit('''
+extension E on int {
+  static int get myGetter => 0;
+}
+void f() {
+  E.myGeter;
+}
+''');
+    await assertHasFix('''
+extension E on int {
+  static int get myGetter => 0;
+}
+void f() {
+  E.myGetter;
+}
+''');
+  }
+
   Future<void> test_getter_unqualified() async {
     await resolveTestUnit('''
 class A {
@@ -209,6 +320,25 @@ main(Object object) {
     await assertNoFix();
   }
 
+  Future<void> test_method_override() async {
+    await resolveTestUnit('''
+extension E on int {
+  int myMethod() => 0;
+}
+void f() {
+  E(1).myMetod();
+}
+''');
+    await assertHasFix('''
+extension E on int {
+  int myMethod() => 0;
+}
+void f() {
+  E(1).myMethod();
+}
+''');
+  }
+
   Future<void> test_method_qualified() async {
     await resolveTestUnit('''
 class A {
@@ -226,6 +356,25 @@ class A {
 main() {
   A a = new A();
   a.myMethod();
+}
+''');
+  }
+
+  Future<void> test_method_static() async {
+    await resolveTestUnit('''
+extension E on int {
+  static int myMethod() => 0;
+}
+void f() {
+  E.myMetod();
+}
+''');
+    await assertHasFix('''
+extension E on int {
+  static int myMethod() => 0;
+}
+void f() {
+  E.myMethod();
 }
 ''');
   }
@@ -293,132 +442,6 @@ main(A a) {
 ''');
   }
 
-  Future<void> test_setter_qualified() async {
-    await resolveTestUnit('''
-class A {
-  int myField;
-}
-main(A a) {
-  a.myFild = 42;
-}
-''');
-    await assertHasFix('''
-class A {
-  int myField;
-}
-main(A a) {
-  a.myField = 42;
-}
-''');
-  }
-
-  Future<void> test_setter_unqualified() async {
-    await resolveTestUnit('''
-class A {
-  int myField;
-  main() {
-    myFild = 42;
-  }
-}
-''');
-    await assertHasFix('''
-class A {
-  int myField;
-  main() {
-    myField = 42;
-  }
-}
-''');
-  }
-}
-
-@reflectiveTest
-class ChangeToWithExtensionMethodsTest extends FixProcessorTest {
-  @override
-  FixKind get kind => DartFixKind.CHANGE_TO;
-
-  @override
-  void setUp() {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
-    super.setUp();
-  }
-
-  Future<void> test_getter_override() async {
-    await resolveTestUnit('''
-extension E on int {
-  int get myGetter => 0;
-}
-void f() {
-  E(1).myGeter;
-}
-''');
-    await assertHasFix('''
-extension E on int {
-  int get myGetter => 0;
-}
-void f() {
-  E(1).myGetter;
-}
-''');
-  }
-
-  Future<void> test_getter_static() async {
-    await resolveTestUnit('''
-extension E on int {
-  static int get myGetter => 0;
-}
-void f() {
-  E.myGeter;
-}
-''');
-    await assertHasFix('''
-extension E on int {
-  static int get myGetter => 0;
-}
-void f() {
-  E.myGetter;
-}
-''');
-  }
-
-  Future<void> test_method_override() async {
-    await resolveTestUnit('''
-extension E on int {
-  int myMethod() => 0;
-}
-void f() {
-  E(1).myMetod();
-}
-''');
-    await assertHasFix('''
-extension E on int {
-  int myMethod() => 0;
-}
-void f() {
-  E(1).myMethod();
-}
-''');
-  }
-
-  Future<void> test_method_static() async {
-    await resolveTestUnit('''
-extension E on int {
-  static int myMethod() => 0;
-}
-void f() {
-  E.myMetod();
-}
-''');
-    await assertHasFix('''
-extension E on int {
-  static int myMethod() => 0;
-}
-void f() {
-  E.myMethod();
-}
-''');
-  }
-
   Future<void> test_setter_override() async {
     await resolveTestUnit('''
 extension E on int {
@@ -438,6 +461,25 @@ void f() {
 ''');
   }
 
+  Future<void> test_setter_qualified() async {
+    await resolveTestUnit('''
+class A {
+  int myField;
+}
+main(A a) {
+  a.myFild = 42;
+}
+''');
+    await assertHasFix('''
+class A {
+  int myField;
+}
+main(A a) {
+  a.myField = 42;
+}
+''');
+  }
+
   Future<void> test_setter_static() async {
     await resolveTestUnit('''
 extension E on int {
@@ -453,6 +495,25 @@ extension E on int {
 }
 void f() {
   E.mySetter = 0;
+}
+''');
+  }
+
+  Future<void> test_setter_unqualified() async {
+    await resolveTestUnit('''
+class A {
+  int myField;
+  main() {
+    myFild = 42;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int myField;
+  main() {
+    myField = 42;
+  }
 }
 ''');
   }

@@ -1,0 +1,8 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method i1<R extends core::Object? = dynamic>() → <S2 extends self::i1::R? = dynamic>() → void
+  ;
+static method main() → dynamic
+  ;

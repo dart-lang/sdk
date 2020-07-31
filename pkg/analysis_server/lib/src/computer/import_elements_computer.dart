@@ -38,8 +38,6 @@ class ImportElementsComputer {
   /// imported into the library at the given [path].
   Future<SourceChange> createEdits(
       List<ImportedElements> importedElementsList) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var filteredImportedElements =
         _filterImportedElements(importedElementsList);
     var libraryElement = libraryResult.libraryElement;

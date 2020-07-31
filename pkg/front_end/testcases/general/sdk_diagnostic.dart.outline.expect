@@ -12,7 +12,7 @@ library;
 //
 // class C extends Iterable<Object> {
 //       ^
-// sdk/lib/core/iterable.dart:156:19: Context: 'Iterable.iterator' is defined here.
+// sdk/lib/core/iterable.dart:158:19: Context: 'Iterable.iterator' is defined here.
 //   Iterator<E> get iterator;
 //                   ^^^^^^^^
 //
@@ -22,6 +22,43 @@ import "dart:core" as core;
 class C extends core::Iterable<core::Object*> {
   synthetic constructor •() → self::C*
     ;
+  abstract member-signature get iterator() → core::Iterator<core::Object*>*;
+  abstract member-signature method cast<R extends core::Object* = dynamic>() → core::Iterable<self::C::cast::R*>*;
+  abstract member-signature method followedBy(generic-covariant-impl core::Iterable<core::Object*>* other) → core::Iterable<core::Object*>*;
+  abstract member-signature method map<T extends core::Object* = dynamic>((core::Object*) →* self::C::map::T* f) → core::Iterable<self::C::map::T*>*;
+  abstract member-signature method where((core::Object*) →* core::bool* test) → core::Iterable<core::Object*>*;
+  abstract member-signature method whereType<T extends core::Object* = dynamic>() → core::Iterable<self::C::whereType::T*>*;
+  abstract member-signature method expand<T extends core::Object* = dynamic>((core::Object*) →* core::Iterable<self::C::expand::T*>* f) → core::Iterable<self::C::expand::T*>*;
+  abstract member-signature method contains(core::Object* element) → core::bool*;
+  abstract member-signature method forEach((core::Object*) →* void f) → void;
+  abstract member-signature method reduce(generic-covariant-impl (core::Object*, core::Object*) →* core::Object* combine) → core::Object*;
+  abstract member-signature method fold<T extends core::Object* = dynamic>(self::C::fold::T* initialValue, (self::C::fold::T*, core::Object*) →* self::C::fold::T* combine) → self::C::fold::T*;
+  abstract member-signature method every((core::Object*) →* core::bool* test) → core::bool*;
+  abstract member-signature method join([core::String* separator]) → core::String*;
+  abstract member-signature method any((core::Object*) →* core::bool* test) → core::bool*;
+  abstract member-signature method toList({core::bool* growable}) → core::List<core::Object*>*;
+  abstract member-signature method toSet() → core::Set<core::Object*>*;
+  abstract member-signature get length() → core::int*;
+  abstract member-signature get isEmpty() → core::bool*;
+  abstract member-signature get isNotEmpty() → core::bool*;
+  abstract member-signature method take(core::int* count) → core::Iterable<core::Object*>*;
+  abstract member-signature method takeWhile((core::Object*) →* core::bool* test) → core::Iterable<core::Object*>*;
+  abstract member-signature method skip(core::int* count) → core::Iterable<core::Object*>*;
+  abstract member-signature method skipWhile((core::Object*) →* core::bool* test) → core::Iterable<core::Object*>*;
+  abstract member-signature method firstWhere((core::Object*) →* core::bool* test, {generic-covariant-impl () →* core::Object* orElse}) → core::Object*;
+  abstract member-signature method lastWhere((core::Object*) →* core::bool* test, {generic-covariant-impl () →* core::Object* orElse}) → core::Object*;
+  abstract member-signature method singleWhere((core::Object*) →* core::bool* test, {generic-covariant-impl () →* core::Object* orElse}) → core::Object*;
+  abstract member-signature method elementAt(core::int* index) → core::Object*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method test() → dynamic
   ;

@@ -363,6 +363,26 @@ class B extends A {
     ]);
   }
 
+  test_inSuper_implicitObject_method_getter() async {
+    await assertErrorsInCode(r'''
+class A {
+  static String runtimeType() => 'x';
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 26, 11),
+    ]);
+  }
+
+  test_inSuper_implicitObject_method_method() async {
+    await assertErrorsInCode(r'''
+class A {
+  static String toString() => 'x';
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 26, 8),
+    ]);
+  }
+
   test_inSuper_method_getter() async {
     await assertErrorsInCode(r'''
 class A {
@@ -431,13 +451,53 @@ class B extends A {
 
 @reflectiveTest
 class ConflictingStaticAndInstanceEnumTest extends DriverResolutionTest {
+  test_hashCode() async {
+    await assertErrorsInCode(r'''
+enum E {
+  a, hashCode, b
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 14, 8),
+    ]);
+  }
+
   test_index() async {
     await assertErrorsInCode(r'''
 enum E {
-  a, index
+  a, index, b
 }
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 14, 5),
+    ]);
+  }
+
+  test_noSuchMethod() async {
+    await assertErrorsInCode(r'''
+enum E {
+  a, noSuchMethod, b
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 14, 12),
+    ]);
+  }
+
+  test_runtimeType() async {
+    await assertErrorsInCode(r'''
+enum E {
+  a, runtimeType, b
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 14, 11),
+    ]);
+  }
+
+  test_toString() async {
+    await assertErrorsInCode(r'''
+enum E {
+  a, toString, b
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 14, 8),
     ]);
   }
 }
@@ -480,6 +540,26 @@ mixin M on A {
 }
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 60, 3),
+    ]);
+  }
+
+  test_inConstraint_implicitObject_method_getter() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  static String runtimeType() => 'x';
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 26, 11),
+    ]);
+  }
+
+  test_inConstraint_implicitObject_method_method() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  static String toString() => 'x';
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 26, 8),
     ]);
   }
 

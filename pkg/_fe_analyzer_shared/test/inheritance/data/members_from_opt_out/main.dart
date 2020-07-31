@@ -113,6 +113,16 @@ abstract class Interface {
 /*member: Class1.field4=:int**/
 /*member: Class1.field5=:int**/
 /*member: Class1.field6=:int**/
+/*cfe|cfe:builder.member: Class1.toString:String* Function()**/
+/*cfe|cfe:builder.member: Class1.runtimeType:Type**/
+/*cfe|cfe:builder.member: Class1._simpleInstanceOf:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class1._instanceOf:bool* Function(dynamic, dynamic, dynamic)**/
+/*cfe|cfe:builder.member: Class1.noSuchMethod:dynamic Function(Invocation*)**/
+/*cfe|cfe:builder.member: Class1._identityHashCode:int**/
+/*cfe|cfe:builder.member: Class1.hashCode:int**/
+/*cfe|cfe:builder.member: Class1._simpleInstanceOfFalse:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class1._simpleInstanceOfTrue:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class1.==:bool* Function(dynamic)**/
 class Class1 extends LegacyClass {
   /*member: Class1.method1:int* Function()**/
   /*member: Class1.method2:int* Function()**/
@@ -147,6 +157,16 @@ class Class1 extends LegacyClass {
 }
 
 /*class: Class2a:Class2a,Interface,LegacyClass,Object*/
+/*cfe|cfe:builder.member: Class2a.toString:String Function()*/
+/*cfe|cfe:builder.member: Class2a.runtimeType:Type*/
+/*cfe|cfe:builder.member: Class2a._simpleInstanceOf:bool Function(dynamic)*/
+/*cfe|cfe:builder.member: Class2a._instanceOf:bool Function(dynamic, dynamic, dynamic)*/
+/*cfe|cfe:builder.member: Class2a.noSuchMethod:dynamic Function(Invocation)*/
+/*cfe|cfe:builder.member: Class2a._identityHashCode:int*/
+/*cfe|cfe:builder.member: Class2a.hashCode:int*/
+/*cfe|cfe:builder.member: Class2a._simpleInstanceOfFalse:bool Function(dynamic)*/
+/*cfe|cfe:builder.member: Class2a._simpleInstanceOfTrue:bool Function(dynamic)*/
+/*cfe|cfe:builder.member: Class2a.==:bool* Function(dynamic)**/
 class Class2a extends LegacyClass implements Interface {
   /*member: Class2a.method1:int Function()*/
 
@@ -210,6 +230,16 @@ class Class2a extends LegacyClass implements Interface {
 }
 
 /*class: Class2b:Class2b,Interface,LegacyClass,Object*/
+/*cfe|cfe:builder.member: Class2b.toString:String Function()*/
+/*cfe|cfe:builder.member: Class2b.runtimeType:Type*/
+/*cfe|cfe:builder.member: Class2b._simpleInstanceOf:bool Function(dynamic)*/
+/*cfe|cfe:builder.member: Class2b._instanceOf:bool Function(dynamic, dynamic, dynamic)*/
+/*cfe|cfe:builder.member: Class2b.noSuchMethod:dynamic Function(Invocation)*/
+/*cfe|cfe:builder.member: Class2b._identityHashCode:int*/
+/*cfe|cfe:builder.member: Class2b.hashCode:int*/
+/*cfe|cfe:builder.member: Class2b._simpleInstanceOfFalse:bool Function(dynamic)*/
+/*cfe|cfe:builder.member: Class2b._simpleInstanceOfTrue:bool Function(dynamic)*/
+/*cfe|cfe:builder.member: Class2b.==:bool* Function(dynamic)**/
 class Class2b extends LegacyClass implements Interface {
   /*member: Class2b.method1:int Function()*/
   int method1() => 0;
@@ -309,16 +339,46 @@ class Class2b extends LegacyClass implements Interface {
 }
 
 /*class: Class3a:Class3a,GenericLegacyClass<int>,Object*/
+/*cfe|cfe:builder.member: Class3a.toString:String* Function()**/
+/*cfe|cfe:builder.member: Class3a.runtimeType:Type**/
+/*cfe|cfe:builder.member: Class3a._simpleInstanceOf:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class3a._instanceOf:bool* Function(dynamic, dynamic, dynamic)**/
+/*cfe|cfe:builder.member: Class3a.noSuchMethod:dynamic Function(Invocation*)**/
+/*cfe|cfe:builder.member: Class3a._identityHashCode:int**/
+/*cfe|cfe:builder.member: Class3a.hashCode:int**/
+/*cfe|cfe:builder.member: Class3a._simpleInstanceOfFalse:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class3a._simpleInstanceOfTrue:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class3a.==:bool* Function(dynamic)**/
 class Class3a extends GenericLegacyClass<int> {
   /*member: Class3a.method1:int* Function()**/
 }
 
 /*class: Class3b:Class3b,GenericLegacyClass<int?>,Object*/
+/*cfe|cfe:builder.member: Class3b.toString:String* Function()**/
+/*cfe|cfe:builder.member: Class3b.runtimeType:Type**/
+/*cfe|cfe:builder.member: Class3b._simpleInstanceOf:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class3b._instanceOf:bool* Function(dynamic, dynamic, dynamic)**/
+/*cfe|cfe:builder.member: Class3b.noSuchMethod:dynamic Function(Invocation*)**/
+/*cfe|cfe:builder.member: Class3b._identityHashCode:int**/
+/*cfe|cfe:builder.member: Class3b.hashCode:int**/
+/*cfe|cfe:builder.member: Class3b._simpleInstanceOfFalse:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class3b._simpleInstanceOfTrue:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class3b.==:bool* Function(dynamic)**/
 class Class3b extends GenericLegacyClass<int?> {
   /*member: Class3b.method1:int? Function()**/
 }
 
 /*class: Class3c:Class3c<S>,GenericLegacyClass<S>,Object*/
+/*cfe|cfe:builder.member: Class3c.toString:String* Function()**/
+/*cfe|cfe:builder.member: Class3c.runtimeType:Type**/
+/*cfe|cfe:builder.member: Class3c._simpleInstanceOf:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class3c._instanceOf:bool* Function(dynamic, dynamic, dynamic)**/
+/*cfe|cfe:builder.member: Class3c.noSuchMethod:dynamic Function(Invocation*)**/
+/*cfe|cfe:builder.member: Class3c._identityHashCode:int**/
+/*cfe|cfe:builder.member: Class3c.hashCode:int**/
+/*cfe|cfe:builder.member: Class3c._simpleInstanceOfFalse:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class3c._simpleInstanceOfTrue:bool* Function(dynamic)**/
+/*cfe|cfe:builder.member: Class3c.==:bool* Function(dynamic)**/
 class Class3c<S> extends GenericLegacyClass<S> {
   /*member: Class3c.method1:S* Function()**/
 }

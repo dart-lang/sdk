@@ -443,15 +443,14 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _registerBackendImpact(impactBuilder, _impacts.traceHelper);
     }
 
-    if (_options.useNewRti) {
-      _registerBackendImpact(impactBuilder, _impacts.rtiAddRules);
-    }
+    _registerBackendImpact(impactBuilder, _impacts.rtiAddRules);
 
     _registerBackendImpact(impactBuilder, _impacts.assertUnreachable);
     _registerCheckedModeHelpers(impactBuilder);
     return impactBuilder;
   }
 
+  // TODO(39733): Move registration of boolConversionCheck.
   void _registerCheckedModeHelpers(WorldImpactBuilder impactBuilder) {
     // We register all the _commonElements in the resolution queue.
     // TODO(13155): Find a way to register fewer _commonElements.

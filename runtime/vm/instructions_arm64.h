@@ -11,18 +11,20 @@
 #endif
 
 #include "vm/allocation.h"
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/constants.h"
 #include "vm/native_function.h"
+#include "vm/tagged_pointer.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/assembler/assembler.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
 class Code;
 class ICData;
+class Object;
 class ObjectPool;
-class RawCode;
-class RawICData;
-class RawObject;
 
 class InstructionPattern : public AllStatic {
  public:
@@ -82,7 +84,7 @@ class CallPattern : public ValueObject {
  public:
   CallPattern(uword pc, const Code& code);
 
-  RawCode* TargetCode() const;
+  CodePtr TargetCode() const;
   void SetTargetCode(const Code& target) const;
 
  private:
@@ -97,10 +99,10 @@ class ICCallPattern : public ValueObject {
  public:
   ICCallPattern(uword pc, const Code& caller_code);
 
-  RawObject* Data() const;
+  ObjectPtr Data() const;
   void SetData(const Object& data) const;
 
-  RawCode* TargetCode() const;
+  CodePtr TargetCode() const;
   void SetTargetCode(const Code& target) const;
 
  private:
@@ -116,7 +118,7 @@ class NativeCallPattern : public ValueObject {
  public:
   NativeCallPattern(uword pc, const Code& code);
 
-  RawCode* target() const;
+  CodePtr target() const;
   void set_target(const Code& target) const;
 
   NativeFunction native_function() const;
@@ -141,7 +143,7 @@ class SwitchableCallPatternBase : public ValueObject {
  public:
   explicit SwitchableCallPatternBase(const Code& code);
 
-  RawObject* data() const;
+  ObjectPtr data() const;
   void SetData(const Object& data) const;
 
  protected:
@@ -161,7 +163,7 @@ class SwitchableCallPattern : public SwitchableCallPatternBase {
  public:
   SwitchableCallPattern(uword pc, const Code& code);
 
-  RawCode* target() const;
+  CodePtr target() const;
   void SetTarget(const Code& target) const;
 
  private:
@@ -176,7 +178,7 @@ class BareSwitchableCallPattern : public SwitchableCallPatternBase {
  public:
   BareSwitchableCallPattern(uword pc, const Code& code);
 
-  RawCode* target() const;
+  CodePtr target() const;
   void SetTarget(const Code& target) const;
 
  private:
@@ -198,13 +200,13 @@ class ReturnPattern : public ValueObject {
   const uword pc_;
 };
 
-class PcRelativeCallPattern : public ValueObject {
+class PcRelativePatternBase : public ValueObject {
  public:
   // 26 bit signed integer which will get multiplied by 4.
   static const intptr_t kLowerCallingRange = -(1 << 27);
   static const intptr_t kUpperCallingRange = (1 << 27) - 1;
 
-  explicit PcRelativeCallPattern(uword pc) : pc_(pc) {}
+  explicit PcRelativePatternBase(uword pc) : pc_(pc) {}
 
   static const int kLengthInBytes = 1 * Instr::kInstrSize;
 
@@ -229,8 +231,22 @@ class PcRelativeCallPattern : public ValueObject {
 
   bool IsValid() const;
 
- private:
+ protected:
   uword pc_;
+};
+
+class PcRelativeCallPattern : public PcRelativePatternBase {
+ public:
+  explicit PcRelativeCallPattern(uword pc) : PcRelativePatternBase(pc) {}
+
+  bool IsValid() const;
+};
+
+class PcRelativeTailCallPattern : public PcRelativePatternBase {
+ public:
+  explicit PcRelativeTailCallPattern(uword pc) : PcRelativePatternBase(pc) {}
+
+  bool IsValid() const;
 };
 
 // Instruction pattern for a tail call to a signed 32-bit PC-relative offset

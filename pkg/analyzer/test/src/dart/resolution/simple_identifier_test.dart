@@ -18,6 +18,54 @@ main() {
 
 @reflectiveTest
 class SimpleIdentifierResolutionTest extends DriverResolutionTest {
+  test_dynamic_explicitCore() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:core';
+
+main() {
+  dynamic;
+}
+''');
+
+    assertSimpleIdentifier(
+      findNode.simple('dynamic;'),
+      element: dynamicElement,
+      type: 'Type',
+    );
+  }
+
+  test_dynamic_explicitCore_withPrefix_referenceWithout() async {
+    await assertErrorsInCode(r'''
+import 'dart:core' as mycore;
+
+main() {
+  dynamic;
+}
+''', [
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 42, 7),
+    ]);
+
+    assertSimpleIdentifier(
+      findNode.simple('dynamic;'),
+      element: null,
+      type: 'dynamic',
+    );
+  }
+
+  test_dynamic_implicitCore() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  dynamic;
+}
+''');
+
+    assertSimpleIdentifier(
+      findNode.simple('dynamic;'),
+      element: dynamicElement,
+      type: 'Type',
+    );
+  }
+
   test_implicitCall_tearOff() async {
     await assertNoErrorsInCode('''
 class A {
@@ -75,6 +123,32 @@ class SimpleIdentifierResolutionWithNnbdTest
 
   @override
   bool get typeToStringWithNullability => true;
+
+  test_functionReference() async {
+    await assertErrorsInCode('''
+// @dart = 2.7
+import 'dart:math';
+
+class A {
+  const A(_);
+}
+
+@A([min])
+main() {}
+''', [
+      error(StrongModeCode.COULD_NOT_INFER, 66, 5),
+    ]);
+
+    var identifier = findNode.simple('min]');
+    assertElement(
+      identifier,
+      elementMatcher(
+        findElement.importFind('dart:math').topFunction('min'),
+        isLegacy: true,
+      ),
+    );
+    assertType(identifier, 'T* Function<T extends num*>(T*, T*)*');
+  }
 
   test_implicitCall_tearOff_nullable() async {
     await assertErrorsInCode('''

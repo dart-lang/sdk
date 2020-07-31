@@ -14,15 +14,15 @@ class B {
   A a;
 }
 
-var v_prefix_pp = (/*@ target=A::+ */ ++new /*@ type=B* */ B()
-    . /*@target=B::a*/ /*@target=B::a*/ a);
-var v_prefix_mm = (/*@ target=A::- */ --new /*@ type=B* */ B()
-    . /*@target=B::a*/ /*@target=B::a*/ a);
+var v_prefix_pp = (/*@target=A.+*/ ++new /*@ type=B* */ B()
+    . /*@target=B.a*/ /*@target=B.a*/ a);
+var v_prefix_mm = (/*@target=A.-*/ --new /*@ type=B* */ B()
+    . /*@target=B.a*/ /*@target=B.a*/ a);
 var v_postfix_pp = (new /*@ type=B* */ B()
-    . /*@ type=A* */ /*@target=B::a*/ /*@target=B::a*/
-    /*@ type=int* */ a /*@ target=A::+ */ ++);
+    . /*@ type=A* */ /*@target=B.a*/ /*@target=B.a*/
+    /*@ type=int* */ a /*@target=A.+*/ ++);
 var v_postfix_mm = (new /*@ type=B* */ B()
-    . /*@ type=A* */ /*@target=B::a*/ /*@target=B::a*/
-    /*@ type=double* */ a /*@ target=A::- */ --);
+    . /*@ type=A* */ /*@target=B.a*/ /*@target=B.a*/
+    /*@ type=double* */ a /*@target=A.-*/ --);
 
 main() {}

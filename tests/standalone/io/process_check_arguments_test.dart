@@ -36,4 +36,5 @@ main() {
   test([scriptFile.path, '4', '0', 'a\tb', 'a']);
   test([scriptFile.path, '4', '0', 'a\tb', 'a\t\t\t\tb']);
   test([scriptFile.path, '4', '0', 'a\tb', 'a    b']);
+  test([scriptFile.path, '5', '0', 'a\tb', 'a    b', '']);
 }

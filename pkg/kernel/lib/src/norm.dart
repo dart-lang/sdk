@@ -4,8 +4,8 @@
 
 import '../ast.dart' hide MapEntry;
 import '../core_types.dart';
+import '../type_algebra.dart';
 
-import 'future_or.dart';
 import 'replacement_visitor.dart';
 
 /// Returns normalization of [type].
@@ -41,57 +41,50 @@ class _Norm extends ReplacementVisitor {
 
   @override
   DartType visitInterfaceType(InterfaceType node) {
-    if (node.classNode == coreTypes.futureOrClass) {
-      DartType typeArgument = node.typeArguments.single;
-      typeArgument = typeArgument.accept(this) ?? typeArgument;
-      if (coreTypes.isTop(typeArgument)) {
-        Nullability nullabilityAsProperty =
-            computeNullability(typeArgument, coreTypes.futureOrClass);
-        assert(nullabilityAsProperty == Nullability.nullable ||
-            nullabilityAsProperty == Nullability.legacy);
-        // [typeArgument] is nullable because it's a top type.  No need to unite
-        // the nullabilities of [node] and [typeArgument].
-        return typeArgument.withNullability(nullabilityAsProperty);
-      } else if (typeArgument is InterfaceType &&
-          typeArgument.classNode == coreTypes.objectClass &&
-          typeArgument.nullability == Nullability.nonNullable) {
-        assert(!coreTypes.isTop(typeArgument));
-        // [typeArgument] is non-nullable, so the union of that and the
-        // nullability of [node] is the nullability of [node].
-        return typeArgument
-            .withNullability(computeNullability(node, coreTypes.futureOrClass));
-      } else if (typeArgument is NeverType &&
-          typeArgument.nullability == Nullability.nonNullable) {
-        assert(!coreTypes.isTop(typeArgument));
-        assert(!coreTypes.isObject(typeArgument));
-        // [typeArgument] is non-nullable, so the union of that and the
-        // nullability of [node] is the nullability of [node].
-        return new InterfaceType(
-            coreTypes.futureClass,
-            computeNullability(node, coreTypes.futureOrClass),
-            <DartType>[typeArgument]);
-      } else if (coreTypes.isNull(typeArgument)) {
-        assert(!coreTypes.isTop(typeArgument));
-        assert(!coreTypes.isObject(typeArgument));
-        assert(!coreTypes.isBottom(typeArgument));
-        return new InterfaceType(
-            coreTypes.futureClass,
-            uniteNullabilities(typeArgument.nullability,
-                computeNullability(node, coreTypes.futureOrClass)),
-            <DartType>[typeArgument]);
-      }
+    return super
+        .visitInterfaceType(node)
+        ?.withDeclaredNullability(node.nullability);
+  }
+
+  @override
+  DartType visitFutureOrType(FutureOrType node) {
+    DartType typeArgument = node.typeArgument;
+    typeArgument = typeArgument.accept(this) ?? typeArgument;
+    if (coreTypes.isTop(typeArgument)) {
+      assert(typeArgument.nullability == Nullability.nullable ||
+          typeArgument.nullability == Nullability.legacy);
+      // [typeArgument] is nullable because it's a top type.  No need to unite
+      // the nullabilities of [node] and [typeArgument].
+      return typeArgument;
+    } else if (typeArgument is InterfaceType &&
+        typeArgument.classNode == coreTypes.objectClass &&
+        typeArgument.nullability == Nullability.nonNullable) {
+      assert(!coreTypes.isTop(typeArgument));
+      // [typeArgument] is non-nullable, so the union of that and the
+      // nullability of [node] is the nullability of [node].
+      return typeArgument.withDeclaredNullability(node.nullability);
+    } else if (typeArgument is NeverType &&
+        typeArgument.nullability == Nullability.nonNullable) {
+      assert(!coreTypes.isTop(typeArgument));
+      assert(!coreTypes.isObject(typeArgument));
+      // [typeArgument] is non-nullable, so the union of that and the
+      // nullability of [node] is the nullability of [node].
+      return new InterfaceType(
+          coreTypes.futureClass, node.nullability, <DartType>[typeArgument]);
+    } else if (coreTypes.isNull(typeArgument)) {
       assert(!coreTypes.isTop(typeArgument));
       assert(!coreTypes.isObject(typeArgument));
       assert(!coreTypes.isBottom(typeArgument));
-      assert(!coreTypes.isNull(typeArgument));
       return new InterfaceType(
-          coreTypes.futureOrClass,
-          computeNullability(node, coreTypes.futureOrClass),
+          coreTypes.futureClass,
+          uniteNullabilities(typeArgument.nullability, node.nullability),
           <DartType>[typeArgument]);
     }
-    return super
-        .visitInterfaceType(node)
-        ?.withNullability(computeNullability(node, coreTypes.futureOrClass));
+    assert(!coreTypes.isTop(typeArgument));
+    assert(!coreTypes.isObject(typeArgument));
+    assert(!coreTypes.isBottom(typeArgument));
+    assert(!coreTypes.isNull(typeArgument));
+    return new FutureOrType(typeArgument, node.nullability);
   }
 
   @override
@@ -100,7 +93,7 @@ class _Norm extends ReplacementVisitor {
       DartType bound = node.parameter.bound;
       if (normalizesToNever(bound)) {
         DartType result = new NeverType(Nullability.nonNullable)
-            .withNullability(node.nullability);
+            .withDeclaredNullability(node.nullability);
         return result.accept(this) ?? result;
       }
       assert(!coreTypes.isBottom(bound));
@@ -114,22 +107,18 @@ class _Norm extends ReplacementVisitor {
       } else if (coreTypes.isTop(bound)) {
         assert(!coreTypes.isBottom(bound));
         assert(bound.nullability == Nullability.nullable);
-        return new TypeParameterType(
-            node.parameter, node.typeParameterTypeNullability);
+        return new TypeParameterType(node.parameter, node.declaredNullability);
       } else if (bound is TypeParameterType &&
           bound.parameter == node.parameter &&
-          bound.typeParameterTypeNullability ==
-              node.typeParameterTypeNullability &&
+          bound.declaredNullability == node.declaredNullability &&
           bound.promotedBound == null) {
         assert(!coreTypes.isBottom(bound));
         assert(!coreTypes.isTop(bound));
-        return new TypeParameterType(
-            node.parameter, node.typeParameterTypeNullability);
+        return new TypeParameterType(node.parameter, node.declaredNullability);
       } else if (bound == coreTypes.objectNonNullableRawType &&
           norm(coreTypes, node.parameter.bound) ==
               coreTypes.objectNonNullableRawType) {
-        return new TypeParameterType(
-            node.parameter, node.typeParameterTypeNullability);
+        return new TypeParameterType(node.parameter, node.declaredNullability);
       } else if (identical(bound, node.promotedBound)) {
         // If [bound] is identical to [node.promotedBound], then the NORM
         // algorithms didn't change the promoted bound, so the [node] is
@@ -137,7 +126,7 @@ class _Norm extends ReplacementVisitor {
         return null;
       }
       return new TypeParameterType(
-          node.parameter, node.typeParameterTypeNullability, bound);
+          node.parameter, node.declaredNullability, bound);
     }
   }
 

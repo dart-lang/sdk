@@ -41,7 +41,7 @@ JSONStream::JSONStream(intptr_t buf_size)
   ObjectIdRing* ring = NULL;
   Isolate* isolate = Isolate::Current();
   if (isolate != NULL) {
-    ring = isolate->object_id_ring();
+    ring = isolate->EnsureObjectIdRing();
   }
   default_id_zone_.Init(ring, ObjectIdRing::kAllocateId);
 }
@@ -174,7 +174,6 @@ void JSONStream::PrintError(intptr_t code, const char* details_format, ...) {
       va_start(args2, details_format);
       Utils::VSNPrint(buffer, (len + 1), details_format, args2);
       va_end(args2);
-
       data.AddProperty("details", buffer);
     }
   }
@@ -453,17 +452,17 @@ intptr_t JSONStream::NumObjectParameters() const {
   return parameter_keys_->Length();
 }
 
-RawObject* JSONStream::GetObjectParameterKey(intptr_t i) const {
+ObjectPtr JSONStream::GetObjectParameterKey(intptr_t i) const {
   ASSERT((i >= 0) && (i < NumObjectParameters()));
   return parameter_keys_->At(i);
 }
 
-RawObject* JSONStream::GetObjectParameterValue(intptr_t i) const {
+ObjectPtr JSONStream::GetObjectParameterValue(intptr_t i) const {
   ASSERT((i >= 0) && (i < NumObjectParameters()));
   return parameter_values_->At(i);
 }
 
-RawObject* JSONStream::LookupObjectParam(const char* c_key) const {
+ObjectPtr JSONStream::LookupObjectParam(const char* c_key) const {
   const String& key = String::Handle(String::New(c_key));
   Object& test = Object::Handle();
   const intptr_t num_object_parameters = NumObjectParameters();

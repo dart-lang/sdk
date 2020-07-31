@@ -11,7 +11,16 @@ class Base extends core::Object {
   no-such-method-forwarder set float(covariant core::int* x) → void
     return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
   method noSuchMethod(core::Invocation* i) → dynamic
-    return core::print("${this.{core::Object::runtimeType}}: ${i.{core::Invocation::positionalArguments}.{core::List::[]}(0)}");
+    return core::print("${this.{self::Base::runtimeType}}: ${i.{core::Invocation::positionalArguments}.{core::List::[]}(0)}");
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class Me extends self::Base {
   synthetic constructor •() → self::Me*

@@ -1,2 +1,0 @@
-strong=tests/compiler/dart2js/rti/rti_emission_test.dart
-omit=tests/compiler/dart2js/rti/rti_emission_test.dart

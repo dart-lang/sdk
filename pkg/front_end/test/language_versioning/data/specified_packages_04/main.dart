@@ -7,11 +7,11 @@
 
 // @dart = 2.4
 
-import /*error: UntranslatableUri*/ 'package:foo/foo.dart';
+import /*error: errors=UntranslatableUri*/ 'package:foo/foo.dart';
 
 /*library: languageVersion=2.4*/
 
 main() {
-  var result = /*error: MethodNotFound*/ notNamedFoo();
+  var result = /*error: errors=MethodNotFound*/ notNamedFoo();
   print(result);
 }

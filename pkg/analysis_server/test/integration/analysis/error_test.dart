@@ -51,37 +51,6 @@ main() {
     });
   }
 
-  Future<void> test_super_mixins_disabled() async {
-    var pathname = sourcePath('test.dart');
-    writeFile(pathname, '''
-class Test extends Object with C {
-  void foo() {}
-}
-abstract class B {
-  void foo() {}
-}
-abstract class C extends B {
-  void bar() {
-    super.foo();
-  }
-}
-''');
-    standardAnalysisSetup();
-    await analysisFinished;
-    expect(currentAnalysisErrors[pathname], isList);
-    var errors = currentAnalysisErrors[pathname];
-    expect(errors, hasLength(2));
-    var allErrorMessages = errors.map((AnalysisError e) => e.message).toSet();
-    expect(
-        allErrorMessages,
-        contains(
-            "The class 'C' can't be used as a mixin because it extends a class other than Object."));
-    expect(
-        allErrorMessages,
-        contains(
-            "The class 'C' can't be used as a mixin because it references 'super'."));
-  }
-
   @failingTest
   Future<void> test_super_mixins_enabled() async {
     // We see errors here with the new driver (#28870).

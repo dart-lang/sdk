@@ -30,15 +30,16 @@ nullAwareSetSpread(Set<String> set) {
   /*cfe.update: Set<String>*/
   /*cfe:nnbd.update: Set<String!>!*/
   set =
-      /*invoke: LinkedHashSet<String>*/
+      /*cfe.invoke: LinkedHashSet<String>!*/
+      /*cfe:nnbd.invoke: LinkedHashSet<String!>!*/
       /*cfe.<String>*/
       /*cfe:nnbd.<String!>*/
       {
-    /*invoke: bool*/
+    /*invoke: bool!*/
     /*cfe.String*/
     /*cfe:nnbd.String!*/
     'foo',
-    /*invoke: bool*/
+    /*invoke: bool!*/
     /*cfe.current: String*/
     /*cfe:nnbd.current: String!*/
     ...?
@@ -62,19 +63,10 @@ nullAwareMapSpread(Map<int, String> map) {
         /*cfe:nnbd.String!*/
         'foo',
     ...?
-    /*cfe.
-     Map<int,String>
-     |Iterable<MapEntry<int,String>>
-     |int
-     |String
-    */
-    /*cfe:nnbd.
-     Map<int!,String!>!
-     |Iterable<MapEntry<int,String>>
-     |int
-     |String
-    */
-    /*current: MapEntry<int,String>*/
+    /*cfe.Map<int,String>|Iterable<MapEntry<int,String>!>!|int|String*/
+    /*cfe:nnbd.Map<int!,String!>!|Iterable<MapEntry<int!,String!>!>!|int!|String!*/
+    /*cfe.current: MapEntry<int,String>!*/
+    /*cfe:nnbd.current: MapEntry<int!,String!>!*/
     /*update: void*/
     map
   };

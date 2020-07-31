@@ -1,0 +1,16 @@
+// @dart = 2.6
+abstract class A {
+  A foo() => null;
+}
+
+abstract class B extends A {
+  B foo();
+}
+
+class C {
+  noSuchMethod(_) => null;
+}
+
+class D extends C implements B {}
+
+main() {}

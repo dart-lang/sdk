@@ -227,8 +227,8 @@ List<List> _expandTestPairs() {
   var tests = <List>[];
   tests.addAll(_TEST_PAIRS);
   tests.addAll(_TEST_PAIRS.map((test) {
-    var bytes = test[0];
-    var string = test[1];
+    var bytes = test[0] as List<int>;
+    var string = test[1] as String;
     var longBytes = <int>[];
     var longString = "";
     for (int i = 0; i < 100; i++) {

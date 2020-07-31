@@ -7,6 +7,8 @@ import 'package:expect/expect.dart';
 import 'package:test_runner/src/static_error.dart';
 import 'package:test_runner/src/update_errors.dart';
 
+import 'utils.dart';
+
 // Note: This test file validates how some of the special markers used by the
 // test runner are parsed. But this test is also run *by* that same test
 // runner, and we don't want it to see the markers inside the string literals
@@ -22,14 +24,14 @@ int another = "wrong";
 
 int third = "boo";
 """, errors: [
-    StaticError(line: 1, column: 9, length: 5, code: "some.error"),
-    StaticError(line: 3, column: 15, length: 7, message: "Bad."),
-    StaticError(
+    makeError(line: 1, column: 9, length: 5, analyzerError: "some.error"),
+    makeError(line: 3, column: 15, length: 7, cfeError: "Bad."),
+    makeError(
         line: 5,
         column: 13,
         length: 5,
-        code: "an.error",
-        message: "Wrong.\nLine.\nAnother."),
+        analyzerError: "an.error",
+        cfeError: "Wrong.\nLine.\nAnother."),
   ], expected: """
 int i = "bad";
 /\/      ^^^^^
@@ -111,12 +113,12 @@ int i = "bad";
     /\/    ^^
     /\/ [analyzer] previous.error
 """, errors: [
-    StaticError(
+    makeError(
         line: 1,
         column: 9,
         length: 5,
-        code: "updated.error",
-        message: "Long.\nError.\nMessage."),
+        analyzerError: "updated.error",
+        cfeError: "Long.\nError.\nMessage."),
   ], expected: """
 int i = "bad";
     /\/  ^^^^^
@@ -133,7 +135,7 @@ main() {
   int i = "bad";
 }
 """, errors: [
-    StaticError(line: 2, column: 11, length: 5, code: "updated.error"),
+    makeError(line: 2, column: 11, length: 5, analyzerError: "updated.error"),
   ], expected: """
 main() {
   int i = "bad";
@@ -153,8 +155,8 @@ main() {
   "bad";
 }
 """, errors: [
-    StaticError(line: 1, column: 9, length: 5, message: "Error."),
-    StaticError(line: 7, column: 3, length: 5, code: "new.error"),
+    makeError(line: 1, column: 9, length: 5, cfeError: "Error."),
+    makeError(line: 7, column: 3, length: 5, analyzerError: "new.error"),
   ], expected: """
 int i = "bad";
 /\/      ^^^^^
@@ -178,8 +180,8 @@ int i =
 int j =
 "bad";
 """, errors: [
-    StaticError(line: 2, column: 1, length: 5, code: "updated.error"),
-    StaticError(line: 7, column: 1, length: 5, message: "Error."),
+    makeError(line: 2, column: 1, length: 5, analyzerError: "updated.error"),
+    makeError(line: 7, column: 1, length: 5, cfeError: "Error."),
   ], expected: """
 int i =
 "bad";
@@ -195,7 +197,7 @@ int j =
   // Uses length one if there's no length.
   expectUpdate("""
 int i = "bad";
-""", errors: [StaticError(line: 1, column: 9, message: "Error.")], expected: """
+""", errors: [makeError(line: 1, column: 9, cfeError: "Error.")], expected: """
 int i = "bad";
 /\/      ^
 /\/ [cfe] Error.
@@ -205,7 +207,7 @@ int i = "bad";
   expectUpdate("""
 int i =
 "bad";
-""", errors: [StaticError(line: 2, column: 1, message: "Error.")], expected: """
+""", errors: [makeError(line: 2, column: 1, cfeError: "Error.")], expected: """
 int i =
 "bad";
 /\/ [error line 2, column 1]
@@ -223,8 +225,8 @@ main() {
 }
 Error here;
 """, errors: [
-    StaticError(line: 6, column: 1, length: 5, code: "NEW.ERROR"),
-    StaticError(line: 6, column: 2, length: 3, message: "Error."),
+    makeError(line: 6, column: 1, length: 5, analyzerError: "NEW.ERROR"),
+    makeError(line: 6, column: 2, length: 3, cfeError: "Error."),
   ], expected: """
 main() {
 }
@@ -241,7 +243,7 @@ Error here;
 int i = "bad";
 // Line comment.
 """, errors: [
-    StaticError(line: 1, column: 9, length: 5, message: "Wrong."),
+    makeError(line: 1, column: 9, length: 5, cfeError: "Wrong."),
   ], expected: """
 int i = "bad";
 /\/      ^^^^^
@@ -250,14 +252,29 @@ int i = "bad";
 // Line comment.
 """);
 
+  // Inserts a blank line if a subsequent line comment would become part of the
+  // error message.
+  expectUpdate("""
+int i = "bad";
+// Line comment.
+""", errors: [
+    makeError(line: 1, column: 9, length: 5, analyzerError: "ERR.CODE"),
+  ], expected: """
+int i = "bad";
+/\/      ^^^^^
+/\/ [analyzer] ERR.CODE
+
+// Line comment.
+""");
+
   // Multiple errors on the same line are ordered by column then length.
   expectUpdate("""
 someBadCode();
 """, errors: [
-    StaticError(line: 1, column: 9, length: 5, message: "Wrong 1."),
-    StaticError(line: 1, column: 9, length: 4, message: "Wrong 2."),
-    StaticError(line: 1, column: 6, length: 3, message: "Wrong 3."),
-    StaticError(line: 1, column: 5, length: 5, message: "Wrong 4."),
+    makeError(line: 1, column: 9, length: 5, cfeError: "Wrong 1."),
+    makeError(line: 1, column: 9, length: 4, cfeError: "Wrong 2."),
+    makeError(line: 1, column: 6, length: 3, cfeError: "Wrong 3."),
+    makeError(line: 1, column: 5, length: 5, cfeError: "Wrong 4."),
   ], expected: """
 someBadCode();
 /\/  ^^^^^
@@ -269,6 +286,17 @@ someBadCode();
 /\/      ^^^^^
 /\/ [cfe] Wrong 1.
 """);
+
+  // Don't crash with RangeError.
+  expectUpdate("""
+x
+// [error line 1, column 1, length 0]
+// [cfe] Whatever""", errors: [
+    makeError(line: 1, column: 1, length: 0, cfeError: "Foo"),
+  ], expected: """
+x
+// [error line 1, column 1, length 0]
+// [cfe] Foo""");
 
   regression();
 }
@@ -300,12 +328,15 @@ class A {
 """,
       removeAnalyzer: false,
       errors: [
-        StaticError(
-            line: 6, column: 5, length: 14, message: "Setter not found: 'xx'."),
-        StaticError(
+        makeError(
+            line: 6,
+            column: 5,
+            length: 14,
+            cfeError: "Setter not found: 'xx'."),
+        makeError(
             line: 16,
             column: 7,
-            message: "The method 'call' isn't defined for the class 'int'.")
+            cfeError: "The method 'call' isn't defined for the class 'int'.")
       ],
       expected: """
 int get xx => 3;

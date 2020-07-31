@@ -1210,7 +1210,7 @@ class C {
       DeclarationKind.FIELD,
       isConst: true,
       isStatic: true,
-      relevanceTags: ['dart:core::int'],
+      relevanceTags: ['dart:core::int', 'isConst'],
       returnType: 'int',
     );
     _assertDeclaration(
@@ -2419,7 +2419,7 @@ final double e = 2.7;
       'd',
       DeclarationKind.VARIABLE,
       isConst: true,
-      relevanceTags: ['dart:core::int'],
+      relevanceTags: ['dart:core::int', 'isConst'],
       returnType: '',
     );
     _assertDeclaration(

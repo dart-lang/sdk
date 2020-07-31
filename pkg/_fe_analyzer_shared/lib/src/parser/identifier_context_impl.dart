@@ -350,6 +350,25 @@ class FieldDeclarationIdentifierContext extends IdentifierContext {
       return identifier;
     }
   }
+
+  Token ensureIdentifierPotentiallyRecovered(
+      Token token, Parser parser, bool isRecovered) {
+    // Fast path good case.
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.isIdentifier) {
+      return identifier;
+    }
+    // If not recovered, recover as normal.
+    if (!isRecovered || !token.isKeywordOrIdentifier) {
+      return ensureIdentifier(token, parser);
+    }
+
+    // If already recovered, use the given token.
+    parser.reportRecoverableErrorWithToken(
+        identifier, codes.templateExpectedIdentifier);
+    return identifier;
+  }
 }
 
 /// See [IdentifierContext.fieldInitializer].
@@ -754,6 +773,25 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
       return identifier;
     }
   }
+
+  Token ensureIdentifierPotentiallyRecovered(
+      Token token, Parser parser, bool isRecovered) {
+    // Fast path good case.
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.isIdentifier) {
+      return identifier;
+    }
+    // If not recovered, recover as normal.
+    if (!isRecovered || !token.isKeywordOrIdentifier) {
+      return ensureIdentifier(token, parser);
+    }
+
+    // If already recovered, use the given token.
+    parser.reportRecoverableErrorWithToken(
+        identifier, codes.templateExpectedIdentifier);
+    return identifier;
+  }
 }
 
 /// See [IdentifierContext.namedArgumentReference].
@@ -830,6 +868,30 @@ class TopLevelDeclarationIdentifierContext extends IdentifierContext {
     }
     return identifier;
   }
+
+  Token ensureIdentifierPotentiallyRecovered(
+      Token token, Parser parser, bool isRecovered) {
+    // Fast path good case.
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+
+    if (identifier.isIdentifier) {
+      Token next = identifier.next;
+      if (!looksLikeStartOfNextTopLevelDeclaration(identifier) ||
+          isOneOfOrEof(next, followingValues)) {
+        return identifier;
+      }
+    }
+    // If not recovered, recover as normal.
+    if (!isRecovered || !token.isKeywordOrIdentifier) {
+      return ensureIdentifier(token, parser);
+    }
+
+    // If already recovered, use the given token.
+    parser.reportRecoverableErrorWithToken(
+        identifier, codes.templateExpectedIdentifier);
+    return identifier;
+  }
 }
 
 /// See [IdentifierContext.typedefDeclaration].
@@ -869,6 +931,30 @@ class TypedefDeclarationIdentifierContext extends IdentifierContext {
         identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
       }
     }
+    return identifier;
+  }
+
+  Token ensureIdentifierPotentiallyRecovered(
+      Token token, Parser parser, bool isRecovered) {
+    // Fast path good case.
+    Token identifier = token.next;
+    assert(identifier.kind != IDENTIFIER_TOKEN);
+    if (identifier.type.isPseudo) {
+      if (optional('Function', identifier)) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifier);
+      }
+      return identifier;
+    }
+
+    // If not recovered, recover as normal.
+    if (!isRecovered || !token.isKeywordOrIdentifier) {
+      return ensureIdentifier(token, parser);
+    }
+
+    // If already recovered, use the given token.
+    parser.reportRecoverableErrorWithToken(
+        identifier, codes.templateExpectedIdentifier);
     return identifier;
   }
 }

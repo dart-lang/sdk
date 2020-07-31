@@ -7,6 +7,7 @@ library fasta.implicit_type_argument;
 import 'package:kernel/ast.dart'
     show DartType, DartTypeVisitor, DartTypeVisitor1, Nullability, Visitor;
 import 'package:kernel/src/assumptions.dart';
+import 'package:kernel/src/printer.dart';
 
 import '../problems.dart' show unhandled, unsupported;
 
@@ -17,6 +18,10 @@ import '../problems.dart' show unhandled, unsupported;
 /// error if one survives to the final output.
 class ImplicitTypeArgument extends DartType {
   const ImplicitTypeArgument();
+
+  @override
+  Nullability get declaredNullability =>
+      unsupported("declaredNullability", -1, null);
 
   @override
   Nullability get nullability => unsupported("nullability", -1, null);
@@ -37,20 +42,20 @@ class ImplicitTypeArgument extends DartType {
   }
 
   @override
-  ImplicitTypeArgument withNullability(Nullability nullability) {
-    return unsupported("withNullability", -1, null);
+  ImplicitTypeArgument withDeclaredNullability(Nullability nullability) {
+    return unsupported("withDeclaredNullability", -1, null);
   }
 
   @override
   bool equals(Object other, Assumptions assumptions) => this == other;
 
   @override
-  String toString() {
-    return "ImplicitTypeArgument(${toStringInternal()})";
+  void toTextInternal(AstPrinter printer) {
+    printer.write('<implicit-type-argument>');
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  String toString() {
+    return "ImplicitTypeArgument(${toStringInternal()})";
   }
 }

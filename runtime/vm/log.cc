@@ -23,7 +23,7 @@ DEFINE_FLAG(
 
 DEFINE_FLAG(charp,
             isolate_log_filter,
-            NULL,
+            nullptr,
             "Log isolates whose name include the filter. "
             "Default: service isolate log messages are suppressed "
             "(specify 'vm-service' to log them).");
@@ -38,15 +38,16 @@ Log::~Log() {
 
 Log* Log::Current() {
   Thread* thread = Thread::Current();
-  if (thread == NULL) {
+  if (thread == nullptr) {
     OSThread* os_thread = OSThread::Current();
-    ASSERT(os_thread != NULL);
+    ASSERT(os_thread != nullptr);
     return os_thread->log();
   }
-  Isolate* isolate = thread->isolate();
-  if (isolate != NULL && Log::ShouldLogForIsolate(isolate)) {
+  IsolateGroup* isolate_group = thread->isolate_group();
+  if ((isolate_group != nullptr) &&
+      Log::ShouldLogForIsolateGroup(isolate_group)) {
     OSThread* os_thread = thread->os_thread();
-    ASSERT(os_thread != NULL);
+    ASSERT(os_thread != nullptr);
     return os_thread->log();
   } else {
     return Log::NoOpLog();
@@ -72,7 +73,7 @@ void Log::VPrint(const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(nullptr, 0, format, measure_args);
   va_end(measure_args);
 
   // Print.
@@ -106,7 +107,7 @@ void Log::Flush(const intptr_t cursor) {
   }
   TerminateString();
   const char* str = &buffer_[cursor];
-  ASSERT(str != NULL);
+  ASSERT(str != nullptr);
   printer_("%s", str);
   buffer_.TruncateTo(cursor);
 }
@@ -122,17 +123,17 @@ intptr_t Log::cursor() const {
   return buffer_.length();
 }
 
-bool Log::ShouldLogForIsolate(const Isolate* isolate) {
-  if (FLAG_isolate_log_filter == NULL) {
-    if (isolate->is_service_isolate() || isolate->is_kernel_isolate()) {
-      // By default, do not log for the service isolate.
+bool Log::ShouldLogForIsolateGroup(const IsolateGroup* isolate_group) {
+  if (FLAG_isolate_log_filter == nullptr) {
+    if (IsolateGroup::IsVMInternalIsolateGroup(isolate_group)) {
+      // By default, do not log for the service or kernel isolates.
       return false;
     }
     return true;
   }
-  const char* name = isolate->name();
-  ASSERT(name != NULL);
-  if (strstr(name, FLAG_isolate_log_filter) == NULL) {
+  const char* name = isolate_group->source()->name;
+  ASSERT(name != nullptr);
+  if (strstr(name, FLAG_isolate_log_filter) == nullptr) {
     // Filter does not match, do not log for this isolate.
     return false;
   }

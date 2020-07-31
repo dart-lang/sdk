@@ -152,4 +152,58 @@ UNIT_TEST_CASE(IntrusiveDListEraseIterator) {
   EXPECT(all.IsEmpty());
 }
 
+UNIT_TEST_CASE(IntrusiveDListAppendListTest) {
+  // Append to empty list.
+  {
+    IntrusiveDList<Item> all;
+    IntrusiveDList<Item> other;
+
+    Item a1(1, 11), a2(2, 12);
+    all.Append(&a1);
+    all.Append(&a2);
+
+    other.AppendList(&all);
+
+    EXPECT(all.IsEmpty());
+    EXPECT(!other.IsEmpty());
+    EXPECT_EQ(&a1, other.First());
+    EXPECT_EQ(&a2, other.Last());
+
+    auto it = other.Begin();
+    EXPECT_EQ(&a1, *it);
+    it = other.Erase(it);
+    EXPECT_EQ(&a2, *it);
+    it = other.Erase(it);
+    EXPECT(it == other.end());
+  }
+  // Append to non-empty list.
+  {
+    IntrusiveDList<Item> all;
+    IntrusiveDList<Item> other;
+
+    Item a1(1, 11), a2(2, 12);
+    all.Append(&a1);
+    all.Append(&a2);
+
+    Item o1(1, 11);
+    other.Append(&o1);
+
+    other.AppendList(&all);
+
+    EXPECT(all.IsEmpty());
+    EXPECT(!other.IsEmpty());
+    EXPECT_EQ(&o1, other.First());
+    EXPECT_EQ(&a2, other.Last());
+
+    auto it = other.Begin();
+    EXPECT_EQ(&o1, *it);
+    it = other.Erase(it);
+    EXPECT_EQ(&a1, *it);
+    it = other.Erase(it);
+    EXPECT_EQ(&a2, *it);
+    it = other.Erase(it);
+    EXPECT(it == other.end());
+  }
+}
+
 }  // namespace dart.

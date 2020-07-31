@@ -38,4 +38,18 @@ enum E {
     expect(findElement.field('bbb').isConstantEvaluated, isTrue);
     expect(findElement.field('values').isConstantEvaluated, isTrue);
   }
+
+  test_isEnumConstant() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  a, b
+}
+''');
+
+    expect(findElement.field('a').isEnumConstant, isTrue);
+    expect(findElement.field('b').isEnumConstant, isTrue);
+
+    expect(findElement.field('index').isEnumConstant, isFalse);
+    expect(findElement.field('values').isEnumConstant, isFalse);
+  }
 }

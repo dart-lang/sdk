@@ -3,7 +3,7 @@ import self as self;
 
 import "org-dartlang-testcase:///deferred_explicit_access_lib.dart" deferred as prefix;
 
-static method main() → dynamic
+static method main() → dynamic async 
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;

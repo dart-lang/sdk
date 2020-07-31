@@ -992,9 +992,9 @@ main() {
 import 'dart:async' as test;
 import 'dart:math' as test;
 main() {
-  test.PI;
+  test.pi;
 }
-''', 'test.PI;');
+''', 'test.pi;');
   }
 
   Future test_rename_hasElement_instanceGetter() {

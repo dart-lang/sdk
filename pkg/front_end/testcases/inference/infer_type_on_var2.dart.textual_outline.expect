@@ -1,0 +1,4 @@
+library test;
+
+test2() {}
+main() {}

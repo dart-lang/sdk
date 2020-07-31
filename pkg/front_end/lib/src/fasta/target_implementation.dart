@@ -6,7 +6,7 @@ library fasta.target_implementation;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/ast.dart' show Library, Source;
+import 'package:kernel/ast.dart' show Library, Source, Version;
 
 import 'package:kernel/target/targets.dart' as backend show Target;
 
@@ -48,27 +48,22 @@ abstract class TargetImplementation extends Target {
   MemberBuilder cachedDuplicatedFieldInitializerError;
   MemberBuilder cachedNativeAnnotation;
 
-  bool enableExtensionMethods;
-  bool enableNonNullable;
-  bool enableTripleShift;
-  bool enableVariance;
-  bool enableNonfunctionTypeAliases;
+  final ProcessedOptions _options;
 
   TargetImplementation(Ticker ticker, this.uriTranslator, this.backendTarget)
       : assert(ticker != null),
         assert(uriTranslator != null),
         assert(backendTarget != null),
-        enableExtensionMethods = CompilerContext.current.options
-            .isExperimentEnabled(ExperimentalFlag.extensionMethods),
-        enableNonNullable = CompilerContext.current.options
-            .isExperimentEnabled(ExperimentalFlag.nonNullable),
-        enableTripleShift = CompilerContext.current.options
-            .isExperimentEnabled(ExperimentalFlag.tripleShift),
-        enableVariance = CompilerContext.current.options
-            .isExperimentEnabled(ExperimentalFlag.variance),
-        enableNonfunctionTypeAliases = CompilerContext.current.options
-            .isExperimentEnabled(ExperimentalFlag.nonfunctionTypeAliases),
+        _options = CompilerContext.current.options,
         super(ticker);
+
+  bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri importUri) {
+    return _options.isExperimentEnabledInLibrary(flag, importUri);
+  }
+
+  bool isExperimentEnabledGlobally(ExperimentalFlag flag) {
+    return _options.isExperimentEnabledGlobally(flag);
+  }
 
   /// Creates a [LibraryBuilder] corresponding to [uri], if one doesn't exist
   /// already.
@@ -77,9 +72,23 @@ abstract class TargetImplementation extends Target {
   /// to locate the corresponding file.
   ///
   /// [origin] is non-null if the created library is a patch to [origin].
+  ///
+  /// [packageUri] is the base uri for the package which the library belongs to.
+  /// For instance 'package:foo'.
+  ///
+  /// This is used to associate libraries in for instance the 'bin' and 'test'
+  /// folders of a package source with the package uri of the 'lib' folder.
+  ///
+  /// If the [packageUri] is `null` the package association of this library is
+  /// based on its [importUri].
+  ///
+  /// For libraries with a 'package:' [importUri], the package path must match
+  /// the path in the [importUri]. For libraries with a 'dart:' [importUri] the
+  /// [packageUri] must be `null`.
   LibraryBuilder createLibraryBuilder(
       Uri uri,
       Uri fileUri,
+      Uri packageUri,
       covariant LibraryBuilder origin,
       Library referencesFrom,
       bool referenceIsPartOwner);
@@ -169,36 +178,30 @@ abstract class TargetImplementation extends Target {
     return rewriteSeverity(severity, message.code, fileUri);
   }
 
-  String get currentSdkVersion {
+  String get currentSdkVersionString {
     return CompilerContext.current.options.currentSdkVersion;
   }
 
-  int _currentSdkVersionMajor;
-  int _currentSdkVersionMinor;
-  int get currentSdkVersionMajor {
-    if (_currentSdkVersionMajor != null) return _currentSdkVersionMajor;
+  Version _currentSdkVersion;
+  Version get currentSdkVersion {
+    if (_currentSdkVersion != null) return _currentSdkVersion;
     _parseCurrentSdkVersion();
-    return _currentSdkVersionMajor;
-  }
-
-  int get currentSdkVersionMinor {
-    if (_currentSdkVersionMinor != null) return _currentSdkVersionMinor;
-    _parseCurrentSdkVersion();
-    return _currentSdkVersionMinor;
+    return _currentSdkVersion;
   }
 
   void _parseCurrentSdkVersion() {
     bool good = false;
-    if (currentSdkVersion != null) {
-      List<String> dotSeparatedParts = currentSdkVersion.split(".");
+    if (currentSdkVersionString != null) {
+      List<String> dotSeparatedParts = currentSdkVersionString.split(".");
       if (dotSeparatedParts.length >= 2) {
-        _currentSdkVersionMajor = int.tryParse(dotSeparatedParts[0]);
-        _currentSdkVersionMinor = int.tryParse(dotSeparatedParts[1]);
+        _currentSdkVersion = new Version(int.tryParse(dotSeparatedParts[0]),
+            int.tryParse(dotSeparatedParts[1]));
         good = true;
       }
     }
     if (!good) {
-      throw new StateError("Unparsable sdk version given: $currentSdkVersion");
+      throw new StateError(
+          "Unparsable sdk version given: $currentSdkVersionString");
     }
   }
 

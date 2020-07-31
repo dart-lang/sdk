@@ -5,6 +5,7 @@
 #include "vm/zone.h"
 
 #include "platform/assert.h"
+#include "platform/leak_sanitizer.h"
 #include "platform/utils.h"
 #include "vm/dart_api_state.h"
 #include "vm/flags.h"
@@ -14,6 +15,8 @@
 #include "vm/virtual_memory.h"
 
 namespace dart {
+
+RelaxedAtomic<intptr_t> Zone::total_size_ = {0};
 
 // Zone segments represent chunks of memory: They have starting
 // address encoded in the this pointer and a size in bytes. They are
@@ -40,7 +43,7 @@ class Zone::Segment {
   void* alignment_;
 
   // Computes the address of the nth byte in this segment.
-  uword address(int n) { return reinterpret_cast<uword>(this) + n; }
+  uword address(intptr_t n) { return reinterpret_cast<uword>(this) + n; }
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(Segment);
 };
@@ -85,6 +88,7 @@ Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
   }
   if (memory == nullptr) {
     memory = VirtualMemory::Allocate(size, false, "dart-zone");
+    total_size_.fetch_add(size);
   }
   if (memory == nullptr) {
     OUT_OF_MEMORY();
@@ -127,7 +131,10 @@ void Zone::Segment::DeleteSegmentList(Segment* head) {
         memory = nullptr;
       }
     }
-    delete memory;
+    if (memory != nullptr) {
+      total_size_.fetch_sub(size);
+      delete memory;
+    }
     current = next;
   }
 }
@@ -195,6 +202,7 @@ void Zone::DeleteAll() {
 #endif
   position_ = initial_buffer_.start();
   limit_ = initial_buffer_.end();
+  small_segment_capacity_ = 0;
   head_ = NULL;
   large_segments_ = NULL;
   previous_ = NULL;
@@ -252,8 +260,22 @@ uword Zone::AllocateExpand(intptr_t size) {
     return AllocateLargeSegment(size);
   }
 
+  const intptr_t kSuperPageSize = 2 * MB;
+  intptr_t next_size;
+  if (small_segment_capacity_ < kSuperPageSize) {
+    // When the Zone is small, grow linearly to reduce size and use the segment
+    // cache to avoid expensive mmap calls.
+    next_size = kSegmentSize;
+  } else {
+    // When the Zone is large, grow geometrically to avoid Page Table Entry
+    // exhaustion. Using 1.125 ratio.
+    next_size = Utils::RoundUp(small_segment_capacity_ >> 3, kSuperPageSize);
+  }
+  ASSERT(next_size >= kSegmentSize);
+
   // Allocate another segment and chain it up.
-  head_ = Segment::New(kSegmentSize, head_);
+  head_ = Segment::New(next_size, head_);
+  small_segment_capacity_ += next_size;
 
   // Recompute 'position' and 'limit' based on the new head segment.
   uword result = Utils::RoundUp(head_->start(), kAlignment);

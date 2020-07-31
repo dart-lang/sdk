@@ -45,7 +45,7 @@ class FakeFlutter {
     return Column(children: [
       Text('aaa'),
       Row(
-        children: <Widget>[
+        children: [
           Text('bbb'),
           Text('ccc'),
         ],

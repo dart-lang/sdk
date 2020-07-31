@@ -12,37 +12,37 @@ Future<int> make(int x) => (new /*@ typeArgs=int* */ Future(
 
 test() {
   Iterable<Future<int>> list = <int>[1, 2, 3]
-      . /*@ typeArgs=Future<int*>* */ /*@target=Iterable::map*/ map(make);
+      . /*@ typeArgs=Future<int*>* */ /*@target=Iterable.map*/ map(make);
   Future<List<int>> results = Future. /*@ typeArgs=int* */ wait(list);
   Future<String> results2 =
-      results. /*@ typeArgs=String* */ /*@target=Future::then*/ then(
+      results. /*@ typeArgs=String* */ /*@target=Future.then*/ then(
           /*@ returnType=FutureOr<String*>* */ (List<int> list) => list
-              . /*@ typeArgs=FutureOr<String*>* */ /*@target=Iterable::fold*/ fold(
+              . /*@ typeArgs=FutureOr<String*>* */ /*@target=Iterable.fold*/ fold(
                   '',
                   /*@ returnType=FutureOr<String*>* */ (/*@ type=FutureOr<String*>* */ x,
                           /*@ type=int* */ y) => /*info:DYNAMIC_CAST,info:DYNAMIC_INVOKE*/ x /*error:UNDEFINED_OPERATOR*/ +
-                      y. /*@target=int::toString*/ toString()));
+                      y. /*@target=int.toString*/ toString()));
 
   Future<String> results3 =
-      results. /*@ typeArgs=String* */ /*@target=Future::then*/ then(
+      results. /*@ typeArgs=String* */ /*@target=Future.then*/ then(
           /*@ returnType=FutureOr<String*>* */ (List<int> list) => list
-              . /*@ typeArgs=FutureOr<String*>* */ /*@target=Iterable::fold*/ fold(
+              . /*@ typeArgs=FutureOr<String*>* */ /*@target=Iterable.fold*/ fold(
                   '',
                   /*info:INFERRED_TYPE_CLOSURE,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ /*@ returnType=String* */ (String
                               x,
                           /*@ type=int* */ y) =>
-                      x /*@target=String::+*/ +
-                      y. /*@target=int::toString*/ toString()));
+                      x /*@target=String.+*/ +
+                      y. /*@target=int.toString*/ toString()));
 
   Future<String> results4 =
-      results. /*@ typeArgs=String* */ /*@target=Future::then*/ then(
+      results. /*@ typeArgs=String* */ /*@target=Future.then*/ then(
           /*@ returnType=String* */ (List<int> list) =>
-              list. /*@target=Iterable::fold*/ fold<String>(
+              list. /*@target=Iterable.fold*/ fold<String>(
                   '',
                   /*@ returnType=String* */ (/*@ type=String* */ x,
                           /*@ type=int* */ y) =>
-                      x /*@target=String::+*/ +
-                      y. /*@target=int::toString*/ toString()));
+                      x /*@target=String.+*/ +
+                      y. /*@target=int.toString*/ toString()));
 }
 
 main() {}

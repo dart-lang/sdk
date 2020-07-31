@@ -10,6 +10,7 @@ import '../common_elements.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../js_backend/annotations.dart' show AnnotationsData;
 import '../js_backend/interceptor_data.dart' show OneShotInterceptorData;
 import '../js_backend/native_data.dart' show NativeBasicData;
 import '../js_model/elements.dart';
@@ -669,6 +670,9 @@ class CodegenWorldImpl implements CodegenWorld {
         _dynamicTypeArgumentDependencies = dynamicTypeArgumentDependencies;
 
   @override
+  AnnotationsData get annotationsData => _closedWorld.annotationsData;
+
+  @override
   void forEachStaticField(void Function(FieldEntity) f) {
     bool failure = false;
     _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
@@ -776,6 +780,32 @@ class CodegenWorldImpl implements CodegenWorld {
       });
     }
     return _closurizedStaticsCache;
+  }
+
+  Map<MemberEntity, DartType> _genericCallablePropertiesCache;
+
+  @override
+  Map<MemberEntity, DartType> get genericCallableProperties {
+    if (_genericCallablePropertiesCache == null) {
+      _genericCallablePropertiesCache = {};
+      _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
+        if (usage.hasRead) {
+          DartType type;
+          if (member.isField) {
+            type = _closedWorld.elementEnvironment.getFieldType(member);
+          } else if (member.isGetter) {
+            type = _closedWorld.elementEnvironment
+                .getFunctionType(member)
+                .returnType;
+          }
+          if (type == null) return;
+          if (_closedWorld.dartTypes.canAssignGenericFunctionTo(type)) {
+            _genericCallablePropertiesCache[member] = type;
+          }
+        }
+      });
+    }
+    return _genericCallablePropertiesCache;
   }
 
   @override

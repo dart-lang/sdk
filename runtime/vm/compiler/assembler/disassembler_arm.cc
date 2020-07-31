@@ -186,9 +186,9 @@ void ARMDecoder::PrintShiftRm(Instr* instr) {
 // Print the immediate operand for the instruction. Generally used for data
 // processing instructions.
 void ARMDecoder::PrintShiftImm(Instr* instr) {
-  int rotate = instr->RotateField() * 2;
-  int immed8 = instr->Immed8Field();
-  int imm = (immed8 >> rotate) | (immed8 << (32 - rotate));
+  uint8_t rotate = instr->RotateField() * 2;
+  int32_t immed8 = instr->Immed8Field();
+  int32_t imm = Utils::RotateRight(immed8, rotate);
   buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
                                 remaining_size_in_buffer(), "#%d", imm);
 }
@@ -403,7 +403,8 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
     case 'd': {
       if (format[1] == 'e') {  // 'dest: branch destination
         ASSERT(STRING_STARTS_WITH(format, "dest"));
-        const int32_t off = (instr->SImmed24Field() << 2) + 8;
+        const int32_t off =
+            (static_cast<uint32_t>(instr->SImmed24Field()) << 2) + 8;
         if (FLAG_disassemble_relative) {
           buffer_pos_ +=
               Utils::SNPrint(current_position_in_buffer(),
@@ -570,7 +571,7 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
     }
     case 't': {  // 'target: target of branch instructions.
       ASSERT(STRING_STARTS_WITH(format, "target"));
-      int off = (instr->SImmed24Field() << 2) + 8;
+      int32_t off = (static_cast<uint32_t>(instr->SImmed24Field()) << 2) + 8;
       buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
                                     remaining_size_in_buffer(), "%+d", off);
       return 6;
@@ -692,10 +693,6 @@ void ARMDecoder::DecodeType01(Instr* instr) {
             break;
           }
           case 3: {
-            if (TargetCPUFeatures::arm_version() != ARMv7) {
-              Unknown(instr);
-              return;
-            }
             // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
             Format(instr, "mls'cond's 'rn, 'rm, 'rs, 'rd");
             break;
@@ -741,11 +738,7 @@ void ARMDecoder::DecodeType01(Instr* instr) {
       // 16-bit immediate loads, msr (immediate), and hints
       switch (instr->Bits(20, 5)) {
         case 16: {
-          if (TargetCPUFeatures::arm_version() == ARMv7) {
-            Format(instr, "movw'cond 'rd, #'imm4_12");
-          } else {
-            Unknown(instr);
-          }
+          Format(instr, "movw'cond 'rd, #'imm4_12");
           break;
         }
         case 18: {
@@ -757,11 +750,7 @@ void ARMDecoder::DecodeType01(Instr* instr) {
           break;
         }
         case 20: {
-          if (TargetCPUFeatures::arm_version() == ARMv7) {
-            Format(instr, "movt'cond 'rd, #'imm4_12");
-          } else {
-            Unknown(instr);
-          }
+          Format(instr, "movt'cond 'rd, #'imm4_12");
           break;
         }
         default: {
@@ -1426,6 +1415,9 @@ void ARMDecoder::InstructionDecode(uword pc) {
   if (instr->ConditionField() == kSpecialCondition) {
     if (instr->InstructionBits() == static_cast<int32_t>(0xf57ff01f)) {
       Format(instr, "clrex");
+    } else if (instr->InstructionBits() ==
+               static_cast<int32_t>(kDataMemoryBarrier)) {
+      Format(instr, "dmb ish");
     } else {
       if (instr->IsSIMDDataProcessing()) {
         DecodeSIMDDataProcessing(instr);

@@ -1,0 +1,415 @@
+//
+// Problems in component:
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:5:14: Error: Constant evaluation error:
+// const a0 = 0 ~/ 0; // error
+//              ^
+// pkg/front_end/testcases/general/constant_truncate.dart:5:14: Context: Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.
+// const a0 = 0 ~/ 0; // error
+//              ^
+// pkg/front_end/testcases/general/constant_truncate.dart:5:7: Context: While analyzing:
+// const a0 = 0 ~/ 0; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:6:16: Error: Constant evaluation error:
+// const a1 = 0.0 ~/ 0; // error
+//                ^
+// pkg/front_end/testcases/general/constant_truncate.dart:6:16: Context: Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.
+// const a1 = 0.0 ~/ 0; // error
+//                ^
+// pkg/front_end/testcases/general/constant_truncate.dart:6:7: Context: While analyzing:
+// const a1 = 0.0 ~/ 0; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:7:17: Error: Constant evaluation error:
+// const a2 = -0.0 ~/ 0; // error
+//                 ^
+// pkg/front_end/testcases/general/constant_truncate.dart:7:17: Context: Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.
+// const a2 = -0.0 ~/ 0; // error
+//                 ^
+// pkg/front_end/testcases/general/constant_truncate.dart:7:7: Context: While analyzing:
+// const a2 = -0.0 ~/ 0; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:8:23: Error: Constant evaluation error:
+// const a3 = double.nan ~/ 0; // error
+//                       ^
+// pkg/front_end/testcases/general/constant_truncate.dart:8:23: Context: Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.
+// const a3 = double.nan ~/ 0; // error
+//                       ^
+// pkg/front_end/testcases/general/constant_truncate.dart:8:7: Context: While analyzing:
+// const a3 = double.nan ~/ 0; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:9:28: Error: Constant evaluation error:
+// const a4 = double.infinity ~/ 0; // error
+//                            ^
+// pkg/front_end/testcases/general/constant_truncate.dart:9:28: Context: Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.
+// const a4 = double.infinity ~/ 0; // error
+//                            ^
+// pkg/front_end/testcases/general/constant_truncate.dart:9:7: Context: While analyzing:
+// const a4 = double.infinity ~/ 0; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:10:36: Error: Constant evaluation error:
+// const a5 = double.negativeInfinity ~/ 0; // error
+//                                    ^
+// pkg/front_end/testcases/general/constant_truncate.dart:10:36: Context: Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.
+// const a5 = double.negativeInfinity ~/ 0; // error
+//                                    ^
+// pkg/front_end/testcases/general/constant_truncate.dart:10:7: Context: While analyzing:
+// const a5 = double.negativeInfinity ~/ 0; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:12:14: Error: Constant evaluation error:
+// const b0 = 0 ~/ 0.0; // error
+//              ^
+// pkg/front_end/testcases/general/constant_truncate.dart:12:14: Context: Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.
+// const b0 = 0 ~/ 0.0; // error
+//              ^
+// pkg/front_end/testcases/general/constant_truncate.dart:12:7: Context: While analyzing:
+// const b0 = 0 ~/ 0.0; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:13:16: Error: Constant evaluation error:
+// const b1 = 0.0 ~/ 0.0; // error
+//                ^
+// pkg/front_end/testcases/general/constant_truncate.dart:13:16: Context: Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.
+// const b1 = 0.0 ~/ 0.0; // error
+//                ^
+// pkg/front_end/testcases/general/constant_truncate.dart:13:7: Context: While analyzing:
+// const b1 = 0.0 ~/ 0.0; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:14:17: Error: Constant evaluation error:
+// const b2 = -0.0 ~/ 0.0; // error
+//                 ^
+// pkg/front_end/testcases/general/constant_truncate.dart:14:17: Context: Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.
+// const b2 = -0.0 ~/ 0.0; // error
+//                 ^
+// pkg/front_end/testcases/general/constant_truncate.dart:14:7: Context: While analyzing:
+// const b2 = -0.0 ~/ 0.0; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:15:23: Error: Constant evaluation error:
+// const b3 = double.nan ~/ 0.0; // error
+//                       ^
+// pkg/front_end/testcases/general/constant_truncate.dart:15:23: Context: Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.
+// const b3 = double.nan ~/ 0.0; // error
+//                       ^
+// pkg/front_end/testcases/general/constant_truncate.dart:15:7: Context: While analyzing:
+// const b3 = double.nan ~/ 0.0; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:16:28: Error: Constant evaluation error:
+// const b4 = double.infinity ~/ 0.0; // error
+//                            ^
+// pkg/front_end/testcases/general/constant_truncate.dart:16:28: Context: Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.
+// const b4 = double.infinity ~/ 0.0; // error
+//                            ^
+// pkg/front_end/testcases/general/constant_truncate.dart:16:7: Context: While analyzing:
+// const b4 = double.infinity ~/ 0.0; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:17:36: Error: Constant evaluation error:
+// const b5 = double.negativeInfinity ~/ 0.0; // error
+//                                    ^
+// pkg/front_end/testcases/general/constant_truncate.dart:17:36: Context: Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.
+// const b5 = double.negativeInfinity ~/ 0.0; // error
+//                                    ^
+// pkg/front_end/testcases/general/constant_truncate.dart:17:7: Context: While analyzing:
+// const b5 = double.negativeInfinity ~/ 0.0; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:19:14: Error: Constant evaluation error:
+// const c0 = 0 ~/ -0.0; // error
+//              ^
+// pkg/front_end/testcases/general/constant_truncate.dart:19:14: Context: Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.
+// const c0 = 0 ~/ -0.0; // error
+//              ^
+// pkg/front_end/testcases/general/constant_truncate.dart:19:7: Context: While analyzing:
+// const c0 = 0 ~/ -0.0; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:20:16: Error: Constant evaluation error:
+// const c1 = 0.0 ~/ -0.0; // error
+//                ^
+// pkg/front_end/testcases/general/constant_truncate.dart:20:16: Context: Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.
+// const c1 = 0.0 ~/ -0.0; // error
+//                ^
+// pkg/front_end/testcases/general/constant_truncate.dart:20:7: Context: While analyzing:
+// const c1 = 0.0 ~/ -0.0; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:21:17: Error: Constant evaluation error:
+// const c2 = -0.0 ~/ -0.0; // error
+//                 ^
+// pkg/front_end/testcases/general/constant_truncate.dart:21:17: Context: Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.
+// const c2 = -0.0 ~/ -0.0; // error
+//                 ^
+// pkg/front_end/testcases/general/constant_truncate.dart:21:7: Context: While analyzing:
+// const c2 = -0.0 ~/ -0.0; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:22:23: Error: Constant evaluation error:
+// const c3 = double.nan ~/ -0.0; // error
+//                       ^
+// pkg/front_end/testcases/general/constant_truncate.dart:22:23: Context: Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.
+// const c3 = double.nan ~/ -0.0; // error
+//                       ^
+// pkg/front_end/testcases/general/constant_truncate.dart:22:7: Context: While analyzing:
+// const c3 = double.nan ~/ -0.0; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:23:28: Error: Constant evaluation error:
+// const c4 = double.infinity ~/ -0.0; // error
+//                            ^
+// pkg/front_end/testcases/general/constant_truncate.dart:23:28: Context: Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.
+// const c4 = double.infinity ~/ -0.0; // error
+//                            ^
+// pkg/front_end/testcases/general/constant_truncate.dart:23:7: Context: While analyzing:
+// const c4 = double.infinity ~/ -0.0; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:24:36: Error: Constant evaluation error:
+// const c5 = double.negativeInfinity ~/ -0.0; // error
+//                                    ^
+// pkg/front_end/testcases/general/constant_truncate.dart:24:36: Context: Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.
+// const c5 = double.negativeInfinity ~/ -0.0; // error
+//                                    ^
+// pkg/front_end/testcases/general/constant_truncate.dart:24:7: Context: While analyzing:
+// const c5 = double.negativeInfinity ~/ -0.0; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:26:14: Error: Constant evaluation error:
+// const d0 = 0 ~/ double.nan; // error
+//              ^
+// pkg/front_end/testcases/general/constant_truncate.dart:26:14: Context: Binary operator '0 ~/ NaN' results is Infinity or NaN.
+// const d0 = 0 ~/ double.nan; // error
+//              ^
+// pkg/front_end/testcases/general/constant_truncate.dart:26:7: Context: While analyzing:
+// const d0 = 0 ~/ double.nan; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:27:16: Error: Constant evaluation error:
+// const d1 = 0.0 ~/ double.nan; // error
+//                ^
+// pkg/front_end/testcases/general/constant_truncate.dart:27:16: Context: Binary operator '0.0 ~/ NaN' results is Infinity or NaN.
+// const d1 = 0.0 ~/ double.nan; // error
+//                ^
+// pkg/front_end/testcases/general/constant_truncate.dart:27:7: Context: While analyzing:
+// const d1 = 0.0 ~/ double.nan; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:28:17: Error: Constant evaluation error:
+// const d2 = -0.0 ~/ double.nan; // error
+//                 ^
+// pkg/front_end/testcases/general/constant_truncate.dart:28:17: Context: Binary operator '-0.0 ~/ NaN' results is Infinity or NaN.
+// const d2 = -0.0 ~/ double.nan; // error
+//                 ^
+// pkg/front_end/testcases/general/constant_truncate.dart:28:7: Context: While analyzing:
+// const d2 = -0.0 ~/ double.nan; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:29:23: Error: Constant evaluation error:
+// const d3 = double.nan ~/ double.nan; // error
+//                       ^
+// pkg/front_end/testcases/general/constant_truncate.dart:29:23: Context: Binary operator 'NaN ~/ NaN' results is Infinity or NaN.
+// const d3 = double.nan ~/ double.nan; // error
+//                       ^
+// pkg/front_end/testcases/general/constant_truncate.dart:29:7: Context: While analyzing:
+// const d3 = double.nan ~/ double.nan; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:30:28: Error: Constant evaluation error:
+// const d4 = double.infinity ~/ double.nan; // error
+//                            ^
+// pkg/front_end/testcases/general/constant_truncate.dart:30:28: Context: Binary operator 'Infinity ~/ NaN' results is Infinity or NaN.
+// const d4 = double.infinity ~/ double.nan; // error
+//                            ^
+// pkg/front_end/testcases/general/constant_truncate.dart:30:7: Context: While analyzing:
+// const d4 = double.infinity ~/ double.nan; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:31:36: Error: Constant evaluation error:
+// const d5 = double.negativeInfinity ~/ double.nan; // error
+//                                    ^
+// pkg/front_end/testcases/general/constant_truncate.dart:31:36: Context: Binary operator '-Infinity ~/ NaN' results is Infinity or NaN.
+// const d5 = double.negativeInfinity ~/ double.nan; // error
+//                                    ^
+// pkg/front_end/testcases/general/constant_truncate.dart:31:7: Context: While analyzing:
+// const d5 = double.negativeInfinity ~/ double.nan; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:36:23: Error: Constant evaluation error:
+// const e3 = double.nan ~/ double.infinity; // error
+//                       ^
+// pkg/front_end/testcases/general/constant_truncate.dart:36:23: Context: Binary operator 'NaN ~/ Infinity' results is Infinity or NaN.
+// const e3 = double.nan ~/ double.infinity; // error
+//                       ^
+// pkg/front_end/testcases/general/constant_truncate.dart:36:7: Context: While analyzing:
+// const e3 = double.nan ~/ double.infinity; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:37:28: Error: Constant evaluation error:
+// const e4 = double.infinity ~/ double.infinity; // error
+//                            ^
+// pkg/front_end/testcases/general/constant_truncate.dart:37:28: Context: Binary operator 'Infinity ~/ Infinity' results is Infinity or NaN.
+// const e4 = double.infinity ~/ double.infinity; // error
+//                            ^
+// pkg/front_end/testcases/general/constant_truncate.dart:37:7: Context: While analyzing:
+// const e4 = double.infinity ~/ double.infinity; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:38:36: Error: Constant evaluation error:
+// const e5 = double.negativeInfinity ~/ double.infinity; // error
+//                                    ^
+// pkg/front_end/testcases/general/constant_truncate.dart:38:36: Context: Binary operator '-Infinity ~/ Infinity' results is Infinity or NaN.
+// const e5 = double.negativeInfinity ~/ double.infinity; // error
+//                                    ^
+// pkg/front_end/testcases/general/constant_truncate.dart:38:7: Context: While analyzing:
+// const e5 = double.negativeInfinity ~/ double.infinity; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:43:23: Error: Constant evaluation error:
+// const f3 = double.nan ~/ double.negativeInfinity; // error
+//                       ^
+// pkg/front_end/testcases/general/constant_truncate.dart:43:23: Context: Binary operator 'NaN ~/ -Infinity' results is Infinity or NaN.
+// const f3 = double.nan ~/ double.negativeInfinity; // error
+//                       ^
+// pkg/front_end/testcases/general/constant_truncate.dart:43:7: Context: While analyzing:
+// const f3 = double.nan ~/ double.negativeInfinity; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:44:28: Error: Constant evaluation error:
+// const f4 = double.infinity ~/ double.negativeInfinity; // error
+//                            ^
+// pkg/front_end/testcases/general/constant_truncate.dart:44:28: Context: Binary operator 'Infinity ~/ -Infinity' results is Infinity or NaN.
+// const f4 = double.infinity ~/ double.negativeInfinity; // error
+//                            ^
+// pkg/front_end/testcases/general/constant_truncate.dart:44:7: Context: While analyzing:
+// const f4 = double.infinity ~/ double.negativeInfinity; // error
+//       ^
+//
+// pkg/front_end/testcases/general/constant_truncate.dart:45:36: Error: Constant evaluation error:
+// const f5 = double.negativeInfinity ~/ double.negativeInfinity; // error
+//                                    ^
+// pkg/front_end/testcases/general/constant_truncate.dart:45:36: Context: Binary operator '-Infinity ~/ -Infinity' results is Infinity or NaN.
+// const f5 = double.negativeInfinity ~/ double.negativeInfinity; // error
+//                                    ^
+// pkg/front_end/testcases/general/constant_truncate.dart:45:7: Context: While analyzing:
+// const f5 = double.negativeInfinity ~/ double.negativeInfinity; // error
+//       ^
+//
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::int* a0 = invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* a1 = invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* a2 = invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* a3 = invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* a4 = invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* a5 = invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* b0 = invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* b1 = invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* b2 = invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* b3 = invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* b4 = invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* b5 = invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* c0 = invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* c1 = invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* c2 = invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* c3 = invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* c4 = invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* c5 = invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.";
+static const field core::int* d0 = invalid-expression "Binary operator '0 ~/ NaN' results is Infinity or NaN.";
+static const field core::int* d1 = invalid-expression "Binary operator '0.0 ~/ NaN' results is Infinity or NaN.";
+static const field core::int* d2 = invalid-expression "Binary operator '-0.0 ~/ NaN' results is Infinity or NaN.";
+static const field core::int* d3 = invalid-expression "Binary operator 'NaN ~/ NaN' results is Infinity or NaN.";
+static const field core::int* d4 = invalid-expression "Binary operator 'Infinity ~/ NaN' results is Infinity or NaN.";
+static const field core::int* d5 = invalid-expression "Binary operator '-Infinity ~/ NaN' results is Infinity or NaN.";
+static const field core::int* e0 = #C1;
+static const field core::int* e1 = #C1;
+static const field core::int* e2 = #C1;
+static const field core::int* e3 = invalid-expression "Binary operator 'NaN ~/ Infinity' results is Infinity or NaN.";
+static const field core::int* e4 = invalid-expression "Binary operator 'Infinity ~/ Infinity' results is Infinity or NaN.";
+static const field core::int* e5 = invalid-expression "Binary operator '-Infinity ~/ Infinity' results is Infinity or NaN.";
+static const field core::int* f0 = #C1;
+static const field core::int* f1 = #C1;
+static const field core::int* f2 = #C1;
+static const field core::int* f3 = invalid-expression "Binary operator 'NaN ~/ -Infinity' results is Infinity or NaN.";
+static const field core::int* f4 = invalid-expression "Binary operator 'Infinity ~/ -Infinity' results is Infinity or NaN.";
+static const field core::int* f5 = invalid-expression "Binary operator '-Infinity ~/ -Infinity' results is Infinity or NaN.";
+static method main() → dynamic {
+  self::test(0, 0, () → core::int* => invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.");
+  self::test(0.0, 0, () → core::int* => invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.");
+  self::test(0.0.{core::double::unary-}(), 0, () → core::int* => invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C2, 0, () → core::int* => invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C3, 0, () → core::int* => invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C4, 0, () → core::int* => invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.");
+  self::test(0, 0.0, () → core::int* => invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.");
+  self::test(0.0, 0.0, () → core::int* => invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.");
+  self::test(0.0.{core::double::unary-}(), 0.0, () → core::int* => invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C2, 0.0, () → core::int* => invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C3, 0.0, () → core::int* => invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C4, 0.0, () → core::int* => invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.");
+  self::test(0, 0.0.{core::double::unary-}(), () → core::int* => invalid-expression "Binary operator '~/' on '0' requires non-zero divisor, but divisor was '0'.");
+  self::test(0.0, 0.0.{core::double::unary-}(), () → core::int* => invalid-expression "Binary operator '~/' on '0.0' requires non-zero divisor, but divisor was '0'.");
+  self::test(0.0.{core::double::unary-}(), 0.0.{core::double::unary-}(), () → core::int* => invalid-expression "Binary operator '~/' on '-0.0' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C2, 0.0.{core::double::unary-}(), () → core::int* => invalid-expression "Binary operator '~/' on 'NaN' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C3, 0.0.{core::double::unary-}(), () → core::int* => invalid-expression "Binary operator '~/' on 'Infinity' requires non-zero divisor, but divisor was '0'.");
+  self::test(#C4, 0.0.{core::double::unary-}(), () → core::int* => invalid-expression "Binary operator '~/' on '-Infinity' requires non-zero divisor, but divisor was '0'.");
+  self::test(0, #C2, () → core::int* => invalid-expression "Binary operator '0 ~/ NaN' results is Infinity or NaN.");
+  self::test(0.0, #C2, () → core::int* => invalid-expression "Binary operator '0.0 ~/ NaN' results is Infinity or NaN.");
+  self::test(0.0.{core::double::unary-}(), #C2, () → core::int* => invalid-expression "Binary operator '-0.0 ~/ NaN' results is Infinity or NaN.");
+  self::test(#C2, #C2, () → core::int* => invalid-expression "Binary operator 'NaN ~/ NaN' results is Infinity or NaN.");
+  self::test(#C3, #C2, () → core::int* => invalid-expression "Binary operator 'Infinity ~/ NaN' results is Infinity or NaN.");
+  self::test(#C4, #C2, () → core::int* => invalid-expression "Binary operator '-Infinity ~/ NaN' results is Infinity or NaN.");
+  self::test(0, #C3, () → core::int* => #C1);
+  self::test(0.0, #C3, () → core::int* => #C1);
+  self::test(0.0.{core::double::unary-}(), #C3, () → core::int* => #C1);
+  self::test(#C2, #C3, () → core::int* => invalid-expression "Binary operator 'NaN ~/ Infinity' results is Infinity or NaN.");
+  self::test(#C3, #C3, () → core::int* => invalid-expression "Binary operator 'Infinity ~/ Infinity' results is Infinity or NaN.");
+  self::test(#C4, #C3, () → core::int* => invalid-expression "Binary operator '-Infinity ~/ Infinity' results is Infinity or NaN.");
+  self::test(0, #C4, () → core::int* => #C1);
+  self::test(0.0, #C4, () → core::int* => #C1);
+  self::test(0.0.{core::double::unary-}(), #C4, () → core::int* => #C1);
+  self::test(#C2, #C4, () → core::int* => invalid-expression "Binary operator 'NaN ~/ -Infinity' results is Infinity or NaN.");
+  self::test(#C3, #C4, () → core::int* => invalid-expression "Binary operator 'Infinity ~/ -Infinity' results is Infinity or NaN.");
+  self::test(#C4, #C4, () → core::int* => invalid-expression "Binary operator '-Infinity ~/ -Infinity' results is Infinity or NaN.");
+}
+static method test(core::num* a, core::num* b, () →* core::num* f) → void {
+  core::num* result;
+  try {
+    result = a.{core::num::~/}(b);
+    core::print("${a} ~/ ${b} = ${result}");
+  }
+  on dynamic catch(final dynamic e) {
+    core::print("${a} ~/ ${b} throws ${e}");
+    self::throws(f);
+    return;
+  }
+  self::expect(f.call(), result);
+}
+static method expect(dynamic expected, dynamic actual) → void {
+  if(!expected.{core::Object::==}(actual)) {
+    throw "Expected ${expected}, actual ${actual}";
+  }
+}
+static method throws(() →* core::num* f) → void {
+  try {
+    f.call();
+  }
+  on dynamic catch(final dynamic e) {
+    return;
+  }
+  throw "Expected exception";
+}
+
+constants  {
+  #C1 = 0
+  #C2 = NaN
+  #C3 = Infinity
+  #C4 = -Infinity
+}

@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // part of "common_patch.dart";
 
 @patch
 class _EventHandler {
   @patch
-  static void _sendData(Object sender, SendPort sendPort, int data)
+  static void _sendData(Object? sender, SendPort sendPort, int data)
       native "EventHandler_SendData";
 
   static int _timerMillisecondClock()

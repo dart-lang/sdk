@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.collection;
 
 /// This [Iterable] mixin implements all [Iterable] members except `iterator`.
@@ -35,7 +33,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
     return FollowedByIterable<E>(this, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     for (E e in this) {
       if (e == element) return true;
     }
@@ -159,7 +157,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
     return result;
   }
 
-  E firstWhere(bool test(E value), {E orElse()}) {
+  E firstWhere(bool test(E value), {E Function()? orElse}) {
     for (E element in this) {
       if (test(element)) return element;
     }
@@ -167,8 +165,8 @@ abstract class IterableMixin<E> implements Iterable<E> {
     throw IterableElementError.noElement();
   }
 
-  E lastWhere(bool test(E value), {E orElse()}) {
-    E result;
+  E lastWhere(bool test(E value), {E Function()? orElse}) {
+    late E result;
     bool foundMatching = false;
     for (E element in this) {
       if (test(element)) {
@@ -181,8 +179,8 @@ abstract class IterableMixin<E> implements Iterable<E> {
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E element), {E orElse()}) {
-    E result;
+  E singleWhere(bool test(E element), {E Function()? orElse}) {
+    late E result;
     bool foundMatching = false;
     for (E element in this) {
       if (test(element)) {
@@ -277,7 +275,7 @@ abstract class IterableBase<E> extends Iterable<E> {
 }
 
 /// A collection used to identify cyclic lists during toString() calls.
-final List _toStringVisiting = [];
+final List<Object> _toStringVisiting = [];
 
 /// Check if we are currently visiting `o` in a toString call.
 bool _isToStringVisiting(Object o) {
@@ -288,7 +286,7 @@ bool _isToStringVisiting(Object o) {
 }
 
 /// Convert elements of [iterable] to strings and store them in [parts].
-void _iterablePartsToStrings(Iterable iterable, List<String> parts) {
+void _iterablePartsToStrings(Iterable<Object?> iterable, List<String> parts) {
   /*
    * This is the complicated part of [iterableToShortString].
    * It is extracted as a separate function to avoid having too much code
@@ -313,7 +311,7 @@ void _iterablePartsToStrings(Iterable iterable, List<String> parts) {
 
   int length = 0;
   int count = 0;
-  Iterator it = iterable.iterator;
+  Iterator<Object?> it = iterable.iterator;
   // Initial run of elements, at least headCount, and then continue until
   // passing at most lengthLimit characters.
   while (length < lengthLimit || count < headCount) {
@@ -329,14 +327,12 @@ void _iterablePartsToStrings(Iterable iterable, List<String> parts) {
 
   // Find last two elements. One or more of them may already be in the
   // parts array. Include their length in `length`.
-  Object penultimate;
-  Object ultimate;
   if (!it.moveNext()) {
     if (count <= headCount + tailCount) return;
     ultimateString = parts.removeLast();
     penultimateString = parts.removeLast();
   } else {
-    penultimate = it.current;
+    Object? penultimate = it.current;
     count++;
     if (!it.moveNext()) {
       if (count <= headCount + 1) {
@@ -347,7 +343,7 @@ void _iterablePartsToStrings(Iterable iterable, List<String> parts) {
       penultimateString = parts.removeLast();
       length += ultimateString.length + overhead;
     } else {
-      ultimate = it.current;
+      Object? ultimate = it.current;
       count++;
       // Then keep looping, keeping the last two elements in variables.
       assert(count < maxCount);
@@ -380,7 +376,7 @@ void _iterablePartsToStrings(Iterable iterable, List<String> parts) {
 
   // If there is a gap between the initial run and the last two,
   // prepare to add an ellipsis.
-  String elision;
+  String? elision;
   if (count > parts.length + tailCount) {
     elision = "...";
     length += ellipsisSize + overhead;

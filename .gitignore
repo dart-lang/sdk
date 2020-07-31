@@ -3,6 +3,7 @@
 /.project
 /Makefile
 /base
+/benchmarks-internal
 /buildtools
 /ipch
 /out

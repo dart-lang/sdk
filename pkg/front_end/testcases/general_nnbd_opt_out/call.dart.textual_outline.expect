@@ -1,0 +1,10 @@
+// @dart = 2.6
+class Callable {
+  call(x) {}
+}
+
+class CallableGetter {
+  get call => new Callable();
+}
+
+main() {}

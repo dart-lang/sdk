@@ -15,7 +15,7 @@
 void foo() {
   try {
     for (var i = 0; i < 1000; i++) {
-      List(10).toList(growable: true);
+      List.filled(10, null).toList(growable: true);
     }
   } catch (e) {}
 }

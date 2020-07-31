@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_IL_PRINTER_H_
 #define RUNTIME_VM_COMPILER_BACKEND_IL_PRINTER_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "platform/text_buffer.h"
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
@@ -53,8 +57,6 @@ class FlowGraphPrinter : public ValueObject {
                                 intptr_t num_checks_to_print = kPrintAll);
 
   static bool ShouldPrint(const Function& function);
-
-  static bool PassesFilter(const char* filter, const Function& function);
 
  private:
   const Function& function_;

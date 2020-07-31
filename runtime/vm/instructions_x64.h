@@ -10,6 +10,7 @@
 #error "Do not include instructions_x64.h directly; use instructions.h instead."
 #endif
 
+#include "platform/unaligned.h"
 #include "vm/allocation.h"
 
 namespace dart {
@@ -115,13 +116,15 @@ class PcRelativeCallPattern : public InstructionPattern<PcRelativeCallPattern> {
   explicit PcRelativeCallPattern(uword pc) : InstructionPattern(pc) {}
 
   int32_t distance() {
-    return *reinterpret_cast<int32_t*>(start() + 1) + kLengthInBytes;
+    return LoadUnaligned(reinterpret_cast<int32_t*>(start() + 1)) +
+           kLengthInBytes;
   }
 
   void set_distance(int32_t distance) {
     // [distance] is relative to the start of the instruction, x64 considers the
     // offset relative to next PC.
-    *reinterpret_cast<int32_t*>(start() + 1) = distance - kLengthInBytes;
+    StoreUnaligned(reinterpret_cast<int32_t*>(start() + 1),
+                   distance - kLengthInBytes);
   }
 
   static const int* pattern() {
@@ -162,13 +165,15 @@ class PcRelativeTrampolineJumpPattern : public ValueObject {
   }
 
   int32_t distance() {
-    return *reinterpret_cast<int32_t*>(pattern_start_ + 1) + kLengthInBytes;
+    return LoadUnaligned(reinterpret_cast<int32_t*>(pattern_start_ + 1)) +
+           kLengthInBytes;
   }
 
   void set_distance(int32_t distance) {
     // [distance] is relative to the start of the instruction, x64 considers the
     // offset relative to next PC.
-    *reinterpret_cast<int32_t*>(pattern_start_ + 1) = distance - kLengthInBytes;
+    StoreUnaligned(reinterpret_cast<int32_t*>(pattern_start_ + 1),
+                   distance - kLengthInBytes);
   }
 
   bool IsValid() const {
@@ -178,6 +183,15 @@ class PcRelativeTrampolineJumpPattern : public ValueObject {
 
  private:
   uword pattern_start_;
+};
+
+class PcRelativeTailCallPattern : public PcRelativeTrampolineJumpPattern {
+ public:
+  static const intptr_t kLowerCallingRange = -(1ul << 31) + kLengthInBytes;
+  static const intptr_t kUpperCallingRange = (1ul << 31) - 1;
+
+  explicit PcRelativeTailCallPattern(uword pc)
+      : PcRelativeTrampolineJumpPattern(pc) {}
 };
 
 }  // namespace dart

@@ -339,6 +339,7 @@ class NativeBasicDataImpl implements NativeBasicData {
       }
     });
     data.forEachJsInteropMember((ir.Member node, String name) {
+      if (memberIsIgnorable(node)) return;
       jsInteropMembers[map.getMember(node)] = name;
     });
 

@@ -1,0 +1,25 @@
+library test;
+
+abstract class C implements I1, I2 {}
+
+abstract class E implements I2, I1 {}
+
+abstract class I1 {
+  void f(int i);
+}
+
+abstract class I2 {
+  void f(Object o);
+}
+
+class D extends C {
+  void f(Object o) {}
+}
+
+class F extends E {
+  void f(Object o) {}
+}
+
+main() {}
+void g1(C c) {}
+void g2(E e) {}

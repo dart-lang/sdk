@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_ARM64.
-#if defined(TARGET_ARCH_ARM64) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(TARGET_ARCH_ARM64)
 
 #define SHOULD_NOT_INCLUDE_RUNTIME
 
@@ -149,9 +149,9 @@ static int GetScaleFactor(intptr_t size) {
   /* R1: new object end address. */                                            \
   /* R2: allocation size. */                                                   \
   {                                                                            \
-    __ CompareImmediate(R2, target::RawObject::kSizeTagMaxSizeTag);            \
+    __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);         \
     __ LslImmediate(R2, R2,                                                    \
-                    target::RawObject::kTagBitsSizeTagPos -                    \
+                    target::ObjectLayout::kTagBitsSizeTagPos -                 \
                         target::ObjectAlignment::kObjectAlignmentLog2);        \
     __ csel(R2, ZR, R2, HI);                                                   \
                                                                                \
@@ -1648,21 +1648,21 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ b(&not_double, NE);
 
   __ LoadIsolate(R0);
-  __ LoadFromOffset(R0, R0, target::Isolate::object_store_offset());
+  __ LoadFromOffset(R0, R0, target::Isolate::cached_object_store_offset());
   __ LoadFromOffset(R0, R0, target::ObjectStore::double_type_offset());
   __ ret();
 
   __ Bind(&not_double);
   JumpIfNotInteger(assembler, R1, R0, &not_integer);
   __ LoadIsolate(R0);
-  __ LoadFromOffset(R0, R0, target::Isolate::object_store_offset());
+  __ LoadFromOffset(R0, R0, target::Isolate::cached_object_store_offset());
   __ LoadFromOffset(R0, R0, target::ObjectStore::int_type_offset());
   __ ret();
 
   __ Bind(&not_integer);
   JumpIfNotString(assembler, R1, R0, &use_declaration_type);
   __ LoadIsolate(R0);
-  __ LoadFromOffset(R0, R0, target::Isolate::object_store_offset());
+  __ LoadFromOffset(R0, R0, target::Isolate::cached_object_store_offset());
   __ LoadFromOffset(R0, R0, target::ObjectStore::string_type_offset());
   __ ret();
 
@@ -2077,22 +2077,29 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ ret();
 }
 
-// Allocates a _OneByteString. The content is not initialized.
+// Allocates a _OneByteString or _TwoByteString. The content is not initialized.
 // 'length-reg' (R2) contains the desired length as a _Smi or _Mint.
 // Returns new string as tagged pointer in R0.
-static void TryAllocateOneByteString(Assembler* assembler,
-                                     Label* ok,
-                                     Label* failure) {
+static void TryAllocateString(Assembler* assembler,
+                              classid_t cid,
+                              Label* ok,
+                              Label* failure) {
+  ASSERT(cid == kOneByteStringCid || cid == kTwoByteStringCid);
   const Register length_reg = R2;
   // _Mint length: call to runtime to produce error.
   __ BranchIfNotSmi(length_reg, failure);
   // negative length: call to runtime to produce error.
   __ tbnz(failure, length_reg, compiler::target::kBitsPerWord - 1);
 
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kOneByteStringCid, R0, failure));
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R0, failure));
   __ mov(R6, length_reg);  // Save the length register.
-  // TODO(koda): Protect against negative length and overflow here.
-  __ adds(length_reg, ZR, Operand(length_reg, ASR, kSmiTagSize));  // Smi untag.
+  if (cid == kOneByteStringCid) {
+    // Untag length.
+    __ adds(length_reg, ZR, Operand(length_reg, ASR, kSmiTagSize));
+  } else {
+    // Untag length and multiply by element size -> no-op.
+    __ adds(length_reg, ZR, Operand(length_reg));
+  }
   // If the length is 0 then we have to make the allocated size a bit bigger,
   // otherwise the string takes up less space than an ExternalOneByteString,
   // and cannot be externalized.  TODO(erikcorry): We should probably just
@@ -2106,7 +2113,6 @@ static void TryAllocateOneByteString(Assembler* assembler,
   __ andi(length_reg, length_reg,
           Immediate(~(target::ObjectAlignment::kObjectAlignment - 1)));
 
-  const intptr_t cid = kOneByteStringCid;
   __ ldr(R0, Address(THR, target::Thread::top_offset()));
 
   // length_reg: allocation size.
@@ -2131,10 +2137,10 @@ static void TryAllocateOneByteString(Assembler* assembler,
   // R1: new object end address.
   // R2: allocation size.
   {
-    const intptr_t shift = target::RawObject::kTagBitsSizeTagPos -
+    const intptr_t shift = target::ObjectLayout::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2;
 
-    __ CompareImmediate(R2, target::RawObject::kSizeTagMaxSizeTag);
+    __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);
     __ LslImmediate(R2, R2, shift);
     __ csel(R2, R2, ZR, LS);
 
@@ -2171,7 +2177,7 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ BranchIfNotSmi(R3, normal_ir_body);  // 'start', 'end' not Smi.
 
   __ sub(R2, R2, Operand(TMP));
-  TryAllocateOneByteString(assembler, &ok, normal_ir_body);
+  TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body);
   __ Bind(&ok);
   // R0: new string as tagged pointer.
   // Copy string.
@@ -2214,8 +2220,8 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::OneByteStringSetAt(Assembler* assembler,
-                                         Label* normal_ir_body) {
+void AsmIntrinsifier::WriteIntoOneByteString(Assembler* assembler,
+                                             Label* normal_ir_body) {
   __ ldr(R2, Address(SP, 0 * target::kWordSize));  // Value.
   __ ldr(R1, Address(SP, 1 * target::kWordSize));  // Index.
   __ ldr(R0, Address(SP, 2 * target::kWordSize));  // OneByteString.
@@ -2227,12 +2233,38 @@ void AsmIntrinsifier::OneByteStringSetAt(Assembler* assembler,
   __ ret();
 }
 
-void AsmIntrinsifier::OneByteString_allocate(Assembler* assembler,
+void AsmIntrinsifier::WriteIntoTwoByteString(Assembler* assembler,
                                              Label* normal_ir_body) {
+  __ ldr(R2, Address(SP, 0 * target::kWordSize));  // Value.
+  __ ldr(R1, Address(SP, 1 * target::kWordSize));  // Index.
+  __ ldr(R0, Address(SP, 2 * target::kWordSize));  // TwoByteString.
+  // Untag index and multiply by element size -> no-op.
+  __ SmiUntag(R2);
+  __ AddImmediate(R3, R0,
+                  target::TwoByteString::data_offset() - kHeapObjectTag);
+  __ str(R2, Address(R3, R1), kUnsignedHalfword);
+  __ ret();
+}
+
+void AsmIntrinsifier::AllocateOneByteString(Assembler* assembler,
+                                            Label* normal_ir_body) {
   Label ok;
 
   __ ldr(R2, Address(SP, 0 * target::kWordSize));  // Length.
-  TryAllocateOneByteString(assembler, &ok, normal_ir_body);
+  TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body);
+
+  __ Bind(&ok);
+  __ ret();
+
+  __ Bind(normal_ir_body);
+}
+
+void AsmIntrinsifier::AllocateTwoByteString(Assembler* assembler,
+                                            Label* normal_ir_body) {
+  Label ok;
+
+  __ ldr(R2, Address(SP, 0 * target::kWordSize));  // Length.
+  TryAllocateString(assembler, kTwoByteStringCid, &ok, normal_ir_body);
 
   __ Bind(&ok);
   __ ret();
@@ -2418,4 +2450,4 @@ void AsmIntrinsifier::SetAsyncThreadStackTrace(Assembler* assembler,
 }  // namespace compiler
 }  // namespace dart
 
-#endif  // defined(TARGET_ARCH_ARM64) && !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(TARGET_ARCH_ARM64)

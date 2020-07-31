@@ -56,6 +56,7 @@ namespace dart {
   F(Field, guarded_list_length_)                                               \
   F(Field, dependent_code_)                                                    \
   F(Field, initializer_function_)                                              \
+  F(Field, host_offset_or_field_id_)                                           \
   F(Script, url_)                                                              \
   F(Script, resolved_url_)                                                     \
   F(Script, compile_time_constants_)                                           \
@@ -120,14 +121,12 @@ namespace dart {
   F(UnlinkedCall, args_descriptor_)                                            \
   F(MonomorphicSmiableCall, expected_cid_)                                     \
   F(MonomorphicSmiableCall, target_)                                           \
+  F(CallSiteData, target_name_)                                                \
+  F(CallSiteData, args_descriptor_)                                            \
   F(ICData, entries_)                                                          \
-  F(ICData, target_name_)                                                      \
-  F(ICData, args_descriptor_)                                                  \
   F(ICData, owner_)                                                            \
   F(MegamorphicCache, buckets_)                                                \
   F(MegamorphicCache, mask_)                                                   \
-  F(MegamorphicCache, target_name_)                                            \
-  F(MegamorphicCache, args_descriptor_)                                        \
   F(SubtypeTestCache, cache_)                                                  \
   F(ApiError, message_)                                                        \
   F(LanguageError, previous_error_)                                            \
@@ -232,7 +231,8 @@ const char* OffsetsTable::FieldNameForOffset(intptr_t class_id,
 }
 
 #define DEFINE_OFFSETS_TABLE_ENTRY(class_name, field_name)                     \
-  {class_name::kClassId, #field_name, OFFSET_OF(Raw##class_name, field_name)},
+  {class_name::kClassId, #field_name,                                          \
+   OFFSET_OF(class_name##Layout, field_name)},
 
 // clang-format off
 OffsetsTable::OffsetsTableEntry OffsetsTable::offsets_table[] = {

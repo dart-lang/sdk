@@ -22,7 +22,7 @@ main(List<String> args) async {
   startIsolate(3);
   startIsolate(4);
 
-  await new Future.delayed(new Duration(seconds: 5));
+  await Future.delayed(Duration(seconds: 5));
 
   print('at end of main...');
 }
@@ -33,7 +33,7 @@ void startIsolate(int val) {
 
 isolateEntry(message) async {
   print('starting $message');
-  await new Future.delayed(new Duration(seconds: message));
+  await Future.delayed(Duration(seconds: message));
   print('ending $message');
 }
 

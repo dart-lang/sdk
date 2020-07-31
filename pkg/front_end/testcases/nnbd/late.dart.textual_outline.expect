@@ -1,0 +1,33 @@
+late int ;
+lateTopLevelField;
+late ;
+final int lateFinalTopLevelField;
+late ;
+final int lateFinalTopLevelFieldWithInit = 0;
+class Class {
+  late int ;
+  lateInstanceField;
+  late ;
+  final int lateFinalInstanceField1;
+  late ;
+  final int lateFinalInstanceField2;
+  late ;
+  final int lateFinalInstanceFieldWithInit = 0;
+  late Class ;
+  lateInstanceFieldThis = this;
+  late ;
+  final Class lateFinalInstanceFieldThis = this;
+  static late int ;
+  lateStaticField;
+  static late ;
+  final int lateFinalStaticField1;
+  static late ;
+  final int lateFinalStaticField2;
+  static late ;
+  final int lateFinalStaticFieldWithInit = 0;
+  method() { }
+  methodWithErrors() { }
+}
+main() { }
+noErrors() { }
+errors() { }

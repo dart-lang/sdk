@@ -7,6 +7,7 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
+
 #include "vm/dart.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
@@ -24,45 +25,176 @@ class Heap;
 class Isolate;
 class JSONObject;
 class ObjectSet;
-class ScavengerVisitor;
+template <bool parallel>
+class ScavengerVisitorBase;
 
-// Wrapper around VirtualMemory that adds caching and handles the empty case.
+static constexpr intptr_t kNewPageSize = 512 * KB;
+static constexpr intptr_t kNewPageSizeInWords = kNewPageSize / kWordSize;
+static constexpr intptr_t kNewPageMask = ~(kNewPageSize - 1);
+
+// A page containing new generation objects.
+class NewPage {
+ public:
+  static NewPage* Allocate();
+  void Deallocate();
+
+  uword start() const { return memory_->start(); }
+  uword end() const { return memory_->end(); }
+  bool Contains(uword addr) const { return memory_->Contains(addr); }
+  void WriteProtect(bool read_only) {
+    memory_->Protect(read_only ? VirtualMemory::kReadOnly
+                               : VirtualMemory::kReadWrite);
+  }
+
+  NewPage* next() const { return next_; }
+  void set_next(NewPage* next) { next_ = next; }
+
+  Thread* owner() const { return owner_; }
+
+  uword object_start() const { return start() + ObjectStartOffset(); }
+  uword object_end() const { return owner_ != nullptr ? owner_->top() : top_; }
+  void VisitObjects(ObjectVisitor* visitor) const {
+    uword addr = object_start();
+    uword end = object_end();
+    while (addr < end) {
+      ObjectPtr obj = ObjectLayout::FromAddr(addr);
+      visitor->VisitObject(obj);
+      addr += obj->ptr()->HeapSize();
+    }
+  }
+  void VisitObjectPointers(ObjectPointerVisitor* visitor) const {
+    uword addr = object_start();
+    uword end = object_end();
+    while (addr < end) {
+      ObjectPtr obj = ObjectLayout::FromAddr(addr);
+      intptr_t size = obj->ptr()->VisitPointers(visitor);
+      addr += size;
+    }
+  }
+
+  static intptr_t ObjectStartOffset() {
+    return Utils::RoundUp(sizeof(NewPage), kObjectAlignment) +
+           kNewObjectAlignmentOffset;
+  }
+
+  static NewPage* Of(ObjectPtr obj) {
+    ASSERT(obj->IsHeapObject());
+    ASSERT(obj->IsNewObject());
+    return Of(static_cast<uword>(obj));
+  }
+  static NewPage* Of(uword addr) {
+    return reinterpret_cast<NewPage*>(addr & kNewPageMask);
+  }
+
+  // Remember the limit to which objects have been copied.
+  void RecordSurvivors() { survivor_end_ = object_end(); }
+
+  // Move survivor end to the end of the to_ space, making all surviving
+  // objects candidates for promotion next time.
+  void EarlyTenure() { survivor_end_ = end_; }
+
+  uword promo_candidate_words() const {
+    return (survivor_end_ - object_start()) / kWordSize;
+  }
+
+  void Acquire(Thread* thread) {
+    ASSERT(owner_ == nullptr);
+    owner_ = thread;
+    thread->set_top(top_);
+    thread->set_end(end_);
+  }
+  void Release(Thread* thread) {
+    ASSERT(owner_ == thread);
+    owner_ = nullptr;
+    top_ = thread->top();
+    thread->set_top(0);
+    thread->set_end(0);
+  }
+  void Release() {
+    if (owner_ != nullptr) {
+      Release(owner_);
+    }
+  }
+
+  uword TryAllocateGC(intptr_t size) {
+    ASSERT(owner_ == nullptr);
+    uword result = top_;
+    uword new_top = result + size;
+    if (LIKELY(new_top < end_)) {
+      top_ = new_top;
+      return result;
+    }
+    return 0;
+  }
+
+  void Unallocate(uword addr, intptr_t size) {
+    ASSERT((addr + size) == top_);
+    top_ -= size;
+  }
+
+  bool IsSurvivor(uword raw_addr) const { return raw_addr < survivor_end_; }
+  bool IsResolved() const { return top_ == resolved_top_; }
+
+ private:
+  VirtualMemory* memory_;
+  NewPage* next_;
+
+  // The thread using this page for allocation, otherwise NULL.
+  Thread* owner_;
+
+  // The address of the next allocation. If owner is non-NULL, this value is
+  // stale and the current value is at owner->top_. Called "NEXT" in the
+  // original Cheney paper.
+  uword top_;
+
+  // The address after the last allocatable byte in this page.
+  uword end_;
+
+  // Objects below this address have survived a scavenge.
+  uword survivor_end_;
+
+  // A pointer to the first unprocessed object. Resolution completes when this
+  // value meets the allocation top. Called "SCAN" in the original Cheney paper.
+  uword resolved_top_;
+
+  template <bool>
+  friend class ScavengerVisitorBase;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(NewPage);
+};
+
 class SemiSpace {
  public:
   static void Init();
   static void Cleanup();
+  static intptr_t CachedSize();
 
-  // Get a space of the given size. Returns NULL on out of memory. If size is 0,
-  // returns an empty space: pointer(), start() and end() all return NULL.
-  // The name parameter may be NULL. If non-NULL it is ued to give the OS a name
-  // for the underlying virtual memory region.
-  static SemiSpace* New(intptr_t size_in_words, const char* name);
-
-  // Hand back an unused space.
-  void Delete();
-
-  void* pointer() const { return region_.pointer(); }
-  uword start() const { return region_.start(); }
-  uword end() const { return region_.end(); }
-  intptr_t size_in_words() const {
-    return static_cast<intptr_t>(region_.size()) >> kWordSizeLog2;
-  }
-  bool Contains(uword address) const { return region_.Contains(address); }
-
-  // Set write protection mode for this space. The space must not be protected
-  // when Delete is called.
-  // TODO(koda): Remember protection mode in VirtualMemory and assert this.
-  void WriteProtect(bool read_only);
-
- private:
-  explicit SemiSpace(VirtualMemory* reserved);
+  explicit SemiSpace(intptr_t max_capacity_in_words);
   ~SemiSpace();
 
-  VirtualMemory* reserved_;  // NULL for an empty space.
-  MemoryRegion region_;
+  NewPage* TryAllocatePageLocked(bool link);
 
-  static SemiSpace* cache_;
-  static Mutex* mutex_;
+  bool Contains(uword addr) const;
+  void WriteProtect(bool read_only);
+
+  intptr_t capacity_in_words() const { return capacity_in_words_; }
+  intptr_t max_capacity_in_words() const { return max_capacity_in_words_; }
+
+  NewPage* head() const { return head_; }
+
+  void AddList(NewPage* head, NewPage* tail);
+  void MergeFrom(SemiSpace* donor);
+
+ private:
+  // Size of NewPages in this semi-space.
+  intptr_t capacity_in_words_ = 0;
+
+  // Size of NewPages before we trigger a scavenge.
+  intptr_t max_capacity_in_words_;
+
+  NewPage* head_ = nullptr;
+  NewPage* tail_ = nullptr;
 };
 
 // Statistics for a particular scavenge.
@@ -117,6 +249,9 @@ class ScavengeStats {
 };
 
 class Scavenger {
+ private:
+  static const intptr_t kTLABSize = 512 * KB;
+
  public:
   Scavenger(Heap* heap, intptr_t max_semi_capacity_in_words);
   ~Scavenger();
@@ -127,35 +262,18 @@ class Scavenger {
   // be part of the surviving objects.
   bool Contains(uword addr) const { return to_->Contains(addr); }
 
-  RawObject* FindObject(FindObjectVisitor* visitor) const;
+  ObjectPtr FindObject(FindObjectVisitor* visitor);
 
   uword TryAllocate(Thread* thread, intptr_t size) {
     uword addr = TryAllocateFromTLAB(thread, size);
     if (LIKELY(addr != 0)) {
       return addr;
     }
-    TryAllocateNewTLAB(thread);
+    TryAllocateNewTLAB(thread, size);
     return TryAllocateFromTLAB(thread, size);
   }
-  void MakeTLABIterable(Thread* thread);
   void AbandonRemainingTLAB(Thread* thread);
-
-  uword AllocateGC(intptr_t size) {
-    ASSERT(Utils::IsAligned(size, kObjectAlignment));
-    ASSERT(heap_ != Dart::vm_isolate()->heap());
-    ASSERT(scavenging_);
-    uword result = top_;
-    intptr_t remaining = end_ - top_;
-
-    // This allocation happens only in GC and only when copying objects to
-    // the new to_ space. It must succeed.
-    ASSERT(size <= remaining);
-    ASSERT(to_->Contains(result));
-    ASSERT((result & kObjectAlignmentMask) == kNewObjectAlignmentOffset);
-    top_ += size;
-    ASSERT((to_->Contains(top_)) || (top_ == to_->end()));
-    return result;
-  }
+  void AbandonRemainingTLABForDebugging(Thread* thread);
 
   // Collect the garbage in this scavenger.
   void Scavenge();
@@ -163,32 +281,13 @@ class Scavenger {
   // Promote all live objects.
   void Evacuate();
 
-  uword top() { return top_; }
-  uword end() { return end_; }
-
-  void set_top(uword value) { top_ = value; }
-  void set_end(uword value) {
-    ASSERT(to_->end() == value);
-    end_ = value;
-  }
-
-  // Report (TLAB) abandoned bytes that should be taken account when
-  // deciding whether to grow new space or not.
-  void AddAbandonedInBytes(intptr_t value) {
-    MutexLocker ml(&space_lock_);
-    AddAbandonedInBytesLocked(value);
-  }
-  int64_t GetAndResetAbandonedInBytes() {
-    int64_t result = abandoned_;
-    abandoned_ = 0;
-    return result;
-  }
+  void MergeFrom(Scavenger* donor);
 
   int64_t UsedInWords() const {
     MutexLocker ml(&space_lock_);
-    return (top_ - FirstObjectStart()) >> kWordSizeLog2;
+    return to_->capacity_in_words();
   }
-  int64_t CapacityInWords() const { return to_->size_in_words(); }
+  int64_t CapacityInWords() const { return to_->max_capacity_in_words(); }
   int64_t ExternalInWords() const { return external_size_ >> kWordSizeLog2; }
   SpaceUsage GetCurrentUsage() const {
     SpaceUsage usage;
@@ -219,15 +318,46 @@ class Scavenger {
   void PrintToJSONObject(JSONObject* object) const;
 #endif  // !PRODUCT
 
-  void AllocateExternal(intptr_t cid, intptr_t size);
-  void FreeExternal(intptr_t size);
+  void AllocatedExternal(intptr_t size) {
+    ASSERT(size >= 0);
+    external_size_ += size;
+    ASSERT(external_size_ >= 0);
+  }
+  void FreedExternal(intptr_t size) {
+    ASSERT(size >= 0);
+    external_size_ -= size;
+    ASSERT(external_size_ >= 0);
+  }
 
-  void MakeNewSpaceIterable() const;
+  void MakeNewSpaceIterable();
   int64_t FreeSpaceInWords(Isolate* isolate) const;
 
- private:
-  static const intptr_t kTLABSize = 512 * KB;
+  void InitGrowthControl() {
+    growth_control_ = true;
+  }
 
+  void SetGrowthControlState(bool state) {
+    growth_control_ = state;
+  }
+
+  bool GrowthControlState() { return growth_control_; }
+
+  bool scavenging() const { return scavenging_; }
+
+  // The maximum number of Dart mutator threads we allow to execute at the same
+  // time.
+  static intptr_t MaxMutatorThreadCount() {
+    // With a max new-space of 16 MB and 512kb TLABs we would allow up to 8
+    // mutator threads to run at the same time.
+    const intptr_t max_parallel_tlab_usage =
+        (FLAG_new_gen_semi_max_size * MB) / Scavenger::kTLABSize;
+    const intptr_t max_pool_size = max_parallel_tlab_usage / 4;
+    return max_pool_size > 0 ? max_pool_size : 1;
+  }
+
+  NewPage* head() const { return to_->head(); }
+
+ private:
   // Ids for time and data records in Heap::GCStats.
   enum {
     // Time
@@ -247,103 +377,58 @@ class Scavenger {
   uword TryAllocateFromTLAB(Thread* thread, intptr_t size) {
     ASSERT(Utils::IsAligned(size, kObjectAlignment));
     ASSERT(heap_ != Dart::vm_isolate()->heap());
-    uword top = thread->top();
-    uword end = thread->end();
-    uword result = top;
-    intptr_t remaining = end - top;
+
+    const uword result = thread->top();
+    const intptr_t remaining = thread->end() - result;
     if (UNLIKELY(remaining < size)) {
       return 0;
     }
+
     ASSERT(to_->Contains(result));
     ASSERT((result & kObjectAlignmentMask) == kNewObjectAlignmentOffset);
-    top += size;
-    ASSERT((to_->Contains(top)) || (top == to_->end()));
-    thread->set_top(top);
+    thread->set_top(result + size);
     return result;
   }
-  void TryAllocateNewTLAB(Thread* thread);
-  void AddAbandonedInBytesLocked(intptr_t value) { abandoned_ += value; }
-  void AbandonRemainingTLABLocked(Thread* thread);
-  void AbandonTLABsLocked(IsolateGroup* isolate_group);
+  void TryAllocateNewTLAB(Thread* thread, intptr_t size);
 
-  uword FirstObjectStart() const {
-    return to_->start() + kNewObjectAlignmentOffset;
-  }
-  SemiSpace* Prologue(IsolateGroup* isolate_group);
-  void IterateStoreBuffers(IsolateGroup* isolate_group,
-                           ScavengerVisitor* visitor);
-  void IterateObjectIdTable(IsolateGroup* isolate_group,
-                            ScavengerVisitor* visitor);
-  void IterateRoots(IsolateGroup* isolate_group, ScavengerVisitor* visitor);
-  void IterateWeakProperties(IsolateGroup* isolate_group,
-                             ScavengerVisitor* visitor);
-  void IterateWeakReferences(IsolateGroup* isolate_group,
-                             ScavengerVisitor* visitor);
-  void IterateWeakRoots(IsolateGroup* isolate_group, HandleVisitor* visitor);
-  void ProcessToSpace(ScavengerVisitor* visitor);
-  void EnqueueWeakProperty(RawWeakProperty* raw_weak);
-  uword ProcessWeakProperty(RawWeakProperty* raw_weak,
-                            ScavengerVisitor* visitor);
-  void Epilogue(IsolateGroup* isolate_group, SemiSpace* from);
+  SemiSpace* Prologue();
+  intptr_t ParallelScavenge(SemiSpace* from);
+  intptr_t SerialScavenge(SemiSpace* from);
+  void IterateIsolateRoots(ObjectPointerVisitor* visitor);
+  template <bool parallel>
+  void IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor);
+  template <bool parallel>
+  void IterateRememberedCards(ScavengerVisitorBase<parallel>* visitor);
+  void IterateObjectIdTable(ObjectPointerVisitor* visitor);
+  template <bool parallel>
+  void IterateRoots(ScavengerVisitorBase<parallel>* visitor);
+  void MournWeakHandles();
+  void Epilogue(SemiSpace* from);
 
-  bool IsUnreachable(RawObject** p);
+  bool IsUnreachable(ObjectPtr* p);
 
   void VerifyStoreBuffers();
-
-  // During a scavenge we need to remember the promoted objects.
-  // This is implemented as a stack of objects at the end of the to space. As
-  // object sizes are always greater than sizeof(uword) and promoted objects do
-  // not consume space in the to space they leave enough room for this stack.
-  void PushToPromotedStack(uword addr) {
-    ASSERT(scavenging_);
-    end_ -= sizeof(addr);
-    ASSERT(end_ > top_);
-    *reinterpret_cast<uword*>(end_) = addr;
-  }
-  uword PopFromPromotedStack() {
-    ASSERT(scavenging_);
-    uword result = *reinterpret_cast<uword*>(end_);
-    end_ += sizeof(result);
-    ASSERT(end_ <= to_->end());
-    return result;
-  }
-  bool PromotedStackHasMore() const {
-    ASSERT(scavenging_);
-    return end_ < to_->end();
-  }
 
   void UpdateMaxHeapCapacity();
   void UpdateMaxHeapUsage();
 
-  void ProcessWeakReferences();
+  void MournWeakTables();
 
   intptr_t NewSizeInWords(intptr_t old_size_in_words) const;
 
-  uword top_;
-  uword end_;
+  Heap* heap_;
 
   SemiSpace* to_;
 
-  Heap* heap_;
-
-  // A pointer to the first unscanned object.  Scanning completes when
-  // this value meets the allocation top.
-  uword resolved_top_;
-
-  // Objects below this address have survived a scavenge.
-  uword survivor_end_;
-
-  // Abandoned (TLAB) bytes that need to be accounted for when deciding
-  // whether to grow newspace or not.
-  intptr_t abandoned_ = 0;
+  PromotionStack promotion_stack_;
 
   intptr_t max_semi_capacity_in_words_;
 
   // Keep track whether a scavenge is currently running.
   bool scavenging_;
-
-  // Keep track of pending weak properties discovered while scagenging.
-  RawWeakProperty* delayed_weak_properties_;
+  bool early_tenure_ = false;
+  RelaxedAtomic<intptr_t> root_slices_started_;
+  StoreBufferBlock* blocks_;
 
   int64_t gc_time_micros_;
   intptr_t collections_;
@@ -358,10 +443,13 @@ class Scavenger {
 
   bool failed_to_promote_;
 
+  bool growth_control_;
+
   // Protects new space during the allocation of new TLABs
   mutable Mutex space_lock_;
 
-  friend class ScavengerVisitor;
+  template <bool>
+  friend class ScavengerVisitorBase;
   friend class ScavengerWeakVisitor;
 
   DISALLOW_COPY_AND_ASSIGN(Scavenger);

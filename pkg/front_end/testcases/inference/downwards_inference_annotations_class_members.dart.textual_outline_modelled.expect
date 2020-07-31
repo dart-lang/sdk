@@ -1,0 +1,16 @@
+library test;
+
+abstract class Bar {
+  @Foo(const [])
+  Bar();
+  @Foo(const [])
+  var x;
+  @Foo(const [])
+  void f();
+}
+
+class Foo {
+  const Foo(List<String> l);
+}
+
+main() {}

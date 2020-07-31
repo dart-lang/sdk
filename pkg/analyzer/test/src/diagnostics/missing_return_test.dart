@@ -31,43 +31,7 @@ int f() {
 }''');
   }
 
-  test_async() async {
-    await assertErrorsInCode(r'''
-import 'dart:async';
-Future<int> f() async {}
-''', [
-      error(HintCode.MISSING_RETURN, 33, 1),
-    ]);
-  }
-
-  test_async_futureOrVoid() async {
-    await assertNoErrorsInCode(r'''
-import 'dart:async';
-FutureOr<void> f(Future f) async {}
-''');
-  }
-
-  test_async_futureVoid() async {
-    await assertNoErrorsInCode(r'''
-import 'dart:async';
-Future<void> f() async {}
-''');
-  }
-
-  test_emptyFunctionBody() async {
-    await assertNoErrorsInCode(r'''
-abstract class A {
-  int m();
-}''');
-  }
-
-  test_expressionFunctionBody() async {
-    await assertNoErrorsInCode(r'''
-int f() => 0;
-''');
-  }
-
-  test_factory() async {
+  test_constructor_factory() async {
     await assertErrorsInCode(r'''
 class A {
   factory A() {}
@@ -77,7 +41,34 @@ class A {
     ]);
   }
 
-  test_function() async {
+  test_function_async_block_futureInt() async {
+    await assertErrorsInCode(r'''
+Future<int> f() async {}
+''', [
+      error(HintCode.MISSING_RETURN, 12, 1),
+    ]);
+  }
+
+  test_function_async_block_futureOrVoid() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:async';
+FutureOr<void> f(Future f) async {}
+''');
+  }
+
+  test_function_async_block_futureVoid() async {
+    await assertNoErrorsInCode(r'''
+Future<void> f() async {}
+''');
+  }
+
+  test_function_sync_block_expression() async {
+    await assertNoErrorsInCode(r'''
+int f() => 0;
+''');
+  }
+
+  test_function_sync_block_int() async {
     await assertErrorsInCode(r'''
 int f() {}
 ''', [
@@ -85,92 +76,120 @@ int f() {}
     ]);
   }
 
-  test_functionExpression_declared() async {
+  test_function_sync_block_noReturnType() async {
+    await assertNoErrorsInCode(r'''
+f() {}
+''');
+  }
+
+  test_function_sync_block_void() async {
+    await assertNoErrorsInCode(r'''
+void f() {}
+''');
+  }
+
+  test_functionExpression_async_block_dynamic() async {
+    await assertNoErrorsInCode(r'''
+Future Function() f = () async {};
+''');
+  }
+
+  test_functionExpression_async_block_futureInt() async {
     await assertErrorsInCode(r'''
-main() {
-  f() {} // no hint
-}
+Future<int> Function() f = () async {}; 
 ''', [
-      error(HintCode.UNUSED_ELEMENT, 11, 1),
+      error(HintCode.MISSING_RETURN, 27, 11),
     ]);
   }
 
-  test_functionExpression_expression() async {
-    await assertErrorsInCode(r'''
-main() {
-  int Function() f = () => null; // no hint
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
-    ]);
+  test_functionExpression_async_block_void() async {
+    await assertNoErrorsInCode(r'''
+void Function(bool) v = (bool a) async {
+  if (a) {
+    return 0;
+  }
+};
+''');
   }
 
-  test_functionExpression_futureOrDynamic() async {
+  test_functionExpression_sync_block_futureOrDynamic() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:async';
+
+FutureOr<dynamic> Function() f = () {};
+''');
+  }
+
+  test_functionExpression_sync_block_futureOrInt() async {
     await assertErrorsInCode(r'''
 import 'dart:async';
-main() {
-  FutureOr<dynamic> Function() f = () { print(42); };
-}
+
+FutureOr<int> Function() f = () {};
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+      error(HintCode.MISSING_RETURN, 51, 5),
     ]);
   }
 
-  test_functionExpression_futureOrInt() async {
+  test_functionExpression_sync_block_int() async {
+    await assertErrorsInCode(r'''
+int Function() f = () {};
+''', [
+      error(HintCode.MISSING_RETURN, 19, 5),
+    ]);
+  }
+
+  test_functionExpression_sync_dynamic() async {
+    await assertNoErrorsInCode(r'''
+Function() f = () {};
+''');
+  }
+
+  test_functionExpression_sync_expression() async {
+    await assertNoErrorsInCode(r'''
+int Function() f = () => null;
+''');
+  }
+
+  test_localFunction_sync_dynamic() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  f() {}
+  f;
+}
+''');
+  }
+
+  test_method_emptyFunctionBody() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  int m();
+}
+''');
+  }
+
+  test_method_sync_block_futureOrDynamic() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:async';
+
+class A {
+  FutureOr<dynamic> m() {}
+}
+''');
+  }
+
+  test_method_sync_block_futureOrInt() async {
     await assertErrorsInCode(r'''
 import 'dart:async';
-main() {
-  FutureOr<int> Function() f = () { print(42); };
+
+class A {
+  FutureOr<int> m() {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
-      error(HintCode.MISSING_RETURN, 61, 17),
+      error(HintCode.MISSING_RETURN, 48, 1),
     ]);
   }
 
-  test_functionExpression_inferred() async {
-    await assertErrorsInCode(r'''
-main() {
-  int Function() f = () { print(42); };
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
-      error(HintCode.MISSING_RETURN, 30, 17),
-    ]);
-  }
-
-  test_functionExpression_inferred_dynamic() async {
-    await assertErrorsInCode(r'''
-main() {
-  Function() f = () { print(42); }; // no hint
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 22, 1),
-    ]);
-  }
-
-  test_functionExpressionAsync_inferred() async {
-    await assertErrorsInCode(r'''
-main() {
-  Future<int> Function() f = () async { print(42); }; 
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 34, 1),
-      error(HintCode.MISSING_RETURN, 38, 23),
-    ]);
-  }
-
-  test_functionExpressionAsync_inferred_dynamic() async {
-    await assertErrorsInCode(r'''
-main() {
-  Future Function() f = () async { print(42); }; // no hint
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
-    ]);
-  }
-
-  test_method() async {
+  test_method_sync_block_int() async {
     await assertErrorsInCode(r'''
 class A {
   int m() {}
@@ -180,62 +199,17 @@ class A {
     ]);
   }
 
-  test_method_annotation() async {
+  test_method_sync_block_int_inferred() async {
     await assertErrorsInCode(r'''
 abstract class A {
   int m();
 }
-@override
+
 class B extends A {
   m() {}
 }
 ''', [
-      error(HintCode.MISSING_RETURN, 64, 1),
+      error(HintCode.MISSING_RETURN, 55, 1),
     ]);
-  }
-
-  test_method_futureOrDynamic() async {
-    await assertNoErrorsInCode(r'''
-import 'dart:async';
-class A {
-  FutureOr<dynamic> m() {}
-}
-''');
-  }
-
-  test_method_futureOrInt() async {
-    await assertErrorsInCode(r'''
-import 'dart:async';
-class A {
-  FutureOr<int> m() {}
-}
-''', [
-      error(HintCode.MISSING_RETURN, 47, 1),
-    ]);
-  }
-
-  test_method_inferred() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  int m();
-}
-class B extends A {
-  m() {}
-}
-''', [
-      error(HintCode.MISSING_RETURN, 54, 1),
-    ]);
-  }
-
-  test_noReturnType() async {
-    await assertNoErrorsInCode(r'''
-f() {}
-''');
-  }
-
-  test_voidReturnType() async {
-    await assertNoErrorsInCode(r'''
-void f() {}
-''');
   }
 }

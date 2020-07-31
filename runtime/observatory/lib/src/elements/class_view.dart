@@ -18,7 +18,7 @@ import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/library_ref.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
@@ -33,29 +33,6 @@ import 'package:observatory/src/elements/source_link.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class ClassViewElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<ClassViewElement>('class-view', dependencies: const [
-    ClassInstancesElement.tag,
-    ClassRefElement.tag,
-    CurlyBlockElement.tag,
-    ErrorRefElement.tag,
-    EvalBoxElement.tag,
-    FieldRefElement.tag,
-    FunctionRefElement.tag,
-    InstanceRefElement.tag,
-    LibraryRefElement.tag,
-    NavClassMenuElement.tag,
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-    ObjectCommonElement.tag,
-    SourceInsetElement.tag,
-    SourceLinkElement.tag,
-    ViewFooterElement.tag
-  ]);
-
   RenderingScheduler<ClassViewElement> _r;
 
   Stream<RenderedEvent<ClassViewElement>> get onRendered => _r.onRendered;
@@ -138,7 +115,7 @@ class ClassViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  ClassViewElement.created() : super.created(tag);
+  ClassViewElement.created() : super.created('class-view');
 
   @override
   attached() {
@@ -227,9 +204,7 @@ class ClassViewElement extends CustomElement implements Renderable {
             ..children = _createElements(),
           new HRElement(),
           new HeadingElement.h2()..text = 'Instances',
-          new DivElement()
-            ..children =
-                _cls.hasAllocations ? [_classInstances.element] : const [],
+          new DivElement()..children = [_classInstances.element],
           new HRElement(),
           new HeadingElement.h2()..text = 'Allocations',
           new DivElement()

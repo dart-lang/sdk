@@ -1,0 +1,13 @@
+NOTICE: Stream was rewritten by parser!
+
+class B {}foo
+;class M1 {foo
+;class M2 {
+}
+}
+
+class[KeywordToken] B[StringToken] {[BeginToken]}[SimpleToken]foo[StringToken]
+;[SyntheticToken]class[KeywordToken] M1[StringToken] {[BeginToken]foo[StringToken]
+;[SyntheticToken]class[KeywordToken] M2[StringToken] {[BeginToken]
+}[SimpleToken]
+}[SimpleToken][SimpleToken]

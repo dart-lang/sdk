@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+class Class extends core::Object {
+  field core::Map<core::String*, core::Set<core::String*>*>* map = null;
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  method method(core::String* node, core::Set<core::String*>* set) → core::List<core::String*>*
+    return set.{core::Set::add}(node) ?{core::List<core::String*>*} block {
+      final core::List<core::String*>* #t1 = <core::String*>[];
+      #t1.{core::List::add}(node);
+      final core::Iterable<core::String*>* #t2 = let final core::Iterable<core::String*>* #t3 = let final core::Set<core::String*>* #t4 = this.{self::Class::map}.{core::Map::[]}(node) in #t4.{core::Object::==}(null) ?{core::Iterable<core::String*>*} null : #t4.{core::Iterable::expand}<core::String*>((core::String* node) → core::List<core::String*>* => this.{self::Class::method}(node, set)) in #t3.{core::Object::==}(null) ?{core::List<core::String*>*} null : #t3.{core::Iterable::toList}();
+      if(!#t2.{core::Object::==}(null))
+        for (final core::String* #t5 in #t2)
+          #t1.{core::List::add}(#t5);
+    } =>#t1 : <core::String*>[];
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+static method main(dynamic args) → dynamic {
+  if(false)
+    new self::Class::•().{self::Class::method}("", let final core::Set<core::String*>* #t6 = col::LinkedHashSet::•<core::String*>() in #t6);
+}

@@ -11,12 +11,31 @@ abstract class A extends core::Object {
   abstract set foo(core::int* value) → void;
   abstract get bar() → core::int*;
   abstract method baz(core::int* x, {core::String* y, core::double* z}) → void;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B extends core::Object implements self::A {
   synthetic constructor •() → self::B*
     ;
   method noSuchMethod(core::Invocation* _) → dynamic
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature get runtimeType() → core::Type*;
   no-such-method-forwarder get bar() → core::int*
     return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#bar, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} core::int*;
   no-such-method-forwarder method baz(core::int* x, {core::String* y, core::double* z}) → void
@@ -31,16 +50,26 @@ class C extends self::B {
 class E extends core::Object implements for::D {
   synthetic constructor •() → self::E*
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
   no-such-method-forwarder get /* from org-dartlang-testcase:///forwarder_propagation_lib.dart */ _privateGetter() → core::int*
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#_privateGetter, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} core::int*;
+    return this.{self::E::noSuchMethod}(new core::_InvocationMirror::_withType(#_privateGetter, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} core::int*;
   no-such-method-forwarder get /* from org-dartlang-testcase:///forwarder_propagation_lib.dart */ _privateField() → core::int*
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#_privateField, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} core::int*;
+    return this.{self::E::noSuchMethod}(new core::_InvocationMirror::_withType(#_privateField, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} core::int*;
   no-such-method-forwarder method /* from org-dartlang-testcase:///forwarder_propagation_lib.dart */ _privateMethod() → void
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#_privateMethod, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return this.{self::E::noSuchMethod}(new core::_InvocationMirror::_withType(#_privateMethod, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
   no-such-method-forwarder set /* from org-dartlang-testcase:///forwarder_propagation_lib.dart */ _privateSetter(core::int* value) → void
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#_privateSetter=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return this.{self::E::noSuchMethod}(new core::_InvocationMirror::_withType(#_privateSetter=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
   no-such-method-forwarder set /* from org-dartlang-testcase:///forwarder_propagation_lib.dart */ _privateField(core::int* value) → void
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#_privateField=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return this.{self::E::noSuchMethod}(new core::_InvocationMirror::_withType(#_privateField=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
 }
 class F extends self::E {
   synthetic constructor •() → self::F*
@@ -60,4 +89,14 @@ abstract class D extends core::Object {
   abstract get _privateGetter() → core::int*;
   abstract set _privateSetter(core::int* value) → void;
   abstract method _privateMethod() → void;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }

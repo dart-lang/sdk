@@ -1,0 +1,8 @@
+class A<TypeT, TypeS extends TypeT> {}
+
+class B<TypeU extends A> {}
+
+class C<TypeV extends B> {}
+
+C c;
+main() {}

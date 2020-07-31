@@ -1,0 +1,7 @@
+class Foo {
+  var field;
+}
+
+dynamic identity(x) => x;
+main(List<String> args) {}
+void use(x) {}

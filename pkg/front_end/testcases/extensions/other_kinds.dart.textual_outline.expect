@@ -1,0 +1,11 @@
+class A1 {
+  int _instanceField;
+  int getInstanceField() => _instanceField;
+  void setInstanceField(int value) { }
+  static int _staticField = 0;
+  static int getStaticField() => _staticField;
+  static void setStaticField(int value) { }
+}
+extension A2 ;
+on A1 (){ }
+main() { }

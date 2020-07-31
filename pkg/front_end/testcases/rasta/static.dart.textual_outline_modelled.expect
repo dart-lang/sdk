@@ -1,0 +1,10 @@
+class Foo {
+  static const staticConstant = 42;
+  static get staticGetter => null;
+  static set staticSetter(_) {}
+  static staticFunction() {}
+  static var staticField = 42;
+}
+
+main() {}
+use(x) {}

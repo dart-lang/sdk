@@ -19,7 +19,6 @@ import '../universe/world_impact.dart'
 import 'annotations.dart';
 import 'checked_mode_helpers.dart';
 import 'namer.dart';
-import 'runtime_types.dart';
 import 'runtime_types_codegen.dart';
 import 'runtime_types_new.dart';
 
@@ -306,10 +305,8 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
 abstract class CodegenInputs {
   CheckedModeHelpers get checkedModeHelpers;
   RuntimeTypesSubstitutions get rtiSubstitutions;
-  RuntimeTypesEncoder get rtiEncoder;
   RecipeEncoder get rtiRecipeEncoder;
   Tracer get tracer;
-  RuntimeTypeTags get rtiTags;
   FixedNames get fixedNames;
 }
 
@@ -321,20 +318,14 @@ class CodegenInputsImpl implements CodegenInputs {
   final RuntimeTypesSubstitutions rtiSubstitutions;
 
   @override
-  final RuntimeTypesEncoder rtiEncoder;
-
-  @override
   final RecipeEncoder rtiRecipeEncoder;
 
   @override
   final Tracer tracer;
 
   @override
-  final RuntimeTypeTags rtiTags;
-
-  @override
   final FixedNames fixedNames;
 
-  CodegenInputsImpl(this.rtiSubstitutions, this.rtiEncoder,
-      this.rtiRecipeEncoder, this.tracer, this.rtiTags, this.fixedNames);
+  CodegenInputsImpl(this.rtiSubstitutions, this.rtiRecipeEncoder, this.tracer,
+      this.fixedNames);
 }

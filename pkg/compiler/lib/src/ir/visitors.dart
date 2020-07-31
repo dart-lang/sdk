@@ -130,6 +130,12 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
             .skip(node.requiredParameterCount)
             .toList()),
         node.namedParameters.map((n) => n.name).toList(),
+        _options.useLegacySubtyping
+            ? const <String>{}
+            : node.namedParameters
+                .where((n) => n.isRequired)
+                .map((n) => n.name)
+                .toSet(),
         node.namedParameters.map((n) => visitType(n.type)).toList(),
         typeVariables ?? const <FunctionTypeVariable>[]);
     DartType type = _convertNullability(functionType, node.nullability);
@@ -142,15 +148,16 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   @override
   DartType visitInterfaceType(ir.InterfaceType node) {
     ClassEntity cls = elementMap.getClass(node.classNode);
-    if (cls.name == 'FutureOr' &&
-        cls.library == elementMap.commonElements.asyncLibrary) {
-      return _convertNullability(
-          _dartTypes.futureOrType(visitTypes(node.typeArguments).single),
-          node.nullability);
-    }
     return _convertNullability(
         _dartTypes.interfaceType(cls, visitTypes(node.typeArguments)),
         node.nullability);
+  }
+
+  @override
+  DartType visitFutureOrType(ir.FutureOrType node) {
+    return _convertNullability(
+        _dartTypes.futureOrType(visitType(node.typeArgument)),
+        node.declaredNullability);
   }
 
   @override

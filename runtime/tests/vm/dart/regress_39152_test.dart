@@ -13,7 +13,7 @@ class A {
 }
 
 A a = new A();
-int y;
+int? y;
 
 class B {
   B(int x) {

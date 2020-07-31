@@ -2,11 +2,11 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/generic_methods_correctly_recognize_generic_upper_bound.dart:26:80: Error: Inferred type argument 'int' doesn't conform to the bound 'String' of the type variable 'U' on 'Foo<String>.method'.
+// pkg/front_end/testcases/inference/generic_methods_correctly_recognize_generic_upper_bound.dart:26:79: Error: Inferred type argument 'int' doesn't conform to the bound 'String' of the type variable 'U' on 'Foo<String>.method'.
 //  - 'Foo' is from 'pkg/front_end/testcases/inference/generic_methods_correctly_recognize_generic_upper_bound.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
-//       . /*error:COULD_NOT_INFER*/ /*@ typeArgs=int* */ /*@target=Foo::method*/ method(
-//                                                                                ^
+//       . /*error:COULD_NOT_INFER*/ /*@ typeArgs=int* */ /*@target=Foo.method*/ method(
+//                                                                               ^
 //
 import self as self;
 import "dart:core" as core;
@@ -17,6 +17,16 @@ class Foo<T extends core::Pattern* = core::Pattern*> extends core::Object {
     ;
   method method<generic-covariant-impl U extends self::Foo::T* = self::Foo::T*>(self::Foo::method::U* u) → self::Foo::method::U*
     return u;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method main() → dynamic {
   new self::Foo::•<core::String*>().{self::Foo::method}<core::int*>(42);

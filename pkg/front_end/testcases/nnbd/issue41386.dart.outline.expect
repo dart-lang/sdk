@@ -1,0 +1,10 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method predicate<T extends core::Object? = dynamic>((self::predicate::T%) → core::bool fn) → (self::predicate::T%) → core::bool
+  ;
+static method test() → void
+  ;
+static method main() → void
+  ;

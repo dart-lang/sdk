@@ -91,7 +91,7 @@ Try accessing using ?. instead.
   try {
     f.call("foo");
   }
-  on dynamic catch(final dynamic e) {
+  on core::Object catch(final core::Object e) {
     return true;
   }
   return false;
@@ -101,7 +101,7 @@ static method throwsInStrong(() → void f) → void {
     try {
       f.call();
     }
-    on dynamic catch(final dynamic e) {
+    on core::Object catch(final core::Object e) {
       core::print(e);
       return;
     }

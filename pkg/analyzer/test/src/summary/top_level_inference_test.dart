@@ -542,12 +542,10 @@ A vBoth;
 ''');
   }
 
-  /**
-   * A simple or qualified identifier referring to a top level function, static
-   * variable, field, getter; or a static class variable, static getter or
-   * method; or an instance method; has the inferred type of the identifier.
-   *
-   */
+  /// A simple or qualified identifier referring to a top level function, static
+  /// variable, field, getter; or a static class variable, static getter or
+  /// method; or an instance method; has the inferred type of the identifier.
+  ///
   test_initializer_classField_useInstanceGetter() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
@@ -1707,7 +1705,7 @@ abstract class B {
   dynamic get x;
 }
 class C implements A, B {
-  dynamic get x {}
+  int get x {}
 }
 ''');
   }
@@ -1850,8 +1848,8 @@ abstract class B {
   void set x(String _);
 }
 class C implements A, B {
-  synthetic dynamic x;
-  void set x(dynamic _);
+  synthetic String x;
+  void set x(String _);
 }
 ''',
         withSyntheticFields: true);
@@ -2112,32 +2110,28 @@ class A {
 ''');
   }
 
-  test_method_error_conflict_parameterType_generic() async {
+  test_method_error_hasMethod_noParameter_required() async {
     var library = await _encodeDecodeLibrary(r'''
-class A<T> {
-  void m(T a) {}
+class A {
+  void m(int a) {}
 }
-class B<E> {
-  void m(E a) {}
-}
-class C extends A<int> implements B<double> {
-  m(a) {}
+class B extends A {
+  void m(a, b) {}
 }
 ''');
+    // It's an error to add a new required parameter, but it is not a
+    // top-level type inference error.
     checkElementText(library, r'''
-class A<T> {
-  void m(T a) {}
+class A {
+  void m(int a) {}
 }
-class B<E> {
-  void m(E a) {}
-}
-class C extends A<int> implements B<double> {
-  void m(dynamic a/*error: overrideConflictParameterType*/) {}
+class B extends A {
+  void m(int a, dynamic b) {}
 }
 ''');
   }
 
-  test_method_error_conflict_parameterType_notGeneric() async {
+  test_method_error_noCombinedSuperSignature1() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
   void m(int a) {}
@@ -2157,38 +2151,39 @@ class B {
   void m(String a) {}
 }
 class C extends A implements B {
-  void m(dynamic a/*error: overrideConflictParameterType*/) {}
+  dynamic m/*error: overrideNoCombinedSuperSignature*/(dynamic a) {}
 }
 ''');
   }
 
-  test_method_error_conflict_returnType_generic() async {
+  test_method_error_noCombinedSuperSignature2() async {
     var library = await _encodeDecodeLibrary(r'''
-class A<K, V> {
-  V m(K a) {}
+abstract class A {
+  int foo(int x);
 }
-class B<T> {
-  T m(int a) {}
+
+abstract class B {
+  double foo(int x);
 }
-class C extends A<int, String> implements B<double> {
-  m(a) {}
+
+abstract class C implements A, B {
+  Never foo(x);
 }
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(library, r'''
-class A<K, V> {
-  V m(K a) {}
+abstract class A {
+  int foo(int x);
 }
-class B<T> {
-  T m(int a) {}
+abstract class B {
+  double foo(int x);
 }
-class C extends A<int, String> implements B<double> {
-  dynamic m(int a) {}
+abstract class C implements A, B {
+  Null foo/*error: overrideNoCombinedSuperSignature*/(dynamic x);
 }
 ''');
   }
 
-  test_method_error_conflict_returnType_notGeneric() async {
+  test_method_error_noCombinedSuperSignature3() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
   int m() {}
@@ -2209,28 +2204,57 @@ class B {
   String m() {}
 }
 class C extends A implements B {
-  dynamic m() {}
+  dynamic m/*error: overrideNoCombinedSuperSignature*/() {}
 }
 ''');
   }
 
-  test_method_error_hasMethod_noParameter_required() async {
+  test_method_error_noCombinedSuperSignature_generic1() async {
     var library = await _encodeDecodeLibrary(r'''
-class A {
-  void m(int a) {}
+class A<T> {
+  void m(T a) {}
 }
-class B extends A {
-  m(a, b) {}
+class B<E> {
+  void m(E a) {}
+}
+class C extends A<int> implements B<double> {
+  m(a) {}
 }
 ''');
-    // It's an error to add a new required parameter, but it is not a
-    // top-level type inference error.
     checkElementText(library, r'''
-class A {
-  void m(int a) {}
+class A<T> {
+  void m(T a) {}
 }
-class B extends A {
-  void m(int a, dynamic b) {}
+class B<E> {
+  void m(E a) {}
+}
+class C extends A<int> implements B<double> {
+  dynamic m/*error: overrideNoCombinedSuperSignature*/(dynamic a) {}
+}
+''');
+  }
+
+  test_method_error_noCombinedSuperSignature_generic2() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A<K, V> {
+  V m(K a) {}
+}
+class B<T> {
+  T m(int a) {}
+}
+class C extends A<int, String> implements B<double> {
+  m(a) {}
+}
+''');
+    checkElementText(library, r'''
+class A<K, V> {
+  V m(K a) {}
+}
+class B<T> {
+  T m(int a) {}
+}
+class C extends A<int, String> implements B<double> {
+  dynamic m/*error: overrideNoCombinedSuperSignature*/(dynamic a) {}
 }
 ''');
   }

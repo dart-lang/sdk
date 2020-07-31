@@ -1,0 +1,26 @@
+// @dart = 2.6
+class A {
+  foo({bool c = true, bool a}) {}
+}
+
+class B extends A {
+  foo({c = true, bool a}) {}
+}
+
+class C extends B {
+  foo({bool c = true, bool a}) {}
+}
+
+class A1 {
+  foo({bool a = true, bool c}) {}
+}
+
+class B1 extends A1 {
+  foo({a = true, bool c}) {}
+}
+
+class C1 extends B1 {
+  foo({bool a = true, bool c}) {}
+}
+
+main() {}

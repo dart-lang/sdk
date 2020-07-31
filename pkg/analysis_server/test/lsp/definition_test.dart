@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -52,12 +55,50 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     expect(loc.uri, equals(referencedFileUri.toString()));
   }
 
+  Future<void> test_fromPlugins() async {
+    final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
+    final pluginAnalyzedFileUri = Uri.file(pluginAnalyzedFilePath);
+    final pluginResult = plugin.AnalysisGetNavigationResult(
+      [pluginAnalyzedFilePath],
+      [NavigationTarget(ElementKind.CLASS, 0, 0, 5, 0, 0)],
+      [
+        NavigationRegion(0, 5, [0])
+      ],
+    );
+    configureTestPlugin(respondWith: pluginResult);
+
+    newFile(pluginAnalyzedFilePath);
+    await initialize();
+    final res = await getDefinition(pluginAnalyzedFileUri, lsp.Position(0, 0));
+
+    expect(res, hasLength(1));
+    var loc = res.single;
+    expect(
+        loc.range, equals(lsp.Range(lsp.Position(0, 0), lsp.Position(0, 5))));
+    expect(loc.uri, equals(pluginAnalyzedFileUri.toString()));
+  }
+
   Future<void> test_nonDartFile() async {
     newFile(pubspecFilePath, content: simplePubspecContent);
     await initialize();
 
     final res = await getDefinition(pubspecFileUri, startOfDocPos);
     expect(res, isEmpty);
+  }
+
+  Future<void> test_sameLine() async {
+    final contents = '''
+    int plusOne(int [[value]]) => 1 + val^ue;
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
+    final res = await getDefinition(mainFileUri, positionFromMarker(contents));
+
+    expect(res, hasLength(1));
+    var loc = res.single;
+    expect(loc.range, equals(rangeFromMarkers(contents)));
+    expect(loc.uri, equals(mainFileUri.toString()));
   }
 
   Future<void> test_singleFile() async {
@@ -86,6 +127,23 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
 
     newFile(mainFilePath, content: withoutMarkers(contents));
     await initialize();
+    final res = await getDefinition(mainFileUri, positionFromMarker(contents));
+
+    expect(res, hasLength(1));
+    var loc = res.single;
+    expect(loc.range, equals(rangeFromMarkers(contents)));
+    expect(loc.uri, equals(mainFileUri.toString()));
+  }
+
+  Future<void> test_varKeyword() async {
+    final contents = '''
+    va^r a = MyClass();
+
+    class [[MyClass]] {}
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
     final res = await getDefinition(mainFileUri, positionFromMarker(contents));
 
     expect(res, hasLength(1));

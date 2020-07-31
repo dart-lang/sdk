@@ -1,0 +1,9 @@
+import 'infer_statics_transitively.dart';
+import 'infer_statics_transitively_b.dart';
+
+class A {
+  static final a2 = b1;
+}
+
+final a1 = m2;
+main() {}

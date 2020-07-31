@@ -2042,4 +2042,35 @@ main(A? a) {
 
     assertType(findNode.cascade('a?'), 'A?');
   }
+
+  test_nullShorting_cascade_nullAwareInside() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int? foo() => 0;
+}
+
+main() {
+  A a = A()..foo()?.abs();
+  a;
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('..foo()'),
+      element: findElement.method('foo'),
+      typeArgumentTypes: [],
+      invokeType: 'int? Function()',
+      type: 'int?',
+    );
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('.abs()'),
+      element: intElement.getMethod('abs'),
+      typeArgumentTypes: [],
+      invokeType: 'int Function()',
+      type: 'int',
+    );
+
+    assertType(findNode.cascade('A()'), 'A');
+  }
 }

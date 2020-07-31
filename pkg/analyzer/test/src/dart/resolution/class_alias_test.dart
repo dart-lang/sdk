@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/elements_types_mixin.dart';
@@ -90,7 +91,6 @@ class X = Object with A, Function, B;
     );
   }
 
-  @failingTest
   test_implicitConstructors_const() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -103,7 +103,58 @@ class C = A with M;
 
 const x = const C();
 ''');
-    // TODO(scheglov) add also negative test with fields
+  }
+
+  test_implicitConstructors_const_field() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+}
+
+class M {
+  int i = 0;
+}
+
+class C = A with M;
+
+const x = const C();
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 83,
+          5),
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 83, 5),
+    ]);
+  }
+
+  test_implicitConstructors_const_getter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A();
+}
+
+class M {
+  int get i => 0;
+}
+
+class C = A with M;
+
+const x = const C();
+''');
+  }
+
+  test_implicitConstructors_const_setter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A();
+}
+
+class M {
+  set(int i) {}
+}
+
+class C = A with M;
+
+const x = const C();
+''');
   }
 
   test_implicitConstructors_dependencies() async {

@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:observatory/models.dart' as M
     show IsolateRef, IsolateRepository, EventRepository;
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class ReloadEvent {
@@ -16,9 +16,7 @@ class ReloadEvent {
 }
 
 class NavReloadElement extends CustomElement implements Renderable {
-  static const tag = const Tag<NavReloadElement>('nav-reload');
-
-  RenderingScheduler _r;
+  RenderingScheduler<NavReloadElement> _r;
 
   Stream<RenderedEvent<NavReloadElement>> get onRendered => _r.onRendered;
 
@@ -46,7 +44,7 @@ class NavReloadElement extends CustomElement implements Renderable {
     return e;
   }
 
-  NavReloadElement.created() : super.created(tag);
+  NavReloadElement.created() : super.created('nav-reload');
 
   @override
   void attached() {

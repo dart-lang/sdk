@@ -29,7 +29,7 @@ class SpellContextExternal extends SpellContext {
   List<spell.Dictionaries> get dictionaries => const <spell.Dictionaries>[];
 
   @override
-  bool get onlyBlacklisted => true;
+  bool get onlyDenylisted => true;
 
   Stream<TestDescription> list(Chain suite) async* {
     for (String subdir in const ["pkg/", "sdk/"]) {

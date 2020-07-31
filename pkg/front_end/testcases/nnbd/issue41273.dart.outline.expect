@@ -1,0 +1,7 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+static method test(dynamic x) → void
+  ;
+static method main() → dynamic
+  ;

@@ -7,10 +7,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/migration.dart';
@@ -30,7 +30,6 @@ class InvocationInferenceHelper {
 
   InvocationInferenceHelper(
       {@required ResolverVisitor resolver,
-      @required LibraryElementImpl definingLibrary,
       @required ErrorReporter errorReporter,
       @required FlowAnalysisHelper flowAnalysis,
       @required TypeSystemImpl typeSystem,
@@ -57,6 +56,7 @@ class InvocationInferenceHelper {
       DartType uninstantiatedType, TypeArgumentList typeArguments,
       {AstNode errorNode, bool isConst = false}) {
     errorNode ??= inferenceNode;
+    uninstantiatedType = _getFreshType(uninstantiatedType);
     if (typeArguments == null &&
         uninstantiatedType is FunctionType &&
         uninstantiatedType.typeFormals.isNotEmpty) {
@@ -297,6 +297,8 @@ class InvocationInferenceHelper {
     @required bool isConst,
     @required AstNode errorNode,
   }) {
+    rawType = _getFreshType(rawType);
+
     // Get the parameters that correspond to the uninstantiated generic.
     List<ParameterElement> rawParameters =
         ResolverVisitor.resolveArgumentsToParameters(

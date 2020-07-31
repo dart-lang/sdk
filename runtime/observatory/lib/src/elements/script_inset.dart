@@ -12,14 +12,12 @@ import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart' as S;
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/utils.dart';
 
 class ScriptInsetElement extends CustomElement implements Renderable {
-  static const tag = const Tag<ScriptInsetElement>('script-inset');
-
-  RenderingScheduler _r;
+  RenderingScheduler<ScriptInsetElement> _r;
 
   Stream<RenderedEvent<ScriptInsetElement>> get onRendered => _r.onRendered;
 
@@ -73,7 +71,7 @@ class ScriptInsetElement extends CustomElement implements Renderable {
     return e;
   }
 
-  ScriptInsetElement.created() : super.created(tag);
+  ScriptInsetElement.created() : super.created('script-inset');
 
   bool get noSource => _startPos == -1 || _loadedScript.source == null;
 

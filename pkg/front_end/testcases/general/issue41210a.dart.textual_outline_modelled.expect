@@ -1,0 +1,22 @@
+abstract class B implements Interface {
+  String method(num i);
+}
+
+abstract class D implements Interface, Interface2 {}
+
+abstract class Interface {
+  String method(num i);
+}
+
+abstract class Interface2 {
+  String method(covariant int i);
+}
+
+class C with A, B {}
+
+class E with A, D {}
+
+main() {}
+mixin A implements Interface {
+  String method(num i, {String s = "hello"}) => s;
+}

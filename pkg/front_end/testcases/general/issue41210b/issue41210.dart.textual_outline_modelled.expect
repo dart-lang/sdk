@@ -1,0 +1,7 @@
+import 'issue41210_lib.dart';
+
+class C with A, B {}
+
+class E with A, D {}
+
+main() {}

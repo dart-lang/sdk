@@ -1,0 +1,11 @@
+class Class {
+  int get m1 => 0;
+  void set m2(int x) { }
+}
+extension Extension0 ;
+on Class (){ }
+extension Extension1 ;
+on Class (){ }
+main() { }
+errors() { }
+expect(expected, actual) { }

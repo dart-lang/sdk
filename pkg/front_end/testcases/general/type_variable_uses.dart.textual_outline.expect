@@ -1,0 +1,7 @@
+class C<T> {
+  const C();
+  static C<T> staticMethod() {}
+  C<T> instanceMethod() {}
+}
+
+main() {}

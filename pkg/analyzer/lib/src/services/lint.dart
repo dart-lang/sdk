@@ -8,12 +8,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-
-/// Shared lint registry.
-LintRegistry lintRegistry = LintRegistry();
+import 'package:analyzer/src/lint/linter.dart';
 
 /// Current linter version.
 String linterVersion;
+
+/// Shared lint registry.
+LintRegistry lintRegistry = LintRegistry();
 
 /// Return lints associated with this [context], or an empty list if there are
 /// none.
@@ -29,14 +30,12 @@ void setLints(AnalysisContext context, List<Linter> lints) {
 }
 
 /// Implementers contribute lint warnings via the provided error [reporter].
-abstract class Linter {
+abstract class Linter implements NodeLintRule {
   /// Used to report lint warnings.
   /// NOTE: this is set by the framework before visit begins.
   ErrorReporter reporter;
 
-  /**
-   * Return the lint code associated with this linter.
-   */
+  /// Return the lint code associated with this linter.
   LintCode get lintCode => null;
 
   /// Linter name.
@@ -45,7 +44,12 @@ abstract class Linter {
   /// Return a visitor to be passed to compilation units to perform lint
   /// analysis.
   /// Lint errors are reported via this [Linter]'s error [reporter].
+  @Deprecated('Use registerNodeProcessors() instead.')
   AstVisitor getVisitor();
+
+  @override
+  void registerNodeProcessors(
+      NodeLintRegistry registry, LinterContext context) {}
 }
 
 /// Manages lint timing.

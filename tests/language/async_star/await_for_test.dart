@@ -24,7 +24,7 @@ main() {
   test('simple stream, await', () {
     f(Stream<int> s) async {
       var r = 0;
-      await for (var v in s) r += await Future.microtask(() => v);
+      await for (var v in s) r += await Future<int>.microtask(() => v);
       return r;
     }
 
@@ -57,7 +57,7 @@ main() {
   test('simple stream, await, reyield', () {
     f(Stream<int> s) async* {
       var r = 0;
-      await for (var v in s) yield r += await Future.microtask(() => v);
+      await for (var v in s) yield r += await Future<int>.microtask(() => v);
     }
 
     return expectList(f(mkStream(5)), [0, 1, 3, 6, 10]);
@@ -93,7 +93,7 @@ main() {
       var r = 0;
       await for (var i in mkStream(5)) {
         await for (var j in mkStream(3)) {
-          r += await Future.microtask(() => i * j);
+          r += await Future<int>.microtask(() => i * j);
         }
       }
       return r;
@@ -108,9 +108,9 @@ main() {
     f() async {
       var r = 0;
       await for (var i in mkStream(5)) {
-        var ai = await Future.microtask(() => i);
+        var ai = await Future<int>.microtask(() => i);
         await for (var j in mkStream(3)) {
-          r += await Future.microtask(() => ai * j);
+          r += await Future<int>.microtask(() => ai * j);
         }
       }
       return r;
@@ -136,7 +136,7 @@ main() {
     f(Stream<int> s) async {
       var r = 0;
       await for (var i in s) {
-        r += await Future.delayed(ms * 10, () => i);
+        r += await Future<int>.delayed(ms * 10, () => i);
       }
       return r;
     }

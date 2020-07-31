@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // part of "common_patch.dart";
 
 class _IOServicePorts {
@@ -36,7 +34,7 @@ class _IOServicePorts {
   }
 
   void _returnPort(int forRequestId) {
-    final SendPort port = _usedPorts.remove(forRequestId);
+    final SendPort port = _usedPorts.remove(forRequestId)!;
     if (!_usedPorts.values.contains(port)) {
       _freePorts.add(port);
     }
@@ -48,8 +46,8 @@ class _IOServicePorts {
 @patch
 class _IOService {
   static _IOServicePorts _servicePorts = new _IOServicePorts();
-  static RawReceivePort _receivePort;
-  static SendPort _replyToPort;
+  static RawReceivePort? _receivePort;
+  static late SendPort _replyToPort;
   static HashMap<int, Completer> _messageMap = new HashMap<int, Completer>();
   static int _id = 0;
 
@@ -66,7 +64,7 @@ class _IOService {
     try {
       servicePort.send(<dynamic>[id, _replyToPort, request, data]);
     } catch (error) {
-      _messageMap.remove(id).complete(error);
+      _messageMap.remove(id)!.complete(error);
       if (_messageMap.length == 0) {
         _finalize();
       }
@@ -77,10 +75,10 @@ class _IOService {
   static void _ensureInitialize() {
     if (_receivePort == null) {
       _receivePort = new RawReceivePort();
-      _replyToPort = _receivePort.sendPort;
-      _receivePort.handler = (data) {
+      _replyToPort = _receivePort!.sendPort;
+      _receivePort!.handler = (data) {
         assert(data is List && data.length == 2);
-        _messageMap.remove(data[0]).complete(data[1]);
+        _messageMap.remove(data[0])!.complete(data[1]);
         _servicePorts._returnPort(data[0]);
         if (_messageMap.length == 0) {
           _finalize();
@@ -91,7 +89,7 @@ class _IOService {
 
   static void _finalize() {
     _id = 0;
-    _receivePort.close();
+    _receivePort!.close();
     _receivePort = null;
   }
 

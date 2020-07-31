@@ -2,22 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.async;
 
 /**
  * Wraps an [_EventSink] so it exposes only the [EventSink] interface.
  */
 class _EventSinkWrapper<T> implements EventSink<T> {
-  _EventSink _sink;
+  _EventSink<T> _sink;
   _EventSinkWrapper(this._sink);
 
   void add(T data) {
     _sink._add(data);
   }
 
-  void addError(error, [StackTrace stackTrace]) {
+  void addError(Object error, [StackTrace? stackTrace]) {
     _sink._addError(error, stackTrace ?? AsyncError.defaultStackTrace(error));
   }
 
@@ -36,23 +34,24 @@ class _EventSinkWrapper<T> implements EventSink<T> {
 class _SinkTransformerStreamSubscription<S, T>
     extends _BufferingStreamSubscription<T> {
   /// The transformer's input sink.
-  EventSink<S> _transformerSink;
+  late EventSink<S> _transformerSink;
 
   /// The subscription to the input stream.
-  StreamSubscription<S> _subscription;
+  StreamSubscription<S>? _subscription;
 
-  _SinkTransformerStreamSubscription(Stream<S> source, _SinkMapper<S, T> mapper,
-      void onData(T data), Function onError, void onDone(), bool cancelOnError)
+  _SinkTransformerStreamSubscription(
+      Stream<S> source,
+      _SinkMapper<S, T> mapper,
+      void onData(T data)?,
+      Function? onError,
+      void onDone()?,
+      bool cancelOnError)
       // We set the adapter's target only when the user is allowed to send data.
       : super(onData, onError, onDone, cancelOnError) {
-    _EventSinkWrapper<T> eventSink = new _EventSinkWrapper<T>(this);
-    _transformerSink = mapper(eventSink);
+    _transformerSink = mapper(_EventSinkWrapper<T>(this));
     _subscription =
         source.listen(_handleData, onError: _handleError, onDone: _handleDone);
   }
-
-  /** Whether this subscription is still subscribed to its source. */
-  bool get _isSubscribed => _subscription != null;
 
   // _EventSink interface.
 
@@ -65,7 +64,7 @@ class _SinkTransformerStreamSubscription<S, T>
    */
   void _add(T data) {
     if (_isClosed) {
-      throw new StateError("Stream is already closed");
+      throw StateError("Stream is already closed");
     }
     super._add(data);
   }
@@ -101,16 +100,16 @@ class _SinkTransformerStreamSubscription<S, T>
   // _BufferingStreamSubscription hooks.
 
   void _onPause() {
-    if (_isSubscribed) _subscription.pause();
+    _subscription?.pause();
   }
 
   void _onResume() {
-    if (_isSubscribed) _subscription.resume();
+    _subscription?.resume();
   }
 
-  Future _onCancel() {
-    if (_isSubscribed) {
-      StreamSubscription subscription = _subscription;
+  Future<void>? _onCancel() {
+    var subscription = _subscription;
+    if (subscription != null) {
       _subscription = null;
       return subscription.cancel();
     }
@@ -125,7 +124,7 @@ class _SinkTransformerStreamSubscription<S, T>
     }
   }
 
-  void _handleError(error, [StackTrace stackTrace]) {
+  void _handleError(Object error, StackTrace stackTrace) {
     try {
       _transformerSink.addError(error, stackTrace);
     } catch (e, s) {
@@ -180,12 +179,11 @@ class _BoundSinkStream<S, T> extends Stream<T> {
 
   _BoundSinkStream(this._stream, this._sinkMapper);
 
-  StreamSubscription<T> listen(void onData(T event),
-      {Function onError, void onDone(), bool cancelOnError}) {
-    cancelOnError = identical(true, cancelOnError);
+  StreamSubscription<T> listen(void onData(T event)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     StreamSubscription<T> subscription =
-        new _SinkTransformerStreamSubscription<S, T>(
-            _stream, _sinkMapper, onData, onError, onDone, cancelOnError);
+        _SinkTransformerStreamSubscription<S, T>(_stream, _sinkMapper, onData,
+            onError, onDone, cancelOnError ?? false);
     return subscription;
   }
 }
@@ -206,52 +204,53 @@ typedef void _TransformDoneHandler<T>(EventSink<T> sink);
  * This way we can reuse the code from [_StreamSinkTransformer].
  */
 class _HandlerEventSink<S, T> implements EventSink<S> {
-  final _TransformDataHandler<S, T> _handleData;
-  final _TransformErrorHandler<T> _handleError;
-  final _TransformDoneHandler<T> _handleDone;
+  final _TransformDataHandler<S, T>? _handleData;
+  final _TransformErrorHandler<T>? _handleError;
+  final _TransformDoneHandler<T>? _handleDone;
 
   /// The output sink where the handlers should send their data into.
-  EventSink<T> _sink;
+  /// Set to `null` when closed.
+  EventSink<T>? _sink;
 
-  _HandlerEventSink(
-      this._handleData, this._handleError, this._handleDone, this._sink) {
-    if (_sink == null) {
-      throw new ArgumentError("The provided sink must not be null.");
-    }
-  }
-
-  bool get _isClosed => _sink == null;
+  _HandlerEventSink(this._handleData, this._handleError, this._handleDone,
+      EventSink<T> this._sink);
 
   void add(S data) {
-    if (_isClosed) {
+    var sink = _sink;
+    if (sink == null) {
       throw StateError("Sink is closed");
     }
-    if (_handleData != null) {
-      _handleData(data, _sink);
+    var handleData = _handleData;
+    if (handleData != null) {
+      handleData(data, sink);
     } else {
-      _sink.add(data as T);
+      sink.add(data as T);
     }
   }
 
-  void addError(Object error, [StackTrace stackTrace]) {
+  void addError(Object error, [StackTrace? stackTrace]) {
+    // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(error, "error");
-    if (_isClosed) {
+    var sink = _sink;
+    if (sink == null) {
       throw StateError("Sink is closed");
     }
-    if (_handleError != null) {
-      stackTrace ??= AsyncError.defaultStackTrace(error);
-      _handleError(error, stackTrace, _sink);
+    var handleError = _handleError;
+    stackTrace ??= AsyncError.defaultStackTrace(error);
+    if (handleError != null) {
+      handleError(error, stackTrace, sink);
     } else {
-      _sink.addError(error, stackTrace);
+      sink.addError(error, stackTrace);
     }
   }
 
   void close() {
-    if (_isClosed) return;
     var sink = _sink;
+    if (sink == null) return;
     _sink = null;
-    if (_handleDone != null) {
-      _handleDone(sink);
+    var handleDone = _handleDone;
+    if (handleDone != null) {
+      handleDone(sink);
     } else {
       sink.close();
     }
@@ -265,9 +264,9 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
  */
 class _StreamHandlerTransformer<S, T> extends _StreamSinkTransformer<S, T> {
   _StreamHandlerTransformer(
-      {void handleData(S data, EventSink<T> sink),
-      void handleError(Object error, StackTrace stackTrace, EventSink<T> sink),
-      void handleDone(EventSink<T> sink)})
+      {void handleData(S data, EventSink<T> sink)?,
+      void handleError(Object error, StackTrace stackTrace, EventSink<T> sink)?,
+      void handleDone(EventSink<T> sink)?})
       : super((EventSink<T> outputSink) {
           return new _HandlerEventSink<S, T>(
               handleData, handleError, handleDone, outputSink);
@@ -328,10 +327,9 @@ class _BoundSubscriptionStream<S, T> extends Stream<T> {
 
   _BoundSubscriptionStream(this._stream, this._onListen);
 
-  StreamSubscription<T> listen(void onData(T event),
-      {Function onError, void onDone(), bool cancelOnError}) {
-    cancelOnError = identical(true, cancelOnError);
-    StreamSubscription<T> result = _onListen(_stream, cancelOnError);
+  StreamSubscription<T> listen(void onData(T event)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
+    StreamSubscription<T> result = _onListen(_stream, cancelOnError ?? false);
     result.onData(onData);
     result.onError(onError);
     result.onDone(onDone);

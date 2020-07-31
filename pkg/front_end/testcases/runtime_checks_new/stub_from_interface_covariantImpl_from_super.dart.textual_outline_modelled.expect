@@ -1,0 +1,13 @@
+library test;
+
+abstract class C extends B<int> implements I {}
+
+abstract class I {
+  void f(int x, Object y);
+}
+
+class B<T> {
+  void f(T x, int y) {}
+}
+
+void main() {}

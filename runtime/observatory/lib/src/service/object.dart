@@ -2204,8 +2204,13 @@ class ServiceEvent extends ServiceObject {
   static const kConnectionClosed = 'ConnectionClosed';
   static const kLogging = 'Logging';
   static const kExtension = 'Extension';
+  static const kTimelineEvents = 'TimelineEvents';
+  static const kTimelineStreamSubscriptionsUpdate =
+      'TimelineStreamSubscriptionsUpdate';
   static const kServiceRegistered = 'ServiceRegistered';
   static const kServiceUnregistered = 'ServiceUnregistered';
+  static const kDartDevelopmentServiceConnected =
+      'DartDevelopmentServiceConnected';
 
   ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -2235,6 +2240,7 @@ class ServiceEvent extends ServiceObject {
   String extensionKind;
   Map extensionData;
   List timelineEvents;
+  List<String> updatedStreams;
   String spawnToken;
   String spawnError;
   String editor;
@@ -2242,6 +2248,8 @@ class ServiceEvent extends ServiceObject {
   String method;
   String service;
   String alias;
+  String message;
+  Uri uri;
 
   bool lastChunk;
 
@@ -2318,6 +2326,9 @@ class ServiceEvent extends ServiceObject {
     if (map['timelineEvents'] != null) {
       timelineEvents = map['timelineEvents'];
     }
+    if (map['updatedStreams'] != null) {
+      updatedStreams = map['updatedStreams'].cast<String>();
+    }
     if (map['spawnToken'] != null) {
       spawnToken = map['spawnToken'];
     }
@@ -2344,6 +2355,12 @@ class ServiceEvent extends ServiceObject {
     }
     if (map['newValue'] != null) {
       newValue = map['newValue'];
+    }
+    if (map['message'] != null) {
+      message = map['message'];
+    }
+    if (map['uri'] != null) {
+      uri = Uri.parse(map['uri']);
     }
   }
 

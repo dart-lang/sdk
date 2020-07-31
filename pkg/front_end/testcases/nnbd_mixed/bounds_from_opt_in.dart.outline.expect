@@ -1,0 +1,52 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/bounds_from_opt_in.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.6
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/bounds_from_opt_in.dart:9:7: Error: Type argument 'T' doesn't conform to the bound 'Never' of the type variable 'T' on 'Class' in the supertype 'Class' of class 'LegacyClass'.
+// Try changing type arguments so that they conform to the bounds.
+// class LegacyClass<T extends Null> extends Class<T> {
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/bounds_from_opt_in_lib.dart:5:13: Context: This is the type variable whose bound isn't conformed to.
+// class Class<T extends Never> {
+//             ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bounds_from_opt_in.dart:10:3: Error: Declared bound 'Null' of type variable 'T' of 'LegacyClass.method' doesn't match the bound 'Never' on overridden method 'Class.method'.
+//   method<T extends Null>() {}
+//   ^
+// pkg/front_end/testcases/nnbd_mixed/bounds_from_opt_in_lib.dart:6:3: Context: This is the overridden method ('method').
+//   method<T extends Never>() {}
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+import "bounds_from_opt_in_lib.dart" as bou;
+
+import "org-dartlang-testcase:///bounds_from_opt_in_lib.dart";
+
+class LegacyClass<T extends core::Null? = core::Null?> extends bou::Class<self::LegacyClass::T%> {
+  synthetic constructor •() → self::LegacyClass<self::LegacyClass::T%>
+    ;
+  method method<T extends core::Null? = core::Null?>() → dynamic
+    ;
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as bou;
+import "dart:core" as core;
+
+class Class<T extends Never = Never> extends core::Object {
+  synthetic constructor •() → bou::Class<bou::Class::T>
+    ;
+  method method<T extends Never = Never>() → dynamic
+    ;
+}
+static method method<T extends Never = Never>() → dynamic
+  ;

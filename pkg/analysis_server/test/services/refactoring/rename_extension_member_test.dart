@@ -16,12 +16,6 @@ void main() {
 
 @reflectiveTest
 class RenameExtensionMemberTest extends RenameRefactoringTest {
-  @override
-  void setUp() {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
-    super.setUp();
-  }
-
   Future<void> test_checkFinalConditions_hasMember_MethodElement() async {
     await indexTestUnit('''
 extension E on int {
@@ -193,7 +187,7 @@ extension E on int {
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  Future<void> test_createChange_MethodElement_instance() async {
+  Future<void> test_createChange_named_MethodElement_instance() async {
     await indexTestUnit('''
 class A {}
 
@@ -229,7 +223,7 @@ main() {
 ''');
   }
 
-  Future<void> test_createChange_PropertyAccessorElement_getter() async {
+  Future<void> test_createChange_named_PropertyAccessorElement_getter() async {
     await indexTestUnit('''
 extension E on int {
   get test {} // marker
@@ -272,7 +266,7 @@ main() {
 ''');
   }
 
-  Future<void> test_createChange_PropertyAccessorElement_setter() async {
+  Future<void> test_createChange_named_PropertyAccessorElement_setter() async {
     await indexTestUnit('''
 extension E on int {
   get test {}
@@ -315,7 +309,7 @@ main() {
 ''');
   }
 
-  Future<void> test_createChange_TypeParameterElement() async {
+  Future<void> test_createChange_named_TypeParameterElement() async {
     await indexTestUnit('''
 extension E<Test> on int {
   Test get g1 => null;
@@ -335,6 +329,34 @@ extension E<NewName> on int {
   NewName get g1 => null;
   List<NewName> get g2 => null;
   NewName m(NewName p) => null;
+}
+''');
+  }
+
+  Future<void> test_createChange_unnamed_MethodElement_instance() async {
+    await indexTestUnit('''
+extension on int {
+  void test() {} // marker
+}
+
+main() {
+  0.test();
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test() {} // marker');
+    expect(refactoring.refactoringName, 'Rename Method');
+    expect(refactoring.elementKindName, 'method');
+    expect(refactoring.oldName, 'test');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+extension on int {
+  void newName() {} // marker
+}
+
+main() {
+  0.newName();
 }
 ''');
   }

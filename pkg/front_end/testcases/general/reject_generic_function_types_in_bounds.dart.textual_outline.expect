@@ -1,0 +1,3 @@
+class Hest<TypeX extends TypeY Function<TypeY>(TypeY)> {}
+
+main() {}

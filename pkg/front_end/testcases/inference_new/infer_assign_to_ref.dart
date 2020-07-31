@@ -10,7 +10,7 @@ class A {
 }
 
 A a = new A();
-var b = (a. /*@target=A::f*/ f = 1);
+var b = (a. /*@target=A.f*/ f = 1);
 var c = 0;
 var d = (c = 1);
 

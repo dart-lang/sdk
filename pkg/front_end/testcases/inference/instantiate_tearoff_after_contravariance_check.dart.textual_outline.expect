@@ -1,0 +1,8 @@
+library test;
+
+class C<T> {
+  void Function(T) f<U>(U x) => (y) {};
+}
+
+void test(C<String> c) {}
+main() {}

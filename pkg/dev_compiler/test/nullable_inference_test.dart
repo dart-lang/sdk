@@ -9,6 +9,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
+import 'package:kernel/src/printer.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:test/test.dart';
 
@@ -16,6 +17,11 @@ import 'package:dev_compiler/src/kernel/command.dart';
 import 'package:dev_compiler/src/kernel/nullable_inference.dart';
 import 'package:dev_compiler/src/kernel/js_typerep.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
+
+const AstTextStrategy astTextStrategy = AstTextStrategy(
+    includeLibraryNamesInTypes: true,
+    includeLibraryNamesInMembers: true,
+    useMultiline: false);
 
 void main() {
   test('empty main', () async {
@@ -72,7 +78,7 @@ void main() {
 
   test('constructor', () async {
     await expectNotNull(
-        'library a; class C {} main() { new C(); }', 'new a::C::•()');
+        'library a; class C {} main() { new C(); }', 'new a::C()');
   });
 
   group('operator', () {
@@ -249,11 +255,11 @@ void main() {
   });
 
   test('function expression', () async {
-    await expectNotNull('main() { () => null; f() {}; f; }',
-        '() → dart.core::Null? => null, f');
+    await expectNotNull(
+        'main() { () => null; f() {}; f; }', 'dart.core::Null? () => null, f');
   });
 
-  test('cascades (kernel let)', () async {
+  test('cascades (kernel BlockExpression)', () async {
     // `null..toString()` evaluates to `null` so it is nullable.
     await expectNotNull('main() { null..toString(); }', '');
     await expectAllNotNull('main() { 1..toString(); }');
@@ -302,7 +308,7 @@ void main() {
         var y = (x = null) == null;
         print(x);
         print(y);
-      }''', '1, (x = null).{dart.core::Object::==}(null), y');
+      }''', '1, (x = null).{dart.core::Object.==}(null), y');
     });
     test('declaration from variable transitive', () async {
       await expectNotNull('''main() {
@@ -339,8 +345,8 @@ void main() {
       }''',
           // arithmetic operation results on `i` are themselves not null, even
           // though `i` is nullable.
-          '0, i.{dart.core::num::<}(10), 10, i = i.{dart.core::num::+}(1), '
-              'i.{dart.core::num::+}(1), 1, i.{dart.core::num::>=}(10), 10');
+          '0, i.{dart.core::num.<}(10), 10, i = i.{dart.core::num.+}(1), '
+              'i.{dart.core::num.+}(1), 1, i.{dart.core::num.>=}(10), 10');
     });
     test('for-in', () async {
       await expectNotNull('''main() {
@@ -362,7 +368,7 @@ void main() {
           print(z);
         }
         f(42);
-      }''', '0, () → void => dart.core::print("g"), "g", g, y, 1, z, f, 42');
+      }''', '0, void () => dart.core::print("g"), "g", g, y, 1, z, f, 42');
     });
     test('assignment to closure variable', () async {
       await expectNotNull('''main() {
@@ -391,8 +397,7 @@ void main() {
       await expectNotNull('''main() {
         var x = () => 42;
         var y = (() => x = null);
-      }''',
-          '() → dart.core::int* => 42, 42, () → dart.core::Null? => x = null');
+      }''', 'dart.core::int* () => 42, 42, dart.core::Null? () => x = null');
     });
     test('do not depend on unrelated variables', () async {
       await expectNotNull('''main() {
@@ -481,7 +486,7 @@ void main() {
       await expectNotNull(
           'library b; $imports class C { @notNull m() {} } '
               'main() { var c = new C(); c.m(); }',
-          'new b::C::•(), c.{b::C::m}(), c');
+          'new b::C(), c.{b::C.m}(), c');
     });
   });
 }
@@ -505,13 +510,13 @@ Future expectNotNull(String code, String expectedNotNull) async {
             // Print integer values as integers
             return BigInt.from(c.value).toString();
           }
-          return c.toString();
+          return c.toText(astTextStrategy);
         }
-        return e.leakingDebugToString();
+        return e.toText(astTextStrategy);
       })
       // Filter out our own NotNull annotations.  The library prefix changes
       // per test, so just filter on the suffix.
-      .where((s) => !s.endsWith('::_NotNull {}'))
+      .where((s) => !s.endsWith('_NotNull{}'))
       .join(', ');
   expect(actualNotNull, equals(expectedNotNull));
 }
@@ -644,7 +649,8 @@ Future<CompileResult> kernelCompile(String code) async {
   var sdkUri = Uri.file('/memory/dart_sdk.dill');
   var sdkFile = _fileSystem.entityForUri(sdkUri);
   if (!await sdkFile.exists()) {
-    sdkFile.writeAsBytesSync(File(defaultSdkSummaryPath).readAsBytesSync());
+    sdkFile.writeAsBytesSync(
+        File(defaultSdkSummaryPath(soundNullSafety: false)).readAsBytesSync());
   }
   var packagesUri = Uri.file('/memory/.packages');
   var packagesFile = _fileSystem.entityForUri(packagesUri);
@@ -667,7 +673,8 @@ const nullCheck = const _NullCheck();
       sdkUri, packagesUri, null, [], DevCompilerTarget(TargetFlags()),
       fileSystem: _fileSystem,
       experiments: const {},
-      environmentDefines: const {});
+      environmentDefines: const {},
+      nnbdMode: fe.NnbdMode.Weak);
   if (!identical(oldCompilerState, _compilerState)) inference = null;
   var result =
       await fe.compile(_compilerState, [mainUri], diagnosticMessageHandler);

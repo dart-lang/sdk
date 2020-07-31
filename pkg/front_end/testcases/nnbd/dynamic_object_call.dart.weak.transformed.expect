@@ -1,0 +1,49 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/dynamic_object_call.dart:21:22: Error: 'hashCode' isn't a function or method and can't be invoked.
+//   var v5 = c.hashCode();
+//                      ^^^^...
+//
+// pkg/front_end/testcases/nnbd/dynamic_object_call.dart:23:27: Error: The argument type 'String' can't be assigned to the parameter type 'Invocation'.
+//  - 'Invocation' is from 'dart:core'.
+//   var v6 = c.noSuchMethod("foo");
+//                           ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  @#C1
+  method noSuchMethod(core::Object o, {core::String foo = #C2}) → dynamic
+    return 42;
+  @#C1
+  method toString({core::String foo = #C2}) → core::String
+    return "foo";
+}
+static method main() → dynamic {}
+static method test() → dynamic {
+  dynamic c = new self::Class::•();
+  core::String v1 = c.{core::Object::toString}();
+  dynamic v2 = c.toString(foo: 42);
+  () → core::String v3 = c.{core::Object::toString};
+  core::int v4 = c.{core::Object::hashCode};
+  dynamic v5 = invalid-expression "pkg/front_end/testcases/nnbd/dynamic_object_call.dart:21:22: Error: 'hashCode' isn't a function or method and can't be invoked.
+  var v5 = c.hashCode();
+                     ^^^^...";
+  dynamic v6 = c.{core::Object::noSuchMethod}(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/dynamic_object_call.dart:23:27: Error: The argument type 'String' can't be assigned to the parameter type 'Invocation'.
+ - 'Invocation' is from 'dart:core'.
+  var v6 = c.noSuchMethod(\"foo\");
+                          ^" in "foo" as{TypeError,ForNonNullableByDefault} core::Invocation);
+  dynamic v7 = c.noSuchMethod("foo", foo: 42);
+  (core::Invocation) → dynamic v8 = c.{core::Object::noSuchMethod};
+}
+
+constants  {
+  #C1 = core::_Override {}
+  #C2 = ""
+}

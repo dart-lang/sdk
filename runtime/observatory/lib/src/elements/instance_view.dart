@@ -17,7 +17,7 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
@@ -33,27 +33,6 @@ import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/utils.dart';
 
 class InstanceViewElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<InstanceViewElement>('instance-view', dependencies: const [
-    ClassRefElement.tag,
-    ContextRefElement.tag,
-    CurlyBlockElement.tag,
-    FieldRefElement.tag,
-    FunctionRefElement.tag,
-    InstanceRefElement.tag,
-    NavClassMenuElement.tag,
-    NavLibraryMenuElement.tag,
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-    ObjectCommonElement.tag,
-    SourceInsetElement.tag,
-    SourceLinkElement.tag,
-    ViewFooterElement.tag
-  ]);
-
   RenderingScheduler<InstanceViewElement> _r;
 
   Stream<RenderedEvent<InstanceViewElement>> get onRendered => _r.onRendered;
@@ -138,7 +117,7 @@ class InstanceViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  InstanceViewElement.created() : super.created(tag);
+  InstanceViewElement.created() : super.created('instance-view');
 
   @override
   attached() {
@@ -218,40 +197,41 @@ class InstanceViewElement extends CustomElement implements Renderable {
     return menu;
   }
 
+  Element memberHalf(String cssClass, dynamic half) {
+    var result = new DivElement()..classes = [cssClass];
+    if (half is String) {
+      result.text = half;
+    } else {
+      result.children = <Element>[
+        anyRef(_isolate, half, _objects, queue: _r.queue)
+      ];
+    }
+    return result;
+  }
+
+  Element member(dynamic name, dynamic value) {
+    return new DivElement()
+      ..classes = ['memberItem']
+      ..children = <Element>[
+        memberHalf('memberName', name),
+        memberHalf('memberValue', value),
+      ];
+  }
+
   List<Element> _createMembers() {
     final members = <Element>[];
     if (_instance.valueAsString != null) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = _instance.kind == M.InstanceKind.string
-                ? 'value as literal'
-                : 'value',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..text = _instance.kind == M.InstanceKind.string
-                ? Utils.formatStringAsLiteral(
-                    _instance.valueAsString, _instance.valueAsStringIsTruncated)
-                : _instance.valueAsString
-        ]);
+      if (_instance.kind == M.InstanceKind.string) {
+        members.add(member(
+            'value as literal',
+            Utils.formatStringAsLiteral(
+                _instance.valueAsString, _instance.valueAsStringIsTruncated)));
+      } else {
+        members.add(member('value', _instance.valueAsString));
+      }
     }
     if (_instance.typeClass != null) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'type class',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = <Element>[
-              new ClassRefElement(_isolate, _instance.typeClass,
-                      queue: _r.queue)
-                  .element
-            ]
-        ]);
+      members.add(member('type class', _instance.typeClass));
     }
     if (_typeArguments != null && _typeArguments.types.isNotEmpty) {
       members.add(new DivElement()
@@ -274,97 +254,22 @@ class InstanceViewElement extends CustomElement implements Renderable {
         ]);
     }
     if (_instance.parameterizedClass != null) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'parameterized class',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = <Element>[
-              new ClassRefElement(_isolate, _instance.parameterizedClass,
-                      queue: _r.queue)
-                  .element
-            ]
-        ]);
+      members.add(member('parameterized class', _instance.parameterizedClass));
     }
     if (_instance.parameterIndex != null) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'parameter index',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..text = '${_instance.parameterIndex}'
-        ]);
+      members.add(member('parameter index', '${_instance.parameterIndex}'));
     }
     if (_instance.targetType != null) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'target type',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = <Element>[
-              new InstanceRefElement(_isolate, _instance.targetType, _objects,
-                      queue: _r.queue)
-                  .element
-            ]
-        ]);
+      members.add(member('target type', _instance.targetType));
     }
     if (_instance.bound != null) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'bound',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = <Element>[
-              new InstanceRefElement(_isolate, _instance.bound, _objects,
-                      queue: _r.queue)
-                  .element
-            ]
-        ]);
+      members.add(member('bound', _instance.bound));
     }
     if (_instance.closureFunction != null) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'closure function',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = <Element>[
-              new FunctionRefElement(_isolate, _instance.closureFunction,
-                      queue: _r.queue)
-                  .element
-            ]
-        ]);
+      members.add(member('closure function', _instance.closureFunction));
     }
     if (_instance.closureContext != null) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'closure context',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = <Element>[
-              new ContextRefElement(
-                      _isolate, _instance.closureContext, _objects,
-                      queue: _r.queue)
-                  .element
-            ]
-        ]);
+      members.add(member('closure context', _instance.closureContext));
     }
     if (_instance.kind == M.InstanceKind.closure) {
       ButtonElement btn;
@@ -407,16 +312,8 @@ class InstanceViewElement extends CustomElement implements Renderable {
                       new DivElement()
                         ..classes = ['memberList']
                         ..children = _instance.nativeFields
-                            .map<Element>((f) => new DivElement()
-                              ..classes = ['memberItem']
-                              ..children = <Element>[
-                                new DivElement()
-                                  ..classes = ['memberName']
-                                  ..text = '[ ${i++} ]',
-                                new DivElement()
-                                  ..classes = ['memberValue']
-                                  ..text = '[ ${f.value} ]'
-                              ])
+                            .map<Element>(
+                                (f) => member('[ ${i++} ]', '[ ${f.value} ]'))
                             .toList()
                     ])
                   .element
@@ -441,25 +338,7 @@ class InstanceViewElement extends CustomElement implements Renderable {
                       new DivElement()
                         ..classes = ['memberList']
                         ..children = fields
-                            .map<Element>((f) => new DivElement()
-                              ..classes = ['memberItem']
-                              ..children = <Element>[
-                                new DivElement()
-                                  ..classes = ['memberName']
-                                  ..children = <Element>[
-                                    new FieldRefElement(
-                                            _isolate, f.decl, _objects,
-                                            queue: _r.queue)
-                                        .element
-                                  ],
-                                new DivElement()
-                                  ..classes = ['memberValue']
-                                  ..children = <Element>[
-                                    new SpanElement()..text = ' = ',
-                                    anyRef(_isolate, f.value, _objects,
-                                        queue: _r.queue)
-                                  ]
-                              ])
+                            .map<Element>((f) => member(f.decl, f.value))
                             .toList()
                     ])
                   .element
@@ -485,35 +364,16 @@ class InstanceViewElement extends CustomElement implements Renderable {
                       new DivElement()
                         ..classes = ['memberList']
                         ..children = elements
-                            .map<Element>((element) => new DivElement()
-                              ..classes = ['memberItem']
-                              ..children = <Element>[
-                                new DivElement()
-                                  ..classes = ['memberName']
-                                  ..text = '[ ${i++} ]',
-                                new DivElement()
-                                  ..classes = ['memberValue']
-                                  ..children = <Element>[
-                                    anyRef(_isolate, element, _objects,
-                                        queue: _r.queue)
-                                  ]
-                              ])
+                            .map<Element>(
+                                (element) => member('[ ${i++} ]', element))
                             .toList()
                     ])
                   .element
             ]
         ]);
       if (_instance.length != elements.length) {
-        members.add(new DivElement()
-          ..classes = ['memberItem']
-          ..children = <Element>[
-            new DivElement()
-              ..classes = ['memberName']
-              ..text = '...',
-            new DivElement()
-              ..classes = ['memberValue']
-              ..text = '${_instance.length - elements.length} omitted elements'
-          ]);
+        members.add(member(
+            '...', '${_instance.length - elements.length} omitted elements'));
       }
     }
 
@@ -558,17 +418,8 @@ class InstanceViewElement extends CustomElement implements Renderable {
             ]
         ]);
       if (_instance.length != associations.length) {
-        members.add(new DivElement()
-          ..classes = ['memberItem']
-          ..children = <Element>[
-            new DivElement()
-              ..classes = ['memberName']
-              ..text = '...',
-            new DivElement()
-              ..classes = ['memberValue']
-              ..text = '${_instance.length - associations.length} '
-                  'omitted elements'
-          ]);
+        members.add(member('...',
+            '${_instance.length - associations.length} omitted elements'));
       }
     }
 
@@ -590,207 +441,54 @@ class InstanceViewElement extends CustomElement implements Renderable {
                       new DivElement()
                         ..classes = ['memberList']
                         ..children = typedElements
-                            .map<Element>((e) => new DivElement()
-                              ..classes = ['memberItem']
-                              ..children = <Element>[
-                                new DivElement()
-                                  ..classes = ['memberName']
-                                  ..text = '[ ${i++} ]',
-                                new DivElement()
-                                  ..classes = ['memberValue']
-                                  ..text = '$e'
-                              ])
+                            .map<Element>((e) => member('[ ${i++} ]', '$e'))
                             .toList()
                     ])
                   .element
             ]
         ]);
       if (_instance.length != typedElements.length) {
-        members.add(new DivElement()
-          ..classes = ['memberItem']
-          ..children = <Element>[
-            new DivElement()
-              ..classes = ['memberName']
-              ..text = '...',
-            new DivElement()
-              ..classes = ['memberValue']
-              ..text = '${_instance.length - typedElements.length} '
-                  'omitted elements'
-          ]);
+        members.add(member('...',
+            '${_instance.length - typedElements.length} omitted elements'));
       }
     }
 
     if (_instance.kind == M.InstanceKind.regExp) {
-      members.addAll([
-        new DivElement()
-          ..classes = ['memberItem']
-          ..children = <Element>[
-            new DivElement()
-              ..classes = ['memberName']
-              ..text = 'pattern',
-            new DivElement()
-              ..classes = ['memberValue']
-              ..children = <Element>[
-                anyRef(_isolate, _instance.pattern, _objects, queue: _r.queue)
-              ]
-          ],
-        new DivElement()
-          ..classes = ['memberItem']
-          ..children = <Element>[
-            new DivElement()
-              ..classes = ['memberName']
-              ..text = 'isCaseSensitive',
-            new DivElement()
-              ..classes = ['memberValue']
-              ..text = _instance.isCaseSensitive ? 'yes' : 'no'
-          ],
-        new DivElement()
-          ..classes = ['memberItem']
-          ..children = <Element>[
-            new DivElement()
-              ..classes = ['memberName']
-              ..text = 'isMultiLine',
-            new DivElement()
-              ..classes = ['memberValue']
-              ..text = _instance.isMultiLine ? 'yes' : 'no'
-          ],
-        new DivElement()
-          ..classes = ['memberItem']
-          ..children = <Element>[
-            new DivElement()
-              ..classes = ['memberName']
-              ..text = 'oneByteFunction',
-            new DivElement()
-              ..classes = ['memberValue']
-              ..children = <Element>[
-                new FunctionRefElement(_isolate, _instance.oneByteFunction,
-                        queue: _r.queue)
-                    .element
-              ]
-          ],
-        new DivElement()
-          ..classes = ['memberItem']
-          ..children = <Element>[
-            new DivElement()
-              ..classes = ['memberName']
-              ..text = 'twoByteFunction',
-            new DivElement()
-              ..classes = ['memberValue']
-              ..children = <Element>[
-                new FunctionRefElement(_isolate, _instance.twoByteFunction,
-                        queue: _r.queue)
-                    .element
-              ]
-          ],
-        new DivElement()
-          ..classes = ['memberItem']
-          ..children = <Element>[
-            new DivElement()
-              ..classes = ['memberName']
-              ..text = 'externalOneByteFunction',
-            new DivElement()
-              ..classes = ['memberValue']
-              ..children = <Element>[
-                new FunctionRefElement(
-                        _isolate, _instance.externalOneByteFunction,
-                        queue: _r.queue)
-                    .element
-              ]
-          ],
-        new DivElement()
-          ..classes = ['memberItem']
-          ..children = <Element>[
-            new DivElement()
-              ..classes = ['memberName']
-              ..text = 'externalTwoByteFunction',
-            new DivElement()
-              ..classes = ['memberValue']
-              ..children = <Element>[
-                new FunctionRefElement(
-                        _isolate, _instance.externalTwoByteFunction,
-                        queue: _r.queue)
-                    .element
-              ]
-          ],
-        new DivElement()
-          ..classes = ['memberItem']
-          ..children = <Element>[
-            new DivElement()
-              ..classes = ['memberName']
-              ..text = 'oneByteBytecode',
-            new DivElement()
-              ..classes = ['memberValue']
-              ..children = <Element>[
-                new InstanceRefElement(
-                        _isolate, _instance.oneByteBytecode, _objects,
-                        queue: _r.queue)
-                    .element
-              ]
-          ],
-        new DivElement()
-          ..classes = ['memberItem']
-          ..children = <Element>[
-            new DivElement()
-              ..classes = ['memberName']
-              ..text = 'twoByteBytecode',
-            new DivElement()
-              ..classes = ['memberValue']
-              ..children = <Element>[
-                new InstanceRefElement(
-                        _isolate, _instance.twoByteBytecode, _objects,
-                        queue: _r.queue)
-                    .element
-              ]
-          ]
-      ]);
+      members.add(member('pattern', _instance.pattern));
+      members.add(
+          member('isCaseSensitive', _instance.isCaseSensitive ? 'yes' : 'no'));
+      members.add(member('isMultiLine', _instance.isMultiLine ? 'yes' : 'no'));
+      if (_instance.oneByteFunction != null) {
+        members.add(member('oneByteFunction', _instance.oneByteFunction));
+      }
+      if (_instance.twoByteFunction != null) {
+        members.add(member('twoByteFunction', _instance.twoByteFunction));
+      }
+      if (_instance.externalOneByteFunction != null) {
+        members.add(member(
+            'externalOneByteFunction', _instance.externalOneByteFunction));
+      }
+      if (_instance.externalTwoByteFunction != null) {
+        members.add(member(
+            'externalTwoByteFunction', _instance.externalTwoByteFunction));
+      }
+      if (_instance.oneByteBytecode != null) {
+        members.add(member('oneByteBytecode', _instance.oneByteBytecode));
+      }
+      if (_instance.twoByteBytecode != null) {
+        members.add(member('twoByteBytecode', _instance.twoByteBytecode));
+      }
     }
 
     if (_instance.kind == M.InstanceKind.mirrorReference) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'referent',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = <Element>[
-              anyRef(_isolate, _instance.referent, _objects, queue: _r.queue)
-            ]
-        ]);
+      members.add(member('referent', _instance.referent));
     }
+
     if (_instance.kind == M.InstanceKind.weakProperty) {
-      members.addAll([
-        new DivElement()
-          ..classes = ['memberItem']
-          ..children = <Element>[
-            new DivElement()
-              ..classes = ['memberName']
-              ..text = 'key',
-            new DivElement()
-              ..classes = ['memberValue']
-              ..children = <Element>[
-                new InstanceRefElement(_isolate, _instance.key, _objects,
-                        queue: _r.queue)
-                    .element,
-              ]
-          ],
-        new DivElement()
-          ..classes = ['memberItem']
-          ..children = <Element>[
-            new DivElement()
-              ..classes = ['memberName']
-              ..text = 'value',
-            new DivElement()
-              ..classes = ['memberValue']
-              ..children = <Element>[
-                new InstanceRefElement(_isolate, _instance.value, _objects,
-                        queue: _r.queue)
-                    .element,
-              ]
-          ]
-      ]);
+      members.add(member('key', _instance.key));
+      members.add(member('value', _instance.value));
     }
+
     return members;
   }
 

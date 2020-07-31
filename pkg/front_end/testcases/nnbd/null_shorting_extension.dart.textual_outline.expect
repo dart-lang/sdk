@@ -1,0 +1,25 @@
+class Class1 {
+  Class1? get property => null;
+  void set property(Class1? value) { }
+  Class1 get property1 => new Class1();
+  Class2 get property2 => new Class2();
+}
+extension Extension1 ;
+on Class1 (){ }
+class Class2 {
+  Class2 get property => this;
+  void set property(Class2 value) { }
+}
+extension Extension2 ;
+on Class2 (){ }
+class Class3 {
+  Class2? get property => null;
+}
+extension Extension3 ;
+on Class3 (){ }
+main() { }
+void propertyAccess(Class1? n1) { }
+void indexAccess(Class1? n1, Class2? n2, Class3? n3) { }
+void operatorAccess(Class1? n1, Class2? n2) { }
+void ifNull(Class1? n1) { }
+void throws(void Function() f) { }

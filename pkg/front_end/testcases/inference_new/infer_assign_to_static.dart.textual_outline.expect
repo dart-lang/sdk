@@ -1,0 +1,19 @@
+library test;
+
+class A {}
+
+class B extends A {
+  A operator +(C v) => null;
+  B operator -(int i) => null;
+  B operator *(B v) => null;
+  C operator &(A v) => null;
+  static B staticVariable;
+}
+
+class C extends B {}
+
+T f<T>() => null;
+B topLevelVariable;
+void test_topLevelVariable() {}
+void test_staticVariable() {}
+main() {}

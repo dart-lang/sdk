@@ -25,15 +25,25 @@ enum ModuleFormat {
 }
 
 /// Parses a string into a [ModuleFormat].
-ModuleFormat parseModuleFormat(String s) => {
-      'es6': ModuleFormat.es6,
-      'common': ModuleFormat.common,
-      'amd': ModuleFormat.amd,
-      'ddc': ModuleFormat.ddc,
-      // Deprecated:
-      'node': ModuleFormat.common,
-      'legacy': ModuleFormat.ddc
-    }[s];
+///
+/// Throws an [ArgumentError] if the module format is not recognized.
+ModuleFormat parseModuleFormat(String s) {
+  var formats = const {
+    'es6': ModuleFormat.es6,
+    'common': ModuleFormat.common,
+    'amd': ModuleFormat.amd,
+    'ddc': ModuleFormat.ddc,
+    // Deprecated:
+    'node': ModuleFormat.common,
+    'legacy': ModuleFormat.ddc
+  };
+  var selected = formats[s];
+  if (selected == null) {
+    throw ArgumentError('Invalid module format `$s`, allowed formats are: '
+        '`${formats.keys.join(', ')}`');
+  }
+  return selected;
+}
 
 /// Parse the module format option added by [addModuleFormatOptions].
 List<ModuleFormat> parseModuleFormatOption(ArgResults args) {
@@ -180,10 +190,8 @@ class DdcModuleBuilder extends _ModuleBuilder {
       }
     }
 
-    var functionName =
-        'load__' + pathToJSIdentifier(module.name.replaceAll('.', '_'));
     var resultModule = NamedFunction(
-        Identifier(functionName),
+        loadFunctionIdentifier(module.name),
         js.fun("function(#) { 'use strict'; #; }", [parameters, statements]),
         true);
 
@@ -290,14 +298,26 @@ class AmdModuleBuilder extends _ModuleBuilder {
       statements.add(js.comment('Exports:'));
       statements.add(Return(ObjectInitializer(exportedProps, multiline: true)));
     }
-
-    // TODO(vsm): Consider using an immediately invoked named function pattern
-    // (see ddc module code above).
-    var block = js.statement("define(#, function(#) { 'use strict'; #; });",
-        [ArrayInitializer(dependencies), fnParams, statements]);
+    var resultModule = NamedFunction(
+        loadFunctionIdentifier(module.name),
+        js.fun("function(#) { 'use strict'; #; }", [fnParams, statements]),
+        true);
+    var block = js.statement(
+        'define(#, #);', [ArrayInitializer(dependencies), resultModule]);
 
     return Program([block]);
   }
+}
+
+bool isSdkInternalRuntimeUri(Uri importUri) {
+  return importUri.scheme == 'dart' && importUri.path == '_runtime';
+}
+
+String libraryUriToJsIdentifier(Uri importUri) {
+  if (importUri.scheme == 'dart') {
+    return isSdkInternalRuntimeUri(importUri) ? 'dart' : importUri.path;
+  }
+  return pathToJSIdentifier(p.withoutExtension(importUri.pathSegments.last));
 }
 
 /// Converts an entire arbitrary path string into a string compatible with
@@ -317,6 +337,14 @@ String pathToJSIdentifier(String path) {
       .replaceAll('..', '__')
       .replaceAll('-', '_'));
 }
+
+/// Creates function name given [moduleName].
+String loadFunctionName(String moduleName) =>
+    'load__' + pathToJSIdentifier(moduleName.replaceAll('.', '_'));
+
+/// Creates function name identifier given [moduleName].
+Identifier loadFunctionIdentifier(String moduleName) =>
+    Identifier(loadFunctionName(moduleName));
 
 // Replacement string for path separators (i.e., '/', '\', '..').
 final encodedSeparator = '__';

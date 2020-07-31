@@ -281,7 +281,7 @@ class KLocalFunction implements Local {
 
 class KLocalTypeVariable implements TypeVariableEntity {
   @override
-  final Entity typeDeclaration;
+  final KLocalFunction typeDeclaration;
   @override
   final String name;
   @override

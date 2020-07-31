@@ -1,0 +1,40 @@
+Problems reported:
+
+parser/error_recovery/issue_42229_prime_3.crash:1:8: Expected '>' after this.
+Stream<List<x>> 
+       ^^^^
+
+parser/error_recovery/issue_42229_prime_3.crash:1:1: A function declaration needs an explicit list of parameters.
+Stream<List<x>> 
+^^^^^^
+
+parser/error_recovery/issue_42229_prime_3.crash:1:17: Expected a function body, but got ''.
+Stream<List<x>> 
+                ^...
+
+beginCompilationUnit(Stream)
+  beginMetadataStar(Stream)
+  endMetadataStar(0)
+  beginTopLevelMember(Stream)
+    beginTopLevelMethod(, null)
+      handleNoType()
+      handleIdentifier(Stream, topLevelFunctionDeclaration)
+      beginTypeVariables(<)
+        beginMetadataStar(List)
+        endMetadataStar(0)
+        handleIdentifier(List, typeVariableDeclaration)
+        beginTypeVariable(List)
+          handleTypeVariablesDefined(List, 1)
+          handleNoType(List)
+        endTypeVariable(<, 0, null, null)
+        handleRecoverableError(Message[ExpectedAfterButGot, Expected '>' after this., null, {string: >}], List, List)
+      endTypeVariables(<, >)
+      handleRecoverableError(MissingFunctionParameters, Stream, Stream)
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got ''., null, {token: }], , )
+      handleInvalidFunctionBody({)
+    endTopLevelMethod(Stream, null, })
+  endTopLevelDeclaration()
+endCompilationUnit(1, )

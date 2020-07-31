@@ -1,0 +1,6 @@
+const int bar = 42;
+const int baz = 84;
+const int foo = 21;
+main() {}
+typedef void F(@foo int x, num y, {@bar @baz String z, Object w});
+typedef void G(@foo int a, num b, [@bar @baz String c, Object d]);

@@ -1,0 +1,8 @@
+class A<T extends num> {}
+
+class B {
+  foo(A a) => null;
+  A bar() => null;
+}
+
+main() {}

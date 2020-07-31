@@ -13,9 +13,9 @@
 
 namespace dart {
 
-RawMegamorphicCache* MegamorphicCacheTable::Lookup(Thread* thread,
-                                                   const String& name,
-                                                   const Array& descriptor) {
+MegamorphicCachePtr MegamorphicCacheTable::Lookup(Thread* thread,
+                                                  const String& name,
+                                                  const Array& descriptor) {
   Isolate* isolate = thread->isolate();
   // Multiple compilation threads could access this lookup.
   SafepointMutexLocker ml(isolate->megamorphic_mutex());
@@ -43,69 +43,6 @@ RawMegamorphicCache* MegamorphicCacheTable::Lookup(Thread* thread,
   table.Add(cache, Heap::kOld);
   return cache.raw();
 }
-
-RawFunction* MegamorphicCacheTable::miss_handler(Isolate* isolate) {
-  ASSERT(isolate->object_store()->megamorphic_miss_function() !=
-         Function::null());
-  return isolate->object_store()->megamorphic_miss_function();
-}
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
-  // The miss handler for a class ID not found in the table is invoked as a
-  // normal Dart function.
-  compiler::ObjectPoolBuilder object_pool_builder;
-  const Code& code = Code::Handle(StubCode::Generate(
-      "_stub_MegamorphicMiss", &object_pool_builder,
-      compiler::StubCodeCompiler::GenerateMegamorphicMissStub));
-
-  const auto& object_pool =
-      ObjectPool::Handle(ObjectPool::NewFromBuilder(object_pool_builder));
-  code.set_object_pool(object_pool.raw());
-
-  // When FLAG_lazy_dispatchers=false, this stub can be on the stack during
-  // exceptions, but it has a corresponding function so IsStubCode is false and
-  // it is considered in the search for an exception handler.
-  code.set_exception_handlers(Object::empty_exception_handlers());
-  const Class& cls =
-      Class::Handle(Type::Handle(Type::DartFunctionType()).type_class());
-  const Function& function = Function::Handle(
-      Function::New(Symbols::MegamorphicMiss(), RawFunction::kRegularFunction,
-                    true,   // Static, but called as a method.
-                    false,  // Not const.
-                    false,  // Not abstract.
-                    false,  // Not external.
-                    false,  // Not native.
-                    cls, TokenPosition::kNoSource));
-  function.set_result_type(Type::Handle(Type::DynamicType()));
-  function.set_is_debuggable(false);
-  function.set_is_visible(false);
-  function.AttachCode(code);  // Has a single entry point, as a static function.
-  // For inclusion in Snapshot::kFullJIT.
-  function.set_unoptimized_code(code);
-
-  ASSERT(isolate->object_store()->megamorphic_miss_function() ==
-         Function::null());
-  isolate->object_store()->SetMegamorphicMissHandler(code, function);
-}
-
-void MegamorphicCacheTable::ReInitMissHandlerCode(
-    Isolate* isolate,
-    compiler::ObjectPoolBuilder* wrapper) {
-  ASSERT(FLAG_precompiled_mode && FLAG_use_bare_instructions);
-
-  const Code& code = Code::Handle(StubCode::Generate(
-      "_stub_MegamorphicMiss", wrapper,
-      compiler::StubCodeCompiler::GenerateMegamorphicMissStub));
-  code.set_exception_handlers(Object::empty_exception_handlers());
-
-  auto object_store = isolate->object_store();
-  auto& function = Function::Handle(object_store->megamorphic_miss_function());
-  function.AttachCode(code);
-  object_store->SetMegamorphicMissHandler(code, function);
-}
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void MegamorphicCacheTable::PrintSizes(Isolate* isolate) {
   StackZone zone(Thread::Current());

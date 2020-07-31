@@ -7,13 +7,13 @@ library test;
 
 void test() {
   List<int> o;
-  int y = o. /*@ typeArgs=int* */ /*@target=Iterable::fold*/ fold(
+  int y = o. /*@ typeArgs=int* */ /*@target=Iterable.fold*/ fold(
       0,
       /*@ returnType=int* */ (/*@ type=int* */ x,
               /*@ type=int* */ y) =>
-          x /*@target=num::+*/ + y);
+          x /*@target=num.+*/ + y);
   var /*@ type=dynamic */ z =
-      o. /*@ typeArgs=dynamic */ /*@target=Iterable::fold*/ fold(
+      o. /*@ typeArgs=dynamic */ /*@target=Iterable.fold*/ fold(
           0,
           /*@ returnType=dynamic */ (/*@ type=dynamic */ x,
               /*@ type=int* */ y) => /*info:DYNAMIC_INVOKE*/ x + y);
@@ -22,13 +22,13 @@ void test() {
 
 void functionExpressionInvocation() {
   List<int> o;
-  int y = (o. /*@target=Iterable::fold*/ fold) /*@ typeArgs=int* */ (
+  int y = (o. /*@target=Iterable.fold*/ fold) /*@ typeArgs=int* */ (
       0,
       /*@ returnType=int* */ (/*@ type=int* */ x,
               /*@ type=int* */ y) =>
-          x /*@target=num::+*/ + y);
+          x /*@target=num.+*/ + y);
   var /*@ type=dynamic */ z =
-      (o. /*@target=Iterable::fold*/ fold) /*@ typeArgs=dynamic */ (
+      (o. /*@target=Iterable.fold*/ fold) /*@ typeArgs=dynamic */ (
           0,
           /*@ returnType=dynamic */ (/*@ type=dynamic */ x,
               /*@ type=int* */ y) => /*info:DYNAMIC_INVOKE*/ x + y);

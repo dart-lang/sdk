@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of _interceptors;
 
 /// The interceptor class for [String]. The compiler recognizes this
@@ -34,7 +32,7 @@ class JSString extends Interceptor implements String, JSIndexable {
     return allMatchesInStringUnchecked(this, string, start);
   }
 
-  Match matchAsPrefix(String string, [int start = 0]) {
+  Match? matchAsPrefix(String string, [int start = 0]) {
     if (start < 0 || start > string.length) {
       throw new RangeError.range(start, 0, string.length);
     }
@@ -64,12 +62,12 @@ class JSString extends Interceptor implements String, JSIndexable {
     return stringReplaceAllUnchecked(this, from, checkString(to));
   }
 
-  String replaceAllMapped(Pattern from, String convert(Match match)) {
+  String replaceAllMapped(Pattern from, String Function(Match) convert) {
     return this.splitMapJoin(from, onMatch: convert);
   }
 
   String splitMapJoin(Pattern from,
-      {String onMatch(Match match), String onNonMatch(String nonMatch)}) {
+      {String Function(Match)? onMatch, String Function(String)? onNonMatch}) {
     return stringReplaceAllFuncUnchecked(this, from, onMatch, onNonMatch);
   }
 
@@ -100,12 +98,12 @@ class JSString extends Interceptor implements String, JSIndexable {
     }
   }
 
-  String replaceRange(int start, int end, String replacement) {
+  String replaceRange(int start, int? end, String replacement) {
     checkString(replacement);
     checkInt(start);
-    end = RangeError.checkValidRange(start, end, this.length);
-    checkInt(end);
-    return stringReplaceRangeUnchecked(this, start, end, replacement);
+    var e = RangeError.checkValidRange(start, end, this.length);
+    checkInt(e);
+    return stringReplaceRangeUnchecked(this, start, e, replacement);
   }
 
   List<String> _defaultSplit(Pattern pattern) {
@@ -151,7 +149,7 @@ class JSString extends Interceptor implements String, JSIndexable {
     return pattern.matchAsPrefix(this, index) != null;
   }
 
-  String substring(int startIndex, [int endIndex]) {
+  String substring(int startIndex, [int? endIndex]) {
     checkInt(startIndex);
     if (endIndex == null) endIndex = length;
     checkInt(endIndex);
@@ -354,7 +352,7 @@ class JSString extends Interceptor implements String, JSIndexable {
       throw const OutOfMemoryError();
     }
     var result = '';
-    var s = this;
+    String s = this;
     while (true) {
       if (times & 1 == 1) result = s + result;
       times = JS('JSUInt31', '# >>> 1', times);
@@ -391,7 +389,7 @@ class JSString extends Interceptor implements String, JSIndexable {
     }
     if (pattern is JSSyntaxRegExp) {
       JSSyntaxRegExp re = pattern;
-      Match match = firstMatchAfter(re, this, start);
+      Match? match = firstMatchAfter(re, this, start);
       return (match == null) ? -1 : match.start;
     }
     for (int i = start; i <= this.length; i++) {
@@ -400,7 +398,7 @@ class JSString extends Interceptor implements String, JSIndexable {
     return -1;
   }
 
-  int lastIndexOf(Pattern pattern, [int start]) {
+  int lastIndexOf(Pattern pattern, [int? start]) {
     checkNull(pattern);
     if (start == null) {
       start = length;
@@ -451,12 +449,12 @@ class JSString extends Interceptor implements String, JSIndexable {
     // optimizations are smarter.
     int hash = 0;
     for (int i = 0; i < length; i++) {
-      hash = 0x1fffffff & (hash + JS('int', r'#.charCodeAt(#)', this, i));
+      hash = 0x1fffffff & (hash + JS<int>('int', r'#.charCodeAt(#)', this, i));
       hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
       hash = JS('int', '# ^ (# >> 6)', hash, hash);
     }
     hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    hash = JS('int', '# ^ (# >> 11)', hash, hash);
+    hash = JS<int>('int', '# ^ (# >> 11)', hash, hash);
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 

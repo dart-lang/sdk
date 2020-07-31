@@ -394,8 +394,8 @@ class Sample {
     kTruncatedTraceBit = 5,
     kClassAllocationSampleBit = 6,
     kContinuationSampleBit = 7,
-    kThreadTaskBit = 8,  // 5 bits.
-    kNextFreeBit = 13,
+    kThreadTaskBit = 8,  // 6 bits.
+    kNextFreeBit = 14,
   };
   class HeadSampleBit : public BitField<uword, bool, kHeadSampleBit, 1> {};
   class LeafFrameIsDart : public BitField<uword, bool, kLeafFrameIsDartBit, 1> {
@@ -411,7 +411,7 @@ class Sample {
   class ContinuationSampleBit
       : public BitField<uword, bool, kContinuationSampleBit, 1> {};
   class ThreadTaskBit
-      : public BitField<uword, Thread::TaskKind, kThreadTaskBit, 5> {};
+      : public BitField<uword, Thread::TaskKind, kThreadTaskBit, 6> {};
 
   int64_t timestamp_;
   ThreadId tid_;
@@ -456,11 +456,11 @@ class NativeAllocationSampleFilter : public SampleFilter {
 
 class AbstractCode {
  public:
-  explicit AbstractCode(RawObject* code) : code_(Object::Handle(code)) {
+  explicit AbstractCode(ObjectPtr code) : code_(Object::Handle(code)) {
     ASSERT(code_.IsNull() || code_.IsCode() || code_.IsBytecode());
   }
 
-  RawObject* raw() const { return code_.raw(); }
+  ObjectPtr raw() const { return code_.raw(); }
   const Object* handle() const { return &code_; }
 
   uword PayloadStart() const {
@@ -499,7 +499,8 @@ class AbstractCode {
 
   const char* QualifiedName() const {
     if (code_.IsCode()) {
-      return Code::Cast(code_).QualifiedName();
+      return Code::Cast(code_).QualifiedName(
+          NameFormattingParams(Object::kUserVisibleName));
     } else if (code_.IsBytecode()) {
       return Bytecode::Cast(code_).QualifiedName();
     } else {
@@ -533,7 +534,7 @@ class AbstractCode {
     }
   }
 
-  RawObject* owner() const {
+  ObjectPtr owner() const {
     if (code_.IsCode()) {
       return Code::Cast(code_).owner();
     } else if (code_.IsBytecode()) {

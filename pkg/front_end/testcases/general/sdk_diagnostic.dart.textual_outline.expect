@@ -1,0 +1,4 @@
+class C extends Iterable<Object> {}
+
+test() {}
+main() {}

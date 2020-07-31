@@ -1,7 +1,6 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart = 2.6
 
 part of dart.math;
 
@@ -33,18 +32,16 @@ abstract class _RectangleBase<T extends num> {
   T get height;
 
   /// The x-coordinate of the right edge.
-  T get right => left + width;
+  T get right => (left + width) as T;
 
   /// The y-coordinate of the bottom edge.
-  T get bottom => top + height;
+  T get bottom => (top + height) as T;
 
   String toString() {
     return 'Rectangle ($left, $top) $width x $height';
   }
 
-  bool operator ==(dynamic other) =>
-      // Can't change argument type to `Object` since subclasses inherit it
-      // and uses their argument dynamically.
+  bool operator ==(Object other) =>
       other is Rectangle &&
       left == other.left &&
       top == other.top &&
@@ -61,7 +58,7 @@ abstract class _RectangleBase<T extends num> {
   ///
   /// Returns the intersection of this and `other`, or `null` if they don't
   /// intersect.
-  Rectangle<T> intersection(Rectangle<T> other) {
+  Rectangle<T>? intersection(Rectangle<T> other) {
     var x0 = max(left, other.left);
     var x1 = min(left + width, other.left + other.width);
 
@@ -70,7 +67,7 @@ abstract class _RectangleBase<T extends num> {
       var y1 = min(top + height, other.top + other.height);
 
       if (y0 <= y1) {
-        return Rectangle<T>(x0, y0, x1 - x0, y1 - y0);
+        return Rectangle<T>(x0, y0, (x1 - x0) as T, (y1 - y0) as T);
       }
     }
     return null;
@@ -92,7 +89,7 @@ abstract class _RectangleBase<T extends num> {
     var left = min(this.left, other.left);
     var top = min(this.top, other.top);
 
-    return Rectangle<T>(left, top, right - left, bottom - top);
+    return Rectangle<T>(left, top, (right - left) as T, (bottom - top) as T);
   }
 
   /// Tests whether `this` entirely contains [another].
@@ -112,10 +109,10 @@ abstract class _RectangleBase<T extends num> {
   }
 
   Point<T> get topLeft => Point<T>(this.left, this.top);
-  Point<T> get topRight => Point<T>(this.left + this.width, this.top);
+  Point<T> get topRight => Point<T>((this.left + this.width) as T, this.top);
   Point<T> get bottomRight =>
-      Point<T>(this.left + this.width, this.top + this.height);
-  Point<T> get bottomLeft => Point<T>(this.left, this.top + this.height);
+      Point<T>((this.left + this.width) as T, (this.top + this.height) as T);
+  Point<T> get bottomLeft => Point<T>(this.left, (this.top + this.height) as T);
 }
 
 /// A class for representing two-dimensional rectangles whose properties are
@@ -139,8 +136,10 @@ class Rectangle<T extends num> extends _RectangleBase<T> {
   /// If `width` and `height` are zero, the "rectangle" comprises only the
   /// single point `(left, top)`.
   const Rectangle(this.left, this.top, T width, T height)
-      : this.width = (width < 0) ? -width * 0 : width, // Inline _clampToZero.
-        this.height = (height < 0) ? -height * 0 : height;
+      : width = (width < 0)
+            ? (-width * 0) as dynamic
+            : width, // Inline _clampToZero<num>.
+        height = (height < 0) ? (-height * 0) as dynamic : height;
 
   /// Create a rectangle spanned by the points [a] and [b];
   ///
@@ -154,9 +153,9 @@ class Rectangle<T extends num> extends _RectangleBase<T> {
   /// Similar for the y-coordinates and the bottom edge.
   factory Rectangle.fromPoints(Point<T> a, Point<T> b) {
     T left = min(a.x, b.x);
-    T width = max(a.x, b.x) - left;
+    T width = (max(a.x, b.x) - left) as T;
     T top = min(a.y, b.y);
-    T height = max(a.y, b.y) - top;
+    T height = (max(a.y, b.y) - top) as T;
     return Rectangle<T>(left, top, width, height);
   }
 }
@@ -205,9 +204,9 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
   /// Similar for the y-coordinates and the bottom edge.
   factory MutableRectangle.fromPoints(Point<T> a, Point<T> b) {
     T left = min(a.x, b.x);
-    T width = max(a.x, b.x) - left;
+    T width = (max(a.x, b.x) - left) as T;
     T top = min(a.y, b.y);
-    T height = max(a.y, b.y) - top;
+    T height = (max(a.y, b.y) - top) as T;
     return MutableRectangle<T>(left, top, width, height);
   }
 
@@ -245,5 +244,5 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
 /// Returns `0` if value is int, `0.0` if value is double.
 T _clampToZero<T extends num>(T value) {
   assert(value < 0);
-  return -value * 0;
+  return (-value * 0) as T;
 }

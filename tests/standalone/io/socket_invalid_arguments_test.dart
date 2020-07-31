@@ -28,30 +28,6 @@ testSocketCreation(host, port) {
   }
 }
 
-testAdd(buffer) {
-  asyncStart();
-  asyncStart();
-  ServerSocket.bind("127.0.0.1", 0).then((server) {
-    server.listen((socket) => socket.destroy());
-    Socket.connect("127.0.0.1", server.port).then((socket) {
-      int errors = 0;
-      socket.done.catchError((e) {
-        errors++;
-      }).then((_) {
-        Expect.equals(1, errors);
-        asyncEnd();
-        server.close();
-      });
-      socket.listen((_) {}, onError: (error) {
-        Expect.fail("Error on stream");
-      }, onDone: () {
-        asyncEnd();
-      });
-      socket.add(buffer);
-    });
-  });
-}
-
 testServerSocketCreation(address, port, backlog) {
   asyncStart();
   var server;
@@ -66,16 +42,8 @@ testServerSocketCreation(address, port, backlog) {
 
 main() {
   asyncStart();
-  testSocketCreation("string", null);
-  testSocketCreation(null, null);
   testSocketCreation("localhost", -1);
   testSocketCreation("localhost", 65536);
-  testAdd(null);
-  // TODO(8233): Throw ArgumentError from API implementation.
-  // testAdd([-1]);
-  // testAdd([2222222222222222222222222222222]);
-  // testAdd([1, 2, 3, null]);
-  // testAdd([new NotAnInteger()]);
   testServerSocketCreation("string", null, null);
   testServerSocketCreation("string", 123, null);
   testServerSocketCreation("localhost", -1, 123);

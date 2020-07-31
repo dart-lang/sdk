@@ -173,6 +173,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void writeConstructorDeclaration(String className,
       {ArgumentList argumentList,
       void Function() bodyWriter,
+      String classNameGroupName,
       SimpleIdentifier constructorName,
       String constructorNameGroupName,
       List<String> fieldNames,
@@ -183,7 +184,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(Keyword.CONST.lexeme);
       write(' ');
     }
-    write(className);
+    if (classNameGroupName == null) {
+      write(className);
+    } else {
+      addSimpleLinkedEdit(classNameGroupName, className);
+    }
     if (constructorName != null) {
       write('.');
       if (constructorNameGroupName == null) {
@@ -634,11 +639,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         name = _generateUniqueName(parameterNames, 'p');
         parameterNames.add(name);
       }
+      var groupPrefix =
+          methodBeingCopied != null ? '${methodBeingCopied.name}:' : '';
       writeParameter(name,
           methodBeingCopied: methodBeingCopied,
-          nameGroupName: 'PARAM$i',
+          nameGroupName: parameter.isNamed ? null : '${groupPrefix}PARAM$i',
           type: parameter.type,
-          typeGroupName: 'TYPE$i');
+          typeGroupName: '${groupPrefix}TYPE$i');
       // default value
       var defaultCode = parameter.defaultValueCode;
       if (defaultCode != null) {

@@ -351,13 +351,22 @@ class TypeCheckingVisitor
         return null;
 
       case AsyncMarker.SyncYielding:
+        // The SyncStar transform wraps the original function body twice,
+        // where the inner most function returns bool.
         TreeNode parent = function.parent;
         while (parent is! FunctionNode) {
           parent = parent.parent;
         }
-        final enclosingFunction = parent as FunctionNode;
-        if (enclosingFunction.dartAsyncMarker == AsyncMarker.SyncStar) {
-          return coreTypes.boolLegacyRawType;
+        var enclosingFunction = parent as FunctionNode;
+        if (enclosingFunction.dartAsyncMarker == AsyncMarker.Sync) {
+          parent = enclosingFunction.parent;
+          while (parent is! FunctionNode) {
+            parent = parent.parent;
+          }
+          enclosingFunction = parent as FunctionNode;
+          if (enclosingFunction.dartAsyncMarker == AsyncMarker.SyncStar) {
+            return coreTypes.boolLegacyRawType;
+          }
         }
         return null;
 
@@ -414,7 +423,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitAwaitExpression(AwaitExpression node) {
-    return environment.unfutureType(visitExpression(node.operand));
+    return environment.flatten(visitExpression(node.operand));
   }
 
   @override
@@ -984,7 +993,7 @@ class TypeCheckingVisitor
       } else {
         var type = visitExpression(node.expression);
         if (currentAsyncMarker == AsyncMarker.Async) {
-          type = environment.unfutureType(type);
+          type = environment.flatten(type);
         }
         checkAssignable(node.expression, type, currentReturnType);
       }

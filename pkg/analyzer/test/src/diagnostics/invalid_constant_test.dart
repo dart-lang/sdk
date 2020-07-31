@@ -5,11 +5,13 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/constant/potentially_constant_test.dart';
 import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidConstantTest);
+    defineReflectiveTests(InvalidConstantWithNullSafetyTest);
   });
 }
 
@@ -38,12 +40,12 @@ class A {
   test_in_initializer_field() async {
     await assertErrorsInCode(r'''
 class A {
-  static int C;
+  static int C = 0;
   final int a;
   const A() : a = C;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_CONSTANT, 59, 1),
+      error(CompileTimeErrorCode.INVALID_CONSTANT, 63, 1),
     ]);
   }
 
@@ -158,5 +160,18 @@ class B extends A {
 ''', [
       error(CompileTimeErrorCode.INVALID_CONSTANT, 82, 1),
     ]);
+  }
+}
+
+@reflectiveTest
+class InvalidConstantWithNullSafetyTest extends InvalidConstantTest
+    with WithNullSafetyMixin {
+  test_in_initializer_field_as() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  final l;
+  const C.test(dynamic x) : l = x as List<T>;
+}
+''');
   }
 }

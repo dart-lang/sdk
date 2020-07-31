@@ -1,0 +1,19 @@
+library test;
+
+class A {
+  int call() => 0;
+}
+
+class B {
+  A get call => new A();
+}
+
+class D {
+  A fieldA = new A();
+  A get getA => new A();
+  B fieldB = new B();
+  B get getB => new B();
+}
+
+test() {}
+main() {}

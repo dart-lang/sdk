@@ -25,14 +25,14 @@ class B {
 ''', [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 34, 13)]);
   }
 
-  test_redirectionBeforeAssert() async {
-    await assertErrorsInCode(r'''
+  test_justAssert() async {
+    await assertNoErrorsInCode(r'''
 class A {}
 class B {
-  B(int x) : this.name(), assert(x > 0);
+  B(int x) : assert(x > 0);
   B.name() {}
 }
-''', [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 47, 13)]);
+''');
   }
 
   test_justRedirection() async {
@@ -45,13 +45,13 @@ class B {
 ''');
   }
 
-  test_justAssert() async {
-    await assertNoErrorsInCode(r'''
+  test_redirectionBeforeAssert() async {
+    await assertErrorsInCode(r'''
 class A {}
 class B {
-  B(int x) : assert(x > 0);
+  B(int x) : this.name(), assert(x > 0);
   B.name() {}
 }
-''');
+''', [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 47, 13)]);
   }
 }

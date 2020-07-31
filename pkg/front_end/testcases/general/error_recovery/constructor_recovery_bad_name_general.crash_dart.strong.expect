@@ -1,0 +1,373 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:2:3: Error: The name of a constructor must match the name of the enclosing class.
+//   foo.x() {
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:5:3: Error: The name of a constructor must match the name of the enclosing class.
+//   foo.x() : initializer = true {
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:5:3: Error: 'Foo.x' is already declared in this scope.
+//   foo.x() : initializer = true {
+//   ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:2:3: Context: Previous declaration of 'Foo.x'.
+//   foo.x() {
+//   ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:8:3: Error: The name of a constructor must match the name of the enclosing class.
+//   foo() : initializer = true {
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:11:7: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   get Foo => 0;
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:12:7: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   get Foo {
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:12:7: Error: 'Foo' is already declared in this scope.
+//   get Foo {
+//       ^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:11:7: Context: Previous declaration of 'Foo'.
+//   get Foo => 0;
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:15:7: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   get Foo.X => 0;
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:15:3: Error: Constructors can't be a getter.
+// Try removing 'get'.
+//   get Foo.X => 0;
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:16:7: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   get Foo.X {
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:16:3: Error: Constructors can't be a getter.
+// Try removing 'get'.
+//   get Foo.X {
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:16:7: Error: 'Foo.X' is already declared in this scope.
+//   get Foo.X {
+//       ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:15:7: Context: Previous declaration of 'Foo.X'.
+//   get Foo.X => 0;
+//       ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:19:7: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   get Foo : bla = null => 0;
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:19:3: Error: Constructors can't be a getter.
+// Try removing 'get'.
+//   get Foo : bla = null => 0;
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:20:7: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   get Foo.X : bla = null {
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:20:3: Error: Constructors can't be a getter.
+// Try removing 'get'.
+//   get Foo.X : bla = null {
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:20:7: Error: 'Foo.X' is already declared in this scope.
+//   get Foo.X : bla = null {
+//       ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:16:7: Context: Previous declaration of 'Foo.X'.
+//   get Foo.X {
+//       ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:23:7: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   set Foo => 0;
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:23:7: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   set Foo => 0;
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:24:7: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   set Foo {
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:24:7: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   set Foo {
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:24:7: Error: 'Foo' is already declared in this scope.
+//   set Foo {
+//       ^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:23:7: Context: Previous declaration of 'Foo'.
+//   set Foo => 0;
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:27:7: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   set Foo.X => 0;
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:27:3: Error: Constructors can't be a setter.
+// Try removing 'set'.
+//   set Foo.X => 0;
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:27:7: Error: 'Foo.X' is already declared in this scope.
+//   set Foo.X => 0;
+//       ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:20:7: Context: Previous declaration of 'Foo.X'.
+//   get Foo.X : bla = null {
+//       ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:28:7: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   set Foo.X {
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:28:3: Error: Constructors can't be a setter.
+// Try removing 'set'.
+//   set Foo.X {
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:28:7: Error: 'Foo.X' is already declared in this scope.
+//   set Foo.X {
+//       ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:27:7: Context: Previous declaration of 'Foo.X'.
+//   set Foo.X => 0;
+//       ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:31:7: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   set Foo : bla = null => 0;
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:31:3: Error: Constructors can't be a setter.
+// Try removing 'set'.
+//   set Foo : bla = null => 0;
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:31:7: Error: 'Foo' is already declared in this scope.
+//   set Foo : bla = null => 0;
+//       ^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:19:7: Context: Previous declaration of 'Foo'.
+//   get Foo : bla = null => 0;
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:32:7: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   set Foo.X : bla = null {
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:32:3: Error: Constructors can't be a setter.
+// Try removing 'set'.
+//   set Foo.X : bla = null {
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:32:7: Error: 'Foo.X' is already declared in this scope.
+//   set Foo.X : bla = null {
+//       ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:28:7: Context: Previous declaration of 'Foo.X'.
+//   set Foo.X {
+//       ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:35:18: Error: An external constructor can't have any initializers.
+//   external Foo() : bla = null;
+//                  ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:35:12: Error: 'Foo' is already declared in this scope.
+//   external Foo() : bla = null;
+//            ^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:31:7: Context: Previous declaration of 'Foo'.
+//   set Foo : bla = null => 0;
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:36:33: Error: An external or native method can't have a body.
+//   external Foo.X() : bla = null {
+//                                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:36:20: Error: An external constructor can't have any initializers.
+//   external Foo.X() : bla = null {
+//                    ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:36:12: Error: 'Foo.X' is already declared in this scope.
+//   external Foo.X() : bla = null {
+//            ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:32:7: Context: Previous declaration of 'Foo.X'.
+//   set Foo.X : bla = null {
+//       ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:39:7: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   int Foo;
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:39:7: Error: 'Foo' is already declared in this scope.
+//   int Foo;
+//       ^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:12:7: Context: Previous declaration of 'Foo'.
+//   get Foo {
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:40:10: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   int A, Foo, B;
+//          ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:40:10: Error: 'Foo' is already declared in this scope.
+//   int A, Foo, B;
+//          ^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:39:7: Context: Previous declaration of 'Foo'.
+//   int Foo;
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:24:7: Error: Conflicts with member 'Foo'.
+//   set Foo {
+//       ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:40:10: Error: Conflicts with setter 'Foo'.
+//   int A, Foo, B;
+//          ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:5:13: Error: 'initializer' isn't an instance field of this class.
+//   foo.x() : initializer = true {
+//             ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:8:11: Error: 'initializer' isn't an instance field of this class.
+//   foo() : initializer = true {
+//           ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:15:16: Error: Constructors can't have a return type.
+// Try removing the return type.
+//   get Foo.X => 0;
+//                ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:17:5: Error: Constructors can't have a return type.
+// Try removing the return type.
+//     return 0;
+//     ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:19:13: Error: 'bla' isn't an instance field of this class.
+//   get Foo : bla = null => 0;
+//             ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:19:27: Error: Constructors can't have a return type.
+// Try removing the return type.
+//   get Foo : bla = null => 0;
+//                           ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:20:15: Error: 'bla' isn't an instance field of this class.
+//   get Foo.X : bla = null {
+//               ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:21:5: Error: Constructors can't have a return type.
+// Try removing the return type.
+//     return 0;
+//     ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:23:11: Error: A setter should have exactly one formal parameter.
+//   set Foo => 0;
+//           ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:25:12: Error: Can't return a value from a void function.
+//     return 0;
+//            ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:24:11: Error: A setter should have exactly one formal parameter.
+//   set Foo {
+//           ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:27:16: Error: Constructors can't have a return type.
+// Try removing the return type.
+//   set Foo.X => 0;
+//                ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:29:5: Error: Constructors can't have a return type.
+// Try removing the return type.
+//     return 0;
+//     ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:31:13: Error: 'bla' isn't an instance field of this class.
+//   set Foo : bla = null => 0;
+//             ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:31:27: Error: Constructors can't have a return type.
+// Try removing the return type.
+//   set Foo : bla = null => 0;
+//                           ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:32:15: Error: 'bla' isn't an instance field of this class.
+//   set Foo.X : bla = null {
+//               ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:33:5: Error: Constructors can't have a return type.
+// Try removing the return type.
+//     return 0;
+//     ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:37:5: Error: Constructors can't have a return type.
+// Try removing the return type.
+//     return 0;
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  field core::int* A = null;
+  field core::int* B = null;
+  constructor x() → self::Foo*
+    : super core::Object::•() {}
+  constructor foo() → self::Foo*
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:8:11: Error: 'initializer' isn't an instance field of this class.
+  foo() : initializer = true {
+          ^^^^^^^^^^^" {}
+  constructor X() → self::Foo*
+    : super core::Object::•()
+    invalid-expression "pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:15:16: Error: Constructors can't have a return type.
+Try removing the return type.
+  get Foo.X => 0;
+               ^";
+  constructor •() → self::Foo*
+    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:19:13: Error: 'bla' isn't an instance field of this class.
+  get Foo : bla = null => 0;
+            ^^^"
+    invalid-expression "pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:19:27: Error: Constructors can't have a return type.
+Try removing the return type.
+  get Foo : bla = null => 0;
+                          ^";
+  get Foo() → dynamic
+    return 0;
+  set Foo(dynamic #synthetic) → void {
+    invalid-expression "pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:23:11: Error: A setter should have exactly one formal parameter.
+  set Foo => 0;
+          ^";
+    return 0;
+  }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}

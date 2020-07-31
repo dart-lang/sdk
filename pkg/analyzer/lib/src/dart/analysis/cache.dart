@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * LRU cache of objects.
- */
+/// LRU cache of objects.
 class Cache<K, V> {
   final int _maxSizeBytes;
   final int Function(V) _meter;

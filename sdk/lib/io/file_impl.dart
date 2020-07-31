@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.io;
 
 // Read the file in blocks of size 64k.
@@ -11,13 +9,13 @@ const int _blockSize = 64 * 1024;
 
 class _FileStream extends Stream<List<int>> {
   // Stream controller.
-  StreamController<Uint8List> _controller;
+  late StreamController<Uint8List> _controller;
 
   // Information about the underlying file.
-  String _path;
-  RandomAccessFile _openedFile;
+  String? _path;
+  late RandomAccessFile _openedFile;
   int _position;
-  int _end;
+  int? _end;
   final Completer _closeCompleter = new Completer();
 
   // Has the stream been paused or unsubscribed?
@@ -29,20 +27,12 @@ class _FileStream extends Stream<List<int>> {
 
   bool _atEnd = false;
 
-  _FileStream(this._path, this._position, this._end) {
-    _position ??= 0;
-  }
+  _FileStream(this._path, int? position, this._end) : _position = position ?? 0;
 
   _FileStream.forStdin() : _position = 0;
 
-  StreamSubscription<Uint8List> listen(void onData(Uint8List event),
-      {Function onError, void onDone(), bool cancelOnError}) {
-    _setupController();
-    return _controller.stream.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
-  }
-
-  void _setupController() {
+  StreamSubscription<Uint8List> listen(void onData(Uint8List event)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     _controller = new StreamController<Uint8List>(
         sync: true,
         onListen: _start,
@@ -51,6 +41,8 @@ class _FileStream extends Stream<List<int>> {
           _unsubscribed = true;
           return _closeFile();
         });
+    return _controller.stream.listen(onData,
+        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
   Future _closeFile() {
@@ -77,12 +69,13 @@ class _FileStream extends Stream<List<int>> {
     }
     _readInProgress = true;
     int readBytes = _blockSize;
-    if (_end != null) {
-      readBytes = min(readBytes, _end - _position);
+    final end = _end;
+    if (end != null) {
+      readBytes = min(readBytes, end - _position);
       if (readBytes < 0) {
         _readInProgress = false;
         if (!_unsubscribed) {
-          _controller.addError(new RangeError("Bad end position: $_end"));
+          _controller.addError(new RangeError("Bad end position: $end"));
           _closeFile();
           _unsubscribed = true;
         }
@@ -147,8 +140,9 @@ class _FileStream extends Stream<List<int>> {
       _closeCompleter.complete();
     }
 
-    if (_path != null) {
-      new File(_path)
+    final path = _path;
+    if (path != null) {
+      new File(path)
           .open(mode: FileMode.read)
           .then(onOpenFile, onError: openFailed);
     } else {
@@ -162,22 +156,21 @@ class _FileStream extends Stream<List<int>> {
 }
 
 class _FileStreamConsumer extends StreamConsumer<List<int>> {
-  File _file;
+  File? _file;
   Future<RandomAccessFile> _openFuture;
 
-  _FileStreamConsumer(this._file, FileMode mode) {
-    _openFuture = _file.open(mode: mode);
-  }
+  _FileStreamConsumer(File file, FileMode mode)
+      : _file = file,
+        _openFuture = file.open(mode: mode);
 
-  _FileStreamConsumer.fromStdio(int fd) {
-    _openFuture = new Future.value(_File._openStdioSync(fd));
-  }
+  _FileStreamConsumer.fromStdio(int fd)
+      : _openFuture = new Future.value(_File._openStdioSync(fd));
 
-  Future<File> addStream(Stream<List<int>> stream) {
-    Completer<File> completer = new Completer<File>.sync();
+  Future<File?> addStream(Stream<List<int>> stream) {
+    Completer<File?> completer = new Completer<File?>.sync();
     _openFuture.then((openedFile) {
-      var _subscription;
-      void error(e, [StackTrace stackTrace]) {
+      late StreamSubscription<List<int>> _subscription;
+      void error(e, StackTrace stackTrace) {
         _subscription.cancel();
         openedFile.close();
         completer.completeError(e, stackTrace);
@@ -199,26 +192,23 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
     return completer.future;
   }
 
-  Future<File> close() =>
+  Future<File?> close() =>
       _openFuture.then((openedFile) => openedFile.close()).then((_) => _file);
 }
 
 // Class for encapsulating the native implementation of files.
 class _File extends FileSystemEntity implements File {
-  String _path;
-  Uint8List _rawPath;
+  final String _path;
+  final Uint8List _rawPath;
 
-  _File(String path) {
-    ArgumentError.checkNotNull(path, 'path');
-    _path = path;
-    _rawPath = FileSystemEntity._toUtf8Array(path);
-  }
+  _File(String path)
+      : _path = _checkNotNull(path, "path"),
+        _rawPath = FileSystemEntity._toUtf8Array(path);
 
-  _File.fromRawPath(Uint8List rawPath) {
-    ArgumentError.checkNotNull(rawPath, 'rawPath');
-    _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(rawPath);
-    _path = FileSystemEntity._toStringFromUtf8Array(rawPath);
-  }
+  _File.fromRawPath(Uint8List rawPath)
+      : _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(
+            _checkNotNull(rawPath, "rawPath")),
+        _path = FileSystemEntity._toStringFromUtf8Array(rawPath);
 
   String get path => _path;
 
@@ -500,7 +490,7 @@ class _File extends FileSystemEntity implements File {
     return new _RandomAccessFile(id, "");
   }
 
-  Stream<List<int>> openRead([int start, int end]) {
+  Stream<List<int>> openRead([int? start, int? end]) {
     return new _FileStream(path, start, end);
   }
 
@@ -645,6 +635,12 @@ class _File extends FileSystemEntity implements File {
       throw new FileSystemException(msg, path, result);
     }
   }
+
+  // TODO(40614): Remove once non-nullability is sound.
+  static T _checkNotNull<T>(T t, String name) {
+    ArgumentError.checkNotNull(t, name);
+    return t;
+  }
 }
 
 abstract class _RandomAccessFileOps {
@@ -654,9 +650,9 @@ abstract class _RandomAccessFileOps {
   int close();
   readByte();
   read(int bytes);
-  readInto(List<int> buffer, int start, int end);
+  readInto(List<int> buffer, int start, int? end);
   writeByte(int value);
-  writeFrom(List<int> buffer, int start, int end);
+  writeFrom(List<int> buffer, int start, int? end);
   position();
   setPosition(int position);
   truncate(int length);
@@ -671,13 +667,12 @@ class _RandomAccessFile implements RandomAccessFile {
   final String path;
 
   bool _asyncDispatched = false;
-  SendPort _fileService;
 
-  _FileResourceInfo _resourceInfo;
+  late _FileResourceInfo _resourceInfo;
   _RandomAccessFileOps _ops;
 
-  _RandomAccessFile(int pointer, this.path) {
-    _ops = new _RandomAccessFileOps(pointer);
+  _RandomAccessFile(int pointer, this.path)
+      : _ops = new _RandomAccessFileOps(pointer) {
     _resourceInfo = new _FileResourceInfo(this);
     _maybeConnectHandler();
   }
@@ -744,7 +739,8 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<Uint8List> read(int bytes) {
-    ArgumentError.checkNotNull(bytes, 'bytes');
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(bytes, "bytes");
     return _dispatch(_IOService.fileRead, [null, bytes]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "read failed", path);
@@ -756,8 +752,9 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Uint8List readSync(int bytes) {
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(bytes, "bytes");
     _checkAvailable();
-    ArgumentError.checkNotNull(bytes, 'bytes');
     var result = _ops.read(bytes);
     if (result is OSError) {
       throw new FileSystemException("readSync failed", path, result);
@@ -766,12 +763,9 @@ class _RandomAccessFile implements RandomAccessFile {
     return result;
   }
 
-  Future<int> readInto(List<int> buffer, [int start = 0, int end]) {
-    if ((buffer is! List) ||
-        ((start != null) && (start is! int)) ||
-        ((end != null) && (end is! int))) {
-      throw new ArgumentError();
-    }
+  Future<int> readInto(List<int> buffer, [int start = 0, int? end]) {
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(buffer, "buffer");
     end = RangeError.checkValidRange(start, end, buffer.length);
     if (end == start) {
       return new Future.value(0);
@@ -789,13 +783,10 @@ class _RandomAccessFile implements RandomAccessFile {
     });
   }
 
-  int readIntoSync(List<int> buffer, [int start = 0, int end]) {
+  int readIntoSync(List<int> buffer, [int start = 0, int? end]) {
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(buffer, "buffer");
     _checkAvailable();
-    if ((buffer is! List) ||
-        ((start != null) && (start is! int)) ||
-        ((end != null) && (end is! int))) {
-      throw new ArgumentError();
-    }
     end = RangeError.checkValidRange(start, end, buffer.length);
     if (end == start) {
       return 0;
@@ -809,7 +800,8 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> writeByte(int value) {
-    ArgumentError.checkNotNull(value, 'value');
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(value, "value");
     return _dispatch(_IOService.fileWriteByte, [null, value]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "writeByte failed", path);
@@ -821,7 +813,8 @@ class _RandomAccessFile implements RandomAccessFile {
 
   int writeByteSync(int value) {
     _checkAvailable();
-    ArgumentError.checkNotNull(value, 'value');
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(value, "value");
     var result = _ops.writeByte(value);
     if (result is OSError) {
       throw new FileSystemException("writeByte failed", path, result);
@@ -831,12 +824,10 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> writeFrom(List<int> buffer,
-      [int start = 0, int end]) {
-    if ((buffer is! List) ||
-        ((start != null) && (start is! int)) ||
-        ((end != null) && (end is! int))) {
-      throw new ArgumentError("Invalid arguments to writeFrom");
-    }
+      [int start = 0, int? end]) {
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(buffer, "buffer");
+    ArgumentError.checkNotNull(start, "start");
     end = RangeError.checkValidRange(start, end, buffer.length);
     if (end == start) {
       return new Future.value(this);
@@ -848,7 +839,7 @@ class _RandomAccessFile implements RandomAccessFile {
       return new Future.error(e);
     }
 
-    List request = new List(4);
+    List request = new List<dynamic>.filled(4, null);
     request[0] = null;
     request[1] = result.buffer;
     request[2] = result.start;
@@ -857,18 +848,16 @@ class _RandomAccessFile implements RandomAccessFile {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "writeFrom failed", path);
       }
-      _resourceInfo.addWrite(end - (start - result.start));
+      _resourceInfo.addWrite(end! - (start - result.start));
       return this;
     });
   }
 
-  void writeFromSync(List<int> buffer, [int start = 0, int end]) {
+  void writeFromSync(List<int> buffer, [int start = 0, int? end]) {
     _checkAvailable();
-    if ((buffer is! List) ||
-        ((start != null) && (start is! int)) ||
-        ((end != null) && (end is! int))) {
-      throw new ArgumentError("Invalid arguments to writeFromSync");
-    }
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(buffer, "buffer");
+    ArgumentError.checkNotNull(start, "start");
     end = RangeError.checkValidRange(start, end, buffer.length);
     if (end == start) {
       return;
@@ -885,13 +874,15 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<RandomAccessFile> writeString(String string,
       {Encoding encoding: utf8}) {
-    ArgumentError.checkNotNull(encoding, 'encoding');
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(encoding, "encoding");
     var data = encoding.encode(string);
     return writeFrom(data, 0, data.length);
   }
 
   void writeStringSync(String string, {Encoding encoding: utf8}) {
-    ArgumentError.checkNotNull(encoding, 'encoding');
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(encoding, "encoding");
     var data = encoding.encode(string);
     writeFromSync(data, 0, data.length);
   }
@@ -994,9 +985,10 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<RandomAccessFile> lock(
       [FileLock mode = FileLock.exclusive, int start = 0, int end = -1]) {
-    if ((mode is! FileLock) || (start is! int) || (end is! int)) {
-      throw new ArgumentError();
-    }
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(mode, "mode");
+    ArgumentError.checkNotNull(start, "start");
+    ArgumentError.checkNotNull(end, "end");
     if ((start < 0) || (end < -1) || ((end != -1) && (start >= end))) {
       throw new ArgumentError();
     }
@@ -1011,9 +1003,9 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> unlock([int start = 0, int end = -1]) {
-    if ((start is! int) || (end is! int)) {
-      throw new ArgumentError();
-    }
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(start, "start");
+    ArgumentError.checkNotNull(end, "end");
     if (start == end) {
       throw new ArgumentError();
     }
@@ -1029,9 +1021,10 @@ class _RandomAccessFile implements RandomAccessFile {
   void lockSync(
       [FileLock mode = FileLock.exclusive, int start = 0, int end = -1]) {
     _checkAvailable();
-    if ((mode is! FileLock) || (start is! int) || (end is! int)) {
-      throw new ArgumentError();
-    }
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(mode, "mode");
+    ArgumentError.checkNotNull(start, "start");
+    ArgumentError.checkNotNull(end, "end");
     if ((start < 0) || (end < -1) || ((end != -1) && (start >= end))) {
       throw new ArgumentError();
     }
@@ -1044,9 +1037,9 @@ class _RandomAccessFile implements RandomAccessFile {
 
   void unlockSync([int start = 0, int end = -1]) {
     _checkAvailable();
-    if ((start is! int) || (end is! int)) {
-      throw new ArgumentError();
-    }
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(start, "start");
+    ArgumentError.checkNotNull(end, "end");
     if (start == end) {
       throw new ArgumentError();
     }

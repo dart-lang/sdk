@@ -10,10 +10,10 @@
 
 namespace dart {
 
-RawField* LookupField(Dart_Handle library,
-                      const char* class_name,
-                      const char* field_name) {
-  RawLibrary* raw_library = Library::RawCast(Api::UnwrapHandle(library));
+FieldPtr LookupField(Dart_Handle library,
+                     const char* class_name,
+                     const char* field_name) {
+  LibraryPtr raw_library = Library::RawCast(Api::UnwrapHandle(library));
   Library& lib = Library::ZoneHandle(raw_library);
   const String& classname =
       String::Handle(Symbols::New(Thread::Current(), class_name));
@@ -32,7 +32,7 @@ TEST_CASE(GuardFieldSimpleTest) {
       "class A {\n"
       "  var f1 = 3.0;\n"
       "  dynamic f2 = 3;\n"
-      "  var f3 = new List(4);\n"
+      "  var f3 = List<dynamic>.filled(4, null);\n"
       "  foo() {\n"
       "    f1 = f1 + f1;\n"
       "  }\n"
@@ -43,14 +43,14 @@ TEST_CASE(GuardFieldSimpleTest) {
       "}\n"
       "\n"
       "runFoo() {\n"
-      "  var a = new A();\n"
+      "  var a = A();\n"
       "  for (int i = 0; i < 2000; i++) {\n"
       "    a.foo();\n"
       "  }\n"
       "}\n"
       "\n"
       "runBar() {\n"
-      "  var a = new A();\n"
+      "  var a = A();\n"
       "  for (int i = 0; i < 2000; i++) {\n"
       "    a.bar();\n"
       "  }\n"
@@ -83,7 +83,7 @@ TEST_CASE(GuardFieldFinalListTest) {
       "class A {\n"
       "  var f1 = 3.0;\n"
       "  dynamic f2 = 3;\n"
-      "  final f3 = new List(4);\n"
+      "  final f3 = List<dynamic>.filled(4, null);\n"
       "  foo() {\n"
       "    f1 = f1 + f1;\n"
       "  }\n"
@@ -94,14 +94,14 @@ TEST_CASE(GuardFieldFinalListTest) {
       "}\n"
       "\n"
       "runFoo() {\n"
-      "  var a = new A();\n"
+      "  var a = A();\n"
       "  for (int i = 0; i < 2000; i++) {\n"
       "    a.foo();\n"
       "  }\n"
       "}\n"
       "\n"
       "runBar() {\n"
-      "  var a = new A();\n"
+      "  var a = A();\n"
       "  for (int i = 0; i < 2000; i++) {\n"
       "    a.bar();\n"
       "  }\n"
@@ -136,7 +136,7 @@ TEST_CASE(GuardFieldFinalVariableLengthListTest) {
       "class A {\n"
       "  var f1 = 3.0;\n"
       "  dynamic f2 = 3;\n"
-      "  final f3 = new List();\n"
+      "  final f3 = List.empty(growable: true);\n"
       "  foo() {\n"
       "    f1 = f1 + f1;\n"
       "  }\n"
@@ -147,14 +147,14 @@ TEST_CASE(GuardFieldFinalVariableLengthListTest) {
       "}\n"
       "\n"
       "runFoo() {\n"
-      "  var a = new A();\n"
+      "  var a = A();\n"
       "  for (int i = 0; i < 2000; i++) {\n"
       "    a.foo();\n"
       "  }\n"
       "}\n"
       "\n"
       "runBar() {\n"
-      "  var a = new A();\n"
+      "  var a = A();\n"
       "  for (int i = 0; i < 2000; i++) {\n"
       "    a.bar();\n"
       "  }\n"

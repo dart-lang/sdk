@@ -1,0 +1,9 @@
+library test;
+
+var x = 'x';
+
+class C {
+  var y = x;
+}
+
+main() {}

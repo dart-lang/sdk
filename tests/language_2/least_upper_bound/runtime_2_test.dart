@@ -7,6 +7,9 @@
 
 // Test least upper bound through type checking of conditionals.
 
+// [NNBD non-migrated]: This test relies on implicit downcasts, so isn't
+// meaningful under NNBD.
+
 class A {
   var a;
 }

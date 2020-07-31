@@ -5,7 +5,9 @@
 #ifndef RUNTIME_VM_COMPILER_FRONTEND_PROLOGUE_BUILDER_H_
 #define RUNTIME_VM_COMPILER_FRONTEND_PROLOGUE_BUILDER_H_
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/compiler/frontend/base_flow_graph_builder.h"
 
@@ -75,7 +77,7 @@ class PrologueBuilder : public BaseFlowGraphBuilder {
     }
 
     ASSERT(parsed_function_->function().kind() ==
-           RawFunction::kNoSuchMethodDispatcher);
+           FunctionLayout::kNoSuchMethodDispatcher);
     return Instance::null_instance();
   }
 
@@ -90,5 +92,4 @@ class PrologueBuilder : public BaseFlowGraphBuilder {
 }  // namespace kernel
 }  // namespace dart
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // RUNTIME_VM_COMPILER_FRONTEND_PROLOGUE_BUILDER_H_

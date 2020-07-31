@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.convert;
 
 /// This class provides an interface for converters to
@@ -81,11 +79,11 @@ class _ClosableStringSink implements ClosableStringSink {
     _sink.writeCharCode(charCode);
   }
 
-  void write(Object o) {
+  void write(Object? o) {
     _sink.write(o);
   }
 
-  void writeln([Object o = ""]) {
+  void writeln([Object? o = ""]) {
     _sink.writeln(o);
   }
 
@@ -101,8 +99,8 @@ class _ClosableStringSink implements ClosableStringSink {
 class _StringConversionSinkAsStringSinkAdapter implements ClosableStringSink {
   static const _MIN_STRING_SIZE = 16;
 
-  StringBuffer _buffer;
-  StringConversionSink _chunkedSink;
+  final StringBuffer _buffer;
+  final StringConversionSink _chunkedSink;
 
   _StringConversionSinkAsStringSinkAdapter(this._chunkedSink)
       : _buffer = StringBuffer();
@@ -117,12 +115,12 @@ class _StringConversionSinkAsStringSinkAdapter implements ClosableStringSink {
     if (_buffer.length > _MIN_STRING_SIZE) _flush();
   }
 
-  void write(Object o) {
+  void write(Object? o) {
     if (_buffer.isNotEmpty) _flush();
     _chunkedSink.add(o.toString());
   }
 
-  void writeln([Object o = ""]) {
+  void writeln([Object? o = ""]) {
     _buffer.writeln(o);
     if (_buffer.length > _MIN_STRING_SIZE) _flush();
   }
@@ -177,10 +175,11 @@ abstract class StringConversionSinkMixin implements StringConversionSink {
 /// This class is a [StringConversionSink] that wraps a [StringSink].
 class _StringSinkConversionSink<TStringSink extends StringSink>
     extends StringConversionSinkBase {
-  TStringSink _stringSink;
+  final TStringSink _stringSink;
   _StringSinkConversionSink(this._stringSink);
 
   void close() {}
+
   void addSlice(String str, int start, int end, bool isLast) {
     if (start != 0 || end != str.length) {
       for (var i = start; i < end; i++) {
@@ -211,6 +210,7 @@ class _StringSinkConversionSink<TStringSink extends StringSink>
 /// This class can be used to terminate a chunked conversion.
 class _StringCallbackSink extends _StringSinkConversionSink<StringBuffer> {
   final void Function(String) _callback;
+
   _StringCallbackSink(this._callback) : super(StringBuffer());
 
   void close() {
@@ -253,16 +253,19 @@ class _StringAdapterSink extends StringConversionSinkBase {
 }
 
 /// Decodes UTF-8 code units and stores them in a [StringSink].
+///
+/// The `Sink` provided is closed when this sink is closed.
 class _Utf8StringSinkAdapter extends ByteConversionSink {
   final _Utf8Decoder _decoder;
-  final Sink _sink;
+  final Sink<Object?> _sink;
+  final StringSink _stringSink;
 
-  _Utf8StringSinkAdapter(this._sink, StringSink stringSink, bool allowMalformed)
-      : _decoder = _Utf8Decoder(stringSink, allowMalformed);
+  _Utf8StringSinkAdapter(this._sink, this._stringSink, bool allowMalformed)
+      : _decoder = _Utf8Decoder(allowMalformed);
 
   void close() {
-    _decoder.close();
-    if (_sink != null) _sink.close();
+    _decoder.flush(_stringSink);
+    _sink.close();
   }
 
   void add(List<int> chunk) {
@@ -271,7 +274,7 @@ class _Utf8StringSinkAdapter extends ByteConversionSink {
 
   void addSlice(
       List<int> codeUnits, int startIndex, int endIndex, bool isLast) {
-    _decoder.convert(codeUnits, startIndex, endIndex);
+    _stringSink.write(_decoder.convertChunked(codeUnits, startIndex, endIndex));
     if (isLast) close();
   }
 }
@@ -289,11 +292,11 @@ class _Utf8ConversionSink extends ByteConversionSink {
 
   _Utf8ConversionSink._(
       this._chunkedSink, StringBuffer stringBuffer, bool allowMalformed)
-      : _decoder = _Utf8Decoder(stringBuffer, allowMalformed),
+      : _decoder = _Utf8Decoder(allowMalformed),
         _buffer = stringBuffer;
 
   void close() {
-    _decoder.close();
+    _decoder.flush(_buffer);
     if (_buffer.isNotEmpty) {
       var accumulated = _buffer.toString();
       _buffer.clear();
@@ -308,7 +311,7 @@ class _Utf8ConversionSink extends ByteConversionSink {
   }
 
   void addSlice(List<int> chunk, int startIndex, int endIndex, bool isLast) {
-    _decoder.convert(chunk, startIndex, endIndex);
+    _buffer.write(_decoder.convertChunked(chunk, startIndex, endIndex));
     if (_buffer.isNotEmpty) {
       var accumulated = _buffer.toString();
       _chunkedSink.addSlice(accumulated, 0, accumulated.length, isLast);

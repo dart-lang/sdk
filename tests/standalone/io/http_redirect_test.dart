@@ -337,9 +337,9 @@ void testAutoRedirectLimit() {
   setupServer().then((server) {
     HttpClient client = new HttpClient();
 
-    client
-        .getUrl(Uri.parse("http://127.0.0.1:${server.port}/1"))
-        .then((HttpClientRequest request) => request.close())
+    Future<HttpClientResponse?>.value(client
+            .getUrl(Uri.parse("http://127.0.0.1:${server.port}/1"))
+            .then((HttpClientRequest request) => request.close()))
         .catchError((error) {
       Expect.equals(5, error.redirects.length);
       server.close();
@@ -353,9 +353,9 @@ void testRedirectLoop() {
     HttpClient client = new HttpClient();
 
     int redirectCount = 0;
-    client
-        .getUrl(Uri.parse("http://127.0.0.1:${server.port}/A"))
-        .then((HttpClientRequest request) => request.close())
+    Future<HttpClientResponse?>.value(client
+            .getUrl(Uri.parse("http://127.0.0.1:${server.port}/A"))
+            .then((HttpClientRequest request) => request.close()))
         .catchError((error) {
       Expect.equals(2, error.redirects.length);
       server.close();

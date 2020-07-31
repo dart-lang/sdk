@@ -7,15 +7,14 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-// @dart = 2.6
-
 library dart._http;
 
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 import "dart:math";
 import "dart:typed_data";
+
+import "package:expect/expect.dart";
 
 part "../../../sdk/lib/_http/crypto.dart";
 
@@ -29,7 +28,7 @@ void testPing(int totalConnections) {
       response.statusCode = HttpStatus.switchingProtocols;
       response.headers.set(HttpHeaders.connectionHeader, "upgrade");
       response.headers.set(HttpHeaders.upgradeHeader, "websocket");
-      String key = request.headers.value("Sec-WebSocket-Key");
+      String? key = request.headers.value("Sec-WebSocket-Key");
       _SHA1 sha1 = new _SHA1();
       sha1.add("$key$webSocketGUID".codeUnits);
       String accept = _CryptoUtils.bytesToBase64(sha1.close());

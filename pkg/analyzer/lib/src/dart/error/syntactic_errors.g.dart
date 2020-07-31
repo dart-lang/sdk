@@ -246,9 +246,9 @@ const ParserErrorCode _EXPECTED_INSTEAD =
 
 const ParserErrorCode _EXPERIMENT_NOT_ENABLED = ParserErrorCode(
     'EXPERIMENT_NOT_ENABLED',
-    r"This requires the '#string' experiment to be enabled.",
+    r"This requires the '#string' language feature to be enabled.",
     correction:
-        "Try enabling this experiment by adding it to the command line when compiling and running.");
+        "Try updating your pubspec.yaml to set the minimum SDK constraint to #string2 or higher, and running 'pub get'.");
 
 const ParserErrorCode _EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = ParserErrorCode(
     'EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',

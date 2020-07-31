@@ -12,7 +12,7 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
@@ -26,18 +26,6 @@ enum _SortingField { externalSize, peer, finalizerCallback }
 enum _SortingDirection { ascending, descending }
 
 class PersistentHandlesPageElement extends CustomElement implements Renderable {
-  static const tag = const Tag<PersistentHandlesPageElement>(
-      'persistent-handles-page',
-      dependencies: const [
-        InstanceRefElement.tag,
-        NavTopMenuElement.tag,
-        NavVMMenuElement.tag,
-        NavIsolateMenuElement.tag,
-        NavRefreshElement.tag,
-        NavNotifyElement.tag,
-        VirtualCollectionElement.tag
-      ]);
-
   RenderingScheduler<PersistentHandlesPageElement> _r;
 
   Stream<RenderedEvent<PersistentHandlesPageElement>> get onRendered =>
@@ -83,7 +71,7 @@ class PersistentHandlesPageElement extends CustomElement implements Renderable {
     return e;
   }
 
-  PersistentHandlesPageElement.created() : super.created(tag);
+  PersistentHandlesPageElement.created() : super.created('persistent-handles-page');
 
   @override
   attached() {

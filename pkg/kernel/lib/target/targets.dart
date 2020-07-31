@@ -17,7 +17,7 @@ class TargetFlags {
   final bool forceNoExplicitGetterCallsForTesting;
   final bool enableNullSafety;
 
-  TargetFlags(
+  const TargetFlags(
       {this.trackWidgetCreation = false,
       this.forceLateLoweringForTesting = false,
       this.forceNoExplicitGetterCallsForTesting = false,

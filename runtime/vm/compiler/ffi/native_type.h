@@ -9,10 +9,15 @@
 
 #include "platform/assert.h"
 #include "vm/allocation.h"
-#include "vm/compiler/backend/locations.h"
 #include "vm/compiler/runtime_api.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/backend/locations.h"
+#endif
+
 namespace dart {
+
+class BufferFormatter;
 
 namespace compiler {
 
@@ -31,7 +36,7 @@ class NativeFundamentalType;
 // * tagged
 // * untagged
 //
-// Instead, NativeTypes support representations not supprted in Dart's unboxed
+// Instead, NativeTypes support representations not supported in Dart's unboxed
 // Representations, such as:
 // * Fundamental types (https://en.cppreference.com/w/cpp/language/types):
 //   * int8_t
@@ -48,8 +53,11 @@ class NativeType : public ZoneAllocated {
  public:
   static NativeType& FromAbstractType(const AbstractType& type, Zone* zone);
   static NativeType& FromTypedDataClassId(classid_t class_id, Zone* zone);
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static NativeFundamentalType& FromUnboxedRepresentation(Representation rep,
                                                           Zone* zone);
+#endif
 
   virtual bool IsFundamental() const { return false; }
   const NativeFundamentalType& AsFundamental() const;
@@ -71,6 +79,7 @@ class NativeType : public ZoneAllocated {
   // The alignment in bytes of this representation as member of a composite.
   virtual intptr_t AlignmentInBytesField() const = 0;
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // NativeTypes which are available as unboxed Representations.
   virtual bool IsExpressibleAsRepresentation() const { return false; }
 
@@ -82,6 +91,7 @@ class NativeType : public ZoneAllocated {
     const auto& widened = WidenTo4Bytes(zone_);
     return widened.AsRepresentation();
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   virtual bool Equals(const NativeType& other) const { UNREACHABLE(); }
 
@@ -135,8 +145,10 @@ class NativeFundamentalType : public NativeType {
   virtual intptr_t AlignmentInBytesStack() const;
   virtual intptr_t AlignmentInBytesField() const;
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   virtual bool IsExpressibleAsRepresentation() const;
   virtual Representation AsRepresentation() const;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   virtual bool Equals(const NativeType& other) const;
   virtual NativeFundamentalType& Split(intptr_t part, Zone* zone) const;

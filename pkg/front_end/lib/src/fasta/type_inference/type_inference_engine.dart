@@ -11,11 +11,13 @@ import 'package:kernel/ast.dart'
         DartTypeVisitor,
         Field,
         FunctionType,
+        FutureOrType,
         InterfaceType,
         Member,
         NamedType,
         NeverType,
         Nullability,
+        Statement,
         TreeNode,
         TypeParameter,
         TypeParameterType,
@@ -35,10 +37,14 @@ import '../builder/constructor_builder.dart';
 
 import '../kernel/forest.dart';
 
+import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
+
 import '../kernel/kernel_builder.dart'
     show ClassHierarchyBuilder, ImplicitFieldType;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import 'factor_type.dart';
 
 import 'type_inferrer.dart';
 
@@ -87,6 +93,11 @@ class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
     }
     _variance = oldVariance;
     return false;
+  }
+
+  @override
+  bool visitFutureOrType(FutureOrType node) {
+    return node.typeArgument.accept(this);
   }
 
   @override
@@ -236,7 +247,7 @@ class FlowAnalysisResult {
 
   /// The list of [Expression]s representing variable accesses that occur before
   /// the corresponding variable has been definitely assigned.
-  final List<TreeNode> unassignedNodes = [];
+  final List<TreeNode> potentiallyUnassignedNodes = [];
 
   /// The list of [Expression]s representing variable accesses that occur when
   /// the corresponding variable has been definitely unassigned.
@@ -247,11 +258,23 @@ class FlowAnalysisResult {
 }
 
 /// CFE-specific implementation of [TypeOperations].
-class TypeOperationsCfe
-    implements TypeOperations<VariableDeclaration, DartType> {
+class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
   final TypeEnvironment typeEnvironment;
 
   TypeOperationsCfe(this.typeEnvironment);
+
+  @override
+  DartType factor(DartType from, DartType what) {
+    return factorType(typeEnvironment, from, what);
+  }
+
+  @override
+  bool isLocalVariableWithoutDeclaredType(VariableDeclaration variable) {
+    return variable is VariableDeclarationImpl &&
+        variable.parent is Statement &&
+        variable.isImplicitlyTyped &&
+        !variable.hasDeclaredInitializer;
+  }
 
   // TODO(dmitryas): Consider checking for mutual subtypes instead of ==.
   @override
@@ -266,17 +289,18 @@ class TypeOperationsCfe
   @override
   DartType promoteToNonNull(DartType type) {
     if (type is TypeParameterType &&
-        type.typeParameterTypeNullability != Nullability.nullable) {
-      DartType bound = type.bound.withNullability(Nullability.nonNullable);
+        type.declaredNullability != Nullability.nullable) {
+      DartType bound =
+          type.bound.withDeclaredNullability(Nullability.nonNullable);
       if (bound != type.bound) {
         return new TypeParameterType(
-            type.parameter, type.typeParameterTypeNullability, bound);
+            type.parameter, type.declaredNullability, bound);
       }
       return type;
     } else if (type == typeEnvironment.nullType) {
       return const NeverType(Nullability.nonNullable);
     }
-    return type.withNullability(Nullability.nonNullable);
+    return type.withDeclaredNullability(Nullability.nonNullable);
   }
 
   @override

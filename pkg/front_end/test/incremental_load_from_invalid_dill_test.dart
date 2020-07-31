@@ -40,7 +40,8 @@ import 'package:front_end/src/fasta/incremental_compiler.dart'
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 
-import 'package:kernel/kernel.dart' show Component, Library;
+import 'package:kernel/kernel.dart'
+    show Component, Library, NonNullableByDefaultCompiledMode;
 
 import 'incremental_load_from_dill_suite.dart' show getOptions;
 
@@ -235,6 +236,38 @@ main() {
     // Create a dill with a reference to a non-existing sdk thing:
     // Should be ok (for now), but we shouldn't actually initialize from dill.
     fs.entityForUri(initializeFrom).writeAsBytesSync(dataLinkedToSdkWithFoo);
+    await compileExpectOk(false, entryPoint);
+
+    // Try to initialize from a dill which contains mixed compilation modes:
+    // Should be ok, but we shouldn't actually initialize from dill.
+    List<int> mixedPart1;
+    {
+      compiler = new IncrementalCompiler(
+          new CompilerContext(
+              new ProcessedOptions(options: options, inputs: [helper2File])),
+          null);
+      Component c = await compiler.computeDelta();
+      c.setMainMethodAndMode(
+          null, false, NonNullableByDefaultCompiledMode.Disabled);
+      mixedPart1 = serializeComponent(c);
+    }
+
+    List<int> mixedPart2;
+    {
+      compiler = new IncrementalCompiler(
+          new CompilerContext(
+              new ProcessedOptions(options: options, inputs: [helperFile])),
+          null);
+      Component c = await compiler.computeDelta();
+      c.setMainMethodAndMode(
+          null, false, NonNullableByDefaultCompiledMode.Strong);
+      mixedPart2 = serializeComponent(c);
+    }
+
+    List<int> mixed = [];
+    mixed.addAll(mixedPart1);
+    mixed.addAll(mixedPart2);
+    fs.entityForUri(initializeFrom).writeAsBytesSync(mixed);
     await compileExpectOk(false, entryPoint);
   }
 }

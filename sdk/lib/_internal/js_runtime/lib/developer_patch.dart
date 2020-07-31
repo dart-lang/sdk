@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // Patch file for dart:developer library.
 
 import 'dart:_js_helper' show patch, ForceInline;
@@ -13,7 +11,7 @@ import 'dart:isolate';
 
 @patch
 @pragma('dart2js:tryInline')
-bool debugger({bool when: true, String message}) {
+bool debugger({bool when = true, String? message}) {
   if (when) {
     JS('', 'debugger');
   }
@@ -21,26 +19,26 @@ bool debugger({bool when: true, String message}) {
 }
 
 @patch
-Object inspect(Object object) {
+Object? inspect(Object? object) {
   return object;
 }
 
 @patch
 void log(String message,
-    {DateTime time,
-    int sequenceNumber,
-    int level: 0,
-    String name: '',
-    Zone zone,
-    Object error,
-    StackTrace stackTrace}) {
+    {DateTime? time,
+    int? sequenceNumber,
+    int level = 0,
+    String name = '',
+    Zone? zone,
+    Object? error,
+    StackTrace? stackTrace}) {
   // TODO.
 }
 
-final _extensions = new Map<String, ServiceExtensionHandler>();
+final _extensions = <String, ServiceExtensionHandler>{};
 
 @patch
-ServiceExtensionHandler _lookupExtension(String method) {
+ServiceExtensionHandler? _lookupExtension(String method) {
   return _extensions[method];
 }
 
@@ -110,7 +108,7 @@ void _webServerControl(SendPort sendPort, bool enable) {
 }
 
 @patch
-String _getIsolateIDFromSendPort(SendPort sendPort) {
+String? _getIsolateIDFromSendPort(SendPort sendPort) {
   return null;
 }
 
@@ -124,7 +122,7 @@ class UserTag {
 }
 
 class _FakeUserTag implements UserTag {
-  static Map _instances = {};
+  static final _instances = <String, _FakeUserTag>{};
 
   _FakeUserTag.real(this.label);
 
@@ -136,13 +134,10 @@ class _FakeUserTag implements UserTag {
     }
     // Throw an exception if we've reached the maximum number of user tags.
     if (_instances.length == UserTag.MAX_USER_TAGS) {
-      throw new UnsupportedError(
+      throw UnsupportedError(
           'UserTag instance limit (${UserTag.MAX_USER_TAGS}) reached.');
     }
-    // Create a new instance and add it to the instance map.
-    var instance = new _FakeUserTag.real(label);
-    _instances[label] = instance;
-    return instance;
+    return _instances[label] = _FakeUserTag.real(label);
   }
 
   final String label;

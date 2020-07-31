@@ -1,0 +1,5 @@
+class A<X extends Comparable<X>> {}
+
+class B<Y extends A<dynamic>> {}
+
+main() {}

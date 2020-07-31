@@ -19,14 +19,12 @@ class FlatTypeMask implements TypeMask {
   final ClassEntity base;
   final int flags;
 
-  FlatTypeMask(ClassEntity base, int kind, bool isNullable)
-      : this.internal(base, (kind << 1) | (isNullable ? 1 : 0));
-
-  FlatTypeMask.exact(ClassEntity base) : this.internal(base, (EXACT << 1) | 1);
-  FlatTypeMask.subclass(ClassEntity base)
-      : this.internal(base, (SUBCLASS << 1) | 1);
-  FlatTypeMask.subtype(ClassEntity base)
-      : this.internal(base, (SUBTYPE << 1) | 1);
+  factory FlatTypeMask.exact(ClassEntity base, JClosedWorld world) =>
+      FlatTypeMask._canonicalize(base, EXACT, true, world);
+  factory FlatTypeMask.subclass(ClassEntity base, JClosedWorld world) =>
+      FlatTypeMask._canonicalize(base, SUBCLASS, true, world);
+  factory FlatTypeMask.subtype(ClassEntity base, JClosedWorld world) =>
+      FlatTypeMask._canonicalize(base, SUBTYPE, true, world);
 
   const FlatTypeMask.nonNullEmpty()
       : base = null,
@@ -35,20 +33,32 @@ class FlatTypeMask implements TypeMask {
       : base = null,
         flags = 1;
 
-  FlatTypeMask.nonNullExact(ClassEntity base) : this.internal(base, EXACT << 1);
-  FlatTypeMask.nonNullSubclass(ClassEntity base)
-      : this.internal(base, SUBCLASS << 1);
-  FlatTypeMask.nonNullSubtype(ClassEntity base)
-      : this.internal(base, SUBTYPE << 1);
+  factory FlatTypeMask.nonNullExact(ClassEntity base, JClosedWorld world) =>
+      FlatTypeMask._canonicalize(base, EXACT, false, world);
+  factory FlatTypeMask.nonNullSubclass(ClassEntity base, JClosedWorld world) =>
+      FlatTypeMask._canonicalize(base, SUBCLASS, false, world);
+  factory FlatTypeMask.nonNullSubtype(ClassEntity base, JClosedWorld world) =>
+      FlatTypeMask._canonicalize(base, SUBTYPE, false, world);
 
-  FlatTypeMask.internal(this.base, this.flags);
+  factory FlatTypeMask._canonicalize(
+      ClassEntity base, int kind, bool isNullable, JClosedWorld world) {
+    if (base == world.commonElements.nullClass) {
+      return FlatTypeMask.empty();
+    }
+    return FlatTypeMask._(base, (kind << 1) | (isNullable ? 1 : 0));
+  }
+
+  FlatTypeMask._(this.base, this.flags);
 
   /// Ensures that the generated mask is normalized, i.e., a call to
   /// [TypeMask.assertIsNormalized] with the factory's result returns `true`.
   factory FlatTypeMask.normalized(
       ClassEntity base, int flags, JClosedWorld world) {
+    if (base == world.commonElements.nullClass) {
+      return FlatTypeMask.empty();
+    }
     if ((flags >> 1) == EMPTY || ((flags >> 1) == EXACT)) {
-      return new FlatTypeMask.internal(base, flags);
+      return new FlatTypeMask._(base, flags);
     }
     if ((flags >> 1) == SUBTYPE) {
       if (!world.classHierarchy.hasAnyStrictSubtype(base) ||
@@ -62,7 +72,7 @@ class FlatTypeMask implements TypeMask {
     }
     CommonMasks commonMasks = world.abstractValueDomain;
     return commonMasks.getCachedMask(
-        base, flags, () => new FlatTypeMask.internal(base, flags));
+        base, flags, () => new FlatTypeMask._(base, flags));
   }
 
   /// Deserializes a [FlatTypeMask] object from [source].
@@ -74,7 +84,7 @@ class FlatTypeMask implements TypeMask {
     source.end(tag);
     CommonMasks commonMasks = closedWorld.abstractValueDomain;
     return commonMasks.getCachedMask(
-        base, flags, () => new FlatTypeMask.internal(base, flags));
+        base, flags, () => new FlatTypeMask._(base, flags));
   }
 
   /// Serializes this [FlatTypeMask] to [sink].
@@ -125,12 +135,12 @@ class FlatTypeMask implements TypeMask {
 
   @override
   TypeMask nullable() {
-    return isNullable ? this : new FlatTypeMask.internal(base, flags | 1);
+    return isNullable ? this : new FlatTypeMask._(base, flags | 1);
   }
 
   @override
   TypeMask nonNullable() {
-    return isNullable ? new FlatTypeMask.internal(base, flags & ~1) : this;
+    return isNullable ? new FlatTypeMask._(base, flags & ~1) : this;
   }
 
   @override

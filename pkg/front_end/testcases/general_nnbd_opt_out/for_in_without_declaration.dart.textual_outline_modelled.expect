@@ -1,0 +1,18 @@
+// @dart = 2.6
+bool topLevelField;
+
+class C extends Super {
+  int instanceField;
+  m() {}
+  static double staticField;
+  static var untypedStaticField;
+  var untypedInstanceField;
+}
+
+class Super {
+  int superInstanceField;
+  var untypedSuperInstanceField;
+}
+
+main() {}
+var untypedTopLevelField;

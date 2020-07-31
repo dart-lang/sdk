@@ -1,0 +1,10 @@
+library test;
+
+T f<T>() => null;
+
+class C {
+  final int x;
+  C() : this.x = f();
+}
+
+main() {}

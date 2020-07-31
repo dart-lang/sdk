@@ -14,9 +14,8 @@
 //
 // The following exceptions apply:
 //
-//   It is a compile-time error to use `async`, `await`, or `yield` as an
-//   identifier in the body of a function marked `async`, `async*`, or
-//   `sync*`.
+//   It is a compile-time error to use `await` or `yield` as an identifier in
+//   the body of a function marked `async`, `async*`, or `sync*`.
 //
 //   It is a compile-time error if an asynchronous for-in appears inside a
 //   synchronous function.
@@ -24,6 +23,7 @@
 import 'dart:async';
 
 Future<int> f1() async {
+  // Allowed:
   int async = 1;
 
 

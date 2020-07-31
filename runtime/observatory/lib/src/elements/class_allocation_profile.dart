@@ -7,20 +7,12 @@ import 'dart:async';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/cpu_profile/virtual_tree.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/sample_buffer_control.dart';
 import 'package:observatory/src/elements/stack_trace_tree_config.dart';
 
 class ClassAllocationProfileElement extends CustomElement
     implements Renderable {
-  static const tag = const Tag<ClassAllocationProfileElement>(
-      'class-allocation-profile',
-      dependencies: const [
-        SampleBufferControlElement.tag,
-        StackTraceTreeConfigElement.tag,
-        CpuProfileVirtualTreeElement.tag,
-      ]);
-
   RenderingScheduler<ClassAllocationProfileElement> _r;
 
   Stream<RenderedEvent<ClassAllocationProfileElement>> get onRendered =>
@@ -57,7 +49,7 @@ class ClassAllocationProfileElement extends CustomElement
     return e;
   }
 
-  ClassAllocationProfileElement.created() : super.created(tag);
+  ClassAllocationProfileElement.created() : super.created('class-allocation-profile');
 
   @override
   void attached() {

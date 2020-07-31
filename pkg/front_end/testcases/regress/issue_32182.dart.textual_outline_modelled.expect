@@ -1,0 +1,11 @@
+import "issue_32182.dart" as self;
+
+class A<T> {}
+
+class C extends A<self.A> with M {}
+
+class M {
+  m() => 42;
+}
+
+main() {}

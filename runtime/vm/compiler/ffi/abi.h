@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_FFI_ABI_H_
 #define RUNTIME_VM_COMPILER_FFI_ABI_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include <platform/globals.h>
 
 namespace dart {

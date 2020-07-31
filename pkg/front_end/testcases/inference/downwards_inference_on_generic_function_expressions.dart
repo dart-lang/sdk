@@ -57,7 +57,7 @@ void test() {
     String string2String<T>(String x) => null;
     var /*@ type=<S extends Object* = dynamic>(int*) ->* int* */ x = int2int;
     x = <T> /*@ returnType=int* */ (/*@ type=int* */ x) => x;
-    x = <T> /*@ returnType=int* */ (/*@ type=int* */ x) => x /*@target=num::+*/ + 1;
+    x = <T> /*@ returnType=int* */ (/*@ type=int* */ x) => x /*@target=num.+*/ + 1;
     var /*@ type=<T extends Object* = dynamic>(int*) ->* String* */ y = int2String;
     y = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/ <
             T> /*@ returnType=String* */ (/*@ type=int* */ x) =>
@@ -67,7 +67,7 @@ void test() {
     var /*@ type=<T extends Object* = dynamic>(String*) ->* String* */ z =
         string2String;
     z = <T> /*@ returnType=String* */ (/*@ type=String* */ x) =>
-        x. /*@target=String::substring*/ substring(3);
+        x. /*@target=String.substring*/ substring(3);
   }
 }
 

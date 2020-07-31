@@ -1,0 +1,2 @@
+spec=pkg/compiler/test/jumps/jump_test.dart
+prod=pkg/compiler/test/jumps/jump_test.dart

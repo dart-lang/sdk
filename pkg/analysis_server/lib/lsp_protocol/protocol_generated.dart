@@ -94,7 +94,8 @@ class ApplyWorkspaceEditParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ApplyWorkspaceEditParams) {
+    if (other is ApplyWorkspaceEditParams &&
+        other.runtimeType == ApplyWorkspaceEditParams) {
       return label == other.label && edit == other.edit && true;
     }
     return false;
@@ -182,7 +183,8 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ApplyWorkspaceEditResponse) {
+    if (other is ApplyWorkspaceEditResponse &&
+        other.runtimeType == ApplyWorkspaceEditResponse) {
       return applied == other.applied &&
           failureReason == other.failureReason &&
           true;
@@ -257,7 +259,7 @@ class CancelParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CancelParams) {
+    if (other is CancelParams && other.runtimeType == CancelParams) {
       return id == other.id && true;
     }
     return false;
@@ -356,7 +358,8 @@ class ClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ClientCapabilities) {
+    if (other is ClientCapabilities &&
+        other.runtimeType == ClientCapabilities) {
       return workspace == other.workspace &&
           textDocument == other.textDocument &&
           experimental == other.experimental &&
@@ -513,7 +516,7 @@ class CodeAction implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeAction) {
+    if (other is CodeAction && other.runtimeType == CodeAction) {
       return title == other.title &&
           kind == other.kind &&
           listEqual(diagnostics, other.diagnostics,
@@ -530,7 +533,7 @@ class CodeAction implements ToJsonable {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, title.hashCode);
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, diagnostics.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(diagnostics));
     hash = JenkinsSmiHash.combine(hash, edit.hashCode);
     hash = JenkinsSmiHash.combine(hash, command.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -624,7 +627,7 @@ class CodeActionContext implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeActionContext) {
+    if (other is CodeActionContext && other.runtimeType == CodeActionContext) {
       return listEqual(diagnostics, other.diagnostics,
               (Diagnostic a, Diagnostic b) => a == b) &&
           listEqual(only, other.only,
@@ -637,8 +640,8 @@ class CodeActionContext implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, diagnostics.hashCode);
-    hash = JenkinsSmiHash.combine(hash, only.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(diagnostics));
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(only));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -772,7 +775,7 @@ class CodeActionOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeActionOptions) {
+    if (other is CodeActionOptions && other.runtimeType == CodeActionOptions) {
       return listEqual(codeActionKinds, other.codeActionKinds,
               (CodeActionKind a, CodeActionKind b) => a == b) &&
           true;
@@ -783,7 +786,7 @@ class CodeActionOptions implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, codeActionKinds.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(codeActionKinds));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -899,7 +902,7 @@ class CodeActionParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeActionParams) {
+    if (other is CodeActionParams && other.runtimeType == CodeActionParams) {
       return textDocument == other.textDocument &&
           range == other.range &&
           context == other.context &&
@@ -998,8 +1001,10 @@ class CodeActionRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeActionRegistrationOptions) {
-      return documentSelector == other.documentSelector &&
+    if (other is CodeActionRegistrationOptions &&
+        other.runtimeType == CodeActionRegistrationOptions) {
+      return listEqual(documentSelector, other.documentSelector,
+              (DocumentFilter a, DocumentFilter b) => a == b) &&
           listEqual(codeActionKinds, other.codeActionKinds,
               (CodeActionKind a, CodeActionKind b) => a == b) &&
           true;
@@ -1010,8 +1015,8 @@ class CodeActionRegistrationOptions
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
-    hash = JenkinsSmiHash.combine(hash, codeActionKinds.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentSelector));
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(codeActionKinds));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -1112,7 +1117,7 @@ class CodeLens implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeLens) {
+    if (other is CodeLens && other.runtimeType == CodeLens) {
       return range == other.range &&
           command == other.command &&
           data == other.data &&
@@ -1177,7 +1182,7 @@ class CodeLensOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeLensOptions) {
+    if (other is CodeLensOptions && other.runtimeType == CodeLensOptions) {
       return resolveProvider == other.resolveProvider && true;
     }
     return false;
@@ -1248,7 +1253,7 @@ class CodeLensParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeLensParams) {
+    if (other is CodeLensParams && other.runtimeType == CodeLensParams) {
       return textDocument == other.textDocument && true;
     }
     return false;
@@ -1334,9 +1339,11 @@ class CodeLensRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is CodeLensRegistrationOptions) {
+    if (other is CodeLensRegistrationOptions &&
+        other.runtimeType == CodeLensRegistrationOptions) {
       return resolveProvider == other.resolveProvider &&
-          documentSelector == other.documentSelector &&
+          listEqual(documentSelector, other.documentSelector,
+              (DocumentFilter a, DocumentFilter b) => a == b) &&
           true;
     }
     return false;
@@ -1346,7 +1353,7 @@ class CodeLensRegistrationOptions
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
-    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentSelector));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -1480,7 +1487,7 @@ class Color implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Color) {
+    if (other is Color && other.runtimeType == Color) {
       return red == other.red &&
           green == other.green &&
           blue == other.blue &&
@@ -1580,7 +1587,7 @@ class ColorInformation implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ColorInformation) {
+    if (other is ColorInformation && other.runtimeType == ColorInformation) {
       return range == other.range && color == other.color && true;
     }
     return false;
@@ -1695,7 +1702,7 @@ class ColorPresentation implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ColorPresentation) {
+    if (other is ColorPresentation && other.runtimeType == ColorPresentation) {
       return label == other.label &&
           textEdit == other.textEdit &&
           listEqual(additionalTextEdits, other.additionalTextEdits,
@@ -1710,7 +1717,7 @@ class ColorPresentation implements ToJsonable {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, textEdit.hashCode);
-    hash = JenkinsSmiHash.combine(hash, additionalTextEdits.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(additionalTextEdits));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -1822,7 +1829,8 @@ class ColorPresentationParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ColorPresentationParams) {
+    if (other is ColorPresentationParams &&
+        other.runtimeType == ColorPresentationParams) {
       return textDocument == other.textDocument &&
           color == other.color &&
           range == other.range &&
@@ -1869,7 +1877,8 @@ class ColorProviderOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ColorProviderOptions) {
+    if (other is ColorProviderOptions &&
+        other.runtimeType == ColorProviderOptions) {
       return true;
     }
     return false;
@@ -1980,7 +1989,7 @@ class Command implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Command) {
+    if (other is Command && other.runtimeType == Command) {
       return title == other.title &&
           command == other.command &&
           listEqual(
@@ -1995,7 +2004,7 @@ class Command implements ToJsonable {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, title.hashCode);
     hash = JenkinsSmiHash.combine(hash, command.hashCode);
-    hash = JenkinsSmiHash.combine(hash, arguments.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(arguments));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -2077,7 +2086,7 @@ class CompletionContext implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionContext) {
+    if (other is CompletionContext && other.runtimeType == CompletionContext) {
       return triggerKind == other.triggerKind &&
           triggerCharacter == other.triggerCharacter &&
           true;
@@ -2470,7 +2479,7 @@ class CompletionItem implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionItem) {
+    if (other is CompletionItem && other.runtimeType == CompletionItem) {
       return label == other.label &&
           kind == other.kind &&
           detail == other.detail &&
@@ -2507,8 +2516,8 @@ class CompletionItem implements ToJsonable {
     hash = JenkinsSmiHash.combine(hash, insertText.hashCode);
     hash = JenkinsSmiHash.combine(hash, insertTextFormat.hashCode);
     hash = JenkinsSmiHash.combine(hash, textEdit.hashCode);
-    hash = JenkinsSmiHash.combine(hash, additionalTextEdits.hashCode);
-    hash = JenkinsSmiHash.combine(hash, commitCharacters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(additionalTextEdits));
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(commitCharacters));
     hash = JenkinsSmiHash.combine(hash, command.hashCode);
     hash = JenkinsSmiHash.combine(hash, data.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -2651,7 +2660,7 @@ class CompletionList implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionList) {
+    if (other is CompletionList && other.runtimeType == CompletionList) {
       return isIncomplete == other.isIncomplete &&
           listEqual(items, other.items,
               (CompletionItem a, CompletionItem b) => a == b) &&
@@ -2664,7 +2673,7 @@ class CompletionList implements ToJsonable {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, isIncomplete.hashCode);
-    hash = JenkinsSmiHash.combine(hash, items.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(items));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -2737,7 +2746,7 @@ class CompletionOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionOptions) {
+    if (other is CompletionOptions && other.runtimeType == CompletionOptions) {
       return resolveProvider == other.resolveProvider &&
           listEqual(triggerCharacters, other.triggerCharacters,
               (String a, String b) => a == b) &&
@@ -2750,7 +2759,7 @@ class CompletionOptions implements ToJsonable {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
-    hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(triggerCharacters));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -2860,7 +2869,7 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionParams) {
+    if (other is CompletionParams && other.runtimeType == CompletionParams) {
       return context == other.context &&
           textDocument == other.textDocument &&
           position == other.position &&
@@ -3014,13 +3023,15 @@ class CompletionRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is CompletionRegistrationOptions) {
+    if (other is CompletionRegistrationOptions &&
+        other.runtimeType == CompletionRegistrationOptions) {
       return listEqual(triggerCharacters, other.triggerCharacters,
               (String a, String b) => a == b) &&
           listEqual(allCommitCharacters, other.allCommitCharacters,
               (String a, String b) => a == b) &&
           resolveProvider == other.resolveProvider &&
-          documentSelector == other.documentSelector &&
+          listEqual(documentSelector, other.documentSelector,
+              (DocumentFilter a, DocumentFilter b) => a == b) &&
           true;
     }
     return false;
@@ -3029,10 +3040,10 @@ class CompletionRegistrationOptions
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
-    hash = JenkinsSmiHash.combine(hash, allCommitCharacters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(triggerCharacters));
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(allCommitCharacters));
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
-    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentSelector));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -3137,7 +3148,7 @@ class ConfigurationItem implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ConfigurationItem) {
+    if (other is ConfigurationItem && other.runtimeType == ConfigurationItem) {
       return scopeUri == other.scopeUri && section == other.section && true;
     }
     return false;
@@ -3210,7 +3221,8 @@ class ConfigurationParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ConfigurationParams) {
+    if (other is ConfigurationParams &&
+        other.runtimeType == ConfigurationParams) {
       return listEqual(items, other.items,
               (ConfigurationItem a, ConfigurationItem b) => a == b) &&
           true;
@@ -3221,7 +3233,7 @@ class ConfigurationParams implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, items.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(items));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -3325,7 +3337,7 @@ class CreateFile implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CreateFile) {
+    if (other is CreateFile && other.runtimeType == CreateFile) {
       return kind == other.kind &&
           uri == other.uri &&
           options == other.options &&
@@ -3405,7 +3417,7 @@ class CreateFileOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is CreateFileOptions) {
+    if (other is CreateFileOptions && other.runtimeType == CreateFileOptions) {
       return overwrite == other.overwrite &&
           ignoreIfExists == other.ignoreIfExists &&
           true;
@@ -3521,7 +3533,7 @@ class DeleteFile implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DeleteFile) {
+    if (other is DeleteFile && other.runtimeType == DeleteFile) {
       return kind == other.kind &&
           uri == other.uri &&
           options == other.options &&
@@ -3602,7 +3614,7 @@ class DeleteFileOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DeleteFileOptions) {
+    if (other is DeleteFileOptions && other.runtimeType == DeleteFileOptions) {
       return recursive == other.recursive &&
           ignoreIfNotExists == other.ignoreIfNotExists &&
           true;
@@ -3779,7 +3791,7 @@ class Diagnostic implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Diagnostic) {
+    if (other is Diagnostic && other.runtimeType == Diagnostic) {
       return range == other.range &&
           severity == other.severity &&
           code == other.code &&
@@ -3804,7 +3816,7 @@ class Diagnostic implements ToJsonable {
     hash = JenkinsSmiHash.combine(hash, code.hashCode);
     hash = JenkinsSmiHash.combine(hash, source.hashCode);
     hash = JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = JenkinsSmiHash.combine(hash, relatedInformation.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(relatedInformation));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -3895,7 +3907,8 @@ class DiagnosticRelatedInformation implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DiagnosticRelatedInformation) {
+    if (other is DiagnosticRelatedInformation &&
+        other.runtimeType == DiagnosticRelatedInformation) {
       return location == other.location && message == other.message && true;
     }
     return false;
@@ -3990,7 +4003,8 @@ class DidChangeConfigurationParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidChangeConfigurationParams) {
+    if (other is DidChangeConfigurationParams &&
+        other.runtimeType == DidChangeConfigurationParams) {
       return settings == other.settings && true;
     }
     return false;
@@ -4100,7 +4114,8 @@ class DidChangeTextDocumentParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidChangeTextDocumentParams) {
+    if (other is DidChangeTextDocumentParams &&
+        other.runtimeType == DidChangeTextDocumentParams) {
       return textDocument == other.textDocument &&
           listEqual(
               contentChanges,
@@ -4117,7 +4132,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
-    hash = JenkinsSmiHash.combine(hash, contentChanges.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(contentChanges));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -4183,7 +4198,8 @@ class DidChangeWatchedFilesParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidChangeWatchedFilesParams) {
+    if (other is DidChangeWatchedFilesParams &&
+        other.runtimeType == DidChangeWatchedFilesParams) {
       return listEqual(
               changes, other.changes, (FileEvent a, FileEvent b) => a == b) &&
           true;
@@ -4194,7 +4210,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, changes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(changes));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -4263,7 +4279,8 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidChangeWatchedFilesRegistrationOptions) {
+    if (other is DidChangeWatchedFilesRegistrationOptions &&
+        other.runtimeType == DidChangeWatchedFilesRegistrationOptions) {
       return listEqual(watchers, other.watchers,
               (FileSystemWatcher a, FileSystemWatcher b) => a == b) &&
           true;
@@ -4274,7 +4291,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, watchers.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(watchers));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -4336,7 +4353,8 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidChangeWorkspaceFoldersParams) {
+    if (other is DidChangeWorkspaceFoldersParams &&
+        other.runtimeType == DidChangeWorkspaceFoldersParams) {
       return event == other.event && true;
     }
     return false;
@@ -4407,7 +4425,8 @@ class DidCloseTextDocumentParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidCloseTextDocumentParams) {
+    if (other is DidCloseTextDocumentParams &&
+        other.runtimeType == DidCloseTextDocumentParams) {
       return textDocument == other.textDocument && true;
     }
     return false;
@@ -4478,7 +4497,8 @@ class DidOpenTextDocumentParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidOpenTextDocumentParams) {
+    if (other is DidOpenTextDocumentParams &&
+        other.runtimeType == DidOpenTextDocumentParams) {
       return textDocument == other.textDocument && true;
     }
     return false;
@@ -4566,7 +4586,8 @@ class DidSaveTextDocumentParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DidSaveTextDocumentParams) {
+    if (other is DidSaveTextDocumentParams &&
+        other.runtimeType == DidSaveTextDocumentParams) {
       return textDocument == other.textDocument && text == other.text && true;
     }
     return false;
@@ -4669,7 +4690,7 @@ class DocumentFilter implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentFilter) {
+    if (other is DocumentFilter && other.runtimeType == DocumentFilter) {
       return language == other.language &&
           scheme == other.scheme &&
           pattern == other.pattern &&
@@ -4773,7 +4794,8 @@ class DocumentFormattingParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentFormattingParams) {
+    if (other is DocumentFormattingParams &&
+        other.runtimeType == DocumentFormattingParams) {
       return textDocument == other.textDocument &&
           options == other.options &&
           true;
@@ -4866,7 +4888,7 @@ class DocumentHighlight implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentHighlight) {
+    if (other is DocumentHighlight && other.runtimeType == DocumentHighlight) {
       return range == other.range && kind == other.kind && true;
     }
     return false;
@@ -5002,7 +5024,7 @@ class DocumentLink implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentLink) {
+    if (other is DocumentLink && other.runtimeType == DocumentLink) {
       return range == other.range &&
           target == other.target &&
           data == other.data &&
@@ -5067,7 +5089,8 @@ class DocumentLinkOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentLinkOptions) {
+    if (other is DocumentLinkOptions &&
+        other.runtimeType == DocumentLinkOptions) {
       return resolveProvider == other.resolveProvider && true;
     }
     return false;
@@ -5138,7 +5161,8 @@ class DocumentLinkParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentLinkParams) {
+    if (other is DocumentLinkParams &&
+        other.runtimeType == DocumentLinkParams) {
       return textDocument == other.textDocument && true;
     }
     return false;
@@ -5224,9 +5248,11 @@ class DocumentLinkRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentLinkRegistrationOptions) {
+    if (other is DocumentLinkRegistrationOptions &&
+        other.runtimeType == DocumentLinkRegistrationOptions) {
       return resolveProvider == other.resolveProvider &&
-          documentSelector == other.documentSelector &&
+          listEqual(documentSelector, other.documentSelector,
+              (DocumentFilter a, DocumentFilter b) => a == b) &&
           true;
     }
     return false;
@@ -5236,7 +5262,7 @@ class DocumentLinkRegistrationOptions
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
-    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentSelector));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -5322,7 +5348,8 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentOnTypeFormattingOptions) {
+    if (other is DocumentOnTypeFormattingOptions &&
+        other.runtimeType == DocumentOnTypeFormattingOptions) {
       return firstTriggerCharacter == other.firstTriggerCharacter &&
           listEqual(moreTriggerCharacter, other.moreTriggerCharacter,
               (String a, String b) => a == b) &&
@@ -5335,7 +5362,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, firstTriggerCharacter.hashCode);
-    hash = JenkinsSmiHash.combine(hash, moreTriggerCharacter.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(moreTriggerCharacter));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -5479,7 +5506,8 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentOnTypeFormattingParams) {
+    if (other is DocumentOnTypeFormattingParams &&
+        other.runtimeType == DocumentOnTypeFormattingParams) {
       return textDocument == other.textDocument &&
           position == other.position &&
           ch == other.ch &&
@@ -5608,11 +5636,13 @@ class DocumentOnTypeFormattingRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentOnTypeFormattingRegistrationOptions) {
+    if (other is DocumentOnTypeFormattingRegistrationOptions &&
+        other.runtimeType == DocumentOnTypeFormattingRegistrationOptions) {
       return firstTriggerCharacter == other.firstTriggerCharacter &&
           listEqual(moreTriggerCharacter, other.moreTriggerCharacter,
               (String a, String b) => a == b) &&
-          documentSelector == other.documentSelector &&
+          listEqual(documentSelector, other.documentSelector,
+              (DocumentFilter a, DocumentFilter b) => a == b) &&
           true;
     }
     return false;
@@ -5622,8 +5652,8 @@ class DocumentOnTypeFormattingRegistrationOptions
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, firstTriggerCharacter.hashCode);
-    hash = JenkinsSmiHash.combine(hash, moreTriggerCharacter.hashCode);
-    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(moreTriggerCharacter));
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentSelector));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -5739,7 +5769,8 @@ class DocumentRangeFormattingParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentRangeFormattingParams) {
+    if (other is DocumentRangeFormattingParams &&
+        other.runtimeType == DocumentRangeFormattingParams) {
       return textDocument == other.textDocument &&
           range == other.range &&
           options == other.options &&
@@ -5957,7 +5988,7 @@ class DocumentSymbol implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentSymbol) {
+    if (other is DocumentSymbol && other.runtimeType == DocumentSymbol) {
       return name == other.name &&
           detail == other.detail &&
           kind == other.kind &&
@@ -5980,7 +6011,7 @@ class DocumentSymbol implements ToJsonable {
     hash = JenkinsSmiHash.combine(hash, deprecated.hashCode);
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, selectionRange.hashCode);
-    hash = JenkinsSmiHash.combine(hash, children.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(children));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -6042,7 +6073,8 @@ class DocumentSymbolParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is DocumentSymbolParams) {
+    if (other is DocumentSymbolParams &&
+        other.runtimeType == DocumentSymbolParams) {
       return textDocument == other.textDocument && true;
     }
     return false;
@@ -6150,7 +6182,8 @@ class ExecuteCommandOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ExecuteCommandOptions) {
+    if (other is ExecuteCommandOptions &&
+        other.runtimeType == ExecuteCommandOptions) {
       return listEqual(
               commands, other.commands, (String a, String b) => a == b) &&
           true;
@@ -6161,7 +6194,7 @@ class ExecuteCommandOptions implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, commands.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(commands));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -6240,7 +6273,8 @@ class ExecuteCommandParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ExecuteCommandParams) {
+    if (other is ExecuteCommandParams &&
+        other.runtimeType == ExecuteCommandParams) {
       return command == other.command &&
           listEqual(
               arguments, other.arguments, (dynamic a, dynamic b) => a == b) &&
@@ -6253,7 +6287,7 @@ class ExecuteCommandParams implements ToJsonable {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, command.hashCode);
-    hash = JenkinsSmiHash.combine(hash, arguments.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(arguments));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -6317,7 +6351,8 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ExecuteCommandRegistrationOptions) {
+    if (other is ExecuteCommandRegistrationOptions &&
+        other.runtimeType == ExecuteCommandRegistrationOptions) {
       return listEqual(
               commands, other.commands, (String a, String b) => a == b) &&
           true;
@@ -6328,7 +6363,7 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, commands.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(commands));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -6491,7 +6526,7 @@ class FileEvent implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FileEvent) {
+    if (other is FileEvent && other.runtimeType == FileEvent) {
       return uri == other.uri && type == other.type && true;
     }
     return false;
@@ -6591,7 +6626,7 @@ class FileSystemWatcher implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FileSystemWatcher) {
+    if (other is FileSystemWatcher && other.runtimeType == FileSystemWatcher) {
       return globPattern == other.globPattern && kind == other.kind && true;
     }
     return false;
@@ -6640,7 +6675,7 @@ class FoldingRange implements ToJsonable {
   /// The zero-based line number where the folded range ends.
   final num endLine;
 
-  /// Describes the kind of the folding range such as `comment' or 'region'. The
+  /// Describes the kind of the folding range such as `comment` or `region`. The
   /// kind is used to categorize folding ranges and used by commands like 'Fold
   /// all comments'. See [FoldingRangeKind] for an enumeration of standardized
   /// kinds.
@@ -6744,7 +6779,7 @@ class FoldingRange implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FoldingRange) {
+    if (other is FoldingRange && other.runtimeType == FoldingRange) {
       return startLine == other.startLine &&
           startCharacter == other.startCharacter &&
           endLine == other.endLine &&
@@ -6855,7 +6890,8 @@ class FoldingRangeParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FoldingRangeParams) {
+    if (other is FoldingRangeParams &&
+        other.runtimeType == FoldingRangeParams) {
       return textDocument == other.textDocument && true;
     }
     return false;
@@ -6898,7 +6934,8 @@ class FoldingRangeProviderOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FoldingRangeProviderOptions) {
+    if (other is FoldingRangeProviderOptions &&
+        other.runtimeType == FoldingRangeProviderOptions) {
       return true;
     }
     return false;
@@ -6993,7 +7030,7 @@ class FormattingOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is FormattingOptions) {
+    if (other is FormattingOptions && other.runtimeType == FormattingOptions) {
       return tabSize == other.tabSize &&
           insertSpaces == other.insertSpaces &&
           true;
@@ -7090,7 +7127,7 @@ class Hover implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Hover) {
+    if (other is Hover && other.runtimeType == Hover) {
       return contents == other.contents && range == other.range && true;
     }
     return false;
@@ -7287,7 +7324,7 @@ class InitializeParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InitializeParams) {
+    if (other is InitializeParams && other.runtimeType == InitializeParams) {
       return processId == other.processId &&
           rootPath == other.rootPath &&
           rootUri == other.rootUri &&
@@ -7310,7 +7347,7 @@ class InitializeParams implements ToJsonable {
     hash = JenkinsSmiHash.combine(hash, initializationOptions.hashCode);
     hash = JenkinsSmiHash.combine(hash, capabilities.hashCode);
     hash = JenkinsSmiHash.combine(hash, trace.hashCode);
-    hash = JenkinsSmiHash.combine(hash, workspaceFolders.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(workspaceFolders));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -7372,7 +7409,7 @@ class InitializeResult implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InitializeResult) {
+    if (other is InitializeResult && other.runtimeType == InitializeResult) {
       return capabilities == other.capabilities && true;
     }
     return false;
@@ -7413,7 +7450,7 @@ class InitializedParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is InitializedParams) {
+    if (other is InitializedParams && other.runtimeType == InitializedParams) {
       return true;
     }
     return false;
@@ -7541,7 +7578,7 @@ class Location implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Location) {
+    if (other is Location && other.runtimeType == Location) {
       return uri == other.uri && range == other.range && true;
     }
     return false;
@@ -7696,7 +7733,7 @@ class LocationLink implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is LocationLink) {
+    if (other is LocationLink && other.runtimeType == LocationLink) {
       return originSelectionRange == other.originSelectionRange &&
           targetUri == other.targetUri &&
           targetRange == other.targetRange &&
@@ -7798,7 +7835,7 @@ class LogMessageParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is LogMessageParams) {
+    if (other is LogMessageParams && other.runtimeType == LogMessageParams) {
       return type == other.type && message == other.message && true;
     }
     return false;
@@ -7915,7 +7952,7 @@ class MarkupContent implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is MarkupContent) {
+    if (other is MarkupContent && other.runtimeType == MarkupContent) {
       return kind == other.kind && value == other.value && true;
     }
     return false;
@@ -8029,7 +8066,7 @@ class Message implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Message) {
+    if (other is Message && other.runtimeType == Message) {
       return jsonrpc == other.jsonrpc && true;
     }
     return false;
@@ -8097,7 +8134,7 @@ class MessageActionItem implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is MessageActionItem) {
+    if (other is MessageActionItem && other.runtimeType == MessageActionItem) {
       return title == other.title && true;
     }
     return false;
@@ -8200,6 +8237,10 @@ class Method {
   static const workspace_didChangeWorkspaceFolders =
       Method(r'workspace/didChangeWorkspaceFolders');
 
+  /// Constant for the 'workspace/didChangeConfiguration' method.
+  static const workspace_didChangeConfiguration =
+      Method(r'workspace/didChangeConfiguration');
+
   /// Constant for the 'workspace/configuration' method.
   static const workspace_configuration = Method(r'workspace/configuration');
 
@@ -8299,6 +8340,10 @@ class Method {
 
   /// Constant for the 'textDocument/formatting' method.
   static const textDocument_formatting = Method(r'textDocument/formatting');
+
+  /// Constant for the 'textDocument/rangeFormatting' method.
+  static const textDocument_rangeFormatting =
+      Method(r'textDocument/rangeFormatting');
 
   /// Constant for the 'textDocument/onTypeFormatting' method.
   static const textDocument_onTypeFormatting =
@@ -8418,7 +8463,8 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is NotificationMessage) {
+    if (other is NotificationMessage &&
+        other.runtimeType == NotificationMessage) {
       return method == other.method &&
           params == other.params &&
           jsonrpc == other.jsonrpc &&
@@ -8530,7 +8576,8 @@ class ParameterInformation implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ParameterInformation) {
+    if (other is ParameterInformation &&
+        other.runtimeType == ParameterInformation) {
       return label == other.label &&
           documentation == other.documentation &&
           true;
@@ -8632,7 +8679,7 @@ class Position implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Position) {
+    if (other is Position && other.runtimeType == Position) {
       return line == other.line && character == other.character && true;
     }
     return false;
@@ -8732,7 +8779,8 @@ class PublishDiagnosticsParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is PublishDiagnosticsParams) {
+    if (other is PublishDiagnosticsParams &&
+        other.runtimeType == PublishDiagnosticsParams) {
       return uri == other.uri &&
           listEqual(diagnostics, other.diagnostics,
               (Diagnostic a, Diagnostic b) => a == b) &&
@@ -8745,7 +8793,7 @@ class PublishDiagnosticsParams implements ToJsonable {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
-    hash = JenkinsSmiHash.combine(hash, diagnostics.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(diagnostics));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -8829,7 +8877,7 @@ class Range implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Range) {
+    if (other is Range && other.runtimeType == Range) {
       return start == other.start && end == other.end && true;
     }
     return false;
@@ -8921,7 +8969,8 @@ class RangeAndPlaceholder implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is RangeAndPlaceholder) {
+    if (other is RangeAndPlaceholder &&
+        other.runtimeType == RangeAndPlaceholder) {
       return range == other.range && placeholder == other.placeholder && true;
     }
     return false;
@@ -8991,7 +9040,7 @@ class ReferenceContext implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ReferenceContext) {
+    if (other is ReferenceContext && other.runtimeType == ReferenceContext) {
       return includeDeclaration == other.includeDeclaration && true;
     }
     return false;
@@ -9116,7 +9165,7 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ReferenceParams) {
+    if (other is ReferenceParams && other.runtimeType == ReferenceParams) {
       return context == other.context &&
           textDocument == other.textDocument &&
           position == other.position &&
@@ -9232,7 +9281,7 @@ class Registration implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Registration) {
+    if (other is Registration && other.runtimeType == Registration) {
       return id == other.id &&
           method == other.method &&
           registerOptions == other.registerOptions &&
@@ -9310,7 +9359,8 @@ class RegistrationParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is RegistrationParams) {
+    if (other is RegistrationParams &&
+        other.runtimeType == RegistrationParams) {
       return listEqual(registrations, other.registrations,
               (Registration a, Registration b) => a == b) &&
           true;
@@ -9321,7 +9371,7 @@ class RegistrationParams implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, registrations.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(registrations));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -9450,7 +9500,7 @@ class RenameFile implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is RenameFile) {
+    if (other is RenameFile && other.runtimeType == RenameFile) {
       return kind == other.kind &&
           oldUri == other.oldUri &&
           newUri == other.newUri &&
@@ -9532,7 +9582,7 @@ class RenameFileOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is RenameFileOptions) {
+    if (other is RenameFileOptions && other.runtimeType == RenameFileOptions) {
       return overwrite == other.overwrite &&
           ignoreIfExists == other.ignoreIfExists &&
           true;
@@ -9595,7 +9645,7 @@ class RenameOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is RenameOptions) {
+    if (other is RenameOptions && other.runtimeType == RenameOptions) {
       return prepareProvider == other.prepareProvider && true;
     }
     return false;
@@ -9720,7 +9770,7 @@ class RenameParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is RenameParams) {
+    if (other is RenameParams && other.runtimeType == RenameParams) {
       return textDocument == other.textDocument &&
           position == other.position &&
           newName == other.newName &&
@@ -9810,9 +9860,11 @@ class RenameRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is RenameRegistrationOptions) {
+    if (other is RenameRegistrationOptions &&
+        other.runtimeType == RenameRegistrationOptions) {
       return prepareProvider == other.prepareProvider &&
-          documentSelector == other.documentSelector &&
+          listEqual(documentSelector, other.documentSelector,
+              (DocumentFilter a, DocumentFilter b) => a == b) &&
           true;
     }
     return false;
@@ -9822,7 +9874,7 @@ class RenameRegistrationOptions
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, prepareProvider.hashCode);
-    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentSelector));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -9951,7 +10003,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is RequestMessage) {
+    if (other is RequestMessage && other.runtimeType == RequestMessage) {
       return id == other.id &&
           method == other.method &&
           params == other.params &&
@@ -10107,7 +10159,7 @@ class ResponseError<D> implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ResponseError) {
+    if (other is ResponseError && other.runtimeType == ResponseError) {
       return code == other.code &&
           message == other.message &&
           data == other.data &&
@@ -10240,7 +10292,7 @@ class ResponseMessage implements Message, ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ResponseMessage) {
+    if (other is ResponseMessage && other.runtimeType == ResponseMessage) {
       return id == other.id &&
           result == other.result &&
           error == other.error &&
@@ -10306,7 +10358,7 @@ class SaveOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SaveOptions) {
+    if (other is SaveOptions && other.runtimeType == SaveOptions) {
       return includeText == other.includeText && true;
     }
     return false;
@@ -10875,7 +10927,8 @@ class ServerCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ServerCapabilities) {
+    if (other is ServerCapabilities &&
+        other.runtimeType == ServerCapabilities) {
       return textDocumentSync == other.textDocumentSync &&
           hoverProvider == other.hoverProvider &&
           completionProvider == other.completionProvider &&
@@ -10992,7 +11045,8 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ServerCapabilitiesWorkspace) {
+    if (other is ServerCapabilitiesWorkspace &&
+        other.runtimeType == ServerCapabilitiesWorkspace) {
       return workspaceFolders == other.workspaceFolders && true;
     }
     return false;
@@ -11075,7 +11129,8 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ServerCapabilitiesWorkspaceFolders) {
+    if (other is ServerCapabilitiesWorkspaceFolders &&
+        other.runtimeType == ServerCapabilitiesWorkspaceFolders) {
       return supported == other.supported &&
           changeNotifications == other.changeNotifications &&
           true;
@@ -11173,7 +11228,7 @@ class ShowMessageParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ShowMessageParams) {
+    if (other is ShowMessageParams && other.runtimeType == ShowMessageParams) {
       return type == other.type && message == other.message && true;
     }
     return false;
@@ -11291,7 +11346,8 @@ class ShowMessageRequestParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is ShowMessageRequestParams) {
+    if (other is ShowMessageRequestParams &&
+        other.runtimeType == ShowMessageRequestParams) {
       return type == other.type &&
           message == other.message &&
           listEqual(actions, other.actions,
@@ -11306,7 +11362,7 @@ class ShowMessageRequestParams implements ToJsonable {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, type.hashCode);
     hash = JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = JenkinsSmiHash.combine(hash, actions.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(actions));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -11418,7 +11474,7 @@ class SignatureHelp implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SignatureHelp) {
+    if (other is SignatureHelp && other.runtimeType == SignatureHelp) {
       return listEqual(signatures, other.signatures,
               (SignatureInformation a, SignatureInformation b) => a == b) &&
           activeSignature == other.activeSignature &&
@@ -11431,7 +11487,7 @@ class SignatureHelp implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, signatures.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(signatures));
     hash = JenkinsSmiHash.combine(hash, activeSignature.hashCode);
     hash = JenkinsSmiHash.combine(hash, activeParameter.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -11488,7 +11544,8 @@ class SignatureHelpOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SignatureHelpOptions) {
+    if (other is SignatureHelpOptions &&
+        other.runtimeType == SignatureHelpOptions) {
       return listEqual(triggerCharacters, other.triggerCharacters,
               (String a, String b) => a == b) &&
           true;
@@ -11499,7 +11556,7 @@ class SignatureHelpOptions implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(triggerCharacters));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -11582,10 +11639,12 @@ class SignatureHelpRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is SignatureHelpRegistrationOptions) {
+    if (other is SignatureHelpRegistrationOptions &&
+        other.runtimeType == SignatureHelpRegistrationOptions) {
       return listEqual(triggerCharacters, other.triggerCharacters,
               (String a, String b) => a == b) &&
-          documentSelector == other.documentSelector &&
+          listEqual(documentSelector, other.documentSelector,
+              (DocumentFilter a, DocumentFilter b) => a == b) &&
           true;
     }
     return false;
@@ -11594,8 +11653,8 @@ class SignatureHelpRegistrationOptions
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
-    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(triggerCharacters));
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentSelector));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -11707,7 +11766,8 @@ class SignatureInformation implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SignatureInformation) {
+    if (other is SignatureInformation &&
+        other.runtimeType == SignatureInformation) {
       return label == other.label &&
           documentation == other.documentation &&
           listEqual(parameters, other.parameters,
@@ -11722,7 +11782,7 @@ class SignatureInformation implements ToJsonable {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentation.hashCode);
-    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(parameters));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -11773,7 +11833,8 @@ class StaticRegistrationOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is StaticRegistrationOptions) {
+    if (other is StaticRegistrationOptions &&
+        other.runtimeType == StaticRegistrationOptions) {
       return id == other.id && true;
     }
     return false;
@@ -11940,7 +12001,7 @@ class SymbolInformation implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is SymbolInformation) {
+    if (other is SymbolInformation && other.runtimeType == SymbolInformation) {
       return name == other.name &&
           kind == other.kind &&
           deprecated == other.deprecated &&
@@ -12101,9 +12162,11 @@ class TextDocumentChangeRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentChangeRegistrationOptions) {
+    if (other is TextDocumentChangeRegistrationOptions &&
+        other.runtimeType == TextDocumentChangeRegistrationOptions) {
       return syncKind == other.syncKind &&
-          documentSelector == other.documentSelector &&
+          listEqual(documentSelector, other.documentSelector,
+              (DocumentFilter a, DocumentFilter b) => a == b) &&
           true;
     }
     return false;
@@ -12113,7 +12176,7 @@ class TextDocumentChangeRegistrationOptions
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, syncKind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentSelector));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -12653,7 +12716,8 @@ class TextDocumentClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilities) {
+    if (other is TextDocumentClientCapabilities &&
+        other.runtimeType == TextDocumentClientCapabilities) {
       return synchronization == other.synchronization &&
           completion == other.completion &&
           hover == other.hover &&
@@ -12784,7 +12848,8 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesCodeAction) {
+    if (other is TextDocumentClientCapabilitiesCodeAction &&
+        other.runtimeType == TextDocumentClientCapabilitiesCodeAction) {
       return dynamicRegistration == other.dynamicRegistration &&
           codeActionLiteralSupport == other.codeActionLiteralSupport &&
           true;
@@ -12866,7 +12931,8 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesCodeActionKind) {
+    if (other is TextDocumentClientCapabilitiesCodeActionKind &&
+        other.runtimeType == TextDocumentClientCapabilitiesCodeActionKind) {
       return listEqual(valueSet, other.valueSet,
               (CodeActionKind a, CodeActionKind b) => a == b) &&
           true;
@@ -12877,7 +12943,7 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, valueSet.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(valueSet));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -12947,7 +13013,9 @@ class TextDocumentClientCapabilitiesCodeActionLiteralSupport
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesCodeActionLiteralSupport) {
+    if (other is TextDocumentClientCapabilitiesCodeActionLiteralSupport &&
+        other.runtimeType ==
+            TextDocumentClientCapabilitiesCodeActionLiteralSupport) {
       return codeActionKind == other.codeActionKind && true;
     }
     return false;
@@ -13009,7 +13077,8 @@ class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesCodeLens) {
+    if (other is TextDocumentClientCapabilitiesCodeLens &&
+        other.runtimeType == TextDocumentClientCapabilitiesCodeLens) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
     return false;
@@ -13074,7 +13143,8 @@ class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesColorProvider) {
+    if (other is TextDocumentClientCapabilitiesColorProvider &&
+        other.runtimeType == TextDocumentClientCapabilitiesColorProvider) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
     return false;
@@ -13197,7 +13267,8 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesCompletion) {
+    if (other is TextDocumentClientCapabilitiesCompletion &&
+        other.runtimeType == TextDocumentClientCapabilitiesCompletion) {
       return dynamicRegistration == other.dynamicRegistration &&
           completionItem == other.completionItem &&
           completionItemKind == other.completionItemKind &&
@@ -13354,7 +13425,8 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesCompletionItem) {
+    if (other is TextDocumentClientCapabilitiesCompletionItem &&
+        other.runtimeType == TextDocumentClientCapabilitiesCompletionItem) {
       return snippetSupport == other.snippetSupport &&
           commitCharactersSupport == other.commitCharactersSupport &&
           listEqual(documentationFormat, other.documentationFormat,
@@ -13371,7 +13443,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, snippetSupport.hashCode);
     hash = JenkinsSmiHash.combine(hash, commitCharactersSupport.hashCode);
-    hash = JenkinsSmiHash.combine(hash, documentationFormat.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentationFormat));
     hash = JenkinsSmiHash.combine(hash, deprecatedSupport.hashCode);
     hash = JenkinsSmiHash.combine(hash, preselectSupport.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -13437,7 +13509,8 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesCompletionItemKind) {
+    if (other is TextDocumentClientCapabilitiesCompletionItemKind &&
+        other.runtimeType == TextDocumentClientCapabilitiesCompletionItemKind) {
       return listEqual(valueSet, other.valueSet,
               (CompletionItemKind a, CompletionItemKind b) => a == b) &&
           true;
@@ -13448,7 +13521,7 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, valueSet.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(valueSet));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -13524,7 +13597,8 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesDeclaration) {
+    if (other is TextDocumentClientCapabilitiesDeclaration &&
+        other.runtimeType == TextDocumentClientCapabilitiesDeclaration) {
       return dynamicRegistration == other.dynamicRegistration &&
           linkSupport == other.linkSupport &&
           true;
@@ -13607,7 +13681,8 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesDefinition) {
+    if (other is TextDocumentClientCapabilitiesDefinition &&
+        other.runtimeType == TextDocumentClientCapabilitiesDefinition) {
       return dynamicRegistration == other.dynamicRegistration &&
           linkSupport == other.linkSupport &&
           true;
@@ -13672,7 +13747,8 @@ class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesDocumentHighlight) {
+    if (other is TextDocumentClientCapabilitiesDocumentHighlight &&
+        other.runtimeType == TextDocumentClientCapabilitiesDocumentHighlight) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
     return false;
@@ -13734,7 +13810,8 @@ class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesDocumentLink) {
+    if (other is TextDocumentClientCapabilitiesDocumentLink &&
+        other.runtimeType == TextDocumentClientCapabilitiesDocumentLink) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
     return false;
@@ -13838,7 +13915,8 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesDocumentSymbol) {
+    if (other is TextDocumentClientCapabilitiesDocumentSymbol &&
+        other.runtimeType == TextDocumentClientCapabilitiesDocumentSymbol) {
       return dynamicRegistration == other.dynamicRegistration &&
           symbolKind == other.symbolKind &&
           hierarchicalDocumentSymbolSupport ==
@@ -13950,7 +14028,8 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesFoldingRange) {
+    if (other is TextDocumentClientCapabilitiesFoldingRange &&
+        other.runtimeType == TextDocumentClientCapabilitiesFoldingRange) {
       return dynamicRegistration == other.dynamicRegistration &&
           rangeLimit == other.rangeLimit &&
           lineFoldingOnly == other.lineFoldingOnly &&
@@ -14017,7 +14096,8 @@ class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesFormatting) {
+    if (other is TextDocumentClientCapabilitiesFormatting &&
+        other.runtimeType == TextDocumentClientCapabilitiesFormatting) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
     return false;
@@ -14104,7 +14184,8 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesHover) {
+    if (other is TextDocumentClientCapabilitiesHover &&
+        other.runtimeType == TextDocumentClientCapabilitiesHover) {
       return dynamicRegistration == other.dynamicRegistration &&
           listEqual(contentFormat, other.contentFormat,
               (MarkupKind a, MarkupKind b) => a == b) &&
@@ -14117,7 +14198,7 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, dynamicRegistration.hashCode);
-    hash = JenkinsSmiHash.combine(hash, contentFormat.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(contentFormat));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -14193,7 +14274,8 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesImplementation) {
+    if (other is TextDocumentClientCapabilitiesImplementation &&
+        other.runtimeType == TextDocumentClientCapabilitiesImplementation) {
       return dynamicRegistration == other.dynamicRegistration &&
           linkSupport == other.linkSupport &&
           true;
@@ -14258,7 +14340,8 @@ class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesOnTypeFormatting) {
+    if (other is TextDocumentClientCapabilitiesOnTypeFormatting &&
+        other.runtimeType == TextDocumentClientCapabilitiesOnTypeFormatting) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
     return false;
@@ -14324,7 +14407,9 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesParameterInformation) {
+    if (other is TextDocumentClientCapabilitiesParameterInformation &&
+        other.runtimeType ==
+            TextDocumentClientCapabilitiesParameterInformation) {
       return labelOffsetSupport == other.labelOffsetSupport && true;
     }
     return false;
@@ -14386,7 +14471,8 @@ class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesPublishDiagnostics) {
+    if (other is TextDocumentClientCapabilitiesPublishDiagnostics &&
+        other.runtimeType == TextDocumentClientCapabilitiesPublishDiagnostics) {
       return relatedInformation == other.relatedInformation && true;
     }
     return false;
@@ -14448,7 +14534,8 @@ class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesRangeFormatting) {
+    if (other is TextDocumentClientCapabilitiesRangeFormatting &&
+        other.runtimeType == TextDocumentClientCapabilitiesRangeFormatting) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
     return false;
@@ -14510,7 +14597,8 @@ class TextDocumentClientCapabilitiesReferences implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesReferences) {
+    if (other is TextDocumentClientCapabilitiesReferences &&
+        other.runtimeType == TextDocumentClientCapabilitiesReferences) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
     return false;
@@ -14591,7 +14679,8 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesRename) {
+    if (other is TextDocumentClientCapabilitiesRename &&
+        other.runtimeType == TextDocumentClientCapabilitiesRename) {
       return dynamicRegistration == other.dynamicRegistration &&
           prepareSupport == other.prepareSupport &&
           true;
@@ -14681,7 +14770,8 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesSignatureHelp) {
+    if (other is TextDocumentClientCapabilitiesSignatureHelp &&
+        other.runtimeType == TextDocumentClientCapabilitiesSignatureHelp) {
       return dynamicRegistration == other.dynamicRegistration &&
           signatureInformation == other.signatureInformation &&
           true;
@@ -14776,7 +14866,9 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesSignatureInformation) {
+    if (other is TextDocumentClientCapabilitiesSignatureInformation &&
+        other.runtimeType ==
+            TextDocumentClientCapabilitiesSignatureInformation) {
       return listEqual(documentationFormat, other.documentationFormat,
               (MarkupKind a, MarkupKind b) => a == b) &&
           parameterInformation == other.parameterInformation &&
@@ -14788,7 +14880,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, documentationFormat.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentationFormat));
     hash = JenkinsSmiHash.combine(hash, parameterInformation.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -14852,7 +14944,8 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesSymbolKind) {
+    if (other is TextDocumentClientCapabilitiesSymbolKind &&
+        other.runtimeType == TextDocumentClientCapabilitiesSymbolKind) {
       return listEqual(valueSet, other.valueSet,
               (SymbolKind a, SymbolKind b) => a == b) &&
           true;
@@ -14863,7 +14956,7 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, valueSet.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(valueSet));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -14969,7 +15062,8 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesSynchronization) {
+    if (other is TextDocumentClientCapabilitiesSynchronization &&
+        other.runtimeType == TextDocumentClientCapabilitiesSynchronization) {
       return dynamicRegistration == other.dynamicRegistration &&
           willSave == other.willSave &&
           willSaveWaitUntil == other.willSaveWaitUntil &&
@@ -15061,7 +15155,8 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentClientCapabilitiesTypeDefinition) {
+    if (other is TextDocumentClientCapabilitiesTypeDefinition &&
+        other.runtimeType == TextDocumentClientCapabilitiesTypeDefinition) {
       return dynamicRegistration == other.dynamicRegistration &&
           linkSupport == other.linkSupport &&
           true;
@@ -15168,7 +15263,8 @@ class TextDocumentContentChangeEvent implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentContentChangeEvent) {
+    if (other is TextDocumentContentChangeEvent &&
+        other.runtimeType == TextDocumentContentChangeEvent) {
       return range == other.range &&
           rangeLength == other.rangeLength &&
           text == other.text &&
@@ -15276,7 +15372,7 @@ class TextDocumentEdit implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentEdit) {
+    if (other is TextDocumentEdit && other.runtimeType == TextDocumentEdit) {
       return textDocument == other.textDocument &&
           listEqual(edits, other.edits, (TextEdit a, TextEdit b) => a == b) &&
           true;
@@ -15288,7 +15384,7 @@ class TextDocumentEdit implements ToJsonable {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, textDocument.hashCode);
-    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(edits));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -15350,7 +15446,8 @@ class TextDocumentIdentifier implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentIdentifier) {
+    if (other is TextDocumentIdentifier &&
+        other.runtimeType == TextDocumentIdentifier) {
       return uri == other.uri && true;
     }
     return false;
@@ -15496,7 +15593,7 @@ class TextDocumentItem implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentItem) {
+    if (other is TextDocumentItem && other.runtimeType == TextDocumentItem) {
       return uri == other.uri &&
           languageId == other.languageId &&
           version == other.version &&
@@ -15607,7 +15704,8 @@ class TextDocumentPositionParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentPositionParams) {
+    if (other is TextDocumentPositionParams &&
+        other.runtimeType == TextDocumentPositionParams) {
       return textDocument == other.textDocument &&
           position == other.position &&
           true;
@@ -15708,8 +15806,11 @@ class TextDocumentRegistrationOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentRegistrationOptions) {
-      return documentSelector == other.documentSelector && true;
+    if (other is TextDocumentRegistrationOptions &&
+        other.runtimeType == TextDocumentRegistrationOptions) {
+      return listEqual(documentSelector, other.documentSelector,
+              (DocumentFilter a, DocumentFilter b) => a == b) &&
+          true;
     }
     return false;
   }
@@ -15717,7 +15818,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentSelector));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -15828,9 +15929,11 @@ class TextDocumentSaveRegistrationOptions
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentSaveRegistrationOptions) {
+    if (other is TextDocumentSaveRegistrationOptions &&
+        other.runtimeType == TextDocumentSaveRegistrationOptions) {
       return includeText == other.includeText &&
-          documentSelector == other.documentSelector &&
+          listEqual(documentSelector, other.documentSelector,
+              (DocumentFilter a, DocumentFilter b) => a == b) &&
           true;
     }
     return false;
@@ -15840,7 +15943,7 @@ class TextDocumentSaveRegistrationOptions
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, includeText.hashCode);
-    hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(documentSelector));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -16001,7 +16104,8 @@ class TextDocumentSyncOptions implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextDocumentSyncOptions) {
+    if (other is TextDocumentSyncOptions &&
+        other.runtimeType == TextDocumentSyncOptions) {
       return openClose == other.openClose &&
           change == other.change &&
           willSave == other.willSave &&
@@ -16105,7 +16209,7 @@ class TextEdit implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is TextEdit) {
+    if (other is TextEdit && other.runtimeType == TextEdit) {
       return range == other.range && newText == other.newText && true;
     }
     return false;
@@ -16201,7 +16305,7 @@ class Unregistration implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is Unregistration) {
+    if (other is Unregistration && other.runtimeType == Unregistration) {
       return id == other.id && method == other.method && true;
     }
     return false;
@@ -16275,7 +16379,8 @@ class UnregistrationParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is UnregistrationParams) {
+    if (other is UnregistrationParams &&
+        other.runtimeType == UnregistrationParams) {
       return listEqual(unregisterations, other.unregisterations,
               (Unregistration a, Unregistration b) => a == b) &&
           true;
@@ -16286,7 +16391,7 @@ class UnregistrationParams implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, unregisterations.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(unregisterations));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -16372,7 +16477,8 @@ class VersionedTextDocumentIdentifier
 
   @override
   bool operator ==(Object other) {
-    if (other is VersionedTextDocumentIdentifier) {
+    if (other is VersionedTextDocumentIdentifier &&
+        other.runtimeType == VersionedTextDocumentIdentifier) {
       return version == other.version && uri == other.uri && true;
     }
     return false;
@@ -16500,7 +16606,8 @@ class WillSaveTextDocumentParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WillSaveTextDocumentParams) {
+    if (other is WillSaveTextDocumentParams &&
+        other.runtimeType == WillSaveTextDocumentParams) {
       return textDocument == other.textDocument &&
           reason == other.reason &&
           true;
@@ -16729,7 +16836,8 @@ class WorkspaceClientCapabilities implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceClientCapabilities) {
+    if (other is WorkspaceClientCapabilities &&
+        other.runtimeType == WorkspaceClientCapabilities) {
       return applyEdit == other.applyEdit &&
           workspaceEdit == other.workspaceEdit &&
           didChangeConfiguration == other.didChangeConfiguration &&
@@ -16807,7 +16915,9 @@ class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceClientCapabilitiesDidChangeConfiguration) {
+    if (other is WorkspaceClientCapabilitiesDidChangeConfiguration &&
+        other.runtimeType ==
+            WorkspaceClientCapabilitiesDidChangeConfiguration) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
     return false;
@@ -16872,7 +16982,8 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceClientCapabilitiesDidChangeWatchedFiles) {
+    if (other is WorkspaceClientCapabilitiesDidChangeWatchedFiles &&
+        other.runtimeType == WorkspaceClientCapabilitiesDidChangeWatchedFiles) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
     return false;
@@ -16934,7 +17045,8 @@ class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceClientCapabilitiesExecuteCommand) {
+    if (other is WorkspaceClientCapabilitiesExecuteCommand &&
+        other.runtimeType == WorkspaceClientCapabilitiesExecuteCommand) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
     return false;
@@ -17016,7 +17128,8 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceClientCapabilitiesSymbol) {
+    if (other is WorkspaceClientCapabilitiesSymbol &&
+        other.runtimeType == WorkspaceClientCapabilitiesSymbol) {
       return dynamicRegistration == other.dynamicRegistration &&
           symbolKind == other.symbolKind &&
           true;
@@ -17091,7 +17204,8 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceClientCapabilitiesSymbolKind) {
+    if (other is WorkspaceClientCapabilitiesSymbolKind &&
+        other.runtimeType == WorkspaceClientCapabilitiesSymbolKind) {
       return listEqual(valueSet, other.valueSet,
               (SymbolKind a, SymbolKind b) => a == b) &&
           true;
@@ -17102,7 +17216,7 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, valueSet.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(valueSet));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -17201,7 +17315,8 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceClientCapabilitiesWorkspaceEdit) {
+    if (other is WorkspaceClientCapabilitiesWorkspaceEdit &&
+        other.runtimeType == WorkspaceClientCapabilitiesWorkspaceEdit) {
       return documentChanges == other.documentChanges &&
           listEqual(resourceOperations, other.resourceOperations,
               (ResourceOperationKind a, ResourceOperationKind b) => a == b) &&
@@ -17215,7 +17330,7 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, documentChanges.hashCode);
-    hash = JenkinsSmiHash.combine(hash, resourceOperations.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(resourceOperations));
     hash = JenkinsSmiHash.combine(hash, failureHandling.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -17335,9 +17450,12 @@ class WorkspaceEdit implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceEdit) {
-      return mapEqual(changes, other.changes,
-              (List<TextEdit> a, List<TextEdit> b) => a == b) &&
+    if (other is WorkspaceEdit && other.runtimeType == WorkspaceEdit) {
+      return mapEqual(
+              changes,
+              other.changes,
+              (List<TextEdit> a, List<TextEdit> b) =>
+                  listEqual(a, b, (TextEdit a, TextEdit b) => a == b)) &&
           documentChanges == other.documentChanges &&
           true;
     }
@@ -17347,7 +17465,7 @@ class WorkspaceEdit implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, changes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(changes));
     hash = JenkinsSmiHash.combine(hash, documentChanges.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -17433,7 +17551,7 @@ class WorkspaceFolder implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceFolder) {
+    if (other is WorkspaceFolder && other.runtimeType == WorkspaceFolder) {
       return uri == other.uri && name == other.name && true;
     }
     return false;
@@ -17540,7 +17658,8 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceFoldersChangeEvent) {
+    if (other is WorkspaceFoldersChangeEvent &&
+        other.runtimeType == WorkspaceFoldersChangeEvent) {
       return listEqual(added, other.added,
               (WorkspaceFolder a, WorkspaceFolder b) => a == b) &&
           listEqual(removed, other.removed,
@@ -17553,8 +17672,8 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
   @override
   int get hashCode {
     var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, added.hashCode);
-    hash = JenkinsSmiHash.combine(hash, removed.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(added));
+    hash = JenkinsSmiHash.combine(hash, lspHashCode(removed));
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -17614,7 +17733,8 @@ class WorkspaceSymbolParams implements ToJsonable {
 
   @override
   bool operator ==(Object other) {
-    if (other is WorkspaceSymbolParams) {
+    if (other is WorkspaceSymbolParams &&
+        other.runtimeType == WorkspaceSymbolParams) {
       return query == other.query && true;
     }
     return false;

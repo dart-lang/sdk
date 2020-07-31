@@ -1,0 +1,10 @@
+class A<X> {}
+
+class C<X, Y extends X Function(X)> {}
+
+C c;
+
+class D<X extends num, Y extends X Function(X)> {}
+
+D d;
+main() {}

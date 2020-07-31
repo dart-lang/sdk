@@ -15,25 +15,45 @@ import 'package:analyzer/dart/element/element.dart';
 /// when the completion is in a show or hide combinator of an import or export.
 class CombinatorContributor extends DartCompletionContributor {
   @override
-  Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+  Future<void> computeSuggestions(
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     var node = request.target.containingNode;
     if (node is! Combinator) {
-      return const <CompletionSuggestion>[];
+      return;
     }
     // Build the list of suggestions.
     var directive = node.thisOrAncestorOfType<NamespaceDirective>();
     if (directive is NamespaceDirective) {
       var library = directive.uriElement as LibraryElement;
       if (library != null) {
-        var builder = LibraryElementSuggestionBuilder(
-            request, CompletionSuggestionKind.IDENTIFIER, false, false);
+        var existingNames = _getCombinatorNames(directive);
         for (var element in library.exportNamespace.definedNames.values) {
-          element.accept(builder);
+          if (!existingNames.contains(element.name)) {
+            builder.suggestElement(element,
+                kind: CompletionSuggestionKind.IDENTIFIER);
+          }
         }
-        return builder.suggestions;
       }
     }
-    return const <CompletionSuggestion>[];
+  }
+
+  List<String> _getCombinatorNames(NamespaceDirective directive) {
+    var combinatorNameList = <String>[];
+    for (var combinator in directive.combinators) {
+      if (combinator is ShowCombinator) {
+        for (var simpleId in combinator.shownNames) {
+          if (!simpleId.isSynthetic) {
+            combinatorNameList.add(simpleId.name);
+          }
+        }
+      } else if (combinator is HideCombinator) {
+        for (var simpleId in combinator.hiddenNames) {
+          if (!simpleId.isSynthetic) {
+            combinatorNameList.add(simpleId.name);
+          }
+        }
+      }
+    }
+    return combinatorNameList;
   }
 }

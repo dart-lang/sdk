@@ -460,4 +460,17 @@ class A {}
 class B {}
 ''');
   }
+
+  Future<void> test_notExpression_incomplete() async {
+    await resolveTestUnit(r'''
+void foo(int a) {
+  a = a < ;
+}
+''');
+    await assertNoFix(
+      errorFilter: (e) {
+        return e.errorCode == StaticTypeWarningCode.INVALID_ASSIGNMENT;
+      },
+    );
+  }
 }

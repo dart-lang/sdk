@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/assembler/assembler_base.h"
 
 #include "platform/utils.h"
@@ -181,7 +179,7 @@ class PatchCodeWithHandle : public AssemblerFixup {
     // Patch the handle into the code. Once the instructions are installed into
     // a raw code object and the pointer offsets are setup, the handle is
     // resolved.
-    region.Store<const Object*>(position, &object_);
+    region.StoreUnaligned<const Object*>(position, &object_);
     pointer_offsets_->Add(position);
   }
 
@@ -389,5 +387,3 @@ bool ObjectPoolBuilder::TryCommitToParent() {
 }  // namespace compiler
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

@@ -3,10 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -14,7 +12,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptions;
 import 'package:analyzer/src/generated/source.dart';
@@ -33,18 +31,17 @@ var timerInputLibraries = Stopwatch();
 var timerLinking = Stopwatch();
 var timerLoad2 = Stopwatch();
 
-/**
- * Context information necessary to analyze one or more libraries within an
- * [AnalysisDriver].
- *
- * Currently this is implemented as a wrapper around [AnalysisContext].
- */
+/// Context information necessary to analyze one or more libraries within an
+/// [AnalysisDriver].
+///
+/// Currently this is implemented as a wrapper around [AnalysisContext].
 class LibraryContext {
   static const _maxLinkedDataInBytes = 64 * 1024 * 1024;
 
+  final LibraryContextTestView testView;
   final PerformanceLog logger;
   final ByteStore byteStore;
-  final AnalysisSession analysisSession;
+  final AnalysisSessionImpl analysisSession;
   final SummaryDataStore externalSummaries;
   final SummaryDataStore store = SummaryDataStore([]);
 
@@ -55,15 +52,14 @@ class LibraryContext {
 
   AnalysisContextImpl analysisContext;
   LinkedElementFactory elementFactory;
-  InheritanceManager3 inheritanceManager;
 
-  var loadedBundles = Set<LibraryCycle>.identity();
+  Set<LibraryCycle> loadedBundles = Set<LibraryCycle>.identity();
 
   LibraryContext({
-    @required AnalysisSession session,
+    @required this.testView,
+    @required AnalysisSessionImpl session,
     @required PerformanceLog logger,
     @required ByteStore byteStore,
-    @required FileSystemState fsState,
     @required AnalysisOptions analysisOptions,
     @required DeclaredVariables declaredVariables,
     @required SourceFactory sourceFactory,
@@ -78,13 +74,9 @@ class LibraryContext {
 
     _createElementFactory();
     load2(targetLibrary);
-
-    inheritanceManager = InheritanceManager3();
   }
 
-  /**
-   * Computes a [CompilationUnitElement] for the given library/unit pair.
-   */
+  /// Computes a [CompilationUnitElement] for the given library/unit pair.
   CompilationUnitElement computeUnitElement(FileState library, FileState unit) {
     var reference = elementFactory.rootReference
         .getChild(library.uriStr)
@@ -93,16 +85,12 @@ class LibraryContext {
     return elementFactory.elementOfReference(reference);
   }
 
-  /**
-   * Get the [LibraryElement] for the given library.
-   */
+  /// Get the [LibraryElement] for the given library.
   LibraryElement getLibraryElement(FileState library) {
     return elementFactory.libraryOfUri(library.uriStr);
   }
 
-  /**
-   * Return `true` if the given [uri] is known to be a library.
-   */
+  /// Return `true` if the given [uri] is known to be a library.
   bool isLibraryUri(Uri uri) {
     String uriStr = uri.toString();
     return elementFactory.isLibraryUri(uriStr);
@@ -134,6 +122,10 @@ class LibraryContext {
       if (bytes == null) {
         librariesLinkedTimer.start();
 
+        testView.linkedCycles.add(
+          cycle.libraries.map((e) => e.path).toSet(),
+        );
+
         timerInputLibraries.start();
         inputsTimer.start();
         var inputLibraries = <link2.LinkInputLibrary>[];
@@ -161,6 +153,33 @@ class LibraryContext {
                 unit,
               ),
             );
+
+            // TODO(scheglov) remove after fixing linking issues
+            {
+              var existingLibraryReference =
+                  elementFactory.rootReference[libraryFile.uriStr];
+              if (existingLibraryReference != null) {
+                var existingElement = existingLibraryReference.element;
+                if (existingElement != null) {
+                  var existingSource = existingElement?.source;
+                  var libraryRefs = elementFactory.rootReference.children;
+                  var libraryUriList = libraryRefs.map((e) => e.name).toList();
+                  var statusText = '[The library is already loaded]'
+                      '[oldUri: ${existingSource.uri}]'
+                      '[oldPath: ${existingSource.fullName}]'
+                      '[newUri: ${libraryFile.uriStr}]'
+                      '[newPath: ${libraryFile.path}]'
+                      '[cycle: $cycle]'
+                      '[loadedBundles: ${loadedBundles.toList()}]'
+                      '[elementFactory.libraries: $libraryUriList]';
+                  throw LibraryCycleLinkException(
+                    'Cycle loading state error',
+                    StackTrace.current,
+                    {'status': statusText},
+                  );
+                }
+              }
+            }
           }
 
           inputLibraries.add(
@@ -299,14 +318,15 @@ class LibraryContext {
   }
 }
 
-/// Exception that wraps another exception that happened during linking, and
-/// includes the content of all files of the library cycle.
-class LibraryCycleLinkException extends CaughtException {
-  final Map<String, String> fileContentMap;
+class LibraryContextTestView {
+  final List<Set<String>> linkedCycles = [];
+}
 
+/// TODO(scheglov) replace in the internal patch
+class LibraryCycleLinkException extends CaughtExceptionWithFiles {
   LibraryCycleLinkException(
     Object exception,
     StackTrace stackTrace,
-    this.fileContentMap,
-  ) : super(exception, stackTrace);
+    Map<String, String> fileContentMap,
+  ) : super(exception, stackTrace, fileContentMap);
 }

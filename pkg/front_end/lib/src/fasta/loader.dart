@@ -10,7 +10,7 @@ import 'dart:collection' show Queue;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/ast.dart' show Class, DartType, Library;
+import 'package:kernel/ast.dart' show Class, DartType, Library, Version;
 import 'package:package_config/package_config.dart';
 
 import 'scope.dart';
@@ -145,30 +145,34 @@ abstract class Loader {
             target.uriTranslator.packages.packageOf(fileUri);
       }
       bool hasPackageSpecifiedLanguageVersion = false;
-      int packageSpecifiedLanguageVersionMajor;
-      int packageSpecifiedLanguageVersionMinor;
-      if (packageForLanguageVersion != null &&
-          packageForLanguageVersion.languageVersion != null) {
-        hasPackageSpecifiedLanguageVersion = true;
-        if (packageForLanguageVersion.languageVersion
-            is! InvalidLanguageVersion) {
-          packageSpecifiedLanguageVersionMajor =
-              packageForLanguageVersion.languageVersion.major;
-          packageSpecifiedLanguageVersionMinor =
-              packageForLanguageVersion.languageVersion.minor;
+      Version version;
+      Uri packageUri;
+      if (packageForLanguageVersion != null) {
+        Uri importUri = origin?.importUri ?? uri;
+        if (importUri.scheme != 'dart' &&
+            importUri.scheme != 'package' &&
+            packageForLanguageVersion.name != null) {
+          packageUri =
+              new Uri(scheme: 'package', path: packageForLanguageVersion.name);
+        }
+        if (packageForLanguageVersion.languageVersion != null) {
+          hasPackageSpecifiedLanguageVersion = true;
+          if (packageForLanguageVersion.languageVersion
+              is! InvalidLanguageVersion) {
+            version = new Version(
+                packageForLanguageVersion.languageVersion.major,
+                packageForLanguageVersion.languageVersion.minor);
+          }
         }
       }
-      LibraryBuilder library = target.createLibraryBuilder(
-          uri, fileUri, origin, referencesFrom, referenceIsPartOwner);
+      LibraryBuilder library = target.createLibraryBuilder(uri, fileUri,
+          packageUri, origin, referencesFrom, referenceIsPartOwner);
       if (library == null) {
         throw new StateError("createLibraryBuilder for uri $uri, "
             "fileUri $fileUri returned null.");
       }
-
       if (hasPackageSpecifiedLanguageVersion) {
-        library.setLanguageVersion(packageSpecifiedLanguageVersionMajor,
-            packageSpecifiedLanguageVersionMinor,
-            explicit: false);
+        library.setLanguageVersion(version, explicit: false);
       }
       if (uri.scheme == "dart" && uri.path == "core") {
         coreLibrary = library;

@@ -10,15 +10,15 @@ import 'vm_service.dart';
 @Deprecated('Prefer vmServiceConnectUri')
 Future<VmService> vmServiceConnect(String host, int port, {Log log}) async {
   final WebSocket socket = await WebSocket.connect('ws://$host:$port/ws');
-  final StreamController<dynamic> controller = new StreamController();
-  final Completer streamClosedCompleter = new Completer();
+  final StreamController<dynamic> controller = StreamController();
+  final Completer streamClosedCompleter = Completer();
 
   socket.listen(
     (data) => controller.add(data),
     onDone: () => streamClosedCompleter.complete(),
   );
 
-  return new VmService(
+  return VmService(
     controller.stream,
     (String message) => socket.add(message),
     log: log,
@@ -30,15 +30,15 @@ Future<VmService> vmServiceConnect(String host, int port, {Log log}) async {
 /// Connect to the given uri and return a new [VmService] instance.
 Future<VmService> vmServiceConnectUri(String wsUri, {Log log}) async {
   final WebSocket socket = await WebSocket.connect(wsUri);
-  final StreamController<dynamic> controller = new StreamController();
-  final Completer streamClosedCompleter = new Completer();
+  final StreamController<dynamic> controller = StreamController();
+  final Completer streamClosedCompleter = Completer();
 
   socket.listen(
     (data) => controller.add(data),
     onDone: () => streamClosedCompleter.complete(),
   );
 
-  return new VmService(
+  return VmService(
     controller.stream,
     (String message) => socket.add(message),
     log: log,

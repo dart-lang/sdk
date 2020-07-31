@@ -1,0 +1,3 @@
+class A<out X, in Y, inout Z> {
+}
+main() { }

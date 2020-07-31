@@ -19,7 +19,7 @@ abstract class NodeValidator {
    *
    * If a uriPolicy is not specified then the default uriPolicy will be used.
    */
-  factory NodeValidator({UriPolicy uriPolicy}) =>
+  factory NodeValidator({UriPolicy? uriPolicy}) =>
       new _Html5NodeValidator(uriPolicy: uriPolicy);
 
   factory NodeValidator.throws(NodeValidator base) =>
@@ -163,12 +163,12 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   _ValidatingTreeSanitizer(this.validator) {}
 
   void sanitizeTree(Node node) {
-    void walk(Node node, Node parent) {
+    void walk(Node node, Node? parent) {
       sanitizeNode(node, parent);
 
       var child = node.lastChild;
       while (null != child) {
-        Node nextChild;
+        Node? nextChild;
         try {
           // Child may be removed during the walk, and we may not even be able
           // to get its previousNode. But it's also possible that previousNode
@@ -199,7 +199,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   }
 
   /// Aggressively try to remove node.
-  void _removeNode(Node node, Node parent) {
+  void _removeNode(Node node, Node? parent) {
     // If we have the parent, it's presumably already passed more sanitization
     // or is the fragment, so ask it to remove the child. And if that fails
     // try to set the outer html.
@@ -212,7 +212,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   }
 
   /// Sanitize the element, assuming we can't trust anything about it.
-  void _sanitizeUntrustedElement(/* Element */ element, Node parent) {
+  void _sanitizeUntrustedElement(/* Element */ element, Node? parent) {
     // If the _hasCorruptedAttributes does not successfully return false,
     // then we consider it corrupted and remove.
     // TODO(alanknight): This is a workaround because on Firefox
@@ -261,8 +261,8 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   /// Having done basic sanity checking on the element, and computed the
   /// important attributes we want to check, remove it if it's not valid
   /// or not allowed, either as a whole or particular attributes.
-  void _sanitizeElement(Element element, Node parent, bool corrupted,
-      String text, String tag, Map attrs, String isAttr) {
+  void _sanitizeElement(Element element, Node? parent, bool corrupted,
+      String text, String tag, Map attrs, String? isAttr) {
     if (false != corrupted) {
       _removeNode(element, parent);
       window.console
@@ -304,7 +304,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   }
 
   /// Sanitize the node and its children recursively.
-  void sanitizeNode(Node node, Node parent) {
+  void sanitizeNode(Node node, Node? parent) {
     switch (node.nodeType) {
       case Node.ELEMENT_NODE:
         _sanitizeUntrustedElement(node, parent);

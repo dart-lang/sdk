@@ -1,0 +1,7 @@
+// @dart = 2.6
+class Foo {
+  int field;
+  static int staticField;
+}
+
+main() {}

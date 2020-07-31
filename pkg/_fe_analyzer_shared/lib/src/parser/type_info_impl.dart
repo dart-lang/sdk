@@ -171,7 +171,7 @@ class PrefixedType implements TypeInfo {
     listener.handleQualified(period);
 
     listener.handleNoTypeArguments(token.next);
-    listener.handleType(start, null);
+    listener.handleType(start, /* questionMark = */ null);
     return token;
   }
 
@@ -244,7 +244,7 @@ class SimpleTypeWith1Argument implements TypeInfo {
   }
 
   Token parseTypeRest(Token start, Token token, Parser parser) {
-    parser.listener.handleType(start, null);
+    parser.listener.handleType(start, /* questionMark = */ null);
     return token;
   }
 
@@ -315,7 +315,7 @@ class SimpleType implements TypeInfo {
   }
 
   Token parseTypeRest(Token token, Parser parser) {
-    parser.listener.handleType(token, null);
+    parser.listener.handleType(token, /* questionMark = */ null);
     return token;
   }
 
@@ -487,7 +487,8 @@ class ComplexTypeInfo implements TypeInfo {
     final List<Token> typeVariableEndGroups = <Token>[];
     for (Link<Token> t = typeVariableStarters; t.isNotEmpty; t = t.tail) {
       typeVariableEndGroups.add(
-          computeTypeParamOrArg(t.head, true).parseVariables(t.head, parser));
+          computeTypeParamOrArg(t.head, /* inDeclaration = */ true)
+              .parseVariables(t.head, parser));
       parser.listener.beginFunctionType(start);
     }
 
@@ -692,7 +693,8 @@ class ComplexTypeInfo implements TypeInfo {
     while (optional('Function', token)) {
       Token typeVariableStart = token;
       // TODO(danrubel): Consider caching TypeParamOrArgInfo
-      token = computeTypeParamOrArg(token, true).skip(token);
+      token =
+          computeTypeParamOrArg(token, /* inDeclaration = */ true).skip(token);
       token = token.next;
       if (!optional('(', token)) {
         break; // Not a function type.
@@ -770,7 +772,7 @@ class SimpleTypeArgument1 extends TypeParamOrArgInfo {
     Listener listener = parser.listener;
     listener.beginTypeArguments(beginGroup);
     simpleType.parseType(beginGroup, parser);
-    parser.listener.endTypeArguments(1, beginGroup, endGroup);
+    parser.listener.endTypeArguments(/* count = */ 1, beginGroup, endGroup);
     return endGroup;
   }
 
@@ -783,12 +785,16 @@ class SimpleTypeArgument1 extends TypeParamOrArgInfo {
     Listener listener = parser.listener;
     listener.beginTypeVariables(beginGroup);
     listener.beginMetadataStar(token);
-    listener.endMetadataStar(0);
+    listener.endMetadataStar(/* count = */ 0);
     listener.handleIdentifier(token, IdentifierContext.typeVariableDeclaration);
     listener.beginTypeVariable(token);
-    listener.handleTypeVariablesDefined(token, 1);
+    listener.handleTypeVariablesDefined(token, /* count = */ 1);
     listener.handleNoType(token);
-    listener.endTypeVariable(endGroup, 0, null, null);
+    listener.endTypeVariable(
+        endGroup,
+        /* index = */ 0,
+        /* extendsOrSuper = */ null,
+        /* variance = */ null);
     listener.endTypeVariables(beginGroup, endGroup);
     return endGroup;
   }
@@ -898,11 +904,12 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     Token next = start;
     typeArgumentCount = 0;
     while (true) {
-      TypeInfo typeInfo = computeType(next, true, inDeclaration);
+      TypeInfo typeInfo =
+          computeType(next, /* required = */ true, inDeclaration);
       if (typeInfo == noType) {
         while (typeInfo == noType && optional('@', next.next)) {
           next = skipMetadata(next);
-          typeInfo = computeType(next, true, inDeclaration);
+          typeInfo = computeType(next, /* required = */ true, inDeclaration);
         }
         if (typeInfo == noType) {
           if (next == start && !inDeclaration && !isCloser(next.next)) {
@@ -921,7 +928,8 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       token = typeInfo.skipType(next);
       next = token.next;
       if (optional('extends', next)) {
-        token = computeType(next, true, inDeclaration).skipType(next);
+        token = computeType(next, /* required = */ true, inDeclaration)
+            .skipType(next);
         next = token.next;
       }
       if (!optional(',', next)) {
@@ -967,14 +975,15 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     parser.listener.beginTypeArguments(start);
     int count = 0;
     while (true) {
-      TypeInfo typeInfo = computeType(next, true, inDeclaration);
+      TypeInfo typeInfo =
+          computeType(next, /* required = */ true, inDeclaration);
       if (typeInfo == noType) {
         // Recovery
         while (typeInfo == noType && optional('@', next.next)) {
           parser.reportRecoverableErrorWithToken(
               next.next, codes.templateUnexpectedToken);
           next = skipMetadata(next);
-          typeInfo = computeType(next, true, inDeclaration);
+          typeInfo = computeType(next, /* required = */ true, inDeclaration);
         }
         // Fall through to process type (if any) and consume `,`
       }
@@ -988,7 +997,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
 
         // Recovery
         if (!looksLikeTypeParamOrArg(inDeclaration, next)) {
-          token = parseUnexpectedEnd(token, true, parser);
+          token = parseUnexpectedEnd(token, /* isArguments = */ true, parser);
           break;
         }
         // Missing comma. Report error, insert comma, and continue looping.
@@ -1036,7 +1045,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
 
         token = variance;
       } else {
-        variances = variances.prepend(null);
+        variances = variances.prepend(/* element = */ null);
       }
 
       next = parser.ensureIdentifier(
@@ -1047,12 +1056,13 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
 
       next = token.next;
       if (optional('extends', next)) {
-        TypeInfo typeInfo = computeType(next, true, inDeclaration);
+        TypeInfo typeInfo =
+            computeType(next, /* required = */ true, inDeclaration);
         token = typeInfo.skipType(next);
         next = token.next;
         superTypeInfos = superTypeInfos.prepend(typeInfo);
       } else {
-        superTypeInfos = superTypeInfos.prepend(null);
+        superTypeInfos = superTypeInfos.prepend(/* element = */ null);
       }
 
       ++count;
@@ -1104,7 +1114,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     }
 
     if (!parseCloser(token)) {
-      token = parseUnexpectedEnd(token, false, parser);
+      token = parseUnexpectedEnd(token, /* isArguments = */ false, parser);
     }
     Token endGroup = token.next;
     listener.endTypeVariables(start, endGroup);
@@ -1143,7 +1153,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
         optional('dynamic', next) ||
         optional('void', next) ||
         optional('Function', next)) {
-      TypeInfo invalidType = computeType(token, true);
+      TypeInfo invalidType = computeType(token, /* required = */ true);
       if (invalidType != noType) {
         if (!errorReported) {
           parser.reportRecoverableError(

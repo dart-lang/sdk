@@ -98,11 +98,16 @@ class ServiceProtocol {
     socket.listen(_handleMessage);
   }
 
-  Future<Map> call(String method, [Map args]) {
+  Future<Map> call(String method, [Map args = const {}]) {
     var id = '${++_id}';
     var completer = Completer<Map>();
     _completers[id] = completer;
-    var m = <String, dynamic>{'id': id, 'method': method};
+    var m = <String, dynamic>{
+      'jsonrpc': '2.0',
+      'id': id,
+      'method': method,
+      'args': args
+    };
     if (args != null) m['params'] = args;
     var message = jsonEncode(m);
     socket.add(message);

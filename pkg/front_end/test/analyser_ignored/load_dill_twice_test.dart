@@ -18,6 +18,10 @@ main() async {
 
   Component c = new Component();
   new BinaryBuilder(bytes).readComponent(c);
+  // Print once to lazy-load whatever it needs to lazy-load to print.
+  // This *might* change the textual representation because references can be
+  // created.
+  componentToString(c);
   String loadedOnceString = componentToString(c);
   new BinaryBuilder(bytes).readComponent(c);
   String loadedTwiceString = componentToString(c);
@@ -76,4 +80,5 @@ main() async {
 
     exit(1);
   }
+  print("OK");
 }

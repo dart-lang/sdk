@@ -72,9 +72,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
     for (Feature feature in worldImpact.features) {
       switch (feature) {
-        case Feature.ABSTRACT_CLASS_INSTANTIATION:
-          registerImpact(_impacts.abstractClassInstantiation);
-          break;
         case Feature.ASSERT:
           registerImpact(_impacts.assertWithoutMessage);
           break;

@@ -1,0 +1,9 @@
+library test;
+
+import 'dart:math';
+
+f() {}
+main() {}
+num myMax(num x, num y) => max(x, y);
+void printDouble(double x) => print(x);
+void printInt(int x) => print(x);

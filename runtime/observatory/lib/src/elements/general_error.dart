@@ -8,16 +8,13 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 
 class GeneralErrorElement extends CustomElement implements Renderable {
-  static const tag = const Tag<GeneralErrorElement>('general-error',
-      dependencies: const [NavTopMenuElement.tag, NavNotifyElement.tag]);
-
-  RenderingScheduler _r;
+  RenderingScheduler<GeneralErrorElement> _r;
 
   Stream<RenderedEvent<GeneralErrorElement>> get onRendered => _r.onRendered;
 
@@ -39,7 +36,7 @@ class GeneralErrorElement extends CustomElement implements Renderable {
     return e;
   }
 
-  GeneralErrorElement.created() : super.created(tag);
+  GeneralErrorElement.created() : super.created('general-error');
 
   @override
   void attached() {

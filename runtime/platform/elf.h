@@ -36,8 +36,10 @@ struct ElfHeader {
 };
 
 enum class ProgramHeaderType : uint32_t {
+  PT_NULL = 0,
   PT_LOAD = 1,
   PT_DYNAMIC = 2,
+  PT_NOTE = 4,
   PT_PHDR = 6,
 };
 
@@ -63,10 +65,22 @@ struct ProgramHeader {
 #endif
 };
 
+enum class SectionHeaderType : uint32_t {
+  SHT_NULL = 0,
+  SHT_PROGBITS = 1,
+  SHT_SYMTAB = 2,
+  SHT_STRTAB = 3,
+  SHT_HASH = 5,
+  SHT_NOTE = 7,
+  SHT_NOBITS = 8,
+  SHT_DYNAMIC = 6,
+  SHT_DYNSYM = 11,
+};
+
 struct SectionHeader {
 #if defined(TARGET_ARCH_IS_32_BIT)
   uint32_t name;
-  uint32_t type;
+  SectionHeaderType type;
   uint32_t flags;
   uint32_t memory_offset;
   uint32_t file_offset;
@@ -77,7 +91,7 @@ struct SectionHeader {
   uint32_t entry_size;
 #else
   uint32_t name;
-  uint32_t type;
+  SectionHeaderType type;
   uint64_t flags;
   uint64_t memory_offset;
   uint64_t file_offset;
@@ -107,6 +121,36 @@ struct Symbol {
 #endif
 };
 
+enum class DynamicEntryType : uint32_t {
+  DT_NULL = 0,
+  DT_HASH = 4,
+  DT_STRTAB = 5,
+  DT_SYMTAB = 6,
+  DT_STRSZ = 10,
+  DT_SYMENT = 11,
+};
+
+struct DynamicEntry {
+#if defined(TARGET_ARCH_IS_32_BIT)
+  uint32_t tag;
+  uint32_t value;
+#else
+  uint64_t tag;
+  uint64_t value;
+#endif
+};
+
+enum class NoteType : uint32_t {
+  NT_GNU_BUILD_ID = 3,
+};
+
+struct Note {
+  uint32_t name_size;
+  uint32_t description_size;
+  NoteType type;
+  uint8_t data[];
+};
+
 #pragma pack(pop)
 
 static constexpr intptr_t ELFCLASS32 = 1;
@@ -134,14 +178,6 @@ static const intptr_t PF_X = 1;
 static const intptr_t PF_W = 2;
 static const intptr_t PF_R = 4;
 
-static const intptr_t SHT_PROGBITS = 1;
-static const intptr_t SHT_SYMTAB = 2;
-static const intptr_t SHT_STRTAB = 3;
-static const intptr_t SHT_HASH = 5;
-static const intptr_t SHT_NOBITS = 8;
-static const intptr_t SHT_DYNAMIC = 6;
-static const intptr_t SHT_DYNSYM = 11;
-
 static const intptr_t SHF_WRITE = 0x1;
 static const intptr_t SHF_ALLOC = 0x2;
 static const intptr_t SHF_EXECINSTR = 0x4;
@@ -150,10 +186,6 @@ static const intptr_t SHN_UNDEF = 0;
 
 static const intptr_t STN_UNDEF = 0;
 
-static const intptr_t PT_LOAD = 1;
-static const intptr_t PT_DYNAMIC = 2;
-static const intptr_t PT_PHDR = 6;
-
 static const intptr_t STB_LOCAL = 0;
 static const intptr_t STB_GLOBAL = 1;
 
@@ -161,12 +193,7 @@ static const intptr_t STT_OBJECT = 1;  // I.e., data.
 static const intptr_t STT_FUNC = 2;
 static const intptr_t STT_SECTION = 3;
 
-static const intptr_t DT_NULL = 0;
-static const intptr_t DT_HASH = 4;
-static const intptr_t DT_STRTAB = 5;
-static const intptr_t DT_SYMTAB = 6;
-static const intptr_t DT_STRSZ = 10;
-static const intptr_t DT_SYMENT = 11;
+static constexpr const char* ELF_NOTE_GNU = "GNU";
 
 }  // namespace elf
 }  // namespace dart

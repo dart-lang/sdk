@@ -13,7 +13,7 @@ class A {
 }
 
 var a = new A();
-var x = /*@ returnType=invalid-type */ () => a. /*@target=A::b*/ b;
-var y = /*@ returnType=() ->* () ->* invalid-type */ () => a. /*@target=A::c*/ c;
+var x = /*@ returnType=invalid-type */ () => a. /*@target=A.b*/ b;
+var y = /*@ returnType=() ->* () ->* invalid-type */ () => a. /*@target=A.c*/ c;
 
 main() {}

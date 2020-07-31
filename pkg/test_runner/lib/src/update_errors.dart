@@ -38,16 +38,18 @@ String updateErrorExpectations(String source, List<StaticError> errors,
     }
 
     // Re-add errors for the portions we intend to preserve.
-    var keepCode = !removeAnalyzer && error.code != null;
-    var keepMessage = !removeCfe && error.message != null;
+    var keepAnalyzer = !removeAnalyzer && error.hasError(ErrorSource.analyzer);
+    var keepCfe = !removeCfe && error.hasError(ErrorSource.cfe);
 
-    if (keepCode || keepMessage) {
-      preservedErrors.add(StaticError(
-          line: error.line,
-          column: error.column,
-          length: error.length,
-          code: keepCode ? error.code : null,
-          message: keepMessage ? error.message : null));
+    var keptErrors = {
+      if (keepAnalyzer)
+        ErrorSource.analyzer: error.errorFor(ErrorSource.analyzer),
+      if (keepCfe) ErrorSource.cfe: error.errorFor(ErrorSource.cfe),
+    };
+
+    if (keptErrors.isNotEmpty) {
+      preservedErrors.add(StaticError(keptErrors,
+          line: error.line, column: error.column, length: error.length));
     }
   }
 
@@ -113,13 +115,12 @@ String updateErrorExpectations(String source, List<StaticError> errors,
         result.add("$comment$spacing$carets");
       }
 
-      if (error.code != null) {
-        result.add("$comment [analyzer] ${error.code}");
-      }
+      for (var source in ErrorSource.all) {
+        var sourceError = error.errorFor(source);
+        if (sourceError == null) continue;
 
-      if (error.message != null) {
-        var errorLines = error.message.split("\n");
-        result.add("$comment [cfe] ${errorLines[0]}");
+        var errorLines = sourceError.split("\n");
+        result.add("$comment [${source.marker}] ${errorLines[0]}");
         for (var errorLine in errorLines.skip(1)) {
           result.add("$comment $errorLine");
         }

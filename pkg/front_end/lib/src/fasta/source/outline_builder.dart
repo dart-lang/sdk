@@ -24,7 +24,7 @@ import 'package:_fe_analyzer_shared/src/parser/value_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
 import 'package:kernel/ast.dart'
-    show InvalidType, Nullability, ProcedureKind, Variance;
+    show AsyncMarker, InvalidType, Nullability, ProcedureKind, Variance;
 
 import '../builder/constructor_reference_builder.dart';
 import '../builder/enum_builder.dart';
@@ -515,8 +515,7 @@ class OutlineBuilder extends StackListenerImpl {
   void handleClassOrMixinImplements(
       Token implementsKeyword, int interfacesCount) {
     debugEvent("ClassOrMixinImplements");
-    push(const FixedNullableList<NamedTypeBuilder>()
-            .pop(stack, interfacesCount) ??
+    push(const FixedNullableList<TypeBuilder>().pop(stack, interfacesCount) ??
         NullValue.TypeBuilderList);
   }
 
@@ -798,6 +797,7 @@ class OutlineBuilder extends StackListenerImpl {
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     debugEvent("endTopLevelMethod");
     MethodBody kind = pop();
+    AsyncMarker asyncModifier = pop();
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
     List<TypeVariableBuilder> typeVariables = pop();
@@ -842,6 +842,7 @@ class OutlineBuilder extends StackListenerImpl {
         formalsOffset,
         endToken.charOffset,
         nativeMethodName,
+        asyncModifier,
         isTopLevel: true);
     nativeMethodName = null;
   }
@@ -974,6 +975,7 @@ class OutlineBuilder extends StackListenerImpl {
       pop();
     }
     assert(checkState(beginToken, [
+      ValueKinds.AsyncModifier,
       ValueKinds.FormalsOrNull,
       ValueKinds.Integer, // formals offset
       ValueKinds.TypeVariableListOrNull,
@@ -989,6 +991,7 @@ class OutlineBuilder extends StackListenerImpl {
       ValueKinds.Integer, // var/final/const offset
       ValueKinds.MetadataListOrNull,
     ]));
+    AsyncMarker asyncModifier = pop();
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
     List<TypeVariableBuilder> typeVariables = pop();
@@ -1182,6 +1185,7 @@ class OutlineBuilder extends StackListenerImpl {
           formalsOffset,
           endToken.charOffset,
           nativeMethodName,
+          asyncModifier,
           isTopLevel: false);
     }
     nativeMethodName = null;
@@ -1327,7 +1331,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endTypeList(int count) {
     debugEvent("TypeList");
-    push(const FixedNullableList<NamedTypeBuilder>().pop(stack, count) ??
+    push(const FixedNullableList<TypeBuilder>().pop(stack, count) ??
         new ParserRecovery(-1));
   }
 
@@ -1637,10 +1641,10 @@ class OutlineBuilder extends StackListenerImpl {
         return;
       }
       if (type is FunctionTypeBuilder &&
-          !libraryBuilder.loader.target.enableNonfunctionTypeAliases) {
+          !libraryBuilder.enableNonfunctionTypeAliasesInLibrary) {
         if (type.nullabilityBuilder.build(libraryBuilder) ==
                 Nullability.nullable &&
-            libraryBuilder.loader.target.enableNonNullable) {
+            libraryBuilder.enableNonNullableInLibrary) {
           // The error is reported when the non-nullable experiment is enabled.
           // Otherwise, the attempt to use a nullable type will be reported
           // elsewhere.
@@ -1654,7 +1658,7 @@ class OutlineBuilder extends StackListenerImpl {
           // of a generic function).
           aliasedType = type;
         }
-      } else if (libraryBuilder.loader.target.enableNonfunctionTypeAliases) {
+      } else if (libraryBuilder.enableNonfunctionTypeAliasesInLibrary) {
         if (type is TypeBuilder) {
           aliasedType = type;
         } else {
@@ -1673,6 +1677,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endTopLevelFields(
+      Token externalToken,
       Token staticToken,
       Token covariantToken,
       Token lateToken,
@@ -1683,10 +1688,16 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("endTopLevelFields");
     if (lateToken != null && !libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
+      if (externalToken != null) {
+        externalToken = null;
+        handleRecoverableError(
+            messageExternalField, externalToken, externalToken);
+      }
     }
     List<FieldInfo> fieldInfos = popFieldInfos(count);
     TypeBuilder type = nullIfParserRecovery(pop());
-    int modifiers = (staticToken != null ? staticMask : 0) |
+    int modifiers = (externalToken != null ? externalMask : 0) |
+        (staticToken != null ? staticMask : 0) |
         (covariantToken != null ? covariantMask : 0) |
         (lateToken != null ? lateMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
@@ -1699,15 +1710,28 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endClassFields(
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     debugEvent("Fields");
     if (lateToken != null && !libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
+      if (externalToken != null) {
+        externalToken = null;
+        handleRecoverableError(
+            messageExternalField, externalToken, externalToken);
+      }
     }
     List<FieldInfo> fieldInfos = popFieldInfos(count);
     TypeBuilder type = pop();
-    int modifiers = (staticToken != null ? staticMask : 0) |
+    int modifiers = (externalToken != null ? externalMask : 0) |
+        (staticToken != null ? staticMask : 0) |
         (covariantToken != null ? covariantMask : 0) |
         (lateToken != null ? lateMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
@@ -1778,7 +1802,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (typeParameters != null) {
       typeParameters[index].bound = bound;
       if (variance != null) {
-        if (!libraryBuilder.loader.target.enableVariance) {
+        if (!libraryBuilder.enableVarianceInLibrary) {
           reportVarianceModifierNotEnabled(variance);
         }
         typeParameters[index].variance = Variance.fromString(variance.lexeme);
@@ -1907,6 +1931,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (kind == MethodBody.RedirectingFactoryBody) {
       redirectionTarget = nullIfParserRecovery(pop());
     }
+    AsyncMarker asyncModifier = pop();
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
     pop(); // type variables
@@ -1924,17 +1949,19 @@ class OutlineBuilder extends StackListenerImpl {
     }
     String documentationComment = getDocumentationComment(beginToken);
     libraryBuilder.addFactoryMethod(
-        documentationComment,
-        metadata,
-        modifiers,
-        name,
-        formals,
-        redirectionTarget,
-        beginToken.charOffset,
-        charOffset,
-        formalsOffset,
-        endToken.charOffset,
-        nativeMethodName);
+      documentationComment,
+      metadata,
+      modifiers,
+      name,
+      formals,
+      redirectionTarget,
+      beginToken.charOffset,
+      charOffset,
+      formalsOffset,
+      endToken.charOffset,
+      nativeMethodName,
+      asyncModifier,
+    );
     nativeMethodName = null;
     inConstructor = false;
   }
@@ -2041,6 +2068,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleAsyncModifier(Token asyncToken, Token starToken) {
     debugEvent("AsyncModifier");
+    push(asyncMarkerFromTokens(asyncToken, starToken));
   }
 
   void addProblem(Message message, int charOffset, int length,

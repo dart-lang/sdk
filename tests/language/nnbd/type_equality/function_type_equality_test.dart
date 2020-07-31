@@ -4,31 +4,7 @@
 
 import 'package:expect/expect.dart';
 
-import 'function_type_equality_legacy_lib.dart' as legacy;
-
-void fn() => null;
-void fn2() => null;
-int voidToInt() => 42;
-int voidToInt2() => 42;
-int? voidToNullableInt() => 42;
-int? voidToNullableInt2() => 42;
-void positionalIntToVoid(int i) => null;
-void positionalNullableIntToVoid(int? i) => null;
-void positionalNullableIntToVoid2(int? i) => null;
-void optionalIntToVoid([int i = 0]) => null;
-void optionalIntToVoid2([int i = 0]) => null;
-void optionalNullableIntToVoid([int? i]) => null;
-void optionalNullableIntToVoid2([int? i]) => null;
-void namedIntToVoid({int i = 0}) => null;
-void namedIntToVoid2({int i = 0}) => null;
-void namedNullableIntToVoid({int? i}) => null;
-void namedNullableIntToVoid2({int? i}) => null;
-void requiredIntToVoid({required int i}) => null;
-void requiredIntToVoid2({required int i}) => null;
-void requiredNullableIntToVoid({required int? i}) => null;
-void requiredNullableIntToVoid2({required int? i}) => null;
-void gn(bool b, [int i = 0]) => null;
-void hn(bool b, {int i = 0}) => null;
+import 'function_type_equality_nnbd_lib.dart';
 
 main() {
   // Same functions with different names.
@@ -47,28 +23,6 @@ main() {
   Expect.equals(requiredNullableIntToVoid.runtimeType,
       requiredNullableIntToVoid2.runtimeType);
 
-  // Same signatures but one is from a legacy library.
-  Expect.equals(fn.runtimeType, legacy.fn.runtimeType);
-  Expect.equals(voidToInt.runtimeType, legacy.voidToInt.runtimeType);
-  Expect.equals(
-      positionalIntToVoid.runtimeType, legacy.positionalIntToVoid.runtimeType);
-  Expect.equals(
-      optionalIntToVoid.runtimeType, legacy.optionalIntToVoid.runtimeType);
-  Expect.equals(namedIntToVoid.runtimeType, legacy.namedIntToVoid.runtimeType);
-  Expect.equals(gn.runtimeType, legacy.gn.runtimeType);
-  Expect.equals(hn.runtimeType, legacy.hn.runtimeType);
-
-  // Nullable types are not equal to legacy types.
-  Expect.notEquals(positionalNullableIntToVoid.runtimeType,
-      legacy.positionalIntToVoid.runtimeType);
-  Expect.notEquals(optionalNullableIntToVoid.runtimeType,
-      legacy.optionalIntToVoid.runtimeType);
-  Expect.notEquals(
-      namedNullableIntToVoid.runtimeType, legacy.namedIntToVoid.runtimeType);
-  Expect.notEquals(voidToNullableInt.runtimeType, legacy.voidToInt.runtimeType);
-
   // Required named arguments are not equal to named arguments.
   Expect.notEquals(requiredIntToVoid.runtimeType, namedIntToVoid.runtimeType);
-  Expect.notEquals(
-      requiredIntToVoid.runtimeType, legacy.namedIntToVoid.runtimeType);
 }

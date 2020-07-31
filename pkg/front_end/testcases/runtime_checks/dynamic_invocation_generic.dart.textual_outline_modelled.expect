@@ -1,0 +1,10 @@
+library test;
+
+class C<T> {
+  void f<U extends T>(U x) {}
+}
+
+main() {}
+void g1(dynamic d) {}
+void g2(dynamic d) {}
+void test() {}

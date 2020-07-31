@@ -64,11 +64,12 @@ class TextDocumentChangeHandler
         null,
       );
     }
-    final newContents =
-        applyEdits(oldContents, params.contentChanges, failureIsCritical: true);
-    return newContents.mapResult((newcontents) {
+    final newContents = applyAndConvertEditsToServer(
+        oldContents, params.contentChanges,
+        failureIsCritical: true);
+    return newContents.mapResult((result) {
       server.documentVersions[path] = params.textDocument;
-      server.updateOverlay(path, newContents.result);
+      server.onOverlayUpdated(path, result.last, newContent: result.first);
       return success();
     });
   }
@@ -96,7 +97,7 @@ class TextDocumentCloseHandler
     return path.mapResult((path) {
       server.removePriorityFile(path);
       server.documentVersions.remove(path);
-      server.updateOverlay(path, null);
+      server.onOverlayDestroyed(path);
 
       if (updateAnalysisRoots) {
         // If there are no other open files in this context, we can remove it
@@ -151,7 +152,7 @@ class TextDocumentOpenHandler
         params.textDocument.version,
         params.textDocument.uri,
       );
-      server.updateOverlay(path, doc.text);
+      server.onOverlayCreated(path, doc.text);
 
       final driver = server.contextManager.getDriverFor(path);
       // If the file did not exist, and is "overlay only", it still should be

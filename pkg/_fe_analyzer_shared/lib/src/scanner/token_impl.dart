@@ -35,8 +35,8 @@ class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
    */
   StringToken.fromString(TokenType type, String value, int charOffset,
       {bool canonicalize: false, analyzer.CommentToken precedingComments})
-      : valueOrLazySubstring =
-            canonicalizedString(value, 0, value.length, canonicalize),
+      : valueOrLazySubstring = canonicalizedString(
+            value, /* start = */ 0, value.length, canonicalize),
         super(type, charOffset, precedingComments);
 
   /**
@@ -108,7 +108,7 @@ class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
   static String canonicalizedString(
       String s, int start, int end, bool canonicalize) {
     if (!canonicalize) return s;
-    return canonicalizer.canonicalize(s, start, end, false);
+    return canonicalizer.canonicalize(s, start, end, /* asciiOnly = */ false);
   }
 
   static String decodeUtf8(List<int> data, int start, int end, bool asciiOnly) {

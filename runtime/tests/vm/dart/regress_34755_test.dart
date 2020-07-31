@@ -5,6 +5,8 @@
 // Test checking that null is handled correctly at the call-sites that
 // are tracking static type exactness.
 
+// Requirements=nnbd-weak
+
 import 'package:expect/expect.dart';
 
 void invokeAdd(List<int> l) {
@@ -12,5 +14,6 @@ void invokeAdd(List<int> l) {
 }
 
 void main() {
-  Expect.throws(() => invokeAdd(null), (error) => error is NoSuchMethodError);
+  dynamic myNull;
+  Expect.throws(() => invokeAdd(myNull), (error) => error is NoSuchMethodError);
 }

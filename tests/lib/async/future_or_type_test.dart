@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // In strong mode, `FutureOr` should be a valid type in most locations.
+// Requirements=nnbd-strong
 
 import 'dart:async';
 import 'package:expect/expect.dart';
@@ -65,10 +66,10 @@ main() {
     nullableVariable = nullableNumFutureDouble;
     nullableVariable = nullableIntFuture;
     nullableVariable = nullableDoubleFuture;
-    nullableVariable = nullableObjectFuture;
 
     // Disallows invalid values.
     // These are all valid down-casts that fail at runtime.
+    Expect.throws(() => nullableVariable = nullableObjectFuture);
     Expect.throws(() => nullableVariable = objectValue);
     Expect.throws(() => nullableVariable = objectFuture);
     Expect.throws(() => nullableVariable = objectFutureInt);
@@ -108,10 +109,10 @@ main() {
     nullableFun(nullableNumFutureDouble);
     nullableFun(nullableIntFuture);
     nullableFun(nullableDoubleFuture);
-    nullableFun(nullableObjectFuture);
 
     // Disallows invalid values.
     // These are all valid down-casts that fail at runtime.
+    Expect.throws(() => nullableFun(nullableObjectFuture));
     Expect.throws(() => nullableFun(objectValue));
     Expect.throws(() => nullableFun(objectFuture));
     Expect.throws(() => nullableFun(objectFutureInt));
@@ -138,7 +139,7 @@ main() {
     Expect.throws(() => fun2(nullableObjectFuture));
 
     // Implicit down-cast to return type.
-    FutureOr<num> nullableFun2(dynamic objectValue) => objectValue;
+    FutureOr<num?> nullableFun2(dynamic objectValue) => objectValue;
     nullableFun2(nullValue);
     nullableFun2(intValue);
     nullableFun2(doubleValue);
@@ -151,15 +152,15 @@ main() {
     nullableFun2(nullableNumFutureDouble);
     nullableFun2(nullableIntFuture);
     nullableFun2(nullableDoubleFuture);
-    nullableFun2(nullableObjectFuture);
 
-    Expect.throws(() => fun2(objectValue));
-    Expect.throws(() => fun2(objectFuture));
-    Expect.throws(() => fun2(objectFutureInt));
+    Expect.throws(() => nullableFun2(nullableObjectFuture));
+    Expect.throws(() => nullableFun2(objectValue));
+    Expect.throws(() => nullableFun2(objectFuture));
+    Expect.throws(() => nullableFun2(objectFutureInt));
   }
 
   {
-    List<Object> list = new List<FutureOr<num>>();
+    List<Object> list = <FutureOr<num>>[];
     list.add(intValue);
     list.add(doubleValue);
     list.add(numFutureInt);
@@ -178,7 +179,7 @@ main() {
     Expect.throws(() => list.add(nullableDoubleFuture));
     Expect.throws(() => list.add(nullableObjectFuture));
 
-    List<Object?> nullableList = new List<FutureOr<num?>>();
+    List<Object?> nullableList = <FutureOr<num?>>[];
     nullableList.add(nullValue);
     nullableList.add(intValue);
     nullableList.add(doubleValue);
@@ -191,8 +192,8 @@ main() {
     nullableList.add(nullableNumFutureDouble);
     nullableList.add(nullableIntFuture);
     nullableList.add(nullableDoubleFuture);
-    nullableList.add(nullableObjectFuture);
 
+    Expect.throws(() => nullableList.add(nullableObjectFuture));
     Expect.throws(() => nullableList.add(objectValue));
     Expect.throws(() => nullableList.add(objectFuture));
     Expect.throws(() => nullableList.add(objectFutureInt));
@@ -233,10 +234,10 @@ main() {
     nullableNumFutureDouble as FutureOr<num?>;
     nullableIntFuture as FutureOr<num?>;
     nullableDoubleFuture as FutureOr<num?>;
-    nullableObjectFuture as FutureOr<num?>;
 
     // Disallows invalid values.
     // These are all valid down-casts that fail at runtime.
+    Expect.throws(() => nullableObjectFuture as FutureOr<num?>);
     Expect.throws(() => objectValue as FutureOr<num?>);
     Expect.throws(() => objectFuture as FutureOr<num?>);
     Expect.throws(() => objectFutureInt as FutureOr<num?>);
@@ -442,7 +443,7 @@ main() {
     Expect.isFalse(new C<Null>().isCheck(objectFuture));
     Expect.isFalse(new C<Null>().isCheck(objectFutureInt));
 
-    Expect.isFalse(new C<FutureOr<num?>>().isCheck(nullValue));
+    Expect.isTrue(new C<FutureOr<num?>>().isCheck(nullValue));
     Expect.isTrue(new C<FutureOr<num?>>().isCheck(intValue));
     Expect.isTrue(new C<FutureOr<num?>>().isCheck(doubleValue));
     Expect.isTrue(new C<FutureOr<num?>>().isCheck(numFutureInt));

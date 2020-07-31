@@ -15,7 +15,6 @@ pub/test/serve/web_socket/url_to_asset_id_test: Pass, Slow
 pub/test/transformer/loads_a_diamond_transformer_dependency_graph_test: Pass, Slow
 
 [ $runtime == vm ]
-dart_style/test/command_line_test: Skip # Issue 33473
 http_io/test/http_cross_process_test: Skip # Fails with --no-preview-dart-2
 http_io/test/http_proxy_advanced_test: Pass, RuntimeError # flaky
 http_io/test/http_proxy_test: Pass, RuntimeError # flaky

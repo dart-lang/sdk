@@ -1,0 +1,5 @@
+// @dart = 2.6
+class A<X extends G<A<Y, X>>, Y extends G<A<X, Y>>> {}
+
+main() {}
+typedef G<X> = void Function();

@@ -175,12 +175,12 @@ void _call(initPort) {
 
 void testUnsendable(name, func) {
   asyncStart();
-  Isolate.spawn(nop, func).then((v) => throw "allowed spawn direct?",
+  Isolate.spawn(nop, func).then<void>((v) => throw "allowed spawn direct?",
       onError: (e, s) {
     asyncEnd();
   });
   asyncStart();
-  Isolate.spawn(nop, [func]).then((v) => throw "allowed spawn wrapped?",
+  Isolate.spawn(nop, [func]).then<void>((v) => throw "allowed spawn wrapped?",
       onError: (e, s) {
     asyncEnd();
   });
@@ -191,10 +191,10 @@ void testUnsendable(name, func) {
   });
   Expect.throws(() {
     noReply.sendPort.send(func);
-  }, null, "send direct");
+  }, (_) => true, "send direct");
   Expect.throws(() {
     noReply.sendPort.send([func]);
-  }, null, "send wrapped");
+  }, (_) => true, "send wrapped");
   scheduleMicrotask(() {
     noReply.close();
     asyncEnd();
@@ -210,7 +210,7 @@ void testUnsendable(name, func) {
     } finally {
       p.send(0); //   Closes echo port.
     }
-  }).then((p) => throw "unreachable 2", onError: (e, s) {
+  }).then<void>((p) => throw "unreachable 2", onError: (e, s) {
     asyncEnd();
   });
 }

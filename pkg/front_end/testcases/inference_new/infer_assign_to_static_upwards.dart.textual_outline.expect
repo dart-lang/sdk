@@ -1,0 +1,12 @@
+library test;
+
+int getInt() => 0;
+num getNum() => 0;
+double getDouble() => 0.0;
+int topLevelInt;
+num topLevelNum;
+double topLevelDouble;
+void test1() {}
+void test2() {}
+void test3() {}
+main() {}

@@ -1,0 +1,12 @@
+library test;
+
+class C {
+  int field = 0;
+  int get getter => 0;
+  int function() => 0;
+}
+
+C c = new C();
+var function_ref = c.function;
+var function_ref_list = [c.function];
+main() {}

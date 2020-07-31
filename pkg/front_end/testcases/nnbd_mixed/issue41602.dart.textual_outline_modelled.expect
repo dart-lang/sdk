@@ -1,0 +1,5 @@
+// @dart = 2.7
+Future<void> returnFutureOfVoid() async {}
+main() async {}
+void returnVoid() {}
+void returnVoidAsync() async {}

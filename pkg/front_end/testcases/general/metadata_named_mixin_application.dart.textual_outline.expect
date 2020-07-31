@@ -1,0 +1,9 @@
+const a = null;
+@a
+class C = D with E;
+
+class D {}
+
+class E {}
+
+main() {}

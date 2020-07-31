@@ -1039,6 +1039,13 @@ void testFromToDouble() {
 
   Expect.equals(BigInt.zero, new BigInt.from(0.9999999999999999));
   Expect.equals(BigInt.zero, new BigInt.from(-0.9999999999999999));
+
+  // Regression test for http://dartbug.com/41819
+  // Rounding edge case where last digit causes rounding.
+  Expect.equals(-3.69616463331328e+27,
+      BigInt.parse("-3696164633313280000000000000").toDouble());
+  Expect.equals(-3.6961646333132803e+27,
+      BigInt.parse("-3696164633313280000000000001").toDouble());
 }
 
 main() {

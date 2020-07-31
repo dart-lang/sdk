@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /// {@category VM}
 /// {@nodoc}
 library dart.wasm;
@@ -57,7 +55,7 @@ abstract class WasmImports {
 abstract class WasmMemory {
   // Create a new memory with the given number of initial pages, and optional
   // maximum number of pages.
-  external factory WasmMemory(int initialPages, [int maxPages]);
+  external factory WasmMemory(int initialPages, [int? maxPages]);
 
   // The WASM spec defines the page size as 64KiB.
   static const int kPageSizeInBytes = 64 * 1024;
@@ -83,7 +81,7 @@ abstract class WasmInstance {
   // Find an exported function with the given signature.
   WasmFunction<T> lookupFunction<T extends Function>(String name);
 
-  // Returns this instances's memory.
+  // Returns this instance's memory.
   WasmMemory get memory;
 }
 

@@ -130,7 +130,7 @@ class TestCompiler {
     MemoryFileSystem fs = new MemoryFileSystem(base);
     fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
 
-    CompilerOptions options = helper.getOptions(targetName: "VM");
+    CompilerOptions options = helper.getOptions();
     options.fileSystem = fs;
     options.sdkRoot = null;
     options.sdkSummary = sdkSummary;

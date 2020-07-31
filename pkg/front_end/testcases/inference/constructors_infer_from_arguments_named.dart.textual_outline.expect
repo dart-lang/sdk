@@ -1,0 +1,8 @@
+library test;
+
+class C<T> {
+  T t;
+  C.named(List<T> t);
+}
+
+main() {}

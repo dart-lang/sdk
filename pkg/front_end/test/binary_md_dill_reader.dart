@@ -117,7 +117,7 @@ class BinaryMdDillReader {
 
     // Skip to the start of the index.
     _binaryOffset = _dillContent.length -
-        ((numLibs + 1) + 9 /* number of fixed fields */) * 4;
+        ((numLibs + 1) + 10 /* number of fixed fields */) * 4;
 
     // Read index.
     binaryOffsetForSourceTable = _peekUint32();
@@ -133,6 +133,8 @@ class BinaryMdDillReader {
     binaryOffsetForConstantTable = _peekUint32();
     _binaryOffset += 4;
     mainMethodReference = _peekUint32();
+    _binaryOffset += 4;
+    /*int compilationMode = */ _peekUint32();
 
     _binaryOffset = binaryOffsetForStringTable;
     var saved = _readingInstructions["ComponentFile"];
@@ -439,7 +441,7 @@ class BinaryMdDillReader {
           instruction == "Byte[] 8bitAlignment;") {
         // Special-case 8-byte alignment.
         int sizeWithoutPadding = _binaryOffset +
-            ((numLibs + 1) + 9 /* number of fixed fields */) * 4;
+            ((numLibs + 1) + 10 /* number of fixed fields */) * 4;
         int padding = 8 - sizeWithoutPadding % 8;
         if (padding == 8) padding = 0;
         _binaryOffset += padding;
@@ -471,31 +473,33 @@ class BinaryMdDillReader {
         type = type.substring(0, type.indexOf("["));
         type = _lookupGenericType(typeNames, type, types);
 
-        int intCount = -1;
-        if (vars[count] != null && vars[count] is int) {
-          intCount = vars[count];
-        } else if (count.contains(".")) {
-          List<String> countData =
-              count.split(regExpSplit).map((s) => s.trim()).toList();
-          if (vars[countData[0]] != null) {
-            dynamic v = vars[countData[0]];
-            if (v is Map &&
-                countData[1] == "last" &&
-                v["items"] is List &&
-                v["items"].last is int) {
-              intCount = v["items"].last;
-            } else if (v is Map && v[countData[1]] != null) {
-              v = v[countData[1]];
-              if (v is Map && v[countData[2]] != null) {
-                v = v[countData[2]];
-                if (v is int) intCount = v;
-              } else if (v is int &&
-                  countData.length == 4 &&
-                  countData[2] == "+") {
-                intCount = v + int.parse(countData[3]);
+        int intCount = int.tryParse(count) ?? -1;
+        if (intCount == -1) {
+          if (vars[count] != null && vars[count] is int) {
+            intCount = vars[count];
+          } else if (count.contains(".")) {
+            List<String> countData =
+                count.split(regExpSplit).map((s) => s.trim()).toList();
+            if (vars[countData[0]] != null) {
+              dynamic v = vars[countData[0]];
+              if (v is Map &&
+                  countData[1] == "last" &&
+                  v["items"] is List &&
+                  v["items"].last is int) {
+                intCount = v["items"].last;
+              } else if (v is Map && v[countData[1]] != null) {
+                v = v[countData[1]];
+                if (v is Map && v[countData[2]] != null) {
+                  v = v[countData[2]];
+                  if (v is int) intCount = v;
+                } else if (v is int &&
+                    countData.length == 4 &&
+                    countData[2] == "+") {
+                  intCount = v + int.parse(countData[3]);
+                }
+              } else {
+                throw "Unknown dot to int ($count)";
               }
-            } else {
-              throw "Unknown dot to int ($count)";
             }
           }
         }

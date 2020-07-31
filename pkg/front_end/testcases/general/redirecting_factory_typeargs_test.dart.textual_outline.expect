@@ -1,0 +1,16 @@
+library redirecting_factory_constructors.typeargs_test;
+
+class X {}
+
+class Y extends X {}
+
+class A {
+  A();
+  factory A.redir() = B<Y>;
+}
+
+class B<T extends X> extends A {
+  B();
+}
+
+main() {}

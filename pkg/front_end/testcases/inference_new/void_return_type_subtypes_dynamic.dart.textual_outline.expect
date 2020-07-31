@@ -1,0 +1,6 @@
+library test;
+
+T run<T>(T f()) {}
+void printRunning() {}
+var y = run(printRunning);
+main() {}

@@ -52,6 +52,24 @@ class C {
 ''');
   }
 
+  test_duplicateName_class_enum() async {
+    await _assertCanBeAnalyzed('''
+class A<T> {
+  void foo(B b) {
+    b.bar(this);
+  }
+}
+
+class B {
+  void bar(A a) {}
+}
+
+enum A {
+  a, b, c
+}
+''');
+  }
+
   test_extensionOverrideInAnnotationContext() async {
     await _assertCanBeAnalyzed('''
 class R {

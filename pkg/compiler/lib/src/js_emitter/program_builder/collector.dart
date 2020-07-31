@@ -33,6 +33,7 @@ class Collector {
       new Map<OutputUnit, List<MemberEntity>>();
   final Map<OutputUnit, List<FieldEntity>> outputStaticNonFinalFieldLists =
       new Map<OutputUnit, List<FieldEntity>>();
+  final Map<OutputUnit, List<FieldEntity>> outputLazyStaticFieldLists = {};
   final Map<OutputUnit, Set<LibraryEntity>> outputLibraryLists =
       new Map<OutputUnit, Set<LibraryEntity>>();
 
@@ -287,6 +288,20 @@ class Collector {
     eagerFields.forEach(addToOutputUnit);
   }
 
+  void computeNeededLazyStaticFields() {
+    List<FieldEntity> lazyFields = [];
+    _codegenWorld.forEachStaticField((FieldEntity field) {
+      if (_closedWorld.fieldAnalysis.getFieldData(field).isLazy) {
+        lazyFields.add(field);
+      }
+    });
+
+    for (FieldEntity field in _sorter.sortMembers(lazyFields)) {
+      OutputUnit unit = _outputUnitData.outputUnitForMember(field);
+      (outputLazyStaticFieldLists[unit] ??= []).add(field);
+    }
+  }
+
   void computeNeededLibraries() {
     _generatedCode.keys.forEach((MemberEntity element) {
       OutputUnit unit = _outputUnitData.outputUnitForMember(element);
@@ -309,6 +324,7 @@ class Collector {
     computeNeededConstants();
     computeNeededStatics();
     computeNeededStaticNonFinalFields();
+    computeNeededLazyStaticFields();
     computeNeededLibraries();
   }
 }

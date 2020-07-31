@@ -20,7 +20,15 @@
 #include <lib/trace-engine/instrumentation.h>
 #elif defined(HOST_OS_MACOS)
 #include <os/availability.h>
+#if defined(__MAC_10_14) || defined (__IPHONE_12_0)
+#define HOST_OS_SUPPORTS_SIGNPOST 1
+#endif
+//signpost.h exists in macOS 10.14, iOS 12 or above
+#if defined(HOST_OS_SUPPORTS_SIGNPOST)
 #include <os/signpost.h>
+#else
+#include <os/log.h>
+#endif
 #endif
 
 namespace dart {
@@ -31,7 +39,6 @@ class JSONStream;
 class Object;
 class ObjectPointerVisitor;
 class Isolate;
-class RawArray;
 class Thread;
 class TimelineEvent;
 class TimelineEventBlock;
@@ -133,6 +140,9 @@ class Timeline : public AllStatic {
 #ifndef PRODUCT
   // Print information about streams to JSON.
   static void PrintFlagsToJSON(JSONStream* json);
+
+  // Output the recorded streams to a JSONS array.
+  static void PrintFlagsToJSONArray(JSONArray* arr);
 #endif
 
 #define TIMELINE_STREAM_ACCESSOR(name, fuchsia_name)                           \
@@ -246,11 +256,13 @@ class TimelineEvent {
                 int64_t async_id,
                 int64_t micros = OS::GetCurrentMonotonicMicros());
 
-  void DurationBegin(const char* label,
-                     int64_t micros = OS::GetCurrentMonotonicMicros(),
-                     int64_t thread_micros = OS::GetCurrentThreadCPUMicros());
-  void DurationEnd(int64_t micros = OS::GetCurrentMonotonicMicros(),
-                   int64_t thread_micros = OS::GetCurrentThreadCPUMicros());
+  void DurationBegin(
+      const char* label,
+      int64_t micros = OS::GetCurrentMonotonicMicros(),
+      int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
+  void DurationEnd(
+      int64_t micros = OS::GetCurrentMonotonicMicros(),
+      int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
 
   void Instant(const char* label,
                int64_t micros = OS::GetCurrentMonotonicMicros());
@@ -261,13 +273,14 @@ class TimelineEvent {
                 int64_t thread_start_micros = -1,
                 int64_t thread_end_micros = -1);
 
-  void Begin(const char* label,
-             int64_t micros = OS::GetCurrentMonotonicMicros(),
-             int64_t thread_micros = OS::GetCurrentThreadCPUMicros());
+  void Begin(
+      const char* label,
+      int64_t micros = OS::GetCurrentMonotonicMicros(),
+      int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
 
   void End(const char* label,
            int64_t micros = OS::GetCurrentMonotonicMicros(),
-           int64_t thread_micros = OS::GetCurrentThreadCPUMicros());
+           int64_t thread_micros = OS::GetCurrentThreadCPUMicrosForTimeline());
 
   void Counter(const char* label,
                int64_t micros = OS::GetCurrentMonotonicMicros());
@@ -867,6 +880,7 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
 #endif
 
   TimelineEventBlock* head_;
+  TimelineEventBlock* tail_;
   intptr_t block_index_;
 
   friend class TimelineTestHelper;

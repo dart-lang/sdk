@@ -32,7 +32,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     _check(
-      node.staticElement?.parameters,
+      node.constructorName.staticElement?.parameters,
       node.argumentList,
       node.constructorName,
     );

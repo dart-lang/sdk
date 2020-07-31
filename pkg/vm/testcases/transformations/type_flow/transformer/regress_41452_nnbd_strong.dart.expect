@@ -1,0 +1,36 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class _SplayTreeNode<Node extends self::_SplayTreeNode<self::_SplayTreeNode::Node> = self::_SplayTreeNode<dynamic>> extends core::Object {
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  generic-covariant-impl field self::_SplayTreeNode::Node? left = null;
+  constructor •() → self::_SplayTreeNode<self::_SplayTreeNode::Node>
+    : super core::Object::•()
+    ;
+}
+class _SplayTreeMapNode<V extends core::Object? = dynamic> extends self::_SplayTreeNode<self::_SplayTreeMapNode<self::_SplayTreeMapNode::V%>> {
+  constructor •() → self::_SplayTreeMapNode<self::_SplayTreeMapNode::V%>
+    : super self::_SplayTreeNode::•()
+    ;
+}
+abstract class _SplayTree<Node extends self::_SplayTreeNode<self::_SplayTree::Node> = self::_SplayTreeNode<dynamic>> extends core::Object {
+  synthetic constructor •() → self::_SplayTree<self::_SplayTree::Node>
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method add(generic-covariant-impl self::_SplayTree::Node n) → dynamic {
+    self::_SplayTree::Node? root = [@vm.direct-call.metadata=#lib::SplayTreeMap._root] [@vm.inferred-type.metadata=#lib::_SplayTreeMapNode] this.{self::_SplayTree::_root};
+    if(false)
+      return;
+    core::print([@vm.direct-call.metadata=#lib::_SplayTreeNode.left] [@vm.inferred-type.metadata=dart.core::Null? (value: null)] root{self::_SplayTree::Node}.{self::_SplayTreeNode::left});
+  }
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5]  abstract get /*isNullableByDefault*/ _root() → self::_SplayTree::Node?;
+}
+class SplayTreeMap<V extends core::Object? = dynamic> extends self::_SplayTree<self::_SplayTreeMapNode<self::SplayTreeMap::V%>> {
+[@vm.inferred-type.metadata=#lib::_SplayTreeMapNode] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:5]  generic-covariant-impl field self::_SplayTreeMapNode<self::SplayTreeMap::V%>? _root = new self::_SplayTreeMapNode::•<self::SplayTreeMap::V%>();
+  synthetic constructor •() → self::SplayTreeMap<self::SplayTreeMap::V%>
+    : super self::_SplayTree::•()
+    ;
+}
+static method main() → void {
+  [@vm.call-site-attributes.metadata=receiverType:#lib::SplayTreeMap<dynamic>] [@vm.direct-call.metadata=#lib::_SplayTree.add] new self::SplayTreeMap::•<dynamic>().{self::_SplayTree::add}(new self::_SplayTreeMapNode::•<dynamic>());
+}

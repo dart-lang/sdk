@@ -9,20 +9,13 @@ import 'dart:async';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class ErrorViewElement extends CustomElement implements Renderable {
-  static const tag = const Tag<ErrorViewElement>('error-view',
-      dependencies: const [
-        NavTopMenuElement.tag,
-        NavNotifyElement.tag,
-        ViewFooterElement.tag
-      ]);
-
-  RenderingScheduler _r;
+  RenderingScheduler<ErrorViewElement> _r;
 
   Stream<RenderedEvent<ErrorViewElement>> get onRendered => _r.onRendered;
 
@@ -43,7 +36,7 @@ class ErrorViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  ErrorViewElement.created() : super.created(tag);
+  ErrorViewElement.created() : super.created('error-view');
 
   @override
   void attached() {

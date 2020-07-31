@@ -1,0 +1,5 @@
+typedef F = void Function()?;
+void foo(void Function() x) {}
+void bar(F x) {}
+void baz(F? x) {}
+main() {}

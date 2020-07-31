@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -12,6 +13,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddRequiredTest);
+    defineReflectiveTests(AddRequiredWithNNBDTest);
   });
 }
 
@@ -33,6 +35,24 @@ void function({String param}) {
 void function({@required String param}) {
   assert(param != null);
 }
+''');
+  }
+}
+
+@reflectiveTest
+class AddRequiredWithNNBDTest extends FixProcessorTest {
+  @override
+  List<String> get experiments => [EnableString.non_nullable];
+
+  @override
+  FixKind get kind => DartFixKind.ADD_REQUIRED2;
+
+  Future<void> test_withAssert() async {
+    await resolveTestUnit('''
+void function({String param}) {}
+''');
+    await assertHasFix('''
+void function({required String param}) {}
 ''');
   }
 }

@@ -1,0 +1,4 @@
+library test;
+
+var a = 1;
+main() {}

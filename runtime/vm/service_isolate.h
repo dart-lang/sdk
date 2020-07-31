@@ -26,7 +26,7 @@ class ServiceIsolate : public AllStatic {
   static bool Exists();
   static bool IsRunning();
   static bool IsServiceIsolate(const Isolate* isolate);
-  static bool IsServiceIsolateDescendant(const Isolate* isolate);
+  static bool IsServiceIsolateDescendant(Isolate* isolate);
   static Dart_Port Port();
   static void WaitForServiceIsolateStartup();
 
@@ -97,9 +97,7 @@ class ServiceIsolate : public AllStatic {
   static bool Exists() { return false; }
   static bool IsRunning() { return false; }
   static bool IsServiceIsolate(const Isolate* isolate) { return false; }
-  static bool IsServiceIsolateDescendant(const Isolate* isolate) {
-    return false;
-  }
+  static bool IsServiceIsolateDescendant(Isolate* isolate) { return false; }
   static void Run() {}
   static bool SendIsolateStartupMessage() { return false; }
   static bool SendIsolateShutdownMessage() { return false; }

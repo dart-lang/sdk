@@ -285,25 +285,15 @@ void IRRegExpMacroAssembler::FinalizeRegistersArray() {
       TypedData::New(kTypedDataInt32ArrayCid, registers_count_, Heap::kOld);
 }
 
-#if defined(TARGET_ARCH_ARM)
-// Disabling unaligned accesses forces the regexp engine to load characters one
-// by one instead of up to 4 at once, along with the associated performance hit.
-// TODO(zerny): Be less conservative about disabling unaligned accesses.
-// For instance, ARMv6 supports unaligned accesses. Once it is enabled here,
-// update LoadCodeUnitsInstr methods for the appropriate architectures.
-static const bool kEnableUnalignedAccesses = false;
-#else
-static const bool kEnableUnalignedAccesses = true;
-#endif
 bool IRRegExpMacroAssembler::CanReadUnaligned() {
-  return kEnableUnalignedAccesses && !slow_safe();
+  return !slow_safe();
 }
 
-RawArray* IRRegExpMacroAssembler::Execute(const RegExp& regexp,
-                                          const String& input,
-                                          const Smi& start_offset,
-                                          bool sticky,
-                                          Zone* zone) {
+ArrayPtr IRRegExpMacroAssembler::Execute(const RegExp& regexp,
+                                         const String& input,
+                                         const Smi& start_offset,
+                                         bool sticky,
+                                         Zone* zone) {
   const intptr_t cid = input.GetClassId();
   const Function& fun = Function::Handle(regexp.function(cid, sticky));
   ASSERT(!fun.IsNull());
@@ -682,10 +672,10 @@ void IRRegExpMacroAssembler::Backtrack() {
 // If the BlockLabel does not yet contain a block, it is created.
 // If there is a current instruction, append a goto to the bound block.
 void IRRegExpMacroAssembler::BindBlock(BlockLabel* label) {
-  ASSERT(!label->IsBound());
+  ASSERT(!label->is_bound());
   ASSERT(label->block()->next() == NULL);
 
-  label->SetBound(block_id_.Alloc());
+  label->BindTo(block_id_.Alloc());
   blocks_.Add(label->block());
 
   if (current_instruction_ != NULL) {
@@ -768,8 +758,9 @@ void IRRegExpMacroAssembler::CheckNotAtStart(intptr_t cp_offset,
   auto neg_len_def =
       Bind(InstanceCall(InstanceCallDescriptor::FromToken(Token::kNEGATE),
                         PushLocal(string_param_length_)));
-  auto offset_def =
-      Bind(Add(PushLocal(current_position_), Bind(Int64Constant(cp_offset))));
+  auto current_pos_def = PushLocal(current_position_);
+  auto cp_offset_def = Bind(Int64Constant(cp_offset));
+  auto offset_def = Bind(Add(current_pos_def, cp_offset_def));
   BranchOrBacktrack(Comparison(kNE, neg_len_def, offset_def), on_not_at_start);
 }
 
@@ -1752,7 +1743,7 @@ Value* IRRegExpMacroAssembler::LoadCodeUnitsAt(LocalVariable* index,
                                                intptr_t characters) {
   // Bind the pattern as the load receiver.
   Value* pattern_val = BindLoadLocal(*string_param_);
-  if (RawObject::IsExternalStringClassId(specialization_cid_)) {
+  if (IsExternalStringClassId(specialization_cid_)) {
     // The data of an external string is stored through one indirection.
     intptr_t external_offset = 0;
     if (specialization_cid_ == kExternalOneByteStringCid) {

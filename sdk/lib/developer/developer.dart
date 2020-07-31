@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /// Interact with developer tools such as the debugger and inspector.
 ///
 /// This library is platform dependent and has separate implementations for
@@ -36,12 +34,12 @@ part 'timeline.dart';
 /// regardless of whether or not a debugger is connected. When compiled to
 /// JavaScript, this uses the "debugger" statement, and behaves exactly as
 /// that does.
-external bool debugger({bool when: true, String message});
+external bool debugger({bool when = true, String? message});
 
 /// Send a reference to [object] to any attached debuggers.
 ///
 /// Debuggers may open an inspector on the object. Returns the argument.
-external Object inspect(Object object);
+external Object? inspect(Object? object);
 
 /// Emit a log event.
 ///
@@ -59,11 +57,11 @@ external Object inspect(Object object);
 /// - [stackTrace] (optional) a stack trace associated with this log event
 external void log(
   String message, {
-  DateTime time,
-  int sequenceNumber,
-  int level: 0,
-  String name: '',
-  Zone zone,
-  Object error,
-  StackTrace stackTrace,
+  DateTime? time,
+  int? sequenceNumber,
+  int level = 0,
+  String name = '',
+  Zone? zone,
+  Object? error,
+  StackTrace? stackTrace,
 });

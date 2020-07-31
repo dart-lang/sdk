@@ -172,21 +172,7 @@ DefaultArgument getDefaultStringParameterValue(ParameterElement param) {
   if (param != null) {
     var type = param.type;
     if (type is InterfaceType && type.isDartCoreList) {
-      String getTypeArgumentsStr() {
-        var elementType = type.typeArguments.single;
-        if (elementType.isDynamic) {
-          return '';
-        } else {
-          var typeArgStr = elementType.getDisplayString(
-            withNullability: false,
-          );
-          return '<$typeArgStr>';
-        }
-      }
-
-      var typeArgumentStr = getTypeArgumentsStr();
-      var text = '$typeArgumentStr[]';
-      return DefaultArgument(text, cursorPosition: text.length - 1);
+      return DefaultArgument('[]', cursorPosition: 1);
     } else if (type is FunctionType) {
       var params = type.parameters
           .map((p) => '${getTypeString(p.type)}${p.name}')

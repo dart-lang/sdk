@@ -6,6 +6,7 @@
 #define RUNTIME_VM_CPUINFO_H_
 
 #include "platform/assert.h"
+#include "platform/utils.h"
 #include "vm/allocation.h"
 
 namespace dart {
@@ -56,7 +57,7 @@ class CpuInfo : public AllStatic {
     if (HasField(FieldName(kCpuInfoHardware))) {
       return ExtractField(kCpuInfoHardware);
     } else {
-      return strdup("Unknown");
+      return Utils::StrDup("Unknown");
     }
   }
 

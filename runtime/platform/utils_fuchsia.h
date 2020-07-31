@@ -7,6 +7,13 @@
 
 #include <endian.h>
 
+namespace sys {
+
+// From Fuchsia SDK.
+class ComponentContext;
+
+}  // namespace sys
+
 namespace dart {
 
 inline uint16_t Utils::HostToBigEndian16(uint16_t value) {
@@ -39,6 +46,16 @@ inline char* Utils::StrError(int err, char* buffer, size_t bufsize) {
   }
   return buffer;
 }
+
+// Returns the singleton component context for this process.
+//
+// The returned pointer is never null.  The caller must not take ownership of
+// the context.
+//
+// The context is a singleton as it can be meaningfully instantiated only once
+// during the lifetime of the program.  If you use this function, you MUST NOT
+// call sys::ComponentContext::Create().
+sys::ComponentContext* ComponentContext();
 
 }  // namespace dart
 

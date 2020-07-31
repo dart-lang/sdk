@@ -1,0 +1,91 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/covariant_field.dart:19:31: Error: The parameter 'value' of the method 'C.invariantField' has type 'int', which does not match the corresponding type, 'num', in the overridden method, 'A.invariantField'.
+// Change to a supertype of 'num', or, for a covariant parameter, a subtype.
+//   void set invariantField(int value) {} // error
+//                               ^
+// pkg/front_end/testcases/general/covariant_field.dart:6:7: Context: This is the overridden method ('invariantField').
+//   num invariantField;
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::num* invariantField;
+  covariant field core::num* covariantField;
+  synthetic constructor •() → self::A*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+abstract class B extends core::Object implements self::A {
+  synthetic constructor •() → self::B*
+    ;
+  abstract get invariantField() → core::num*;
+  abstract set invariantField(core::num* value) → void;
+  abstract get covariantField() → core::num*;
+  abstract set covariantField(covariant core::num* value) → void;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+abstract class C extends core::Object implements self::A {
+  synthetic constructor •() → self::C*
+    ;
+  abstract get invariantField() → core::int*;
+  set invariantField(core::int* value) → void
+    ;
+  abstract get covariantField() → core::int*;
+  set covariantField(covariant core::int* value) → void
+    ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+abstract class D extends core::Object implements self::A {
+  synthetic constructor •() → self::D*
+    ;
+  abstract get invariantField() → core::int*;
+  set invariantField(covariant core::int* value) → void
+    ;
+  abstract get covariantField() → core::int*;
+  set covariantField(covariant core::int* value) → void
+    ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+static method main() → dynamic
+  ;

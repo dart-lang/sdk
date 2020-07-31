@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_AOT_AOT_CALL_SPECIALIZER_H_
 #define RUNTIME_VM_COMPILER_AOT_AOT_CALL_SPECIALIZER_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/compiler/call_specializer.h"
 
 namespace dart {
@@ -52,6 +56,7 @@ class AotCallSpecializer : public CallSpecializer {
   // If a call can be dispatched through the global dispatch table, replace
   // it by a dispatch table call.
   void TryReplaceWithDispatchTableCall(InstanceCallBaseInstr* call);
+  const Function& InterfaceTargetForTableDispatch(InstanceCallBaseInstr* call);
 
   // Try to replace a call with a more specialized instruction working on
   // integers (e.g. BinaryInt64OpInstr, CheckedSmiComparisonInstr,

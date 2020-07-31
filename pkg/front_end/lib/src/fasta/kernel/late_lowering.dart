@@ -4,9 +4,14 @@
 
 import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/core_types.dart';
-import 'package:kernel/src/future_or.dart';
 
 import '../names.dart';
+
+const String lateFieldPrefix = '_#';
+const String lateIsSetSuffix = '#isSet';
+const String lateLocalPrefix = '#';
+const String lateLocalGetterSuffix = '#get';
+const String lateLocalSetterSuffix = '#set';
 
 /// Creates the body for the synthesized getter used to encode the lowering
 /// of a late non-final field with an initializer or a late local with an
@@ -22,12 +27,12 @@ Statement createGetterWithInitializer(CoreTypes coreTypes, int fileOffset,
     Expression createVariableWrite(Expression value),
     Expression createIsSetRead(),
     Expression createIsSetWrite(Expression value)}) {
-  if (isPotentiallyNullable(type, coreTypes.futureOrClass)) {
+  if (type.isPotentiallyNullable) {
     // Generate:
     //
     //    if (!_#isSet#field) {
-    //      _#isSet#field = true
     //      _#field = <init>;
+    //      _#isSet#field = true
     //    }
     //    return _#field;
     return new Block(<Statement>[
@@ -36,11 +41,11 @@ Statement createGetterWithInitializer(CoreTypes coreTypes, int fileOffset,
             ..fileOffset = fileOffset,
           new Block(<Statement>[
             new ExpressionStatement(
-                createIsSetWrite(new BoolLiteral(true)..fileOffset = fileOffset)
-                  ..fileOffset = fileOffset)
+                createVariableWrite(initializer)..fileOffset = fileOffset)
               ..fileOffset = fileOffset,
             new ExpressionStatement(
-                createVariableWrite(initializer)..fileOffset = fileOffset)
+                createIsSetWrite(new BoolLiteral(true)..fileOffset = fileOffset)
+                  ..fileOffset = fileOffset)
               ..fileOffset = fileOffset,
           ]),
           null)
@@ -49,9 +54,7 @@ Statement createGetterWithInitializer(CoreTypes coreTypes, int fileOffset,
           // If [type] is a type variable with undetermined nullability we need
           // to create a read of the field that is promoted to the type variable
           // type.
-          createVariableRead(
-              needsPromotion:
-                  isPotentiallyNonNullable(type, coreTypes.futureOrClass)))
+          createVariableRead(needsPromotion: type.isPotentiallyNonNullable))
         ..fileOffset = fileOffset
     ])
       ..fileOffset = fileOffset;
@@ -61,7 +64,7 @@ Statement createGetterWithInitializer(CoreTypes coreTypes, int fileOffset,
     //    return let # = _#field in # == null ? _#field = <init> : #;
     VariableDeclaration variable = new VariableDeclaration.forValue(
         createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
-        type: type.withNullability(Nullability.nullable))
+        type: type.withDeclaredNullability(Nullability.nullable))
       ..fileOffset = fileOffset;
     return new ReturnStatement(
         new Let(
@@ -116,14 +119,14 @@ Statement createGetterWithInitializerWithRecheck(
   VariableDeclaration temp =
       new VariableDeclaration.forValue(initializer, type: type)
         ..fileOffset = fileOffset;
-  if (isPotentiallyNullable(type, coreTypes.futureOrClass)) {
+  if (type.isPotentiallyNullable) {
     // Generate:
     //
     //    if (!_#isSet#field) {
     //      var temp = <init>;
     //      if (_#isSet#field) throw '...'
-    //      _#isSet#field = true
     //      _#field = temp;
+    //      _#isSet#field = true
     //    }
     //    return _#field;
     return new Block(<Statement>[
@@ -138,12 +141,12 @@ Statement createGetterWithInitializerWithRecheck(
                 null)
               ..fileOffset = fileOffset,
             new ExpressionStatement(
-                createIsSetWrite(new BoolLiteral(true)..fileOffset = fileOffset)
+                createVariableWrite(
+                    new VariableGet(temp)..fileOffset = fileOffset)
                   ..fileOffset = fileOffset)
               ..fileOffset = fileOffset,
             new ExpressionStatement(
-                createVariableWrite(
-                    new VariableGet(temp)..fileOffset = fileOffset)
+                createIsSetWrite(new BoolLiteral(true)..fileOffset = fileOffset)
                   ..fileOffset = fileOffset)
               ..fileOffset = fileOffset,
           ]),
@@ -153,9 +156,7 @@ Statement createGetterWithInitializerWithRecheck(
           // If [type] is a type variable with undetermined nullability we need
           // to create a read of the field that is promoted to the type variable
           // type.
-          createVariableRead(
-              needsPromotion:
-                  isPotentiallyNonNullable(type, coreTypes.futureOrClass)))
+          createVariableRead(needsPromotion: type.isPotentiallyNonNullable))
         ..fileOffset = fileOffset
     ])
       ..fileOffset = fileOffset;
@@ -167,7 +168,7 @@ Statement createGetterWithInitializerWithRecheck(
     //        : #1;
     VariableDeclaration variable = new VariableDeclaration.forValue(
         createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
-        type: type.withNullability(Nullability.nullable))
+        type: type.withDeclaredNullability(Nullability.nullable))
       ..fileOffset = fileOffset;
     return new ReturnStatement(
         new Let(
@@ -223,16 +224,14 @@ Statement createGetterBodyWithoutInitializer(CoreTypes coreTypes,
         ..fileOffset = fileOffset)
     ..fileOffset = fileOffset)
     ..fileOffset = fileOffset;
-  if (isPotentiallyNullable(type, coreTypes.futureOrClass)) {
+  if (type.isPotentiallyNullable) {
     // Generate:
     //
     //    return _#isSet#field ? _#field : throw '...';
     return new ReturnStatement(
         new ConditionalExpression(
             createIsSetRead()..fileOffset = fileOffset,
-            createVariableRead(
-                needsPromotion:
-                    isPotentiallyNonNullable(type, coreTypes.futureOrClass))
+            createVariableRead(needsPromotion: type.isPotentiallyNonNullable)
               ..fileOffset = fileOffset,
             exception,
             type)
@@ -244,7 +243,7 @@ Statement createGetterBodyWithoutInitializer(CoreTypes coreTypes,
     //    return let # = _#field in # == null ? throw '...' : #;
     VariableDeclaration variable = new VariableDeclaration.forValue(
         createVariableRead()..fileOffset = fileOffset,
-        type: type.withNullability(Nullability.nullable))
+        type: type.withDeclaredNullability(Nullability.nullable))
       ..fileOffset = fileOffset;
     return new ReturnStatement(
         new Let(
@@ -286,7 +285,7 @@ Statement createSetterBody(CoreTypes coreTypes, int fileOffset, String name,
       createVariableWrite(new VariableGet(parameter)..fileOffset = fileOffset)
         ..fileOffset = fileOffset);
 
-  if (isPotentiallyNullable(type, coreTypes.futureOrClass)) {
+  if (type.isPotentiallyNullable) {
     // Generate:
     //
     //    _#isSet#field = true;
@@ -342,7 +341,7 @@ Statement createSetterBodyFinal(
     }
   }
 
-  if (isPotentiallyNullable(type, coreTypes.futureOrClass)) {
+  if (type.isPotentiallyNullable) {
     // Generate:
     //
     //    if (_#isSet#field) {

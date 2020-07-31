@@ -69,11 +69,6 @@ def BuildOptions():
         type="string",
         help="Dart script for which snapshot is to be generated")
     result.add_option(
-        "--package_root",
-        action="store",
-        type="string",
-        help="path used to resolve package: imports.")
-    result.add_option(
         "--packages",
         action="store",
         type="string",
@@ -147,10 +142,6 @@ def Main():
     if options.load_compilation_trace:
         script_args.append(''.join(
             ["--load_compilation_trace=", options.load_compilation_trace]))
-
-    # Pass along the package_root if there is one.
-    if options.package_root:
-        script_args.append(''.join(["--package_root=", options.package_root]))
 
     # Pass along the packages if there is one.
     if options.packages:

@@ -225,7 +225,7 @@ class Listener implements UnescapeErrorListener {
   /// - on type
   /// - body
   void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token token) {
+      Token extensionKeyword, Token onKeyword, Token endToken) {
     logEvent('ExtensionDeclaration');
   }
 
@@ -366,8 +366,15 @@ class Listener implements UnescapeErrorListener {
   /// - Variable declarations (count times)
   ///
   /// Doesn't have a corresponding begin event, use [beginMember] instead.
-  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endClassFields(
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     logEvent("Fields");
   }
 
@@ -378,11 +385,18 @@ class Listener implements UnescapeErrorListener {
   /// - Variable declarations (count times)
   ///
   /// Doesn't have a corresponding begin event, use [beginMember] instead.
-  void endMixinFields(Token staticToken, Token covariantToken, Token lateToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endMixinFields(
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     // TODO(danrubel): push implementation into subclasses
-    endClassFields(staticToken, covariantToken, lateToken, varFinalOrConst,
-        count, beginToken, endToken);
+    endClassFields(externalToken, staticToken, covariantToken, lateToken,
+        varFinalOrConst, count, beginToken, endToken);
   }
 
   /// Handle the end of a extension field declaration.  Substructures:
@@ -393,6 +407,7 @@ class Listener implements UnescapeErrorListener {
   ///
   /// Doesn't have a corresponding begin event, use [beginMember] instead.
   void endExtensionFields(
+      Token externalToken,
       Token staticToken,
       Token covariantToken,
       Token lateToken,
@@ -401,8 +416,8 @@ class Listener implements UnescapeErrorListener {
       Token beginToken,
       Token endToken) {
     // TODO(danrubel): push implementation into subclasses
-    endClassFields(staticToken, covariantToken, lateToken, varFinalOrConst,
-        count, beginToken, endToken);
+    endClassFields(externalToken, staticToken, covariantToken, lateToken,
+        varFinalOrConst, count, beginToken, endToken);
   }
 
   /// Marks that the grammar term `forInitializerStatement` has been parsed and
@@ -1089,6 +1104,7 @@ class Listener implements UnescapeErrorListener {
   /// Doesn't have a corresponding begin event.
   /// Use [beginTopLevelMember] instead.
   void endTopLevelFields(
+      Token externalToken,
       Token staticToken,
       Token covariantToken,
       Token lateToken,
@@ -1213,7 +1229,7 @@ class Listener implements UnescapeErrorListener {
   void reportVarianceModifierNotEnabled(Token variance) {
     if (variance != null) {
       handleRecoverableError(
-          templateExperimentNotEnabled.withArguments('variance'),
+          templateExperimentNotEnabled.withArguments('variance', '2.9'),
           variance,
           variance);
     }
@@ -1245,6 +1261,12 @@ class Listener implements UnescapeErrorListener {
 
   void endWhileStatement(Token whileKeyword, Token endToken) {
     logEvent("WhileStatement");
+  }
+
+  void beginAsOperatorType(Token operator) {}
+
+  void endAsOperatorType(Token operator) {
+    logEvent("AsOperatorType");
   }
 
   void handleAsOperator(Token operator) {
@@ -1356,6 +1378,12 @@ class Listener implements UnescapeErrorListener {
   void handleIndexedExpression(
       Token question, Token openSquareBracket, Token closeSquareBracket) {
     logEvent("IndexedExpression");
+  }
+
+  void beginIsOperatorType(Token operator) {}
+
+  void endIsOperatorType(Token operator) {
+    logEvent("IsOperatorType");
   }
 
   void handleIsOperator(Token isOperator, Token not) {

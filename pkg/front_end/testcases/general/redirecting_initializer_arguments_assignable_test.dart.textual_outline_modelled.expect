@@ -1,0 +1,10 @@
+class Foo<T extends X> {
+  Foo._internal({this.x});
+  Foo.fromT(T _init) : this._internal(x: _init);
+  Foo.fromX(X _init) : this._internal(x: _init);
+  T x;
+}
+
+class X {}
+
+void main() {}

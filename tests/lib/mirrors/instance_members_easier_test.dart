@@ -54,15 +54,18 @@ main() {
     #==,
     #noSuchMethod,
     #toString
-  ], selectKeys(cm.instanceMembers, (dm) => !dm.isPrivate));
+  ], selectKeys(cm.instanceMembers, (dynamic dm) => !dm.isPrivate));
   // Filter out private to avoid implementation-specific members of Object.
 
-  Expect.setEquals([
-    #instanceVariable,
-    const Symbol('instanceVariable='),
-    #inheritedInstanceVariable,
-    const Symbol('inheritedInstanceVariable=')
-  ], selectKeys(cm.instanceMembers, (dm) => !dm.isPrivate && dm.isSynthetic));
+  Expect.setEquals(
+      [
+        #instanceVariable,
+        const Symbol('instanceVariable='),
+        #inheritedInstanceVariable,
+        const Symbol('inheritedInstanceVariable=')
+      ],
+      selectKeys(
+          cm.instanceMembers, (dynamic dm) => !dm.isPrivate && dm.isSynthetic));
 
   cm = reflectClass(Derived);
   Expect.setEquals([
@@ -75,7 +78,7 @@ main() {
     #==,
     #noSuchMethod,
     #toString
-  ], selectKeys(cm.instanceMembers, (dm) => !dm.isPrivate));
+  ], selectKeys(cm.instanceMembers, (dynamic dm) => !dm.isPrivate));
 
   cm = reflectClass(EasierMixinApplication);
   Expect.setEquals([
@@ -87,5 +90,5 @@ main() {
     #==,
     #noSuchMethod,
     #toString
-  ], selectKeys(cm.instanceMembers, (dm) => !dm.isPrivate));
+  ], selectKeys(cm.instanceMembers, (dynamic dm) => !dm.isPrivate));
 }

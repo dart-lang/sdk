@@ -1,0 +1,12 @@
+abstract class Bar {
+  void fisk<S extends Foo<S>>();
+}
+
+class Foo<T extends Foo<T>> {}
+
+class Hest implements Bar {
+  @override
+  void fisk<U extends Foo<U>>() {}
+}
+
+void main() {}

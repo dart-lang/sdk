@@ -52,7 +52,7 @@ TEST_CASE(StackMapGC) {
       "    i = 10; s1 = 'abcd'; k = 20; s2 = 'B'; s3 = 'C';"
       "    func(i, k);"
       "    return i + k; }"
-      "  static int moo() {"
+      "  static void moo() {"
       "    var i = A.foo();"
       "    if (i != 30) throw '$i != 30';"
       "  }\n"
@@ -96,7 +96,8 @@ TEST_CASE(StackMapGC) {
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   int call_count = 0;
-  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kUnoptStaticCall);
+  PcDescriptors::Iterator iter(descriptors,
+                               PcDescriptorsLayout::kUnoptStaticCall);
   CompressedStackMapsBuilder compressed_maps_builder;
   while (iter.MoveNext()) {
     compressed_maps_builder.AddEntry(iter.PcOffset(), stack_bitmap, 0);
@@ -142,7 +143,7 @@ ISOLATE_UNIT_TEST_CASE(DescriptorList_TokenPositions) {
       sizeof(token_positions) / sizeof(token_positions[0]);
 
   for (intptr_t i = 0; i < num_token_positions; i++) {
-    descriptors->AddDescriptor(RawPcDescriptors::kRuntimeCall, 0, 0,
+    descriptors->AddDescriptor(PcDescriptorsLayout::kRuntimeCall, 0, 0,
                                TokenPosition(token_positions[i]), 0, 1);
   }
 
@@ -151,7 +152,7 @@ ISOLATE_UNIT_TEST_CASE(DescriptorList_TokenPositions) {
 
   ASSERT(!finalized_descriptors.IsNull());
   PcDescriptors::Iterator it(finalized_descriptors,
-                             RawPcDescriptors::kRuntimeCall);
+                             PcDescriptorsLayout::kRuntimeCall);
 
   intptr_t i = 0;
   while (it.MoveNext()) {

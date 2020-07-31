@@ -27,7 +27,7 @@ import 'package:analysis_server/src/services/correction/fix/dart/top_level_decla
 import 'package:analysis_server/src/services/correction/fix/manifest/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analysis_server/src/services/correction/organize_directives.dart';
+import 'package:analysis_server/src/services/correction/organize_imports.dart';
 import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -41,6 +41,8 @@ import 'package:analyzer/file_system/file_system.dart';
 // ignore: deprecated_member_use
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/library_context.dart'
+    show LibraryCycleLinkException;
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
@@ -165,8 +167,6 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future getAssists(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var params = EditGetAssistsParams.fromRequest(request);
     var file = params.file;
     var offset = params.offset;
@@ -202,8 +202,14 @@ class EditDomainHandler extends AbstractRequestHandler {
         length,
       );
       try {
-        var processor = AssistProcessor(context);
-        var assists = await processor.compute();
+        List<Assist> assists;
+        try {
+          var processor = AssistProcessor(context);
+          assists = await processor.compute();
+        } on InconsistentAnalysisException {
+          assists = [];
+        }
+
         assists.sort(Assist.SORT_BY_RELEVANCE);
         for (var assist in assists) {
           changes.add(assist.change);
@@ -287,8 +293,6 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future getPostfixCompletion(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     server.options.analytics?.sendEvent('edit', 'getPostfixCompletion');
 
     var params = EditGetPostfixCompletionParams.fromRequest(request);
@@ -319,9 +323,6 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future getStatementCompletion(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-
     var params = EditGetStatementCompletionParams.fromRequest(request);
     var file = params.file;
 
@@ -396,9 +397,6 @@ class EditDomainHandler extends AbstractRequestHandler {
 
   /// Implement the `edit.importElements` request.
   Future<void> importElements(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-
     var params = EditImportElementsParams.fromRequest(request);
     var file = params.file;
 
@@ -437,8 +435,6 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future isPostfixCompletionApplicable(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var params = EditGetPostfixCompletionParams.fromRequest(request);
     var file = params.file;
 
@@ -475,8 +471,6 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future<void> organizeDirectives(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     server.options.analytics?.sendEvent('edit', 'organizeDirectives');
 
     var params = EditOrganizeDirectivesParams.fromRequest(request);
@@ -508,7 +502,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
     // do organize
-    var sorter = DirectiveOrganizer(code, unit, errors);
+    var sorter = ImportOrganizer(code, unit, errors);
     var edits = sorter.organize();
     var fileEdit = SourceFileEdit(file, fileStamp, edits: edits);
     server.sendResponse(
@@ -516,8 +510,6 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future<void> sortMembers(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var params = EditSortMembersParams.fromRequest(request);
     var file = params.file;
 
@@ -615,7 +607,25 @@ class EditDomainHandler extends AbstractRequestHandler {
               name,
             );
           });
-          var fixes = await DartFixContributor().computeFixes(context);
+
+          List<Fix> fixes;
+          try {
+            fixes = await DartFixContributor().computeFixes(context);
+          } on InconsistentAnalysisException {
+            fixes = [];
+          } catch (exception, stackTrace) {
+            var parametersFile = '''
+offset: $offset
+error: $error
+error.errorCode: ${error.errorCode}
+''';
+            // TODO(scheglov) Use CaughtExceptionWithFiles when patch changed.
+            throw LibraryCycleLinkException(exception, stackTrace, {
+              file: result.content,
+              'parameters': parametersFile,
+            });
+          }
+
           if (fixes.isNotEmpty) {
             fixes.sort(Fix.SORT_BY_RELEVANCE);
             var serverError = newAnalysisError_fromEngine(result, error);
@@ -922,8 +932,6 @@ class _RefactoringManager {
     }
 
     runZonedGuarded(() async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
       await _init(params.kind, file, params.offset, params.length);
       if (initStatus.hasFatalError) {
         feedback = null;
@@ -1013,8 +1021,6 @@ class _RefactoringManager {
   /// parameters. The existing [Refactoring] is reused or created as needed.
   Future _init(
       RefactoringKind kind, String file, int offset, int length) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     // check if we can continue with the existing Refactoring instance
     if (this.kind == kind &&
         this.file == file &&

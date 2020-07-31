@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_IA32.
-#if defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(TARGET_ARCH_IA32)
 
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/graph_intrinsifier.h"
@@ -34,4 +34,4 @@ void GraphIntrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
 }  // namespace compiler
 }  // namespace dart
 
-#endif  // defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(TARGET_ARCH_IA32)

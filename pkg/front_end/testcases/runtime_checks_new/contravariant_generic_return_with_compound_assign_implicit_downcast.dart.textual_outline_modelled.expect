@@ -1,0 +1,21 @@
+library test;
+
+class C<T> {
+  C(this.plusResult);
+  final num Function(T) plusResult;
+  num Function(T) operator +(int i) => plusResult;
+}
+
+class D {
+  C<num> get value => getValue;
+  D(this.getValue);
+  final C<num> getValue;
+  int Function(int) setValue;
+  void set value(int Function(int) value) {}
+}
+
+int numToInt(num n) => 1;
+num numToNum(num n) => 2;
+void expect(Object value, Object expected) {}
+void expectTypeError(void callback()) {}
+void main() {}

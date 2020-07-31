@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:async" as asy;
+
+static method f() → asy::Future<void>*
+  ;
+static method g() → void
+  ;

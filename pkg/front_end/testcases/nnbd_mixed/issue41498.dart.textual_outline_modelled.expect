@@ -1,0 +1,9 @@
+import "issue41498_lib.dart";
+
+class C {
+  static void test() {}
+  void test2() {}
+}
+
+main() {}
+test() {}

@@ -1,0 +1,19 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/yield_not_in_generator.dart:4:3: Error: 'yield' can only be used in 'sync*' or 'async*' methods.
+//   yield f();
+//   ^^^^^
+//
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method f() → asy::Future<core::int*>*
+  return asy::Future::value<core::int*>(7);
+static method g() → core::List<core::int*>* {
+  invalid-expression "pkg/front_end/testcases/general/error_recovery/yield_not_in_generator.dart:4:3: Error: 'yield' can only be used in 'sync*' or 'async*' methods.
+  yield f();
+  ^";
+}

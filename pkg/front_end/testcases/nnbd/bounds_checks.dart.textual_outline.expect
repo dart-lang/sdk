@@ -1,0 +1,18 @@
+class A<X extends num> {}
+
+foo(A<num?> a) {}
+A<num?>? bar() {}
+baz<T extends A<num?>>() {}
+
+class B extends A<num?> {}
+
+class C<T extends A<num?>> {}
+
+void hest<T extends num>() {}
+
+class Hest {
+  void hest<T extends num>() {}
+}
+
+fisk(Hest h) {}
+main() {}

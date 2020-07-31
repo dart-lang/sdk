@@ -73,7 +73,7 @@ testSimpleReadWriteClose() async {
     int bytesRead = 0;
     int bytesWritten = 0;
     bool closedEventReceived = false;
-    List<int> data = new List<int>(messageSize);
+    List<int> data = new List<int>.filled(messageSize, -1);
     bool doneReading = false;
 
     client.writeEventsEnabled = false;
@@ -86,7 +86,7 @@ testSimpleReadWriteClose() async {
           print("client READ event bytesRead = $bytesRead");
           assert(bytesWritten == 0);
           assert(client.available() > 0);
-          var buffer = client.read(200);
+          var buffer = client.read(200)!;
           print("client READ event: read ${buffer.length} more bytes");
           data.setRange(bytesRead, bytesRead + buffer.length, buffer);
           bytesRead += buffer.length;
@@ -142,7 +142,7 @@ testSimpleReadWriteClose() async {
         case RawSocketEvent.READ:
           assert(socket.available() > 0);
           print("server READ event: ${bytesRead} read");
-          var buffer = socket.read();
+          var buffer = socket.read()!;
           print("server READ event: read ${buffer.length} more bytes");
           data.setRange(bytesRead, bytesRead + buffer.length, buffer);
           bytesRead += buffer.length;
@@ -161,7 +161,7 @@ testSimpleReadWriteClose() async {
             socket.writeEventsEnabled = true;
           } else {
             print("server WRITE event: done writing");
-            data = new List<int>(messageSize);
+            data = new List<int>.filled(messageSize, -1);
           }
           break;
         case RawSocketEvent.READ_CLOSED:
@@ -188,7 +188,7 @@ testSimpleReadWriteClose() async {
   }
 }
 
-testSimpleReadWriteShutdown({bool dropReads}) async {
+testSimpleReadWriteShutdown({required bool dropReads}) async {
   // This test creates a server and a client connects. The client then
   // writes and the server echos. When the server has finished its
   // echo it half-closes. When the client gets the close event is
@@ -215,7 +215,7 @@ testSimpleReadWriteShutdown({bool dropReads}) async {
     int bytesRead = 0;
     int bytesWritten = 0;
     bool closedEventReceived = false;
-    List<int> data = new List<int>(messageSize);
+    List<int> data = new List<int>.filled(messageSize, -1);
     bool doneReading = false;
 
     client.writeEventsEnabled = false;
@@ -236,7 +236,7 @@ testSimpleReadWriteShutdown({bool dropReads}) async {
           print("client READ event bytesRead = $bytesRead");
           assert(bytesWritten == 0);
           assert(client.available() > 0);
-          var buffer = client.read(200);
+          var buffer = client.read(200)!;
           print("client READ event: read ${buffer.length} more bytes");
           data.setRange(bytesRead, bytesRead + buffer.length, buffer);
           bytesRead += buffer.length;
@@ -298,7 +298,7 @@ testSimpleReadWriteShutdown({bool dropReads}) async {
             }
           }
           print("server READ event: ${bytesRead} read");
-          var buffer = socket.read();
+          var buffer = socket.read()!;
           print("server READ event: read ${buffer.length} more bytes");
           data.setRange(bytesRead, bytesRead + buffer.length, buffer);
           bytesRead += buffer.length;
@@ -313,7 +313,7 @@ testSimpleReadWriteShutdown({bool dropReads}) async {
             socket.writeEventsEnabled = true;
           } else {
             print("server WRITE event: done writing");
-            data = new List<int>(messageSize);
+            data = new List<int>.filled(messageSize, -1);
           }
           break;
         case RawSocketEvent.READ_CLOSED:
@@ -377,7 +377,7 @@ Future testLs(String path) async {
 void testPlatformEnvironment() {
   Map<String, String> env = Platform.environment;
   for (String k in env.keys) {
-    String v = env[k];
+    String v = env[k]!;
     print("$k = '$v'");
   }
 }
@@ -431,8 +431,8 @@ bool testFileOpenDirectoryFails() {
     return true;
   } catch (e) {
     print("Unexpected Exception: $e");
-    return false;
   }
+  return false;
 }
 
 

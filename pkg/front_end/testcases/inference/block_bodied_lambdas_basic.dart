@@ -8,9 +8,9 @@ library test;
 test1() {
   List<int> o;
   var /*@ type=Iterable<int*>* */ y =
-      o. /*@ typeArgs=int* */ /*@target=Iterable::map*/ map(
+      o. /*@ typeArgs=int* */ /*@target=Iterable.map*/ map(
           /*@ returnType=int* */ (/*@ type=int* */ x) {
-    return x /*@target=num::+*/ + 1;
+    return x /*@target=num.+*/ + 1;
   });
   Iterable<int> z = y;
 }

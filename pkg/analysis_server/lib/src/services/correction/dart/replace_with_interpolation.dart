@@ -21,10 +21,10 @@ class ReplaceWithInterpolation extends CorrectionProducer {
     // Validate the fix.
     //
     BinaryExpression binary;
-    var parent = node.parent;
-    while (_isStringConcatenation(parent)) {
-      binary = parent;
-      parent = parent.parent;
+    var candidate = node;
+    while (_isStringConcatenation(candidate)) {
+      binary = candidate;
+      candidate = candidate.parent;
     }
     if (binary == null) {
       return;
@@ -143,6 +143,9 @@ class ReplaceWithInterpolation extends CorrectionProducer {
     }
     return false;
   }
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static ReplaceWithInterpolation newInstance() => ReplaceWithInterpolation();
 }
 
 class _StringStyle {

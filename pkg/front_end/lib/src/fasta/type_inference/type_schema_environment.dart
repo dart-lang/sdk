@@ -4,10 +4,10 @@
 
 import 'package:kernel/ast.dart'
     show
-        Class,
         DartType,
         DynamicType,
         FunctionType,
+        FutureOrType,
         InterfaceType,
         Library,
         NamedType,
@@ -102,16 +102,10 @@ class TypeConstraint {
 
 class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     with StandardBounds {
-  TypeSchemaEnvironment(CoreTypes coreTypes, ClassHierarchy hierarchy)
+  final ClassHierarchy hierarchy;
+
+  TypeSchemaEnvironment(CoreTypes coreTypes, this.hierarchy)
       : super(coreTypes, hierarchy);
-
-  Class get functionClass => coreTypes.functionClass;
-
-  Class get futureClass => coreTypes.futureClass;
-
-  Class get futureOrClass => coreTypes.futureOrClass;
-
-  Class get objectClass => coreTypes.objectClass;
 
   InterfaceType get objectNonNullableRawType {
     return coreTypes.objectNonNullableRawType;
@@ -164,10 +158,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // override.
     if (type1 is InterfaceType && type1.classNode == coreTypes.intClass) {
       if (type2 is InterfaceType && type2.classNode == coreTypes.intClass) {
-        return type2.withNullability(type1.nullability);
+        return type2.withDeclaredNullability(type1.nullability);
       }
       if (type2 is InterfaceType && type2.classNode == coreTypes.doubleClass) {
-        return type2.withNullability(type1.nullability);
+        return type2.withDeclaredNullability(type1.nullability);
       }
     }
     return coreTypes.numRawType(type1.nullability);
@@ -228,14 +222,14 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
                     : objectLegacyRawType)
             .substituteType(returnContextType);
       }
-      gatherer.trySubtypeMatch(declaredReturnType, returnContextType);
+      gatherer.tryConstrainUpper(declaredReturnType, returnContextType);
     }
 
     if (formalTypes != null) {
       for (int i = 0; i < formalTypes.length; i++) {
         // Try to pass each argument to each parameter, recording any type
         // parameter bounds that were implied by this assignment.
-        gatherer.trySubtypeMatch(actualTypes[i], formalTypes[i]);
+        gatherer.tryConstrainLower(formalTypes[i], actualTypes[i]);
       }
     }
 
@@ -359,12 +353,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       DartType subtype, DartType supertype) {
     if (subtype is UnknownType) return const IsSubtypeOf.always();
     DartType unwrappedSupertype = supertype;
-    while (unwrappedSupertype is InterfaceType &&
-        unwrappedSupertype.classNode == futureOrClass) {
-      unwrappedSupertype =
-          (unwrappedSupertype as InterfaceType).typeArguments.single;
+    while (unwrappedSupertype is FutureOrType) {
+      unwrappedSupertype = (unwrappedSupertype as FutureOrType).typeArgument;
     }
-    if (subtype == coreTypes.nullType && unwrappedSupertype is UnknownType) {
+    if (unwrappedSupertype is UnknownType) {
       return const IsSubtypeOf.always();
     }
     return super.performNullabilityAwareSubtypeCheck(subtype, supertype);
@@ -432,11 +424,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       // e.g. `Iterable<?>`
       if (constraint.lower is! UnknownType) {
         return grounded
-            ? leastClosure(constraint.lower, bottomType)
+            ? leastClosure(constraint.lower, const DynamicType(), bottomType)
             : constraint.lower;
       } else {
         return grounded
-            ? greatestClosure(constraint.upper, bottomType)
+            ? greatestClosure(constraint.upper, const DynamicType(), bottomType)
             : constraint.upper;
       }
     } else {
@@ -448,11 +440,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       // e.g. `Iterable<?>`
       if (constraint.upper is! UnknownType) {
         return grounded
-            ? greatestClosure(constraint.upper, bottomType)
+            ? greatestClosure(constraint.upper, const DynamicType(), bottomType)
             : constraint.upper;
       } else {
         return grounded
-            ? leastClosure(constraint.lower, bottomType)
+            ? leastClosure(constraint.lower, const DynamicType(), bottomType)
             : constraint.lower;
       }
     }

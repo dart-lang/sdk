@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_ARM_H_
 #define RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_ARM_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_H_
 #error Do not include assembler_arm.h directly; use assembler.h instead.
 #endif
@@ -185,7 +189,7 @@ class Operand : public ValueObject {
     }
     // Note that immediate must be unsigned for the test to work correctly.
     for (int rot = 0; rot < 16; rot++) {
-      uint32_t imm8 = (immediate << 2 * rot) | (immediate >> (32 - 2 * rot));
+      uint32_t imm8 = Utils::RotateLeft(immediate, 2 * rot);
       if (imm8 < (1 << kImmed8Bits)) {
         o->type_ = 1;
         o->encoding_ = (rot << kRotateShift) | (imm8 << kImmed8Shift);
@@ -400,6 +404,17 @@ class Assembler : public AssemblerBase {
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     LoadFromOffset(kWord, dst, base, offset, AL);
   }
+  void StoreMemoryValue(Register src, Register base, int32_t offset) {
+    StoreToOffset(kWord, src, base, offset, AL);
+  }
+  void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
+    ldr(dst, Address(address, offset));
+    dmb();
+  }
+  void StoreRelease(Register src, Register address, int32_t offset = 0) {
+    dmb();
+    str(src, Address(address, offset));
+  }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
     CompareWithMemoryValue(value, address);
@@ -561,14 +576,16 @@ class Assembler : public AssemblerBase {
   void ldrex(Register rd, Register rn, Condition cond = AL);
   void strex(Register rd, Register rt, Register rn, Condition cond = AL);
 
+  void dmb();
+
   // Emit code to transition between generated and native modes.
   //
   // These require that CSP and SP are equal and aligned and require two scratch
   // registers (in addition to TMP).
   void TransitionGeneratedToNative(Register destination_address,
                                    Register exit_frame_fp,
+                                   Register exit_through_ffi,
                                    Register scratch0,
-                                   Register scratch1,
                                    bool enter_safepoint);
   void TransitionNativeToGenerated(Register scratch0,
                                    Register scratch1,
@@ -588,8 +605,6 @@ class Assembler : public AssemblerBase {
     return (AL << kConditionShift) | B24 | B21 | ((imm16 >> 4) << 8) | B6 | B5 |
            B4 | (imm16 & 0xf);
   }
-
-  static uword GetBreakInstructionFiller() { return BkptEncoding(0); }
 
   // Floating point instructions (VFPv3-D16 and VFPv3-D32 profiles).
   void vmovsr(SRegister sn, Register rt, Condition cond = AL);
@@ -735,10 +750,6 @@ class Assembler : public AssemblerBase {
                   CodeEntryKind entry_kind = CodeEntryKind::kNormal);
   void BranchLinkToRuntime();
 
-  void CallNullErrorShared(bool save_fpu_registers);
-
-  void CallNullArgErrorShared(bool save_fpu_registers);
-
   // Branch and link to an entry address. Call sequence can be patched.
   void BranchLinkPatchable(const Code& code,
                            CodeEntryKind entry_kind = CodeEntryKind::kNormal);
@@ -752,6 +763,13 @@ class Assembler : public AssemblerBase {
 
   // Branch and link to [base + offset]. Call sequence is never patched.
   void BranchLinkOffset(Register base, int32_t offset);
+
+  void Call(Address target) {
+    ldr(LR, target);
+    blx(LR);
+  }
+
+  void CallCFunction(Address target) { Call(target); }
 
   // Add signed immediate value to rd. May clobber IP.
   void AddImmediate(Register rd, int32_t value, Condition cond = AL) {
@@ -820,7 +838,7 @@ class Assembler : public AssemblerBase {
   void LoadWordFromPoolOffset(Register rd,
                               int32_t offset,
                               Register pp,
-                              Condition cond);
+                              Condition cond = AL);
 
   void LoadObject(Register rd, const Object& object, Condition cond = AL);
   void LoadUniqueObject(Register rd, const Object& object, Condition cond = AL);
@@ -899,6 +917,9 @@ class Assembler : public AssemblerBase {
 
   // Stores a Smi value into a heap object field that always contains a Smi.
   void StoreIntoSmiField(const Address& dest, Register value);
+
+  void ExtractClassIdFromTags(Register result, Register tags);
+  void ExtractInstanceSizeFromTags(Register result, Register tags);
 
   void LoadClassId(Register result, Register object, Condition cond = AL);
   void LoadClassById(Register result, Register class_id);
@@ -1121,6 +1142,13 @@ class Assembler : public AssemblerBase {
   void EnterStubFrame();
   void LeaveStubFrame();
 
+  // Set up a frame for calling a C function.
+  // Automatically save the pinned registers in Dart which are not callee-
+  // saved in the native calling convention.
+  // Use together with CallCFunction.
+  void EnterCFrame(intptr_t frame_space);
+  void LeaveCFrame();
+
   void MonomorphicCheckedEntryJIT();
   void MonomorphicCheckedEntryAOT();
   void BranchOnMonomorphicCheckedEntryJIT(Label* label);
@@ -1165,6 +1193,10 @@ class Assembler : public AssemblerBase {
                                      Register array,
                                      Register index);
 
+  void LoadFieldAddressForRegOffset(Register address,
+                                    Register instance,
+                                    Register offset_in_words_as_smi);
+
   void LoadHalfWordUnaligned(Register dst, Register addr, Register tmp);
   void LoadHalfWordUnsignedUnaligned(Register dst, Register addr, Register tmp);
   void StoreHalfWordUnaligned(Register src, Register addr, Register tmp);
@@ -1192,13 +1224,13 @@ class Assembler : public AssemblerBase {
                         Register temp1,
                         Register temp2);
 
-  // This emits an PC-relative call of the form "blr <offset>".  The offset
-  // is not yet known and needs therefore relocation to the right place before
-  // the code can be used.
+  // This emits an PC-relative call of the form "blr.<cond> <offset>".  The
+  // offset is not yet known and needs therefore relocation to the right place
+  // before the code can be used.
   //
   // The neccessary information for the "linker" (i.e. the relocation
-  // information) is stored in [RawCode::static_calls_target_table_]: an entry
-  // of the form
+  // information) is stored in [CodeLayout::static_calls_target_table_]: an
+  // entry of the form
   //
   //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
   //
@@ -1209,6 +1241,12 @@ class Assembler : public AssemblerBase {
   // function.
   void GenerateUnRelocatedPcRelativeCall(Condition cond = AL,
                                          intptr_t offset_into_target = 0);
+
+  // This emits an PC-relative tail call of the form "b.<cond> <offset>".
+  //
+  // See also above for the pc-relative call.
+  void GenerateUnRelocatedPcRelativeTailCall(Condition cond = AL,
+                                             intptr_t offset_into_target = 0);
 
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);
@@ -1245,7 +1283,6 @@ class Assembler : public AssemblerBase {
   void movw(Register rd, uint16_t imm16, Condition cond = AL);
   void movt(Register rd, uint16_t imm16, Condition cond = AL);
 
-  void BindARMv6(Label* label);
   void BindARMv7(Label* label);
 
   void BranchLink(const ExternalLabel* label);

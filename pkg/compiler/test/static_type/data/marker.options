@@ -1,0 +1,2 @@
+spec=pkg/compiler/test/static_type/static_type_test.dart
+prod=pkg/compiler/test/static_type/static_type_test.dart

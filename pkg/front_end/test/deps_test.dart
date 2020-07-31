@@ -18,7 +18,7 @@ import 'utils/io_utils.dart' show computeRepoDirUri;
 
 final Uri repoDir = computeRepoDirUri();
 
-Set<String> whitelistedExternalDartFiles = {
+Set<String> allowlistedExternalDartFiles = {
   "third_party/pkg/charcode/lib/ascii.dart",
 
   "third_party/pkg_tested/package_config/lib/package_config.dart",
@@ -114,7 +114,7 @@ Future<void> main() async {
   // * Everything in frontEndUris is okay --- the frontend can import itself.
   // * Everything in kernel is okay --- the frontend is allowed to
   //   import package:kernel.
-  // * For other entries, remove whitelisted entries.
+  // * For other entries, remove allowlisted entries.
   // * Everything else is an error.
 
   // Remove white-listed non-dart files.
@@ -123,12 +123,12 @@ Future<void> main() async {
   otherNonDartUris.remove(repoDir.resolve(".dart_tool/package_config.json"));
 
   // Remove white-listed dart files.
-  for (String s in whitelistedExternalDartFiles) {
+  for (String s in allowlistedExternalDartFiles) {
     otherDartUris.remove(repoDir.resolve(s));
   }
 
   if (otherNonDartUris.isNotEmpty || otherDartUris.isNotEmpty) {
-    print("The following files was imported without being whitelisted:");
+    print("The following files was imported without being allowlisted:");
     for (Uri uri in otherNonDartUris) {
       print(" - $uri");
     }

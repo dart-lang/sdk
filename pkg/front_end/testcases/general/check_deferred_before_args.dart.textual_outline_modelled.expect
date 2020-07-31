@@ -1,0 +1,5 @@
+import 'deferred_lib.dart' deferred as lib;
+
+m2() => 1;
+main() {}
+test() {}

@@ -1,0 +1,11 @@
+library test;
+
+abstract class A {
+  double get x;
+}
+
+abstract class B extends A {
+  void set x(value);
+}
+
+main() {}

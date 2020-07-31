@@ -26,8 +26,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/resolver.dart' show ExitDetector;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -179,8 +179,6 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var result = RefactoringStatus();
     result.addStatus(validateMethodName(name));
     result.addStatus(_checkParameterNames());
@@ -191,8 +189,6 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var result = RefactoringStatus();
     // selection
     result.addStatus(_checkSelection());
@@ -231,8 +227,6 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var change = SourceChange(refactoringName);
     // replace occurrences with method invocation
     for (var occurrence in _occurrences) {
@@ -431,8 +425,6 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   /// Checks if created method will shadow or will be shadowed by other
   /// elements.
   Future<RefactoringStatus> _checkPossibleConflicts() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var result = RefactoringStatus();
     var parent = _parentMember.parent;
     // top-level function
@@ -701,8 +693,6 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   /// Prepares information about used variables, which should be turned into
   /// parameters.
   Future<RefactoringStatus> _initializeParameters() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     _parameters.clear();
     _parametersMap.clear();
     _parameterReferencesMap.clear();
@@ -766,8 +756,6 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   }
 
   Future<void> _initializeReturnType() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var typeProvider = await resolveResult.typeProvider;
     if (_selectionFunctionExpression != null) {
       variableType = '';

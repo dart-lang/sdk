@@ -1,0 +1,6 @@
+class C {
+  int value = 0;
+}
+extension Extension1 ;
+on C (){ }
+main() { }

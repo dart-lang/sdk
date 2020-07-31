@@ -1,0 +1,3 @@
+Foo x;
+main() {}
+typedef Foo<T> = T Function<T>(T a);

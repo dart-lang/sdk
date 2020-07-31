@@ -32,17 +32,10 @@ static const intptr_t kMaxSamplesPerTick = 16;
 
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 
-#if defined(TARGET_ARCH_ARM_6)
-DEFINE_FLAG(int,
-            profile_period,
-            10000,
-            "Time between profiler samples in microseconds. Minimum 50.");
-#else
 DEFINE_FLAG(int,
             profile_period,
             1000,
             "Time between profiler samples in microseconds. Minimum 50.");
-#endif
 DEFINE_FLAG(int,
             max_profile_depth,
             kSampleSize* kMaxSamplesPerTick,
@@ -1132,18 +1125,24 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
     }
   }
 
-  OSThread* os_thread = OSThread::Current();
-  ASSERT(os_thread != NULL);
-  Isolate* isolate = Isolate::Current();
-  const char* name = isolate == NULL ? NULL : isolate->name();
-  OS::PrintErr("version=%s\npid=%" Pd ", thread=%" Pd ", isolate=%s(%p)\n",
-               Version::String(), OS::ProcessId(),
-               OSThread::ThreadIdToIntPtr(os_thread->trace_id()), name,
-               isolate);
-  const IsolateGroupSource* source =
-      isolate == nullptr ? nullptr : isolate->source();
-  const IsolateGroupSource* vm_source =
+  auto os_thread = OSThread::Current();
+  ASSERT(os_thread != nullptr);
+  auto thread = Thread::Current();  // NULL if no current isolate.
+  auto isolate = thread == nullptr ? nullptr : thread->isolate();
+  auto isolate_group = thread == nullptr ? nullptr : thread->isolate_group();
+  auto source = isolate_group == nullptr ? nullptr : isolate_group->source();
+  auto vm_source =
       Dart::vm_isolate() == nullptr ? nullptr : Dart::vm_isolate()->source();
+  const char* isolate_group_name =
+      isolate_group == nullptr ? "(nil)" : isolate_group->source()->name;
+  const char* isolate_name = isolate == nullptr ? "(nil)" : isolate->name();
+
+  OS::PrintErr("version=%s\n", Version::String());
+  OS::PrintErr("pid=%" Pd ", thread=%" Pd
+               ", isolate_group=%s(%p), isolate=%s(%p)\n",
+               static_cast<intptr_t>(OS::ProcessId()),
+               OSThread::ThreadIdToIntPtr(os_thread->trace_id()),
+               isolate_group_name, isolate_group, isolate_name, isolate);
   OS::PrintErr("isolate_instructions=%" Px ", vm_instructions=%" Px "\n",
                source == nullptr
                    ? 0
@@ -1157,7 +1156,6 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
     return;
   }
 
-  Thread* thread = Thread::Current();  // NULL if no current isolate.
   uword stack_lower = 0;
   uword stack_upper = 0;
   if (!GetAndValidateThreadStackBounds(os_thread, thread, fp, sp, &stack_lower,
@@ -1174,11 +1172,13 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
   native_stack_walker.walk();
   OS::PrintErr("-- End of DumpStackTrace\n");
 
-  if (thread->execution_state() == Thread::kThreadInNative) {
-    TransitionNativeToVM transition(thread);
-    StackFrame::DumpCurrentTrace();
-  } else if (thread->execution_state() == Thread::kThreadInVM) {
-    StackFrame::DumpCurrentTrace();
+  if (thread != nullptr) {
+    if (thread->execution_state() == Thread::kThreadInNative) {
+      TransitionNativeToVM transition(thread);
+      StackFrame::DumpCurrentTrace();
+    } else if (thread->execution_state() == Thread::kThreadInVM) {
+      StackFrame::DumpCurrentTrace();
+    }
   }
 }
 
@@ -1451,7 +1451,7 @@ class CodeLookupTableBuilder : public ObjectVisitor {
 
   ~CodeLookupTableBuilder() {}
 
-  void VisitObject(RawObject* raw_obj) {
+  void VisitObject(ObjectPtr raw_obj) {
     if (raw_obj->IsCode()) {
       table_->Add(Code::Handle(Code::RawCast(raw_obj)));
     } else if (raw_obj->IsBytecode()) {

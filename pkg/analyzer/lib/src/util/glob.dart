@@ -2,32 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * A pattern that matches against filesystem path-like strings with wildcards.
- *
- * The pattern matches strings as follows:
- *   * The pattern must use `/` as the path separator.
- *   * The whole string must match, not a substring.
- *   * Any non wildcard is matched as a literal.
- *   * '*' matches one or more characters except '/'.
- *   * '?' matches exactly one character except '/'.
- *   * '**' matches one or more characters including '/'.
- */
+/// A pattern that matches against filesystem path-like strings with wildcards.
+///
+/// The pattern matches strings as follows:
+///   * The pattern must use `/` as the path separator.
+///   * The whole string must match, not a substring.
+///   * Any non wildcard is matched as a literal.
+///   * '*' matches one or more characters except '/'.
+///   * '?' matches exactly one character except '/'.
+///   * '**' matches one or more characters including '/'.
 class Glob {
-  /**
-   * The special characters are: \ ^ $ . | + [ ] ( ) { }
-   * as defined here: http://ecma-international.org/ecma-262/5.1/#sec-15.10
-   */
+  /// The special characters are: \ ^ $ . | + [ ] ( ) { }
+  /// as defined here: http://ecma-international.org/ecma-262/5.1/#sec-15.10
   static final RegExp _specialChars = RegExp(r'([\\\^\$\.\|\+\[\]\(\)\{\}])');
 
-  /**
-   * The path separator used to separate components in file paths.
-   */
+  /// The path separator used to separate components in file paths.
   final String _separator;
 
-  /**
-   * The pattern string.
-   */
+  /// The pattern string.
   final String _pattern;
 
   String _suffix;
@@ -49,10 +41,8 @@ class Glob {
   @override
   bool operator ==(other) => other is Glob && _pattern == other._pattern;
 
-  /**
-   * Return `true` if the given [path] matches this glob.
-   * The given [path] must use the same [_separator] as the glob.
-   */
+  /// Return `true` if the given [path] matches this glob.
+  /// The given [path] must use the same [_separator] as the glob.
   bool matches(String path) {
     String posixPath = _toPosixPath(path);
     if (_suffix != null) {
@@ -64,9 +54,7 @@ class Glob {
   @override
   String toString() => _pattern;
 
-  /**
-   * Return the Posix version of the given [path].
-   */
+  /// Return the Posix version of the given [path].
   String _toPosixPath(String path) {
     if (_separator == '/') {
       return path;
@@ -74,10 +62,8 @@ class Glob {
     return path.replaceAll(_separator, '/');
   }
 
-  /**
-   * Return `true` if the [pattern] start with the given [prefix] and does
-   * not have `*` or `?` characters after the [prefix].
-   */
+  /// Return `true` if the [pattern] start with the given [prefix] and does
+  /// not have `*` or `?` characters after the [prefix].
   static bool _hasJustPrefix(String pattern, String prefix) {
     if (pattern.startsWith(prefix)) {
       int prefixLength = prefix.length;

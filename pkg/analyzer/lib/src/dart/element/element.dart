@@ -23,13 +23,14 @@ import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -105,9 +106,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
 
   @override
   bool get isMixin => false;
-
-  @override
-  ElementKind get kind => ElementKind.CLASS;
 
   @override
   List<InterfaceType> get superclassConstraints => const <InterfaceType>[];
@@ -685,10 +683,12 @@ class ClassElementImpl extends AbstractClassElementImpl
     return definingClass != null && !definingClass.isDartCoreObject;
   }
 
+  @Deprecated('It was used internally, should not be part of API')
   @override
   bool get hasReferenceToSuper => hasModifier(Modifier.REFERENCES_SUPER);
 
   /// Set whether this class references 'super'.
+  /// TODO(scheglov) Remove it.
   set hasReferenceToSuper(bool isReferencedSuper) {
     setModifier(Modifier.REFERENCES_SUPER, isReferencedSuper);
   }
@@ -709,7 +709,14 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   @override
-  List<InterfaceType> get interfaces {
+  List<InterfaceType> get interfaces =>
+      ElementTypeProvider.current.getClassInterfaces(this);
+
+  set interfaces(List<InterfaceType> interfaces) {
+    _interfaces = interfaces;
+  }
+
+  List<InterfaceType> get interfacesInternal {
     if (_interfaces != null) {
       return _interfaces;
     }
@@ -728,10 +735,6 @@ class ClassElementImpl extends AbstractClassElementImpl
       }
     }
     return _interfaces = const <InterfaceType>[];
-  }
-
-  set interfaces(List<InterfaceType> interfaces) {
-    _interfaces = interfaces;
   }
 
   @override
@@ -758,6 +761,11 @@ class ClassElementImpl extends AbstractClassElementImpl
     return hasModifier(Modifier.MIXIN_APPLICATION);
   }
 
+  /// Set whether this class is a mixin application.
+  set isMixinApplication(bool isMixinApplication) {
+    setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
+  }
+
   @override
   bool get isOrInheritsProxy => false;
 
@@ -774,10 +782,7 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   bool get isValidMixin {
-    if (hasReferenceToSuper) {
-      return false;
-    }
-    if (!supertype.isObject) {
+    if (!supertype.isDartCoreObject) {
       return false;
     }
     for (ConstructorElement constructor in constructors) {
@@ -787,6 +792,9 @@ class ClassElementImpl extends AbstractClassElementImpl
     }
     return true;
   }
+
+  @override
+  ElementKind get kind => ElementKind.CLASS;
 
   @override
   List<MethodElement> get methods {
@@ -819,11 +827,6 @@ class ClassElementImpl extends AbstractClassElementImpl
       (method as MethodElementImpl).enclosingElement = this;
     }
     _methods = methods;
-  }
-
-  /// Set whether this class is a mixin application.
-  set mixinApplication(bool isMixinApplication) {
-    setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
   }
 
   @override
@@ -990,7 +993,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// Compute a list of constructors for this class, which is a mixin
   /// application.  If specified, [visitedClasses] is a list of the other mixin
   /// application classes which have been visited on the way to reaching this
-  /// one (this is used to detect circularities).
+  /// one (this is used to detect cycles).
   List<ConstructorElement> _computeMixinAppConstructors(
       [List<ClassElementImpl> visitedClasses]) {
     if (supertype == null) {
@@ -1009,7 +1012,8 @@ class ClassElementImpl extends AbstractClassElementImpl
     if (!superElement.isMixinApplication) {
       var library = this.library;
       constructorsToForward = superElement.constructors
-          .where((constructor) => constructor.isAccessibleIn(library));
+          .where((constructor) => constructor.isAccessibleIn(library))
+          .where((constructor) => !constructor.isFactory);
     } else {
       if (visitedClasses == null) {
         visitedClasses = <ClassElementImpl>[this];
@@ -1045,6 +1049,9 @@ class ClassElementImpl extends AbstractClassElementImpl
     var substitution =
         Substitution.fromPairs(superClassParameters, argumentTypes);
 
+    bool typeHasInstanceVariables(InterfaceType type) =>
+        type.element.fields.any((e) => !e.isSynthetic);
+
     // Now create an implicit constructor for every constructor found above,
     // substituting type parameters as appropriate.
     return constructorsToForward
@@ -1053,6 +1060,9 @@ class ClassElementImpl extends AbstractClassElementImpl
           ConstructorElementImpl(superclassConstructor.name, -1);
       implicitConstructor.isSynthetic = true;
       implicitConstructor.redirectedConstructor = superclassConstructor;
+      var hasMixinWithInstanceVariables = mixins.any(typeHasInstanceVariables);
+      implicitConstructor.isConst =
+          superclassConstructor.isConst && !hasMixinWithInstanceVariables;
       List<ParameterElement> superParameters = superclassConstructor.parameters;
       int count = superParameters.length;
       if (count > 0) {
@@ -2004,11 +2014,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   ClassElementImpl get enclosingElement =>
       super.enclosingElement as ClassElementImpl;
 
-  /// Set whether this constructor represents a factory method.
-  set factory(bool isFactory) {
-    setModifier(Modifier.FACTORY, isFactory);
-  }
-
   @override
   bool get isConst {
     if (linkedNode != null) {
@@ -2057,6 +2062,11 @@ class ConstructorElementImpl extends ExecutableElementImpl
       return linkedNode.factoryKeyword != null;
     }
     return hasModifier(Modifier.FACTORY);
+  }
+
+  /// Set whether this constructor represents a factory method.
+  set isFactory(bool isFactory) {
+    setModifier(Modifier.FACTORY, isFactory);
   }
 
   @override
@@ -2555,6 +2565,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element.name == _VISIBLE_FOR_TESTING_VARIABLE_NAME &&
       element.library?.name == _META_LIB_NAME;
 
+  @override
+  LibraryElement get library => compilationUnit.library;
+
   /// Get the library containing this annotation.
   @override
   Source get librarySource => compilationUnit.librarySource;
@@ -2627,11 +2640,8 @@ abstract class ElementImpl implements Element {
   /// The length of the element's code, or `null` if the element is synthetic.
   int _codeLength;
 
-  /// The major component of the language version.
-  int _languageVersionMajor;
-
-  /// The minor component of the language version.
-  int _languageVersionMinor;
+  /// The language version for the library.
+  LibraryLanguageVersion _languageVersion;
 
   /// Initialize a newly created element to have the given [name] at the given
   /// [_nameOffset].
@@ -2735,10 +2745,7 @@ abstract class ElementImpl implements Element {
   int get hashCode {
     // TODO: We might want to re-visit this optimization in the future.
     // We cache the hash code value as this is a very frequently called method.
-    if (_cachedHashCode == null) {
-      _cachedHashCode = location.hashCode;
-    }
-    return _cachedHashCode;
+    return _cachedHashCode ??= location.hashCode;
   }
 
   @override
@@ -3060,9 +3067,7 @@ abstract class ElementImpl implements Element {
 
   @override
   String getExtendedDisplayName(String shortName) {
-    if (shortName == null) {
-      shortName = displayName;
-    }
+    shortName ??= displayName;
     Source source = this.source;
     if (source != null) {
       return "$shortName (${source.fullName})";
@@ -3394,6 +3399,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
   @override
   bool get hasNonFinalField => false;
 
+  @Deprecated('It was used internally, should not be part of API')
   @override
   bool get hasReferenceToSuper => false;
 
@@ -3423,6 +3429,9 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   bool get isValidMixin => false;
+
+  @override
+  ElementKind get kind => ElementKind.ENUM;
 
   @override
   List<MethodElement> get methods {
@@ -3567,11 +3576,6 @@ abstract class ExecutableElementImpl extends ElementImpl
       ElementImpl enclosing, Reference reference, AstNode linkedNode)
       : super.forLinkedNode(enclosing, reference, linkedNode);
 
-  /// Set whether this executable element's body is asynchronous.
-  set asynchronous(bool isAsynchronous) {
-    setModifier(Modifier.ASYNCHRONOUS, isAsynchronous);
-  }
-
   @override
   int get codeLength {
     if (linkedNode != null) {
@@ -3606,16 +3610,6 @@ abstract class ExecutableElementImpl extends ElementImpl
     return super.documentationComment;
   }
 
-  /// Set whether this executable element is external.
-  set external(bool isExternal) {
-    setModifier(Modifier.EXTERNAL, isExternal);
-  }
-
-  /// Set whether this method's body is a generator.
-  set generator(bool isGenerator) {
-    setModifier(Modifier.GENERATOR, isGenerator);
-  }
-
   @override
   bool get hasImplicitReturnType {
     if (linkedNode != null) {
@@ -3645,6 +3639,11 @@ abstract class ExecutableElementImpl extends ElementImpl
     return hasModifier(Modifier.ASYNCHRONOUS);
   }
 
+  /// Set whether this executable element's body is asynchronous.
+  set isAsynchronous(bool isAsynchronous) {
+    setModifier(Modifier.ASYNCHRONOUS, isAsynchronous);
+  }
+
   @override
   bool get isExternal {
     if (linkedNode != null) {
@@ -3653,12 +3652,22 @@ abstract class ExecutableElementImpl extends ElementImpl
     return hasModifier(Modifier.EXTERNAL);
   }
 
+  /// Set whether this executable element is external.
+  set isExternal(bool isExternal) {
+    setModifier(Modifier.EXTERNAL, isExternal);
+  }
+
   @override
   bool get isGenerator {
     if (linkedNode != null) {
       return enclosingUnit.linkedContext.isGenerator(linkedNode);
     }
     return hasModifier(Modifier.GENERATOR);
+  }
+
+  /// Set whether this method's body is a generator.
+  set isGenerator(bool isGenerator) {
+    setModifier(Modifier.GENERATOR, isGenerator);
   }
 
   @override
@@ -3983,7 +3992,14 @@ class ExtensionElementImpl extends ElementImpl
   }
 
   @override
-  DartType get extendedType {
+  DartType get extendedType =>
+      ElementTypeProvider.current.getExtendedType(this);
+
+  set extendedType(DartType extendedType) {
+    _extendedType = extendedType;
+  }
+
+  DartType get extendedTypeInternal {
     if (_extendedType != null) return _extendedType;
 
     if (linkedNode != null) {
@@ -3991,10 +4007,6 @@ class ExtensionElementImpl extends ElementImpl
     }
 
     return _extendedType;
-  }
-
-  set extendedType(DartType extendedType) {
-    _extendedType = extendedType;
   }
 
   @override
@@ -4072,7 +4084,7 @@ class ExtensionElementImpl extends ElementImpl
   @override
   String get name {
     if (linkedNode != null) {
-      return (linkedNode as ExtensionDeclaration).name?.name ?? '';
+      return (linkedNode as ExtensionDeclaration).name?.name;
     }
     return super.name;
   }
@@ -4958,11 +4970,6 @@ class ImportElementImpl extends UriReferencedElementImpl
     _combinators = combinators;
   }
 
-  /// Set whether this import is for a deferred library.
-  set deferred(bool isDeferred) {
-    setModifier(Modifier.DEFERRED, isDeferred);
-  }
-
   @override
   CompilationUnitElementImpl get enclosingUnit {
     LibraryElementImpl enclosingLibrary = enclosingElement;
@@ -4994,6 +5001,11 @@ class ImportElementImpl extends UriReferencedElementImpl
       return linkedNode.deferredKeyword != null;
     }
     return hasModifier(Modifier.DEFERRED);
+  }
+
+  /// Set whether this import is for a deferred library.
+  set isDeferred(bool isDeferred) {
+    setModifier(Modifier.DEFERRED, isDeferred);
   }
 
   @override
@@ -5160,8 +5172,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   final LinkedUnitContext linkedContext;
 
-  @override
-  final bool isNonNullableByDefault;
+  final bool isNonNullableByDefaultInternal;
 
   /// The compilation unit that defines this library.
   CompilationUnitElement _definingCompilationUnit;
@@ -5207,7 +5218,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
   LibraryElementImpl(this.context, this.session, String name, int offset,
-      this.nameLength, this.isNonNullableByDefault)
+      this.nameLength, this.isNonNullableByDefaultInternal)
       : linkedContext = null,
         super(name, offset);
 
@@ -5220,7 +5231,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       this.linkedContext,
       Reference reference,
       CompilationUnit linkedNode)
-      : isNonNullableByDefault = linkedContext.isNNBD,
+      : isNonNullableByDefaultInternal = linkedContext.isNNBD,
         super.forLinkedNode(null, reference, linkedNode) {
     _name = name;
     _nameOffset = offset;
@@ -5407,9 +5418,12 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       });
       if (!hasCore) {
         var elements = linkedContext.bundleContext.elementFactory;
-        _imports.add(ImportElementImpl(-1)
-          ..importedLibrary = elements.libraryOfUri('dart:core')
-          ..isSynthetic = true);
+        _imports.add(
+          ImportElementImpl(-1)
+            ..importedLibrary = elements.libraryOfUri('dart:core')
+            ..isSynthetic = true
+            ..uri = 'dart:core',
+        );
       }
       return _imports;
     }
@@ -5450,6 +5464,10 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return false;
   }
 
+  @override
+  bool get isNonNullableByDefault =>
+      ElementTypeProvider.current.isLibraryNonNullableByDefault(this);
+
   /// Return `true` if the receiver directly or indirectly imports the
   /// 'dart:html' libraries.
   bool get isOrImportsBrowserLibrary {
@@ -5488,29 +5506,31 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   ElementKind get kind => ElementKind.LIBRARY;
 
   @override
-  int get languageVersionMajor {
-    if (_languageVersionMajor != null) return _languageVersionMajor;
+  LibraryLanguageVersion get languageVersion {
+    if (_languageVersion != null) return _languageVersion;
 
     if (linkedNode != null) {
-      _languageVersionMajor = linkedContext.getLanguageVersionMajor(linkedNode);
-      return _languageVersionMajor;
+      _languageVersion = linkedContext.getLanguageVersion(linkedNode);
+      return _languageVersion;
     }
 
-    _languageVersionMajor = ExperimentStatus.currentVersion.major;
-    return _languageVersionMajor;
+    _languageVersion = LibraryLanguageVersion(
+      package: ExperimentStatus.currentVersion,
+      override: null,
+    );
+    return _languageVersion;
   }
 
+  @Deprecated("Use 'languageVersion'")
+  @override
+  int get languageVersionMajor {
+    return languageVersion.effective.major;
+  }
+
+  @Deprecated("Use 'languageVersion'")
   @override
   int get languageVersionMinor {
-    if (_languageVersionMinor != null) return _languageVersionMinor;
-
-    if (linkedNode != null) {
-      _languageVersionMinor = linkedContext.getLanguageVersionMinor(linkedNode);
-      return _languageVersionMinor;
-    }
-
-    _languageVersionMinor = ExperimentStatus.currentVersion.minor;
-    return _languageVersionMinor;
+    return languageVersion.effective.minor;
   }
 
   @override
@@ -5660,11 +5680,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   ClassElement getType(String className) {
     return getTypeFromParts(className, _definingCompilationUnit, _parts);
-  }
-
-  void setLanguageVersion(int major, int minor) {
-    _languageVersionMajor = major;
-    _languageVersionMinor = minor;
   }
 
   /// Set whether the library has the given [capability] to
@@ -5865,6 +5880,18 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
       return 'unary-';
     }
     return super.name;
+  }
+
+  /// Return the error reported during type inference for this method, or
+  /// `null` if this method is not a subject of type inference, or there was
+  /// no error.
+  TopLevelInferenceError get typeInferenceError {
+    if (linkedNode != null) {
+      return linkedContext.getTypeInferenceError(linkedNode);
+    }
+
+    // We don't support type inference errors without linking.
+    return null;
   }
 
   @override
@@ -6410,7 +6437,9 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
     _type = type;
   }
 
-  @override
+  /// Return the error reported during type inference for this variable, or
+  /// `null` if this variable is not a subject of type inference, or there was
+  /// no error.
   TopLevelInferenceError get typeInferenceError {
     if (linkedNode != null) {
       return linkedContext.getTypeInferenceError(linkedNode);
@@ -6691,16 +6720,6 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   DartType get type => ElementTypeProvider.current.getVariableType(this);
-
-  @override
-  TopLevelInferenceError get typeInferenceError {
-    if (linkedNode != null) {
-      return linkedContext.getTypeInferenceError(linkedNode);
-    }
-
-    // We don't support type inference errors without linking.
-    return null;
-  }
 
   @override
   DartType get typeInternal {
@@ -7022,11 +7041,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   @override
   PropertyAccessorElement get declaration => this;
 
-  /// Set whether this accessor is a getter.
-  set getter(bool isGetter) {
-    setModifier(Modifier.GETTER, isGetter);
-  }
-
   @override
   String get identifier {
     String name = displayName;
@@ -7047,12 +7061,22 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     return hasModifier(Modifier.GETTER);
   }
 
+  /// Set whether this accessor is a getter.
+  set isGetter(bool isGetter) {
+    setModifier(Modifier.GETTER, isGetter);
+  }
+
   @override
   bool get isSetter {
     if (linkedNode != null) {
       return enclosingUnit.linkedContext.isSetter(linkedNode);
     }
     return hasModifier(Modifier.SETTER);
+  }
+
+  /// Set whether this accessor is a setter.
+  set isSetter(bool isSetter) {
+    setModifier(Modifier.SETTER, isSetter);
   }
 
   @override
@@ -7089,11 +7113,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
       return "${super.name}=";
     }
     return super.name;
-  }
-
-  /// Set whether this accessor is a setter.
-  set setter(bool isSetter) {
-    setModifier(Modifier.SETTER, isSetter);
   }
 
   @override
@@ -7137,7 +7156,21 @@ class PropertyAccessorElementImpl_ImplicitGetter
   }
 
   @override
-  DartType get returnTypeInternal => variable.type;
+  DartType get returnTypeInternal {
+    var returnType = variable.type;
+
+    // While performing inference during linking, the first step is to collect
+    // dependencies. During this step we resolve the expression, but we might
+    // reference elements that don't have their types inferred yet. So, here
+    // we give some type. A better solution would be to infer recursively, but
+    // we are not doing this yet.
+    if (returnType == null) {
+      assert(linkedContext.isLinking);
+      return DynamicTypeImpl.instance;
+    }
+
+    return returnType;
+  }
 
   @override
   FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
@@ -7819,13 +7852,6 @@ abstract class VariableElementImpl extends ElementImpl
       return linkedContext.setVariableType(linkedNode, type);
     }
     _type = type;
-  }
-
-  /// Return the error reported during type inference for this variable, or
-  /// `null` if this variable is not a subject of type inference, or there was
-  /// no error.
-  TopLevelInferenceError get typeInferenceError {
-    return null;
   }
 
   /// Gets the element's type, without going through the indirection of

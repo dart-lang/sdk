@@ -367,9 +367,7 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
       : super._subclass(configuration);
 
   String computeCompilerPath() {
-    var prefix =
-        // TODO(38701): Cleanup after merging the forked SDK into mainline.
-        _configuration.nnbdMode == NnbdMode.legacy ? 'sdk/bin' : 'sdk_nnbd/bin';
+    var prefix = 'sdk/bin';
     var suffix = shellScriptExtension;
 
     if (_isHostChecked) {
@@ -461,9 +459,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       CommandArtifact artifact) {
     var sdk = _useSdk
         ? Uri.directory(_configuration.buildDirectory).resolve('dart-sdk/')
-        : Uri.directory(Repository.dir.toNativePath()).resolve(
-            // TODO(38701): Cleanup after merging the forked SDK into mainline.
-            _configuration.nnbdMode == NnbdMode.legacy ? 'sdk/' : 'sdk_nnbd/');
+        : Uri.directory(Repository.dir.toNativePath()).resolve('sdk/');
     var preambleDir = sdk.resolve('lib/_internal/js_runtime/lib/preambles/');
     return runtimeConfiguration.dart2jsPreambles(preambleDir)
       ..add(artifact.filename);
@@ -494,10 +490,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
   bool get useKernel => _configuration.compiler == Compiler.dartdevk;
 
   String computeCompilerPath() {
-    var dir = _useSdk
-        ? "${_configuration.buildDirectory}/dart-sdk"
-        // TODO(38701): Cleanup after merging the forked SDK into mainline.
-        : _configuration.nnbdMode == NnbdMode.legacy ? "sdk" : "sdk_nnbd";
+    var dir = _useSdk ? "${_configuration.buildDirectory}/dart-sdk" : "sdk";
     return "$dir/bin/dartdevc$shellScriptExtension";
   }
 
@@ -508,6 +501,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       ...testFile.ddcOptions,
+      if (_configuration.nnbdMode == NnbdMode.strong) '--sound-null-safety',
       // The file being compiled is the last argument.
       args.last
     ];
@@ -521,7 +515,9 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       //
       // For local development we don't have a built SDK yet, so point directly
       // at the built summary file location.
-      var sdkSummaryFile = 'ddc_sdk.dill';
+      var sdkSummaryFile = _configuration.nnbdMode == NnbdMode.strong
+          ? 'ddc_outline_sound.dill'
+          : 'ddc_outline.dill';
       var sdkSummary = Path(_configuration.buildDirectory)
           .append(sdkSummaryFile)
           .absolute
@@ -541,17 +537,16 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
     // Link to the summaries for the available packages, so that they don't
     // get recompiled into the test's own module.
-    var packages = _configuration.nnbdMode == NnbdMode.legacy
-        ? testPackages
-        : testPackagesNnbd;
-    for (var package in packages) {
+    var packageSummaryDir =
+        _configuration.nnbdMode == NnbdMode.strong ? 'pkg_sound' : 'pkg_kernel';
+    for (var package in testPackages) {
       args.add("-s");
 
       // Since the summaries for the packages are not near the tests, we give
       // dartdevc explicit module paths for each one. When the test is run, we
       // will tell require.js where to find each package's compiled JS.
       var summary = Path(_configuration.buildDirectory)
-          .append("/gen/utils/dartdevc/pkg_kernel/$package.dill")
+          .append("/gen/utils/dartdevc/$packageSummaryDir/$package.dill")
           .absolute
           .toNativePath();
       args.add("$summary=$package");
@@ -709,14 +704,11 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         "--snapshot-kind=app-aot-assembly",
         "--assembly=$tempDir/out.S"
       ],
-      if (_isAndroid && _isArm)
-        '--no-sim-use-hardfp',
-      if (_configuration.isMinified)
-        '--obfuscate',
+      if (_isAndroid && _isArm) '--no-sim-use-hardfp',
+      if (_configuration.isMinified) '--obfuscate',
       // The SIMARM precompiler assumes support for integer division, but the
       // Qemu arm cpus do not support integer division.
-      if (_configuration.useQemu)
-        '--no-use-integer-division',
+      if (_configuration.useQemu) '--no-use-integer-division',
       ..._replaceDartFiles(arguments, tempKernelFile(tempDir)),
     ];
 
@@ -933,9 +925,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
   int get timeoutMultiplier => 4;
 
   String computeCompilerPath() {
-    var prefix =
-        // TODO(38701): Cleanup after merging the forked SDK into mainline.
-        _configuration.nnbdMode == NnbdMode.legacy ? 'sdk/bin' : 'sdk_nnbd/bin';
+    var prefix = 'sdk/bin';
     if (_isHostChecked) {
       if (_useSdk) {
         throw "--host-checked and --use-sdk cannot be used together";
@@ -1092,6 +1082,8 @@ abstract class VMKernelCompilerMixin {
 
     var dillFile = tempKernelFile(tempDir);
 
+    var isProductMode = _configuration.configuration.mode == Mode.product;
+
     var causalAsyncStacks = !arguments.any(noCausalAsyncStacksRegExp.hasMatch);
 
     var args = [
@@ -1104,6 +1096,7 @@ abstract class VMKernelCompilerMixin {
           name.startsWith('-D') ||
           name.startsWith('--packages=') ||
           name.startsWith('--enable-experiment=')),
+      '-Ddart.vm.product=$isProductMode',
       '-Ddart.developer.causal_async_stacks=$causalAsyncStacks',
       if (_enableAsserts ||
           arguments.contains('--enable-asserts') ||

@@ -4,7 +4,9 @@
 
 #include "vm/compiler/backend/il_printer.h"
 
+#include "vm/compiler/api/print_filter.h"
 #include "vm/compiler/backend/il.h"
+#include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
 #include "vm/os.h"
@@ -14,60 +16,6 @@ namespace dart {
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
-DEFINE_FLAG(charp,
-            print_flow_graph_filter,
-            NULL,
-            "Print only IR of functions with matching names");
-
-// Checks whether function's name matches the given filter, which is
-// a comma-separated list of strings.
-bool FlowGraphPrinter::PassesFilter(const char* filter,
-                                    const Function& function) {
-  if (filter == NULL) {
-    return true;
-  }
-
-  char* save_ptr;  // Needed for strtok_r.
-  const char* scrubbed_name =
-      String::Handle(function.QualifiedScrubbedName()).ToCString();
-  const char* function_name = function.ToFullyQualifiedCString();
-  intptr_t function_name_len = strlen(function_name);
-
-  intptr_t len = strlen(filter) + 1;  // Length with \0.
-  char* filter_buffer = new char[len];
-  strncpy(filter_buffer, filter, len);  // strtok modifies arg 1.
-  char* token = strtok_r(filter_buffer, ",", &save_ptr);
-  bool found = false;
-  while (token != NULL) {
-    if ((strstr(function_name, token) != NULL) ||
-        (strstr(scrubbed_name, token) != NULL)) {
-      found = true;
-      break;
-    }
-    const intptr_t token_len = strlen(token);
-    if (token[token_len - 1] == '%') {
-      if (function_name_len > token_len) {
-        const char* suffix =
-            function_name + (function_name_len - token_len + 1);
-        if (strncmp(suffix, token, token_len - 1) == 0) {
-          found = true;
-          break;
-        }
-      }
-    }
-    token = strtok_r(NULL, ",", &save_ptr);
-  }
-  delete[] filter_buffer;
-
-  return found;
-}
-
-bool FlowGraphPrinter::ShouldPrint(const Function& function) {
-  return PassesFilter(FLAG_print_flow_graph_filter, function);
-}
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 DEFINE_FLAG(bool,
             display_sorted_ic_data,
             false,
@@ -75,6 +23,10 @@ DEFINE_FLAG(bool,
 DEFINE_FLAG(bool, print_environments, false, "Print SSA environments.");
 
 DECLARE_FLAG(bool, trace_inlining_intervals);
+
+bool FlowGraphPrinter::ShouldPrint(const Function& function) {
+  return compiler::PrintFilter::ShouldPrint(function);
+}
 
 void FlowGraphPrinter::PrintGraph(const char* phase, FlowGraph* flow_graph) {
   LogBlock lb;
@@ -123,8 +75,8 @@ void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
   if (print_locations && (instr->HasLocs())) {
     instr->locs()->PrintTo(&f);
   }
-  if (instr->lifetime_position() != -1) {
-    THR_Print("%3" Pd ": ", instr->lifetime_position());
+  if (FlowGraphAllocator::HasLifetimePosition(instr)) {
+    THR_Print("%3" Pd ": ", FlowGraphAllocator::GetLifetimePosition(instr));
   }
   if (!instr->IsBlockEntry()) THR_Print("    ");
   THR_Print("%s", str);
@@ -355,7 +307,17 @@ void Definition::PrintTo(BufferFormatter* f) const {
 
 void CheckNullInstr::PrintOperandsTo(BufferFormatter* f) const {
   Definition::PrintOperandsTo(f);
-  f->Print(IsArgumentCheck() ? ", ArgumentError" : ", NoSuchMethodError");
+  switch (exception_type()) {
+    case kNoSuchMethod:
+      f->Print(", NoSuchMethodError");
+      break;
+    case kArgumentError:
+      f->Print(", ArgumentError");
+      break;
+    case kCastError:
+      f->Print(", CastError");
+      break;
+  }
 }
 
 void Definition::PrintOperandsTo(BufferFormatter* f) const {
@@ -463,14 +425,11 @@ void DropTempsInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
 }
 
-static const char* TypeToUserVisibleName(const AbstractType& type) {
-  return String::Handle(type.UserVisibleName()).ToCString();
-}
-
 void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  f->Print(", %s, '%s',", TypeToUserVisibleName(dst_type()),
-           dst_name().ToCString());
+  f->Print(", ");
+  dst_type()->PrintTo(f);
+  f->Print(", '%s',", dst_name().ToCString());
   f->Print(" instantiator_type_args(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print("), function_type_args(");
@@ -479,8 +438,10 @@ void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void AssertSubtypeInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, %s, '%s',", TypeToUserVisibleName(sub_type()),
-           TypeToUserVisibleName(super_type()), dst_name().ToCString());
+  sub_type()->PrintTo(f);
+  f->Print(", ");
+  super_type()->PrintTo(f);
+  f->Print(", '%s', ", dst_name().ToCString());
   f->Print(" instantiator_type_args(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print("), function_type_args(");
@@ -644,7 +605,10 @@ void IfThenElseInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void LoadStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", String::Handle(StaticField().name()).ToCString());
+  f->Print("%s", String::Handle(field().name()).ToCString());
+  if (calls_initializer()) {
+    f->Print(", CallsInitializer");
+  }
 }
 
 void StoreStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -692,6 +656,9 @@ void MaterializeObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
 void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
   f->Print(" . %s%s", slot().Name(), slot().is_immutable() ? " {final}" : "");
+  if (calls_initializer()) {
+    f->Print(", CallsInitializer");
+  }
 }
 
 void LoadUntaggedInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -821,6 +788,13 @@ void SimdOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 void UnaryDoubleOpInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   value()->PrintTo(f);
+}
+
+void LoadClassIdInstr::PrintOperandsTo(BufferFormatter* f) const {
+  if (!input_can_be_smi_) {
+    f->Print("<non-smi> ");
+  }
+  object()->PrintTo(f);
 }
 
 void CheckClassIdInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -1073,7 +1047,7 @@ void NativeEntryInstr::PrintTo(BufferFormatter* f) const {
 
 void ReturnInstr::PrintOperandsTo(BufferFormatter* f) const {
   Instruction::PrintOperandsTo(f);
-  if (yield_index() != RawPcDescriptors::kInvalidYieldIndex) {
+  if (yield_index() != PcDescriptorsLayout::kInvalidYieldIndex) {
     f->Print(", yield_index = %" Pd "", yield_index());
   }
 }
@@ -1087,6 +1061,14 @@ void FfiCallInstr::PrintOperandsTo(BufferFormatter* f) const {
     f->Print(" (@");
     marshaller_.Location(i).PrintTo(f);
     f->Print(")");
+  }
+}
+
+void EnterHandleScopeInstr::PrintOperandsTo(BufferFormatter* f) const {
+  if (kind_ == Kind::kEnterHandleScope) {
+    f->Print("<enter handle scope>");
+  } else {
+    f->Print("<get top api scope>");
   }
 }
 
@@ -1197,6 +1179,11 @@ void ParallelMoveInstr::PrintTo(BufferFormatter* f) const {
   }
 }
 
+void Utf8ScanInstr::PrintTo(BufferFormatter* f) const {
+  Definition::PrintTo(f);
+  f->Print(" [%s]", scan_flags_field_.Name());
+}
+
 void Environment::PrintTo(BufferFormatter* f) const {
   f->Print(" env={ ");
   int arg_count = 0;
@@ -1224,11 +1211,7 @@ const char* Environment::ToCString() const {
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
 #else  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
 
 const char* Instruction::ToCString() const {
   return DebugName();
@@ -1265,8 +1248,6 @@ void FlowGraphPrinter::PrintICData(const ICData& ic_data,
 bool FlowGraphPrinter::ShouldPrint(const Function& function) {
   return false;
 }
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 

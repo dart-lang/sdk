@@ -4,7 +4,7 @@
 
 import 'dart:html';
 import 'dart:async';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class RefreshEvent {
@@ -13,9 +13,7 @@ class RefreshEvent {
 }
 
 class NavRefreshElement extends CustomElement implements Renderable {
-  static const tag = const Tag<NavRefreshElement>('nav-refresh');
-
-  RenderingScheduler _r;
+  RenderingScheduler<NavRefreshElement> _r;
 
   Stream<RenderedEvent<NavRefreshElement>> get onRendered => _r.onRendered;
 
@@ -43,7 +41,7 @@ class NavRefreshElement extends CustomElement implements Renderable {
     return e;
   }
 
-  NavRefreshElement.created() : super.created(tag);
+  NavRefreshElement.created() : super.created('nav-refresh');
 
   @override
   void attached() {

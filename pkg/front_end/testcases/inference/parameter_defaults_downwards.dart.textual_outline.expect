@@ -1,0 +1,5 @@
+library test;
+
+void optional_toplevel([List<int> x = const []]) {}
+void named_toplevel({List<int> x: const []}) {}
+main() {}

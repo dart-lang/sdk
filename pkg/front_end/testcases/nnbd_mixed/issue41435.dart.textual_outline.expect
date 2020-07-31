@@ -1,0 +1,4 @@
+// @dart = 2.7
+import 'issue41435_lib.dart';
+
+void main() {}

@@ -1,0 +1,10 @@
+class A<X> {
+  final foo = "bar";
+}
+
+class B<Y> extends A<Y> {
+  final foo;
+  B(this.foo);
+}
+
+main() {}

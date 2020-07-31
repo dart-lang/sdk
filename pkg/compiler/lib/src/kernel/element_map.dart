@@ -185,3 +185,31 @@ enum ForeignKind {
   JS_INTERCEPTOR_CONSTANT,
   NONE,
 }
+
+// Members which dart2js ignores.
+bool memberIsIgnorable(ir.Member node, {ir.Class cls}) {
+  if (node is! ir.Procedure) return false;
+  ir.Procedure member = node;
+  if ((member.isMemberSignature || member.isForwardingStub) &&
+      member.isAbstract) {
+    // Skip abstract forwarding stubs. These are never emitted but they
+    // might shadow the inclusion of a mixed in method in code like:
+    //
+    //     class Super {}
+    //     class Mixin<T> {
+    //       void method(T t) {}
+    //     }
+    //     class Class extends Super with Mixin<int> {}
+    //     main() => new Class().method();
+    //
+    // Here a stub is created for `Super&Mixin.method` hiding that
+    // `Mixin.method` is inherited by `Class`.
+    return true;
+  }
+  if (cls != null &&
+      (member.isMemberSignature || member.isForwardingStub) &&
+      cls.isAnonymousMixin) {
+    return true;
+  }
+  return false;
+}

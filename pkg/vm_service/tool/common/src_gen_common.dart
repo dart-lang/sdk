@@ -11,7 +11,7 @@ const int RUNE_EOL = 10;
 const int RUNE_LEFT_CURLY = 123;
 const int RUNE_RIGHT_CURLY = 125;
 
-final RegExp _wsRegexp = new RegExp(r'\s+');
+final RegExp _wsRegexp = RegExp(r'\s+');
 
 String collapseWhitespace(String str) => str.replaceAll(_wsRegexp, ' ');
 
@@ -40,7 +40,7 @@ String joinLast(Iterable<String> strs, String join, [String last]) {
   if (strs.isEmpty) return '';
   List list = strs.toList();
   if (list.length == 1) return list.first;
-  StringBuffer buf = new StringBuffer();
+  StringBuffer buf = StringBuffer();
   for (int i = 0; i < list.length; i++) {
     if (i > 0) {
       if (i + 1 == list.length && last != null) {

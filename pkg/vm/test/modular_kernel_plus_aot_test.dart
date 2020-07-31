@@ -57,12 +57,14 @@ main() async {
     const useGlobalTypeFlowAnalysis = true;
     const enableAsserts = false;
     const useProtobufTreeShaker = false;
+    const useProtobufTreeShakerV2 = false;
     await runGlobalTransformations(
         vmTarget,
         component,
         useGlobalTypeFlowAnalysis,
         enableAsserts,
         useProtobufTreeShaker,
+        useProtobufTreeShakerV2,
         ErrorDetector());
 
     // Verify after running global transformations.

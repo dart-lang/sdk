@@ -1,0 +1,693 @@
+NOTICE: Stream was rewritten by parser!
+
+int abstract(int x) {
+if (x == 0) return 42;
+return abstract(x-1) + 1;
+}
+
+int as(int x) {
+if (x == 0) return 42;
+return as(x-1) + 1;
+}
+
+int assert(int x) {
+if (x == 0) return 42;
+return assert(x-1) + 1;
+}
+
+int async(int x) {
+if (x == 0) return 42;
+return async(x-1) + 1;
+}
+
+int await(int x) {
+if (x == 0) return 42;
+return await(x-1) + 1;
+}
+
+int break(int x) {
+if (x == 0) return 42;
+return ;break;(x-1) + 1;
+}
+
+int case(int x) {
+if (x == 0) return 42;
+return case(x-1) + 1;
+}
+
+int catch(int x) {
+if (x == 0) return 42;
+return catch(x-1) + 1;
+}
+
+int class(int x) {
+if (x == 0) return 42;
+return class(x-1) + 1;
+}
+
+int const(int x) {
+if (x == 0) return 42;
+return const(x-1) + 1;
+}
+
+int continue(int x) {
+if (x == 0) return 42;
+return ;continue;(x-1) + 1;
+}
+
+int covariant(int x) {
+if (x == 0) return 42;
+return covariant(x-1) + 1;
+}
+
+int default(int x) {
+if (x == 0) return 42;
+return default(x-1) + 1;
+}
+
+int deferred(int x) {
+if (x == 0) return 42;
+return deferred(x-1) + 1;
+}
+
+int do(int x) {
+if (x == 0) return 42;
+return ;do(x-1) + 1;
+while();}
+
+int dynamic(int x) {
+if (x == 0) return 42;
+return dynamic(x-1) + 1;
+}
+
+int else(int x) {
+if (x == 0) return 42;
+return ;;else(x-1) + 1;
+}
+
+int enum(int x) {
+if (x == 0) return 42;
+return enum(x-1) + 1;
+}
+
+int export(int x) {
+if (x == 0) return 42;
+return export(x-1) + 1;
+}
+
+int extends(int x) {
+if (x == 0) return 42;
+return extends(x-1) + 1;
+}
+
+int extension(int x) {
+if (x == 0) return 42;
+return extension(x-1) + 1;
+}
+
+int external(int x) {
+if (x == 0) return 42;
+return external(x-1) + 1;
+}
+
+int factory(int x) {
+if (x == 0) return 42;
+return factory(x-1) + 1;
+}
+
+int false(int x) {
+if (x == 0) return 42;
+return false(x-1) + 1;
+}
+
+int final(int x) {
+if (x == 0) return 42;
+return ;final(;x-1;;) + 1;
+}
+
+int finally(int x) {
+if (x == 0) return 42;
+return finally(x-1) + 1;
+}
+
+int for(int x) {
+if (x == 0) return 42;
+return ;for(x-1;;) + 1;
+}
+
+int Function(int x) {
+if (x == 0) return 42;
+return Function(x-1) + 1;
+}
+
+int get(int x) {
+if (x == 0) return 42;
+return get(x-1) + 1;
+}
+
+int hide(int x) {
+if (x == 0) return 42;
+return hide(x-1) + 1;
+}
+
+int if(int x) {
+if (x == 0) return 42;
+return ;if(x-1) + 1;
+}
+
+int implements(int x) {
+if (x == 0) return 42;
+return implements(x-1) + 1;
+}
+
+int import(int x) {
+if (x == 0) return 42;
+return import(x-1) + 1;
+}
+
+int in(int x) {
+if (x == 0) return 42;
+return in(x-1) + 1;
+}
+
+int inout(int x) {
+if (x == 0) return 42;
+return inout(x-1) + 1;
+}
+
+int interface(int x) {
+if (x == 0) return 42;
+return interface(x-1) + 1;
+}
+
+int is(int x) {
+if (x == 0) return 42;
+return is;(x-1) + 1;
+}
+
+int late(int x) {
+if (x == 0) return 42;
+return late(x-1) + 1;
+}
+
+int library(int x) {
+if (x == 0) return 42;
+return library(x-1) + 1;
+}
+
+int mixin(int x) {
+if (x == 0) return 42;
+return mixin(x-1) + 1;
+}
+
+int native(int x) {
+if (x == 0) return 42;
+return native(x-1) + 1;
+}
+
+int new(int x) {
+if (x == 0) return 42;
+return new(x-1) + 1;
+}
+
+int null(int x) {
+if (x == 0) return 42;
+return null(x-1) + 1;
+}
+
+int of(int x) {
+if (x == 0) return 42;
+return of(x-1) + 1;
+}
+
+int on(int x) {
+if (x == 0) return 42;
+return on(x-1) + 1;
+}
+
+int operator(int x) {
+if (x == 0) return 42;
+return operator(x-1) + 1;
+}
+
+int out(int x) {
+if (x == 0) return 42;
+return out(x-1) + 1;
+}
+
+int part(int x) {
+if (x == 0) return 42;
+return part(x-1) + 1;
+}
+
+int patch(int x) {
+if (x == 0) return 42;
+return patch(x-1) + 1;
+}
+
+int required(int x) {
+if (x == 0) return 42;
+return required(x-1) + 1;
+}
+
+int rethrow(int x) {
+if (x == 0) return 42;
+return rethrow(x-1) + 1;
+}
+
+int return(int x) {
+if (x == 0) return 42;
+return return(x-1) + 1;
+}
+
+int set(int x) {
+if (x == 0) return 42;
+return set(x-1) + 1;
+}
+
+int show(int x) {
+if (x == 0) return 42;
+return show(x-1) + 1;
+}
+
+int source(int x) {
+if (x == 0) return 42;
+return source(x-1) + 1;
+}
+
+int static(int x) {
+if (x == 0) return 42;
+return static(x-1) + 1;
+}
+
+int super(int x) {
+if (x == 0) return 42;
+return super(x-1) + 1;
+}
+
+int switch(int x) {
+if (x == 0) return 42;
+return ;switch(x-1) {}+ 1;
+}
+
+int sync(int x) {
+if (x == 0) return 42;
+return sync(x-1) + 1;
+}
+
+int this(int x) {
+if (x == 0) return 42;
+return this(x-1) + 1;
+}
+
+int throw(int x) {
+if (x == 0) return 42;
+return throw(x-1) + 1;
+}
+
+int true(int x) {
+if (x == 0) return 42;
+return true(x-1) + 1;
+}
+
+int try(int x) {
+if (x == 0) return 42;
+return ;try{}(x-1) + 1;
+}
+
+int typedef(int x) {
+if (x == 0) return 42;
+return typedef(x-1) + 1;
+}
+
+int var(int x) {
+if (x == 0) return 42;
+return ;var(;x-1;;) + 1;
+}
+
+int void(int x) {
+if (x == 0) return 42;
+return ;void(;x-1;;) + 1;
+}
+
+int while(int x) {
+if (x == 0) return 42;
+return ;while(x-1) + 1;
+}
+
+int with(int x) {
+if (x == 0) return 42;
+return with(x-1) + 1;
+}
+
+int yield(int x) {
+if (x == 0) return 42;
+return yield(x-1) + 1;
+}
+
+
+int[StringToken] abstract[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] abstract[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] as[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] as[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] assert[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] assert[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] async[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] async[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] await[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] await[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] break[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] [SyntheticStringToken];[SyntheticToken]break[KeywordToken];[SyntheticToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] case[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] case[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] catch[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] catch[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] class[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] class[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] const[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] const[KeywordToken][SyntheticStringToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] continue[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] [SyntheticStringToken];[SyntheticToken]continue[KeywordToken];[SyntheticToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] covariant[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] covariant[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] default[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] default[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] deferred[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] deferred[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] do[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] [SyntheticStringToken];[SyntheticToken]do[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+while[SyntheticKeywordToken]([SyntheticBeginToken][SyntheticStringToken])[SyntheticToken];[SyntheticToken]}[SimpleToken]
+
+int[StringToken] dynamic[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] dynamic[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] else[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] [SyntheticStringToken];[SyntheticToken][SyntheticStringToken];[SyntheticToken]else[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] enum[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] enum[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] export[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] export[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] extends[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] extends[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] extension[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] extension[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] external[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] external[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] factory[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] factory[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] false[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] false[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] final[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] [SyntheticStringToken];[SyntheticToken]final[KeywordToken]([BeginToken][SyntheticStringToken];[SyntheticToken]x[StringToken]-[SimpleToken]1[StringToken];[SyntheticToken][SyntheticStringToken];[SyntheticToken])[SimpleToken] [SyntheticStringToken]+[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] finally[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] finally[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] for[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] [SyntheticStringToken];[SyntheticToken]for[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken];[SyntheticToken][SyntheticStringToken];[SyntheticToken])[SimpleToken] [SyntheticStringToken]+[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] Function[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] Function[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] get[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] get[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] hide[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] hide[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] if[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] [SyntheticStringToken];[SyntheticToken]if[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] [SyntheticStringToken]+[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] implements[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] implements[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] import[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] import[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] in[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] in[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] inout[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] inout[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] interface[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] interface[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] is[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] [SyntheticStringToken]is[KeywordToken][SyntheticStringToken];[SyntheticToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] late[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] late[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] library[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] library[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] mixin[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] mixin[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] native[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] native[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] new[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] new[KeywordToken][SyntheticStringToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] null[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] null[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] of[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] of[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] on[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] on[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] operator[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] operator[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] out[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] out[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] part[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] part[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] patch[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] patch[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] required[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] required[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] rethrow[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] rethrow[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] return[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] return[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] set[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] set[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] show[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] show[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] source[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] source[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] static[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] static[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] super[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] super[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] switch[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] [SyntheticStringToken];[SyntheticToken]switch[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] {[SyntheticBeginToken]}[SyntheticToken][SyntheticStringToken]+[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] sync[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] sync[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] this[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] this[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] throw[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] throw[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] true[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] true[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] try[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] [SyntheticStringToken];[SyntheticToken]try[KeywordToken]{[SyntheticBeginToken]}[SyntheticToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] typedef[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] typedef[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] var[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] [SyntheticStringToken];[SyntheticToken]var[KeywordToken]([BeginToken][SyntheticStringToken];[SyntheticToken]x[StringToken]-[SimpleToken]1[StringToken];[SyntheticToken][SyntheticStringToken];[SyntheticToken])[SimpleToken] [SyntheticStringToken]+[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] void[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] [SyntheticStringToken];[SyntheticToken]void[KeywordToken]([BeginToken][SyntheticStringToken];[SyntheticToken]x[StringToken]-[SimpleToken]1[StringToken];[SyntheticToken][SyntheticStringToken];[SyntheticToken])[SimpleToken] [SyntheticStringToken]+[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] while[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] [SyntheticStringToken];[SyntheticToken]while[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] [SyntheticStringToken]+[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] with[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] with[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] yield[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] ==[SimpleToken] 0[StringToken])[SimpleToken] return[KeywordToken] 42[StringToken];[SimpleToken]
+return[KeywordToken] yield[KeywordToken]([BeginToken]x[StringToken]-[SimpleToken]1[StringToken])[SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

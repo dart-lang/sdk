@@ -107,7 +107,12 @@ class AstBinaryReader {
     var typeArguments = substitutionNode.typeArguments.map(_readType).toList();
     var substitution = Substitution.fromPairs(typeParameters, typeArguments);
 
-    return ExecutableMember.from2(element, substitution);
+    var member = ExecutableMember.from2(element, substitution);
+    if (substitutionNode.isLegacy) {
+      member = Member.legacy(member);
+    }
+
+    return member;
   }
 
   T _getElement<T extends Element>(int index) {
@@ -1043,7 +1048,6 @@ class AstBinaryReader {
       ),
       typeArguments: _readNode(data.instanceCreationExpression_typeArguments),
     );
-    node.staticElement = node.constructorName.staticElement;
     node.staticType = _readType(data.expression_type);
     return node;
   }

@@ -284,7 +284,7 @@ functionality is publicly exposed.
   added to make it easier to create a `MockCompiler` implementation for unit
   testing. The `MockCompiler` has been replaced in most unit tests by a regular
   `CompilerImpl` that uses a mock of the file-system (see
-  `tests/compiler/dart2js/memory_compiler.dart`).
+  `pkg/compiler/test/memory_compiler.dart`).
 
   AI: Once all tests are migrated to this memory compiler, we should merge
   `Compiler` and `CompilerImpl` and remove this file.

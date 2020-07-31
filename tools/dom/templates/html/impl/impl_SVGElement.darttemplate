@@ -82,11 +82,11 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return container.innerHtml;
   }
 
-  set innerHtml(String value) {
+  set innerHtml(String$NULLABLE value) {
     this.setInnerHtml(value);
   }
 
-  DocumentFragment createFragment(String svg,
+  DocumentFragment createFragment(String$NULLABLE svg,
       {NodeValidator$NULLABLE validator,
        NodeTreeSanitizer$NULLABLE treeSanitizer}) {
 

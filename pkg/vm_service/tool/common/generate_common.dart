@@ -16,7 +16,7 @@ class ApiParseUtil {
       parseVersionSemVer(nodes).toString();
 
   static Version parseVersionSemVer(List<Node> nodes) {
-    final RegExp regex = new RegExp(r'[\d.]+');
+    final RegExp regex = RegExp(r'[\d.]+');
 
     // Extract version from header: `# Dart VM Service Protocol 2.0`.
     Element node = nodes.firstWhere((n) => isH1(n));
@@ -25,6 +25,6 @@ class ApiParseUtil {
     if (match == null) throw 'Unable to locate service protocol version';
 
     // Append a `.0`.
-    return new Version.parse('${match.group(0)}.0');
+    return Version.parse('${match.group(0)}.0');
   }
 }

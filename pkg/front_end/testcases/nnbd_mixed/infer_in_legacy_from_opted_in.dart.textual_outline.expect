@@ -1,0 +1,5 @@
+// @dart = 2.6
+import './infer_in_legacy_from_opted_in_lib.dart';
+
+bar(int x) {}
+main() {}

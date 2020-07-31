@@ -6,6 +6,9 @@
 
 #include "vm/regexp_interpreter.h"
 
+#include <memory>
+#include <utility>
+
 #include "platform/unicode.h"
 #include "vm/object.h"
 #include "vm/regexp_assembler.h"
@@ -36,11 +39,15 @@ bool BackRefMatchesNoCase<uint16_t>(Canonicalize* interp_canonicalize,
                                     bool unicode) {
   Bool& ret = Bool::Handle();
   if (unicode) {
-    ret = CaseInsensitiveCompareUTF16(subject.raw(), Smi::New(from),
-                                      Smi::New(current), Smi::New(len));
+    ret = static_cast<BoolPtr>(CaseInsensitiveCompareUTF16(
+        static_cast<uword>(subject.raw()), static_cast<uword>(Smi::New(from)),
+        static_cast<uword>(Smi::New(current)),
+        static_cast<uword>(Smi::New(len))));
   } else {
-    ret = CaseInsensitiveCompareUCS2(subject.raw(), Smi::New(from),
-                                     Smi::New(current), Smi::New(len));
+    ret = static_cast<BoolPtr>(CaseInsensitiveCompareUCS2(
+        static_cast<uword>(subject.raw()), static_cast<uword>(Smi::New(from)),
+        static_cast<uword>(Smi::New(current)),
+        static_cast<uword>(Smi::New(len))));
   }
   return ret.value();
 }
@@ -128,17 +135,36 @@ static int32_t Load16Aligned(const uint8_t* pc) {
 class BacktrackStack {
  public:
   explicit BacktrackStack(Zone* zone) {
-    data_ = zone->Alloc<intptr_t>(kBacktrackStackSize);
+    memory_ = Isolate::Current()->TakeRegexpBacktrackStack();
+    // Note: using malloc here has a potential of triggering jemalloc/tcmalloc
+    // bugs which cause application to leak memory and eventually OOM.
+    // See https://github.com/dart-lang/sdk/issues/38820 and
+    // https://github.com/flutter/flutter/issues/29007 for examples.
+    // So intead we directly ask OS to provide us memory.
+    if (memory_ == nullptr) {
+      memory_ = std::unique_ptr<VirtualMemory>(VirtualMemory::Allocate(
+          sizeof(intptr_t) * kBacktrackStackSize, /*is_executable=*/false,
+          "regexp-backtrack-stack"));
+    }
+    if (memory_ == nullptr) {
+      OUT_OF_MEMORY();
+    }
   }
 
-  intptr_t* data() const { return data_; }
+  ~BacktrackStack() {
+    Isolate::Current()->CacheRegexpBacktrackStack(std::move(memory_));
+  }
+
+  intptr_t* data() const {
+    return reinterpret_cast<intptr_t*>(memory_->address());
+  }
 
   intptr_t max_size() const { return kBacktrackStackSize; }
 
  private:
   static const intptr_t kBacktrackStackSize = 1 << 16;
 
-  intptr_t* data_;
+  std::unique_ptr<VirtualMemory> memory_;
 
   DISALLOW_COPY_AND_ASSIGN(BacktrackStack);
 };

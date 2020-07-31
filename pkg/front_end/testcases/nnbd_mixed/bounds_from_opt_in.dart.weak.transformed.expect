@@ -1,0 +1,41 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "bounds_from_opt_in_lib.dart" as bou;
+
+import "org-dartlang-testcase:///bounds_from_opt_in_lib.dart";
+
+class LegacyClass<T extends core::Null? = core::Null?> extends bou::Class<self::LegacyClass::T*> {
+  synthetic constructor •() → self::LegacyClass<self::LegacyClass::T*>*
+    : super bou::Class::•()
+    ;
+  method method<T extends core::Null? = core::Null?>() → dynamic {}
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+static method test() → dynamic {
+  bou::Class<core::Null?>* c = new bou::Class::•<core::Null?>();
+  c.{bou::Class::method}<core::Null?>();
+  bou::method<core::Null?>();
+}
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as bou;
+import "dart:core" as core;
+
+class Class<T extends Never = Never> extends core::Object {
+  synthetic constructor •() → bou::Class<bou::Class::T>
+    : super core::Object::•()
+    ;
+  method method<T extends Never = Never>() → dynamic {}
+}
+static method method<T extends Never = Never>() → dynamic {}

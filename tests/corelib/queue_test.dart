@@ -420,12 +420,12 @@ class DoubleLinkedQueueTest extends QueueTest {
     }
     Expect.equals(null, entry2);
 
-    var firstEntry = queue1.firstEntry();
-    var secondEntry = queue1.firstEntry().nextEntry();
-    var thirdEntry = queue1.lastEntry();
+    var firstEntry = queue1.firstEntry()!;
+    var secondEntry = queue1.firstEntry()!.nextEntry()!;
+    var thirdEntry = queue1.lastEntry()!;
     firstEntry.prepend(4);
     firstEntry.append(5);
-    secondEntry!.prepend(6);
+    secondEntry.prepend(6);
     secondEntry.append(7);
     thirdEntry.prepend(8);
     thirdEntry.append(9);
@@ -446,11 +446,11 @@ void linkEntryTest() {
 
   entry.append(37);
   entry.prepend(87);
-  var prev = entry.previousEntry();
-  var next = entry.nextEntry();
+  var prev = entry.previousEntry()!;
+  var next = entry.nextEntry()!;
   Expect.equals(42, entry.element);
-  Expect.equals(37, next!.element);
-  Expect.equals(87, prev!.element);
+  Expect.equals(37, next.element);
+  Expect.equals(87, prev.element);
   Expect.identical(entry, prev.nextEntry());
   Expect.identical(entry, next.previousEntry());
   Expect.equals(null, next.nextEntry());

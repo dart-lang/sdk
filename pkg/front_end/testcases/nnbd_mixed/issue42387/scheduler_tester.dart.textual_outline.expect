@@ -1,0 +1,9 @@
+// @dart = 2.8
+import 'foundation_lib.dart';
+import 'services_lib.dart';
+import 'scheduler_lib.dart';
+
+class TestSchedulerBinding extends BindingBase
+    with SchedulerBinding, ServicesBinding {}
+
+main() {}

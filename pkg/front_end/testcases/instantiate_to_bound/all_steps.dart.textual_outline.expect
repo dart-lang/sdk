@@ -1,0 +1,8 @@
+class B<X, Y> {}
+
+class C<X, Y> {}
+
+class D<X extends B<X, Y>, Y extends C<X, Y>, Z extends X Function(Y),
+    W extends num> {}
+
+main() {}

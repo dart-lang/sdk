@@ -18,10 +18,10 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 
 /// Instances of the class `ConstantVerifier` traverse an AST structure looking
 /// for additional errors and warnings not covered by the parser and resolver.
@@ -55,8 +55,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// Initialize a newly created constant verifier.
   ConstantVerifier(ErrorReporter errorReporter, LibraryElement currentLibrary,
       DeclaredVariables declaredVariables,
-      // TODO(brianwilkerson) Remove the unused parameter `forAnalysisDriver`.
-      {bool forAnalysisDriver,
+      {
       // TODO(paulberry): make [featureSet] a required parameter.
       FeatureSet featureSet})
       : this._(
@@ -113,7 +112,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.constKeyword != null) {
       _validateConstructorInitializers(node);
-      _validateFieldInitializers(node.parent, node);
+      if (node.factoryKeyword == null) {
+        _validateFieldInitializers(node.parent, node);
+      }
     }
     _validateDefaultValues(node.parameters);
     super.visitConstructorDeclaration(node);
@@ -131,9 +132,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       TypeName typeName = node.constructorName.type;
       _checkForConstWithTypeParameters(typeName);
 
+      node.argumentList.accept(this);
+
       // We need to evaluate the constant to see if any errors occur during its
       // evaluation.
-      ConstructorElement constructor = node.staticElement;
+      ConstructorElement constructor = node.constructorName.staticElement;
       if (constructor != null) {
         ConstantVisitor constantVisitor =
             ConstantVisitor(_evaluationEngine, _errorReporter);
@@ -299,9 +302,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   ///         not <i>int</i> or <i>String</i>.
   bool _implementsEqualsWhenNotAllowed(DartType type) {
     // ignore int or String
-    if (type == null || type == _intType || type == _typeProvider.stringType) {
+    if (type == null ||
+        type.element == _intType.element ||
+        type.element == _typeProvider.stringType.element) {
       return false;
-    } else if (type == _typeProvider.doubleType) {
+    } else if (type.element == _typeProvider.doubleType.element) {
       return true;
     }
     // prepare ClassElement
@@ -380,7 +385,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _reportNotPotentialConstants(AstNode node) {
-    var notPotentiallyConstants = getNotPotentiallyConstants(node);
+    var notPotentiallyConstants = getNotPotentiallyConstants(
+      node,
+      isNonNullableByDefault: _isNonNullableByDefault,
+    );
     if (notPotentiallyConstants.isEmpty) return;
 
     for (var notConst in notPotentiallyConstants) {
@@ -519,10 +527,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             DartObjectImpl result = initializer
                 .accept(ConstantVisitor(_evaluationEngine, subErrorReporter));
             if (result == null) {
-              _errorReporter.reportErrorForNode(
+              _errorReporter.reportErrorForToken(
                   CompileTimeErrorCode
                       .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
-                  errorSite,
+                  errorSite.constKeyword,
                   [variableDeclaration.name.name]);
             }
           }
@@ -555,10 +563,13 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
         );
 
+        var expressionValueType = _typeSystem.toLegacyType(
+          expressionValue.type,
+        );
+
         if (firstType == null) {
-          firstType = expressionValue.type;
+          firstType = expressionValueType;
         } else {
-          var expressionValueType = expressionValue.type;
           if (firstType != expressionValueType) {
             _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
@@ -750,7 +761,10 @@ class _ConstLiteralVerifier {
 
   /// Return `true` if the [node] is a potential constant.
   bool _reportNotPotentialConstants(AstNode node) {
-    var notPotentiallyConstants = getNotPotentiallyConstants(node);
+    var notPotentiallyConstants = getNotPotentiallyConstants(
+      node,
+      isNonNullableByDefault: verifier._isNonNullableByDefault,
+    );
     if (notPotentiallyConstants.isEmpty) return true;
 
     for (var notConst in notPotentiallyConstants) {

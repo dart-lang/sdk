@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_CHA_H_
 #define RUNTIME_VM_COMPILER_CHA_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
 #include "vm/thread.h"

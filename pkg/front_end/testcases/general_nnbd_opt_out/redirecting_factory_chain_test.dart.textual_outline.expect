@@ -1,0 +1,10 @@
+// @dart = 2.6
+library redirecting_factory_constructors.chain_test;
+
+class A {
+  A();
+  factory A.first() = A;
+  factory A.second() = A.first;
+}
+
+main() {}

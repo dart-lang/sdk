@@ -30,7 +30,6 @@ class HighlightsComputerTest extends AbstractContextTest {
   }
 
   Future<void> test_extension() async {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
     await _computeHighlights('''
 extension E on String {}
 ''');
@@ -39,7 +38,6 @@ extension E on String {}
   }
 
   Future<void> test_methodInvocation_ofExtensionOverride_unresolved() async {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
     await _computeHighlights('''
 extension E on int {}
 

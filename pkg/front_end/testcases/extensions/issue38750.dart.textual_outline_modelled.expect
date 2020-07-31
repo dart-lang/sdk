@@ -1,0 +1,5 @@
+import 'issue38750_lib1.dart';
+import 'issue38750_lib2.dart';
+
+errors() {}
+main() {}

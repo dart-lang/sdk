@@ -1,0 +1,21 @@
+class C {
+int With() => 7;
+int With = 7;
+int get With => 7;
+void set With(int x) {}
+}
+
+int With() => 7;
+int With = 7;
+
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+int[StringToken] With[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 7[StringToken];[SimpleToken]
+int[StringToken] With[StringToken] =[SimpleToken] 7[StringToken];[SimpleToken]
+int[StringToken] get[KeywordToken] With[StringToken] =>[SimpleToken] 7[StringToken];[SimpleToken]
+void[KeywordToken] set[KeywordToken] With[StringToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+
+int[StringToken] With[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 7[StringToken];[SimpleToken]
+int[StringToken] With[StringToken] =[SimpleToken] 7[StringToken];[SimpleToken]
+[SimpleToken]

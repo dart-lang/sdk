@@ -6,11 +6,9 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 
 class IsolateRunStateElement extends CustomElement implements Renderable {
-  static const tag = const Tag<IsolateRunStateElement>('isolate-run-state');
-
   RenderingScheduler<IsolateRunStateElement> _r;
 
   Stream<RenderedEvent<IsolateRunStateElement>> get onRendered => _r.onRendered;
@@ -31,7 +29,7 @@ class IsolateRunStateElement extends CustomElement implements Renderable {
     return e;
   }
 
-  IsolateRunStateElement.created() : super.created(tag);
+  IsolateRunStateElement.created() : super.created('isolate-run-state');
 
   @override
   void attached() {

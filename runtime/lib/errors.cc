@@ -13,7 +13,7 @@ namespace dart {
 
 // Scan the stack until we hit the first function in the _AssertionError
 // class. We then return the next frame's script taking inlining into account.
-static RawScript* FindScript(DartFrameIterator* iterator) {
+static ScriptPtr FindScript(DartFrameIterator* iterator) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   // The precompiled runtime faces two issues in recovering the correct
   // assertion text. First, the precompiled runtime does not include
@@ -100,6 +100,42 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 0, 3) {
   args.SetAt(1, String::Handle(script.url()));
   args.SetAt(2, Smi::Handle(Smi::New(from_line)));
   args.SetAt(3, Smi::Handle(Smi::New(script.HasSource() ? from_column : -1)));
+  args.SetAt(4, message);
+
+  Exceptions::ThrowByType(Exceptions::kAssertion, args);
+  UNREACHABLE();
+  return Object::null();
+}
+
+// Allocate and throw a new AssertionError.
+// Arg0: Source code snippet of failed assertion.
+// Arg1: Line number.
+// Arg2: Column number.
+// Arg3: Message object or null.
+// Return value: none, throws an exception.
+DEFINE_NATIVE_ENTRY(AssertionError_throwNewSource, 0, 4) {
+  // No need to type check the arguments. This function can only be called
+  // internally from the VM.
+  const String& failed_assertion =
+      String::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const intptr_t line =
+      Smi::CheckedHandle(zone, arguments->NativeArgAt(1)).Value();
+  const intptr_t column =
+      Smi::CheckedHandle(zone, arguments->NativeArgAt(2)).Value();
+  const Instance& message =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(3));
+
+  const Array& args = Array::Handle(zone, Array::New(5));
+
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
+  iterator.NextFrame();  // Skip native call.
+  const Script& script = Script::Handle(zone, FindScript(&iterator));
+
+  args.SetAt(0, failed_assertion);
+  args.SetAt(1, String::Handle(zone, script.url()));
+  args.SetAt(2, Smi::Handle(zone, Smi::New(line)));
+  args.SetAt(3, Smi::Handle(zone, Smi::New(column)));
   args.SetAt(4, message);
 
   Exceptions::ThrowByType(Exceptions::kAssertion, args);

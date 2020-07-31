@@ -1,0 +1,24 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/empty_await_for.dart:2:14: Error: Expected an identifier, but got ')'.
+//   await for () {}
+//              ^
+//
+// pkg/front_end/testcases/general/error_recovery/empty_await_for.dart:2:14: Error: Expected 'in' before this.
+//   await for () {}
+//              ^
+//
+import self as self;
+import "dart:async" as asy;
+
+static method main() → dynamic async {
+  await for (final dynamic #t1 in invalid-expression "pkg/front_end/testcases/general/error_recovery/empty_await_for.dart:2:14: Error: This couldn't be parsed.
+  await for () {}
+             ^" as{TypeError,ForDynamic} asy::Stream<dynamic>*) {
+    invalid-expression "pkg/front_end/testcases/general/error_recovery/empty_await_for.dart:2:14: Error: This couldn't be parsed.
+  await for () {}
+             ^";
+  }
+}

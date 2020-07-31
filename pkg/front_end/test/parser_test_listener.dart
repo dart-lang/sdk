@@ -31,7 +31,7 @@ class ParserTestListener implements Listener {
   String createTrace() {
     List<String> traceLines = StackTrace.current.toString().split("\n");
     for (int i = 0; i < traceLines.length; i++) {
-      // Find first one that's not any of the blacklisted ones.
+      // Find first one that's not any of the denylisted ones.
       String line = traceLines[i];
       if (line.contains("parser_test_listener.dart:") ||
           line.contains("parser_suite.dart:")) continue;
@@ -265,15 +265,15 @@ class ParserTestListener implements Listener {
   }
 
   void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token token) {
+      Token extensionKeyword, Token onKeyword, Token endToken) {
     indent--;
     seen(extensionKeyword);
     seen(onKeyword);
-    seen(token);
+    seen(endToken);
     doPrint('endExtensionDeclaration('
         '$extensionKeyword, '
         '$onKeyword, '
-        '$token)');
+        '$endToken)');
   }
 
   void beginCombinators(Token token) {
@@ -519,8 +519,15 @@ class ParserTestListener implements Listener {
         '$kind)');
   }
 
-  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endClassFields(
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     indent--;
     seen(staticToken);
     seen(covariantToken);
@@ -538,8 +545,15 @@ class ParserTestListener implements Listener {
         '$endToken)');
   }
 
-  void endMixinFields(Token staticToken, Token covariantToken, Token lateToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endMixinFields(
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     indent--;
     seen(staticToken);
     seen(covariantToken);
@@ -558,6 +572,7 @@ class ParserTestListener implements Listener {
   }
 
   void endExtensionFields(
+      Token externalToken,
       Token staticToken,
       Token covariantToken,
       Token lateToken,
@@ -1423,6 +1438,7 @@ class ParserTestListener implements Listener {
   }
 
   void endTopLevelFields(
+      Token externalToken,
       Token staticToken,
       Token covariantToken,
       Token lateToken,
@@ -1644,6 +1660,18 @@ class ParserTestListener implements Listener {
     doPrint('endWhileStatement(' '$whileKeyword, ' '$endToken)');
   }
 
+  void beginAsOperatorType(Token operator) {
+    seen(operator);
+    doPrint('beginAsOperatorType(' '$operator)');
+    indent++;
+  }
+
+  void endAsOperatorType(Token operator) {
+    indent--;
+    seen(operator);
+    doPrint('endAsOperatorType(' '$operator)');
+  }
+
   void handleAsOperator(Token operator) {
     seen(operator);
     doPrint('handleAsOperator(' '$operator)');
@@ -1773,6 +1801,18 @@ class ParserTestListener implements Listener {
         '$question, '
         '$openSquareBracket, '
         '$closeSquareBracket)');
+  }
+
+  void beginIsOperatorType(Token operator) {
+    seen(operator);
+    doPrint('beginIsOperatorType(' '$operator)');
+    indent++;
+  }
+
+  void endIsOperatorType(Token operator) {
+    indent--;
+    seen(operator);
+    doPrint('endIsOperatorType(' '$operator)');
   }
 
   void handleIsOperator(Token isOperator, Token not) {
@@ -2070,6 +2110,7 @@ class ParserTestListener implements Listener {
 
   void handleErrorToken(ErrorToken token) {
     doPrint('handleErrorToken(' '$token)');
+    handleRecoverableError(token.assertionMessage, token, token);
   }
 
   void handleUnescapeError(

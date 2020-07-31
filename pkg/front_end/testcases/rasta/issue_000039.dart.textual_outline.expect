@@ -1,0 +1,6 @@
+class A {
+  var a;
+  A(x) {}
+}
+
+class B extends A {}

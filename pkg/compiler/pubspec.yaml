@@ -1,6 +1,7 @@
 # This pubspec is currently mainly used to make it easier to develop on dart2js
 # by making it a standalone package.
 name: compiler
+# This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 environment:
   sdk: '>=2.6.0 <3.0.0'

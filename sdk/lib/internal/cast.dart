@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart._internal;
 
 // Casting wrappers for collection classes.
@@ -46,11 +44,11 @@ abstract class _CastIterableBase<S, T> extends Iterable<T> {
   T get last => _source.last as T;
   T get single => _source.single as T;
 
-  bool contains(Object other) => _source.contains(other);
+  bool contains(Object? other) => _source.contains(other);
 
   // Might be implemented by testing backwards from the end,
   // so use the _source's implementation.
-  T lastWhere(bool test(T element), {T orElse()}) =>
+  T lastWhere(bool test(T element), {T Function()? orElse}) =>
       _source.lastWhere((S element) => test(element as T),
           orElse: (orElse == null) ? null : () => orElse() as S) as T;
 
@@ -116,12 +114,12 @@ abstract class _CastListBase<S, T> extends _CastIterableBase<S, T>
     _source.addAll(new CastIterable<T, S>(values));
   }
 
-  void sort([int compare(T v1, T v2)]) {
+  void sort([int Function(T v1, T v2)? compare]) {
     _source.sort(
         compare == null ? null : (S v1, S v2) => compare(v1 as T, v2 as T));
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random? random]) {
     _source.shuffle(random);
   }
 
@@ -137,7 +135,7 @@ abstract class _CastListBase<S, T> extends _CastIterableBase<S, T>
     _source.setAll(index, new CastIterable<T, S>(elements));
   }
 
-  bool remove(Object value) => _source.remove(value);
+  bool remove(Object? value) => _source.remove(value);
 
   T removeAt(int index) => _source.removeAt(index) as T;
 
@@ -162,7 +160,7 @@ abstract class _CastListBase<S, T> extends _CastIterableBase<S, T>
     _source.removeRange(start, end);
   }
 
-  void fillRange(int start, int end, [T fillValue]) {
+  void fillRange(int start, int end, [T? fillValue]) {
     _source.fillRange(start, end, fillValue as S);
   }
 
@@ -184,7 +182,7 @@ class CastSet<S, T> extends _CastIterableBase<S, T> implements Set<T> {
   /// Creates a new empty set of the same *kind* as [_source],
   /// but with `<R>` as type argument.
   /// Used by [toSet] and [union].
-  final Set<R> Function<R>() _emptySet;
+  final Set<R> Function<R>()? _emptySet;
 
   CastSet(this._source, this._emptySet);
 
@@ -197,13 +195,13 @@ class CastSet<S, T> extends _CastIterableBase<S, T> implements Set<T> {
     _source.addAll(new CastIterable<T, S>(elements));
   }
 
-  bool remove(Object object) => _source.remove(object);
+  bool remove(Object? object) => _source.remove(object);
 
-  void removeAll(Iterable<Object> objects) {
+  void removeAll(Iterable<Object?> objects) {
     _source.removeAll(objects);
   }
 
-  void retainAll(Iterable<Object> objects) {
+  void retainAll(Iterable<Object?> objects) {
     _source.retainAll(objects);
   }
 
@@ -215,20 +213,21 @@ class CastSet<S, T> extends _CastIterableBase<S, T> implements Set<T> {
     _source.retainWhere((S element) => test(element as T));
   }
 
-  bool containsAll(Iterable<Object> objects) => _source.containsAll(objects);
+  bool containsAll(Iterable<Object?> objects) => _source.containsAll(objects);
 
-  Set<T> intersection(Set<Object> other) {
+  Set<T> intersection(Set<Object?> other) {
     if (_emptySet != null) return _conditionalAdd(other, true);
     return new CastSet<S, T>(_source.intersection(other), null);
   }
 
-  Set<T> difference(Set<Object> other) {
+  Set<T> difference(Set<Object?> other) {
     if (_emptySet != null) return _conditionalAdd(other, false);
     return new CastSet<S, T>(_source.difference(other), null);
   }
 
-  Set<T> _conditionalAdd(Set<Object> other, bool otherContains) {
-    Set<T> result = (_emptySet == null) ? new Set<T>() : _emptySet<T>();
+  Set<T> _conditionalAdd(Set<Object?> other, bool otherContains) {
+    var emptySet = _emptySet;
+    Set<T> result = (emptySet == null) ? new Set<T>() : emptySet<T>();
     for (var element in _source) {
       T castElement = element as T;
       if (otherContains == other.contains(castElement)) result.add(castElement);
@@ -243,14 +242,15 @@ class CastSet<S, T> extends _CastIterableBase<S, T> implements Set<T> {
   }
 
   Set<T> _clone() {
-    Set<T> result = (_emptySet == null) ? new Set<T>() : _emptySet<T>();
+    var emptySet = _emptySet;
+    Set<T> result = (emptySet == null) ? new Set<T>() : emptySet<T>();
     result.addAll(this);
     return result;
   }
 
   Set<T> toSet() => _clone();
 
-  T lookup(Object key) => _source.lookup(key) as T;
+  T lookup(Object? key) => _source.lookup(key) as T;
 }
 
 class CastMap<SK, SV, K, V> extends MapBase<K, V> {
@@ -260,24 +260,24 @@ class CastMap<SK, SV, K, V> extends MapBase<K, V> {
 
   Map<RK, RV> cast<RK, RV>() => new CastMap<SK, SV, RK, RV>(_source);
 
-  bool containsValue(Object value) => _source.containsValue(value);
+  bool containsValue(Object? value) => _source.containsValue(value);
 
-  bool containsKey(Object key) => _source.containsKey(key);
+  bool containsKey(Object? key) => _source.containsKey(key);
 
-  V operator [](Object key) => _source[key] as V;
+  V? operator [](Object? key) => _source[key] as V?;
 
   void operator []=(K key, V value) {
     _source[key as SK] = value as SV;
   }
 
-  V putIfAbsent(K key, V ifAbsent()) => _source.putIfAbsent(
-      key as SK, (ifAbsent == null) ? null : () => ifAbsent() as SV) as V;
+  V putIfAbsent(K key, V Function() ifAbsent) =>
+      _source.putIfAbsent(key as SK, () => ifAbsent() as SV) as V;
 
   void addAll(Map<K, V> other) {
     _source.addAll(new CastMap<K, V, SK, SV>(other));
   }
 
-  V remove(Object key) => _source.remove(key) as V;
+  V remove(Object? key) => _source.remove(key) as V;
 
   void clear() {
     _source.clear();
@@ -299,7 +299,7 @@ class CastMap<SK, SV, K, V> extends MapBase<K, V> {
 
   bool get isNotEmpty => _source.isNotEmpty;
 
-  V update(K key, V update(V value), {V ifAbsent()}) {
+  V update(K key, V update(V value), {V Function()? ifAbsent}) {
     return _source.update(key as SK, (SV value) => update(value as V) as SV,
         ifAbsent: (ifAbsent == null) ? null : () => ifAbsent() as SV) as V;
   }
@@ -344,7 +344,7 @@ class CastQueue<S, T> extends _CastIterableBase<S, T> implements Queue<T> {
     _source.addLast(value as S);
   }
 
-  bool remove(Object other) => _source.remove(other);
+  bool remove(Object? other) => _source.remove(other);
   void addAll(Iterable<T> elements) {
     _source.addAll(new CastIterable<T, S>(elements));
   }

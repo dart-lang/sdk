@@ -1,0 +1,12 @@
+// @dart = 2.6
+class A {
+  A.bad() {}
+  const A() : this.bad();
+}
+
+class B extends A {
+  const B() : super.bad();
+}
+
+main() {}
+test() {}

@@ -6,7 +6,9 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
@@ -20,7 +22,10 @@ class AlreadyMigratedCodeDecorator {
 
   final TypeProvider _typeProvider;
 
-  AlreadyMigratedCodeDecorator(this._graph, this._typeProvider);
+  final LineInfo Function(String) _getLineInfo;
+
+  AlreadyMigratedCodeDecorator(
+      this._graph, this._typeProvider, this._getLineInfo);
 
   /// Transforms [type], which should have come from code that has already been
   /// migrated to NNBD, into the corresponding [DecoratedType].
@@ -86,6 +91,8 @@ class AlreadyMigratedCodeDecorator {
       return DecoratedType(type, node);
     } else if (type is TypeParameterType) {
       return DecoratedType(type, node);
+    } else if (type.isBottom) {
+      return DecoratedType(type, node);
     } else {
       // TODO(paulberry)
       throw UnimplementedError(
@@ -102,7 +109,7 @@ class AlreadyMigratedCodeDecorator {
       allSupertypes.add(supertype);
     }
     allSupertypes.addAll(class_.superclassConstraints);
-    allSupertypes.addAll(class_.interfaces);
+    allSupertypes.addAll(class_.preMigrationInterfaces);
     allSupertypes.addAll(class_.mixins);
     var type = class_.thisType;
     if (type.isDartAsyncFuture) {
@@ -111,7 +118,19 @@ class AlreadyMigratedCodeDecorator {
     }
     return [
       for (var t in allSupertypes)
-        decorate(t, class_, NullabilityNodeTarget.element(class_))
+        decorate(t, class_, NullabilityNodeTarget.element(class_, _getLineInfo))
     ];
+  }
+}
+
+extension on ClassElement {
+  List<InterfaceType> get preMigrationInterfaces {
+    var previousElementTypeProvider = ElementTypeProvider.current;
+    try {
+      ElementTypeProvider.current = const ElementTypeProvider();
+      return interfaces;
+    } finally {
+      ElementTypeProvider.current = previousElementTypeProvider;
+    }
   }
 }

@@ -22,7 +22,7 @@ namespace dart {
 namespace bin {
 
 static const int64_t kAppSnapshotHeaderSize = 5 * kInt64Size;
-static const int64_t kAppSnapshotPageSize = 4 * KB;
+static const int64_t kAppSnapshotPageSize = 16 * KB;
 
 class MappedAppSnapshot : public AppSnapshot {
  public:
@@ -201,7 +201,9 @@ static AppSnapshot* TryReadAppSnapshotElf(
                 *isolate_data_buffer = nullptr,
                 *isolate_instructions_buffer = nullptr;
   Dart_LoadedElf* handle = nullptr;
+#if !defined(HOST_OS_FUCHSIA)
   if (force_load_elf_from_memory) {
+#endif
     File* const file =
         File::Open(/*namespc=*/nullptr, script_name, File::kRead);
     if (file == nullptr) return nullptr;
@@ -216,11 +218,13 @@ static AppSnapshot* TryReadAppSnapshotElf(
                             &isolate_data_buffer, &isolate_instructions_buffer);
     delete memory;
     file->Release();
+#if !defined(HOST_OS_FUCHSIA)
   } else {
     handle = Dart_LoadELF(script_name, file_offset, &error, &vm_data_buffer,
                           &vm_instructions_buffer, &isolate_data_buffer,
                           &isolate_instructions_buffer);
   }
+#endif
   if (handle == nullptr) {
     Syslog::PrintErr("Loading failed: %s\n", error);
     return nullptr;
@@ -329,8 +333,14 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(const char* script_name) {
 
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_name,
+AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_uri,
                                           bool force_load_elf_from_memory) {
+  auto decoded_path = File::UriToPath(script_uri);
+  if (decoded_path == nullptr) {
+    return nullptr;
+  }
+
+  const char* script_name = decoded_path.get();
   if (File::GetType(nullptr, script_name, true) != File::kIsFile) {
     // If 'script_name' refers to a pipe, don't read to check for an app
     // snapshot since we cannot rewind if it isn't (and couldn't mmap it in

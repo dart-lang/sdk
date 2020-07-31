@@ -195,8 +195,7 @@ class OrderedTypeSet {
 ///     B: [B, Object]
 ///     C: [C, B, A, Object]
 abstract class OrderedTypeSetBuilder {
-  OrderedTypeSet createOrderedTypeSet(
-      InterfaceType supertype, Link<DartType> interfaces);
+  OrderedTypeSet createOrderedTypeSet(Set<InterfaceType> canonicalSupertypes);
 }
 
 abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
@@ -215,39 +214,12 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
   OrderedTypeSet getOrderedTypeSet(covariant ClassEntity cls);
 
   @override
-  OrderedTypeSet createOrderedTypeSet(
-      InterfaceType supertype, Link<DartType> interfaces) {
-    // TODO(15296): Collapse these iterations to one when the order is not
-    // needed.
-    add(supertype);
-    for (Link<DartType> link = interfaces; !link.isEmpty; link = link.tail) {
-      add(link.head);
-    }
-
-    _addAllSupertypes(supertype);
-    for (Link<DartType> link = interfaces; !link.isEmpty; link = link.tail) {
-      _addAllSupertypes(link.head);
+  OrderedTypeSet createOrderedTypeSet(Set<InterfaceType> canonicalSupertypes) {
+    for (InterfaceType supertype in canonicalSupertypes) {
+      add(supertype);
     }
     add(getThisType(cls));
     return toTypeSet();
-  }
-
-  /// Adds [type] and all supertypes of [type] to [allSupertypes] while
-  /// substituting type variables.
-  void _addAllSupertypes(InterfaceType type) {
-    ClassEntity classElement = type.element;
-    Link<InterfaceType> supertypes = getOrderedTypeSet(classElement).supertypes;
-    assert(
-        supertypes != null,
-        failedAt(
-            cls,
-            "Supertypes not computed on $classElement "
-            "during resolution of $cls"));
-    while (!supertypes.isEmpty) {
-      InterfaceType supertype = supertypes.head;
-      add(substByContext(supertype, type));
-      supertypes = supertypes.tail;
-    }
   }
 
   void add(InterfaceType type) {

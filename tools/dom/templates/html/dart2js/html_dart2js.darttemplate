@@ -132,8 +132,8 @@ class HtmlElement extends Element implements NoncedElement {
   HtmlElement.created() : super.created();
 
   // From NoncedElement
-  String get nonce native;
-  set nonce(String value) native;
+  String$NULLABLE get nonce native;
+  set nonce(String$NULLABLE value) native;
 }
 
 /**

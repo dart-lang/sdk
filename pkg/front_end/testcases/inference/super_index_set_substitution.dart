@@ -16,7 +16,7 @@ class B<T> {
 class C<U> extends B<Future<U>> {
   void operator []=(Object x, Object y) {}
   void h() {
-    super /*@target=B::[]=*/ [
+    super /*@target=B.[]=*/ [
             /*@ typeArgs=Map<int*, Future<C::U*>*>* */ f()] =
         /*@ typeArgs=List<Future<C::U*>*>* */ f();
   }

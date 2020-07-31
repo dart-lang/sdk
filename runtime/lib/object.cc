@@ -93,10 +93,10 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
   const intptr_t right_cid = right.GetClassId();
 
   if (left_cid != right_cid) {
-    if (RawObject::IsIntegerClassId(left_cid)) {
-      return Bool::Get(RawObject::IsIntegerClassId(right_cid)).raw();
-    } else if (RawObject::IsStringClassId(right_cid)) {
-      return Bool::Get(RawObject::IsStringClassId(right_cid)).raw();
+    if (IsIntegerClassId(left_cid)) {
+      return Bool::Get(IsIntegerClassId(right_cid)).raw();
+    } else if (IsStringClassId(right_cid)) {
+      return Bool::Get(IsStringClassId(right_cid)).raw();
     } else {
       return Bool::False().raw();
     }
@@ -196,6 +196,19 @@ DEFINE_NATIVE_ENTRY(Type_equality, 0, 2) {
   return Bool::Get(type.IsEquivalent(other, TypeEquality::kSyntactical)).raw();
 }
 
+DEFINE_NATIVE_ENTRY(LibraryPrefix_isLoaded, 0, 1) {
+  const LibraryPrefix& prefix =
+      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
+  return Bool::Get(prefix.is_loaded()).raw();
+}
+
+DEFINE_NATIVE_ENTRY(LibraryPrefix_setLoaded, 0, 1) {
+  const LibraryPrefix& prefix =
+      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
+  prefix.set_is_loaded(true);
+  return Instance::null();
+}
+
 DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0, 0) {
 #if defined(ARCH_IS_64_BIT)
   return Bool::True().raw();
@@ -210,6 +223,11 @@ DEFINE_NATIVE_ENTRY(Internal_unsafeCast, 0, 1) {
 }
 
 DEFINE_NATIVE_ENTRY(Internal_reachabilityFence, 0, 1) {
+  return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(Internal_collectAllGarbage, 0, 0) {
+  isolate->heap()->CollectAllGarbage();
   return Object::null();
 }
 
@@ -239,7 +257,7 @@ static bool ExtractInterfaceTypeArgs(Zone* zone,
       if (!cur_interface_type_args.IsNull() &&
           !cur_interface_type_args.IsInstantiated()) {
         cur_interface_type_args = cur_interface_type_args.InstantiateFrom(
-            instance_type_args, Object::null_type_arguments(), kNoneFree, NULL,
+            instance_type_args, Object::null_type_arguments(), kNoneFree,
             Heap::kNew);
       }
       if (ExtractInterfaceTypeArgs(zone, cur_interface_cls,

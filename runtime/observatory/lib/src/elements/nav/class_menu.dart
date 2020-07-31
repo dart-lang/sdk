@@ -7,13 +7,11 @@ import 'dart:async';
 import 'package:observatory/models.dart' as M show IsolateRef, ClassRef;
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class NavClassMenuElement extends CustomElement implements Renderable {
-  static const tag = const Tag<NavClassMenuElement>('nav-class-menu');
-
-  RenderingScheduler _r;
+  RenderingScheduler<NavClassMenuElement> _r;
 
   Stream<RenderedEvent<NavClassMenuElement>> get onRendered => _r.onRendered;
 
@@ -41,7 +39,7 @@ class NavClassMenuElement extends CustomElement implements Renderable {
     return e;
   }
 
-  NavClassMenuElement.created() : super.created(tag);
+  NavClassMenuElement.created() : super.created('nav-class-menu');
 
   @override
   void attached() {

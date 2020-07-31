@@ -15,6 +15,7 @@ abstract class Nnbd {
 }
 
 /*class: Both1:Both1,Legacy,Nnbd,Object*/
+/*cfe|cfe:builder.member: Both1.==:bool* Function(dynamic)*/
 class Both1 implements Legacy, Nnbd {
   /*member: Both1.mandatory:void Function(int)*/
   void mandatory(param) {}
@@ -23,6 +24,7 @@ class Both1 implements Legacy, Nnbd {
 }
 
 /*class: Both2:Both2,Legacy,Nnbd,Object*/
+/*cfe|cfe:builder.member: Both2.==:bool* Function(dynamic)*/
 class Both2 implements Nnbd, Legacy {
   /*member: Both2.mandatory:void Function(int)*/
   void mandatory(param) {}

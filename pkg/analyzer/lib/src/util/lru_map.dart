@@ -7,12 +7,10 @@ import 'dart:collection';
 /// This handler is notified when an item is evicted from the cache.
 typedef EvictionHandler<K, V> = Function(K key, V value);
 
-/**
- * A hash-table based cache implementation.
- *
- * When it reaches the specified number of items, the item that has not been
- * accessed (both get and put) recently is evicted.
- */
+/// A hash-table based cache implementation.
+///
+/// When it reaches the specified number of items, the item that has not been
+/// accessed (both get and put) recently is evicted.
 class LRUMap<K, V> {
   final LinkedHashMap<K, V> _map = LinkedHashMap<K, V>();
   final int _maxSize;
@@ -20,10 +18,8 @@ class LRUMap<K, V> {
 
   LRUMap(this._maxSize, [this._handler]);
 
-  /**
-   * Returns the value for the given [key] or null if [key] is not
-   * in the cache.
-   */
+  /// Returns the value for the given [key] or null if [key] is not
+  /// in the cache.
   V get(K key) {
     V value = _map.remove(key);
     if (value != null) {
@@ -32,12 +28,10 @@ class LRUMap<K, V> {
     return value;
   }
 
-  /**
-   * Associates the [key] with the given [value].
-   *
-   * If the cache is full, an item that has not been accessed recently is
-   * evicted.
-   */
+  /// Associates the [key] with the given [value].
+  ///
+  /// If the cache is full, an item that has not been accessed recently is
+  /// evicted.
   void put(K key, V value) {
     _map.remove(key);
     _map[key] = value;
@@ -50,9 +44,7 @@ class LRUMap<K, V> {
     }
   }
 
-  /**
-   * Removes the association for the given [key].
-   */
+  /// Removes the association for the given [key].
   void remove(K key) {
     _map.remove(key);
   }

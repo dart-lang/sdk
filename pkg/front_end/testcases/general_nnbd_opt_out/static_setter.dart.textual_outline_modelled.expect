@@ -1,0 +1,5 @@
+// @dart = 2.6
+class Foo {}
+
+main() {}
+set foo(x) {}

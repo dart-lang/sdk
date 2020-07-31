@@ -1,0 +1,2 @@
+void<int> f() { }
+main() { }

@@ -29,10 +29,8 @@ class StringUtilities {
 
   static Interner INTERNER = NullInterner();
 
-  /**
-   * Compute line starts for the given [content].
-   * Lines end with `\r`, `\n` or `\r\n`.
-   */
+  /// Compute line starts for the given [content].
+  /// Lines end with `\r`, `\n` or `\r\n`.
   static List<int> computeLineStarts(String content) {
     List<int> lineStarts = <int>[0];
     int length = content.length;
@@ -56,7 +54,7 @@ class StringUtilities {
     return lineStarts;
   }
 
-  static endsWith3(String str, int c1, int c2, int c3) {
+  static bool endsWith3(String str, int c1, int c2, int c3) {
     var length = str.length;
     return length >= 3 &&
         str.codeUnitAt(length - 3) == c1 &&
@@ -64,7 +62,7 @@ class StringUtilities {
         str.codeUnitAt(length - 1) == c3;
   }
 
-  static endsWithChar(String str, int c) {
+  static bool endsWithChar(String str, int c) {
     int length = str.length;
     return length > 0 && str.codeUnitAt(length - 1) == c;
   }
@@ -126,11 +124,9 @@ class StringUtilities {
     return -1;
   }
 
-  /**
-   * Return the index of the first not letter/digit character in the [string]
-   * that is at or after the [startIndex]. Return the length of the [string] if
-   * all characters to the end are letters/digits.
-   */
+  /// Return the index of the first not letter/digit character in the [string]
+  /// that is at or after the [startIndex]. Return the length of the [string] if
+  /// all characters to the end are letters/digits.
   static int indexOfFirstNotLetterDigit(String string, int startIndex) {
     int index = startIndex;
     int last = string.length;
@@ -168,13 +164,13 @@ class StringUtilities {
     return true;
   }
 
-  /**
-   * Produce a string containing all of the names in the given array, surrounded by single quotes,
-   * and separated by commas. The list must contain at least two elements.
-   *
-   * @param names the names to be printed
-   * @return the result of printing the names
-   */
+  /// Produce a string containing all of the names in the given array,
+  /// surrounded by single quotes, and separated by commas.
+  ///
+  /// The list must contain at least two elements.
+  ///
+  /// @param names the names to be printed
+  /// @return the result of printing the names
   static String printListOfQuotedNames(List<String> names) {
     if (names == null) {
       throw ArgumentError("The list must not be null");
@@ -198,20 +194,21 @@ class StringUtilities {
     return buffer.toString();
   }
 
-  static startsWith2(String str, int start, int c1, int c2) {
+  static bool startsWith2(String str, int start, int c1, int c2) {
     return str.length - start >= 2 &&
         str.codeUnitAt(start) == c1 &&
         str.codeUnitAt(start + 1) == c2;
   }
 
-  static startsWith3(String str, int start, int c1, int c2, int c3) {
+  static bool startsWith3(String str, int start, int c1, int c2, int c3) {
     return str.length - start >= 3 &&
         str.codeUnitAt(start) == c1 &&
         str.codeUnitAt(start + 1) == c2 &&
         str.codeUnitAt(start + 2) == c3;
   }
 
-  static startsWith4(String str, int start, int c1, int c2, int c3, int c4) {
+  static bool startsWith4(
+      String str, int start, int c1, int c2, int c3, int c4) {
     return str.length - start >= 4 &&
         str.codeUnitAt(start) == c1 &&
         str.codeUnitAt(start + 1) == c2 &&
@@ -219,7 +216,7 @@ class StringUtilities {
         str.codeUnitAt(start + 3) == c4;
   }
 
-  static startsWith5(
+  static bool startsWith5(
       String str, int start, int c1, int c2, int c3, int c4, int c5) {
     return str.length - start >= 5 &&
         str.codeUnitAt(start) == c1 &&
@@ -229,7 +226,7 @@ class StringUtilities {
         str.codeUnitAt(start + 4) == c5;
   }
 
-  static startsWith6(
+  static bool startsWith6(
       String str, int start, int c1, int c2, int c3, int c4, int c5, int c6) {
     return str.length - start >= 6 &&
         str.codeUnitAt(start) == c1 &&

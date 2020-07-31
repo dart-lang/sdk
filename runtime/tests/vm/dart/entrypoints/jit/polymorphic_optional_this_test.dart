@@ -19,14 +19,14 @@ abstract class C<T> {
     samir2(x, y: "hi");
   }
 
-  void samir2(T x, {String y});
+  void samir2(T x, {required String y});
 }
 
 class D<T> extends C<T> {
   @NeverInline
   @pragma("vm:testing.unsafe.trace-entrypoints-fn", validate)
   @pragma("vm:entry-point")
-  void samir2(T x, {String y}) {
+  void samir2(T x, {required String y}) {
     Expect.notEquals(x, -1);
     Expect.equals(y, "hi");
   }
@@ -36,7 +36,7 @@ class E<T> extends C<T> {
   @NeverInline
   @pragma("vm:testing.unsafe.trace-entrypoints-fn", validate)
   @pragma("vm:entry-point")
-  void samir2(T x, {String y}) {
+  void samir2(T x, {required String y}) {
     Expect.notEquals(x, -1);
     Expect.equals(y, "hi");
   }

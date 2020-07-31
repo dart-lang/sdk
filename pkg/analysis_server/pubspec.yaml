@@ -1,4 +1,5 @@
 name: analysis_server
+# This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 
 environment:
@@ -8,6 +9,7 @@ dependencies:
   analyzer: any
   analyzer_plugin: any
   args: any
+  charcode: any
   convert: any
   crypto: any
   dart_style: any
@@ -15,7 +17,7 @@ dependencies:
   linter: any
   logging: any
   meta: any
-  nnbd_migration: any
+  pub_semver: any
   source_span: any
   stream_channel: any
   package_config: any

@@ -21,11 +21,11 @@ class NeverTypeBuilder extends BuiltinTypeBuilder {
   DartType buildType(LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
       [bool notInstanceContext]) {
-    return type.withNullability(nullabilityBuilder.build(library));
+    return type.withDeclaredNullability(nullabilityBuilder.build(library));
   }
 
   DartType buildTypesWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments) {
-    return type.withNullability(nullability);
+    return type.withDeclaredNullability(nullability);
   }
 }

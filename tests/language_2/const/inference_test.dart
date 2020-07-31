@@ -122,10 +122,10 @@ testFunction() {
   expectOfType<Null Function(Object)>(getFunction());
 }
 
-/// Tests that type inference for constants does not reference the type
-/// parameter. Instead, free type parameters should substituted to obtain the
+/// Tests that use type inference for constants do not reference the type
+/// parameter. Instead, free type parameters are substituted to obtain the
 /// least closure (e.g. `List<T>` becomes `List<Null>` and `R Function(T)`
-/// becomes `Null Function(Object)`).
+/// becomes `Null Function(Object?)`).
 main() {
   testClassInstance();
   testImplicitConstClassInstance();

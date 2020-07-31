@@ -1,0 +1,17 @@
+class B<X, Y> {}
+
+class C<X, Y> {}
+
+class D<X extends B<X, Y>, Y extends C<X, Y>> {}
+
+class E<X extends B<X, Y>, Y extends X Function()> {}
+
+class F<X extends X Function()> {}
+
+main() {}
+var ld = <D>[];
+var le = <E>[];
+var lf = <F>[];
+var md = <D, D>{};
+var me = <E, E>{};
+var mf = <F, F>{};

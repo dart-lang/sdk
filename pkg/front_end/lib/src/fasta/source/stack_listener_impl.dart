@@ -25,6 +25,27 @@ import 'source_library_builder.dart';
 abstract class StackListenerImpl extends StackListener {
   SourceLibraryBuilder get libraryBuilder;
 
+  AsyncMarker asyncMarkerFromTokens(Token asyncToken, Token starToken) {
+    if (asyncToken == null || identical(asyncToken.stringValue, "sync")) {
+      if (starToken == null) {
+        return AsyncMarker.Sync;
+      } else {
+        assert(identical(starToken.stringValue, "*"));
+        return AsyncMarker.SyncStar;
+      }
+    } else if (identical(asyncToken.stringValue, "async")) {
+      if (starToken == null) {
+        return AsyncMarker.Async;
+      } else {
+        assert(identical(starToken.stringValue, "*"));
+        return AsyncMarker.AsyncStar;
+      }
+    } else {
+      return unhandled(asyncToken.lexeme, "asyncMarkerFromTokens",
+          asyncToken.charOffset, null);
+    }
+  }
+
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
   void finishFunction(
@@ -68,7 +89,7 @@ abstract class StackListenerImpl extends StackListener {
   void reportMissingNonNullableSupport(Token token) {
     assert(!libraryBuilder.isNonNullableByDefault);
     assert(token != null);
-    if (libraryBuilder.loader.target.enableNonNullable) {
+    if (libraryBuilder.enableNonNullableInLibrary) {
       if (libraryBuilder.languageVersion.isExplicit) {
         addProblem(messageNonNullableOptOut, token.charOffset, token.charCount,
             context: <LocatedMessage>[
@@ -81,8 +102,10 @@ abstract class StackListenerImpl extends StackListener {
         addProblem(messageNonNullableOptOut, token.charOffset, token.charCount);
       }
     } else {
-      addProblem(templateExperimentNotEnabled.withArguments('non-nullable'),
-          token.offset, noLength);
+      addProblem(
+          templateExperimentNotEnabled.withArguments('non-nullable', '2.9'),
+          token.offset,
+          noLength);
     }
   }
 

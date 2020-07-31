@@ -50,9 +50,9 @@ Uri _computeRepoDir() {
   return new Directory(dirPath).uri;
 }
 
-Uri frontendLibUri;
+Set<Uri> libUris = {};
 
-Future<void> main() async {
+Future<void> main(List<String> args) async {
   Ticker ticker = new Ticker(isVerbose: false);
   api.CompilerOptions compilerOptions = getOptions();
 
@@ -64,12 +64,25 @@ Future<void> main() async {
 
   ProcessedOptions options = new ProcessedOptions(options: compilerOptions);
 
-  frontendLibUri = repoDir.resolve("pkg/front_end/lib/");
-  List<FileSystemEntity> entities =
-      new Directory.fromUri(frontendLibUri).listSync(recursive: true);
-  for (FileSystemEntity entity in entities) {
-    if (entity is File && entity.path.endsWith(".dart")) {
-      options.inputs.add(entity.uri);
+  if (args.isEmpty) {
+    libUris.add(repoDir.resolve("pkg/front_end/lib/"));
+    libUris.add(repoDir.resolve("pkg/_fe_analyzer_shared/lib/"));
+  } else {
+    if (args[0] == "--front-end-only") {
+      libUris.add(repoDir.resolve("pkg/front_end/lib/"));
+    } else if (args[0] == "--shared-only") {
+      libUris.add(repoDir.resolve("pkg/_fe_analyzer_shared/lib/"));
+    } else {
+      throw "Unsupported arguments: $args";
+    }
+  }
+  for (Uri uri in libUris) {
+    List<FileSystemEntity> entities =
+        new Directory.fromUri(uri).listSync(recursive: true);
+    for (FileSystemEntity entity in entities) {
+      if (entity is File && entity.path.endsWith(".dart")) {
+        options.inputs.add(entity.uri);
+      }
     }
   }
 
@@ -224,7 +237,8 @@ class BodyBuilderTest extends BodyBuilder {
       String name,
       List<UnresolvedType> typeArguments,
       int charOffset,
-      Constness constness) {
+      Constness constness,
+      {bool isTypeArgumentsInForest = false}) {
     Token maybeNewOrConst = nameToken.previous;
     bool doReport = true;
     if (maybeNewOrConst is KeywordToken) {
@@ -237,8 +251,17 @@ class BodyBuilderTest extends BodyBuilder {
         doReport = false;
       }
     }
-    if (doReport && !uri.toString().startsWith(frontendLibUri.toString())) {
-      doReport = false;
+    if (doReport) {
+      bool match = false;
+      for (Uri libUri in libUris) {
+        if (uri.toString().startsWith(libUri.toString())) {
+          match = true;
+          break;
+        }
+      }
+      if (!match) {
+        doReport = false;
+      }
     }
     if (doReport) {
       addProblem(
@@ -247,7 +270,8 @@ class BodyBuilderTest extends BodyBuilder {
           nameToken.length);
     }
     return super.buildConstructorInvocation(type, nameToken, nameLastToken,
-        arguments, name, typeArguments, charOffset, constness);
+        arguments, name, typeArguments, charOffset, constness,
+        isTypeArgumentsInForest: isTypeArgumentsInForest);
   }
 }
 

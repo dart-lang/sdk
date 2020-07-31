@@ -7,27 +7,19 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
 
-/**
- * A visitor used to write a source representation of a visited AST node (and
- * all of it's children) to a sink.
- */
+/// A visitor used to write a source representation of a visited AST node (and
+/// all of it's children) to a sink.
 class ToSourceVisitor implements AstVisitor<void> {
-  /**
-   * The sink to which the source is to be written.
-   */
+  /// The sink to which the source is to be written.
   @protected
   final StringSink sink;
 
-  /**
-   * Initialize a newly created visitor to write source code representing the
-   * visited nodes to the given [sink].
-   */
+  /// Initialize a newly created visitor to write source code representing the
+  /// visited nodes to the given [sink].
   ToSourceVisitor(this.sink);
 
-  /**
-   * Visit the given function [body], printing the [prefix] before if the body
-   * is not empty.
-   */
+  /// Visit the given function [body], printing the [prefix] before if the body
+  /// is not empty.
   @protected
   void safelyVisitFunctionWithPrefix(String prefix, FunctionBody body) {
     if (body is! EmptyFunctionBody) {
@@ -36,9 +28,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     safelyVisitNode(body);
   }
 
-  /**
-   * Safely visit the given [node].
-   */
+  /// Safely visit the given [node].
   @protected
   void safelyVisitNode(AstNode node) {
     if (node != null) {
@@ -46,17 +36,13 @@ class ToSourceVisitor implements AstVisitor<void> {
     }
   }
 
-  /**
-   * Print a list of [nodes] without any separation.
-   */
+  /// Print a list of [nodes] without any separation.
   @protected
   void safelyVisitNodeList(NodeList<AstNode> nodes) {
     safelyVisitNodeListWithSeparator(nodes, "");
   }
 
-  /**
-   * Print a list of [nodes], separated by the given [separator].
-   */
+  /// Print a list of [nodes], separated by the given [separator].
   @protected
   void safelyVisitNodeListWithSeparator(
       NodeList<AstNode> nodes, String separator) {
@@ -76,10 +62,8 @@ class ToSourceVisitor implements AstVisitor<void> {
     }
   }
 
-  /**
-   * Print a list of [nodes], prefixed by the given [prefix] if the list is not
-   * empty, and separated by the given [separator].
-   */
+  /// Print a list of [nodes], prefixed by the given [prefix] if the list is not
+  /// empty, and separated by the given [separator].
   @protected
   void safelyVisitNodeListWithSeparatorAndPrefix(
       String prefix, NodeList<AstNode> nodes, String separator) {
@@ -97,10 +81,8 @@ class ToSourceVisitor implements AstVisitor<void> {
     }
   }
 
-  /**
-   * Print a list of [nodes], separated by the given [separator], followed by
-   * the given [suffix] if the list is not empty.
-   */
+  /// Print a list of [nodes], separated by the given [separator], followed by
+  /// the given [suffix] if the list is not empty.
   @protected
   void safelyVisitNodeListWithSeparatorAndSuffix(
       NodeList<AstNode> nodes, String separator, String suffix) {
@@ -118,10 +100,8 @@ class ToSourceVisitor implements AstVisitor<void> {
     }
   }
 
-  /**
-   * Safely visit the given [node], printing the [prefix] before the node if it
-   * is non-`null`.
-   */
+  /// Safely visit the given [node], printing the [prefix] before the node if it
+  /// is non-`null`.
   @protected
   void safelyVisitNodeWithPrefix(String prefix, AstNode node) {
     if (node != null) {
@@ -130,10 +110,8 @@ class ToSourceVisitor implements AstVisitor<void> {
     }
   }
 
-  /**
-   * Safely visit the given [node], printing the [suffix] after the node if it
-   * is non-`null`.
-   */
+  /// Safely visit the given [node], printing the [suffix] after the node if it
+  /// is non-`null`.
   @protected
   void safelyVisitNodeWithSuffix(AstNode node, String suffix) {
     if (node != null) {
@@ -142,9 +120,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     }
   }
 
-  /**
-   * Safely visit the given [token].
-   */
+  /// Safely visit the given [token].
   @protected
   void safelyVisitToken(Token token) {
     if (token != null) {
@@ -152,10 +128,8 @@ class ToSourceVisitor implements AstVisitor<void> {
     }
   }
 
-  /**
-   * Safely visit the given [token], printing the [suffix] after the token if it
-   * is non-`null`.
-   */
+  /// Safely visit the given [token], printing the [suffix] after the token if
+  /// it is non-`null`.
   @protected
   void safelyVisitTokenWithSuffix(Token token, String suffix) {
     if (token != null) {

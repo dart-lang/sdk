@@ -5,18 +5,18 @@
 /*@testedFeatures=inference*/
 library test;
 
-var a_equal = 1 /*@target=num::==*/ == 2.0;
-var a_notEqual = 1 /*@target=num::==*/ != 2.0;
-var a_add = 1 /*@target=num::+*/ + 2.0;
-var a_subtract = 1 /*@target=num::-*/ - 2.0;
-var a_multiply = 1 /*@target=num::**/ * 2.0;
-var a_divide = 1 /*@target=num::/ */ / 2.0;
-var a_floorDivide = 1 /*@target=num::~/ */ ~/ 2.0;
-var a_greater = 1 /*@target=num::>*/ > 2.0;
-var a_less = 1 /*@target=num::<*/ < 2.0;
-var a_greaterEqual = 1 /*@target=num::>=*/ >= 2.0;
-var a_lessEqual = 1 /*@target=num::<=*/ <= 2.0;
-var a_modulo = 1 /*@target=num::%*/ % 2.0;
+var a_equal = 1 /*@target=num.==*/ == 2.0;
+var a_notEqual = 1 /*@target=num.==*/ != 2.0;
+var a_add = 1 /*@target=num.+*/ + 2.0;
+var a_subtract = 1 /*@target=num.-*/ - 2.0;
+var a_multiply = 1 /*@target=num.**/ * 2.0;
+var a_divide = 1 /*@target=num./ */ / 2.0;
+var a_floorDivide = 1 /*@target=num.~/ */ ~/ 2.0;
+var a_greater = 1 /*@target=num.>*/ > 2.0;
+var a_less = 1 /*@target=num.<*/ < 2.0;
+var a_greaterEqual = 1 /*@target=num.>=*/ >= 2.0;
+var a_lessEqual = 1 /*@target=num.<=*/ <= 2.0;
+var a_modulo = 1 /*@target=num.%*/ % 2.0;
 
 main() {
   a_equal;

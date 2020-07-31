@@ -104,6 +104,13 @@ class PhysicalFileTest extends BaseTest with FileTestMixin {
     expect(() => file.delete(), throwsA(isFileSystemException));
   }
 
+  test_exists_invalidPath() {
+    Folder folder = getFolder(exists: false);
+    File file = folder.getChildAssumingFile(r'\l\package:o\other.dart');
+
+    expect(file.exists, isFalse);
+  }
+
   @override
   test_renameSync_notExisting() {
     String oldPath = join(tempPath, 'file.txt');

@@ -1,0 +1,59 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method foo() → dynamic
+    return 23;
+}
+extension B on self::A? {
+  method foo = self::B|foo;
+  tearoff foo = self::B|get#foo;
+  method bar = self::B|bar;
+  tearoff bar = self::B|get#bar;
+}
+extension C on self::A {
+  method bar = self::C|bar;
+  tearoff bar = self::C|get#bar;
+}
+extension D on () →? core::int {
+  method call = self::D|call;
+  tearoff call = self::D|get#call;
+}
+static method B|foo(final self::A? #this) → dynamic
+  return 42;
+static method B|get#foo(final self::A? #this) → () → dynamic
+  return () → dynamic => self::B|foo(#this);
+static method B|bar(final self::A? #this) → dynamic
+  return 87;
+static method B|get#bar(final self::A? #this) → () → dynamic
+  return () → dynamic => self::B|bar(#this);
+static method C|bar(final self::A #this) → dynamic
+  return 123;
+static method C|get#bar(final self::A #this) → () → dynamic
+  return () → dynamic => self::C|bar(#this);
+static method D|call(final () →? core::int #this) → core::int
+  return 76;
+static method D|get#call(final () →? core::int #this) → () → core::int
+  return () → core::int => self::D|call(#this);
+static method main() → dynamic {
+  self::testA(new self::A::•());
+  self::testFunction(() → core::int => 53);
+}
+static method testA(self::A? a) → dynamic {
+  self::expect(23, let final self::A? #t1 = a in #t1.{core::Object::==}(null) ?{dynamic} null : #t1{self::A}.{self::A::foo}());
+  self::expect(42, self::B|foo(a));
+  self::expect(123, let final self::A? #t2 = a in #t2.{core::Object::==}(null) ?{dynamic} null : self::C|bar(#t2{self::A}));
+  self::expect(87, self::B|bar(a));
+}
+static method testFunction(() →? core::int f) → dynamic {
+  self::expect(53, let final () →? core::int #t3 = f in #t3.{core::Object::==}(null) ?{core::int?} null : #t3{() → core::int}.call());
+  self::expect(76, self::D|call(f));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}

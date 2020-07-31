@@ -39,6 +39,7 @@ class TestConfiguration {
       this.silentFailures,
       this.printTiming,
       this.printReport,
+      this.reportFailures,
       this.reportInJson,
       this.resetBrowser,
       this.skipCompilation,
@@ -89,6 +90,7 @@ class TestConfiguration {
   final bool silentFailures;
   final bool printTiming;
   final bool printReport;
+  final bool reportFailures;
   final bool reportInJson;
   final bool resetBrowser;
   final bool skipCompilation;
@@ -466,15 +468,6 @@ class TestConfiguration {
     var normal = '$result$arch';
     var cross = '${result}X$arch';
 
-    // TODO(38701): When enabling the NNBD experiment, we need to use the
-    // forked version of the SDK core libraries that have NNBD support. Remove
-    // this once the forked SDK at `<repo>/sdk_nnbd` has been merged back with
-    // `<repo>/sdk`.
-    if (experiments.contains("non-nullable")) {
-      normal += "NNBD";
-      cross += "NNBD";
-    }
-
     var outDir = system.outputDirectory;
     var normalDir = Directory(Path('$outDir$normal').toNativePath());
     var crossDir = Directory(Path('$outDir$cross').toNativePath());
@@ -496,12 +489,11 @@ class Progress {
   static const silent = Progress._('silent');
   static const status = Progress._('status');
   static const buildbot = Progress._('buildbot');
-  static const diff = Progress._('diff');
 
   static final List<String> names = _all.keys.toList();
 
   static final _all = Map<String, Progress>.fromIterable(
-      [compact, color, line, verbose, silent, status, buildbot, diff],
+      [compact, color, line, verbose, silent, status, buildbot],
       key: (progress) => (progress as Progress).name);
 
   static Progress find(String name) {

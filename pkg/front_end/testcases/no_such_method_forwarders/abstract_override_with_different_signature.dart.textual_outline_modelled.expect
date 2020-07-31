@@ -1,0 +1,23 @@
+abstract class HungryCat {
+  bool eatFood(String food, {double amount, double yetAnother});
+}
+
+class Cat {
+  bool eatFood(String food) => true;
+}
+
+class MockCat implements Cat {
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+
+class MockCat2 extends MockCat {
+  noSuchMethod(_);
+}
+
+class MockCat3 extends MockCat2 implements Cat {
+  bool eatFood(String food, {double amount});
+}
+
+class MockCat4 extends MockCat2 implements HungryCat {}
+
+main() {}

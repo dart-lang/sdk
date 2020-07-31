@@ -4,12 +4,15 @@
 
 import 'dart:io' show Directory, File, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
-    show DataInterpreter, StringDataInterpreter, runTests;
+    show DataInterpreter, runTests;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/language_version.dart' as lv;
 import 'package:front_end/src/fasta/messages.dart' show FormattedMessage;
+import 'package:front_end/src/fasta/builder/library_builder.dart';
+import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart'
     show
         CfeDataExtractor,
@@ -19,8 +22,9 @@ import 'package:front_end/src/testing/id_testing_helper.dart'
         createUriForFileName,
         onFailure,
         runTestFor;
+import 'package:front_end/src/testing/id_testing_utils.dart';
 
-import 'package:kernel/ast.dart' show Component, Library;
+import 'package:kernel/ast.dart' show Component, Library, Version;
 
 main(List<String> args) async {
   // Fix default/max major and minor version so we can test it.
@@ -29,7 +33,7 @@ main(List<String> args) async {
       new TestConfigWithLanguageVersion(cfeMarker, "cfe");
 
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-  await runTests<String>(dataDir,
+  await runTests<Features>(dataDir,
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
@@ -70,25 +74,28 @@ class TestConfigWithLanguageVersion extends TestConfig {
   }
 }
 
-class LanguageVersioningDataComputer extends DataComputer<String> {
+class Tags {
+  static const String languageVersion = 'languageVersion';
+  static const String packageUri = 'packageUri';
+  static const String errors = 'errors';
+}
+
+class LanguageVersioningDataComputer extends DataComputer<Features> {
   const LanguageVersioningDataComputer();
 
   Future<void> inspectComponent(Component component) async {
     for (Library library in component.libraries) {
       if (library.importUri.scheme == "dart") continue;
-      lv.LanguageVersionForUri lvFile =
+      Version lvFile =
           await lv.languageVersionForUri(library.fileUri, stashedOptions);
-      lv.LanguageVersionForUri lvImportUri =
+      Version lvImportUri =
           await lv.languageVersionForUri(library.importUri, stashedOptions);
-      if ((lvFile.major != lvImportUri.major ||
-              lvFile.major != library.languageVersionMajor) ||
-          (lvFile.minor != lvImportUri.minor ||
-              lvFile.minor != library.languageVersionMinor)) {
+      if ((lvFile != lvImportUri || lvFile != library.languageVersion)) {
         throw """
 Language version disagreement:
-Library: ${library.languageVersionMajor}.${library.languageVersionMinor}
-Language version API (file URI): ${lvFile.major}.${lvFile.minor}
-Language version API (import URI): ${lvImportUri.major}.${lvImportUri.minor}
+Library: ${library.languageVersion}
+Language version API (file URI): ${lvFile}
+Language version API (import URI): ${lvImportUri}
 """;
       }
     }
@@ -98,7 +105,7 @@ Language version API (import URI): ${lvImportUri.major}.${lvImportUri.minor}
       TestConfig config,
       InternalCompilerResult compilerResult,
       Library library,
-      Map<Id, ActualData<String>> actualMap,
+      Map<Id, ActualData<Features>> actualMap,
       {bool verbose}) {
     new LanguageVersioningDataExtractor(compilerResult, actualMap)
         .computeForLibrary(library);
@@ -107,25 +114,35 @@ Language version API (import URI): ${lvImportUri.major}.${lvImportUri.minor}
   @override
   bool get supportsErrors => true;
 
-  String computeErrorData(TestConfig config, InternalCompilerResult compiler,
+  Features computeErrorData(TestConfig config, InternalCompilerResult compiler,
       Id id, List<FormattedMessage> errors) {
-    return errors.map((m) => m.code.name).join(',');
+    Features features = new Features();
+    features[Tags.errors] = errors.map((m) => m.code.name).join(',');
+    return features;
   }
 
   @override
-  DataInterpreter<String> get dataValidator => const StringDataInterpreter();
+  DataInterpreter<Features> get dataValidator =>
+      const FeaturesDataInterpreter();
 }
 
-class LanguageVersioningDataExtractor extends CfeDataExtractor<String> {
+class LanguageVersioningDataExtractor extends CfeDataExtractor<Features> {
   LanguageVersioningDataExtractor(InternalCompilerResult compilerResult,
-      Map<Id, ActualData<String>> actualMap)
+      Map<Id, ActualData<Features>> actualMap)
       : super(compilerResult, actualMap);
 
   @override
-  String computeLibraryValue(Id id, Library library) {
-    return "languageVersion="
-        "${library.languageVersionMajor}"
-        "."
-        "${library.languageVersionMinor}";
+  Features computeLibraryValue(Id id, Library library) {
+    Features features = new Features();
+    features[Tags.languageVersion] =
+        "${library.languageVersion.major}.${library.languageVersion.minor}";
+    LibraryBuilder libraryBuilder =
+        lookupLibraryBuilder(compilerResult, library);
+    if (libraryBuilder is SourceLibraryBuilder &&
+        libraryBuilder.packageUriForTesting != null) {
+      features[Tags.packageUri] =
+          libraryBuilder.packageUriForTesting.toString();
+    }
+    return features;
   }
 }

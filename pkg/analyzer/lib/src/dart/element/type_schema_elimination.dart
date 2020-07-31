@@ -4,13 +4,13 @@
 
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
-import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:meta/meta.dart';
 
 /// Visitor that computes least and greatest closures of a type schema.
 ///
-/// Each visitor method returns `null` if there are no `?`s contained in the
-/// type, otherwise it returns the result of substituting `?` with [_bottomType]
+/// Each visitor method returns `null` if there are no `_`s contained in the
+/// type, otherwise it returns the result of substituting `_` with [_bottomType]
 /// or [_topType], as appropriate.
 class TypeSchemaEliminationVisitor extends ReplacementVisitor {
   final DartType _topType;
@@ -35,7 +35,7 @@ class TypeSchemaEliminationVisitor extends ReplacementVisitor {
   }
 
   /// Runs an instance of the visitor on the given [schema] and returns the
-  /// resulting type.  If the schema contains no instances of `?`, the original
+  /// resulting type.  If the schema contains no instances of `_`, the original
   /// schema object is returned to avoid unnecessary allocation.
   static DartType run({
     @required DartType topType,

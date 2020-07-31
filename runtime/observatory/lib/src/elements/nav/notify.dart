@@ -5,19 +5,13 @@
 import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/nav/notify_event.dart';
 import 'package:observatory/src/elements/nav/notify_exception.dart';
 
 class NavNotifyElement extends CustomElement implements Renderable {
-  static const tag = const Tag<NavNotifyElement>('nav-notify',
-      dependencies: const [
-        NavNotifyEventElement.tag,
-        NavNotifyExceptionElement.tag
-      ]);
-
-  RenderingScheduler _r;
+  RenderingScheduler<NavNotifyElement> _r;
 
   Stream<RenderedEvent<NavNotifyElement>> get onRendered => _r.onRendered;
 
@@ -42,7 +36,7 @@ class NavNotifyElement extends CustomElement implements Renderable {
     return e;
   }
 
-  NavNotifyElement.created() : super.created(tag);
+  NavNotifyElement.created() : super.created('nav-notify');
 
   @override
   void attached() {

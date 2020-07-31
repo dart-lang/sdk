@@ -28,7 +28,20 @@ class CompletionRelevanceTest extends AbstractCompletionDriverTest {
     var previous = suggestions[0];
     for (var i = 1; i < length; i++) {
       var current = suggestions[i];
-      expect(current.relevance, lessThan(previous.relevance));
+      if (current.relevance > previous.relevance) {
+        suggestions.sort((first, second) => second.relevance - first.relevance);
+        var buffer = StringBuffer();
+        buffer.writeln('Actual sort order does not match expected order.');
+        buffer.writeln('To accept the actual sort order, use:');
+        buffer.writeln();
+        buffer.writeln('    assertOrder([');
+        for (var suggestion in suggestions) {
+          var completion = suggestion.completion;
+          buffer.writeln("      suggestionWith(completion: '$completion'),");
+        }
+        buffer.writeln('    ]);');
+        fail(buffer.toString());
+      }
       previous = current;
     }
   }

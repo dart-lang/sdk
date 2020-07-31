@@ -95,7 +95,6 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['static element'] = node.staticElement;
       properties['static type'] = node.staticType;
     } else if (node is InstanceCreationExpression) {
-      properties['static element'] = node.staticElement;
       properties['static type'] = node.staticType;
     } else if (node is LibraryDirective) {
       properties['element'] = node.element;

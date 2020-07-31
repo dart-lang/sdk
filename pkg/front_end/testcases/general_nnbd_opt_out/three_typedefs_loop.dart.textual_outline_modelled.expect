@@ -1,0 +1,5 @@
+// @dart = 2.6
+main() {}
+typedef Bar<T> = void Function(Baz<T>);
+typedef Baz<T> = void Function(Foo<T>);
+typedef Foo<T> = void Function(Bar<T>);

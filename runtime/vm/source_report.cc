@@ -92,14 +92,14 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
   if (func.ForceOptimize()) return true;
 
   switch (func.kind()) {
-    case RawFunction::kRegularFunction:
-    case RawFunction::kClosureFunction:
-    case RawFunction::kImplicitClosureFunction:
-    case RawFunction::kImplicitStaticGetter:
-    case RawFunction::kFieldInitializer:
-    case RawFunction::kGetterFunction:
-    case RawFunction::kSetterFunction:
-    case RawFunction::kConstructor:
+    case FunctionLayout::kRegularFunction:
+    case FunctionLayout::kClosureFunction:
+    case FunctionLayout::kImplicitClosureFunction:
+    case FunctionLayout::kImplicitStaticGetter:
+    case FunctionLayout::kFieldInitializer:
+    case FunctionLayout::kGetterFunction:
+    case FunctionLayout::kSetterFunction:
+    case FunctionLayout::kConstructor:
       break;
     default:
       return true;
@@ -215,7 +215,7 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
 
   PcDescriptors::Iterator iter(
       descriptors,
-      RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall);
+      PcDescriptorsLayout::kIcCall | PcDescriptorsLayout::kUnoptStaticCall);
   while (iter.MoveNext()) {
     HANDLESCOPE(thread());
     ASSERT(iter.DeoptId() < ic_data_array->length());
@@ -266,7 +266,7 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
 
   PcDescriptors::Iterator iter(
       descriptors,
-      RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall);
+      PcDescriptorsLayout::kIcCall | PcDescriptorsLayout::kUnoptStaticCall);
   while (iter.MoveNext()) {
     HANDLESCOPE(thread());
     ASSERT(iter.DeoptId() < ic_data_array->length());
@@ -360,8 +360,8 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
     }
   } else {
     const uint8_t kSafepointKind =
-        (RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall |
-         RawPcDescriptors::kRuntimeCall);
+        (PcDescriptorsLayout::kIcCall | PcDescriptorsLayout::kUnoptStaticCall |
+         PcDescriptorsLayout::kRuntimeCall);
 
     const PcDescriptors& descriptors =
         PcDescriptors::Handle(zone(), code.pc_descriptors());
@@ -572,7 +572,7 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
     for (int i = 0; i < functions.Length(); i++) {
       func ^= functions.At(i);
       // Skip getter functions of static const field.
-      if (func.kind() == RawFunction::kImplicitStaticGetter) {
+      if (func.kind() == FunctionLayout::kImplicitStaticGetter) {
         field ^= func.accessor_field();
         if (field.is_const() && field.is_static()) {
           continue;

@@ -10,10 +10,8 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 
-/**
- * Concrete implementation of [AstFactory] based on the standard AST
- * implementation.
- */
+/// Concrete implementation of [AstFactory] based on the standard AST
+/// implementation.
 class AstFactoryImpl extends AstFactory {
   @override
   AdjacentStrings adjacentStrings(List<StringLiteral> strings) =>

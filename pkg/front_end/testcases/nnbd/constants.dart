@@ -38,13 +38,6 @@ const setConcatenationIdentical =
 const mapConcatenationIdentical =
     identical(mapConcatenation, lib.mapConcatenation);
 
-final bool inStrongMode = _inStrongMode();
-
-bool _inStrongMode() {
-  const List<int?> list = const <int?>[];
-  return list is! List<int>;
-}
-
 main() {
   test(objectTypeLiteral, lib.objectTypeLiteral);
   test(partialInstantiation, lib.partialInstantiation);
@@ -73,13 +66,7 @@ main() {
 
 test(expected, actual) {
   print('test($expected, $actual)');
-  if (inStrongMode) {
-    if (identical(expected, actual)) {
-      throw 'Unexpected identical for $expected and $actual';
-    }
-  } else {
-    if (!identical(expected, actual)) {
-      throw 'Expected $expected, actual $actual';
-    }
+  if (!identical(expected, actual)) {
+    throw 'Expected $expected, actual $actual';
   }
 }

@@ -1,0 +1,2 @@
+spec=pkg/compiler/test/member_usage/member_usage_test.dart
+prod=pkg/compiler/test/member_usage/member_usage_test.dart

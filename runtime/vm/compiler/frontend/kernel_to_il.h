@@ -5,7 +5,9 @@
 #ifndef RUNTIME_VM_COMPILER_FRONTEND_KERNEL_TO_IL_H_
 #define RUNTIME_VM_COMPILER_FRONTEND_KERNEL_TO_IL_H_
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
@@ -68,7 +70,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                                  PrologueInfo* prologue_info);
 
   // Return names of optional named parameters of [function].
-  RawArray* GetOptionalParameterNames(const Function& function);
+  ArrayPtr GetOptionalParameterNames(const Function& function);
 
   // Generate fragment which pushes all explicit parameters of [function].
   Fragment PushExplicitParameters(
@@ -122,7 +124,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
       intptr_t argument_count,
       const Array& argument_names,
       intptr_t checked_argument_count,
-      const Function& interface_target,
+      const Function& interface_target = Function::null_function(),
+      const Function& tearoff_interface_target = Function::null_function(),
       const InferredTypeMetadata* result_type = nullptr,
       bool use_unchecked_entry = false,
       const CallSiteAttributesMetadata* call_site_attrs = nullptr,
@@ -133,16 +136,14 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment ThrowException(TokenPosition position);
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadLocal(LocalVariable* variable);
-  Fragment LoadLateField(const Field& field, LocalVariable* instance);
   Fragment StoreLateField(const Field& field,
                           LocalVariable* instance,
                           LocalVariable* setter_value);
-  Fragment InitInstanceField(const Field& field);
-  Fragment InitStaticField(const Field& field);
   Fragment NativeCall(const String* name, const Function* function);
-  Fragment Return(TokenPosition position,
-                  bool omit_result_type_check = false,
-                  intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex);
+  Fragment Return(
+      TokenPosition position,
+      bool omit_result_type_check = false,
+      intptr_t yield_index = PcDescriptorsLayout::kInvalidYieldIndex);
   void SetResultTypeForStaticCall(StaticCallInstr* call,
                                   const Function& target,
                                   intptr_t argument_count,
@@ -161,7 +162,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                       bool use_unchecked_entry = false);
   Fragment StringInterpolateSingle(TokenPosition position);
   Fragment ThrowTypeError();
-  Fragment ThrowNoSuchMethodError();
+  Fragment ThrowNoSuchMethodError(const Function& target);
   Fragment ThrowLateInitializationError(TokenPosition position,
                                         const String& name);
   Fragment BuildImplicitClosureCreation(const Function& target);
@@ -204,12 +205,37 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // semantics of FFI argument translation.
   Fragment FfiConvertArgumentToNative(
       const compiler::ffi::BaseMarshaller& marshaller,
-      intptr_t arg_index);
+      intptr_t arg_index,
+      LocalVariable* api_local_scope);
 
   // Reverse of 'FfiConvertArgumentToNative'.
   Fragment FfiConvertArgumentToDart(
       const compiler::ffi::BaseMarshaller& marshaller,
       intptr_t arg_index);
+
+  // Generates a call to `Thread::EnterApiScope`.
+  Fragment EnterHandleScope();
+
+  // Generates a call to `Thread::api_top_scope`.
+  Fragment GetTopHandleScope();
+
+  // Generates a call to `Thread::ExitApiScope`.
+  Fragment ExitHandleScope();
+
+  // Leaves a `LocalHandle` on the stack.
+  Fragment AllocateHandle(LocalVariable* api_local_scope);
+
+  // Populates the base + offset with a tagged value.
+  Fragment RawStoreField(int32_t offset);
+
+  // Wraps an `Object` from the stack and leaves a `LocalHandle` on the stack.
+  Fragment WrapHandle(LocalVariable* api_local_scope);
+
+  // Unwraps a `LocalHandle` from the stack and leaves the object on the stack.
+  Fragment UnwrapHandle();
+
+  // Wrap the current exception and stacktrace in an unhandled exception.
+  Fragment UnhandledException();
 
   // Return from a native -> Dart callback. Can only be used in conjunction with
   // NativeEntry and NativeParameter are used.
@@ -233,6 +259,16 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                                Fragment* explicit_checks,
                                Fragment* implicit_checks,
                                Fragment* implicit_redefinitions);
+
+  // Returns true if null assertion is needed for
+  // a parameter of given type.
+  bool NeedsNullAssertion(const AbstractType& type);
+
+  // Builds null assertion for the given parameter.
+  Fragment NullAssertion(LocalVariable* variable);
+
+  // Builds null assertions for all parameters (if needed).
+  Fragment BuildNullAssertions();
 
   // Builds flow graph for noSuchMethod forwarder.
   //
@@ -380,6 +416,9 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   CatchBlock* catch_block_;
 
   ActiveClass active_class_;
+
+  // Cached _AssertionError._throwNewNullAssertion.
+  Function* throw_new_null_assertion_ = nullptr;
 
   friend class BreakableBlock;
   friend class CatchBlock;
@@ -669,5 +708,4 @@ class CatchBlock {
 }  // namespace kernel
 }  // namespace dart
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // RUNTIME_VM_COMPILER_FRONTEND_KERNEL_TO_IL_H_

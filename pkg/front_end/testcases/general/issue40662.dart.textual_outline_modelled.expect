@@ -1,0 +1,4 @@
+bar(int a, List<int> b) {}
+expect(expected, actual) {}
+foo(int x) async => bar(x - 1, x != null ? [x + 1, x + 2, await null] : null);
+void main() async => await foo(0);

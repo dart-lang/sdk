@@ -1,0 +1,7 @@
+class A {
+  int c1 = 1;
+  int test() => 2;
+}
+
+main() {}
+errors() {}

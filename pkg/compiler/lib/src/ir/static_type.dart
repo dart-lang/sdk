@@ -742,6 +742,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     assert(
         node.promotedType == null ||
             promotedType == typeEnvironment.nullType ||
+            promotedType is ir.FutureOrType ||
             typeEnvironment.isSubtypeOf(promotedType, node.promotedType,
                 ir.SubtypeCheckMode.ignoringNullabilities),
         "Unexpected promotion of ${node.variable} in ${node.parent}. "
@@ -1034,7 +1035,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     handleNullCheck(node, operandType);
     ir.DartType resultType = operandType == typeEnvironment.nullType
         ? const ir.NeverType(ir.Nullability.nonNullable)
-        : operandType.withNullability(ir.Nullability.nonNullable);
+        : operandType.withDeclaredNullability(ir.Nullability.nonNullable);
     _expressionTypeCache[node] = resultType;
     return resultType;
   }
@@ -1938,7 +1939,13 @@ class TypeMap {
             newTypesOfInterest.add(typeOfInterest);
           }
         }
-        if (newTypesOfInterest.isNotEmpty) {
+        if (newTypesOfInterest.length > 1 ||
+            (newTypesOfInterest.length == 1 &&
+                newTypesOfInterest.single != info.declaredType)) {
+          // If [newTypesOfInterest] only contains the declared type we have no
+          // information about the variable (it is either an instance of its
+          // declared type or null) and the canonical way to represent this is
+          // to have _no_ target info.
           TypeHolder typeHolderIfNonNull =
               new TypeHolder(info.declaredType, newTypesOfInterest, null);
           TypeHolder typeHolderIfNull = new TypeHolder(info.declaredType, null,

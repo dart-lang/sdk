@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /// Note: the VM concatenates all patch files into a single patch file. This
 /// file is the first patch in "dart:typed_data" which contains all the imports
 /// used by patches of that library. We plan to change this when we have a
@@ -87,7 +85,7 @@ abstract class _TypedListBase {
     throw new UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  bool remove(Object element) {
+  bool remove(Object? element) {
     throw new UnsupportedError("Cannot remove from a fixed-length list");
   }
 
@@ -142,9 +140,10 @@ mixin _IntListMixin implements List<int> {
     return -1;
   }
 
-  int lastIndexWhere(bool test(int element), [int start]) {
-    if (start == null || start >= this.length) start = this.length - 1;
-    for (int i = start; i >= 0; i--) {
+  int lastIndexWhere(bool test(int element), [int? start]) {
+    int startIndex =
+        (start == null || start >= this.length) ? this.length - 1 : start;
+    for (int i = startIndex; i >= 0; i--) {
       if (test(this[i])) return i;
     }
     return -1;
@@ -158,7 +157,7 @@ mixin _IntListMixin implements List<int> {
       ..setRange(this.length, totalLength, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (this[i] == element) return true;
@@ -166,7 +165,7 @@ mixin _IntListMixin implements List<int> {
     return false;
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random? random]) {
     random ??= new Random();
     var i = this.length;
     while (i > 1) {
@@ -194,9 +193,9 @@ mixin _IntListMixin implements List<int> {
 
   Map<int, int> asMap() => new ListMapView<int>(this);
 
-  Iterable<int> getRange(int start, [int end]) {
-    RangeError.checkValidRange(start, end, this.length);
-    return new SubListIterable<int>(this, start, end);
+  Iterable<int> getRange(int start, [int? end]) {
+    int endIndex = RangeError.checkValidRange(start, end, this.length);
+    return new SubListIterable<int>(this, start, endIndex);
   }
 
   Iterator<int> get iterator => new _TypedListIterator<int>(this);
@@ -255,7 +254,7 @@ mixin _IntListMixin implements List<int> {
     return false;
   }
 
-  int firstWhere(bool test(int element), {int orElse()}) {
+  int firstWhere(bool test(int element), {int orElse()?}) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       var element = this[i];
@@ -265,7 +264,7 @@ mixin _IntListMixin implements List<int> {
     throw IterableElementError.noElement();
   }
 
-  int lastWhere(bool test(int element), {int orElse()}) {
+  int lastWhere(bool test(int element), {int orElse()?}) {
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -277,7 +276,7 @@ mixin _IntListMixin implements List<int> {
     throw IterableElementError.noElement();
   }
 
-  int singleWhere(bool test(int element), {int orElse()}) {
+  int singleWhere(bool test(int element), {int orElse()?}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -316,7 +315,7 @@ mixin _IntListMixin implements List<int> {
     throw new UnsupportedError("Cannot insert into a fixed-length list");
   }
 
-  void sort([int compare(int a, int b)]) {
+  void sort([int compare(int a, int b)?]) {
     Sort.sort(this, compare ?? Comparable.compare);
   }
 
@@ -332,13 +331,10 @@ mixin _IntListMixin implements List<int> {
     return -1;
   }
 
-  int lastIndexOf(int element, [int start = null]) {
-    if (start == null || start >= this.length) {
-      start = this.length - 1;
-    } else if (start < 0) {
-      return -1;
-    }
-    for (int i = start; i >= 0; i--) {
+  int lastIndexOf(int element, [int? start]) {
+    int startIndex =
+        (start == null || start >= this.length) ? this.length - 1 : start;
+    for (int i = startIndex; i >= 0; i--) {
       if (this[i] == element) return i;
     }
     return -1;
@@ -381,8 +377,12 @@ mixin _IntListMixin implements List<int> {
     setRange(index, end, iterable);
   }
 
-  void fillRange(int start, int end, [int fillValue]) {
+  void fillRange(int start, int end, [int? fillValue]) {
     RangeError.checkValidRange(start, end, this.length);
+    if (start == end) return;
+    if (fillValue == null) {
+      throw ArgumentError.notNull("fillValue");
+    }
     for (var i = start; i < end; ++i) {
       this[i] = fillValue;
     }
@@ -458,9 +458,9 @@ mixin _TypedIntListMixin<SpawnedType extends List<int>> on _IntListMixin
     Lists.copy(otherList, otherStart, this, start, count);
   }
 
-  SpawnedType sublist(int start, [int end]) {
-    end = RangeError.checkValidRange(start, end, this.length);
-    var length = end - start;
+  SpawnedType sublist(int start, [int? end]) {
+    int endIndex = RangeError.checkValidRange(start, end, this.length);
+    var length = endIndex - start;
     SpawnedType result = _createList(length);
     result.setRange(0, length, this, start);
     return result;
@@ -496,9 +496,10 @@ mixin _DoubleListMixin implements List<double> {
     return -1;
   }
 
-  int lastIndexWhere(bool test(double element), [int start]) {
-    if (start == null || start >= this.length) start = this.length - 1;
-    for (int i = start; i >= 0; i--) {
+  int lastIndexWhere(bool test(double element), [int? start]) {
+    int startIndex =
+        (start == null || start >= this.length) ? this.length - 1 : start;
+    for (int i = startIndex; i >= 0; i--) {
       if (test(this[i])) return i;
     }
     return -1;
@@ -512,7 +513,7 @@ mixin _DoubleListMixin implements List<double> {
       ..setRange(this.length, totalLength, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (this[i] == element) return true;
@@ -520,7 +521,7 @@ mixin _DoubleListMixin implements List<double> {
     return false;
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random? random]) {
     random ??= new Random();
     var i = this.length;
     while (i > 1) {
@@ -549,9 +550,9 @@ mixin _DoubleListMixin implements List<double> {
 
   Map<int, double> asMap() => new ListMapView<double>(this);
 
-  Iterable<double> getRange(int start, [int end]) {
-    RangeError.checkValidRange(start, end, this.length);
-    return new SubListIterable<double>(this, start, end);
+  Iterable<double> getRange(int start, [int? end]) {
+    int endIndex = RangeError.checkValidRange(start, end, this.length);
+    return new SubListIterable<double>(this, start, endIndex);
   }
 
   Iterator<double> get iterator => new _TypedListIterator<double>(this);
@@ -611,7 +612,7 @@ mixin _DoubleListMixin implements List<double> {
     return false;
   }
 
-  double firstWhere(bool test(double element), {double orElse()}) {
+  double firstWhere(bool test(double element), {double orElse()?}) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       var element = this[i];
@@ -621,7 +622,7 @@ mixin _DoubleListMixin implements List<double> {
     throw IterableElementError.noElement();
   }
 
-  double lastWhere(bool test(double element), {double orElse()}) {
+  double lastWhere(bool test(double element), {double orElse()?}) {
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -633,7 +634,7 @@ mixin _DoubleListMixin implements List<double> {
     throw IterableElementError.noElement();
   }
 
-  double singleWhere(bool test(double element), {double orElse()}) {
+  double singleWhere(bool test(double element), {double orElse()?}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -672,7 +673,7 @@ mixin _DoubleListMixin implements List<double> {
     throw new UnsupportedError("Cannot insert into a fixed-length list");
   }
 
-  void sort([int compare(double a, double b)]) {
+  void sort([int compare(double a, double b)?]) {
     Sort.sort(this, compare ?? Comparable.compare);
   }
 
@@ -688,13 +689,10 @@ mixin _DoubleListMixin implements List<double> {
     return -1;
   }
 
-  int lastIndexOf(double element, [int start = null]) {
-    if (start == null || start >= this.length) {
-      start = this.length - 1;
-    } else if (start < 0) {
-      return -1;
-    }
-    for (int i = start; i >= 0; i--) {
+  int lastIndexOf(double element, [int? start]) {
+    int startIndex =
+        (start == null || start >= this.length) ? this.length - 1 : start;
+    for (int i = startIndex; i >= 0; i--) {
       if (this[i] == element) return i;
     }
     return -1;
@@ -737,8 +735,13 @@ mixin _DoubleListMixin implements List<double> {
     setRange(index, end, iterable);
   }
 
-  void fillRange(int start, int end, [double fillValue]) {
+  void fillRange(int start, int end, [double? fillValue]) {
+    // TODO(eernst): Could use zero as default and not throw; issue .
     RangeError.checkValidRange(start, end, this.length);
+    if (start == end) return;
+    if (fillValue == null) {
+      throw ArgumentError.notNull("fillValue");
+    }
     for (var i = start; i < end; ++i) {
       this[i] = fillValue;
     }
@@ -815,9 +818,9 @@ mixin _TypedDoubleListMixin<SpawnedType extends List<double>>
     Lists.copy(otherList, otherStart, this, start, count);
   }
 
-  SpawnedType sublist(int start, [int end]) {
-    end = RangeError.checkValidRange(start, end, this.length);
-    var length = end - start;
+  SpawnedType sublist(int start, [int? end]) {
+    int endIndex = RangeError.checkValidRange(start, end, this.length);
+    var length = endIndex - start;
     SpawnedType result = _createList(length);
     result.setRange(0, length, this, start);
     return result;
@@ -855,9 +858,10 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
     return -1;
   }
 
-  int lastIndexWhere(bool test(Float32x4 element), [int start]) {
-    if (start == null || start >= this.length) start = this.length - 1;
-    for (int i = start; i >= 0; i--) {
+  int lastIndexWhere(bool test(Float32x4 element), [int? start]) {
+    int startIndex =
+        (start == null || start >= this.length) ? this.length - 1 : start;
+    for (int i = startIndex; i >= 0; i--) {
       if (test(this[i])) return i;
     }
     return -1;
@@ -871,7 +875,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
       ..setRange(this.length, totalLength, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (this[i] == element) return true;
@@ -879,7 +883,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
     return false;
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random? random]) {
     random ??= new Random();
     var i = this.length;
     while (i > 1) {
@@ -975,9 +979,9 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
 
   Map<int, Float32x4> asMap() => new ListMapView<Float32x4>(this);
 
-  Iterable<Float32x4> getRange(int start, [int end]) {
-    RangeError.checkValidRange(start, end, this.length);
-    return new SubListIterable<Float32x4>(this, start, end);
+  Iterable<Float32x4> getRange(int start, [int? end]) {
+    int endIndex = RangeError.checkValidRange(start, end, this.length);
+    return new SubListIterable<Float32x4>(this, start, endIndex);
   }
 
   Iterator<Float32x4> get iterator => new _TypedListIterator<Float32x4>(this);
@@ -1037,7 +1041,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
     return false;
   }
 
-  Float32x4 firstWhere(bool test(Float32x4 element), {Float32x4 orElse()}) {
+  Float32x4 firstWhere(bool test(Float32x4 element), {Float32x4 orElse()?}) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       var element = this[i];
@@ -1047,7 +1051,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
     throw IterableElementError.noElement();
   }
 
-  Float32x4 lastWhere(bool test(Float32x4 element), {Float32x4 orElse()}) {
+  Float32x4 lastWhere(bool test(Float32x4 element), {Float32x4 orElse()?}) {
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -1059,7 +1063,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
     throw IterableElementError.noElement();
   }
 
-  Float32x4 singleWhere(bool test(Float32x4 element), {Float32x4 orElse()}) {
+  Float32x4 singleWhere(bool test(Float32x4 element), {Float32x4 orElse()?}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -1098,7 +1102,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
     throw new UnsupportedError("Cannot insert into a fixed-length list");
   }
 
-  void sort([int compare(Float32x4 a, Float32x4 b)]) {
+  void sort([int compare(Float32x4 a, Float32x4 b)?]) {
     if (compare == null) {
       throw "SIMD don't have default compare.";
     }
@@ -1117,13 +1121,10 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
     return -1;
   }
 
-  int lastIndexOf(Float32x4 element, [int start = null]) {
-    if (start == null || start >= this.length) {
-      start = this.length - 1;
-    } else if (start < 0) {
-      return -1;
-    }
-    for (int i = start; i >= 0; i--) {
+  int lastIndexOf(Float32x4 element, [int? start]) {
+    int startIndex =
+        (start == null || start >= this.length) ? this.length - 1 : start;
+    for (int i = startIndex; i >= 0; i--) {
       if (this[i] == element) return i;
     }
     return -1;
@@ -1161,9 +1162,9 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
     throw IterableElementError.tooMany();
   }
 
-  Float32x4List sublist(int start, [int end]) {
-    end = RangeError.checkValidRange(start, end, this.length);
-    var length = end - start;
+  Float32x4List sublist(int start, [int? end]) {
+    int endIndex = RangeError.checkValidRange(start, end, this.length);
+    var length = endIndex - start;
     Float32x4List result = _createList(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1174,8 +1175,12 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
     setRange(index, end, iterable);
   }
 
-  void fillRange(int start, int end, [Float32x4 fillValue]) {
+  void fillRange(int start, int end, [Float32x4? fillValue]) {
     RangeError.checkValidRange(start, end, this.length);
+    if (start == end) return;
+    if (fillValue == null) {
+      throw ArgumentError.notNull("fillValue");
+    }
     for (var i = start; i < end; ++i) {
       this[i] = fillValue;
     }
@@ -1213,9 +1218,10 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
     return -1;
   }
 
-  int lastIndexWhere(bool test(Int32x4 element), [int start]) {
-    if (start == null || start >= this.length) start = this.length - 1;
-    for (int i = start; i >= 0; i--) {
+  int lastIndexWhere(bool test(Int32x4 element), [int? start]) {
+    int startIndex =
+        (start == null || start >= this.length) ? this.length - 1 : start;
+    for (int i = startIndex; i >= 0; i--) {
       if (test(this[i])) return i;
     }
     return -1;
@@ -1229,7 +1235,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
       ..setRange(this.length, totalLength, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (this[i] == element) return true;
@@ -1237,7 +1243,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
     return false;
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random? random]) {
     random ??= new Random();
     var i = this.length;
     while (i > 1) {
@@ -1332,9 +1338,9 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
 
   Map<int, Int32x4> asMap() => new ListMapView<Int32x4>(this);
 
-  Iterable<Int32x4> getRange(int start, [int end]) {
-    RangeError.checkValidRange(start, end, this.length);
-    return new SubListIterable<Int32x4>(this, start, end);
+  Iterable<Int32x4> getRange(int start, [int? end]) {
+    int endIndex = RangeError.checkValidRange(start, end, this.length);
+    return new SubListIterable<Int32x4>(this, start, endIndex);
   }
 
   Iterator<Int32x4> get iterator => new _TypedListIterator<Int32x4>(this);
@@ -1394,7 +1400,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
     return false;
   }
 
-  Int32x4 firstWhere(bool test(Int32x4 element), {Int32x4 orElse()}) {
+  Int32x4 firstWhere(bool test(Int32x4 element), {Int32x4 orElse()?}) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       var element = this[i];
@@ -1404,7 +1410,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
     throw IterableElementError.noElement();
   }
 
-  Int32x4 lastWhere(bool test(Int32x4 element), {Int32x4 orElse()}) {
+  Int32x4 lastWhere(bool test(Int32x4 element), {Int32x4 orElse()?}) {
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -1416,7 +1422,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
     throw IterableElementError.noElement();
   }
 
-  Int32x4 singleWhere(bool test(Int32x4 element), {Int32x4 orElse()}) {
+  Int32x4 singleWhere(bool test(Int32x4 element), {Int32x4 orElse()?}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -1455,7 +1461,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
     throw new UnsupportedError("Cannot insert into a fixed-length list");
   }
 
-  void sort([int compare(Int32x4 a, Int32x4 b)]) {
+  void sort([int compare(Int32x4 a, Int32x4 b)?]) {
     if (compare == null) {
       throw "SIMD don't have default compare.";
     }
@@ -1474,13 +1480,10 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
     return -1;
   }
 
-  int lastIndexOf(Int32x4 element, [int start = null]) {
-    if (start == null || start >= this.length) {
-      start = this.length - 1;
-    } else if (start < 0) {
-      return -1;
-    }
-    for (int i = start; i >= 0; i--) {
+  int lastIndexOf(Int32x4 element, [int? start]) {
+    int startIndex =
+        (start == null || start >= this.length) ? this.length - 1 : start;
+    for (int i = startIndex; i >= 0; i--) {
       if (this[i] == element) return i;
     }
     return -1;
@@ -1518,9 +1521,9 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
     throw IterableElementError.tooMany();
   }
 
-  Int32x4List sublist(int start, [int end]) {
-    end = RangeError.checkValidRange(start, end, this.length);
-    var length = end - start;
+  Int32x4List sublist(int start, [int? end]) {
+    int endIndex = RangeError.checkValidRange(start, end, this.length);
+    var length = endIndex - start;
     Int32x4List result = _createList(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1531,8 +1534,12 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
     setRange(index, end, iterable);
   }
 
-  void fillRange(int start, int end, [Int32x4 fillValue]) {
+  void fillRange(int start, int end, [Int32x4? fillValue]) {
     RangeError.checkValidRange(start, end, this.length);
+    if (start == end) return;
+    if (fillValue == null) {
+      throw ArgumentError.notNull("fillValue");
+    }
     for (var i = start; i < end; ++i) {
       this[i] = fillValue;
     }
@@ -1570,9 +1577,10 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
     return -1;
   }
 
-  int lastIndexWhere(bool test(Float64x2 element), [int start]) {
-    if (start == null || start >= this.length) start = this.length - 1;
-    for (int i = start; i >= 0; i--) {
+  int lastIndexWhere(bool test(Float64x2 element), [int? start]) {
+    int startIndex =
+        (start == null || start >= this.length) ? this.length - 1 : start;
+    for (int i = startIndex; i >= 0; i--) {
       if (test(this[i])) return i;
     }
     return -1;
@@ -1586,7 +1594,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
       ..setRange(this.length, totalLength, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (this[i] == element) return true;
@@ -1594,7 +1602,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
     return false;
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random? random]) {
     random ??= new Random();
     var i = this.length;
     while (i > 1) {
@@ -1690,9 +1698,9 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
 
   Map<int, Float64x2> asMap() => new ListMapView<Float64x2>(this);
 
-  Iterable<Float64x2> getRange(int start, [int end]) {
-    RangeError.checkValidRange(start, end, this.length);
-    return new SubListIterable<Float64x2>(this, start, end);
+  Iterable<Float64x2> getRange(int start, [int? end]) {
+    int endIndex = RangeError.checkValidRange(start, end, this.length);
+    return new SubListIterable<Float64x2>(this, start, endIndex);
   }
 
   Iterator<Float64x2> get iterator => new _TypedListIterator<Float64x2>(this);
@@ -1752,7 +1760,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
     return false;
   }
 
-  Float64x2 firstWhere(bool test(Float64x2 element), {Float64x2 orElse()}) {
+  Float64x2 firstWhere(bool test(Float64x2 element), {Float64x2 orElse()?}) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       var element = this[i];
@@ -1762,7 +1770,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
     throw IterableElementError.noElement();
   }
 
-  Float64x2 lastWhere(bool test(Float64x2 element), {Float64x2 orElse()}) {
+  Float64x2 lastWhere(bool test(Float64x2 element), {Float64x2 orElse()?}) {
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -1774,7 +1782,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
     throw IterableElementError.noElement();
   }
 
-  Float64x2 singleWhere(bool test(Float64x2 element), {Float64x2 orElse()}) {
+  Float64x2 singleWhere(bool test(Float64x2 element), {Float64x2 orElse()?}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -1813,7 +1821,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
     throw new UnsupportedError("Cannot insert into a fixed-length list");
   }
 
-  void sort([int compare(Float64x2 a, Float64x2 b)]) {
+  void sort([int compare(Float64x2 a, Float64x2 b)?]) {
     if (compare == null) {
       throw "SIMD don't have default compare.";
     }
@@ -1832,13 +1840,10 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
     return -1;
   }
 
-  int lastIndexOf(Float64x2 element, [int start = null]) {
-    if (start == null || start >= this.length) {
-      start = this.length - 1;
-    } else if (start < 0) {
-      return -1;
-    }
-    for (int i = start; i >= 0; i--) {
+  int lastIndexOf(Float64x2 element, [int? start]) {
+    int startIndex =
+        (start == null || start >= this.length) ? this.length - 1 : start;
+    for (int i = startIndex; i >= 0; i--) {
       if (this[i] == element) return i;
     }
     return -1;
@@ -1876,9 +1881,9 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
     throw IterableElementError.tooMany();
   }
 
-  Float64x2List sublist(int start, [int end]) {
-    end = RangeError.checkValidRange(start, end, this.length);
-    var length = end - start;
+  Float64x2List sublist(int start, [int? end]) {
+    int endIndex = RangeError.checkValidRange(start, end, this.length);
+    var length = endIndex - start;
     Float64x2List result = _createList(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1889,8 +1894,12 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
     setRange(index, end, iterable);
   }
 
-  void fillRange(int start, int end, [Float64x2 fillValue]) {
+  void fillRange(int start, int end, [Float64x2? fillValue]) {
     RangeError.checkValidRange(start, end, this.length);
+    if (start == end) return;
+    if (fillValue == null) {
+      throw ArgumentError.notNull("fillValue");
+    }
     for (var i = start; i < end; ++i) {
       this[i] = fillValue;
     }
@@ -1912,20 +1921,20 @@ class _ByteBuffer implements ByteBuffer {
   bool operator ==(Object other) =>
       (other is _ByteBuffer) && identical(_data, other._data);
 
-  ByteData asByteData([int offsetInBytes = 0, int length]) {
+  ByteData asByteData([int offsetInBytes = 0, int? length]) {
     length ??= this.lengthInBytes - offsetInBytes;
     _rangeCheck(this._data.lengthInBytes, offsetInBytes, length);
     return new _ByteDataView._(this._data, offsetInBytes, length);
   }
 
-  Int8List asInt8List([int offsetInBytes = 0, int length]) {
+  Int8List asInt8List([int offsetInBytes = 0, int? length]) {
     length ??= (this.lengthInBytes - offsetInBytes) ~/ Int8List.bytesPerElement;
     _rangeCheck(
         this.lengthInBytes, offsetInBytes, length * Int8List.bytesPerElement);
     return new _Int8ArrayView._(this._data, offsetInBytes, length);
   }
 
-  Uint8List asUint8List([int offsetInBytes = 0, int length]) {
+  Uint8List asUint8List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Uint8List.bytesPerElement;
     _rangeCheck(
@@ -1933,7 +1942,7 @@ class _ByteBuffer implements ByteBuffer {
     return new _Uint8ArrayView._(this._data, offsetInBytes, length);
   }
 
-  Uint8ClampedList asUint8ClampedList([int offsetInBytes = 0, int length]) {
+  Uint8ClampedList asUint8ClampedList([int offsetInBytes = 0, int? length]) {
     length ??= (this.lengthInBytes - offsetInBytes) ~/
         Uint8ClampedList.bytesPerElement;
     _rangeCheck(this.lengthInBytes, offsetInBytes,
@@ -1941,7 +1950,7 @@ class _ByteBuffer implements ByteBuffer {
     return new _Uint8ClampedArrayView._(this._data, offsetInBytes, length);
   }
 
-  Int16List asInt16List([int offsetInBytes = 0, int length]) {
+  Int16List asInt16List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Int16List.bytesPerElement;
     _rangeCheck(
@@ -1950,7 +1959,7 @@ class _ByteBuffer implements ByteBuffer {
     return new _Int16ArrayView._(this._data, offsetInBytes, length);
   }
 
-  Uint16List asUint16List([int offsetInBytes = 0, int length]) {
+  Uint16List asUint16List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Uint16List.bytesPerElement;
     _rangeCheck(
@@ -1959,7 +1968,7 @@ class _ByteBuffer implements ByteBuffer {
     return new _Uint16ArrayView._(this._data, offsetInBytes, length);
   }
 
-  Int32List asInt32List([int offsetInBytes = 0, int length]) {
+  Int32List asInt32List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Int32List.bytesPerElement;
     _rangeCheck(
@@ -1968,7 +1977,7 @@ class _ByteBuffer implements ByteBuffer {
     return new _Int32ArrayView._(this._data, offsetInBytes, length);
   }
 
-  Uint32List asUint32List([int offsetInBytes = 0, int length]) {
+  Uint32List asUint32List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Uint32List.bytesPerElement;
     _rangeCheck(
@@ -1977,7 +1986,7 @@ class _ByteBuffer implements ByteBuffer {
     return new _Uint32ArrayView._(this._data, offsetInBytes, length);
   }
 
-  Int64List asInt64List([int offsetInBytes = 0, int length]) {
+  Int64List asInt64List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Int64List.bytesPerElement;
     _rangeCheck(
@@ -1986,7 +1995,7 @@ class _ByteBuffer implements ByteBuffer {
     return new _Int64ArrayView._(this._data, offsetInBytes, length);
   }
 
-  Uint64List asUint64List([int offsetInBytes = 0, int length]) {
+  Uint64List asUint64List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Uint64List.bytesPerElement;
     _rangeCheck(
@@ -1995,7 +2004,7 @@ class _ByteBuffer implements ByteBuffer {
     return new _Uint64ArrayView._(this._data, offsetInBytes, length);
   }
 
-  Float32List asFloat32List([int offsetInBytes = 0, int length]) {
+  Float32List asFloat32List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Float32List.bytesPerElement;
     _rangeCheck(this.lengthInBytes, offsetInBytes,
@@ -2004,7 +2013,7 @@ class _ByteBuffer implements ByteBuffer {
     return new _Float32ArrayView._(this._data, offsetInBytes, length);
   }
 
-  Float64List asFloat64List([int offsetInBytes = 0, int length]) {
+  Float64List asFloat64List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Float64List.bytesPerElement;
     _rangeCheck(this.lengthInBytes, offsetInBytes,
@@ -2013,7 +2022,7 @@ class _ByteBuffer implements ByteBuffer {
     return new _Float64ArrayView._(this._data, offsetInBytes, length);
   }
 
-  Float32x4List asFloat32x4List([int offsetInBytes = 0, int length]) {
+  Float32x4List asFloat32x4List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Float32x4List.bytesPerElement;
     _rangeCheck(this.lengthInBytes, offsetInBytes,
@@ -2022,7 +2031,7 @@ class _ByteBuffer implements ByteBuffer {
     return new _Float32x4ArrayView._(this._data, offsetInBytes, length);
   }
 
-  Int32x4List asInt32x4List([int offsetInBytes = 0, int length]) {
+  Int32x4List asInt32x4List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Int32x4List.bytesPerElement;
     _rangeCheck(this.lengthInBytes, offsetInBytes,
@@ -2031,7 +2040,7 @@ class _ByteBuffer implements ByteBuffer {
     return new _Int32x4ArrayView._(this._data, offsetInBytes, length);
   }
 
-  Float64x2List asFloat64x2List([int offsetInBytes = 0, int length]) {
+  Float64x2List asFloat64x2List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Float64x2List.bytesPerElement;
     _rangeCheck(this.lengthInBytes, offsetInBytes,
@@ -2314,7 +2323,8 @@ class _Int16List extends _TypedList
     _setIndexedInt16(index, _toInt16(value));
   }
 
-  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
+  void setRange(int start, int end, Iterable<int> iterable,
+      [int skipCount = 0]) {
     if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
@@ -2381,7 +2391,8 @@ class _Uint16List extends _TypedList
     _setIndexedUint16(index, _toUint16(value));
   }
 
-  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
+  void setRange(int start, int end, Iterable<int> iterable,
+      [int skipCount = 0]) {
     if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
@@ -3829,9 +3840,9 @@ class _TypedListIterator<E> implements Iterator<E> {
   final List<E> _array;
   final int _length;
   int _position;
-  E _current;
+  E? _current;
 
-  _TypedListIterator(List array)
+  _TypedListIterator(List<E> array)
       : _array = array,
         _length = array.length,
         _position = -1 {
@@ -3850,7 +3861,10 @@ class _TypedListIterator<E> implements Iterator<E> {
     return false;
   }
 
-  E get current => _current;
+  E get current {
+    final cur = _current;
+    return (cur != null) ? cur : cur as E;
+  }
 }
 
 abstract class _TypedListView extends _TypedListBase implements TypedData {
@@ -4022,7 +4036,8 @@ class _Int16ArrayView extends _TypedListView
         offsetInBytes + (index * Int16List.bytesPerElement), _toInt16(value));
   }
 
-  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
+  void setRange(int start, int end, Iterable<int> iterable,
+      [int skipCount = 0]) {
     if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
@@ -4073,7 +4088,8 @@ class _Uint16ArrayView extends _TypedListView
         offsetInBytes + (index * Uint16List.bytesPerElement), _toUint16(value));
   }
 
-  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
+  void setRange(int start, int end, Iterable<int> iterable,
+      [int skipCount = 0]) {
     if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;

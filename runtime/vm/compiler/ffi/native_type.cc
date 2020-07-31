@@ -6,9 +6,12 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "vm/compiler/backend/locations.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/object.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/backend/locations.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -100,8 +103,9 @@ intptr_t NativeFundamentalType::AlignmentInBytesStack() const {
     case kAlignedToValueSize:
       // iOS on arm64 only aligns to size.
       return SizeInBytes();
+    default:
+      UNREACHABLE();
   }
-  UNREACHABLE();
 }
 
 intptr_t NativeFundamentalType::AlignmentInBytesField() const {
@@ -117,10 +121,12 @@ intptr_t NativeFundamentalType::AlignmentInBytesField() const {
       }
       return SizeInBytes();
     }
+    default:
+      UNREACHABLE();
   }
-  UNREACHABLE();
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 bool NativeFundamentalType::IsExpressibleAsRepresentation() const {
   switch (representation_) {
     case kInt8:
@@ -163,6 +169,7 @@ Representation NativeFundamentalType::AsRepresentation() const {
       UNREACHABLE();
   }
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 bool NativeFundamentalType::Equals(const NativeType& other) const {
   if (!other.IsFundamental()) {
@@ -226,6 +233,10 @@ static FundamentalType TypeRepresentation(classid_t class_id) {
       return compiler::target::kWordSize == 4 ? kUint32 : kInt64;
     case kFfiVoidCid:
       return kVoid;
+    case kFfiHandleCid:
+      // We never expose this pointer as a Dart int, so no need to make it
+      // unsigned on 32 bit architectures.
+      return compiler::target::kWordSize == 4 ? kInt32 : kInt64;
     default:
       UNREACHABLE();
   }
@@ -242,6 +253,7 @@ NativeType& NativeType::FromAbstractType(const AbstractType& type, Zone* zone) {
   return NativeType::FromTypedDataClassId(type.type_class_id(), zone);
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 static FundamentalType fundamental_rep(Representation rep) {
   switch (rep) {
     case kUnboxedDouble:
@@ -264,6 +276,7 @@ NativeFundamentalType& NativeType::FromUnboxedRepresentation(Representation rep,
                                                              Zone* zone) {
   return *new (zone) NativeFundamentalType(fundamental_rep(rep));
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 const char* NativeType::ToCString() const {
   char buffer[1024];

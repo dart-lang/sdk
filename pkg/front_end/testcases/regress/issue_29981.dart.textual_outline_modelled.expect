@@ -1,0 +1,5 @@
+class C<T> {
+  C<String, String> field;
+}
+
+main() {}

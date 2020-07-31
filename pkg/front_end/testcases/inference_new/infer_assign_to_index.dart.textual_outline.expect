@@ -1,0 +1,5 @@
+library test;
+
+List<double> a = <double>[];
+var b = (a[0] = 1.0);
+main() {}

@@ -295,7 +295,9 @@ String _getReturnsAnnotation(ir.Constant constant) {
 String _getJsInteropName(ir.Constant constant) {
   if (constant is ir.InstanceConstant &&
       constant.classNode.name == 'JS' &&
-      constant.classNode.enclosingLibrary.importUri == Uris.package_js) {
+      (constant.classNode.enclosingLibrary.importUri == Uris.package_js ||
+          constant.classNode.enclosingLibrary.importUri ==
+              Uris.dart__js_annotations)) {
     assert(constant.fieldValues.length == 1);
     ir.Constant fieldValue = constant.fieldValues.values.single;
     if (fieldValue is ir.NullConstant) {
@@ -310,7 +312,9 @@ String _getJsInteropName(ir.Constant constant) {
 bool _isAnonymousJsInterop(ir.Constant constant) {
   return constant is ir.InstanceConstant &&
       constant.classNode.name == '_Anonymous' &&
-      constant.classNode.enclosingLibrary.importUri == Uris.package_js;
+      (constant.classNode.enclosingLibrary.importUri == Uris.package_js ||
+          constant.classNode.enclosingLibrary.importUri ==
+              Uris.dart__js_annotations);
 }
 
 class PragmaAnnotationData {

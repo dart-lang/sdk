@@ -1,0 +1,13 @@
+bool _inStrongMode() {}
+
+class Class {
+  Class get next => this;
+  int field = 0;
+  int operator [](int key) => key;
+  void operator []=(int key, int value) {}
+}
+
+final bool inStrongMode = _inStrongMode();
+main() {}
+test(Class? c) {}
+void throwsInStrong(void Function() f) {}

@@ -1,0 +1,5 @@
+library test;
+
+main() {}
+void _mergeSort<T>(
+    T Function(T) list, int compare(T a, T b), T Function(T) target) {}

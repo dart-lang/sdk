@@ -1,0 +1,20 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/regress_null_aware.dart:7:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.6
+// ^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::Map<core::String, core::Set<core::String>> map;
+  synthetic constructor •() → self::Class
+    ;
+  method method(core::String node, core::Set<core::String> set) → core::List<core::String>
+    ;
+}
+static method main(dynamic args) → dynamic
+  ;

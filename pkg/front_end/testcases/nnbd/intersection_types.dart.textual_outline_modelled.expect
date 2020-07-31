@@ -1,0 +1,12 @@
+class A {}
+
+class B extends A {}
+
+class C extends B {}
+
+class Foo<T extends A?> {
+  doPromotionsToNonNullable(T t) {}
+  doPromotionsToNullable(T t) {}
+}
+
+main() {}

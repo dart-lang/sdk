@@ -3,4 +3,4 @@
 name: sdk_library_metadata
 publish_to: none
 environment:
-  sdk: '>=2.0.0 <3.0.0'
+  sdk: '>=2.9.0-1 <3.0.0'

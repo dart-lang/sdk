@@ -1,0 +1,5 @@
+// @dart = 2.6
+main() {}
+nullAwareListSpread(List<String> list) {}
+nullAwareMapSpread(Map<int, String> map) {}
+nullAwareSetSpread(Set<String> set) {}

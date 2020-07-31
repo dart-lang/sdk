@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart._vmservice;
 
 class RunningIsolate implements MessageRouter {
@@ -52,7 +50,7 @@ class RunningIsolate implements MessageRouter {
     }
   }
 
-  bool _shouldResume(VMService service, Client client, int pauseType) {
+  bool _shouldResume(VMService service, Client? client, int pauseType) {
     if (client != null) {
       // Mark the approval by the client.
       _resumeApprovalsByName.add(client.name);
@@ -107,7 +105,7 @@ class RunningIsolate implements MessageRouter {
     var pauseType;
     try {
       pauseType = await _isolatePauseType(service, message.params['isolateId']);
-    } catch (errorResponse) {
+    } on Response catch (errorResponse) {
       return errorResponse;
     }
     if (pauseType == kInvalidPauseEvent ||

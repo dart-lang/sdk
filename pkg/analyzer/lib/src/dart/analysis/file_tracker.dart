@@ -11,76 +11,54 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 /// `null` if multiple files were added, changed, or removed.
 typedef FileTrackerChangeHook = void Function(String path);
 
-/**
- * Maintains the file system state needed by the analysis driver, as well as
- * information about files that have changed and the impact of those changes.
- *
- * Three related sets of files are tracked: "added files" is the set of files
- * for which the client would like analysis.  "changed files" is the set of
- * files which is known to have changed, but for which we have not yet measured
- * the impact of the change.  "pending files" is the subset of "added files"
- * which might have been impacted by a change, and thus need analysis.
- *
- * Provides methods for updating the file system state in response to changes.
- */
+/// Maintains the file system state needed by the analysis driver, as well as
+/// information about files that have changed and the impact of those changes.
+///
+/// Three related sets of files are tracked: "added files" is the set of files
+/// for which the client would like analysis.  "changed files" is the set of
+/// files which is known to have changed, but for which we have not yet measured
+/// the impact of the change.  "pending files" is the subset of "added files"
+/// which might have been impacted by a change, and thus need analysis.
+///
+/// Provides methods for updating the file system state in response to changes.
 class FileTracker {
-  /**
-   * Callback invoked whenever a change occurs that may require the client to
-   * perform analysis.
-   */
+  /// Callback invoked whenever a change occurs that may require the client to
+  /// perform analysis.
   final FileTrackerChangeHook _changeHook;
 
-  /**
-   * The logger to write performed operations and performance to.
-   */
+  /// The logger to write performed operations and performance to.
   final PerformanceLog _logger;
 
-  /**
-   * The current file system state.
-   */
+  /// The current file system state.
   final FileSystemState _fsState;
 
-  /**
-   * The set of added files.
-   */
+  /// The set of added files.
   final addedFiles = <String>{};
 
-  /**
-   * The set of files were reported as changed through [changeFile] and not
-   * checked for actual changes yet.
-   */
+  /// The set of files were reported as changed through [changeFile] and not
+  /// checked for actual changes yet.
   final _changedFiles = <String>{};
 
-  /**
-   * The set of files that are currently scheduled for analysis, which were
-   * reported as changed through [changeFile].
-   */
+  /// The set of files that are currently scheduled for analysis, which were
+  /// reported as changed through [changeFile].
   var _pendingChangedFiles = <String>{};
 
-  /**
-   * The set of files that are currently scheduled for analysis, which directly
-   * import a changed file.
-   */
+  /// The set of files that are currently scheduled for analysis, which directly
+  /// import a changed file.
   var _pendingImportFiles = <String>{};
 
-  /**
-   * The set of files that are currently scheduled for analysis, which have an
-   * error or a warning, which might be fixed by a changed file.
-   */
+  /// The set of files that are currently scheduled for analysis, which have an
+  /// error or a warning, which might be fixed by a changed file.
   var _pendingErrorFiles = <String>{};
 
-  /**
-   * The set of files that are currently scheduled for analysis, and don't
-   * have any special relation with changed files.
-   */
+  /// The set of files that are currently scheduled for analysis, and don't
+  /// have any special relation with changed files.
   var _pendingFiles = <String>{};
 
   FileTracker(this._logger, this._fsState, this._changeHook);
 
-  /**
-   * Returns the path to exactly one that needs analysis.  Throws a [StateError]
-   * if no files need analysis.
-   */
+  /// Returns the path to exactly one that needs analysis.  Throws a
+  /// [StateError] if no files need analysis.
   String get anyPendingFile {
     if (_pendingChangedFiles.isNotEmpty) {
       return _pendingChangedFiles.first;
@@ -94,27 +72,19 @@ class FileTracker {
     return _pendingFiles.first;
   }
 
-  /**
-   * Returns a boolean indicating whether there are any files that have changed,
-   * but for which the impact of the changes hasn't been measured.
-   */
+  /// Returns a boolean indicating whether there are any files that have
+  /// changed, but for which the impact of the changes hasn't been measured.
   bool get hasChangedFiles => _changedFiles.isNotEmpty;
 
-  /**
-   * Return `true` if there are changed files that need analysis.
-   */
+  /// Return `true` if there are changed files that need analysis.
   bool get hasPendingChangedFiles => _pendingChangedFiles.isNotEmpty;
 
-  /**
-   * Return `true` if there are files that have an error or warning, and that
-   * need analysis.
-   */
+  /// Return `true` if there are files that have an error or warning, and that
+  /// need analysis.
   bool get hasPendingErrorFiles => _pendingErrorFiles.isNotEmpty;
 
-  /**
-   * Returns a boolean indicating whether there are any files that need
-   * analysis.
-   */
+  /// Returns a boolean indicating whether there are any files that need
+  /// analysis.
   bool get hasPendingFiles {
     return hasPendingChangedFiles ||
         hasPendingImportFiles ||
@@ -122,15 +92,11 @@ class FileTracker {
         _pendingFiles.isNotEmpty;
   }
 
-  /**
-   * Return `true` if there are files that directly import a changed file that
-   * need analysis.
-   */
+  /// Return `true` if there are files that directly import a changed file that
+  /// need analysis.
   bool get hasPendingImportFiles => _pendingImportFiles.isNotEmpty;
 
-  /**
-   * Returns a count of how many files need analysis.
-   */
+  /// Returns a count of how many files need analysis.
   int get numberOfPendingFiles {
     return _pendingChangedFiles.length +
         _pendingImportFiles.length +
@@ -138,9 +104,7 @@ class FileTracker {
         _pendingFiles.length;
   }
 
-  /**
-   * Adds the given [path] to the set of "added files".
-   */
+  /// Adds the given [path] to the set of "added files".
   void addFile(String path) {
     _fsState.markFileForReading(path);
     addedFiles.add(path);
@@ -148,18 +112,14 @@ class FileTracker {
     _changeHook(path);
   }
 
-  /**
-   * Adds the given [paths] to the set of "added files".
-   */
+  /// Adds the given [paths] to the set of "added files".
   void addFiles(Iterable<String> paths) {
     addedFiles.addAll(paths);
     _pendingFiles.addAll(paths);
     _changeHook(null);
   }
 
-  /**
-   * Adds the given [path] to the set of "changed files".
-   */
+  /// Adds the given [path] to the set of "changed files".
   void changeFile(String path) {
     _changedFiles.add(path);
     if (addedFiles.contains(path)) {
@@ -169,11 +129,9 @@ class FileTracker {
     _changeHook(path);
   }
 
-  /**
-   * Removes the given [path] from the set of "pending files".
-   *
-   * Should be called after the client has analyzed a file.
-   */
+  /// Removes the given [path] from the set of "pending files".
+  ///
+  /// Should be called after the client has analyzed a file.
   void fileWasAnalyzed(String path) {
     _pendingChangedFiles.remove(path);
     _pendingImportFiles.remove(path);
@@ -181,10 +139,8 @@ class FileTracker {
     _pendingFiles.remove(path);
   }
 
-  /**
-   * Returns a boolean indicating whether the given [path] points to a file that
-   * requires analysis.
-   */
+  /// Returns a boolean indicating whether the given [path] points to a file
+  /// that requires analysis.
   bool isFilePending(String path) {
     return _pendingChangedFiles.contains(path) ||
         _pendingImportFiles.contains(path) ||
@@ -192,9 +148,7 @@ class FileTracker {
         _pendingFiles.contains(path);
   }
 
-  /**
-   * Removes the given [path] from the set of "added files".
-   */
+  /// Removes the given [path] from the set of "added files".
   void removeFile(String path) {
     addedFiles.remove(path);
     _pendingChangedFiles.remove(path);
@@ -208,17 +162,13 @@ class FileTracker {
     _changeHook(path);
   }
 
-  /**
-   * Schedule all added files for analysis.
-   */
+  /// Schedule all added files for analysis.
   void scheduleAllAddedFiles() {
     _pendingFiles.addAll(addedFiles);
   }
 
-  /**
-   * Verify the API signature for the file with the given [path], and decide
-   * which linked libraries should be invalidated, and files reanalyzed.
-   */
+  /// Verify the API signature for the file with the given [path], and decide
+  /// which linked libraries should be invalidated, and files reanalyzed.
   FileState verifyApiSignature(String path) {
     return _logger.run('Verify API signature of $path', () {
       _logger.writeln('Work in ${_fsState.contextName}');
@@ -286,12 +236,10 @@ class FileTracker {
     });
   }
 
-  /**
-   * If at least one file is in the "changed files" set, determines the impact
-   * of the change, updates the set of pending files, and returns `true`.
-   *
-   * If no files are in the "changed files" set, returns `false`.
-   */
+  /// If at least one file is in the "changed files" set, determines the impact
+  /// of the change, updates the set of pending files, and returns `true`.
+  ///
+  /// If no files are in the "changed files" set, returns `false`.
   bool verifyChangedFilesIfNeeded() {
     // Verify all changed files one at a time.
     if (_changedFiles.isNotEmpty) {

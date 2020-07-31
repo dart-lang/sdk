@@ -10,12 +10,14 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   final void Function(DeclaredIdentifier) declaredIdentifier;
   final void Function(FunctionDeclarationStatement)
       functionDeclarationStatement;
+  final void Function(FunctionExpression, bool) functionExpression;
   final void Function(SimpleIdentifier) simpleIdentifier;
   final void Function(VariableDeclaration) variableDeclaration;
 
   FunctionAstVisitor({
     this.declaredIdentifier,
     this.functionDeclarationStatement,
+    this.functionExpression,
     this.simpleIdentifier,
     this.variableDeclaration,
   });
@@ -34,6 +36,16 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
       functionDeclarationStatement(node);
     }
     super.visitFunctionDeclarationStatement(node);
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    if (functionExpression != null) {
+      var local = node.parent is! FunctionDeclaration ||
+          node.parent.parent is FunctionDeclarationStatement;
+      functionExpression(node, local);
+    }
+    super.visitFunctionExpression(node);
   }
 
   @override

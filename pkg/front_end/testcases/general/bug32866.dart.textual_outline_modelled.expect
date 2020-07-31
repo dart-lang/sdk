@@ -1,0 +1,11 @@
+abstract class B {
+  String get f;
+}
+
+class A implements B {
+  A(this.f);
+  final f;
+}
+
+main() => print(a);
+var a = new A("foo");

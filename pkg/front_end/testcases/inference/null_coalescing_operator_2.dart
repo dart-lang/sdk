@@ -7,5 +7,5 @@ library test;
 
 main() {
   List<int> x;
-  List<num> y = x /*@ target=List::== */ ?? /*@ typeArgs=num* */ [];
+  List<num> y = x /*@target=List.==*/ ?? /*@ typeArgs=num* */ [];
 }

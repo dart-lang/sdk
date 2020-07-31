@@ -1,0 +1,25 @@
+library test;
+
+import 'dart:math' as math;
+import 'dart:math' show min;
+
+class C {
+  T m<T extends num>(T x, T y) => null;
+}
+
+test() {}
+void takeIII(int fn(int a, int b)) {}
+void takeDDD(double fn(double a, double b)) {}
+void takeIDI(int fn(double a, int b)) {}
+void takeDID(double fn(int a, double b)) {}
+void takeIDN(num fn(double a, int b)) {}
+void takeDIN(num fn(int a, double b)) {}
+void takeIIN(num fn(int a, int b)) {}
+void takeDDN(num fn(double a, double b)) {}
+void takeNNN(num fn(num a, num b)) {}
+void takeOON(num fn(Object a, Object b)) {}
+void takeOOO(num fn(Object a, Object b)) {}
+void takeOOI(int fn(Object a, Object b)) {}
+void takeIIO(Object fn(int a, int b)) {}
+void takeDDO(Object fn(double a, double b)) {}
+main() {}

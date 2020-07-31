@@ -274,23 +274,23 @@ testInvalidProxy() {
   HttpClient client = new HttpClient(context: clientContext);
 
   client.findProxy = (Uri uri) => "";
-  client
-      .getUrl(Uri.parse("http://www.google.com/test"))
+  Future<HttpClientRequest?>.value(
+          client.getUrl(Uri.parse("http://www.google.com/test")))
       .catchError((error) {}, test: (e) => e is HttpException);
 
   client.findProxy = (Uri uri) => "XXX";
-  client
-      .getUrl(Uri.parse("http://www.google.com/test"))
+  Future<HttpClientRequest?>.value(
+          client.getUrl(Uri.parse("http://www.google.com/test")))
       .catchError((error) {}, test: (e) => e is HttpException);
 
   client.findProxy = (Uri uri) => "PROXY www.google.com";
-  client
-      .getUrl(Uri.parse("http://www.google.com/test"))
+  Future<HttpClientRequest?>.value(
+          client.getUrl(Uri.parse("http://www.google.com/test")))
       .catchError((error) {}, test: (e) => e is HttpException);
 
   client.findProxy = (Uri uri) => "PROXY www.google.com:http";
-  client
-      .getUrl(Uri.parse("http://www.google.com/test"))
+  Future<HttpClientRequest?>.value(
+          client.getUrl(Uri.parse("http://www.google.com/test")))
       .catchError((error) {}, test: (e) => e is HttpException);
 }
 

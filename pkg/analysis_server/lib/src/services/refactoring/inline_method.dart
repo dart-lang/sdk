@@ -263,8 +263,6 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var result = RefactoringStatus();
     // prepare method information
     result.addStatus(await _prepareMethod());
@@ -311,8 +309,6 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   /// Initializes [_methodElement] and related fields.
   Future<RefactoringStatus> _prepareMethod() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     _methodElement = null;
     _methodParameters = null;
     _methodBody = null;
@@ -423,8 +419,6 @@ class _ReferenceProcessor {
   _ReferenceProcessor(this.ref, this.reference);
 
   Future<void> init() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     refElement = reference.element;
 
     // prepare CorrectionUtils

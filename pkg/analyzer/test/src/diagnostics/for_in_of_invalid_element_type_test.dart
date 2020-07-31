@@ -42,6 +42,19 @@ f() async {
     ]);
   }
 
+  test_bad_type_bound() async {
+    await assertErrorsInCode('''
+class Foo<T extends Iterable<int>> {
+  void method(T iterable) {
+    for (String i in iterable) {}
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 81, 1),
+      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 86, 8),
+    ]);
+  }
+
   test_declaredVariableWrongType() async {
     await assertErrorsInCode('''
 f() {
@@ -62,19 +75,6 @@ f() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
       error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 27, 10),
-    ]);
-  }
-
-  test_bad_type_bound() async {
-    await assertErrorsInCode('''
-class Foo<T extends Iterable<int>> {
-  void method(T iterable) {
-    for (String i in iterable) {}
-  }
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 81, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 86, 8),
     ]);
   }
 }

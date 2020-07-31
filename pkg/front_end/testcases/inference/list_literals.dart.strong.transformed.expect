@@ -2,37 +2,37 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/list_literals.dart:10:71: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
-//   x. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');
-//                                                                       ^
+// pkg/front_end/testcases/inference/list_literals.dart:10:70: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+//   x. /*@target=List.add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');
+//                                                                      ^
 //
-// pkg/front_end/testcases/inference/list_literals.dart:11:71: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
-//   x. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0);
-//                                                                       ^
+// pkg/front_end/testcases/inference/list_literals.dart:11:70: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
+//   x. /*@target=List.add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0);
+//                                                                      ^
 //
-// pkg/front_end/testcases/inference/list_literals.dart:18:71: Error: The argument type 'String' can't be assigned to the parameter type 'num'.
-//   x. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');
-//                                                                       ^
+// pkg/front_end/testcases/inference/list_literals.dart:18:70: Error: The argument type 'String' can't be assigned to the parameter type 'num'.
+//   x. /*@target=List.add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');
+//                                                                      ^
 //
 import self as self;
 import "dart:core" as core;
 
 static method test1() → dynamic {
   core::List<core::int*>* x = <core::int*>[1, 2, 3];
-  x.{core::List::add}(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/list_literals.dart:10:71: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
-  x. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');
-                                                                      ^" in "hi" as{TypeError} core::int*);
-  x.{core::List::add}(let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/list_literals.dart:11:71: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
-  x. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0);
-                                                                      ^" in 4.0 as{TypeError} core::int*);
+  x.{core::List::add}(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/list_literals.dart:10:70: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+  x. /*@target=List.add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');
+                                                                     ^" in "hi" as{TypeError} core::int*);
+  x.{core::List::add}(let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/list_literals.dart:11:70: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
+  x. /*@target=List.add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0);
+                                                                     ^" in 4.0 as{TypeError} core::int*);
   x.{core::List::add}(4);
   core::List<core::num*>* y = x;
 }
 static method test2() → dynamic {
   core::List<core::num*>* x = <core::num*>[1, 2.0, 3];
-  x.{core::List::add}(let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/list_literals.dart:18:71: Error: The argument type 'String' can't be assigned to the parameter type 'num'.
-  x. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');
-                                                                      ^" in "hi" as{TypeError} core::num*);
+  x.{core::List::add}(let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/list_literals.dart:18:70: Error: The argument type 'String' can't be assigned to the parameter type 'num'.
+  x. /*@target=List.add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');
+                                                                     ^" in "hi" as{TypeError} core::num*);
   x.{core::List::add}(4.0);
   core::List<core::int*>* y = x as{TypeError} core::List<core::int*>*;
 }

@@ -729,9 +729,15 @@ class JSignatureMethod extends JMethod {
   static const String tag = 'signature-method';
 
   JSignatureMethod(ClassEntity enclosingClass)
-      : super(enclosingClass.library, enclosingClass, Names.signature,
-            const ParameterStructure(0, 0, const [], 0), AsyncMarker.SYNC,
-            isStatic: false, isExternal: false, isAbstract: false);
+      : super(
+            enclosingClass.library,
+            enclosingClass,
+            Names.signature,
+            const ParameterStructure(0, 0, const [], const {}, 0),
+            AsyncMarker.SYNC,
+            isStatic: false,
+            isExternal: false,
+            isAbstract: false);
 
   factory JSignatureMethod.readFromDataSource(DataSource source) {
     source.begin(tag);

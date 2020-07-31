@@ -21,11 +21,11 @@ main() {
   } catch (e, s) {
     print(e);
     print("###");
-    print(e.stackTrace);
+    print((e as dynamic).stackTrace);
     print("###");
     print(s);
     print("###");
     Expect.isTrue(e is NoSuchMethodError);
-    Expect.stringEquals(e.stackTrace.toString(), s.toString());
+    Expect.stringEquals((e as dynamic).stackTrace.toString(), s.toString());
   }
 }

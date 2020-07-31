@@ -276,8 +276,10 @@ class ElementInfoCollector {
     });
     int parameterIndex = 0;
     closedWorld.elementEnvironment.forEachParameter(function, (type, name, _) {
-      parameters.add(new ParameterInfo(
-          name, inferredParameterTypes[parameterIndex++], '$type'));
+      // Synthesized parameters have no name. This can happen on parameters of
+      // setters derived from lowering late fields.
+      parameters.add(new ParameterInfo(name ?? '#t${parameterIndex}',
+          inferredParameterTypes[parameterIndex++], '$type'));
     });
 
     var functionType = environment.getFunctionType(function);

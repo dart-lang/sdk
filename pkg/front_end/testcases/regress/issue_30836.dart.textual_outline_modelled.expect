@@ -1,0 +1,4 @@
+class A {
+  A() {}
+  final int x;
+}

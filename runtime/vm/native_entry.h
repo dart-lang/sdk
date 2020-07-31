@@ -33,25 +33,25 @@ class String;
   } while (0)
 #endif
 
-typedef RawObject* (*BootstrapNativeFunction)(Thread* thread,
-                                              Zone* zone,
-                                              NativeArguments* arguments);
+typedef ObjectPtr (*BootstrapNativeFunction)(Thread* thread,
+                                             Zone* zone,
+                                             NativeArguments* arguments);
 
 #define NATIVE_ENTRY_FUNCTION(name) BootstrapNatives::DN_##name
 
 #define DEFINE_NATIVE_ENTRY(name, type_argument_count, argument_count)         \
-  static RawObject* DN_Helper##name(Isolate* isolate, Thread* thread,          \
-                                    Zone* zone, NativeArguments* arguments);   \
-  RawObject* NATIVE_ENTRY_FUNCTION(name)(Thread * thread, Zone * zone,         \
-                                         NativeArguments * arguments) {        \
+  static ObjectPtr DN_Helper##name(Isolate* isolate, Thread* thread,           \
+                                   Zone* zone, NativeArguments* arguments);    \
+  ObjectPtr NATIVE_ENTRY_FUNCTION(name)(Thread * thread, Zone * zone,          \
+                                        NativeArguments * arguments) {         \
     TRACE_NATIVE_CALL("%s", "" #name);                                         \
     ASSERT(arguments->NativeArgCount() == argument_count);                     \
     /* Note: a longer type arguments vector may be passed */                   \
     ASSERT(arguments->NativeTypeArgCount() >= type_argument_count);            \
     return DN_Helper##name(thread->isolate(), thread, zone, arguments);        \
   }                                                                            \
-  static RawObject* DN_Helper##name(Isolate* isolate, Thread* thread,          \
-                                    Zone* zone, NativeArguments* arguments)
+  static ObjectPtr DN_Helper##name(Isolate* isolate, Thread* thread,           \
+                                   Zone* zone, NativeArguments* arguments)
 
 // Helpers that throw an argument exception.
 void DartNativeThrowTypeArgumentCountException(int num_type_args,
@@ -140,24 +140,24 @@ class NativeEntryData : public ValueObject {
 
   MethodRecognizer::Kind kind() const;
   void set_kind(MethodRecognizer::Kind value) const;
-  static MethodRecognizer::Kind GetKind(RawTypedData* data);
+  static MethodRecognizer::Kind GetKind(TypedDataPtr data);
 
   NativeFunctionWrapper trampoline() const;
   void set_trampoline(NativeFunctionWrapper value) const;
-  static NativeFunctionWrapper GetTrampoline(RawTypedData* data);
+  static NativeFunctionWrapper GetTrampoline(TypedDataPtr data);
 
   NativeFunction native_function() const;
   void set_native_function(NativeFunction value) const;
-  static NativeFunction GetNativeFunction(RawTypedData* data);
+  static NativeFunction GetNativeFunction(TypedDataPtr data);
 
   intptr_t argc_tag() const;
   void set_argc_tag(intptr_t value) const;
-  static intptr_t GetArgcTag(RawTypedData* data);
+  static intptr_t GetArgcTag(TypedDataPtr data);
 
-  static RawTypedData* New(MethodRecognizer::Kind kind,
-                           NativeFunctionWrapper trampoline,
-                           NativeFunction native_function,
-                           intptr_t argc_tag);
+  static TypedDataPtr New(MethodRecognizer::Kind kind,
+                          NativeFunctionWrapper trampoline,
+                          NativeFunction native_function,
+                          intptr_t argc_tag);
 
  private:
   struct Payload {
@@ -167,7 +167,7 @@ class NativeEntryData : public ValueObject {
     MethodRecognizer::Kind kind;
   };
 
-  static Payload* FromTypedArray(RawTypedData* data);
+  static Payload* FromTypedArray(TypedDataPtr data);
 
   const TypedData& data_;
 

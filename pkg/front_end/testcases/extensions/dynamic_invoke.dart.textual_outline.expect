@@ -1,0 +1,9 @@
+class Class {
+  noSuchMethod(Invocation i) => 123;
+}
+extension ClassExtension ;
+on Class (){ }
+extension Extension ;
+on dynamic (){ }
+main() { }
+expect(expected, actual) { }

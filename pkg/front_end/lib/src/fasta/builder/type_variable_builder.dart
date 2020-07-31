@@ -89,16 +89,22 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     }
     // If the bound is not set yet, the actual value is not important yet as it
     // will be set later.
-    Nullability nullabilityIfOmitted = parameter.bound != null &&
-            library != null &&
-            library.isNonNullableByDefault
-        ? TypeParameterType.computeNullabilityFromBound(parameter)
-        : Nullability.legacy;
-    DartType type = buildTypesWithBuiltArguments(
-        library,
-        nullabilityBuilder.build(library, ifOmitted: nullabilityIfOmitted),
-        null);
-    if (parameter.bound == null) {
+    bool needsPostUpdate = false;
+    Nullability nullability;
+    if (nullabilityBuilder.isOmitted) {
+      if (parameter.bound != null) {
+        nullability = library.isNonNullableByDefault
+            ? TypeParameterType.computeNullabilityFromBound(parameter)
+            : Nullability.legacy;
+      } else {
+        nullability = Nullability.legacy;
+        needsPostUpdate = true;
+      }
+    } else {
+      nullability = nullabilityBuilder.build(library);
+    }
+    DartType type = buildTypesWithBuiltArguments(library, nullability, null);
+    if (needsPostUpdate) {
       if (library is SourceLibraryBuilder) {
         library.pendingNullabilities.add(type);
       } else {
@@ -171,10 +177,10 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
         new List<TypeParameterType>.filled(pendingNullabilities.length, null);
     int stackTop = 0;
     for (TypeParameterType type in pendingNullabilities) {
-      type.typeParameterTypeNullability = null;
+      type.declaredNullability = null;
     }
     for (TypeParameterType type in pendingNullabilities) {
-      if (type.typeParameterTypeNullability != null) {
+      if (type.declaredNullability != null) {
         // Nullability for [type] was already computed on one of the branches
         // of the depth-first search.  Continue to the next one.
         continue;
@@ -182,15 +188,15 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
       if (type.parameter.bound is TypeParameterType) {
         TypeParameterType current = type;
         TypeParameterType next = current.parameter.bound;
-        while (next != null && next.typeParameterTypeNullability == null) {
+        while (next != null && next.declaredNullability == null) {
           stack[stackTop++] = current;
-          current.typeParameterTypeNullability = marker;
+          current.declaredNullability = marker;
 
           current = next;
           if (current.parameter.bound is TypeParameterType) {
             next = current.parameter.bound;
-            if (next.typeParameterTypeNullability == marker) {
-              next.typeParameterTypeNullability = Nullability.undetermined;
+            if (next.declaredNullability == marker) {
+              next.declaredNullability = Nullability.undetermined;
               libraryBuilder.addProblem(
                   templateCycleInTypeVariables.withArguments(
                       next.parameter.name, current.parameter.name),
@@ -203,16 +209,16 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
             next = null;
           }
         }
-        current.typeParameterTypeNullability =
+        current.declaredNullability =
             TypeParameterType.computeNullabilityFromBound(current.parameter);
         while (stackTop != 0) {
           --stackTop;
           current = stack[stackTop];
-          current.typeParameterTypeNullability =
+          current.declaredNullability =
               TypeParameterType.computeNullabilityFromBound(current.parameter);
         }
       } else {
-        type.typeParameterTypeNullability =
+        type.declaredNullability =
             TypeParameterType.computeNullabilityFromBound(type.parameter);
       }
     }

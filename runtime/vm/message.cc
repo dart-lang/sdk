@@ -24,38 +24,57 @@ Message::Message(Dart_Port dest_port,
     : next_(NULL),
       dest_port_(dest_port),
       delivery_failure_port_(delivery_failure_port),
-      snapshot_(snapshot),
+      payload_(snapshot),
       snapshot_length_(snapshot_length),
       finalizable_data_(finalizable_data),
       priority_(priority) {
   ASSERT((priority == kNormalPriority) ||
          (delivery_failure_port == kIllegalPort));
-  ASSERT(!IsRaw());
+  ASSERT(IsSnapshot());
 }
 
 Message::Message(Dart_Port dest_port,
-                 RawObject* raw_obj,
+                 ObjectPtr raw_obj,
                  Priority priority,
                  Dart_Port delivery_failure_port)
     : next_(NULL),
       dest_port_(dest_port),
       delivery_failure_port_(delivery_failure_port),
-      snapshot_(reinterpret_cast<uint8_t*>(raw_obj)),
+      payload_(raw_obj),
       snapshot_length_(0),
       finalizable_data_(NULL),
       priority_(priority) {
-  ASSERT(!raw_obj->IsHeapObject() || raw_obj->InVMIsolateHeap());
+  ASSERT(!raw_obj->IsHeapObject() || raw_obj->ptr()->InVMIsolateHeap());
   ASSERT((priority == kNormalPriority) ||
          (delivery_failure_port == kIllegalPort));
   ASSERT(IsRaw());
 }
 
+Message::Message(Dart_Port dest_port,
+                 Bequest* bequest,
+                 Priority priority,
+                 Dart_Port delivery_failure_port)
+    : next_(nullptr),
+      dest_port_(dest_port),
+      delivery_failure_port_(delivery_failure_port),
+      payload_(bequest),
+      snapshot_length_(-1),
+      finalizable_data_(nullptr),
+      priority_(priority) {
+  ASSERT((priority == kNormalPriority) ||
+         (delivery_failure_port == kIllegalPort));
+  ASSERT(IsBequest());
+}
+
 Message::~Message() {
   ASSERT(delivery_failure_port_ == kIllegalPort);
-  if (!IsRaw()) {
-    free(snapshot_);
+  if (IsSnapshot()) {
+    free(payload_.snapshot_);
   }
   delete finalizable_data_;
+  if (IsBequest()) {
+    delete (payload_.bequest_);
+  }
 }
 
 bool Message::RedirectToDeliveryFailurePort() {

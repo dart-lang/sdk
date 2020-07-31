@@ -26,7 +26,7 @@ abstract class EmbedderRelatedTest {
       ..newFile('/home/.pub-cache/fox/lib/_embedder.yaml', r'''
 embedded_libs:
   "dart:deep": "deep/directory/file.dart"
-  "dart:core" : "core.dart"
+  "dart:core" : "core/core.dart"
   "dart:fox": "slippy.dart"
   "dart:bear": "grizzly.dart"
   "dart:relative": "../relative.dart"

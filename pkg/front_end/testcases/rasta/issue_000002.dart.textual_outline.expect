@@ -1,0 +1,12 @@
+import 'dart:typed_data';
+import 'package:expect/expect.dart';
+
+var list = [1, 2, 3];
+
+class Foo {
+  final value;
+  Foo(this.value) {}
+  factory Foo.fac(value) {}
+}
+
+main() {}

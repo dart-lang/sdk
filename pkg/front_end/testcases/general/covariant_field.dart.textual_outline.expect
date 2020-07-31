@@ -1,0 +1,27 @@
+class A {
+  num invariantField;
+  covariant num covariantField;
+}
+
+abstract class B implements A {
+  get invariantField;
+  set invariantField(value);
+  get covariantField;
+  set covariantField(value);
+}
+
+abstract class C implements A {
+  int get invariantField;
+  void set invariantField(int value) {}
+  int get covariantField;
+  void set covariantField(int value) {}
+}
+
+abstract class D implements A {
+  int get invariantField;
+  void set invariantField(covariant int value) {}
+  int get covariantField;
+  void set covariantField(covariant int value) {}
+}
+
+main() {}

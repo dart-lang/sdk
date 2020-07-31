@@ -1,0 +1,9 @@
+// @dart = 2.5
+import 'issue41180_lib.dart';
+
+class D<Y> {
+  C<Y> method() => new C<Y>(() => null);
+}
+
+void main() {}
+void findKey(Map<String, dynamic> m, dynamic search) {}

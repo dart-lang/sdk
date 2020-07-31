@@ -1,0 +1,5 @@
+class Class<T> {
+}
+extension Extension<T> ( ){ }
+on Class<T> (){ }
+main() { }

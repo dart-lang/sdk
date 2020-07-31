@@ -6,7 +6,7 @@ library curly_block_element;
 
 import 'dart:async';
 import 'dart:html';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class CurlyBlockToggleEvent {
@@ -16,8 +16,6 @@ class CurlyBlockToggleEvent {
 }
 
 class CurlyBlockElement extends CustomElement implements Renderable {
-  static const tag = const Tag<CurlyBlockElement>('curly-block');
-
   RenderingScheduler<CurlyBlockElement> _r;
 
   final StreamController<CurlyBlockToggleEvent> _onToggle =
@@ -55,7 +53,7 @@ class CurlyBlockElement extends CustomElement implements Renderable {
     return e;
   }
 
-  CurlyBlockElement.created() : super.created(tag);
+  CurlyBlockElement.created() : super.created('curly-block');
 
   @override
   void attached() {

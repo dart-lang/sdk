@@ -1,0 +1,7 @@
+library test;
+
+main() {}
+var a = <int>[];
+var b = <double>[1.0, 2.0, 3.0];
+var c = <List<int>>[];
+var d = <dynamic>[1, 2.0, false];

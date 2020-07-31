@@ -156,6 +156,12 @@ class DillClassMember extends BuilderClassMember {
   bool get isSourceDeclaration => false;
 
   @override
+  bool get isInternalImplementation {
+    Member member = memberBuilder.member;
+    return member is Field && member.isInternalImplementation;
+  }
+
+  @override
   bool get isProperty =>
       memberBuilder.kind == null ||
       memberBuilder.kind == ProcedureKind.Getter ||

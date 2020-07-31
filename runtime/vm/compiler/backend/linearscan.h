@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_LINEARSCAN_H_
 #define RUNTIME_VM_COMPILER_BACKEND_LINEARSCAN_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/growable_array.h"
@@ -62,6 +66,20 @@ class FlowGraphAllocator : public ValueObject {
 
   // Map a virtual register number to its live range.
   LiveRange* GetLiveRange(intptr_t vreg);
+
+  DART_FORCE_INLINE static void SetLifetimePosition(Instruction* instr,
+                                                    intptr_t pos) {
+    instr->SetPassSpecificId(CompilerPass::kAllocateRegisters, pos);
+  }
+
+  DART_FORCE_INLINE static bool HasLifetimePosition(Instruction* instr) {
+    return instr->HasPassSpecificId(CompilerPass::kAllocateRegisters);
+  }
+
+  DART_FORCE_INLINE static intptr_t GetLifetimePosition(
+      const Instruction* instr) {
+    return instr->GetPassSpecificId(CompilerPass::kAllocateRegisters);
+  }
 
  private:
   void CollectRepresentations();

@@ -90,6 +90,7 @@ abstract class ServerErrorCodes {
   static const ClientFailedToApplyEdit = ErrorCodes(-32009);
   static const RenameNotValid = ErrorCodes(-32010);
   static const RefactorFailed = ErrorCodes(-32011);
+  static const FeatureDisabled = ErrorCodes(-32012);
 
   /// An error raised when the server detects that the server and client are out
   /// of sync and cannot recover. For example if a textDocument/didChange notification
@@ -103,5 +104,5 @@ abstract class ServerErrorCodes {
   ///   restart the server. However clients should be careful to not restart a
   ///   crashing server endlessly. VS Code for example doesn't restart a server
   ///   if it crashes 5 times in the last 180 seconds."
-  static const ClientServerInconsistentState = ErrorCodes(-32010);
+  static const ClientServerInconsistentState = ErrorCodes(-32099);
 }

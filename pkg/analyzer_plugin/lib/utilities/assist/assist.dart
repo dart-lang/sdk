@@ -65,7 +65,8 @@ class AssistGenerator {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AssistKind {
-  /// The unique identifier of this kind of assist.
+  /// The unique identifier of this kind of assist. May be used by client editors,
+  /// for example to allow key-binding specific fixes (or groups of).
   final String id;
 
   /// The priority of this kind of assist for the kind of error being addressed.

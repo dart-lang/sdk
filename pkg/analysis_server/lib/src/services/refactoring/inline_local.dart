@@ -63,8 +63,6 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var result = RefactoringStatus();
     // prepare variable
     {

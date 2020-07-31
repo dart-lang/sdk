@@ -9,8 +9,10 @@
 
 #include "vm/compiler/assembler/disassembler.h"
 
+#include "platform/unaligned.h"
 #include "platform/utils.h"
 #include "vm/allocation.h"
+#include "vm/constants_x86.h"
 #include "vm/heap/heap.h"
 #include "vm/instructions.h"
 #include "vm/os.h"
@@ -402,7 +404,7 @@ int DisassemblerX64::PrintRightOperandHelper(
   switch (mod) {
     case 0:
       if ((rm & 7) == 5) {
-        int32_t disp = *reinterpret_cast<int32_t*>(modrmp + 1);
+        int32_t disp = LoadUnaligned(reinterpret_cast<int32_t*>(modrmp + 1));
         Print("[rip");
         PrintDisp(disp, "]");
         return 5;
@@ -418,7 +420,7 @@ int DisassemblerX64::PrintRightOperandHelper(
           return 2;
         } else if (base == 5) {
           // base == rbp means no base register (when mod == 0).
-          int32_t disp = *reinterpret_cast<int32_t*>(modrmp + 2);
+          int32_t disp = LoadUnaligned(reinterpret_cast<int32_t*>(modrmp + 2));
           Print("[%s*%d", NameOfCPURegister(index), 1 << scale);
           PrintDisp(disp, "]");
           return 6;
@@ -443,8 +445,9 @@ int DisassemblerX64::PrintRightOperandHelper(
         uint8_t sib = *(modrmp + 1);
         int scale, index, base;
         get_sib(sib, &scale, &index, &base);
-        int disp = (mod == 2) ? *reinterpret_cast<int32_t*>(modrmp + 2)
-                              : *reinterpret_cast<int8_t*>(modrmp + 2);
+        int disp = (mod == 2)
+                       ? LoadUnaligned(reinterpret_cast<int32_t*>(modrmp + 2))
+                       : *reinterpret_cast<int8_t*>(modrmp + 2);
         if (index == 4 && (base & 7) == 4 && scale == 0 /*times_1*/) {
           Print("[%s", NameOfCPURegister(base));
           PrintDisp(disp, "]");
@@ -456,8 +459,9 @@ int DisassemblerX64::PrintRightOperandHelper(
         return mod == 2 ? 6 : 3;
       } else {
         // No sib.
-        int disp = (mod == 2) ? *reinterpret_cast<int32_t*>(modrmp + 1)
-                              : *reinterpret_cast<int8_t*>(modrmp + 1);
+        int disp = (mod == 2)
+                       ? LoadUnaligned(reinterpret_cast<int32_t*>(modrmp + 1))
+                       : *reinterpret_cast<int8_t*>(modrmp + 1);
         Print("[%s", NameOfCPURegister(rm));
         PrintDisp(disp, "]");
         return (mod == 2) ? 5 : 2;
@@ -489,18 +493,18 @@ int DisassemblerX64::PrintImmediate(uint8_t* data,
       break;
     case WORD_SIZE:
       if (sign_extend) {
-        value = *reinterpret_cast<int16_t*>(data);
+        value = LoadUnaligned(reinterpret_cast<int16_t*>(data));
       } else {
-        value = *reinterpret_cast<uint16_t*>(data);
+        value = LoadUnaligned(reinterpret_cast<uint16_t*>(data));
       }
       count = 2;
       break;
     case DOUBLEWORD_SIZE:
     case QUADWORD_SIZE:
       if (sign_extend) {
-        value = *reinterpret_cast<int32_t*>(data);
+        value = LoadUnaligned(reinterpret_cast<int32_t*>(data));
       } else {
-        value = *reinterpret_cast<uint32_t*>(data);
+        value = LoadUnaligned(reinterpret_cast<uint32_t*>(data));
       }
       count = 4;
       break;
@@ -524,21 +528,21 @@ void DisassemblerX64::PrintImmediateValue(int64_t value,
     if (byte_count == 1) {
       int8_t v8 = static_cast<int8_t>(value);
       if (v8 < 0 && signed_value) {
-        Print("-%#" Px32, static_cast<int8_t>(-v8));
+        Print("-%#" Px32, -static_cast<uint8_t>(v8));
       } else {
         Print("%#" Px32, static_cast<uint8_t>(v8));
       }
     } else if (byte_count == 2) {
       int16_t v16 = static_cast<int16_t>(value);
       if (v16 < 0 && signed_value) {
-        Print("-%#" Px32, static_cast<int16_t>(-v16));
+        Print("-%#" Px32, -static_cast<uint16_t>(v16));
       } else {
         Print("%#" Px32, static_cast<uint16_t>(v16));
       }
     } else if (byte_count == 4) {
       int32_t v32 = static_cast<int32_t>(value);
       if (v32 < 0 && signed_value) {
-        Print("-%#010" Px32, static_cast<int32_t>(-v32));
+        Print("-%#010" Px32, -static_cast<uint32_t>(v32));
       } else {
         if (v32 > 0xffff) {
           Print("%#010" Px32, v32);
@@ -549,7 +553,7 @@ void DisassemblerX64::PrintImmediateValue(int64_t value,
     } else if (byte_count == 8) {
       int64_t v64 = static_cast<int64_t>(value);
       if (v64 < 0 && signed_value) {
-        Print("-%#018" Px64, static_cast<int64_t>(-v64));
+        Print("-%#018" Px64, -static_cast<uint64_t>(v64));
       } else {
         if (v64 > 0xffffffffll) {
           Print("%#018" Px64, v64);
@@ -777,7 +781,8 @@ void DisassemblerX64::PrintJump(uint8_t* pc, int32_t disp) {
   if (FLAG_disassemble_relative) {
     Print("%+d", disp);
   } else {
-    PrintAddress(pc + disp);
+    PrintAddress(
+        reinterpret_cast<uint8_t*>(reinterpret_cast<uintptr_t>(pc) + disp));
   }
 }
 
@@ -809,7 +814,7 @@ int DisassemblerX64::JumpShort(uint8_t* data) {
 int DisassemblerX64::JumpConditional(uint8_t* data) {
   ASSERT(0x0F == *data);
   uint8_t cond = *(data + 1) & 0x0F;
-  int32_t disp = *reinterpret_cast<int32_t*>(data + 2) + 6;
+  int32_t disp = LoadUnaligned(reinterpret_cast<int32_t*>(data + 2)) + 6;
   const char* mnem = conditional_code_suffix[cond];
   Print("j%s ", mnem);
   PrintJump(data, disp);
@@ -1145,7 +1150,25 @@ bool DisassemblerX64::DecodeInstructionType(uint8_t** data) {
           // REP.
           Print("rep ");
         }
-        Print("%s", idesc.mnem);
+        if ((current & 0x01) == 0x01) {
+          // Operation size: word, dword or qword
+          switch (operand_size()) {
+            case WORD_SIZE:
+              Print("%sw", idesc.mnem);
+              break;
+            case DOUBLEWORD_SIZE:
+              Print("%sl", idesc.mnem);
+              break;
+            case QUADWORD_SIZE:
+              Print("%sq", idesc.mnem);
+              break;
+            default:
+              UNREACHABLE();
+          }
+        } else {
+          // Operation size: byte
+          Print("%s", idesc.mnem);
+        }
       } else if (current == 0x99 && rex_w()) {
         Print("cqo");  // Cdql is called cdq and cdqq is called cqo.
       } else {
@@ -1177,15 +1200,15 @@ bool DisassemblerX64::DecodeInstructionType(uint8_t** data) {
       int imm_bytes = 0;
       switch (operand_size()) {
         case WORD_SIZE:
-          addr = *reinterpret_cast<int16_t*>(*data + 1);
+          addr = LoadUnaligned(reinterpret_cast<int16_t*>(*data + 1));
           imm_bytes = 2;
           break;
         case DOUBLEWORD_SIZE:
-          addr = *reinterpret_cast<int32_t*>(*data + 1);
+          addr = LoadUnaligned(reinterpret_cast<int32_t*>(*data + 1));
           imm_bytes = 4;
           break;
         case QUADWORD_SIZE:
-          addr = *reinterpret_cast<int64_t*>(*data + 1);
+          addr = LoadUnaligned(reinterpret_cast<int64_t*>(*data + 1));
           imm_bytes = 8;
           break;
         default:
@@ -1199,7 +1222,7 @@ bool DisassemblerX64::DecodeInstructionType(uint8_t** data) {
     }
 
     case CALL_JUMP_INSTR: {
-      int32_t disp = *reinterpret_cast<int32_t*>(*data + 1) + 5;
+      int32_t disp = LoadUnaligned(reinterpret_cast<int32_t*>(*data + 1)) + 5;
       Print("%s ", idesc.mnem);
       PrintJump(*data, disp);
       (*data) += 5;
@@ -1323,6 +1346,9 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
         Print(",%s", NameOfXMMRegister(regop));
       } else if (opcode == 0x50) {
         Print("movmskpd %s,", NameOfCPURegister(regop));
+        current += PrintRightXMMOperand(current);
+      } else if (opcode == 0xD7) {
+        Print("pmovmskb %s,", NameOfCPURegister(regop));
         current += PrintRightXMMOperand(current);
       } else {
         const char* mnemonic = "?";
@@ -1634,8 +1660,9 @@ int DisassemblerX64::InstructionDecode(uword pc) {
       case 0x6B: {
         int mod, regop, rm;
         get_modrm(*(data + 1), &mod, &regop, &rm);
-        int32_t imm =
-            *data == 0x6B ? *(data + 2) : *reinterpret_cast<int32_t*>(data + 2);
+        int32_t imm = *data == 0x6B
+                          ? *(data + 2)
+                          : LoadUnaligned(reinterpret_cast<int32_t*>(data + 2));
         Print("imul%s %s,%s,", operand_size_code(), NameOfCPURegister(regop),
               NameOfCPURegister(rm));
         PrintImmediateValue(imm);
@@ -1799,7 +1826,8 @@ int DisassemblerX64::InstructionDecode(uword pc) {
       }
       case 0x68:
         Print("push ");
-        PrintImmediateValue(*reinterpret_cast<int32_t*>(data + 1));
+        PrintImmediateValue(
+            LoadUnaligned(reinterpret_cast<int32_t*>(data + 1)));
         data += 5;
         break;
 
@@ -1994,7 +2022,8 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
     for (intptr_t i = 0; i < offsets_length; i++) {
       uword addr = code.GetPointerOffsetAt(i) + code.PayloadStart();
       if ((pc <= addr) && (addr < (pc + instruction_length))) {
-        *object = &Object::Handle(*reinterpret_cast<RawObject**>(addr));
+        *object =
+            &Object::Handle(LoadUnaligned(reinterpret_cast<ObjectPtr*>(addr)));
         break;
       }
     }

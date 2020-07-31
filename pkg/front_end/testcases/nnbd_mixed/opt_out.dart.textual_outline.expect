@@ -1,0 +1,16 @@
+import 'opt_out_lib.dart';
+class A<T> {
+  late int ;
+  field = 42;
+}
+class B extends A<String?> {
+}
+typedef F = void Function()?;
+List<String?> l = [];
+String? s = null;
+var t = s!;
+late int ;
+field = 42;
+void method(void f()?, {required int a}) { }
+main() { }
+noErrors() { }

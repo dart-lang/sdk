@@ -1,0 +1,8 @@
+library test;
+
+class C {
+  get x => null;
+  void set x(value) {}
+}
+
+main() {}

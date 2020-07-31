@@ -146,17 +146,14 @@ topLevelDefinition
     |    EXTERNAL functionSignature ';'
     |    EXTERNAL getterSignature ';'
     |    EXTERNAL setterSignature ';'
+    |    EXTERNAL finalVarOrType identifierList ';'
     |    getterSignature functionBody
     |    setterSignature functionBody
     |    functionSignature functionBody
     |    (FINAL | CONST) type? staticFinalDeclarationList ';'
     |    LATE FINAL type? initializedIdentifierList ';'
-    |    topLevelVariableDeclaration ';'
-    ;
-
-topLevelVariableDeclaration
-    :    LATE? varOrType identifier ('=' expression)?
-         (',' initializedIdentifier)*
+    |    LATE? varOrType identifier ('=' expression)?
+         (',' initializedIdentifier)* ';'
     ;
 
 declaredIdentifier
@@ -167,6 +164,11 @@ finalConstVarOrType
     :    LATE? FINAL type?
     |    CONST type?
     |    LATE? varOrType
+    ;
+
+finalVarOrType
+    :    FINAL type?
+    |    varOrType
     ;
 
 varOrType
@@ -351,6 +353,8 @@ declaration
     |    (EXTERNAL STATIC?)? getterSignature
     |    (EXTERNAL STATIC?)? setterSignature
     |    (EXTERNAL STATIC?)? functionSignature
+    |    EXTERNAL (STATIC? finalVarOrType | COVARIANT varOrType) identifierList
+    |    ABSTRACT (finalVarOrType | COVARIANT varOrType) identifierList
     |    EXTERNAL? operatorSignature
     |    STATIC (FINAL | CONST) type? staticFinalDeclarationList
     |    STATIC LATE FINAL type? initializedIdentifierList

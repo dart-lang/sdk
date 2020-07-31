@@ -4,6 +4,18 @@ parser/error_recovery/issue_39058.crash:1:1: Expected a declaration, but got '{'
 {<[](
 ^
 
+parser/error_recovery/issue_39058.crash:1:5: Can't find ')' to match '('.
+{<[](
+    ^
+
+parser/error_recovery/issue_39058.crash:1:2: Can't find '>' to match '<'.
+{<[](
+ ^
+
+parser/error_recovery/issue_39058.crash:1:1: Can't find '}' to match '{'.
+{<[](
+^
+
 beginCompilationUnit({)
   beginMetadataStar({)
   endMetadataStar(0)
@@ -22,6 +34,9 @@ beginCompilationUnit({)
     handleInvalidTopLevelDeclaration(})
   endTopLevelDeclaration()
   handleErrorToken(UnmatchedToken(())
+  handleRecoverableError(Message[UnmatchedToken, Can't find ')' to match '('., null, {string: ), token: (}], UnmatchedToken((), UnmatchedToken(())
   handleErrorToken(UnmatchedToken(<))
+  handleRecoverableError(Message[UnmatchedToken, Can't find '>' to match '<'., null, {string: >, token: <}], UnmatchedToken(<), UnmatchedToken(<))
   handleErrorToken(UnmatchedToken({))
+  handleRecoverableError(Message[UnmatchedToken, Can't find '}' to match '{'., null, {string: }, token: {}], UnmatchedToken({), UnmatchedToken({))
 endCompilationUnit(1, )

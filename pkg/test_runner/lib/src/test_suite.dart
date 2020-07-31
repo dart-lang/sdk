@@ -305,15 +305,16 @@ class VMTestSuite extends TestSuite {
         hasRuntimeError: testExpectation == Expectation.runtimeError,
         hasStaticWarning: false,
         hasCrash: testExpectation == Expectation.crash);
-
     var filename = configuration.architecture == Architecture.x64
         ? '$buildDir/gen/kernel-service.dart.snapshot'
         : '$buildDir/gen/kernel_service.dill';
     var dfePath = Path(filename).absolute.toNativePath();
     var args = [
-      if (expectations.contains(Expectation.crash)) '--suppress-core-dump',
       // '--dfe' has to be the first argument for run_vm_test to pick it up.
       '--dfe=$dfePath',
+      if (expectations.contains(Expectation.crash)) '--suppress-core-dump',
+      if (configuration.experiments.isNotEmpty)
+        '--enable-experiment=${configuration.experiments.join(",")}',
       ...configuration.standardOptions,
       ...configuration.vmOptions,
       test.name
@@ -583,6 +584,8 @@ class StandardTestSuite extends TestSuite {
       _enqueueStandardTest(testFile, expectationSet, onTest);
     } else if (configuration.runtime.isBrowser) {
       _enqueueBrowserTest(testFile, expectationSet, onTest);
+    } else if (suiteName == 'service') {
+      _enqueueServiceTest(testFile, expectationSet, onTest);
     } else {
       _enqueueStandardTest(testFile, expectationSet, onTest);
     }
@@ -613,6 +616,45 @@ class StandardTestSuite extends TestSuite {
       }
 
       _addTestCase(testFile, variantTestName, commands, expectations, onTest);
+    }
+  }
+
+  void _enqueueServiceTest(
+      TestFile testFile, Set<Expectation> expectations, TestCaseEvent onTest) {
+    var commonArguments = _commonArgumentsFromFile(testFile);
+
+    var vmOptionsList = getVmOptions(testFile);
+    assert(!vmOptionsList.isEmpty);
+
+    var emitDdsTest = false;
+    for (var i = 0; i < 2; ++i) {
+      for (var vmOptionsVariant = 0;
+          vmOptionsVariant < vmOptionsList.length;
+          vmOptionsVariant++) {
+        var vmOptions = vmOptionsList[vmOptionsVariant];
+        var allVmOptions = vmOptions;
+        if (!extraVmOptions.isEmpty) {
+          allVmOptions = vmOptions.toList()..addAll(extraVmOptions);
+        }
+        if (emitDdsTest) {
+          allVmOptions.add('-DUSE_DDS=true');
+        }
+        var isCrashExpected = expectations.contains(Expectation.crash);
+        var commands = _makeCommands(
+            testFile,
+            vmOptionsVariant + (vmOptionsList.length * i),
+            allVmOptions,
+            commonArguments,
+            isCrashExpected);
+        var variantTestName =
+            testFile.name + '/${emitDdsTest ? 'dds' : 'service'}';
+        if (vmOptionsList.length > 1) {
+          variantTestName = "${testFile.name}_$vmOptionsVariant";
+        }
+
+        _addTestCase(testFile, variantTestName, commands, expectations, onTest);
+      }
+      emitDdsTest = true;
     }
   }
 
@@ -825,11 +867,6 @@ class StandardTestSuite extends TestSuite {
     if (configuration.compiler == Compiler.dart2analyzer) {
       args.add('--format=machine');
       args.add('--no-hints');
-
-      if (testFile.path.filename.contains("dart2js") ||
-          testFile.path.directoryPath.segments().last.contains('html_common')) {
-        args.add("--use-dart2js-libraries");
-      }
     }
 
     args.add(testFile.path.toNativePath());

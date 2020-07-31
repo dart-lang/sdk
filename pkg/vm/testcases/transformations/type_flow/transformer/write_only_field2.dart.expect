@@ -1,0 +1,68 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+class A extends core::Object {
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  field dynamic unused3 = [@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::foo();
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  constructor •([@vm.inferred-type.metadata=dart.core::_OneByteString (value: hi)] dynamic unused4) → self::B*
+    : dynamic #t1 = [@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::foo(), super core::Object::•()
+    ;
+}
+abstract class C<T extends core::Object* = dynamic> extends core::Object {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3]  abstract set bar(generic-covariant-impl self::C::T* value) → void;
+}
+class D extends core::Object implements self::C<core::int*> {
+  synthetic constructor •() → self::D*
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3]  set bar(generic-covariant-impl core::int* value) → void;
+}
+abstract class E extends core::Object {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]  abstract get bar() → core::int*;
+}
+class F extends core::Object implements self::E {
+  synthetic constructor •() → self::F*
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]  get bar() → core::int*
+    return 42;
+}
+class G extends core::Object /*hasConstConstructor*/  {
+[@vm.inferred-type.metadata=dart.core::_Smi] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  final field core::int* bazz;
+}
+abstract class H extends core::Object {
+  synthetic constructor •() → self::H*
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7]  set unused6(core::int* value) → void;
+}
+class I extends self::H {
+  synthetic constructor •() → self::I*
+    : super self::H::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:8,getterSelectorId:9]  method foo() → dynamic {
+    super.{self::H::unused6} = 3;
+  }
+}
+static method foo() → dynamic {}
+static method main() → void {
+  new self::A::•();
+  new self::B::•("hi");
+  self::C<core::num*>* c = new self::D::•();
+  exp::Expect::throws<dynamic>(() → core::Null? {
+    [@vm.call-site-attributes.metadata=receiverType:#lib::C<dart.core::num*>*] [@vm.direct-call.metadata=#lib::D.bar] c.{self::C::bar} = 3.14;
+  });
+  self::E* e = new self::F::•();
+  exp::Expect::equals(42, [@vm.direct-call.metadata=#lib::F.bar] [@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] e.{self::E::bar});
+  exp::Expect::isTrue(![@vm.inferred-type.metadata=dart.core::bool] core::identical(#C2, #C4));
+  [@vm.direct-call.metadata=#lib::I.foo] [@vm.inferred-type.metadata=!? (skip check)] new self::I::•().{self::I::foo}();
+  5;
+}

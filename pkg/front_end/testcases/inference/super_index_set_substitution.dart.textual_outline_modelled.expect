@@ -1,0 +1,16 @@
+library test;
+
+import 'dart:async';
+
+T f<T>() => null;
+
+class B<T> {
+  void operator []=(Map<int, T> x, List<T> y) {}
+}
+
+class C<U> extends B<Future<U>> {
+  void h() {}
+  void operator []=(Object x, Object y) {}
+}
+
+main() {}

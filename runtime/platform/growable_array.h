@@ -205,6 +205,9 @@ class BaseGrowableArray : public B {
 template <typename T, typename B, typename Allocator>
 inline void BaseGrowableArray<T, B, Allocator>::Sort(int compare(const T*,
                                                                  const T*)) {
+  // Avoid calling qsort with a null array.
+  if (length_ == 0) return;
+
   typedef int (*CompareFunction)(const void*, const void*);
   qsort(data_, length_, sizeof(T), reinterpret_cast<CompareFunction>(compare));
 }

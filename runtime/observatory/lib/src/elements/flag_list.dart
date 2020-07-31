@@ -10,7 +10,7 @@ import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -19,16 +19,7 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class FlagListElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<FlagListElement>('flag-list', dependencies: const [
-    NavNotifyElement.tag,
-    NavRefreshElement.tag,
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    ViewFooterElement.tag,
-  ]);
-
-  RenderingScheduler _r;
+  RenderingScheduler<FlagListElement> _r;
 
   Stream<RenderedEvent<FlagListElement>> get onRendered => _r.onRendered;
 
@@ -56,7 +47,7 @@ class FlagListElement extends CustomElement implements Renderable {
     return e;
   }
 
-  FlagListElement.created() : super.created(tag);
+  FlagListElement.created() : super.created('flag-list');
 
   @override
   void attached() {

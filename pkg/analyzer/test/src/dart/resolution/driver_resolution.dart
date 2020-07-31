@@ -38,6 +38,8 @@ class DriverResolutionTest with ResourceProviderMixin, ResolutionTest {
   /// Override this to change the analysis options for a given set of tests.
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl();
 
+  bool get enableIndex => false;
+
   @override
   Future<ResolvedUnitResult> resolveFile(String path) async {
     return await driver.getResult(path);
@@ -77,6 +79,7 @@ class DriverResolutionTest with ResourceProviderMixin, ResolutionTest {
           ResourceUriResolver(resourceProvider)
         ]),
         analysisOptions,
+        enableIndex: enableIndex,
         packages: Packages.empty);
 
     scheduler.start();

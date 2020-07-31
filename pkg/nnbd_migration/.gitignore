@@ -1,0 +1,3 @@
+lib/src/front_end/resources/*.js.deps
+lib/src/front_end/resources/*.js.map
+lib/src/front_end/resources/migration.js

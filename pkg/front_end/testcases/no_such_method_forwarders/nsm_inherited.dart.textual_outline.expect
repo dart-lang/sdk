@@ -1,0 +1,9 @@
+class M {
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class A extends M {
+  void call(String s);
+}
+
+main() {}

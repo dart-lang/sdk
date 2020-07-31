@@ -74,7 +74,7 @@ DEFINE_NATIVE_ENTRY(Math_doublePow, 0, 2) {
 }
 
 // Returns the typed-data array store in '_Random._state' field.
-static RawTypedData* GetRandomStateArray(const Instance& receiver) {
+static TypedDataPtr GetRandomStateArray(const Instance& receiver) {
   const Class& random_class = Class::Handle(receiver.clazz());
   const Field& state_field =
       Field::Handle(random_class.LookupFieldAllowPrivate(Symbols::_state()));
@@ -107,7 +107,7 @@ DEFINE_NATIVE_ENTRY(Random_nextState, 0, 1) {
   return Object::null();
 }
 
-RawTypedData* CreateRandomState(Zone* zone, uint64_t seed) {
+TypedDataPtr CreateRandomState(Zone* zone, uint64_t seed) {
   const TypedData& result =
       TypedData::Handle(zone, TypedData::New(kTypedDataUint32ArrayCid, 2));
   result.SetUint32(0, static_cast<uint32_t>(seed));

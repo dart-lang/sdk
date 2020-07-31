@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -10,6 +11,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// Accessor for reading AST lazily, or read data that is stored in IDL, but
 /// cannot be stored in AST, like inferred types.
@@ -388,20 +390,19 @@ class LazyCompilationUnit {
     return node.getProperty(_key);
   }
 
-  static int getLanguageVersionMajor(CompilationUnit node) {
+  static LibraryLanguageVersion getLanguageVersion(CompilationUnit node) {
     var lazy = get(node);
     if (lazy != null) {
-      return lazy.data.compilationUnit_languageVersionMajor;
+      var package = lazy.data.compilationUnit_languageVersion.package;
+      var override = lazy.data.compilationUnit_languageVersion.override2;
+      return LibraryLanguageVersion(
+        package: Version(package.major, package.minor, 0),
+        override: override != null
+            ? Version(override.major, override.minor, 0)
+            : null,
+      );
     }
-    return node.languageVersionToken.major;
-  }
-
-  static int getLanguageVersionMinor(CompilationUnit node) {
-    var lazy = get(node);
-    if (lazy != null) {
-      return lazy.data.compilationUnit_languageVersionMinor;
-    }
-    return node.languageVersionToken.minor;
+    return (node as CompilationUnitImpl).languageVersion;
   }
 }
 
@@ -1432,6 +1433,7 @@ class LazyMethodDeclaration {
   bool _hasMetadata = false;
   bool _hasReturnType = false;
   bool _hasReturnTypeNode = false;
+  bool _hasTypeInferenceError = false;
 
   LazyMethodDeclaration(this.data);
 
@@ -1472,6 +1474,16 @@ class LazyMethodDeclaration {
       lazy._hasReturnType = true;
     }
     return LazyAst.getReturnType(node);
+  }
+
+  static TopLevelInferenceError getTypeInferenceError(MethodDeclaration node) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasTypeInferenceError) {
+      var error = lazy.data.topLevelTypeInferenceError;
+      LazyAst.setTypeInferenceError(node, error);
+      lazy._hasTypeInferenceError = true;
+    }
+    return LazyAst.getTypeInferenceError(node);
   }
 
   static bool isAbstract(MethodDeclaration node) {

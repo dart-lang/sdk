@@ -8,6 +8,6 @@ class _SvgElementFactoryProvider {
   static SvgElement createSvgElement_tag(String tag) {
     final Element temp =
         document.createElementNS("http://www.w3.org/2000/svg", tag);
-    return temp;
+    return temp as SvgElement;
   }
 }

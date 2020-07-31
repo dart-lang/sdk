@@ -1,0 +1,1 @@
+main(List<String> arguments) {}

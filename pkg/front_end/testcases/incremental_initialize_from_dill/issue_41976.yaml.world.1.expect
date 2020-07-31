@@ -1,0 +1,47 @@
+main = <No Member>;
+library from "org-dartlang-test:///foo.dart" as foo {
+
+  abstract class Key extends dart.core::Object /*hasConstConstructor*/  {
+    static field dynamic _redirecting# = <dynamic>[foo::Key::•];
+    const constructor empty() → foo::Key*
+      : super dart.core::Object::•()
+      ;
+    static factory •(dart.core::String* value) → foo::Key*
+      let dynamic #redirecting_factory = foo::ValueKey::• in invalid-expression;
+    abstract member-signature get _identityHashCode() → dart.core::int*;
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
+    abstract member-signature get hashCode() → dart.core::int*;
+    abstract member-signature method toString() → dart.core::String*;
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
+    abstract member-signature get runtimeType() → dart.core::Type*;
+  }
+  abstract class LocalKey extends foo::Key /*hasConstConstructor*/  {
+    const constructor •() → foo::LocalKey*
+      : super foo::Key::empty()
+      ;
+  }
+  class ValueKey extends dart.core::Object implements foo::LocalKey /*hasConstConstructor*/  {
+    final field dart.core::String* value;
+    const constructor •(dart.core::String* value) → foo::ValueKey*
+      : foo::ValueKey::value = value, super dart.core::Object::•()
+      ;
+    abstract member-signature get _identityHashCode() → dart.core::int*;
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
+    abstract member-signature get hashCode() → dart.core::int*;
+    abstract member-signature method toString() → dart.core::String*;
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
+    abstract member-signature get runtimeType() → dart.core::Type*;
+  }
+  static method main() → void {
+    foo::Key* k = new foo::ValueKey::•("t");
+    dart.core::print("${k}");
+  }
+}

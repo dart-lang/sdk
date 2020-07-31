@@ -1,0 +1,2 @@
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return dart.core::print(invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:14: Error: The method 'parseInt' isn't defined for the class 'String'.\nTry correcting the name to the name of an existing method, or defining a method named 'parseInt'.\nprint(\"1234\".parseInt())\n             ^^^^^^^^");

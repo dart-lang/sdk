@@ -1,0 +1,7 @@
+extension BestCom<T extends num> ( ){ }
+on Iterable<T> (){ }
+extension BestList<T> ( ){ }
+on List<T> (){ }
+extension BestSpec ;
+on List<num> (){ }
+main() { }

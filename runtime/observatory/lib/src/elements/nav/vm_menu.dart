@@ -7,15 +7,12 @@ import 'dart:async';
 import 'package:observatory/models.dart' as M show VM, EventRepository;
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/menu_item.dart';
 
 class NavVMMenuElement extends CustomElement implements Renderable {
-  static const tag = const Tag<NavVMMenuElement>('nav-vm-menu',
-      dependencies: const [NavMenuItemElement.tag]);
-
-  RenderingScheduler _r;
+  RenderingScheduler<NavVMMenuElement> _r;
 
   Stream<RenderedEvent<NavVMMenuElement>> get onRendered => _r.onRendered;
 
@@ -43,7 +40,7 @@ class NavVMMenuElement extends CustomElement implements Renderable {
     return e;
   }
 
-  NavVMMenuElement.created() : super.created(tag);
+  NavVMMenuElement.created() : super.created('nav-vm-menu');
 
   @override
   void attached() {

@@ -7,45 +7,45 @@ import 'dart:ffi';
 /// Large sample struct for dart:ffi library.
 class VeryLargeStruct extends Struct {
   @Int8()
-  int a;
+  external int a;
 
   @Int16()
-  int b;
+  external int b;
 
   @Int32()
-  int c;
+  external int c;
 
   @Int64()
-  int d;
+  external int d;
 
   @Uint8()
-  int e;
+  external int e;
 
   @Uint16()
-  int f;
+  external int f;
 
   @Uint32()
-  int g;
+  external int g;
 
   @Uint64()
-  int h;
+  external int h;
 
   @IntPtr()
-  int i;
+  external int i;
 
   @Double()
-  double j;
+  external double j;
 
   @Float()
-  double k;
+  external double k;
 
-  Pointer<VeryLargeStruct> parent;
+  external Pointer<VeryLargeStruct> parent;
 
   @IntPtr()
-  int numChildren;
+  external int numChildren;
 
-  Pointer<VeryLargeStruct> children;
+  external Pointer<VeryLargeStruct> children;
 
   @Int8()
-  int smallLastField;
+  external int smallLastField;
 }

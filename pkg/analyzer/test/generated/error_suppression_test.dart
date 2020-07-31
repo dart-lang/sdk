@@ -16,86 +16,102 @@ main() {
 
 @reflectiveTest
 class ErrorSuppressionTest extends DriverResolutionTest with PackageMixin {
-  String get ignoredCode => 'const_initialized_with_non_constant_value';
+  String get ignoredCode => 'unused_element';
+
+  test_does_not_ignore_errors() async {
+    await assertErrorsInCode('''
+int x = ''; // ignore: invalid_assignment
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 8, 2),
+    ]);
+  }
+
+  test_error_cannot_be_ignored() async {
+    await assertErrorsInCode('''
+// ignore: unused_import, undefined_function
+f() => g();
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_FUNCTION, 52, 1),
+    ]);
+  }
 
   test_error_code_mismatch() async {
     await assertErrorsInCode('''
 // ignore: $ignoredCode
 int x = '';
-const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+int _y = 0; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 61, 2),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 75,
-          1),
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 34, 2),
+      error(HintCode.UNUSED_ELEMENT, 42, 2),
     ]);
   }
 
   test_ignore_first() async {
     await assertErrorsInCode('''
-// ignore: invalid_assignment
-int x = '';
+// ignore: unnecessary_cast
+int x = (0 as int);
 // ... but no ignore here ...
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 82,
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 88,
           1),
     ]);
   }
 
   test_ignore_first_trailing() async {
     await assertErrorsInCode('''
-int x = ''; // ignore: invalid_assignment
+int x = (0 as int); // ignore: unnecessary_cast
 // ... but no ignore here ...
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 82,
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 88,
           1),
     ]);
   }
 
   test_ignore_for_file() async {
     await assertErrorsInCode('''
-int x = '';  //INVALID_ASSIGNMENT
+int x = (0 as int); //UNNECESSARY_CAST
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-// ignore_for_file: invalid_assignment
+// ignore_for_file: unnecessary_cast
 ''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 44,
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 49,
           1),
     ]);
   }
 
   test_ignore_for_file_whitespace_variant() async {
     await assertNoErrorsInCode('''
-//ignore_for_file:   $ignoredCode , invalid_assignment
-int x = '';  //INVALID_ASSIGNMENT
-const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+//ignore_for_file:   $ignoredCode , unnecessary_cast
+int x = (0 as int);  //UNNECESSARY_CAST
+String _foo; //UNUSED_ELEMENT
 ''');
   }
 
   test_ignore_only_trailing() async {
     await assertNoErrorsInCode('''
-int x = ''; // ignore: invalid_assignment
+int x = (0 as int); // ignore: unnecessary_cast
 ''');
   }
 
   test_ignore_second() async {
     await assertErrorsInCode('''
-//INVALID_ASSIGNMENT
-int x = '';
+//UNNECESSARY_CAST
+int x = (0 as int);
 // ignore: $ignoredCode
-const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+String _foo; //UNUSED_ELEMENT
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 29, 2),
+      error(HintCode.UNNECESSARY_CAST, 28, 8),
     ]);
   }
 
   test_ignore_second_trailing() async {
     await assertErrorsInCode('''
-//INVALID_ASSIGNMENT
-int x = '';
-const y = x; // ignore: $ignoredCode
+//UNNECESSARY_CAST
+int x = (0 as int);
+String _foo; // ignore: $ignoredCode
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 29, 2),
+      error(HintCode.UNNECESSARY_CAST, 28, 8),
     ]);
   }
 
@@ -113,7 +129,7 @@ int x = f();
 
   test_ignore_upper_case() async {
     await assertNoErrorsInCode('''
-int x = ''; // ignore: INVALID_ASSIGNMENT
+int x = (0 as int); // ignore: UNNECESSARY_CAST
 ''');
   }
 
@@ -152,78 +168,111 @@ String y = 3; //INVALID_ASSIGNMENT
 
   test_multiple_comments() async {
     await assertErrorsInCode('''
-int x = ''; //This is the first comment...
+int x = (0 as int); //This is the first comment...
 // ignore: $ignoredCode
-const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+String _foo; //UNUSED_ELEMENT
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 8, 2),
+      error(HintCode.UNNECESSARY_CAST, 9, 8),
     ]);
   }
 
   test_multiple_ignore_for_files() async {
     await assertNoErrorsInCode('''
-int x = '';  //INVALID_ASSIGNMENT
-const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-// ignore_for_file: invalid_assignment,$ignoredCode
+int x = (0 as int); //UNNECESSARY_CAST
+String _foo; //UNUSED_ELEMENT
+// ignore_for_file: unnecessary_cast,$ignoredCode
 ''');
   }
 
   test_multiple_ignores() async {
     await assertNoErrorsInCode('''
 int x = 3;
-// ignore: invalid_assignment, $ignoredCode
-const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// ignore: unnecessary_cast, $ignoredCode
+int _y = x as int; //UNNECESSARY_CAST, UNUSED_ELEMENT
 ''');
   }
 
   test_multiple_ignores_trailing() async {
     await assertNoErrorsInCode('''
 int x = 3;
-const String y = x; // ignore: invalid_assignment, $ignoredCode
+int _y = x as int; // ignore: unnecessary_cast, $ignoredCode
 ''');
   }
 
   test_multiple_ignores_whitespace_variant_1() async {
     await assertNoErrorsInCode('''
 int x = 3;
-//ignore:invalid_assignment,$ignoredCode
-const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+//ignore:unnecessary_cast,$ignoredCode
+int _y = x as int; //UNNECESSARY_CAST, UNUSED_ELEMENT
 ''');
   }
 
   test_multiple_ignores_whitespace_variant_2() async {
     await assertNoErrorsInCode('''
 int x = 3;
-//ignore: invalid_assignment,$ignoredCode
-const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+//ignore: unnecessary_cast,$ignoredCode
+int _y = x as int; //UNNECESSARY_CAST, UNUSED_ELEMENT
 ''');
   }
 
   test_multiple_ignores_whitespace_variant_3() async {
     await assertNoErrorsInCode('''
 int x = 3;
-// ignore: invalid_assignment,$ignoredCode
-const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// ignore: unnecessary_cast,$ignoredCode
+int _y = x as int; //UNNECESSARY_CAST, UNUSED_ELEMENT
 ''');
   }
 
   test_no_ignores() async {
     await assertErrorsInCode('''
-int x = '';  //INVALID_ASSIGNMENT
+int x = ''; //INVALID_ASSIGNMENT
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''', [
       error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 8, 2),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 44,
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 43,
           1),
     ]);
   }
 
   test_trailing_not_above() async {
     await assertErrorsInCode('''
-int x = ''; // ignore: invalid_assignment
-int y = '';
+int x = (0 as int); // ignore: unnecessary_cast
+int y = (0 as int);
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 50, 2),
+      error(HintCode.UNNECESSARY_CAST, 57, 8),
     ]);
+  }
+
+  test_undefined_function_within_flutter_can_be_ignored() async {
+    await assertErrorsInFile(
+      '/workspace/flutterlib/flutter.dart',
+      '''
+// ignore: undefined_function
+f() => g();
+''',
+      [],
+    );
+  }
+
+  test_undefined_function_within_flutter_without_ignore() async {
+    await assertErrorsInFile(
+      '/workspace/flutterlib/flutter.dart',
+      '''
+f() => g();
+''',
+      [error(StaticTypeWarningCode.UNDEFINED_FUNCTION, 7, 1)],
+    );
+  }
+
+  test_undefined_prefixed_name_within_flutter_can_be_ignored() async {
+    await assertErrorsInFile(
+      '/workspace/flutterlib/flutter.dart',
+      '''
+import 'dart:collection' as c;
+// ignore: undefined_prefixed_name
+f() => c.g;
+''',
+      [],
+    );
   }
 }

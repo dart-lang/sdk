@@ -1,4 +1,5 @@
 name: _js_interop_checks
+# This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 
 environment:

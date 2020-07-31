@@ -76,6 +76,6 @@ void testSymbolThrows(name) {
 }
 
 class Symbolize {
-  Symbol lastMember;
+  Symbol? lastMember;
   noSuchMethod(m) => lastMember = m.memberName;
 }

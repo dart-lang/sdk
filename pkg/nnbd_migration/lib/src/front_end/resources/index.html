@@ -1,0 +1,96 @@
+<html>
+<head>
+    <title>Null Safety Preview</title>
+    <script src="{{ highlightJsPath }}"></script>
+    <script>{{ dartPageScript }}</script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,600&display=swap">
+    <link rel="stylesheet" href="{{ highlightStylePath }}">
+    <style>{{ dartPageStyle }}</style>
+</head>
+<body class="{{ migrationAppliedStyle }} {{ needsRerunStyle }}">
+<div class="rerunning-pane">
+  <h1>Rerunning...</h1>
+</div>
+<div class="popup-pane">
+  <div class="close button">X</div>
+  <h2></h2><!-- header placeholder element -->
+  <p></p><!-- subheader placeholder element -->
+  <pre></pre><!-- preformated content placeholder element -->
+  <a class="button bottom" target="_blank">File on GitHub</a><!-- post to github placeholder element -->
+</div>
+<p class="root">{{ root }}</p>
+<header class="elevation-z4">
+    <img src="{{ dartLogoPath }}" alt="DartPad Logo" class="logo"/>
+    <h1>Dart</h1>
+    <h2 class="before-apply">Proposed null safety changes</h2>
+    <h2 class="after-apply">&#10003; Null safety migration applied</h2>
+    <h3 id="unit-name">&nbsp;</h3>
+    <a target="_blank"
+       href="https://goo.gle/dart-null-safety-migration-tool">
+      <button class="action-button">
+        <i class="material-icons">launch</i>
+        <span>Help</span>
+      </button>
+    </a>
+    <button class="action-button apply-migration">
+        <i class="material-icons">edit</i>
+        <span class="label">
+          Apply Migration
+        </span>
+    </button>
+    <button class="action-button apply-migration" disabled>
+        <i class="material-icons">edit</i>
+        <span class="label">
+          Apply Migration
+        </span>
+    </button>
+    <button class="action-button rerun-migration before-apply">
+      <span class="optional">
+        <i class="material-icons">replay</i>
+        Rerun From Sources
+      </span>
+      <span class="required">
+        <i class="material-icons">warning</i>
+        Rerun With Changes
+      </span>
+    </button>
+</header>
+<div class="panels horizontal">
+    <div class="nav-panel">
+        <div class="nav-inner">
+            <div class="panel-heading">Project Files</div>
+            <div class="nav-tree"></div>
+        </div><!-- /nav-inner -->
+    </div><!-- /nav -->
+    <div class="content">
+        <div class="regions">
+            <!-- The regions overlay code copy of the content to provide -->
+            <!-- tooltips for modified regions. -->
+        </div><!-- /regions -->
+        <div class="code">
+            <!-- Compilation unit content is written here. -->
+            <p class="welcome">
+                Select a source file on the left to preview the proposed edits.
+            </p>
+        </div>
+    </div><!-- /content -->
+    <div class="info-panel">
+        <div class="edit-list">
+            <div class="panel-heading">Proposed Edits</div>
+            <div class="panel-content"></div>
+        </div><!-- /edit-list -->
+        <div class="edit-panel">
+            <div class="panel-heading">Edit Details</div>
+            <div class="panel-content">
+                <p class="placeholder">See details about a proposed edit.</p>
+            </div><!-- /panel-content -->
+        </div><!-- /edit-panel -->
+    </div><!-- /info-panel -->
+</div><!-- /panels -->
+<footer>
+  <button class="report-problem">Send Feedback</button>
+    <span class="wide"> </span>
+    <div class="sdk-version">Based on <span id="sdk-version">{{ sdkVersion }}</span></div>
+</footer>
+</body>
+</html>

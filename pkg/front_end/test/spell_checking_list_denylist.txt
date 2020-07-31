@@ -1,0 +1,91 @@
+# Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Blank lines and comments are ignored.
+# Comments can also be inline like 'correct # this is ok'.
+# Note that at least one space before the hash is required.
+
+# Comments on a line by itself will be considered a header of the file and
+# automatic tools might move it to the top of the file.
+
+alread
+blacklist
+black-list
+blacklisted
+black-listed
+chnage
+clonable
+comile
+complation
+conditoinal
+conected
+constructer
+constructers
+contaning
+contol
+covarint
+depencencies
+detemination
+diagnotics
+down't
+effeciency
+erronious
+errornious
+evaluted
+explaination
+expresison
+expressoin
+gurantees
+hiearchy
+hierachy
+independendent
+infered
+instantaite
+instantating
+instantition
+instesection
+internel
+keybord
+libarary
+librares
+neame
+neccessary
+normaly
+nullabiliity
+obect
+occured
+occurence
+ocurred
+opreations
+Orignially
+outtermost
+phisical
+plaform
+poluted
+preceeded
+previosly
+priotity
+proram
+recomile
+resently
+reuslt
+satifying
+seach
+singluar
+slave
+Specifiction
+staments
+statment
+stubstitution
+subsitutions
+subtring
+suffient
+terminted
+tood
+unlinke
+valiation
+whitelist
+white-list
+whitelisted
+white-listed

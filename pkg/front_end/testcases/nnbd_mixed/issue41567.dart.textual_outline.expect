@@ -1,0 +1,13 @@
+import 'issue41567_lib.dart';
+
+class B extends A {}
+
+class in1 extends out_Object implements B {}
+
+class in2 extends B implements out_Object {}
+
+class in3 extends out_int implements B {}
+
+class in4 extends B implements out_int {}
+
+main() {}

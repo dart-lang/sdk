@@ -17,8 +17,8 @@ ASSEMBLER_TEST_EXTERN(StoreIntoObject);
 
 ASSEMBLER_TEST_RUN(StoreIntoObject, test) {
 #define TEST_CODE(value, growable_array, thread)                               \
-  test->Invoke<void, RawObject*, RawObject*, Thread*>(value, growable_array,   \
-                                                      thread)
+  test->Invoke<void, ObjectPtr, ObjectPtr, Thread*>(value, growable_array,     \
+                                                    thread)
 
   const Array& old_array = Array::Handle(Array::New(3, Heap::kOld));
   const Array& new_array = Array::Handle(Array::New(3, Heap::kNew));
@@ -38,7 +38,7 @@ ASSEMBLER_TEST_RUN(StoreIntoObject, test) {
   for (int i = -128; i < 128; i++) {
     smi = Smi::New(i);
     TEST_CODE(smi.raw(), grow_old_array.raw(), thread);
-    EXPECT(reinterpret_cast<RawArray*>(smi.raw()) == grow_old_array.data());
+    EXPECT(static_cast<ArrayPtr>(smi.raw()) == grow_old_array.data());
     EXPECT(!thread->StoreBufferContains(grow_old_array.raw()));
   }
 

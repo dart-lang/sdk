@@ -16,7 +16,6 @@ import 'completion_contributor_util.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(KeywordContributorTest);
-    defineReflectiveTests(KeywordContributorWithExtensionMethodsTest);
     defineReflectiveTests(KeywordContributorWithNnbdTest);
   });
 }
@@ -71,7 +70,13 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get constructorParameter {
-    var keywords = <Keyword>[Keyword.COVARIANT, Keyword.DYNAMIC, Keyword.THIS];
+    var keywords = <Keyword>[
+      Keyword.COVARIANT,
+      Keyword.DYNAMIC,
+      Keyword.THIS,
+      Keyword.DYNAMIC,
+      Keyword.VOID
+    ];
     if (isEnabled(ExperimentalFeatures.non_nullable)) {
       keywords.add(Keyword.REQUIRED);
     }
@@ -85,14 +90,12 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.CONST,
       Keyword.COVARIANT,
       Keyword.DYNAMIC,
+      Keyword.EXTENSION,
       Keyword.FINAL,
       Keyword.TYPEDEF,
       Keyword.VAR,
       Keyword.VOID
     ];
-    if (isEnabled(ExperimentalFeatures.extension_methods)) {
-      keywords.add(Keyword.EXTENSION);
-    }
     if (isEnabled(ExperimentalFeatures.non_nullable)) {
       keywords.add(Keyword.LATE);
     }
@@ -107,6 +110,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.COVARIANT,
       Keyword.DYNAMIC,
       Keyword.EXPORT,
+      Keyword.EXTENSION,
       Keyword.FINAL,
       Keyword.IMPORT,
       Keyword.PART,
@@ -114,9 +118,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.VAR,
       Keyword.VOID
     ];
-    if (isEnabled(ExperimentalFeatures.extension_methods)) {
-      keywords.add(Keyword.EXTENSION);
-    }
     if (isEnabled(ExperimentalFeatures.non_nullable)) {
       keywords.add(Keyword.LATE);
     }
@@ -139,6 +140,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.COVARIANT,
       Keyword.DYNAMIC,
       Keyword.EXPORT,
+      Keyword.EXTENSION,
       Keyword.FINAL,
       Keyword.IMPORT,
       Keyword.PART,
@@ -146,9 +148,24 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.VAR,
       Keyword.VOID
     ];
-    if (isEnabled(ExperimentalFeatures.extension_methods)) {
-      keywords.add(Keyword.EXTENSION);
+    if (isEnabled(ExperimentalFeatures.non_nullable)) {
+      keywords.add(Keyword.LATE);
     }
+    return keywords;
+  }
+
+  List<Keyword> get extensionBodyKeywords {
+    var keywords = [
+      Keyword.CONST,
+      Keyword.DYNAMIC,
+      Keyword.FINAL,
+      Keyword.GET,
+      Keyword.OPERATOR,
+      Keyword.SET,
+      Keyword.STATIC,
+      Keyword.VAR,
+      Keyword.VOID
+    ];
     if (isEnabled(ExperimentalFeatures.non_nullable)) {
       keywords.add(Keyword.LATE);
     }
@@ -156,7 +173,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get methodParameter {
-    var keywords = <Keyword>[Keyword.COVARIANT, Keyword.DYNAMIC];
+    var keywords = <Keyword>[Keyword.COVARIANT, Keyword.DYNAMIC, Keyword.VOID];
     if (isEnabled(ExperimentalFeatures.non_nullable)) {
       keywords.add(Keyword.REQUIRED);
     }
@@ -853,6 +870,12 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     assertSuggestKeywords(classBodyKeywords);
   }
 
+  Future<void> test_class_body_empty() async {
+    addTestSource('extension E on int {^}');
+    await computeSuggestions();
+    assertSuggestKeywords(extensionBodyKeywords);
+  }
+
   Future<void> test_class_body_end() async {
     addTestSource('class A {var foo; ^}');
     await computeSuggestions();
@@ -1028,9 +1051,23 @@ class C {
     assertSuggestKeywords(constructorParameter);
   }
 
+  Future<void> test_constructor_param_noPrefix_func_parameter() async {
+    addTestSource('class A { A(^ Function(){}) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(constructorParameter);
+  }
+
   Future<void> test_constructor_param_prefix() async {
     addTestSource('class A { A(t^) {}}');
     await computeSuggestions();
+    assertSuggestKeywords(constructorParameter);
+  }
+
+  Future<void> test_constructor_param_prefix_func_parameter() async {
+    addTestSource('class A { A(v^ Function(){}) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
     assertSuggestKeywords(constructorParameter);
   }
 
@@ -1053,6 +1090,56 @@ class C {
     await computeSuggestions();
     assertSuggestKeywords(directiveDeclarationAndLibraryKeywords,
         relevance: DART_RELEVANCE_HIGH);
+  }
+
+  Future<void> test_extension_body_beginning() async {
+    addTestSource('extension E on int {^ foo() {}}');
+    await computeSuggestions();
+    assertSuggestKeywords(extensionBodyKeywords);
+  }
+
+  Future<void> test_extension_body_between() async {
+    addTestSource('extension E on int {foo() {} ^ void bar() {}}');
+    await computeSuggestions();
+    assertSuggestKeywords(extensionBodyKeywords);
+  }
+
+  Future<void> test_extension_body_end() async {
+    addTestSource('extension E on int {foo() {} ^}');
+    await computeSuggestions();
+    assertSuggestKeywords(extensionBodyKeywords);
+  }
+
+  Future<void> test_extension_member_const_afterStatic() async {
+    addTestSource('''
+extension E on int {
+  static c^
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(staticMember);
+  }
+
+  Future<void> test_extension_member_final_afterStatic() async {
+    addTestSource('''
+extension E on int {
+  static f^
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(staticMember);
+  }
+
+  Future<void> test_extension_noBody_named() async {
+    addTestSource('extension E ^');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.ON], relevance: DART_RELEVANCE_HIGH);
+  }
+
+  Future<void> test_extension_noBody_unnamed() async {
+    addTestSource('extension ^');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.ON], relevance: DART_RELEVANCE_HIGH);
   }
 
   Future<void> test_for_break_continue_insideClass() async {
@@ -1971,6 +2058,13 @@ f() => <int>{1, ^, 2};
     assertSuggestKeywords(methodParameter);
   }
 
+  Future<void> test_method_param_noPrefix_func_parameter() async {
+    addTestSource('class A { foo(^ Function(){}) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(methodParameter);
+  }
+
   Future<void> test_method_param_positional_init() async {
     addTestSource('class A { foo([bool bar = ^]) {}}');
     await computeSuggestions();
@@ -1990,6 +2084,26 @@ f() => <int>{1, ^, 2};
     await computeSuggestions();
     expect(suggestions, isNotEmpty);
     assertSuggestKeywords(methodParameter);
+  }
+
+  Future<void> test_method_param_prefix_func_parameter() async {
+    addTestSource('class A { foo(v^ Function(){}) {}}');
+    await computeSuggestions();
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords(methodParameter);
+  }
+
+  Future<void> test_method_type_params() async {
+    addTestSource('''
+void f<T>() {}
+
+void m() {
+  f<^>();
+}
+''');
+
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.DYNAMIC, Keyword.VOID]);
   }
 
   Future<void> test_mixin() async {
@@ -2230,97 +2344,6 @@ f() => [...^];
     if (iter1.any((c) => !iter2.contains(c))) return false;
     if (iter2.any((c) => !iter1.contains(c))) return false;
     return true;
-  }
-}
-
-@reflectiveTest
-class KeywordContributorWithExtensionMethodsTest
-    extends KeywordContributorTest {
-  List<Keyword> get extensionBodyKeywords => [
-        Keyword.CONST,
-        Keyword.DYNAMIC,
-        Keyword.FINAL,
-        Keyword.GET,
-        Keyword.OPERATOR,
-        Keyword.SET,
-        Keyword.STATIC,
-        Keyword.VAR,
-        Keyword.VOID
-      ];
-
-  @override
-  void setupResourceProvider() {
-    super.setupResourceProvider();
-    createAnalysisOptionsFile(experiments: [EnableString.extension_methods]);
-  }
-
-  Future<void> test_class_body_empty() async {
-    addTestSource('extension E on int {^}');
-    await computeSuggestions();
-    assertSuggestKeywords(extensionBodyKeywords);
-  }
-
-  Future<void> test_extension_body_beginning() async {
-    addTestSource('extension E on int {^ foo() {}}');
-    await computeSuggestions();
-    assertSuggestKeywords(extensionBodyKeywords);
-  }
-
-  Future<void> test_extension_body_between() async {
-    addTestSource('extension E on int {foo() {} ^ void bar() {}}');
-    await computeSuggestions();
-    assertSuggestKeywords(extensionBodyKeywords);
-  }
-
-  Future<void> test_extension_body_end() async {
-    addTestSource('extension E on int {foo() {} ^}');
-    await computeSuggestions();
-    assertSuggestKeywords(extensionBodyKeywords);
-  }
-
-  Future<void> test_extension_member_const_afterStatic() async {
-    addTestSource('''
-extension E on int {
-  static c^
-}
-''');
-    await computeSuggestions();
-    assertSuggestKeywords(staticMember);
-  }
-
-  Future<void> test_extension_member_final_afterStatic() async {
-    addTestSource('''
-extension E on int {
-  static f^
-}
-''');
-    await computeSuggestions();
-    assertSuggestKeywords(staticMember);
-  }
-
-  Future<void> test_extension_noBody_named() async {
-    addTestSource('extension E ^');
-    await computeSuggestions();
-    assertSuggestKeywords([Keyword.ON], relevance: DART_RELEVANCE_HIGH);
-  }
-
-  Future<void> test_extension_noBody_unnamed() async {
-    addTestSource('extension ^');
-    await computeSuggestions();
-    assertSuggestKeywords([Keyword.ON], relevance: DART_RELEVANCE_HIGH);
-  }
-
-  Future<void> test_method_type_params() async {
-    addTestSource('''
-void f<T>() {}
-
-void m() {
-  f<^>();
-}
-''');
-
-    await computeSuggestions();
-    assertSuggestKeywords([Keyword.DYNAMIC, Keyword.VOID]);
   }
 }
 

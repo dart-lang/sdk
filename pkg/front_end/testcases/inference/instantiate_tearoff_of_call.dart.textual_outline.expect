@@ -1,0 +1,4 @@
+library test;
+
+void test(T Function<T>(T) f) {}
+main() {}

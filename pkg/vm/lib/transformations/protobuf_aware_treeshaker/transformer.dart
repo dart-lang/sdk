@@ -178,15 +178,18 @@ class _UnusedFieldMetadataPruner extends TreeVisitor<void> {
   }
 
   @override
-  visitLet(Let node) {
+  visitBlockExpression(BlockExpression node) {
     // The BuilderInfo field `_i` is set up with a row of cascaded calls.
     // ```
     // static final BuilderInfo _i = BuilderInfo('MessageName')
     //     ..a(1, 'foo', PbFieldType.OM)
     //     ..a(2, 'bar', PbFieldType.OM)
     // ```
-    // Each cascaded call will be represented in kernel as a let, where the
-    // initializer will be a call to a method of `builderInfo`. For example:
+    // Each cascaded call will be represented in kernel as an entry in a
+    // BlockExpression (but starts out in a Let), where each statement in block
+    // is an ExpressionStatement, and where each statement will be a call to a
+    // method of `builderInfo`.
+    // For example:
     // ```
     // {protobuf::BuilderInfo::a}<dart.core::int*>(1, "foo", #C10)
     // ```
@@ -196,7 +199,21 @@ class _UnusedFieldMetadataPruner extends TreeVisitor<void> {
     // First argument is the tag-number of the added field.
     // Second argument is the field-name.
     // Further arguments are specific to the method.
-    final initializer = node.variable.initializer;
+    for (Statement statement in node.body.statements) {
+      if (statement is ExpressionStatement) {
+        _changeCascadeEntry(statement.expression);
+      }
+    }
+    node.body.accept(this);
+  }
+
+  @override
+  visitLet(Let node) {
+    // See comment in visitBlockExpression.
+    node.body.accept(this);
+  }
+
+  void _changeCascadeEntry(Expression initializer) {
     if (initializer is MethodInvocation &&
         initializer.interfaceTarget?.enclosingClass == builderInfoClass &&
         fieldAddingMethods.contains(initializer.name.name)) {
@@ -233,7 +250,6 @@ class _UnusedFieldMetadataPruner extends TreeVisitor<void> {
         );
       }
     }
-    node.body.accept(this);
   }
 }
 

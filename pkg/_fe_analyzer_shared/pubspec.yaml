@@ -1,5 +1,5 @@
 name: _fe_analyzer_shared
-version: 1.0.3
+version: 5.0.0
 description: Logic that is shared between the front_end and analyzer packages.
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/_fe_analyzer_shared
 

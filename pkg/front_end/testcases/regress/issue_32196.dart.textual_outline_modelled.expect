@@ -1,0 +1,7 @@
+class A {
+  A.get(this.name);
+  A.set(this.name);
+  final String name;
+}
+
+main() {}

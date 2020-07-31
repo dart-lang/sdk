@@ -29,6 +29,10 @@ void main(List<String> arguments) {
   var totalLines = 0;
   var totalMigratedFiles = 0;
   var totalMigratedLines = 0;
+  var languageDirs = 0;
+  var migratedLanguageDirs = 0;
+
+  var skipCompleteSubfolders = arguments.contains("--incomplete");
 
   for (var rootDir in legacyRootDirs) {
     var subdirs = Directory(p.join(testRoot, rootDir))
@@ -59,18 +63,28 @@ void main(List<String> arguments) {
       }
 
       if (files == 0) continue;
+      if (skipCompleteSubfolders && lines == migratedLines) continue;
 
       _show(dir, migratedFiles, files, migratedLines, lines);
       totalFiles += files;
       totalLines += lines;
       totalMigratedFiles += migratedFiles;
       totalMigratedLines += migratedLines;
+
+      if (dir.startsWith("language_2/")) {
+        languageDirs++;
+        if (migratedLines == lines) {
+          migratedLanguageDirs++;
+        }
+      }
     }
   }
 
   print("");
   _show(
       "total", totalMigratedFiles, totalFiles, totalMigratedLines, totalLines);
+  print("");
+  print("Finished $migratedLanguageDirs/$languageDirs language directories.");
 }
 
 void _show(

@@ -1,0 +1,31 @@
+library test;
+
+class Index {}
+
+class A {
+  C operator +(F v) => null;
+  C operator -(int i) => null;
+}
+
+class B extends A {
+  D operator +(E v) => null;
+  D operator -(int i) => null;
+}
+
+class C extends B {}
+
+class D extends C {}
+
+class E extends D {}
+
+class F extends E {}
+
+T f<T>() => null;
+
+class Test {
+  B operator [](Index i) => null;
+  void operator []=(Index i, A v) {}
+  void test() {}
+}
+
+main() {}

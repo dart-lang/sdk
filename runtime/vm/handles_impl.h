@@ -290,7 +290,7 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   ASSERT(visitor != NULL);
   for (intptr_t i = 0; i < next_handle_slot_; i += kHandleSizeInWords) {
     visitor->VisitPointer(
-        reinterpret_cast<RawObject**>(&data_[i + kOffsetOfRawPtr / kWordSize]));
+        reinterpret_cast<ObjectPtr*>(&data_[i + kOffsetOfRawPtr / kWordSize]));
   }
 }
 

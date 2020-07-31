@@ -11,10 +11,8 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
-/**
- * A [ConflictingSummaryException] indicates that two different summaries
- * provided to a [SummaryDataStore] conflict.
- */
+/// A [ConflictingSummaryException] indicates that two different summaries
+/// provided to a [SummaryDataStore] conflict.
 class ConflictingSummaryException implements Exception {
   final String duplicatedUri;
   final String summary1Uri;
@@ -62,15 +60,11 @@ include the same source.
   }
 }
 
-/**
- * A placeholder of a source that is part of a package whose analysis results
- * are served from its summary.  This source uses its URI as [fullName] and has
- * empty contents.
- */
+/// A placeholder of a source that is part of a package whose analysis results
+/// are served from its summary.  This source uses its URI as [fullName] and has
+/// empty contents.
 class InSummarySource extends BasicSource {
-  /**
-   * The summary file where this source was defined.
-   */
+  /// The summary file where this source was defined.
   final String summaryPath;
 
   InSummarySource(Uri uri, this.summaryPath) : super(uri);
@@ -91,10 +85,8 @@ class InSummarySource extends BasicSource {
   String toString() => uri.toString();
 }
 
-/**
- * The [UriResolver] that knows about sources that are served from their
- * summaries.
- */
+/// The [UriResolver] that knows about sources that are served from their
+/// summaries.
 class InSummaryUriResolver extends UriResolver {
   ResourceProvider resourceProvider;
   final SummaryDataStore _dataStore;
@@ -113,37 +105,27 @@ class InSummaryUriResolver extends UriResolver {
   }
 }
 
-/**
- * A [SummaryDataStore] is a container for the data extracted from a set of
- * summary package bundles.  It contains maps which can be used to find linked
- * and unlinked summaries by URI.
- */
+/// A [SummaryDataStore] is a container for the data extracted from a set of
+/// summary package bundles.  It contains maps which can be used to find linked
+/// and unlinked summaries by URI.
 class SummaryDataStore {
-  /**
-   * List of all [PackageBundle]s.
-   */
+  /// List of all [PackageBundle]s.
   final List<PackageBundle> bundles = <PackageBundle>[];
 
-  /**
-   * Map from the URI of a unit to the summary path that contained it.
-   */
+  /// Map from the URI of a unit to the summary path that contained it.
   final Map<String, String> uriToSummaryPath = <String, String>{};
 
   final Set<String> _libraryUris = <String>{};
   final Set<String> _partUris = <String>{};
 
-  /**
-   * Create a [SummaryDataStore] and populate it with the summaries in
-   * [summaryPaths].
-   */
+  /// Create a [SummaryDataStore] and populate it with the summaries in
+  /// [summaryPaths].
   SummaryDataStore(Iterable<String> summaryPaths,
       {ResourceProvider resourceProvider}) {
     summaryPaths.forEach((String path) => _fillMaps(path, resourceProvider));
   }
 
-  /**
-   * Add the given [bundle] loaded from the file with the given [path].
-   */
+  /// Add the given [bundle] loaded from the file with the given [path].
   void addBundle(String path, PackageBundle bundle) {
     bundles.add(bundle);
 
@@ -162,25 +144,19 @@ class SummaryDataStore {
     }
   }
 
-  /**
-   * Return `true` if the store contains the linked summary for the library
-   * with the given absolute [uri].
-   */
+  /// Return `true` if the store contains the linked summary for the library
+  /// with the given absolute [uri].
   bool hasLinkedLibrary(String uri) {
     return _libraryUris.contains(uri);
   }
 
-  /**
-   * Return `true` if the store contains the unlinked summary for the unit
-   * with the given absolute [uri].
-   */
+  /// Return `true` if the store contains the unlinked summary for the unit
+  /// with the given absolute [uri].
   bool hasUnlinkedUnit(String uri) {
     return uriToSummaryPath.containsKey(uri);
   }
 
-  /**
-   * Return `true` if the unit with the [uri] is a part unit in the store.
-   */
+  /// Return `true` if the unit with the [uri] is a part unit in the store.
   bool isPartUnit(String uri) {
     return _partUris.contains(uri);
   }

@@ -11,6 +11,7 @@
 #endif
 #include "vm/flags.h"
 #include "vm/heap/safepoint.h"
+#include "vm/log.h"
 #include "vm/native_arguments.h"
 #include "vm/runtime_entry_list.h"
 
@@ -57,11 +58,6 @@ class RuntimeEntry : public BaseRuntimeEntry {
                                intptr_t argument_count) const);
 
   static uword InterpretCallEntry();
-  static RawObject* InterpretCall(RawFunction* function,
-                                  RawArray* argdesc,
-                                  intptr_t argc,
-                                  RawObject** argv,
-                                  Thread* thread);
 
  protected:
   NOT_IN_PRECOMPILED(static void CallInternal(const RuntimeEntry* runtime_entry,
@@ -148,6 +144,11 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_RUNTIME_ENTRY)
 // Expected to be called inside a safepoint.
 extern "C" Thread* DLRT_GetThreadForNativeCallback(uword callback_id);
 extern "C" Thread* DLRT_GetThreadForNativeCallbackTrampoline(uword callback_id);
+
+// For creating scoped handles in FFI trampolines.
+extern "C" ApiLocalScope* DLRT_EnterHandleScope(Thread* thread);
+extern "C" void DLRT_ExitHandleScope(Thread* thread);
+extern "C" LocalHandle* DLRT_AllocateHandle(ApiLocalScope* scope);
 
 const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason);
 

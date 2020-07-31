@@ -5,7 +5,6 @@
 import 'dart:math' show max;
 
 import 'package:analysis_server/src/edit/edit_dartfix.dart';
-import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 
@@ -14,16 +13,6 @@ mixin FixCodeProcessor {
   final _codeTasks = <FixCodeTask>[];
 
   int _numPhases = 0;
-
-  /// Return the task used to migrate to NNBD.
-  NonNullableFix get nonNullableFixTask {
-    for (var task in _codeTasks) {
-      if (task is NonNullableFix) {
-        return task;
-      }
-    }
-    return null;
-  }
 
   int get numPhases => _numPhases;
 

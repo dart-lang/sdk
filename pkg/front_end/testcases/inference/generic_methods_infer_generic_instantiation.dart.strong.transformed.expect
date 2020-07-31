@@ -18,13 +18,13 @@ library test;
 //   takeDID(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ min);
 //                                                                        ^
 //
-// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:86:30: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
-//           . /*@target=C::m*/ m);
-//                              ^
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:86:29: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
+//           . /*@target=C.m*/ m);
+//                             ^
 //
-// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:89:30: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'double Function(int, double)'.
-//           . /*@target=C::m*/ m);
-//                              ^
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:89:29: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'double Function(int, double)'.
+//           . /*@target=C.m*/ m);
+//                             ^
 //
 import self as self;
 import "dart:core" as core;
@@ -38,6 +38,16 @@ class C extends core::Object {
     ;
   method m<T extends core::num* = core::num*>(self::C::m::T* x, self::C::m::T* y) → self::C::m::T*
     return null;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method test() → dynamic {
   self::takeIII(#C1<core::int*>);
@@ -88,12 +98,12 @@ static method test() → dynamic {
   self::takeOON((new self::C::•().{self::C::m}<core::Object*>) as{TypeError} (core::Object*, core::Object*) →* core::num*);
   self::takeOOO((new self::C::•().{self::C::m}<core::Object*>) as{TypeError} (core::Object*, core::Object*) →* core::num*);
   self::takeOOI((new self::C::•().{self::C::m}<core::Object*>) as{TypeError} (core::Object*, core::Object*) →* core::int*);
-  self::takeIDI(let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:86:30: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
-          . /*@target=C::m*/ m);
-                             ^" in (new self::C::•().{self::C::m}<core::num*>) as{TypeError} (core::double*, core::int*) →* core::int*);
-  self::takeDID(let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:89:30: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'double Function(int, double)'.
-          . /*@target=C::m*/ m);
-                             ^" in (new self::C::•().{self::C::m}<core::num*>) as{TypeError} (core::int*, core::double*) →* core::double*);
+  self::takeIDI(let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:86:29: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
+          . /*@target=C.m*/ m);
+                            ^" in (new self::C::•().{self::C::m}<core::num*>) as{TypeError} (core::double*, core::int*) →* core::int*);
+  self::takeDID(let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:89:29: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'double Function(int, double)'.
+          . /*@target=C.m*/ m);
+                            ^" in (new self::C::•().{self::C::m}<core::num*>) as{TypeError} (core::int*, core::double*) →* core::double*);
 }
 static method takeIII((core::int*, core::int*) →* core::int* fn) → void {}
 static method takeDDD((core::double*, core::double*) →* core::double* fn) → void {}

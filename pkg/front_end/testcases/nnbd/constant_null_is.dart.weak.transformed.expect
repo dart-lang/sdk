@@ -1,0 +1,91 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field core::bool field;
+  const constructor constructor1(dynamic value) → self::Class<self::Class::T%>
+    : self::Class::field = value is{ForNonNullableByDefault} self::Class::T%, super core::Object::•()
+    ;
+  const constructor constructor2(dynamic value) → self::Class<self::Class::T%>
+    : self::Class::field = value is{ForNonNullableByDefault} self::Class::T?, super core::Object::•()
+    ;
+  const constructor constructor3(dynamic value) → self::Class<self::Class::T%>
+    : self::Class::field = value is{ForNonNullableByDefault} self::Class<self::Class::T%>, super core::Object::•()
+    ;
+  const constructor constructor4(dynamic value) → self::Class<self::Class::T%>
+    : self::Class::field = value is{ForNonNullableByDefault} self::Class<self::Class::T%>?, super core::Object::•()
+    ;
+}
+static final field core::bool isWeakMode = (#C1) is{ForNonNullableByDefault} core::List<core::Object>;
+static const field core::bool c0 = #C2;
+static const field core::bool c1 = #C3;
+static const field core::bool c2 = #C2;
+static const field core::bool c3 = #C2;
+static const field core::bool c4 = #C3;
+static const field core::bool c5 = #C2;
+static const field core::bool c6 = #C3;
+static const field core::bool c7 = #C2;
+static const field core::bool c8 = #C2;
+static const field core::bool c9 = #C2;
+static const field core::bool c10 = #C3;
+static const field core::bool c11 = #C2;
+static const field core::bool c12 = #C2;
+static const field self::Class<core::int> e1 = #C4;
+static const field self::Class<core::int?> e2 = #C4;
+static const field self::Class<core::Null?> e3 = #C5;
+static const field self::Class<core::int> e4 = #C6;
+static const field self::Class<core::int?> e5 = #C6;
+static const field self::Class<core::Null?> e6 = #C5;
+static const field self::Class<core::int> e7 = #C4;
+static const field self::Class<core::int?> e8 = #C4;
+static const field self::Class<core::Null?> e9 = #C7;
+static const field self::Class<core::int> e10 = #C6;
+static const field self::Class<core::int?> e11 = #C6;
+static const field self::Class<core::Null?> e12 = #C5;
+static method main() → dynamic {
+  self::expect(null is{ForNonNullableByDefault} core::int?, #C2, "null is int?");
+  self::expect(null is{ForNonNullableByDefault} core::int, #C3, "null is int");
+  self::expect(null is{ForNonNullableByDefault} core::Null?, #C2, "null is Null");
+  self::expect(null is{ForNonNullableByDefault} Never?, #C2, "null is Never?");
+  self::expect(null is{ForNonNullableByDefault} Never, #C3, "null is Never");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<core::int?>, #C2, "null is FutureOr<int?>");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<core::int>, #C3, "null is FutureOr<int>");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<core::int>?, #C2, "null is FutureOr<int>?");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<core::Null?>, #C2, "null is FutureOr<Null>");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<core::Null?>?, #C2, "null is FutureOr<Null>?");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<Never>, #C3, "null is FutureOr<Never>");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<Never?>, #C2, "null is FutureOr<Never?>");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<Never>?, #C2, "null is FutureOr<Never>?");
+  self::expect(new self::Class::constructor1<core::int>(null).{self::Class::field}, (#C4).{self::Class::field}, "Class<int>.constructor1(null).field");
+  self::expect(true, new self::Class::constructor1<core::int?>(null).{self::Class::field}, "new Class<int?>.constructor1(null).field");
+  self::expect(!self::isWeakMode, (#C4).{self::Class::field}, "const Class<int?>.constructor1(null).field");
+  self::expect(new self::Class::constructor1<core::Null?>(null).{self::Class::field}, (#C5).{self::Class::field}, "Class<Null>.constructor1(null).field");
+  self::expect(new self::Class::constructor2<core::int>(null).{self::Class::field}, (#C6).{self::Class::field}, "Class<int>.constructor2(null).field");
+  self::expect(true, new self::Class::constructor2<core::int?>(null).{self::Class::field}, "new Class<int?>.constructor2(null).field");
+  self::expect(new self::Class::constructor2<core::int?>(null).{self::Class::field}, (#C6).{self::Class::field}, "Class<int?>.constructor2(null).field");
+  self::expect(new self::Class::constructor2<core::Null?>(null).{self::Class::field}, (#C5).{self::Class::field}, "Class<Null>.constructor2(null).field");
+  self::expect(new self::Class::constructor3<core::int>(null).{self::Class::field}, (#C4).{self::Class::field}, "Class<int>.constructor3(null).field");
+  self::expect(new self::Class::constructor3<core::int?>(null).{self::Class::field}, (#C4).{self::Class::field}, "Class<int?>.constructor3(null).field");
+  self::expect(new self::Class::constructor3<core::int?>(null).{self::Class::field}, (#C4).{self::Class::field}, "Class<int?>.constructor3(null).field");
+  self::expect(new self::Class::constructor3<core::Null?>(null).{self::Class::field}, (#C7).{self::Class::field}, "Class<Null>.constructor3(null).field");
+  self::expect(new self::Class::constructor4<core::int>(null).{self::Class::field}, (#C6).{self::Class::field}, "Class<int>.constructor4(null).field");
+  self::expect(new self::Class::constructor4<core::int?>(null).{self::Class::field}, (#C6).{self::Class::field}, "Class<int?>.constructor4(null).field");
+  self::expect(new self::Class::constructor4<core::Null?>(null).{self::Class::field}, (#C5).{self::Class::field}, "Class<Null>.constructor4(null).field");
+}
+static method expect(dynamic expected, dynamic actual, core::String message) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual} for ${message}";
+}
+
+constants  {
+  #C1 = <core::Null?>[]
+  #C2 = true
+  #C3 = false
+  #C4 = self::Class<core::int*> {field:#C3}
+  #C5 = self::Class<core::Null?> {field:#C2}
+  #C6 = self::Class<core::int*> {field:#C2}
+  #C7 = self::Class<core::Null?> {field:#C3}
+}

@@ -682,6 +682,62 @@ ASSEMBLER_TEST_RUN(FailedSemaphore32, test) {
             EXECUTE_TEST_CODE_INT64(FailedSemaphore32, test->entry()));
 }
 
+ASSEMBLER_TEST_GENERATE(LoadAcquireStoreRelease, assembler) {
+  // We cannot really test that ldar/stlr have the barrier behavior, but at
+  // least we can test that the load/store behavior is correct.
+  Label failed, done;
+
+  __ SetupDartSP();
+  __ EnterFrame(0);
+
+  // Test 64-bit ladr.
+  __ PushImmediate(0x1122334455667788);
+  __ ldar(R1, SP, kDoubleWord);
+  __ CompareImmediate(R1, 0x1122334455667788);
+  __ BranchIf(NOT_EQUAL, &failed);
+  __ Drop(1);
+
+  // Test 32-bit ladr - must zero extend.
+  __ PushImmediate(0x1122334455667788);
+  __ ldar(R1, SP, kWord);
+  __ CompareImmediate(R1, 0x55667788);
+  __ BranchIf(NOT_EQUAL, &failed);
+  __ Drop(1);
+
+  // Test 64-bit stlr.
+  __ PushImmediate(0);
+  __ LoadImmediate(R1, 0x1122334455667788);
+  __ stlr(R1, SP, kDoubleWord);
+  __ Pop(R1);
+  __ CompareImmediate(R1, 0x1122334455667788);
+  __ BranchIf(NOT_EQUAL, &failed);
+
+  // Test 32-bit stlr.
+  __ PushImmediate(0);
+  __ LoadImmediate(R1, 0x1122334455667788);
+  __ stlr(R1, SP, kWord);
+  __ Pop(R1);
+  __ CompareImmediate(R1, 0x55667788);
+  __ BranchIf(NOT_EQUAL, &failed);
+
+  __ LoadImmediate(R0, 0x42);
+  __ b(&done);
+
+  __ Bind(&failed);
+  __ LoadImmediate(R0, 0x84);
+
+  __ Bind(&done);
+  __ LeaveFrame();
+  __ RestoreCSP();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(LoadAcquireStoreRelease, test) {
+  typedef intptr_t (*LoadAcquireStoreRelease)() DART_UNUSED;
+  EXPECT_EQ(0x42,
+            EXECUTE_TEST_CODE_INT64(LoadAcquireStoreRelease, test->entry()));
+}
+
 // Logical register operations.
 ASSEMBLER_TEST_GENERATE(AndRegs, assembler) {
   __ movz(R1, Immediate(43), 0);
@@ -2551,7 +2607,8 @@ ASSEMBLER_TEST_GENERATE(LoadObjectNull, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(LoadObjectNull, test) {
-  EXPECT_EQ(Object::null(), test->InvokeWithCodeAndThread<RawObject*>());
+  EXPECT_EQ(static_cast<uword>(Object::null()),
+            test->InvokeWithCodeAndThread<uword>());
 }
 
 // PushObject null.
@@ -2566,7 +2623,8 @@ ASSEMBLER_TEST_GENERATE(PushObjectNull, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(PushObjectNull, test) {
-  EXPECT_EQ(Object::null(), test->InvokeWithCodeAndThread<RawObject*>());
+  EXPECT_EQ(static_cast<uword>(Object::null()),
+            test->InvokeWithCodeAndThread<uword>());
 }
 
 // CompareObject null.
@@ -2584,7 +2642,8 @@ ASSEMBLER_TEST_GENERATE(CompareObjectNull, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(CompareObjectNull, test) {
-  EXPECT_EQ(Bool::True().raw(), test->InvokeWithCodeAndThread<RawObject*>());
+  EXPECT_EQ(static_cast<uword>(Bool::True().raw()),
+            test->InvokeWithCodeAndThread<uword>());
 }
 
 ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {
@@ -2597,7 +2656,8 @@ ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(LoadObjectTrue, test) {
-  EXPECT_EQ(Bool::True().raw(), test->InvokeWithCodeAndThread<RawObject*>());
+  EXPECT_EQ(static_cast<uword>(Bool::True().raw()),
+            test->InvokeWithCodeAndThread<uword>());
 }
 
 ASSEMBLER_TEST_GENERATE(LoadObjectFalse, assembler) {
@@ -2610,7 +2670,8 @@ ASSEMBLER_TEST_GENERATE(LoadObjectFalse, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(LoadObjectFalse, test) {
-  EXPECT_EQ(Bool::False().raw(), test->InvokeWithCodeAndThread<RawObject*>());
+  EXPECT_EQ(static_cast<uword>(Bool::False().raw()),
+            test->InvokeWithCodeAndThread<uword>());
 }
 
 ASSEMBLER_TEST_GENERATE(CSelTrue, assembler) {
@@ -4554,6 +4615,29 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ Pop(CODE_REG);
   __ RestoreCSP();
   __ ret();
+}
+
+// Push numbers from kMaxPushedNumber to 0 to the stack then drop top
+// kMaxPushedNumber elements. This should leave just kMaxPushedNumber on the
+// stack.
+const intptr_t kMaxPushedNumber = 913;
+
+ASSEMBLER_TEST_GENERATE(Drop, assembler) {
+  __ SetupDartSP((kMaxPushedNumber + 1) * target::kWordSize);
+  for (intptr_t i = kMaxPushedNumber; i >= 0; i--) {
+    __ PushImmediate(i);
+  }
+  __ Drop(kMaxPushedNumber);
+  __ PopRegister(R0);
+  __ RestoreCSP();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Drop, test) {
+  EXPECT(test != NULL);
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(kMaxPushedNumber,
+            EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
 }  // namespace compiler

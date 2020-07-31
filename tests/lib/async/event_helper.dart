@@ -151,7 +151,7 @@ class Events implements EventSink {
 }
 
 class CaptureEvents extends Events {
-  StreamSubscription subscription;
+  late StreamSubscription subscription;
   bool cancelOnError = false;
 
   CaptureEvents(Stream stream, {bool cancelOnError: false}) {

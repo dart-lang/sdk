@@ -1,0 +1,15 @@
+library test;
+
+abstract class A {
+  num get x;
+}
+
+abstract class B extends A {
+  int get x;
+}
+
+class C extends B {
+  var x;
+}
+
+main() {}

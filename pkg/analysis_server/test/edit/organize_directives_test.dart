@@ -130,7 +130,7 @@ import 'dart:convert';
 import 'dart:collection';
 
 main() {
-  print(PI);
+  print(pi);
   new HashMap();
 }
 ''');
@@ -141,7 +141,7 @@ import 'dart:collection';
 import 'dart:math';
 
 main() {
-  print(PI);
+  print(pi);
   new HashMap();
 }
 ''');

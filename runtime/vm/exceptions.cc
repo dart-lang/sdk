@@ -69,8 +69,9 @@ class PreallocatedStackTraceBuilder : public StackTraceBuilder {
       : stacktrace_(StackTrace::Cast(stacktrace)),
         cur_index_(0),
         dropped_frames_(0) {
-    ASSERT(stacktrace_.raw() ==
-           Isolate::Current()->object_store()->preallocated_stack_trace());
+    ASSERT(
+        stacktrace_.raw() ==
+        Isolate::Current()->isolate_object_store()->preallocated_stack_trace());
   }
   ~PreallocatedStackTraceBuilder() {}
 
@@ -360,8 +361,8 @@ class ExceptionHandlerFinder : public StackResource {
     return reinterpret_cast<T*>(fp + frame_slot * kWordSize);
   }
 
-  static RawObject** TaggedSlotAt(uword fp, int stack_slot) {
-    return SlotAt<RawObject*>(fp, stack_slot);
+  static ObjectPtr* TaggedSlotAt(uword fp, int stack_slot) {
+    return SlotAt<ObjectPtr>(fp, stack_slot);
   }
 
   typedef ReadStream::Raw<sizeof(intptr_t), intptr_t> Reader;
@@ -597,7 +598,7 @@ static uword RemapExceptionPCForDeopt(Thread* thread,
 
 #if defined(DEBUG)
           // Ensure the frame references optimized code.
-          RawObject* pc_marker = *(reinterpret_cast<RawObject**>(
+          ObjectPtr pc_marker = *(reinterpret_cast<ObjectPtr*>(
               frame_pointer + runtime_frame_layout.code_from_fp * kWordSize));
           Code& code = Code::Handle(Code::RawCast(pc_marker));
           ASSERT(code.is_optimized() && !code.is_force_optimized());
@@ -738,7 +739,7 @@ void Exceptions::JumpToFrame(Thread* thread,
   UNREACHABLE();
 }
 
-static RawField* LookupStackTraceField(const Instance& instance) {
+static FieldPtr LookupStackTraceField(const Instance& instance) {
   if (instance.GetClassId() < kNumPredefinedCids) {
     // 'class Error' is not a predefined class.
     return Field::null();
@@ -770,7 +771,7 @@ static RawField* LookupStackTraceField(const Instance& instance) {
   return Field::null();
 }
 
-RawStackTrace* Exceptions::CurrentStackTrace() {
+StackTracePtr Exceptions::CurrentStackTrace() {
   return GetStackTraceForException();
 }
 
@@ -815,11 +816,12 @@ static void ThrowExceptionHelper(Thread* thread,
       ASSERT(incoming_exception.raw() ==
              isolate->object_store()->out_of_memory());
       const UnhandledException& error = UnhandledException::Handle(
-          zone, isolate->object_store()->preallocated_unhandled_exception());
+          zone,
+          isolate->isolate_object_store()->preallocated_unhandled_exception());
       thread->long_jump_base()->Jump(1, error);
       UNREACHABLE();
     }
-    stacktrace = isolate->object_store()->preallocated_stack_trace();
+    stacktrace = isolate->isolate_object_store()->preallocated_stack_trace();
     PreallocatedStackTraceBuilder frame_builder(stacktrace);
     ASSERT(existing_stacktrace.IsNull() ||
            (existing_stacktrace.raw() == stacktrace.raw()));
@@ -889,7 +891,7 @@ static void ThrowExceptionHelper(Thread* thread,
 
 // Return the script of the Dart function that called the native entry or the
 // runtime entry. The frame iterator points to the callee.
-RawScript* Exceptions::GetCallerScript(DartFrameIterator* iterator) {
+ScriptPtr Exceptions::GetCallerScript(DartFrameIterator* iterator) {
   StackFrame* caller_frame = iterator->NextFrame();
   ASSERT(caller_frame != NULL && caller_frame->IsDartFrame());
   const Function& caller = Function::Handle(caller_frame->LookupDartFunction());
@@ -904,7 +906,7 @@ RawScript* Exceptions::GetCallerScript(DartFrameIterator* iterator) {
 // Allocate a new instance of the given class name.
 // TODO(hausner): Rename this NewCoreInstance to call out the fact that
 // the class name is resolved in the core library implicitly?
-RawInstance* Exceptions::NewInstance(const char* class_name) {
+InstancePtr Exceptions::NewInstance(const char* class_name) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const String& cls_name =
@@ -1120,7 +1122,13 @@ void Exceptions::ThrowCompileTimeError(const LanguageError& error) {
   Exceptions::ThrowByType(Exceptions::kCompileTimeError, args);
 }
 
-RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
+void Exceptions::ThrowLateInitializationError(const String& name) {
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, name);
+  Exceptions::ThrowByType(Exceptions::kLateInitializationError, args);
+}
+
+ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
   Library& library = Library::Handle();
   const String* class_name = NULL;
   const String* constructor_name = &Symbols::Dot();
@@ -1207,12 +1215,28 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       library = Library::CoreLibrary();
       class_name = &Symbols::_CompileTimeError();
       break;
+    case kLateInitializationError:
+      library = Library::CoreLibrary();
+      class_name = &Symbols::LateInitializationError();
+      break;
   }
 
   Thread* thread = Thread::Current();
   NoReloadScope no_reload_scope(thread->isolate(), thread);
   return DartLibraryCalls::InstanceCreate(library, *class_name,
                                           *constructor_name, arguments);
+}
+
+UnhandledExceptionPtr Exceptions::CreateUnhandledException(Zone* zone,
+                                                           ExceptionType type,
+                                                           const char* msg) {
+  const String& error_str = String::Handle(zone, String::New(msg));
+  const Array& args = Array::Handle(zone, Array::New(1));
+  args.SetAt(0, error_str);
+
+  Object& result = Object::Handle(zone, Exceptions::Create(type, args));
+  const StackTrace& stacktrace = StackTrace::Handle(zone);
+  return UnhandledException::New(Instance::Cast(result), stacktrace);
 }
 
 }  // namespace dart

@@ -11,7 +11,6 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportLibraryShowTest);
-    defineReflectiveTests(ImportLibraryShowWithExtensionMethodsTest);
   });
 }
 
@@ -19,6 +18,27 @@ void main() {
 class ImportLibraryShowTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_SHOW;
+
+  Future<void> test_override_samePackage() async {
+    addSource('/home/test/lib/lib.dart', '''
+class A {}
+extension E on int {
+  String m() => '';
+}
+''');
+    await resolveTestUnit(r'''
+import 'lib.dart' show A;
+void f(A a) {
+  print('$a ${E(3).m()}');
+}
+''');
+    await assertHasFix(r'''
+import 'lib.dart' show A, E;
+void f(A a) {
+  print('$a ${E(3).m()}');
+}
+''');
+  }
 
   Future<void> test_package() async {
     addSource('/home/test/lib/lib.dart', '''
@@ -58,39 +78,6 @@ main() {
   HashMap s = null;
   LinkedHashMap f = null;
   print('$s $f');
-}
-''');
-  }
-}
-
-@reflectiveTest
-class ImportLibraryShowWithExtensionMethodsTest extends FixProcessorTest {
-  @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_SHOW;
-
-  @override
-  void setUp() {
-    createAnalysisOptionsFile(experiments: ['extension-methods']);
-    super.setUp();
-  }
-
-  Future<void> test_override_samePackage() async {
-    addSource('/home/test/lib/lib.dart', '''
-class A {}
-extension E on int {
-  String m() => '';
-}
-''');
-    await resolveTestUnit(r'''
-import 'lib.dart' show A;
-void f(A a) {
-  print('$a ${E(3).m()}');
-}
-''');
-    await assertHasFix(r'''
-import 'lib.dart' show A, E;
-void f(A a) {
-  print('$a ${E(3).m()}');
 }
 ''');
   }

@@ -10,13 +10,11 @@ import 'package:observatory/models.dart'
     show IsolateRef, SourceLocation, Script, ScriptRepository;
 import 'package:observatory/service.dart' as S;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class SourceLinkElement extends CustomElement implements Renderable {
-  static const tag = const Tag<SourceLinkElement>('source-link');
-
-  RenderingScheduler _r;
+  RenderingScheduler<SourceLinkElement> _r;
 
   Stream<RenderedEvent<SourceLinkElement>> get onRendered => _r.onRendered;
 
@@ -41,7 +39,7 @@ class SourceLinkElement extends CustomElement implements Renderable {
     return e;
   }
 
-  SourceLinkElement.created() : super.created(tag);
+  SourceLinkElement.created() : super.created('source-link');
 
   @override
   void attached() {

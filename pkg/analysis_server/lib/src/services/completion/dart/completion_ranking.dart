@@ -105,8 +105,6 @@ class CompletionRanking {
       return Future.value();
     }
 
-    request.checkAborted();
-
     performanceMetrics._incrementPredictionRequestCount();
 
     var timer = Stopwatch()..start();

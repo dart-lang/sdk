@@ -16,11 +16,11 @@ abstract class C extends B {
 void f<T extends B>(T a) {
   if (a is String) {
     // Not promoted; we can still call foo.
-    a. /*@target=B::foo*/ foo();
+    a. /*@target=B.foo*/ foo();
   }
   if (a is C) {
     // Promoted; we can now call bar.
-    /*@ promotedType=f::T* & C* */ a. /*@target=C::bar*/ bar();
+    /*@ promotedType=f::T* & C* */ a. /*@target=C.bar*/ bar();
   }
 }
 

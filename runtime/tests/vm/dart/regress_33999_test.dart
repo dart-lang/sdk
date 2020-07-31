@@ -8,16 +8,16 @@
 
 // Class with two type parameters.
 class A<U, T> {
-  T field1;
-  List<T> field2;
-  T Function(T) field3;
+  T? field1;
+  List<T>? field2;
+  T Function(T)? field3;
 }
 
 // Class with a single type parameter
 class B<T> {
-  T field1;
-  List<T> field2;
-  T Function(T) field3;
+  T? field1;
+  List<T>? field2;
+  T Function(T)? field3;
 }
 
 var TRUE = true;

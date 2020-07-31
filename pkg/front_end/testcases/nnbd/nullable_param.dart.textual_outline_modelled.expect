@@ -1,0 +1,7 @@
+class Foo {
+  int? bar(int? x) {}
+  int? field;
+}
+
+int test_nullable_function_type_formal_param({int f()?: null}) {}
+main() {}

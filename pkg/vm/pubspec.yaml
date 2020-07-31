@@ -1,7 +1,10 @@
-# This package is not intended to be published.
 name: vm
-# version: do-not-upload
 description: VM specific Dart code and helper scripts
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: "^2.7.0"
 
 dependencies:
   build_integration:

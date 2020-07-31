@@ -1,0 +1,16 @@
+int count = 0;
+
+abstract class A {
+  int foo;
+}
+
+class B implements A {
+  noSuchMethod(i) {}
+}
+
+class C extends Object with B {
+  int get foo => 42;
+  void set foo(int value) {}
+}
+
+main() {}

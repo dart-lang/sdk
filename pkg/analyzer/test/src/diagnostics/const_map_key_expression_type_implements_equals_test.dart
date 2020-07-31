@@ -107,6 +107,29 @@ main() {
     ]);
   }
 
+  test_nestedIn_instanceCreation() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+
+  bool operator ==(other) => false;
+}
+
+class B {
+  const B(_);
+}
+
+main() {
+  const B({A(): 0});
+}
+''', [
+      error(
+          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+          110,
+          3),
+    ]);
+  }
+
   test_super() async {
     await assertErrorsInCode(r'''
 class A {

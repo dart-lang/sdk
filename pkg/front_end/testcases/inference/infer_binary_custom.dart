@@ -10,8 +10,8 @@ class A {
   double operator -(other) => 2.0;
 }
 
-var v_add = new A() /*@target=A::+*/ + 'foo';
-var v_minus = new A() /*@target=A::-*/ - 'bar';
+var v_add = new A() /*@target=A.+*/ + 'foo';
+var v_minus = new A() /*@target=A.-*/ - 'bar';
 
 main() {
   v_add;

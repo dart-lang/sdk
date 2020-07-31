@@ -26,7 +26,7 @@ abstract class DiagnosticReporter {
   SourceSpan spanFromSpannable(Spannable node);
 
   void reportErrorMessage(Spannable spannable, MessageKind messageKind,
-      [Map arguments = const {}]) {
+      [Map<String, String> arguments = const {}]) {
     reportError(createMessage(spannable, messageKind, arguments));
   }
 
@@ -34,7 +34,7 @@ abstract class DiagnosticReporter {
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]);
 
   void reportWarningMessage(Spannable spannable, MessageKind messageKind,
-      [Map arguments = const {}]) {
+      [Map<String, String> arguments = const {}]) {
     reportWarning(createMessage(spannable, messageKind, arguments));
   }
 
@@ -42,7 +42,7 @@ abstract class DiagnosticReporter {
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]);
 
   void reportHintMessage(Spannable spannable, MessageKind messageKind,
-      [Map arguments = const {}]) {
+      [Map<String, String> arguments = const {}]) {
     reportHint(createMessage(spannable, messageKind, arguments));
   }
 
@@ -51,14 +51,14 @@ abstract class DiagnosticReporter {
 
   @deprecated
   void reportInfo(Spannable node, MessageKind errorCode,
-      [Map arguments = const {}]);
+      [Map<String, String> arguments = const {}]);
 
   /// Set current element of this reporter to [element]. This is used for
   /// creating [SourceSpan] in [spanFromSpannable].
   withCurrentElement(Entity element, f());
 
   DiagnosticMessage createMessage(Spannable spannable, MessageKind messageKind,
-      [Map arguments = const {}]);
+      [Map<String, String> arguments = const {}]);
 
   /// Returns `true` if a crash, an error or a fatal warning has been reported.
   bool get hasReportedError;

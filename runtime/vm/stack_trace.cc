@@ -4,10 +4,13 @@
 
 #include "vm/stack_trace.h"
 
-#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/dart_api_impl.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/frontend/bytecode_reader.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -15,9 +18,9 @@ namespace dart {
 // sdk/lib/async/stream_controller.dart:_StreamController._STATE_SUBSCRIBED.
 const intptr_t kStreamController_StateSubscribed = 1;
 
-RawClosure* FindClosureInFrame(RawObject** last_object_in_caller,
-                               const Function& function,
-                               bool is_interpreted) {
+ClosurePtr FindClosureInFrame(ObjectPtr* last_object_in_caller,
+                              const Function& function,
+                              bool is_interpreted) {
   NoSafepointScope nsp;
 
   // The callee has function signature
@@ -29,7 +32,7 @@ RawClosure* FindClosureInFrame(RawObject** last_object_in_caller,
   auto& closure = Closure::Handle();
   for (intptr_t i = 0; i < 4; i++) {
     // KBC builds the stack upwards instead of the usual downwards stack.
-    RawObject* arg = last_object_in_caller[(is_interpreted ? -i : i)];
+    ObjectPtr arg = last_object_in_caller[(is_interpreted ? -i : i)];
     if (arg->IsHeapObject() && arg->GetClassId() == kClosureCid) {
       closure = Closure::RawCast(arg);
       if (closure.function() == function.raw()) {
@@ -46,7 +49,7 @@ RawClosure* FindClosureInFrame(RawObject** last_object_in_caller,
 intptr_t GetYieldIndex(const Closure& receiver_closure) {
   const auto& function = Function::Handle(receiver_closure.function());
   if (!function.IsAsyncClosure() && !function.IsAsyncGenClosure()) {
-    return RawPcDescriptors::kInvalidYieldIndex;
+    return PcDescriptorsLayout::kInvalidYieldIndex;
   }
   const auto& await_jump_var =
       Object::Handle(Context::Handle(receiver_closure.context())
@@ -56,10 +59,10 @@ intptr_t GetYieldIndex(const Closure& receiver_closure) {
 }
 
 intptr_t FindPcOffset(const PcDescriptors& pc_descs, intptr_t yield_index) {
-  if (yield_index == RawPcDescriptors::kInvalidYieldIndex) {
+  if (yield_index == PcDescriptorsLayout::kInvalidYieldIndex) {
     return 0;
   }
-  PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
+  PcDescriptors::Iterator iter(pc_descs, PcDescriptorsLayout::kAnyKind);
   while (iter.MoveNext()) {
     if (iter.YieldIndex() == yield_index) {
       return iter.PcOffset();
@@ -70,7 +73,7 @@ intptr_t FindPcOffset(const PcDescriptors& pc_descs, intptr_t yield_index) {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 intptr_t FindPcOffset(const Bytecode& bytecode, intptr_t yield_index) {
-  if (yield_index == RawPcDescriptors::kInvalidYieldIndex) {
+  if (yield_index == PcDescriptorsLayout::kInvalidYieldIndex) {
     return 0;
   }
   if (!bytecode.HasSourcePositions()) {
@@ -194,7 +197,7 @@ class CallerClosureFinder {
     ASSERT(!state_data_field.IsNull());
   }
 
-  RawClosure* GetCallerInFutureImpl(const Object& future_) {
+  ClosurePtr GetCallerInFutureImpl(const Object& future_) {
     ASSERT(!future_.IsNull());
     ASSERT(future_.GetClassId() == future_impl_class.id());
 
@@ -214,7 +217,7 @@ class CallerClosureFinder {
     return Closure::Cast(callback_).raw();
   }
 
-  RawClosure* FindCallerInAsyncClosure(const Context& receiver_context) {
+  ClosurePtr FindCallerInAsyncClosure(const Context& receiver_context) {
     context_entry_ = receiver_context.At(Context::kAsyncCompleterIndex);
     ASSERT(context_entry_.IsInstance());
     ASSERT(context_entry_.GetClassId() == async_await_completer_class.id());
@@ -224,7 +227,7 @@ class CallerClosureFinder {
     return GetCallerInFutureImpl(future_);
   }
 
-  RawClosure* FindCallerInAsyncGenClosure(const Context& receiver_context) {
+  ClosurePtr FindCallerInAsyncGenClosure(const Context& receiver_context) {
     context_entry_ = receiver_context.At(Context::kControllerIndex);
     ASSERT(context_entry_.IsInstance());
     ASSERT(context_entry_.GetClassId() ==
@@ -274,7 +277,7 @@ class CallerClosureFinder {
     UNREACHABLE();  // If no onData is found we have a bug.
   }
 
-  RawClosure* FindCaller(const Closure& receiver_closure) {
+  ClosurePtr FindCaller(const Closure& receiver_closure) {
     receiver_function_ = receiver_closure.function();
     receiver_context_ = receiver_closure.context();
 
@@ -398,13 +401,15 @@ void StackTraceUtils::CollectFramesLazy(
     if (frame->is_interpreted()) {
       code_array.Add(bytecode);
       const intptr_t pc_offset = frame->pc() - bytecode.PayloadStart();
-      ASSERT(pc_offset >= 0 && pc_offset <= bytecode.Size());
+      ASSERT(pc_offset > 0 && pc_offset <= bytecode.Size());
       offset = Smi::New(pc_offset);
     } else {
       code = frame->LookupDartCode();
       ASSERT(function.raw() == code.function());
       code_array.Add(code);
-      offset = Smi::New(frame->pc() - code.PayloadStart());
+      const intptr_t pc_offset = frame->pc() - code.PayloadStart();
+      ASSERT(pc_offset > 0 && pc_offset <= code.Size());
+      offset = Smi::New(pc_offset);
     }
     pc_offset_array.Add(offset);
     if (on_sync_frames != nullptr) {
@@ -421,8 +426,8 @@ void StackTraceUtils::CollectFramesLazy(
 
       // Next, look up caller's closure on the stack and walk backwards through
       // the yields.
-      RawObject** last_caller_obj = reinterpret_cast<RawObject**>(
-          frame->GetCallerSp());
+      ObjectPtr* last_caller_obj =
+          reinterpret_cast<ObjectPtr*>(frame->GetCallerSp());
       closure = FindClosureInFrame(last_caller_obj, function,
                                    frame->is_interpreted());
 
@@ -463,6 +468,8 @@ void StackTraceUtils::CollectFramesLazy(
         } else {
           UNREACHABLE();
         }
+        // Unlike other sources of PC offsets, the offset may be 0 here if we
+        // reach a non-async closure receiving the yielded value.
         ASSERT(offset.Value() >= 0);
         pc_offset_array.Add(offset);
 
@@ -510,12 +517,13 @@ intptr_t StackTraceUtils::CountFrames(Thread* thread,
     if (frame->is_interpreted()) {
       bytecode = frame->LookupDartBytecode();
       function = bytecode.function();
+      if (function.IsNull()) continue;
     } else {
       code = frame->LookupDartCode();
       function = code.function();
     }
-    if (function.IsNull()) continue;
-    if (sync_async_gap_frames > 0) {
+    const bool function_is_null = function.IsNull();
+    if (!function_is_null && sync_async_gap_frames > 0) {
       function_name = function.QualifiedScrubbedName();
       if (!CheckAndSkipAsync(&sync_async_gap_frames, function_name)) {
         *sync_async_end = false;
@@ -524,7 +532,7 @@ intptr_t StackTraceUtils::CountFrames(Thread* thread,
     } else {
       frame_count++;
     }
-    if (!async_function_is_null &&
+    if (!async_function_is_null && !function_is_null &&
         (async_function.raw() == function.parent_function())) {
       sync_async_gap_frames = kSyncAsyncFrameGap;
     }

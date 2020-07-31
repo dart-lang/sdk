@@ -650,7 +650,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
 
   @override
   DiagnosticMessage createMessage(Spannable spannable, MessageKind messageKind,
-      [Map arguments = const {}]) {
+      [Map<String, String> arguments = const {}]) {
     SourceSpan span = spanFromSpannable(spannable);
     MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
     Message message = template.message(arguments, options);
@@ -678,7 +678,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
   @deprecated
   @override
   void reportInfo(Spannable node, MessageKind messageKind,
-      [Map arguments = const {}]) {
+      [Map<String, String> arguments = const {}]) {
     reportDiagnosticInternal(createMessage(node, messageKind, arguments),
         const <DiagnosticMessage>[], api.Diagnostic.INFO);
   }
@@ -899,9 +899,11 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
           kind = MessageKind.HIDDEN_WARNINGS;
         }
         MessageTemplate template = MessageTemplate.TEMPLATES[kind];
-        Message message = template.message(
-            {'warnings': info.warnings, 'hints': info.hints, 'uri': uri},
-            options);
+        Message message = template.message({
+          'warnings': info.warnings.toString(),
+          'hints': info.hints.toString(),
+          'uri': uri.toString(),
+        }, options);
         reportDiagnostic(new DiagnosticMessage(null, null, message),
             const <DiagnosticMessage>[], api.Diagnostic.HINT);
       });

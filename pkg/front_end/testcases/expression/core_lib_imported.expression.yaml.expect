@@ -1,4 +1,4 @@
 Errors: {
 }
-method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+method /*isNullableByDefault, from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
   return dart.core::identical(1, 1);

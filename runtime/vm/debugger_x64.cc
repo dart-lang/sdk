@@ -8,7 +8,6 @@
 #include "vm/debugger.h"
 
 #include "vm/code_patcher.h"
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/cpu.h"
 #include "vm/instructions.h"
 #include "vm/stub_code.h"
@@ -17,7 +16,7 @@ namespace dart {
 
 #ifndef PRODUCT
 
-RawCode* CodeBreakpoint::OrigStubAddress() const {
+CodePtr CodeBreakpoint::OrigStubAddress() const {
   return saved_value_;
 }
 
@@ -25,13 +24,13 @@ void CodeBreakpoint::PatchCode() {
   ASSERT(!is_enabled_);
   Code& stub_target = Code::Handle();
   switch (breakpoint_kind_) {
-    case RawPcDescriptors::kIcCall:
+    case PcDescriptorsLayout::kIcCall:
       stub_target = StubCode::ICCallBreakpoint().raw();
       break;
-    case RawPcDescriptors::kUnoptStaticCall:
+    case PcDescriptorsLayout::kUnoptStaticCall:
       stub_target = StubCode::UnoptStaticCallBreakpoint().raw();
       break;
-    case RawPcDescriptors::kRuntimeCall:
+    case PcDescriptorsLayout::kRuntimeCall:
       stub_target = StubCode::RuntimeCallBreakpoint().raw();
       break;
     default:
@@ -47,9 +46,9 @@ void CodeBreakpoint::RestoreCode() {
   ASSERT(is_enabled_);
   const Code& code = Code::Handle(code_);
   switch (breakpoint_kind_) {
-    case RawPcDescriptors::kIcCall:
-    case RawPcDescriptors::kUnoptStaticCall:
-    case RawPcDescriptors::kRuntimeCall: {
+    case PcDescriptorsLayout::kIcCall:
+    case PcDescriptorsLayout::kUnoptStaticCall:
+    case PcDescriptorsLayout::kRuntimeCall: {
       CodePatcher::PatchPoolPointerCallAt(pc_, code,
                                           Code::Handle(saved_value_));
       break;

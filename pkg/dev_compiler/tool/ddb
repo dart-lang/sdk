@@ -207,19 +207,24 @@ void main(List<String> args) async {
       break;
   }
 
+  String ddcSdk;
   String sdkJsPath;
   String requirePath;
-  String ddcSdk;
-  var archDir = nnbd ? 'ReleaseX64NNBD' : 'ReleaseX64';
+  var suffix = isNnbdStrong ? p.join('sound', mod) : p.join('kernel', mod);
   if (debug) {
     var sdkRoot = p.dirname(p.dirname(ddcPath));
-    var buildDir = p.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out');
-    dartSdk = p.join(buildDir, archDir, 'dart-sdk');
+    var buildDir =
+        p.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out', 'ReleaseX64');
+    dartSdk = p.join(buildDir, 'dart-sdk');
+    ddcSdk = p.join(
+        buildDir, isNnbdStrong ? 'ddc_outline_sound.dill' : 'ddc_outline.dill');
+    sdkJsPath = p.join(buildDir, 'gen', 'utils', 'dartdevc', suffix);
+    requirePath = p.join(sdkRoot, 'third_party', 'requirejs');
+  } else {
+    ddcSdk = p.join(dartSdk, 'lib', '_internal', 'ddc_sdk.dill');
+    sdkJsPath = p.join(dartSdk, 'lib', 'dev_compiler', suffix);
+    requirePath = sdkJsPath;
   }
-  var suffix = p.join('kernel', mod);
-  sdkJsPath = p.join(dartSdk, 'lib', 'dev_compiler', suffix);
-  requirePath = sdkJsPath;
-  ddcSdk = p.join(dartSdk, 'lib', '_internal', 'ddc_sdk.dill');
 
   // Print an initial empty line to separate the invocation from the output.
   print('');
@@ -232,6 +237,7 @@ void main(List<String> args) async {
       '--dart-sdk-summary=$ddcSdk',
       for (var summary in summaries) '--summary=$summary',
       for (var experiment in experiments) '--enable-experiment=$experiment',
+      if (isNnbdStrong) '--sound-null-safety',
       if (options['packages'] != null) '--packages=${options['packages']}',
       '-o',
       out,
@@ -269,7 +275,8 @@ void main(List<String> args) async {
         function(sdk, app) {
     'use strict';
     if ($nnbd) {
-      sdk.dart.strictSubtypeChecks($isNnbdStrong);
+      sdk.dart.nullSafety($isNnbdStrong);
+      sdk.dart.weakNullSafetyWarnings(!$isNnbdStrong);
     }
     sdk._debugger.registerDevtoolsFormatter();
     app.$libname.main();
@@ -301,7 +308,8 @@ let sdk = require(\"dart_sdk\");
 let main = require(\"./$basename\").$libname.main;
 try {
   if ($nnbd) {
-    sdk.dart.strictSubtypeChecks($isNnbdStrong);
+    sdk.dart.nullSafety($isNnbdStrong);
+    sdk.dart.weakNullSafetyWarnings(!$isNnbdStrong);
   }
   sdk._isolate_helper.startRootIsolate(main, []);
 } catch(e) {
@@ -334,7 +342,8 @@ import { $libname } from '$basename.js';
 let main = $libname.main;
 try {
   if ($nnbd) {
-    dart.strictSubtypeChecks($isNnbdStrong);
+    dart.nullSafety($isNnbdStrong);
+    dart.weakNullSafetyWarnings(!$isNnbdStrong);
   }
   _isolate_helper.startRootIsolate(() => {}, []);
   main();

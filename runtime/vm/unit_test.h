@@ -361,6 +361,11 @@ class TestCase : TestCaseBase {
   static Dart_Isolate CreateTestIsolate(const char* name = nullptr,
                                         void* isolate_group_data = nullptr,
                                         void* isolate_data = nullptr);
+  static Dart_Isolate CreateTestIsolateInGroup(const char* name,
+                                               Dart_Isolate parent,
+                                               void* group_data = nullptr,
+                                               void* isolate_data = nullptr);
+
   static Dart_Handle library_handler(Dart_LibraryTag tag,
                                      Dart_Handle library,
                                      Dart_Handle url);
@@ -383,6 +388,13 @@ class TestCase : TestCaseBase {
 
   static void AddTestLib(const char* url, const char* source);
   static const char* GetTestLib(const char* url);
+
+  // Return true if non-nullable experiment is enabled.
+  static bool IsNNBD();
+
+  static const char* NullableTag() { return IsNNBD() ? "?" : ""; }
+  static const char* NullAssertTag() { return IsNNBD() ? "!" : ""; }
+  static const char* LateTag() { return IsNNBD() ? "late" : ""; }
 
  private:
   // |data_buffer| can either be snapshot data, or kernel binary data.
@@ -535,8 +547,8 @@ class AssemblerTest {
     const bool fp_args = false;
     const bool fp_return = false;
     Simulator::Current()->Call(
-        bit_cast<intptr_t, uword>(entry()), reinterpret_cast<intptr_t>(arg1),
-        reinterpret_cast<intptr_t>(arg2), reinterpret_cast<intptr_t>(arg3), 0,
+        bit_cast<intptr_t, uword>(entry()), static_cast<intptr_t>(arg1),
+        static_cast<intptr_t>(arg2), reinterpret_cast<intptr_t>(arg3), 0,
         fp_return, fp_args);
   }
 #else

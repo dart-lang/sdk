@@ -1,3 +1,135 @@
+## 2.9.0
+
+### Language
+
+### Core libraries
+
+#### `dart:async`
+
+*   Adds `Stream.multi` constructor creating streams which can be
+    listened to more than once, and where each individual listener
+    can be controlled independently.
+
+#### `dart:convert`
+
+*   **Breaking Change** [#41100][]: When encoding a string containing unpaired
+    surrogates as UTF-8, the unpaired surrogates will be encoded as replacement
+    characters (`U+FFFD`). When decoding UTF-8, encoded surrogates will be
+    treated as malformed input. When decoding UTF-8 with `allowMalformed: true`,
+    the number of replacement characters emitted for malformed input sequences
+    has been changed to match the [WHATWG encoding standard][].
+
+[#41100]: https://github.com/dart-lang/sdk/issues/41100
+[WHATWG encoding standard]: https://encoding.spec.whatwg.org/#utf-8-decoder
+
+#### `dart:io`
+
+*   [#42006][]: The signature of `exit` has been changed to return the
+    `Never`type instead of `void`. since no code will run after it,
+*   Class `OSError` now implements `Exception`. This change means `OSError` will
+    now be caught in catch clauses catching `Exception`s.
+*   Added `InternetAddress.tryParse`.
+*   [Abstract Unix Domain Socket][] is supported on Linux/Android now. Using an
+    `InternetAddress` with `address` starting with '@' and type being
+    `InternetAddressType.Unix` will create an abstract Unix Domain Socket.
+
+[#42006]: https://github.com/dart-lang/sdk/issues/42006
+[Abstract Unix Domain Socket]: http://man7.org/linux/man-pages/man7/unix.7.html
+
+#### `dart:html`
+
+*   **Breaking Change**: `CssClassSet.add()` previously returned `null` if the
+    `CssClassSet` corresponded to multiple elements. In order to align with the
+    null-safe changes in the `Set` interface, it will now return `false`
+    instead. The same applies for `CssClassSet.toggle`.
+
+*   `EventStreamSubscription.cancel` method used to return `null`, but since
+    `StreamSubscription.cancel` has changed to be non-nullable, this method
+    returns an empty `Future` instead. Due to an optimization on `null`
+    `Future`s, this method used to complete synchronously, but now that the
+    `Future` is empty instead, it completes asynchronously, therefore
+    potentially invalidating code that relied on the synchronous side-effect.
+    This change will only affect code using sound null-safety. See issue
+    [#41653][] for more details.
+
+*   Methods in `Console` have been updated to better reflect the modern Console
+    specification. Particularly of interest are `dir` and `table` which take in
+    extra optional arguments.
+
+[#41653]: https://github.com/dart-lang/sdk/issues/41653
+
+#### `dart:mirrors`
+
+*   **Breaking Change** [#42714][]: web compilers (dart2js and DDC) now produce
+    a compile-time error if `dart:mirrors` is imported.
+
+    Most projects should not be affected. Since 2.0.0 this library was
+    unsupported and produced runtime errors on all its APIs. Since then several
+    tools already reject code that use `dart:mirrors` including webdev and
+    flutter tools, we expect few projects to run into this problem.
+
+[#42714]: https://github.com/dart-lang/sdk/issues/42714
+
+### Tools
+
+#### dartfmt
+
+* Add `--fix-single-cascade-statements`.
+* Correctly handle `var` in `--fix-function-typedefs`.
+* Preserve leading indentation in fixed doc comments.
+* Split outer nested control flow elements.
+* Always place a blank line after script tags.
+* Don't add unneeded splits on if elements near comments.
+* Indent blocks in initializers of multiple-variable declarations.
+* Update the null-aware subscript syntax from `?.[]` to `?[]`.
+
+#### Linter
+
+Updated the Linter to `0.1.117`, which includes:
+
+* New lint: `do_not_use_environment`.
+* New lint: `exhaustive_cases`.
+* New lint: `no_default_cases` (experimental).
+* New lint: `sized_box_for_whitespace`.
+* New lint: `use_is_even_rather_than_modulo`.
+* Updated `directives_ordering` to remove third party package special-casing.
+* Updated `prefer_is_empty` to special-case assert initializers and const
+  contexts.
+* Updated `prefer_mixin` to allow "legacy" SDK abstract class mixins.
+* Updated `sized_box_for_whitespace` to address false-positives.
+* Updated `type_annotate_public_apis` to allow inferred types in final field
+  assignments.
+* Updated `unnecessary_lambdas` to check for tear-off assignability.
+* Updated `unsafe_html` to use a `SecurityLintCode` (making it un-ignorable) and
+  to include `Window.open`, `Element.html` and `DocumentFragment.html` in unsafe
+  API checks. Also added checks for attributes and methods on extensions.
+
+### Dart VM
+
+*   **Breaking Change** [#41100][]: When printing a string using the `print`
+    function, the default implementation (used when not overridden by the
+    embedder or the current zone) will print any unpaired surrogates in the
+    string as replacement characters (`U+FFFD`). Similarly, the
+    `Dart_StringToUTF8` function in the Dart API will convert unpaired
+    surrogates into replacement characters.
+
+### Pub
+* `pub run` and `pub global run` accepts a `--enable-experiment` flag enabling
+  experiments in the Dart VM (and language).
+* Publishing Flutter plugins using the old plugin format is no longer allowed.
+  Plugins using the old plugin format can still be consumed.
+* Introduce `pub outdated --mode=null-safety` that will report which of your
+  dependencies you can upgrade to fully support null safety.
+* Fix `pub run` precompilation with relative `PUB_CACHE` paths (#2486)
+* Warn at publishing first time a package version opts in to null-safety.
+* Preserve Windows line endings in pubspec.lock if they are already there (#2489)
+* Better terminal color-detection. Use colors in terminals on Windows.
+* `pub outdated`: If the current version of a dependency is a prerelease
+  version, use prereleases for latest if no newer stable.
+* `pub outdated` now works without a lockfile. In that case the 'Current'
+  column will be empty.
+* `pub upgrade`: Show summary count of outdated packages after running.
+
 ## 2.8.4 - 2020-06-04
 
 This is a patch release that fixes potential memory leaks in the Dart front-end
@@ -235,6 +367,10 @@ minor breaking changes:
     `zoneSpecification` and `onError` parameters. Use the `runZoned()` or
     `runZonedGuarded()` functions from `dart:async` directly if needing to
     specify those.
+
+*   Class `HttpClient` and `HttpServer`, when receiving `HttpRequest` or
+    `HttpClientResponse`, will now put a 8K size limit on its header fields and
+    values.
 
 [#33501]: https://github.com/dart-lang/sdk/issues/33501
 [#40702]: https://github.com/dart-lang/sdk/issues/40702
@@ -2912,7 +3048,7 @@ Still need entries for all changes to dart:web_audio,web_gl,web_sql since 1.x
 
 * `dart:web_audio`
 
-  * new method on `AudioContext` – `createIirFilter` returns a new class
+  * new method on `AudioContext` - `createIirFilter` returns a new class
     `IirFilterNode`.
 
 * `dart:web_gl`
@@ -4064,8 +4200,8 @@ Then your library will work without any additional changes.
 ### Tool changes
 
 * Dartium and content shell
-  * The Chrome-based tools that ship as part of the Dart SDK – Dartium and
-    content shell – are now based on Chrome version 45 (instead of Chrome 39).
+  * The Chrome-based tools that ship as part of the Dart SDK - Dartium and
+    content shell - are now based on Chrome version 45 (instead of Chrome 39).
   * Dart browser libraries (`dart:html`, `dart:svg`, etc) *have not* been
     updated.
     * These are still based on Chrome 39.
@@ -4609,7 +4745,7 @@ Patch release, resolves three issues:
   dart2dart (aka `dart2js --output-type=dart`) utility as part
   of dart2js
 
-## 1.10.0 – 2015-04-29
+## 1.10.0 - 2015-04-29
 
 ### Core library changes
 
@@ -4648,7 +4784,7 @@ Patch release, resolves three issues:
   * On Mac and Linux, signals sent to `pub run` and forwarded to the child
     command.
 
-## 1.9.3 – 2015-04-14
+## 1.9.3 - 2015-04-14
 
 This is a bug fix release which merges a number of commits from `bleeding_edge`.
 
@@ -4673,7 +4809,7 @@ This is a bug fix release which merges a number of commits from `bleeding_edge`.
   Pub can fail to load transformers necessary for local development -
   [r44876](https://code.google.com/p/dart/source/detail?r=44876)
 
-## 1.9.1 – 2015-03-25
+## 1.9.1 - 2015-03-25
 
 ### Language changes
 
@@ -4787,7 +4923,7 @@ documentation on the [Dart API site](http://api.dartlang.org).
   * Isolates spawned via `Isolate.spawn` now allow most objects, including
     top-level and static functions, to be sent between them.
 
-## 1.8.5 – 2015-01-21
+## 1.8.5 - 2015-01-21
 
 * Code generation for SIMD on ARM and ARM64 is fixed.
 
@@ -4797,7 +4933,7 @@ documentation on the [Dart API site](http://api.dartlang.org).
 
 [issue 21795]: https://code.google.com/p/dart/issues/detail?id=21795
 
-## 1.8.3 – 2014-12-10
+## 1.8.3 - 2014-12-10
 
 * Breakpoints can be set in the Editor using file suffixes ([issue 21280][]).
 
@@ -4814,7 +4950,7 @@ documentation on the [Dart API site](http://api.dartlang.org).
 [issue 21280]: https://code.google.com/p/dart/issues/detail?id=21280
 [issue 21698]: https://code.google.com/p/dart/issues/detail?id=21698
 
-## 1.8.0 – 2014-11-28
+## 1.8.0 - 2014-11-28
 
 * `dart:collection`: `SplayTree` added the `toSet` function.
 
@@ -4855,7 +4991,7 @@ documentation on the [Dart API site](http://api.dartlang.org).
 
 [alpn]: https://tools.ietf.org/html/rfc7301
 
-## 1.7.0 – 2014-10-15
+## 1.7.0 - 2014-10-15
 
 ### Tool changes
 

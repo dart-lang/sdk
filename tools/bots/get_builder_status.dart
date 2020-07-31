@@ -23,8 +23,6 @@ String builder;
 String builderBase;
 int buildNumber;
 String token;
-List<String> configurations;
-Map<String, List<Map<String, dynamic>>> failures = {};
 http.Client client;
 
 String get buildTable => builder.endsWith('-try') ? 'try_builds' : 'builds';
@@ -77,19 +75,21 @@ main(List<String> args) async {
       if (document != null) {
         bool success = booleanFieldOrFalse(document, 'success');
         bool completed = booleanFieldOrFalse(document, 'completed');
-        bool activeFailures = booleanFieldOrFalse(document, 'active_failures');
         if (completed) {
-          if (success) {
-            print('No unapproved new failures');
-            if (activeFailures == true) {
-              print('There are unapproved failures from previous builds');
-              await printResults();
-            }
+          print(success
+              ? 'No new unapproved failures'
+              : 'There are new unapproved failures on this build');
+          if (builder.endsWith('-try')) exit(success ? 0 : 1);
+          final configurations = await getConfigurations();
+          final failures = await fetchActiveFailures(configurations);
+          if (failures.isNotEmpty) {
+            print('There are unapproved failures');
+            printActiveFailures(failures);
+            exit(1);
           } else {
-            print('There are unapproved new failures on this build');
-            await printResults();
+            print('There are no unapproved failures');
+            exit(0);
           }
-          exit((success && (activeFailures != true)) ? 0 : 1);
         }
         String chunks =
             (document['fields']['num_chunks'] ?? const {})['integerValue'];
@@ -114,13 +114,6 @@ main(List<String> args) async {
   print('No status received for build $buildNumber of $builder '
       'after $numAttempts attempts, with 10 second waits.');
   exit(2);
-}
-
-void printResults() async {
-  if (builder.endsWith('-try')) return;
-  configurations = await getConfigurations();
-  await printActiveFailures();
-  await printResultsFeedLink();
 }
 
 Future<List<String>> getConfigurations() async {
@@ -154,7 +147,9 @@ Future<String> fetchCommitHash(int index) async {
   return 'missing hash for commit $index';
 }
 
-Future<void> printActiveFailures() async {
+Future<Map<String, List<Map<String, dynamic>>>> fetchActiveFailures(
+    List<String> configurations) async {
+  final failures = <String, List<Map<String, dynamic>>>{};
   for (final configuration in configurations) {
     final response =
         await runFirestoreQuery(unapprovedFailuresQuery(configuration));
@@ -166,8 +161,10 @@ Future<void> printActiveFailures() async {
         final fields = document['fields'];
         failures.putIfAbsent(configuration, () => []).add({
           'name': fields['name']['stringValue'],
-          'start': int.parse(fields['blamelist_start_index']['integerValue']),
-          'end': int.parse(fields['blamelist_end_index']['integerValue']),
+          'start_commit': await commitHash(
+              int.parse(fields['blamelist_start_index']['integerValue'])),
+          'end_commit': await commitHash(
+              int.parse(fields['blamelist_end_index']['integerValue'])),
           'result': fields['result']['stringValue'],
           'expected': fields['expected']['stringValue'],
           'previous': fields['previous_result']['stringValue'],
@@ -175,6 +172,10 @@ Future<void> printActiveFailures() async {
       }
     }
   }
+  return failures;
+}
+
+void printActiveFailures(Map<String, List<Map<String, dynamic>>> failures) {
   for (final configuration in failures.keys) {
     print('($configuration):');
     for (final failure in failures[configuration]) {
@@ -188,28 +189,14 @@ Future<void> printActiveFailures() async {
         ', expected ',
         failure['expected'],
         ') at ',
-        (await commitHash(failure['start'])).substring(0, 6),
-        if (failure['start'] != failure['end']) ...[
+        failure['start_commit'].substring(0, 6),
+        if (failure['end_commit'] != failure['start_commit']) ...[
           '..',
-          (await commitHash(failure['end'])).substring(0, 6)
+          failure['end_commit'].substring(0, 6)
         ]
       ].join(''));
     }
   }
-}
-
-void printResultsFeedLink() async {
-  if (builder.endsWith('-try')) return;
-  final groups = {
-    for (final configuration in configurations) configuration.split('-').first
-  };
-  String fragment = [
-    'showLatestFailures=true',
-    'showUnapprovedOnly=true',
-    if (groups.isNotEmpty) 'configurationGroups=${groups.join(',')}'
-  ].join('&');
-  final link = 'https://dart-ci.firebaseapp.com/#$fragment';
-  print('\nFailures link: $link');
 }
 
 Future<http.Response> runFirestoreQuery(String query) {

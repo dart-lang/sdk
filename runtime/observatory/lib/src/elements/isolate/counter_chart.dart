@@ -4,15 +4,10 @@
 
 import 'dart:html';
 import 'dart:async';
-import 'package:charted/charted.dart';
-import "package:charted/charts/charts.dart";
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 
 class IsolateCounterChartElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<IsolateCounterChartElement>('isolate-counter-chart');
-
   RenderingScheduler<IsolateCounterChartElement> _r;
 
   Stream<RenderedEvent<IsolateCounterChartElement>> get onRendered =>
@@ -29,7 +24,7 @@ class IsolateCounterChartElement extends CustomElement implements Renderable {
     return e;
   }
 
-  IsolateCounterChartElement.created() : super.created(tag);
+  IsolateCounterChartElement.created() : super.created('isolate-counter-chart');
 
   @override
   void attached() {
@@ -46,34 +41,25 @@ class IsolateCounterChartElement extends CustomElement implements Renderable {
     _subscription.cancel();
   }
 
-  static final _columns = [
-    new ChartColumnSpec(label: 'Type', type: ChartColumnSpec.TYPE_STRING),
-    new ChartColumnSpec(label: 'Percent', formatter: (v) => v.toString())
-  ];
-
   void render() {
-    final _series = [
-      new ChartSeries(
-          "Work", const [1], new PieChartRenderer(sortDataByValue: false))
-    ];
-    final areaHost = new DivElement()..classes = ['host'];
-    final legendHost = new DivElement()..classes = ['legend'];
-    children = <Element>[areaHost, legendHost];
-    final rect = areaHost.getBoundingClientRect();
-    final minSize = new Rect.size(rect.width, rect.height);
-    final config = new ChartConfig(_series, const [0])
-      ..minimumSize = minSize
-      ..legend = new ChartLegend(legendHost, showValues: true);
-    final data = new ChartData(
-        _columns,
-        _counters.keys
-            .map((key) => [key, double.parse(_counters[key].split('%')[0])])
-            .toList());
+    var members = <Element>[];
+    _counters.forEach((key, value) {
+      members.add(new DivElement()
+        ..classes = ['memberItem']
+        ..children = <Element>[
+          new DivElement()
+            ..classes = ['memberName']
+            ..text = key,
+          new DivElement()
+            ..classes = ['memberValue']
+            ..text = value,
+        ]);
+    });
 
-    new LayoutArea(areaHost, data, config,
-        state: new ChartState(), autoUpdate: false)
-      ..addChartBehavior(new Hovercard())
-      ..addChartBehavior(new AxisLabelTooltip())
-      ..draw();
+    children = <Element>[
+      new DivElement()
+        ..classes = ['memberList']
+        ..children = members
+    ];
   }
 }

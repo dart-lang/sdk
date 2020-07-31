@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<meta name="dart.unittest" content="full-stack-traces">
+<title> element_upgrade_test </title>
+<style>
+   .unittest-table { font-family:monospace; border:1px; }
+   .unittest-pass { background: #6b3;}
+   .unittest-fail { background: #d55;}
+   .unittest-error { background: #a11;}
+</style>
+<script src="/packages/web_components/webcomponents.js"></script>
+<script src="/packages/web_components/dart_support.js"></script>
+
+<body>
+  <h1> Running element_upgrade_test </h1>
+
+<script>
+var Foo = function() {};
+Foo.prototype = Object.create(HTMLElement.prototype);
+Foo.prototype.createdCallback = function() {
+  this.fooCreated = true;
+  this.textContent = 'constructed';
+
+  // Tell the Dart side that this was created.
+  // For testing purposes, for real code this would use a different mechanism.
+  window.upgradeListener(this);
+};
+
+Foo.prototype.doSomething = function() {
+  this.textContent = 'didSomething';
+  return 'didSomething';
+};
+
+Foo = document.registerElement('x-foo', Foo);
+
+function validateIsFoo(element) {
+  if (!(element instanceof Foo)) {
+    throw Error('Element is not a Foo');
+  }
+
+  if (!element.fooCreated) {
+    throw Error('Expected fooCreated to be set');
+  }
+}
+</script>
+
+  <script type="text/javascript"
+      src="/root_dart/pkg/test_runner/lib/src/test_controller.js"></script>
+  %TEST_SCRIPTS%
+</body>

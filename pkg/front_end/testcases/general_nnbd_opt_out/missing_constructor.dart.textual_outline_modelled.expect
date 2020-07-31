@@ -1,0 +1,23 @@
+// @dart = 2.6
+class Bad {
+  Bad.bar() : this.baz();
+  Bad.foo() : this();
+}
+
+class M {}
+
+class MixinApplication extends Super with M {
+  MixinApplication() : super();
+  MixinApplication.foo() : super.foo();
+}
+
+class Sub extends Super {
+  Sub() : super();
+  Sub.foo() : super.foo();
+}
+
+class Super {
+  Super._();
+}
+
+main() {}

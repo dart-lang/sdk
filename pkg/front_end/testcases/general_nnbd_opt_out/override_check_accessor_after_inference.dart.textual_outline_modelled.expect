@@ -1,0 +1,26 @@
+// @dart = 2.6
+class A {}
+
+class B extends A {}
+
+class C {
+  B get y => null;
+  void set x(A value) {}
+}
+
+class D extends C {
+  get y => null;
+  void set x(value) {}
+}
+
+class E extends D {
+  B get y => null;
+  void set x(A value) {}
+}
+
+class F extends D {
+  A get y => null;
+  void set x(B value) {}
+}
+
+main() {}

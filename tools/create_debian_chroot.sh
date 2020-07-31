@@ -4,7 +4,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 #
-# Script to create a Debian wheezy chroot environment for building Dart
+# Script to create a Debian jessie chroot environment for building Dart
 # Debian packages.
 #
 
@@ -67,9 +67,9 @@ then
   SRC_URI=$SVN_REPRO$SVN_PATH
 fi
 
-# Create Debian wheezy chroot.
+# Create Debian jessie chroot.
 debootstrap --arch=$ARCH --components=main,restricted,universe,multiverse \
-    wheezy $CHROOT http://http.us.debian.org/debian/
+    jessie $CHROOT http://http.us.debian.org/debian/
 chroot $CHROOT apt-get update
 chroot $CHROOT apt-get -y install \
     debhelper python git gcc sudo make

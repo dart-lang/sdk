@@ -1,0 +1,155 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:2:9: Error: Expected '{' before this.
+//   Foo() / : super() {
+//         ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:2:9: Error: Operator declarations must be preceded by the keyword 'operator'.
+// Try adding the keyword 'operator'.
+//   Foo() / : super() {
+//         ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:2:9: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   Foo() / : super() {
+//         ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:2:9: Error: The name of a constructor must match the name of the enclosing class.
+//   Foo() / : super() {
+//         ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:2:9: Error: Operator '/' should have exactly one parameter.
+//   Foo() / : super() {
+//         ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:5:8: Error: Expected '{' before this.
+//   Foo()./ : super() {
+//        ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:5:3: Error: 'Foo' is already declared in this scope.
+//   Foo()./ : super() {
+//   ^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:2:3: Context: Previous declaration of 'Foo'.
+//   Foo() / : super() {
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:5:8: Error: Expected a class member, but got '.'.
+//   Foo()./ : super() {
+//        ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:5:9: Error: Operator declarations must be preceded by the keyword 'operator'.
+// Try adding the keyword 'operator'.
+//   Foo()./ : super() {
+//         ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:5:9: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   Foo()./ : super() {
+//         ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:5:9: Error: The name of a constructor must match the name of the enclosing class.
+//   Foo()./ : super() {
+//         ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:5:9: Error: Operator '/' should have exactly one parameter.
+//   Foo()./ : super() {
+//         ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:5:9: Error: 'Foo./' is already declared in this scope.
+//   Foo()./ : super() {
+//         ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:2:9: Context: Previous declaration of 'Foo./'.
+//   Foo() / : super() {
+//         ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:8:9: Error: Expected '{' before this.
+//   foo() / : super() {
+//         ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:8:9: Error: Operator declarations must be preceded by the keyword 'operator'.
+// Try adding the keyword 'operator'.
+//   foo() / : super() {
+//         ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:8:9: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   foo() / : super() {
+//         ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:8:9: Error: The name of a constructor must match the name of the enclosing class.
+//   foo() / : super() {
+//         ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:8:9: Error: Operator '/' should have exactly one parameter.
+//   foo() / : super() {
+//         ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:8:9: Error: 'Foo./' is already declared in this scope.
+//   foo() / : super() {
+//         ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:5:9: Context: Previous declaration of 'Foo./'.
+//   Foo()./ : super() {
+//         ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:11:8: Error: Expected '{' before this.
+//   foo()./ : super() {
+//        ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:11:3: Error: 'foo' is already declared in this scope.
+//   foo()./ : super() {
+//   ^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:8:3: Context: Previous declaration of 'foo'.
+//   foo() / : super() {
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:11:8: Error: Expected a class member, but got '.'.
+//   foo()./ : super() {
+//        ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:11:9: Error: Operator declarations must be preceded by the keyword 'operator'.
+// Try adding the keyword 'operator'.
+//   foo()./ : super() {
+//         ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:11:9: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   foo()./ : super() {
+//         ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:11:9: Error: The name of a constructor must match the name of the enclosing class.
+//   foo()./ : super() {
+//         ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:11:9: Error: Operator '/' should have exactly one parameter.
+//   foo()./ : super() {
+//         ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:11:9: Error: 'Foo./' is already declared in this scope.
+//   foo()./ : super() {
+//         ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:8:9: Context: Previous declaration of 'Foo./'.
+//   foo() / : super() {
+//         ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor •() → self::Foo*
+    : super core::Object::•() {}
+  constructor /() → self::Foo*
+    : super core::Object::•() {}
+  method foo() → dynamic {}
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}

@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_H_
 #define RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/compiler/assembler/object_pool_builder.h"

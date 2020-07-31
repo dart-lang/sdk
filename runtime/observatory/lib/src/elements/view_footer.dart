@@ -6,13 +6,11 @@ library view_footer_element;
 
 import 'dart:html';
 import 'dart:async';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class ViewFooterElement extends CustomElement implements Renderable {
-  static const tag = const Tag<ViewFooterElement>('view-footer');
-
-  RenderingScheduler _r;
+  RenderingScheduler<ViewFooterElement> _r;
 
   Stream<RenderedEvent<ViewFooterElement>> get onRendered => _r.onRendered;
 
@@ -22,7 +20,7 @@ class ViewFooterElement extends CustomElement implements Renderable {
     return e;
   }
 
-  ViewFooterElement.created() : super.created(tag);
+  ViewFooterElement.created() : super.created('view-footer');
 
   @override
   void attached() {

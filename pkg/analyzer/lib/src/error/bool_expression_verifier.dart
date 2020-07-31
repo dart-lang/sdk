@@ -8,9 +8,9 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:meta/meta.dart';
 
 /// Helper for verifying expression that should be of type bool.
@@ -66,13 +66,10 @@ class BoolExpressionVerifier {
     );
   }
 
-  /**
-   * Check for situations where the result of a method or function is used, when
-   * it returns 'void'. Or, in rare cases, when other types of expressions are
-   * void, such as identifiers.
-   *
-   * TODO(scheglov) Move this in a separate verifier.
-   */
+  /// Check for situations where the result of a method or function is used,
+  /// when it returns 'void'. Or, in rare cases, when other types of expressions
+  /// are void, such as identifiers.
+  // TODO(scheglov) Move this in a separate verifier.
   bool _checkForUseOfVoidResult(Expression expression) {
     if (expression == null ||
         !identical(expression.staticType, VoidTypeImpl.instance)) {

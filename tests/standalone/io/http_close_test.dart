@@ -132,11 +132,12 @@ testClientCloseWhileSendingRequest(int connections) {
     });
     var client = HttpClient();
     for (int i = 0; i < connections; i++) {
-      client.post("127.0.0.1", server.port, "/").then((request) {
+      Future<HttpClientResponse?>.value(
+          client.post("127.0.0.1", server.port, "/").then((request) {
         request.contentLength = 110;
         request.write("0123456789");
         return request.close();
-      }).catchError((_) {
+      })).catchError((_) {
         clientErrors++;
       });
     }

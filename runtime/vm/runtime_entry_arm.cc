@@ -7,9 +7,12 @@
 
 #include "vm/runtime_entry.h"
 
-#include "vm/compiler/assembler/assembler.h"
 #include "vm/simulator.h"
 #include "vm/stub_code.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/assembler/assembler.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 

@@ -7,11 +7,13 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-Timeout defaultTimeout = Timeout(Duration(seconds: 15));
+/// A long [Timeout] is provided for tests that start a process on
+/// `bin/dartdev.dart` as the command is not compiled ahead of time, and each
+/// invocation requires the VM to compile the entire dependency graph.
+const Timeout longTimeout = Timeout(Duration(minutes: 5));
 
-TestProject project({String mainSrc, String analysisOptions}) {
-  return TestProject(mainSrc: mainSrc, analysisOptions: analysisOptions);
-}
+TestProject project({String mainSrc, String analysisOptions}) =>
+    TestProject(mainSrc: mainSrc, analysisOptions: analysisOptions);
 
 class TestProject {
   static String get defaultProjectName => 'dartdev_temp';
@@ -55,11 +57,13 @@ class TestProject {
     var arguments = [
       absolutePathToDartdevFile,
       command,
+      if (command == 'migrate')
+        // TODO(srawlins): Enable `pub outdated` in tests.
+        '--skip-pub-outdated',
+      ...?args,
     ];
 
-    if (args != null && args.isNotEmpty) {
-      arguments.addAll(args);
-    }
+    arguments.add('--disable-dartdev-analytics');
 
     return Process.runSync(
       Platform.resolvedExecutable,
@@ -89,14 +93,8 @@ class TestProject {
     return _sdkRootPath;
   }
 
-  String get absolutePathToDartdevFile {
-    return path.join(sdkRootPath, 'pkg', 'dartdev', 'bin', 'dartdev.dart');
-  }
-
-  String get absolutePathToAnalysisServerFile {
-    return path.join(
-        sdkRootPath, 'pkg', 'analysis_server', 'bin', 'server.dart');
-  }
+  String get absolutePathToDartdevFile =>
+      path.join(sdkRootPath, 'pkg', 'dartdev', 'bin', 'dartdev.dart');
 
   File findFile(String name) {
     var file = File(path.join(dir.path, name));

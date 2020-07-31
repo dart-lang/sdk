@@ -1,0 +1,6 @@
+library test;
+
+main() {}
+test() {}
+var h = null;
+void foo(int f(Object _)) {}

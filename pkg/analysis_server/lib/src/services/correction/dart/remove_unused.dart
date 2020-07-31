@@ -54,6 +54,9 @@ class RemoveUnusedElement extends _RemoveUnused {
       }
     });
   }
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static RemoveUnusedElement newInstance() => RemoveUnusedElement();
 }
 
 class RemoveUnusedField extends _RemoveUnused {
@@ -161,6 +164,9 @@ class RemoveUnusedField extends _RemoveUnused {
       return range.nodeInList(parent.variables, node);
     }
   }
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static RemoveUnusedField newInstance() => RemoveUnusedField();
 }
 
 class _ElementReferenceCollector extends RecursiveAstVisitor<void> {

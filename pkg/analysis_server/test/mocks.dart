@@ -39,6 +39,12 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   /// Completer that will be signalled when the input stream is closed.
   final Completer _closed = Completer();
 
+  /// Errors popups sent to the user.
+  final shownErrors = <lsp.ShowMessageParams>[];
+
+  /// Warning popups sent to the user.
+  final shownWarnings = <lsp.ShowMessageParams>[];
+
   MockLspServerChannel(bool _printMessages) {
     if (_printMessages) {
       _serverToClient.stream
@@ -46,6 +52,20 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
       _clientToServer.stream
           .listen((message) => print('==> ' + jsonEncode(message)));
     }
+
+    // Keep track of any errors/warnings that are sent to the user with
+    // `window/showMessage`.
+    _serverToClient.stream.listen((message) {
+      if (message is lsp.NotificationMessage &&
+          message.method == Method.window_showMessage &&
+          message.params is lsp.ShowMessageParams) {
+        if (message.params?.type == MessageType.Error) {
+          shownErrors.add(message.params);
+        } else if (message.params?.type == MessageType.Warning) {
+          shownWarnings.add(message.params);
+        }
+      }
+    });
   }
 
   /// Future that will be completed when the input stream is closed.
@@ -167,7 +187,8 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
         (message is lsp.ResponseMessage && message.id == request.id) ||
         (throwOnError &&
             message is lsp.NotificationMessage &&
-            message.method == Method.window_showMessage));
+            message.method == Method.window_showMessage &&
+            message.params?.type == MessageType.Error));
 
     if (response is lsp.ResponseMessage) {
       return response;

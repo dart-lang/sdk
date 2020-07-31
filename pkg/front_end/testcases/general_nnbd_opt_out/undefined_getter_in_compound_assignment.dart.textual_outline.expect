@@ -1,0 +1,7 @@
+// @dart = 2.6
+class C {
+  void set x(value) {}
+}
+
+void test(C c) {}
+main() {}

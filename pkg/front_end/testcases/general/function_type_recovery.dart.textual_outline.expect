@@ -1,0 +1,2 @@
+typedef F = int Function(int f(String x));
+main() {}

@@ -16,8 +16,8 @@ class B implements A<int> {
 }
 
 foo() {
-  String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::x*/ x;
-  int z = new B(). /*@target=B::x*/ x;
+  String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B.x*/ x;
+  int z = new B(). /*@target=B.x*/ x;
 }
 
 main() {}

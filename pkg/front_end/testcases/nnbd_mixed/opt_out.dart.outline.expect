@@ -1,0 +1,71 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out.dart:16:11: Error: Can't create typedef from nullable type.
+// typedef F = void Function()?;
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///opt_out_lib.dart";
+
+typedef F = invalid-type;
+class A<T extends core::Object? = dynamic> extends core::Object {
+  late field core::int field;
+  synthetic constructor •() → self::A<self::A::T%>
+    ;
+}
+class B extends self::A<core::String?> {
+  synthetic constructor •() → self::B
+    ;
+}
+static field core::List<core::String?> l;
+static field core::String? s;
+static field core::String t;
+late static field core::int field;
+static method method(() →? void f, {required core::int a}) → void
+  ;
+static method main() → dynamic
+  ;
+static method noErrors() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:20:11: Error: Can't create typedef from nullable type.
+// typedef F = void Function()?;
+//           ^
+//
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:28:29: Error: Optional parameter 'a' should have a default value because its type 'int' doesn't allow null.
+// void method(void f()?, {int a}) {}
+//                             ^
+//
+import self as self2;
+import "dart:core" as core;
+
+typedef F = invalid-type;
+class A<T extends core::Object? = dynamic> extends core::Object {
+  field core::int field;
+  synthetic constructor •() → self2::A<self2::A::T%>
+    ;
+}
+class B extends self2::A<core::String?> {
+  synthetic constructor •() → self2::B
+    ;
+}
+static field core::List<core::String?> l;
+static field core::String? s;
+static field core::String t;
+static field core::int field;
+static method method(() →? void f, {core::int a}) → void
+  ;
+static method errors() → dynamic
+  ;

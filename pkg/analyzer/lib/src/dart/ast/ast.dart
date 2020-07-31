@@ -12,13 +12,10 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/engine.dart';
@@ -806,9 +803,7 @@ abstract class AstNodeImpl implements AstNode {
         }
       }
     } else {
-      if (_propertyMap == null) {
-        _propertyMap = HashMap<String, Object>();
-      }
+      _propertyMap ??= HashMap<String, Object>();
       _propertyMap[name] = value;
     }
   }
@@ -2024,23 +2019,8 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   @override
   LineInfo lineInfo;
 
-  /// The major component of the actual language version (not just override).
-  int languageVersionMajor;
-
-  /// The minor component of the actual language version (not just override).
-  int languageVersionMinor;
-
-  @override
-  LanguageVersionToken get languageVersionToken {
-    CommentToken comment = beginToken.precedingComments;
-    while (comment != null) {
-      if (comment is LanguageVersionToken) {
-        return comment;
-      }
-      comment = comment.next;
-    }
-    return null;
-  }
+  /// The language version information.
+  LibraryLanguageVersion languageVersion;
 
   @override
   final FeatureSet featureSet;
@@ -2082,6 +2062,18 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   @override
   set element(CompilationUnitElement element) {
     declaredElement = element;
+  }
+
+  @override
+  LanguageVersionToken get languageVersionToken {
+    CommentToken comment = beginToken.precedingComments;
+    while (comment != null) {
+      if (comment is LanguageVersionToken) {
+        return comment;
+      }
+      comment = comment.next;
+    }
+    return null;
   }
 
   @override
@@ -2354,40 +2346,6 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
     _name?.accept(visitor);
     _value?.accept(visitor);
     _uri?.accept(visitor);
-  }
-}
-
-/// An error listener that only records whether any constant related errors have
-/// been reported.
-class ConstantAnalysisErrorListener extends AnalysisErrorListener {
-  /// A flag indicating whether any constant related errors have been reported
-  /// to this listener.
-  bool hasConstError = false;
-
-  @override
-  void onError(AnalysisError error) {
-    ErrorCode errorCode = error.errorCode;
-    if (errorCode is CompileTimeErrorCode) {
-      switch (errorCode) {
-        case CompileTimeErrorCode
-            .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
-        case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
-        case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT:
-        case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
-        case CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
-        case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
-        case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
-        case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
-        case CompileTimeErrorCode.CONST_WITH_NON_CONST:
-        case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
-        case CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS:
-        case CompileTimeErrorCode.INVALID_CONSTANT:
-        case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
-        case CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL:
-        case CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL:
-          hasConstError = true;
-      }
-    }
   }
 }
 
@@ -3465,6 +3423,7 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
+    configurations.accept(visitor);
     super.visitChildren(visitor);
     combinators.accept(visitor);
   }
@@ -3921,6 +3880,13 @@ class ExtensionOverrideImpl extends ExpressionImpl
 
   set extensionName(Identifier extensionName) {
     _extensionName = _becomeParentOf(extensionName as IdentifierImpl);
+  }
+
+  @override
+  bool get isNullAware {
+    var nextType = argumentList.endToken.next.type;
+    return nextType == TokenType.QUESTION_PERIOD ||
+        nextType == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET;
   }
 
   @override
@@ -5013,6 +4979,7 @@ class FunctionExpressionImpl extends ExpressionImpl
 ///    functionExpressionInvocation ::=
 ///        [Expression] [TypeArgumentList]? [ArgumentList]
 class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
+    with NullShortableExpressionImpl
     implements FunctionExpressionInvocation {
   /// The expression producing the function being invoked.
   ExpressionImpl _function;
@@ -5052,6 +5019,9 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   Precedence get precedence => Precedence.postfix;
 
   @override
+  AstNode get _nullShortingExtensionCandidate => parent;
+
+  @override
   E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitFunctionExpressionInvocation(this);
 
@@ -5061,6 +5031,9 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     _typeArguments?.accept(visitor);
     _argumentList?.accept(visitor);
   }
+
+  @override
+  bool _extendsNullShorting(Expression child) => identical(child, _function);
 }
 
 /// A function type alias.
@@ -5797,6 +5770,7 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
+    configurations.accept(visitor);
     _prefix?.accept(visitor);
     combinators.accept(visitor);
   }
@@ -6018,12 +5992,6 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   /// The list of arguments to the constructor.
   ArgumentListImpl _argumentList;
 
-  /// The element associated with the constructor based on static type
-  /// information, or `null` if the AST structure has not been resolved or if
-  /// the constructor could not be resolved.
-  @override
-  ConstructorElement staticElement;
-
   /// Initialize a newly created instance creation expression.
   InstanceCreationExpressionImpl(this.keyword,
       ConstructorNameImpl constructorName, ArgumentListImpl argumentList,
@@ -6076,6 +6044,14 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
 
   @override
   Precedence get precedence => Precedence.primary;
+
+  @Deprecated('Use constructorName.staticElement')
+  @override
+  ConstructorElement get staticElement => constructorName.staticElement;
+
+  @Deprecated('Use constructorName.staticElement')
+  @override
+  set staticElement(ConstructorElement staticElement) {}
 
   /// Return the type arguments associated with the constructor, rather than
   /// with the class in which the constructor is defined. It is always an error
@@ -7578,7 +7554,7 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
   }
 
   @override
-  accept(AstVisitor visitor) {
+  void accept(AstVisitor visitor) {
     int length = _elements.length;
     for (var i = 0; i < length; i++) {
       _elements[i].accept(visitor);

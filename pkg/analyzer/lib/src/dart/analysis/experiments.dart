@@ -33,7 +33,7 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   static final Version currentVersion = Version.parse(_currentVersion);
 
   /// A map containing information about all known experimental flags.
-  static const knownFeatures = _knownFeatures;
+  static const Map<String, ExperimentalFeature> knownFeatures = _knownFeatures;
 
   final List<bool> _enableFlags;
 
@@ -72,7 +72,7 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   }
 
   @override
-  operator ==(Object other) {
+  bool operator ==(Object other) {
     if (other is ExperimentStatus) {
       if (_enableFlags.length != other._enableFlags.length) return false;
       for (int i = 0; i < _enableFlags.length; i++) {

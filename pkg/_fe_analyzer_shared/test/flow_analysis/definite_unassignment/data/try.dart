@@ -35,6 +35,26 @@ tryCatch_try() {
   v;
 }
 
+tryCatch_none() {
+  late int v;
+  try {
+    /*unassigned*/ v;
+  } catch (_) {
+    /*unassigned*/ v;
+  }
+  /*unassigned*/ v;
+}
+
+tryCatch_try_catch() {
+  late int v;
+  try {
+    v = 0;
+  } catch (_) {
+    v;
+  }
+  v;
+}
+
 tryCatchFinally_catch() {
   late int v;
   try {
@@ -87,6 +107,26 @@ tryFinally_try() {
     v = 0;
   } finally {
     // not assigned
+  }
+  v;
+}
+
+tryFinally_none() {
+  late int v;
+  try {
+    /*unassigned*/ v;
+  } finally {
+    /*unassigned*/ v;
+  }
+  /*unassigned*/ v;
+}
+
+tryFinally_try_finally() {
+  late int v;
+  try {
+    v = 0;
+  } finally {
+    v;
   }
   v;
 }

@@ -1,0 +1,11 @@
+bar() {}
+
+class A {
+  A({required int x});
+  foo({required int y}) {}
+  void Function({required String s}) f = ({required String s}) {};
+}
+
+main() {}
+void Function({required String s}) g = ({required String s}) {};
+void foo({required String s}) {}

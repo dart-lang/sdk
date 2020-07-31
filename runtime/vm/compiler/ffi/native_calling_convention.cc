@@ -16,8 +16,6 @@ namespace compiler {
 
 namespace ffi {
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 // Argument #0 is the function pointer.
 const intptr_t kNativeParamsStartAt = 1;
 
@@ -107,9 +105,10 @@ class ArgumentAllocator : public ValueObject {
           cpu_regs_used += cpu_regs_used % 2;
         }
         if (cpu_regs_used + 2 <= CallingConventions::kNumArgRegs) {
+          const Register register_1 = AllocateCpuRegister();
+          const Register register_2 = AllocateCpuRegister();
           return *new (zone_) NativeRegistersLocation(
-              payload_type, container_type, AllocateCpuRegister(),
-              AllocateCpuRegister());
+              payload_type, container_type, register_1, register_2);
         }
       } else {
         ASSERT(payload_type.SizeInBytes() <= target::kWordSize);
@@ -133,6 +132,7 @@ class ArgumentAllocator : public ValueObject {
   }
 
   Register AllocateCpuRegister() {
+    RELEASE_ASSERT(cpu_regs_used >= 0);  // Avoids -Werror=array-bounds in GCC.
     ASSERT(cpu_regs_used < CallingConventions::kNumArgRegs);
 
     const auto result = CallingConventions::ArgumentRegisters[cpu_regs_used];
@@ -209,7 +209,6 @@ class ArgumentAllocator : public ValueObject {
   // > Procedure Call Standard is used. In this variant, floating-point
   // > (and vector) arguments are passed in general purpose registers
   // > (GPRs) instead of in VFP registers)
-  // https://developer.apple.com/library/archive/documentation/Xcode/Conceptual/iPhoneOSABIReference/Articles/ARMv6FunctionCallingConventions.html#//apple_ref/doc/uid/TP40009021-SW1
   // https://developer.apple.com/library/archive/documentation/Xcode/Conceptual/iPhoneOSABIReference/Articles/ARMv7FunctionCallingConventions.html#//apple_ref/doc/uid/TP40009022-SW1
   void BlockAllFpuRegisters() {
     // Set all bits to 1.
@@ -281,7 +280,7 @@ intptr_t NativeCallingConvention::num_args() const {
   return c_signature_.num_fixed_parameters() - kNativeParamsStartAt;
 }
 
-RawAbstractType* NativeCallingConvention::CType(intptr_t arg_index) const {
+AbstractTypePtr NativeCallingConvention::CType(intptr_t arg_index) const {
   if (arg_index == kResultIndex) {
     return c_signature_.result_type();
   }
@@ -302,8 +301,6 @@ intptr_t NativeCallingConvention::StackTopInBytes() const {
   }
   return Utils::RoundUp(max_height_in_bytes, compiler::target::kWordSize);
 }
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace ffi
 

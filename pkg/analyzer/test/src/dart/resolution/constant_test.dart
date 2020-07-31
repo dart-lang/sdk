@@ -288,6 +288,32 @@ const bar = A.foo;
     _assertIntValue(bar, 42);
   }
 
+  test_fromEnvironment_optOut_fromOptIn() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.5
+
+const cBool = const bool.fromEnvironment('foo', defaultValue: false);
+const cInt = const int.fromEnvironment('foo', defaultValue: 1);
+const cString = const String.fromEnvironment('foo', defaultValue: 'bar');
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart';
+
+const vBool = cBool;
+const vInt = cInt;
+const vString = cString;
+''');
+
+    DartObjectImpl evaluate(String name) {
+      return findElement.topVar(name).computeConstantValue();
+    }
+
+    expect(evaluate('vBool').toBoolValue(), false);
+    expect(evaluate('vInt').toIntValue(), 1);
+    expect(evaluate('vString').toStringValue(), 'bar');
+  }
+
   test_topLevelVariable_optIn_fromOptOut() async {
     newFile('/test/lib/a.dart', content: r'''
 const foo = 42;
@@ -328,7 +354,25 @@ const c = b;
     _assertIntValue(c, 42);
   }
 
+  test_topLevelVariable_optOut3() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+const a = int.fromEnvironment('a', defaultValue: 42);
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.7
+import 'a.dart';
+
+const b = a;
+''');
+
+    var c = findElement.topVar('b');
+    assertType(c.type, 'int*');
+    _assertIntValue(c, 42);
+  }
+
   void _assertIntValue(VariableElement element, int value) {
-    expect(element.constantValue.toIntValue(), value);
+    expect(element.computeConstantValue().toIntValue(), value);
   }
 }

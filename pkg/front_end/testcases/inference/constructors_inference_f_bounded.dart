@@ -13,8 +13,8 @@ class Pair<T extends Cloneable<T>, U extends Cloneable<U>> {
   Pair(this.t, this.u);
   Pair._();
   Pair<U, T> get reversed => new /*@ typeArgs=Pair::U*, Pair::T* */ Pair(
-      /*@target=Pair::u*/ u,
-      /*@target=Pair::t*/ t);
+      /*@target=Pair.u*/ u,
+      /*@target=Pair.t*/ t);
 }
 
 main() {

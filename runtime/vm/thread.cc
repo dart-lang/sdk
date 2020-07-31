@@ -5,7 +5,6 @@
 #include "vm/thread.h"
 
 #include "vm/dart_api_state.h"
-#include "vm/ffi_callback_trampolines.h"
 #include "vm/growable_array.h"
 #include "vm/heap/safepoint.h"
 #include "vm/isolate.h"
@@ -24,6 +23,10 @@
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
 #include "vm/zone.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/ffi_callback_trampolines.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -62,11 +65,9 @@ Thread::~Thread() {
 Thread::Thread(bool is_vm_isolate)
     : ThreadState(false),
       stack_limit_(0),
-      write_barrier_mask_(RawObject::kGenerationalBarrierMask),
+      write_barrier_mask_(ObjectLayout::kGenerationalBarrierMask),
       isolate_(NULL),
       dispatch_table_array_(NULL),
-      top_(0),
-      end_(0),
       saved_stack_limit_(0),
       stack_overflow_flags_(0),
       heap_(NULL),
@@ -83,11 +84,11 @@ Thread::Thread(bool is_vm_isolate)
       execution_state_(kThreadInNative),
       safepoint_state_(0),
       ffi_callback_code_(GrowableObjectArray::null()),
+      api_top_scope_(NULL),
       task_kind_(kUnknownTask),
       dart_stream_(NULL),
       thread_lock_(),
       api_reusable_scope_(NULL),
-      api_top_scope_(NULL),
       no_callback_scope_depth_(0),
 #if defined(DEBUG)
       no_safepoint_scope_depth_(0),
@@ -234,7 +235,7 @@ void Thread::PrintJSON(JSONStream* stream) const {
 }
 #endif
 
-RawGrowableObjectArray* Thread::pending_functions() {
+GrowableObjectArrayPtr Thread::pending_functions() {
   if (pending_functions_ == GrowableObjectArray::null()) {
     pending_functions_ = GrowableObjectArray::New(Heap::kOld);
   }
@@ -253,7 +254,7 @@ void Thread::set_active_stacktrace(const Object& value) {
   active_stacktrace_ = value.raw();
 }
 
-RawError* Thread::sticky_error() const {
+ErrorPtr Thread::sticky_error() const {
   return sticky_error_;
 }
 
@@ -266,9 +267,9 @@ void Thread::ClearStickyError() {
   sticky_error_ = Error::null();
 }
 
-RawError* Thread::StealStickyError() {
+ErrorPtr Thread::StealStickyError() {
   NoSafepointScope no_safepoint;
-  RawError* return_value = sticky_error_;
+  ErrorPtr return_value = sticky_error_;
   sticky_error_ = Error::null();
   return return_value;
 }
@@ -291,7 +292,7 @@ const char* Thread::TaskKindToCString(TaskKind kind) {
   }
 }
 
-RawStackTrace* Thread::async_stack_trace() const {
+StackTracePtr Thread::async_stack_trace() const {
   return async_stack_trace_;
 }
 
@@ -300,7 +301,7 @@ void Thread::set_async_stack_trace(const StackTrace& stack_trace) {
   async_stack_trace_ = stack_trace.raw();
 }
 
-void Thread::set_raw_async_stack_trace(RawStackTrace* raw_stack_trace) {
+void Thread::set_raw_async_stack_trace(StackTracePtr raw_stack_trace) {
   async_stack_trace_ = raw_stack_trace;
 }
 
@@ -514,7 +515,7 @@ void Thread::RestoreOOBMessageInterrupts() {
 #endif  // !defined(PRODUCT)
 }
 
-RawError* Thread::HandleInterrupts() {
+ErrorPtr Thread::HandleInterrupts() {
   uword interrupt_bits = GetAndClearInterrupts();
   if ((interrupt_bits & kVMInterrupt) != 0) {
     CheckForSafepoint();
@@ -538,7 +539,7 @@ RawError* Thread::HandleInterrupts() {
             isolate()->name());
       }
       NoSafepointScope no_safepoint;
-      RawError* error = Thread::Current()->StealStickyError();
+      ErrorPtr error = Thread::Current()->StealStickyError();
       ASSERT(error->IsUnwindError());
       return error;
     }
@@ -557,7 +558,7 @@ void Thread::StoreBufferBlockProcess(StoreBuffer::ThresholdPolicy policy) {
   StoreBufferAcquire();
 }
 
-void Thread::StoreBufferAddObject(RawObject* obj) {
+void Thread::StoreBufferAddObject(ObjectPtr obj) {
   ASSERT(this == Thread::Current());
   store_buffer_block_->Push(obj);
   if (store_buffer_block_->IsFull()) {
@@ -565,7 +566,7 @@ void Thread::StoreBufferAddObject(RawObject* obj) {
   }
 }
 
-void Thread::StoreBufferAddObjectGC(RawObject* obj) {
+void Thread::StoreBufferAddObjectGC(ObjectPtr obj) {
   store_buffer_block_->Push(obj);
   if (store_buffer_block_->IsFull()) {
     StoreBufferBlockProcess(StoreBuffer::kIgnoreThreshold);
@@ -592,14 +593,14 @@ void Thread::DeferredMarkingStackBlockProcess() {
   DeferredMarkingStackAcquire();
 }
 
-void Thread::MarkingStackAddObject(RawObject* obj) {
+void Thread::MarkingStackAddObject(ObjectPtr obj) {
   marking_stack_block_->Push(obj);
   if (marking_stack_block_->IsFull()) {
     MarkingStackBlockProcess();
   }
 }
 
-void Thread::DeferredMarkingStackAddObject(RawObject* obj) {
+void Thread::DeferredMarkingStackAddObject(ObjectPtr obj) {
   deferred_marking_stack_block_->Push(obj);
   if (deferred_marking_stack_block_->IsFull()) {
     DeferredMarkingStackBlockProcess();
@@ -609,14 +610,14 @@ void Thread::DeferredMarkingStackAddObject(RawObject* obj) {
 void Thread::MarkingStackRelease() {
   MarkingStackBlock* block = marking_stack_block_;
   marking_stack_block_ = NULL;
-  write_barrier_mask_ = RawObject::kGenerationalBarrierMask;
+  write_barrier_mask_ = ObjectLayout::kGenerationalBarrierMask;
   isolate_group()->marking_stack()->PushBlock(block);
 }
 
 void Thread::MarkingStackAcquire() {
   marking_stack_block_ = isolate_group()->marking_stack()->PopEmptyBlock();
-  write_barrier_mask_ =
-      RawObject::kGenerationalBarrierMask | RawObject::kIncrementalBarrierMask;
+  write_barrier_mask_ = ObjectLayout::kGenerationalBarrierMask |
+                        ObjectLayout::kIncrementalBarrierMask;
 }
 
 void Thread::DeferredMarkingStackRelease() {
@@ -628,13 +629,6 @@ void Thread::DeferredMarkingStackRelease() {
 void Thread::DeferredMarkingStackAcquire() {
   deferred_marking_stack_block_ =
       isolate_group()->deferred_marking_stack()->PopEmptyBlock();
-}
-
-bool Thread::IsMutatorThread() const {
-  if (isolate_ != nullptr) {
-    ASSERT(is_mutator_thread_ == (isolate_->mutator_thread() == this));
-  }
-  return is_mutator_thread_;
 }
 
 bool Thread::CanCollectGarbage() const {
@@ -679,13 +673,13 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit objects in thread specific handles area.
   reusable_handles_.VisitObjectPointers(visitor);
 
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&pending_functions_));
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&global_object_pool_));
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&active_exception_));
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&active_stacktrace_));
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&sticky_error_));
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&async_stack_trace_));
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&ffi_callback_code_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&pending_functions_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&global_object_pool_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&active_exception_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&active_stacktrace_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&async_stack_trace_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&ffi_callback_code_));
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (interpreter() != NULL) {
@@ -739,9 +733,9 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
         current_(Thread::Current()),
         op_(op) {}
 
-  void VisitPointers(RawObject** first, RawObject** last) {
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
     for (; first != last + 1; first++) {
-      RawObject* obj = *first;
+      ObjectPtr obj = *first;
       // Stores into new-space objects don't need a write barrier.
       if (obj->IsSmiOrNewObject()) continue;
 
@@ -750,23 +744,25 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
       // if we can trigger GC between array allocation and store.
       if (obj->GetClassId() == kArrayCid) continue;
 
-      // Dart code won't store into VM-internal objects except Contexts.
-      // This assumption is checked by an assertion in
+      // Dart code won't store into VM-internal objects except Contexts and
+      // UnhandledExceptions. This assumption is checked by an assertion in
       // WriteBarrierElimination::UpdateVectorForBlock.
-      if (!obj->IsDartInstance() && !obj->IsContext()) continue;
+      if (!obj->IsDartInstance() && !obj->IsContext() &&
+          !obj->IsUnhandledException())
+        continue;
 
       // Dart code won't store into canonical instances.
-      if (obj->IsCanonical()) continue;
+      if (obj->ptr()->IsCanonical()) continue;
 
       // Objects in the VM isolate heap are immutable and won't be
       // stored into. Check this condition last because there's no bit
       // in the header for it.
-      if (obj->InVMIsolateHeap()) continue;
+      if (obj->ptr()->InVMIsolateHeap()) continue;
 
       switch (op_) {
         case Thread::RestoreWriteBarrierInvariantOp::kAddToRememberedSet:
-          if (!obj->IsRemembered()) {
-            obj->AddToRememberedSet(current_);
+          if (!obj->ptr()->IsRemembered()) {
+            obj->ptr()->AddToRememberedSet(current_);
           }
           if (current_->is_marking()) {
             current_->DeferredMarkingStackAddObject(obj);
@@ -812,7 +808,7 @@ void Thread::RestoreWriteBarrierInvariant(RestoreWriteBarrierInvariantOp op) {
        frame = frames_iterator.NextFrame()) {
     if (frame->IsExitFrame()) {
       scan_next_dart_frame = true;
-    } else if (frame->IsDartFrame(/*validate=*/false, /*needed_for_gc=*/true)) {
+    } else if (frame->IsDartFrame(/*validate=*/false)) {
       if (scan_next_dart_frame) {
         frame->VisitObjectPointers(&visitor);
       }
@@ -861,7 +857,7 @@ intptr_t Thread::OffsetFromThread(const Object& object) {
   // [object] is in fact a [Code] object.
   if (object.IsCode()) {
 #define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
-  ASSERT((expr)->InVMIsolateHeap());                                           \
+  ASSERT((expr)->ptr()->InVMIsolateHeap());                                    \
   if (object.raw() == expr) {                                                  \
     return Thread::member_name##offset();                                      \
   }
@@ -1136,13 +1132,12 @@ void Thread::SetFfiCallbackCode(int32_t callback_id, const Code& code) {
 void Thread::VerifyCallbackIsolate(int32_t callback_id, uword entry) {
   NoSafepointScope _;
 
-  const RawGrowableObjectArray* const array = ffi_callback_code_;
+  const GrowableObjectArrayPtr array = ffi_callback_code_;
   if (array == GrowableObjectArray::null()) {
     FATAL("Cannot invoke callback on incorrect isolate.");
   }
 
-  const RawSmi* const length_smi =
-      GrowableObjectArray::NoSafepointLength(array);
+  const SmiPtr length_smi = GrowableObjectArray::NoSafepointLength(array);
   const intptr_t length = Smi::Value(length_smi);
 
   if (callback_id < 0 || callback_id >= length) {
@@ -1150,11 +1145,10 @@ void Thread::VerifyCallbackIsolate(int32_t callback_id, uword entry) {
   }
 
   if (entry != 0) {
-    RawObject** const code_array =
+    ObjectPtr* const code_array =
         Array::DataOf(GrowableObjectArray::NoSafepointData(array));
     // RawCast allocates handles in ASSERTs.
-    const RawCode* const code =
-        reinterpret_cast<RawCode*>(code_array[callback_id]);
+    const CodePtr code = static_cast<CodePtr>(code_array[callback_id]);
     if (!Code::ContainsInstructionAt(code, entry)) {
       FATAL("Cannot invoke callback on incorrect isolate.");
     }

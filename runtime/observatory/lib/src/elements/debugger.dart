@@ -22,7 +22,7 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
@@ -422,13 +422,15 @@ class RewindCommand extends DebuggerCommand {
     try {
       int count = 1;
       if (args.length == 1) {
-        count = int.parse(args[0]);
+        count = int.tryParse(args[0]);
+        if (count == null || count < 1 || count >= debugger.stackDepth) {
+          debugger.console.print(
+              'Frame must be an int in bounds [1..${debugger.stackDepth - 1}]:'
+              ' saw ${args[0]}');
+          return;
+        }
       } else if (args.length > 1) {
         debugger.console.print('rewind expects 0 or 1 argument');
-        return;
-      } else if (count < 1 || count > debugger.stackDepth) {
-        debugger.console
-            .print('frame must be in range [1..${debugger.stackDepth - 1}]');
         return;
       }
       await debugger.rewind(count);
@@ -2011,14 +2013,6 @@ class ObservatoryDebugger extends Debugger {
 }
 
 class DebuggerPageElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<DebuggerPageElement>('debugger-page', dependencies: const [
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavNotifyElement.tag,
-  ]);
-
   S.Isolate _isolate;
   ObservatoryDebugger _debugger;
   M.ObjectRepository _objects;
@@ -2043,7 +2037,7 @@ class DebuggerPageElement extends CustomElement implements Renderable {
     return e;
   }
 
-  DebuggerPageElement.created() : super.created(tag);
+  DebuggerPageElement.created() : super.created('debugger-page');
 
   Future<StreamSubscription> _vmSubscriptionFuture;
   Future<StreamSubscription> _isolateSubscriptionFuture;
@@ -2175,8 +2169,6 @@ class DebuggerPageElement extends CustomElement implements Renderable {
 }
 
 class DebuggerStackElement extends CustomElement implements Renderable {
-  static const tag = const Tag<DebuggerStackElement>('debugger-stack');
-
   S.Isolate _isolate;
   M.ObjectRepository _objects;
   M.ScriptRepository _scripts;
@@ -2433,12 +2425,10 @@ class DebuggerStackElement extends CustomElement implements Renderable {
     }
   }
 
-  DebuggerStackElement.created() : super.created(tag);
+  DebuggerStackElement.created() : super.created('debugger-stack');
 }
 
 class DebuggerFrameElement extends CustomElement implements Renderable {
-  static const tag = const Tag<DebuggerFrameElement>('debugger-frame');
-
   RenderingScheduler<DebuggerFrameElement> _r;
 
   Stream<RenderedEvent<DebuggerFrameElement>> get onRendered => _r.onRendered;
@@ -2504,7 +2494,7 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
     return e;
   }
 
-  DebuggerFrameElement.created() : super.created(tag);
+  DebuggerFrameElement.created() : super.created('debugger-frame');
 
   void render() {
     if (_pinned) {
@@ -2799,8 +2789,6 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
 }
 
 class DebuggerMessageElement extends CustomElement implements Renderable {
-  static const tag = const Tag<DebuggerMessageElement>('debugger-message');
-
   RenderingScheduler<DebuggerMessageElement> _r;
 
   Stream<RenderedEvent<DebuggerMessageElement>> get onRendered => _r.onRendered;
@@ -2841,7 +2829,7 @@ class DebuggerMessageElement extends CustomElement implements Renderable {
     return e;
   }
 
-  DebuggerMessageElement.created() : super.created(tag);
+  DebuggerMessageElement.created() : super.created('debugger-message');
 
   void render() {
     if (_pinned) {
@@ -3022,15 +3010,13 @@ class DebuggerMessageElement extends CustomElement implements Renderable {
 }
 
 class DebuggerConsoleElement extends CustomElement implements Renderable {
-  static const tag = const Tag<DebuggerConsoleElement>('debugger-console');
-
   factory DebuggerConsoleElement() {
     final DebuggerConsoleElement e = new DebuggerConsoleElement.created();
     e.children = <Element>[new BRElement()];
     return e;
   }
 
-  DebuggerConsoleElement.created() : super.created(tag);
+  DebuggerConsoleElement.created() : super.created('debugger-console');
 
   /// Is [container] scrolled to the within [threshold] pixels of the bottom?
   static bool _isScrolledToBottom(DivElement container, [int threshold = 2]) {
@@ -3132,8 +3118,6 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
 }
 
 class DebuggerInputElement extends CustomElement implements Renderable {
-  static const tag = const Tag<DebuggerInputElement>('debugger-input');
-
   S.Isolate _isolate;
   ObservatoryDebugger _debugger;
   bool _busy = false;
@@ -3165,7 +3149,7 @@ class DebuggerInputElement extends CustomElement implements Renderable {
     return e;
   }
 
-  DebuggerInputElement.created() : super.created(tag);
+  DebuggerInputElement.created() : super.created('debugger-input');
 
   void _onKeyDown(KeyboardEvent e) {
     if (_busy) {

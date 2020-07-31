@@ -1,0 +1,21 @@
+library test;
+
+class A {}
+
+class B extends A {
+  A operator +(C v) => null;
+  B operator -(int i) => null;
+  B operator *(B v) => null;
+  C operator &(A v) => null;
+}
+
+class C extends B {}
+
+T f<T>() => null;
+
+class Test {
+  B member;
+  void test() {}
+}
+
+main() {}

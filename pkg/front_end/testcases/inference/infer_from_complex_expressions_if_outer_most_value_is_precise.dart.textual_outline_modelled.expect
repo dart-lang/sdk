@@ -1,0 +1,24 @@
+library test;
+
+class A {
+  B operator +(other) => null;
+  int x;
+}
+
+class B extends A {
+  B(ignore);
+}
+
+main() {}
+test1() {}
+var a = new A();
+var b = new B(x);
+var c1 = [x];
+var c2 = const [];
+var d = <dynamic, dynamic>{'a': 'b'};
+var e = new A()..x = 3;
+var f = 2 + 3;
+var g = -3;
+var h = new A() + 3;
+var i = -new A();
+var j = null as B;

@@ -7,13 +7,11 @@ import 'dart:async';
 import 'package:observatory/models.dart' as M
     show IsolateRef, LocalVarDescriptorsRef;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class LocalVarDescriptorsRefElement extends CustomElement
     implements Renderable {
-  static const tag = const Tag<LocalVarDescriptorsRefElement>('var-ref');
-
   RenderingScheduler<LocalVarDescriptorsRefElement> _r;
 
   Stream<RenderedEvent<LocalVarDescriptorsRefElement>> get onRendered =>
@@ -39,7 +37,7 @@ class LocalVarDescriptorsRefElement extends CustomElement
     return e;
   }
 
-  LocalVarDescriptorsRefElement.created() : super.created(tag);
+  LocalVarDescriptorsRefElement.created() : super.created('var-ref');
 
   @override
   void attached() {

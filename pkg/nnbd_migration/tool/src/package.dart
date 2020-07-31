@@ -4,10 +4,8 @@
 
 /// Abstractions for the different sources of truth for different packages.
 
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:nnbd_migration/src/fantasyland/fantasy_workspace.dart';
 import 'package:nnbd_migration/src/utilities/subprocess_launcher.dart';
 import 'package:path/path.dart' as path;
 
@@ -78,26 +76,6 @@ class ManualPackage extends Package {
 
   @override
   List<String> get migrationPaths => [_packagePath];
-}
-
-/// Abstraction for a fantasy-land package.
-class FantasyLandPackage extends Package {
-  final String name;
-  final FantasyWorkspace fantasyLand;
-
-  FantasyLandPackage._(this.name, this.fantasyLand) : super('${name}__flat');
-
-  static Future<FantasyLandPackage> fantasyLandPackageFactory(
-      String name, Playground playground) async {
-    return FantasyLandPackage._(
-        name,
-        await buildFantasyLand(name, [],
-            path.join(playground.playgroundPath, '${name}__flat'), true));
-  }
-
-  @override
-  // TODO(jcollins-g): traverse [fantasyLand.subPackages] and calculate paths to migrate.
-  List<String> get migrationPaths => throw UnimplementedError;
 }
 
 /// Abstraction for a package fetched via Git.
@@ -237,16 +215,5 @@ class Sdk {
 
   Sdk(String sdkPath) {
     this.sdkPath = path.canonicalize(sdkPath);
-  }
-
-  /// Returns true if the SDK was built with --nnbd.
-  ///
-  /// May throw if [sdkPath] is invalid, or there is an error parsing
-  /// the libraries.json file.
-  bool get isNnbdSdk {
-    // TODO(jcollins-g): contact eng-prod for a more foolproof detection method
-    String libraries = path.join(sdkPath, 'lib', 'libraries.json');
-    var decodedJson = JsonDecoder().convert(File(libraries).readAsStringSync());
-    return ((decodedJson['comment:1'] as String).contains('sdk_nnbd'));
   }
 }

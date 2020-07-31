@@ -1,0 +1,7 @@
+// @dart = 2.6
+class C {
+  C.a(this.);
+  C.b(this.);
+  C.c(this., p);
+  C.d(this., p);
+}

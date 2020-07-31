@@ -1,0 +1,4 @@
+library test;
+
+var f = () async => 0;
+main() {}

@@ -1,0 +1,14 @@
+// @dart = 2.6
+class Foo {
+  var _field;
+}
+
+class FooValue {}
+
+class Bar {
+  var _field;
+}
+
+class BarValue {}
+
+main() {}

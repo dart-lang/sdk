@@ -48,9 +48,9 @@ DEFINE_FLAG(bool,
 
 #define VM_SERVICE_METHOD_CALL_FROM_NATIVE 5
 
-static RawArray* MakeServiceControlMessage(Dart_Port port_id,
-                                           intptr_t code,
-                                           const String& name) {
+static ArrayPtr MakeServiceControlMessage(Dart_Port port_id,
+                                          intptr_t code,
+                                          const String& name) {
   const Array& list = Array::Handle(Array::New(4));
   ASSERT(!list.IsNull());
   const Integer& code_int = Integer::Handle(Integer::New(code));
@@ -63,9 +63,9 @@ static RawArray* MakeServiceControlMessage(Dart_Port port_id,
   return list.raw();
 }
 
-static RawArray* MakeServerControlMessage(const SendPort& sp,
-                                          intptr_t code,
-                                          bool enable = false) {
+static ArrayPtr MakeServerControlMessage(const SendPort& sp,
+                                         intptr_t code,
+                                         bool enable = false) {
   const Array& list = Array::Handle(Array::New(3));
   ASSERT(!list.IsNull());
   list.SetAt(0, Integer::Handle(Integer::New(code)));
@@ -110,7 +110,7 @@ void ServiceIsolate::SetServerAddress(const char* address) {
   if (address == NULL) {
     return;
   }
-  server_address_ = strdup(address);
+  server_address_ = Utils::StrDup(address);
 }
 
 bool ServiceIsolate::NameEquals(const char* name) {
@@ -133,7 +133,7 @@ bool ServiceIsolate::IsServiceIsolate(const Isolate* isolate) {
   return isolate != nullptr && isolate == isolate_;
 }
 
-bool ServiceIsolate::IsServiceIsolateDescendant(const Isolate* isolate) {
+bool ServiceIsolate::IsServiceIsolateDescendant(Isolate* isolate) {
   MonitorLocker ml(monitor_);
   return isolate->origin_id() == origin_;
 }
@@ -192,10 +192,10 @@ bool ServiceIsolate::SendServiceRpc(uint8_t* request_json,
                              "Service isolate failed to start up: %s.",
                              startup_failure_reason_);
       } else {
-        *error = strdup("No service isolate port was found.");
+        *error = Utils::StrDup("No service isolate port was found.");
       }
     } else {
-      *error = strdup("Was unable to post message to service isolate.");
+      *error = Utils::StrDup("Was unable to post message to service isolate.");
     }
   }
 
@@ -346,7 +346,6 @@ class RunServiceTask : public ThreadPool::Task {
 
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
-    api_flags.null_safety = false;
 
     isolate = reinterpret_cast<Isolate*>(
         create_group_callback(ServiceIsolate::kName, ServiceIsolate::kName,
@@ -489,7 +488,7 @@ void ServiceIsolate::Run() {
   create_group_callback_ = Isolate::CreateGroupCallback();
   if (create_group_callback_ == NULL) {
     ServiceIsolate::InitializingFailed(
-        strdup("The 'create_group' callback was not provided"));
+        Utils::StrDup("The 'create_group' callback was not provided"));
     return;
   }
   bool task_started = Dart::thread_pool()->Run<RunServiceTask>();

@@ -7,6 +7,7 @@ import 'package:logging/logging.dart';
 import 'package:observatory/elements.dart';
 import 'package:stack_trace/stack_trace.dart';
 
+
 main() async {
   Chain.capture(() async {
     Logger.root.level = Level.INFO;

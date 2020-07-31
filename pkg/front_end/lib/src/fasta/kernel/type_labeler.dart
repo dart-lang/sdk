@@ -16,6 +16,7 @@ import 'package:kernel/ast.dart'
         DynamicType,
         Field,
         FunctionType,
+        FutureOrType,
         InvalidType,
         InstanceConstant,
         IntConstant,
@@ -42,7 +43,7 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/visitor.dart' show ConstantVisitor, DartTypeVisitor;
 
-import '../blacklisted_classes.dart' show blacklistedCoreClasses;
+import '../denylisted_classes.dart' show denylistedCoreClasses;
 
 import '../fasta_codes.dart'
     show Message, templateTypeOrigin, templateTypeOriginWithFileUri;
@@ -180,7 +181,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
         node.parameter.name,
         enclosingLibrary == null ? unknownUri : enclosingLibrary.importUri,
         enclosingLibrary == null ? unknownUri : enclosingLibrary.fileUri));
-    addNullability(node.typeParameterTypeNullability);
+    addNullability(node.declaredNullability);
   }
 
   void visitFunctionType(FunctionType node) {
@@ -255,29 +256,45 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       }
       result.add(">");
     }
+    if (classNode.name == 'Null' &&
+        classNode.enclosingLibrary.importUri.scheme == 'dart' &&
+        classNode.enclosingLibrary.importUri.path == 'core') {
+      // Don't print nullability on `Null`.
+      return;
+    }
     addNullability(node.nullability);
+  }
+
+  void visitFutureOrType(FutureOrType node) {
+    result.add("FutureOr<");
+    node.typeArgument.accept(this);
+    result.add(">");
+    addNullability(node.declaredNullability);
   }
 
   void defaultConstant(Constant node) {}
 
   void visitNullConstant(NullConstant node) {
-    result.add(node);
+    result.add('${node.value}');
   }
 
   void visitBoolConstant(BoolConstant node) {
-    result.add(node);
+    result.add('${node.value}');
   }
 
   void visitIntConstant(IntConstant node) {
-    result.add(node);
+    result.add('${node.value}');
   }
 
   void visitDoubleConstant(DoubleConstant node) {
-    result.add(node);
+    result.add('${node.value}');
   }
 
   void visitSymbolConstant(SymbolConstant node) {
-    result.add(node);
+    String text = node.libraryReference != null
+        ? '#${node.libraryReference.asLibrary.importUri}::${node.name}'
+        : '#${node.name}';
+    result.add(text);
   }
 
   void visitStringConstant(StringConstant node) {
@@ -401,8 +418,8 @@ class LabeledNode {
 
   String get originMessage {
     if (importUri.scheme == 'dart' && importUri.path == 'core') {
-      if (node is Class && blacklistedCoreClasses.contains(name)) {
-        // Blacklisted core class. Only print if ambiguous.
+      if (node is Class && denylistedCoreClasses.contains(name)) {
+        // Denylisted core class. Only print if ambiguous.
         List<LabeledNode> entityForName = typeLabeler.nameMap[name];
         if (entityForName.length == 1) {
           return "";

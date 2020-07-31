@@ -1,0 +1,10 @@
+void foo<X>(X i) {}
+
+class Foo {
+  static foo<X>(X i) {}
+  bar<X>(X i) {}
+}
+
+class Bar<X, Y> {}
+
+main() {}

@@ -1,0 +1,6 @@
+class A {
+  const A(this.x);
+  final int x;
+}
+
+main() {}

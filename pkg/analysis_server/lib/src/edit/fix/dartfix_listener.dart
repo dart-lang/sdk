@@ -5,6 +5,7 @@
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show Location, SourceChange, SourceEdit, SourceFileEdit;
@@ -15,6 +16,7 @@ class DartFixListener {
 
   final List<DartFixSuggestion> suggestions = <DartFixSuggestion>[];
   final List<DartFixSuggestion> otherSuggestions = <DartFixSuggestion>[];
+
   final SourceChange sourceChange = SourceChange('dartfix');
 
   /// The details to be returned to the client.
@@ -22,13 +24,7 @@ class DartFixListener {
 
   DartFixListener(this.server);
 
-  /// Add the given [detail] to the list of details to be returned to the
-  /// client.
-  void addDetail(String detail) {
-    if (details.length < 200) {
-      details.add(detail);
-    }
-  }
+  ResourceProvider get resourceProvider => server.resourceProvider;
 
   /// Record an edit to be sent to the client.
   ///

@@ -1,0 +1,25 @@
+int x;
+int? y;
+late int ;
+z;
+class A<T extends Object?> {
+  static int x;
+  static int? y;
+  static late int ;
+  z;
+  int lx;
+  int? ly;
+  late int;
+  operator? ( ){ }
+  lz;
+  int lv;
+  int lu;
+  T lt;
+  T? ls;
+  late T ;
+  lr;
+  T lp;
+  T lq;
+  A(this.lv, this.lp, T t) : this.lu = 42, this.lq = t;
+}
+main() { }

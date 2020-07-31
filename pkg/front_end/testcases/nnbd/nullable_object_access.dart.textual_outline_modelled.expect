@@ -1,0 +1,16 @@
+abstract class Class {
+  CustomType get runtimeType;
+  String noSuchMethod(covariant CustomInvocation invocation);
+  String toString({Object o});
+  bool operator ==(covariant Class o);
+}
+
+abstract class CustomInvocation implements Invocation {}
+
+abstract class CustomType extends Type {
+  void call() {}
+}
+
+main() {}
+void test(Class c1, Class? c2, Invocation invocation,
+    CustomInvocation customInvocation) {}

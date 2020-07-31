@@ -11,6 +11,7 @@
 #include "vm/allocation.h"
 #include "vm/globals.h"
 #include "vm/json_stream.h"
+#include "vm/port_set.h"
 #include "vm/random.h"
 
 namespace dart {
@@ -57,6 +58,9 @@ class PortMap : public AllStatic {
   // Returns the owning Isolate for port 'id'.
   static Isolate* GetIsolate(Dart_Port id);
 
+  static bool IsReceiverInThisIsolateGroup(Dart_Port receiver,
+                                           IsolateGroup* group);
+
   static void Init();
   static void Cleanup();
 
@@ -68,15 +72,12 @@ class PortMap : public AllStatic {
  private:
   friend class dart::PortMapTestPeer;
 
-  // Mapping between port numbers and handlers.
-  //
-  // Free entries have id == 0 and handler == NULL. Deleted entries
-  // have id == 0 and handler == deleted_entry_.
-  typedef struct {
-    Dart_Port port;
+  struct Entry : public PortSet<Entry>::Entry {
+    Entry() : handler(nullptr), state(kNewPort) {}
+
     MessageHandler* handler;
     PortState state;
-  } Entry;
+  };
 
   static const char* PortStateString(PortState state);
 
@@ -86,20 +87,11 @@ class PortMap : public AllStatic {
   static bool IsActivePort(Dart_Port id);
   static bool IsLivePort(Dart_Port id);
 
-  static intptr_t FindPort(Dart_Port port);
-  static void Rehash(intptr_t new_capacity);
-
-  static void MaintainInvariants();
-
   // Lock protecting access to the port map.
   static Mutex* mutex_;
 
-  // Hashmap of ports.
-  static Entry* map_;
+  static PortSet<Entry>* ports_;
   static MessageHandler* deleted_entry_;
-  static intptr_t capacity_;
-  static intptr_t used_;
-  static intptr_t deleted_;
 
   static Random* prng_;
 };

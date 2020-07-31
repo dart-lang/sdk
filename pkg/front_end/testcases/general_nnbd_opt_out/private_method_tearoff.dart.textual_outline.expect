@@ -1,0 +1,8 @@
+// @dart = 2.6
+import './private_method_tearoff_lib.dart';
+
+class Foo implements Bar {}
+
+class Baz extends Foo {}
+
+main() {}

@@ -1,0 +1,25 @@
+// @dart = 2.6
+abstract class Y1 {
+  String get native;
+}
+
+class W {
+  String native;
+  W() : native = "field";
+}
+
+class X {
+  String native() => "method";
+}
+
+class Y2 extends Y1 {
+  @override
+  String get native => "getter";
+}
+
+class Z {
+  String f;
+  set native(String s) => f = s;
+}
+
+main() {}

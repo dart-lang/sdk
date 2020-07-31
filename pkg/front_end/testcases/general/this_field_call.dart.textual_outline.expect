@@ -1,0 +1,7 @@
+class A<T> {
+  void Function(T) f;
+  A(this.f);
+  foo(T x) => this.f(x);
+}
+
+main() {}

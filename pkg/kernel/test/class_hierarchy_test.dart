@@ -118,7 +118,7 @@ class B extends test::A {}
 ''');
 
     // No updated classes, the same hierarchy.
-    expect(hierarchy.applyTreeChanges([], []), same(hierarchy));
+    expect(hierarchy.applyTreeChanges([], [], []), same(hierarchy));
 
     // Has updated classes, still the same hierarchy (instance). Can answer
     // queries about the new classes.
@@ -129,12 +129,13 @@ class B extends test::A {}
     component.libraries.add(libWithC);
     libWithC.addClass(c);
 
-    expect(hierarchy.applyTreeChanges([libWithB], [libWithC]), same(hierarchy));
+    expect(hierarchy.applyTreeChanges([libWithB], [libWithC], []),
+        same(hierarchy));
     expect(hierarchy.isSubclassOf(a, c), false);
     expect(hierarchy.isSubclassOf(c, a), true);
 
     // Remove so A should no longer be a super of anything.
-    expect(hierarchy.applyTreeChanges([libWithC], []), same(hierarchy));
+    expect(hierarchy.applyTreeChanges([libWithC], [], []), same(hierarchy));
   }
 
   void test_applyMemberChanges() {
@@ -387,7 +388,7 @@ class E = self::D with self::A implements self::B {}
 ''');
 
     _assertOverridePairs(c, []);
-    _assertOverridePairs(e, ['test::A::foo overrides test::B::foo']);
+    _assertOverridePairs(e, ['test::A.foo overrides test::B.foo']);
   }
 
   /// An abstract member declared in the class is overridden by a member in
@@ -423,8 +424,8 @@ class D extends self::B {}
 class E extends self::C {}
 ''');
 
-    _assertOverridePairs(b, ['test::B::foo overrides test::A::foo']);
-    _assertOverridePairs(c, ['test::C::foo overrides test::A::foo']);
+    _assertOverridePairs(b, ['test::B.foo overrides test::A.foo']);
+    _assertOverridePairs(c, ['test::C.foo overrides test::A.foo']);
     _assertOverridePairs(d, []);
     _assertOverridePairs(e, []);
   }
@@ -453,7 +454,7 @@ class B extends self::A {
 
     // The documentation says:
     // It is possible for two methods to override one another in both directions.
-    _assertOverridePairs(b, ['test::B::foo overrides test::A::foo']);
+    _assertOverridePairs(b, ['test::B.foo overrides test::A.foo']);
   }
 
   /// 1. A member declared in the class overrides a member inheritable through
@@ -485,8 +486,8 @@ class C extends self::B {
 }
 ''');
 
-    _assertOverridePairs(b, ['test::B::foo overrides test::A::foo']);
-    _assertOverridePairs(c, ['test::C::bar overrides test::A::bar']);
+    _assertOverridePairs(b, ['test::B.foo overrides test::A.foo']);
+    _assertOverridePairs(c, ['test::C.bar overrides test::A.bar']);
   }
 
   /// 1. A member declared in the class overrides a member inheritable through
@@ -518,8 +519,8 @@ class C extends self::B {
 }
 ''');
 
-    _assertOverridePairs(b, ['test::B::foo= overrides test::A::foo=']);
-    _assertOverridePairs(c, ['test::C::bar= overrides test::A::bar=']);
+    _assertOverridePairs(b, ['test::B.foo= overrides test::A.foo=']);
+    _assertOverridePairs(c, ['test::C.bar= overrides test::A.bar=']);
   }
 
   void test_getClassAsInstanceOf_generic_extends() {

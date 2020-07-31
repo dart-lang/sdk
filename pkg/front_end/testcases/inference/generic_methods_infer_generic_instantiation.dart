@@ -49,15 +49,15 @@ test() {
   takeOOO(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/ min);
 
 // Also PropertyAccess
-  takeIII(new C(). /*@target=C::m*/ m);
-  takeDDD(new C(). /*@target=C::m*/ m);
-  takeNNN(new C(). /*@target=C::m*/ m);
-  takeIDN(new C(). /*@target=C::m*/ m);
-  takeDIN(new C(). /*@target=C::m*/ m);
-  takeIIN(new C(). /*@target=C::m*/ m);
-  takeDDN(new C(). /*@target=C::m*/ m);
-  takeIIO(new C(). /*@target=C::m*/ m);
-  takeDDO(new C(). /*@target=C::m*/ m);
+  takeIII(new C(). /*@target=C.m*/ m);
+  takeDDD(new C(). /*@target=C.m*/ m);
+  takeNNN(new C(). /*@target=C.m*/ m);
+  takeIDN(new C(). /*@target=C.m*/ m);
+  takeDIN(new C(). /*@target=C.m*/ m);
+  takeIIN(new C(). /*@target=C.m*/ m);
+  takeDDN(new C(). /*@target=C.m*/ m);
+  takeIIO(new C(). /*@target=C.m*/ m);
+  takeDDO(new C(). /*@target=C.m*/ m);
 
 // Note: this is a warning because a downcast of a method tear-off could work
 // (derived method can be a subtype):
@@ -70,23 +70,23 @@ test() {
 //
 // We do issue the inference error though, similar to generic function calls.
   takeOON(/*error:COULD_NOT_INFER,info:DOWN_CAST_COMPOSITE*/ new C()
-      . /*@target=C::m*/ m);
+      . /*@target=C.m*/ m);
   takeOOO(/*error:COULD_NOT_INFER,info:DOWN_CAST_COMPOSITE*/ new C()
-      . /*@target=C::m*/ m);
+      . /*@target=C.m*/ m);
 
 // Note: this is a warning because a downcast of a method tear-off could work
 // in "normal" Dart, due to bivariance.
 //
 // We do issue the inference error though, similar to generic function calls.
   takeOOI(/*error:COULD_NOT_INFER,info:DOWN_CAST_COMPOSITE*/ new C()
-      . /*@target=C::m*/ m);
+      . /*@target=C.m*/ m);
 
   takeIDI(
       /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ new C()
-          . /*@target=C::m*/ m);
+          . /*@target=C.m*/ m);
   takeDID(
       /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ new C()
-          . /*@target=C::m*/ m);
+          . /*@target=C.m*/ m);
 }
 
 void takeIII(int fn(int a, int b)) {}

@@ -58,5 +58,10 @@ final multipleClientNamesTest = <IsolateTest>[
   },
 ];
 
-Future<void> main(args) => runIsolateTests(args, multipleClientNamesTest,
-    testeeConcurrent: fooBar, pause_on_start: true, pause_on_exit: true);
+Future<void> main(args) => runIsolateTests(
+      args,
+      multipleClientNamesTest,
+      testeeConcurrent: fooBar,
+      pause_on_start: true,
+      pause_on_exit: true,
+    );

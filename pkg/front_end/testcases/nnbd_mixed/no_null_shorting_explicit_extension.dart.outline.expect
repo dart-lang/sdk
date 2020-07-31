@@ -1,0 +1,54 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/no_null_shorting_explicit_extension.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.6
+// ^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field self::Class _field;
+  synthetic constructor •() → self::Class
+    ;
+}
+extension Extension on self::Class {
+  get field = self::Extension|get#field;
+  method method = self::Extension|method;
+  tearoff method = self::Extension|get#method;
+  operator [] = self::Extension|[];
+  operator []= = self::Extension|[]=;
+  operator + = self::Extension|+;
+  operator unary- = self::Extension|unary-;
+  set field = self::Extension|set#field;
+}
+static method Extension|get#field(final self::Class #this) → self::Class
+  ;
+static method Extension|set#field(final self::Class #this, self::Class value) → void
+  ;
+static method Extension|method(final self::Class #this) → self::Class
+  ;
+static method Extension|get#method(final self::Class #this) → () → self::Class
+  return () → self::Class => self::Extension|method(#this);
+static method Extension|[](final self::Class #this, self::Class key) → self::Class
+  ;
+static method Extension|[]=(final self::Class #this, self::Class key, self::Class value) → void
+  ;
+static method Extension|+(final self::Class #this, core::int value) → self::Class
+  ;
+static method Extension|unary-(final self::Class #this) → self::Class
+  ;
+static method main() → dynamic
+  ;
+static method propertyAccess(self::Class c) → void
+  ;
+static method indexAccess(self::Class c) → void
+  ;
+static method operatorAccess(self::Class c) → void
+  ;
+static method ifNull(self::Class c) → void
+  ;
+static method throws(() → void f) → void
+  ;

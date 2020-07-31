@@ -7,25 +7,25 @@ import "dart:collection" as col;
 import "dart:async";
 import "dart:collection";
 
-static method main() → dynamic
+static method main() → dynamic async 
   ;
-static method mapfun() → asy::Future<core::Map<core::int*, core::bool*>*>*
+static method mapfun() → asy::Future<core::Map<core::int*, core::bool*>*>* async 
   ;
-static method setfun() → asy::Future<core::Set<core::int*>*>*
+static method setfun() → asy::Future<core::Set<core::int*>*>* async 
   ;
-static method iterablefun() → asy::Future<core::Iterable<core::int*>*>*
+static method iterablefun() → asy::Future<core::Iterable<core::int*>*>* async 
   ;
-static method lhsfun() → asy::Future<col::LinkedHashSet<core::int*>*>*
+static method lhsfun() → asy::Future<col::LinkedHashSet<core::int*>*>* async 
   ;
-static method lhmfun() → asy::Future<col::LinkedHashMap<core::int*, core::bool*>*>*
+static method lhmfun() → asy::Future<col::LinkedHashMap<core::int*, core::bool*>*>* async 
   ;
-static method mapfun2() → asy::FutureOr<core::Map<core::int*, core::bool*>*>*
+static method mapfun2() → FutureOr<core::Map<core::int*, core::bool*>*>*
   ;
-static method setfun2() → asy::FutureOr<core::Set<core::int*>*>*
+static method setfun2() → FutureOr<core::Set<core::int*>*>*
   ;
-static method iterablefun2() → asy::FutureOr<core::Iterable<core::int*>*>*
+static method iterablefun2() → FutureOr<core::Iterable<core::int*>*>*
   ;
-static method lhsfun2() → asy::FutureOr<col::LinkedHashSet<core::int*>*>*
+static method lhsfun2() → FutureOr<col::LinkedHashSet<core::int*>*>*
   ;
-static method lhmfun2() → asy::FutureOr<col::LinkedHashMap<core::int*, core::bool*>*>*
+static method lhmfun2() → FutureOr<col::LinkedHashMap<core::int*, core::bool*>*>*
   ;

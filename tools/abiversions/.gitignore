@@ -2,3 +2,4 @@
 # to be checked in, and git doesn't track empty directories, hence this file.
 *
 !.gitignore
+!README.md

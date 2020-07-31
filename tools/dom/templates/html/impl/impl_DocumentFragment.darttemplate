@@ -7,7 +7,7 @@ part of $LIBRARYNAME;
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   factory $CLASSNAME() => document.createDocumentFragment();
 
-  factory $CLASSNAME.html(String html,
+  factory $CLASSNAME.html(String$NULLABLE html,
       {NodeValidator$NULLABLE validator,
        NodeTreeSanitizer$NULLABLE treeSanitizer}) {
 
@@ -15,7 +15,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
       validator: validator, treeSanitizer: treeSanitizer);
   }
 
-  factory $CLASSNAME.svg(String svgContent,
+  factory $CLASSNAME.svg(String$NULLABLE svgContent,
       {NodeValidator$NULLABLE validator,
        NodeTreeSanitizer$NULLABLE treeSanitizer}) {
 
@@ -66,11 +66,11 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return e.innerHtml;
   }
 
-  set innerHtml(String value) {
+  set innerHtml(String$NULLABLE value) {
     this.setInnerHtml(value);
   }
 
-  void setInnerHtml(String html,
+  void setInnerHtml(String$NULLABLE html,
     {NodeValidator$NULLABLE validator,
      NodeTreeSanitizer$NULLABLE treeSanitizer}) {
 

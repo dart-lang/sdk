@@ -22,6 +22,8 @@ import 'package:vm/metadata/unreachable.dart'
     show UnreachableNodeMetadataRepository;
 import 'package:vm/metadata/call_site_attributes.dart'
     show CallSiteAttributesMetadataRepository;
+import 'package:vm/metadata/loading_units.dart'
+    show LoadingUnitsMetadataRepository;
 
 final String _usage = '''
 Usage: dump_kernel input.dill output.txt
@@ -48,6 +50,7 @@ main(List<String> arguments) async {
   component.addMetadataRepository(new UnreachableNodeMetadataRepository());
   component.addMetadataRepository(new BytecodeMetadataRepository());
   component.addMetadataRepository(new CallSiteAttributesMetadataRepository());
+  component.addMetadataRepository(new LoadingUnitsMetadataRepository());
 
   final List<int> bytes = new File(input).readAsBytesSync();
   new BinaryBuilderWithMetadata(bytes).readComponent(component);

@@ -116,7 +116,10 @@ ParseStringResult parseString(
   var reader = CharSequenceReader(content);
   var errorCollector = RecordingErrorListener();
   var scanner = Scanner(source, reader, errorCollector)
-    ..configureFeatures(featureSet);
+    ..configureFeatures(
+      featureSetForOverriding: featureSet,
+      featureSet: featureSet,
+    );
   var token = scanner.tokenize();
   var parser = Parser(
     source,

@@ -2,13 +2,13 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/propagate_inference_transitively.dart:14:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-//   a1. /*@target=A::x*/ x = /*error:INVALID_ASSIGNMENT*/ "hi";
-//                                                         ^
+// pkg/front_end/testcases/inference/propagate_inference_transitively.dart:14:56: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   a1. /*@target=A.x*/ x = /*error:INVALID_ASSIGNMENT*/ "hi";
+//                                                        ^
 //
-// pkg/front_end/testcases/inference/propagate_inference_transitively.dart:17:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-//   a2. /*@target=A::x*/ x = /*error:INVALID_ASSIGNMENT*/ "hi";
-//                                                         ^
+// pkg/front_end/testcases/inference/propagate_inference_transitively.dart:17:56: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   a2. /*@target=A.x*/ x = /*error:INVALID_ASSIGNMENT*/ "hi";
+//                                                        ^
 //
 import self as self;
 import "dart:core" as core;
@@ -18,15 +18,25 @@ class A extends core::Object {
   synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method test5() → dynamic {
   self::A* a1 = new self::A::•();
-  a1.{self::A::x} = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/propagate_inference_transitively.dart:14:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-  a1. /*@target=A::x*/ x = /*error:INVALID_ASSIGNMENT*/ \"hi\";
-                                                        ^" in "hi" as{TypeError} core::int*;
+  a1.{self::A::x} = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/propagate_inference_transitively.dart:14:56: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  a1. /*@target=A.x*/ x = /*error:INVALID_ASSIGNMENT*/ \"hi\";
+                                                       ^" in "hi" as{TypeError} core::int*;
   self::A* a2 = new self::A::•();
-  a2.{self::A::x} = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/propagate_inference_transitively.dart:17:57: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-  a2. /*@target=A::x*/ x = /*error:INVALID_ASSIGNMENT*/ \"hi\";
-                                                        ^" in "hi" as{TypeError} core::int*;
+  a2.{self::A::x} = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/propagate_inference_transitively.dart:17:56: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  a2. /*@target=A.x*/ x = /*error:INVALID_ASSIGNMENT*/ \"hi\";
+                                                       ^" in "hi" as{TypeError} core::int*;
 }
 static method main() → dynamic {}

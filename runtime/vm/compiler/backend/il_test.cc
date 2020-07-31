@@ -6,6 +6,7 @@
 
 #include <vector>
 
+#include "platform/utils.h"
 #include "vm/compiler/backend/il_test_helper.h"
 #include "vm/unit_test.h"
 
@@ -45,26 +46,28 @@ ISOLATE_UNIT_TEST_CASE(OptimizationTests) {
 }
 
 ISOLATE_UNIT_TEST_CASE(IRTest_EliminateWriteBarrier) {
-  const char* kScript =
-      R"(
+  const char* nullable_tag = TestCase::NullableTag();
+  // clang-format off
+  auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
       class Container<T> {
         operator []=(var index, var value) {
           return data[index] = value;
         }
 
-        List<T> data = new List<T>()..length = 10;
+        List<T%s> data = List<T%s>.filled(10, null);
       }
 
-      Container<int> x = new Container<int>();
+      Container<int> x = Container<int>();
 
       foo() {
         for (int i = 0; i < 10; ++i) {
           x[i] = i;
         }
       }
-    )";
+    )", nullable_tag, nullable_tag), std::free);
+  // clang-format on
 
-  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
 
   Invoke(root_library, "foo");
@@ -128,7 +131,8 @@ static void RunInitializingStoresTest(
 }
 
 ISOLATE_UNIT_TEST_CASE(IRTest_InitializingStores) {
-  const char* kScript = R"(
+  // clang-format off
+  auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
     class Bar {
       var f;
       var g;
@@ -140,7 +144,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_InitializingStores) {
     f3() {
       return () { };
     }
-    f4<T>({T value}) {
+    f4<T>({T%s value}) {
       return () { return value; };
     }
     main() {
@@ -149,8 +153,11 @@ ISOLATE_UNIT_TEST_CASE(IRTest_InitializingStores) {
       f3();
       f4();
     }
-  )";
-  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  )",
+  TestCase::NullableTag()), std::free);
+  // clang-format on
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
   Invoke(root_library, "main");
 
   RunInitializingStoresTest(root_library, "f1", CompilerPass::kJIT,

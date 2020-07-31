@@ -1,0 +1,8 @@
+library test;
+
+class B<T extends A> {}
+
+class A<T extends int> {}
+
+B v = null;
+main() {}

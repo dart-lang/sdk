@@ -19,10 +19,8 @@ main() {
   });
 }
 
-/**
- * Test how well the parser recovers when the clauses in a class declaration are
- * out of order.
- */
+/// Test how well the parser recovers when the clauses in a class declaration
+/// are out of order.
 @reflectiveTest
 class ClassDeclarationTest extends AbstractRecoveryTest {
   void test_implementsBeforeExtends() {
@@ -106,10 +104,8 @@ class A extends C with B {}
   }
 }
 
-/**
- * Test how well the parser recovers when the members of a compilation unit are
- * out of order.
- */
+/// Test how well the parser recovers when the members of a compilation unit are
+/// out of order.
 @reflectiveTest
 class CompilationUnitMemberTest extends AbstractRecoveryTest {
   void test_declarationBeforeDirective_export() {
@@ -214,10 +210,8 @@ part 'foo.dart';
   }
 }
 
-/**
- * Test how well the parser recovers when the members of an import directive are
- * out of order.
- */
+/// Test how well the parser recovers when the members of an import directive
+/// are out of order.
 @reflectiveTest
 class ImportDirectiveTest extends AbstractRecoveryTest {
   void test_combinatorsBeforeAndAfterPrefix() {
@@ -299,9 +293,7 @@ import 'bar.dart' deferred as p;
   }
 }
 
-/**
- * Test how well the parser recovers when metadata appears in invalid places.
- */
+/// Test how well the parser recovers when metadata appears in invalid places.
 @reflectiveTest
 class MisplacedMetadataTest extends AbstractRecoveryTest {
   @failingTest
@@ -327,10 +319,8 @@ class B {
   }
 }
 
-/**
- * Test how well the parser recovers when the clauses in a mixin declaration are
- * out of order.
- */
+/// Test how well the parser recovers when the clauses in a mixin declaration
+/// are out of order.
 @reflectiveTest
 class MixinDeclarationTest extends AbstractRecoveryTest {
   void test_implementsBeforeOn() {
@@ -379,10 +369,8 @@ mixin UnrelatedMixin on Bar {}
   }
 }
 
-/**
- * Test how well the parser recovers when the clauses in a try statement are
- * out of order.
- */
+/// Test how well the parser recovers when the clauses in a try statement are
+/// out of order.
 @reflectiveTest
 class TryStatementTest extends AbstractRecoveryTest {
   @failingTest

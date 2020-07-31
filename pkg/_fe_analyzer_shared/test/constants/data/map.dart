@@ -17,8 +17,12 @@ const map4 = /*cfe.Map<String,int>(String(foo):Int(42),String(bar):Int(87))*/
 
 main() {
   print(/*Map<dynamic,dynamic>()*/ map0);
-  print(/*Map<String,int>()*/ map1);
-  print(/*Map<String,int>()*/ map2);
-  print(/*Map<String,int>(String(foo):Int(42))*/ map3);
-  print(/*Map<String,int>(String(foo):Int(42),String(bar):Int(87))*/ map4);
+  print(
+      /*cfe|analyzer.Map<String,int>()*/ /*dart2js.Map<String*,int*>()*/ map1);
+  print(
+      /*cfe|analyzer.Map<String,int>()*/ /*dart2js.Map<String*,int*>()*/ map2);
+  print(
+      /*cfe|analyzer.Map<String,int>(String(foo):Int(42))*/ /*dart2js.Map<String*,int*>(String(foo):Int(42))*/ map3);
+  print(
+      /*cfe|analyzer.Map<String,int>(String(foo):Int(42),String(bar):Int(87))*/ /*dart2js.Map<String*,int*>(String(foo):Int(42),String(bar):Int(87))*/ map4);
 }

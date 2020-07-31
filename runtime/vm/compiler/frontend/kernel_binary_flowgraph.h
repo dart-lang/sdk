@@ -5,7 +5,9 @@
 #ifndef RUNTIME_VM_COMPILER_FRONTEND_KERNEL_BINARY_FLOWGRAPH_H_
 #define RUNTIME_VM_COMPILER_FRONTEND_KERNEL_BINARY_FLOWGRAPH_H_
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/constant_reader.h"
@@ -159,14 +161,15 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   void InlineBailout(const char* reason);
   Fragment DebugStepCheck(TokenPosition position);
   Fragment LoadLocal(LocalVariable* variable);
-  Fragment Return(TokenPosition position,
-                  intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex);
+  Fragment Return(
+      TokenPosition position,
+      intptr_t yield_index = PcDescriptorsLayout::kInvalidYieldIndex);
   Fragment EvaluateAssertion();
   Fragment RethrowException(TokenPosition position, int catch_try_index);
-  Fragment ThrowNoSuchMethodError();
+  Fragment ThrowNoSuchMethodError(const Function& target);
   Fragment Constant(const Object& value);
   Fragment IntConstant(int64_t value);
-  Fragment LoadStaticField(const Field& field);
+  Fragment LoadStaticField(const Field& field, bool calls_initializer);
   Fragment RedefinitionWithType(const AbstractType& type);
   Fragment CheckNull(TokenPosition position,
                      LocalVariable* receiver,
@@ -198,6 +201,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
       const Array& argument_names,
       intptr_t checked_argument_count,
       const Function& interface_target,
+      const Function& tearoff_interface_target,
       const InferredTypeMetadata* result_type = nullptr,
       bool use_unchecked_entry = false,
       const CallSiteAttributesMetadata* call_site_attrs = nullptr,
@@ -331,6 +335,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildFutureNullValue(TokenPosition* position);
   Fragment BuildConstantExpression(TokenPosition* position, Tag tag);
   Fragment BuildPartialTearoffInstantiation(TokenPosition* position);
+  Fragment BuildLibraryPrefixAction(TokenPosition* position,
+                                    const String& selector);
 
   Fragment BuildExpressionStatement();
   Fragment BuildBlock();
@@ -382,5 +388,4 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 }  // namespace kernel
 }  // namespace dart
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // RUNTIME_VM_COMPILER_FRONTEND_KERNEL_BINARY_FLOWGRAPH_H_

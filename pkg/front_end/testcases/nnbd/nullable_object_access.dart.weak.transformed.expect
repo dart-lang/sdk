@@ -1,0 +1,123 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/nullable_object_access.dart:31:43: Error: The argument type 'Invocation' can't be assigned to the parameter type 'CustomInvocation'.
+//  - 'Invocation' is from 'dart:core'.
+//  - 'CustomInvocation' is from 'pkg/front_end/testcases/nnbd/nullable_object_access.dart'.
+//   String noSuchMethod1b = c1.noSuchMethod(invocation); // error
+//                                           ^
+//
+// pkg/front_end/testcases/nnbd/nullable_object_access.dart:34:9: Error: The argument type 'String' can't be assigned to the parameter type 'Class?'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/nullable_object_access.dart'.
+//   c1 == ''; // error
+//         ^
+//
+// pkg/front_end/testcases/nnbd/nullable_object_access.dart:42:32: Error: A value of type 'Type' can't be assigned to a variable of type 'CustomType'.
+//  - 'Type' is from 'dart:core'.
+//  - 'CustomType' is from 'pkg/front_end/testcases/nnbd/nullable_object_access.dart'.
+//   CustomType runtimeType2 = c2.runtimeType; // error
+//                                ^
+//
+// pkg/front_end/testcases/nnbd/nullable_object_access.dart:44:17: Error: 'runtimeType' isn't a function or method and can't be invoked.
+//   c2.runtimeType(); // error
+//                 ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nullable_object_access.dart:47:10: Error: A value of type 'dynamic Function(Invocation)' can't be assigned to a variable of type 'String Function(CustomInvocation)'.
+//  - 'Invocation' is from 'dart:core'.
+//  - 'CustomInvocation' is from 'pkg/front_end/testcases/nnbd/nullable_object_access.dart'.
+//       c2.noSuchMethod; // error
+//          ^
+//
+// pkg/front_end/testcases/nnbd/nullable_object_access.dart:56:53: Error: A value of type 'String Function()' can't be assigned to a variable of type 'String Function({Object o})'.
+//  - 'Object' is from 'dart:core'.
+//   String Function({Object o}) toStringTearOff2 = c2.toString; // error
+//                                                     ^
+//
+// pkg/front_end/testcases/nnbd/nullable_object_access.dart:59:6: Error: Method 'toString' cannot be called on 'Class?' because it is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/nullable_object_access.dart'.
+// Try calling using ?. instead.
+//   c2.toString(o: c1); // error
+//      ^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class CustomType extends core::Type {
+  synthetic constructor •() → self::CustomType
+    : super core::Type::•()
+    ;
+  method call() → void {}
+}
+abstract class CustomInvocation extends core::Object implements core::Invocation {
+  synthetic constructor •() → self::CustomInvocation
+    : super core::Object::•()
+    ;
+}
+abstract class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  abstract get runtimeType() → self::CustomType;
+  forwarding-stub forwarding-semi-stub method noSuchMethod(covariant self::CustomInvocation invocation) → core::String
+    return super.{core::Object::noSuchMethod}(invocation);
+  forwarding-stub forwarding-semi-stub operator ==(covariant self::Class o) → core::bool
+    return super.{core::Object::==}(o);
+  abstract method toString({core::Object o = #C1}) → core::String;
+}
+static method main() → dynamic {}
+static method test(self::Class c1, self::Class? c2, core::Invocation invocation, self::CustomInvocation customInvocation) → void {
+  self::CustomType runtimeType1 = c1.{self::Class::runtimeType};
+  self::CustomType runtimeTypeVariable1 = c1.{self::Class::runtimeType};
+  c1.{self::Class::runtimeType}.{self::CustomType::call}();
+  (self::CustomInvocation) → core::String noSuchMethodTearOff1 = c1.{self::Class::noSuchMethod};
+  (self::CustomInvocation) → core::String noSuchMethodTearOffVariable1 = c1.{self::Class::noSuchMethod};
+  core::String noSuchMethod1a = c1.{self::Class::noSuchMethod}(customInvocation);
+  core::String noSuchMethod1b = c1.{self::Class::noSuchMethod}(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_object_access.dart:31:43: Error: The argument type 'Invocation' can't be assigned to the parameter type 'CustomInvocation'.
+ - 'Invocation' is from 'dart:core'.
+ - 'CustomInvocation' is from 'pkg/front_end/testcases/nnbd/nullable_object_access.dart'.
+  String noSuchMethod1b = c1.noSuchMethod(invocation); // error
+                                          ^" in invocation as{TypeError,ForNonNullableByDefault} self::CustomInvocation);
+  core::String noSuchMethodVariable1 = c1.{self::Class::noSuchMethod}(customInvocation);
+  c1.{self::Class::==}(let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_object_access.dart:34:9: Error: The argument type 'String' can't be assigned to the parameter type 'Class?'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/nullable_object_access.dart'.
+  c1 == ''; // error
+        ^" in "" as{TypeError,ForNonNullableByDefault} self::Class?);
+  c1.{self::Class::==}(c2);
+  ({o: core::Object}) → core::String toStringTearOff1 = c1.{self::Class::toString};
+  ({o: core::Object}) → core::String toStringTearOffVariable1 = c1.{self::Class::toString};
+  c1.{self::Class::toString}(o: c1);
+  self::CustomType runtimeType2 = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_object_access.dart:42:32: Error: A value of type 'Type' can't be assigned to a variable of type 'CustomType'.
+ - 'Type' is from 'dart:core'.
+ - 'CustomType' is from 'pkg/front_end/testcases/nnbd/nullable_object_access.dart'.
+  CustomType runtimeType2 = c2.runtimeType; // error
+                               ^" in c2.{core::Object::runtimeType} as{TypeError,ForNonNullableByDefault} self::CustomType;
+  core::Type runtimeTypeVariable2 = c2.{core::Object::runtimeType};
+  invalid-expression "pkg/front_end/testcases/nnbd/nullable_object_access.dart:44:17: Error: 'runtimeType' isn't a function or method and can't be invoked.
+  c2.runtimeType(); // error
+                ^^^^^^^^^^^";
+  (self::CustomInvocation) → core::String noSuchMethodTearOff2 = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_object_access.dart:47:10: Error: A value of type 'dynamic Function(Invocation)' can't be assigned to a variable of type 'String Function(CustomInvocation)'.
+ - 'Invocation' is from 'dart:core'.
+ - 'CustomInvocation' is from 'pkg/front_end/testcases/nnbd/nullable_object_access.dart'.
+      c2.noSuchMethod; // error
+         ^" in c2.{core::Object::noSuchMethod} as{TypeError,ForNonNullableByDefault} (self::CustomInvocation) → core::String;
+  (core::Invocation) → dynamic noSuchMethodTearOffVariable2 = c2.{core::Object::noSuchMethod};
+  core::int noSuchMethod2 = c2.{core::Object::noSuchMethod}(invocation) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  dynamic noSuchMethodVariable2 = c2.{core::Object::noSuchMethod}(invocation);
+  c2.{core::Object::==}("");
+  c2.{core::Object::==}(c1);
+  ({o: core::Object}) → core::String toStringTearOff2 = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_object_access.dart:56:53: Error: A value of type 'String Function()' can't be assigned to a variable of type 'String Function({Object o})'.
+ - 'Object' is from 'dart:core'.
+  String Function({Object o}) toStringTearOff2 = c2.toString; // error
+                                                    ^" in c2.{core::Object::toString} as{TypeError,ForNonNullableByDefault} ({o: core::Object}) → core::String;
+  () → core::String toStringTearOffVariable2 = c2.{core::Object::toString};
+  let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_object_access.dart:59:6: Error: Method 'toString' cannot be called on 'Class?' because it is potentially null.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/nullable_object_access.dart'.
+Try calling using ?. instead.
+  c2.toString(o: c1); // error
+     ^^^^^^^^" in c2.{self::Class::toString}(o: c1);
+}
+
+constants  {
+  #C1 = null
+}

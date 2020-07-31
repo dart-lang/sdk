@@ -1,0 +1,20 @@
+class A {
+  void set foo(int value) {}
+  int get bar => null;
+}
+
+class B {
+  void set foo(double value) {}
+  double get bar => null;
+}
+
+class C {
+  void set foo(num value) {}
+  Null get bar => null;
+}
+
+class D implements C, A, B {
+  noSuchMethod(_) => null;
+}
+
+main() {}

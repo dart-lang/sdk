@@ -103,8 +103,15 @@ class F {m() { m(); !1}}''', <String>['1+m']);
 class F {var x = !1false;}''', <String>['1+true']);
 
     buildTests('testCommentSnippets018', '''
-class Map{}class Arrays{}class C{ m(!1){} n(!2 x, q)''',
-        <String>['1+Map', '1-void', '1-null', '2+Arrays', '2-void', '2-null']);
+class Map{}class Arrays{}class C{ m(!1){} n(!2 x, q)''', <String>[
+      '1+Map',
+      '1+dynamic',
+      '1+void',
+      '1-null',
+      '2+Arrays',
+      '2-void',
+      '2-null'
+    ]);
 
     buildTests('testCommentSnippets019', '''
 class A{m(){Object x;x.!1/**/clear()''', <String>['1+toString']);
@@ -135,7 +142,7 @@ class X {X c; X(this.!1c!3) : super() {c.!2}}''',
 class q {m(Map q){var x;m(!1)}n(){var x;n(!2)}}''', <String>['1+x', '2+x']);
 
     buildTests('testCommentSnippets025', '''
-class q {num m() {var q; num x=!1 q!3 + !2/**/;}}''',
+class C {num m() {var q; num x=!1 q!3 + !2/**/;}}''',
         <String>['1+q', '2+q', '3+q']);
 
     buildTests('testCommentSnippets026', '''
@@ -218,6 +225,10 @@ class L{var k;void.!1}''', <String>['1-k']);
 
     buildTests('testCommentSnippets044', '''
 class List{}class XXX {XXX.fisk();}main() {main(); new !1}}''',
+        <String>['1+List', '1+XXX.fisk']);
+
+    buildTests('testCommentSnippets045', '''
+class List{}class XXX {XXX.fisk();}main() {main(); !1}}''',
         <String>['1+List', '1+XXX.fisk']);
 
     buildTests('testCommentSnippets047', '''
@@ -306,9 +317,6 @@ void r() {
 }''',
         <String>['1+v', '2+void'],
         failingTests: '2');
-
-    buildTests('testCommentSnippets059', '''
-f(){((int x) => x+4).!1call(1);}''', <String>['1-call']);
 
     buildTests('testCommentSnippets060', '''
 class Map{}
@@ -803,23 +811,23 @@ main(A a) {
 
     buildTests('testCompletion_combinator_afterComma', '''
 import 'dart:math' show cos, !1;''',
-        <String>['1+PI', '1+sin', '1+Random', '1-String']);
+        <String>['1+pi', '1+sin', '1+Random', '1-String']);
 
     buildTests('testCompletion_combinator_ended', '''
 import 'dart:math' show !1;"''',
-        <String>['1+PI', '1+sin', '1+Random', '1-String']);
+        <String>['1+pi', '1+sin', '1+Random', '1-String']);
 
     buildTests('testCompletion_combinator_export', '''
 export 'dart:math' show !1;"''',
-        <String>['1+PI', '1+sin', '1+Random', '1-String']);
+        <String>['1+pi', '1+sin', '1+Random', '1-String']);
 
     buildTests('testCompletion_combinator_hide', '''
 import 'dart:math' hide !1;"''',
-        <String>['1+PI', '1+sin', '1+Random', '1-String']);
+        <String>['1+pi', '1+sin', '1+Random', '1-String']);
 
     buildTests('testCompletion_combinator_notEnded', '''
 import 'dart:math' show !1"''',
-        <String>['1+PI', '1+sin', '1+Random', '1-String']);
+        <String>['1+pi', '1+sin', '1+Random', '1-String']);
 
     buildTests('testCompletion_combinator_usePrefix', '''
 import 'dart:math' show s!1"''',
@@ -1607,16 +1615,16 @@ main() {
         failingTests: '1');
 
     buildTests('test_importPrefix_hideCombinator', '''
-import 'dart:math' as math hide PI;
+import 'dart:math' as math hide pi;
 main() {
   math.!1
-}''', <String>['1-PI', '1+LN10']);
+}''', <String>['1-pi', '1+ln10']);
 
     buildTests('test_importPrefix_showCombinator', '''
-import 'dart:math' as math show PI;
+import 'dart:math' as math show pi;
 main() {
   math.!1
-}''', <String>['1+PI', '1-LN10']);
+}''', <String>['1+pi', '1-ln10']);
 
     sources.clear();
     sources['/lib.dart'] = '''

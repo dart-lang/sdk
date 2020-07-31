@@ -1,0 +1,42 @@
+typedef ContraFunction<T> = void Function(T);
+typedef InvFunction<T> = T Function(T);
+class Contravariant<in T> {
+}
+class Invariant<inout T> {
+}
+class A<in T, out U, V> {
+  final void Function(T) field = null;
+  void method(T t, void Function(U) u, V v) { }
+  void method2(T x, [T y]) { }
+  void set x(T t) { }
+  Map<U, Contravariant<V>> get mapContra => new Map<U, Contravariant<V>>();
+  Map<U, ContraFunction<V>> get mapContraFn => new Map<U, ContraFunction<V>>();
+  Map<U, Invariant<V>> get mapInv => new Map<U, Invariant<V>>();
+  Map<U, InvFunction<V>> get mapInvFn => new Map<U, InvFunction<V>>();
+}
+class B<inout T> {
+  T x;
+  T method(T x) => x;
+  void set y(T x) { }
+}
+class C<in T> {
+  final void Function(T) field = null;
+  void method(T x, [T y]) { }
+  void set x(T t) { }
+}
+abstract class D<T> {
+  int method(T x);
+}
+class E<inout T> {
+  final void Function(T) f;
+  E(this.f);
+  int method(T x) { }
+}
+class F<inout T> extends E<T> implements D<T> {
+  F(void Function(T) f) : super(f);
+}
+class NoSuchMethod<inout T> implements B<T> {
+  noSuchMethod(_) => 3;
+}
+main() { }
+expect(expected, actual) { }

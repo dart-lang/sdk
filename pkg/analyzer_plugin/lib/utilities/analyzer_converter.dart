@@ -123,7 +123,7 @@ class AnalyzerConverter {
             isConst: _isConst(element),
             isFinal: _isFinal(element),
             isStatic: _isStatic(element)),
-        location: _locationFromElement(element),
+        location: locationFromElement(element),
         typeParameters: _getTypeParametersString(element),
         parameters: _getParametersString(element),
         returnType: _getReturnTypeString(element));
@@ -184,6 +184,23 @@ class AnalyzerConverter {
   /// type defined by the plugin API.
   plugin.AnalysisErrorType convertErrorType(analyzer.ErrorType type) =>
       plugin.AnalysisErrorType(type.name);
+
+  /// Create a location based on an the given [element].
+  plugin.Location locationFromElement(analyzer.Element element) {
+    if (element == null || element.source == null) {
+      return null;
+    }
+    var offset = element.nameOffset;
+    var length = element.nameLength;
+    if (element is analyzer.CompilationUnitElement ||
+        (element is analyzer.LibraryElement && offset < 0)) {
+      offset = 0;
+      length = 0;
+    }
+    var unitElement = _getUnitElement(element);
+    var range = analyzer.SourceRange(offset, length);
+    return _locationForArgs(unitElement, range);
+  }
 
   /// Convert the element kind of the [element] from the 'analyzer' package to
   /// an element kind defined by the plugin API.
@@ -359,22 +376,5 @@ class AnalyzerConverter {
     }
     return plugin.Location(unitElement.source.fullName, range.offset,
         range.length, startLine, startColumn);
-  }
-
-  /// Create a location based on an the given [element].
-  plugin.Location _locationFromElement(analyzer.Element element) {
-    if (element == null || element.source == null) {
-      return null;
-    }
-    var offset = element.nameOffset;
-    var length = element.nameLength;
-    if (element is analyzer.CompilationUnitElement ||
-        (element is analyzer.LibraryElement && offset < 0)) {
-      offset = 0;
-      length = 0;
-    }
-    var unitElement = _getUnitElement(element);
-    var range = analyzer.SourceRange(offset, length);
-    return _locationForArgs(unitElement, range);
   }
 }

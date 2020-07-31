@@ -4,8 +4,8 @@
 
 The Dart SDK ships via a number of channels:
 
-- Via the [Dart SDK](https://www.dartlang.org/tools/sdk#install)
-- Via the [Flutter SDK](http://flutter.io)
+- Via the [Dart SDK](https://dart.dev/get-dart#install)
+- Via the [Flutter SDK](https://flutter.dev/)
 - Internally at Google via an internal channel
 
 Each of these channels use varying release calendars, and keeping these entirely
@@ -95,3 +95,7 @@ two forms:
 - Experiments affecting launch/run behavior, can be enabled in the IDE specific
   run Configuration, by passing the same `--enable-experiment` flag as listed in
   the CLI section.
+
+The current set of experiment flags is defined in a YAML file which the various
+tools access:
+[experimental_features.yaml](../../tools/experimental_features.yaml).

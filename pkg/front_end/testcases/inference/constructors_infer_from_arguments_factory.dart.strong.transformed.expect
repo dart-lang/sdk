@@ -2,9 +2,9 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/constructors_infer_from_arguments_factory.dart:22:56: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-//   x. /*@target=C::t*/ t = /*error:INVALID_ASSIGNMENT*/ 'hello';
-//                                                        ^
+// pkg/front_end/testcases/inference/constructors_infer_from_arguments_factory.dart:22:3: Error: Setter not found: 't'.
+//   t = /*error:INVALID_ASSIGNMENT*/ 'hello';
+//   ^
 //
 import self as self;
 import "dart:core" as core;
@@ -16,14 +16,24 @@ class C<T extends core::Object* = dynamic> extends core::Object {
     ;
   static factory •<T extends core::Object* = dynamic>(self::C::•::T* t) → self::C<self::C::•::T*>* {
     self::C<self::C::•::T*>* x = new self::C::_<self::C::•::T*>();
-    x.{self::C::t} = t;
+    t = t;
     return x;
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method test() → dynamic {
   self::C<core::int*>* x = self::C::•<core::int*>(42);
-  x.{self::C::t} = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/constructors_infer_from_arguments_factory.dart:22:56: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-  x. /*@target=C::t*/ t = /*error:INVALID_ASSIGNMENT*/ 'hello';
-                                                       ^" in "hello" as{TypeError} core::int*;
+  invalid-expression "pkg/front_end/testcases/inference/constructors_infer_from_arguments_factory.dart:22:3: Error: Setter not found: 't'.
+  t = /*error:INVALID_ASSIGNMENT*/ 'hello';
+  ^";
 }
 static method main() → dynamic {}

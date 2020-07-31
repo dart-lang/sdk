@@ -4,18 +4,21 @@
 
 import 'package:kernel/kernel.dart';
 
-/// Returns true iff the class has an `@JS(...)` annotation from `package:js`.
+/// Returns true iff the class has an `@JS(...)` annotation from `package:js`
+/// or from the internal `dart:_js_annotations`.
 bool hasJSInteropAnnotation(Class c) =>
     c.annotations.any(_isPublicJSAnnotation);
 
 final _packageJs = Uri.parse('package:js/js.dart');
+final _internalJs = Uri.parse('dart:_js_annotations');
 
 /// Returns [true] if [e] is the `JS` annotation from `package:js`.
 bool _isPublicJSAnnotation(Expression value) {
   var c = _annotationClass(value);
   return c != null &&
       c.name == 'JS' &&
-      c.enclosingLibrary.importUri == _packageJs;
+      (c.enclosingLibrary.importUri == _packageJs ||
+          c.enclosingLibrary.importUri == _internalJs);
 }
 
 /// Returns the class of the instance referred to by metadata annotation [node].

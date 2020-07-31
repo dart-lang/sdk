@@ -137,16 +137,15 @@ class _SourceVisitor extends GeneralizingAstVisitor {
   String typeInfo(Type type) => type.toString();
 
   @override
-  visitNode(AstNode node) {
+  void visitNode(AstNode node) {
     write(node);
 
     ++indent;
     node.visitChildren(this);
     --indent;
-    return null;
   }
 
-  write(AstNode node) {
+  void write(AstNode node) {
     //EOL comments
     var comments = getPrecedingComments(node.beginToken);
     comments.forEach((c) => sink.writeln('${"  " * indent}$c'));

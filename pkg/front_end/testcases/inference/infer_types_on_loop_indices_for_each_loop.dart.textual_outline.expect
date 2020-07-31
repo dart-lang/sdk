@@ -1,0 +1,16 @@
+library test;
+
+class Foo {
+  int bar = 42;
+}
+
+class Bar<T extends Iterable<String>> {
+  void foo(T t) {}
+}
+
+class Baz<T, E extends Iterable<T>, S extends E> {
+  void foo(S t) {}
+}
+
+test() {}
+main() {}

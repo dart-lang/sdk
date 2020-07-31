@@ -1,0 +1,14 @@
+library test;
+
+class B<T> {
+  void f(T x) {}
+  void g({T x}) {}
+  void h<U extends T>() {}
+}
+
+class C extends B<int> {}
+
+void g1(B<num> b) {}
+void g2(C c) {}
+void main() {}
+void test() {}

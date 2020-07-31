@@ -27,6 +27,16 @@ class Cloneable<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::Cloneable<self::Cloneable::T*>*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class Pair<T extends self::Cloneable<self::Pair::T*>* = self::Cloneable<dynamic>*, U extends self::Cloneable<self::Pair::U*>* = self::Cloneable<dynamic>*> extends core::Object {
   generic-covariant-impl field self::Pair::T* t;
@@ -39,6 +49,16 @@ class Pair<T extends self::Cloneable<self::Pair::T*>* = self::Cloneable<dynamic>
     ;
   get reversed() → self::Pair<self::Pair::U*, self::Pair::T*>*
     return new self::Pair::•<self::Pair::U*, self::Pair::T*>(this.{self::Pair::u}, this.{self::Pair::t});
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method main() → dynamic {
   final self::Pair<self::Cloneable<dynamic>*, self::Cloneable<dynamic>*>* x = new self::Pair::_<self::Cloneable<dynamic>*, self::Cloneable<dynamic>*>();

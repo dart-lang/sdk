@@ -1,0 +1,4 @@
+// @dart = 2.6
+Map<K, V> bar<K, V>() => null;
+foo(dynamic dynVar) {}
+main() {}

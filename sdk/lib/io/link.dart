@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.io;
 
 /**
@@ -17,7 +15,7 @@ abstract class Link implements FileSystemEntity {
    */
   @pragma("vm:entry-point")
   factory Link(String path) {
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return new _Link(path);
     }
@@ -155,19 +153,16 @@ abstract class Link implements FileSystemEntity {
 }
 
 class _Link extends FileSystemEntity implements Link {
-  String _path;
-  Uint8List _rawPath;
+  final String _path;
+  final Uint8List _rawPath;
 
-  _Link(String path) {
-    ArgumentError.checkNotNull(path, 'path');
-    _path = path;
-    _rawPath = FileSystemEntity._toUtf8Array(path);
-  }
+  _Link(String path)
+      : _path = path,
+        _rawPath = FileSystemEntity._toUtf8Array(path);
 
-  _Link.fromRawPath(Uint8List rawPath) {
-    _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(rawPath);
-    _path = FileSystemEntity._toStringFromUtf8Array(rawPath);
-  }
+  _Link.fromRawPath(Uint8List rawPath)
+      : _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(rawPath),
+        _path = FileSystemEntity._toStringFromUtf8Array(rawPath);
 
   String get path => _path;
 
@@ -276,7 +271,7 @@ class _Link extends FileSystemEntity implements Link {
     return result;
   }
 
-  static throwIfError(Object result, String msg, [String path = ""]) {
+  static throwIfError(Object? result, String msg, [String path = ""]) {
     if (result is OSError) {
       throw new FileSystemException(msg, path, result);
     }

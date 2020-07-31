@@ -1,0 +1,16 @@
+// @dart = 2.6
+class Class {
+  Class field;
+  Class method() => field;
+  Class operator [](Class key) => field;
+  void operator []=(Class key, Class value) {}
+  Class operator +(int value) => field;
+  Class operator -() => field;
+}
+
+main() {}
+void propertyAccess(Class c) {}
+void indexAccess(Class c) {}
+void operatorAccess(Class c) {}
+void ifNull(Class c) {}
+void throws(void Function() f) {}

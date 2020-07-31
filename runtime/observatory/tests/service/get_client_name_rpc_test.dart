@@ -37,4 +37,8 @@ final test = <IsolateTest>[
   },
 ];
 
-Future<void> main(args) => runIsolateTests(args, test, testeeBefore: fooBar);
+Future<void> main(args) => runIsolateTests(
+      args,
+      test,
+      testeeBefore: fooBar,
+    );

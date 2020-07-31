@@ -4,15 +4,13 @@
 
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
+#include "include/dart_version.h"
+#include "include/internal/dart_api_dl_impl.h"
 #include "platform/globals.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
 #include "vm/class_id.h"
-#include "vm/compiler/assembler/assembler.h"
-#include "vm/compiler/ffi/call.h"
-#include "vm/compiler/ffi/callback.h"
 #include "vm/compiler/ffi/native_type.h"
-#include "vm/compiler/jit/compiler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/log.h"
@@ -22,6 +20,13 @@
 #include "vm/object_store.h"
 #include "vm/symbols.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/ffi/call.h"
+#include "vm/compiler/ffi/callback.h"
+#include "vm/compiler/jit/compiler.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 namespace dart {
 
 // The following functions are runtime checks on type arguments.
@@ -30,14 +35,13 @@ namespace dart {
 // throw ArgumentExceptions.
 
 static bool IsPointerType(const AbstractType& type) {
-  return RawObject::IsFfiPointerClassId(type.type_class_id());
+  return IsFfiPointerClassId(type.type_class_id());
 }
 
 static void CheckSized(const AbstractType& type_arg) {
   const classid_t type_cid = type_arg.type_class_id();
-  if (RawObject::IsFfiNativeTypeTypeClassId(type_cid) ||
-      RawObject::IsFfiTypeVoidClassId(type_cid) ||
-      RawObject::IsFfiTypeNativeFunctionClassId(type_cid)) {
+  if (IsFfiNativeTypeTypeClassId(type_cid) || IsFfiTypeVoidClassId(type_cid) ||
+      IsFfiTypeNativeFunctionClassId(type_cid)) {
     const String& error = String::Handle(String::NewFormatted(
         "%s does not have a predefined size (@unsized). "
         "Unsized NativeTypes do not support [sizeOf] because their size "
@@ -69,12 +73,12 @@ static const Double& AsDouble(const Instance& instance) {
   return Double::Cast(instance);
 }
 
-// Calcuate the size of a native type.
+// Calculate the size of a native type.
 //
 // You must check [IsConcreteNativeType] and [CheckSized] first to verify that
 // this type has a defined size.
 static size_t SizeOf(const AbstractType& type, Zone* zone) {
-  if (RawObject::IsFfiTypeClassId(type.type_class_id())) {
+  if (IsFfiTypeClassId(type.type_class_id())) {
     return compiler::ffi::NativeType::FromAbstractType(type, zone)
         .SizeInBytes();
   } else {
@@ -101,10 +105,10 @@ DEFINE_NATIVE_ENTRY(Ffi_address, 0, 1) {
   return Integer::New(pointer.NativeAddress());
 }
 
-static RawObject* LoadValueNumeric(Zone* zone,
-                                   const Pointer& target,
-                                   classid_t type_cid,
-                                   const Integer& offset) {
+static ObjectPtr LoadValueNumeric(Zone* zone,
+                                  const Pointer& target,
+                                  classid_t type_cid,
+                                  const Integer& offset) {
   // TODO(36370): Make representation consistent with kUnboxedFfiIntPtr.
   const size_t address =
       target.NativeAddress() + static_cast<intptr_t>(offset.AsInt64Value());
@@ -162,9 +166,9 @@ DEFINE_NATIVE_ENTRY(Ffi_loadPointer, 1, 2) {
   return Pointer::New(type_arg, *reinterpret_cast<uword*>(address));
 }
 
-static RawObject* LoadValueStruct(Zone* zone,
-                                  const Pointer& target,
-                                  const AbstractType& instance_type_arg) {
+static ObjectPtr LoadValueStruct(Zone* zone,
+                                 const Pointer& target,
+                                 const AbstractType& instance_type_arg) {
   // Result is a struct class -- find <class name>.#fromPointer
   // constructor and call it.
   const Class& cls = Class::Handle(zone, instance_type_arg.type_class());
@@ -493,21 +497,41 @@ DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
   return Pointer::New(type_arg, entry_point);
 }
 
-DEFINE_NATIVE_ENTRY(NativeApiFunctionPointer, 0, 1) {
+DEFINE_NATIVE_ENTRY(DartNativeApiFunctionPointer, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, name_dart, arguments->NativeArgAt(0));
   const char* name = name_dart.ToCString();
 
-  if (strcmp(name, "Dart_PostCObject") == 0) {
-    return Integer::New(reinterpret_cast<int64_t>(Dart_PostCObject));
-  } else if (strcmp(name, "Dart_NewNativePort") == 0) {
-    return Integer::New(reinterpret_cast<int64_t>(Dart_NewNativePort));
-  } else if (strcmp(name, "Dart_CloseNativePort") == 0) {
-    return Integer::New(reinterpret_cast<int64_t>(Dart_CloseNativePort));
+#define RETURN_FUNCTION_ADDRESS(function_name)                                 \
+  if (strcmp(name, #function_name) == 0) {                                     \
+    return Integer::New(reinterpret_cast<intptr_t>(function_name));            \
   }
+  DART_NATIVE_API_DL_SYMBOLS(RETURN_FUNCTION_ADDRESS)
+#undef RETURN_FUNCTION_ADDRESS
 
   const String& error = String::Handle(
       String::NewFormatted("Unknown dart_native_api.h symbol: %s.", name));
   Exceptions::ThrowArgumentError(error);
+}
+
+DEFINE_NATIVE_ENTRY(DartApiDLMajorVersion, 0, 0) {
+  return Integer::New(DART_API_DL_MAJOR_VERSION);
+}
+
+DEFINE_NATIVE_ENTRY(DartApiDLMinorVersion, 0, 0) {
+  return Integer::New(DART_API_DL_MINOR_VERSION);
+}
+
+static const DartApiEntry dart_api_entries[] = {
+#define ENTRY(name) DartApiEntry{#name, reinterpret_cast<void (*)()>(name)},
+    DART_API_ALL_DL_SYMBOLS(ENTRY)
+#undef ENTRY
+        DartApiEntry{nullptr, nullptr}};
+
+static const DartApi dart_api_data = {
+    DART_API_DL_MAJOR_VERSION, DART_API_DL_MINOR_VERSION, dart_api_entries};
+
+DEFINE_NATIVE_ENTRY(DartApiDLInitializeData, 0, 0) {
+  return Integer::New(reinterpret_cast<intptr_t>(&dart_api_data));
 }
 
 }  // namespace dart

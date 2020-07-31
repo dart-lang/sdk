@@ -1,0 +1,10 @@
+library test;
+
+class C {
+  dynamic y;
+  void set x(dynamic value) {}
+  void test() {}
+}
+
+main() {}
+void test(C c, dynamic d) {}

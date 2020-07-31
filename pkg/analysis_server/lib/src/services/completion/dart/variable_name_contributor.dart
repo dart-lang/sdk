@@ -4,9 +4,8 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -15,8 +14,8 @@ import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart'
 /// static type of the variable.
 class VariableNameContributor extends DartCompletionContributor {
   @override
-  Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
+  Future<void> computeSuggestions(
+      DartCompletionRequest request, SuggestionBuilder builder) async {
     var opType = request.opType;
 
     // Collect suggestions from the specific child [AstNode] that contains
@@ -64,7 +63,7 @@ class VariableNameContributor extends DartCompletionContributor {
         }
       }
       if (strName == null) {
-        return const <CompletionSuggestion>[];
+        return;
       }
 
       var doIncludePrivateVersion =
@@ -72,42 +71,21 @@ class VariableNameContributor extends DartCompletionContributor {
 
       var variableNameSuggestions = getCamelWordCombinations(strName);
       variableNameSuggestions.remove(strName);
-      var suggestions = <CompletionSuggestion>[];
       for (var varName in variableNameSuggestions) {
-        var suggestion = _createNameSuggestion(request, varName);
-        if (suggestion != null) {
-          suggestions.add(suggestion);
-        }
+        _createNameSuggestion(builder, varName);
         if (doIncludePrivateVersion) {
-          var privateSuggestion = _createNameSuggestion(request, '_' + varName);
-          if (privateSuggestion != null) {
-            suggestions.add(privateSuggestion);
-          }
+          _createNameSuggestion(builder, '_' + varName);
         }
       }
-      return suggestions;
     }
-    return const <CompletionSuggestion>[];
   }
 
-  /// Given some [name], return a [CompletionSuggestion] with the name.
-  ///
-  /// If the passed name is `null` or empty, `null` is returned.
-  CompletionSuggestion _createNameSuggestion(
-      DartCompletionRequest request, String name) {
-    if (name == null || name.isEmpty) {
-      return null;
+  /// Given some [name], add a suggestion with the name (unless the name is
+  /// `null` or empty).
+  void _createNameSuggestion(SuggestionBuilder builder, String name) {
+    if (name != null && name.isNotEmpty) {
+      builder.suggestName(name);
     }
-    // TODO(brianwilkerson) Explore whether there are any features of the name
-    //  that can be used to provide better relevance scores.
-    return CompletionSuggestion(
-        CompletionSuggestionKind.IDENTIFIER,
-        request.useNewRelevance ? 500 : DART_RELEVANCE_DEFAULT,
-        name,
-        name.length,
-        0,
-        false,
-        false);
   }
 
   /// Convert some [Identifier] to its [String] name.

@@ -8,6 +8,16 @@ class DartType extends core::Object {
   synthetic constructor •() → self::DartType*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 abstract class C extends core::Object {
   static field (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void assertBOf = null;
@@ -25,6 +35,16 @@ abstract class C extends core::Object {
     let final core::List<(self::DartType*) →* void>* #t2 = <(self::DartType*) →* void>[self::_isInt, self::_isString] in this.{self::C::assertDOf}.call(#t2);
     assertEOf.call(<(self::DartType*) →* void>[self::_isInt, self::_isString]);
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 abstract class G<T extends core::Object* = dynamic> extends core::Object {
   field (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void assertAOf = null;
@@ -38,6 +58,16 @@ abstract class G<T extends core::Object* = dynamic> extends core::Object {
     let final core::List<(self::DartType*) →* void>* #t5 = <(self::DartType*) →* void>[self::_isInt, self::_isString] in this.{self::G::assertDOf}.call(#t5);
     assertEOf.call(<(self::DartType*) →* void>[self::_isInt, self::_isString]);
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static field (self::DartType*) →* void _isInt;
 static field (self::DartType*) →* void _isString;

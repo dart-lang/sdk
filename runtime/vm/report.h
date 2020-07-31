@@ -6,6 +6,7 @@
 #define RUNTIME_VM_REPORT_H_
 
 #include "vm/allocation.h"
+#include "vm/tagged_pointer.h"
 #include "vm/token_position.h"
 
 namespace dart {
@@ -13,7 +14,6 @@ namespace dart {
 // Forward declarations.
 class Error;
 class ICData;
-class RawString;
 class Script;
 class StackFrame;
 class String;
@@ -60,11 +60,11 @@ class Report : AllStatic {
 
   // Prepend a source snippet to the message.
   // A null script means no source and a negative token_pos means no position.
-  static RawString* PrependSnippet(Kind kind,
-                                   const Script& script,
-                                   TokenPosition token_pos,
-                                   bool report_after_token,
-                                   const String& message);
+  static StringPtr PrependSnippet(Kind kind,
+                                  const Script& script,
+                                  TokenPosition token_pos,
+                                  bool report_after_token,
+                                  const String& message);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Report);

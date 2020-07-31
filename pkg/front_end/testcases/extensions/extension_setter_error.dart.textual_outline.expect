@@ -1,0 +1,6 @@
+class GenericClass<T> {
+}
+extension GenericExtension<T> ( ){ }
+on GenericClass<T> (){ }
+error() { }
+expect(expected, actual) { }

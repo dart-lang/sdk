@@ -88,6 +88,8 @@ class Zone {
   static void Init();
   static void Cleanup();
 
+  static intptr_t Size() { return total_size_; }
+
  private:
   Zone();
   ~Zone();  // Delete all memory associated with the zone.
@@ -103,6 +105,9 @@ class Zone {
 
   // Zap value used to indicate uninitialized zone area (debug purposes).
   static const unsigned char kZapUninitializedByte = 0xab;
+
+  // Total size of current zone segments.
+  static RelaxedAtomic<intptr_t> total_size_;
 
   // Expand the zone to accommodate an allocation of 'size' bytes.
   uword AllocateExpand(intptr_t size);
@@ -154,6 +159,9 @@ class Zone {
   // about the memory segmentations that constitute a zone. The entire
   // implementation is in zone.cc.
   class Segment;
+
+  // Total size of all segments in [head_].
+  intptr_t small_segment_capacity_ = 0;
 
   // The current head segment; may be NULL.
   Segment* head_;

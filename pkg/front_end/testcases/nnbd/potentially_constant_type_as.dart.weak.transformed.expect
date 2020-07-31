@@ -1,0 +1,248 @@
+//
+// Problems in component:
+//
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:65:9: Error: Constant evaluation error:
+//   const Class<num>(''); // error
+//         ^
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:16:46: Context: Expected constant '""' to be of type 'num', but was of type 'String'.
+//   const Class(dynamic value) : field = value as T;
+//                                              ^
+//
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:66:9: Error: Constant evaluation error:
+//   const Class<int>(0.5); // error
+//         ^
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:16:46: Context: Expected constant '0.5' to be of type 'int', but was of type 'double'.
+//   const Class(dynamic value) : field = value as T;
+//                                              ^
+//
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:67:9: Error: Constant evaluation error:
+//   const Class<String>(0); // error
+//         ^
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:16:46: Context: Expected constant '0' to be of type 'String', but was of type 'int'.
+//   const Class(dynamic value) : field = value as T;
+//                                              ^
+//
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:68:9: Error: Constant evaluation error:
+//   const ClassWithBound<double>(); // error
+//         ^
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:22:42: Context: Expected constant '3' to be of type 'double', but was of type 'int'.
+//   const ClassWithBound() : field = three as T;
+//                                          ^
+//
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:69:9: Error: Constant evaluation error:
+//   const ClassWithBound<double>.withValue(0); // error
+//         ^
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:24:65: Context: Expected constant '0' to be of type 'double', but was of type 'int'.
+//   const ClassWithBound.withValue(dynamic value) : field = value as T;
+//                                                                 ^
+//
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:70:9: Error: Constant evaluation error:
+//   const ClassWithBound<double>.withValue(three); // error
+//         ^
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:24:65: Context: Expected constant '3' to be of type 'double', but was of type 'int'.
+//   const ClassWithBound.withValue(dynamic value) : field = value as T;
+//                                                                 ^
+//
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:71:9: Error: Constant evaluation error:
+//   const ClassWithBound<num>.withValue(''); // error
+//         ^
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:24:65: Context: Expected constant '""' to be of type 'num', but was of type 'String'.
+//   const ClassWithBound.withValue(dynamic value) : field = value as T;
+//                                                                 ^
+//
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:72:9: Error: Constant evaluation error:
+//   const ClassWithList(0); // error
+//         ^
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:30:54: Context: Expected constant '0' to be of type 'List<dynamic>', but was of type 'int'.
+//  - 'List' is from 'dart:core'.
+//   const ClassWithList(dynamic value) : field = value as List<T>;
+//                                                      ^
+//
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:73:9: Error: Constant evaluation error:
+//   const ClassWithList<num>(<String>['']); // error
+//         ^
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:30:54: Context: Expected constant '<String>[""]' to be of type 'List<num>', but was of type 'List<String>'.
+//  - 'List' is from 'dart:core'.
+//   const ClassWithList(dynamic value) : field = value as List<T>;
+//                                                      ^
+//
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:74:9: Error: Constant evaluation error:
+//   const ClassWithList<int>(<num>[0]); // error
+//         ^
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:30:54: Context: Expected constant '<num>[0]' to be of type 'List<int>', but was of type 'List<num>'.
+//  - 'List' is from 'dart:core'.
+//   const ClassWithList(dynamic value) : field = value as List<T>;
+//                                                      ^
+//
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:75:9: Error: Constant evaluation error:
+//   const ClassWithList<String>(<int>[0]); // error
+//         ^
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:30:54: Context: Expected constant '<int>[0]' to be of type 'List<String>', but was of type 'List<int>'.
+//  - 'List' is from 'dart:core'.
+//   const ClassWithList(dynamic value) : field = value as List<T>;
+//                                                      ^
+//
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:76:9: Error: Constant evaluation error:
+//   const ClassWithFunction(0); // error
+//         ^
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:36:58: Context: Expected constant '0' to be of type 'dynamic Function(dynamic)', but was of type 'int'.
+//   const ClassWithFunction(dynamic value) : field = value as T Function(T);
+//                                                          ^
+//
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:77:9: Error: Constant evaluation error:
+//   const ClassWithFunction(intFunction); // error
+//         ^
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:36:58: Context: Expected constant 'intFunction' to be of type 'dynamic Function(dynamic)', but was of type 'int Function(int)'.
+//   const ClassWithFunction(dynamic value) : field = value as T Function(T);
+//                                                          ^
+//
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:78:9: Error: Constant evaluation error:
+//   const ClassWithFunction<Object>(intFunction); // error
+//         ^
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:36:58: Context: Expected constant 'intFunction' to be of type 'Object Function(Object)', but was of type 'int Function(int)'.
+//  - 'Object' is from 'dart:core'.
+//   const ClassWithFunction(dynamic value) : field = value as T Function(T);
+//                                                          ^
+//
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:79:9: Error: Constant evaluation error:
+//   const ClassWithFunction<void>(intFunction); // error
+//         ^
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:36:58: Context: Expected constant 'intFunction' to be of type 'void Function(void)', but was of type 'int Function(int)'.
+//   const ClassWithFunction(dynamic value) : field = value as T Function(T);
+//                                                          ^
+//
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:80:9: Error: Constant evaluation error:
+//   const ClassWithFunction<num>(intFunction); // error
+//         ^
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:36:58: Context: Expected constant 'intFunction' to be of type 'num Function(num)', but was of type 'int Function(int)'.
+//   const ClassWithFunction(dynamic value) : field = value as T Function(T);
+//                                                          ^
+//
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:81:9: Error: Constant evaluation error:
+//   const ClassWithFunction<int>(idFunction); // error
+//         ^
+// pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:36:58: Context: Expected constant 'idFunction' to be of type 'int Function(int)', but was of type 'T Function<T>(T)'.
+//   const ClassWithFunction(dynamic value) : field = value as T Function(T);
+//                                                          ^
+//
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field self::Class::T% field;
+  const constructor •(dynamic value) → self::Class<self::Class::T%>
+    : self::Class::field = value as{ForNonNullableByDefault} self::Class::T%, super core::Object::•()
+    ;
+}
+class ClassWithBound<T extends core::num = core::num> extends core::Object /*hasConstConstructor*/  {
+  final field self::ClassWithBound::T field;
+  const constructor •() → self::ClassWithBound<self::ClassWithBound::T>
+    : self::ClassWithBound::field = (#C1) as{ForNonNullableByDefault} self::ClassWithBound::T, super core::Object::•()
+    ;
+  const constructor withValue(dynamic value) → self::ClassWithBound<self::ClassWithBound::T>
+    : self::ClassWithBound::field = value as{ForNonNullableByDefault} self::ClassWithBound::T, super core::Object::•()
+    ;
+}
+class ClassWithList<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field core::List<self::ClassWithList::T%> field;
+  const constructor •(dynamic value) → self::ClassWithList<self::ClassWithList::T%>
+    : self::ClassWithList::field = value as{ForNonNullableByDefault} core::List<self::ClassWithList::T%>, super core::Object::•()
+    ;
+}
+class ClassWithFunction<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field (self::ClassWithFunction::T%) → self::ClassWithFunction::T% field;
+  const constructor •(dynamic value) → self::ClassWithFunction<self::ClassWithFunction::T%>
+    : self::ClassWithFunction::field = value as{ForNonNullableByDefault} (self::ClassWithFunction::T%) → self::ClassWithFunction::T%, super core::Object::•()
+    ;
+}
+static const field core::num three = #C1;
+static const field (core::int) → core::int idAsIntFunction = #C3;
+static method dynamicFunction(dynamic d) → dynamic
+  return d;
+static method objectFunction(core::Object? o) → core::Object?
+  return o;
+static method intFunction(core::int i) → core::int
+  return i;
+static method idFunction<T extends core::Object? = dynamic>(self::idFunction::T% t) → self::idFunction::T%
+  return t;
+static method main() → void {
+  #C5;
+  #C6;
+  #C7;
+  #C9;
+  #C10;
+  #C11;
+  #C10;
+  #C13;
+  #C15;
+  #C17;
+  #C18;
+  #C20;
+  #C22;
+  #C23;
+  #C25;
+  #C26;
+  #C28;
+  #C29;
+}
+static method weakMode() → dynamic {
+  #C30;
+}
+static method errors() → dynamic {
+  invalid-expression "Expected constant '\"\"' to be of type 'num', but was of type 'String'.";
+  invalid-expression "Expected constant '0.5' to be of type 'int', but was of type 'double'.";
+  invalid-expression "Expected constant '0' to be of type 'String', but was of type 'int'.";
+  invalid-expression "Expected constant '3' to be of type 'double', but was of type 'int'.";
+  invalid-expression "Expected constant '0' to be of type 'double', but was of type 'int'.";
+  invalid-expression "Expected constant '3' to be of type 'double', but was of type 'int'.";
+  invalid-expression "Expected constant '\"\"' to be of type 'num', but was of type 'String'.";
+  invalid-expression "Expected constant '0' to be of type 'List<dynamic>', but was of type 'int'.
+ - 'List' is from 'dart:core'.";
+  invalid-expression "Expected constant '<String>[\"\"]' to be of type 'List<num>', but was of type 'List<String>'.
+ - 'List' is from 'dart:core'.";
+  invalid-expression "Expected constant '<num>[0]' to be of type 'List<int>', but was of type 'List<num>'.
+ - 'List' is from 'dart:core'.";
+  invalid-expression "Expected constant '<int>[0]' to be of type 'List<String>', but was of type 'List<int>'.
+ - 'List' is from 'dart:core'.";
+  invalid-expression "Expected constant '0' to be of type 'dynamic Function(dynamic)', but was of type 'int'.";
+  invalid-expression "Expected constant 'intFunction' to be of type 'dynamic Function(dynamic)', but was of type 'int Function(int)'.";
+  invalid-expression "Expected constant 'intFunction' to be of type 'Object Function(Object)', but was of type 'int Function(int)'.
+ - 'Object' is from 'dart:core'.";
+  invalid-expression "Expected constant 'intFunction' to be of type 'void Function(void)', but was of type 'int Function(int)'.";
+  invalid-expression "Expected constant 'intFunction' to be of type 'num Function(num)', but was of type 'int Function(int)'.";
+  invalid-expression "Expected constant 'idFunction' to be of type 'int Function(int)', but was of type 'T Function<T>(T)'.";
+}
+
+constants  {
+  #C1 = 3
+  #C2 = tearoff self::idFunction
+  #C3 = partial-instantiation self::idFunction <core::int*>
+  #C4 = 0
+  #C5 = self::Class<dynamic> {field:#C4}
+  #C6 = self::Class<core::num*> {field:#C4}
+  #C7 = self::Class<core::int*> {field:#C4}
+  #C8 = ""
+  #C9 = self::Class<core::String*> {field:#C8}
+  #C10 = self::ClassWithBound<core::int*> {field:#C1}
+  #C11 = self::ClassWithBound<core::int*> {field:#C4}
+  #C12 = 0.5
+  #C13 = self::ClassWithBound<core::double*> {field:#C12}
+  #C14 = <dynamic>[]
+  #C15 = self::ClassWithList<dynamic> {field:#C14}
+  #C16 = <core::int*>[#C4]
+  #C17 = self::ClassWithList<core::num*> {field:#C16}
+  #C18 = self::ClassWithList<core::int*> {field:#C16}
+  #C19 = <core::String*>[#C8]
+  #C20 = self::ClassWithList<core::String*> {field:#C19}
+  #C21 = tearoff self::dynamicFunction
+  #C22 = self::ClassWithFunction<dynamic> {field:#C21}
+  #C23 = self::ClassWithFunction<core::Object*> {field:#C21}
+  #C24 = tearoff self::objectFunction
+  #C25 = self::ClassWithFunction<dynamic> {field:#C24}
+  #C26 = self::ClassWithFunction<void> {field:#C24}
+  #C27 = tearoff self::intFunction
+  #C28 = self::ClassWithFunction<core::int*> {field:#C27}
+  #C29 = self::ClassWithFunction<core::int*> {field:#C3}
+  #C30 = self::ClassWithFunction<core::Object*> {field:#C24}
+}

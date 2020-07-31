@@ -72,7 +72,7 @@ void receiver(final transferable) {
 
 throwsIfCummulativeListIsTooLargeOn32bitPlatform() {
   try {
-    int maxUint8ListSize = pow(2, 30);
+    int maxUint8ListSize = pow(2, 30) as int;
     // Check whether we are on 32-bit or 64-bit platform.
     new Uint8List(maxUint8ListSize);
     // On 64-bit platform we will have difficulty allocating large enough
@@ -80,17 +80,17 @@ throwsIfCummulativeListIsTooLargeOn32bitPlatform() {
     return;
   } catch (_) {}
 
-  var halfmax = new Uint8List(pow(2, 29) - 1);
+  var halfmax = new Uint8List(pow(2, 29) - 1 as int);
   Expect.throwsArgumentError(
       () => TransferableTypedData.fromList([halfmax, halfmax, Uint8List(2)]));
 }
 
 class MyList<T> extends ListBase<T> {
   @override
-  int length;
+  int length = null as dynamic;
 
   @override
-  T operator [](int index) => null;
+  T operator [](int index) => null as T;
   @override
   void operator []=(int index, T value) {}
 }
@@ -106,10 +106,18 @@ main() async {
   await throwsIfReceiverMaterializesMoreThanOnce();
   throwsIfCummulativeListIsTooLargeOn32bitPlatform();
 
-  Expect.throwsArgumentError(() => TransferableTypedData.fromList(null));
-  Expect.throwsArgumentError(() => TransferableTypedData.fromList([null]));
-  Expect.throwsArgumentError(
-      () => TransferableTypedData.fromList(MyList<Uint8List>()));
+  dynamic myNull;
+  if (isWeakMode) {
+    Expect.throwsArgumentError(() => TransferableTypedData.fromList(myNull));
+    Expect.throwsArgumentError(() => TransferableTypedData.fromList([myNull]));
+    Expect.throwsArgumentError(
+        () => TransferableTypedData.fromList(MyList<Uint8List>()));
+  } else {
+    Expect.throwsTypeError(() => TransferableTypedData.fromList(myNull));
+    Expect.throwsTypeError(() => TransferableTypedData.fromList([myNull]));
+    Expect.throwsTypeError(
+        () => TransferableTypedData.fromList(MyList<Uint8List>()));
+  }
   Expect.throwsArgumentError(
       () => TransferableTypedData.fromList([MyTypedData()]));
 }

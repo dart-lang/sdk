@@ -1,0 +1,11 @@
+class C {
+  D? f() => new D();
+  void h() {}
+}
+
+class D {
+  void g() {}
+}
+
+void test(C x) {}
+main() {}

@@ -39,9 +39,7 @@ var v;int main() async => 0;
 ''');
     await assertHasFix('''
 var v;Future<int> main() async => 0;
-''', errorFilter: (error) {
-      return error.errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE;
-    });
+''');
   }
 
   Future<void> test_complexTypeName_withImport() async {
@@ -144,8 +142,6 @@ int main() async {
 library main;
 Future<int> main() async {
 }
-''', errorFilter: (error) {
-      return error.errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE;
-    });
+''');
   }
 }

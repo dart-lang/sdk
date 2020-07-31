@@ -4,6 +4,8 @@
 
 #include "vm/native_message_handler.h"
 
+#include <memory>
+
 #include "vm/dart_api_message.h"
 #include "vm/isolate.h"
 #include "vm/message.h"
@@ -13,7 +15,7 @@ namespace dart {
 
 NativeMessageHandler::NativeMessageHandler(const char* name,
                                            Dart_NativeMessageHandler func)
-    : name_(strdup(name)), func_(func) {}
+    : name_(Utils::StrDup(name)), func_(func) {}
 
 NativeMessageHandler::~NativeMessageHandler() {
   free(name_);

@@ -187,7 +187,7 @@ void testRead(bool chunkedEncoding) {
         return request.close();
       }).then((response) {
         Expect.equals(HttpStatus.ok, response.statusCode);
-        List<int> body = new List<int>();
+        List<int> body = <int>[];
         response.listen(body.addAll, onDone: () {
           Expect.equals(data, new String.fromCharCodes(body));
           count++;

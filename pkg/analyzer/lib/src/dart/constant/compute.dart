@@ -7,7 +7,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
 
@@ -18,60 +18,43 @@ void computeConstants(
     DeclaredVariables declaredVariables,
     List<ConstantEvaluationTarget> constants,
     ExperimentStatus experimentStatus) {
-  var evaluationEngine = ConstantEvaluationEngine(
-      typeProvider, declaredVariables,
-      typeSystem: typeSystem, experimentStatus: experimentStatus);
+  var walker = _ConstantWalker(declaredVariables, experimentStatus);
 
-  var nodes = <_ConstantNode>[];
-  var nodeMap = <ConstantEvaluationTarget, _ConstantNode>{};
   for (var constant in constants) {
-    var node = _ConstantNode(evaluationEngine, nodeMap, constant);
-    nodes.add(node);
-    nodeMap[constant] = node;
-  }
-
-  for (var node in nodes) {
+    var node = walker._getNode(constant);
     if (!node.isEvaluated) {
-      _ConstantWalker(evaluationEngine).walk(node);
+      walker.walk(node);
     }
   }
 }
 
 /// [graph.Node] that is used to compute constants in dependency order.
 class _ConstantNode extends graph.Node<_ConstantNode> {
-  final ConstantEvaluationEngine evaluationEngine;
-  final Map<ConstantEvaluationTarget, _ConstantNode> nodeMap;
+  final _ConstantWalker walker;
   final ConstantEvaluationTarget constant;
 
-  _ConstantNode(this.evaluationEngine, this.nodeMap, this.constant);
+  _ConstantNode(this.walker, this.constant);
 
   @override
   bool get isEvaluated => constant.isConstantEvaluated;
 
   @override
   List<_ConstantNode> computeDependencies() {
-    var targets = <ConstantEvaluationTarget>[];
-    evaluationEngine.computeDependencies(constant, targets.add);
-    return targets.map(_getNode).toList();
-  }
-
-  _ConstantNode _getNode(ConstantEvaluationTarget constant) {
-    return nodeMap.putIfAbsent(
-      constant,
-      () => _ConstantNode(evaluationEngine, nodeMap, constant),
-    );
+    return walker._computeDependencies(this);
   }
 }
 
 /// [graph.DependencyWalker] for computing constants and detecting cycles.
 class _ConstantWalker extends graph.DependencyWalker<_ConstantNode> {
-  final ConstantEvaluationEngine evaluationEngine;
+  final DeclaredVariables declaredVariables;
+  final ExperimentStatus experimentStatus;
+  final Map<ConstantEvaluationTarget, _ConstantNode> nodeMap = {};
 
-  _ConstantWalker(this.evaluationEngine);
+  _ConstantWalker(this.declaredVariables, this.experimentStatus);
 
   @override
   void evaluate(_ConstantNode node) {
-    evaluationEngine.computeConstantValue(node.constant);
+    _getEvaluationEngine(node).computeConstantValue(node.constant);
   }
 
   @override
@@ -82,7 +65,31 @@ class _ConstantWalker extends graph.DependencyWalker<_ConstantNode> {
       if (constant is ConstructorElementImpl) {
         constant.isCycleFree = false;
       }
-      evaluationEngine.generateCycleError(constantsInCycle, constant);
+      _getEvaluationEngine(node).generateCycleError(constantsInCycle, constant);
     }
+  }
+
+  List<_ConstantNode> _computeDependencies(_ConstantNode node) {
+    var evaluationEngine = _getEvaluationEngine(node);
+    var targets = <ConstantEvaluationTarget>[];
+    evaluationEngine.computeDependencies(node.constant, targets.add);
+    return targets.map(_getNode).toList();
+  }
+
+  ConstantEvaluationEngine _getEvaluationEngine(_ConstantNode node) {
+    var library = node.constant.library;
+    return ConstantEvaluationEngine(
+      library.typeProvider,
+      declaredVariables,
+      typeSystem: library.typeSystem,
+      experimentStatus: experimentStatus,
+    );
+  }
+
+  _ConstantNode _getNode(ConstantEvaluationTarget constant) {
+    return nodeMap.putIfAbsent(
+      constant,
+      () => _ConstantNode(this, constant),
+    );
   }
 }

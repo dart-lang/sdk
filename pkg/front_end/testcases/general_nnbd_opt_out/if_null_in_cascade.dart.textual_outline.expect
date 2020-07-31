@@ -1,0 +1,6 @@
+// @dart = 2.6
+class Class {
+  method() {}
+}
+
+main() {}

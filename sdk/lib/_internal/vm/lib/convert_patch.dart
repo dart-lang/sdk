@@ -2,14 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /// Note: the VM concatenates all patch files into a single patch file. This
 /// file is the first patch in "dart:convert" which contains all the imports
 /// used by patches of that library. We plan to change this when we have a
 /// shared front end and simply use parts.
 
-import "dart:_internal" show POWERS_OF_TEN, patch, ClassID;
+import "dart:_internal"
+    show
+        allocateOneByteString,
+        allocateTwoByteString,
+        ClassID,
+        copyRangeFromUint8ListToOneByteString,
+        patch,
+        POWERS_OF_TEN,
+        unsafeCast,
+        writeIntoOneByteString,
+        writeIntoTwoByteString;
 
 import "dart:typed_data" show Uint8List, Uint16List;
 
@@ -18,7 +26,8 @@ import "dart:typed_data" show Uint8List, Uint16List;
 // JSON conversion.
 
 @patch
-dynamic _parseJson(String source, reviver(key, value)) {
+dynamic _parseJson(
+    String source, Object? Function(Object? key, Object? value)? reviver) {
   _BuildJsonListener listener;
   if (reviver == null) {
     listener = new _BuildJsonListener();
@@ -48,14 +57,14 @@ class Utf8Decoder {
 
   // Allow intercepting of UTF-8 decoding when built-in lists are passed.
   @patch
-  static String _convertIntercepted(
-      bool allowMalformed, List<int> codeUnits, int start, int end) {
+  static String? _convertIntercepted(
+      bool allowMalformed, List<int> codeUnits, int start, int? end) {
     return null; // This call was not intercepted.
   }
 }
 
 class _JsonUtf8Decoder extends Converter<List<int>, Object> {
-  final Function(Object key, Object value) _reviver;
+  final Object? Function(Object? key, Object? value)? _reviver;
   final bool _allowMalformed;
 
   _JsonUtf8Decoder(this._reviver, this._allowMalformed);
@@ -69,7 +78,7 @@ class _JsonUtf8Decoder extends Converter<List<int>, Object> {
     return parser.result;
   }
 
-  ByteConversionSink startChunkedConversion(Sink<Object> sink) {
+  ByteConversionSink startChunkedConversion(Sink<Object?> sink) {
     return new _JsonUtf8DecoderSink(_reviver, sink, _allowMalformed);
   }
 }
@@ -116,11 +125,11 @@ class _BuildJsonListener extends _JsonListener {
    * started. If the container is a [Map], there is also a current [key]
    * which is also stored on the stack.
    */
-  List stack = [];
+  final List<Object?> stack = [];
   /** The current [Map] or [List] being built. */
   dynamic currentContainer;
   /** The most recently read property key. */
-  String key;
+  String key = '';
   /** The most recently read value. */
   dynamic value;
 
@@ -134,7 +143,7 @@ class _BuildJsonListener extends _JsonListener {
   void popContainer() {
     value = currentContainer;
     currentContainer = stack.removeLast();
-    if (currentContainer is Map) key = stack.removeLast();
+    if (currentContainer is Map) key = stack.removeLast() as String;
   }
 
   void handleString(String value) {
@@ -166,7 +175,8 @@ class _BuildJsonListener extends _JsonListener {
   void propertyValue() {
     Map map = currentContainer;
     map[key] = value;
-    key = value = null;
+    key = '';
+    value = null;
   }
 
   void endObject() {
@@ -195,7 +205,7 @@ class _BuildJsonListener extends _JsonListener {
 }
 
 class _ReviverJsonListener extends _BuildJsonListener {
-  final Function(Object key, Object value) reviver;
+  final Object? Function(Object? key, Object? value) reviver;
   _ReviverJsonListener(this.reviver);
 
   void arrayElement() {
@@ -678,12 +688,12 @@ abstract class _ChunkedJsonParser<T> {
           char = getChar(position);
           digit = char ^ CHAR_0;
         } else {
-          return fail(position);
+          fail(position);
         }
       }
       if (state == NUM_ZERO) {
         // JSON does not allow insignificant leading zeros (e.g., "09").
-        if (digit <= 9) return fail(position);
+        if (digit <= 9) fail(position);
         state = NUM_DIGIT;
       }
       while (state == NUM_DIGIT) {
@@ -703,7 +713,7 @@ abstract class _ChunkedJsonParser<T> {
         digit = char ^ CHAR_0;
       }
       if (state == NUM_DOT) {
-        if (digit > 9) return fail(position);
+        if (digit > 9) fail(position);
         state = NUM_DOT_DIGIT;
       }
       while (state == NUM_DOT_DIGIT) {
@@ -798,7 +808,7 @@ abstract class _ChunkedJsonParser<T> {
           assert(keywordType == KWD_BOM);
           return position;
         }
-        return fail(position);
+        fail(position);
       }
       position++;
       count++;
@@ -844,41 +854,41 @@ abstract class _ChunkedJsonParser<T> {
           position++;
           break;
         case QUOTE:
-          if ((state & ALLOW_STRING_MASK) != 0) return fail(position);
+          if ((state & ALLOW_STRING_MASK) != 0) fail(position);
           state |= VALUE_READ_BITS;
           position = parseString(position + 1);
           break;
         case LBRACKET:
-          if ((state & ALLOW_VALUE_MASK) != 0) return fail(position);
+          if ((state & ALLOW_VALUE_MASK) != 0) fail(position);
           listener.beginArray();
           saveState(state);
           state = STATE_ARRAY_EMPTY;
           position++;
           break;
         case LBRACE:
-          if ((state & ALLOW_VALUE_MASK) != 0) return fail(position);
+          if ((state & ALLOW_VALUE_MASK) != 0) fail(position);
           listener.beginObject();
           saveState(state);
           state = STATE_OBJECT_EMPTY;
           position++;
           break;
         case CHAR_n:
-          if ((state & ALLOW_VALUE_MASK) != 0) return fail(position);
+          if ((state & ALLOW_VALUE_MASK) != 0) fail(position);
           state |= VALUE_READ_BITS;
           position = parseNull(position);
           break;
         case CHAR_f:
-          if ((state & ALLOW_VALUE_MASK) != 0) return fail(position);
+          if ((state & ALLOW_VALUE_MASK) != 0) fail(position);
           state |= VALUE_READ_BITS;
           position = parseFalse(position);
           break;
         case CHAR_t:
-          if ((state & ALLOW_VALUE_MASK) != 0) return fail(position);
+          if ((state & ALLOW_VALUE_MASK) != 0) fail(position);
           state |= VALUE_READ_BITS;
           position = parseTrue(position);
           break;
         case COLON:
-          if (state != STATE_OBJECT_KEY) return fail(position);
+          if (state != STATE_OBJECT_KEY) fail(position);
           listener.propertyName();
           state = STATE_OBJECT_COLON;
           position++;
@@ -893,7 +903,7 @@ abstract class _ChunkedJsonParser<T> {
             state = STATE_ARRAY_COMMA;
             position++;
           } else {
-            return fail(position);
+            fail(position);
           }
           break;
         case RBRACKET:
@@ -903,7 +913,7 @@ abstract class _ChunkedJsonParser<T> {
             listener.arrayElement();
             listener.endArray();
           } else {
-            return fail(position);
+            fail(position);
           }
           state = restoreState() | VALUE_READ_BITS;
           position++;
@@ -915,7 +925,7 @@ abstract class _ChunkedJsonParser<T> {
             listener.propertyValue();
             listener.endObject();
           } else {
-            return fail(position);
+            fail(position);
           }
           state = restoreState() | VALUE_READ_BITS;
           position++;
@@ -943,7 +953,7 @@ abstract class _ChunkedJsonParser<T> {
     if (getChar(position + 1) != CHAR_r ||
         getChar(position + 2) != CHAR_u ||
         getChar(position + 3) != CHAR_e) {
-      return fail(position);
+      fail(position);
     }
     listener.handleBool(true);
     return position + 4;
@@ -963,7 +973,7 @@ abstract class _ChunkedJsonParser<T> {
         getChar(position + 2) != CHAR_l ||
         getChar(position + 3) != CHAR_s ||
         getChar(position + 4) != CHAR_e) {
-      return fail(position);
+      fail(position);
     }
     listener.handleBool(false);
     return position + 5;
@@ -982,7 +992,7 @@ abstract class _ChunkedJsonParser<T> {
     if (getChar(position + 1) != CHAR_u ||
         getChar(position + 2) != CHAR_l ||
         getChar(position + 3) != CHAR_l) {
-      return fail(position);
+      fail(position);
     }
     listener.handleNull();
     return position + 4;
@@ -995,7 +1005,7 @@ abstract class _ChunkedJsonParser<T> {
     int count = 1;
     while (++position < length) {
       int char = getChar(position);
-      if (char != chars.codeUnitAt(count)) return fail(start);
+      if (char != chars.codeUnitAt(count)) fail(start);
       count++;
     }
     this.partialState = PARTIAL_KEYWORD | type | (count << KWD_COUNT_SHIFT);
@@ -1032,7 +1042,7 @@ abstract class _ChunkedJsonParser<T> {
         return position;
       }
       if (char < SPACE) {
-        return fail(position - 1, "Control character in string");
+        fail(position - 1, "Control character in string");
       }
     }
     beginString();
@@ -1092,7 +1102,7 @@ abstract class _ChunkedJsonParser<T> {
       int char = getChar(position++);
       if (char > BACKSLASH) continue;
       if (char < SPACE) {
-        return fail(position - 1); // Control character in string.
+        fail(position - 1); // Control character in string.
       }
       if (char == QUOTE) {
         int quotePosition = position - 1;
@@ -1162,7 +1172,7 @@ abstract class _ChunkedJsonParser<T> {
           } else {
             digit = (char | 0x20) - CHAR_a;
             if (digit < 0 || digit > 5) {
-              return fail(hexStart, "Invalid unicode escape");
+              fail(hexStart, "Invalid unicode escape");
             }
             value += digit + 10;
           }
@@ -1170,8 +1180,8 @@ abstract class _ChunkedJsonParser<T> {
         char = value;
         break;
       default:
-        if (char < SPACE) return fail(position, "Control character in string");
-        return fail(position, "Unrecognized string escape");
+        if (char < SPACE) fail(position, "Control character in string");
+        fail(position, "Unrecognized string escape");
     }
     addCharToString(char);
     if (position == length) return chunkString(STR_PLAIN);
@@ -1386,7 +1396,7 @@ abstract class _ChunkedJsonParser<T> {
     return position;
   }
 
-  fail(int position, [String message]) {
+  Never fail(int position, [String? message]) {
     if (message == null) {
       message = "Unexpected character";
       if (position == chunkEnd) message = "Unexpected end of input";
@@ -1399,8 +1409,8 @@ abstract class _ChunkedJsonParser<T> {
  * Chunked JSON parser that parses [String] chunks.
  */
 class _JsonStringParser extends _ChunkedJsonParser<String> {
-  String chunk;
-  int chunkEnd;
+  String chunk = '';
+  int chunkEnd = 0;
 
   _JsonStringParser(_JsonListener listener) : super(listener);
 
@@ -1445,7 +1455,7 @@ class _JsonStringParser extends _ChunkedJsonParser<String> {
 @patch
 class JsonDecoder {
   @patch
-  StringConversionSink startChunkedConversion(Sink<Object> sink) {
+  StringConversionSink startChunkedConversion(Sink<Object?> sink) {
     return new _JsonStringDecoderSink(this._reviver, sink);
   }
 }
@@ -1458,13 +1468,14 @@ class JsonDecoder {
  */
 class _JsonStringDecoderSink extends StringConversionSinkBase {
   _JsonStringParser _parser;
-  final Function(Object key, Object value) _reviver;
-  final Sink<Object> _sink;
+  final Object? Function(Object? key, Object? value)? _reviver;
+  final Sink<Object?> _sink;
 
   _JsonStringDecoderSink(this._reviver, this._sink)
       : _parser = _createParser(_reviver);
 
-  static _JsonStringParser _createParser(reviver) {
+  static _JsonStringParser _createParser(
+      Object? Function(Object? key, Object? value)? reviver) {
     _BuildJsonListener listener;
     if (reviver == null) {
       listener = new _BuildJsonListener();
@@ -1493,259 +1504,7 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
   }
 
   ByteConversionSink asUtf8Sink(bool allowMalformed) {
-    _parser = null;
     return new _JsonUtf8DecoderSink(_reviver, _sink, allowMalformed);
-  }
-}
-
-class _Utf8StringBuffer {
-  static const int INITIAL_CAPACITY = 32;
-  // Partial state encoding.
-  static const int MASK_TWO_BIT = 0x03;
-  static const int MASK_SIZE = MASK_TWO_BIT;
-  static const int SHIFT_MISSING = 2;
-  static const int SHIFT_VALUE = 4;
-  static const int NO_PARTIAL = 0;
-
-  // UTF-8 encoding and limits.
-  static const int MAX_ASCII = 127;
-  static const int MAX_TWO_BYTE = 0x7ff;
-  static const int MAX_THREE_BYTE = 0xffff;
-  static const int MAX_UNICODE = 0X10ffff;
-  static const int MASK_TWO_BYTE = 0x1f;
-  static const int MASK_THREE_BYTE = 0x0f;
-  static const int MASK_FOUR_BYTE = 0x07;
-  static const int MASK_CONTINUE_TAG = 0xC0;
-  static const int MASK_CONTINUE_VALUE = 0x3f;
-  static const int CONTINUE_TAG = 0x80;
-
-  // UTF-16 surrogate encoding.
-  static const int LEAD_SURROGATE = 0xD800;
-  static const int TAIL_SURROGATE = 0xDC00;
-  static const int SHIFT_HIGH_SURROGATE = 10;
-  static const int MASK_LOW_SURROGATE = 0x3ff;
-
-  // The internal buffer starts as Uint8List, but may change to Uint16List
-  // if the string contains non-Latin-1 characters.
-  List<int> buffer = new Uint8List(INITIAL_CAPACITY);
-  // Number of elements in buffer.
-  int length = 0;
-  // Partial decoding state, for cases where an UTF-8 sequences is split
-  // between chunks.
-  int partialState = NO_PARTIAL;
-  // Whether all characters so far have been Latin-1 (and the buffer is
-  // still a Uint8List). Set to false when the first non-Latin-1 character
-  // is encountered, and the buffer is then also converted to a Uint16List.
-  bool isLatin1 = true;
-  // If allowing malformed, invalid UTF-8 sequences are converted to
-  // U+FFFD.
-  bool allowMalformed;
-
-  _Utf8StringBuffer(this.allowMalformed);
-
-  /**
-   * Parse the continuation of a multi-byte UTF-8 sequence.
-   *
-   * Parse [utf8] from [position] to [end]. If the sequence extends beyond
-   * `end`, store the partial state in [partialState], and continue from there
-   * on the next added slice.
-   *
-   * The [size] is the number of expected continuation bytes total,
-   * and [missing] is the number of remaining continuation bytes.
-   * The [size] is used to detect overlong encodings.
-   * The [value] is the value collected so far.
-   *
-   * When called after seeing the first multi-byte marker, the [size] and
-   * [missing] values are always the same, but they may differ if continuing
-   * after a partial sequence.
-   */
-  int addContinuation(
-      List<int> utf8, int position, int end, int size, int missing, int value) {
-    int codeEnd = position + missing;
-    do {
-      if (position == end) {
-        missing = codeEnd - position;
-        partialState =
-            size | (missing << SHIFT_MISSING) | (value << SHIFT_VALUE);
-        return end;
-      }
-      int char = utf8[position];
-      if ((char & MASK_CONTINUE_TAG) != CONTINUE_TAG) {
-        if (allowMalformed) {
-          addCharCode(0xFFFD);
-          return position;
-        }
-        throw new FormatException(
-            "Expected UTF-8 continuation byte, "
-            "found $char",
-            utf8,
-            position);
-      }
-      value = 64 * value + (char & MASK_CONTINUE_VALUE);
-      position++;
-    } while (position < codeEnd);
-    if (value <= const [0, MAX_ASCII, MAX_TWO_BYTE, MAX_THREE_BYTE][size]) {
-      // Over-long encoding.
-      if (allowMalformed) {
-        value = 0xFFFD;
-      } else {
-        throw new FormatException(
-            "Invalid encoding: U+${value.toRadixString(16).padLeft(4, '0')}"
-            " encoded in ${size + 1} bytes.",
-            utf8,
-            position - 1);
-      }
-    }
-    addCharCode(value);
-    return position;
-  }
-
-  void addCharCode(int char) {
-    assert(char >= 0);
-    assert(char <= MAX_UNICODE);
-    if (partialState != NO_PARTIAL) {
-      if (allowMalformed) {
-        partialState = NO_PARTIAL;
-        addCharCode(0xFFFD);
-      } else {
-        throw new FormatException("Incomplete UTF-8 sequence");
-      }
-    }
-    if (isLatin1 && char > 0xff) {
-      _to16Bit(); // Also grows a little if close to full.
-    }
-    int length = this.length;
-    if (char <= MAX_THREE_BYTE) {
-      if (length == buffer.length) _grow();
-      buffer[length] = char;
-      this.length = length + 1;
-      return;
-    }
-    if (length + 2 > buffer.length) _grow();
-    int bits = char - 0x10000;
-    buffer[length] = LEAD_SURROGATE | (bits >> SHIFT_HIGH_SURROGATE);
-    buffer[length + 1] = TAIL_SURROGATE | (bits & MASK_LOW_SURROGATE);
-    this.length = length + 2;
-  }
-
-  void _to16Bit() {
-    assert(isLatin1);
-    Uint16List newBuffer;
-    if ((length + INITIAL_CAPACITY) * 2 <= buffer.length) {
-      // Reuse existing buffer if it's big enough.
-      newBuffer = new Uint16List.view((buffer as Uint8List).buffer);
-    } else {
-      int newCapacity = buffer.length;
-      if (newCapacity - length < INITIAL_CAPACITY) {
-        newCapacity = length + INITIAL_CAPACITY;
-      }
-      newBuffer = new Uint16List(newCapacity);
-    }
-    newBuffer.setRange(0, length, buffer);
-    buffer = newBuffer;
-    isLatin1 = false;
-  }
-
-  void _grow() {
-    int newCapacity = buffer.length * 2;
-    List newBuffer;
-    if (isLatin1) {
-      newBuffer = new Uint8List(newCapacity);
-    } else {
-      newBuffer = new Uint16List(newCapacity);
-    }
-    newBuffer.setRange(0, length, buffer);
-    buffer = newBuffer;
-  }
-
-  void addSlice(List<int> utf8, int position, int end) {
-    assert(position < end);
-    if (partialState > 0) {
-      int continueByteCount = (partialState & MASK_TWO_BIT);
-      int missing = (partialState >> SHIFT_MISSING) & MASK_TWO_BIT;
-      int value = partialState >> SHIFT_VALUE;
-      partialState = NO_PARTIAL;
-      position = addContinuation(
-          utf8, position, end, continueByteCount, missing, value);
-      if (position == end) return;
-    }
-    // Keep index and capacity in local variables while looping over
-    // ASCII characters.
-    int index = length;
-    int capacity = buffer.length;
-    while (position < end) {
-      int char = utf8[position];
-      if (char <= MAX_ASCII) {
-        if (index == capacity) {
-          length = index;
-          _grow();
-          capacity = buffer.length;
-        }
-        buffer[index++] = char;
-        position++;
-        continue;
-      }
-      length = index;
-      if ((char & MASK_CONTINUE_TAG) == CONTINUE_TAG) {
-        if (allowMalformed) {
-          addCharCode(0xFFFD);
-          position++;
-        } else {
-          throw new FormatException(
-              "Unexpected UTF-8 continuation byte", utf8, position);
-        }
-      } else if (char < 0xE0) {
-        // C0-DF
-        // Two-byte.
-        position = addContinuation(
-            utf8, position + 1, end, 1, 1, char & MASK_TWO_BYTE);
-      } else if (char < 0xF0) {
-        // E0-EF
-        // Three-byte.
-        position = addContinuation(
-            utf8, position + 1, end, 2, 2, char & MASK_THREE_BYTE);
-      } else if (char < 0xF8) {
-        // F0-F7
-        // Four-byte.
-        position = addContinuation(
-            utf8, position + 1, end, 3, 3, char & MASK_FOUR_BYTE);
-      } else {
-        if (allowMalformed) {
-          addCharCode(0xFFFD);
-          position++;
-        } else {
-          throw new FormatException(
-              "Invalid UTF-8 byte: $char", utf8, position);
-        }
-      }
-      index = length;
-      capacity = buffer.length;
-    }
-    length = index;
-  }
-
-  String toString() {
-    if (partialState != NO_PARTIAL) {
-      if (allowMalformed) {
-        partialState = NO_PARTIAL;
-        addCharCode(0xFFFD);
-      } else {
-        int continueByteCount = (partialState & MASK_TWO_BIT);
-        int missing = (partialState >> SHIFT_MISSING) & MASK_TWO_BIT;
-        int value = partialState >> SHIFT_VALUE;
-        int seenByteCount = continueByteCount - missing + 1;
-        List source = new Uint8List(seenByteCount);
-        while (seenByteCount > 1) {
-          seenByteCount--;
-          source[seenByteCount] = CONTINUE_TAG | (value & MASK_CONTINUE_VALUE);
-          value >>= 6;
-        }
-        source[0] = value | (0x3c0 >> (continueByteCount - 1));
-        throw new FormatException(
-            "Incomplete UTF-8 sequence", source, source.length);
-      }
-    }
-    return new String.fromCharCodes(buffer, 0, length);
   }
 }
 
@@ -1753,12 +1512,15 @@ class _Utf8StringBuffer {
  * Chunked JSON parser that parses UTF-8 chunks.
  */
 class _JsonUtf8Parser extends _ChunkedJsonParser<List<int>> {
-  final bool allowMalformed;
-  List<int> chunk;
-  int chunkEnd;
+  static final Uint8List emptyChunk = Uint8List(0);
 
-  _JsonUtf8Parser(_JsonListener listener, this.allowMalformed)
-      : super(listener) {
+  final _Utf8Decoder decoder;
+  List<int> chunk = emptyChunk;
+  int chunkEnd = 0;
+
+  _JsonUtf8Parser(_JsonListener listener, bool allowMalformed)
+      : decoder = new _Utf8Decoder(allowMalformed),
+        super(listener) {
     // Starts out checking for an optional BOM (KWD_BOM, count = 0).
     partialState =
         _ChunkedJsonParser.PARTIAL_KEYWORD | _ChunkedJsonParser.KWD_BOM;
@@ -1778,21 +1540,24 @@ class _JsonUtf8Parser extends _ChunkedJsonParser<List<int>> {
   }
 
   void beginString() {
-    this.buffer = new _Utf8StringBuffer(allowMalformed);
+    decoder.reset();
+    this.buffer = new StringBuffer();
   }
 
   void addSliceToString(int start, int end) {
-    _Utf8StringBuffer buffer = this.buffer;
-    buffer.addSlice(chunk, start, end);
+    final StringBuffer buffer = this.buffer;
+    buffer.write(decoder.convertChunked(chunk, start, end));
   }
 
   void addCharToString(int charCode) {
-    _Utf8StringBuffer buffer = this.buffer;
-    buffer.addCharCode(charCode);
+    final StringBuffer buffer = this.buffer;
+    decoder.flush(buffer);
+    buffer.writeCharCode(charCode);
   }
 
   String endString() {
-    _Utf8StringBuffer buffer = this.buffer;
+    final StringBuffer buffer = this.buffer;
+    decoder.flush(buffer);
     this.buffer = null;
     return buffer.toString();
   }
@@ -1816,12 +1581,14 @@ double _parseDouble(String source, int start, int end) native "Double_parse";
  */
 class _JsonUtf8DecoderSink extends ByteConversionSinkBase {
   final _JsonUtf8Parser _parser;
-  final Sink<Object> _sink;
+  final Sink<Object?> _sink;
 
   _JsonUtf8DecoderSink(reviver, this._sink, bool allowMalformed)
       : _parser = _createParser(reviver, allowMalformed);
 
-  static _JsonUtf8Parser _createParser(reviver, bool allowMalformed) {
+  static _JsonUtf8Parser _createParser(
+      Object? Function(Object? key, Object? value)? reviver,
+      bool allowMalformed) {
     _BuildJsonListener listener;
     if (reviver == null) {
       listener = new _BuildJsonListener();
@@ -1855,24 +1622,434 @@ class _JsonUtf8DecoderSink extends ByteConversionSinkBase {
 }
 
 @patch
-int _scanOneByteCharacters(List<int> units, int from, int endIndex) {
-  final to = endIndex;
+class _Utf8Decoder {
+  /// Flags indicating presence of the various kinds of bytes in the input.
+  int _scanFlags = 0;
 
-  // Special case for _Uint8ArrayView.
-  if (units is Uint8List) {
-    if (from >= 0 && to >= 0 && to <= units.length) {
-      for (int i = from; i < to; i++) {
-        final unit = units[i];
-        if ((unit & _ONE_BYTE_LIMIT) != unit) return i - from;
-      }
-      return to - from;
+  /// How many bytes of the BOM have been read so far. Set to -1 when the BOM
+  /// has been skipped (or was not present).
+  int _bomIndex = 0;
+
+  // Table for the scanning phase, which quickly scans through the input.
+  //
+  // Each input byte is looked up in the table, providing a size and some flags.
+  // The sizes are summed, and the flags are or'ed together.
+  //
+  // The resulting size and flags indicate:
+  // A) How many UTF-16 code units will be emitted by the decoding of this
+  //    input. This can be used to allocate a string of the correct length up
+  //    front.
+  // B) Which decoder and resulting string representation is appropriate. There
+  //    are three cases:
+  //    1) Pure ASCII (flags == 0): The input can simply be put into a
+  //       OneByteString without further decoding.
+  //    2) Latin1 (flags == (flagLatin1 | flagExtension)): The result can be
+  //       represented by a OneByteString, and the decoder can assume that only
+  //       Latin1 characters are present.
+  //    3) Arbitrary input (otherwise): Needs a full-featured decoder. Output
+  //       can be represented by a TwoByteString.
+
+  static const int sizeMask = 0x03;
+  static const int flagsMask = 0x3C;
+
+  static const int flagExtension = 1 << 2;
+  static const int flagLatin1 = 1 << 3;
+  static const int flagNonLatin1 = 1 << 4;
+  static const int flagIllegal = 1 << 5;
+
+  // ASCII     'A' = 64 + (1);
+  // Extension 'D' = 64 + (0 | flagExtension);
+  // Latin1    'I' = 64 + (1 | flagLatin1);
+  // BMP       'Q' = 64 + (1 | flagNonLatin1);
+  // Non-BMP   'R' = 64 + (2 | flagNonLatin1);
+  // Illegal   'a' = 64 + (1 | flagIllegal);
+  // Illegal   'b' = 64 + (2 | flagIllegal);
+  static const String scanTable = ""
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 00-1F
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 20-3F
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 40-5F
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 60-7F
+      "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD" // 80-9F
+      "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD" // A0-BF
+      "aaIIQQQQQQQQQQQQQQQQQQQQQQQQQQQQ" // C0-DF
+      "QQQQQQQQQQQQQQQQRRRRRbbbbbbbbbbb" // E0-FF
+      ;
+
+  /// Max chunk to scan at a time. Avoids staying away from safepoints too long.
+  static const int scanChunkSize = 65536;
+
+  /// Reset the decoder to a state where it is ready to decode a new string but
+  /// will not skip a leading BOM. Used by the fused UTF-8 / JSON decoder.
+  void reset() {
+    _state = initial;
+    _bomIndex = -1;
+  }
+
+  @pragma("vm:prefer-inline")
+  int scan(Uint8List bytes, int start, int end) {
+    // Assumes 0 <= start <= end <= bytes.length
+    int size = 0;
+    _scanFlags = 0;
+    int localStart = start;
+    while (end - localStart > scanChunkSize) {
+      int localEnd = localStart + scanChunkSize;
+      size += _scan(bytes, localStart, localEnd, scanTable);
+      localStart = localEnd;
     }
+    size += _scan(bytes, localStart, end, scanTable);
+    return size;
   }
 
-  // Fall through to normal case.
-  for (var i = from; i < to; i++) {
-    final unit = units[i];
-    if ((unit & _ONE_BYTE_LIMIT) != unit) return i - from;
+  // This method is recognized by the VM and compiled into specialized code.
+  @pragma("vm:prefer-inline")
+  int _scan(Uint8List bytes, int start, int end, String scanTable) {
+    int size = 0;
+    int flags = 0;
+    for (int i = start; i < end; i++) {
+      int t = scanTable.codeUnitAt(bytes[i]);
+      size += t & sizeMask;
+      flags |= t;
+    }
+    _scanFlags |= flags & flagsMask;
+    return size;
   }
-  return to - from;
+
+  @pragma("vm:prefer-inline")
+  static bool _isNativeUint8List(List<int> array) {
+    final int cid = ClassID.getID(array);
+    return cid == ClassID.cidUint8ArrayView ||
+        cid == ClassID.cidUint8Array ||
+        cid == ClassID.cidExternalUint8Array;
+  }
+
+  // The VM decoder handles BOM explicitly instead of via the state machine.
+  @patch
+  _Utf8Decoder(this.allowMalformed) : _state = initial;
+
+  @patch
+  String convertSingle(List<int> codeUnits, int start, int? maybeEnd) {
+    int end = RangeError.checkValidRange(start, maybeEnd, codeUnits.length);
+
+    // Have bytes as Uint8List.
+    Uint8List bytes;
+    int errorOffset;
+    if (_isNativeUint8List(codeUnits)) {
+      bytes = unsafeCast<Uint8List>(codeUnits);
+      errorOffset = 0;
+    } else {
+      bytes = _makeUint8List(codeUnits, start, end);
+      errorOffset = start;
+      end -= start;
+      start = 0;
+    }
+
+    // Skip initial BOM.
+    start = skipBomSingle(bytes, start, end);
+
+    // Special case empty input.
+    if (start == end) return "";
+
+    // Scan input to determine size and appropriate decoder.
+    int size = scan(bytes, start, end);
+    int flags = _scanFlags;
+
+    if (flags == 0) {
+      // Pure ASCII.
+      assert(size == end - start);
+      String result = allocateOneByteString(size);
+      copyRangeFromUint8ListToOneByteString(bytes, result, start, 0, size);
+      return result;
+    }
+
+    String result;
+    if (flags == (flagLatin1 | flagExtension)) {
+      // Latin1.
+      result = decode8(bytes, start, end, size);
+    } else {
+      // Arbitrary Unicode.
+      result = decode16(bytes, start, end, size);
+    }
+    if (_state == accept) {
+      return result;
+    }
+
+    if (!allowMalformed) {
+      if (!isErrorState(_state)) {
+        // Unfinished sequence.
+        _state = errorUnfinished;
+        _charOrIndex = end;
+      }
+      final String message = errorDescription(_state);
+      throw FormatException(message, codeUnits, errorOffset + _charOrIndex);
+    }
+
+    // Start over on slow path.
+    _state = initial;
+    result = decodeGeneral(bytes, start, end, true);
+    assert(!isErrorState(_state));
+    return result;
+  }
+
+  @patch
+  String convertChunked(List<int> codeUnits, int start, int? maybeEnd) {
+    int end = RangeError.checkValidRange(start, maybeEnd, codeUnits.length);
+
+    // Have bytes as Uint8List.
+    Uint8List bytes;
+    int errorOffset;
+    if (_isNativeUint8List(codeUnits)) {
+      bytes = unsafeCast<Uint8List>(codeUnits);
+      errorOffset = 0;
+    } else {
+      bytes = _makeUint8List(codeUnits, start, end);
+      errorOffset = start;
+      end -= start;
+      start = 0;
+    }
+
+    // Skip initial BOM.
+    start = skipBomChunked(bytes, start, end);
+
+    // Special case empty input.
+    if (start == end) return "";
+
+    // Scan input to determine size and appropriate decoder.
+    int size = scan(bytes, start, end);
+    int flags = _scanFlags;
+
+    // Adjust scan flags and size based on carry-over state.
+    switch (_state) {
+      case IA:
+        break;
+      case X1:
+        flags |= _charOrIndex < (0x100 >> 6) ? flagLatin1 : flagNonLatin1;
+        if (end - start >= 1) {
+          size += _charOrIndex < (0x10000 >> 6) ? 1 : 2;
+        }
+        break;
+      case X2:
+        flags |= flagNonLatin1;
+        if (end - start >= 2) {
+          size += _charOrIndex < (0x10000 >> 12) ? 1 : 2;
+        }
+        break;
+      case TO:
+      case TS:
+        flags |= flagNonLatin1;
+        if (end - start >= 2) size += 1;
+        break;
+      case X3:
+      case QO:
+      case QR:
+        flags |= flagNonLatin1;
+        if (end - start >= 3) size += 2;
+        break;
+    }
+
+    if (flags == 0) {
+      // Pure ASCII.
+      assert(_state == accept);
+      assert(size == end - start);
+      String result = allocateOneByteString(size);
+      copyRangeFromUint8ListToOneByteString(bytes, result, start, 0, size);
+      return result;
+    }
+
+    // Do not include any final, incomplete character in size.
+    int extensionCount = 0;
+    int i = end - 1;
+    while (i >= start && (bytes[i] & 0xC0) == 0x80) {
+      extensionCount++;
+      i--;
+    }
+    if (i >= start && bytes[i] >= ((~0x3F >> extensionCount) & 0xFF)) {
+      size -= bytes[i] >= 0xF0 ? 2 : 1;
+    }
+
+    final int carryOverState = _state;
+    final int carryOverChar = _charOrIndex;
+    String result;
+    if (flags == (flagLatin1 | flagExtension)) {
+      // Latin1.
+      result = decode8(bytes, start, end, size);
+    } else {
+      // Arbitrary Unicode.
+      result = decode16(bytes, start, end, size);
+    }
+    if (!isErrorState(_state)) {
+      return result;
+    }
+    assert(_bomIndex == -1);
+
+    if (!allowMalformed) {
+      final String message = errorDescription(_state);
+      _state = initial; // Ready for more input.
+      throw FormatException(message, codeUnits, errorOffset + _charOrIndex);
+    }
+
+    // Start over on slow path.
+    _state = carryOverState;
+    _charOrIndex = carryOverChar;
+    result = decodeGeneral(bytes, start, end, false);
+    assert(!isErrorState(_state));
+    return result;
+  }
+
+  @pragma("vm:prefer-inline")
+  int skipBomSingle(Uint8List bytes, int start, int end) {
+    if (end - start >= 3 &&
+        bytes[start] == 0xEF &&
+        bytes[start + 1] == 0xBB &&
+        bytes[start + 2] == 0xBF) {
+      return start + 3;
+    }
+    return start;
+  }
+
+  @pragma("vm:prefer-inline")
+  int skipBomChunked(Uint8List bytes, int start, int end) {
+    assert(start <= end);
+    int bomIndex = _bomIndex;
+    // Already skipped?
+    if (bomIndex == -1) return start;
+
+    const bomValues = <int>[0xEF, 0xBB, 0xBF];
+    int i = start;
+    while (bomIndex < 3) {
+      if (i == end) {
+        // Unfinished BOM.
+        _bomIndex = bomIndex;
+        return start;
+      }
+      if (bytes[i++] != bomValues[bomIndex++]) {
+        // No BOM.
+        _bomIndex = -1;
+        return start;
+      }
+    }
+    // Complete BOM.
+    _bomIndex = -1;
+    _state = initial;
+    return i;
+  }
+
+  String decode8(Uint8List bytes, int start, int end, int size) {
+    assert(start < end);
+    String result = allocateOneByteString(size);
+    int i = start;
+    int j = 0;
+    if (_state == X1) {
+      // Half-way though 2-byte sequence
+      assert(_charOrIndex == 2 || _charOrIndex == 3);
+      final int e = bytes[i++] ^ 0x80;
+      if (e >= 0x40) {
+        _state = errorMissingExtension;
+        _charOrIndex = i - 1;
+        return "";
+      }
+      writeIntoOneByteString(result, j++, (_charOrIndex << 6) | e);
+      _state = accept;
+    }
+    assert(_state == accept);
+    while (i < end) {
+      int byte = bytes[i++];
+      if (byte >= 0x80) {
+        if (byte < 0xC0) {
+          _state = errorUnexpectedExtension;
+          _charOrIndex = i - 1;
+          return "";
+        }
+        assert(byte == 0xC2 || byte == 0xC3);
+        if (i == end) {
+          _state = X1;
+          _charOrIndex = byte & 0x1F;
+          break;
+        }
+        final int e = bytes[i++] ^ 0x80;
+        if (e >= 0x40) {
+          _state = errorMissingExtension;
+          _charOrIndex = i - 1;
+          return "";
+        }
+        byte = (byte << 6) | e;
+      }
+      writeIntoOneByteString(result, j++, byte);
+    }
+    // Output size must match, unless we are doing single conversion and are
+    // inside an unfinished sequence (which will trigger an error later).
+    assert(_bomIndex == 0 && _state != accept
+        ? (j == size - 1 || j == size - 2)
+        : (j == size));
+    return result;
+  }
+
+  String decode16(Uint8List bytes, int start, int end, int size) {
+    assert(start < end);
+    final String typeTable = _Utf8Decoder.typeTable;
+    final String transitionTable = _Utf8Decoder.transitionTable;
+    String result = allocateTwoByteString(size);
+    int i = start;
+    int j = 0;
+    int state = _state;
+    int char;
+
+    // First byte
+    assert(!isErrorState(state));
+    final int byte = bytes[i++];
+    final int type = typeTable.codeUnitAt(byte) & typeMask;
+    if (state == accept) {
+      char = byte & (shiftedByteMask >> type);
+      state = transitionTable.codeUnitAt(type);
+    } else {
+      char = (byte & 0x3F) | (_charOrIndex << 6);
+      state = transitionTable.codeUnitAt(state + type);
+    }
+
+    while (i < end) {
+      final int byte = bytes[i++];
+      final int type = typeTable.codeUnitAt(byte) & typeMask;
+      if (state == accept) {
+        if (char >= 0x10000) {
+          assert(char < 0x110000);
+          writeIntoTwoByteString(result, j++, 0xD7C0 + (char >> 10));
+          writeIntoTwoByteString(result, j++, 0xDC00 + (char & 0x3FF));
+        } else {
+          writeIntoTwoByteString(result, j++, char);
+        }
+        char = byte & (shiftedByteMask >> type);
+        state = transitionTable.codeUnitAt(type);
+      } else if (isErrorState(state)) {
+        _state = state;
+        _charOrIndex = i - 2;
+        return "";
+      } else {
+        char = (byte & 0x3F) | (char << 6);
+        state = transitionTable.codeUnitAt(state + type);
+      }
+    }
+
+    // Final write?
+    if (state == accept) {
+      if (char >= 0x10000) {
+        assert(char < 0x110000);
+        writeIntoTwoByteString(result, j++, 0xD7C0 + (char >> 10));
+        writeIntoTwoByteString(result, j++, 0xDC00 + (char & 0x3FF));
+      } else {
+        writeIntoTwoByteString(result, j++, char);
+      }
+    } else if (isErrorState(state)) {
+      _state = state;
+      _charOrIndex = end - 1;
+      return "";
+    }
+
+    _state = state;
+    _charOrIndex = char;
+    // Output size must match, unless we are doing single conversion and are
+    // inside an unfinished sequence (which will trigger an error later).
+    assert(_bomIndex == 0 && _state != accept
+        ? (j == size - 1 || j == size - 2)
+        : (j == size));
+    return result;
+  }
 }

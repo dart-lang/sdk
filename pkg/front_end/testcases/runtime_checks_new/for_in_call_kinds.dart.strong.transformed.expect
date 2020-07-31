@@ -1,7 +1,6 @@
 library test;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 class C extends core::Object {
   static field dynamic staticField = null;
@@ -14,7 +13,7 @@ class C extends core::Object {
   method test() → void {
     dynamic localVar;
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t1 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -23,7 +22,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t2 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -32,7 +31,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t3 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -41,7 +40,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t4 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -50,7 +49,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t5 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -59,7 +58,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t6 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -68,7 +67,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t7 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -77,6 +76,16 @@ class C extends core::Object {
       }
     }
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static field dynamic topLevel;
 static set topLevelSetter(dynamic x) → void {}

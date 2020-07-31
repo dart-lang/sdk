@@ -9,6 +9,6 @@ static method id<T extends core::Object* = dynamic>(self::id::T* x) → self::id
   return x;
 static method test() → dynamic async {
   asy::Future<core::String*>* f;
-  core::String* s = await self::id<asy::FutureOr<core::String*>*>(f);
+  core::String* s = await self::id<FutureOr<core::String*>*>(f);
 }
 static method main() → dynamic {}

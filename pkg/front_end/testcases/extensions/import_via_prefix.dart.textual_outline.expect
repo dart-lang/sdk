@@ -1,0 +1,4 @@
+import 'import_via_prefix_lib.dart' as prefix;
+
+main() {}
+expect(expected, actual) {}

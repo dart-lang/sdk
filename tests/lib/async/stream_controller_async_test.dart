@@ -22,7 +22,7 @@ testController() {
   test("StreamController.fold", () {
     StreamController c = new StreamController();
     Stream stream = c.stream.asBroadcastStream(onCancel: cancelSub);
-    stream.fold(0, (a, b) => a + b).then(expectAsync((int v) {
+    stream.fold<dynamic>(0, (a, b) => a + b).then(expectAsync((int v) {
       Expect.equals(42, v);
     }));
     c.add(10);
@@ -33,9 +33,9 @@ testController() {
   test("StreamController.fold throws", () {
     StreamController c = new StreamController();
     Stream stream = c.stream.asBroadcastStream(onCancel: cancelSub);
-    stream.fold(0, (a, b) {
+    Future<int?>.value(stream.fold(0, (a, b) {
       throw "Fnyf!";
-    }).catchError(expectAsync((error) {
+    })).catchError(expectAsync((error) {
       Expect.equals("Fnyf!", error);
     }));
     c.add(42);
@@ -46,7 +46,7 @@ testSingleController() {
   test("Single-subscription StreamController.fold", () {
     StreamController c = new StreamController();
     Stream stream = c.stream;
-    stream.fold(0, (a, b) => a + b).then(expectAsync((int v) {
+    stream.fold<dynamic>(0, (a, b) => a + b).then(expectAsync((int v) {
       Expect.equals(42, v);
     }));
     c.add(10);
@@ -57,9 +57,9 @@ testSingleController() {
   test("Single-subscription StreamController.fold throws", () {
     StreamController c = new StreamController();
     Stream stream = c.stream;
-    stream.fold(0, (a, b) {
+    Future<int?>.value(stream.fold(0, (a, b) {
       throw "Fnyf!";
-    }).catchError(expectAsync((e) {
+    })).catchError(expectAsync((e) {
       Expect.equals("Fnyf!", e);
     }));
     c.add(42);
@@ -669,8 +669,8 @@ void testAsBroadcast() {
   });
 }
 
-void testSink({
-    required bool sync, required bool broadcast, required bool asBroadcast}) {
+void testSink(
+    {required bool sync, required bool broadcast, required bool asBroadcast}) {
   String type =
       "${sync ? "S" : "A"}${broadcast ? "B" : "S"}${asBroadcast ? "aB" : ""}";
   test("$type-controller-sink", () {

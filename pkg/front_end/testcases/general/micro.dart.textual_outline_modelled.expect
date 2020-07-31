@@ -1,0 +1,38 @@
+abstract class Bar {
+  ExternalValue externalInstanceMethod();
+}
+
+abstract class ExternalValue {}
+
+class Box {
+  var field;
+}
+
+class DynamicReceiver1 {
+  dynamicallyCalled(x) {}
+}
+
+class DynamicReceiver2 {
+  dynamicallyCalled(x) {}
+}
+
+class FinalBox {
+  FinalBox(this.finalField);
+  final finalField;
+}
+
+class Foo {
+  instanceMethod() {}
+}
+
+class SubFinalBox extends FinalBox {
+  SubFinalBox(value) : super(value);
+}
+
+external Bar createBar();
+external bool externalStatic();
+intArgument(x) {}
+main() {}
+staticMethod() {}
+stringArgument(x) {}
+void makeDynamicCall(receiver) {}

@@ -1,0 +1,8 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::bool a = const <core::Null?>[] is{ForNonNullableByDefault} core::List<core::int>;
+static const field core::bool b = const <core::int?>[] is{ForNonNullableByDefault} core::List<core::int>;
+static method main() → void
+  ;

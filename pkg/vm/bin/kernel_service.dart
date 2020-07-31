@@ -44,7 +44,10 @@ import 'package:vm/bytecode/gen_bytecode.dart'
 import 'package:vm/bytecode/options.dart' show BytecodeOptions;
 import 'package:vm/incremental_compiler.dart';
 import 'package:vm/kernel_front_end.dart'
-    show createLoadedLibrariesSet, runWithFrontEndCompilerContext;
+    show
+        autoDetectNullSafetyMode,
+        createLoadedLibrariesSet,
+        runWithFrontEndCompilerContext;
 import 'package:vm/http_filesystem.dart';
 import 'package:vm/target/vm.dart' show VmTarget;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
@@ -74,8 +77,76 @@ const int kTrainTag = 3;
 const int kCompileExpressionTag = 4;
 const int kListDependenciesTag = 5;
 const int kNotifyIsolateShutdownTag = 6;
+const int kDetectNullabilityTag = 7;
 
 bool allowDartInternalImport = false;
+
+// Null Safety command line options
+//
+// Note: The values of these constants must match the
+// values of flag null_safety in ../../../../runtime/vm/flag_list.h.
+// 0 - No null_safety option specified on the command line.
+// 1 - '--no-null-safety' specified on the command line.
+// 2 - '--null-safety' option specified on the command line.
+const int kNullSafetyOptionUnspecified = 0;
+const int kNullSafetyOptionWeak = 1;
+const int kNullSafetyOptionStrong = 2;
+
+CompilerOptions setupCompilerOptions(
+    FileSystem fileSystem,
+    Uri platformKernelPath,
+    bool suppressWarnings,
+    bool enableAsserts,
+    int nullSafety,
+    List<String> experimentalFlags,
+    bool bytecode,
+    Uri packagesUri,
+    List<String> errors) {
+  final expFlags = <String>[];
+  if (experimentalFlags != null) {
+    for (String flag in experimentalFlags) {
+      expFlags.addAll(flag.split(","));
+    }
+  }
+
+  return new CompilerOptions()
+    ..fileSystem = fileSystem
+    ..target = new VmTarget(new TargetFlags(
+        enableNullSafety: nullSafety == kNullSafetyOptionStrong))
+    ..packagesFileUri = packagesUri
+    ..sdkSummary = platformKernelPath
+    ..verbose = verbose
+    ..omitPlatform = true
+    ..bytecode = bytecode
+    ..experimentalFlags = parseExperimentalFlags(
+        parseExperimentalArguments(expFlags),
+        onError: (msg) => errors.add(msg))
+    ..environmentDefines = new EnvironmentMap()
+    ..nnbdMode = (nullSafety == kNullSafetyOptionStrong)
+        ? NnbdMode.Strong
+        : NnbdMode.Weak
+    ..onDiagnostic = (DiagnosticMessage message) {
+      bool printMessage;
+      switch (message.severity) {
+        case Severity.error:
+        case Severity.internalProblem:
+          // TODO(sigmund): support emitting code with errors as long as they
+          // are handled in the generated code.
+          printMessage = false; // errors are printed by VM
+          errors.addAll(message.plainTextFormatted);
+          break;
+        case Severity.warning:
+          printMessage = !suppressWarnings;
+          break;
+        case Severity.context:
+        case Severity.ignored:
+          throw "Unexpected severity: ${message.severity}";
+      }
+      if (printMessage) {
+        printDiagnosticMessage(message, stderr.writeln);
+      }
+    };
+}
 
 abstract class Compiler {
   final int isolateId;
@@ -83,7 +154,7 @@ abstract class Compiler {
   final Uri platformKernelPath;
   final bool suppressWarnings;
   final bool enableAsserts;
-  final bool nullSafety;
+  final int nullSafety;
   final List<String> experimentalFlags;
   final bool bytecode;
   final String packageConfig;
@@ -100,7 +171,7 @@ abstract class Compiler {
   Compiler(this.isolateId, this.fileSystem, this.platformKernelPath,
       {this.suppressWarnings: false,
       this.enableAsserts: false,
-      this.nullSafety: false,
+      this.nullSafety: kNullSafetyOptionUnspecified,
       this.experimentalFlags: null,
       this.bytecode: false,
       this.supportCodeCoverage: false,
@@ -120,47 +191,16 @@ abstract class Compiler {
       print("DFE: platformKernelPath: ${platformKernelPath}");
     }
 
-    var expFlags = List<String>();
-    if (experimentalFlags != null) {
-      for (String flag in experimentalFlags) {
-        expFlags.addAll(flag.split(","));
-      }
-    }
-
-    options = new CompilerOptions()
-      ..fileSystem = fileSystem
-      ..target = new VmTarget(new TargetFlags())
-      ..packagesFileUri = packagesUri
-      ..sdkSummary = platformKernelPath
-      ..verbose = verbose
-      ..omitPlatform = true
-      ..bytecode = bytecode
-      ..experimentalFlags = parseExperimentalFlags(
-          parseExperimentalArguments(expFlags),
-          onError: (msg) => errors.add(msg))
-      ..environmentDefines = new EnvironmentMap()
-      ..nnbdMode = nullSafety ? NnbdMode.Strong : NnbdMode.Weak
-      ..onDiagnostic = (DiagnosticMessage message) {
-        bool printMessage;
-        switch (message.severity) {
-          case Severity.error:
-          case Severity.internalProblem:
-            // TODO(sigmund): support emitting code with errors as long as they
-            // are handled in the generated code.
-            printMessage = false; // errors are printed by VM
-            errors.addAll(message.plainTextFormatted);
-            break;
-          case Severity.warning:
-            printMessage = !suppressWarnings;
-            break;
-          case Severity.context:
-          case Severity.ignored:
-            throw "Unexpected severity: ${message.severity}";
-        }
-        if (printMessage) {
-          printDiagnosticMessage(message, stderr.writeln);
-        }
-      };
+    options = setupCompilerOptions(
+        fileSystem,
+        platformKernelPath,
+        suppressWarnings,
+        enableAsserts,
+        nullSafety,
+        experimentalFlags,
+        bytecode,
+        packagesUri,
+        errors);
   }
 
   Future<CompilerResult> compile(Uri script) {
@@ -294,7 +334,7 @@ class IncrementalCompilerWrapper extends Compiler {
       int isolateId, FileSystem fileSystem, Uri platformKernelPath,
       {bool suppressWarnings: false,
       bool enableAsserts: false,
-      bool nullSafety: false,
+      int nullSafety: kNullSafetyOptionUnspecified,
       List<String> experimentalFlags: null,
       bool bytecode: false,
       String packageConfig: null})
@@ -381,7 +421,7 @@ class SingleShotCompilerWrapper extends Compiler {
       {this.requireMain: false,
       bool suppressWarnings: false,
       bool enableAsserts: false,
-      bool nullSafety: false,
+      int nullSafety: kNullSafetyOptionUnspecified,
       List<String> experimentalFlags: null,
       bool bytecode: false,
       String packageConfig: null})
@@ -423,7 +463,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     List sourceFiles, Uri platformKernelPath, List<int> platformKernel,
     {bool suppressWarnings: false,
     bool enableAsserts: false,
-    bool nullSafety: false,
+    int nullSafety: kNullSafetyOptionUnspecified,
     List<String> experimentalFlags: null,
     bool bytecode: false,
     String packageConfig: null,
@@ -691,6 +731,7 @@ Future _processLoadRequest(request) async {
           prepend = ", ";
           if (sb.length > 256) break;
         }
+        sb.write("]");
         partToString = sb.toString();
       } else {
         partToString = part.toString();
@@ -724,7 +765,7 @@ Future _processLoadRequest(request) async {
   final Uri script =
       inputFileUri != null ? Uri.base.resolve(inputFileUri) : null;
   final bool incremental = request[4];
-  final bool nullSafety = request[5];
+  final int nullSafety = request[5];
   final int isolateId = request[6];
   final List sourceFiles = request[7];
   final bool suppressWarnings = request[8];
@@ -735,6 +776,7 @@ Future _processLoadRequest(request) async {
   final String packageConfig = request[12];
   final String multirootFilepaths = request[13];
   final String multirootScheme = request[14];
+  final String workingDirectory = request[15];
 
   Uri platformKernelPath = null;
   List<int> platformKernel = null;
@@ -776,6 +818,30 @@ Future _processLoadRequest(request) async {
       (compiler as IncrementalCompilerWrapper).accept();
     }
     port.send(new CompilationResult.ok(null).toResponse());
+    return;
+  } else if (tag == kDetectNullabilityTag) {
+    FileSystem fileSystem = _buildFileSystem(
+        sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
+    Uri packagesUri = null;
+    if (packageConfig != null) {
+      packagesUri = Uri.parse(packageConfig);
+    } else if (Platform.packageConfig != null) {
+      packagesUri = Uri.parse(Platform.packageConfig);
+    }
+    if (packagesUri != null && packagesUri.scheme == '') {
+      // Script does not have a scheme, assume that it is a path,
+      // resolve it against the working directory.
+      packagesUri = Uri.directory(workingDirectory).resolveUri(packagesUri);
+    }
+    final List<String> errors = <String>[];
+    var options = setupCompilerOptions(fileSystem, platformKernelPath, false,
+        false, nullSafety, experimentalFlags, false, packagesUri, errors);
+
+    // script should only be null for kUpdateSourcesTag.
+    assert(script != null);
+    await autoDetectNullSafetyMode(script, options);
+    bool value = options.nnbdMode == NnbdMode.Strong;
+    port.send(new CompilationResult.nullSafety(value).toResponse());
     return;
   }
 
@@ -954,7 +1020,7 @@ Future trainInternal(
     scriptUri,
     platformKernelPath,
     false /* incremental */,
-    false /* null safety */,
+    kNullSafetyOptionUnspecified /* null safety */,
     1 /* isolateId chosen randomly */,
     [] /* source files */,
     false /* suppress warnings */,
@@ -964,6 +1030,7 @@ Future trainInternal(
     null /* package_config */,
     null /* multirootFilepaths */,
     null /* multirootScheme */,
+    null /* original working directory */,
   ];
   await _processLoadRequest(request);
 }
@@ -1011,6 +1078,8 @@ abstract class CompilationResult {
 
   factory CompilationResult.ok(Uint8List bytes) = _CompilationOk;
 
+  factory CompilationResult.nullSafety(bool val) = _CompilationNullSafety;
+
   factory CompilationResult.errors(List<String> errors, Uint8List bytes) =
       _CompilationError;
 
@@ -1040,6 +1109,20 @@ class _CompilationOk extends CompilationResult {
   get payload => bytes;
 
   String toString() => "_CompilationOk(${bytes.length} bytes)";
+}
+
+class _CompilationNullSafety extends CompilationResult {
+  final bool _null_safety;
+
+  _CompilationNullSafety(this._null_safety) : super._() {}
+
+  @override
+  Status get status => Status.ok;
+
+  @override
+  get payload => _null_safety;
+
+  String toString() => "_CompilationNullSafety($_null_safety)";
 }
 
 abstract class _CompilationFail extends CompilationResult {

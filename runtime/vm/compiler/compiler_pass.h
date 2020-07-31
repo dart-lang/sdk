@@ -5,7 +5,9 @@
 #ifndef RUNTIME_VM_COMPILER_COMPILER_PASS_H_
 #define RUNTIME_VM_COMPILER_COMPILER_PASS_H_
 
-#ifndef DART_PRECOMPILED_RUNTIME
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 #include <initializer_list>
 
@@ -115,7 +117,7 @@ class CompilerPass {
   };
 
 #define ADD_ONE(name) +1
-  static const intptr_t kNumPasses = 0 COMPILER_PASS_LIST(ADD_ONE);
+  static constexpr intptr_t kNumPasses = 0 COMPILER_PASS_LIST(ADD_ONE);
 #undef ADD_ONE
 
   CompilerPass(Id id, const char* name) : name_(name), flags_(0) {
@@ -200,7 +202,5 @@ class CompilerPass {
 };
 
 }  // namespace dart
-
-#endif
 
 #endif  // RUNTIME_VM_COMPILER_COMPILER_PASS_H_

@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_X64_H_
 #define RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_X64_H_
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+#error "AOT runtime should not use compiler sources (including header files)"
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_H_
 #error Do not include assembler_x64.h directly; use assembler.h instead.
 #endif
@@ -191,7 +195,7 @@ class Address : public Operand {
   Address(Register base, Register r);
 
   Address(Register index, ScaleFactor scale, int32_t disp) {
-    ASSERT(index != RSP);  // Illegal addressing mode.
+    ASSERT(index != RSP);       // Illegal addressing mode.
     ASSERT(scale != TIMES_16);  // Unsupported scale factor.
     SetModRM(0, RSP);
     SetSIB(scale, index, RBP);
@@ -202,7 +206,7 @@ class Address : public Operand {
   Address(Register index, ScaleFactor scale, Register r);
 
   Address(Register base, Register index, ScaleFactor scale, int32_t disp) {
-    ASSERT(index != RSP);  // Illegal addressing mode.
+    ASSERT(index != RSP);       // Illegal addressing mode.
     ASSERT(scale != TIMES_16);  // Unsupported scale factor.
     if ((disp == 0) && ((base & 7) != RBP)) {
       SetModRM(0, RSP);
@@ -313,6 +317,7 @@ class Assembler : public AssemblerBase {
   void LeaveSafepoint();
   void TransitionGeneratedToNative(Register destination_address,
                                    Register new_exit_frame,
+                                   Register new_exit_through_ffi,
                                    bool enter_safepoint);
   void TransitionNativeToGenerated(bool leave_safepoint);
 
@@ -387,6 +392,9 @@ class Assembler : public AssemblerBase {
   SIMPLE(fsin, 0xD9, 0xFE)
   SIMPLE(lock, 0xF0)
   SIMPLE(rep_movsb, 0xF3, 0xA4)
+  SIMPLE(rep_movsw, 0xF3, 0x66, 0xA5)
+  SIMPLE(rep_movsl, 0xF3, 0xA5)
+  SIMPLE(rep_movsq, 0xF3, 0x48, 0xA5)
 #undef SIMPLE
 // XmmRegister operations with another register or an address.
 #define XX(width, name, ...)                                                   \
@@ -510,6 +518,9 @@ class Assembler : public AssemblerBase {
     EmitL(dst, src, 0x50, 0x0F, 0x66);
   }
   void movmskps(Register dst, XmmRegister src) { EmitL(dst, src, 0x50, 0x0F); }
+  void pmovmskb(Register dst, XmmRegister src) {
+    EmitL(dst, src, 0xD7, 0x0F, 0x66);
+  }
 
   void btl(Register dst, Register src) { EmitL(src, dst, 0xA3, 0x0F); }
   void btq(Register dst, Register src) { EmitQ(src, dst, 0xA3, 0x0F); }
@@ -642,8 +653,6 @@ class Assembler : public AssemblerBase {
   // 'size' indicates size in bytes and must be in the range 1..8.
   void nop(int size = 1);
 
-  static uword GetBreakInstructionFiller() { return 0xCCCCCCCCCCCCCCCC; }
-
   void j(Condition condition, Label* label, bool near = kFarJump);
   void jmp(Register reg) { EmitUnaryL(reg, 0xFF, 4); }
   void jmp(const Address& address) { EmitUnaryL(address, 0xFF, 4); }
@@ -709,6 +718,9 @@ class Assembler : public AssemblerBase {
 
   // Unlike movq this can affect the flags or use the constant pool.
   void LoadImmediate(Register reg, const Immediate& imm);
+  void LoadImmediate(Register reg, int32_t immediate) {
+    LoadImmediate(reg, Immediate(immediate));
+  }
 
   void LoadIsolate(Register dst);
   void LoadDispatchTable(Register dst);
@@ -725,15 +737,13 @@ class Assembler : public AssemblerBase {
   void Call(const Code& stub_entry);
   void CallToRuntime();
 
-  void CallNullErrorShared(bool save_fpu_registers);
-
-  void CallNullArgErrorShared(bool save_fpu_registers);
-
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
   void CallWithEquivalence(const Code& code,
                            const Object& equivalence,
                            CodeEntryKind entry_kind = CodeEntryKind::kNormal);
+
+  void Call(Address target) { call(target); }
 
   // Unaware of write barrier (use StoreInto* methods for storing to objects).
   // TODO(koda): Add StackAddress/HeapAddress types to prevent misuse.
@@ -818,6 +828,10 @@ class Assembler : public AssemblerBase {
   // Call runtime function. Reserves shadow space on the stack before calling
   // if platform ABI requires that. Does not restore RSP after the call itself.
   void CallCFunction(Register reg);
+  void CallCFunction(Address address);
+
+  void ExtractClassIdFromTags(Register result, Register tags);
+  void ExtractInstanceSizeFromTags(Register result, Register tags);
 
   // Loading and comparing classes of objects.
   void LoadClassId(Register result, Register object);
@@ -856,6 +870,19 @@ class Assembler : public AssemblerBase {
   void LoadField(Register dst, FieldAddress address) { movq(dst, address); }
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     movq(dst, Address(base, offset));
+  }
+  void StoreMemoryValue(Register src, Register base, int32_t offset) {
+    movq(Address(base, offset), src);
+  }
+  void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
+    // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
+    // with other loads).
+    movq(dst, Address(address, offset));
+  }
+  void StoreRelease(Register src, Register address, int32_t offset = 0) {
+    // On intel stores have store-release behavior (i.e. stores are not
+    // re-ordered with other stores).
+    movq(Address(address, offset), src);
   }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
@@ -913,6 +940,13 @@ class Assembler : public AssemblerBase {
   void EnterStubFrame();
   void LeaveStubFrame();
 
+  // Set up a frame for calling a C function.
+  // Automatically save the pinned registers in Dart which are not callee-
+  // saved in the native calling convention.
+  // Use together with CallCFunction.
+  void EnterCFrame(intptr_t frame_space);
+  void LeaveCFrame();
+
   void MonomorphicCheckedEntryJIT();
   void MonomorphicCheckedEntryAOT();
   void BranchOnMonomorphicCheckedEntryJIT(Label* label);
@@ -944,8 +978,8 @@ class Assembler : public AssemblerBase {
   // before the code can be used.
   //
   // The neccessary information for the "linker" (i.e. the relocation
-  // information) is stored in [RawCode::static_calls_target_table_]: an entry
-  // of the form
+  // information) is stored in [CodeLayout::static_calls_target_table_]: an
+  // entry of the form
   //
   //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
   //
@@ -955,6 +989,11 @@ class Assembler : public AssemblerBase {
   // destination.  It can be used e.g. for calling into the middle of a
   // function.
   void GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target = 0);
+
+  // This emits an PC-relative tail call of the form "jmp *[rip+<offset>]".
+  //
+  // See also above for the pc-relative call.
+  void GenerateUnRelocatedPcRelativeTailCall(intptr_t offset_into_target = 0);
 
   // Debugging and bringup support.
   void Breakpoint() override { int3(); }
@@ -970,6 +1009,13 @@ class Assembler : public AssemblerBase {
                                            bool index_unboxed,
                                            Register array,
                                            Register index);
+
+  void LoadFieldAddressForRegOffset(Register address,
+                                    Register instance,
+                                    Register offset_in_words_as_smi) {
+    static_assert(kSmiTagShift == 1, "adjust scale factor");
+    leaq(address, FieldAddress(instance, offset_in_words_as_smi, TIMES_4, 0));
+  }
 
   static Address VMTagAddress();
 
@@ -999,7 +1045,7 @@ class Assembler : public AssemblerBase {
             const Address& dst,
             const Immediate& imm);
 
-  void EmitSimple(int opcode, int opcode2 = -1);
+  void EmitSimple(int opcode, int opcode2 = -1, int opcode3 = -1);
   void EmitUnaryQ(Register reg, int opcode, int modrm_code);
   void EmitUnaryL(Register reg, int opcode, int modrm_code);
   void EmitUnaryQ(const Address& address, int opcode, int modrm_code);

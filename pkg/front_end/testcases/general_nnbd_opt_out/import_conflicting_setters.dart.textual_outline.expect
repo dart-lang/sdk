@@ -1,0 +1,6 @@
+// @dart = 2.6
+import 'import_conflicting_setters_lib1.dart';
+import 'import_conflicting_setters_lib2.dart';
+
+main() {}
+errors() {}

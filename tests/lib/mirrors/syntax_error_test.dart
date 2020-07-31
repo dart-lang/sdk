@@ -11,7 +11,7 @@ import 'dart:mirrors';
 
 class MD {
   final String name;
-  const MD({this.name});
+  const MD({required this.name});
 }
 
 @MD(name: 'A')

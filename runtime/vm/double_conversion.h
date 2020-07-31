@@ -18,9 +18,9 @@ struct DoubleToStringConstants : AllStatic {
 };
 
 void DoubleToCString(double d, char* buffer, int buffer_size);
-RawString* DoubleToStringAsFixed(double d, int fraction_digits);
-RawString* DoubleToStringAsExponential(double d, int fraction_digits);
-RawString* DoubleToStringAsPrecision(double d, int precision);
+StringPtr DoubleToStringAsFixed(double d, int fraction_digits);
+StringPtr DoubleToStringAsExponential(double d, int fraction_digits);
+StringPtr DoubleToStringAsPrecision(double d, int precision);
 
 bool CStringToDouble(const char* str, intptr_t length, double* result);
 

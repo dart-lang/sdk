@@ -1,0 +1,3 @@
+typedef void F();
+typedef void F();
+void main() {}

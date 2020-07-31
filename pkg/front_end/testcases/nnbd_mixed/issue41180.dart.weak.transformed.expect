@@ -1,0 +1,77 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "issue41180_lib.dart" as iss;
+
+import "org-dartlang-testcase:///issue41180_lib.dart";
+
+class D<Y extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::D<self::D::Y*>*
+    : super core::Object::•()
+    ;
+  method method() → iss::C<self::D::Y*>*
+    return new iss::C::•<self::D::Y*>(() → core::Null? => null);
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+static method main() → void {
+  iss::foo(() → core::Null? => null);
+  iss::bar = () → iss::Map<core::String*, core::String*>* => null;
+  new self::D::•<core::int*>().{self::D::method}();
+  self::findKey(new iss::Map::•<core::String*, core::String*>("foo", "bar"), "bar");
+}
+static method findKey(iss::Map<core::String*, dynamic>* m, dynamic search) → void {
+  core::print(let final core::MapEntry<core::String*, dynamic>* #t1 = m.{iss::Map::entries}.{iss::Iterable::singleWhere}((core::MapEntry<core::String*, dynamic>* entry) → core::bool* => entry.{core::MapEntry::value}.{core::Object::==}(search), orElse: () → core::Null? => null) in #t1.{core::Object::==}(null) ?{core::String*} null : #t1.{core::MapEntry::key});
+}
+
+library /*isNonNullableByDefault*/;
+import self as iss;
+import "dart:core" as core;
+
+class C<X extends core::Object? = dynamic> extends core::Object {
+  constructor •(() → iss::Map<core::String, core::String> f) → iss::C<iss::C::X%>
+    : super core::Object::•() {
+    core::print(f.{core::Object::runtimeType});
+  }
+}
+class Map<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object {
+  final field iss::Map::K% key;
+  final field iss::Map::V% value;
+  constructor •(iss::Map::K% key, iss::Map::V% value) → iss::Map<iss::Map::K%, iss::Map::V%>
+    : iss::Map::key = key, iss::Map::value = value, super core::Object::•()
+    ;
+  get entries() → iss::Iterable<core::MapEntry<iss::Map::K%, iss::Map::V%>>
+    return new iss::Iterable::•<core::MapEntry<iss::Map::K%, iss::Map::V%>>(new core::MapEntry::_<iss::Map::K%, iss::Map::V%>(this.{iss::Map::key}, this.{iss::Map::value}));
+}
+class Iterable<E extends core::Object? = dynamic> extends core::Object {
+  final field iss::Iterable::E% element;
+  constructor •(iss::Iterable::E% element) → iss::Iterable<iss::Iterable::E%>
+    : iss::Iterable::element = element, super core::Object::•()
+    ;
+  method singleWhere((iss::Iterable::E%) → core::bool test, {generic-covariant-impl () →? iss::Iterable::E% orElse = #C1}) → iss::Iterable::E% {
+    if(test.call(this.{iss::Iterable::element})) {
+      return this.{iss::Iterable::element};
+    }
+    if(!orElse.{core::Object::==}(null))
+      return orElse{() → iss::Iterable::E%}.call();
+    throw "error";
+  }
+}
+static method foo(() → iss::Map<core::String, core::String> f) → void {
+  core::print(f.{core::Object::runtimeType});
+}
+static set bar(() → iss::Map<core::String, core::String> f) → void {
+  core::print(f.{core::Object::runtimeType});
+}
+
+constants  {
+  #C1 = null
+}

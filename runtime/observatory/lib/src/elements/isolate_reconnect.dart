@@ -9,21 +9,14 @@ import 'dart:async';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class IsolateReconnectElement extends CustomElement implements Renderable {
-  static const tag = const Tag<IsolateReconnectElement>('isolate-reconnect',
-      dependencies: const [
-        NavTopMenuElement.tag,
-        NavNotifyElement.tag,
-        ViewFooterElement.tag
-      ]);
-
-  RenderingScheduler _r;
+  RenderingScheduler<IsolateReconnectElement> _r;
 
   Stream<RenderedEvent<IsolateReconnectElement>> get onRendered =>
       _r.onRendered;
@@ -57,7 +50,7 @@ class IsolateReconnectElement extends CustomElement implements Renderable {
     return e;
   }
 
-  IsolateReconnectElement.created() : super.created(tag);
+  IsolateReconnectElement.created() : super.created('isolate-reconnect');
 
   @override
   void attached() {

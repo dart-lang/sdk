@@ -33,23 +33,23 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     this.{self::Class::_#Class#lateInstanceField} = #t6;
   get lateGenericField1() → self::Class::T% {
     if(!this.{self::Class::_#Class#lateGenericField1#isSet}) {
-      this.{self::Class::_#Class#lateGenericField1#isSet} = true;
       this.{self::Class::_#Class#lateGenericField1} = this.{self::Class::field};
+      this.{self::Class::_#Class#lateGenericField1#isSet} = true;
     }
     return let final self::Class::T? #t7 = this.{self::Class::_#Class#lateGenericField1} in #t7{self::Class::T%};
   }
-  set lateGenericField1(self::Class::T% #t8) → void {
+  set lateGenericField1(generic-covariant-impl self::Class::T% #t8) → void {
     this.{self::Class::_#Class#lateGenericField1#isSet} = true;
     this.{self::Class::_#Class#lateGenericField1} = #t8;
   }
   get lateGenericField2() → self::Class::T% {
     if(!this.{self::Class::_#Class#lateGenericField2#isSet}) {
-      this.{self::Class::_#Class#lateGenericField2#isSet} = true;
       this.{self::Class::_#Class#lateGenericField2} = this.{self::Class::field};
+      this.{self::Class::_#Class#lateGenericField2#isSet} = true;
     }
     return let final self::Class::T? #t9 = this.{self::Class::_#Class#lateGenericField2} in #t9{self::Class::T%};
   }
-  set lateGenericField2(self::Class::T% #t10) → void {
+  set lateGenericField2(generic-covariant-impl self::Class::T% #t10) → void {
     this.{self::Class::_#Class#lateGenericField2#isSet} = true;
     this.{self::Class::_#Class#lateGenericField2} = #t10;
   }

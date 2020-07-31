@@ -24,7 +24,6 @@ class ArgumentsTest with ResourceProviderMixin {
     String dartSdkSummaryPath = 'a';
     String defaultAnalysisOptionsFilePath = 'b';
     String defaultPackageFilePath = 'c';
-    String defaultPackagesDirectoryPath = 'd';
     ArgParser parser = ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = [
@@ -35,7 +34,6 @@ class ArgumentsTest with ResourceProviderMixin {
       '--no-implicit-dynamic',
       '--options=$defaultAnalysisOptionsFilePath',
       '--packages=$defaultPackageFilePath',
-      '--package-root=$defaultPackagesDirectoryPath',
     ];
     ArgResults result = parse(resourceProvider, parser, args);
     ContextBuilderOptions options = createContextBuilderOptions(result);
@@ -48,7 +46,6 @@ class ArgumentsTest with ResourceProviderMixin {
     expect(
         options.defaultAnalysisOptionsFilePath, defaultAnalysisOptionsFilePath);
     expect(options.defaultPackageFilePath, defaultPackageFilePath);
-    expect(options.defaultPackagesDirectoryPath, defaultPackagesDirectoryPath);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
     expect(defaultOptions.strongMode, true);
@@ -67,7 +64,6 @@ class ArgumentsTest with ResourceProviderMixin {
     expect(options.declaredVariables, isEmpty);
     expect(options.defaultAnalysisOptionsFilePath, isNull);
     expect(options.defaultPackageFilePath, isNull);
-    expect(options.defaultPackagesDirectoryPath, isNull);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
     expect(defaultOptions.strongMode, true);
@@ -75,61 +71,31 @@ class ArgumentsTest with ResourceProviderMixin {
     expect(defaultOptions.implicitDynamic, true);
   }
 
-  void test_createDartSdkManager_noPath_noSummaries() {
+  void test_createDartSdkManager_noPath() {
     ArgParser parser = ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = [];
     ArgResults result = parse(resourceProvider, parser, args);
-    DartSdkManager manager =
-        createDartSdkManager(resourceProvider, false, result);
+    DartSdkManager manager = createDartSdkManager(resourceProvider, result);
     expect(manager, isNotNull);
     expect(manager.defaultSdkDirectory,
         FolderBasedDartSdk.defaultSdkDirectory(resourceProvider)?.path);
-    expect(manager.canUseSummaries, false);
   }
 
-  void test_createDartSdkManager_noPath_summaries() {
-    ArgParser parser = ArgParser();
-    defineAnalysisArguments(parser);
-    List<String> args = [];
-    ArgResults result = parse(resourceProvider, parser, args);
-    DartSdkManager manager =
-        createDartSdkManager(resourceProvider, true, result);
-    expect(manager, isNotNull);
-
-    expect(manager.defaultSdkDirectory,
-        FolderBasedDartSdk.defaultSdkDirectory(resourceProvider)?.path);
-    expect(manager.canUseSummaries, true);
-  }
-
-  void test_createDartSdkManager_path_noSummaries() {
+  void test_createDartSdkManager_path() {
     ArgParser parser = ArgParser();
     defineAnalysisArguments(parser);
     List<String> args = ['--dart-sdk=x'];
     ArgResults result = parse(resourceProvider, parser, args);
-    DartSdkManager manager =
-        createDartSdkManager(resourceProvider, false, result);
+    DartSdkManager manager = createDartSdkManager(resourceProvider, result);
     expect(manager, isNotNull);
     expect(manager.defaultSdkDirectory, 'x');
-    expect(manager.canUseSummaries, false);
-  }
-
-  void test_createDartSdkManager_path_summaries() {
-    ArgParser parser = ArgParser();
-    defineAnalysisArguments(parser);
-    List<String> args = ['--dart-sdk=y'];
-    ArgResults result = parse(resourceProvider, parser, args);
-    DartSdkManager manager =
-        createDartSdkManager(resourceProvider, true, result);
-    expect(manager, isNotNull);
-    expect(manager.defaultSdkDirectory, 'y');
-    expect(manager.canUseSummaries, true);
   }
 
   void test_defineAnalysisArguments() {
     ArgParser parser = ArgParser();
     defineAnalysisArguments(parser);
-    expect(parser.options, hasLength(12));
+    expect(parser.options, hasLength(11));
   }
 
   void test_extractDefinedVariables() {

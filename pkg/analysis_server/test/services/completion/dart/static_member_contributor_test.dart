@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -13,7 +12,6 @@ import 'completion_contributor_util.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StaticMemberContributorTest);
-    defineReflectiveTests(StaticMemberContributorWithExtensionMethodsTest);
   });
 }
 
@@ -24,12 +22,36 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     return StaticMemberContributor();
   }
 
+  Future<void> test_class_static_notPrivate() async {
+    addSource('/home/test/lib/a.dart', '''
+class A {
+  static int _f;
+  static String get _g => '';
+  static int _m() {}
+  static set _s(v) {}
+  A._();
+}
+''');
+    addTestSource('''
+import 'a.dart';
+void f() {
+  A.^;
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('_f');
+    assertNotSuggested('_g');
+    assertNotSuggested('_m');
+    assertNotSuggested('_s');
+    assertNotSuggested('A._');
+  }
+
   Future<void> test_enumConst() async {
     addTestSource('enum E { one, two } main() {E.^}');
     await computeSuggestions();
     assertNotSuggested('E');
-    assertSuggestEnumConst('one');
-    assertSuggestEnumConst('two');
+    assertSuggestEnumConst('one', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestEnumConst('two', relevance: DART_RELEVANCE_LOCAL_FIELD);
     assertNotSuggested('index');
     assertSuggestField('values', 'List<E>');
   }
@@ -38,8 +60,8 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     addTestSource('enum E { one, two } main() {E.o^}');
     await computeSuggestions();
     assertNotSuggested('E');
-    assertSuggestEnumConst('one');
-    assertSuggestEnumConst('two');
+    assertSuggestEnumConst('one', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestEnumConst('two', relevance: DART_RELEVANCE_LOCAL_FIELD);
     assertNotSuggested('index');
     assertSuggestField('values', 'List<E>');
   }
@@ -48,8 +70,8 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     addTestSource('enum E { one, two } main() {E.^ int g;}');
     await computeSuggestions();
     assertNotSuggested('E');
-    assertSuggestEnumConst('one');
-    assertSuggestEnumConst('two');
+    assertSuggestEnumConst('one', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestEnumConst('two', relevance: DART_RELEVANCE_LOCAL_FIELD);
     assertNotSuggested('index');
     assertSuggestField('values', 'List<E>');
   }
@@ -64,8 +86,8 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     addTestSource('enum E { one, two } main() {E.^.}');
     await computeSuggestions();
     assertNotSuggested('E');
-    assertSuggestEnumConst('one');
-    assertSuggestEnumConst('two');
+    assertSuggestEnumConst('one', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestEnumConst('two', relevance: DART_RELEVANCE_LOCAL_FIELD);
     assertNotSuggested('index');
     assertSuggestField('values', 'List<E>');
   }
@@ -80,23 +102,56 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     addTestSource('enum E { one, two } main() {E.^.o}');
     await computeSuggestions();
     assertNotSuggested('E');
-    assertSuggestEnumConst('one');
-    assertSuggestEnumConst('two');
+    assertSuggestEnumConst('one', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestEnumConst('two', relevance: DART_RELEVANCE_LOCAL_FIELD);
     assertNotSuggested('index');
     assertSuggestField('values', 'List<E>');
   }
 
-  @failingTest
   Future<void> test_enumConst_deprecated() async {
     addTestSource('@deprecated enum E { one, two } main() {E.^}');
     await computeSuggestions();
     assertNotSuggested('E');
-    // TODO(danrubel) Investigate why enum suggestion is not marked
-    // as deprecated if enum ast element is deprecated
     assertSuggestEnumConst('one', isDeprecated: true);
     assertSuggestEnumConst('two', isDeprecated: true);
     assertNotSuggested('index');
     assertSuggestField('values', 'List<E>', isDeprecated: true);
+  }
+
+  Future<void> test_extension() async {
+    addTestSource('''
+extension E on Object {
+  static int i;
+  static String s;
+}
+main() {E.^}
+''');
+    await computeSuggestions();
+    assertNotSuggested('E');
+    assertSuggestField('i', 'int');
+    assertSuggestField('s', 'String');
+  }
+
+  Future<void> test_extension_static_notPrivate() async {
+    addSource('/home/test/lib/a.dart', '''
+extension E {
+  static int _f;
+  static String get _g => '';
+  static int _m() {}
+  static set _s(v) {}
+}
+''');
+    addTestSource('''
+import 'a.dart';
+void f() {
+  E.^;
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('_f');
+    assertNotSuggested('_g');
+    assertNotSuggested('_m');
+    assertNotSuggested('_s');
   }
 
   Future<void> test_implicitCreation() async {
@@ -304,34 +359,5 @@ void main() {async.Future.^.w()}''');
     assertNotSuggested('w');
     assertNotSuggested('Object');
     assertNotSuggested('==');
-  }
-}
-
-@reflectiveTest
-class StaticMemberContributorWithExtensionMethodsTest
-    extends DartCompletionContributorTest {
-  @override
-  DartCompletionContributor createContributor() {
-    return StaticMemberContributor();
-  }
-
-  @override
-  void setupResourceProvider() {
-    super.setupResourceProvider();
-    createAnalysisOptionsFile(experiments: [EnableString.extension_methods]);
-  }
-
-  Future<void> test_extension() async {
-    addTestSource('''
-extension E on Object {
-  static int i;
-  static String s;
-}
-main() {E.^}
-''');
-    await computeSuggestions();
-    assertNotSuggested('E');
-    assertSuggestField('i', 'int');
-    assertSuggestField('s', 'String');
   }
 }

@@ -28,12 +28,18 @@
       'filepath': (
         '^pkg/compiler|'
         '^sdk/lib/_internal/js_runtime|'
-        '^sdk_nnbd/lib/_internal/js_runtime|'
-        '^tests/compiler/dart2js'
+        '^tests/dart2js'
+      )
+    },
+    'dartdevc': {
+      'filepath': (
+        '^pkg/dev_compiler|'
+        '^sdk/lib/_internal/js_dev_runtime|'
+        '^tests/dartdevc'
       )
     },
     'package_vm': {
-      'filepath': '^pkg/vm',
+      'filepath': '^pkg/vm/',
     },
     'messages_review': {
       'filepath': (
@@ -68,8 +74,8 @@
 
   'WATCHLISTS': {
     'build': [ 'keertip@google.com' ],
-    'dart2js': [ 'sigmund@google.com', 'sra@google.com',
-                 'fishythefish@google.com', 'joshualitt@google.com' ],
+    'dart2js': [ 'dart2js-team+reviews@google.com' ],
+    'dartdevc': [ 'dart-dc-team+reviews@google.com' ],
     'front_end': [ 'dart-fe-team+reviews@google.com' ],
     'kernel': [ 'jensj@google.com', 'alexmarkov@google.com' ],
     'messages_review': [ 'dart-uxr+reviews@google.com' ],

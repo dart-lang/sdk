@@ -17,7 +17,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -243,7 +243,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertErrorsInResolvedUnit(result, expectedErrors);
   }
 
-  Future<void> assertErrorsInFile(
+  Future<ResolvedUnitResult> assertErrorsInFile(
     String path,
     String content,
     List<ExpectedError> expectedErrors,
@@ -253,15 +253,24 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     var result = await resolveFile(path);
     assertErrorsInResolvedUnit(result, expectedErrors);
+
+    return result;
+  }
+
+  void assertErrorsInList(
+    List<AnalysisError> errors,
+    List<ExpectedError> expectedErrors,
+  ) {
+    GatheringErrorListener errorListener = GatheringErrorListener();
+    errorListener.addAll(errors);
+    errorListener.assertErrors(expectedErrors);
   }
 
   void assertErrorsInResolvedUnit(
     ResolvedUnitResult result,
     List<ExpectedError> expectedErrors,
   ) {
-    GatheringErrorListener errorListener = GatheringErrorListener();
-    errorListener.addAll(result.errors);
-    errorListener.assertErrors(expectedErrors);
+    assertErrorsInList(result.errors, expectedErrors);
   }
 
   void assertFunctionExpressionInvocation(
@@ -717,7 +726,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else if (node is IndexExpression) {
       return node.staticElement;
     } else if (node is InstanceCreationExpression) {
-      return node.staticElement;
+      return node.constructorName.staticElement;
     } else if (node is MethodInvocation) {
       return node.methodName.staticElement;
     } else if (node is PostfixExpression) {

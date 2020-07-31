@@ -1,0 +1,10 @@
+// @dart = 2.6
+class A {}
+
+class B extends A {
+  A operator +(B b) => new C();
+}
+
+class C extends A {}
+
+main() {}

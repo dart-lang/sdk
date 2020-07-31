@@ -1,0 +1,43 @@
+class A {}
+
+class ARN extends ARQ<A> {}
+
+class ARO<S> {}
+
+class ARQ<T> extends Object implements ARO<T> {}
+
+class B extends A {}
+
+class C extends B {}
+
+class D extends C {}
+
+class G<T extends A> {}
+
+class GB extends G<B> {}
+
+class GC extends G<C> {}
+
+class GD extends G<D> {}
+
+class GU extends GW {}
+
+class GV extends GU implements GW {}
+
+class GW implements Z, GD {}
+
+class GX implements G<A> {}
+
+class GY extends X implements GB {}
+
+class GZ implements Y, GC {}
+
+class W implements Z {}
+
+class X implements A {}
+
+class Y extends X {}
+
+class Z implements Y {}
+
+main() {}

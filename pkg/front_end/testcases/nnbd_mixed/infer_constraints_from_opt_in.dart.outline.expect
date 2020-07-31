@@ -1,0 +1,59 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/infer_constraints_from_opt_in.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "infer_constraints_from_opt_in_lib.dart" as inf;
+
+import "org-dartlang-testcase:///infer_constraints_from_opt_in_lib.dart";
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  method baz(inf::B b) → dynamic
+    ;
+}
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/infer_constraints_from_opt_in_lib.dart:11:9: Error: Field 'field5' should be initialized because its type 'C<int?>' doesn't allow null.
+//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/infer_constraints_from_opt_in_lib.dart'.
+// C<int?> field5;
+//         ^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/infer_constraints_from_opt_in_lib.dart:13:5: Error: Field 'field7' should be initialized because its type 'int' doesn't allow null.
+// int field7;
+//     ^^^^^^
+//
+import self as inf;
+import "dart:core" as core;
+
+class C<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → inf::C<inf::C::T%>
+    ;
+}
+abstract class B extends core::Object {
+  synthetic constructor •() → inf::B
+    ;
+  abstract method bar<X extends core::List<core::int?>? = core::List<core::int?>?>() → inf::B::bar::X%;
+  abstract method foo(core::List<core::int> list) → dynamic;
+}
+static field inf::C<dynamic> field1;
+static field inf::C<dynamic>? field2;
+static field inf::C<core::int> field3;
+static field inf::C<core::int>? field4;
+static field inf::C<core::int?> field5;
+static field inf::C<core::int?>? field6;
+static field core::int field7;
+static field core::int? field8;
+static method method() → dynamic
+  ;

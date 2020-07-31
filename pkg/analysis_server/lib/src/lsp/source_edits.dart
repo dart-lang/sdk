@@ -4,18 +4,30 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server
     show SourceEdit;
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
+import 'package:analyzer_plugin/utilities/pair.dart';
 import 'package:dart_style/dart_style.dart';
 
 final DartFormatter formatter = DartFormatter();
 
-ErrorOr<String> applyEdits(
+/// Transforms a sequence of LSP document change events to a sequence of source
+/// edits used by analysis plugins.
+///
+/// Since the translation from line/characters to offsets needs to take previous
+/// changes into account, this will also apply the edits to [oldContent].
+ErrorOr<Pair<String, List<plugin.SourceEdit>>> applyAndConvertEditsToServer(
   String oldContent,
   List<TextDocumentContentChangeEvent> changes, {
   failureIsCritical = false,
 }) {
   var newContent = oldContent;
+  final serverEdits = <server.SourceEdit>[];
+
   for (var change in changes) {
     if (change.range == null && change.rangeLength == null) {
+      serverEdits
+        ..clear()
+        ..add(server.SourceEdit(0, newContent.length, change.text));
       newContent = change.text;
     } else {
       final lines = LineInfo.fromContent(newContent);
@@ -24,16 +36,18 @@ ErrorOr<String> applyEdits(
       final offsetEnd = toOffset(lines, change.range.end,
           failureIsCritial: failureIsCritical);
       if (offsetStart.isError) {
-        return ErrorOr<String>.error(offsetStart.error);
+        return ErrorOr.error(offsetStart.error);
       }
       if (offsetEnd.isError) {
-        return ErrorOr<String>.error(offsetEnd.error);
+        return ErrorOr.error(offsetEnd.error);
       }
       newContent = newContent.replaceRange(
           offsetStart.result, offsetEnd.result, change.text);
+      serverEdits.add(server.SourceEdit(offsetStart.result,
+          offsetEnd.result - offsetStart.result, change.text));
     }
   }
-  return ErrorOr<String>.success(newContent);
+  return ErrorOr.success(Pair(newContent, serverEdits));
 }
 
 List<TextEdit> generateEditsForFormatting(String unformattedSource) {

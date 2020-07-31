@@ -6,96 +6,7 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:dart2native/dart2native.dart';
-import 'package:path/path.dart' as path;
-
-final String executableSuffix = Platform.isWindows ? '.exe' : '';
-final String snapshotDir = path.dirname(Platform.script.toFilePath());
-final String binDir = path.canonicalize(path.join(snapshotDir, '..'));
-final String sdkDir = path.canonicalize(path.join(binDir, '..'));
-final String dart = path.join(binDir, 'dart${executableSuffix}');
-final String genKernel = path.join(snapshotDir, 'gen_kernel.dart.snapshot');
-final String dartaotruntime =
-    path.join(binDir, 'dartaotruntime${executableSuffix}');
-final String genSnapshot =
-    path.join(binDir, 'utils', 'gen_snapshot${executableSuffix}');
-final String platformDill =
-    path.join(sdkDir, 'lib', '_internal', 'vm_platform_strong.dill');
-final String productPlatformDill =
-    path.join(sdkDir, 'lib', '_internal', 'vm_platform_strong_product.dill');
-
-Future<void> generateNative(
-    Kind kind,
-    String sourceFile,
-    String outputFile,
-    String debugFile,
-    String packages,
-    List<String> defines,
-    bool enableAsserts,
-    bool verbose) async {
-  final Directory tempDir = Directory.systemTemp.createTempSync();
-  try {
-    final String kernelFile = path.join(tempDir.path, 'kernel.dill');
-    final String snapshotFile = (kind == Kind.aot
-        ? outputFile
-        : path.join(tempDir.path, 'snapshot.aot'));
-
-    if (verbose) {
-      print('Generating AOT kernel dill.');
-    }
-
-    // Prefer to use the product platform file, if available. Fall back to the
-    // normal one (this happens if `out/<build-dir>/dart-sdk` is used).
-    //
-    // Background information: For the `dart-sdk` we distribute we build release
-    // and product mode configurations. Then we have an extra bundling step
-    // which will add product-mode
-    // gen_snapshot/dartaotruntime/vm_platform_strong_product.dill to the
-    // release SDK (see tools/bots/dart_sdk.py:CopyAotBinaries)
-    final String platformFileToUse = File(productPlatformDill).existsSync()
-        ? productPlatformDill
-        : platformDill;
-
-    final kernelResult = await generateAotKernel(dart, genKernel,
-        platformFileToUse, sourceFile, kernelFile, packages, defines);
-    if (kernelResult.exitCode != 0) {
-      stderr.writeln(kernelResult.stdout);
-      stderr.writeln(kernelResult.stderr);
-      await stderr.flush();
-      throw 'Generating AOT kernel dill failed!';
-    }
-
-    if (verbose) {
-      print('Generating AOT snapshot.');
-    }
-    final snapshotResult = await generateAotSnapshot(
-        genSnapshot, kernelFile, snapshotFile, debugFile, enableAsserts);
-    if (snapshotResult.exitCode != 0) {
-      stderr.writeln(snapshotResult.stdout);
-      stderr.writeln(snapshotResult.stderr);
-      await stderr.flush();
-      throw 'Generating AOT snapshot failed!';
-    }
-
-    if (kind == Kind.exe) {
-      if (verbose) {
-        print('Generating executable.');
-      }
-      await writeAppendedExecutable(dartaotruntime, snapshotFile, outputFile);
-
-      if (Platform.isLinux || Platform.isMacOS) {
-        if (verbose) {
-          print('Marking binary executable.');
-        }
-        await markExecutable(outputFile);
-      }
-    }
-
-    print('Generated: ${outputFile}');
-  } finally {
-    tempDir.deleteSync(recursive: true);
-  }
-}
+import 'package:dart2native/generate.dart';
 
 void printUsage(final ArgParser parser) {
   print('''
@@ -108,17 +19,23 @@ Generates an executable or an AOT snapshot from <main-dart-file>.
 
 Future<void> main(List<String> args) async {
   // If we're outputting to a terminal, wrap usage text to that width.
-  int outputLineWidth = null;
+  int outputLineWidth;
   try {
     outputLineWidth = stdout.terminalColumns;
   } catch (_) {/* Ignore. */}
 
   final ArgParser parser = ArgParser(usageLineLength: outputLineWidth)
     ..addMultiOption('define', abbr: 'D', valueHelp: 'key=value', help: '''
-Set values of environment variables. To specify multiple variables, use multiple options or use commas to separate key-value pairs.
+Define an environment declaration. To specify multiple declarations, use multiple options or use commas to separate key-value pairs.
 E.g.: dart2native -Da=1,b=2 main.dart''')
     ..addFlag('enable-asserts',
         negatable: false, help: 'Enable assert statements.')
+    ..addMultiOption(
+      'extra-gen-snapshot-options',
+      help: 'Pass additional options to gen_snapshot.',
+      hide: true,
+      valueHelp: 'opt1,opt2,...',
+    )
     ..addFlag('help',
         abbr: 'h', negatable: false, help: 'Display this help message.')
     ..addOption(
@@ -166,41 +83,25 @@ Remove debugging information from the output and save it separately to the speci
     exit(1);
   }
 
-  final Kind kind = {
-    'aot': Kind.aot,
-    'exe': Kind.exe,
-  }[parsedArgs['output-kind']];
-
-  final sourcePath = path.canonicalize(path.normalize(parsedArgs.rest[0]));
-  final sourceWithoutDart = sourcePath.replaceFirst(new RegExp(r'\.dart$'), '');
-  final outputPath =
-      path.canonicalize(path.normalize(parsedArgs['output'] != null
-          ? parsedArgs['output']
-          : {
-              Kind.aot: '${sourceWithoutDart}.aot',
-              Kind.exe: '${sourceWithoutDart}.exe',
-            }[kind]));
-  final debugPath = parsedArgs['save-debugging-info'] != null
-      ? path.canonicalize(path.normalize(parsedArgs['save-debugging-info']))
-      : null;
-
-  if (!FileSystemEntity.isFileSync(sourcePath)) {
+  final String sourceFile = parsedArgs.rest[0];
+  if (!FileSystemEntity.isFileSync(sourceFile)) {
     stderr.writeln(
-        '"${sourcePath}" is not a file. See \'--help\' for more information.');
+        '"${sourceFile}" is not a file. See \'--help\' for more information.');
     await stderr.flush();
     exit(1);
   }
 
   try {
     await generateNative(
-        kind,
-        sourcePath,
-        outputPath,
-        debugPath,
-        parsedArgs['packages'],
-        parsedArgs['define'],
-        parsedArgs['enable-asserts'],
-        parsedArgs['verbose']);
+        kind: parsedArgs['output-kind'],
+        sourceFile: sourceFile,
+        outputFile: parsedArgs['output'],
+        debugFile: parsedArgs['save-debugging-info'],
+        packages: parsedArgs['packages'],
+        defines: parsedArgs['define'],
+        enableAsserts: parsedArgs['enable-asserts'],
+        verbose: parsedArgs['verbose'],
+        extraOptions: parsedArgs['extra-gen-snapshot-options']);
   } catch (e) {
     stderr.writeln('Failed to generate native files:');
     stderr.writeln(e);

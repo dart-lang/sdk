@@ -131,13 +131,12 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   ConstantValuefier get _constantValuefier;
   ir.StaticTypeContext get staticTypeContext;
 
+  String typeToString(DartType type) =>
+      type.toStructuredText(dartTypes, _options);
+
   Object _computeReceiverConstraint(
       ir.DartType receiverType, ClassRelation relation) {
     if (receiverType is ir.InterfaceType) {
-      if (receiverType.classNode == typeEnvironment.futureOrClass) {
-        // CFE encodes FutureOr as an interface type!
-        return null;
-      }
       return new StrongModeConstraint(commonElements, _nativeBasicData,
           elementMap.getClass(receiverType.classNode), relation);
     }
@@ -367,7 +366,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
         reporter.reportErrorMessage(
             CURRENT_ELEMENT_SPANNABLE,
             MessageKind.STRING_EXPECTED,
-            {'type': value.getType(elementMap.commonElements)});
+            {'type': typeToString(value.getType(elementMap.commonElements))});
         return;
       }
       StringConstantValue stringValue = value;
@@ -821,12 +820,6 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
 
   @override
   void registerSwitchStatementNode(ir.SwitchStatement node) {
-    // TODO(32557): Remove this when issue 32557 is fixed.
-    ir.TreeNode firstCase;
-    DartType firstCaseType;
-    DiagnosticMessage error;
-    List<DiagnosticMessage> infos = <DiagnosticMessage>[];
-
     bool overridesEquals(InterfaceType type) {
       if (type == commonElements.symbolImplementationType) {
         // Treat symbol constants as if Symbol doesn't override `==`.
@@ -851,50 +844,23 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
         ConstantValue value =
             elementMap.getConstantValue(staticTypeContext, expression);
         DartType type = value.getType(elementMap.commonElements);
-        if (firstCaseType == null) {
-          firstCase = expression;
-          firstCaseType = type;
-
-          // We only report the bad type on the first class element. All others
-          // get a "type differs" error.
-          if (type == commonElements.doubleType) {
-            reporter.reportErrorMessage(
-                computeSourceSpanFromTreeNode(expression),
-                MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
-                {'type': "double"});
-          } else if (type == commonElements.functionType) {
-            reporter.reportErrorMessage(computeSourceSpanFromTreeNode(node),
-                MessageKind.SWITCH_CASE_FORBIDDEN, {'type': "Function"});
-          } else if (value.isObject &&
-              type != commonElements.typeLiteralType &&
-              overridesEquals(type)) {
-            reporter.reportErrorMessage(
-                computeSourceSpanFromTreeNode(firstCase),
-                MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
-                {'type': type});
-          }
-        } else {
-          if (type != firstCaseType) {
-            if (error == null) {
-              error = reporter.createMessage(
-                  computeSourceSpanFromTreeNode(node),
-                  MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL,
-                  {'type': firstCaseType});
-              infos.add(reporter.createMessage(
-                  computeSourceSpanFromTreeNode(firstCase),
-                  MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
-                  {'type': firstCaseType}));
-            }
-            infos.add(reporter.createMessage(
-                computeSourceSpanFromTreeNode(expression),
-                MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
-                {'type': type}));
-          }
+        if (type == commonElements.doubleType) {
+          reporter.reportErrorMessage(
+              computeSourceSpanFromTreeNode(expression),
+              MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
+              {'type': "double"});
+        } else if (type == commonElements.functionType) {
+          reporter.reportErrorMessage(computeSourceSpanFromTreeNode(node),
+              MessageKind.SWITCH_CASE_FORBIDDEN, {'type': "Function"});
+        } else if (value.isObject &&
+            type != commonElements.typeLiteralType &&
+            overridesEquals(type)) {
+          reporter.reportErrorMessage(
+              computeSourceSpanFromTreeNode(expression),
+              MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
+              {'type': typeToString(type)});
         }
       }
-    }
-    if (error != null) {
-      reporter.reportError(error, infos);
     }
   }
 }

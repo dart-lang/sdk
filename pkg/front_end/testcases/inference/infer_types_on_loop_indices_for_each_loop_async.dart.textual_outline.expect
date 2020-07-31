@@ -1,0 +1,22 @@
+library test;
+
+import 'dart:async';
+
+class Foo {
+  int bar = 42;
+}
+
+class Bar<T extends Stream<String>> {
+  foo(T t) async {}
+}
+
+class Baz<T, E extends Stream<T>, S extends E> {
+  foo(S t) async {}
+}
+
+abstract class MyStream<T> extends Stream<T> {
+  factory MyStream() => null;
+}
+
+test() async {}
+main() {}

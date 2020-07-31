@@ -24,7 +24,9 @@ Uint8List generateSampleList(final int size) {
 void validateReceivedList(final int expectedSize, final list) {
   Expect.equals(expectedSize, list.length);
   // probe few elements
-  for (int i = 0; i < list.length; i += max<num>(1, expectedSize ~/ 1000)) {
+  for (int i = 0;
+      i < list.length;
+      i += max<num>(1, expectedSize ~/ 1000) as int) {
     Expect.equals(i % 243, list[i]);
   }
 }

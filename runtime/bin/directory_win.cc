@@ -10,12 +10,14 @@
 #include <errno.h>     // NOLINT
 #include <sys/stat.h>  // NOLINT
 
+#include "bin/crypto.h"
 #include "bin/dartutils.h"
 #include "bin/file.h"
 #include "bin/namespace.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
 #include "platform/syslog.h"
+#include "platform/utils.h"
 
 #undef DeleteFile
 
@@ -384,12 +386,8 @@ const char* Directory::SystemTemp(Namespace* namespc) {
   return path.AsScopedString();
 }
 
-const char* Directory::CreateTemp(Namespace* namespc, const char* prefix) {
-  // Returns a new, unused directory name, adding characters to the
-  // end of prefix.
-  // Creates this directory, with a default security
-  // descriptor inherited from its parent directory.
-  // The return value is Dart_ScopeAllocated.
+// Creates a new temporary directory with a UUID as suffix.
+static const char* CreateTempFromUUID(const char* prefix) {
   PathBuffer path;
   Utf8ToWideScope system_prefix(prefix);
   if (!path.AddW(system_prefix.wide())) {
@@ -419,6 +417,57 @@ const char* Directory::CreateTemp(Namespace* namespc, const char* prefix) {
   RpcStringFreeW(&uuid_string);
   if (!CreateDirectoryW(path.AsStringW(), NULL)) {
     return NULL;
+  }
+  return path.AsScopedString();
+}
+
+// Creates a new, unused directory, adding characters to the end of prefix, and
+// returns the directory's name.
+//
+// Creates this directory, with a default security descriptor inherited from its
+// parent directory. The return value is Dart_ScopeAllocated.
+//
+// First, attempts appending a suffix created from a random uint32_t. If that
+// name is already taken, falls back on using a UUID for the suffix.
+//
+// Note: More attempts at finding an available short suffix would more reliably
+// avoid a uuid suffix. We choose one attempt here because it is simpler, and
+// to have a small bound on the number of calls to CreateDirectoryW().
+const char* Directory::CreateTemp(Namespace* namespc, const char* prefix) {
+  PathBuffer path;
+  Utf8ToWideScope system_prefix(prefix);
+  if (!path.AddW(system_prefix.wide())) {
+    return NULL;
+  }
+
+  // Adding 8 hex digits.
+  if (path.length() > MAX_LONG_PATH - 8) {
+    // No fallback, there won't be enough room for the UUID, either.
+    return NULL;
+  }
+
+  // First try a short suffix using the rng, then if that fails fall back on
+  // a uuid.
+  uint32_t suffix_bytes = 0;
+  const int kSuffixSize = sizeof(suffix_bytes);
+  if (!Crypto::GetRandomBytes(kSuffixSize,
+                              reinterpret_cast<uint8_t*>(&suffix_bytes))) {
+    // Getting random bytes failed, maybe the UUID will work?
+    return CreateTempFromUUID(prefix);
+  }
+
+  // Two digits per byte plus null.
+  char suffix[kSuffixSize * 2 + 1];
+  Utils::SNPrint(suffix, sizeof(suffix), "%x", suffix_bytes);
+  if (!path.Add(suffix)) {
+    // Adding to the path failed, maybe because of low-memory. Don't fall back.
+    return NULL;
+  }
+
+  if (!CreateDirectoryW(path.AsStringW(), NULL)) {
+    // Creation failed, possibly because an entry with the name already exists.
+    // Fall back to using the UUID suffix.
+    return CreateTempFromUUID(prefix);
   }
   return path.AsScopedString();
 }

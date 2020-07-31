@@ -1,0 +1,6 @@
+import 'dart:async';
+import 'issue39666_lib.dart';
+
+class A<X extends FutureOr<List>> {}
+
+void main() {}

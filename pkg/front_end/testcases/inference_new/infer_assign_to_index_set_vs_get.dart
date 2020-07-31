@@ -34,38 +34,38 @@ class Test {
   void test() {
     Test t = /*@ typeArgs=Test* */ f();
 
-    t /*@target=Test::[]=*/ [
+    t /*@target=Test.[]=*/ [
         /*@ typeArgs=Index* */ f()] = /*@ typeArgs=A* */ f();
 
-    t /*@target=Test::[]*/ /*@target=Test::[]=*/ [/*@ typeArgs=Index* */ f()]
-        /*@target=Object::==*/ ??= /*@ typeArgs=A* */ f();
+    t /*@target=Test.[]*/ /*@target=Test.[]=*/ [/*@ typeArgs=Index* */ f()]
+        /*@target=A.==*/ ??= /*@ typeArgs=A* */ f();
 
-    t /*@target=Test::[]*/ /*@target=Test::[]=*/ [/*@ typeArgs=Index* */ f()]
-        /*@ target=B::+ */ += /*@ typeArgs=E* */ f();
+    t /*@target=Test.[]*/ /*@target=Test.[]=*/ [/*@ typeArgs=Index* */ f()]
+        /*@target=B.+*/ += /*@ typeArgs=E* */ f();
 
-    /*@ target=B::- */ --t /*@target=Test::[]*/ /*@target=Test::[]=*/ [
+    /*@target=B.-*/ --t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
         /*@ typeArgs=Index* */ f()];
 
-    t /*@target=Test::[]*/ /*@target=Test::[]=*/ [
-        /*@ typeArgs=Index* */ f()] /*@ target=B::- */ --;
+    t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
+        /*@ typeArgs=Index* */ f()] /*@target=B.-*/ --;
 
-    var /*@ type=A* */ v1 = t /*@target=Test::[]=*/ [
+    var /*@ type=A* */ v1 = t /*@target=Test.[]=*/ [
         /*@ typeArgs=Index* */ f()] = /*@ typeArgs=A* */ f();
 
-    var /*@ type=A* */ v2 = t /*@target=Test::[]*/ /*@target=Test::[]=*/ [
+    var /*@ type=A* */ v2 = t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
             /*@ typeArgs=Index* */ f()]
-        /*@target=Object::==*/ ??= /*@ typeArgs=A* */ f();
+        /*@target=A.==*/ ??= /*@ typeArgs=A* */ f();
 
-    var /*@ type=D* */ v3 = t /*@target=Test::[]*/ /*@target=Test::[]=*/ [
+    var /*@ type=D* */ v3 = t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
             /*@ typeArgs=Index* */ f()]
-        /*@ target=B::+ */ += /*@ typeArgs=E* */ f();
+        /*@target=B.+*/ += /*@ typeArgs=E* */ f();
 
     var /*@ type=D* */ v4 =
-        /*@ target=B::- */ --t /*@target=Test::[]*/ /*@target=Test::[]=*/ [
+        /*@target=B.-*/ --t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
             /*@ typeArgs=Index* */ f()];
 
-    var /*@ type=B* */ v5 = t /*@target=Test::[]*/ /*@target=Test::[]=*/ [
-        /*@ typeArgs=Index* */ f()] /*@ target=B::- */ --;
+    var /*@ type=B* */ v5 = t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
+        /*@ typeArgs=Index* */ f()] /*@target=B.-*/ --;
   }
 }
 

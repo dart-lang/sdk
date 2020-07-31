@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.30.0';
+const String vmServiceVersion = '3.35.0';
 
 /// @optional
 const String optional = 'optional';
@@ -158,6 +158,8 @@ Map<String, Function> _typeFactories = {
   '@Object': ObjRef.parse,
   'Object': Obj.parse,
   'ProfileFunction': ProfileFunction.parse,
+  'ProtocolList': ProtocolList.parse,
+  'Protocol': Protocol.parse,
   'ReloadReport': ReloadReport.parse,
   'RetainingObject': RetainingObject.parse,
   'RetainingPath': RetainingPath.parse,
@@ -194,6 +196,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'evaluate': const ['InstanceRef', 'ErrorRef'],
   'evaluateInFrame': const ['InstanceRef', 'ErrorRef'],
   'getAllocationProfile': const ['AllocationProfile'],
+  'getClassList': const ['ClassList'],
   'getClientName': const ['ClientName'],
   'getCpuSamples': const ['CpuSamples'],
   'getFlagList': const ['FlagList'],
@@ -207,6 +210,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'getObject': const ['Obj'],
   'getRetainingPath': const ['RetainingPath'],
   'getStack': const ['Stack'],
+  'getSupportedProtocols': const ['ProtocolList'],
   'getSourceReport': const ['SourceReport'],
   'getVersion': const ['Version'],
   'getVM': const ['VM'],
@@ -497,6 +501,18 @@ abstract class VmServiceInterface {
   Future<AllocationProfile> getAllocationProfile(String isolateId,
       {bool reset, bool gc});
 
+  /// The `getClassList` RPC is used to retrieve a `ClassList` containing all
+  /// classes for an isolate based on the isolate's `isolateId`.
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
+  /// See [ClassList].
+  ///
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<ClassList> getClassList(String isolateId);
+
   /// The `getClientName` RPC is used to retrieve the name associated with the
   /// currently connected VM service client. If no name was previously set
   /// through the [setClientName] RPC, a default name will be returned.
@@ -717,6 +733,16 @@ abstract class VmServiceInterface {
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<Stack> getStack(String isolateId);
+
+  /// The `getSupportedProtocols` RPC is used to determine which protocols are
+  /// supported by the current server.
+  ///
+  /// The result of this call should be intercepted by any middleware that
+  /// extends the core VM service protocol and should add its own protocol to
+  /// the list of protocols before forwarding the response to the client.
+  ///
+  /// See [ProtocolList].
+  Future<ProtocolList> getSupportedProtocols();
 
   /// The `getSourceReport` RPC is used to generate a set of reports tied to
   /// source locations in an isolate.
@@ -1064,6 +1090,9 @@ abstract class VmServiceInterface {
   /// are to be enabled. Streams not explicitly specified will be disabled.
   /// Invalid stream names are ignored.
   ///
+  /// A `TimelineStreamSubscriptionsUpdate` event is sent on the `Timeline`
+  /// stream as a result of invoking this RPC.
+  ///
   /// To get the list of currently enabled timeline streams, see
   /// [getVMTimelineFlags].
   ///
@@ -1096,7 +1125,7 @@ abstract class VmServiceInterface {
   /// BreakpointResolved, BreakpointRemoved, Inspect, None
   /// GC | GC
   /// Extension | Extension
-  /// Timeline | TimelineEvents
+  /// Timeline | TimelineEvents, TimelineStreamsSubscriptionUpdate
   /// Logging | Logging
   /// Service | ServiceRegistered, ServiceUnregistered
   /// HeapSnapshot | HeapSnapshot
@@ -1183,7 +1212,8 @@ class VmServerConnection {
       }
       var method = request['method'] as String;
       if (method == null) {
-        throw RPCError(null, -32600, 'Invalid Request', request);
+        throw RPCError(
+            null, RPCError.kInvalidRequest, 'Invalid Request', request);
       }
       var params = request['params'] as Map;
       Response response;
@@ -1257,6 +1287,11 @@ class VmServerConnection {
             gc: params['gc'],
           );
           break;
+        case 'getClassList':
+          response = await _serviceImplementation.getClassList(
+            params['isolateId'],
+          );
+          break;
         case 'getClientName':
           response = await _serviceImplementation.getClientName();
           break;
@@ -1328,6 +1363,9 @@ class VmServerConnection {
           response = await _serviceImplementation.getStack(
             params['isolateId'],
           );
+          break;
+        case 'getSupportedProtocols':
+          response = await _serviceImplementation.getSupportedProtocols();
           break;
         case 'getSourceReport':
           response = await _serviceImplementation.getSourceReport(
@@ -1445,9 +1483,12 @@ class VmServerConnection {
           var id = params['streamId'];
           var existing = _streamSubscriptions.remove(id);
           if (existing == null) {
-            throw RPCError('streamCancel', 104, 'Stream not subscribed', {
-              'details': "The stream '$id' is not subscribed",
-            });
+            throw RPCError.withDetails(
+              'streamCancel',
+              104,
+              'Stream not subscribed',
+              details: "The stream '$id' is not subscribed",
+            );
           }
           await existing.cancel();
           response = Success();
@@ -1455,9 +1496,12 @@ class VmServerConnection {
         case 'streamListen':
           var id = params['streamId'];
           if (_streamSubscriptions.containsKey(id)) {
-            throw RPCError('streamListen', 103, 'Stream already subscribed', {
-              'details': "The stream '$id' is already subscribed",
-            });
+            throw RPCError.withDetails(
+              'streamListen',
+              103,
+              'Stream already subscribed',
+              details: "The stream '$id' is already subscribed",
+            );
           }
 
           var stream = id == 'Service'
@@ -1493,7 +1537,8 @@ class VmServerConnection {
             response = await _serviceImplementation.callServiceExtension(method,
                 isolateId: isolateId, args: args);
           } else {
-            throw RPCError(method, -32601, 'Method not found', request);
+            throw RPCError(
+                method, RPCError.kMethodNotFound, 'Method not found', request);
           }
       }
       if (response == null) {
@@ -1506,8 +1551,12 @@ class VmServerConnection {
       });
     } catch (e, st) {
       var error = e is RPCError
-          ? {'code': e.code, 'data': e.data, 'message': e.message}
-          : {'code': -32603, 'message': '$e\n$st'};
+          ? e.toMap()
+          : {
+              'code': RPCError.kInternalError,
+              'message': '${request['method']}: $e',
+              'data': {'details': '$st'},
+            };
       _responseSink.add({
         'jsonrpc': '2.0',
         'id': request['id'],
@@ -1582,7 +1631,7 @@ class VmService implements VmServiceInterface {
   // Extension
   Stream<Event> get onExtensionEvent => _getEventController('Extension').stream;
 
-  // TimelineEvents
+  // TimelineEvents, TimelineStreamsSubscriptionUpdate
   Stream<Event> get onTimelineEvent => _getEventController('Timeline').stream;
 
   // Logging
@@ -1703,6 +1752,10 @@ class VmService implements VmServiceInterface {
       });
 
   @override
+  Future<ClassList> getClassList(String isolateId) =>
+      _call('getClassList', {'isolateId': isolateId});
+
+  @override
   Future<ClientName> getClientName() => _call('getClientName');
 
   @override
@@ -1772,6 +1825,10 @@ class VmService implements VmServiceInterface {
   @override
   Future<Stack> getStack(String isolateId) =>
       _call('getStack', {'isolateId': isolateId});
+
+  @override
+  Future<ProtocolList> getSupportedProtocols() =>
+      _call('getSupportedProtocols');
 
   @override
   Future<SourceReport> getSourceReport(
@@ -1941,8 +1998,8 @@ class VmService implements VmServiceInterface {
     _streamSub.cancel();
     _completers.forEach((id, c) {
       final method = _methodCalls[id];
-      return c.completeError(
-          RPCError(method, -32000, 'Service connection disposed'));
+      return c.completeError(RPCError(
+          method, RPCError.kServerError, 'Service connection disposed'));
     });
     _completers.clear();
     if (_disposeHandler != null) {
@@ -1955,13 +2012,17 @@ class VmService implements VmServiceInterface {
 
   Future get onDone => _onDoneCompleter.future;
 
-  Future<T> _call<T>(String method, [Map args]) {
+  Future<T> _call<T>(String method, [Map args = const {}]) {
     String id = '${++_id}';
     Completer<T> completer = Completer<T>();
     _completers[id] = completer;
     _methodCalls[id] = method;
-    Map m = {'id': id, 'method': method};
-    if (args != null) m['params'] = args;
+    Map m = {
+      'jsonrpc': '2.0',
+      'id': id,
+      'method': method,
+      'params': args,
+    };
     String message = jsonEncode(m);
     _onSend.add(message);
     _writeMessage(message);
@@ -2057,7 +2118,8 @@ class VmService implements VmServiceInterface {
   }
 
   Future _processRequest(Map<String, dynamic> json) async {
-    final Map m = await _routeRequest(json['method'], json['params']);
+    final Map m = await _routeRequest(
+        json['method'], json['params'] ?? <String, dynamic>{});
     m['id'] = json['id'];
     m['jsonrpc'] = '2.0';
     String message = jsonEncode(m);
@@ -2067,7 +2129,7 @@ class VmService implements VmServiceInterface {
 
   Future _processNotification(Map<String, dynamic> json) async {
     final String method = json['method'];
-    final Map params = json['params'];
+    final Map params = json['params'] ?? <String, dynamic>{};
     if (method == 'streamNotify') {
       String streamId = params['streamId'];
       _getEventController(streamId)
@@ -2077,24 +2139,23 @@ class VmService implements VmServiceInterface {
     }
   }
 
-  Future<Map> _routeRequest(String method, Map params) async {
+  Future<Map> _routeRequest(String method, Map<String, dynamic> params) async {
+    if (!_services.containsKey(method)) {
+      RPCError error = RPCError(
+          method, RPCError.kMethodNotFound, 'method not found \'$method\'');
+      return {'error': error.toMap()};
+    }
+
     try {
-      if (_services.containsKey(method)) {
-        return await _services[method](params);
-      }
-      return {
-        'error': {
-          'code': -32601, // Method not found
-          'message': 'Method not found \'$method\''
-        }
-      };
+      return await _services[method](params);
     } catch (e, st) {
-      return {
-        'error': {
-          'code': -32000, // SERVER ERROR
-          'message': 'Unexpected Server Error $e\n$st'
-        }
-      };
+      RPCError error = RPCError.withDetails(
+        method,
+        RPCError.kServerError,
+        '$e',
+        details: '$st',
+      );
+      return {'error': error.toMap()};
     }
   }
 }
@@ -2102,6 +2163,21 @@ class VmService implements VmServiceInterface {
 typedef DisposeHandler = Future Function();
 
 class RPCError implements Exception {
+  /// Application specific error codes.
+  static const int kServerError = -32000;
+
+  /// The JSON sent is not a valid Request object.
+  static const int kInvalidRequest = -32600;
+
+  /// The method does not exist or is not available.
+  static const int kMethodNotFound = -32601;
+
+  /// Invalid method parameter(s), such as a mismatched type.
+  static const int kInvalidParams = -32602;
+
+  /// Internal JSON-RPC error.
+  static const int kInternalError = -32603;
+
   static RPCError parse(String callingMethod, dynamic json) {
     return RPCError(callingMethod, json['code'], json['message'], json['data']);
   }
@@ -2113,13 +2189,34 @@ class RPCError implements Exception {
 
   RPCError(this.callingMethod, this.code, this.message, [this.data]);
 
+  RPCError.withDetails(this.callingMethod, this.code, this.message,
+      {Object details})
+      : data = details == null ? null : <String, dynamic>{} {
+    if (details != null) {
+      data['details'] = details;
+    }
+  }
+
   String get details => data == null ? null : data['details'];
+
+  /// Return a map representation of this error suitable for converstion to
+  /// json.
+  Map<String, dynamic> toMap() {
+    Map<String, dynamic> map = {
+      'code': code,
+      'message': message,
+    };
+    if (data != null) {
+      map['data'] = data;
+    }
+    return map;
+  }
 
   String toString() {
     if (details == null) {
-      return '${message} (${code}) from ${callingMethod}()';
+      return '$callingMethod: ($code) $message';
     } else {
-      return '${message} (${code}) from ${callingMethod}():\n${details}';
+      return '$callingMethod: ($code) $message\n$details';
     }
   }
 }
@@ -2288,6 +2385,18 @@ class EventKind {
 
   /// Event from dart:developer.log.
   static const String kLogging = 'Logging';
+
+  /// A block of timeline events has been completed.
+  ///
+  /// This service event is not sent for individual timeline events. It is
+  /// subject to buffering, so the most recent timeline events may never be
+  /// included in any TimelineEvents event if no timeline events occur later to
+  /// complete the block.
+  static const String kTimelineEvents = 'TimelineEvents';
+
+  /// The set of active timeline streams was changed via `setVMTimelineFlags`.
+  static const String kTimelineStreamSubscriptionsUpdate =
+      'TimelineStreamSubscriptionsUpdate';
 
   /// Notification that a Service has been registered into the Service Protocol
   /// from another client.
@@ -2647,8 +2756,9 @@ class Breakpoint extends Obj {
     @required this.breakpointNumber,
     @required this.resolved,
     @required this.location,
+    @required String id,
     this.isSyntheticAsyncContinuation,
-  });
+  }) : super(id: id);
 
   Breakpoint._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     breakpointNumber = json['breakpointNumber'];
@@ -2691,7 +2801,8 @@ class ClassRef extends ObjRef {
 
   ClassRef({
     @required this.name,
-  });
+    @required String id,
+  }) : super(id: id);
 
   ClassRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -2779,12 +2890,13 @@ class Class extends Obj implements ClassRef {
     @required this.fields,
     @required this.functions,
     @required this.subclasses,
+    @required String id,
     this.error,
     this.location,
     this.superClass,
     this.superType,
     this.mixin,
-  });
+  }) : super(id: id);
 
   Class._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -2962,7 +3074,8 @@ class CodeRef extends ObjRef {
   CodeRef({
     @required this.name,
     @required this.kind,
-  });
+    @required String id,
+  }) : super(id: id);
 
   CodeRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -3002,7 +3115,8 @@ class Code extends ObjRef implements CodeRef {
   Code({
     @required this.name,
     @required this.kind,
-  });
+    @required String id,
+  }) : super(id: id);
 
   Code._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -3037,7 +3151,8 @@ class ContextRef extends ObjRef {
 
   ContextRef({
     @required this.length,
-  });
+    @required String id,
+  }) : super(id: id);
 
   ContextRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     length = json['length'];
@@ -3080,8 +3195,9 @@ class Context extends Obj implements ContextRef {
   Context({
     @required this.length,
     @required this.variables,
+    @required String id,
     this.parent,
-  });
+  }) : super(id: id);
 
   Context._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     length = json['length'];
@@ -3307,7 +3423,8 @@ class ErrorRef extends ObjRef {
   ErrorRef({
     @required this.kind,
     @required this.message,
-  });
+    @required String id,
+  }) : super(id: id);
 
   ErrorRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
@@ -3358,9 +3475,10 @@ class Error extends Obj implements ErrorRef {
   Error({
     @required this.kind,
     @required this.message,
+    @required String id,
     this.exception,
     this.stacktrace,
-  });
+  }) : super(id: id);
 
   Error._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
@@ -3503,6 +3621,12 @@ class Event extends Response {
   @optional
   List<TimelineEvent> timelineEvents;
 
+  /// The new set of recorded timeline streams.
+  ///
+  /// This is provided for the TimelineStreamSubscriptionsUpdate event.
+  @optional
+  List<String> updatedStreams;
+
   /// Is the isolate paused at an await, yield, or yield* statement?
   ///
   /// This is provided for the event kinds:
@@ -3514,7 +3638,6 @@ class Event extends Response {
   /// The status (success or failure) related to the event. This is provided for
   /// the event kinds:
   ///  - IsolateReloaded
-  ///  - IsolateSpawn
   @optional
   String status;
 
@@ -3590,6 +3713,7 @@ class Event extends Response {
     this.extensionKind,
     this.extensionData,
     this.timelineEvents,
+    this.updatedStreams,
     this.atAsyncSuspension,
     this.status,
     this.logRecord,
@@ -3623,6 +3747,9 @@ class Event extends Response {
         ? null
         : List<TimelineEvent>.from(createServiceObject(
             json['timelineEvents'], const ['TimelineEvent']));
+    updatedStreams = json['updatedStreams'] == null
+        ? null
+        : List<String>.from(json['updatedStreams']);
     atAsyncSuspension = json['atAsyncSuspension'];
     status = json['status'];
     logRecord = createServiceObject(json['logRecord'], const ['LogRecord']);
@@ -3657,6 +3784,8 @@ class Event extends Response {
     _setIfNotNull(json, 'extensionData', extensionData?.data);
     _setIfNotNull(json, 'timelineEvents',
         timelineEvents?.map((f) => f?.toJson())?.toList());
+    _setIfNotNull(
+        json, 'updatedStreams', updatedStreams?.map((f) => f)?.toList());
     _setIfNotNull(json, 'atAsyncSuspension', atAsyncSuspension);
     _setIfNotNull(json, 'status', status);
     _setIfNotNull(json, 'logRecord', logRecord?.toJson());
@@ -3707,7 +3836,8 @@ class FieldRef extends ObjRef {
     @required this.isConst,
     @required this.isFinal,
     @required this.isStatic,
-  });
+    @required String id,
+  }) : super(id: id);
 
   FieldRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -3782,9 +3912,10 @@ class Field extends Obj implements FieldRef {
     @required this.isConst,
     @required this.isFinal,
     @required this.isStatic,
+    @required String id,
     this.staticValue,
     this.location,
-  });
+  }) : super(id: id);
 
   Field._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -3987,7 +4118,8 @@ class FuncRef extends ObjRef {
     @required this.owner,
     @required this.isStatic,
     @required this.isConst,
-  });
+    @required String id,
+  }) : super(id: id);
 
   FuncRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -4051,9 +4183,10 @@ class Func extends Obj implements FuncRef {
     @required this.owner,
     @required this.isStatic,
     @required this.isConst,
+    @required String id,
     this.location,
     this.code,
-  });
+  }) : super(id: id);
 
   Func._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -4193,6 +4326,7 @@ class InstanceRef extends ObjRef {
   InstanceRef({
     @required this.kind,
     @required this.classRef,
+    @required String id,
     this.valueAsString,
     this.valueAsStringIsTruncated,
     this.length,
@@ -4202,13 +4336,13 @@ class InstanceRef extends ObjRef {
     this.pattern,
     this.closureFunction,
     this.closureContext,
-  });
+  }) : super(id: id);
 
   InstanceRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     classRef = createServiceObject(json['class'], const ['ClassRef']);
     valueAsString = json['valueAsString'];
-    valueAsStringIsTruncated = json['valueAsStringIsTruncated'] ?? false;
+    valueAsStringIsTruncated = json['valueAsStringIsTruncated'];
     length = json['length'];
     name = json['name'];
     typeClass = createServiceObject(json['typeClass'], const ['ClassRef']);
@@ -4230,8 +4364,7 @@ class InstanceRef extends ObjRef {
       'class': classRef.toJson(),
     });
     _setIfNotNull(json, 'valueAsString', valueAsString);
-    _setIfNotNull(
-        json, 'valueAsStringIsTruncated', valueAsStringIsTruncated ?? false);
+    _setIfNotNull(json, 'valueAsStringIsTruncated', valueAsStringIsTruncated);
     _setIfNotNull(json, 'length', length);
     _setIfNotNull(json, 'name', name);
     _setIfNotNull(json, 'typeClass', typeClass?.toJson());
@@ -4508,6 +4641,7 @@ class Instance extends Obj implements InstanceRef {
   Instance({
     @required this.kind,
     @required this.classRef,
+    @required String id,
     this.valueAsString,
     this.valueAsStringIsTruncated,
     this.length,
@@ -4532,13 +4666,13 @@ class Instance extends Obj implements InstanceRef {
     this.parameterIndex,
     this.targetType,
     this.bound,
-  });
+  }) : super(id: id);
 
   Instance._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     classRef = createServiceObject(json['class'], const ['ClassRef']);
     valueAsString = json['valueAsString'];
-    valueAsStringIsTruncated = json['valueAsStringIsTruncated'] ?? false;
+    valueAsStringIsTruncated = json['valueAsStringIsTruncated'];
     length = json['length'];
     offset = json['offset'];
     count = json['count'];
@@ -4588,8 +4722,7 @@ class Instance extends Obj implements InstanceRef {
       'class': classRef.toJson(),
     });
     _setIfNotNull(json, 'valueAsString', valueAsString);
-    _setIfNotNull(
-        json, 'valueAsStringIsTruncated', valueAsStringIsTruncated ?? false);
+    _setIfNotNull(json, 'valueAsStringIsTruncated', valueAsStringIsTruncated);
     _setIfNotNull(json, 'length', length);
     _setIfNotNull(json, 'offset', offset);
     _setIfNotNull(json, 'count', count);
@@ -5026,7 +5159,8 @@ class LibraryRef extends ObjRef {
   LibraryRef({
     @required this.name,
     @required this.uri,
-  });
+    @required String id,
+  }) : super(id: id);
 
   LibraryRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -5092,7 +5226,8 @@ class Library extends Obj implements LibraryRef {
     @required this.variables,
     @required this.functions,
     @required this.classes,
-  });
+    @required String id,
+  }) : super(id: id);
 
   Library._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
@@ -5676,6 +5811,79 @@ class ProfileFunction {
       'resolvedUrl: ${resolvedUrl}, function: ${function}]';
 }
 
+/// A `ProtocolList` contains a list of all protocols supported by the service
+/// instance.
+///
+/// See [Protocol] and [getSupportedProtocols].
+class ProtocolList extends Response {
+  static ProtocolList parse(Map<String, dynamic> json) =>
+      json == null ? null : ProtocolList._fromJson(json);
+
+  /// A list of supported protocols provided by this service.
+  List<Protocol> protocols;
+
+  ProtocolList({
+    @required this.protocols,
+  });
+
+  ProtocolList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
+    protocols = List<Protocol>.from(
+        createServiceObject(json['protocols'], const ['Protocol']) ?? []);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json['type'] = 'ProtocolList';
+    json.addAll({
+      'protocols': protocols.map((f) => f.toJson()).toList(),
+    });
+    return json;
+  }
+
+  String toString() => '[ProtocolList type: ${type}, protocols: ${protocols}]';
+}
+
+/// See [getSupportedProtocols].
+class Protocol {
+  static Protocol parse(Map<String, dynamic> json) =>
+      json == null ? null : Protocol._fromJson(json);
+
+  /// The name of the supported protocol.
+  String protocolName;
+
+  /// The major revision of the protocol.
+  int major;
+
+  /// The minor revision of the protocol.
+  int minor;
+
+  Protocol({
+    @required this.protocolName,
+    @required this.major,
+    @required this.minor,
+  });
+
+  Protocol._fromJson(Map<String, dynamic> json) {
+    protocolName = json['protocolName'];
+    major = json['major'];
+    minor = json['minor'];
+  }
+
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json.addAll({
+      'protocolName': protocolName,
+      'major': major,
+      'minor': minor,
+    });
+    return json;
+  }
+
+  String toString() => '[Protocol ' //
+      'protocolName: ${protocolName}, major: ${major}, minor: ${minor}]';
+}
+
 class ReloadReport extends Response {
   static ReloadReport parse(Map<String, dynamic> json) =>
       json == null ? null : ReloadReport._fromJson(json);
@@ -5877,7 +6085,8 @@ class ScriptRef extends ObjRef {
 
   ScriptRef({
     @required this.uri,
-  });
+    @required String id,
+  }) : super(id: id);
 
   ScriptRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     uri = json['uri'];
@@ -5962,11 +6171,12 @@ class Script extends Obj implements ScriptRef {
   Script({
     @required this.uri,
     @required this.library,
+    @required String id,
     this.lineOffset,
     this.columnOffset,
     this.source,
     this.tokenPosTable,
-  });
+  }) : super(id: id);
 
   Script._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     uri = json['uri'];
@@ -6352,7 +6562,9 @@ class Timeline extends Response {
   static Timeline parse(Map<String, dynamic> json) =>
       json == null ? null : Timeline._fromJson(json);
 
-  /// A list of timeline events.
+  /// A list of timeline events. No order is guarenteed for these events; in
+  /// particular, these events may be unordered with respect to their
+  /// timestamps.
   List<TimelineEvent> traceEvents;
 
   /// The start of the period of time in which traceEvents were collected.
@@ -6495,7 +6707,8 @@ class TypeArgumentsRef extends ObjRef {
 
   TypeArgumentsRef({
     @required this.name,
-  });
+    @required String id,
+  }) : super(id: id);
 
   TypeArgumentsRef._fromJson(Map<String, dynamic> json)
       : super._fromJson(json) {
@@ -6538,7 +6751,8 @@ class TypeArguments extends Obj implements TypeArgumentsRef {
   TypeArguments({
     @required this.name,
     @required this.types,
-  });
+    @required String id,
+  }) : super(id: id);
 
   TypeArguments._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];

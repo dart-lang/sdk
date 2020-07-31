@@ -8,9 +8,9 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:meta/meta.dart';
 
 /// Helper for resolving [ForStatement]s and [ForElement]s.
@@ -34,7 +34,7 @@ class ForResolver {
   }
 
   void resolveStatement(ForStatementImpl node) {
-    _flowAnalysis?.checkUnreachableNode(node);
+    _resolver.checkUnreachableNode(node);
 
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForParts) {
@@ -63,7 +63,9 @@ class ForResolver {
         : null;
 
     if (iteratedType != null) {
-      return iteratedType.typeArguments.single;
+      var elementType = iteratedType.typeArguments.single;
+      elementType = _resolver.toLegacyTypeIfOptOut(elementType);
+      return elementType;
     } else {
       return null;
     }

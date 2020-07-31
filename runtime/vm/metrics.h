@@ -48,9 +48,10 @@ class Metric {
 
   Metric();
 
+#if !defined(PRODUCT)
   static void Init();
-
   static void Cleanup();
+#endif  // !defined(PRODUCT)
 
   // Initialize a metric for an isolate.
   void InitInstance(Isolate* isolate,
@@ -160,6 +161,7 @@ class MetricHeapNewExternal : public Metric {
   virtual int64_t Value() const;
 };
 
+#if !defined(PRODUCT)
 class MetricIsolateCount : public Metric {
  public:
   virtual int64_t Value() const;
@@ -174,6 +176,7 @@ class MetricPeakRSS : public Metric {
  public:
   virtual int64_t Value() const;
 };
+#endif  // !defined(PRODUCT)
 
 class MetricHeapUsed : public Metric {
  public:

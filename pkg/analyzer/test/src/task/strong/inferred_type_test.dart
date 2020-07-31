@@ -17,36 +17,17 @@ import 'strong_test_helper.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InferredTypeTest);
-    defineReflectiveTests(InferredTypeTest_SetLiterals);
   });
 }
 
-mixin InferredTypeMixin {
-  /// Extra top-level errors if needed due to being analyze multiple times.
-  bool get hasExtraTaskModelPass => true;
-
-  /**
-   * If `true` then types of local elements may be checked.
-   */
-  bool get mayCheckTypesOfLocals;
-
-  /**
-   * Add a new file with the given [name] and [content].
-   */
-  void addFile(String content, {String name = '/main.dart'});
-
-  /**
-   * Add the file, process it (resolve, validate, etc) and return the resolved
-   * unit.
-   */
-  Future<CompilationUnit> checkFile(String content,
-      {bool implicitCasts = true, bool implicitDynamic = true});
-
-  /**
-   * Add the file, process it (resolve, validate, etc) and return the resolved
-   * unit element.
-   */
-  Future<CompilationUnitElement> checkFileElement(String content);
+@reflectiveTest
+class InferredTypeTest extends AbstractStrongTest {
+  /// Add the file, process it (resolve, validate, etc) and return the resolved
+  /// unit element.
+  Future<CompilationUnitElement> checkFileElement(String content) async {
+    CompilationUnit unit = await checkFile(content);
+    return unit.declaredElement;
+  }
 
   test_asyncClosureReturnType_flatten() async {
     var mainUnit = await checkFileElement('''
@@ -94,9 +75,6 @@ var g = () async => futureOrInt;
   }
 
   test_blockBodiedLambdas_async_allReturnsAreFutures() async {
-    if (!mayCheckTypesOfLocals) {
-      return;
-    }
     var unit = await checkFile(r'''
 import 'dart:async';
 import 'dart:math' show Random;
@@ -117,9 +95,6 @@ main() {
   }
 
   test_blockBodiedLambdas_async_allReturnsAreValues() async {
-    if (!mayCheckTypesOfLocals) {
-      return;
-    }
     var unit = await checkFile(r'''
 import 'dart:async';
 import 'dart:math' show Random;
@@ -140,9 +115,6 @@ main() {
   }
 
   test_blockBodiedLambdas_async_mixOfValuesAndFutures() async {
-    if (!mayCheckTypesOfLocals) {
-      return;
-    }
     var unit = await checkFile(r'''
 import 'dart:async';
 import 'dart:math' show Random;
@@ -163,9 +135,6 @@ main() {
   }
 
   test_blockBodiedLambdas_asyncStar() async {
-    if (!mayCheckTypesOfLocals) {
-      return;
-    }
     var unit = await checkFile(r'''
 import 'dart:async';
 main() {
@@ -193,9 +162,6 @@ test1() {
   }
 
   test_blockBodiedLambdas_downwardsIncompatibleWithUpwardsInference() async {
-    if (!mayCheckTypesOfLocals) {
-      return;
-    }
     var unit = await checkFile(r'''
 main() {
   String f() => null;
@@ -217,9 +183,6 @@ var g = f;
   }
 
   test_blockBodiedLambdas_inferBottom_async() async {
-    if (!mayCheckTypesOfLocals) {
-      return;
-    }
     var unit = await checkFile(r'''
 import 'dart:async';
 main() async {
@@ -234,9 +197,6 @@ main() async {
   }
 
   test_blockBodiedLambdas_inferBottom_asyncStar() async {
-    if (!mayCheckTypesOfLocals) {
-      return;
-    }
     var unit = await checkFile(r'''
 import 'dart:async';
 main() async {
@@ -251,9 +211,6 @@ main() async {
   }
 
   test_blockBodiedLambdas_inferBottom_sync() async {
-    if (!mayCheckTypesOfLocals) {
-      return;
-    }
     var unit = await checkFile(r'''
 var h = null;
 void foo(int g(Object _)) {}
@@ -274,9 +231,6 @@ main() {
   }
 
   test_blockBodiedLambdas_inferBottom_syncStar() async {
-    if (!mayCheckTypesOfLocals) {
-      return;
-    }
     var unit = await checkFile(r'''
 main() {
   var f = () sync* { yield null; };
@@ -308,9 +262,6 @@ test2() {
   }
 
   test_blockBodiedLambdas_nestedLambdas() async {
-    if (!mayCheckTypesOfLocals) {
-      return;
-    }
     // Original feature request: https://github.com/dart-lang/sdk/issues/25487
     var unit = await checkFile(r'''
 main() {
@@ -324,9 +275,6 @@ main() {
   }
 
   test_blockBodiedLambdas_noReturn() async {
-    if (!mayCheckTypesOfLocals) {
-      return;
-    }
     var unit = await checkFile(r'''
 test1() {
   List<int> o;
@@ -339,9 +287,6 @@ test1() {
   }
 
   test_blockBodiedLambdas_syncStar() async {
-    if (!mayCheckTypesOfLocals) {
-      return;
-    }
     var unit = await checkFile(r'''
 main() {
   var f = () sync* {
@@ -403,34 +348,6 @@ var y = () => /*error:TOP_LEVEL_CYCLE*/x;
     expect(y.name, 'y');
     _assertTypeStr(x.initializer.returnType, 'dynamic Function()');
     _assertTypeStr(y.initializer.returnType, 'dynamic Function()');
-  }
-
-  test_conflictsCanHappen() async {
-    await checkFileElement('''
-class I1 {
-  int x;
-}
-class I2 extends I1 {
-  int y;
-}
-
-class A {
-  final I1 a = null;
-}
-
-class B {
-  final I2 a = null;
-}
-
-class C1 implements A, B {
-  get /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/a => null;
-}
-
-// Still ambiguous
-class C2 implements B, A {
-  get /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/a => null;
-}
-''');
   }
 
   test_conflictsCanHappen2() async {
@@ -3685,9 +3602,6 @@ var x = [null];
   }
 
   test_listLiteralsCanInferNullBottom() async {
-    if (!mayCheckTypesOfLocals) {
-      return;
-    }
     var unit = await checkFile(r'''
 test1() {
   var x = [null];
@@ -3747,9 +3661,6 @@ test2() {
   }
 
   test_mapLiteralsCanInferNull() async {
-    if (!mayCheckTypesOfLocals) {
-      return;
-    }
     var unit = await checkFile(r'''
 test1() {
   var x = { null: null };
@@ -4094,9 +4005,9 @@ var v = f<dynamic>(() { return 1; });
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/25824')
   test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() async {
-    // Note: (f<dynamic>) is not properly resulting in an instantiated
-    // function type due to dartbug.com/25824.
+    // Note: (f<dynamic>) is not a valid syntax.
     var mainUnit = await checkFileElement('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = (f<dynamic>)(() { return 1; });
@@ -4126,9 +4037,9 @@ var v = f<int>(() { return 1; });
     _assertTypeStr(v.type, 'List<int>');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/25824')
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() async {
-    // TODO(paulberry): for some reason (f<int>) is not properly resulting
-    // in an instantiated function type.
+    // Note: (f<int>) is not a valid syntax.
     var mainUnit = await checkFileElement('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = (f<int>)(() { return 1; });
@@ -4354,64 +4265,5 @@ main() {
   void _assertTypeStr(DartType type, String expected) {
     var typeStr = type.getDisplayString(withNullability: false);
     expect(typeStr, expected);
-  }
-}
-
-@reflectiveTest
-class InferredTypeTest extends AbstractStrongTest with InferredTypeMixin {
-  @override
-  bool get hasExtraTaskModelPass => false;
-
-  @override
-  bool get mayCheckTypesOfLocals => true;
-
-  @override
-  Future<CompilationUnitElement> checkFileElement(String content) async {
-    CompilationUnit unit = await checkFile(content);
-    return unit.declaredElement;
-  }
-
-  @failingTest
-  @override
-  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() {
-    return super
-        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1();
-  }
-
-  @failingTest
-  @override
-  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() {
-    return super
-        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1();
-  }
-}
-
-@reflectiveTest
-class InferredTypeTest_SetLiterals extends AbstractStrongTest
-    with InferredTypeMixin {
-  @override
-  bool get hasExtraTaskModelPass => false;
-
-  @override
-  bool get mayCheckTypesOfLocals => true;
-
-  @override
-  Future<CompilationUnitElement> checkFileElement(String content) async {
-    CompilationUnit unit = await checkFile(content);
-    return unit.declaredElement;
-  }
-
-  @failingTest
-  @override
-  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() {
-    return super
-        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1();
-  }
-
-  @failingTest
-  @override
-  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() {
-    return super
-        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1();
   }
 }

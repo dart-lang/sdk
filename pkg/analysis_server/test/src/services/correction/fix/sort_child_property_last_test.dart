@@ -11,12 +11,12 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SortChildPropertiesLastTest);
+    defineReflectiveTests(SortChildPropertyLastTest);
   });
 }
 
 @reflectiveTest
-class SortChildPropertiesLastTest extends FixProcessorLintTest {
+class SortChildPropertyLastTest extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.SORT_CHILD_PROPERTY_LAST;
 

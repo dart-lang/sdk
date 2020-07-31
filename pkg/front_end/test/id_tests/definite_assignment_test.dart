@@ -67,7 +67,7 @@ class DefiniteAssignmentDataExtractor extends CfeDataExtractor<String> {
   String computeNodeValue(Id id, TreeNode node) {
     if (node is VariableGet) {
       TreeNode alias = _sourceLoaderDataForTesting.toOriginal(node);
-      if (_flowResult.unassignedNodes.contains(alias)) {
+      if (_flowResult.potentiallyUnassignedNodes.contains(alias)) {
         return 'unassigned';
       }
     }

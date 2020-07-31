@@ -18,13 +18,13 @@ class Frame {
 main() {
   List<Trace> traces = /*@ typeArgs=Trace* */ [];
   var /*@ type=int* */ longest =
-      traces. /*@ typeArgs=int* */ /*@target=Iterable::map*/ map(
+      traces. /*@ typeArgs=int* */ /*@target=Iterable.map*/ map(
           /*@ returnType=int* */ (/*@ type=Trace* */ trace) {
-    return trace. /*@target=Trace::frames*/ frames
-        . /*@ typeArgs=int* */ /*@target=Iterable::map*/ map(
+    return trace. /*@target=Trace.frames*/ frames
+        . /*@ typeArgs=int* */ /*@target=Iterable.map*/ map(
             /*@ returnType=int* */ (/*@ type=Frame* */ frame) => frame
-                . /*@target=Frame::location*/ location
-                . /*@target=String::length*/ length)
-        . /*@ typeArgs=int* */ /*@target=Iterable::fold*/ fold(0, math.max);
-  }). /*@ typeArgs=int* */ /*@target=Iterable::fold*/ fold(0, math.max);
+                . /*@target=Frame.location*/ location
+                . /*@target=String.length*/ length)
+        . /*@ typeArgs=int* */ /*@target=Iterable.fold*/ fold(0, math.max);
+  }). /*@ typeArgs=int* */ /*@target=Iterable.fold*/ fold(0, math.max);
 }

@@ -17,23 +17,11 @@
 
 #if defined(USING_ADDRESS_SANITIZER)
 extern "C" void __asan_unpoison_memory_region(void*, size_t);
-extern "C" void __lsan_register_root_region(const void* p, size_t size);
-extern "C" void __lsan_unregister_root_region(const void* p, size_t size);
 #define NO_SANITIZE_ADDRESS __attribute__((no_sanitize("address")))
 #define ASAN_UNPOISON(ptr, len) __asan_unpoison_memory_region(ptr, len)
-#define LSAN_REGISTER_ROOT_REGION(ptr, len)                                    \
-  __lsan_register_root_region(ptr, len)
-#define LSAN_UNREGISTER_ROOT_REGION(ptr, len)                                  \
-  __lsan_unregister_root_region(ptr, len)
-#else  // __has_feature(address_sanitizer)
+#else  // defined(USING_ADDRESS_SANITIZER)
 #define NO_SANITIZE_ADDRESS
 #define ASAN_UNPOISON(ptr, len)                                                \
-  do {                                                                         \
-  } while (false && (ptr) == 0 && (len) == 0)
-#define LSAN_REGISTER_ROOT_REGION(ptr, len)                                    \
-  do {                                                                         \
-  } while (false && (ptr) == 0 && (len) == 0)
-#define LSAN_UNREGISTER_ROOT_REGION(ptr, len)                                  \
   do {                                                                         \
   } while (false && (ptr) == 0 && (len) == 0)
 #endif  // defined(USING_ADDRESS_SANITIZER)

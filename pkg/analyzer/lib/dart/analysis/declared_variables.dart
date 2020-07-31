@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/constant/from_environment_evaluator.dart';
-import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 
 /// An object used to provide access to the values of variables that have been
 /// defined on the command line using the `-D` option.

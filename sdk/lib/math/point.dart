@@ -1,7 +1,6 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart = 2.6
 
 part of dart.math;
 
@@ -16,14 +15,12 @@ class Point<T extends num> {
 
   String toString() => 'Point($x, $y)';
 
-  /// A `Point` is only equal to another `Point` with the same coordinates.
+  /// Whether [other] is a point with the same coordinates as this point.
   ///
-  /// This point is equal to `other` if, and only if,
-  /// `other` is a `Point` with
-  /// [x] equal to `other.x` and [y] equal to `other.y`.
-  bool operator ==(dynamic other) =>
-      // Cannot change parameter type to `Object` in case some class
-      // inherits the type and uses their argument dynamically.
+  /// Returns `true` if [other] is a [Point] with [x] and [y]
+  /// coordinates equal to the corresponding coordiantes of this point,
+  /// and `false` otherwise.
+  bool operator ==(Object other) =>
       other is Point && x == other.x && y == other.y;
 
   int get hashCode => _JenkinsSmiHash.hash2(x.hashCode, y.hashCode);
@@ -32,25 +29,25 @@ class Point<T extends num> {
   ///
   /// Returns the resulting "vector" as a Point.
   Point<T> operator +(Point<T> other) {
-    return Point<T>(x + other.x, y + other.y);
+    return Point<T>((x + other.x) as T, (y + other.y) as T);
   }
 
   /// Subtract [other] from `this`, as if both points were vectors.
   ///
   /// Returns the resulting "vector" as a Point.
   Point<T> operator -(Point<T> other) {
-    return Point<T>(x - other.x, y - other.y);
+    return Point<T>((x - other.x) as T, (y - other.y) as T);
   }
 
   /// Scale this point by [factor] as if it were a vector.
   ///
   /// *Important* *Note*: This function accepts a `num` as its argument only so
-  /// that you can scale Point<double> objects by an `int` factor. Because the
-  /// star operator always returns the same type of Point that originally called
-  /// it, passing in a double [factor] on a `Point<int>` _causes_ _a_
-  /// _runtime_ _error_ in checked mode.
+  /// that you can scale `Point<double>` objects by an `int` factor. Because the
+  /// `*` operator always returns the same type of `Point` as it is called on,
+  /// passing in a double [factor] on a `Point<int>` _causes_ _a_
+  /// _runtime_ _error_.
   Point<T> operator *(num /*T|int*/ factor) {
-    return Point<T>((x * factor), (y * factor));
+    return Point<T>((x * factor) as T, (y * factor) as T);
   }
 
   /// Get the straight line (Euclidean) distance between the origin (0, 0) and
@@ -71,6 +68,6 @@ class Point<T extends num> {
   T squaredDistanceTo(Point<T> other) {
     var dx = x - other.x;
     var dy = y - other.y;
-    return dx * dx + dy * dy;
+    return (dx * dx + dy * dy) as T;
   }
 }

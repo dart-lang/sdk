@@ -16,5 +16,5 @@ class PatchedClass {
    patch
   */
   @patch
-  const PatchedClass({int field}) : _field = field;
+  const PatchedClass({int field: 0}) : _field = field;
 }

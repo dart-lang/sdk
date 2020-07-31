@@ -10,22 +10,14 @@ import 'dart:html';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/src/elements/vm_connect_target.dart';
 
 class VMConnectElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<VMConnectElement>('vm-connect', dependencies: const [
-    NavTopMenuElement.tag,
-    NavNotifyElement.tag,
-    ViewFooterElement.tag,
-    VMConnectTargetElement.tag
-  ]);
-
-  RenderingScheduler _r;
+  RenderingScheduler<VMConnectElement> _r;
 
   Stream<RenderedEvent<VMConnectElement>> get onRendered => _r.onRendered;
 
@@ -49,7 +41,7 @@ class VMConnectElement extends CustomElement implements Renderable {
     return e;
   }
 
-  VMConnectElement.created() : super.created(tag);
+  VMConnectElement.created() : super.created('vm-connect');
 
   @override
   void attached() {

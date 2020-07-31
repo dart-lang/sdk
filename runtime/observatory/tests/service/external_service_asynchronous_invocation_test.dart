@@ -135,7 +135,8 @@ var tests = <IsolateTest>[
               'id': request['id'],
               'error': {
                 'code': errorCode + iteration,
-                'data': {errorKey + end: errorValue + end}
+                'data': {errorKey + end: errorValue + end},
+                'message': 'error message',
               }
             });
       }).toList();
@@ -164,4 +165,7 @@ var tests = <IsolateTest>[
   },
 ];
 
-main(args) => runIsolateTests(args, tests);
+main(args) => runIsolateTests(
+      args,
+      tests,
+    );

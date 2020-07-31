@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // Patch file for dart:convert library.
 
 import 'dart:_js_helper' show argumentErrorValue, patch;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JSExtendableArray;
 import 'dart:_internal' show MappedIterable, ListIterable;
-import 'dart:collection' show Maps, LinkedHashMap, MapBase;
+import 'dart:collection' show LinkedHashMap, MapBase;
 import 'dart:_native_typed_data' show NativeUint8List;
 
 /**
@@ -30,7 +28,7 @@ import 'dart:_native_typed_data' show NativeUint8List;
  * Throws [FormatException] if the input is not valid JSON text.
  */
 @patch
-_parseJson(String source, reviver(Object key, Object value)) {
+_parseJson(String source, reviver(key, value)?) {
   if (source is! String) throw argumentErrorValue(source);
 
   var parsed;
@@ -53,8 +51,7 @@ _parseJson(String source, reviver(Object key, Object value)) {
  * Maps. [json] is expected to be freshly allocated so elements can be replaced
  * in-place.
  */
-_convertJsonToDart(json, reviver(Object key, Object value)) {
-  assert(reviver != null);
+_convertJsonToDart(json, reviver(Object? key, Object? value)) {
   walk(e) {
     // JavaScript null, string, number, bool are in the correct representation.
     if (JS<bool>('!', '# == null', e) ||
@@ -214,7 +211,7 @@ class _JsonMap extends MapBase<String, dynamic> {
     return value;
   }
 
-  remove(Object key) {
+  remove(Object? key) {
     if (!_isUpgraded && !containsKey(key)) return null;
     return _upgrade().remove(key);
   }
@@ -275,7 +272,7 @@ class _JsonMap extends MapBase<String, dynamic> {
 
   List<String> _computeKeys() {
     assert(!_isUpgraded);
-    List keys = _data;
+    List? keys = _data;
     if (keys == null) {
       keys = _data = _getPropertyNames(_original);
     }
@@ -298,7 +295,7 @@ class _JsonMap extends MapBase<String, dynamic> {
     // safely force a concurrent modification error in case
     // someone is iterating over the map here.
     if (keys.isEmpty) {
-      keys.add(null);
+      keys.add("");
     } else {
       keys.clear();
     }
@@ -357,13 +354,13 @@ class _JsonMapKeyIterable extends ListIterable<String> {
 
   /// Delegate to [parent.containsKey] to ensure the performance expected
   /// from [Map.keys.containsKey].
-  bool contains(Object key) => _parent.containsKey(key);
+  bool contains(Object? key) => _parent.containsKey(key);
 }
 
 @patch
 class JsonDecoder {
   @patch
-  StringConversionSink startChunkedConversion(Sink<Object> sink) {
+  StringConversionSink startChunkedConversion(Sink<Object?> sink) {
     return _JsonDecoderSink(_reviver, sink);
   }
 }
@@ -375,18 +372,17 @@ class JsonDecoder {
  * The sink only creates one object, but its input can be chunked.
  */
 // TODO(floitsch): don't accumulate everything before starting to decode.
-class _JsonDecoderSink extends _StringSinkConversionSink {
-  final Function(Object key, Object value) _reviver;
-  final Sink<Object> _sink;
+class _JsonDecoderSink extends _StringSinkConversionSink<StringBuffer> {
+  final Object? Function(Object? key, Object? value)? _reviver;
+  final Sink<Object?> _sink;
 
   _JsonDecoderSink(this._reviver, this._sink) : super(StringBuffer(''));
 
   void close() {
     super.close();
-    StringBuffer buffer = _stringSink;
-    String accumulated = buffer.toString();
-    buffer.clear();
-    Object decoded = _parseJson(accumulated, _reviver);
+    String accumulated = _stringSink.toString();
+    _stringSink.clear();
+    Object? decoded = _parseJson(accumulated, _reviver);
     _sink.add(decoded);
     _sink.close();
   }
@@ -394,6 +390,10 @@ class _JsonDecoderSink extends _StringSinkConversionSink {
 
 @patch
 class Utf8Decoder {
+  // Always fall back to the Dart implementation for strings shorter than this
+  // threshold, as there is a large, constant overhead for using TextDecoder.
+  static const int _shortInputThreshold = 15;
+
   @patch
   Converter<List<int>, T> fuse<T>(Converter<String, T> next) {
     return super.fuse(next);
@@ -401,55 +401,50 @@ class Utf8Decoder {
 
   // Currently not intercepting UTF8 decoding.
   @patch
-  static String _convertIntercepted(
-      bool allowMalformed, List<int> codeUnits, int start, int end) {
+  static String? _convertIntercepted(
+      bool allowMalformed, List<int> codeUnits, int start, int? end) {
     // Test `codeUnits is NativeUint8List`. Dart's NativeUint8List is
     // implemented by JavaScript's Uint8Array.
     if (JS<bool>('!', '# instanceof Uint8Array', codeUnits)) {
       // JS 'cast' to avoid a downcast equivalent to the is-check we hand-coded.
       NativeUint8List casted = JS<NativeUint8List>('!', '#', codeUnits);
-      return _convertInterceptedUint8List(allowMalformed, casted, start, end);
+      // Always use Dart implementation for short strings.
+      end ??= casted.length;
+      if (end - start < _shortInputThreshold) {
+        return null;
+      }
+      String? result =
+          _convertInterceptedUint8List(allowMalformed, casted, start, end);
+      if (result != null && allowMalformed) {
+        // In principle, TextDecoder should have provided the correct result
+        // here, but some browsers deviate from the standard as to how many
+        // replacement characters they produce. Thus, we fall back to the Dart
+        // implementation if the result contains any replacement characters.
+        if (JS<int>('int', r'#.indexOf(#)', result, '\uFFFD') >= 0) {
+          return null;
+        }
+      }
+      return result;
     }
+    return null; // This call was not intercepted.
   }
 
-  static String _convertInterceptedUint8List(
+  static String? _convertInterceptedUint8List(
       bool allowMalformed, NativeUint8List codeUnits, int start, int end) {
-    if (allowMalformed) {
-      // TextDecoder with option {fatal: false} does not produce the same result
-      // as [Utf8Decoder]. It disagrees on the number of `U+FFFD` (REPLACEMENT
-      // CHARACTER) generated for some malformed sequences. We could use
-      // TextDecoder with option {fatal: true}, catch the error, and re-try
-      // without acceleration. That turns out to be extremely slow (the Error
-      // captures a stack trace).
-      // TODO(31370): Bring Utf8Decoder into alignment with TextDecoder.
-      // TODO(sra): If we can't do that, can we detect valid input fast enough
-      // to use a check like the [_unsafe] check below?
-      return null;
-    }
-
-    var decoder = _decoder;
+    final decoder = allowMalformed ? _decoderNonfatal : _decoder;
     if (decoder == null) return null;
-    if (0 == start && end == null) {
-      return _useTextDecoderChecked(decoder, codeUnits);
+    if (0 == start && end == codeUnits.length) {
+      return _useTextDecoder(decoder, codeUnits);
     }
 
     int length = codeUnits.length;
     end = RangeError.checkValidRange(start, end, length);
 
-    if (0 == start && end == codeUnits.length) {
-      return _useTextDecoderChecked(decoder, codeUnits);
-    }
-
-    return _useTextDecoderChecked(decoder,
+    return _useTextDecoder(decoder,
         JS<NativeUint8List>('!', '#.subarray(#, #)', codeUnits, start, end));
   }
 
-  static String _useTextDecoderChecked(decoder, NativeUint8List codeUnits) {
-    if (_unsafe(codeUnits)) return null;
-    return _useTextDecoderUnchecked(decoder, codeUnits);
-  }
-
-  static String _useTextDecoderUnchecked(decoder, NativeUint8List codeUnits) {
+  static String? _useTextDecoder(decoder, NativeUint8List codeUnits) {
     // If the input is malformed, catch the exception and return `null` to fall
     // back on unintercepted decoder. The fallback will either succeed in
     // decoding, or report the problem better than TextDecoder.
@@ -459,52 +454,34 @@ class Utf8Decoder {
     return null;
   }
 
-  /// Returns `true` if [codeUnits] contains problematic encodings.
-  ///
-  /// TextDecoder behaves differently to [Utf8Encoder] when the input encodes a
-  /// surrogate (U+D800 through U+DFFF). TextDecoder considers the surrogate to
-  /// be an encoding error and, depending on the `fatal` option, either throws
-  /// and Error or encodes the surrogate as U+FFFD. [Utf8Decoder] does not
-  /// consider the surrogate to be an error and returns the code unit encoded by
-  /// the surrogate.
-  ///
-  /// Throwing an `Error` captures the stack, whoch makes it so expensive that
-  /// it is worth checking the input for surrogates and avoiding TextDecoder in
-  /// this case.
-  static bool _unsafe(NativeUint8List codeUnits) {
-    // Surrogates encode as (hex) ED Ax xx or ED Bx xx.
-    int limit = codeUnits.length - 2;
-    for (int i = 0; i < limit; i++) {
-      int unit1 = codeUnits[i];
-      if (unit1 == 0xED) {
-        int unit2 = JS('!', '#', codeUnits[i + 1]);
-        if ((unit2 & 0xE0) == 0xA0) return true;
-      }
-    }
-    return false;
-  }
-
-  //// TextDecoder is not defined on some browsers and on the stand-alone d8 and
-  /// jsshell engines. Use a lazy initializer to do feature detection once.
+  // TextDecoder is not defined on some browsers and on the stand-alone d8 and
+  // jsshell engines. Use a lazy initializer to do feature detection once.
   static final _decoder = () {
     try {
-      // Use `{fatal: true}`. 'fatal' does not correspond exactly to
-      // `!allowMalformed`: TextDecoder rejects unpaired surrogates which
-      // [Utf8Decoder] accepts.  In non-fatal mode, TextDecoder translates
-      // unpaired surrogates to REPLACEMENT CHARACTER (U+FFFD) whereas
-      // [Utf8Decoder] leaves the surrogate intact.
       return JS('', 'new TextDecoder("utf-8", {fatal: true})');
+    } catch (e) {}
+    return null;
+  }();
+  static final _decoderNonfatal = () {
+    try {
+      return JS('', 'new TextDecoder("utf-8", {fatal: false})');
     } catch (e) {}
     return null;
   }();
 }
 
 @patch
-int _scanOneByteCharacters(List<int> units, int from, int endIndex) {
-  final to = endIndex;
-  for (var i = from; i < to; i++) {
-    final unit = units[i];
-    if ((unit & _ONE_BYTE_LIMIT) != unit) return i - from;
+class _Utf8Decoder {
+  @patch
+  _Utf8Decoder(this.allowMalformed) : _state = beforeBom;
+
+  @patch
+  String convertSingle(List<int> codeUnits, int start, int? maybeEnd) {
+    return convertGeneral(codeUnits, start, maybeEnd, true);
   }
-  return to - from;
+
+  @patch
+  String convertChunked(List<int> codeUnits, int start, int? maybeEnd) {
+    return convertGeneral(codeUnits, start, maybeEnd, false);
+  }
 }

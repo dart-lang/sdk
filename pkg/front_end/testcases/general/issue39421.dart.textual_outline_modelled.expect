@@ -1,0 +1,13 @@
+class A {}
+
+class A {}
+
+class B {
+  foo(List<Null> a) {}
+}
+
+class C extends B {
+  foo(List<A> a) {}
+}
+
+main() {}

@@ -1,0 +1,497 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue41437c.dart:21:10: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
+//  - 'Stream' is from 'dart:async'.
+//   yield* getStreamNull(); // error
+//          ^
+//
+// pkg/front_end/testcases/nnbd/issue41437c.dart:24:25: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
+//  - 'Stream' is from 'dart:async'.
+// Stream<bool> test5() => getStreamNull(); // error
+//                         ^
+//
+// pkg/front_end/testcases/nnbd/issue41437c.dart:38:12: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
+//  - 'Stream' is from 'dart:async'.
+//     yield* getStreamNull(); // error
+//            ^
+//
+// pkg/front_end/testcases/nnbd/issue41437c.dart:41:27: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
+//  - 'Stream' is from 'dart:async'.
+//   Stream<bool> test5() => getStreamNull(); // error
+//                           ^
+//
+// pkg/front_end/testcases/nnbd/issue41437c.dart:49:5: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
+//  - 'Stream' is from 'dart:async'.
+//   })(); // error
+//     ^
+//
+// pkg/front_end/testcases/nnbd/issue41437c.dart:54:5: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
+//  - 'Stream' is from 'dart:async'.
+//   })(); // error
+//     ^
+//
+// pkg/front_end/testcases/nnbd/issue41437c.dart:55:46: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
+//  - 'Stream' is from 'dart:async'.
+//   Stream<bool> var5 = (() => getStreamNull())(); // error
+//                                              ^
+//
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method getNull() → dynamic
+  return null;
+static method getStreamNull() → asy::Stream<dynamic> /* originally async* */ {
+  asy::_AsyncStarStreamController<dynamic>? :controller;
+  dynamic :controller_stream;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  dynamic :saved_try_context_var0;
+  dynamic :saved_try_context_var1;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try
+      try {
+        #L1:
+        {
+          if(:controller.{asy::_AsyncStarStreamController::add}(null))
+            return null;
+          else
+            [yield] null;
+        }
+        return;
+      }
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
+      }
+    finally {
+      :controller.{asy::_AsyncStarStreamController::close}();
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :controller = new asy::_AsyncStarStreamController::•<dynamic>(:async_op);
+  :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
+  return :controller_stream;
+}
+static method getStreamBool() → asy::Stream<core::bool> /* originally async* */ {
+  asy::_AsyncStarStreamController<core::bool>? :controller;
+  dynamic :controller_stream;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  dynamic :saved_try_context_var0;
+  dynamic :saved_try_context_var1;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try
+      try {
+        #L2:
+        {
+          if(:controller.{asy::_AsyncStarStreamController::add}(true))
+            return null;
+          else
+            [yield] null;
+        }
+        return;
+      }
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
+      }
+    finally {
+      :controller.{asy::_AsyncStarStreamController::close}();
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :controller = new asy::_AsyncStarStreamController::•<core::bool>(:async_op);
+  :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
+  return :controller_stream;
+}
+static method test1() → asy::Stream<core::bool> /* originally async* */ {
+  asy::_AsyncStarStreamController<core::bool>? :controller;
+  dynamic :controller_stream;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  dynamic :saved_try_context_var0;
+  dynamic :saved_try_context_var1;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try
+      try {
+        #L3:
+        {
+          if(:controller.{asy::_AsyncStarStreamController::add}(self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool))
+            return null;
+          else
+            [yield] null;
+        }
+        return;
+      }
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
+      }
+    finally {
+      :controller.{asy::_AsyncStarStreamController::close}();
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :controller = new asy::_AsyncStarStreamController::•<core::bool>(:async_op);
+  :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
+  return :controller_stream;
+}
+static method test2() → asy::Stream<core::bool>
+  return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<core::bool>;
+static method test3() → core::bool
+  return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
+static method test4() → asy::Stream<core::bool> /* originally async* */ {
+  asy::_AsyncStarStreamController<core::bool>? :controller;
+  dynamic :controller_stream;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  dynamic :saved_try_context_var0;
+  dynamic :saved_try_context_var1;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try
+      try {
+        #L4:
+        {
+          if(:controller.{asy::_AsyncStarStreamController::addStream}(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:21:10: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
+ - 'Stream' is from 'dart:async'.
+  yield* getStreamNull(); // error
+         ^" in self::getStreamNull() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>))
+            return null;
+          else
+            [yield] null;
+        }
+        return;
+      }
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
+      }
+    finally {
+      :controller.{asy::_AsyncStarStreamController::close}();
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :controller = new asy::_AsyncStarStreamController::•<core::bool>(:async_op);
+  :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
+  return :controller_stream;
+}
+static method test5() → asy::Stream<core::bool>
+  return let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:24:25: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
+ - 'Stream' is from 'dart:async'.
+Stream<bool> test5() => getStreamNull(); // error
+                        ^" in self::getStreamNull() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
+static method test6() → asy::Stream<core::bool>
+  return self::getStreamBool();
+static method test7() → asy::Stream<core::bool> /* originally async* */ {
+  asy::_AsyncStarStreamController<core::bool>? :controller;
+  dynamic :controller_stream;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  dynamic :saved_try_context_var0;
+  dynamic :saved_try_context_var1;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try
+      try {
+        #L5:
+        {
+          if(:controller.{asy::_AsyncStarStreamController::addStream}(self::getStreamBool()))
+            return null;
+          else
+            [yield] null;
+        }
+        return;
+      }
+      on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+        :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
+      }
+    finally {
+      :controller.{asy::_AsyncStarStreamController::close}();
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :controller = new asy::_AsyncStarStreamController::•<core::bool>(:async_op);
+  :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
+  return :controller_stream;
+}
+static method test() → dynamic /* originally async */ {
+  final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
+  FutureOr<dynamic>? :return_value;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L6:
+      {
+        function test1() → asy::Stream<core::bool> /* originally async* */ {
+          asy::_AsyncStarStreamController<core::bool>? :controller;
+          dynamic :controller_stream;
+          dynamic :async_stack_trace;
+          (dynamic) → dynamic :async_op_then;
+          (core::Object, core::StackTrace) → dynamic :async_op_error;
+          core::int :await_jump_var = 0;
+          dynamic :await_ctx_var;
+          dynamic :saved_try_context_var0;
+          dynamic :saved_try_context_var1;
+          function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+            try
+              try {
+                #L7:
+                {
+                  if(:controller.{asy::_AsyncStarStreamController::add}(self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool))
+                    return null;
+                  else
+                    [yield] null;
+                }
+                return;
+              }
+              on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+                :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
+              }
+            finally {
+              :controller.{asy::_AsyncStarStreamController::close}();
+            }
+          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+          :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+          :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+          :controller = new asy::_AsyncStarStreamController::•<core::bool>(:async_op);
+          :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
+          return :controller_stream;
+        }
+        function test2() → asy::Stream<core::bool>
+          return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<core::bool>;
+        function test3() → core::bool
+          return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
+        function test4() → asy::Stream<core::bool> /* originally async* */ {
+          asy::_AsyncStarStreamController<core::bool>? :controller;
+          dynamic :controller_stream;
+          dynamic :async_stack_trace;
+          (dynamic) → dynamic :async_op_then;
+          (core::Object, core::StackTrace) → dynamic :async_op_error;
+          core::int :await_jump_var = 0;
+          dynamic :await_ctx_var;
+          dynamic :saved_try_context_var0;
+          dynamic :saved_try_context_var1;
+          function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+            try
+              try {
+                #L8:
+                {
+                  if(:controller.{asy::_AsyncStarStreamController::addStream}(let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:38:12: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
+ - 'Stream' is from 'dart:async'.
+    yield* getStreamNull(); // error
+           ^" in self::getStreamNull() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>))
+                    return null;
+                  else
+                    [yield] null;
+                }
+                return;
+              }
+              on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+                :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
+              }
+            finally {
+              :controller.{asy::_AsyncStarStreamController::close}();
+            }
+          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+          :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+          :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+          :controller = new asy::_AsyncStarStreamController::•<core::bool>(:async_op);
+          :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
+          return :controller_stream;
+        }
+        function test5() → asy::Stream<core::bool>
+          return let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:41:27: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
+ - 'Stream' is from 'dart:async'.
+  Stream<bool> test5() => getStreamNull(); // error
+                          ^" in self::getStreamNull() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
+        function test6() → asy::Stream<core::bool>
+          return self::getStreamBool();
+        function test7() → asy::Stream<core::bool> /* originally async* */ {
+          asy::_AsyncStarStreamController<core::bool>? :controller;
+          dynamic :controller_stream;
+          dynamic :async_stack_trace;
+          (dynamic) → dynamic :async_op_then;
+          (core::Object, core::StackTrace) → dynamic :async_op_error;
+          core::int :await_jump_var = 0;
+          dynamic :await_ctx_var;
+          dynamic :saved_try_context_var0;
+          dynamic :saved_try_context_var1;
+          function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+            try
+              try {
+                #L9:
+                {
+                  if(:controller.{asy::_AsyncStarStreamController::addStream}(self::getStreamBool()))
+                    return null;
+                  else
+                    [yield] null;
+                }
+                return;
+              }
+              on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+                :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
+              }
+            finally {
+              :controller.{asy::_AsyncStarStreamController::close}();
+            }
+          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+          :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+          :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+          :controller = new asy::_AsyncStarStreamController::•<core::bool>(:async_op);
+          :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
+          return :controller_stream;
+        }
+        asy::Stream<core::bool> var1 = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:49:5: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
+ - 'Stream' is from 'dart:async'.
+  })(); // error
+    ^" in (() → asy::Stream<dynamic> /* originally async* */ {
+          asy::_AsyncStarStreamController<dynamic>? :controller;
+          dynamic :controller_stream;
+          dynamic :async_stack_trace;
+          (dynamic) → dynamic :async_op_then;
+          (core::Object, core::StackTrace) → dynamic :async_op_error;
+          core::int :await_jump_var = 0;
+          dynamic :await_ctx_var;
+          dynamic :saved_try_context_var0;
+          dynamic :saved_try_context_var1;
+          function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+            try
+              try {
+                #L10:
+                {
+                  if(:controller.{asy::_AsyncStarStreamController::add}(self::getNull()))
+                    return null;
+                  else
+                    [yield] null;
+                }
+                return;
+              }
+              on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+                :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
+              }
+            finally {
+              :controller.{asy::_AsyncStarStreamController::close}();
+            }
+          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+          :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+          :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+          :controller = new asy::_AsyncStarStreamController::•<dynamic>(:async_op);
+          :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
+          return :controller_stream;
+        }).call() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
+        asy::Stream<core::bool> var2 = (() → dynamic => self::getNull()).call() as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<core::bool>;
+        core::bool var3 = (() → dynamic => self::getNull()).call() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
+        asy::Stream<core::bool> var4 = let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:54:5: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
+ - 'Stream' is from 'dart:async'.
+  })(); // error
+    ^" in (() → asy::Stream<dynamic> /* originally async* */ {
+          asy::_AsyncStarStreamController<dynamic>? :controller;
+          dynamic :controller_stream;
+          dynamic :async_stack_trace;
+          (dynamic) → dynamic :async_op_then;
+          (core::Object, core::StackTrace) → dynamic :async_op_error;
+          core::int :await_jump_var = 0;
+          dynamic :await_ctx_var;
+          dynamic :saved_try_context_var0;
+          dynamic :saved_try_context_var1;
+          function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+            try
+              try {
+                #L11:
+                {
+                  if(:controller.{asy::_AsyncStarStreamController::addStream}(self::getStreamNull()))
+                    return null;
+                  else
+                    [yield] null;
+                }
+                return;
+              }
+              on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+                :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
+              }
+            finally {
+              :controller.{asy::_AsyncStarStreamController::close}();
+            }
+          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+          :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+          :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+          :controller = new asy::_AsyncStarStreamController::•<dynamic>(:async_op);
+          :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
+          return :controller_stream;
+        }).call() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
+        asy::Stream<core::bool> var5 = let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437c.dart:55:46: Error: A value of type 'Stream<dynamic>' can't be assigned to a variable of type 'Stream<bool>'.
+ - 'Stream' is from 'dart:async'.
+  Stream<bool> var5 = (() => getStreamNull())(); // error
+                                             ^" in (() → asy::Stream<dynamic> => self::getStreamNull()).call() as{TypeError,ForNonNullableByDefault} asy::Stream<core::bool>;
+        asy::Stream<core::bool> var6 = (() → asy::Stream<core::bool> => self::getStreamBool()).call();
+        asy::Stream<core::bool> var7 = (() → asy::Stream<core::bool> /* originally async* */ {
+          asy::_AsyncStarStreamController<core::bool>? :controller;
+          dynamic :controller_stream;
+          dynamic :async_stack_trace;
+          (dynamic) → dynamic :async_op_then;
+          (core::Object, core::StackTrace) → dynamic :async_op_error;
+          core::int :await_jump_var = 0;
+          dynamic :await_ctx_var;
+          dynamic :saved_try_context_var0;
+          dynamic :saved_try_context_var1;
+          function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+            try
+              try {
+                #L12:
+                {
+                  if(:controller.{asy::_AsyncStarStreamController::addStream}(self::getStreamBool()))
+                    return null;
+                  else
+                    [yield] null;
+                }
+                return;
+              }
+              on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+                :controller.{asy::_AsyncStarStreamController::addError}(exception, stack_trace);
+              }
+            finally {
+              :controller.{asy::_AsyncStarStreamController::close}();
+            }
+          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+          :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+          :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+          :controller = new asy::_AsyncStarStreamController::•<core::bool>(:async_op);
+          :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
+          return :controller_stream;
+        }).call();
+      }
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
+static method main() → dynamic {}

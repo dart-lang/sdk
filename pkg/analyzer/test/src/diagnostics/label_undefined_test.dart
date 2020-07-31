@@ -6,11 +6,13 @@ import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/constant/potentially_constant_test.dart';
 import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LabelUndefinedTest);
+    defineReflectiveTests(LabelUndefinedWithNullSafetyTest);
   });
 }
 
@@ -29,6 +31,18 @@ f() {
     ]);
   }
 
+  test_break_notLabel() async {
+    await assertErrorsInCode(r'''
+f(int x) {
+  while (true) {
+    break x;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.LABEL_UNDEFINED, 38, 1),
+    ]);
+  }
+
   test_continue() async {
     await assertErrorsInCode(r'''
 f() {
@@ -41,4 +55,20 @@ f() {
       error(CompileTimeErrorCode.LABEL_UNDEFINED, 39, 1),
     ]);
   }
+
+  test_continue_notLabel() async {
+    await assertErrorsInCode(r'''
+f(int x) {
+  while (true) {
+    continue x;
+  }
 }
+''', [
+      error(CompileTimeErrorCode.LABEL_UNDEFINED, 41, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class LabelUndefinedWithNullSafetyTest extends LabelUndefinedTest
+    with WithNullSafetyMixin {}

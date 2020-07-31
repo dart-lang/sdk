@@ -79,11 +79,6 @@ class GCSNamer(object):
     - /VERSION
     - /api-docs/dartdocs-gen-api.zip
     - /sdk/dartsdk-{linux,macos,windows}-{ia32,x64}-release.zip
-    - /editor/darteditor-{linux,macos,windows}-{ia32,x64}.zip
-    - /editor/darteditor-installer-macos-{ia32,x64}.dmg
-    - /editor/darteditor-installer-windows-{ia32,x64}.msi
-    - /editor-eclipse-update
-         /{index.html,features/,plugins/,artifacts.jar,content.jar}
   """
 
     def __init__(self,
@@ -105,24 +100,6 @@ class GCSNamer(object):
     def version_filepath(self, revision):
         return '%s/channels/%s/%s/%s/VERSION' % (self.bucket, self.channel,
                                                  self.release_type, revision)
-
-    def editor_zipfilepath(self, revision, system, arch):
-        return '/'.join([
-            self.editor_directory(revision),
-            self.editor_zipfilename(system, arch)
-        ])
-
-    def editor_installer_filepath(self, revision, system, arch, extension):
-        return '/'.join([
-            self.editor_directory(revision),
-            self.editor_installer_filename(system, arch, extension)
-        ])
-
-    def editor_android_zipfilepath(self, revision):
-        return '/'.join([
-            self.editor_directory(revision),
-            self.editor_android_zipfilename()
-        ])
 
     def sdk_zipfilepath(self, revision, system, arch, mode):
         return '/'.join([
@@ -156,12 +133,6 @@ class GCSNamer(object):
     def src_directory(self, revision):
         return self._variant_directory('src', revision)
 
-    def editor_directory(self, revision):
-        return self._variant_directory('editor', revision)
-
-    def editor_eclipse_update_directory(self, revision):
-        return self._variant_directory('editor-eclipse-update', revision)
-
     def apidocs_directory(self, revision):
         return self._variant_directory('api-docs', revision)
 
@@ -175,18 +146,6 @@ class GCSNamer(object):
 
     def dartdocs_zipfilename(self):
         return 'dartdocs-gen-api.zip'
-
-    def editor_zipfilename(self, system, arch):
-        return 'darteditor-%s-%s.zip' % (SYSTEM_RENAMES[system],
-                                         ARCH_RENAMES[arch])
-
-    def editor_android_zipfilename(self):
-        return 'android.zip'
-
-    def editor_installer_filename(self, system, arch, extension):
-        assert extension in ['dmg', 'msi']
-        return 'darteditor-installer-%s-%s.%s' % (SYSTEM_RENAMES[system],
-                                                  ARCH_RENAMES[arch], extension)
 
     def sdk_zipfilename(self, system, arch, mode):
         assert mode in Mode.ALL_MODES
@@ -236,52 +195,34 @@ def run(command, env=None, shell=False, throw_on_error=True):
 
 
 class GSUtil(object):
-    GSUTIL_IS_SHELL_SCRIPT = False
     GSUTIL_PATH = None
     USE_DART_REPO_VERSION = False
 
     def _layzCalculateGSUtilPath(self):
         if not GSUtil.GSUTIL_PATH:
-            buildbot_gsutil = '/b/build/scripts/slave/gsutil'
-            if platform.system() == 'Windows':
-                buildbot_gsutil = 'e:\\\\b\\build\\scripts\\slave\\gsutil'
-            if os.path.isfile(
-                    buildbot_gsutil) and not GSUtil.USE_DART_REPO_VERSION:
-                GSUtil.GSUTIL_IS_SHELL_SCRIPT = True
-                GSUtil.GSUTIL_PATH = buildbot_gsutil
+            dart_gsutil = os.path.join(DART_DIR, 'third_party', 'gsutil',
+                                       'gsutil')
+            if os.path.isfile(dart_gsutil):
+                GSUtil.GSUTIL_PATH = dart_gsutil
+            elif GSUtil.USE_DART_REPO_VERSION:
+                raise Exception("Dart repository version of gsutil required, "
+                                "but not found.")
             else:
-                dart_gsutil = os.path.join(DART_DIR, 'third_party', 'gsutil',
-                                           'gsutil')
-                if os.path.isfile(dart_gsutil):
-                    GSUtil.GSUTIL_IS_SHELL_SCRIPT = False
-                    GSUtil.GSUTIL_PATH = dart_gsutil
-                elif GSUtil.USE_DART_REPO_VERSION:
-                    raise Exception(
-                        "Dart repository version of gsutil required, "
-                        "but not found.")
-                else:
-                    # We did not find gsutil, look in path
-                    possible_locations = list(os.environ['PATH'].split(
-                        os.pathsep))
-                    for directory in possible_locations:
-                        location = os.path.join(directory, 'gsutil')
-                        if os.path.isfile(location):
-                            GSUtil.GSUTIL_IS_SHELL_SCRIPT = False
-                            GSUtil.GSUTIL_PATH = location
-                            break
+                # We did not find gsutil, look in path
+                possible_locations = list(os.environ['PATH'].split(os.pathsep))
+                for directory in possible_locations:
+                    location = os.path.join(directory, 'gsutil')
+                    if os.path.isfile(location):
+                        GSUtil.GSUTIL_PATH = location
+                        break
             assert GSUtil.GSUTIL_PATH
 
     def execute(self, gsutil_args):
         self._layzCalculateGSUtilPath()
 
-        if GSUtil.GSUTIL_IS_SHELL_SCRIPT:
-            gsutil_command = [GSUtil.GSUTIL_PATH]
-        else:
-            gsutil_command = [sys.executable, GSUtil.GSUTIL_PATH]
+        gsutil_command = [sys.executable, GSUtil.GSUTIL_PATH]
 
-        return run(
-            gsutil_command + gsutil_args,
-            shell=(GSUtil.GSUTIL_IS_SHELL_SCRIPT and sys.platform == 'win32'))
+        return run(gsutil_command + gsutil_args)
 
     def upload(self,
                local_path,

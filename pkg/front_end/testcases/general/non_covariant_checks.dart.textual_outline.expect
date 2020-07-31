@@ -1,0 +1,79 @@
+class C<T> {
+  C(this.field1)
+      : field2 = (() => field1),
+        field3 = ((T t) {}),
+        field4 = ((T t) => t),
+        field5 = (() => () => field1),
+        field6 = ((T Function() f) {}),
+        field7 = ((T Function() f) => field1),
+        field8 = ((void Function(T) f) {}),
+        field9 = ((void Function(T) f) => field1),
+        field10 = ((T Function(T) f) {}),
+        field11 = ((T Function(T) f) => field1),
+        field12 = <S extends T>() => null,
+        field13 = <S extends T>(S s) {},
+        field14 = <S extends T>(S s) => s,
+        field15 = ((S Function<S extends T>() f) {});
+  T field1;
+  T Function() field2;
+  void Function(T) field3;
+  T Function(T) field4;
+  T Function() Function() field5;
+  void Function(T Function()) field6;
+  T Function(T Function()) field7;
+  void Function(void Function(T)) field8;
+  T Function(void Function(T)) field9;
+  void Function(T Function(T)) field10;
+  T Function(T Function(T)) field11;
+  S Function<S extends T>() field12;
+  void Function<S extends T>(S) field13;
+  S Function<S extends T>(S) field14;
+  void Function(S Function<S extends T>()) field15;
+  T get getter1 => field1;
+  T Function() get getter2 => field2;
+  void Function(T) get getter3 => field3;
+  T Function(T) get getter4 => field4;
+  T Function() Function() get getter5 => field5;
+  void Function(T Function()) get getter6 => field6;
+  T Function(T Function()) get getter7 => field7;
+  void Function(void Function(T)) get getter8 => field8;
+  T Function(void Function(T)) get getter9 => field9;
+  void Function(T Function(T)) get getter10 => field10;
+  T Function(T Function(T)) get getter11 => field11;
+  S Function<S extends T>() get getter12 => field12;
+  void Function<S extends T>(S) get getter13 => field13;
+  S Function<S extends T>(S) get getter14 => field14;
+  void Function(S Function<S extends T>()) get getter15 => field15;
+  void set setter1(T value) {}
+  void set setter2(T Function() value) {}
+  void set setter3(void Function(T) value) {}
+  void set setter4(T Function(T) value) {}
+  void set setter5(T Function() Function() value) {}
+  void set setter6(void Function(T Function()) value) {}
+  void set setter7(T Function(T Function()) value) {}
+  void set setter8(void Function(void Function(T)) value) {}
+  void set setter9(T Function(void Function(T)) value) {}
+  void set setter10(void Function(T Function(T)) value) {}
+  void set setter11(T Function(T Function(T)) value) {}
+  void set setter12(S Function<S extends T>() value) {}
+  void set setter13(void Function<S extends T>(S) value) {}
+  void set setter14(S Function<S extends T>(S) value) {}
+  void set setter15(void Function(S Function<S extends T>()) value) {}
+  void method1(T value) {}
+  void method2(T Function() value) {}
+  void method3(void Function(T) value) {}
+  void method4(T Function(T) value) {}
+  void method5(T Function() Function() value) {}
+  void method6(void Function(T Function()) value) {}
+  void method7(T Function(T Function()) value) {}
+  void method8(void Function(void Function(T)) value) {}
+  void method9(T Function(void Function(T)) value) {}
+  void method10(void Function(T Function(T)) value) {}
+  void method11(T Function(T Function(T)) value) {}
+  void method12(S Function<S extends T>() value) {}
+  void method13(void Function<S extends T>(S) value) {}
+  void method14(S Function<S extends T>(S) value) {}
+  void method15(void Function(S Function<S extends T>()) value) {}
+}
+
+main() {}

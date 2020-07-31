@@ -7,6 +7,9 @@ import 'package:kernel/ast.dart' show Class;
 /// Meant for notifying the backend (the compiler) that the structure has
 /// changed, in turn allowing it to update its internal model.
 abstract class ChangedStructureNotifier {
-  /// Mark the class [c] as having changed in that its members have changed.
-  void forClass(Class c);
+  /// Mark the members of class [cls] have changed.
+  void registerClassMemberChange(Class cls);
+
+  /// Mark that the class hierarchy for class [cls] has changed.
+  void registerClassHierarchyChange(Class cls);
 }

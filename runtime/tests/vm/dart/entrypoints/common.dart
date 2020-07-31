@@ -8,13 +8,13 @@ import "package:expect/expect.dart";
 // We accomplish this by using VM options in the yes-inlining variant to set the
 // "enable_inlining" constant variable to true. This maximizes code sharing
 // between the two variants, which are otherwise identical.
-const pragma NeverInline = const bool.fromEnvironment("enable_inlining")
+const pragma? NeverInline = const bool.fromEnvironment("enable_inlining")
     ? null
     : pragma('vm:never-inline');
 
 // In AOT we need to force some functions to be inlined since we only build the
 // unchecked entry-point when inlining.
-const pragma AlwaysInline = const bool.fromEnvironment("enable_inlining")
+const pragma? AlwaysInline = const bool.fromEnvironment("enable_inlining")
     ? pragma('vm:prefer-inline')
     : null;
 
@@ -45,7 +45,7 @@ class TargetCalls {
 TargetCalls entryPoint = TargetCalls();
 TargetCalls tearoffEntryPoint = TargetCalls();
 
-_validateHelper(int ep, TargetCalls calls) {
+_validateHelper(int ep, TargetCalls? calls) {
   calls ??= entryPoint;
 
   if (ep < 0 || ep > 2) {

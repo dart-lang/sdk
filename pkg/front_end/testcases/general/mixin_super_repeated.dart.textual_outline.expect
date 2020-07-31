@@ -1,0 +1,13 @@
+abstract class M {
+  var m;
+}
+
+abstract class N extends M {
+  void set superM(value) {}
+  get superM => super.m;
+}
+
+class S {}
+
+class Named = S with M, N, M;
+main() {}

@@ -1,0 +1,5 @@
+// @dart = 2.6
+typedef _NullaryFunction();
+typedef _UnaryFunction(args);
+typedef _BinaryFunction(args, message);
+main() {}

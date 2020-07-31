@@ -49,7 +49,7 @@ static method throws(() → void f) → dynamic {
   try {
     f.call();
   }
-  on dynamic catch(final dynamic e) {
+  on core::Object catch(final core::Object e) {
     return;
   }
   throw "Expected throws.";

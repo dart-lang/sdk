@@ -1,0 +1,405 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue41437a.dart:18:25: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'Future<bool>'.
+//  - 'Future' is from 'dart:async'.
+// Future<bool> test5() => getFutureNull(); // error
+//                         ^
+//
+// pkg/front_end/testcases/nnbd/issue41437a.dart:27:27: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'Future<bool>'.
+//  - 'Future' is from 'dart:async'.
+//   Future<bool> test5() => getFutureNull(); // error
+//                           ^
+//
+// pkg/front_end/testcases/nnbd/issue41437a.dart:31:52: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'Future<bool>'.
+//  - 'Future' is from 'dart:async'.
+//   Future<bool> var1 = (() async => await getNull())(); // error
+//                                                    ^
+//
+// pkg/front_end/testcases/nnbd/issue41437a.dart:34:58: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'Future<bool>'.
+//  - 'Future' is from 'dart:async'.
+//   Future<bool> var4 = (() async => await getFutureNull())(); // error
+//                                                          ^
+//
+// pkg/front_end/testcases/nnbd/issue41437a.dart:35:46: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'Future<bool>'.
+//  - 'Future' is from 'dart:async'.
+//   Future<bool> var5 = (() => getFutureNull())(); // error
+//                                              ^
+//
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method getNull() → dynamic
+  return null;
+static method getFutureNull() → asy::Future<dynamic> /* originally async */ {
+  final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
+  FutureOr<dynamic>? :return_value;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L1:
+      {
+        :return_value = null;
+        break #L1;
+      }
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
+static method getFutureBool() → asy::Future<core::bool> /* originally async */ {
+  final asy::_AsyncAwaitCompleter<core::bool> :async_completer = new asy::_AsyncAwaitCompleter::•<core::bool>();
+  FutureOr<core::bool>? :return_value;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L2:
+      {
+        :return_value = true;
+        break #L2;
+      }
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
+static method test1() → asy::Future<core::bool> /* originally async */ {
+  final asy::_AsyncAwaitCompleter<core::bool> :async_completer = new asy::_AsyncAwaitCompleter::•<core::bool>();
+  FutureOr<core::bool>? :return_value;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  dynamic :saved_try_context_var0;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L3:
+      {
+        [yield] let dynamic #t1 = asy::_awaitHelper(self::getNull(), :async_op_then, :async_op_error, :async_op) in null;
+        :return_value = :result as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<core::bool>;
+        break #L3;
+      }
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
+static method test2() → asy::Future<core::bool>
+  return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<core::bool>;
+static method test3() → core::bool
+  return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
+static method test4() → asy::Future<core::bool> /* originally async */ {
+  final asy::_AsyncAwaitCompleter<core::bool> :async_completer = new asy::_AsyncAwaitCompleter::•<core::bool>();
+  FutureOr<core::bool>? :return_value;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  dynamic :saved_try_context_var0;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L4:
+      {
+        [yield] let dynamic #t2 = asy::_awaitHelper(self::getFutureNull(), :async_op_then, :async_op_error, :async_op) in null;
+        :return_value = :result as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<core::bool>;
+        break #L4;
+      }
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
+static method test5() → asy::Future<core::bool>
+  return let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:18:25: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'Future<bool>'.
+ - 'Future' is from 'dart:async'.
+Future<bool> test5() => getFutureNull(); // error
+                        ^" in self::getFutureNull() as{TypeError,ForNonNullableByDefault} asy::Future<core::bool>;
+static method test6() → asy::Future<core::bool>
+  return self::getFutureBool();
+static method test7() → asy::Future<core::bool> /* originally async */ {
+  final asy::_AsyncAwaitCompleter<core::bool> :async_completer = new asy::_AsyncAwaitCompleter::•<core::bool>();
+  FutureOr<core::bool>? :return_value;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L5:
+      {
+        :return_value = self::getFutureBool();
+        break #L5;
+      }
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
+static method test() → dynamic /* originally async */ {
+  final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
+  FutureOr<dynamic>? :return_value;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L6:
+      {
+        function test1() → asy::Future<core::bool> /* originally async */ {
+          final asy::_AsyncAwaitCompleter<core::bool> :async_completer = new asy::_AsyncAwaitCompleter::•<core::bool>();
+          FutureOr<core::bool>? :return_value;
+          dynamic :async_stack_trace;
+          (dynamic) → dynamic :async_op_then;
+          (core::Object, core::StackTrace) → dynamic :async_op_error;
+          core::int :await_jump_var = 0;
+          dynamic :await_ctx_var;
+          dynamic :saved_try_context_var0;
+          function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+            try {
+              #L7:
+              {
+                [yield] let dynamic #t4 = asy::_awaitHelper(self::getNull(), :async_op_then, :async_op_error, :async_op) in null;
+                :return_value = :result as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<core::bool>;
+                break #L7;
+              }
+              asy::_completeOnAsyncReturn(:async_completer, :return_value);
+              return;
+            }
+            on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+              :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+            }
+          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+          :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+          :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+          :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+          return :async_completer.{asy::Completer::future};
+        }
+        function test2() → asy::Future<core::bool>
+          return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<core::bool>;
+        function test3() → core::bool
+          return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
+        function test4() → asy::Future<core::bool> /* originally async */ {
+          final asy::_AsyncAwaitCompleter<core::bool> :async_completer = new asy::_AsyncAwaitCompleter::•<core::bool>();
+          FutureOr<core::bool>? :return_value;
+          dynamic :async_stack_trace;
+          (dynamic) → dynamic :async_op_then;
+          (core::Object, core::StackTrace) → dynamic :async_op_error;
+          core::int :await_jump_var = 0;
+          dynamic :await_ctx_var;
+          dynamic :saved_try_context_var0;
+          function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+            try {
+              #L8:
+              {
+                [yield] let dynamic #t5 = asy::_awaitHelper(self::getFutureNull(), :async_op_then, :async_op_error, :async_op) in null;
+                :return_value = :result as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<core::bool>;
+                break #L8;
+              }
+              asy::_completeOnAsyncReturn(:async_completer, :return_value);
+              return;
+            }
+            on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+              :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+            }
+          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+          :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+          :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+          :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+          return :async_completer.{asy::Completer::future};
+        }
+        function test5() → asy::Future<core::bool>
+          return let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:27:27: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'Future<bool>'.
+ - 'Future' is from 'dart:async'.
+  Future<bool> test5() => getFutureNull(); // error
+                          ^" in self::getFutureNull() as{TypeError,ForNonNullableByDefault} asy::Future<core::bool>;
+        function test6() → asy::Future<core::bool>
+          return self::getFutureBool();
+        function test7() → asy::Future<core::bool> /* originally async */ {
+          final asy::_AsyncAwaitCompleter<core::bool> :async_completer = new asy::_AsyncAwaitCompleter::•<core::bool>();
+          FutureOr<core::bool>? :return_value;
+          dynamic :async_stack_trace;
+          (dynamic) → dynamic :async_op_then;
+          (core::Object, core::StackTrace) → dynamic :async_op_error;
+          core::int :await_jump_var = 0;
+          dynamic :await_ctx_var;
+          function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+            try {
+              #L9:
+              {
+                :return_value = self::getFutureBool();
+                break #L9;
+              }
+              asy::_completeOnAsyncReturn(:async_completer, :return_value);
+              return;
+            }
+            on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+              :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+            }
+          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+          :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+          :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+          :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+          return :async_completer.{asy::Completer::future};
+        }
+        asy::Future<core::bool> var1 = let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:31:52: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'Future<bool>'.
+ - 'Future' is from 'dart:async'.
+  Future<bool> var1 = (() async => await getNull())(); // error
+                                                   ^" in (() → asy::Future<dynamic> /* originally async */ {
+          final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
+          FutureOr<dynamic>? :return_value;
+          dynamic :async_stack_trace;
+          (dynamic) → dynamic :async_op_then;
+          (core::Object, core::StackTrace) → dynamic :async_op_error;
+          core::int :await_jump_var = 0;
+          dynamic :await_ctx_var;
+          dynamic :saved_try_context_var0;
+          function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+            try {
+              #L10:
+              {
+                [yield] let dynamic #t8 = asy::_awaitHelper(self::getNull(), :async_op_then, :async_op_error, :async_op) in null;
+                :return_value = :result;
+                break #L10;
+              }
+              asy::_completeOnAsyncReturn(:async_completer, :return_value);
+              return;
+            }
+            on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+              :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+            }
+          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+          :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+          :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+          :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+          return :async_completer.{asy::Completer::future};
+        }).call() as{TypeError,ForNonNullableByDefault} asy::Future<core::bool>;
+        asy::Future<core::bool> var2 = (() → dynamic => self::getNull()).call() as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<core::bool>;
+        core::bool var3 = (() → dynamic => self::getNull()).call() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
+        asy::Future<core::bool> var4 = let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:34:58: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'Future<bool>'.
+ - 'Future' is from 'dart:async'.
+  Future<bool> var4 = (() async => await getFutureNull())(); // error
+                                                         ^" in (() → asy::Future<dynamic> /* originally async */ {
+          final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
+          FutureOr<dynamic>? :return_value;
+          dynamic :async_stack_trace;
+          (dynamic) → dynamic :async_op_then;
+          (core::Object, core::StackTrace) → dynamic :async_op_error;
+          core::int :await_jump_var = 0;
+          dynamic :await_ctx_var;
+          dynamic :saved_try_context_var0;
+          function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+            try {
+              #L11:
+              {
+                [yield] let dynamic #t10 = asy::_awaitHelper(self::getFutureNull(), :async_op_then, :async_op_error, :async_op) in null;
+                :return_value = :result;
+                break #L11;
+              }
+              asy::_completeOnAsyncReturn(:async_completer, :return_value);
+              return;
+            }
+            on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+              :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+            }
+          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+          :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+          :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+          :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+          return :async_completer.{asy::Completer::future};
+        }).call() as{TypeError,ForNonNullableByDefault} asy::Future<core::bool>;
+        asy::Future<core::bool> var5 = let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:35:46: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'Future<bool>'.
+ - 'Future' is from 'dart:async'.
+  Future<bool> var5 = (() => getFutureNull())(); // error
+                                             ^" in (() → asy::Future<dynamic> => self::getFutureNull()).call() as{TypeError,ForNonNullableByDefault} asy::Future<core::bool>;
+        asy::Future<core::bool> var6 = (() → asy::Future<core::bool> => self::getFutureBool()).call();
+        asy::Future<core::bool> var7 = (() → asy::Future<core::bool> /* originally async */ {
+          final asy::_AsyncAwaitCompleter<core::bool> :async_completer = new asy::_AsyncAwaitCompleter::•<core::bool>();
+          FutureOr<core::bool>? :return_value;
+          dynamic :async_stack_trace;
+          (dynamic) → dynamic :async_op_then;
+          (core::Object, core::StackTrace) → dynamic :async_op_error;
+          core::int :await_jump_var = 0;
+          dynamic :await_ctx_var;
+          function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+            try {
+              #L12:
+              {
+                :return_value = self::getFutureBool();
+                break #L12;
+              }
+              asy::_completeOnAsyncReturn(:async_completer, :return_value);
+              return;
+            }
+            on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+              :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+            }
+          :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+          :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+          :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+          :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+          return :async_completer.{asy::Completer::future};
+        }).call();
+      }
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+  return :async_completer.{asy::Completer::future};
+}
+static method main() → dynamic {}

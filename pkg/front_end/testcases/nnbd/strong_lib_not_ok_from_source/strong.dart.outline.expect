@@ -1,0 +1,20 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "org-dartlang-testcase:///strong_lib.dart";
+
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/strong_lib_not_ok_from_source/strong_lib.dart:1:1: Error: A library can't opt out of null safety by default, when using sound null safety.
+// // @dart = 2.7
+// ^^^^^^^^^^^^^^
+//
+import self as self2;
+
+static method foo() → void
+  ;

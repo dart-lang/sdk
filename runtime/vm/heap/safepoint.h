@@ -51,6 +51,8 @@ class SafepointHandler {
 
   void BlockForSafepoint(Thread* T);
 
+  bool IsOwnedByTheThread(Thread* thread) { return owner_ == thread; }
+
  private:
   void SafepointThreads(Thread* T);
   void ResumeThreads(Thread* T);

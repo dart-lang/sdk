@@ -1,0 +1,21 @@
+library test;
+
+import 'infer_types_on_generic_instantiations_in_library_cycle_a.dart';
+
+abstract class A<E> implements I<E> {
+  const A();
+  final E value = null;
+}
+
+abstract class M {
+  final int y = 0;
+}
+
+class B<E> extends A<E> implements M {
+  const B();
+  int get y => 0;
+  m(a, f(v, int e)) {}
+}
+
+foo() {}
+main() {}

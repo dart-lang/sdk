@@ -10,12 +10,12 @@ import 'dart:math' show Random;
 test2() {
   List<num> o;
   var /*@ type=Iterable<num*>* */ y =
-      o. /*@ typeArgs=num* */ /*@target=Iterable::map*/ map(
+      o. /*@ typeArgs=num* */ /*@target=Iterable.map*/ map(
           /*@ returnType=num* */ (/*@ type=num* */ x) {
-    if (new Random(). /*@target=dart.math::Random::nextBool*/ nextBool()) {
-      return x. /*@target=num::toInt*/ toInt() /*@target=num::+*/ + 1;
+    if (new Random(). /*@target=dart.math::Random.nextBool*/ nextBool()) {
+      return x. /*@target=num.toInt*/ toInt() /*@target=num.+*/ + 1;
     } else {
-      return x. /*@target=num::toDouble*/ toDouble();
+      return x. /*@target=num.toDouble*/ toDouble();
     }
   });
   Iterable<num> w = y;

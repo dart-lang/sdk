@@ -6,6 +6,6 @@
 library test;
 
 List<double> a = <double>[];
-var b = (a /*@target=List::[]=*/ [0] = 1.0);
+var b = (a /*@target=List.[]=*/ [0] = 1.0);
 
 main() {}

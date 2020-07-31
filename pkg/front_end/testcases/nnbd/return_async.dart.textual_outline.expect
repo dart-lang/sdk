@@ -1,0 +1,8 @@
+import 'dart:async';
+
+Future<void> throwSync() {}
+Future<void> allYield() async {}
+Future<void> allYield2() async {}
+Future<void> allYield3() async {}
+Future<void> customErrorZone() async {}
+main() {}

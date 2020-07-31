@@ -10,7 +10,7 @@ import 'dart:math' show Random;
 
 test() {
   var /*@ type=() ->* Future<num*>* */ f = /*@ returnType=Future<num*>* */ () async {
-    if (new Random(). /*@target=dart.math::Random::nextBool*/ nextBool()) {
+    if (new Random(). /*@target=dart.math::Random.nextBool*/ nextBool()) {
       return new Future<int>.value(1);
     } else {
       return new Future<double>.value(2.0);

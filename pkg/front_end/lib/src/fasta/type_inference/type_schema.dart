@@ -8,12 +8,14 @@ import 'package:kernel/ast.dart'
         DartTypeVisitor,
         DartTypeVisitor1,
         FunctionType,
+        FutureOrType,
         InterfaceType,
         NamedType,
         Nullability,
         TypedefType,
         Visitor;
 import 'package:kernel/src/assumptions.dart';
+import 'package:kernel/src/printer.dart';
 
 import 'package:kernel/import_table.dart' show ImportTable;
 
@@ -57,10 +59,13 @@ class TypeSchemaPrinter extends Printer {
 /// The unknown type cannot appear in programs or in final inferred types: it is
 /// purely part of the local inference process.
 class UnknownType extends DartType {
+  const UnknownType();
+
+  @override
+  Nullability get declaredNullability => null;
+
   @override
   Nullability get nullability => null;
-
-  const UnknownType();
 
   @override
   bool operator ==(Object other) => equals(other, null);
@@ -85,16 +90,16 @@ class UnknownType extends DartType {
   void visitChildren(Visitor<dynamic> v) {}
 
   @override
-  UnknownType withNullability(Nullability nullability) => this;
+  UnknownType withDeclaredNullability(Nullability nullability) => this;
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('?');
+  }
 
   @override
   String toString() {
     return "UnknownType(${toStringInternal()})";
-  }
-
-  @override
-  String toStringInternal() {
-    return "";
   }
 }
 
@@ -126,6 +131,11 @@ class _IsKnownVisitor extends DartTypeVisitor<bool> {
       if (!typeArgument.accept(this)) return false;
     }
     return true;
+  }
+
+  @override
+  bool visitFutureOrType(FutureOrType node) {
+    return node.typeArgument.accept(this);
   }
 
   @override

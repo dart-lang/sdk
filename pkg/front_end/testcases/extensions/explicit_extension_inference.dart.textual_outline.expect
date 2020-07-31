@@ -1,0 +1,11 @@
+class A {
+}
+class B extends A {
+}
+class C extends B {
+}
+class GenericClass<T> {
+}
+extension GenericExtension<T> ( ){ }
+on GenericClass<T> (){ }
+main() { }

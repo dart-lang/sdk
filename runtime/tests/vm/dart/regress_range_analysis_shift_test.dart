@@ -9,14 +9,14 @@
 
 import 'package:expect/expect.dart';
 
-int getShift(List<String> args) {
+int? getShift(List<String> args) {
   return args.length == -1 ? null : 40;
 }
 
 void test(List<String> args) {
-  int x = 1;
+  dynamic x = 1;
   if (args.length <= 0) {
-    int s = getShift(args);
+    int? s = getShift(args);
     x = x << s;
   }
   x += 1;

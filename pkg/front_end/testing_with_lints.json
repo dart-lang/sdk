@@ -16,7 +16,8 @@
       "test/id_testing/data/",
       "test/language_versioning/data/",
       "test/patching/data/",
-      "test/static_types/data/"
+      "test/static_types/data/",
+      "test/text_representation/data/"
     ]
   }
 }

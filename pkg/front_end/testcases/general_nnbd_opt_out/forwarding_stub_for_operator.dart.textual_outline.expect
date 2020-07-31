@@ -1,0 +1,20 @@
+// @dart = 2.6
+class A {
+  dynamic operator +(covariant int a) => null;
+}
+
+class B {
+  dynamic operator +(dynamic b) => null;
+}
+
+abstract class C implements A, B {}
+
+class D {
+  dynamic operator +(dynamic d) => null;
+}
+
+class E extends D {
+  dynamic operator +(covariant int e);
+}
+
+main() {}

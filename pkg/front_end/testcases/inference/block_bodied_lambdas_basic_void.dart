@@ -7,8 +7,8 @@ library test;
 
 f() {
   List<int> o;
-  o. /*@target=Iterable::where*/ where(/*@ returnType=bool* */ (/*@ type=int* */ i) {
-    return i /*@target=num::==*/ == 0;
+  o. /*@target=Iterable.where*/ where(/*@ returnType=bool* */ (/*@ type=int* */ i) {
+    return i /*@target=num.==*/ == 0;
   });
 }
 

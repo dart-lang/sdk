@@ -10,7 +10,7 @@ import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
@@ -20,17 +20,6 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class ObjectStoreViewElement extends CustomElement implements Renderable {
-  static const tag = const Tag<ObjectStoreViewElement>('objectstore-view',
-      dependencies: const [
-        InstanceRefElement.tag,
-        NavTopMenuElement.tag,
-        NavVMMenuElement.tag,
-        NavIsolateMenuElement.tag,
-        NavRefreshElement.tag,
-        NavNotifyElement.tag,
-        ViewFooterElement.tag
-      ]);
-
   RenderingScheduler<ObjectStoreViewElement> _r;
 
   Stream<RenderedEvent<ObjectStoreViewElement>> get onRendered => _r.onRendered;
@@ -72,7 +61,7 @@ class ObjectStoreViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  ObjectStoreViewElement.created() : super.created(tag);
+  ObjectStoreViewElement.created() : super.created('objectstore-view');
 
   @override
   attached() {

@@ -2,49 +2,91 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extensions/call_methods.dart:30:4: Error: Too many positional arguments: 0 allowed, but 1 found.
+// pkg/front_end/testcases/extensions/call_methods.dart:29:18: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+// var topLevel1 = 1(10);
+//                  ^
+//
+// pkg/front_end/testcases/extensions/call_methods.dart:30:18: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+// var topLevel2 = 1("10");
+//                  ^
+//
+// pkg/front_end/testcases/extensions/call_methods.dart:31:20: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+// var topLevel3 = 1.0(10);
+//                    ^
+//
+// pkg/front_end/testcases/extensions/call_methods.dart:32:20: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+// var topLevel4 = 1.0("10");
+//                    ^
+//
+// pkg/front_end/testcases/extensions/call_methods.dart:34:18: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+// var topLevel5 = a(2);
+//                  ^
+//
+// pkg/front_end/testcases/extensions/call_methods.dart:34:18: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/call_methods.dart'.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+// var topLevel5 = a(2);
+//                  ^
+//
+// pkg/front_end/testcases/extensions/call_methods.dart:36:18: Error: Too many positional arguments: 0 allowed, but 2 found.
+// Try removing the extra positional arguments.
+// var topLevel6 = a(2, "3");
+//                  ^
+//
+// pkg/front_end/testcases/extensions/call_methods.dart:36:18: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/call_methods.dart'.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+// var topLevel6 = a(2, "3");
+//                  ^
+//
+// pkg/front_end/testcases/extensions/call_methods.dart:39:4: Error: Too many positional arguments: 0 allowed, but 1 found.
 // Try removing the extra positional arguments.
 //   1(10);
 //    ^
 //
-// pkg/front_end/testcases/extensions/call_methods.dart:31:4: Error: Too many positional arguments: 0 allowed, but 1 found.
+// pkg/front_end/testcases/extensions/call_methods.dart:40:4: Error: Too many positional arguments: 0 allowed, but 1 found.
 // Try removing the extra positional arguments.
 //   1("10");
 //    ^
 //
-// pkg/front_end/testcases/extensions/call_methods.dart:32:6: Error: Too many positional arguments: 0 allowed, but 1 found.
+// pkg/front_end/testcases/extensions/call_methods.dart:41:6: Error: Too many positional arguments: 0 allowed, but 1 found.
 // Try removing the extra positional arguments.
 //   1.0(10);
 //      ^
 //
-// pkg/front_end/testcases/extensions/call_methods.dart:33:6: Error: Too many positional arguments: 0 allowed, but 1 found.
+// pkg/front_end/testcases/extensions/call_methods.dart:42:6: Error: Too many positional arguments: 0 allowed, but 1 found.
 // Try removing the extra positional arguments.
 //   1.0("10");
 //      ^
 //
-// pkg/front_end/testcases/extensions/call_methods.dart:35:4: Error: Too many positional arguments: 0 allowed, but 1 found.
+// pkg/front_end/testcases/extensions/call_methods.dart:44:4: Error: Too many positional arguments: 0 allowed, but 1 found.
 // Try removing the extra positional arguments.
 //   a(2);
 //    ^
 //
-// pkg/front_end/testcases/extensions/call_methods.dart:35:4: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
+// pkg/front_end/testcases/extensions/call_methods.dart:44:4: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/call_methods.dart'.
 // Try changing 'call' to a method or explicitly invoke 'call'.
 //   a(2);
 //    ^
 //
-// pkg/front_end/testcases/extensions/call_methods.dart:36:4: Error: Too many positional arguments: 0 allowed, but 2 found.
+// pkg/front_end/testcases/extensions/call_methods.dart:45:4: Error: Too many positional arguments: 0 allowed, but 2 found.
 // Try removing the extra positional arguments.
 //   a(2, "3");
 //    ^
 //
-// pkg/front_end/testcases/extensions/call_methods.dart:36:4: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
+// pkg/front_end/testcases/extensions/call_methods.dart:45:4: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/call_methods.dart'.
 // Try changing 'call' to a method or explicitly invoke 'call'.
 //   a(2, "3");
 //    ^
 //
-// pkg/front_end/testcases/extensions/call_methods.dart:38:4: Error: Cannot invoke an instance of 'B' because it declares 'call' to be something other than a method.
+// pkg/front_end/testcases/extensions/call_methods.dart:47:4: Error: Cannot invoke an instance of 'B' because it declares 'call' to be something other than a method.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/call_methods.dart'.
 // Try changing 'call' to a method or explicitly invoke 'call'.
 //   b();
@@ -59,6 +101,16 @@ class A extends core::Object {
     ;
   get call() → core::String*
     return "My name is A";
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B extends core::Object {
   synthetic constructor •() → self::B*
@@ -66,6 +118,16 @@ class B extends core::Object {
     ;
   get call() → () →* core::String*
     return () → core::String* => "My name is B";
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 extension _extension#0 on core::int* {
   get call = self::_extension#0|get#call;
@@ -76,6 +138,34 @@ extension _extension#1 on core::num* {
 extension _extension#2 on core::String* {
   get call = self::_extension#2|get#call;
 }
+static field core::String* topLevel1 = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:29:18: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+var topLevel1 = 1(10);
+                 ^" in self::_extension#2|get#call(self::_extension#0|get#call(1)).call(10);
+static field core::String* topLevel2 = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:30:18: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+var topLevel2 = 1(\"10\");
+                 ^" in self::_extension#2|get#call(self::_extension#0|get#call(1)).call("10");
+static field core::String* topLevel3 = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:31:20: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+var topLevel3 = 1.0(10);
+                   ^" in self::_extension#2|get#call(self::_extension#1|get#call(1.0)).call(10);
+static field core::String* topLevel4 = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:32:20: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+var topLevel4 = 1.0(\"10\");
+                   ^" in self::_extension#2|get#call(self::_extension#1|get#call(1.0)).call("10");
+static field self::A* a = new self::A::•();
+static field core::String* topLevel5 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:34:18: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
+ - 'A' is from 'pkg/front_end/testcases/extensions/call_methods.dart'.
+Try changing 'call' to a method or explicitly invoke 'call'.
+var topLevel5 = a(2);
+                 ^" as{TypeError,ForDynamic} core::String*;
+static field self::B* b = new self::B::•();
+static field core::String* topLevel6 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:36:18: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
+ - 'A' is from 'pkg/front_end/testcases/extensions/call_methods.dart'.
+Try changing 'call' to a method or explicitly invoke 'call'.
+var topLevel6 = a(2, \"3\");
+                 ^" as{TypeError,ForDynamic} core::String*;
 static method _extension#0|get#call(final core::int* #this) → core::String*
   return "My name is int";
 static method _extension#1|get#call(final core::num* #this) → core::String*
@@ -86,35 +176,35 @@ static method main() → dynamic {
   self::_extension#2|get#call("").call();
 }
 static method errors() → dynamic {
-  let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:30:4: Error: Too many positional arguments: 0 allowed, but 1 found.
+  let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:39:4: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
   1(10);
    ^" in self::_extension#2|get#call(self::_extension#0|get#call(1)).call(10);
-  let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:31:4: Error: Too many positional arguments: 0 allowed, but 1 found.
+  let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:40:4: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
   1(\"10\");
    ^" in self::_extension#2|get#call(self::_extension#0|get#call(1)).call("10");
-  let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:32:6: Error: Too many positional arguments: 0 allowed, but 1 found.
+  let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:41:6: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
   1.0(10);
      ^" in self::_extension#2|get#call(self::_extension#1|get#call(1.0)).call(10);
-  let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:33:6: Error: Too many positional arguments: 0 allowed, but 1 found.
+  let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:42:6: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
   1.0(\"10\");
      ^" in self::_extension#2|get#call(self::_extension#1|get#call(1.0)).call("10");
   self::A* a = new self::A::•();
-  invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:35:4: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
+  invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:44:4: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
  - 'A' is from 'pkg/front_end/testcases/extensions/call_methods.dart'.
 Try changing 'call' to a method or explicitly invoke 'call'.
   a(2);
    ^";
-  invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:36:4: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
+  invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:45:4: Error: Cannot invoke an instance of 'A' because it declares 'call' to be something other than a method.
  - 'A' is from 'pkg/front_end/testcases/extensions/call_methods.dart'.
 Try changing 'call' to a method or explicitly invoke 'call'.
   a(2, \"3\");
    ^";
   self::B* b = new self::B::•();
-  invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:38:4: Error: Cannot invoke an instance of 'B' because it declares 'call' to be something other than a method.
+  invalid-expression "pkg/front_end/testcases/extensions/call_methods.dart:47:4: Error: Cannot invoke an instance of 'B' because it declares 'call' to be something other than a method.
  - 'B' is from 'pkg/front_end/testcases/extensions/call_methods.dart'.
 Try changing 'call' to a method or explicitly invoke 'call'.
   b();

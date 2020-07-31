@@ -1,2 +1,0 @@
-strong=tests/compiler/dart2js/field_analysis/jfield_analysis_test.dart
-omit=tests/compiler/dart2js/field_analysis/jfield_analysis_test.dart

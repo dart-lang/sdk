@@ -65,56 +65,78 @@ _all_configs = [
     suffix = "_jit"
     configs = _jit_config
     snapshot = true
+    compiler = true
+    is_product = false
   },
   {
     suffix = "_jit_product"
     configs = _jit_product_config
     snapshot = true
+    compiler = true
+    is_product = true
   },
   {
     suffix = "_precompiled_runtime"
     configs = _precompiled_runtime_config
     snapshot = true
+    compiler = false
+    is_product = false
   },
   {
     suffix = "_precompiled_runtime_product"
     configs = _precompiled_runtime_product_config
     snapshot = true
+    compiler = false
+    is_product = true
   },
   {
     suffix = "_precompiler"
     configs = _precompiler_config
     snapshot = false
+    compiler = true
+    is_product = false
   },
   {
     suffix = "_precompiler_product"
     configs = _precompiler_product_config
     snapshot = false
+    compiler = true
+    is_product = true
   },
   {
     suffix = "_precompiler_fuchsia"
     configs = _precompiler_fuchsia_config
     snapshot = false
+    compiler = true
+    is_product = false
   },
   {
     suffix = "_precompiler_product_fuchsia"
     configs = _precompiler_product_fuchsia_config
     snapshot = false
+    compiler = true
+    is_product = true
   },
   {
     suffix = "_precompiler_host_targeting_host"
     configs = _precompiler_host_targeting_host_config
     snapshot = false
+    compiler = true
+    is_product = false
   },
   {
     suffix = "_precompiler_product_host_targeting_host"
     configs = _precompiler_product_host_targeting_host_config
     snapshot = false
+    compiler = true
+    is_product = true
   },
   {
     suffix = "_libfuzzer"
     configs = _libfuzzer_config
     snapshot = true
+    compiler = true
+    is_product = false
   },
 ]
 
@@ -163,6 +185,14 @@ template("library_for_all_configs") {
   if (defined(invoker.extra_deps)) {
     extra_deps += invoker.extra_deps
   }
+  extra_product_deps = []
+  if (defined(invoker.extra_product_deps)) {
+    extra_product_deps += invoker.extra_product_deps
+  }
+  extra_nonproduct_deps = []
+  if (defined(invoker.extra_nonproduct_deps)) {
+    extra_nonproduct_deps += invoker.extra_nonproduct_deps
+  }
   foreach(conf, _all_configs) {
     target(invoker.target_type, "${target_name}${conf.suffix}") {
       forward_variables_from(invoker,
@@ -177,7 +207,19 @@ template("library_for_all_configs") {
       foreach(dep, configurable_deps) {
         configured_deps += [ "${dep}${conf.suffix}" ]
       }
+      if (defined(compiler_lib)) {
+        if (conf.compiler) {
+          configured_deps += [ "${compiler_lib}${conf.suffix}" ]
+        } else {
+          not_needed([ "compiler_lib" ])
+        }
+      }
       deps = configured_deps + extra_deps
+      if (conf.is_product) {
+        deps += extra_product_deps
+      } else {
+        deps += extra_nonproduct_deps
+      }
       if (conf.snapshot) {
         if (defined(snapshot_sources)) {
           sources += snapshot_sources
@@ -185,6 +227,50 @@ template("library_for_all_configs") {
       } else {
         if (defined(snapshot_sources)) {
           not_needed([ "snapshot_sources" ])
+        }
+      }
+    }
+  }
+}
+
+template("library_for_all_configs_with_compiler") {
+  assert(defined(invoker.target_type))
+  extra_configs = []
+  if (defined(invoker.extra_configs)) {
+    extra_configs += invoker.extra_configs
+  }
+  configurable_deps = []
+  if (defined(invoker.configurable_deps)) {
+    configurable_deps += invoker.configurable_deps
+  }
+  extra_deps = []
+  if (defined(invoker.extra_deps)) {
+    extra_deps += invoker.extra_deps
+  }
+  foreach(conf, _all_configs) {
+    if (conf.compiler) {
+      target(invoker.target_type, "${target_name}${conf.suffix}") {
+        forward_variables_from(invoker,
+                               "*",
+                               [
+                                 "extra_configs",
+                                 "extra_deps",
+                                 "configurable_deps",
+                               ])
+        configs += conf.configs + extra_configs
+        configured_deps = []
+        foreach(dep, configurable_deps) {
+          configured_deps += [ "${dep}${conf.suffix}" ]
+        }
+        deps = configured_deps + extra_deps
+        if (conf.snapshot) {
+          if (defined(snapshot_sources)) {
+            sources += snapshot_sources
+          }
+        } else {
+          if (defined(snapshot_sources)) {
+            not_needed([ "snapshot_sources" ])
+          }
         }
       }
     }

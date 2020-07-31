@@ -17,11 +17,14 @@ namespace dart {
   V(WriteBarrier)                                                              \
   V(WriteBarrierWrappers)                                                      \
   V(ArrayWriteBarrier)                                                         \
-  V(PrintStopMessage)                                                          \
   V(AllocateArray)                                                             \
-  V(AllocateMintWithFPURegs)                                                   \
-  V(AllocateMintWithoutFPURegs)                                                \
+  V(AllocateMintSharedWithFPURegs)                                             \
+  V(AllocateMintSharedWithoutFPURegs)                                          \
   V(AllocateContext)                                                           \
+  V(AllocateObject)                                                            \
+  V(AllocateObjectParameterized)                                               \
+  V(AllocateObjectSlow)                                                        \
+  V(AllocateUnhandledException)                                                \
   V(CloneContext)                                                              \
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \
@@ -35,8 +38,7 @@ namespace dart {
   V(InvokeDartCode)                                                            \
   V(InvokeDartCodeFromBytecode)                                                \
   V(DebugStepCheck)                                                            \
-  V(UnlinkedCall)                                                              \
-  V(MonomorphicMiss)                                                           \
+  V(SwitchableCallMiss)                                                        \
   V(MonomorphicSmiableCheck)                                                   \
   V(SingleTargetCall)                                                          \
   V(ICCallThroughCode)                                                         \
@@ -79,6 +81,10 @@ namespace dart {
   V(NullErrorSharedWithoutFPURegs)                                             \
   V(NullArgErrorSharedWithFPURegs)                                             \
   V(NullArgErrorSharedWithoutFPURegs)                                          \
+  V(NullCastErrorSharedWithFPURegs)                                            \
+  V(NullCastErrorSharedWithoutFPURegs)                                         \
+  V(RangeErrorSharedWithFPURegs)                                               \
+  V(RangeErrorSharedWithoutFPURegs)                                            \
   V(StackOverflowSharedWithFPURegs)                                            \
   V(StackOverflowSharedWithoutFPURegs)                                         \
   V(OneArgCheckInlineCacheWithExactnessCheck)                                  \
@@ -87,9 +93,17 @@ namespace dart {
   V(ExitSafepoint)                                                             \
   V(CallNativeThroughSafepoint)                                                \
   V(InitStaticField)                                                           \
+  V(InitInstanceField)                                                         \
+  V(InitLateInstanceField)                                                     \
+  V(InitLateFinalInstanceField)                                                \
+  V(Throw)                                                                     \
+  V(ReThrow)                                                                   \
+  V(AssertBoolean)                                                             \
+  V(InstanceOf)                                                                \
   V(InstantiateTypeArguments)                                                  \
   V(InstantiateTypeArgumentsMayShareInstantiatorTA)                            \
-  V(InstantiateTypeArgumentsMayShareFunctionTA)
+  V(InstantiateTypeArgumentsMayShareFunctionTA)                                \
+  V(NoSuchMethodDispatcher)
 
 }  // namespace dart
 

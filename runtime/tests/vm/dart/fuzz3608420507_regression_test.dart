@@ -98,7 +98,7 @@ class X2 extends X1 {
   Map<int, String> fld2_1 = { 0 : '\u{1f600}\u2665F8', 1 : '\u{1f600}Kd', 2 : 'CW6e@d' };
   Map<int, String> fld2_2 = { 0 : 'MM3Ogd\u{1f600}', 1 : 'D', 2 : 'I\u{1f600}2kH4\u{1f600}' };
 
-  List<int> foo2_0(String par1, double par2, int par3) {
+  List<int>? foo2_0(String par1, double par2, int par3) {
     var6 ??= ({ 0 : 'hVMi', 1 : '', 2 : 'S' } ?? { 0 : '9c\u{1f600}\u{1f600}\u{1f600}dW', 1 : 'g(Fu\u{1f600}bX', 2 : 'Pi2Z\u{1f600}', 3 : 'O\u2665' });
     for (int loc0 = 0; loc0 < 84; loc0++) {
       return (((!((!(var1)))) ? false : false) ? var5 : (false ? var5 : [ -9223372030412324864 ]));
@@ -119,7 +119,7 @@ class X2 extends X1 {
     }
   }
 
-  double foo2_3(List<int> par1) {
+  double? foo2_3(List<int> par1) {
     var6 = foo2_2();
     if (var1) {
       print({ 0 : 'K\u{1f600}\u{1f600}\u2665\u{1f600}', 1 : 'lh34LP' });
@@ -133,7 +133,7 @@ class X2 extends X1 {
             { double loc2 = var3;
               { int loc3 = foo1({ 0 : 'G(', 1 : '\u{1f600}&a9t', 2 : '\u{1f600}TF', 3 : '\u2665m-' }, true);
                 var4 ??= (loc0).substring(((((par1 ?? [ -9223372034707292159, 44, -1, 2147483648 ])).remove((false ? -9223372032559808511 : (((++loc3) ~/ (2147483649 | 54))).ceil())) || false) ? (~((loc3++))) : (foo1(fld2_1, (var6 == { 0 : '', 1 : 'KP8' })) >> 50)));
-                if ((true != ((!(loc1)) ? ((-(40)) >= -32) : foo2_1(9223372034707292159, (foo2_2()).remove((((-((loc3).abs())) ~/ 42)).toSigned(-27)))))) {
+                if ((true != ((!(loc1)) ? ((-(40)) >= -32) : foo2_1(9223372034707292159, (foo2_2()).remove((((-((loc3).abs())) ~/ 42)).toSigned(-27))!)))) {
                   if (loc1) {
                     return loc2;
                   }
@@ -184,7 +184,7 @@ class X3 extends X2 {
     }
   }
 
-  List<int> foo3_2(List<int> par1, List<int> par2) {
+  List<int>? foo3_2(List<int> par1, List<int> par2) {
     for (int loc0 = 0; loc0 < 68; loc0++) {
       { String loc1 = foo2();
         var2 -= (~((false ? (~((false ? loc0 : -9223372034707292161))) : (var2--))));
@@ -204,9 +204,9 @@ class X3 extends X2 {
     }
   }
 
-  bool foo3_3(List<int> par1, Map<int, String> par2, Map<int, String> par3) {
+  bool? foo3_3(List<int> par1, Map<int, String> par2, Map<int, String> par3) {
     for (int loc0 = 0; loc0 < 16; loc0++) {
-      if (foo3_0((-((var0 ? 8589934591 : 65))), foo3_2(fld3_0, (fld3_0).sublist((true ? (0.23821360229648214).toInt() : var2))))) {
+      if (foo3_0((-((var0 ? 8589934591 : 65))), foo3_2(fld3_0, (fld3_0).sublist((true ? (0.23821360229648214).toInt() : var2)))!)) {
         par1 ??= (((var4 == '&Tze') ? ([ -27, 23, -40 ] != par1) : true) ? [ 23, 21, 4294967295 ] : fld3_0);
         print((par2 ?? { 0 : '\u{1f600}\u2665\u{1f600}Jpj&', 1 : '', 2 : '', 3 : '' }));
         var4 = var4;
@@ -214,7 +214,7 @@ class X3 extends X2 {
       }
       for (int loc1 = 0; loc1 < 93; loc1++) {
         var4 = 'gngT';
-        return (foo3_0(((((var3 * (loc1).ceilToDouble()) - ((0.6230577340230226 > var3) ? (var3 - var3) : double.maxFinite)) - double.nan)).ceil(), [ 0 ]) ? ((!(var0)) && foo3_0((-(-59)), [ 8, 1, 12, -9223372030412324863 ])) : foo3_0(foo3_1(foo3_2([ 2, -33, -72 ], [ 30, 58, 0 ]), loc1, (!(var1))), var5));
+        return (foo3_0(((((var3 * (loc1).ceilToDouble()) - ((0.6230577340230226 > var3) ? (var3 - var3) : double.maxFinite)) - double.nan)).ceil(), [ 0 ]) ? ((!(var0)) && foo3_0((-(-59)), [ 8, 1, 12, -9223372030412324863 ])) : foo3_0(foo3_1(foo3_2([ 2, -33, -72 ], [ 30, 58, 0 ])!, loc1, (!(var1))), var5));
       }
     }
   }

@@ -1,0 +1,5 @@
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return (() → dart.core::int* {
+    #lib1::Key* x = new #lib1::ValueKey::•("t");
+    return x.{#lib1::Key::hashCode};
+  }).call();

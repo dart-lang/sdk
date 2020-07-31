@@ -1,0 +1,18 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/await_not_in_async.dart:4:3: Error: 'await' can only be used in 'async' or 'async*' methods.
+//   await f();
+//   ^^^^^
+//
+import self as self;
+import "dart:async" as asy;
+
+static method f() → asy::Future<void>*
+  return asy::Future::value<void>();
+static method g() → void {
+  invalid-expression "pkg/front_end/testcases/general/error_recovery/await_not_in_async.dart:4:3: Error: 'await' can only be used in 'async' or 'async*' methods.
+  await f();
+  ^^^^^";
+}

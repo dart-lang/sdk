@@ -44,7 +44,7 @@ void BytecodeRegExpMacroAssembler::BindBlock(BlockLabel* l) {
       *reinterpret_cast<uint32_t*>(buffer_->data() + fixup) = pc_;
     }
   }
-  l->bind_to(pc_);
+  l->BindTo(pc_);
 }
 
 void BytecodeRegExpMacroAssembler::EmitOrLink(BlockLabel* l) {
@@ -56,7 +56,7 @@ void BytecodeRegExpMacroAssembler::EmitOrLink(BlockLabel* l) {
     if (l->is_linked()) {
       pos = l->pos();
     }
-    l->link_to(pc_);
+    l->LinkTo(pc_);
     Emit32(pos);
   }
 }
@@ -390,7 +390,7 @@ void BytecodeRegExpMacroAssembler::IfRegisterEqPos(intptr_t register_index,
   EmitOrLink(on_eq);
 }
 
-RawTypedData* BytecodeRegExpMacroAssembler::GetBytecode() {
+TypedDataPtr BytecodeRegExpMacroAssembler::GetBytecode() {
   BindBlock(&backtrack_);
   Emit(BC_POP_BT, 0);
 
@@ -511,11 +511,11 @@ static IrregexpInterpreter::IrregexpResult ExecRaw(const RegExp& regexp,
   return result;
 }
 
-RawInstance* BytecodeRegExpMacroAssembler::Interpret(const RegExp& regexp,
-                                                     const String& subject,
-                                                     const Smi& start_index,
-                                                     bool sticky,
-                                                     Zone* zone) {
+InstancePtr BytecodeRegExpMacroAssembler::Interpret(const RegExp& regexp,
+                                                    const String& subject,
+                                                    const Smi& start_index,
+                                                    bool sticky,
+                                                    Zone* zone) {
   intptr_t required_registers = Prepare(regexp, subject, sticky, zone);
   if (required_registers < 0) {
     // Compiling failed with an exception.

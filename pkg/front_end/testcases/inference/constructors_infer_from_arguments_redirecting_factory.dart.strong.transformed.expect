@@ -8,12 +8,32 @@ abstract class C<T extends core::Object* = dynamic> extends core::Object {
   abstract set t(generic-covariant-impl self::C::T* x) → void;
   static factory •<T extends core::Object* = dynamic>(self::C::•::T* t) → self::C<self::C::•::T*>*
     let<BottomType> #redirecting_factory = self::CImpl::• in let self::C::•::T* #typeArg0 = null in invalid-expression;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class CImpl<T extends core::Object* = dynamic> extends core::Object implements self::C<self::CImpl::T*> {
   generic-covariant-impl field self::CImpl::T* t;
   constructor •(self::CImpl::T* t) → self::CImpl<self::CImpl::T*>*
     : self::CImpl::t = t, super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method main() → dynamic {
   self::C<core::int*>* x = new self::CImpl::•<core::int*>(42);

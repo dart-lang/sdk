@@ -1,0 +1,44 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+import "org-dartlang-testcase:///constant_null_is_lib.dart";
+
+static const field core::bool c0 = null is{ForNonNullableByDefault} core::int?;
+static const field core::bool c1 = null is{ForNonNullableByDefault} core::int;
+static const field core::bool c2 = null is{ForNonNullableByDefault} core::Null?;
+static const field core::bool c3 = null is{ForNonNullableByDefault} Never?;
+static const field core::bool c4 = null is{ForNonNullableByDefault} Never;
+static const field core::bool c5 = null is{ForNonNullableByDefault} asy::FutureOr<core::int?>;
+static const field core::bool c6 = null is{ForNonNullableByDefault} asy::FutureOr<core::int>;
+static const field core::bool c7 = null is{ForNonNullableByDefault} asy::FutureOr<core::int>?;
+static const field core::bool c8 = null is{ForNonNullableByDefault} asy::FutureOr<core::Null?>;
+static const field core::bool c9 = null is{ForNonNullableByDefault} asy::FutureOr<core::Null?>?;
+static const field core::bool c10 = null is{ForNonNullableByDefault} asy::FutureOr<Never>;
+static const field core::bool c11 = null is{ForNonNullableByDefault} asy::FutureOr<Never?>;
+static const field core::bool c12 = null is{ForNonNullableByDefault} asy::FutureOr<Never>?;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual, core::String message) → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/constant_null_is_lib.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.6
+// ^^^^^^^^^^^^
+//
+import self as self2;
+import "dart:core" as core;
+
+import "dart:async";
+import "org-dartlang-testcase:///constant_null_is.dart";
+
+static const field core::bool d0 = null is{ForNonNullableByDefault} core::int;
+static const field core::bool d1 = null is{ForNonNullableByDefault} core::Null?;
+static method test() → dynamic
+  ;

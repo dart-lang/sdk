@@ -43,7 +43,7 @@ abide by the following basic conditions:
 
 Compatibility is only considered between stable releases (i.e. releases from the
 [Dart stable
-channel](https://www.dartlang.org/tools/sdk/archive#stable-channel)).
+channel](https://dart.dev/tools/sdk/archive#stable-channel)).
 
 ## Breaking change notification
 

@@ -2,24 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart._vmservice;
 
-String _encodeDevFSDisabledError(Message message) {
-  return encodeRpcError(message, kFeatureDisabled,
-      details: "DevFS is not supported by this Dart implementation");
-}
+String _encodeDevFSDisabledError(Message message) =>
+    encodeRpcError(message, kFeatureDisabled,
+        details: 'DevFS is not supported by this Dart implementation');
 
-String _encodeFileSystemAlreadyExistsError(Message message, String fsName) {
-  return encodeRpcError(message, kFileSystemAlreadyExists,
-      details: "${message.method}: file system '${fsName}' already exists");
-}
+String _encodeFileSystemAlreadyExistsError(Message message, String fsName) =>
+    encodeRpcError(message, kFileSystemAlreadyExists,
+        details: "${message.method}: file system '${fsName}' already exists");
 
-String _encodeFileSystemDoesNotExistError(Message message, String fsName) {
-  return encodeRpcError(message, kFileSystemDoesNotExist,
-      details: "${message.method}: file system '${fsName}' does not exist");
-}
+String _encodeFileSystemDoesNotExistError(Message message, String fsName) =>
+    encodeRpcError(message, kFileSystemDoesNotExist,
+        details: "${message.method}: file system '${fsName}' does not exist");
 
 class _FileSystem {
   _FileSystem(this.name, this.uri);
@@ -27,7 +22,7 @@ class _FileSystem {
   final String name;
   final Uri uri;
 
-  Uri resolvePath(String path) {
+  Uri? resolvePath(String path) {
     if (path.startsWith('/')) {
       path = path.substring(1);
     }
@@ -36,23 +31,25 @@ class _FileSystem {
     }
     Uri pathUri;
     try {
-      pathUri = new Uri.file(path);
-    } on FormatException catch (e) {
+      pathUri = Uri.file(path);
+      // ignore: unused_catch_clause
+    } on FormatException catch (_) {
       return null;
     }
 
     return resolve(pathUri);
   }
 
-  Uri resolve(Uri pathUri) {
+  Uri? resolve(Uri pathUri) {
     try {
       // Make sure that this pathUri can be converted to a file path.
       pathUri.toFilePath();
-    } on UnsupportedError catch (e) {
+      // ignore: unused_catch_clause
+    } on UnsupportedError catch (_) {
       return null;
     }
 
-    Uri resolvedUri = uri.resolveUri(pathUri);
+    final resolvedUri = uri.resolveUri(pathUri);
     if (!resolvedUri.toString().startsWith(uri.toString())) {
       // Resolved uri must be within the filesystem's base uri.
       return null;
@@ -60,21 +57,19 @@ class _FileSystem {
     return resolvedUri;
   }
 
-  Map toMap() {
-    return {
-      'type': 'FileSystem',
-      'name': name,
-      'uri': uri.toString(),
-    };
-  }
+  Map<String, String> toMap() => {
+        'type': 'FileSystem',
+        'name': name,
+        'uri': uri.toString(),
+      };
 }
 
 class DevFS {
   DevFS();
 
-  Map<String, _FileSystem> _fsMap = {};
+  final _fsMap = <String, _FileSystem>{};
 
-  final Set _rpcNames = new Set.from([
+  final _rpcNames = <String>{
     '_listDevFS',
     '_createDevFS',
     '_deleteDevFS',
@@ -82,27 +77,25 @@ class DevFS {
     '_writeDevFSFile',
     '_writeDevFSFiles',
     '_listDevFSFiles',
-  ]);
+  };
 
   void cleanup() {
-    var deleteDir = VMServiceEmbedderHooks.deleteDir;
+    final deleteDir = VMServiceEmbedderHooks.deleteDir;
     if (deleteDir == null) {
       return;
     }
-    var deletions = <Future>[];
-    for (var fs in _fsMap.values) {
-      deletions.add(deleteDir(fs.uri));
-    }
+    final deletions = <Future>[
+      for (final fs in _fsMap.values) deleteDir(fs.uri),
+    ];
     Future.wait(deletions);
     _fsMap.clear();
   }
 
-  bool shouldHandleMessage(Message message) {
-    return _rpcNames.contains(message.method);
-  }
+  bool shouldHandleMessage(Message message) =>
+      _rpcNames.contains(message.method);
 
   Future<String> handleMessage(Message message) async {
-    switch (message.method) {
+    switch (message.method!) {
       case '_listDevFS':
         return _listDevFS(message);
       case '_createDevFS':
@@ -124,10 +117,10 @@ class DevFS {
   }
 
   Future<String> handlePutStream(
-      Object fsName, Object path, Uri fsUri, Stream<List<int>> bytes) async {
+      Object? fsName, Object? path, Uri? fsUri, Stream<List<int>> bytes) async {
     // A dummy Message for error message construction.
-    Message message = new Message.forMethod('_writeDevFSFile');
-    var writeStreamFile = VMServiceEmbedderHooks.writeStreamFile;
+    final message = Message.forMethod('_writeDevFSFile');
+    final writeStreamFile = VMServiceEmbedderHooks.writeStreamFile;
     if (writeStreamFile == null) {
       return _encodeDevFSDisabledError(message);
     }
@@ -141,7 +134,7 @@ class DevFS {
     if (fs == null) {
       return _encodeFileSystemDoesNotExistError(message, fsName);
     }
-    Uri uri = fsUri;
+    Uri? uri = fsUri;
     if (uri == null) {
       if (path == null) {
         return encodeMissingParamError(message, 'path');
@@ -164,47 +157,47 @@ class DevFS {
   }
 
   Future<String> _listDevFS(Message message) async {
-    var result = {};
+    final result = <String, dynamic>{};
     result['type'] = 'FileSystemList';
     result['fsNames'] = _fsMap.keys.toList();
     return encodeResult(message, result);
   }
 
   Future<String> _createDevFS(Message message) async {
-    var createTempDir = VMServiceEmbedderHooks.createTempDir;
+    final createTempDir = VMServiceEmbedderHooks.createTempDir;
     if (createTempDir == null) {
       return _encodeDevFSDisabledError(message);
     }
-    var fsName = message.params['fsName'];
+    final fsName = message.params['fsName'];
     if (fsName == null) {
       return encodeMissingParamError(message, 'fsName');
     }
     if (fsName is! String) {
       return encodeInvalidParamError(message, 'fsName');
     }
-    var fs = _fsMap[fsName];
+    _FileSystem? fs = _fsMap[fsName];
     if (fs != null) {
       return _encodeFileSystemAlreadyExistsError(message, fsName);
     }
-    var tempDir = await createTempDir(fsName);
-    fs = new _FileSystem(fsName, tempDir);
+    final tempDir = await createTempDir(fsName);
+    fs = _FileSystem(fsName, tempDir);
     _fsMap[fsName] = fs;
     return encodeResult(message, fs.toMap());
   }
 
   Future<String> _deleteDevFS(Message message) async {
-    var deleteDir = VMServiceEmbedderHooks.deleteDir;
+    final deleteDir = VMServiceEmbedderHooks.deleteDir;
     if (deleteDir == null) {
       return _encodeDevFSDisabledError(message);
     }
-    var fsName = message.params['fsName'];
+    final fsName = message.params['fsName'];
     if (fsName == null) {
       return encodeMissingParamError(message, 'fsName');
     }
     if (fsName is! String) {
       return encodeInvalidParamError(message, 'fsName');
     }
-    var fs = _fsMap.remove(fsName);
+    final fs = _fsMap.remove(fsName);
     if (fs == null) {
       return _encodeFileSystemDoesNotExistError(message, fsName);
     }
@@ -213,29 +206,29 @@ class DevFS {
   }
 
   Future<String> _readDevFSFile(Message message) async {
-    var readFile = VMServiceEmbedderHooks.readFile;
+    final readFile = VMServiceEmbedderHooks.readFile;
     if (readFile == null) {
       return _encodeDevFSDisabledError(message);
     }
-    var fsName = message.params['fsName'];
+    final fsName = message.params['fsName'];
     if (fsName == null) {
       return encodeMissingParamError(message, 'fsName');
     }
     if (fsName is! String) {
       return encodeInvalidParamError(message, 'fsName');
     }
-    var fs = _fsMap[fsName];
+    final fs = _fsMap[fsName];
     if (fs == null) {
       return _encodeFileSystemDoesNotExistError(message, fsName);
     }
-    Uri uri;
+    Uri? uri;
     if (message.params['uri'] != null) {
       try {
-        var uriParam = message.params['uri'];
+        final uriParam = message.params['uri'];
         if (uriParam is! String) {
           return encodeInvalidParamError(message, 'uri');
         }
-        Uri parsedUri = Uri.parse(uriParam);
+        final parsedUri = Uri.parse(uriParam);
         uri = fs.resolve(parsedUri);
         if (uri == null) {
           return encodeInvalidParamError(message, 'uri');
@@ -244,7 +237,7 @@ class DevFS {
         return encodeInvalidParamError(message, 'uri');
       }
     } else {
-      var path = message.params['path'];
+      final path = message.params['path'];
       if (path == null) {
         return encodeMissingParamError(message, 'path');
       }
@@ -257,39 +250,39 @@ class DevFS {
       }
     }
     try {
-      List<int> bytes = await readFile(uri);
-      var result = {'type': 'FSFile', 'fileContents': base64.encode(bytes)};
+      final bytes = await readFile(uri);
+      final result = {'type': 'FSFile', 'fileContents': base64.encode(bytes)};
       return encodeResult(message, result);
     } catch (e) {
       return encodeRpcError(message, kFileDoesNotExist,
-          details: "_readDevFSFile: $e");
+          details: '_readDevFSFile: $e');
     }
   }
 
   Future<String> _writeDevFSFile(Message message) async {
-    var writeFile = VMServiceEmbedderHooks.writeFile;
+    final writeFile = VMServiceEmbedderHooks.writeFile;
     if (writeFile == null) {
       return _encodeDevFSDisabledError(message);
     }
-    var fsName = message.params['fsName'];
+    final fsName = message.params['fsName'];
     if (fsName == null) {
       return encodeMissingParamError(message, 'fsName');
     }
     if (fsName is! String) {
       return encodeInvalidParamError(message, 'fsName');
     }
-    var fs = _fsMap[fsName];
+    final fs = _fsMap[fsName];
     if (fs == null) {
       return _encodeFileSystemDoesNotExistError(message, fsName);
     }
-    Uri uri;
+    Uri? uri;
     if (message.params['uri'] != null) {
       try {
-        var uriParam = message.params['uri'];
+        final uriParam = message.params['uri'];
         if (uriParam is! String) {
           return encodeInvalidParamError(message, 'uri');
         }
-        Uri parsedUri = Uri.parse(uriParam);
+        final parsedUri = Uri.parse(uriParam);
         uri = fs.resolve(parsedUri);
         if (uri == null) {
           return encodeInvalidParamError(message, 'uri');
@@ -298,7 +291,7 @@ class DevFS {
         return encodeInvalidParamError(message, 'uri');
       }
     } else {
-      var path = message.params['path'];
+      final path = message.params['path'];
       if (path == null) {
         return encodeMissingParamError(message, 'path');
       }
@@ -310,45 +303,45 @@ class DevFS {
         return encodeInvalidParamError(message, 'path');
       }
     }
-    var fileContents = message.params['fileContents'];
+    final fileContents = message.params['fileContents'];
     if (fileContents == null) {
       return encodeMissingParamError(message, 'fileContents');
     }
     if (fileContents is! String) {
       return encodeInvalidParamError(message, 'fileContents');
     }
-    List<int> decodedFileContents = base64.decode(fileContents);
+    final decodedFileContents = base64.decode(fileContents);
 
     await writeFile(uri, decodedFileContents);
     return encodeSuccess(message);
   }
 
   Future<String> _writeDevFSFiles(Message message) async {
-    var writeFile = VMServiceEmbedderHooks.writeFile;
+    final writeFile = VMServiceEmbedderHooks.writeFile;
     if (writeFile == null) {
       return _encodeDevFSDisabledError(message);
     }
-    var fsName = message.params['fsName'];
+    final fsName = message.params['fsName'];
     if (fsName == null) {
       return encodeMissingParamError(message, 'fsName');
     }
     if (fsName is! String) {
       return encodeInvalidParamError(message, 'fsName');
     }
-    var fs = _fsMap[fsName];
+    final fs = _fsMap[fsName];
     if (fs == null) {
       return _encodeFileSystemDoesNotExistError(message, fsName);
     }
-    var files = message.params['files'];
+    final files = message.params['files'];
     if (files == null) {
       return encodeMissingParamError(message, 'files');
     }
     if (files is! List) {
       return encodeInvalidParamError(message, 'files');
     }
-    var uris = [];
+    final uris = <Uri>[];
     for (int i = 0; i < files.length; i++) {
-      var fileInfo = files[i];
+      final fileInfo = files[i];
       if (fileInfo is! List ||
           fileInfo.length != 2 ||
           fileInfo[0] is! String ||
@@ -357,7 +350,7 @@ class DevFS {
             details: "${message.method}: invalid 'files' parameter "
                 "at index ${i}: ${fileInfo}");
       }
-      var uri = fs.resolvePath(fileInfo[0]);
+      final uri = fs.resolvePath(fileInfo[0]);
       if (uri == null) {
         return encodeRpcError(message, kInvalidParams,
             details: "${message.method}: invalid 'files' parameter "
@@ -365,9 +358,9 @@ class DevFS {
       }
       uris.add(uri);
     }
-    var pendingWrites = <Future>[];
+    final pendingWrites = <Future>[];
     for (int i = 0; i < uris.length; i++) {
-      List<int> decodedFileContents = base64.decode(files[i][1]);
+      final decodedFileContents = base64.decode(files[i][1]);
       pendingWrites.add(writeFile(uris[i], decodedFileContents));
     }
     await Future.wait(pendingWrites);
@@ -375,27 +368,27 @@ class DevFS {
   }
 
   Future<String> _listDevFSFiles(Message message) async {
-    var listFiles = VMServiceEmbedderHooks.listFiles;
+    final listFiles = VMServiceEmbedderHooks.listFiles;
     if (listFiles == null) {
       return _encodeDevFSDisabledError(message);
     }
-    var fsName = message.params['fsName'];
+    final fsName = message.params['fsName'];
     if (fsName == null) {
       return encodeMissingParamError(message, 'fsName');
     }
     if (fsName is! String) {
       return encodeInvalidParamError(message, 'fsName');
     }
-    var fs = _fsMap[fsName];
+    final fs = _fsMap[fsName];
     if (fs == null) {
       return _encodeFileSystemDoesNotExistError(message, fsName);
     }
-    var fileList = await listFiles(fs.uri);
+    final fileList = await listFiles(fs.uri);
     // Remove any url-encoding in the filenames.
     for (int i = 0; i < fileList.length; i++) {
       fileList[i]['name'] = Uri.decodeFull(fileList[i]['name']);
     }
-    var result = {'type': 'FSFileList', 'files': fileList};
+    final result = <String, dynamic>{'type': 'FSFileList', 'files': fileList};
     return encodeResult(message, result);
   }
 }

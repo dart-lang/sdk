@@ -5,76 +5,134 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/constant/potentially_constant_test.dart';
 import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReturnWithoutValueTest);
+    defineReflectiveTests(ReturnWithoutValueWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class ReturnWithoutValueTest extends DriverResolutionTest {
-  test_async() async {
+  test_async_futureInt() async {
     await assertErrorsInCode('''
-import 'dart:async';
 Future<int> f() async {
   return;
 }
 ''', [
-      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 47, 6),
+      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 26, 6),
     ]);
   }
 
-  test_async_future_object_with_return() async {
+  test_async_futureObject() async {
     await assertErrorsInCode('''
-import 'dart:async';
 Future<Object> f() async {
   return;
 }
 ''', [
-      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 50, 6),
+      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 29, 6),
     ]);
   }
 
   test_factoryConstructor() async {
     await assertErrorsInCode('''
-class A { factory A() { return; } }
+class A {
+  factory A() {
+    return;
+  }
+}
 ''', [
-      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 24, 6),
+      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 30, 6),
     ]);
   }
 
   test_function() async {
     await assertErrorsInCode('''
-int f() { return; }
+int f() {
+  return;
+}
 ''', [
-      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 10, 6),
+      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 12, 6),
     ]);
   }
 
-  test_localFunction() async {
-    await assertErrorsInCode('''
-class C {
-  m(int x) {
-    return (int y) {
-      if (y < 0) {
-        return;
-      }
-      return 0;
-    };
+  test_function_async_block_empty__to_dynamic() async {
+    await assertNoErrorsInCode('''
+dynamic f() async {
+  return;
+}
+''');
   }
+
+  test_function_Null() async {
+    // Test that block bodied functions with return type Null and an empty
+    // return cause a static warning.
+    await assertNoErrorsInCode('''
+Null f() {
+  return;
+}
+''');
+  }
+
+  test_function_sync_block_empty__to_dynamic() async {
+    await assertNoErrorsInCode('''
+dynamic f() {
+  return;
+}
+''');
+  }
+
+  test_function_sync_block_empty__to_Null() async {
+    await assertNoErrorsInCode('''
+Null f() {
+  return;
+}
+''');
+  }
+
+  test_function_void() async {
+    await assertNoErrorsInCode('''
+void f() {
+  return;
+}
+''');
+  }
+
+  test_functionExpression() async {
+    await assertErrorsInCode('''
+f() {
+  return (int y) {
+    if (y < 0) {
+      return;
+    }
+    return 0;
+  };
 }
 ''', [
-      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 71, 6),
+      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 48, 6),
     ]);
+  }
+
+  test_functionExpression_async_block_empty__to_Object() async {
+    await assertNoErrorsInCode('''
+Object Function() f = () async {
+  return;
+};
+''');
   }
 
   test_method() async {
     await assertErrorsInCode('''
-class A { int m() { return; } }
+class A {
+  int m() {
+    return;
+  }
+}
 ''', [
-      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 20, 6),
+      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 26, 6),
     ]);
   }
 
@@ -92,26 +150,8 @@ int f(int x) {
       error(StaticWarningCode.RETURN_WITHOUT_VALUE, 50, 6),
     ]);
   }
-
-  test_noReturnType() async {
-    await assertNoErrorsInCode('''
-f() { return; }
-''');
-  }
-
-  test_Null() async {
-    // Test that block bodied functions with return type Null and an empty
-    // return cause a static warning.
-    await assertNoErrorsInCode('''
-Null f() {
-  return;
 }
-''');
-  }
 
-  test_void() async {
-    await assertNoErrorsInCode('''
-void f() { return; }
-''');
-  }
-}
+@reflectiveTest
+class ReturnWithoutValueWithNullSafetyTest extends ReturnWithoutValueTest
+    with WithNullSafetyMixin {}

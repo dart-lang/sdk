@@ -6,15 +6,12 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/menu_item.dart';
 
 class NavTopMenuElement extends CustomElement implements Renderable {
-  static const tag = const Tag<NavTopMenuElement>('nav-top-menu',
-      dependencies: const [NavMenuItemElement.tag]);
-
-  RenderingScheduler _r;
+  RenderingScheduler<NavTopMenuElement> _r;
 
   Stream<RenderedEvent<NavTopMenuElement>> get onRendered => _r.onRendered;
 
@@ -33,7 +30,7 @@ class NavTopMenuElement extends CustomElement implements Renderable {
     return e;
   }
 
-  NavTopMenuElement.created() : super.created(tag);
+  NavTopMenuElement.created() : super.created('nav-top-menu');
 
   @override
   void attached() {

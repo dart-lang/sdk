@@ -19,38 +19,24 @@ def is_cpp_file(path):
     return path.endswith('.cc') or path.endswith('.h')
 
 
-def _CheckNnbdSdkSync(input_api, output_api):
-    files = [git_file.LocalPath() for git_file in input_api.AffectedTextFiles()]
-    unsynchronized_files = []
-    for file in files:
-        if file.startswith('sdk/'):
-            nnbd_file = 'sdk_nnbd/' + file[4:]
-            if not nnbd_file in files:
-                unsynchronized_files.append(nnbd_file)
-    if unsynchronized_files:
-        return [
-            output_api.PresubmitPromptWarning(
-                'Changes were made to sdk/ that were not made to sdk_nnbd/\n'
-                'Please update these files as well:\n'
-                '\n'
-                '%s' % ('\n'.join(unsynchronized_files)))
-        ]
-    return []
-
-
 def _CheckNnbdTestSync(input_api, output_api):
     """Make sure that any forked SDK tests are kept in sync. If a CL touches
     a test, the test's counterpart (if it exists at all) should be in the CL
     too.
     """
-    DIRS = ["co19", "corelib", "language", "lib", "standalone"]
+    DIRS = [
+        "tests/co19", "tests/corelib", "tests/ffi", "tests/language",
+        "tests/lib", "tests/standalone", "runtime/tests/vm/dart"
+    ]
 
     files = [git_file.LocalPath() for git_file in input_api.AffectedTextFiles()]
     unsynchronized = []
     for file in files:
+        if file.endswith('.status'): continue
+
         for dir in DIRS:
-            legacy_dir = "tests/{}_2/".format(dir)
-            nnbd_dir = "tests/{}/".format(dir)
+            legacy_dir = "{}_2/".format(dir)
+            nnbd_dir = "{}/".format(dir)
 
             counterpart = None
             if file.startswith(legacy_dir):
@@ -59,18 +45,13 @@ def _CheckNnbdTestSync(input_api, output_api):
                 counterpart = file.replace(nnbd_dir, legacy_dir)
 
             if counterpart:
-                # Changed one file with a potential counterpart. If it exists
-                # on disc, make sure it is also in the CL.
-                if counterpart not in files and os.path.exists(counterpart):
-                    unsynchronized.append("- {} -> {}".format(
-                        file, counterpart))
+                # Changed one file with a potential counterpart.
+                if counterpart not in files:
+                    missing = '' if os.path.exists(
+                        counterpart) else ' (missing)'
+                    unsynchronized.append("- {} -> {}{}".format(
+                        file, counterpart, missing))
                 break
-
-    # TODO(rnystrom): Currently, we only warn if a test does exist in both
-    # places on disc but only one is touched by a CL. We don't warn for files
-    # that only exist on one side because the migration isn't complete and the
-    # CL may be migrating. Once the migration is complete, consider making
-    # these checks more rigorous.
 
     if unsynchronized:
         return [
@@ -313,15 +294,45 @@ def _CheckClangTidy(input_api, output_api):
     ]
 
 
+def _CheckTestMatrixValid(input_api, output_api):
+    """Run script to check that the test matrix has no errors."""
+
+    def test_matrix_filter(affected_file):
+        """Only run test if either the test matrix or the code that
+           validates it was modified."""
+        path = affected_file.LocalPath()
+        return (path == 'tools/bots/test_matrix.json' or
+                path == 'tools/validate_test_matrix.dart' or
+                path.startswith('pkg/smith/'))
+
+    if len(
+            input_api.AffectedFiles(
+                include_deletes=False, file_filter=test_matrix_filter)) == 0:
+        return []
+
+    command = [
+        'tools/sdks/dart-sdk/bin/dart',
+        'tools/validate_test_matrix.dart',
+    ]
+    stdout = input_api.subprocess.check_output(command).strip()
+    if not stdout:
+        return []
+    else:
+        return [
+            output_api.PresubmitError(
+                'The test matrix is not valid:', long_text=stdout)
+        ]
+
+
 def _CommonChecks(input_api, output_api):
     results = []
-    results.extend(_CheckNnbdSdkSync(input_api, output_api))
     results.extend(_CheckNnbdTestSync(input_api, output_api))
     results.extend(_CheckValidHostsInDEPS(input_api, output_api))
     results.extend(_CheckDartFormat(input_api, output_api))
     results.extend(_CheckStatusFiles(input_api, output_api))
     results.extend(_CheckLayering(input_api, output_api))
     results.extend(_CheckClangTidy(input_api, output_api))
+    results.extend(_CheckTestMatrixValid(input_api, output_api))
     results.extend(
         input_api.canned_checks.CheckPatchFormatted(input_api, output_api))
     return results

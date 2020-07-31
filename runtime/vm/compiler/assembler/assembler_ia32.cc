@@ -14,14 +14,10 @@
 
 namespace dart {
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 DECLARE_FLAG(bool, inline_alloc);
 DECLARE_FLAG(bool, use_slow_path);
-#endif
 
 namespace compiler {
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
 
 class DirectCallRelocation : public AssemblerFixup {
  public:
@@ -311,6 +307,19 @@ void Assembler::rep_movsb() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF3);
   EmitUint8(0xA4);
+}
+
+void Assembler::rep_movsw() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF3);
+  EmitUint8(0x66);
+  EmitUint8(0xA5);
+}
+
+void Assembler::rep_movsl() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF3);
+  EmitUint8(0xA5);
 }
 
 void Assembler::movss(XmmRegister dst, const Address& src) {
@@ -770,7 +779,7 @@ void Assembler::negatepd(XmmRegister dst) {
   static const struct ALIGN16 {
     uint64_t a;
     uint64_t b;
-  } double_negate_constant = {0x8000000000000000LL, 0x8000000000000000LL};
+  } double_negate_constant = {0x8000000000000000LLU, 0x8000000000000000LLU};
   xorpd(dst,
         Address::Absolute(reinterpret_cast<uword>(&double_negate_constant)));
 }
@@ -1004,6 +1013,14 @@ void Assembler::movmskps(Register dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x0F);
   EmitUint8(0x50);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+void Assembler::pmovmskb(Register dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0xD7);
   EmitXmmRegisterOperand(dst, src);
 }
 
@@ -1938,7 +1955,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
 
   testb(FieldAddress(object, target::Object::tags_offset()),
-        Immediate(1 << target::RawObject::kOldAndNotRememberedBit));
+        Immediate(1 << target::ObjectLayout::kOldAndNotRememberedBit));
   j(ZERO, &done, Assembler::kNearJump);
 
   Stop("Store buffer update is required");
@@ -2058,7 +2075,7 @@ void Assembler::DoubleNegate(XmmRegister d) {
   static const struct ALIGN16 {
     uint64_t a;
     uint64_t b;
-  } double_negate_constant = {0x8000000000000000LL, 0x8000000000000000LL};
+  } double_negate_constant = {0x8000000000000000LLU, 0x8000000000000000LLU};
   xorpd(d, Address::Absolute(reinterpret_cast<uword>(&double_negate_constant)));
 }
 
@@ -2123,7 +2140,7 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   intptr_t start = CodeSize();
   Label have_cid, miss;
   Bind(&miss);
-  jmp(Address(THR, target::Thread::monomorphic_miss_entry_offset()));
+  jmp(Address(THR, target::Thread::switchable_call_miss_entry_offset()));
 
   Comment("MonomorphicCheckedEntry");
   ASSERT(CodeSize() - start ==
@@ -2201,11 +2218,16 @@ void Assembler::EnterSafepoint(Register scratch) {
 
 void Assembler::TransitionGeneratedToNative(Register destination_address,
                                             Register new_exit_frame,
-                                            Register scratch,
+                                            Register new_exit_through_ffi,
                                             bool enter_safepoint) {
   // Save exit frame information to enable stack walking.
   movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
        new_exit_frame);
+
+  movl(compiler::Address(THR,
+                         compiler::target::Thread::exit_through_ffi_offset()),
+       new_exit_through_ffi);
+  Register scratch = new_exit_through_ffi;
 
   // Mark that the thread is executing native code.
   movl(VMTagAddress(), destination_address);
@@ -2218,6 +2240,7 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
 }
 
 void Assembler::ExitSafepoint(Register scratch) {
+  ASSERT(scratch != EAX);
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterSafepoint.
 
@@ -2270,9 +2293,12 @@ void Assembler::TransitionNativeToGenerated(Register scratch,
   movl(Address(THR, target::Thread::execution_state_offset()),
        Immediate(target::Thread::generated_execution_state()));
 
-  // Reset exit frame information in Isolate structure.
+  // Reset exit frame information in Isolate's mutator thread structure.
   movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
        Immediate(0));
+  movl(compiler::Address(THR,
+                         compiler::target::Thread::exit_through_ffi_offset()),
+       compiler::Immediate(0));
 }
 
 static const intptr_t kNumberOfVolatileCpuRegisters = 3;
@@ -2409,8 +2435,7 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   Address state_address(kNoRegister, 0);
 
   const intptr_t shared_table_offset =
-      target::Isolate::class_table_offset() +
-      target::ClassTable::shared_class_table_offset();
+      target::Isolate::shared_class_table_offset();
   const intptr_t table_offset =
       target::SharedClassTable::class_heap_stats_table_offset();
   const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
@@ -2543,6 +2568,15 @@ void Assembler::LeaveStubFrame() {
   LeaveFrame();
 }
 
+void Assembler::EnterCFrame(intptr_t frame_space) {
+  EnterFrame(0);
+  ReserveAlignedFrameSpace(frame_space);
+}
+
+void Assembler::LeaveCFrame() {
+  LeaveFrame();
+}
+
 void Assembler::EmitOperand(int rm, const Operand& operand) {
   ASSERT(rm >= 0 && rm < 8);
   const intptr_t length = operand.length_;
@@ -2627,19 +2661,19 @@ void Assembler::EmitGenericShift(int rm,
 }
 
 void Assembler::LoadClassId(Register result, Register object) {
-  ASSERT(target::RawObject::kClassIdTagPos == 16);
-  ASSERT(target::RawObject::kClassIdTagSize == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
   const intptr_t class_id_offset =
       target::Object::tags_offset() +
-      target::RawObject::kClassIdTagPos / kBitsPerByte;
+      target::ObjectLayout::kClassIdTagPos / kBitsPerByte;
   movzxw(result, FieldAddress(object, class_id_offset));
 }
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
 
-  const intptr_t table_offset = target::Isolate::class_table_offset() +
-                                target::ClassTable::table_offset();
+  const intptr_t table_offset =
+      target::Isolate::cached_class_table_table_offset();
   LoadIsolate(result);
   movl(result, Address(result, table_offset));
   movl(result, Address(result, class_id, TIMES_4, 0));
@@ -2657,11 +2691,11 @@ void Assembler::SmiUntagOrCheckClass(Register object,
                                      Register scratch,
                                      Label* is_smi) {
   ASSERT(kSmiTagShift == 1);
-  ASSERT(target::RawObject::kClassIdTagPos == 16);
-  ASSERT(target::RawObject::kClassIdTagSize == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
+  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
   const intptr_t class_id_offset =
       target::Object::tags_offset() +
-      target::RawObject::kClassIdTagPos / kBitsPerByte;
+      target::ObjectLayout::kClassIdTagPos / kBitsPerByte;
 
   // Untag optimistically. Tag bit is shifted into the CARRY.
   SmiUntag(object);
@@ -2687,8 +2721,8 @@ void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
     Bind(&join);
   } else {
     ASSERT(result != object);
-    static const intptr_t kSmiCidSource = kSmiCid
-                                          << target::RawObject::kClassIdTagPos;
+    static const intptr_t kSmiCidSource =
+        kSmiCid << target::ObjectLayout::kClassIdTagPos;
 
     // Make a dummy "Object" whose cid is kSmiCid.
     movl(result, Immediate(reinterpret_cast<int32_t>(&kSmiCidSource) + 1));
@@ -2794,8 +2828,6 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
                         target::Instance::DataOffsetFor(cid) + extra_disp);
   }
 }
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace compiler
 }  // namespace dart

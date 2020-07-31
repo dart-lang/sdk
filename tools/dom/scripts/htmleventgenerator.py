@@ -210,6 +210,7 @@ _html_event_types = monitored.Dict(
         'RTCPeerConnection.removestream': ('removeStream', 'MediaStreamEvent'),
         'RTCPeerConnection.signalingstatechange':
         ('signalingStateChange', 'Event'),
+        'RTCPeerConnection.track': ('track', 'RtcTrackEvent'),
         'ScriptProcessorNode.audioprocess':
         ('audioProcess', 'AudioProcessingEvent'),
         'ServiceWorkerGlobalScope.activate': ('activate', 'Event'),

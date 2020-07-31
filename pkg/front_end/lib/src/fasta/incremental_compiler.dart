@@ -6,11 +6,13 @@ library fasta.incremental_compiler;
 
 import 'dart:async' show Future;
 
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
     show
         BinaryBuilderWithMetadata,
         CanonicalNameError,
         CanonicalNameSdkError,
+        CompilationModeError,
         InvalidKernelVersionError,
         SubComponentView;
 
@@ -30,6 +32,7 @@ import 'package:kernel/kernel.dart'
         LibraryDependency,
         LibraryPart,
         Name,
+        NonNullableByDefaultCompiledMode,
         Procedure,
         ProcedureKind,
         ReturnStatement,
@@ -88,11 +91,7 @@ import 'source/source_class_builder.dart' show SourceClassBuilder;
 
 import 'util/error_reporter_file_copier.dart' show saveAsGzip;
 
-import 'util/experiment_environment_getter.dart'
-    show
-        getExperimentEnvironment,
-        enableExperimentKeyInvalidation,
-        enableExperimentKeyInvalidationSerialization;
+import 'util/experiment_environment_getter.dart' show getExperimentEnvironment;
 
 import 'util/textual_outline.dart' show textualOutline;
 
@@ -150,8 +149,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       new Map<Uri, List<DiagnosticMessageFromJson>>();
   List<Component> modulesToLoad;
   IncrementalSerializer incrementalSerializer;
-  bool useExperimentalInvalidation = false;
-  bool useExperimentalInvalidationSerialization = false;
 
   static final Uri debugExprUri =
       new Uri(scheme: "org-dartlang-debug", path: "synthetic_debug_expression");
@@ -189,18 +186,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         this.initializedForExpressionCompilationOnly = true {
     enableExperimentsBasedOnEnvironment();
   }
-  void enableExperimentsBasedOnEnvironment() {
+
+  void enableExperimentsBasedOnEnvironment({Set<String> enabledExperiments}) {
     // Note that these are all experimental. Use at your own risk.
-    Set<String> enabledExperiments = getExperimentEnvironment();
-    if (enabledExperiments.contains(enableExperimentKeyInvalidation)) {
-      useExperimentalInvalidation = true;
-    }
-    if (useExperimentalInvalidation) {
-      if (enabledExperiments
-          .contains(enableExperimentKeyInvalidationSerialization)) {
-        useExperimentalInvalidationSerialization = true;
-      }
-    }
+    enabledExperiments ??= getExperimentEnvironment();
+    // Currently there's no live experiments.
+  }
+
+  @override
+  void setExperimentalFeaturesForTesting(Set<String> features) {
+    enableExperimentsBasedOnEnvironment(enabledExperiments: features);
   }
 
   @override
@@ -279,9 +274,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             await userCode.buildComponent(verify: c.options.verify);
       }
       hierarchy ??= userCode.loader.hierarchy;
-      if (hierarchy != null && userCode.classesChangedStructure != null) {
-        hierarchy.applyMemberChanges(userCode.classesChangedStructure,
-            findDescendants: true);
+      if (hierarchy != null) {
+        if (userCode.classHierarchyChanges != null) {
+          hierarchy.applyTreeChanges([], [], userCode.classHierarchyChanges);
+        }
+        if (userCode.classMemberChanges != null) {
+          hierarchy.applyMemberChanges(userCode.classMemberChanges,
+              findDescendants: true);
+        }
       }
       recordNonFullComponentForTesting(componentWithDill);
 
@@ -331,11 +331,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       // Output result.
       Procedure mainMethod = componentWithDill == null
-          ? data.userLoadedUriMain
+          ? data.component?.mainMethod
           : componentWithDill.mainMethod;
+      NonNullableByDefaultCompiledMode compiledMode = componentWithDill == null
+          ? data.component?.mode
+          : componentWithDill.mode;
       return context.options.target.configureComponent(
           new Component(libraries: outputLibraries, uriToSource: uriToSource))
-        ..mainMethod = mainMethod
+        ..setMainMethodAndMode(mainMethod?.reference, true, compiledMode)
         ..problemsAsJson = problemsAsJson;
     });
   }
@@ -474,17 +477,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<Library> compiledLibraries,
       Map<Uri, Source> uriToSource) {
     if (experimentalInvalidation != null) {
-      if (!useExperimentalInvalidationSerialization) {
-        // Make sure "compiledLibraries" contains what it would have, had we not
-        // only re-done the bodies, but invalidated everything.
-        experimentalInvalidation.originalNotReusedLibraries
-            .removeAll(experimentalInvalidation.rebuildBodies);
-        for (LibraryBuilder builder
-            in experimentalInvalidation.originalNotReusedLibraries) {
-          compiledLibraries.add(builder.library);
-        }
-      }
-
       // uriToSources are created in the outline stage which we skipped for
       // some of the libraries.
       for (Uri uri in experimentalInvalidation.missingSources) {
@@ -675,6 +667,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
   }
 
+  IncrementalKernelTarget createIncrementalKernelTarget(
+      FileSystem fileSystem,
+      bool includeComments,
+      DillTarget dillTarget,
+      UriTranslator uriTranslator) {
+    return new IncrementalKernelTarget(
+        fileSystem, includeComments, dillTarget, uriTranslator);
+  }
+
   /// Create a new [userCode] object, and add the reused builders to it.
   void setupNewUserCode(
       CompilerContext c,
@@ -683,7 +684,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<LibraryBuilder> reusedLibraries,
       ExperimentalInvalidation experimentalInvalidation,
       Uri firstEntryPoint) {
-    userCode = new IncrementalKernelTarget(
+    userCode = createIncrementalKernelTarget(
         new HybridFileSystem(
             new MemoryFileSystem(
                 new Uri(scheme: "org-dartlang-debug", path: "/")),
@@ -784,7 +785,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         Library lib = builder.library;
         removedLibraries.add(lib);
       }
-      hierarchy.applyTreeChanges(removedLibraries, const []);
+      hierarchy.applyTreeChanges(removedLibraries, const [], const []);
     }
   }
 
@@ -856,7 +857,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     Set<LibraryBuilder> originalNotReusedLibraries;
     Set<Uri> missingSources;
 
-    if (!useExperimentalInvalidation) return null;
+    if (!context.options.isExperimentEnabledGlobally(
+        ExperimentalFlag.alternativeInvalidationStrategy)) return null;
     if (modulesToLoad != null) return null;
     if (reusedResult.directlyInvalidated.isEmpty) return null;
     if (reusedResult.invalidatedBecauseOfPackageUpdate) return null;
@@ -1006,7 +1008,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
             if (e is InvalidKernelVersionError ||
                 e is PackageChangedError ||
-                e is CanonicalNameSdkError) {
+                e is CanonicalNameSdkError ||
+                e is CompilationModeError) {
               // Don't report any warning.
             } else {
               Uri gzInitializedFrom;
@@ -1374,7 +1377,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         incrementalSerializer?.invalidate(builder.fileUri);
       }
     }
-    hierarchy?.applyTreeChanges(removedLibraries, const []);
+    hierarchy?.applyTreeChanges(removedLibraries, const [], const []);
     if (removedDillBuilders) {
       makeDillLoaderLibrariesUpToDateWithBuildersMap();
     }
@@ -1435,9 +1438,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     dillLoadedData = new DillTarget(ticker, uriTranslator, c.options.target);
     int bytesLength = 0;
 
+    data.component = c.options.target.configureComponent(new Component());
     if (summaryBytes != null) {
       ticker.logMs("Read ${c.options.sdkSummary}");
-      data.component = c.options.target.configureComponent(new Component());
       new BinaryBuilderWithMetadata(summaryBytes,
               disableLazyReading: false, disableLazyClassReading: true)
           .readComponent(data.component);
@@ -1491,7 +1494,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
         initializedFromDill = true;
         bytesLength += initializationBytes.length;
-        data.userLoadedUriMain = data.component.mainMethod;
         saveComponentProblems(data);
       }
     }
@@ -1522,8 +1524,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     data.component = new Component(
         libraries: componentToInitializeFrom.libraries,
         uriToSource: componentToInitializeFrom.uriToSource)
-      ..mainMethod = componentToInitializeFrom.mainMethod;
-    data.userLoadedUriMain = componentToInitializeFrom.mainMethod;
+      ..setMainMethodAndMode(componentToInitializeFrom.mainMethod?.reference,
+          true, componentToInitializeFrom.mode);
     saveComponentProblems(data);
 
     bool foundDartCore = false;
@@ -1587,14 +1589,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       SourceLibraryBuilder debugLibrary = new SourceLibraryBuilder(
         libraryUri,
         debugExprUri,
+        /*packageUri*/ null,
         userCode.loader,
         null,
         scope: libraryBuilder.scope.createNestedScope("expression"),
         nameOrigin: libraryBuilder.library,
       );
-      debugLibrary.setLanguageVersion(
-          libraryBuilder.library.languageVersionMajor,
-          libraryBuilder.library.languageVersionMinor);
+      debugLibrary.setLanguageVersion(libraryBuilder.library.languageVersion);
 
       if (libraryBuilder is DillLibraryBuilder) {
         for (LibraryDependency dependency
@@ -1888,7 +1889,6 @@ class InitializeFromComponentError {
 }
 
 class IncrementalCompilerData {
-  Procedure userLoadedUriMain = null;
   Component component = null;
   List<int> initializationBytes = null;
 }
@@ -1921,7 +1921,9 @@ class ExperimentalInvalidation {
 
 class IncrementalKernelTarget extends KernelTarget
     implements ChangedStructureNotifier {
-  Set<Class> classesChangedStructure;
+  Set<Class> classHierarchyChanges;
+  Set<Class> classMemberChanges;
+
   IncrementalKernelTarget(FileSystem fileSystem, bool includeComments,
       DillTarget dillTarget, UriTranslator uriTranslator)
       : super(fileSystem, includeComments, dillTarget, uriTranslator);
@@ -1929,8 +1931,14 @@ class IncrementalKernelTarget extends KernelTarget
   ChangedStructureNotifier get changedStructureNotifier => this;
 
   @override
-  void forClass(Class c) {
-    classesChangedStructure ??= new Set<Class>();
-    classesChangedStructure.add(c);
+  void registerClassMemberChange(Class c) {
+    classMemberChanges ??= new Set<Class>();
+    classMemberChanges.add(c);
+  }
+
+  @override
+  void registerClassHierarchyChange(Class cls) {
+    classHierarchyChanges ??= <Class>{};
+    classHierarchyChanges.add(cls);
   }
 }

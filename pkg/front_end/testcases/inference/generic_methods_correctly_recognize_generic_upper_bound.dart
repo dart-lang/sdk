@@ -23,6 +23,6 @@ main() {
   */
 
   new Foo<String>()
-      . /*error:COULD_NOT_INFER*/ /*@ typeArgs=int* */ /*@target=Foo::method*/ method(
+      . /*error:COULD_NOT_INFER*/ /*@ typeArgs=int* */ /*@target=Foo.method*/ method(
           42);
 }

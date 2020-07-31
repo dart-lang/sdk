@@ -12,6 +12,9 @@ import 'package:pub_semver/pub_semver.dart';
 Map<String, ExperimentalFeature> _knownFeatures =
     ExperimentStatus.knownFeatures;
 
+/// This flag is `true` while [overrideKnownFeaturesAsync] is executing.
+bool _overrideKnownFeaturesAsyncExecuting = false;
+
 /// Decodes the strings given in [flags] into a list of booleans representing
 /// experiments that should be enabled.
 ///
@@ -76,10 +79,12 @@ List<String> experimentStatusToStringList(ExperimentStatus status) {
 ///
 /// It isn't safe to call this method with an asynchronous callback, because it
 /// only changes the set of known features during the time that [callback] is
-/// (synchronously) executing.
+/// (synchronously) executing. Use [overrideKnownFeaturesAsync] instead.
 @visibleForTesting
 T overrideKnownFeatures<T>(
-    Map<String, ExperimentalFeature> knownFeatures, T Function() callback) {
+  Map<String, ExperimentalFeature> knownFeatures,
+  T Function() callback,
+) {
   var oldKnownFeatures = _knownFeatures;
   try {
     _knownFeatures = knownFeatures;
@@ -89,13 +94,41 @@ T overrideKnownFeatures<T>(
   }
 }
 
+/// Execute the callback, pretending that the given [knownFeatures] take the
+/// place of [ExperimentStatus.knownFeatures].
+///
+/// This function cannot be invoked before its previous invocation completes.
+@visibleForTesting
+Future<T> overrideKnownFeaturesAsync<T>(
+  Map<String, ExperimentalFeature> knownFeatures,
+  Future<T> Function() callback,
+) async {
+  if (_overrideKnownFeaturesAsyncExecuting) {
+    throw StateError('overrideKnownFeaturesAsync is not reentrant');
+  }
+
+  _overrideKnownFeaturesAsyncExecuting = true;
+  var oldKnownFeatures = _knownFeatures;
+  try {
+    _knownFeatures = knownFeatures;
+    return await callback();
+  } finally {
+    _knownFeatures = oldKnownFeatures;
+    _overrideKnownFeaturesAsyncExecuting = false;
+  }
+}
+
 /// Computes a new set of enable flags based on [flags], but with any features
-/// that were not present in [version] set to `false`.
+/// that are not present in the language [version] set to `false`.
 List<bool> restrictEnableFlagsToVersion(List<bool> flags, Version version) {
+  if (version == ExperimentStatus.currentVersion) {
+    return flags;
+  }
+
   flags = List.from(flags);
   for (var feature in _knownFeatures.values) {
-    if (!feature.isEnabledByDefault ||
-        feature.firstSupportedVersion > version) {
+    var firstSupportedVersion = feature.firstSupportedVersion;
+    if (firstSupportedVersion == null || firstSupportedVersion > version) {
       flags[feature.index] = false;
     }
   }
@@ -268,10 +301,14 @@ class ExperimentalFeature implements Feature {
 
   final String _firstSupportedVersion;
 
-  const ExperimentalFeature(this.index, this.enableString,
-      this.isEnabledByDefault, this.isExpired, this.documentation,
-      {String firstSupportedVersion})
-      : _firstSupportedVersion = firstSupportedVersion,
+  const ExperimentalFeature({
+    @required this.index,
+    @required this.enableString,
+    @required this.isEnabledByDefault,
+    @required this.isExpired,
+    @required this.documentation,
+    @required String firstSupportedVersion,
+  })  : _firstSupportedVersion = firstSupportedVersion,
         assert(index != null),
         assert(isEnabledByDefault
             ? firstSupportedVersion != null

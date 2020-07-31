@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -13,7 +12,6 @@ import 'completion_contributor_util.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalLibraryContributorTest);
-    defineReflectiveTests(LocalLibraryContributorWithExtensionMethodsTest);
   });
 }
 
@@ -90,6 +88,22 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('_d');
     assertNotSuggested('z');
     assertNotSuggested('m');
+  }
+
+  Future<void> test_partFile_extension() async {
+    addSource('/home/test/lib/a.dart', '''
+part of libA;
+extension E on int {}
+''');
+    addTestSource('''
+library libA;
+part "a.dart";
+void f() {^}
+''');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggest('E');
   }
 
   Future<void>
@@ -286,31 +300,5 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('_d');
     assertNotSuggested('z');
     assertNotSuggested('m');
-  }
-}
-
-@reflectiveTest
-class LocalLibraryContributorWithExtensionMethodsTest
-    extends LocalLibraryContributorTest {
-  @override
-  void setupResourceProvider() {
-    super.setupResourceProvider();
-    createAnalysisOptionsFile(experiments: [EnableString.extension_methods]);
-  }
-
-  Future<void> test_partFile_extension() async {
-    addSource('/home/test/lib/a.dart', '''
-part of libA;
-extension E on int {}
-''');
-    addTestSource('''
-library libA;
-part "a.dart";
-void f() {^}
-''');
-    await computeSuggestions();
-    expect(replacementOffset, completionOffset);
-    expect(replacementLength, 0);
-    assertSuggest('E');
   }
 }

@@ -1,0 +1,31 @@
+Object? objectFunction(Object? o) => o;
+T idFunction<T>(T t) => t;
+
+class Class<T> {
+  const Class(dynamic value) : field = value as T;
+  final T field;
+}
+
+class ClassWithBound<T extends num> {
+  const ClassWithBound() : field = three as T;
+  const ClassWithBound.withValue(dynamic value) : field = value as T;
+  final T field;
+}
+
+class ClassWithFunction<T> {
+  const ClassWithFunction(dynamic value) : field = value as T Function(T);
+  final T Function(T) field;
+}
+
+class ClassWithList<T> {
+  const ClassWithList(dynamic value) : field = value as List<T>;
+  final List<T> field;
+}
+
+const int Function(int) idAsIntFunction = idFunction;
+const num three = 3;
+dynamic dynamicFunction(dynamic d) => d;
+errors() {}
+int intFunction(int i) => i;
+void main() {}
+weakMode() {}

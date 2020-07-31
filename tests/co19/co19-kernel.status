@@ -1,0 +1,205 @@
+# Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $builder_tag == bytecode_interpreter ]
+LibTest/collection/ListBase/ListBase_class_A01_t04: Slow, Pass
+LibTest/collection/ListBase/ListBase_class_A01_t05: Slow, Pass
+LibTest/collection/ListBase/ListBase_class_A01_t06: Slow, Pass
+
+[ $compiler == dartkb ]
+LibTest/isolate/Isolate/kill_A01_t01: Skip # Issue 37699
+LibTest/isolate/Isolate/pause_A01_t01: Skip # Issue 37699
+LibTest/isolate/Isolate/pause_A01_t02: Skip # Issue 37699
+
+[ $compiler == fasta ]
+Language/Statements/For/syntax_t13: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
+Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t06/none: Crash
+
+[ $runtime == vm ]
+LibTest/collection/ListBase/ListBase_class_A01_t02: Slow, Pass # Does many calls
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Slow, Pass # Does many calls
+LibTest/core/List/List_class_A01_t02: Slow, Pass # Does many calls
+LibTest/io/RawDatagramSocket/*: Skip # RawDatagramSocket are flacky. Skip them all until rewritten
+
+[ $fasta ]
+Language/Classes/Instance_Methods/Operators/allowed_names_t01: Skip # triple-shift flag
+Language/Classes/Instance_Methods/Operators/allowed_names_t23: Skip # triple-shift flag
+Language/Classes/Instance_Methods/Operators/arity_1_t19: Skip # triple-shift flag
+Language/Enums/restrictions_t10: Crash
+Language/Expressions/Assignment/Compound_Assignment/expression_assignment_t12: Skip # triple-shift flag
+Language/Expressions/Assignment/Compound_Assignment/indexed_expression_assignment_t12: Skip # triple-shift flag
+Language/Expressions/Assignment/Compound_Assignment/null_aware_compound_assignment_static_t12: Skip # triple-shift flag
+Language/Expressions/Assignment/Compound_Assignment/null_aware_compound_assignment_t12: Skip # triple-shift flag
+Language/Expressions/Assignment/Compound_Assignment/setter_assignment_t12: Skip # triple-shift flag
+Language/Expressions/Assignment/Compound_Assignment/variable_assignment_t12: Skip # triple-shift flag
+Language/Expressions/Bitwise_Expressions/syntax_t01: Skip # triple-shift flag
+Language/Expressions/Constants/bitwise_operators_t01: Skip # triple-shift flag
+Language/Expressions/Constants/bitwise_operators_t07: Skip # triple-shift flag
+Language/Expressions/Constants/bitwise_operators_t08: Skip # triple-shift flag
+Language/Expressions/Equality/syntax_t01: Skip # triple-shift flag
+Language/Expressions/Lists/syntax_t01: Skip # triple-shift flag
+Language/Expressions/Maps/syntax_t01: Skip # triple-shift flag
+Language/Expressions/Relational_Expressions/syntax_t01: Skip # triple-shift experiment flag
+Language/Expressions/Shift/allowed_characters_t02: Skip # triple-shift flag
+Language/Expressions/Shift/equivalent_super_t02: Skip # triple-shift flag
+Language/Expressions/Shift/equivalent_t02: Skip # triple-shift flag
+Language/Expressions/Shift/integer_t03: Skip # triple-shift flag
+Language/Expressions/Shift/integer_t04/01: Crash
+Language/Expressions/Shift/integer_t04/02: Crash
+Language/Expressions/Shift/integer_t04/03: Crash
+Language/Expressions/Shift/integer_t04/04: Crash
+Language/Expressions/Shift/integer_t04/05: Crash
+Language/Expressions/Shift/integer_t04/06: Crash
+Language/Expressions/Shift/integer_t04/07: Crash
+Language/Expressions/Shift/integer_t04/none: Crash
+Language/Expressions/Shift/syntax_t01: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t15: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t17: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t18: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t19: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t21: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t22: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t23: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t24: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t25: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t26: Skip # triple-shift experiment flag
+Language/Expressions/Shift/syntax_t27: Skip # triple-shift experiment flag
+Language/Expressions/Strings/String_Interpolation/syntax_t01: Skip # triple-shift experiment flag
+Language/Expressions/Symbols/syntax_t02: Skip # triple-shift experiment flag
+Language/Expressions/parentheses_t01: Skip # triple-shift experiment flag
+Language/Functions/syntax_t03: Skip # triple-shift experiment flag
+Language/Mixins/Mixin_Application/abstract_t09: Crash
+Language/Mixins/Mixin_Application/abstract_t10: Crash
+Language/Mixins/Mixin_Application/abstract_t11: Crash
+Language/Mixins/Mixin_Application/abstract_t12: Crash
+Language/Mixins/Mixin_Application/abstract_t13: Crash
+Language/Mixins/Mixin_Application/deferred_t03: Crash
+Language/Mixins/Mixin_Application/implicit_constructor_t03: Crash
+Language/Mixins/Mixin_Application/implicit_constructor_t04: Crash
+Language/Mixins/Mixin_Application/initializers_t04: Crash
+Language/Mixins/Mixin_Application/initializers_t05: Crash
+Language/Mixins/Mixin_Application/initializers_t06: Crash
+Language/Mixins/Mixin_Application/interfaces_t06: Crash
+Language/Mixins/Mixin_Application/interfaces_t07: Crash
+Language/Mixins/Mixin_Application/superclass_t03: Crash
+Language/Mixins/Mixin_Application/superclass_t04: Crash
+Language/Mixins/Mixin_Application/superinterfaces_t10: Crash
+Language/Mixins/Mixin_Application/superinterfaces_t11: Crash
+Language/Mixins/Mixin_Application/superinterfaces_t13: Crash
+Language/Mixins/Mixin_Application/superinterfaces_t14: Crash
+Language/Mixins/Mixin_Application/syntax_t26: Crash
+Language/Mixins/Mixin_Application/warning_t04: Crash
+Language/Mixins/Mixin_Application/wrong_mixin_type_t09: Crash
+Language/Mixins/Mixin_Composition/order_t02: Crash
+Language/Mixins/declaring_constructor_t11: Crash
+Language/Reference/Operator_Precedence/precedence_01_assignment_t14: Skip # triple-shift experimental flag
+Language/Reference/Operator_Precedence/precedence_12_Shift_t04: Skip # triple-shift experimental flag
+Language/Reference/Operator_Precedence/precedence_t05: Skip # triple-shift experimental flag
+Language/Statements/Expression_Statements/syntax_t06: Skip # triple-shift experimental flag
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t01: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t02: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t03/01: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t03/02: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t03/03: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t03/04: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t03/05: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t03/06: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t03/none: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t04: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t04/01: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t04/02: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t04/03: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t04/04: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t04/none: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t05/01: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t05/02: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t05/03: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t05/04: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t05/05: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t05/06: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t05/none: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t06/01: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t06/02: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t06/03: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t06/04: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t06/05: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t06/06: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t07: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t07/01: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t07/02: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t07/03: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t07/04: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t07/05: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t07/06: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t07/none: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t08/01: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t08/02: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t08/03: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t08/04: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t08/05: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t08/none: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t09: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t10/01: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t10/02: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t10/03: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t10/04: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t10/05: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t10/06: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t10/none: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t11: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t12/01: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t12/02: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t12/03: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t12/04: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t12/05: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t12/none: Crash
+LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t01: Crash
+LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t03: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t01: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t01/01: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t01/02: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t01/03: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t01/04: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t01/none: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t03/01: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t03/02: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t03/none: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t04/01: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t04/02: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t04/none: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t04/01: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t04/none: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t08/01: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t08/02: Crash
+LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t08/none: Crash
+LanguageFeatures/Set-literals/disambiguating_A02_t03: Crash
+LanguageFeatures/regression/34803_t01: Crash
+LanguageFeatures/regression/34803_t02: Crash
+
+[ $runtime == vm && $system == linux && ($compiler == dartk || $compiler == dartkb) ]
+LibTest/isolate/Isolate/spawn_A06_t03: Crash
+
+[ $runtime == vm && $system == macos && ($compiler == dartk || $compiler == dartkb) ]
+LibTest/collection/ListBase/ListBase_class_A01_t02: Slow, Pass
+LibTest/collection/ListBase/ListBase_class_A01_t03: Slow, Pass
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Slow, Pass
+LibTest/collection/ListMixin/ListMixin_class_A01_t03: Slow, Pass
+LibTest/core/List/List_class_A01_t02: Slow, Pass
+LibTest/core/List/List_class_A01_t03: Slow, Pass
+
+[ $runtime != vm && ($compiler == dartk || $compiler == dartkb) ]
+Language/Classes/Constructors/Constant_Constructors/potentially_constant_expression_t01: Crash
+
+[ $compiler == dartk || $compiler == dartkb ]
+Language/Libraries_and_Scripts/Scripts/top_level_main_t01: Crash
+LibTest/isolate/SendPort/send_A01_t02: Crash
+LibTest/isolate/SendPort/send_A01_t03: Crash
+
+# It makes no sense to run any test that uses spawnURI under the simulator
+# as that would involve running CFE (the front end) in simulator mode
+# to compile the URI file specified in spawnURI code.
+# These Isolate tests that use spawnURI are hence skipped on purpose.
+[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64) ]
+LibTest/isolate/Isolate/spawnUri*: Skip

@@ -1,2 +1,0 @@
-strong=tests/compiler/dart2js/jumps/jump_test.dart
-omit=tests/compiler/dart2js/jumps/jump_test.dart

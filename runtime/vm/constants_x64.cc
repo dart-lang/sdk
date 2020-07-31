@@ -18,7 +18,7 @@ const char* fpu_reg_names[kNumberOfXmmRegisters] = {
     "xmm0", "xmm1", "xmm2",  "xmm3",  "xmm4",  "xmm5",  "xmm6",  "xmm7",
     "xmm8", "xmm9", "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15"};
 
-#if defined(_WIN64)
+#if defined(TARGET_OS_WINDOWS)
 const Register CallingConventions::ArgumentRegisters[] = {
     CallingConventions::kArg1Reg, CallingConventions::kArg2Reg,
     CallingConventions::kArg3Reg, CallingConventions::kArg4Reg};

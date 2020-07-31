@@ -43,7 +43,7 @@ class MyWidget extends Widget {
 }
 
 build() {
-  return new MyWidget(children: <Widget>[],);
+  return new MyWidget(children: [],);
 }
 ''');
   }
@@ -241,7 +241,7 @@ main() {
 import 'package:test/a.dart';
 
 main() {
-  A a = new A(names: <String>[]);
+  A a = new A(names: []);
   print(a);
 }
 ''');

@@ -19,8 +19,6 @@ class ElementReferencesComputer {
   /// Computes [SearchResult]s for [element] references.
   Future<List<SearchResult>> compute(
       Element element, bool withPotential) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var results = <SearchResult>[];
 
     // Add element references.
@@ -40,8 +38,6 @@ class ElementReferencesComputer {
   /// Returns a [Future] completing with a [List] of references to [element] or
   /// to the corresponding hierarchy [Element]s.
   Future<List<SearchResult>> _findElementsReferences(Element element) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var allResults = <SearchResult>[];
     var refElements = await _getRefElements(element);
     for (var refElement in refElements) {
@@ -54,8 +50,6 @@ class ElementReferencesComputer {
   /// Returns a [Future] completing with a [List] of references to [element].
   Future<List<SearchResult>> _findSingleElementReferences(
       Element element) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var matches = await searchEngine.searchReferences(element);
     matches = SearchMatch.withNotNullElement(matches);
     return matches.map(toResult).toList();

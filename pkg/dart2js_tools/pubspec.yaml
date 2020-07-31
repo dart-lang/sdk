@@ -1,4 +1,5 @@
 name: dart2js_tools
+# This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 description: >
   Collection of tools used with dart2js including analyzing compilation

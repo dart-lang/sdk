@@ -4,5 +4,5 @@ import "dart:collection" as col;
 
 import "dart:collection";
 
-static field col::LinkedListEntry<col::LinkedListEntry<dynamic>*>* y;
+static field col::LinkedListEntry<col::LinkedListEntry<dynamic>>* y;
 static method main() → dynamic {}

@@ -10,6 +10,16 @@ abstract class I<E extends core::Object* = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   abstract method m(dynamic a, (dynamic, core::int*) →* core::String* f) → test::A<self::I::E*>*;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method main() → dynamic {}
 
@@ -17,9 +27,9 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_in_library_cycle.dart:30:30: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-//       . /*@target=A::value*/ value;
-//                              ^
+// pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_in_library_cycle.dart:30:29: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//       . /*@target=A.value*/ value;
+//                             ^
 //
 import self as test;
 import "dart:core" as core;
@@ -32,12 +42,32 @@ abstract class A<E extends core::Object* = dynamic> extends core::Object impleme
   const constructor •() → test::A<test::A::E*>*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 abstract class M extends core::Object {
   final field core::int* y = 0;
   synthetic constructor •() → test::M*
     : super core::Object::•()
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B<E extends core::Object* = dynamic> extends test::A<test::B::E*> implements test::M /*hasConstConstructor*/  {
   const constructor •() → test::B<test::B::E*>*
@@ -48,9 +78,9 @@ class B<E extends core::Object* = dynamic> extends test::A<test::B::E*> implemen
   method m(dynamic a, (dynamic, core::int*) →* dynamic f) → test::A<test::B::E*>* {}
 }
 static method foo() → dynamic {
-  core::int* y = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_in_library_cycle.dart:30:30: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-      . /*@target=A::value*/ value;
-                             ^" in new test::B::•<core::String*>().{test::B::m}(null, null).{test::A::value} as{TypeError} core::int*;
+  core::int* y = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_in_library_cycle.dart:30:29: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      . /*@target=A.value*/ value;
+                            ^" in new test::B::•<core::String*>().{test::B::m}(null, null).{test::A::value} as{TypeError} core::int*;
   core::String* z = new test::B::•<core::String*>().{test::B::m}(null, null).{test::A::value};
 }
 static method main() → dynamic {}

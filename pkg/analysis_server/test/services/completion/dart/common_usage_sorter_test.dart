@@ -74,7 +74,8 @@ main() {
     });
     expect(replacementOffset, equals(completionOffset));
     expect(replacementLength, equals(0));
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 's1');
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 's1',
+        relevance: DART_RELEVANCE_INHERITED_FIELD);
     assertHasResult(CompletionSuggestionKind.INVOCATION, 's2',
         relevance: DART_RELEVANCE_COMMON_USAGE);
     assertNoResult('Future');
@@ -108,7 +109,8 @@ main() {
     });
     expect(replacementOffset, equals(completionOffset));
     expect(replacementLength, equals(0));
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'g1');
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'g1',
+        relevance: DART_RELEVANCE_LOCAL_ACCESSOR);
     assertHasResult(CompletionSuggestionKind.INVOCATION, 'g2',
         relevance: DART_RELEVANCE_COMMON_USAGE);
     assertNoResult('Future');
@@ -124,7 +126,8 @@ main() {
     });
     expect(replacementOffset, equals(completionOffset));
     expect(replacementLength, equals(0));
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 's1');
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 's1',
+        relevance: DART_RELEVANCE_LOCAL_ACCESSOR);
     assertHasResult(CompletionSuggestionKind.INVOCATION, 's2',
         relevance: DART_RELEVANCE_COMMON_USAGE);
     assertNoResult('Future');

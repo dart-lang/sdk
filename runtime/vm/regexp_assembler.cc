@@ -10,6 +10,7 @@
 
 #include "vm/flags.h"
 #include "vm/regexp.h"
+#include "vm/runtime_entry.h"
 #include "vm/unibrow-inl.h"
 
 namespace dart {
@@ -20,14 +21,14 @@ void PrintUtf16(uint16_t c) {
   OS::PrintErr(format, c);
 }
 
-RawBool* CaseInsensitiveCompareUCS2(RawString* str_raw,
-                                    RawSmi* lhs_index_raw,
-                                    RawSmi* rhs_index_raw,
-                                    RawSmi* length_raw) {
-  const String& str = String::Handle(str_raw);
-  const Smi& lhs_index = Smi::Handle(lhs_index_raw);
-  const Smi& rhs_index = Smi::Handle(rhs_index_raw);
-  const Smi& length = Smi::Handle(length_raw);
+uword /*BoolPtr*/ CaseInsensitiveCompareUCS2(uword /*StringPtr*/ str_raw,
+                                             uword /*SmiPtr*/ lhs_index_raw,
+                                             uword /*SmiPtr*/ rhs_index_raw,
+                                             uword /*SmiPtr*/ length_raw) {
+  const String& str = String::Handle(static_cast<StringPtr>(str_raw));
+  const Smi& lhs_index = Smi::Handle(static_cast<SmiPtr>(lhs_index_raw));
+  const Smi& rhs_index = Smi::Handle(static_cast<SmiPtr>(rhs_index_raw));
+  const Smi& length = Smi::Handle(static_cast<SmiPtr>(length_raw));
 
   // TODO(zerny): Optimize as single instance. V8 has this as an
   // isolate member.
@@ -43,22 +44,22 @@ RawBool* CaseInsensitiveCompareUCS2(RawString* str_raw,
         int32_t s2[1] = {c2};
         canonicalize.get(c2, '\0', s2);
         if (s1[0] != s2[0]) {
-          return Bool::False().raw();
+          return static_cast<uword>(Bool::False().raw());
         }
       }
     }
   }
-  return Bool::True().raw();
+  return static_cast<uword>(Bool::True().raw());
 }
 
-RawBool* CaseInsensitiveCompareUTF16(RawString* str_raw,
-                                     RawSmi* lhs_index_raw,
-                                     RawSmi* rhs_index_raw,
-                                     RawSmi* length_raw) {
-  const String& str = String::Handle(str_raw);
-  const Smi& lhs_index = Smi::Handle(lhs_index_raw);
-  const Smi& rhs_index = Smi::Handle(rhs_index_raw);
-  const Smi& length = Smi::Handle(length_raw);
+uword /*BoolPtr*/ CaseInsensitiveCompareUTF16(uword /*StringPtr*/ str_raw,
+                                              uword /*SmiPtr*/ lhs_index_raw,
+                                              uword /*SmiPtr*/ rhs_index_raw,
+                                              uword /*SmiPtr*/ length_raw) {
+  const String& str = String::Handle(static_cast<StringPtr>(str_raw));
+  const Smi& lhs_index = Smi::Handle(static_cast<SmiPtr>(lhs_index_raw));
+  const Smi& rhs_index = Smi::Handle(static_cast<SmiPtr>(rhs_index_raw));
+  const Smi& length = Smi::Handle(static_cast<SmiPtr>(length_raw));
 
   for (intptr_t i = 0; i < length.Value(); i++) {
     int32_t c1 = str.CharAt(lhs_index.Value() + i);
@@ -66,7 +67,8 @@ RawBool* CaseInsensitiveCompareUTF16(RawString* str_raw,
     if (Utf16::IsLeadSurrogate(c1)) {
       // Non-BMP characters do not have case-equivalents in the BMP.
       // Both have to be non-BMP for them to be able to match.
-      if (!Utf16::IsLeadSurrogate(c2)) return Bool::False().raw();
+      if (!Utf16::IsLeadSurrogate(c2))
+        return static_cast<uword>(Bool::False().raw());
       if (i + 1 < length.Value()) {
         uint16_t c1t = str.CharAt(lhs_index.Value() + i + 1);
         uint16_t c2t = str.CharAt(rhs_index.Value() + i + 1);
@@ -79,9 +81,9 @@ RawBool* CaseInsensitiveCompareUTF16(RawString* str_raw,
     }
     c1 = u_foldCase(c1, U_FOLD_CASE_DEFAULT);
     c2 = u_foldCase(c2, U_FOLD_CASE_DEFAULT);
-    if (c1 != c2) return Bool::False().raw();
+    if (c1 != c2) return static_cast<uword>(Bool::False().raw());
   }
-  return Bool::True().raw();
+  return static_cast<uword>(Bool::True().raw());
 }
 
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(
@@ -96,8 +98,7 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     false /* is_float */,
     reinterpret_cast<RuntimeFunction>(&CaseInsensitiveCompareUTF16));
 
-BlockLabel::BlockLabel()
-    : block_(NULL), is_bound_(false), is_linked_(false), pos_(-1) {
+BlockLabel::BlockLabel() {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (!FLAG_interpret_irregexp) {
     // Only needed by the compiled IR backend.

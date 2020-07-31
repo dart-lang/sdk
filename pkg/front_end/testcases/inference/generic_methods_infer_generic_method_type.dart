@@ -14,6 +14,6 @@ class D extends C {
 }
 
 main() {
-  int y = new D(). /*@target=D::m*/ m<int>(42);
+  int y = new D(). /*@target=D.m*/ m<int>(42);
   print(y);
 }

@@ -119,6 +119,7 @@ enum DartTypeNodeKind {
   exactInterfaceType,
   doesNotComplete,
   neverType,
+  futureOrType,
 }
 
 const String functionTypeNodeTag = 'function-type-node';
@@ -195,6 +196,14 @@ class DartTypeNodeWriter
   }
 
   @override
+  void visitFutureOrType(
+      ir.FutureOrType node, List<ir.TypeParameter> functionTypeVariables) {
+    _sink.writeEnum(DartTypeNodeKind.futureOrType);
+    _sink.writeEnum(node.declaredNullability);
+    _sink._writeDartTypeNode(node.typeArgument, functionTypeVariables);
+  }
+
+  @override
   void visitFunctionType(
       ir.FunctionType node, List<ir.TypeParameter> functionTypeVariables) {
     _sink.writeEnum(DartTypeNodeKind.functionType);
@@ -215,6 +224,7 @@ class DartTypeNodeWriter
     _sink.writeInt(node.namedParameters.length);
     for (ir.NamedType parameter in node.namedParameters) {
       _sink.writeString(parameter.name);
+      _sink.writeBool(parameter.isRequired);
       _sink._writeDartTypeNode(parameter.type, functionTypeVariables);
     }
     _sink._writeDartTypeNode(node.typedefType, functionTypeVariables,
@@ -229,13 +239,13 @@ class DartTypeNodeWriter
     if (index != -1) {
       _sink.writeEnum(DartTypeNodeKind.functionTypeVariable);
       _sink.writeInt(index);
-      _sink.writeEnum(node.typeParameterTypeNullability);
+      _sink.writeEnum(node.declaredNullability);
       _sink._writeDartTypeNode(node.promotedBound, functionTypeVariables,
           allowNull: true);
     } else {
       _sink.writeEnum(DartTypeNodeKind.typeParameterType);
       _sink.writeTypeParameterNode(node.parameter);
-      _sink.writeEnum(node.typeParameterTypeNullability);
+      _sink.writeEnum(node.declaredNullability);
       _sink._writeDartTypeNode(node.promotedBound, functionTypeVariables,
           allowNull: true);
     }

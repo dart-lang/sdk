@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "dart:test";
+
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  field core::int? _#A#x;
+  synthetic constructor •() → self2::A
+    ;
+  get x() → core::int;
+  set x(core::int #t1) → void;
+}
+class _B extends core::Object implements self2::A {
+  field core::int x;
+  synthetic constructor •() → self2::_B
+    ;
+}

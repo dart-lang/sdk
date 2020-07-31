@@ -123,12 +123,12 @@ void TestSet(IntKeyHash hash, int size) {
   EXPECT_EQ(0u, set.occupancy());
 
   // Insert a long series of values.
-  const int start = 453;
-  const int factor = 13;
-  const int offset = 7;
+  const uint32_t start = 453;
+  const uint32_t factor = 13;
+  const uint32_t offset = 7;
   const uint32_t n = size;
 
-  int x = start;
+  uint32_t x = start;
   for (uint32_t i = 0; i < n; i++) {
     EXPECT_EQ(i, set.occupancy());
     set.Insert(x);

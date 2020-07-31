@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.io;
 
 /**
@@ -155,7 +153,7 @@ class ZLibCodec extends Codec<List<int>, List<int>> {
    * be predicted with good accuracy; the data can then be compressed better
    * than with the default empty dictionary.
    */
-  final List<int> dictionary;
+  final List<int>? dictionary;
 
   ZLibCodec(
       {this.level: ZLibOption.defaultLevel,
@@ -266,7 +264,7 @@ class GZipCodec extends Codec<List<int>, List<int>> {
    * be predicted with good accuracy; the data can then be compressed better
    * than with the default empty dictionary.
    */
-  final List<int> dictionary;
+  final List<int>? dictionary;
 
   /**
    * When true, deflate generates raw data with no zlib header or trailer, and
@@ -373,7 +371,7 @@ class ZLibEncoder extends Converter<List<int>, List<int>> {
    * be predicted with good accuracy; the data can then be compressed better
    * than with the default empty dictionary.
    */
-  final List<int> dictionary;
+  final List<int>? dictionary;
 
   /**
    * When true, deflate generates raw data with no zlib header or trailer, and
@@ -442,7 +440,7 @@ class ZLibDecoder extends Converter<List<int>, List<int>> {
    * be predicted with good accuracy; the data can then be compressed better
    * than with the default empty dictionary.
    */
-  final List<int> dictionary;
+  final List<int>? dictionary;
 
   /**
    * When true, deflate generates raw data with no zlib header or trailer, and
@@ -496,7 +494,7 @@ abstract class RawZLibFilter {
     int windowBits: ZLibOption.defaultWindowBits,
     int memLevel: ZLibOption.defaultMemLevel,
     int strategy: ZLibOption.strategyDefault,
-    List<int> dictionary,
+    List<int>? dictionary,
     bool raw: false,
   }) {
     return _makeZLibDeflateFilter(
@@ -509,7 +507,7 @@ abstract class RawZLibFilter {
    */
   factory RawZLibFilter.inflateFilter({
     int windowBits: ZLibOption.defaultWindowBits,
-    List<int> dictionary,
+    List<int>? dictionary,
     bool raw: false,
   }) {
     return _makeZLibInflateFilter(windowBits, dictionary, raw);
@@ -529,7 +527,7 @@ abstract class RawZLibFilter {
    * The last call to [processed] should have [end] set to [:true:]. This will
    * make sure an 'end' packet is written on the stream.
    */
-  List<int> processed({bool flush: true, bool end: false});
+  List<int>? processed({bool flush: true, bool end: false});
 
   external static RawZLibFilter _makeZLibDeflateFilter(
       bool gzip,
@@ -537,11 +535,11 @@ abstract class RawZLibFilter {
       int windowBits,
       int memLevel,
       int strategy,
-      List<int> dictionary,
+      List<int>? dictionary,
       bool raw);
 
   external static RawZLibFilter _makeZLibInflateFilter(
-      int windowBits, List<int> dictionary, bool raw);
+      int windowBits, List<int>? dictionary, bool raw);
 }
 
 class _BufferSink extends ByteConversionSink {
@@ -572,7 +570,7 @@ class _ZLibEncoderSink extends _FilterSink {
       int windowBits,
       int memLevel,
       int strategy,
-      List<int> dictionary,
+      List<int>? dictionary,
       bool raw)
       : super(
             sink,
@@ -582,7 +580,7 @@ class _ZLibEncoderSink extends _FilterSink {
 
 class _ZLibDecoderSink extends _FilterSink {
   _ZLibDecoderSink._(
-      ByteConversionSink sink, int windowBits, List<int> dictionary, bool raw)
+      ByteConversionSink sink, int windowBits, List<int>? dictionary, bool raw)
       : super(sink,
             RawZLibFilter._makeZLibInflateFilter(windowBits, dictionary, raw));
 }
@@ -600,8 +598,9 @@ class _FilterSink extends ByteConversionSink {
   }
 
   void addSlice(List<int> data, int start, int end, bool isLast) {
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(end, "end");
     if (_closed) return;
-    if (end == null) throw new ArgumentError.notNull("end");
     RangeError.checkValidRange(start, end, data.length);
     try {
       _empty = false;
@@ -609,8 +608,10 @@ class _FilterSink extends ByteConversionSink {
           _ensureFastAndSerializableByteData(data, start, end);
       _filter.process(bufferAndStart.buffer, bufferAndStart.start,
           end - (start - bufferAndStart.start));
-      List<int> out;
-      while ((out = _filter.processed(flush: false)) != null) {
+      List<int>? out;
+      while (true) {
+        final out = _filter.processed(flush: false);
+        if (out == null) break;
         _sink.add(out);
       }
     } catch (e) {
@@ -627,8 +628,9 @@ class _FilterSink extends ByteConversionSink {
     // message would not have a GZip frame (if compressed with GZip).
     if (_empty) _filter.process(const [], 0, 0);
     try {
-      List<int> out;
-      while ((out = _filter.processed(end: true)) != null) {
+      while (true) {
+        final out = _filter.processed(end: true);
+        if (out == null) break;
         _sink.add(out);
       }
     } catch (e) {

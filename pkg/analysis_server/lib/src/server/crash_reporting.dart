@@ -8,10 +8,16 @@ import 'package:analyzer/instrumentation/plugin_data.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:telemetry/crash_reporting.dart';
 
-class CrashReportingInstrumentation extends NoopInstrumentationService {
-  final CrashReportSender reporter;
+const _angularPluginName = 'Angular Analysis Plugin';
 
-  CrashReportingInstrumentation(this.reporter);
+class CrashReportingInstrumentation extends NoopInstrumentationService {
+  // A prod reporter, for analysis server crashes.
+  final CrashReportSender serverReporter;
+
+  // The angular plugin crash reporter.
+  final CrashReportSender angularReporter;
+
+  CrashReportingInstrumentation(this.serverReporter, this.angularReporter);
 
   @override
   void logException(dynamic exception,
@@ -28,19 +34,11 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
       // Get the root CaughtException, which matters most for debugging.
       var root = exception.rootCaughtException;
 
-      reporter
-          .sendReport(root.exception, root.stackTrace,
-              attachments: crashReportAttachments, comment: root.message)
-          .catchError((error) {
-        // We silently ignore errors sending crash reports (network issues, ...).
-      });
+      _sendServerReport(root.exception, root.stackTrace,
+          attachments: crashReportAttachments, comment: root.message);
     } else {
-      reporter
-          .sendReport(exception, stackTrace ?? StackTrace.current,
-              attachments: crashReportAttachments)
-          .catchError((error) {
-        // We silently ignore errors sending crash reports (network issues, ...).
-      });
+      _sendServerReport(exception, stackTrace ?? StackTrace.current,
+          attachments: crashReportAttachments);
     }
   }
 
@@ -50,15 +48,21 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
     dynamic exception,
     StackTrace stackTrace,
   ) {
-    // TODO(devoncarew): Temporarily disabled; re-enable after deciding on a
-    // plan of action for the AngularDart analysis plugin.
-    const angularPluginName = 'Angular Analysis Plugin';
-    if (plugin.name == angularPluginName) {
-      return;
+    if (plugin.name == _angularPluginName) {
+      angularReporter.sendReport(exception, stackTrace).catchError((error) {
+        // We silently ignore errors sending crash reports (network issues, ...).
+      });
+    } else {
+      _sendServerReport(exception, stackTrace,
+          comment: 'plugin: ${plugin.name}');
     }
+  }
 
-    reporter
-        .sendReport(exception, stackTrace, comment: 'plugin: ${plugin.name}')
+  void _sendServerReport(Object exception, Object stackTrace,
+      {String comment, List<CrashReportAttachment> attachments}) {
+    serverReporter
+        .sendReport(exception, stackTrace,
+            attachments: attachments, comment: comment)
         .catchError((error) {
       // We silently ignore errors sending crash reports (network issues, ...).
     });

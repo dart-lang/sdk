@@ -106,12 +106,8 @@ class ContextCacheEntry {
             verbosePrint: clOptions.verbose ? verbosePrint : null)
         as AnalysisOptionsImpl;
 
-    contextOptions.trackCacheDependencies = false;
-    contextOptions.disableCacheFlushing = clOptions.disableCacheFlushing;
     _buildContextFeatureSet(contextOptions);
     contextOptions.hint = !clOptions.disableHints;
-    contextOptions.generateImplicitErrors = clOptions.showPackageWarnings;
-    contextOptions.generateSdkErrors = clOptions.showSdkWarnings;
     contextOptions.useFastaParser = clOptions.useFastaParser;
     return contextOptions;
   }

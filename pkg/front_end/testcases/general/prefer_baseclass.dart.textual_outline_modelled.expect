@@ -1,0 +1,15 @@
+class A {}
+
+class AB1 extends A implements B {}
+
+class AB2 extends A implements B {}
+
+class B {}
+
+class BA1 extends B implements A {}
+
+class BA2 extends B implements A {}
+
+main() {}
+takeSubclassOfA(obj) {}
+takeSubclassOfB(obj) {}

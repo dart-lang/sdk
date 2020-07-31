@@ -1,0 +1,71 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/required_name_override.dart:13:36: Error: The required named parameter 'i' in method 'A.test_default' is not required in overridden method 'B.test_default'.
+//   void test_default({required int? i}) {}
+//                                    ^
+// pkg/front_end/testcases/nnbd_mixed/required_name_override.dart:8:8: Context: This is the overridden method ('test_default').
+//   void test_default({int? i}) {}
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/required_name_override.dart:14:39: Error: The required named parameter 'i' in method 'A.test_nondefault' is not required in overridden method 'B.test_nondefault'.
+//   void test_nondefault({required int? i}) {}
+//                                       ^
+// pkg/front_end/testcases/nnbd_mixed/required_name_override.dart:9:8: Context: This is the overridden method ('test_nondefault').
+//   void test_nondefault({int? i = 1}) {}
+//        ^
+//
+import self as self;
+import "dart:core" as core;
+import "required_name_override_lib.dart" as req;
+
+import "org-dartlang-testcase:///required_name_override_lib.dart";
+
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  method test_default({core::int? i = #C1}) → void {}
+  method test_nondefault({core::int? i = #C2}) → void {}
+}
+class A extends self::B implements req::C {
+  synthetic constructor •() → self::A
+    : super self::B::•()
+    ;
+  method test_default({required core::int? i = #C1}) → void {}
+  method test_nondefault({required core::int? i = #C1}) → void {}
+  method test_legacy({required core::int? i = #C1}) → void {}
+  abstract forwarding-stub operator ==(dynamic other) → core::bool*;
+}
+static method main() → dynamic {
+  new self::A::•().{self::A::test_default}(i: 1);
+  new self::A::•().{self::A::test_nondefault}(i: 1);
+  new self::A::•().{self::A::test_legacy}(i: 1);
+}
+
+library;
+import self as req;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → req::C*
+    : super core::Object::•()
+    ;
+  method test_legacy({core::int* i = #C1}) → void {}
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
+
+constants  {
+  #C1 = null
+  #C2 = 1
+}

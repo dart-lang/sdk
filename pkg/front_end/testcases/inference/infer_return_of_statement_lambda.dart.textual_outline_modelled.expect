@@ -1,0 +1,4 @@
+library test;
+
+List<String> strings() {}
+main() {}

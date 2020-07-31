@@ -1,0 +1,122 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "export_from_opt_out_lib1.dart" as exp;
+import "export_from_opt_out_lib2.dart" as exp2;
+import "export_from_opt_out_lib3.dart" as exp3;
+import "export_from_opt_out_lib5.dart" as exp4;
+additionalExports = (exp::LegacyClass1,
+  exp2::LegacyClass3,
+  exp2::LegacyClass4,
+  exp3::LegacyClass2,
+  exp3::legacyMethod1,
+  exp3::LegacyExtension,
+  exp3::LegacyTypedef,
+  exp4::NnbdClass1,
+  exp4::NnbdClass2)
+
+export "org-dartlang-testcase:///export_from_opt_out_lib1.dart";
+export "org-dartlang-testcase:///export_from_opt_out_lib2.dart";
+export "org-dartlang-testcase:///export_from_opt_out_lib3.dart";
+export "org-dartlang-testcase:///export_from_opt_out_lib3.dart";
+export "org-dartlang-testcase:///export_from_opt_out_lib3.dart";
+export "org-dartlang-testcase:///export_from_opt_out_lib3.dart";
+export "org-dartlang-testcase:///export_from_opt_out_lib3.dart";
+export "org-dartlang-testcase:///export_from_opt_out_lib3.dart";
+export "org-dartlang-testcase:///export_from_opt_out_lib4.dart";
+export "org-dartlang-testcase:///export_from_opt_out_lib5.dart";
+
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/export_from_opt_out_lib1.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+import self as exp;
+import "dart:core" as core;
+
+class LegacyClass1 extends core::Object {
+  synthetic constructor •() → exp::LegacyClass1
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/export_from_opt_out_lib2.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+import self as exp2;
+import "dart:core" as core;
+
+class LegacyClass3 extends core::Object {
+  synthetic constructor •() → exp2::LegacyClass3
+    ;
+}
+class LegacyClass4 extends core::Object {
+  synthetic constructor •() → exp2::LegacyClass4
+    ;
+}
+static method legacyMethod2() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/export_from_opt_out_lib3.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+import self as exp3;
+import "dart:core" as core;
+import "export_from_opt_out_lib5.dart" as exp4;
+additionalExports = (exp4::NnbdClass1,
+  exp4::NnbdClass2)
+
+export "org-dartlang-testcase:///export_from_opt_out_lib5.dart";
+
+typedef LegacyTypedef = () → void;
+class LegacyClass2 extends core::Object {
+  synthetic constructor •() → exp3::LegacyClass2
+    ;
+}
+extension LegacyExtension on core::String {
+}
+static method legacyMethod1() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/export_from_opt_out_lib4.dart:5:1: Error: A library can't opt out of non-nullable by default, when in nnbd-strong mode.
+// // @dart=2.5
+// ^^^^^^^^^^^^
+//
+import self as self2;
+import "export_from_opt_out_lib5.dart" as exp4;
+additionalExports = (exp4::NnbdClass1,
+  exp4::NnbdClass2)
+
+export "org-dartlang-testcase:///export_from_opt_out_lib5.dart";
+
+
+library /*isNonNullableByDefault*/;
+import self as exp4;
+import "dart:core" as core;
+
+class NnbdClass1 extends core::Object {
+  synthetic constructor •() → exp4::NnbdClass1
+    ;
+}
+class NnbdClass2 extends core::Object {
+  synthetic constructor •() → exp4::NnbdClass2
+    ;
+}

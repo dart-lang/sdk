@@ -63,4 +63,7 @@ var tests = <VMTest>[
   },
 ];
 
-main(args) async => runVMTests(args, tests);
+main(args) async => runVMTests(
+      args,
+      tests,
+    );

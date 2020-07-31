@@ -1,0 +1,24 @@
+library test;
+
+class F0<T> {
+  F0(List<T> a) {}
+}
+
+class F1<T> {
+  F1({List<T> a}) {}
+}
+
+class F2<T> {
+  F2(Iterable<T> a) {}
+}
+
+class F3<T> {
+  F3(Iterable<Iterable<T>> a) {}
+}
+
+class F4<T> {
+  F4({Iterable<Iterable<T>> a}) {}
+}
+
+main() {}
+void test() {}

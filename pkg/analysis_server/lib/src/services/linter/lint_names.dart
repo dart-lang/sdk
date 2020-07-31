@@ -23,13 +23,18 @@ class LintNames {
       'avoid_return_types_on_setters';
   static const String avoid_returning_null_for_future =
       'avoid_returning_null_for_future';
+  static const String avoid_types_as_parameter_names =
+      'avoid_types_as_parameter_names';
   static const String avoid_types_on_closure_parameters =
       'avoid_types_on_closure_parameters';
+  static const String avoid_unused_constructor_parameters =
+      'avoid_unused_constructor_parameters';
   static const String await_only_futures = 'await_only_futures';
   static const String curly_braces_in_flow_control_structures =
       'curly_braces_in_flow_control_structures';
   static const String diagnostic_describe_all_properties =
       'diagnostic_describe_all_properties';
+  static const String directives_ordering = 'directives_ordering';
   static const String empty_catches = 'empty_catches';
   static const String empty_constructor_bodies = 'empty_constructor_bodies';
   static const String empty_statements = 'empty_statements';
@@ -54,6 +59,7 @@ class LintNames {
   static const String prefer_expression_function_bodies =
       'prefer_expression_function_bodies';
   static const String prefer_final_fields = 'prefer_final_fields';
+  static const String prefer_final_in_for_each = 'prefer_final_in_for_each';
   static const String prefer_final_locals = 'prefer_final_locals';
   static const String prefer_for_elements_to_map_fromIterable =
       'prefer_for_elements_to_map_fromIterable';

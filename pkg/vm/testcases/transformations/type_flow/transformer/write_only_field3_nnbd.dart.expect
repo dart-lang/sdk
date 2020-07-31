@@ -1,0 +1,29 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method use() → dynamic {
+    [@vm.direct-call.metadata=#lib::A.x] [@vm.inferred-type.metadata=!? (skip check)] this.{self::A::x} = 3;
+  }
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3]  set /*isNullableByDefault*/ x(core::int value) → void;
+}
+class B extends core::Object {
+[@vm.inferred-type.metadata=dart.core::_Smi?] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]  late final [setter] field core::int x;
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  method use() → dynamic {
+    [@vm.direct-call.metadata=#lib::B.x] [@vm.inferred-type.metadata=!? (skip check)] this.{self::B::x} = 3;
+  }
+}
+[@vm.inferred-type.metadata=dart.core::_Smi?]late static final field core::int staticLateB;
+static method main() → void {
+  [@vm.direct-call.metadata=#lib::A.use] [@vm.inferred-type.metadata=!? (skip check)] new self::A::•().{self::A::use}();
+  [@vm.direct-call.metadata=#lib::B.use] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::use}();
+  4;
+  self::staticLateB = 4;
+}

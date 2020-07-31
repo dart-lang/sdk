@@ -1,0 +1,5 @@
+library test;
+
+main() {}
+void arrow_test() {}
+void block_test() {}

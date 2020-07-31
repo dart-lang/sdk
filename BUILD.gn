@@ -57,6 +57,12 @@ group("runtime") {
     "runtime/vm:kernel_platform_files($host_toolchain)",
     "utils/kernel-service:kernel-service",
   ]
+
+  # TODO(bkonyi): this dep causes a segfault on Android XARM_X64 builds.
+  # See issue #41776.
+  if (dart_target_arch != "arm") {
+    deps += [ "utils/dartdev:dartdev" ]
+  }
 }
 
 group("runtime_kernel") {
@@ -74,14 +80,12 @@ group("runtime_precompiled") {
   ]
 }
 
-if (use_nnbd) {
-  group("create_sdk") {
-    public_deps = [ "sdk_nnbd:create_sdk" ]
-  }
-} else {
-  group("create_sdk") {
-    public_deps = [ "sdk:create_sdk" ]
-  }
+group("create_sdk") {
+  public_deps = [ "sdk:create_sdk" ]
+}
+
+group("create_platform_sdk") {
+  public_deps = [ "sdk:create_platform_sdk" ]
 }
 
 group("dart2js") {

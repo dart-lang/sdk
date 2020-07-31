@@ -1,0 +1,8 @@
+library test;
+
+class C {
+  static set foo(int x) {}
+}
+
+set bar(int x) {}
+main() {}

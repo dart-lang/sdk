@@ -22,7 +22,6 @@ namespace dart {
 
 class Isolate;
 class Mutex;
-class RawObject;
 class SimulatorSetjmpBuffer;
 class Thread;
 
@@ -69,9 +68,9 @@ class Simulator {
 
   int64_t get_sp() const { return get_register(SPREG); }
 
-  int64_t get_pc() const;
-  int64_t get_last_pc() const;
-  void set_pc(int64_t pc);
+  uint64_t get_pc() const;
+  uint64_t get_last_pc() const;
+  void set_pc(uint64_t pc);
 
   // High address.
   uword stack_base() const { return stack_base_; }
@@ -103,8 +102,7 @@ class Simulator {
     kRuntimeCall,
     kLeafRuntimeCall,
     kLeafFloatRuntimeCall,
-    kBootstrapNativeCall,
-    kNativeCall
+    kNativeCallWrapper
   };
   static uword RedirectExternalReference(uword function,
                                          CallKind call_kind,
@@ -186,6 +184,12 @@ class Simulator {
   // 32 bit versions.
   intptr_t ReadExclusiveW(uword addr, Instr* instr);
   intptr_t WriteExclusiveW(uword addr, intptr_t value, Instr* instr);
+
+  // Load Acquire & Store Release.
+  intptr_t ReadAcquire(uword addr, Instr* instr);
+  uint32_t ReadAcquireW(uword addr, Instr* instr);
+  void WriteRelease(uword addr, intptr_t value, Instr* instr);
+  void WriteReleaseW(uword addr, uint32_t value, Instr* instr);
 
   // Exclusive access reservation: address and value observed during
   // load-exclusive. Store-exclusive verifies that address is the same and

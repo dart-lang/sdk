@@ -1,0 +1,13 @@
+library test;
+
+typedef void F();
+
+class C {
+  void f() {}
+  F get g => null;
+  dynamic get h => null;
+  void test() {}
+}
+
+void test(C c, F f, dynamic d) {}
+main() {}

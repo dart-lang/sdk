@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -12,7 +15,9 @@ import '../resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IsConstantTypeExpressionTest);
+    defineReflectiveTests(IsPotentiallyConstantTypeExpressionTest);
     defineReflectiveTests(PotentiallyConstantTest);
+    defineReflectiveTests(PotentiallyConstantWithNullSafetyTest);
   });
 }
 
@@ -38,7 +43,7 @@ p.A x;
     newFile('/test/lib/a.dart', content: r'''
 class A {}
 ''');
-    await _assertNotConst(r'''
+    await _assertNeverConst(r'''
 import 'a.dart' deferred as p;
 p.A x;
 ''');
@@ -51,7 +56,7 @@ List<int> x;
   }
 
   test_class_typeArguments_notConst() async {
-    await _assertNotConst(r'''
+    await _assertPotentiallyConst(r'''
 class A<T> {
   m() {
     List<T> x;
@@ -73,7 +78,7 @@ int Function<T extends num, U>(int, bool) x;
   }
 
   test_genericFunctionType_formalParameterType() async {
-    await _assertNotConst(r'''
+    await _assertPotentiallyConst(r'''
 class A<T> {
   m() {
     Function(T) x;
@@ -83,7 +88,7 @@ class A<T> {
   }
 
   test_genericFunctionType_returnType() async {
-    await _assertNotConst(r'''
+    await _assertPotentiallyConst(r'''
 class A<T> {
   m() {
     T Function() x;
@@ -93,7 +98,7 @@ class A<T> {
   }
 
   test_genericFunctionType_typeParameterBound() async {
-    await _assertNotConst(r'''
+    await _assertPotentiallyConst(r'''
 class A<T> {
   m() {
     Function<U extends T>() x;
@@ -103,7 +108,7 @@ class A<T> {
   }
 
   test_typeParameter() async {
-    await _assertNotConst(r'''
+    await _assertPotentiallyConst(r'''
 class A<T> {
   m() {
     T x;
@@ -124,10 +129,55 @@ void x;
     expect(isConstantTypeExpression(type), isTrue);
   }
 
-  Future<void> _assertNotConst(String code) async {
+  Future<void> _assertNeverConst(String code) async {
     await resolveTestCode(code);
     var type = findNode.variableDeclarationList('x;').type;
     expect(isConstantTypeExpression(type), isFalse);
+  }
+
+  Future<void> _assertPotentiallyConst(String code) async {
+    await resolveTestCode(code);
+    var type = findNode.variableDeclarationList('x;').type;
+    expect(isConstantTypeExpression(type), isFalse);
+  }
+}
+
+@reflectiveTest
+class IsPotentiallyConstantTypeExpressionTest
+    extends IsConstantTypeExpressionTest {
+  @override
+  test_typeParameter() async {
+    await _assertConst(r'''
+class A<T> {
+  m() {
+    T x;
+  }
+}
+''');
+  }
+
+  test_typeParameter_nested() async {
+    await _assertConst(r'''
+class A<T> {
+  m() {
+    List<T> x;
+  }
+}
+''');
+  }
+
+  @override
+  Future<void> _assertConst(String code) async {
+    await resolveTestCode(code);
+    var type = findNode.variableDeclarationList('x;').type;
+    expect(isPotentiallyConstantTypeExpression(type), isTrue);
+  }
+
+  @override
+  Future<void> _assertPotentiallyConst(String code) async {
+    await resolveTestCode(code);
+    var type = findNode.variableDeclarationList('x;').type;
+    expect(isPotentiallyConstantTypeExpression(type), isTrue);
   }
 }
 
@@ -153,7 +203,7 @@ var x = a as int;
 ''', () => _xInitializer(), () => [findNode.simple('a as')]);
   }
 
-  test_asExpression_notConstType() async {
+  test_asExpression_typeParameter() async {
     await _assertNotConst(r'''
 const a = 0;
 class A<T> {
@@ -249,7 +299,7 @@ var x = a is int;
 ''', () => _xInitializer(), () => [findNode.simple('a is')]);
   }
 
-  test_isExpression_notConstType() async {
+  test_isExpression_typeParameter() async {
     await _assertNotConst(r'''
 const a = 0;
 class A<T> {
@@ -845,7 +895,10 @@ var x = 'a';
   _assertConst(String code, AstNode Function() getNode) async {
     await resolveTestCode(code);
     var node = getNode();
-    var notConstList = getNotPotentiallyConstants(node);
+    var notConstList = getNotPotentiallyConstants(
+      node,
+      isNonNullableByDefault: typeSystem.isNonNullableByDefault,
+    );
     expect(notConstList, isEmpty);
   }
 
@@ -853,7 +906,10 @@ var x = 'a';
       List<AstNode> Function() getNotConstList) async {
     await resolveTestCode(code);
     var node = getNode();
-    var notConstList = getNotPotentiallyConstants(node);
+    var notConstList = getNotPotentiallyConstants(
+      node,
+      isNonNullableByDefault: typeSystem.isNonNullableByDefault,
+    );
 
     var expectedNotConst = getNotConstList();
     expect(notConstList, unorderedEquals(expectedNotConst));
@@ -862,4 +918,65 @@ var x = 'a';
   Expression _xInitializer() {
     return findNode.variableDeclaration('x = ').initializer;
   }
+}
+
+@reflectiveTest
+class PotentiallyConstantWithNullSafetyTest extends PotentiallyConstantTest
+    with WithNullSafetyMixin {
+  @override
+  test_asExpression_typeParameter() async {
+    await _assertConst(r'''
+const a = 0;
+class A<T> {
+  m() {
+    var x = a as T;
+  }
+}
+''', () => _xInitializer());
+  }
+
+  test_asExpression_typeParameter_nested() async {
+    await _assertConst(r'''
+const a = 0;
+class A<T> {
+  m() {
+    var x = a as List<T>;
+  }
+}
+''', () => _xInitializer());
+  }
+
+  @override
+  test_isExpression_typeParameter() async {
+    await _assertConst(r'''
+const a = 0;
+class A<T> {
+  m() {
+    var x = a is T;
+  }
+}
+''', () => _xInitializer());
+  }
+
+  test_isExpression_typeParameter_nested() async {
+    await _assertConst(r'''
+const a = 0;
+class A<T> {
+  m() {
+    var x = a is List<T>;
+  }
+}
+''', () => _xInitializer());
+  }
+}
+
+mixin WithNullSafetyMixin on DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.non_nullable],
+    );
+
+  @override
+  bool get typeToStringWithNullability => true;
 }

@@ -2195,6 +2195,19 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
   }
 
   @override
+  ObjectHandle visitFutureOrType(FutureOrType node) {
+    final classNode = coreTypes.deprecatedFutureOrClass;
+    final classHandle = objectTable.getHandle(classNode);
+    List<DartType> instantiatorArgs =
+        getInstantiatorTypeArguments(classNode, [node.typeArgument]);
+    ObjectHandle typeArgsHandle =
+        objectTable.getTypeArgumentsHandle(instantiatorArgs);
+    final result = objectTable.getOrAddObject(
+        new _GenericTypeHandle(classHandle, typeArgsHandle, node.nullability));
+    return result;
+  }
+
+  @override
   ObjectHandle visitTypeParameterType(TypeParameterType node) {
     final param = node.parameter;
     final handle = _typeParameters[param];

@@ -28,11 +28,11 @@ TEST_CASE(IsolateSpawn) {
       // Ignores printed lines.
       "var _nullPrintClosure = (String line) {};\n"
       "void entry(message) {}\n"
-      "int testMain() {\n"
+      "void testMain() {\n"
       "  Isolate.spawn(entry, null);\n"
       // TODO(floitsch): the following code is only to bump the event loop
       // so it executes asynchronous microtasks.
-      "  var rp = new RawReceivePort();\n"
+      "  var rp = RawReceivePort();\n"
       "  rp.sendPort.send(null);\n"
       "  rp.handler = (_) { rp.close(); };\n"
       "}\n";

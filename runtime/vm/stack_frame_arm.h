@@ -50,11 +50,11 @@ static const int kLastParamSlotFromEntrySp = 0;
 
 // Entry and exit frame layout.
 #if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
-static const int kExitLinkSlotFromEntryFp = -26;
+static const int kExitLinkSlotFromEntryFp = -27;
 COMPILE_ASSERT(kAbiPreservedCpuRegCount == 6);
 COMPILE_ASSERT(kAbiPreservedFpuRegCount == 4);
 #else
-static const int kExitLinkSlotFromEntryFp = -27;
+static const int kExitLinkSlotFromEntryFp = -28;
 COMPILE_ASSERT(kAbiPreservedCpuRegCount == 7);
 COMPILE_ASSERT(kAbiPreservedFpuRegCount == 4);
 #endif

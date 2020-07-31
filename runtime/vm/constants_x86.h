@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_CONSTANTS_X86_H_
 #define RUNTIME_VM_CONSTANTS_X86_H_
 
+#include "platform/assert.h"
+
 namespace dart {
 
 enum Condition {
@@ -44,8 +46,21 @@ enum Condition {
   UNSIGNED_GREATER = ABOVE,
   UNSIGNED_GREATER_EQUAL = ABOVE_EQUAL,
 
-  INVALID_CONDITION = 16
+  kInvalidCondition = 16
 };
+
+static inline Condition InvertCondition(Condition c) {
+  COMPILE_ASSERT((OVERFLOW ^ NO_OVERFLOW) == 1);
+  COMPILE_ASSERT((BELOW ^ ABOVE_EQUAL) == 1);
+  COMPILE_ASSERT((EQUAL ^ NOT_EQUAL) == 1);
+  COMPILE_ASSERT((BELOW_EQUAL ^ ABOVE) == 1);
+  COMPILE_ASSERT((SIGN ^ NOT_SIGN) == 1);
+  COMPILE_ASSERT((PARITY_EVEN ^ PARITY_ODD) == 1);
+  COMPILE_ASSERT((LESS ^ GREATER_EQUAL) == 1);
+  COMPILE_ASSERT((LESS_EQUAL ^ GREATER) == 1);
+  ASSERT(c != kInvalidCondition);
+  return static_cast<Condition>(c ^ 1);
+}
 
 #define X86_ZERO_OPERAND_1_BYTE_INSTRUCTIONS(F)                                \
   F(ret, 0xC3)                                                                 \
@@ -61,9 +76,9 @@ enum Condition {
   F(cdq, 0x99)                                                                 \
   F(fwait, 0x9B)                                                               \
   F(movsb, 0xA4)                                                               \
-  F(movsl, 0xA5)                                                               \
+  F(movs, 0xA5) /* Size suffix added in code */                                \
   F(cmpsb, 0xA6)                                                               \
-  F(cmpsl, 0xA7)
+  F(cmps, 0xA7) /* Size suffix added in code */
 
 // clang-format off
 #define X86_ALU_CODES(F)                                                       \

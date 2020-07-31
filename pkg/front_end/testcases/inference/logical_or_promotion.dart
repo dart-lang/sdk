@@ -15,7 +15,7 @@ class C {
   void f(Object o) {
     if (o is A || o is B) {
       if (o is A) {
-        /*@target=C::a*/ a = /*@ promotedType=A* */ o;
+        /*@target=C.a*/ a = /*@ promotedType=A* */ o;
       }
     }
   }

@@ -1,0 +1,2 @@
+spec=pkg/compiler/test/inference/callers_test.dart
+prod=pkg/compiler/test/inference/callers_test.dart

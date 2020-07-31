@@ -1,0 +1,8 @@
+A a;
+
+class C {
+  A foo() => null;
+}
+
+main() {}
+typedef A<T>(T p);

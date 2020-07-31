@@ -21,6 +21,35 @@ class CreateClassTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_CLASS;
 
+  Future<void> test_annotation() async {
+    await resolveTestUnit('''
+@Test('a')
+void f() {}
+''');
+    await assertHasFix('''
+@Test('a')
+void f() {}
+
+class Test {
+  const Test(String s);
+}
+''');
+    assertLinkedGroup(
+        change.linkedEditGroups[0], ["Test('", 'Test {', 'Test(S']);
+  }
+
+  Future<void> test_extends() async {
+    await resolveTestUnit('''
+class MyClass extends BaseClass {}
+''');
+    await assertHasFix('''
+class MyClass extends BaseClass {}
+
+class BaseClass {
+}
+''');
+  }
+
   Future<void> test_hasUnresolvedPrefix() async {
     await resolveTestUnit('''
 main() {
@@ -29,6 +58,18 @@ main() {
 }
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_implements() async {
+    await resolveTestUnit('''
+class MyClass implements BaseClass {}
+''');
+    await assertHasFix('''
+class MyClass implements BaseClass {}
+
+class BaseClass {
+}
+''');
   }
 
   Future<void> test_inLibraryOfPrefix() async {
@@ -177,5 +218,17 @@ class Test {
 }
 ''');
     assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
+  }
+
+  Future<void> test_with() async {
+    await resolveTestUnit('''
+class MyClass with BaseClass {}
+''');
+    await assertHasFix('''
+class MyClass with BaseClass {}
+
+class BaseClass {
+}
+''');
   }
 }

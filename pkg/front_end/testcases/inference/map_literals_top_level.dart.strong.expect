@@ -2,26 +2,26 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/map_literals_top_level.dart:11:67: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-//   x1 /*@target=Map::[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
-//                                                                   ^
+// pkg/front_end/testcases/inference/map_literals_top_level.dart:11:66: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   x1 /*@target=Map.[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
+//                                                                  ^
 //
-// pkg/front_end/testcases/inference/map_literals_top_level.dart:12:67: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-//   x1 /*@target=Map::[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0] = 'u';
-//                                                                   ^
+// pkg/front_end/testcases/inference/map_literals_top_level.dart:12:66: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+//   x1 /*@target=Map.[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0] = 'u';
+//                                                                  ^
 //
-// pkg/front_end/testcases/inference/map_literals_top_level.dart:13:62: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
-//   x1 /*@target=Map::[]=*/ [3] = /*error:INVALID_ASSIGNMENT*/ 42;
-//                                                              ^
+// pkg/front_end/testcases/inference/map_literals_top_level.dart:13:61: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//   x1 /*@target=Map.[]=*/ [3] = /*error:INVALID_ASSIGNMENT*/ 42;
+//                                                             ^
 //
-// pkg/front_end/testcases/inference/map_literals_top_level.dart:20:67: Error: A value of type 'String' can't be assigned to a variable of type 'num'.
-//   x2 /*@target=Map::[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
-//                                                                   ^
+// pkg/front_end/testcases/inference/map_literals_top_level.dart:20:66: Error: A value of type 'String' can't be assigned to a variable of type 'num'.
+//   x2 /*@target=Map.[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
+//                                                                  ^
 //
-// pkg/front_end/testcases/inference/map_literals_top_level.dart:22:62: Error: A value of type 'int' can't be assigned to a variable of type 'Pattern'.
+// pkg/front_end/testcases/inference/map_literals_top_level.dart:22:61: Error: A value of type 'int' can't be assigned to a variable of type 'Pattern'.
 //  - 'Pattern' is from 'dart:core'.
-//   x2 /*@target=Map::[]=*/ [3] = /*error:INVALID_ASSIGNMENT*/ 42;
-//                                                              ^
+//   x2 /*@target=Map.[]=*/ [3] = /*error:INVALID_ASSIGNMENT*/ 42;
+//                                                             ^
 //
 import self as self;
 import "dart:core" as core;
@@ -30,27 +30,27 @@ static field core::Map<core::int*, core::String*>* x1 = <core::int*, core::Strin
 static field core::Map<core::num*, core::Pattern*>* x2 = <core::num*, core::Pattern*>{1: "x", 2: "y", 3.0: core::RegExp::•(".")};
 static method test1() → dynamic {
   self::x1.{core::Map::[]=}(3, "z");
-  self::x1.{core::Map::[]=}(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/map_literals_top_level.dart:11:67: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-  x1 /*@target=Map::[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
-                                                                  ^" in "hi" as{TypeError} core::int*, "w");
-  self::x1.{core::Map::[]=}(let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/map_literals_top_level.dart:12:67: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-  x1 /*@target=Map::[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0] = 'u';
-                                                                  ^" in 4.0 as{TypeError} core::int*, "u");
-  self::x1.{core::Map::[]=}(3, let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/map_literals_top_level.dart:13:62: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
-  x1 /*@target=Map::[]=*/ [3] = /*error:INVALID_ASSIGNMENT*/ 42;
-                                                             ^" in 42 as{TypeError} core::String*);
+  self::x1.{core::Map::[]=}(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/map_literals_top_level.dart:11:66: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  x1 /*@target=Map.[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
+                                                                 ^" in "hi" as{TypeError} core::int*, "w");
+  self::x1.{core::Map::[]=}(let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/map_literals_top_level.dart:12:66: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+  x1 /*@target=Map.[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0] = 'u';
+                                                                 ^" in 4.0 as{TypeError} core::int*, "u");
+  self::x1.{core::Map::[]=}(3, let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/map_literals_top_level.dart:13:61: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+  x1 /*@target=Map.[]=*/ [3] = /*error:INVALID_ASSIGNMENT*/ 42;
+                                                            ^" in 42 as{TypeError} core::String*);
   core::Map<core::num*, core::String*>* y = self::x1;
 }
 static method test2() → dynamic {
   self::x2.{core::Map::[]=}(3, "z");
-  self::x2.{core::Map::[]=}(let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/inference/map_literals_top_level.dart:20:67: Error: A value of type 'String' can't be assigned to a variable of type 'num'.
-  x2 /*@target=Map::[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
-                                                                  ^" in "hi" as{TypeError} core::num*, "w");
+  self::x2.{core::Map::[]=}(let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/inference/map_literals_top_level.dart:20:66: Error: A value of type 'String' can't be assigned to a variable of type 'num'.
+  x2 /*@target=Map.[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
+                                                                 ^" in "hi" as{TypeError} core::num*, "w");
   self::x2.{core::Map::[]=}(4.0, "u");
-  self::x2.{core::Map::[]=}(3, let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/inference/map_literals_top_level.dart:22:62: Error: A value of type 'int' can't be assigned to a variable of type 'Pattern'.
+  self::x2.{core::Map::[]=}(3, let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/inference/map_literals_top_level.dart:22:61: Error: A value of type 'int' can't be assigned to a variable of type 'Pattern'.
  - 'Pattern' is from 'dart:core'.
-  x2 /*@target=Map::[]=*/ [3] = /*error:INVALID_ASSIGNMENT*/ 42;
-                                                             ^" in 42 as{TypeError} core::Pattern*);
+  x2 /*@target=Map.[]=*/ [3] = /*error:INVALID_ASSIGNMENT*/ 42;
+                                                            ^" in 42 as{TypeError} core::Pattern*);
   core::Pattern* p = null;
   self::x2.{core::Map::[]=}(2, p);
   core::Map<core::int*, core::String*>* y = self::x2 as{TypeError} core::Map<core::int*, core::String*>*;

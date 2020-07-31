@@ -9,14 +9,10 @@ import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 
 class StronglyReachableInstancesElement extends CustomElement
     implements Renderable {
-  static const tag = const Tag<StronglyReachableInstancesElement>(
-      'strongly-reachable-instances',
-      dependencies: const [CurlyBlockElement.tag, InstanceRefElement.tag]);
-
   RenderingScheduler<StronglyReachableInstancesElement> _r;
 
   Stream<RenderedEvent<StronglyReachableInstancesElement>> get onRendered =>
@@ -53,7 +49,7 @@ class StronglyReachableInstancesElement extends CustomElement
     return e;
   }
 
-  StronglyReachableInstancesElement.created() : super.created(tag);
+  StronglyReachableInstancesElement.created() : super.created('strongly-reachable-instances');
 
   @override
   void attached() {

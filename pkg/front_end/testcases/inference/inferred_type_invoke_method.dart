@@ -10,6 +10,6 @@ class C {
 }
 
 C f() => null;
-var x = f(). /*@target=C::g*/ g();
+var x = f(). /*@target=C.g*/ g();
 
 main() {}

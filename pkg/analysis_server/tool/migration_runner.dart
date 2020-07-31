@@ -77,7 +77,7 @@ class MigrationBase {
         serverChannel,
         resourceProvider,
         options,
-        DartSdkManager(sdkPath, true),
+        DartSdkManager(sdkPath),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);
   }

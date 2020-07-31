@@ -8,8 +8,7 @@ import '../core.dart';
 import '../sdk.dart';
 
 class FormatCommand extends DartdevCommand {
-  FormatCommand({bool verbose = false})
-      : super('format', 'Format Dart source code.') {
+  FormatCommand() : super('format', 'Format Dart source code.') {
     // TODO(jwren) When https://github.com/dart-lang/dart_style/issues/889
     //  is resolved, have dart_style provide the ArgParser, instead of creating
     // one here.
@@ -30,13 +29,7 @@ class FormatCommand extends DartdevCommand {
 
   @override
   FutureOr<int> run() async {
-    // TODO(jwren) The verbose flag was added to dartfmt in version 1.3.4 with
-    // https://github.com/dart-lang/dart_style/pull/887, this version is rolled
-    // into the dart sdk build, we can remove the removal of '-v' and
-    // '--verbose':
-    List<String> args = List.from(argResults.arguments)
-      ..remove('-v')
-      ..remove('--verbose');
+    List<String> args = List.from(argResults.arguments);
 
     // By printing and returning if there are no arguments, this changes the
     // default unix-pipe behavior of dartfmt:

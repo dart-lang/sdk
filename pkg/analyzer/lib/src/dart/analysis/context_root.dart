@@ -6,9 +6,7 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:path/path.dart';
 
-/**
- * An implementation of a context root.
- */
+/// An implementation of a context root.
 class ContextRootImpl implements ContextRoot {
   @override
   final ResourceProvider resourceProvider;
@@ -28,9 +26,7 @@ class ContextRootImpl implements ContextRoot {
   @override
   File packagesFile;
 
-  /**
-   * Initialize a newly created context root.
-   */
+  /// Initialize a newly created context root.
   ContextRootImpl(this.resourceProvider, this.root);
 
   @override
@@ -71,10 +67,8 @@ class ContextRootImpl implements ContextRoot {
     return _isIncluded(path) && !_isExcluded(path);
   }
 
-  /**
-   * Return the absolute paths of all of the files that are included in the
-   * given [folder].
-   */
+  /// Return the absolute paths of all of the files that are included in the
+  /// given [folder].
   Iterable<String> _includedFilesInFolder(Folder folder) sync* {
     for (Resource resource in folder.getChildren()) {
       String path = resource.path;
@@ -91,10 +85,8 @@ class ContextRootImpl implements ContextRoot {
     }
   }
 
-  /**
-   * Return `true` if the given [path] is either the same as or inside of one of
-   * the [excludedPaths].
-   */
+  /// Return `true` if the given [path] is either the same as or inside of one
+  /// of the [excludedPaths].
   bool _isExcluded(String path) {
     Context context = resourceProvider.pathContext;
     String name = context.basename(path);
@@ -120,10 +112,8 @@ class ContextRootImpl implements ContextRoot {
     return false;
   }
 
-  /**
-   * Return `true` if the given [path] is either the same as or inside of one of
-   * the [includedPaths].
-   */
+  /// Return `true` if the given [path] is either the same as or inside of one
+  /// of the [includedPaths].
   bool _isIncluded(String path) {
     Context context = resourceProvider.pathContext;
     for (String includedPath in includedPaths) {

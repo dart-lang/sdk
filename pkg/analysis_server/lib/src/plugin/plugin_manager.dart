@@ -44,7 +44,7 @@ class BuiltInPluginInfo extends PluginInfo {
   BuiltInPluginInfo(
       this.entryPoint,
       this.pluginId,
-      NotificationManager notificationManager,
+      AbstractNotificationManager notificationManager,
       InstrumentationService instrumentationService)
       : super(notificationManager, instrumentationService);
 
@@ -74,7 +74,7 @@ class DiscoveredPluginInfo extends PluginInfo {
       this.path,
       this.executionPath,
       this.packagesPath,
-      NotificationManager notificationManager,
+      AbstractNotificationManager notificationManager,
       InstrumentationService instrumentationService)
       : super(notificationManager, instrumentationService);
 
@@ -109,7 +109,7 @@ class PluginException implements Exception {
 /// Information about a single plugin.
 abstract class PluginInfo {
   /// The object used to manage the receiving and sending of notifications.
-  final NotificationManager notificationManager;
+  final AbstractNotificationManager notificationManager;
 
   /// The instrumentation service that is being used by the analysis server.
   final InstrumentationService instrumentationService;
@@ -195,8 +195,6 @@ abstract class PluginInfo {
   /// used to interact with the plugin, or `null` if the plugin could not be
   /// run.
   Future<PluginSession> start(String byteStorePath, String sdkPath) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (currentSession != null) {
       throw StateError('Cannot start a plugin that is already running.');
     }
@@ -256,7 +254,7 @@ class PluginManager {
   final String sdkPath;
 
   /// The object used to manage the receiving and sending of notifications.
-  final NotificationManager notificationManager;
+  final AbstractNotificationManager notificationManager;
 
   /// The instrumentation service that is being used by the analysis server.
   final InstrumentationService instrumentationService;
@@ -281,6 +279,8 @@ class PluginManager {
   /// plugin has been started.
   final Map<String, dynamic> _overlayState = <String, dynamic>{};
 
+  final StreamController<void> _pluginsChanged = StreamController.broadcast();
+
   /// Initialize a newly created plugin manager. The notifications from the
   /// running plugins will be handled by the given [notificationManager].
   PluginManager(this.resourceProvider, this.byteStorePath, this.sdkPath,
@@ -289,13 +289,14 @@ class PluginManager {
   /// Return a list of all of the plugins that are currently known.
   List<PluginInfo> get plugins => _pluginMap.values.toList();
 
+  /// Stream emitting an event when known [plugins] change.
+  Stream<void> get pluginsChanged => _pluginsChanged.stream;
+
   /// Add the plugin with the given [path] to the list of plugins that should be
   /// used when analyzing code for the given [contextRoot]. If the plugin had
   /// not yet been started, then it will be started by this method.
   Future<void> addPluginToContextRoot(
       analyzer.ContextRoot contextRoot, String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var plugin = _pluginMap[path];
     var isNew = plugin == null;
     if (isNew) {
@@ -317,6 +318,7 @@ class PluginManager {
           var session = await plugin.start(byteStorePath, sdkPath);
           session?.onDone?.then((_) {
             _pluginMap.remove(path);
+            _notifyPluginsChanged();
           });
         } catch (exception, stackTrace) {
           // Record the exception (for debugging purposes) and record the fact
@@ -325,6 +327,8 @@ class PluginManager {
           isNew = false;
         }
       }
+
+      _notifyPluginsChanged();
     }
     plugin.addContextRoot(contextRoot);
     if (isNew) {
@@ -364,8 +368,6 @@ class PluginManager {
   /// response.
   Future<List<Future<Response>>> broadcastWatchEvent(
       watcher.WatchEvent watchEvent) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var filePath = watchEvent.path;
 
     /// Return `true` if the given glob [pattern] matches the file being
@@ -469,6 +471,7 @@ class PluginManager {
       plugin.removeContextRoot(contextRoot);
       if (plugin is DiscoveredPluginInfo && plugin.contextRoots.isEmpty) {
         _pluginMap.remove(plugin.path);
+        _notifyPluginsChanged();
         try {
           plugin.stop();
         } catch (e, st) {
@@ -481,8 +484,6 @@ class PluginManager {
 
   /// Restart all currently running plugins.
   Future<void> restartPlugins() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     for (var plugin in _pluginMap.values.toList()) {
       if (plugin.currentSession != null) {
         //
@@ -708,6 +709,8 @@ class PluginManager {
     return packagesFile;
   }
 
+  void _notifyPluginsChanged() => _pluginsChanged.add(null);
+
   /// Return the names of packages that are listed as dependencies in the given
   /// [pubspecFile].
   Iterable<String> _readDependecies(File pubspecFile) {
@@ -893,8 +896,6 @@ class PluginSession {
   /// the given [byteStorePath]. Return `true` if the plugin is compatible and
   /// running.
   Future<bool> start(String byteStorePath, String sdkPath) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (channel != null) {
       throw StateError('Cannot start a plugin that is already running.');
     }

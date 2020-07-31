@@ -1,0 +1,2186 @@
+Problems reported:
+
+parser/error_recovery/keyword_named_typedefs:1:14: Expected an identifier, but got 'abstract'.
+typedef void abstract();
+             ^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:2:9: Expected an identifier, but got 'abstract'.
+typedef abstract = void Function();
+        ^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:3:14: Expected an identifier, but got 'as'.
+typedef void as();
+             ^^
+
+parser/error_recovery/keyword_named_typedefs:4:9: Expected an identifier, but got 'as'.
+typedef as = void Function();
+        ^^
+
+parser/error_recovery/keyword_named_typedefs:5:14: Expected an identifier, but got 'assert'.
+typedef void assert();
+             ^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:6:9: Expected an identifier, but got 'assert'.
+typedef assert = void Function();
+        ^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:11:14: Expected an identifier, but got 'break'.
+typedef void break();
+             ^^^^^
+
+parser/error_recovery/keyword_named_typedefs:12:9: Expected an identifier, but got 'break'.
+typedef break = void Function();
+        ^^^^^
+
+parser/error_recovery/keyword_named_typedefs:13:14: Expected an identifier, but got 'case'.
+typedef void case();
+             ^^^^
+
+parser/error_recovery/keyword_named_typedefs:14:9: Expected an identifier, but got 'case'.
+typedef case = void Function();
+        ^^^^
+
+parser/error_recovery/keyword_named_typedefs:15:14: Expected an identifier, but got 'catch'.
+typedef void catch();
+             ^^^^^
+
+parser/error_recovery/keyword_named_typedefs:16:9: Expected an identifier, but got 'catch'.
+typedef catch = void Function();
+        ^^^^^
+
+parser/error_recovery/keyword_named_typedefs:17:14: Expected an identifier, but got 'class'.
+typedef void class();
+             ^^^^^
+
+parser/error_recovery/keyword_named_typedefs:18:9: Expected an identifier, but got 'class'.
+typedef class = void Function();
+        ^^^^^
+
+parser/error_recovery/keyword_named_typedefs:19:14: Expected an identifier, but got 'const'.
+typedef void const();
+             ^^^^^
+
+parser/error_recovery/keyword_named_typedefs:20:9: Expected an identifier, but got 'const'.
+typedef const = void Function();
+        ^^^^^
+
+parser/error_recovery/keyword_named_typedefs:21:14: Expected an identifier, but got 'continue'.
+typedef void continue();
+             ^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:22:9: Expected an identifier, but got 'continue'.
+typedef continue = void Function();
+        ^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:23:14: Expected an identifier, but got 'covariant'.
+typedef void covariant();
+             ^^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:24:9: Expected an identifier, but got 'covariant'.
+typedef covariant = void Function();
+        ^^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:25:14: Expected an identifier, but got 'default'.
+typedef void default();
+             ^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:26:9: Expected an identifier, but got 'default'.
+typedef default = void Function();
+        ^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:27:14: Expected an identifier, but got 'deferred'.
+typedef void deferred();
+             ^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:28:9: Expected an identifier, but got 'deferred'.
+typedef deferred = void Function();
+        ^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:29:14: Expected an identifier, but got 'do'.
+typedef void do();
+             ^^
+
+parser/error_recovery/keyword_named_typedefs:30:9: Expected an identifier, but got 'do'.
+typedef do = void Function();
+        ^^
+
+parser/error_recovery/keyword_named_typedefs:31:14: Expected an identifier, but got 'dynamic'.
+typedef void dynamic();
+             ^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:32:9: Expected an identifier, but got 'dynamic'.
+typedef dynamic = void Function();
+        ^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:33:14: Expected an identifier, but got 'else'.
+typedef void else();
+             ^^^^
+
+parser/error_recovery/keyword_named_typedefs:34:9: Expected an identifier, but got 'else'.
+typedef else = void Function();
+        ^^^^
+
+parser/error_recovery/keyword_named_typedefs:35:14: Expected an identifier, but got 'enum'.
+typedef void enum();
+             ^^^^
+
+parser/error_recovery/keyword_named_typedefs:36:9: Expected an identifier, but got 'enum'.
+typedef enum = void Function();
+        ^^^^
+
+parser/error_recovery/keyword_named_typedefs:37:14: Expected an identifier, but got 'export'.
+typedef void export();
+             ^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:38:9: Expected an identifier, but got 'export'.
+typedef export = void Function();
+        ^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:39:14: Expected an identifier, but got 'extends'.
+typedef void extends();
+             ^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:40:9: Expected an identifier, but got 'extends'.
+typedef extends = void Function();
+        ^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:41:14: Expected an identifier, but got 'extension'.
+typedef void extension();
+             ^^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:42:9: Expected an identifier, but got 'extension'.
+typedef extension = void Function();
+        ^^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:43:14: Expected an identifier, but got 'external'.
+typedef void external();
+             ^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:44:9: Expected an identifier, but got 'external'.
+typedef external = void Function();
+        ^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:45:14: Expected an identifier, but got 'factory'.
+typedef void factory();
+             ^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:46:9: Expected an identifier, but got 'factory'.
+typedef factory = void Function();
+        ^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:47:14: Expected an identifier, but got 'false'.
+typedef void false();
+             ^^^^^
+
+parser/error_recovery/keyword_named_typedefs:48:9: Expected an identifier, but got 'false'.
+typedef false = void Function();
+        ^^^^^
+
+parser/error_recovery/keyword_named_typedefs:49:14: Expected an identifier, but got 'final'.
+typedef void final();
+             ^^^^^
+
+parser/error_recovery/keyword_named_typedefs:50:9: Expected an identifier, but got 'final'.
+typedef final = void Function();
+        ^^^^^
+
+parser/error_recovery/keyword_named_typedefs:51:14: Expected an identifier, but got 'finally'.
+typedef void finally();
+             ^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:52:9: Expected an identifier, but got 'finally'.
+typedef finally = void Function();
+        ^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:53:14: Expected an identifier, but got 'for'.
+typedef void for();
+             ^^^
+
+parser/error_recovery/keyword_named_typedefs:54:9: Expected an identifier, but got 'for'.
+typedef for = void Function();
+        ^^^
+
+parser/error_recovery/keyword_named_typedefs:55:14: Expected an identifier, but got 'Function'.
+typedef void Function();
+             ^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:56:9: Expected an identifier, but got 'Function'.
+typedef Function = void Function();
+        ^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:57:14: Expected an identifier, but got 'get'.
+typedef void get();
+             ^^^
+
+parser/error_recovery/keyword_named_typedefs:58:9: Expected an identifier, but got 'get'.
+typedef get = void Function();
+        ^^^
+
+parser/error_recovery/keyword_named_typedefs:61:14: Expected an identifier, but got 'if'.
+typedef void if();
+             ^^
+
+parser/error_recovery/keyword_named_typedefs:62:9: Expected an identifier, but got 'if'.
+typedef if = void Function();
+        ^^
+
+parser/error_recovery/keyword_named_typedefs:63:14: Expected an identifier, but got 'implements'.
+typedef void implements();
+             ^^^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:64:9: Expected an identifier, but got 'implements'.
+typedef implements = void Function();
+        ^^^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:65:14: Expected an identifier, but got 'import'.
+typedef void import();
+             ^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:66:9: Expected an identifier, but got 'import'.
+typedef import = void Function();
+        ^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:67:14: Expected an identifier, but got 'in'.
+typedef void in();
+             ^^
+
+parser/error_recovery/keyword_named_typedefs:68:9: Expected an identifier, but got 'in'.
+typedef in = void Function();
+        ^^
+
+parser/error_recovery/keyword_named_typedefs:71:14: Expected an identifier, but got 'interface'.
+typedef void interface();
+             ^^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:72:9: Expected an identifier, but got 'interface'.
+typedef interface = void Function();
+        ^^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:73:14: Expected an identifier, but got 'is'.
+typedef void is();
+             ^^
+
+parser/error_recovery/keyword_named_typedefs:74:9: Expected an identifier, but got 'is'.
+typedef is = void Function();
+        ^^
+
+parser/error_recovery/keyword_named_typedefs:75:14: Expected an identifier, but got 'late'.
+typedef void late();
+             ^^^^
+
+parser/error_recovery/keyword_named_typedefs:76:9: Expected an identifier, but got 'late'.
+typedef late = void Function();
+        ^^^^
+
+parser/error_recovery/keyword_named_typedefs:77:14: Expected an identifier, but got 'library'.
+typedef void library();
+             ^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:78:9: Expected an identifier, but got 'library'.
+typedef library = void Function();
+        ^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:79:14: Expected an identifier, but got 'mixin'.
+typedef void mixin();
+             ^^^^^
+
+parser/error_recovery/keyword_named_typedefs:80:9: Expected an identifier, but got 'mixin'.
+typedef mixin = void Function();
+        ^^^^^
+
+parser/error_recovery/keyword_named_typedefs:83:14: Expected an identifier, but got 'new'.
+typedef void new();
+             ^^^
+
+parser/error_recovery/keyword_named_typedefs:84:9: Expected an identifier, but got 'new'.
+typedef new = void Function();
+        ^^^
+
+parser/error_recovery/keyword_named_typedefs:85:14: Expected an identifier, but got 'null'.
+typedef void null();
+             ^^^^
+
+parser/error_recovery/keyword_named_typedefs:86:9: Expected an identifier, but got 'null'.
+typedef null = void Function();
+        ^^^^
+
+parser/error_recovery/keyword_named_typedefs:91:14: Expected an identifier, but got 'operator'.
+typedef void operator();
+             ^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:92:9: Expected an identifier, but got 'operator'.
+typedef operator = void Function();
+        ^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:95:14: Expected an identifier, but got 'part'.
+typedef void part();
+             ^^^^
+
+parser/error_recovery/keyword_named_typedefs:96:9: Expected an identifier, but got 'part'.
+typedef part = void Function();
+        ^^^^
+
+parser/error_recovery/keyword_named_typedefs:99:14: Expected an identifier, but got 'required'.
+typedef void required();
+             ^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:100:9: Expected an identifier, but got 'required'.
+typedef required = void Function();
+        ^^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:101:14: Expected an identifier, but got 'rethrow'.
+typedef void rethrow();
+             ^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:102:9: Expected an identifier, but got 'rethrow'.
+typedef rethrow = void Function();
+        ^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:103:14: Expected an identifier, but got 'return'.
+typedef void return();
+             ^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:104:9: Expected an identifier, but got 'return'.
+typedef return = void Function();
+        ^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:105:14: Expected an identifier, but got 'set'.
+typedef void set();
+             ^^^
+
+parser/error_recovery/keyword_named_typedefs:106:9: Expected an identifier, but got 'set'.
+typedef set = void Function();
+        ^^^
+
+parser/error_recovery/keyword_named_typedefs:111:14: Expected an identifier, but got 'static'.
+typedef void static();
+             ^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:112:9: Expected an identifier, but got 'static'.
+typedef static = void Function();
+        ^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:113:14: Expected an identifier, but got 'super'.
+typedef void super();
+             ^^^^^
+
+parser/error_recovery/keyword_named_typedefs:114:9: Expected an identifier, but got 'super'.
+typedef super = void Function();
+        ^^^^^
+
+parser/error_recovery/keyword_named_typedefs:115:14: Expected an identifier, but got 'switch'.
+typedef void switch();
+             ^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:116:9: Expected an identifier, but got 'switch'.
+typedef switch = void Function();
+        ^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:119:14: Expected an identifier, but got 'this'.
+typedef void this();
+             ^^^^
+
+parser/error_recovery/keyword_named_typedefs:120:9: Expected an identifier, but got 'this'.
+typedef this = void Function();
+        ^^^^
+
+parser/error_recovery/keyword_named_typedefs:121:14: Expected an identifier, but got 'throw'.
+typedef void throw();
+             ^^^^^
+
+parser/error_recovery/keyword_named_typedefs:122:9: Expected an identifier, but got 'throw'.
+typedef throw = void Function();
+        ^^^^^
+
+parser/error_recovery/keyword_named_typedefs:123:14: Expected an identifier, but got 'true'.
+typedef void true();
+             ^^^^
+
+parser/error_recovery/keyword_named_typedefs:124:9: Expected an identifier, but got 'true'.
+typedef true = void Function();
+        ^^^^
+
+parser/error_recovery/keyword_named_typedefs:125:14: Expected an identifier, but got 'try'.
+typedef void try();
+             ^^^
+
+parser/error_recovery/keyword_named_typedefs:126:9: Expected an identifier, but got 'try'.
+typedef try = void Function();
+        ^^^
+
+parser/error_recovery/keyword_named_typedefs:127:14: Expected an identifier, but got 'typedef'.
+typedef void typedef();
+             ^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:128:9: Expected an identifier, but got 'typedef'.
+typedef typedef = void Function();
+        ^^^^^^^
+
+parser/error_recovery/keyword_named_typedefs:129:14: Expected an identifier, but got 'var'.
+typedef void var();
+             ^^^
+
+parser/error_recovery/keyword_named_typedefs:130:9: Expected an identifier, but got 'var'.
+typedef var = void Function();
+        ^^^
+
+parser/error_recovery/keyword_named_typedefs:131:14: Expected an identifier, but got 'void'.
+typedef void void();
+             ^^^^
+
+parser/error_recovery/keyword_named_typedefs:132:14: Expected an identifier, but got '='.
+typedef void = void Function();
+             ^
+
+parser/error_recovery/keyword_named_typedefs:132:14: A typedef needs an explicit list of parameters.
+typedef void = void Function();
+             ^
+
+parser/error_recovery/keyword_named_typedefs:132:14: Expected ';' after this.
+typedef void = void Function();
+             ^
+
+parser/error_recovery/keyword_named_typedefs:132:14: Expected a declaration, but got '='.
+typedef void = void Function();
+             ^
+
+parser/error_recovery/keyword_named_typedefs:132:31: Expected a function body or '=>'.
+typedef void = void Function();
+                              ^
+
+parser/error_recovery/keyword_named_typedefs:133:14: Expected an identifier, but got 'while'.
+typedef void while();
+             ^^^^^
+
+parser/error_recovery/keyword_named_typedefs:134:9: Expected an identifier, but got 'while'.
+typedef while = void Function();
+        ^^^^^
+
+parser/error_recovery/keyword_named_typedefs:135:14: Expected an identifier, but got 'with'.
+typedef void with();
+             ^^^^
+
+parser/error_recovery/keyword_named_typedefs:136:9: Expected an identifier, but got 'with'.
+typedef with = void Function();
+        ^^^^
+
+beginCompilationUnit(typedef)
+  beginMetadataStar(typedef)
+  endMetadataStar(0)
+  beginFunctionTypeAlias(typedef)
+    handleVoidKeyword(void)
+    handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'abstract'., null, {token: abstract}], abstract, abstract)
+    handleIdentifier(abstract, typedefDeclaration)
+    handleNoTypeVariables(()
+    beginFormalParameters((, MemberKind.FunctionTypeAlias)
+    endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+  endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+  handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'abstract'., null, {token: abstract}], abstract, abstract)
+  handleIdentifier(abstract, typedefDeclaration)
+  handleNoTypeVariables(=)
+  handleNoTypeVariables(()
+  beginFunctionType(void)
+    handleVoidKeyword(void)
+    beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+    endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+  endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'as'., null, {token: as}], as, as)
+handleIdentifier(as, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'as'., null, {token: as}], as, as)
+handleIdentifier(as, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'assert'., null, {token: assert}], assert, assert)
+handleIdentifier(assert, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'assert'., null, {token: assert}], assert, assert)
+handleIdentifier(assert, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleIdentifier(async, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleIdentifier(async, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleIdentifier(await, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleIdentifier(await, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'break'., null, {token: break}], break, break)
+handleIdentifier(break, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'break'., null, {token: break}], break, break)
+handleIdentifier(break, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'case'., null, {token: case}], case, case)
+handleIdentifier(case, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'case'., null, {token: case}], case, case)
+handleIdentifier(case, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'catch'., null, {token: catch}], catch, catch)
+handleIdentifier(catch, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'catch'., null, {token: catch}], catch, catch)
+handleIdentifier(catch, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'class'., null, {token: class}], class, class)
+handleIdentifier(class, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'class'., null, {token: class}], class, class)
+handleIdentifier(class, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'const'., null, {token: const}], const, const)
+handleIdentifier(const, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'const'., null, {token: const}], const, const)
+handleIdentifier(const, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'continue'., null, {token: continue}], continue, continue)
+handleIdentifier(continue, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'continue'., null, {token: continue}], continue, continue)
+handleIdentifier(continue, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'covariant'., null, {token: covariant}], covariant, covariant)
+handleIdentifier(covariant, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'covariant'., null, {token: covariant}], covariant, covariant)
+handleIdentifier(covariant, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'default'., null, {token: default}], default, default)
+handleIdentifier(default, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'default'., null, {token: default}], default, default)
+handleIdentifier(default, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'deferred'., null, {token: deferred}], deferred, deferred)
+handleIdentifier(deferred, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'deferred'., null, {token: deferred}], deferred, deferred)
+handleIdentifier(deferred, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'do'., null, {token: do}], do, do)
+handleIdentifier(do, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'do'., null, {token: do}], do, do)
+handleIdentifier(do, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'dynamic'., null, {token: dynamic}], dynamic, dynamic)
+handleIdentifier(dynamic, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'dynamic'., null, {token: dynamic}], dynamic, dynamic)
+handleIdentifier(dynamic, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'else'., null, {token: else}], else, else)
+handleIdentifier(else, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'else'., null, {token: else}], else, else)
+handleIdentifier(else, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'enum'., null, {token: enum}], enum, enum)
+handleIdentifier(enum, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'enum'., null, {token: enum}], enum, enum)
+handleIdentifier(enum, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'export'., null, {token: export}], export, export)
+handleIdentifier(export, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'export'., null, {token: export}], export, export)
+handleIdentifier(export, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'extends'., null, {token: extends}], extends, extends)
+handleIdentifier(extends, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'extends'., null, {token: extends}], extends, extends)
+handleIdentifier(extends, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'extension'., null, {token: extension}], extension, extension)
+handleIdentifier(extension, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'extension'., null, {token: extension}], extension, extension)
+handleIdentifier(extension, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'external'., null, {token: external}], external, external)
+handleIdentifier(external, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'external'., null, {token: external}], external, external)
+handleIdentifier(external, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'factory'., null, {token: factory}], factory, factory)
+handleIdentifier(factory, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'factory'., null, {token: factory}], factory, factory)
+handleIdentifier(factory, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'false'., null, {token: false}], false, false)
+handleIdentifier(false, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'false'., null, {token: false}], false, false)
+handleIdentifier(false, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'final'., null, {token: final}], final, final)
+handleIdentifier(final, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'final'., null, {token: final}], final, final)
+handleIdentifier(final, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'finally'., null, {token: finally}], finally, finally)
+handleIdentifier(finally, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'finally'., null, {token: finally}], finally, finally)
+handleIdentifier(finally, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'for'., null, {token: for}], for, for)
+handleIdentifier(for, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'for'., null, {token: for}], for, for)
+handleIdentifier(for, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'Function'., null, {token: Function}], Function, Function)
+handleIdentifier(Function, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'Function'., null, {token: Function}], Function, Function)
+handleIdentifier(Function, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'get'., null, {token: get}], get, get)
+handleIdentifier(get, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'get'., null, {token: get}], get, get)
+handleIdentifier(get, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleIdentifier(hide, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleIdentifier(hide, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'if'., null, {token: if}], if, if)
+handleIdentifier(if, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'if'., null, {token: if}], if, if)
+handleIdentifier(if, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'implements'., null, {token: implements}], implements, implements)
+handleIdentifier(implements, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'implements'., null, {token: implements}], implements, implements)
+handleIdentifier(implements, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'import'., null, {token: import}], import, import)
+handleIdentifier(import, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'import'., null, {token: import}], import, import)
+handleIdentifier(import, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'in'., null, {token: in}], in, in)
+handleIdentifier(in, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'in'., null, {token: in}], in, in)
+handleIdentifier(in, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleIdentifier(inout, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleIdentifier(inout, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'interface'., null, {token: interface}], interface, interface)
+handleIdentifier(interface, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'interface'., null, {token: interface}], interface, interface)
+handleIdentifier(interface, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'is'., null, {token: is}], is, is)
+handleIdentifier(is, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'is'., null, {token: is}], is, is)
+handleIdentifier(is, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'late'., null, {token: late}], late, late)
+handleIdentifier(late, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'late'., null, {token: late}], late, late)
+handleIdentifier(late, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'library'., null, {token: library}], library, library)
+handleIdentifier(library, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'library'., null, {token: library}], library, library)
+handleIdentifier(library, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'mixin'., null, {token: mixin}], mixin, mixin)
+handleIdentifier(mixin, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'mixin'., null, {token: mixin}], mixin, mixin)
+handleIdentifier(mixin, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleIdentifier(native, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleIdentifier(native, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'new'., null, {token: new}], new, new)
+handleIdentifier(new, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'new'., null, {token: new}], new, new)
+handleIdentifier(new, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'null'., null, {token: null}], null, null)
+handleIdentifier(null, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'null'., null, {token: null}], null, null)
+handleIdentifier(null, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleIdentifier(of, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleIdentifier(of, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleIdentifier(on, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleIdentifier(on, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'operator'., null, {token: operator}], operator, operator)
+handleIdentifier(operator, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'operator'., null, {token: operator}], operator, operator)
+handleIdentifier(operator, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleIdentifier(out, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleIdentifier(out, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'part'., null, {token: part}], part, part)
+handleIdentifier(part, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'part'., null, {token: part}], part, part)
+handleIdentifier(part, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleIdentifier(patch, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleIdentifier(patch, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'required'., null, {token: required}], required, required)
+handleIdentifier(required, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'required'., null, {token: required}], required, required)
+handleIdentifier(required, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'rethrow'., null, {token: rethrow}], rethrow, rethrow)
+handleIdentifier(rethrow, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'rethrow'., null, {token: rethrow}], rethrow, rethrow)
+handleIdentifier(rethrow, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'return'., null, {token: return}], return, return)
+handleIdentifier(return, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'return'., null, {token: return}], return, return)
+handleIdentifier(return, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'set'., null, {token: set}], set, set)
+handleIdentifier(set, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'set'., null, {token: set}], set, set)
+handleIdentifier(set, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleIdentifier(show, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleIdentifier(show, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleIdentifier(source, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleIdentifier(source, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'static'., null, {token: static}], static, static)
+handleIdentifier(static, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'static'., null, {token: static}], static, static)
+handleIdentifier(static, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'super'., null, {token: super}], super, super)
+handleIdentifier(super, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'super'., null, {token: super}], super, super)
+handleIdentifier(super, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'switch'., null, {token: switch}], switch, switch)
+handleIdentifier(switch, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'switch'., null, {token: switch}], switch, switch)
+handleIdentifier(switch, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleIdentifier(sync, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleIdentifier(sync, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'this'., null, {token: this}], this, this)
+handleIdentifier(this, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'this'., null, {token: this}], this, this)
+handleIdentifier(this, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'throw'., null, {token: throw}], throw, throw)
+handleIdentifier(throw, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'throw'., null, {token: throw}], throw, throw)
+handleIdentifier(throw, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'true'., null, {token: true}], true, true)
+handleIdentifier(true, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'true'., null, {token: true}], true, true)
+handleIdentifier(true, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'try'., null, {token: try}], try, try)
+handleIdentifier(try, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'try'., null, {token: try}], try, try)
+handleIdentifier(try, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'typedef'., null, {token: typedef}], typedef, typedef)
+handleIdentifier(typedef, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'typedef'., null, {token: typedef}], typedef, typedef)
+handleIdentifier(typedef, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'var'., null, {token: var}], var, var)
+handleIdentifier(var, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'var'., null, {token: var}], var, var)
+handleIdentifier(var, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'void'., null, {token: void}], void, void)
+handleIdentifier(void, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '='., null, {token: =}], =, =)
+handleIdentifier(, typedefDeclaration)
+handleNoTypeVariables(=)
+handleRecoverableError(MissingTypedefParameters, =, =)
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], =, =)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(=)
+beginMetadataStar(=)
+endMetadataStar(0)
+beginTopLevelMember(=)
+handleRecoverableError(Message[ExpectedDeclaration, Expected a declaration, but got '='., null, {token: =}], =, =)
+handleInvalidTopLevelDeclaration(=)
+endTopLevelDeclaration(void)
+beginMetadataStar(void)
+endMetadataStar(0)
+beginTopLevelMember(void)
+beginTopLevelMethod(=, null)
+handleVoidKeyword(void)
+handleIdentifier(Function, topLevelFunctionDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.TopLevelMethod)
+endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+handleAsyncModifier(null, null)
+handleRecoverableError(ExpectedBody, ;, ;)
+handleEmptyFunctionBody(;)
+endTopLevelMethod(void, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'while'., null, {token: while}], while, while)
+handleIdentifier(while, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'while'., null, {token: while}], while, while)
+handleIdentifier(while, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'with'., null, {token: with}], with, with)
+handleIdentifier(with, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'with'., null, {token: with}], with, with)
+handleIdentifier(with, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleVoidKeyword(void)
+handleIdentifier(yield, typedefDeclaration)
+handleNoTypeVariables(()
+beginFormalParameters((, MemberKind.FunctionTypeAlias)
+endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
+endFunctionTypeAlias(typedef, null, ;)
+endTopLevelDeclaration(typedef)
+beginMetadataStar(typedef)
+endMetadataStar(0)
+beginFunctionTypeAlias(typedef)
+handleIdentifier(yield, typedefDeclaration)
+handleNoTypeVariables(=)
+handleNoTypeVariables(()
+beginFunctionType(void)
+handleVoidKeyword(void)
+beginFormalParameters((, MemberKind.GeneralizedFunctionType)
+endFormalParameters(0, (, ), MemberKind.GeneralizedFunctionType)
+endFunctionType(Function, null)
+endFunctionTypeAlias(typedef, =, ;)
+endTopLevelDeclaration()
+endCompilationUnit(140, )

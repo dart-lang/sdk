@@ -1,0 +1,11 @@
+class A<X> {}
+
+class B extends A<Null> {}
+
+class C {
+  Null foo(Null n, A<Null> an) => n;
+}
+
+foo() {}
+bar() {}
+main() {}

@@ -1,0 +1,12 @@
+library test;
+
+A a = new A();
+
+class A {
+  int f;
+}
+
+main() {}
+var b = (a.f = 1);
+var c = 0;
+var d = (c = 1);

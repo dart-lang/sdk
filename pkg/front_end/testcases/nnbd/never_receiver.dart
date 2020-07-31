@@ -21,6 +21,12 @@ foo(Never x, Never? y) {
   y?.[42]; // Not an error.
   y?.[42] = 42; // Not an error.
 
+  x?.foo(); // Warning.
+  x?.bar; // Warning.
+  x?.baz = 42; // Warning.
+  x?.[42]; // Warning.
+  x?.[42] = 42; // Warning.
+
   y.foo(); // Error.
   y.bar; // Error.
   y.baz = 42; // Error.

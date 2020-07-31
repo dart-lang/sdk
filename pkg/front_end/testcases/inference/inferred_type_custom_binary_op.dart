@@ -10,7 +10,7 @@ class C {
 }
 
 C c = new C();
-var x = c /*@target=C::**/ * c;
+var x = c /*@target=C.**/ * c;
 
 main() {
   c;

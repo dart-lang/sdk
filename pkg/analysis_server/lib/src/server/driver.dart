@@ -381,10 +381,9 @@ class Driver implements ServerStarter {
     );
     analysisServerOptions.analytics = analytics;
 
-    if (analysisServerOptions.clientId != null) {
-      // Record the client name as the application installer ID.
-      analytics.setSessionValue('aiid', analysisServerOptions.clientId);
-    }
+    // Record the client name as the application installer ID.
+    analytics.setSessionValue(
+        'aiid', analysisServerOptions.clientId ?? 'not-set');
     if (analysisServerOptions.clientVersion != null) {
       analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
     }
@@ -404,7 +403,10 @@ class Driver implements ServerStarter {
     // Use sdkConfig to optionally override analytics settings.
     final crashProductId = sdkConfig.crashReportingId ?? 'Dart_analysis_server';
     final crashReportSender =
-        CrashReportSender(crashProductId, shouldSendCallback);
+        CrashReportSender.prod(crashProductId, shouldSendCallback);
+    // TODO(mfairhurst): send these to prod or disable.
+    final crashReportSenderAngular = CrashReportSender.staging(
+        'Dart_angular_analysis_plugin', shouldSendCallback);
 
     if (telemetry.SHOW_ANALYTICS_UI) {
       if (results.wasParsed(ANALYTICS_FLAG)) {
@@ -435,12 +437,12 @@ class Driver implements ServerStarter {
     }
 
     final defaultSdkPath = _getSdkPath(results);
-    final dartSdkManager = DartSdkManager(defaultSdkPath, true);
+    final dartSdkManager = DartSdkManager(defaultSdkPath);
 
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
     // cannot be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.
-    var defaultSdk = _createDefaultSdk(defaultSdkPath, true);
+    var defaultSdk = _createDefaultSdk(defaultSdkPath);
     //
     // Initialize the instrumentation service.
     //
@@ -455,8 +457,8 @@ class Driver implements ServerStarter {
     }
 
     var errorNotifier = ErrorNotifier();
-    allInstrumentationServices
-        .add(CrashReportingInstrumentation(crashReportSender));
+    allInstrumentationServices.add(CrashReportingInstrumentation(
+        crashReportSender, crashReportSenderAngular));
     instrumentationService =
         MulticastInstrumentationService(allInstrumentationServices);
 
@@ -613,9 +615,6 @@ class Driver implements ServerStarter {
           serveResult = isolateAnalysisServer.serveIsolate(sendPort);
         }
         serveResult.then((_) async {
-          // TODO(brianwilkerson) Determine whether this await is necessary.
-          await null;
-
           if (serve_http) {
             httpServer.close();
           }
@@ -826,12 +825,12 @@ class Driver implements ServerStarter {
     return parser;
   }
 
-  DartSdk _createDefaultSdk(String defaultSdkPath, bool useSummaries) {
+  DartSdk _createDefaultSdk(String defaultSdkPath) {
     var resourceProvider = PhysicalResourceProvider.INSTANCE;
-    var sdk = FolderBasedDartSdk(
-        resourceProvider, resourceProvider.getFolder(defaultSdkPath));
-    sdk.useSummary = useSummaries;
-    return sdk;
+    return FolderBasedDartSdk(
+      resourceProvider,
+      resourceProvider.getFolder(defaultSdkPath),
+    );
   }
 
   /// Constructs a uuid combining the current date and a random integer.

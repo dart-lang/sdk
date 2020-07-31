@@ -7,80 +7,33 @@
 // Requirements=nnbd-strong
 
 import 'package:expect/expect.dart';
-import 'type_casts_legacy_library.dart'; // A, B, C, D
-import 'type_casts_null_safe_library.dart'; // W, X, Y, Z
+
+class C {}
+
+class W<T> {
+  @pragma('vm:never-inline')
+  asT(arg) => arg as T;
+
+  @pragma('vm:never-inline')
+  asNullableT(arg) => arg as T?;
+
+  @pragma('vm:never-inline')
+  asXT(arg) => arg as X<T>;
+
+  @pragma('vm:never-inline')
+  asNullableXT(arg) => arg as X<T>?;
+
+  @pragma('vm:never-inline')
+  asXNullableT(arg) => arg as X<T?>;
+}
+
+class X<T> {}
+
+class Y {}
+
+class Z extends Y {}
 
 doTests() {
-  // Testing 'arg as T*', T = C*
-  final ac = newAOfLegacyC();
-  ac.asT(new C());
-  ac.asT(new D());
-  ac.asT(null);
-  Expect.throwsTypeError(() {
-    ac.asT(new Y());
-  });
-
-  // Testing 'arg as T*', T = B<C*>*
-  final abc = newAOfLegacyBOfLegacyC();
-  abc.asT(new B<C>());
-  abc.asT(new B<D>());
-  abc.asT(null);
-  Expect.throwsTypeError(() {
-    abc.asT(new B<dynamic>());
-  });
-  Expect.throwsTypeError(() {
-    abc.asT(new B<Y>());
-  });
-
-  // Testing 'arg as T*', T = Y
-  final ay = new A<Y>();
-  ay.asT(new Y());
-  ay.asT(new Z());
-  ay.asT(null);
-  Expect.throwsTypeError(() {
-    ay.asT(new C());
-  });
-
-  // Testing 'arg as T', T = C*
-  final wc = newWOfLegacyC();
-  wc.asT(new C());
-  wc.asT(new D());
-  wc.asT(null);
-  Expect.throwsTypeError(() {
-    wc.asT(new Y());
-  });
-
-  // Testing 'arg as T?', T = C*
-  wc.asNullableT(new C());
-  wc.asNullableT(new D());
-  wc.asNullableT(null);
-  Expect.throwsTypeError(() {
-    wc.asNullableT(new Y());
-  });
-
-  // Testing 'arg as T', T = B<C*>*
-  final wby = newWOfLegacyBOfLegacyC();
-  wby.asT(new B<C>());
-  wby.asT(new B<D>());
-  wby.asT(null);
-  Expect.throwsTypeError(() {
-    wby.asT(new B<dynamic>());
-  });
-  Expect.throwsTypeError(() {
-    wby.asT(new B<Y>());
-  });
-
-  // Testing 'arg as T?', T = B<C*>*
-  wby.asNullableT(new B<C>());
-  wby.asNullableT(new B<D>());
-  wby.asNullableT(null);
-  Expect.throwsTypeError(() {
-    wby.asNullableT(new B<dynamic>());
-  });
-  Expect.throwsTypeError(() {
-    wby.asNullableT(new B<Y>());
-  });
-
   // Testing 'arg as T', T = Y
   final wy = new W<Y>();
   wy.asT(new Y());
@@ -100,21 +53,9 @@ doTests() {
     wy.asNullableT(new C());
   });
 
-  // Testing 'arg as B<T*>*', T = Y
-  ay.asBT(new B<Y>());
-  ay.asBT(new B<Z>());
-  ay.asBT(null);
-  Expect.throwsTypeError(() {
-    ay.asBT(new B<dynamic>());
-  });
-  Expect.throwsTypeError(() {
-    ay.asBT(new B<C>());
-  });
-
   // Testing 'arg as X<T>', T = Y
   wy.asXT(new X<Y>());
   wy.asXT(new X<Z>());
-  wy.asXT(newXOfLegacyY());
   Expect.throwsTypeError(() {
     wy.asXT(null);
   });
@@ -128,7 +69,6 @@ doTests() {
   // Testing 'arg as X<T>?', T = Y
   wy.asNullableXT(new X<Y>());
   wy.asNullableXT(new X<Z>());
-  wy.asNullableXT(newXOfLegacyY());
   wy.asNullableXT(null);
   Expect.throwsTypeError(() {
     wy.asNullableXT(new X<dynamic>());
@@ -141,7 +81,6 @@ doTests() {
   wy.asXNullableT(new X<Y>());
   wy.asXNullableT(new X<Z>());
   wy.asXNullableT(new X<Y?>());
-  wy.asXNullableT(newXOfLegacyY());
   Expect.throwsTypeError(() {
     wy.asXNullableT(null);
   });
@@ -154,7 +93,6 @@ doTests() {
   wny.asXT(new X<Y>());
   wny.asXT(new X<Z>());
   wny.asXT(new X<Y?>());
-  wny.asXT(newXOfLegacyY());
   Expect.throwsTypeError(() {
     wny.asXT(null);
   });

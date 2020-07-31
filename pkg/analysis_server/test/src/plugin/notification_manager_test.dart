@@ -47,7 +47,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     fileA = provider.convertPath('/test/a.dart');
     fileB = provider.convertPath('/test/b.dart');
     channel = TestChannel();
-    manager = NotificationManager(channel, provider);
+    manager = NotificationManager(channel, provider.pathContext);
   }
 
   void test_handlePluginNotification_errors() {

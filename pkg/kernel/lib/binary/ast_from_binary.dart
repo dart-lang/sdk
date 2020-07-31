@@ -4,8 +4,8 @@
 library kernel.ast_from_binary;
 
 import 'dart:core' hide MapEntry;
-import 'dart:convert';
 import 'dart:developer';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import '../ast.dart';
@@ -29,9 +29,28 @@ class InvalidKernelVersionError {
   InvalidKernelVersionError(this.version);
 
   String toString() {
-    return 'Unexpected Kernel version ${version} '
+    return 'Unexpected Kernel Format Version ${version} '
         '(expected ${Tag.BinaryFormatVersion}).';
   }
+}
+
+class InvalidKernelSdkVersionError {
+  final String version;
+
+  InvalidKernelSdkVersionError(this.version);
+
+  String toString() {
+    return 'Unexpected Kernel SDK Version ${version} '
+        '(expected ${expectedSdkHash}).';
+  }
+}
+
+class CompilationModeError {
+  final String message;
+
+  CompilationModeError(this.message);
+
+  String toString() => "CompilationModeError[$message]";
 }
 
 class CanonicalNameError {
@@ -45,7 +64,7 @@ class CanonicalNameSdkError extends CanonicalNameError {
 }
 
 class _ComponentIndex {
-  static const numberOfFixedFields = 9;
+  static const numberOfFixedFields = 10;
 
   int binaryOffsetForSourceTable;
   int binaryOffsetForCanonicalNames;
@@ -54,6 +73,7 @@ class _ComponentIndex {
   int binaryOffsetForStringTable;
   int binaryOffsetForConstantTable;
   int mainMethodReference;
+  NonNullableByDefaultCompiledMode compiledMode;
   List<int> libraryOffsets;
   int libraryCount;
   int componentFileSizeInBytes;
@@ -85,6 +105,7 @@ class BinaryBuilder {
   int _transformerFlags = 0;
   Library _currentLibrary;
   int _componentStartOffset = 0;
+  NonNullableByDefaultCompiledMode compilationMode;
 
   // If something goes wrong, this list should indicate what library,
   // class, and member was being built.
@@ -163,36 +184,74 @@ class BinaryBuilder {
     return _doubleBuffer[0];
   }
 
-  List<int> readBytes(int length) {
-    List<int> bytes = new Uint8List(length);
+  Uint8List readBytes(int length) {
+    Uint8List bytes = new Uint8List(length);
     bytes.setRange(0, bytes.length, _bytes, _byteOffset);
     _byteOffset += bytes.length;
     return bytes;
   }
 
-  List<int> readByteList() {
+  Uint8List readByteList() {
     return readBytes(readUInt());
   }
 
+  String readString() {
+    return readStringEntry(readUInt());
+  }
+
   String readStringEntry(int numBytes) {
-    // Utf8Decoder will skip leading BOM characters, but we must preserve them.
-    // Collect leading BOMs before passing the bytes onto Utf8Decoder.
-    int numByteOrderMarks = 0;
-    while (_byteOffset + 2 < _bytes.length &&
-        _bytes[_byteOffset] == 0xef &&
-        _bytes[_byteOffset + 1] == 0xbb &&
-        _bytes[_byteOffset + 2] == 0xbf) {
-      ++numByteOrderMarks;
-      _byteOffset += 3;
-      numBytes -= 3;
+    int start = _byteOffset;
+    int end = start + numBytes;
+    _byteOffset = end;
+    for (int i = start; i < end; i++) {
+      if (_bytes[i] > 127) {
+        return _decodeWtf8(start, end);
+      }
     }
-    String string = const Utf8Decoder()
-        .convert(_bytes, _byteOffset, _byteOffset + numBytes);
-    _byteOffset += numBytes;
-    if (numByteOrderMarks > 0) {
-      return '\ufeff' * numByteOrderMarks + string;
+    return new String.fromCharCodes(_bytes, start, end);
+  }
+
+  String _decodeWtf8(int start, int end) {
+    // WTF-8 decoder that trusts its input, meaning that the correctness of
+    // the code depends on the bytes from start to end being valid and
+    // complete WTF-8. Instead of masking off the control bits from every
+    // byte, it simply xor's the byte values together at their appropriate
+    // bit shifts, and then xor's out all of the control bits at once.
+    Uint16List charCodes = new Uint16List(end - start);
+    int i = start;
+    int j = 0;
+    while (i < end) {
+      int byte = _bytes[i++];
+      if (byte < 0x80) {
+        // ASCII.
+        charCodes[j++] = byte;
+      } else if (byte < 0xE0) {
+        // Two-byte sequence (11-bit unicode value).
+        int byte2 = _bytes[i++];
+        int value = (byte << 6) ^ byte2 ^ 0x3080;
+        assert(value >= 0x80 && value < 0x800);
+        charCodes[j++] = value;
+      } else if (byte < 0xF0) {
+        // Three-byte sequence (16-bit unicode value).
+        int byte2 = _bytes[i++];
+        int byte3 = _bytes[i++];
+        int value = (byte << 12) ^ (byte2 << 6) ^ byte3 ^ 0xE2080;
+        assert(value >= 0x800 && value < 0x10000);
+        charCodes[j++] = value;
+      } else {
+        // Four-byte sequence (non-BMP unicode value).
+        int byte2 = _bytes[i++];
+        int byte3 = _bytes[i++];
+        int byte4 = _bytes[i++];
+        int value =
+            (byte << 18) ^ (byte2 << 12) ^ (byte3 << 6) ^ byte4 ^ 0x3C82080;
+        assert(value >= 0x10000 && value < 0x110000);
+        charCodes[j++] = 0xD7C0 + (value >> 10);
+        charCodes[j++] = 0xDC00 + (value & 0x3FF);
+      }
     }
-    return string;
+    assert(i == end);
+    return new String.fromCharCodes(charCodes, 0, j);
   }
 
   /// Read metadataMappings section from the binary.
@@ -214,7 +273,7 @@ class BinaryBuilder {
     for (int i = 0; i < length; ++i) {
       endOffsets[i] = readUInt();
     }
-    // Read the UTF-8 encoded strings.
+    // Read the WTF-8 encoded strings.
     table.length = length;
     int startOffset = 0;
     for (int i = 0; i < length; ++i) {
@@ -437,6 +496,13 @@ class BinaryBuilder {
     if (_bytes.length == 0) throw new StateError("Empty input given.");
   }
 
+  void _readAndVerifySdkHash() {
+    final sdkHash = ascii.decode(readBytes(sdkHashLength));
+    if (!isValidSdkHash(sdkHash)) {
+      throw InvalidKernelSdkVersionError(sdkHash);
+    }
+  }
+
   /// Deserializes a kernel component and stores it in [component].
   ///
   /// When linking with a non-empty component, canonical names must have been
@@ -464,6 +530,9 @@ class BinaryBuilder {
       if (version != Tag.BinaryFormatVersion) {
         throw InvalidKernelVersionError(version);
       }
+
+      _readAndVerifySdkHash();
+
       _byteOffset = offset;
       List<int> componentFileSizes = _indexComponents();
       if (componentFileSizes.length > 1) {
@@ -624,6 +693,7 @@ class BinaryBuilder {
     result.binaryOffsetForStringTable = _componentStartOffset + readUint32();
     result.binaryOffsetForConstantTable = _componentStartOffset + readUint32();
     result.mainMethodReference = readUint32();
+    result.compiledMode = NonNullableByDefaultCompiledMode.values[readUint32()];
     for (int i = 0; i < result.libraryCount + 1; ++i) {
       result.libraryOffsets[i] = _componentStartOffset + readUint32();
     }
@@ -645,6 +715,8 @@ class BinaryBuilder {
     if (formatVersion != Tag.BinaryFormatVersion) {
       throw InvalidKernelVersionError(formatVersion);
     }
+
+    _readAndVerifySdkHash();
 
     // Read component index from the end of this ComponentFiles serialized data.
     _ComponentIndex index = _readComponentIndex(componentFileSize);
@@ -670,6 +742,8 @@ class BinaryBuilder {
       throw InvalidKernelVersionError(formatVersion);
     }
 
+    _readAndVerifySdkHash();
+
     List<String> problemsAsJson = readListOfStrings();
     if (problemsAsJson != null) {
       component.problemsAsJson ??= <String>[];
@@ -678,6 +752,35 @@ class BinaryBuilder {
 
     // Read component index from the end of this ComponentFiles serialized data.
     _ComponentIndex index = _readComponentIndex(componentFileSize);
+    if (compilationMode == null) {
+      compilationMode = component.modeRaw;
+    }
+    if (compilationMode == null) {
+      compilationMode = index.compiledMode;
+    } else if (compilationMode != index.compiledMode) {
+      if (compilationMode == NonNullableByDefaultCompiledMode.Agnostic) {
+        compilationMode = index.compiledMode;
+      } else if (index.compiledMode ==
+          NonNullableByDefaultCompiledMode.Agnostic) {
+        // Keep as-is.
+      } else {
+        if ((compilationMode == NonNullableByDefaultCompiledMode.Disabled ||
+                index.compiledMode ==
+                    NonNullableByDefaultCompiledMode.Disabled) &&
+            (compilationMode == NonNullableByDefaultCompiledMode.Weak ||
+                index.compiledMode == NonNullableByDefaultCompiledMode.Weak)) {
+          // One is disabled and one is weak.
+          // => We allow that and "merge" them as disabled.
+          compilationMode = NonNullableByDefaultCompiledMode.Disabled;
+        } else {
+          // Mixed mode where agnostic isn't involved and it's not
+          // disabled + weak.
+          throw new CompilationModeError(
+              "Mixed compilation mode found: $compilationMode "
+              "and ${index.compiledMode}.");
+        }
+      }
+    }
 
     _byteOffset = index.binaryOffsetForStringTable;
     readStringTable(_stringTable);
@@ -714,9 +817,9 @@ class BinaryBuilder {
       }
     }
 
-    var mainMethod =
+    Reference mainMethod =
         getMemberReferenceFromInt(index.mainMethodReference, allowNull: true);
-    component.mainMethodName ??= mainMethod;
+    component.setMainMethodAndMode(mainMethod, false, compilationMode);
 
     _byteOffset = _componentStartOffset + componentFileSize;
 
@@ -732,7 +835,7 @@ class BinaryBuilder {
     List<String> strings =
         new List<String>.filled(length, null, growable: true);
     for (int i = 0; i < length; i++) {
-      String s = const Utf8Decoder().convert(readByteList());
+      String s = readString();
       strings[i] = s;
     }
     return strings;
@@ -745,12 +848,10 @@ class BinaryBuilder {
     _sourceUriTable.length = length;
     Map<Uri, Source> uriToSource = <Uri, Source>{};
     for (int i = 0; i < length; ++i) {
-      List<int> uriBytes = readByteList();
-      Uri uri = uriBytes.isEmpty
-          ? null
-          : Uri.parse(const Utf8Decoder().convert(uriBytes));
+      String uriString = readString();
+      Uri uri = uriString.isEmpty ? null : Uri.parse(uriString);
       _sourceUriTable[i] = uri;
-      List<int> sourceCode = readByteList();
+      Uint8List sourceCode = readByteList();
       int lineCount = readUInt();
       List<int> lineStarts = new List<int>(lineCount);
       int previousLineStart = 0;
@@ -759,10 +860,9 @@ class BinaryBuilder {
         lineStarts[j] = lineStart;
         previousLineStart = lineStart;
       }
-      List<int> importUriBytes = readByteList();
-      Uri importUri = importUriBytes.isEmpty
-          ? null
-          : Uri.parse(const Utf8Decoder().convert(importUriBytes));
+      String importUriString = readString();
+      Uri importUri =
+          importUriString.isEmpty ? null : Uri.parse(importUriString);
       uriToSource[uri] = new Source(lineStarts, sourceCode, importUri, uri);
     }
 
@@ -902,7 +1002,8 @@ class BinaryBuilder {
     List<String> problemsAsJson = readListOfStrings();
 
     library.flags = flags;
-    library.setLanguageVersion(languageVersionMajor, languageVersionMinor);
+    library.setLanguageVersion(
+        new Version(languageVersionMajor, languageVersionMinor));
     library.name = name;
     library.fileUri = fileUri;
     library.problemsAsJson = problemsAsJson;
@@ -2115,8 +2216,21 @@ class BinaryBuilder {
         return new NeverType(Nullability.values[nullabilityIndex]);
       case Tag.InterfaceType:
         int nullabilityIndex = readByte();
-        return new InterfaceType.byReference(readClassReference(),
-            Nullability.values[nullabilityIndex], readDartTypeList());
+        Reference reference = readClassReference();
+        List<DartType> typeArguments = readDartTypeList();
+        {
+          CanonicalName canonicalName = reference.canonicalName;
+          if (canonicalName.name == "FutureOr" &&
+              canonicalName.parent != null &&
+              canonicalName.parent.name == "dart:async" &&
+              canonicalName.parent.parent != null &&
+              canonicalName.parent.parent.isRoot) {
+            return new FutureOrType(
+                typeArguments.single, Nullability.values[nullabilityIndex]);
+          }
+        }
+        return new InterfaceType.byReference(
+            reference, Nullability.values[nullabilityIndex], typeArguments);
       case Tag.SimpleInterfaceType:
         int nullabilityIndex = readByte();
         return new InterfaceType.byReference(readClassReference(),

@@ -50,8 +50,8 @@ class C extends self::A {
       final core::int? #t6 = 2;
       if(this.{self::C::_#C#y#isSet})
         throw new _in::LateInitializationErrorImpl::•("Field 'y' has been assigned during initialization.");
-      this.{self::C::_#C#y#isSet} = true;
       this.{self::C::_#C#y} = #t6;
+      this.{self::C::_#C#y#isSet} = true;
     }
     return this.{self::C::_#C#y};
   }

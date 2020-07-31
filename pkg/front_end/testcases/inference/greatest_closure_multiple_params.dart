@@ -8,7 +8,7 @@ library test;
 abstract class C<E> {
   void sort([int compare(E a, E b)]) {
     /*@ typeArgs=C::E* */ sort2(
-        this, compare /*@ target=Object::== */ ?? _compareAny);
+        this, compare /*@target=Object.==*/ ?? _compareAny);
   }
 
   static int _compareAny(a, b) {

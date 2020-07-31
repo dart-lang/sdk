@@ -194,7 +194,6 @@ const char* MethodRecognizer::KindToCString(Kind kind) {
   return "?";
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 void MethodRecognizer::InitializeState() {
   GrowableArray<Library*> libs(3);
   Libraries(&libs);
@@ -252,12 +251,12 @@ void MethodRecognizer::Libraries(GrowableArray<Library*>* libs) {
   libs->Add(&Library::ZoneHandle(Library::CollectionLibrary()));
   libs->Add(&Library::ZoneHandle(Library::MathLibrary()));
   libs->Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
+  libs->Add(&Library::ZoneHandle(Library::ConvertLibrary()));
   libs->Add(&Library::ZoneHandle(Library::InternalLibrary()));
   libs->Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
   libs->Add(&Library::ZoneHandle(Library::AsyncLibrary()));
   libs->Add(&Library::ZoneHandle(Library::FfiLibrary()));
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 Token::Kind MethodTokenRecognizer::RecognizeTokenKind(const String& name_) {
   Thread* thread = Thread::Current();
@@ -358,10 +357,14 @@ intptr_t FactoryRecognizer::GetResultCidOfListFactory(Zone* zone,
     return kDynamicCid;
   }
 
-  if ((owner.Name() == Symbols::List().raw()) &&
-      (function.name() == Symbols::ListFactory().raw())) {
-    ASSERT(argument_count == 1 || argument_count == 2);
-    return (argument_count == 1) ? kGrowableObjectArrayCid : kArrayCid;
+  if (owner.Name() == Symbols::List().raw()) {
+    if (function.name() == Symbols::ListFactory().raw()) {
+      ASSERT(argument_count == 1 || argument_count == 2);
+      return (argument_count == 1) ? kGrowableObjectArrayCid : kArrayCid;
+    } else if (function.name() == Symbols::ListFilledFactory().raw()) {
+      ASSERT(argument_count == 3 || argument_count == 4);
+      return (argument_count == 3) ? kArrayCid : kDynamicCid;
+    }
   }
 
   return ResultCid(function);

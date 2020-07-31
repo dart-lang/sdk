@@ -6,6 +6,16 @@ import "dart:async" as asy;
 class A extends core::Object {
   synthetic constructor •() → self::A*
     ;
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class B extends self::A {
   synthetic constructor •() → self::B*
@@ -21,7 +31,7 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
   ;
 static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, core::List<core::double*>* listDouble, core::int* index, core::Map<core::String*, core::int*>* mapStringInt, core::Map<core::String*, core::double*>* mapStringDouble) → dynamic
   ;
-static method testForElementErrors(core::Map<core::int*, core::int*>* map, core::List<core::int*>* list) → dynamic
+static method testForElementErrors(core::Map<core::int*, core::int*>* map, core::List<core::int*>* list) → dynamic async 
   ;
 static method testForElementErrorsNotAsync(asy::Stream<core::int*>* stream) → dynamic
   ;

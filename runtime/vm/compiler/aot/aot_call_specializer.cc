@@ -226,7 +226,8 @@ static bool HasLikelySmiOperand(InstanceCallInstr* instr) {
 
   // If Smi is not assignable to the interface target of the call, the receiver
   // is definitely not a Smi.
-  if (instr->HasNonSmiAssignableInterface(Thread::Current()->zone())) {
+  if (!instr->CanReceiverBeSmiBasedOnInterfaceTarget(
+          Thread::Current()->zone())) {
     return false;
   }
 
@@ -294,7 +295,6 @@ bool AotCallSpecializer::IsSupportedIntOperandForStaticDoubleOp(
 Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
                                                 intptr_t cid,
                                                 Instruction* call) {
-  ASSERT(I->can_use_strong_mode_types());
   ASSERT((cid == kDoubleCid) || (cid == kMintCid));
 
   if (input->Type()->is_nullable()) {
@@ -368,18 +368,13 @@ static void RefineUseTypes(Definition* instr) {
 
 bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
     InstanceCallInstr* instr) {
-  ASSERT(I->can_use_strong_mode_types());
-
   const Token::Kind op_kind = instr->token_kind();
-
   return TryOptimizeIntegerOperation(instr, op_kind) ||
          TryOptimizeDoubleOperation(instr, op_kind);
 }
 
 bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
     StaticCallInstr* instr) {
-  ASSERT(I->can_use_strong_mode_types());
-
   const String& name = String::Handle(Z, instr->function().name());
   const Token::Kind op_kind = MethodTokenRecognizer::RecognizeTokenKind(name);
 
@@ -472,8 +467,6 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
     return false;
   }
 
-  ASSERT(I->can_use_strong_mode_types());
-
   Definition* replacement = NULL;
   if (instr->ArgumentCount() == 2) {
     Value* left_value = instr->ArgumentValueAt(0);
@@ -486,7 +479,7 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
         left_type->IsNullableInt() && right_type->IsNullableInt();
 
     if (auto* call = instr->AsInstanceCall()) {
-      if (call->HasNonSmiAssignableInterface(zone())) {
+      if (!call->CanReceiverBeSmiBasedOnInterfaceTarget(zone())) {
         has_nullable_int_args = false;
       }
     }
@@ -801,43 +794,8 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
 
   const CallTargets& targets = instr->Targets();
   const intptr_t receiver_idx = instr->FirstArgIndex();
-  if (I->can_use_strong_mode_types()) {
-    // In AOT strong mode, we avoid deopting speculation.
-    // TODO(ajcbik): replace this with actual analysis phase
-    //               that determines if checks are removed later.
-  } else if (speculative_policy_->IsAllowedForInlining(instr->deopt_id()) &&
-             !targets.is_empty()) {
-    if ((op_kind == Token::kINDEX) && TryReplaceWithIndexedOp(instr)) {
-      return;
-    }
-    if ((op_kind == Token::kASSIGN_INDEX) && TryReplaceWithIndexedOp(instr)) {
-      return;
-    }
-    if ((op_kind == Token::kEQ) && TryReplaceWithEqualityOp(instr, op_kind)) {
-      return;
-    }
 
-    if (Token::IsRelationalOperator(op_kind) &&
-        TryReplaceWithRelationalOp(instr, op_kind)) {
-      return;
-    }
-
-    if (Token::IsBinaryOperator(op_kind) &&
-        TryReplaceWithBinaryOp(instr, op_kind)) {
-      return;
-    }
-    if (Token::IsUnaryOperator(op_kind) &&
-        TryReplaceWithUnaryOp(instr, op_kind)) {
-      return;
-    }
-
-    if (TryInlineInstanceMethod(instr)) {
-      return;
-    }
-  }
-
-  if (I->can_use_strong_mode_types() &&
-      TryOptimizeInstanceCallUsingStaticTypes(instr)) {
+  if (TryOptimizeInstanceCallUsingStaticTypes(instr)) {
     return;
   }
 
@@ -851,7 +809,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
 
   if (has_one_target) {
     const Function& target = targets.FirstTarget();
-    RawFunction::Kind function_kind = target.kind();
+    FunctionLayout::Kind function_kind = target.kind();
     if (flow_graph()->CheckForInstanceCall(instr, function_kind) ==
         FlowGraph::ToCheck::kNoCheck) {
       StaticCallInstr* call = StaticCallInstr::FromCall(
@@ -932,6 +890,9 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
       bool is_object_eq = true;
       for (intptr_t i = 0; i < class_ids.length(); i++) {
         const intptr_t cid = class_ids[i];
+        // Skip sentinel cid. It may appear in the unreachable code after
+        // inlining a method which doesn't return.
+        if (cid == kNeverCid) continue;
         const Class& cls = Class::Handle(Z, isolate()->class_table()->At(cid));
         const Function& target =
             Function::Handle(Z, instr->ResolveForReceiverClass(cls));
@@ -1300,9 +1261,28 @@ void AotCallSpecializer::ReplaceInstanceCallsWithDispatchTableCalls() {
   }
 }
 
-void AotCallSpecializer::TryReplaceWithDispatchTableCall(
+const Function& AotCallSpecializer::InterfaceTargetForTableDispatch(
     InstanceCallBaseInstr* call) {
   const Function& interface_target = call->interface_target();
+  if (!interface_target.IsNull()) {
+    return interface_target;
+  }
+
+  // Dynamic call or tearoff.
+  const Function& tearoff_interface_target = call->tearoff_interface_target();
+  if (!tearoff_interface_target.IsNull()) {
+    // Tearoff.
+    return Function::ZoneHandle(
+        Z, tearoff_interface_target.GetMethodExtractor(call->function_name()));
+  }
+
+  // Dynamic call.
+  return Function::null_function();
+}
+
+void AotCallSpecializer::TryReplaceWithDispatchTableCall(
+    InstanceCallBaseInstr* call) {
+  const Function& interface_target = InterfaceTargetForTableDispatch(call);
   if (interface_target.IsNull()) {
     // Dynamic call.
     return;
@@ -1324,16 +1304,14 @@ void AotCallSpecializer::TryReplaceWithDispatchTableCall(
     return;
   }
 
-  const AbstractType& target_type =
-      AbstractType::Handle(Class::Handle(interface_target.Owner()).RareType());
   const bool receiver_can_be_smi =
-      CompileType::Smi().IsAssignableTo(target_type);
+      call->CanReceiverBeSmiBasedOnInterfaceTarget(zone());
   auto load_cid = new (Z) LoadClassIdInstr(receiver->CopyWithType(Z), kUntagged,
                                            receiver_can_be_smi);
   InsertBefore(call, load_cid, call->env(), FlowGraph::kValue);
 
   auto dispatch_table_call = DispatchTableCallInstr::FromCall(
-      Z, call, new (Z) Value(load_cid), selector);
+      Z, call, new (Z) Value(load_cid), interface_target, selector);
   call->ReplaceWith(dispatch_table_call, current_iterator());
 }
 

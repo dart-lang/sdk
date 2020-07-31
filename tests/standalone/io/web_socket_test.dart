@@ -289,7 +289,7 @@ class SecurityConfiguration {
         request.response.close();
       });
 
-      createClient(server.port).catchError((error) {
+      Future<WebSocket?>.value(createClient(server.port)).catchError((error) {
         server.close();
       });
     });

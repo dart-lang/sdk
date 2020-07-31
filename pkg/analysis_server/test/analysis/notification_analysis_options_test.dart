@@ -59,7 +59,6 @@ main() {
 
   @override
   void setUp() {
-    generateSummaryFiles = true;
     registerLintRules();
     super.setUp();
     server.handlers = [AnalysisDomainHandler(server)];

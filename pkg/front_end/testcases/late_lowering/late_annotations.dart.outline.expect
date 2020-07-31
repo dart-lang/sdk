@@ -1,0 +1,115 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Annotation extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::Annotation
+    : super core::Object::•()
+    ;
+}
+class A extends core::Object {
+  field core::int? _#A#instanceField;
+  field core::int? _#A#finalInstanceField;
+  field core::int? _#A#finalInstanceFieldWithInitializer;
+  field core::num? _#A#covariantInstanceField;
+  static field core::int? _#staticField;
+  static field core::int? _#finalStaticField;
+  static field core::int? _#finalStaticFieldWithInitializer;
+  synthetic constructor •() → self::A
+    ;
+  @self::Annotation::•()
+  get instanceField() → core::int;
+  @self::Annotation::•()
+  set instanceField(core::int #t1) → void;
+  @self::Annotation::•()
+  get finalInstanceField() → core::int;
+  @self::Annotation::•()
+  set finalInstanceField(core::int #t2) → void;
+  @self::Annotation::•()
+  get finalInstanceFieldWithInitializer() → core::int;
+  @self::Annotation::•()
+  get covariantInstanceField() → core::num;
+  @self::Annotation::•()
+  set covariantInstanceField(covariant core::num #t3) → void;
+  @self::Annotation::•()
+  static get staticField() → core::int;
+  @self::Annotation::•()
+  static set staticField(core::int #t4) → void;
+  @self::Annotation::•()
+  static get finalStaticField() → core::int;
+  @self::Annotation::•()
+  static set finalStaticField(core::int #t5) → void;
+  @self::Annotation::•()
+  static get finalStaticFieldWithInitializer() → core::int;
+}
+abstract class B extends core::Object /*isMixinDeclaration*/  {
+  field core::int? _#B#instanceField;
+  field core::int? _#B#finalInstanceField;
+  field core::int? _#B#finalInstanceFieldWithInitializer;
+  field core::num? _#B#covariantInstanceField;
+  static field core::int? _#staticField;
+  static field core::int? _#finalStaticField;
+  static field core::int? _#finalStaticFieldWithInitializer;
+  @self::Annotation::•()
+  get instanceField() → core::int;
+  @self::Annotation::•()
+  set instanceField(core::int #t6) → void;
+  @self::Annotation::•()
+  get finalInstanceField() → core::int;
+  @self::Annotation::•()
+  set finalInstanceField(core::int #t7) → void;
+  @self::Annotation::•()
+  get finalInstanceFieldWithInitializer() → core::int;
+  @self::Annotation::•()
+  get covariantInstanceField() → core::num;
+  @self::Annotation::•()
+  set covariantInstanceField(covariant core::num #t8) → void;
+  @self::Annotation::•()
+  static get staticField() → core::int;
+  @self::Annotation::•()
+  static set staticField(core::int #t9) → void;
+  @self::Annotation::•()
+  static get finalStaticField() → core::int;
+  @self::Annotation::•()
+  static set finalStaticField(core::int #t10) → void;
+  @self::Annotation::•()
+  static get finalStaticFieldWithInitializer() → core::int;
+}
+extension Extension on self::A {
+  static field extensionStaticField = self::_#Extension|extensionStaticField;
+  static get extensionStaticField = get self::Extension|extensionStaticField;
+  static set extensionStaticField = set self::Extension|extensionStaticField;
+  static field finalExtensionStaticField = self::_#Extension|finalExtensionStaticField;
+  static get finalExtensionStaticField = get self::Extension|finalExtensionStaticField;
+  static set finalExtensionStaticField = set self::Extension|finalExtensionStaticField;
+  static field finalExtensionStaticFieldWithInitializer = self::_#Extension|finalExtensionStaticFieldWithInitializer;
+  static get finalExtensionStaticFieldWithInitializer = get self::Extension|finalExtensionStaticFieldWithInitializer;
+}
+static field core::int? _#topLevelField;
+static field core::int? _#finalTopLevelField;
+static field core::int? _#finalTopLevelFieldWithInitializer;
+static field core::int? _#Extension|extensionStaticField;
+static field core::int? _#Extension|finalExtensionStaticField;
+static field core::int? _#Extension|finalExtensionStaticFieldWithInitializer;
+@self::Annotation::•()
+static get topLevelField() → core::int;
+@self::Annotation::•()
+static set topLevelField(core::int #t11) → void;
+@self::Annotation::•()
+static get finalTopLevelField() → core::int;
+@self::Annotation::•()
+static set finalTopLevelField(core::int #t12) → void;
+@self::Annotation::•()
+static get finalTopLevelFieldWithInitializer() → core::int;
+@self::Annotation::•()
+static get Extension|extensionStaticField() → core::int;
+@self::Annotation::•()
+static set Extension|extensionStaticField(core::int #t13) → void;
+@self::Annotation::•()
+static get Extension|finalExtensionStaticField() → core::int;
+@self::Annotation::•()
+static set Extension|finalExtensionStaticField(core::int #t14) → void;
+@self::Annotation::•()
+static get Extension|finalExtensionStaticFieldWithInitializer() → core::int;
+static method main() → dynamic
+  ;

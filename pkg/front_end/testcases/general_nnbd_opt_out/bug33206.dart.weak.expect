@@ -13,12 +13,31 @@ class X extends core::Object {
     ;
   method toString() → core::String*
     return "X(${this.{self::X::x}}, ${this.{self::X::y}})";
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 class Y extends core::Object {
   synthetic constructor •() → self::Y*
     : super core::Object::•()
     ;
   method f(dynamic _) → dynamic {}
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method f1() → asy::Future<core::List<core::Object*>*>* async {
   return <core::Object*>[1];
@@ -29,7 +48,10 @@ static method f3() → asy::Future<core::Object*>* async {
   return 3;
 }
 static method foo() → asy::Future<self::X*>* async {
-  return new self::X::•(let final self::Y* #t1 = new self::Y::•() in let final void #t2 = #t1.{self::Y::f}(await self::f1()) in let final void #t3 = #t1.{self::Y::f}(self::f2()) in #t1, await self::f3());
+  return new self::X::•(let final self::Y* #t1 = new self::Y::•() in block {
+    #t1.{self::Y::f}(await self::f1());
+    #t1.{self::Y::f}(self::f2());
+  } =>#t1, await self::f3());
 }
 static method main() → asy::Future<void>* async {
   core::print(await self::foo());

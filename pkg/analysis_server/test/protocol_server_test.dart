@@ -360,6 +360,9 @@ class MockErrorCode implements engine.ErrorCode {
   bool get hasPublishedDocs => false;
 
   @override
+  bool get isIgnorable => true;
+
+  @override
   bool get isUnresolvedIdentifier => false;
 
   @override

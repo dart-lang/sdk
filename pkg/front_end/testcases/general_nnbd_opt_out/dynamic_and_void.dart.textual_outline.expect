@@ -1,0 +1,6 @@
+// @dart = 2.6
+import 'dart:core' show int;
+
+dynamic testDynamic() => 0;
+void testVoid() {}
+main() {}

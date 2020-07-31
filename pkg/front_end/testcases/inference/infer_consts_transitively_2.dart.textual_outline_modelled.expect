@@ -1,0 +1,8 @@
+library test;
+
+import 'infer_consts_transitively_2_a.dart';
+
+const m1 = a1;
+const m2 = a2;
+foo() {}
+main() {}

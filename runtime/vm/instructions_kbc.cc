@@ -13,7 +13,7 @@
 
 namespace dart {
 
-RawTypedData* KBCNativeCallPattern::GetNativeEntryDataAt(
+TypedDataPtr KBCNativeCallPattern::GetNativeEntryDataAt(
     uword pc,
     const Bytecode& bytecode) {
   ASSERT(bytecode.ContainsInstructionAt(pc));

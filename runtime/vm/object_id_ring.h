@@ -6,11 +6,11 @@
 #define RUNTIME_VM_OBJECT_ID_RING_H_
 
 #include "platform/globals.h"
+#include "vm/tagged_pointer.h"
 
 namespace dart {
 
 // Forward declarations.
-class RawObject;
 class ObjectPointerVisitor;
 class JSONStream;
 
@@ -39,15 +39,15 @@ class ObjectIdRing {
   static const int32_t kInvalidId = -1;
   static const int32_t kDefaultCapacity = 8192;
 
-  explicit ObjectIdRing(int32_t capacity = kDefaultCapacity);
+  ObjectIdRing();
   ~ObjectIdRing();
 
   // Adds the argument to the ring and returns its id. Note we do not allow
   // adding Object::null().
-  int32_t GetIdForObject(RawObject* raw_obj, IdPolicy policy = kAllocateId);
+  int32_t GetIdForObject(ObjectPtr raw_obj, IdPolicy policy = kAllocateId);
 
   // Returns Object::null() when the result is not kValid.
-  RawObject* GetObjectForId(int32_t id, LookupResult* kind);
+  ObjectPtr GetObjectForId(int32_t id, LookupResult* kind);
 
   void VisitPointers(ObjectPointerVisitor* visitor);
 
@@ -57,19 +57,19 @@ class ObjectIdRing {
   friend class ObjectIdRingTestHelper;
 
   void SetCapacityAndMaxSerial(int32_t capacity, int32_t max_serial);
-  int32_t FindExistingIdForObject(RawObject* raw_obj);
+  int32_t FindExistingIdForObject(ObjectPtr raw_obj);
 
-  RawObject** table_;
+  ObjectPtr* table_;
   int32_t max_serial_;
   int32_t capacity_;
   int32_t serial_num_;
   bool wrapped_;
 
-  RawObject** table() { return table_; }
+  ObjectPtr* table() { return table_; }
   int32_t table_size() { return capacity_; }
 
   int32_t NextSerial();
-  int32_t AllocateNewId(RawObject* object);
+  int32_t AllocateNewId(ObjectPtr object);
   int32_t IndexOfId(int32_t id);
   int32_t IdOfIndex(int32_t index);
   bool IsValidContiguous(int32_t id);

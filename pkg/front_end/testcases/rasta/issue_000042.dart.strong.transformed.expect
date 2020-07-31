@@ -22,7 +22,6 @@ library;
 //
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 static method main() → dynamic {
   {
@@ -30,7 +29,7 @@ static method main() → dynamic {
   for (var x, y in []) {}
        ^^^";
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(<dynamic>[]).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t1 = :sync-for-iterator.{core::Iterator::current};
         {

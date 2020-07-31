@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.core;
 
 /**
@@ -122,8 +120,8 @@ const Object override = _Override();
  */
 @deprecated
 class Provisional {
-  String get message => null;
-  const Provisional({String message});
+  String? get message => null;
+  const Provisional({String? message});
 }
 
 /**
@@ -233,10 +231,10 @@ class pragma {
   final String name;
 
   /** Optional extra data parameterizing the hint. */
-  final Object options;
+  final Object? options;
 
   /** Creates a hint named [name] with optional [options]. */
-  const factory pragma(String name, [Object options]) = pragma._;
+  const factory pragma(String name, [Object? options]) = pragma._;
 
   const pragma._(this.name, [this.options]);
 }

@@ -100,12 +100,8 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
       break;
     case 'constants':
       final VmConstantsBackend backend = new VmConstantsBackend(coreTypes);
-      component = constants.transformComponent(
-          component,
-          backend,
-          defines,
-          const constants.SimpleErrorReporter(),
-          constants.EvaluationMode.legacy);
+      component = constants.transformComponent(component, backend, defines,
+          const constants.SimpleErrorReporter(), constants.EvaluationMode.weak);
       break;
     case 'empty':
       component = empty.transformComponent(component);

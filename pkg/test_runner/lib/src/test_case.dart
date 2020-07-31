@@ -331,7 +331,6 @@ class RunningProcess {
                 "$maxStdioDelayPassedMessage (command: $command)");
             await stdout.cancel();
             await stderr.cancel();
-            _commandComplete(exitCode);
             return null;
           }).then((_) {
             if (stdout is FileOutputLog) {

@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
-  group('pub', pub);
+  group('pub', pub, timeout: longTimeout);
 }
 
 void pub() {
@@ -32,6 +32,44 @@ void pub() {
     expect(result.stdout, contains('Pub is a package manager for Dart'));
     expect(result.stdout, contains('Available commands:'));
     expect(result.stderr, isEmpty);
+  });
+
+  test('--enable-experiment pub run', () {
+    p = project();
+    p.file('bin/main.dart',
+        "void main() { int a; a = null; print('a is \$a.'); }");
+
+    // run 'pub get'
+    p.runSync('pub', ['get']);
+
+    var result = p.runSync(
+        '--enable-experiment=non-nullable', ['pub', 'run', 'main.dart']);
+
+    expect(result.exitCode, 254);
+    expect(result.stdout, isEmpty);
+    expect(
+        result.stderr,
+        contains("A value of type 'Null' can't be assigned to a variable of "
+            "type 'int'"));
+  });
+
+  test('pub run --enable-experiment', () {
+    p = project();
+    p.file('bin/main.dart',
+        "void main() { int a; a = null; print('a is \$a.'); }");
+
+    // run 'pub get'
+    p.runSync('pub', ['get']);
+
+    var result = p.runSync(
+        'pub', ['run', '--enable-experiment=non-nullable', 'main.dart']);
+
+    expect(result.exitCode, 254);
+    expect(result.stdout, isEmpty);
+    expect(
+        result.stderr,
+        contains("A value of type 'Null' can't be assigned to a variable of "
+            "type 'int'"));
   });
 
   test('failure', () {

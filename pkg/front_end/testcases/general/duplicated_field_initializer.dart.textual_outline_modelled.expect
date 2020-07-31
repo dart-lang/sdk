@@ -1,0 +1,7 @@
+class A {
+  A(this.a);
+  int a;
+  int a;
+}
+
+void main() {}

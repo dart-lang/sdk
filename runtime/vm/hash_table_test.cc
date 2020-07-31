@@ -32,7 +32,7 @@ class TestTraits {
            String::Cast(a).Equals(String::Cast(b));
   }
   static uword Hash(const Object& obj) { return String::Cast(obj).Length(); }
-  static RawObject* NewKey(const char* key) { return String::New(key); }
+  static ObjectPtr NewKey(const char* key) { return String::New(key); }
 };
 
 template <typename Table>

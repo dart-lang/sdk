@@ -1,0 +1,9 @@
+// @dart = 2.6
+var x = new C._circular(null);
+
+class C {
+  var f = new C._circular(null);
+  C._circular(this.f);
+}
+
+main() {}

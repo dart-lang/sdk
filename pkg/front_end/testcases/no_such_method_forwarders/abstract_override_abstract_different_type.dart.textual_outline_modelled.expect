@@ -1,0 +1,14 @@
+class Base {
+  noSuchMethod(i) => print("${runtimeType}: ${i.positionalArguments[0]}");
+  set float(covariant int x);
+  set push(int x);
+}
+
+class Me extends Base {}
+
+class You extends Base {
+  set float(num x);
+  set push(num x);
+}
+
+main() {}

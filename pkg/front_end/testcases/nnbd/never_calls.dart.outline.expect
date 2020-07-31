@@ -1,0 +1,16 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method propertyGet(Never never) → dynamic
+  ;
+static method propertySet(Never never) → dynamic
+  ;
+static method methodInvocation(Never never, core::Invocation invocation) → dynamic
+  ;
+static method equals(Never never) → dynamic
+  ;
+static method operator(Never never) → dynamic
+  ;
+static method main() → dynamic
+  ;

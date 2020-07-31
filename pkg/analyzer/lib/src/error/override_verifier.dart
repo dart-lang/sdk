@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -13,7 +12,7 @@ import 'package:analyzer/src/error/codes.dart';
 /// Instances of the class `OverrideVerifier` visit all of the declarations in a
 /// compilation unit to verify that if they have an override annotation it is
 /// being used correctly.
-class OverrideVerifier extends RecursiveAstVisitor {
+class OverrideVerifier extends RecursiveAstVisitor<void> {
   /// The inheritance manager used to find overridden methods.
   final InheritanceManager3 _inheritance;
 
@@ -24,21 +23,21 @@ class OverrideVerifier extends RecursiveAstVisitor {
   final ErrorReporter _errorReporter;
 
   /// The current class or mixin.
-  InterfaceType _currentType;
+  ClassElement _currentClass;
 
   OverrideVerifier(
       this._inheritance, LibraryElement library, this._errorReporter)
       : _libraryUri = library.source.uri;
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
-    _currentType = node.declaredElement.thisType;
+  void visitClassDeclaration(ClassDeclaration node) {
+    _currentClass = node.declaredElement;
     super.visitClassDeclaration(node);
-    _currentType = null;
+    _currentClass = null;
   }
 
   @override
-  visitFieldDeclaration(FieldDeclaration node) {
+  void visitFieldDeclaration(FieldDeclaration node) {
     for (VariableDeclaration field in node.fields.variables) {
       FieldElement fieldElement = field.declaredElement;
       if (fieldElement.hasOverride) {
@@ -57,7 +56,7 @@ class OverrideVerifier extends RecursiveAstVisitor {
   }
 
   @override
-  visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement element = node.declaredElement;
     if (element.hasOverride && !_isOverride(element)) {
       if (element is MethodElement) {
@@ -82,15 +81,15 @@ class OverrideVerifier extends RecursiveAstVisitor {
   }
 
   @override
-  visitMixinDeclaration(MixinDeclaration node) {
-    _currentType = node.declaredElement.thisType;
+  void visitMixinDeclaration(MixinDeclaration node) {
+    _currentClass = node.declaredElement;
     super.visitMixinDeclaration(node);
-    _currentType = null;
+    _currentClass = null;
   }
 
   /// Return `true` if the [member] overrides a member from a superinterface.
   bool _isOverride(ExecutableElement member) {
     var name = Name(_libraryUri, member.name);
-    return _inheritance.getOverridden(_currentType, name) != null;
+    return _inheritance.getOverridden2(_currentClass, name) != null;
   }
 }

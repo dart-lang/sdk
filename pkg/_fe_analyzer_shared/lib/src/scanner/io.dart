@@ -17,7 +17,7 @@ List<int> readBytesFromFileSync(Uri uri) {
     int length = file.lengthSync();
     // +1 to have a 0 terminated list, see [Scanner].
     list = new Uint8List(length + 1);
-    file.readIntoSync(list, 0, length);
+    file.readIntoSync(list, /* start = */ 0, length);
   } finally {
     file.closeSync();
   }

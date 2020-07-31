@@ -56,7 +56,7 @@ class DevCompilerRunner implements CompilerRunner {
     var sdkJsFile = findInOutDir('gen/utils/dartdevc/kernel/es6/dart_sdk.js');
     var jsSdkPath = sdkJsFile.uri;
 
-    var ddcSdkSummary = findInOutDir('ddc_sdk.dill');
+    var ddcSdkSummary = findInOutDir('ddc_outline.dill');
 
     var args = <String>[
       "--packages=${sdkRoot.uri.resolve(".packages").toFilePath()}",

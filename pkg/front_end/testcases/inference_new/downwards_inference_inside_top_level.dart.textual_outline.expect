@@ -1,0 +1,12 @@
+library test;
+
+class A {
+  B<int> b;
+}
+
+class B<T> {
+  B(T x);
+}
+
+var t3 = [new B(3)];
+main() {}

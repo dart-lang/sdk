@@ -75,9 +75,9 @@ class _ContentCssRect extends CssRect {
 class _ContentCssListRect extends _ContentCssRect {
   List<Element> _elementList;
 
-  _ContentCssListRect(List<Element> elementList) : super(elementList.first) {
-    _elementList = elementList;
-  }
+  _ContentCssListRect(List<Element> elementList)
+      : _elementList = elementList,
+        super(elementList.first);
 
   /**
    * Set the height to `newHeight`.
@@ -299,7 +299,7 @@ abstract class CssRect implements Rectangle<num> {
    * Returns the intersection of this and `other`, or `null` if they don't
    * intersect.
    */
-  Rectangle<num> intersection(Rectangle<num> other) {
+  Rectangle<num>? intersection(Rectangle<num> other) {
     var x0 = max(left, other.left);
     var x1 = min(left + width, other.left + other.width);
 

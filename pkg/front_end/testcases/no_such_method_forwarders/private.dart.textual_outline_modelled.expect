@@ -1,0 +1,15 @@
+library private;
+
+import './private_module.dart' show Fisk;
+
+abstract class Foo {
+  dynamic noSuchMethod(Invocation invocation) => 42;
+}
+
+class Bar extends Foo implements Fisk {}
+
+class Baz extends Foo implements Fisk {
+  _hest() => null;
+}
+
+main() {}

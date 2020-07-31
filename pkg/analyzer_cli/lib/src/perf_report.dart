@@ -43,7 +43,6 @@ String makePerfReport(int startTime, int endTime, CommandLineOptions options,
     'showPackageWarningsPrefix': options.showPackageWarningsPrefix,
     'showSdkWarnings': options.showSdkWarnings,
     'definedVariables': options.definedVariables,
-    'packageRootPath': options.packageRootPath,
     'packageConfigPath': options.packageConfigPath,
     'sourceFiles': options.sourceFiles,
   };

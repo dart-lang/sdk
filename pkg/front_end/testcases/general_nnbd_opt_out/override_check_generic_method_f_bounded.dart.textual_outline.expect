@@ -1,0 +1,13 @@
+// @dart = 2.6
+class Foo<T extends Foo<T>> {}
+
+abstract class Bar {
+  void fisk<S extends Foo<S>>();
+}
+
+class Hest implements Bar {
+  @override
+  void fisk<U extends Foo<U>>() {}
+}
+
+void main() {}

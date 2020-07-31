@@ -14,7 +14,7 @@
 import 'dart:typed_data';
 
 main() {
-  final List<List> arrays = [];
+  final List<List?> arrays = [];
   // Fill up heap with alternate large-small items.
   for (int i = 0; i < 500000; i++) {
     arrays.add(new Uint32List(260));

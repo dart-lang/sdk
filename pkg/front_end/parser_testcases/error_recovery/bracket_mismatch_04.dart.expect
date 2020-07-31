@@ -1,0 +1,64 @@
+Problems reported:
+
+parser/error_recovery/bracket_mismatch_04:2:15: Expected ';' after this.
+  foo(() {bar());});
+              ^
+
+parser/error_recovery/bracket_mismatch_04:2:16: Expected an identifier, but got ')'.
+  foo(() {bar());});
+               ^
+
+parser/error_recovery/bracket_mismatch_04:2:16: Expected ';' after this.
+  foo(() {bar());});
+               ^
+
+parser/error_recovery/bracket_mismatch_04:2:16: Unexpected token ';'.
+  foo(() {bar());});
+               ^
+
+beginCompilationUnit(void)
+  beginMetadataStar(void)
+  endMetadataStar(0)
+  beginTopLevelMember(void)
+    beginTopLevelMethod(, null)
+      handleVoidKeyword(void)
+      handleIdentifier(foo, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        handleIdentifier(foo, expression)
+        handleNoTypeArguments(()
+        beginArguments(()
+          handleNoTypeVariables(()
+          beginFunctionExpression(()
+            beginFormalParameters((, MemberKind.Local)
+            endFormalParameters(0, (, ), MemberKind.Local)
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+              handleIdentifier(bar, expression)
+              handleNoTypeArguments(()
+              beginArguments(()
+              endArguments(0, (, ))
+              handleSend(bar, ))
+              handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], ), ))
+              handleExpressionStatement(;)
+              handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ')'., null, {token: )}], ), ))
+              handleIdentifier(, expression)
+              handleNoTypeArguments())
+              handleNoArguments())
+              handleSend(, ))
+              handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], ), ))
+              handleExpressionStatement(;)
+              handleRecoverableError(Message[UnexpectedToken, Unexpected token ';'., null, {token: ;}], ), ))
+              handleEmptyStatement(;)
+            endBlockFunctionBody(3, {, })
+          endFunctionExpression((, ))
+        endArguments(1, (, ))
+        handleSend(foo, ;)
+        handleExpressionStatement(;)
+      endBlockFunctionBody(1, {, })
+    endTopLevelMethod(void, null, })
+  endTopLevelDeclaration()
+endCompilationUnit(1, )

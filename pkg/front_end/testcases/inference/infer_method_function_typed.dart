@@ -21,7 +21,7 @@ abstract class B extends A {
 T f<T>() => null;
 
 g(B b) {
-  b. /*@target=B::x*/ x(/*@ typeArgs=() ->* dynamic */ f());
+  b. /*@target=B.x*/ x(/*@ typeArgs=() ->* dynamic */ f());
 }
 
 main() {}

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.core;
 
 /**
@@ -13,15 +11,15 @@ class Stopwatch {
   /**
    * Cached frequency of the system in Hz (ticks per second).
    *
-   * Must be initialized in [_initTicker];
+   * Value must be returned by [_initTicker], which is called only once.
    */
-  static int _frequency;
+  static final int _frequency = _initTicker();
 
   // The _start and _stop fields capture the time when [start] and [stop]
   // are called respectively.
   // If _stop is null, the stopwatch is running.
   int _start = 0;
-  int _stop = 0;
+  int? _stop = 0;
 
   /**
    * Creates a [Stopwatch] in stopped state with a zero elapsed count.
@@ -33,7 +31,7 @@ class Stopwatch {
    * ```
    */
   Stopwatch() {
-    if (_frequency == null) _initTicker();
+    _frequency; // Ensures initialization before using any method.
   }
 
   /**
@@ -51,10 +49,11 @@ class Stopwatch {
    * If the [Stopwatch] is currently running, then calling start does nothing.
    */
   void start() {
-    if (_stop != null) {
+    int? stop = _stop;
+    if (stop != null) {
       // (Re)start this stopwatch.
       // Don't count the time while the stopwatch has been stopped.
-      _start += _now() - _stop;
+      _start += _now() - stop;
       _stop = null;
     }
   }
@@ -117,9 +116,9 @@ class Stopwatch {
   bool get isRunning => _stop == null;
 
   /**
-   * Initializes the time-measuring system. *Must* initialize the [_frequency]
-   * variable.
+   * Initializes the time-measuring system. *Must* return the [_frequency]
+   * variable. May do other necessary initialization.
    */
-  external static void _initTicker();
+  external static int _initTicker();
   external static int _now();
 }

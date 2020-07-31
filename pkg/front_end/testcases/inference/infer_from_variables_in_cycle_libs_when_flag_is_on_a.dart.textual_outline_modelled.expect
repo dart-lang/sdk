@@ -1,0 +1,4 @@
+import 'infer_from_variables_in_cycle_libs_when_flag_is_on2.dart';
+
+main() {}
+var x = 2;

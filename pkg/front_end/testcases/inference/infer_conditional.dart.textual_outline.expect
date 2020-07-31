@@ -1,0 +1,5 @@
+library test;
+
+var a = 1 == 2 ? 1 : 2.0;
+var b = 1 == 2 ? 1.0 : 2;
+main() {}

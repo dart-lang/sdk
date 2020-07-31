@@ -108,8 +108,8 @@ void performFastaChecks(
     List<SubtypeCheck> checks, ClassHierarchyBuilder hierarchy) {
   for (int i = 0; i < checks.length; i++) {
     SubtypeCheck check = checks[i];
-    bool isSubtype = hierarchy.types.isSubtypeOfKernel(
-        check.s, check.t, SubtypeCheckMode.ignoringNullabilities);
+    bool isSubtype = hierarchy.types
+        .isSubtypeOf(check.s, check.t, SubtypeCheckMode.ignoringNullabilities);
     if (isSubtype != check.isSubtype) {
       throw "Check failed: $check";
     }

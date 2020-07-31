@@ -105,7 +105,7 @@ class CompletionResolveHandler
         if (requestedElement == null) {
           return error(
             ErrorCodes.InvalidParams,
-            'No such element: $requestedName',
+            'No such element: $requestedName in ${library.uriStr}',
             requestedName,
           );
         }

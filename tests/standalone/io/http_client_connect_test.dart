@@ -55,7 +55,9 @@ void testGetDataRequest() {
 void testGetInvalidHost() {
   asyncStart();
   var client = new HttpClient();
-  client.get("__SOMETHING_INVALID__", 8888, "/").catchError((error) {
+  Future<HttpClientRequest?>.value(
+          client.get("__SOMETHING_INVALID__", 8888, "/"))
+      .catchError((error) {
     client.close();
     asyncEnd();
   });
@@ -283,6 +285,29 @@ void testMaxConnectionsPerHost(int connectionCap, int connections) {
   });
 }
 
+Future<void> testMaxConnectionsWithFailure() async {
+  // When DNS lookup failed, counter for connecting doesn't decrement which
+  // prevents the following connections.
+  final client = HttpClient();
+  client.maxConnectionsPerHost = 1;
+  try {
+    await client.getUrl(Uri.parse('http://domain.invalid'));
+  } catch (e) {
+    if (e is! SocketException) {
+      Expect.fail("Unexpected exception $e is thrown");
+    }
+  }
+  try {
+    await client.getUrl(Uri.parse('http://domain.invalid'));
+    Expect.fail("Calls exceed client's maxConnectionsPerHost should throw "
+        "exceptions as well");
+  } catch (e) {
+    if (e is! SocketException) {
+      Expect.fail("Unexpected exception $e is thrown");
+    }
+  }
+}
+
 void main() {
   testGetEmptyRequest();
   testGetDataRequest();
@@ -298,4 +323,5 @@ void main() {
   testMaxConnectionsPerHost(1, 10);
   testMaxConnectionsPerHost(5, 10);
   testMaxConnectionsPerHost(10, 50);
+  testMaxConnectionsWithFailure();
 }

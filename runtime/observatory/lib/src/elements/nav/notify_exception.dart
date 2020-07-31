@@ -5,7 +5,7 @@
 import 'dart:html';
 import 'dart:async';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/models.dart' show ConnectionException;
 
@@ -17,9 +17,7 @@ class ExceptionDeleteEvent {
 }
 
 class NavNotifyExceptionElement extends CustomElement implements Renderable {
-  static const tag = const Tag<NavNotifyExceptionElement>('nav-exception');
-
-  RenderingScheduler _r;
+  RenderingScheduler<NavNotifyExceptionElement> _r;
 
   Stream<RenderedEvent<NavNotifyExceptionElement>> get onRendered =>
       _r.onRendered;
@@ -44,7 +42,7 @@ class NavNotifyExceptionElement extends CustomElement implements Renderable {
     return e;
   }
 
-  NavNotifyExceptionElement.created() : super.created(tag);
+  NavNotifyExceptionElement.created() : super.created('nav-exception');
 
   @override
   void attached() {

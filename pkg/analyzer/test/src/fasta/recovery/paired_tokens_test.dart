@@ -17,10 +17,8 @@ main() {
   });
 }
 
-/**
- * Test how well the parser recovers when angle brackets (`<` and `>`) are
- * mismatched.
- */
+/// Test how well the parser recovers when angle brackets (`<` and `>`) are
+/// mismatched.
 @reflectiveTest
 class AngleBracketsTest extends AbstractRecoveryTest {
   @failingTest
@@ -160,9 +158,7 @@ f<T extends List<int>>() => null;
   }
 }
 
-/**
- * Test how well the parser recovers when curly braces are mismatched.
- */
+/// Test how well the parser recovers when curly braces are mismatched.
 @reflectiveTest
 class BracesTest extends AbstractRecoveryTest {
   void test_statement_if_last() {
@@ -238,9 +234,7 @@ int y = 0;
   }
 }
 
-/**
- * Test how well the parser recovers when square brackets are mismatched.
- */
+/// Test how well the parser recovers when square brackets are mismatched.
 @reflectiveTest
 class BracketsTest extends AbstractRecoveryTest {
   void test_indexOperator() {
@@ -294,9 +288,7 @@ var x = [0, 1];
   }
 }
 
-/**
- * Test how well the parser recovers when parentheses are mismatched.
- */
+/// Test how well the parser recovers when parentheses are mismatched.
 @reflectiveTest
 class ParenthesesTest extends AbstractRecoveryTest {
   @failingTest

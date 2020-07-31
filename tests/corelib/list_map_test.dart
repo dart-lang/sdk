@@ -115,7 +115,7 @@ void testOperations() {
     testOp((i) => i.every((n) => n < 5), "every<5");
     testOp((i) => i.every((n) => n < 10), "every<10");
     testOp((i) => i.reduce((a, b) => a + b), "reduce-sum");
-    testOp((i) => i.fold/*<int>*/(0, (a, b) => a + b), "fold-sum");
+    testOp((i) => i.fold<int>(0, (a, b) => a + b), "fold-sum");
     testOp((i) => i.join("-"), "join-");
     testOp((i) => i.join(""), "join");
     testOp((i) => i.join(), "join-null");

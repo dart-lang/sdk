@@ -37,6 +37,6 @@ G bar() => new H();
 // bar().foo resolves to G::foo, which is inherited from E::foo, so its return
 // type is B.  Note that the target is annotated as G::foo, since that is the
 // forwarding stub.
-var x = bar(). /*@target=G::foo*/ foo();
+var x = bar(). /*@target=G.foo*/ foo();
 
 main() {}

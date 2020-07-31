@@ -5,13 +5,8 @@
 import 'package:kernel/ast.dart';
 
 /// Wraps the initializers of late local variables in closures.
-void transformLibraries(List<Library> libraries) {
-  const transformer = _LateVarInitTransformer();
-  libraries.forEach(transformer.visitLibrary);
-}
-
-class _LateVarInitTransformer extends Transformer {
-  const _LateVarInitTransformer();
+class LateVarInitTransformer {
+  const LateVarInitTransformer();
 
   bool _shouldApplyTransform(Statement s) {
     if (s is VariableDeclaration) {
@@ -65,17 +60,13 @@ class _LateVarInitTransformer extends Transformer {
     return newStatements;
   }
 
-  @override
-  visitBlock(Block node) {
-    super.visitBlock(node);
+  Block transformBlock(Block node) {
     final statements = _transformStatements(node.statements);
     if (statements == null) return node;
     return Block(statements)..fileOffset = node.fileOffset;
   }
 
-  @override
-  visitAssertBlock(AssertBlock node) {
-    super.visitAssertBlock(node);
+  AssertBlock transformAssertBlock(AssertBlock node) {
     final statements = _transformStatements(node.statements);
     if (statements == null) return node;
     return AssertBlock(statements)..fileOffset = node.fileOffset;

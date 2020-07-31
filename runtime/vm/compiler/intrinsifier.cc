@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Class for intrinsifying functions.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/intrinsifier.h"
 
 #include "vm/compiler/assembler/assembler.h"
@@ -76,7 +74,6 @@ bool Intrinsifier::CanIntrinsify(const Function& function) {
   return true;
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 struct IntrinsicDesc {
   const char* class_name;
   const char* function_name;
@@ -114,6 +111,11 @@ static IntrinsicDesc developer_intrinsics[] = {
   DEVELOPER_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
   {nullptr, nullptr},
 };
+
+static IntrinsicDesc internal_intrinsics[] = {
+  INTERNAL_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
+  {nullptr, nullptr},
+};
 // clang-format on
 
 void Intrinsifier::InitializeState() {
@@ -126,7 +128,7 @@ void Intrinsifier::InitializeState() {
   String& str2 = String::Handle(zone);
   Error& error = Error::Handle(zone);
 
-  static const intptr_t kNumLibs = 4;
+  static const intptr_t kNumLibs = 5;
   LibraryInstrinsicsDesc intrinsics[kNumLibs] = {
       {Library::Handle(zone, Library::CoreLibrary()), core_intrinsics},
       {Library::Handle(zone, Library::MathLibrary()), math_intrinsics},
@@ -134,6 +136,7 @@ void Intrinsifier::InitializeState() {
        typed_data_intrinsics},
       {Library::Handle(zone, Library::DeveloperLibrary()),
        developer_intrinsics},
+      {Library::Handle(zone, Library::InternalLibrary()), internal_intrinsics},
   };
 
   for (intptr_t i = 0; i < kNumLibs; i++) {
@@ -172,7 +175,6 @@ void Intrinsifier::InitializeState() {
   }
 #undef SETUP_FUNCTION
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 // Returns true if fall-through code can be omitted.
 bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
@@ -238,5 +240,3 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
 
 }  // namespace compiler
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

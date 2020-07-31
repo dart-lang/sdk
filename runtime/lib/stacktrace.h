@@ -5,10 +5,11 @@
 #ifndef RUNTIME_LIB_STACKTRACE_H_
 #define RUNTIME_LIB_STACKTRACE_H_
 
+#include "vm/tagged_pointer.h"
+
 namespace dart {
 
 class StackTrace;
-class RawStackTrace;
 
 // Creates a StackTrace object from the current stack.  Skips the
 // first skip_frames Dart frames.
@@ -18,7 +19,7 @@ class RawStackTrace;
 const StackTrace& GetCurrentStackTrace(int skip_frames);
 
 // Creates a StackTrace object to be attached to an exception.
-RawStackTrace* GetStackTraceForException();
+StackTracePtr GetStackTraceForException();
 
 }  // namespace dart
 

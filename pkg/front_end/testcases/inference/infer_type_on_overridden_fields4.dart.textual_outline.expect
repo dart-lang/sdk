@@ -1,0 +1,12 @@
+library test;
+
+class A {
+  final int x = 2;
+}
+
+class B implements A {
+  get x => 3;
+}
+
+foo() {}
+main() {}

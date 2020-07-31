@@ -33,7 +33,8 @@ if (is_linux && dart_use_debian_sysroot) {
   }
 }
 
-if (current_toolchain == default_toolchain && target_sysroot != "") {
+if ((current_toolchain == host_toolchain ||
+     current_toolchain == default_toolchain) && target_sysroot != "") {
   sysroot = target_sysroot
 } else if (is_android) {
   import("//build/config/android/config.gni")

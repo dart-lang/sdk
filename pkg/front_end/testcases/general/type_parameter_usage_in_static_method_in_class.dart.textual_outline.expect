@@ -1,0 +1,24 @@
+class Foo<U> {
+  static U foo1() {}
+  static List<U> foo1Prime() {}
+  static void foo2(U x) {}
+  static void foo2Prime(List<U> x) {}
+  static void foo3() {}
+  static U Function() foo8() {}
+  static List<U> Function() foo8Prime() {}
+  static void Function(U) foo9() {}
+  static void Function(List<U>) foo9Prime() {}
+  static void foo10(U Function()) {}
+  static void foo10Prime(List<U> Function()) {}
+  static void foo11(void Function(U)) {}
+  static void foo12(void Function(U) b) {}
+  static void foo12Prime(void Function(List<U>) b) {}
+  static void foo13(void Function(U b)) {}
+  static void foo13Prime(void Function(List<U> b)) {}
+  static U foo14 = null;
+  static List<U> foo14Prime = null;
+  static U Function(U) foo15 = null;
+  static List<U> Function(List<U>) foo15Prime = null;
+}
+
+main() {}

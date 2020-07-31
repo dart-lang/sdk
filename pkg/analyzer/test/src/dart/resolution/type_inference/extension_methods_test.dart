@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../driver_resolution.dart';
@@ -17,11 +15,6 @@ main() {
 
 @reflectiveTest
 class ExtensionMethodsTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
-
   test_implicit_getter() async {
     await assertNoErrorsInCode('''
 class A<T> {}
@@ -69,6 +62,25 @@ void f(A<int> a) {
 //    );
     assertInvokeType(invocation, 'Map<int, double> Function(double)');
     assertType(invocation, 'Map<int, double>');
+  }
+
+  test_implicit_method_internal() async {
+    await assertNoErrorsInCode(r'''
+extension E<T> on List<T> {
+  List<T> foo() => this;
+  List<T> bar(List<T> other) => other.foo();
+}
+''');
+    assertMethodInvocation2(
+      findNode.methodInvocation('other.foo()'),
+      element: elementMatcher(
+        findElement.method('foo'),
+        substitution: {'T': 'T'},
+      ),
+      typeArgumentTypes: [],
+      invokeType: 'List<T> Function()',
+      type: 'List<T>',
+    );
   }
 
   test_implicit_method_onTypeParameter() async {

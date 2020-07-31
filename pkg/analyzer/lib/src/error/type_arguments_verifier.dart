@@ -12,6 +12,8 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart';
@@ -189,10 +191,8 @@ class TypeArgumentsVerifier {
     }
   }
 
-  /**
-   * Verify that the type arguments in the given [typeName] are all within
-   * their bounds.
-   */
+  /// Verify that the type arguments in the given [typeName] are all within
+  /// their bounds.
   void _checkForTypeArgumentNotMatchingBounds(TypeName typeName) {
     var element = typeName.name.staticElement;
     var type = typeName.type;
@@ -254,12 +254,10 @@ class TypeArgumentsVerifier {
     }
   }
 
-  /**
-   * Checks to ensure that the given list of type [arguments] does not have a
-   * type parameter as a type argument. The [errorCode] is either
-   * [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST] or
-   * [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP].
-   */
+  /// Checks to ensure that the given list of type [arguments] does not have a
+  /// type parameter as a type argument. The [errorCode] is either
+  /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST] or
+  /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP].
   void _checkTypeArgumentConst(
       NodeList<TypeAnnotation> arguments, ErrorCode errorCode) {
     for (TypeAnnotation type in arguments) {
@@ -287,10 +285,8 @@ class TypeArgumentsVerifier {
     }
   }
 
-  /**
-   * Verify that the given [typeArguments] are all within their bounds, as
-   * defined by the given [element].
-   */
+  /// Verify that the given [typeArguments] are all within their bounds, as
+  /// defined by the given [element].
   void _checkTypeArguments(InvocationExpression node) {
     NodeList<TypeAnnotation> typeArgumentList = node.typeArguments?.arguments;
     if (typeArgumentList == null) {
@@ -359,7 +355,7 @@ class TypeArgumentsVerifier {
   /// This function will return false if any of the following are true:
   ///
   /// - [inferenceContextNode] has an inference context type that does not
-  ///   contain `?`
+  ///   contain `_`
   /// - [type] does not have any `dynamic` type arguments.
   /// - the element is marked with `@optionalTypeArgs` from "package:meta".
   bool _isMissingTypeArguments(AstNode node, DartType type, Element element,

@@ -1,0 +1,13 @@
+library test;
+
+class Resource {}
+
+class Folder extends Resource {}
+
+Resource getResource(String str) => null;
+
+class Foo<T> {
+  Foo(T t);
+}
+
+main() {}

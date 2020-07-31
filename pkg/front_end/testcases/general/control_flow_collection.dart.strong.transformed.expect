@@ -1,7 +1,6 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 import "dart:collection" as col;
 
 static method main() → dynamic {
@@ -18,14 +17,14 @@ static method main() → dynamic {
       if(self::oracle() as{TypeError,ForDynamic} core::bool*)
         #t1.{core::List::add}(4);
     {
-      core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int*>[5, 6, 7]).{core::Iterable::iterator};
+      core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[5, 6, 7].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         core::int* i = :sync-for-iterator.{core::Iterator::current};
         #t1.{core::List::add}(i);
       }
     }
     {
-      core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int*>[8, 9, 10]).{core::Iterable::iterator};
+      core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[8, 9, 10].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         core::int* i = :sync-for-iterator.{core::Iterator::current};
         if(self::oracle() as{TypeError,ForDynamic} core::bool*)
@@ -48,14 +47,14 @@ static method main() → dynamic {
       if(self::oracle() as{TypeError,ForDynamic} core::bool*)
         #t2.{core::Set::add}(4);
     {
-      core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int*>[5, 6, 7]).{core::Iterable::iterator};
+      core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[5, 6, 7].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         core::int* i = :sync-for-iterator.{core::Iterator::current};
         #t2.{core::Set::add}(i);
       }
     }
     {
-      core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int*>[8, 9, 10]).{core::Iterable::iterator};
+      core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[8, 9, 10].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         core::int* i = :sync-for-iterator.{core::Iterator::current};
         if(self::oracle() as{TypeError,ForDynamic} core::bool*)
@@ -78,14 +77,14 @@ static method main() → dynamic {
       if(self::oracle() as{TypeError,ForDynamic} core::bool*)
         #t3.{core::Map::[]=}(4, 4);
     {
-      core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int*>[5, 6, 7]).{core::Iterable::iterator};
+      core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[5, 6, 7].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         core::int* i = :sync-for-iterator.{core::Iterator::current};
         #t3.{core::Map::[]=}(i, i);
       }
     }
     {
-      core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int*>[8, 9, 10]).{core::Iterable::iterator};
+      core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[8, 9, 10].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         core::int* i = :sync-for-iterator.{core::Iterator::current};
         if(self::oracle() as{TypeError,ForDynamic} core::bool*)

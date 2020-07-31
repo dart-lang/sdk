@@ -46,19 +46,19 @@ abstract class SpellContext extends ChainContext {
 
   List<spell.Dictionaries> get dictionaries;
 
-  bool get onlyBlacklisted;
+  bool get onlyDenylisted;
 
   Set<String> reportedWords = {};
-  Set<String> reportedWordsBlacklisted = {};
+  Set<String> reportedWordsDenylisted = {};
 
   @override
   Future<void> postRun() {
-    if (reportedWordsBlacklisted.isNotEmpty) {
+    if (reportedWordsDenylisted.isNotEmpty) {
       print("\n\n\n");
       print("================");
-      print("The following words was reported as used and blacklisted:");
+      print("The following words was reported as used and denylisted:");
       print("----------------");
-      for (String s in reportedWordsBlacklisted) {
+      for (String s in reportedWordsDenylisted) {
         print("$s");
       }
       print("================");
@@ -184,12 +184,12 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
     Source source = new Source(
         scanner.lineStarts, rawBytes, description.uri, description.uri);
     void addErrorMessage(
-        int offset, String word, bool blacklisted, List<String> alternatives) {
+        int offset, String word, bool denylisted, List<String> alternatives) {
       errors ??= new List<String>();
       String message;
-      if (blacklisted) {
-        message = "Misspelled word: '$word' has explicitly been blacklisted.";
-        context.reportedWordsBlacklisted.add(word);
+      if (denylisted) {
+        message = "Misspelled word: '$word' has explicitly been denylisted.";
+        context.reportedWordsDenylisted.add(word);
       } else {
         message = "The word '$word' is not in our dictionary.";
         context.reportedWords.add(word);
@@ -230,12 +230,12 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
               dictionaries: context.dictionaries);
           if (spellingResult.misspelledWords != null) {
             for (int i = 0; i < spellingResult.misspelledWords.length; i++) {
-              bool blacklisted = spellingResult.misspelledWordsBlacklisted[i];
-              if (context.onlyBlacklisted && !blacklisted) continue;
+              bool denylisted = spellingResult.misspelledWordsDenylisted[i];
+              if (context.onlyDenylisted && !denylisted) continue;
               int offset =
                   comment.offset + spellingResult.misspelledWordsOffset[i];
               addErrorMessage(offset, spellingResult.misspelledWords[i],
-                  blacklisted, spellingResult.misspelledWordsAlternatives[i]);
+                  denylisted, spellingResult.misspelledWordsAlternatives[i]);
             }
           }
           comment = comment.next;
@@ -248,11 +248,11 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
             dictionaries: context.dictionaries);
         if (spellingResult.misspelledWords != null) {
           for (int i = 0; i < spellingResult.misspelledWords.length; i++) {
-            bool blacklisted = spellingResult.misspelledWordsBlacklisted[i];
-            if (context.onlyBlacklisted && !blacklisted) continue;
+            bool denylisted = spellingResult.misspelledWordsDenylisted[i];
+            if (context.onlyDenylisted && !denylisted) continue;
             int offset = token.offset + spellingResult.misspelledWordsOffset[i];
             addErrorMessage(offset, spellingResult.misspelledWords[i],
-                blacklisted, spellingResult.misspelledWordsAlternatives[i]);
+                denylisted, spellingResult.misspelledWordsAlternatives[i]);
           }
         }
       } else if (token is KeywordToken || token is BeginToken) {

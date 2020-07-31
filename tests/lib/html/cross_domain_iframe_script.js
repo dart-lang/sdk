@@ -1,0 +1,1 @@
+window.parent.postMessage('foobar', '*');

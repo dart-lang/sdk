@@ -1,0 +1,3 @@
+library export;
+
+export 'foo.dart';

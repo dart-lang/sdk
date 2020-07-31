@@ -1,0 +1,47 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field self::Class::T% field;
+  const constructor •(dynamic value) → self::Class<self::Class::T%>
+    : self::Class::field = value as{ForNonNullableByDefault} self::Class::T%, super core::Object::•()
+    ;
+}
+class ClassWithBound<T extends core::num = core::num> extends core::Object /*hasConstConstructor*/  {
+  final field self::ClassWithBound::T field;
+  const constructor •() → self::ClassWithBound<self::ClassWithBound::T>
+    : self::ClassWithBound::field = self::three as{ForNonNullableByDefault} self::ClassWithBound::T, super core::Object::•()
+    ;
+  const constructor withValue(dynamic value) → self::ClassWithBound<self::ClassWithBound::T>
+    : self::ClassWithBound::field = value as{ForNonNullableByDefault} self::ClassWithBound::T, super core::Object::•()
+    ;
+}
+class ClassWithList<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field core::List<self::ClassWithList::T%> field;
+  const constructor •(dynamic value) → self::ClassWithList<self::ClassWithList::T%>
+    : self::ClassWithList::field = value as{ForNonNullableByDefault} core::List<self::ClassWithList::T%>, super core::Object::•()
+    ;
+}
+class ClassWithFunction<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field (self::ClassWithFunction::T%) → self::ClassWithFunction::T% field;
+  const constructor •(dynamic value) → self::ClassWithFunction<self::ClassWithFunction::T%>
+    : self::ClassWithFunction::field = value as{ForNonNullableByDefault} (self::ClassWithFunction::T%) → self::ClassWithFunction::T%, super core::Object::•()
+    ;
+}
+static const field core::num three = 3;
+static const field (core::int) → core::int idAsIntFunction = self::idFunction<core::int>;
+static method dynamicFunction(dynamic d) → dynamic
+  ;
+static method objectFunction(core::Object? o) → core::Object?
+  ;
+static method intFunction(core::int i) → core::int
+  ;
+static method idFunction<T extends core::Object? = dynamic>(self::idFunction::T% t) → self::idFunction::T%
+  ;
+static method main() → void
+  ;
+static method weakMode() → dynamic
+  ;
+static method errors() → dynamic
+  ;

@@ -365,6 +365,9 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
         }
         break;
       case OutputType.debug:
+        if (name == '') {
+          name = out.pathSegments.last;
+        }
         uri = out.resolve('$name.$extension');
         break;
       default:

@@ -1015,7 +1015,7 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
     for (int i = 0; i < kSignalsCount; i++) {
       sigaddset(&act.sa_mask, kSignals[i]);
     }
-    int status = sigaction(signal, &act, NULL);
+    int status = NO_RETRY_EXPECTED(sigaction(signal, &act, NULL));
     if (status < 0) {
       int err = errno;
       close(fds[0]);
@@ -1055,7 +1055,40 @@ void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
   if (unlisten) {
     struct sigaction act = {};
     act.sa_handler = SIG_DFL;
-    sigaction(signal, &act, NULL);
+    VOID_NO_RETRY_EXPECTED(sigaction(signal, &act, NULL));
+  }
+}
+
+void Process::ClearSignalHandlerByFd(intptr_t fd, Dart_Port port) {
+  ThreadSignalBlocker blocker(kSignalsCount, kSignals);
+  MutexLocker lock(signal_mutex);
+  SignalInfo* handler = signal_handlers;
+  bool unlisten = true;
+  intptr_t signal = -1;
+  while (handler != NULL) {
+    bool remove = false;
+    if (handler->fd() == fd) {
+      if ((port == ILLEGAL_PORT) || (handler->port() == port)) {
+        if (signal_handlers == handler) {
+          signal_handlers = handler->next();
+        }
+        handler->Unlink();
+        remove = true;
+        signal = handler->signal();
+      } else {
+        unlisten = false;
+      }
+    }
+    SignalInfo* next = handler->next();
+    if (remove) {
+      delete handler;
+    }
+    handler = next;
+  }
+  if (unlisten && (signal != -1)) {
+    struct sigaction act = {};
+    act.sa_handler = SIG_DFL;
+    VOID_NO_RETRY_EXPECTED(sigaction(signal, &act, NULL));
   }
 }
 

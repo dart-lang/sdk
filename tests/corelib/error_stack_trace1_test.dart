@@ -18,7 +18,7 @@ class B {
       A.Aa();
     } catch (e) {
       // This should produce a NoSuchMethodError.
-      var trace = e.stackTrace;
+      var trace = (e as dynamic).stackTrace;
     }
   }
 }

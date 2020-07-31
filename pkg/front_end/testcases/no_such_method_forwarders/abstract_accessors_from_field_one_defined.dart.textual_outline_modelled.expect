@@ -1,0 +1,20 @@
+abstract class A {
+  int foo;
+}
+
+abstract class B implements A {
+  int get foo => 42;
+  noSuchMethod(i) => "bar";
+}
+
+abstract class D implements A {
+  noSuchMethod(i) => "bar";
+  void set foo(int value) {}
+}
+
+class C extends B {}
+
+class E extends D {}
+
+main() {}
+void expectTypeError(callback()) {}

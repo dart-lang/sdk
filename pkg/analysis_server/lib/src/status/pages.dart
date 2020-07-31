@@ -32,8 +32,6 @@ abstract class Page {
   String get path => '/$id';
 
   Future<void> asyncDiv(void Function() gen, {String classes}) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (classes != null) {
       buf.writeln('<div class="$classes">');
     } else {
@@ -60,8 +58,6 @@ abstract class Page {
   }
 
   Future<String> generate(Map<String, String> params) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     buf.clear();
     // TODO(brianwilkerson) Determine if await is necessary, if so, change the
     // return type of [generatePage] to `Future<void>`.
@@ -155,8 +151,6 @@ abstract class Site {
   Page createUnknownPage(String unknownPath);
 
   Future<void> handleGetRequest(HttpRequest request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     try {
       var path = request.uri.path;
 
@@ -195,8 +189,6 @@ abstract class Site {
     Page page, [
     int code = HttpStatus.ok,
   ]) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var response = request.response;
     response.statusCode = code;
     response.headers.contentType = ContentType.html;
@@ -204,10 +196,26 @@ abstract class Site {
     await response.close();
   }
 
+  Future<void> respondJson(
+    HttpRequest request,
+    Map<String, Object> json, [
+    int code = HttpStatus.ok,
+  ]) async {
+    var response = request.response;
+    response.statusCode = code;
+    response.headers.contentType = ContentType.json;
+    response.write(jsonEncode(json));
+    await response.close();
+  }
+
   Future<void> respondOk(
     HttpRequest request, {
     int code = HttpStatus.ok,
   }) async {
+    if (request.headers.contentType.subType == 'json') {
+      return respondJson(request, {'success': true}, code);
+    }
+
     var response = request.response;
     response.statusCode = code;
     await response.close();

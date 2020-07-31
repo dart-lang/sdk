@@ -1,0 +1,6 @@
+class A {
+  A(int a) {}
+  int a;
+}
+
+main() {}

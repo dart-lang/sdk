@@ -31,7 +31,8 @@ SharedClassTable::SharedClassTable()
         calloc(capacity_, sizeof(RelaxedAtomic<intptr_t>))));
   } else {
     // Duplicate the class table from the VM isolate.
-    auto vm_shared_class_table = Dart::vm_isolate()->group()->class_table();
+    auto vm_shared_class_table =
+        Dart::vm_isolate()->group()->shared_class_table();
     capacity_ = vm_shared_class_table->capacity_;
     // Note that [calloc] will zero-initialize the memory.
     RelaxedAtomic<intptr_t>* table = reinterpret_cast<RelaxedAtomic<intptr_t>*>(
@@ -46,7 +47,6 @@ SharedClassTable::SharedClassTable()
     table[kForwardingCorpse] = vm_shared_class_table->SizeAt(kForwardingCorpse);
     table[kDynamicCid] = vm_shared_class_table->SizeAt(kDynamicCid);
     table[kVoidCid] = vm_shared_class_table->SizeAt(kVoidCid);
-    table[kNeverCid] = vm_shared_class_table->SizeAt(kNeverCid);
     table_.store(table);
   }
 #if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
@@ -71,24 +71,34 @@ SharedClassTable::~SharedClassTable() {
   NOT_IN_PRODUCT(free(trace_allocation_table_.load()));
 }
 
+void ClassTable::set_table(ClassPtr* table) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != nullptr);
+  table_.store(table);
+  isolate->set_cached_class_table_table(table);
+}
+
 ClassTable::ClassTable(SharedClassTable* shared_class_table)
     : top_(kNumPredefinedCids),
       capacity_(0),
       table_(NULL),
-      old_class_tables_(new MallocGrowableArray<RawClass**>()),
+      old_class_tables_(new MallocGrowableArray<ClassPtr*>()),
       shared_class_table_(shared_class_table) {
   if (Dart::vm_isolate() == NULL) {
     ASSERT(kInitialCapacity >= kNumPredefinedCids);
     capacity_ = kInitialCapacity;
     // Note that [calloc] will zero-initialize the memory.
-    table_.store(static_cast<RawClass**>(calloc(capacity_, sizeof(RawClass*))));
+    // Don't use set_table because caller is supposed to set up isolates
+    // cached copy when constructing ClassTable. Isolate::Current might not
+    // be available at this point yet.
+    table_.store(static_cast<ClassPtr*>(calloc(capacity_, sizeof(ClassPtr))));
   } else {
     // Duplicate the class table from the VM isolate.
     ClassTable* vm_class_table = Dart::vm_isolate()->class_table();
     capacity_ = vm_class_table->capacity_;
     // Note that [calloc] will zero-initialize the memory.
-    RawClass** table =
-        static_cast<RawClass**>(calloc(capacity_, sizeof(RawClass*)));
+    ClassPtr* table =
+        static_cast<ClassPtr*>(calloc(capacity_, sizeof(ClassPtr)));
     // The following cids don't have a corresponding class object in Dart code.
     // We therefore need to initialize them eagerly.
     for (intptr_t i = kObjectCid; i < kInstanceCid; i++) {
@@ -99,7 +109,9 @@ ClassTable::ClassTable(SharedClassTable* shared_class_table)
     table[kForwardingCorpse] = vm_class_table->At(kForwardingCorpse);
     table[kDynamicCid] = vm_class_table->At(kDynamicCid);
     table[kVoidCid] = vm_class_table->At(kVoidCid);
-    table[kNeverCid] = vm_class_table->At(kNeverCid);
+    // Don't use set_table because caller is supposed to set up isolates
+    // cached copy when constructing ClassTable. Isolate::Current might not
+    // be available at this point yet.
     table_.store(table);
   }
 }
@@ -112,7 +124,7 @@ ClassTable::~ClassTable() {
   free(table_.load());
 }
 
-void ClassTable::AddOldTable(RawClass** old_class_table) {
+void ClassTable::AddOldTable(ClassPtr* old_class_table) {
   ASSERT(Thread::Current()->IsMutatorThread());
   old_class_tables_->Add(old_class_table);
 }
@@ -212,13 +224,21 @@ void ClassTable::Grow(intptr_t new_capacity) {
   ASSERT(new_capacity > capacity_);
 
   auto old_table = table_.load();
-  auto new_table = static_cast<RawClass**>(
-      malloc(new_capacity * sizeof(RawClass*)));  // NOLINT
-  memmove(new_table, old_table, capacity_ * sizeof(RawClass*));
-  memset(new_table + capacity_, 0,
-         (new_capacity - capacity_) * sizeof(RawClass*));
+  auto new_table = static_cast<ClassPtr*>(
+      malloc(new_capacity * sizeof(ClassPtr)));  // NOLINT
+  intptr_t i;
+  for (i = 0; i < capacity_; i++) {
+    // Don't use memmove, which changes this from a relaxed atomic operation
+    // to a non-atomic operation.
+    new_table[i] = old_table[i];
+  }
+  for (; i < new_capacity; i++) {
+    // Don't use memset, which changes this from a relaxed atomic operation
+    // to a non-atomic operation.
+    new_table[i] = 0;
+  }
   old_class_tables_->Add(old_table);
-  table_.store(new_table);
+  set_table(new_table);
 
   capacity_ = new_capacity;
 }
@@ -246,17 +266,32 @@ void SharedClassTable::Grow(intptr_t new_capacity) {
       reinterpret_cast<RelaxedAtomic<intptr_t>*>(
           malloc(new_capacity * sizeof(RelaxedAtomic<intptr_t>)));  // NOLINT
 
-  memmove(new_table, old_table, capacity_ * sizeof(intptr_t));
-  memset(new_table + capacity_, 0,
-         (new_capacity - capacity_) * sizeof(intptr_t));
+  intptr_t i;
+  for (i = 0; i < capacity_; i++) {
+    // Don't use memmove, which changes this from a relaxed atomic operation
+    // to a non-atomic operation.
+    new_table[i] = old_table[i];
+  }
+  for (; i < new_capacity; i++) {
+    // Don't use memset, which changes this from a relaxed atomic operation
+    // to a non-atomic operation.
+    new_table[i] = 0;
+  }
 
 #if !defined(PRODUCT)
   auto old_trace_table = trace_allocation_table_.load();
   auto new_trace_table =
       static_cast<uint8_t*>(malloc(new_capacity * sizeof(uint8_t)));  // NOLINT
-  memmove(new_trace_table, old_trace_table, capacity_ * sizeof(uint8_t));
-  memset(new_trace_table + capacity_, 0,
-         (new_capacity - capacity_) * sizeof(uint8_t));
+  for (i = 0; i < capacity_; i++) {
+    // Don't use memmove, which changes this from a relaxed atomic operation
+    // to a non-atomic operation.
+    new_trace_table[i] = old_trace_table[i];
+  }
+  for (; i < new_capacity; i++) {
+    // Don't use memset, which changes this from a relaxed atomic operation
+    // to a non-atomic operation.
+    new_trace_table[i] = 0;
+  }
 #endif
 
   old_tables_->Add(old_table);
@@ -265,13 +300,20 @@ void SharedClassTable::Grow(intptr_t new_capacity) {
   NOT_IN_PRODUCT(trace_allocation_table_.store(new_trace_table));
 
 #if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
+  auto old_unboxed_fields_map = unboxed_fields_map_;
   auto new_unboxed_fields_map = static_cast<UnboxedFieldBitmap*>(
       malloc(new_capacity * sizeof(UnboxedFieldBitmap)));
-  memmove(new_unboxed_fields_map, unboxed_fields_map_,
-          capacity_ * sizeof(UnboxedFieldBitmap));
-  memset(new_unboxed_fields_map + capacity_, 0,
-         (new_capacity - capacity_) * sizeof(UnboxedFieldBitmap));
-  old_tables_->Add(unboxed_fields_map_);
+  for (i = 0; i < capacity_; i++) {
+    // Don't use memmove, which changes this from a relaxed atomic operation
+    // to a non-atomic operation.
+    new_unboxed_fields_map[i] = old_unboxed_fields_map[i];
+  }
+  for (; i < new_capacity; i++) {
+    // Don't use memset, which changes this from a relaxed atomic operation
+    // to a non-atomic operation.
+    new_unboxed_fields_map[i] = UnboxedFieldBitmap(0);
+  }
+  old_tables_->Add(old_unboxed_fields_map);
   unboxed_fields_map_ = new_unboxed_fields_map;
 #endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 
@@ -293,9 +335,9 @@ void SharedClassTable::Unregister(intptr_t index) {
 void ClassTable::Remap(intptr_t* old_to_new_cid) {
   ASSERT(Thread::Current()->IsAtSafepoint());
   const intptr_t num_cids = NumCids();
-  std::unique_ptr<RawClass*[]> cls_by_old_cid(new RawClass*[num_cids]);
+  std::unique_ptr<ClassPtr[]> cls_by_old_cid(new ClassPtr[num_cids]);
   auto* table = table_.load();
-  memmove(cls_by_old_cid.get(), table, sizeof(RawClass*) * num_cids);
+  memmove(cls_by_old_cid.get(), table, sizeof(ClassPtr) * num_cids);
   for (intptr_t i = 0; i < num_cids; i++) {
     table[old_to_new_cid[i]] = cls_by_old_cid[i];
   }
@@ -330,8 +372,8 @@ void ClassTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->set_gc_root_type("class table");
   if (top_ != 0) {
     auto* table = table_.load();
-    RawObject** from = reinterpret_cast<RawObject**>(&table[0]);
-    RawObject** to = reinterpret_cast<RawObject**>(&table[top_ - 1]);
+    ObjectPtr* from = reinterpret_cast<ObjectPtr*>(&table[0]);
+    ObjectPtr* to = reinterpret_cast<ObjectPtr*>(&table[top_ - 1]);
     visitor->VisitPointers(from, to);
   }
   visitor->clear_gc_root_type();
@@ -371,14 +413,14 @@ void ClassTable::Print() {
       continue;
     }
     cls = At(i);
-    if (cls.raw() != reinterpret_cast<RawClass*>(0)) {
+    if (cls.raw() != nullptr) {
       name = cls.Name();
       OS::PrintErr("%" Pd ": %s\n", i, name.ToCString());
     }
   }
 }
 
-void ClassTable::SetAt(intptr_t index, RawClass* raw_cls) {
+void ClassTable::SetAt(intptr_t index, ClassPtr raw_cls) {
   // This is called by snapshot reader and class finalizer.
   ASSERT(index < capacity_);
   const intptr_t size =
@@ -403,7 +445,7 @@ void ClassTable::PrintToJSONObject(JSONObject* object) {
 }
 
 bool SharedClassTable::ShouldUpdateSizeForClassId(intptr_t cid) {
-  return !RawObject::IsVariableSizeClassId(cid);
+  return !IsVariableSizeClassId(cid);
 }
 
 intptr_t SharedClassTable::ClassOffsetFor(intptr_t cid) {

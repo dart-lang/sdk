@@ -1,0 +1,34 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method main() → dynamic /* originally async */ {
+  final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
+  FutureOr<dynamic>? :return_value;
+  dynamic :async_stack_trace;
+  (dynamic) → dynamic :async_op_then;
+  (core::Object, core::StackTrace) → dynamic :async_op_error;
+  core::int :await_jump_var = 0;
+  dynamic :await_ctx_var;
+  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+    try {
+      #L1:
+      {
+        core::List<core::String>? a = <core::String>[];
+        core::Iterable<core::String>? b = let final core::List<core::String>? #t1 = a in #t1.{core::List::==}(null) ?{core::Iterable<core::String>?} null : #t1{core::List<core::String>}.{core::Iterable::map}<core::String>((core::String e) → core::String => e);
+        core::Iterable<core::String>? i = let final core::Iterable<core::String>? #t2 = b in #t2.{core::Object::==}(null) ?{core::Iterable<core::String>?} a : #t2{core::Iterable<core::String>};
+        core::print(i);
+      }
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
+      return;
+    }
+    on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
+      :async_completer.{asy::Completer::completeError}(exception, stack_trace);
+    }
+  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
+  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
+  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
+  :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
+  return :async_completer.{asy::Completer::future};
+}

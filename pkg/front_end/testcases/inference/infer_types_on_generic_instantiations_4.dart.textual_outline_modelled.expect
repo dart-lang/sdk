@@ -1,0 +1,13 @@
+library test;
+
+class A<T> {
+  T x;
+}
+
+class B<E> extends A<E> {
+  E y;
+  get x => y;
+}
+
+foo() {}
+main() {}

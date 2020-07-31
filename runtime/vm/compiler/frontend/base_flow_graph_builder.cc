@@ -11,8 +11,6 @@
 #include "vm/growable_array.h"
 #include "vm/object_store.h"
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 namespace dart {
 namespace kernel {
 
@@ -247,6 +245,18 @@ Fragment BaseFlowGraphBuilder::IntConstant(int64_t value) {
       Constant(Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld))));
 }
 
+Fragment BaseFlowGraphBuilder::MemoryCopy(classid_t src_cid,
+                                          classid_t dest_cid) {
+  Value* length = Pop();
+  Value* dest_start = Pop();
+  Value* src_start = Pop();
+  Value* dest = Pop();
+  Value* src = Pop();
+  auto copy = new (Z) MemoryCopyInstr(src, dest, src_start, dest_start, length,
+                                      src_cid, dest_cid);
+  return Fragment(copy);
+}
+
 Fragment BaseFlowGraphBuilder::TailCall(const Code& code) {
   Value* arg_desc = Pop();
   return Fragment(new (Z) TailCallInstr(code, arg_desc));
@@ -428,13 +438,17 @@ Fragment BaseFlowGraphBuilder::DoubleToFloat() {
   return Fragment(instr);
 }
 
-Fragment BaseFlowGraphBuilder::LoadField(const Field& field) {
-  return LoadNativeField(Slot::Get(MayCloneField(field), parsed_function_));
+Fragment BaseFlowGraphBuilder::LoadField(const Field& field,
+                                         bool calls_initializer) {
+  return LoadNativeField(Slot::Get(MayCloneField(field), parsed_function_),
+                         calls_initializer);
 }
 
-Fragment BaseFlowGraphBuilder::LoadNativeField(const Slot& native_field) {
-  LoadFieldInstr* load =
-      new (Z) LoadFieldInstr(Pop(), native_field, TokenPosition::kNoSource);
+Fragment BaseFlowGraphBuilder::LoadNativeField(const Slot& native_field,
+                                               bool calls_initializer) {
+  LoadFieldInstr* load = new (Z) LoadFieldInstr(
+      Pop(), native_field, TokenPosition::kNoSource, calls_initializer,
+      calls_initializer ? GetNextDeoptId() : DeoptId::kNone);
   Push(load);
   return Fragment(load);
 }
@@ -540,9 +554,11 @@ Fragment BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
   return instructions;
 }
 
-Fragment BaseFlowGraphBuilder::LoadStaticField(const Field& field) {
-  LoadStaticFieldInstr* load =
-      new (Z) LoadStaticFieldInstr(field, TokenPosition::kNoSource);
+Fragment BaseFlowGraphBuilder::LoadStaticField(const Field& field,
+                                               bool calls_initializer) {
+  LoadStaticFieldInstr* load = new (Z) LoadStaticFieldInstr(
+      field, TokenPosition::kNoSource, calls_initializer,
+      calls_initializer ? GetNextDeoptId() : DeoptId::kNone);
   Push(load);
   return Fragment(load);
 }
@@ -559,6 +575,21 @@ Fragment BaseFlowGraphBuilder::ReachabilityFence() {
   Fragment instructions;
   instructions <<= new (Z) ReachabilityFenceInstr(Pop());
   return instructions;
+}
+
+Fragment BaseFlowGraphBuilder::Utf8Scan() {
+  Value* table = Pop();
+  Value* end = Pop();
+  Value* start = Pop();
+  Value* bytes = Pop();
+  Value* decoder = Pop();
+  const Field& scan_flags_field =
+      compiler::LookupConvertUtf8DecoderScanFlagsField();
+  auto scan = new (Z) Utf8ScanInstr(
+      decoder, bytes, start, end, table,
+      Slot::Get(MayCloneField(scan_flags_field), parsed_function_));
+  Push(scan);
+  return Fragment(scan);
 }
 
 Fragment BaseFlowGraphBuilder::StoreStaticField(TokenPosition position,
@@ -823,7 +854,8 @@ JoinEntryInstr* BaseFlowGraphBuilder::BuildThrowNoSuchMethod() {
   JoinEntryInstr* nsm = BuildJoinEntry();
 
   Fragment failing(nsm);
-  const Code& nsm_handler = StubCode::CallClosureNoSuchMethod();
+  const Code& nsm_handler = Code::ZoneHandle(
+      Z, I->object_store()->call_closure_no_such_method_stub());
   failing += LoadArgDescriptor();
   failing += TailCall(nsm_handler);
 
@@ -831,9 +863,6 @@ JoinEntryInstr* BaseFlowGraphBuilder::BuildThrowNoSuchMethod() {
 }
 
 Fragment BaseFlowGraphBuilder::AssertBool(TokenPosition position) {
-  if (!I->should_emit_strong_mode_checks()) {
-    return Fragment();
-  }
   Value* value = Pop();
   AssertBooleanInstr* instr =
       new (Z) AssertBooleanInstr(position, value, GetNextDeoptId());
@@ -972,7 +1001,7 @@ Fragment BaseFlowGraphBuilder::DebugStepCheck(TokenPosition position) {
   return Fragment();
 #else
   return Fragment(new (Z) DebugStepCheckInstr(
-      position, RawPcDescriptors::kRuntimeCall, GetNextDeoptId()));
+      position, PcDescriptorsLayout::kRuntimeCall, GetNextDeoptId()));
 #endif
 }
 
@@ -982,8 +1011,10 @@ Fragment BaseFlowGraphBuilder::CheckNull(TokenPosition position,
                                          bool clear_the_temp /* = true */) {
   Fragment instructions = LoadLocal(receiver);
 
-  CheckNullInstr* check_null =
-      new (Z) CheckNullInstr(Pop(), function_name, GetNextDeoptId(), position);
+  CheckNullInstr* check_null = new (Z)
+      CheckNullInstr(Pop(), function_name, GetNextDeoptId(), position,
+                     function_name.IsNull() ? CheckNullInstr::kCastError
+                                            : CheckNullInstr::kNoSuchMethod);
 
   // Does not use the redefinition, no `Push(check_null)`.
   instructions <<= check_null;
@@ -1109,19 +1140,15 @@ void BaseFlowGraphBuilder::reset_context_depth_for_deopt_id(intptr_t deopt_id) {
 
 Fragment BaseFlowGraphBuilder::AssertAssignable(
     TokenPosition position,
-    const AbstractType& dst_type,
     const String& dst_name,
     AssertAssignableInstr::Kind kind) {
-  if (!I->should_emit_strong_mode_checks()) {
-    return Drop() + Drop();
-  }
-
   Value* function_type_args = Pop();
   Value* instantiator_type_args = Pop();
+  Value* dst_type = Pop();
   Value* value = Pop();
 
   AssertAssignableInstr* instr = new (Z) AssertAssignableInstr(
-      position, value, instantiator_type_args, function_type_args, dst_type,
+      position, value, dst_type, instantiator_type_args, function_type_args,
       dst_name, GetNextDeoptId(), kind);
   Push(instr);
 
@@ -1145,5 +1172,3 @@ Fragment BaseFlowGraphBuilder::InitConstantParameters() {
 
 }  // namespace kernel
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

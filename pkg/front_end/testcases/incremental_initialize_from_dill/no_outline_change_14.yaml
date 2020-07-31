@@ -8,7 +8,7 @@
 type: newworld
 worlds:
   - entry: main.dart
-    useExperimentalInvalidation: true
+    experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
         import "lib1.dart";
@@ -26,7 +26,7 @@ worlds:
         }
     expectedLibraryCount: 3
   - entry: main.dart
-    useExperimentalInvalidation: true
+    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -39,7 +39,7 @@ worlds:
     expectedLibraryCount: 3
     expectsRebuildBodiesOnly: true
   - entry: main.dart
-    useExperimentalInvalidation: true
+    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:

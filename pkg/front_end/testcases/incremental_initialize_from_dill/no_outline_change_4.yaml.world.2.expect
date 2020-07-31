@@ -7,6 +7,16 @@ library from "org-dartlang-test:///libA.dart" as libA {
     const synthetic constructor •() → libA::_Bar&Object&Foo*
       : super dart.core::Object::•()
       ;
+    abstract member-signature get /* from org-dartlang-test:///main.dart */ _identityHashCode() → dart.core::int*;
+    abstract member-signature method /* from org-dartlang-test:///main.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
+    abstract member-signature method /* from org-dartlang-test:///main.dart */ _simpleInstanceOf(dynamic type) → dart.core::bool*;
+    abstract member-signature method /* from org-dartlang-test:///main.dart */ _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
+    abstract member-signature method /* from org-dartlang-test:///main.dart */ _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
+    abstract member-signature operator /* from org-dartlang-test:///main.dart */ ==(dynamic other) → dart.core::bool*;
+    abstract member-signature get /* from org-dartlang-test:///main.dart */ hashCode() → dart.core::int*;
+    abstract member-signature method /* from org-dartlang-test:///main.dart */ toString() → dart.core::String*;
+    abstract member-signature method /* from org-dartlang-test:///main.dart */ noSuchMethod(dart.core::Invocation* invocation) → dynamic;
+    abstract member-signature get /* from org-dartlang-test:///main.dart */ runtimeType() → dart.core::Type*;
     method /* from org-dartlang-test:///main.dart */ method() → dynamic {
       dart.core::print("B");
     }
@@ -31,5 +41,15 @@ library from "org-dartlang-test:///main.dart" as main {
     method method() → dynamic {
       dart.core::print("B");
     }
+    abstract member-signature get _identityHashCode() → dart.core::int*;
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
+    abstract member-signature get hashCode() → dart.core::int*;
+    abstract member-signature method toString() → dart.core::String*;
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
+    abstract member-signature get runtimeType() → dart.core::Type*;
   }
 }

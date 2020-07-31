@@ -609,7 +609,7 @@ void addToTable(String ret, String name, List<String> proto,
   }
   // Avoid the exit function and other functions that give false divergences.
   // Note: to prevent certain constructors from being emitted, update the
-  // blacklist in `shouldFilterConstructor` in gen_type_table.dart and
+  // exclude list in `shouldFilterConstructor` in gen_type_table.dart and
   // regenerate the type table.
   if (name == 'exit' ||
       name == 'pid' ||

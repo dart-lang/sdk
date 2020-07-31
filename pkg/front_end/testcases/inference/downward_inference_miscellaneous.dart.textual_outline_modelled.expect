@@ -1,0 +1,9 @@
+library test;
+
+class A<T> {
+  A(this.x);
+  Function2<T, T> x;
+}
+
+typedef T Function2<S, T>(S x);
+void main() {}

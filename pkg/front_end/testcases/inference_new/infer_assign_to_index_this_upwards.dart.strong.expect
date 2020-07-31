@@ -2,33 +2,33 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:111:28: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-//         /*@target=num::+*/ += getInt();
-//                            ^
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:109:27: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
+//         /*@target=num.+*/ += getInt();
+//                           ^
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:121:51: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-//     var /*@ type=int* */ v10 = /*@target=num::+*/ ++this
-//                                                   ^
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:119:50: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
+//     var /*@ type=int* */ v10 = /*@target=num.+*/ ++this
+//                                                  ^
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:126:28: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-//         /*@target=num::+*/ ++;
-//                            ^
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:124:27: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
+//         /*@target=num.+*/ ++;
+//                           ^
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:268:31: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-//         /*@target=double::+*/ += getInt();
-//                               ^
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:264:30: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+//         /*@target=double.+*/ += getInt();
+//                              ^
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:272:31: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-//         /*@target=double::+*/ += getNum();
-//                               ^
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:268:30: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+//         /*@target=double.+*/ += getNum();
+//                              ^
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:274:57: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-//     var /*@ type=double* */ v10 = /*@target=double::+*/ ++this
-//                                                         ^
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:270:56: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+//     var /*@ type=double* */ v10 = /*@target=double.+*/ ++this
+//                                                        ^
 //
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:279:31: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-//         /*@target=double::+*/ ++;
-//                               ^
+// pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:275:30: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+//         /*@target=double.+*/ ++;
+//                              ^
 //
 import self as self;
 import "dart:core" as core;
@@ -49,6 +49,16 @@ abstract class Test1 extends core::Object {
     core::int* v10 = let final core::String* #t21 = "x" in let final core::int* #t22 = this.{self::Test1::[]}(#t21).{core::num::+}(1) in let final void #t23 = this.{self::Test1::[]=}(#t21, #t22) in #t22;
     core::int* v11 = let final core::String* #t24 = "x" in let final core::int* #t25 = this.{self::Test1::[]}(#t24) in let final void #t26 = this.{self::Test1::[]=}(#t24, #t25.{core::num::+}(1)) in #t25;
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 abstract class Test2 extends core::Object {
   synthetic constructor •() → self::Test2*
@@ -69,6 +79,16 @@ abstract class Test2 extends core::Object {
     core::int* v10 = let final core::String* #t57 = "x" in let final core::int* #t58 = this.{self::Test2::[]}(#t57).{core::num::+}(1) in let final void #t59 = this.{self::Test2::[]=}(#t57, #t58) in #t58;
     core::int* v11 = let final core::String* #t60 = "x" in let final core::int* #t61 = this.{self::Test2::[]}(#t60) in let final void #t62 = this.{self::Test2::[]=}(#t60, #t61.{core::num::+}(1)) in #t61;
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 abstract class Test3 extends core::Object {
   synthetic constructor •() → self::Test3*
@@ -81,18 +101,28 @@ abstract class Test3 extends core::Object {
     core::double* v3 = let final core::String* #t66 = "x" in let final core::double* #t67 = self::getDouble() in let final void #t68 = this.{self::Test3::[]=}(#t66, #t67) in #t67;
     core::num* v5 = let final core::String* #t69 = "x" in let final core::int* #t70 = this.{self::Test3::[]}(#t69) in #t70.{core::num::==}(null) ?{core::num*} let final core::num* #t71 = self::getNum() as{TypeError} core::double* in let final void #t72 = this.{self::Test3::[]=}(#t69, #t71) in #t71 : #t70;
     core::num* v6 = let final core::String* #t73 = "x" in let final core::int* #t74 = this.{self::Test3::[]}(#t73) in #t74.{core::num::==}(null) ?{core::num*} let final core::double* #t75 = self::getDouble() in let final void #t76 = this.{self::Test3::[]=}(#t73, #t75) in #t75 : #t74;
-    core::int* v7 = let final core::String* #t77 = "x" in let final core::int* #t78 = let final<BottomType> #t79 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:111:28: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-        /*@target=num::+*/ += getInt();
-                           ^" in this.{self::Test3::[]}(#t77).{core::num::+}(self::getInt()) as{TypeError} core::double* in let final void #t80 = this.{self::Test3::[]=}(#t77, #t78) in #t78;
+    core::int* v7 = let final core::String* #t77 = "x" in let final core::int* #t78 = let final<BottomType> #t79 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:109:27: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
+        /*@target=num.+*/ += getInt();
+                          ^" in this.{self::Test3::[]}(#t77).{core::num::+}(self::getInt()) as{TypeError} core::double* in let final void #t80 = this.{self::Test3::[]=}(#t77, #t78) in #t78;
     core::num* v8 = let final core::String* #t81 = "x" in let final core::num* #t82 = this.{self::Test3::[]}(#t81).{core::num::+}(self::getNum()) as{TypeError} core::double* in let final void #t83 = this.{self::Test3::[]=}(#t81, #t82) in #t82;
     core::double* v9 = let final core::String* #t84 = "x" in let final core::double* #t85 = this.{self::Test3::[]}(#t84).{core::num::+}(self::getDouble()) in let final void #t86 = this.{self::Test3::[]=}(#t84, #t85) in #t85;
-    core::int* v10 = let final core::String* #t87 = "x" in let final core::int* #t88 = let final<BottomType> #t89 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:121:51: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-    var /*@ type=int* */ v10 = /*@target=num::+*/ ++this
-                                                  ^" in this.{self::Test3::[]}(#t87).{core::num::+}(1) as{TypeError} core::double* in let final void #t90 = this.{self::Test3::[]=}(#t87, #t88) in #t88;
-    core::int* v11 = let final core::String* #t91 = "x" in let final core::int* #t92 = this.{self::Test3::[]}(#t91) in let final void #t93 = this.{self::Test3::[]=}(#t91, let final<BottomType> #t94 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:126:28: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
-        /*@target=num::+*/ ++;
-                           ^" in #t92.{core::num::+}(1) as{TypeError} core::double*) in #t92;
+    core::int* v10 = let final core::String* #t87 = "x" in let final core::int* #t88 = let final<BottomType> #t89 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:119:50: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
+    var /*@ type=int* */ v10 = /*@target=num.+*/ ++this
+                                                 ^" in this.{self::Test3::[]}(#t87).{core::num::+}(1) as{TypeError} core::double* in let final void #t90 = this.{self::Test3::[]=}(#t87, #t88) in #t88;
+    core::int* v11 = let final core::String* #t91 = "x" in let final core::int* #t92 = this.{self::Test3::[]}(#t91) in let final void #t93 = this.{self::Test3::[]=}(#t91, let final<BottomType> #t94 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:124:27: Error: A value of type 'int' can't be assigned to a variable of type 'double'.
+        /*@target=num.+*/ ++;
+                          ^" in #t92.{core::num::+}(1) as{TypeError} core::double*) in #t92;
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 abstract class Test4 extends core::Object {
   synthetic constructor •() → self::Test4*
@@ -105,11 +135,21 @@ abstract class Test4 extends core::Object {
     core::num* v2 = let final core::String* #t98 = "x" in let final core::num* #t99 = self::getNum() as{TypeError} core::int* in let final void #t100 = this.{self::Test4::[]=}(#t98, #t99) in #t99;
     core::num* v4 = let final core::String* #t101 = "x" in let final core::num* #t102 = this.{self::Test4::[]}(#t101) in #t102.{core::num::==}(null) ?{core::num*} let final core::int* #t103 = self::getInt() in let final void #t104 = this.{self::Test4::[]=}(#t101, #t103) in #t103 : #t102;
     core::num* v5 = let final core::String* #t105 = "x" in let final core::num* #t106 = this.{self::Test4::[]}(#t105) in #t106.{core::num::==}(null) ?{core::num*} let final core::num* #t107 = self::getNum() as{TypeError} core::int* in let final void #t108 = this.{self::Test4::[]=}(#t105, #t107) in #t107 : #t106;
-    core::num* v7 = let final core::String* #t109 = "x" in let final core::num* #t110 = this.{self::Test4::[]}(#t109).{core::num::+}(self::getInt()) as{TypeError} core::int* in let final void #t111 = this.{self::Test4::[]=}(#t109, #t110) in #t110;
-    core::num* v8 = let final core::String* #t112 = "x" in let final core::num* #t113 = this.{self::Test4::[]}(#t112).{core::num::+}(self::getNum()) as{TypeError} core::int* in let final void #t114 = this.{self::Test4::[]=}(#t112, #t113) in #t113;
-    core::num* v10 = let final core::String* #t115 = "x" in let final core::num* #t116 = this.{self::Test4::[]}(#t115).{core::num::+}(1) as{TypeError} core::int* in let final void #t117 = this.{self::Test4::[]=}(#t115, #t116) in #t116;
+    core::num* v7 = let final core::String* #t109 = "x" in let final core::num #t110 = this.{self::Test4::[]}(#t109).{core::num::+}(self::getInt()) as{TypeError} core::int* in let final void #t111 = this.{self::Test4::[]=}(#t109, #t110) in #t110;
+    core::num* v8 = let final core::String* #t112 = "x" in let final core::num #t113 = this.{self::Test4::[]}(#t112).{core::num::+}(self::getNum()) as{TypeError} core::int* in let final void #t114 = this.{self::Test4::[]=}(#t112, #t113) in #t113;
+    core::num* v10 = let final core::String* #t115 = "x" in let final core::num #t116 = this.{self::Test4::[]}(#t115).{core::num::+}(1) as{TypeError} core::int* in let final void #t117 = this.{self::Test4::[]=}(#t115, #t116) in #t116;
     core::num* v11 = let final core::String* #t118 = "x" in let final core::num* #t119 = this.{self::Test4::[]}(#t118) in let final void #t120 = this.{self::Test4::[]=}(#t118, #t119.{core::num::+}(1) as{TypeError} core::int*) in #t119;
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 abstract class Test5 extends core::Object {
   synthetic constructor •() → self::Test5*
@@ -124,12 +164,22 @@ abstract class Test5 extends core::Object {
     core::num* v4 = let final core::String* #t130 = "x" in let final core::num* #t131 = this.{self::Test5::[]}(#t130) in #t131.{core::num::==}(null) ?{core::num*} let final core::int* #t132 = self::getInt() in let final void #t133 = this.{self::Test5::[]=}(#t130, #t132) in #t132 : #t131;
     core::num* v5 = let final core::String* #t134 = "x" in let final core::num* #t135 = this.{self::Test5::[]}(#t134) in #t135.{core::num::==}(null) ?{core::num*} let final core::num* #t136 = self::getNum() in let final void #t137 = this.{self::Test5::[]=}(#t134, #t136) in #t136 : #t135;
     core::num* v6 = let final core::String* #t138 = "x" in let final core::num* #t139 = this.{self::Test5::[]}(#t138) in #t139.{core::num::==}(null) ?{core::num*} let final core::double* #t140 = self::getDouble() in let final void #t141 = this.{self::Test5::[]=}(#t138, #t140) in #t140 : #t139;
-    core::num* v7 = let final core::String* #t142 = "x" in let final core::num* #t143 = this.{self::Test5::[]}(#t142).{core::num::+}(self::getInt()) in let final void #t144 = this.{self::Test5::[]=}(#t142, #t143) in #t143;
-    core::num* v8 = let final core::String* #t145 = "x" in let final core::num* #t146 = this.{self::Test5::[]}(#t145).{core::num::+}(self::getNum()) in let final void #t147 = this.{self::Test5::[]=}(#t145, #t146) in #t146;
-    core::num* v9 = let final core::String* #t148 = "x" in let final core::num* #t149 = this.{self::Test5::[]}(#t148).{core::num::+}(self::getDouble()) in let final void #t150 = this.{self::Test5::[]=}(#t148, #t149) in #t149;
-    core::num* v10 = let final core::String* #t151 = "x" in let final core::num* #t152 = this.{self::Test5::[]}(#t151).{core::num::+}(1) in let final void #t153 = this.{self::Test5::[]=}(#t151, #t152) in #t152;
+    core::num* v7 = let final core::String* #t142 = "x" in let final core::num #t143 = this.{self::Test5::[]}(#t142).{core::num::+}(self::getInt()) in let final void #t144 = this.{self::Test5::[]=}(#t142, #t143) in #t143;
+    core::num* v8 = let final core::String* #t145 = "x" in let final core::num #t146 = this.{self::Test5::[]}(#t145).{core::num::+}(self::getNum()) in let final void #t147 = this.{self::Test5::[]=}(#t145, #t146) in #t146;
+    core::num* v9 = let final core::String* #t148 = "x" in let final core::num #t149 = this.{self::Test5::[]}(#t148).{core::num::+}(self::getDouble()) in let final void #t150 = this.{self::Test5::[]=}(#t148, #t149) in #t149;
+    core::num* v10 = let final core::String* #t151 = "x" in let final core::num #t152 = this.{self::Test5::[]}(#t151).{core::num::+}(1) in let final void #t153 = this.{self::Test5::[]=}(#t151, #t152) in #t152;
     core::num* v11 = let final core::String* #t154 = "x" in let final core::num* #t155 = this.{self::Test5::[]}(#t154) in let final void #t156 = this.{self::Test5::[]=}(#t154, #t155.{core::num::+}(1)) in #t155;
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 abstract class Test6 extends core::Object {
   synthetic constructor •() → self::Test6*
@@ -142,12 +192,22 @@ abstract class Test6 extends core::Object {
     core::double* v3 = let final core::String* #t160 = "x" in let final core::double* #t161 = self::getDouble() in let final void #t162 = this.{self::Test6::[]=}(#t160, #t161) in #t161;
     core::num* v5 = let final core::String* #t163 = "x" in let final core::num* #t164 = this.{self::Test6::[]}(#t163) in #t164.{core::num::==}(null) ?{core::num*} let final core::num* #t165 = self::getNum() as{TypeError} core::double* in let final void #t166 = this.{self::Test6::[]=}(#t163, #t165) in #t165 : #t164;
     core::num* v6 = let final core::String* #t167 = "x" in let final core::num* #t168 = this.{self::Test6::[]}(#t167) in #t168.{core::num::==}(null) ?{core::num*} let final core::double* #t169 = self::getDouble() in let final void #t170 = this.{self::Test6::[]=}(#t167, #t169) in #t169 : #t168;
-    core::num* v7 = let final core::String* #t171 = "x" in let final core::num* #t172 = this.{self::Test6::[]}(#t171).{core::num::+}(self::getInt()) as{TypeError} core::double* in let final void #t173 = this.{self::Test6::[]=}(#t171, #t172) in #t172;
-    core::num* v8 = let final core::String* #t174 = "x" in let final core::num* #t175 = this.{self::Test6::[]}(#t174).{core::num::+}(self::getNum()) as{TypeError} core::double* in let final void #t176 = this.{self::Test6::[]=}(#t174, #t175) in #t175;
-    core::num* v9 = let final core::String* #t177 = "x" in let final core::num* #t178 = this.{self::Test6::[]}(#t177).{core::num::+}(self::getDouble()) as{TypeError} core::double* in let final void #t179 = this.{self::Test6::[]=}(#t177, #t178) in #t178;
-    core::num* v10 = let final core::String* #t180 = "x" in let final core::num* #t181 = this.{self::Test6::[]}(#t180).{core::num::+}(1) as{TypeError} core::double* in let final void #t182 = this.{self::Test6::[]=}(#t180, #t181) in #t181;
+    core::num* v7 = let final core::String* #t171 = "x" in let final core::num #t172 = this.{self::Test6::[]}(#t171).{core::num::+}(self::getInt()) as{TypeError} core::double* in let final void #t173 = this.{self::Test6::[]=}(#t171, #t172) in #t172;
+    core::num* v8 = let final core::String* #t174 = "x" in let final core::num #t175 = this.{self::Test6::[]}(#t174).{core::num::+}(self::getNum()) as{TypeError} core::double* in let final void #t176 = this.{self::Test6::[]=}(#t174, #t175) in #t175;
+    core::num* v9 = let final core::String* #t177 = "x" in let final core::num #t178 = this.{self::Test6::[]}(#t177).{core::num::+}(self::getDouble()) as{TypeError} core::double* in let final void #t179 = this.{self::Test6::[]=}(#t177, #t178) in #t178;
+    core::num* v10 = let final core::String* #t180 = "x" in let final core::num #t181 = this.{self::Test6::[]}(#t180).{core::num::+}(1) as{TypeError} core::double* in let final void #t182 = this.{self::Test6::[]=}(#t180, #t181) in #t181;
     core::num* v11 = let final core::String* #t183 = "x" in let final core::num* #t184 = this.{self::Test6::[]}(#t183) in let final void #t185 = this.{self::Test6::[]=}(#t183, #t184.{core::num::+}(1) as{TypeError} core::double*) in #t184;
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 abstract class Test7 extends core::Object {
   synthetic constructor •() → self::Test7*
@@ -160,19 +220,29 @@ abstract class Test7 extends core::Object {
     core::num* v2 = let final core::String* #t189 = "x" in let final core::num* #t190 = self::getNum() as{TypeError} core::int* in let final void #t191 = this.{self::Test7::[]=}(#t189, #t190) in #t190;
     core::num* v4 = let final core::String* #t192 = "x" in let final core::double* #t193 = this.{self::Test7::[]}(#t192) in #t193.{core::num::==}(null) ?{core::num*} let final core::int* #t194 = self::getInt() in let final void #t195 = this.{self::Test7::[]=}(#t192, #t194) in #t194 : #t193;
     core::num* v5 = let final core::String* #t196 = "x" in let final core::double* #t197 = this.{self::Test7::[]}(#t196) in #t197.{core::num::==}(null) ?{core::num*} let final core::num* #t198 = self::getNum() as{TypeError} core::int* in let final void #t199 = this.{self::Test7::[]=}(#t196, #t198) in #t198 : #t197;
-    core::double* v7 = let final core::String* #t200 = "x" in let final core::double* #t201 = let final<BottomType> #t202 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:268:31: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-        /*@target=double::+*/ += getInt();
-                              ^" in this.{self::Test7::[]}(#t200).{core::double::+}(self::getInt()) as{TypeError} core::int* in let final void #t203 = this.{self::Test7::[]=}(#t200, #t201) in #t201;
-    core::double* v8 = let final core::String* #t204 = "x" in let final core::double* #t205 = let final<BottomType> #t206 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:272:31: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-        /*@target=double::+*/ += getNum();
-                              ^" in this.{self::Test7::[]}(#t204).{core::double::+}(self::getNum()) as{TypeError} core::int* in let final void #t207 = this.{self::Test7::[]=}(#t204, #t205) in #t205;
-    core::double* v10 = let final core::String* #t208 = "x" in let final core::double* #t209 = let final<BottomType> #t210 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:274:57: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-    var /*@ type=double* */ v10 = /*@target=double::+*/ ++this
-                                                        ^" in this.{self::Test7::[]}(#t208).{core::double::+}(1) as{TypeError} core::int* in let final void #t211 = this.{self::Test7::[]=}(#t208, #t209) in #t209;
-    core::double* v11 = let final core::String* #t212 = "x" in let final core::double* #t213 = this.{self::Test7::[]}(#t212) in let final void #t214 = this.{self::Test7::[]=}(#t212, let final<BottomType> #t215 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:279:31: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-        /*@target=double::+*/ ++;
-                              ^" in #t213.{core::double::+}(1) as{TypeError} core::int*) in #t213;
+    core::double* v7 = let final core::String* #t200 = "x" in let final core::double #t201 = let final<BottomType> #t202 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:264:30: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+        /*@target=double.+*/ += getInt();
+                             ^" in this.{self::Test7::[]}(#t200).{core::double::+}(self::getInt()) as{TypeError} core::int* in let final void #t203 = this.{self::Test7::[]=}(#t200, #t201) in #t201;
+    core::double* v8 = let final core::String* #t204 = "x" in let final core::double #t205 = let final<BottomType> #t206 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:268:30: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+        /*@target=double.+*/ += getNum();
+                             ^" in this.{self::Test7::[]}(#t204).{core::double::+}(self::getNum()) as{TypeError} core::int* in let final void #t207 = this.{self::Test7::[]=}(#t204, #t205) in #t205;
+    core::double* v10 = let final core::String* #t208 = "x" in let final core::double #t209 = let final<BottomType> #t210 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:270:56: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+    var /*@ type=double* */ v10 = /*@target=double.+*/ ++this
+                                                       ^" in this.{self::Test7::[]}(#t208).{core::double::+}(1) as{TypeError} core::int* in let final void #t211 = this.{self::Test7::[]=}(#t208, #t209) in #t209;
+    core::double* v11 = let final core::String* #t212 = "x" in let final core::double* #t213 = this.{self::Test7::[]}(#t212) in let final void #t214 = this.{self::Test7::[]=}(#t212, let final<BottomType> #t215 = invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_this_upwards.dart:275:30: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+        /*@target=double.+*/ ++;
+                             ^" in #t213.{core::double::+}(1) as{TypeError} core::int*) in #t213;
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 abstract class Test8 extends core::Object {
   synthetic constructor •() → self::Test8*
@@ -187,12 +257,22 @@ abstract class Test8 extends core::Object {
     core::num* v4 = let final core::String* #t225 = "x" in let final core::double* #t226 = this.{self::Test8::[]}(#t225) in #t226.{core::num::==}(null) ?{core::num*} let final core::int* #t227 = self::getInt() in let final void #t228 = this.{self::Test8::[]=}(#t225, #t227) in #t227 : #t226;
     core::num* v5 = let final core::String* #t229 = "x" in let final core::double* #t230 = this.{self::Test8::[]}(#t229) in #t230.{core::num::==}(null) ?{core::num*} let final core::num* #t231 = self::getNum() in let final void #t232 = this.{self::Test8::[]=}(#t229, #t231) in #t231 : #t230;
     core::double* v6 = let final core::String* #t233 = "x" in let final core::double* #t234 = this.{self::Test8::[]}(#t233) in #t234.{core::num::==}(null) ?{core::double*} let final core::double* #t235 = self::getDouble() in let final void #t236 = this.{self::Test8::[]=}(#t233, #t235) in #t235 : #t234;
-    core::double* v7 = let final core::String* #t237 = "x" in let final core::double* #t238 = this.{self::Test8::[]}(#t237).{core::double::+}(self::getInt()) in let final void #t239 = this.{self::Test8::[]=}(#t237, #t238) in #t238;
-    core::double* v8 = let final core::String* #t240 = "x" in let final core::double* #t241 = this.{self::Test8::[]}(#t240).{core::double::+}(self::getNum()) in let final void #t242 = this.{self::Test8::[]=}(#t240, #t241) in #t241;
-    core::double* v9 = let final core::String* #t243 = "x" in let final core::double* #t244 = this.{self::Test8::[]}(#t243).{core::double::+}(self::getDouble()) in let final void #t245 = this.{self::Test8::[]=}(#t243, #t244) in #t244;
-    core::double* v10 = let final core::String* #t246 = "x" in let final core::double* #t247 = this.{self::Test8::[]}(#t246).{core::double::+}(1) in let final void #t248 = this.{self::Test8::[]=}(#t246, #t247) in #t247;
+    core::double* v7 = let final core::String* #t237 = "x" in let final core::double #t238 = this.{self::Test8::[]}(#t237).{core::double::+}(self::getInt()) in let final void #t239 = this.{self::Test8::[]=}(#t237, #t238) in #t238;
+    core::double* v8 = let final core::String* #t240 = "x" in let final core::double #t241 = this.{self::Test8::[]}(#t240).{core::double::+}(self::getNum()) in let final void #t242 = this.{self::Test8::[]=}(#t240, #t241) in #t241;
+    core::double* v9 = let final core::String* #t243 = "x" in let final core::double #t244 = this.{self::Test8::[]}(#t243).{core::double::+}(self::getDouble()) in let final void #t245 = this.{self::Test8::[]=}(#t243, #t244) in #t244;
+    core::double* v10 = let final core::String* #t246 = "x" in let final core::double #t247 = this.{self::Test8::[]}(#t246).{core::double::+}(1) in let final void #t248 = this.{self::Test8::[]=}(#t246, #t247) in #t247;
     core::double* v11 = let final core::String* #t249 = "x" in let final core::double* #t250 = this.{self::Test8::[]}(#t249) in let final void #t251 = this.{self::Test8::[]=}(#t249, #t250.{core::double::+}(1)) in #t250;
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 abstract class Test9 extends core::Object {
   synthetic constructor •() → self::Test9*
@@ -205,12 +285,22 @@ abstract class Test9 extends core::Object {
     core::double* v3 = let final core::String* #t255 = "x" in let final core::double* #t256 = self::getDouble() in let final void #t257 = this.{self::Test9::[]=}(#t255, #t256) in #t256;
     core::num* v5 = let final core::String* #t258 = "x" in let final core::double* #t259 = this.{self::Test9::[]}(#t258) in #t259.{core::num::==}(null) ?{core::num*} let final core::num* #t260 = self::getNum() as{TypeError} core::double* in let final void #t261 = this.{self::Test9::[]=}(#t258, #t260) in #t260 : #t259;
     core::double* v6 = let final core::String* #t262 = "x" in let final core::double* #t263 = this.{self::Test9::[]}(#t262) in #t263.{core::num::==}(null) ?{core::double*} let final core::double* #t264 = self::getDouble() in let final void #t265 = this.{self::Test9::[]=}(#t262, #t264) in #t264 : #t263;
-    core::double* v7 = let final core::String* #t266 = "x" in let final core::double* #t267 = this.{self::Test9::[]}(#t266).{core::double::+}(self::getInt()) in let final void #t268 = this.{self::Test9::[]=}(#t266, #t267) in #t267;
-    core::double* v8 = let final core::String* #t269 = "x" in let final core::double* #t270 = this.{self::Test9::[]}(#t269).{core::double::+}(self::getNum()) in let final void #t271 = this.{self::Test9::[]=}(#t269, #t270) in #t270;
-    core::double* v9 = let final core::String* #t272 = "x" in let final core::double* #t273 = this.{self::Test9::[]}(#t272).{core::double::+}(self::getDouble()) in let final void #t274 = this.{self::Test9::[]=}(#t272, #t273) in #t273;
-    core::double* v10 = let final core::String* #t275 = "x" in let final core::double* #t276 = this.{self::Test9::[]}(#t275).{core::double::+}(1) in let final void #t277 = this.{self::Test9::[]=}(#t275, #t276) in #t276;
+    core::double* v7 = let final core::String* #t266 = "x" in let final core::double #t267 = this.{self::Test9::[]}(#t266).{core::double::+}(self::getInt()) in let final void #t268 = this.{self::Test9::[]=}(#t266, #t267) in #t267;
+    core::double* v8 = let final core::String* #t269 = "x" in let final core::double #t270 = this.{self::Test9::[]}(#t269).{core::double::+}(self::getNum()) in let final void #t271 = this.{self::Test9::[]=}(#t269, #t270) in #t270;
+    core::double* v9 = let final core::String* #t272 = "x" in let final core::double #t273 = this.{self::Test9::[]}(#t272).{core::double::+}(self::getDouble()) in let final void #t274 = this.{self::Test9::[]=}(#t272, #t273) in #t273;
+    core::double* v10 = let final core::String* #t275 = "x" in let final core::double #t276 = this.{self::Test9::[]}(#t275).{core::double::+}(1) in let final void #t277 = this.{self::Test9::[]=}(#t275, #t276) in #t276;
     core::double* v11 = let final core::String* #t278 = "x" in let final core::double* #t279 = this.{self::Test9::[]}(#t278) in let final void #t280 = this.{self::Test9::[]=}(#t278, #t279.{core::double::+}(1)) in #t279;
   }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
 }
 static method getInt() → core::int*
   return 0;

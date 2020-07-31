@@ -40,8 +40,9 @@ class Compile extends Step<Data, Data, ChainContext> {
     data.outDir = await Directory.systemTemp.createTemp('ddc_step_test');
     data.code = AnnotatedCode.fromText(
         File(inputFile).readAsStringSync(), commentStart, commentEnd);
+    data.testFileName = 'test.dart';
     var outDirUri = data.outDir.uri;
-    var testFile = outDirUri.resolve('test.dart');
+    var testFile = outDirUri.resolve(data.testFileName);
     File.fromUri(testFile).writeAsStringSync(data.code.sourceCode);
     var outputFilename = 'js.js';
     var outputFile = outDirUri.resolve(outputFilename);

@@ -17,7 +17,9 @@ namespace compiler {
 
 namespace ffi {
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
+bool BaseMarshaller::ContainsHandles() const {
+  return dart_signature_.FfiCSignatureContainsHandles();
+}
 
 Location CallMarshaller::LocInFfiCall(intptr_t arg_index) const {
   if (arg_index == kResultIndex) {
@@ -153,8 +155,6 @@ CallbackMarshaller::CallbackMarshaller(Zone* zone,
       callback_locs_(
           CallbackArgumentTranslator::TranslateArgumentLocations(arg_locs_,
                                                                  zone_)) {}
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace ffi
 

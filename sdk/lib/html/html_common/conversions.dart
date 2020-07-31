@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // Conversions for IDBKey.
 //
 // Per http://www.w3.org/TR/IndexedDB/#key-construct
@@ -257,7 +255,7 @@ abstract class _AcceptStructuredClone {
     if (isJavaScriptArray(e)) {
       var l = JS<List>('returns:List;creates:;', '#', e);
       var slot = findSlot(l);
-      var copy = JS<List>('returns:List|Null;creates:;', '#', readSlot(slot));
+      var copy = JS<List?>('returns:List|Null;creates:;', '#', readSlot(slot));
       if (copy != null) return copy;
 
       int length = l.length;

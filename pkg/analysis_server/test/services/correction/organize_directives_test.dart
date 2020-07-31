@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/services/correction/organize_directives.dart';
+import 'package:analysis_server/src/services/correction/organize_imports.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
@@ -140,7 +140,7 @@ import 'dart:convert';
 import 'dart:collection';
 
 main() {
-  print(PI);
+  print(pi);
   new HashMap();
 }
 ''');
@@ -152,7 +152,7 @@ import 'dart:collection';
 import 'dart:math';
 
 main() {
-  print(PI);
+  print(pi);
   new HashMap();
 }
 ''', removeUnused: true);
@@ -315,7 +315,7 @@ import 'package:product2.client/entity.dart';
   }
 
   void _assertOrganize(String expectedCode, {bool removeUnused = false}) {
-    var organizer = DirectiveOrganizer(testCode, testUnit, testErrors,
+    var organizer = ImportOrganizer(testCode, testUnit, testErrors,
         removeUnused: removeUnused);
     var edits = organizer.organize();
     var result = SourceEdit.applySequence(testCode, edits);

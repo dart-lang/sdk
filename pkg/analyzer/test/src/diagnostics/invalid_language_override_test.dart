@@ -16,17 +16,21 @@ main() {
 @reflectiveTest
 class InvalidLanguageOverrideTest extends DriverResolutionTest {
   test_correct_11_12() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 // @dart = 11.12
 int i = 0;
-''');
+''', [
+      error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 16),
+    ]);
   }
 
   test_correct_2_10() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 // @dart = 2.10
 int i = 0;
-''');
+''', [
+      error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 15),
+    ]);
   }
 
   test_correct_withMultipleWhitespace() async {

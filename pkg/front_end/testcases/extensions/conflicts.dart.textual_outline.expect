@@ -1,0 +1,12 @@
+class Class1 {
+}
+class Class2 {
+}
+extension DuplicateExtensionName ;
+on Class1 (){ }
+extension DuplicateExtensionName ;
+on Class2 (){ }
+extension UniqueExtensionName ;
+on Class1 (){ }
+main() { }
+errors() { }

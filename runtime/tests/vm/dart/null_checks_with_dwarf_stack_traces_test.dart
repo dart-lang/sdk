@@ -23,9 +23,9 @@ class A {
   }
 }
 
-A myNull;
-double doubleNull;
-int intNull;
+dynamic myNull;
+dynamic doubleNull;
+dynamic intNull;
 
 main(List<String> args) {
   // Make sure value of `myNull` is not a compile-time null and
@@ -35,6 +35,8 @@ main(List<String> args) {
     doubleNull = 3.14;
     intNull = 2;
   }
+
+  Expect.throws(() => myNull!, (e) => e is TypeError);
 
   Expect.throws(() => myNull.foo(), (e) => e is NoSuchMethodError);
 
@@ -50,7 +52,8 @@ main(List<String> args) {
 
   Expect.throws(() => doubleNull + 2.17, (e) => e is NoSuchMethodError);
 
-  Expect.throws(() => 9.81 - doubleNull, (e) => e is NoSuchMethodError);
+  Expect.throws(() => 9.81 - doubleNull,
+      (e) => isWeakMode ? (e is NoSuchMethodError) : (e is TypeError));
 
   Expect.throws(() => intNull * 7, (e) => e is NoSuchMethodError);
 }

@@ -1,0 +1,115 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field core::bool field;
+  const constructor •(dynamic value) → self::Class<self::Class::T%>
+    : self::Class::field = value is{ForNonNullableByDefault} self::Class::T%, super core::Object::•()
+    ;
+}
+class ClassWithBound<T extends core::num = core::num> extends core::Object /*hasConstConstructor*/  {
+  final field core::bool field;
+  const constructor •() → self::ClassWithBound<self::ClassWithBound::T>
+    : self::ClassWithBound::field = (#C1) is{ForNonNullableByDefault} self::ClassWithBound::T, super core::Object::•()
+    ;
+  const constructor withValue(dynamic value) → self::ClassWithBound<self::ClassWithBound::T>
+    : self::ClassWithBound::field = value is{ForNonNullableByDefault} self::ClassWithBound::T, super core::Object::•()
+    ;
+}
+class ClassWithList<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field core::bool field;
+  const constructor •(dynamic value) → self::ClassWithList<self::ClassWithList::T%>
+    : self::ClassWithList::field = value is{ForNonNullableByDefault} core::List<self::ClassWithList::T%>, super core::Object::•()
+    ;
+}
+class ClassWithFunction<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field core::bool field;
+  const constructor •(dynamic value) → self::ClassWithFunction<self::ClassWithFunction::T%>
+    : self::ClassWithFunction::field = value is{ForNonNullableByDefault} (self::ClassWithFunction::T%) → self::ClassWithFunction::T%, super core::Object::•()
+    ;
+}
+static const field core::num three = #C1;
+static const field (core::int) → core::int idAsIntFunction = #C3;
+static method dynamicFunction(dynamic d) → dynamic
+  return d;
+static method objectFunction(core::Object? o) → core::Object?
+  return o;
+static method intFunction(core::int i) → core::int
+  return i;
+static method idFunction<T extends core::Object? = dynamic>(self::idFunction::T% t) → self::idFunction::T%
+  return t;
+static method main() → void {
+  #C5;
+  #C6;
+  #C7;
+  #C8;
+  #C9;
+  #C9;
+  #C9;
+  #C10;
+  #C11;
+  #C12;
+  #C13;
+  #C14;
+  #C15;
+  #C16;
+  #C15;
+  #C17;
+  #C18;
+  #C18;
+  #C16;
+  #C20;
+  #C21;
+  #C22;
+  #C23;
+  #C23;
+  #C23;
+  #C24;
+  #C25;
+  #C26;
+  #C27;
+  #C28;
+  #C29;
+  #C29;
+  #C30;
+  #C31;
+  #C32;
+  #C33;
+}
+
+constants  {
+  #C1 = 3
+  #C2 = tearoff self::idFunction
+  #C3 = partial-instantiation self::idFunction <core::int*>
+  #C4 = true
+  #C5 = self::Class<dynamic> {field:#C4}
+  #C6 = self::Class<core::num*> {field:#C4}
+  #C7 = self::Class<core::int*> {field:#C4}
+  #C8 = self::Class<core::String*> {field:#C4}
+  #C9 = self::ClassWithBound<core::int*> {field:#C4}
+  #C10 = self::ClassWithBound<core::double*> {field:#C4}
+  #C11 = self::ClassWithList<dynamic> {field:#C4}
+  #C12 = self::ClassWithList<core::num*> {field:#C4}
+  #C13 = self::ClassWithList<core::int*> {field:#C4}
+  #C14 = self::ClassWithList<core::String*> {field:#C4}
+  #C15 = self::ClassWithFunction<dynamic> {field:#C4}
+  #C16 = self::ClassWithFunction<core::Object*> {field:#C4}
+  #C17 = self::ClassWithFunction<void> {field:#C4}
+  #C18 = self::ClassWithFunction<core::int*> {field:#C4}
+  #C19 = false
+  #C20 = self::Class<core::num*> {field:#C19}
+  #C21 = self::Class<core::int*> {field:#C19}
+  #C22 = self::Class<core::String*> {field:#C19}
+  #C23 = self::ClassWithBound<core::double*> {field:#C19}
+  #C24 = self::ClassWithBound<core::num*> {field:#C19}
+  #C25 = self::ClassWithList<dynamic> {field:#C19}
+  #C26 = self::ClassWithList<core::num*> {field:#C19}
+  #C27 = self::ClassWithList<core::int*> {field:#C19}
+  #C28 = self::ClassWithList<core::String*> {field:#C19}
+  #C29 = self::ClassWithFunction<dynamic> {field:#C19}
+  #C30 = self::ClassWithFunction<core::Object*> {field:#C19}
+  #C31 = self::ClassWithFunction<void> {field:#C19}
+  #C32 = self::ClassWithFunction<core::num*> {field:#C19}
+  #C33 = self::ClassWithFunction<core::int*> {field:#C19}
+}

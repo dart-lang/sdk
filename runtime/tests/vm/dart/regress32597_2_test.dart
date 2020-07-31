@@ -10,7 +10,7 @@
 import "package:expect/expect.dart";
 
 class Token {
-  Token next;
+  Token? next;
 }
 
 class StringToken extends Token {}
@@ -22,7 +22,7 @@ bool failed = false;
 void foo(Token tokens, {bool x: false}) {
   dynamic v;
   {
-    Token current = tokens;
+    Token? current = tokens;
     while (current is ErrorToken) {
       failed = true;
       current = null;

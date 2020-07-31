@@ -1,0 +1,4 @@
+class A<T extends num> {}
+
+var a = <A, A>{};
+main() {}

@@ -812,7 +812,7 @@ void f() {
   }
 
   test_if_condition_notTrue() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f() {
   int v;
   if (!true) {
@@ -822,7 +822,9 @@ void f() {
   }
   v;
 }
-''');
+''', [
+      error(HintCode.DEAD_CODE, 33, 25),
+    ]);
   }
 
   test_if_condition_true() async {
@@ -1325,7 +1327,7 @@ void f(bool b) {
   }
 
   test_while_true_break_if() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(bool b) {
   int v;
   while (true) {
@@ -1340,7 +1342,9 @@ void f(bool b) {
   }
   v;
 }
-''');
+''', [
+      error(HintCode.DEAD_CODE, 131, 2),
+    ]);
   }
 
   test_while_true_break_if2() async {

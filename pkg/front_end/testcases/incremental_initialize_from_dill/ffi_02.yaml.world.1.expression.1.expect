@@ -1,0 +1,2 @@
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return dart.core::print(#lib1::coordinate.{#lib2::Coordinate::x});

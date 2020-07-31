@@ -1,0 +1,14 @@
+// @dart = 2.6
+class C {
+  testC() {}
+  testD() {}
+  void set onlySetter(value) {}
+}
+
+class D extends C {
+  String get onlySetter => "D.onlySetter called.";
+  void set onlySetter(value) {}
+}
+
+main() {}
+void set onlySetter(value) {}

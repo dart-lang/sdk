@@ -216,6 +216,17 @@ var a = {...b, ...c};
     assertType(setLiteral('{...'), 'Set<Object>');
   }
 
+  test_noContext_noTypeArgs_spread_mixin() async {
+    await resolveTestCode(r'''
+mixin S on Set<int> {}
+main() {
+  S s1;
+  var s2 = {...s1};
+}
+''');
+    assertType(setLiteral('{...'), 'Set<int>');
+  }
+
   test_noContext_noTypeArgs_spread_nestedInIf_oneAmbiguous() async {
     await resolveTestCode('''
 List<int> c;

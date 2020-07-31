@@ -6,12 +6,13 @@ import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
@@ -20,10 +21,10 @@ export 'package:analyzer_plugin/utilities/completion/relevance.dart';
 /// An object that contributes results for the `completion.getSuggestions`
 /// request results.
 abstract class DartCompletionContributor {
-  /// Return a [Future] that completes with a list of suggestions
-  /// for the given completion [request].
-  Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request);
+  /// Return a [Future] that completes when the suggestions appropriate for the
+  /// given completion [request] have been added to the [builder].
+  Future<void> computeSuggestions(
+      DartCompletionRequest request, SuggestionBuilder builder);
 }
 
 /// The information about a requested list of completions within a Dart file.
@@ -33,6 +34,9 @@ abstract class DartCompletionRequest extends CompletionRequest {
   /// Return the type imposed on the target's `containingNode` based on its
   /// context, or `null` if the context does not impose any type.
   DartType get contextType;
+
+  /// Return the object used to resolve macros in Dartdoc comments.
+  DartdocDirectiveInfo get dartdocDirectiveInfo;
 
   /// Return the expression to the right of the "dot" or "dot dot",
   /// or `null` if this is not a "dot" completion (e.g. `foo.b`).
@@ -48,6 +52,9 @@ abstract class DartCompletionRequest extends CompletionRequest {
 
   /// Return `true` if free standing identifiers should be suggested
   bool get includeIdentifiers;
+
+  /// Return `true` if the completion is occurring in a constant context.
+  bool get inConstantContext;
 
   /// Return the library element which contains the unit in which the completion
   /// is occurring. This may return `null` if the library cannot be determined
@@ -75,4 +82,9 @@ abstract class DartCompletionRequest extends CompletionRequest {
   /// At a minimum, all declarations in the completion scope in [target.unit]
   /// will be resolved if they can be resolved.
   CompletionTarget get target;
+
+  /// Return prefix that already exists in the document for [target] or empty
+  /// string if unavailable. This can be used to filter the completion list to
+  /// items that already match the text to the left of the caret.
+  String get targetPrefix;
 }

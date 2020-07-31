@@ -1,0 +1,33 @@
+bool x;
+bool x;
+
+errors() {
+print(x);
+print(x!);
+print(!x);
+}
+
+class C {
+C.c0() : super();
+C.c1() : super()!;
+}
+
+main() {}
+
+
+bool[StringToken] x[StringToken];[SimpleToken]
+bool[StringToken] x[StringToken];[SimpleToken]
+
+errors[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]x[StringToken])[SimpleToken];[SimpleToken]
+print[StringToken]([BeginToken]x[StringToken]![SimpleToken])[SimpleToken];[SimpleToken]
+print[StringToken]([BeginToken]![SimpleToken]x[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+C[StringToken].[SimpleToken]c0[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] super[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+C[StringToken].[SimpleToken]c1[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] super[KeywordToken]([BeginToken])[SimpleToken]![SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

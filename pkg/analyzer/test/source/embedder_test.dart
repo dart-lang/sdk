@@ -41,7 +41,7 @@ class DartUriResolverTest extends EmbedderRelatedTest {
     }
 
     // Check that they map to the correct paths.
-    expectResolved('dart:core', '$foxLib/core.dart');
+    expectResolved('dart:core', '$foxLib/core/core.dart');
     expectResolved('dart:fox', '$foxLib/slippy.dart');
     expectResolved('dart:bear', '$foxLib/grizzly.dart');
     expectResolved('dart:relative', '$foxPath/relative.dart');
@@ -104,7 +104,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
       expect(source.fullName, posixToOSPath(posixPath));
     }
 
-    expectSource('dart:core', '$foxLib/core.dart');
+    expectSource('dart:core', '$foxLib/core/core.dart');
     expectSource('dart:fox', '$foxLib/slippy.dart');
     expectSource('dart:deep', '$foxLib/deep/directory/file.dart');
     expectSource('dart:deep/part.dart', '$foxLib/deep/directory/part.dart');
@@ -128,7 +128,7 @@ class EmbedderUriResolverTest extends EmbedderRelatedTest {
     // We have five mappings.
     expect(resolver, hasLength(5));
     // Check that they map to the correct paths.
-    expectResolved('dart:core', '$foxLib/core.dart');
+    expectResolved('dart:core', '$foxLib/core/core.dart');
     expectResolved('dart:fox', '$foxLib/slippy.dart');
     expectResolved('dart:bear', '$foxLib/grizzly.dart');
     expectResolved('dart:relative', '$foxPath/relative.dart');

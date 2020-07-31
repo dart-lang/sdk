@@ -1,0 +1,9 @@
+// @dart = 2.6
+import 'bounds_from_opt_in_lib.dart';
+
+class LegacyClass<T extends Null> extends Class<T> {
+  method<T extends Null>() {}
+}
+
+main() {}
+test() {}

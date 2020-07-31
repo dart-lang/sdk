@@ -1,0 +1,160 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method main() → dynamic {
+  core::List<core::int>? list = null;
+  core::print( block {
+    final core::List<core::int> #t1 = <core::int>[];
+    #t1.{core::List::add}(1);
+    #t1.{core::List::add}(2);
+    final core::Iterable<core::int>? #t2 = list;
+    if(!#t2.{core::Object::==}(null))
+      for (final core::int #t3 in #t2{core::Iterable<core::int>})
+        #t1.{core::List::add}(#t3);
+    #t1.{core::List::add}(3);
+  } =>#t1);
+  core::print( block {
+    final core::List<core::int> #t4 = <core::int>[];
+    #t4.{core::List::add}(1);
+    #t4.{core::List::add}(2);
+    final core::Iterable<core::int>? #t5 = null;
+    if(!#t5.{core::Object::==}(null))
+      for (final core::int #t6 in #t5{core::Iterable<core::int>})
+        #t4.{core::List::add}(#t6);
+    #t4.{core::List::add}(3);
+  } =>#t4);
+  core::List<core::int> list1 = block {
+    final core::List<core::int> #t7 = <core::int>[];
+    final core::Iterable<core::int>? #t8 = list;
+    if(!#t8.{core::Object::==}(null))
+      for (final core::int #t9 in #t8{core::Iterable<core::int>})
+        #t7.{core::List::add}(#t9);
+  } =>#t7;
+  core::List<Never> list2 = block {
+    final core::List<Never> #t10 = <Never>[];
+    final core::Iterable<Never>? #t11 = null;
+    if(!#t11.{core::Object::==}(null))
+      for (final Never #t12 in #t11{core::Iterable<Never>})
+        #t10.{core::List::add}(#t12);
+  } =>#t10;
+  core::List<core::int> list3 = block {
+    final core::List<core::int> #t13 = <core::int>[];
+    #t13.{core::List::add}(1);
+    #t13.{core::List::add}(2);
+    final core::Iterable<core::int>? #t14 = list;
+    if(!#t14.{core::Object::==}(null))
+      for (final core::int #t15 in #t14{core::Iterable<core::int>})
+        #t13.{core::List::add}(#t15);
+    #t13.{core::List::add}(3);
+  } =>#t13;
+  core::List<core::int> list4 = block {
+    final core::List<core::int> #t16 = <core::int>[];
+    #t16.{core::List::add}(1);
+    #t16.{core::List::add}(2);
+    final core::Iterable<core::int>? #t17 = null;
+    if(!#t17.{core::Object::==}(null))
+      for (final core::int #t18 in #t17{core::Iterable<core::int>})
+        #t16.{core::List::add}(#t18);
+    #t16.{core::List::add}(3);
+  } =>#t16;
+  core::Set<core::int>? set = null;
+  core::print( block {
+    final core::Set<core::int> #t19 = col::LinkedHashSet::•<core::int>();
+    #t19.{core::Set::add}(1);
+    #t19.{core::Set::add}(2);
+    final core::Iterable<core::int>? #t20 = set;
+    if(!#t20.{core::Object::==}(null))
+      for (final core::int #t21 in #t20{core::Iterable<core::int>})
+        #t19.{core::Set::add}(#t21);
+    #t19.{core::Set::add}(3);
+  } =>#t19);
+  core::print( block {
+    final core::Set<core::int> #t22 = col::LinkedHashSet::•<core::int>();
+    #t22.{core::Set::add}(1);
+    #t22.{core::Set::add}(2);
+    final core::Iterable<core::int>? #t23 = null;
+    if(!#t23.{core::Object::==}(null))
+      for (final core::int #t24 in #t23{core::Iterable<core::int>})
+        #t22.{core::Set::add}(#t24);
+    #t22.{core::Set::add}(3);
+  } =>#t22);
+  core::Set<core::int> set1 = block {
+    final core::Set<core::int> #t25 = col::LinkedHashSet::•<core::int>();
+    final core::Iterable<dynamic>? #t26 = set;
+    if(!#t26.{core::Object::==}(null))
+      for (final dynamic #t27 in #t26{core::Iterable<dynamic>}) {
+        final core::int #t28 = #t27 as{TypeError,ForNonNullableByDefault} core::int;
+        #t25.{core::Set::add}(#t28);
+      }
+  } =>#t25;
+  core::Set<core::int> set3 = block {
+    final core::Set<core::int> #t29 = col::LinkedHashSet::•<core::int>();
+    #t29.{core::Set::add}(1);
+    #t29.{core::Set::add}(2);
+    final core::Iterable<core::int>? #t30 = set;
+    if(!#t30.{core::Object::==}(null))
+      for (final core::int #t31 in #t30{core::Iterable<core::int>})
+        #t29.{core::Set::add}(#t31);
+    #t29.{core::Set::add}(3);
+  } =>#t29;
+  core::Set<core::int> set4 = block {
+    final core::Set<core::int> #t32 = col::LinkedHashSet::•<core::int>();
+    #t32.{core::Set::add}(1);
+    #t32.{core::Set::add}(2);
+    final core::Iterable<core::int>? #t33 = null;
+    if(!#t33.{core::Object::==}(null))
+      for (final core::int #t34 in #t33{core::Iterable<core::int>})
+        #t32.{core::Set::add}(#t34);
+    #t32.{core::Set::add}(3);
+  } =>#t32;
+  core::Map<core::int, core::int>? map = null;
+  core::print( block {
+    final core::Map<core::int, core::int> #t35 = <core::int, core::int>{};
+    #t35.{core::Map::[]=}(1, 1);
+    #t35.{core::Map::[]=}(2, 2);
+    final core::Map<core::int, core::int>? #t36 = map;
+    if(!#t36.{core::Object::==}(null))
+      for (final core::MapEntry<core::int, core::int> #t37 in #t36{core::Map<core::int, core::int>}.{core::Map::entries})
+        #t35.{core::Map::[]=}(#t37.{core::MapEntry::key}, #t37.{core::MapEntry::value});
+    #t35.{core::Map::[]=}(3, 3);
+  } =>#t35);
+  core::print( block {
+    final core::Map<core::int, core::int> #t38 = <core::int, core::int>{};
+    #t38.{core::Map::[]=}(1, 1);
+    #t38.{core::Map::[]=}(2, 2);
+    final core::Map<core::int, core::int>? #t39 = null;
+    if(!#t39.{core::Object::==}(null))
+      for (final core::MapEntry<core::int, core::int> #t40 in #t39{core::Map<core::int, core::int>}.{core::Map::entries})
+        #t38.{core::Map::[]=}(#t40.{core::MapEntry::key}, #t40.{core::MapEntry::value});
+    #t38.{core::Map::[]=}(3, 3);
+  } =>#t38);
+  core::Map<core::int, core::int> map1 = block {
+    final core::Map<core::int, core::int> #t41 = <core::int, core::int>{};
+    final core::Map<core::int, core::int>? #t42 = map;
+    if(!#t42.{core::Object::==}(null))
+      for (final core::MapEntry<core::int, core::int> #t43 in #t42{core::Map<core::int, core::int>}.{core::Map::entries})
+        #t41.{core::Map::[]=}(#t43.{core::MapEntry::key}, #t43.{core::MapEntry::value});
+  } =>#t41;
+  core::Map<core::int, core::int> map3 = block {
+    final core::Map<core::int, core::int> #t44 = <core::int, core::int>{};
+    #t44.{core::Map::[]=}(1, 1);
+    #t44.{core::Map::[]=}(2, 2);
+    final core::Map<core::int, core::int>? #t45 = map;
+    if(!#t45.{core::Object::==}(null))
+      for (final core::MapEntry<core::int, core::int> #t46 in #t45{core::Map<core::int, core::int>}.{core::Map::entries})
+        #t44.{core::Map::[]=}(#t46.{core::MapEntry::key}, #t46.{core::MapEntry::value});
+    #t44.{core::Map::[]=}(3, 3);
+  } =>#t44;
+  core::Map<core::int, core::int> map4 = block {
+    final core::Map<core::int, core::int> #t47 = <core::int, core::int>{};
+    #t47.{core::Map::[]=}(1, 1);
+    #t47.{core::Map::[]=}(2, 2);
+    final core::Map<core::int, core::int>? #t48 = null;
+    if(!#t48.{core::Object::==}(null))
+      for (final core::MapEntry<core::int, core::int> #t49 in #t48{core::Map<core::int, core::int>}.{core::Map::entries})
+        #t47.{core::Map::[]=}(#t49.{core::MapEntry::key}, #t49.{core::MapEntry::value});
+    #t47.{core::Map::[]=}(3, 3);
+  } =>#t47;
+}

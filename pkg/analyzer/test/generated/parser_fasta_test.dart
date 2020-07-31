@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/parser/async_modifier.dart';
-import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
-    as fasta;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart'
     show ErrorToken;
@@ -157,6 +155,17 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
       expectedError(ScannerErrorCode.EXPECTED_TOKEN, 22, 1),
       expectedError(ScannerErrorCode.EXPECTED_TOKEN, 22, 1),
     ]);
+    var classDeclaration = unit.declarations[0] as ClassDeclaration;
+    var constructor = classDeclaration.members[0] as ConstructorDeclaration;
+    var invocation = constructor.initializers[0] as SuperConstructorInvocation;
+    expect(invocation.argumentList.arguments, hasLength(0));
+  }
+
+  void test_parseConstructor_operator_name() {
+    var unit = parseCompilationUnit('class A { operator/() : super(); }',
+        errors: [
+          expectedError(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 10, 8)
+        ]);
     var classDeclaration = unit.declarations[0] as ClassDeclaration;
     var constructor = classDeclaration.members[0] as ConstructorDeclaration;
     var invocation = constructor.initializers[0] as SuperConstructorInvocation;
@@ -339,9 +348,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
   }
 }
 
-/**
- * Tests of the fasta parser based on [ExpressionParserTestMixin].
- */
+/// Tests of the fasta parser based on [ExpressionParserTestMixin].
 @reflectiveTest
 class CollectionLiteralParserTest extends FastaParserTestCase {
   Expression parseCollectionLiteral(String source,
@@ -967,9 +974,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 }
 
-/**
- * Tests of the fasta parser based on [ComplexParserTestMixin].
- */
+/// Tests of the fasta parser based on [ComplexParserTestMixin].
 @reflectiveTest
 class ComplexParserTest_Fasta extends FastaParserTestCase
     with ComplexParserTestMixin {
@@ -1035,9 +1040,7 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
   }
 }
 
-/**
- * Tests of the fasta parser based on [ErrorParserTest].
- */
+/// Tests of the fasta parser based on [ErrorParserTest].
 @reflectiveTest
 class ErrorParserTest_Fasta extends FastaParserTestCase
     with ErrorParserTestMixin {
@@ -1243,9 +1246,7 @@ main() { // missing async
   }
 }
 
-/**
- * Tests of the fasta parser based on [ExpressionParserTestMixin].
- */
+/// Tests of the fasta parser based on [ExpressionParserTestMixin].
 @reflectiveTest
 class ExpressionParserTest_Fasta extends FastaParserTestCase
     with ExpressionParserTestMixin {
@@ -1639,21 +1640,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
 @reflectiveTest
 class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
-  @override
-  CompilationUnit parseCompilationUnit(String content,
-      {List<ErrorCode> codes,
-      List<ExpectedError> errors,
-      FeatureSet featureSet}) {
-    return super.parseCompilationUnit(content,
-        codes: codes,
-        errors: errors,
-        featureSet: featureSet ??
-            FeatureSet.forTesting(
-              sdkVersion: '2.3.0',
-              additionalFeatures: [Feature.extension_methods],
-            ));
-  }
-
   void test_complex_extends() {
     var unit = parseCompilationUnit(
         'extension E extends A with B, C implements D { }',
@@ -1888,10 +1874,8 @@ class C {}
   }
 }
 
-/**
- * Implementation of [AbstractParserTestCase] specialized for testing the
- * Fasta parser.
- */
+/// Implementation of [AbstractParserTestCase] specialized for testing the
+/// Fasta parser.
 class FastaParserTestCase
     with ParserTestHelpers
     implements AbstractParserTestCase {
@@ -2417,9 +2401,7 @@ class FastaParserTestCase
       expectedErrorCodes.map(_toFastaGeneratedAnalyzerErrorCode).toList();
 }
 
-/**
- * Tests of the fasta parser based on [FormalParameterParserTestMixin].
- */
+/// Tests of the fasta parser based on [FormalParameterParserTestMixin].
 @reflectiveTest
 class FormalParameterParserTest_Fasta extends FastaParserTestCase
     with FormalParameterParserTestMixin {
@@ -2683,9 +2665,7 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   }
 }
 
-/**
- * Tests of the fasta parser based on [ComplexParserTestMixin].
- */
+/// Tests of the fasta parser based on [ComplexParserTestMixin].
 @reflectiveTest
 class NNBDParserTest_Fasta extends FastaParserTestCase {
   @override
@@ -2764,6 +2744,28 @@ main() {
     expect(expression.argumentList.arguments.length, 1);
     IntegerLiteral argument = expression.argumentList.arguments.single;
     expect(argument.value, 42);
+  }
+
+  void test_bangQuestionIndex() {
+    // http://dartbug.com/41177
+    CompilationUnit unit = parseCompilationUnit('f(dynamic a) { a!?[0]; }');
+    FunctionDeclaration funct = unit.declarations[0];
+    BlockFunctionBody body = funct.functionExpression.body;
+
+    ExpressionStatement statement = body.block.statements[0];
+    IndexExpression expression = statement.expression;
+
+    IntegerLiteral index = expression.index;
+    expect(index.value, 0);
+
+    Token question = expression.question;
+    expect(question, isNotNull);
+    expect(question.lexeme, "?");
+
+    PostfixExpression target = expression.target;
+    SimpleIdentifier identifier = target.operand;
+    expect(identifier.name, 'a');
+    expect(target.operator.lexeme, '!');
   }
 
   void test_binary_expression_statement() {
@@ -3498,27 +3500,21 @@ class Foo {
   }
 }
 
-/**
- * Proxy implementation of the analyzer parser, implemented in terms of the
- * Fasta parser.
- *
- * This allows many of the analyzer parser tests to be run on Fasta, even if
- * they call into the analyzer parser class directly.
- */
+/// Proxy implementation of the analyzer parser, implemented in terms of the
+/// Fasta parser.
+///
+/// This allows many of the analyzer parser tests to be run on Fasta, even if
+/// they call into the analyzer parser class directly.
 class ParserProxy extends analyzer.ParserAdapter {
-  /**
-   * The error listener to which scanner and parser errors will be reported.
-   */
+  /// The error listener to which scanner and parser errors will be reported.
   final GatheringErrorListener _errorListener;
 
   ForwardingTestListener _eventListener;
 
   final int expectedEndOffset;
 
-  /**
-   * Creates a [ParserProxy] which is prepared to begin parsing at the given
-   * Fasta token.
-   */
+  /// Creates a [ParserProxy] which is prepared to begin parsing at the given
+  /// Fasta token.
   factory ParserProxy(analyzer.Token firstToken, FeatureSet featureSet,
       {bool allowNativeClause = false, int expectedEndOffset}) {
     TestSource source = TestSource();
@@ -3900,9 +3896,7 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
   }
 }
 
-/**
- * Tests of the fasta parser based on [StatementParserTestMixin].
- */
+/// Tests of the fasta parser based on [StatementParserTestMixin].
 @reflectiveTest
 class StatementParserTest_Fasta extends FastaParserTestCase
     with StatementParserTestMixin {
@@ -4307,9 +4301,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   }
 }
 
-/**
- * Tests of the fasta parser based on [TopLevelParserTestMixin].
- */
+/// Tests of the fasta parser based on [TopLevelParserTestMixin].
 @reflectiveTest
 class TopLevelParserTest_Fasta extends FastaParserTestCase
     with TopLevelParserTestMixin {

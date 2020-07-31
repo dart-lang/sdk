@@ -1,0 +1,52 @@
+bool enableRead = true;
+int read(int value) => enableRead ? value : -1;
+int method1() => 0;
+int method2(int a) => -a;
+int method3(int a, int b) => a - b;
+int method4(int a, [int b = 0]) => a - b;
+int method5([int a = 0, int b = 0]) => a - b;
+int method6(int a, {int b = 0}) => a - b;
+int method7({int a = 0, int b = 0}) => a - b;
+
+class Class {
+  Function field1a = method1;
+  int Function() field1b = method1;
+  int Function(int a) field2 = method2;
+  int Function(int a, int b) field3 = method3;
+  int Function(int a, [int b]) field4 = method4;
+  int Function([int a, int b]) field5 = method5;
+  int Function(int a, {int b}) field6 = method6;
+  int Function({int a, int b}) field7 = method7;
+  Function get getter1a => method1;
+  int Function() get getter1b => method1;
+  int Function(int a) get getter2 => method2;
+  int Function(int a, int b) get getter3 => method3;
+  int Function(int a, [int b]) get getter4 => method4;
+  int Function([int a, int b]) get getter5 => method5;
+  int Function(int a, {int b}) get getter6 => method6;
+  int Function({int a, int b}) get getter7 => method7;
+}
+
+class Subclass extends Class {
+  Function get field1a {}
+  int Function() get field1b {}
+  int Function(int a) get field2 {}
+  int Function(int a, int b) get field3 {}
+  int Function(int a, [int b]) get field4 {}
+  int Function([int a, int b]) get field5 {}
+  int Function(int a, {int b}) get field6 {}
+  int Function({int a, int b}) get field7 {}
+  Function get getter1a {}
+  int Function() get getter1b {}
+  int Function(int a) get getter2 {}
+  int Function(int a, int b) get getter3 {}
+  int Function(int a, [int b]) get getter4 {}
+  int Function([int a, int b]) get getter5 {}
+  int Function(int a, {int b}) get getter6 {}
+  int Function({int a, int b}) get getter7 {}
+}
+
+main() {}
+callField(Class c) {}
+callGetter(Class c) {}
+expect(expected, actual) {}

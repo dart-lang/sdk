@@ -1,0 +1,11 @@
+library test;
+
+class C {
+  static var x = 'x';
+  var y = {
+    'a': {'b': 'c'},
+    'd': {'e': x}
+  };
+}
+
+main() {}
