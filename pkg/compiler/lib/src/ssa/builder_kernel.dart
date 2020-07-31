@@ -6308,7 +6308,7 @@ class TryCatchFinallyBuilder {
 
     AbstractValue unwrappedType = kernelBuilder._typeInferenceMap
         .getReturnTypeOf(kernelBuilder._commonElements.exceptionUnwrapper);
-    if (!kernelBuilder.options.useLegacySubtyping) {
+    if (kernelBuilder.options.useNullSafety) {
       // Global type analysis does not currently understand that strong mode
       // `Object` is not nullable, so is imprecise in the return type of the
       // unwrapper, which leads to unnecessary checks for 'on Object'.
@@ -6326,7 +6326,6 @@ class TryCatchFinallyBuilder {
     int catchesIndex = 0;
 
     void pushCondition(ir.Catch catchBlock) {
-      // `guard` is often `dynamic`, which generates `true`.
       kernelBuilder._pushIsTest(catchBlock.guard, unwrappedException,
           kernelBuilder._sourceInformationBuilder.buildCatch(catchBlock));
     }
