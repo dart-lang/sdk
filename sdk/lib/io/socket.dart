@@ -801,10 +801,12 @@ abstract class Socket implements Stream<Uint8List>, IOSink {
       {sourceAddress, Duration? timeout}) {
     final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
-      if (!isInsecureConnectionAllowed(host)) {
-        throw new SocketException(
-            "Insecure socket connections are disallowed by platform: $host");
-      }
+      // TODO(b/162514236): This breaks internal device lab tests for Fuchsia.
+      //
+      // if (!isInsecureConnectionAllowed(host)) {
+      //   throw new SocketException(
+      //       "Insecure socket connections are disallowed by platform: $host");
+      // }
       return Socket._connect(host, port,
           sourceAddress: sourceAddress, timeout: timeout);
     }
@@ -819,10 +821,12 @@ abstract class Socket implements Stream<Uint8List>, IOSink {
       {sourceAddress}) {
     final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
-      if (!isInsecureConnectionAllowed(host)) {
-        throw new SocketException(
-            "Insecure socket connections are disallowed by platform: $host");
-      }
+      // TODO(b/162514236): This breaks internal device lab tests for Fuchsia.
+      //
+      // if (!isInsecureConnectionAllowed(host)) {
+      //   throw new SocketException(
+      //       "Insecure socket connections are disallowed by platform: $host");
+      // }
       return Socket._startConnect(host, port, sourceAddress: sourceAddress);
     }
     return overrides.socketStartConnect(host, port,
