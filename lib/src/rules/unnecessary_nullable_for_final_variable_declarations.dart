@@ -8,12 +8,13 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Use non-nullable type '
-    'for final variable initialized with non-nullable value.';
+const _desc = r'Use a non-nullable type for a final variable initialized '
+    'with a non-nullable value.';
 
 const _details = r'''
 
-Use non-nullable type for final variable initialized with non-nullable value.
+Use a non-nullable type for a final variable initialized with a non-nullable
+value.
 
 **BAD:**
 ```
@@ -66,10 +67,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!_isNonNullableEnabled) return;
 
     for (var variable in node.fields.variables) {
-      // We could also include public members in private classes but to do that
-      // we'd need to ensure that there are no instances of either the
-      // enclosing class or any subclass of the enclosing class that are ever
-      // accessible outside this library.
       if (Identifier.isPrivateName(variable.name.name) || node.isStatic) {
         _visit(variable);
       }
