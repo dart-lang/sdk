@@ -1,5 +1,8 @@
 ## 0.39.16-dev
 * Added `TypeVisitorWithArgument` and `DartType.acceptWithArgument`.
+* Bumped the analyzer's SDK requirement to `>=2.7.0`, so that extension methods
+  can be used within the analyzer implementation. Previously it was `2.6.0`,
+  but there is an [issue](https://github.com/dart-lang/sdk/issues/42888).
 
 ## 0.39.15
 * Move `asInstanceOf(ClassElement)` to `DartType`, so that it is also
