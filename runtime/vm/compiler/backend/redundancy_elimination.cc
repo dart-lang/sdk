@@ -1553,7 +1553,7 @@ void DelayAllocations::Optimize(FlowGraph* graph) {
       if (def != nullptr && (def->IsAllocateObject() || def->IsCreateArray()) &&
           def->env() == nullptr && !moved.HasKey(def)) {
         Instruction* use = DominantUse(def);
-        if (use != nullptr && IsOneTimeUse(use, def)) {
+        if (use != nullptr && !use->IsPhi() && IsOneTimeUse(use, def)) {
           instr_it.RemoveCurrentFromGraph();
           def->InsertBefore(use);
           moved.Insert(def);
@@ -1566,87 +1566,63 @@ void DelayAllocations::Optimize(FlowGraph* graph) {
 Instruction* DelayAllocations::DominantUse(Definition* def) {
   // Find the use that dominates all other uses.
 
-  // Quick case for no uses or only one use.
-  Value* maybe_only_use = def->input_use_list();
-  if (maybe_only_use == nullptr) return nullptr;
-  if (def->HasOnlyUse(maybe_only_use)) {
-    Instruction* use = maybe_only_use->instruction();
-    return use->IsPhi() ? nullptr : use;
-  }
-
-  // Collect all blocks containing uses.
-  DirectChainedHashMap<IdentitySetKeyValueTrait<BlockEntryInstr*>> use_blocks;
+  // Collect all uses.
+  DirectChainedHashMap<IdentitySetKeyValueTrait<Instruction*>> uses;
   for (Value::Iterator it(def->input_use_list()); !it.Done(); it.Advance()) {
     Instruction* use = it.Current()->instruction();
-    if (auto phi = use->AsPhi()) {
+    uses.Insert(use);
+  }
+  for (Value::Iterator it(def->env_use_list()); !it.Done(); it.Advance()) {
+    Instruction* use = it.Current()->instruction();
+    uses.Insert(use);
+  }
+
+  // Find the dominant use.
+  Instruction* dominant_use = nullptr;
+  auto use_it = uses.GetIterator();
+  while (auto use = use_it.Next()) {
+    // Start with the instruction before the use, then walk backwards through
+    // blocks in the dominator chain until we hit the definition or another use.
+    Instruction* instr = nullptr;
+    if (auto phi = (*use)->AsPhi()) {
       // For phi uses, the dominant use only has to dominate the
       // predecessor block corresponding to the phi input.
-      use_blocks.Insert(phi->block()->PredecessorAt(it.Current()->use_index()));
+      ASSERT(phi->InputCount() == phi->block()->PredecessorCount());
+      for (intptr_t i = 0; i < phi->InputCount(); i++) {
+        if (phi->InputAt(i)->definition() == def) {
+          instr = phi->block()->PredecessorAt(i)->last_instruction();
+          break;
+        }
+      }
+      ASSERT(instr != nullptr);
     } else {
-      use_blocks.Insert(use->GetBlock());
+      instr = (*use)->previous();
     }
-  }
-  for (Value::Iterator it(def->env_use_list()); !it.Done(); it.Advance()) {
-    Instruction* use = it.Current()->instruction();
-    use_blocks.Insert(use->GetBlock());
-  }
 
-  // Find the common dominator block of all blocks containing uses.
-  BlockEntryInstr* common_dominator = nullptr;
-  auto block_it = use_blocks.GetIterator();
-  while (auto block = block_it.Next()) {
     bool dominated = false;
-    for (auto dom = (*block)->dominator(); dom != nullptr;
-         dom = dom->dominator()) {
-      if (use_blocks.HasKey(dom)) {
+    while (instr != def) {
+      if (uses.HasKey(instr)) {
+        // We hit another use.
         dominated = true;
         break;
       }
+      if (auto block = instr->AsBlockEntry()) {
+        instr = block->dominator()->last_instruction();
+      } else {
+        instr = instr->previous();
+      }
     }
     if (!dominated) {
-      // Potential common dominator block.
-      if (common_dominator != nullptr && common_dominator != *block) {
-        // No common dominator of all uses.
+      if (dominant_use != nullptr) {
+        // More than one use reached the definition, which means no use
+        // dominates all other uses.
         return nullptr;
       }
-      common_dominator = *block;
+      dominant_use = *use;
     }
   }
 
-  // Collect uses in block.
-  DirectChainedHashMap<IdentitySetKeyValueTrait<Instruction*>> uses_in_block;
-  for (Value::Iterator it(def->input_use_list()); !it.Done(); it.Advance()) {
-    Instruction* use = it.Current()->instruction();
-    if (!use->IsPhi() && use->GetBlock() == common_dominator) {
-      uses_in_block.Insert(use);
-    }
-  }
-  for (Value::Iterator it(def->env_use_list()); !it.Done(); it.Advance()) {
-    Instruction* use = it.Current()->instruction();
-    if (use->GetBlock() == common_dominator) {
-      uses_in_block.Insert(use);
-    }
-  }
-
-  // Find first use in block.
-  Instruction* first_use = nullptr;
-  auto use_it = uses_in_block.GetIterator();
-  while (auto use = use_it.Next()) {
-    bool dominated = false;
-    for (auto instr = (*use)->previous(); instr != nullptr;
-         instr = instr->previous()) {
-      if (uses_in_block.HasKey(instr)) {
-        dominated = true;
-        break;
-      }
-    }
-    if (!dominated) {
-      first_use = *use;
-      break;
-    }
-  }
-
-  return first_use;
+  return dominant_use;
 }
 
 bool DelayAllocations::IsOneTimeUse(Instruction* use, Definition* def) {
