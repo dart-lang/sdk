@@ -366,14 +366,12 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM) ||
           identical(dataErrorCode,
               CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT) ||
-          identical(
-              dataErrorCode,
-              CheckedModeCompileTimeErrorCode
-                  .CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH) ||
+          identical(dataErrorCode,
+              CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH) ||
           identical(dataErrorCode,
               CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH) ||
-          identical(dataErrorCode,
-              CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH)) {
+          identical(
+              dataErrorCode, CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH)) {
         _errorReporter.reportError(data);
       } else if (errorCode != null) {
         _errorReporter.reportError(

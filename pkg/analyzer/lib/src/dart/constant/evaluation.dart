@@ -232,7 +232,7 @@ class ConstantEvaluationEngine {
             //  CompileTimeErrorCode.INVALID_ASSIGNMENT has already been
             //  reported (that is, if the static types are also wrong).
             errorReporter.reportErrorForNode(
-                CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
+                CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
                 constantInitializer,
                 [dartObject.type, constant.type]);
           }
@@ -575,8 +575,7 @@ class ConstantEvaluationEngine {
             FieldMember.from(field, constructor.returnType).type;
         if (fieldValue != null && !runtimeTypeMatch(fieldValue, fieldType)) {
           errorReporter.reportErrorForNode(
-              CheckedModeCompileTimeErrorCode
-                  .CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+              CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
               node,
               [fieldValue.type, field.name, fieldType]);
         }
@@ -678,8 +677,7 @@ class ConstantEvaluationEngine {
             PropertyInducingElement field = getter.variable;
             if (!runtimeTypeMatch(evaluationResult, field.type)) {
               errorReporter.reportErrorForNode(
-                  CheckedModeCompileTimeErrorCode
-                      .CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+                  CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
                   node,
                   [evaluationResult.type, fieldName, field.type]);
             }
