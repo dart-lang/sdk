@@ -976,6 +976,18 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
 
 #undef CHECK_RESULT
 
+static bool CheckForInvalidPath(const char* path) {
+  // TODO(zichangguo): "\\?\" is a prefix for paths on Windows.
+  // Arguments passed are parsed as an URI. "\\?\" causes problems as a part
+  // of URIs. This is a temporary workaround to prevent VM from crashing.
+  // Issue: https://github.com/dart-lang/sdk/issues/42779
+  if (strncmp(path, "\\\\?\\", 4) == 0) {
+    Syslog::PrintErr("\\\\?\\ prefix is not supported");
+    return false;
+  }
+  return true;
+}
+
 // Observatory assets are not included in a product build.
 #if !defined(PRODUCT)
 extern unsigned int observatory_assets_archive_len;
@@ -1118,6 +1130,9 @@ void main(int argc, char** argv) {
   // or a valid file path was provided as the first non-flag argument.
   // Otherwise, script_name can be NULL if DartDev should be run.
   if (script_name != nullptr) {
+    if (!CheckForInvalidPath(script_name)) {
+      Platform::Exit(0);
+    }
     try_load_snapshots_lambda();
   }
 
