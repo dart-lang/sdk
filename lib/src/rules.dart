@@ -156,6 +156,7 @@ import 'rules/unnecessary_lambdas.dart';
 import 'rules/unnecessary_new.dart';
 import 'rules/unnecessary_null_aware_assignments.dart';
 import 'rules/unnecessary_null_in_if_null_operators.dart';
+import 'rules/unnecessary_nullable_for_final_variable_declarations.dart';
 import 'rules/unnecessary_overrides.dart';
 import 'rules/unnecessary_parenthesis.dart';
 import 'rules/unnecessary_raw_strings.dart';
@@ -336,6 +337,7 @@ void registerLintRules() {
     //..register(UnnecessaryGetters())
     ..register(UnnecessaryGettersSetters())
     ..register(UnnecessaryLambdas())
+    ..register(UnnecessaryNullableForFinalVariableDeclarations())
     ..register(UnnecessaryOverrides())
     ..register(UnnecessaryParenthesis())
     ..register(UnnecessaryRawStrings())
