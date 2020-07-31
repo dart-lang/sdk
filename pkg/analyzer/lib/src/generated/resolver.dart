@@ -292,71 +292,71 @@ class ResolverVisitor extends ScopedVisitor {
       : _featureSet = featureSet,
         super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
-    this._promoteManager = TypePromotionManager(typeSystem);
-    this.nullableDereferenceVerifier = NullableDereferenceVerifier(
+    _promoteManager = TypePromotionManager(typeSystem);
+    nullableDereferenceVerifier = NullableDereferenceVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
     );
-    this.boolExpressionVerifier = BoolExpressionVerifier(
+    boolExpressionVerifier = BoolExpressionVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
       nullableDereferenceVerifier: nullableDereferenceVerifier,
     );
-    this._typedLiteralResolver = TypedLiteralResolver(
+    _typedLiteralResolver = TypedLiteralResolver(
         this, _featureSet, typeSystem, typeProvider,
         migratableAstInfoProvider: _migratableAstInfoProvider);
-    this.extensionResolver = ExtensionMemberResolver(this);
-    this.typePropertyResolver = TypePropertyResolver(this);
-    this.inferenceHelper = InvocationInferenceHelper(
+    extensionResolver = ExtensionMemberResolver(this);
+    typePropertyResolver = TypePropertyResolver(this);
+    inferenceHelper = InvocationInferenceHelper(
         resolver: this,
         flowAnalysis: _flowAnalysis,
         errorReporter: errorReporter,
         typeSystem: typeSystem,
         migrationResolutionHooks: migrationResolutionHooks);
-    this._assignmentExpressionResolver = AssignmentExpressionResolver(
+    _assignmentExpressionResolver = AssignmentExpressionResolver(
       resolver: this,
       flowAnalysis: _flowAnalysis,
     );
-    this._binaryExpressionResolver = BinaryExpressionResolver(
+    _binaryExpressionResolver = BinaryExpressionResolver(
       resolver: this,
       promoteManager: _promoteManager,
       flowAnalysis: _flowAnalysis,
     );
-    this._functionExpressionInvocationResolver =
+    _functionExpressionInvocationResolver =
         FunctionExpressionInvocationResolver(
       resolver: this,
     );
-    this._functionExpressionResolver = FunctionExpressionResolver(
+    _functionExpressionResolver = FunctionExpressionResolver(
       resolver: this,
       migrationResolutionHooks: migrationResolutionHooks,
       flowAnalysis: _flowAnalysis,
       promoteManager: _promoteManager,
     );
-    this._forResolver = ForResolver(
+    _forResolver = ForResolver(
       resolver: this,
       flowAnalysis: _flowAnalysis,
     );
-    this._postfixExpressionResolver = PostfixExpressionResolver(
+    _postfixExpressionResolver = PostfixExpressionResolver(
       resolver: this,
       flowAnalysis: _flowAnalysis,
     );
-    this._prefixExpressionResolver = PrefixExpressionResolver(
+    _prefixExpressionResolver = PrefixExpressionResolver(
       resolver: this,
       flowAnalysis: _flowAnalysis,
     );
-    this._yieldStatementResolver = YieldStatementResolver(
+    _yieldStatementResolver = YieldStatementResolver(
       resolver: this,
     );
-    this.nullSafetyDeadCodeVerifier = NullSafetyDeadCodeVerifier(
+    nullSafetyDeadCodeVerifier = NullSafetyDeadCodeVerifier(
       typeSystem,
       errorReporter,
       _flowAnalysis,
     );
-    this.elementResolver = ElementResolver(this,
+    elementResolver = ElementResolver(this,
         reportConstEvaluationErrors: reportConstEvaluationErrors,
         migratableAstInfoProvider: _migratableAstInfoProvider);
-    this.inferenceContext = InferenceContext._(this);
-    this.typeAnalyzer = StaticTypeAnalyzer(
+    inferenceContext = InferenceContext._(this);
+    typeAnalyzer = StaticTypeAnalyzer(
         this, featureSet, _flowAnalysis, migrationResolutionHooks);
   }
 

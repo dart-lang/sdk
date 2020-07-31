@@ -330,7 +330,7 @@ class SdkLibraryImpl implements SdkLibrary {
 
   /// Set whether the library is documented.
   set documented(bool documented) {
-    this._documented = documented;
+    _documented = documented;
   }
 
   @override
