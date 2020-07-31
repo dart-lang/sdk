@@ -10,7 +10,7 @@ import 'dart:io';
 import 'dart:async';
 
 Future<String> getVersion(var rootPath) {
-  var suffix = Platform.operatingSystem == 'windows' ? '.exe' : '';
+  var suffix = Platform.operatingSystem == 'windows' ? '.bat' : '';
   var printVersionScript = rootPath.resolve("tools/make_version.py");
   return Process.run(
           "python$suffix", [printVersionScript.toFilePath(), "--quiet"])
