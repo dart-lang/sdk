@@ -25,6 +25,11 @@ class AddExplicitCast extends CorrectionProducer {
     }
 
     var fromType = target.staticType;
+    if (fromType == typeProvider.nullType) {
+      // There would only be a diagnostic if the `toType` is not nullable, in
+      // which case a cast won't fix the problem.
+      return;
+    }
     DartType toType;
     var parent = target.parent;
     if (parent is CascadeExpression && target == parent.target) {
@@ -37,6 +42,12 @@ class AddExplicitCast extends CorrectionProducer {
       toType = parent.declaredElement.type;
     } else {
       // TODO(brianwilkerson) Handle function arguments.
+      return;
+    }
+    if (typeSystem.isAssignableTo(
+        toType, typeSystem.promoteToNonNull(fromType))) {
+      // The only reason that `fromType` can't be assigned to `toType` is
+      // because it's nullable, in which case a cast won't fix the problem.
       return;
     }
     // TODO(brianwilkerson) Handle `toSet` in a manner similar to the below.
