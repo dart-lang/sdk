@@ -70,7 +70,8 @@ namespace bin {
   V(ProcessEnableVmServiceOption)                                              \
   V(ProcessObserveOption)                                                      \
   V(ProcessAbiVersionOption)                                                   \
-  V(ProcessEnableExperimentOption)
+  V(ProcessEnableExperimentOption)                                             \
+  V(ProcessVMDebuggingOptions)
 
 // This enum must match the strings in kSnapshotKindNames in main_options.cc.
 enum SnapshotKind {

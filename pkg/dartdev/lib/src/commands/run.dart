@@ -21,44 +21,128 @@ class RunCommand extends DartdevCommand<int> {
 
   // kErrorExitCode, as defined in runtime/bin/error_exit.h
   static const errorExitCode = 255;
+
+  // This argument parser is here solely to ensure that VM specific flags are
+  // provided before any command and to provide a more consistent help message
+  // with the rest of the tool.
   @override
-  final ArgParser argParser = ArgParser.allowAnything();
+  final ArgParser argParser = ArgParser();
 
   @override
   final bool verbose;
 
-  RunCommand({this.verbose = false}) : super('run', '''
-Run a Dart file.''');
+  RunCommand({this.verbose = false})
+      : super(
+          'run',
+          'Run a Dart program.',
+        ) {
+    // NOTE: When updating this list of flags, be sure to add any VM flags to
+    // the list of flags in Options::ProcessVMDebuggingOptions in
+    // runtime/bin/main_options.cc. Failure to do so will result in those VM
+    // options being ignored.
+    argParser
+      ..addSeparator(
+        'Debugging options:',
+      )
+      ..addOption(
+        'observe',
+        help: 'The observe flag is a convenience flag used to run a program '
+            'with a set of common options useful for debugging.',
+        valueHelp: '[<port>[/<bind-address>]]',
+      )
+      ..addSeparator(
+        'Options implied by --observe are currently:',
+      )
+      ..addOption(
+        'enable-vm-service',
+        help: 'Enables the VM service and listens on the specified port for '
+            'connections (default port number is 8181, default bind address '
+            'is localhost).',
+        valueHelp: '[<port>[/<bind-address>]]',
+      )
+      ..addFlag(
+        'pause-isolates-on-exit',
+        help: 'Pause isolates on exit when '
+            'running with --enable-vm-service.',
+      )
+      ..addFlag(
+        'pause-isolates-on-unhandled-exceptions',
+        help: 'Pause isolates when an unhandled exception is encountered '
+            'when running with --enable-vm-service.',
+      )
+      ..addFlag(
+        'warn-on-pause-with-no-debugger',
+        help: 'Print a warning when an isolate pauses with no attached debugger'
+            ' when running with --enable-vm-service.',
+      )
+      ..addSeparator(
+        'Other debugging options include:',
+      )
+      ..addFlag(
+        'pause-isolates-on-start',
+        help: 'Pause isolates on start when '
+            'running with --enable-vm-service.',
+      )
+      ..addFlag(
+        'enable-asserts',
+        help: 'Enable assert statements.',
+      );
+
+    if (verbose) {
+      argParser
+        ..addSeparator(
+          'Advanced options:',
+        );
+    }
+    argParser
+      ..addFlag(
+        'disable-service-auth-codes',
+        hide: !verbose,
+        negatable: false,
+        help: 'Disables the requirement for an authentication code to '
+            'communicate with the VM service. Authentication codes help '
+            'protect against CSRF attacks, so it is not recommended to '
+            'disable them unless behind a firewall on a secure device.',
+      )
+      ..addFlag(
+        'enable-service-port-fallback',
+        hide: !verbose,
+        negatable: false,
+        help: 'When the VM service is told to bind to a particular port, '
+            'fallback to 0 if it fails to bind instread of failing to '
+            'start.',
+      )
+      ..addOption(
+        'namespace',
+        hide: !verbose,
+        valueHelp: 'path',
+        help: 'The path to a directory that dart:io calls will treat as the '
+            'root of the filesystem.',
+      )
+      ..addOption(
+        'root-certs-file',
+        hide: !verbose,
+        valueHelp: 'path',
+        help: 'The path to a file containing the trusted root certificates '
+            'to use for secure socket connections.',
+      )
+      ..addOption(
+        'root-certs-cache',
+        hide: !verbose,
+        valueHelp: 'path',
+        help: 'The path to a cache directory containing the trusted root '
+            'certificates to use for secure socket connections.',
+      )
+      ..addFlag(
+        'trace-loading',
+        hide: !verbose,
+        negatable: false,
+        help: 'Enables tracing of library and script loading.',
+      );
+  }
 
   @override
   String get invocation => '${super.invocation} <dart file | package target>';
-
-  @override
-  void printUsage() {
-    // Override [printUsage] for invocations of 'dart help run' which won't
-    // execute [run] below.  Without this, the 'dart help run' reports the
-    // command pub with no commands or flags.
-    final command = sdk.dart;
-    final args = [
-      '--disable-dart-dev',
-      '--help',
-      if (verbose) '--verbose',
-    ];
-
-    log.trace('$command ${args.first}');
-
-    // Call 'dart --help'
-    // Process.runSync(..) is used since [printUsage] is not an async method,
-    // and we want to guarantee that the result (the help text for the console)
-    // is printed before command exits.
-    final result = Process.runSync(command, args);
-    if (result.stderr.isNotEmpty) {
-      stderr.write(result.stderr);
-    }
-    if (result.stdout.isNotEmpty) {
-      stdout.write(result.stdout);
-    }
-  }
 
   @override
   FutureOr<int> run() async {
