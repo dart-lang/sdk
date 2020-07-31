@@ -7568,6 +7568,8 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
+
   PRINT_OPERANDS_TO_SUPPORT
   ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
@@ -7660,7 +7662,6 @@ class BinaryInt32OpInstr : public BinaryIntegerOpInstr {
     return kUnboxedInt32;
   }
 
-  virtual void InferRange(RangeAnalysis* analysis, Range* range);
   virtual CompileType ComputeType() const;
 
   DECLARE_INSTRUCTION(BinaryInt32Op)
@@ -7748,7 +7749,6 @@ class BinaryInt64OpInstr : public BinaryIntegerOpInstr {
            (speculative_mode_ == other->AsBinaryInt64Op()->speculative_mode_);
   }
 
-  virtual void InferRange(RangeAnalysis* analysis, Range* range);
   virtual CompileType ComputeType() const;
 
   DECLARE_INSTRUCTION(BinaryInt64Op)

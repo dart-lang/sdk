@@ -3170,16 +3170,17 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
       return this;
     }
 
-#if defined(TARGET_ARCH_IS_32_BIT)
-    // Do not erase extending conversions from 32-bit untagged to 64-bit values
-    // because untagged does not specify whether it is signed or not.
-    if ((box_defn->from() == kUntagged) && to() == kUnboxedInt64) {
-      return this;
-    }
-#endif
-
+    // It's safe to discard any other conversions from and then back to the same
+    // integer type.
     if (box_defn->from() == to()) {
       return box_defn->value()->definition();
+    }
+
+    // Do not merge conversions where the first starts from Untagged or the
+    // second ends at Untagged, since we expect to see either UnboxedIntPtr
+    // or UnboxedFfiIntPtr as the other type in an Untagged conversion.
+    if ((box_defn->from() == kUntagged) || (to() == kUntagged)) {
+      return this;
     }
 
     IntConverterInstr* converter = new IntConverterInstr(
