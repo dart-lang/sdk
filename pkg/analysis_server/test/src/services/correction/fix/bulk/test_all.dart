@@ -11,6 +11,8 @@ import 'convert_to_contains_test.dart' as convert_to_contains;
 import 'remove_argument_test.dart' as remove_argument;
 import 'remove_await_test.dart' as remove_await;
 import 'remove_empty_catch_test.dart' as remove_empty_catch;
+import 'remove_empty_constructor_body_test.dart'
+    as remove_empty_constructor_body;
 import 'remove_empty_else_test.dart' as remove_empty_else;
 import 'remove_initializer_test.dart' as remove_initializer;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
@@ -28,6 +30,7 @@ void main() {
     remove_await.main();
     remove_initializer.main();
     remove_empty_catch.main();
+    remove_empty_constructor_body.main();
     remove_empty_else.main();
     remove_type_annotation.main();
     remove_unnecessary_const.main();
