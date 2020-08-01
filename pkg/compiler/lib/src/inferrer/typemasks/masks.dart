@@ -963,7 +963,7 @@ class CommonMasks implements AbstractValueDomain {
   @override
   TypeMask readAbstractValueFromDataSource(DataSource source) {
     return source.readCached<TypeMask>(
-        () => new TypeMask.readFromDataSource(source, _closedWorld));
+        () => new TypeMask.readFromDataSource(source, this));
   }
 
   @override

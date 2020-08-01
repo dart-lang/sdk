@@ -76,13 +76,12 @@ class FlatTypeMask implements TypeMask {
 
   /// Deserializes a [FlatTypeMask] object from [source].
   factory FlatTypeMask.readFromDataSource(
-      DataSource source, JClosedWorld closedWorld) {
+      DataSource source, CommonMasks domain) {
     source.begin(tag);
     ClassEntity base = source.readClassOrNull();
     int flags = source.readInt();
     source.end(tag);
-    CommonMasks commonMasks = closedWorld.abstractValueDomain;
-    return commonMasks.getCachedMask(
+    return domain.getCachedMask(
         base, flags, () => new FlatTypeMask._(base, flags));
   }
 
