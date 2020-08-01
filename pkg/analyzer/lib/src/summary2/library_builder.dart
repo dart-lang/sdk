@@ -300,7 +300,7 @@ class LibraryBuilder {
       return null;
     }
     var relativeUri = Uri.parse(relativeUriStr);
-    return resolveRelativeUri(this.uri, relativeUri);
+    return resolveRelativeUri(uri, relativeUri);
   }
 
   String _selectRelativeUri(

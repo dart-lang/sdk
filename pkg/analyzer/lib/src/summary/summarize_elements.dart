@@ -15,7 +15,7 @@ class PackageBundleAssembler {
   }
 
   void setBundle2(LinkedNodeBundleBuilder bundle2) {
-    if (this._bundle2 != null) {
+    if (_bundle2 != null) {
       throw StateError('Bundle2 may be set only once.');
     }
     _bundle2 = bundle2;
