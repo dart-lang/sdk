@@ -67,7 +67,7 @@ class ErrorReporter {
     } else if (_defaultSource == null) {
       throw ArgumentError("A default source must be provided");
     }
-    this._source = _defaultSource;
+    _source = _defaultSource;
   }
 
   Source get source => _source;
@@ -76,7 +76,7 @@ class ErrorReporter {
   /// Setting the source to `null` will cause the default source to be used.
   @Deprecated('Create separate reporters for separate files')
   set source(Source source) {
-    this._source = source ?? _defaultSource;
+    _source = source ?? _defaultSource;
   }
 
   /// Report the given [error].

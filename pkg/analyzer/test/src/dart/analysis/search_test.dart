@@ -39,12 +39,12 @@ class ExpectedResult {
   @override
   bool operator ==(Object result) {
     return result is SearchResult &&
-        result.kind == this.kind &&
-        result.isResolved == this.isResolved &&
-        result.isQualified == this.isQualified &&
-        result.offset == this.offset &&
-        result.length == this.length &&
-        result.enclosingElement == this.enclosingElement;
+        result.kind == kind &&
+        result.isResolved == isResolved &&
+        result.isQualified == isQualified &&
+        result.offset == offset &&
+        result.length == length &&
+        result.enclosingElement == enclosingElement;
   }
 
   @override

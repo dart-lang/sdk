@@ -20,7 +20,7 @@ class StringSource extends Source {
   final int modificationStamp;
 
   StringSource(this._contents, String fullName, {Uri uri})
-      : this.fullName = fullName,
+      : fullName = fullName,
         uri = uri ?? (fullName == null ? null : Uri.file(fullName)),
         modificationStamp = DateTime.now().millisecondsSinceEpoch;
 

@@ -153,7 +153,7 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// to the given [errorReporter] and will use the given [typeSystem] if one is
   /// provided.
   LegacyDeadCodeVerifier(this._errorReporter, {TypeSystemImpl typeSystem})
-      : this._typeSystem = typeSystem ??
+      : _typeSystem = typeSystem ??
             TypeSystemImpl(
               implicitCasts: true,
               isNonNullableByDefault: false,

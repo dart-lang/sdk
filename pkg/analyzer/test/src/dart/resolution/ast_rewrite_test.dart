@@ -138,8 +138,8 @@ f() {
   prefix.A.named<int>(0);
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          50, 5),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 50,
+          5),
     ]);
 
     var importFind = findElement.importFind('package:test/a.dart');
@@ -220,8 +220,8 @@ f() {
   A.named<int, String>(0);
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          52, 13),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 52,
+          13),
     ]);
 
     var creation = findNode.instanceCreation('named<int, String>(0);');

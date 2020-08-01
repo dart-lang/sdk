@@ -884,7 +884,7 @@ class AnalysisError implements Diagnostic {
     String message = formatList(errorCode.message, arguments);
     String correctionTemplate = errorCode.correction;
     if (correctionTemplate != null) {
-      this._correction = formatList(correctionTemplate, arguments);
+      _correction = formatList(correctionTemplate, arguments);
     }
     _problemMessage = DiagnosticMessageImpl(
         filePath: source?.fullName,

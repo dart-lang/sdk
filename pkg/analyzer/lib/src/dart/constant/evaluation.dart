@@ -974,8 +974,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     Substitution substitution,
   })  : _lexicalEnvironment = lexicalEnvironment,
         _substitution = substitution {
-    this._dartObjectComputer =
-        DartObjectComputer(_errorReporter, evaluationEngine);
+    _dartObjectComputer = DartObjectComputer(_errorReporter, evaluationEngine);
   }
 
   /// Return the object representing the state of active experiments.
@@ -2225,13 +2224,13 @@ class EvaluationResultImpl {
   final DartObjectImpl value;
 
   EvaluationResultImpl(this.value, [List<AnalysisError> errors]) {
-    this._errors = errors ?? <AnalysisError>[];
+    _errors = errors ?? <AnalysisError>[];
   }
 
   List<AnalysisError> get errors => _errors;
 
   bool equalValues(TypeProvider typeProvider, EvaluationResultImpl result) {
-    if (this.value != null) {
+    if (value != null) {
       if (result.value == null) {
         return false;
       }

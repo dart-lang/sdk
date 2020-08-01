@@ -484,7 +484,7 @@ class BazelWorkspacePackage extends WorkspacePackage {
   final BazelWorkspace workspace;
 
   BazelWorkspacePackage(String packageName, this.root, this.workspace)
-      : this._uriPrefix = 'package:$packageName/';
+      : _uriPrefix = 'package:$packageName/';
 
   @override
   bool contains(Source source) {

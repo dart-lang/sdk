@@ -7,6 +7,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 
 extension ListOfFormalParameterExtension on List<FormalParameter> {
   Iterable<FormalParameterImpl> get asImpl {
-    return this.cast<FormalParameterImpl>();
+    return cast<FormalParameterImpl>();
   }
 }

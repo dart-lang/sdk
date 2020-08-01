@@ -103,12 +103,12 @@ class FileResolver {
     @required Workspace workspace,
     CiderByteStore byteStore,
     Duration libraryContextResetTimeout = const Duration(seconds: 60),
-  })  : this.logger = logger,
-        this.sourceFactory = sourceFactory,
-        this.resourceProvider = resourceProvider,
-        this.getFileDigest = getFileDigest,
-        this.prefetchFiles = prefetchFiles,
-        this.workspace = workspace {
+  })  : logger = logger,
+        sourceFactory = sourceFactory,
+        resourceProvider = resourceProvider,
+        getFileDigest = getFileDigest,
+        prefetchFiles = prefetchFiles,
+        workspace = workspace {
     byteStore ??= CiderMemoryByteStore();
     this.byteStore = byteStore;
     _libraryContextReset = _LibraryContextReset(

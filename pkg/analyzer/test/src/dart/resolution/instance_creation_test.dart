@@ -42,8 +42,8 @@ main() {
   new Foo.bar<int>();
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          53, 5),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 53,
+          5),
     ]);
 
     var creation = findNode.instanceCreation('Foo.bar<int>');
@@ -70,8 +70,8 @@ main() {
   new p.Foo.bar<int>();
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          44, 3),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 44,
+          3),
     ]);
 
     // TODO(brianwilkerson) Test this more carefully after we can re-write the
@@ -97,8 +97,8 @@ main() {
   Foo.bar<int>();
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          49, 5),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 49,
+          5),
     ]);
 
     var creation = findNode.instanceCreation('Foo.bar<int>');
@@ -129,8 +129,8 @@ main() {
   p.Foo.bar<int>();
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          43, 5),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 43,
+          5),
     ]);
 
     var import = findElement.import('package:test/a.dart');

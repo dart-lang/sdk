@@ -30,8 +30,7 @@ extension E2 on A {
 int f(A a) => a();
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 110, 1),
-      error(
-          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 110, 1),
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 110, 1),
     ]);
   }
 

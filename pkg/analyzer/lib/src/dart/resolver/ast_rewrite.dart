@@ -65,8 +65,7 @@ class AstRewriter {
           var typeArguments = node.typeArguments;
           if (typeArguments != null) {
             _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode
-                    .WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+                CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
                 typeArguments,
                 [element.name, constructorElement.name]);
           }

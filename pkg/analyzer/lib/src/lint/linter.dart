@@ -671,7 +671,7 @@ class Maturity implements Comparable<Maturity> {
   const Maturity._(this.name, {this.ordinal});
 
   @override
-  int compareTo(Maturity other) => this.ordinal - other.ordinal;
+  int compareTo(Maturity other) => ordinal - other.ordinal;
 }
 
 /// [LintRule]s that implement this interface want to process only some types

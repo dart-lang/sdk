@@ -14,7 +14,7 @@ extension ParameterElementExtensions on ParameterElement {
       name,
       type ?? this.type,
       // ignore: deprecated_member_use_from_same_package
-      kind ?? this.parameterKind,
+      kind ?? parameterKind,
     )..isExplicitlyCovariant = isCovariant;
   }
 }

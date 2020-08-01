@@ -133,14 +133,14 @@ class AstBuilder extends StackListener {
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
       this._featureSet,
       [Uri uri])
-      : this.errorReporter = FastaErrorReporter(errorReporter),
-        this.enableNonNullable = _featureSet.isEnabled(Feature.non_nullable),
-        this.enableSpreadCollections =
+      : errorReporter = FastaErrorReporter(errorReporter),
+        enableNonNullable = _featureSet.isEnabled(Feature.non_nullable),
+        enableSpreadCollections =
             _featureSet.isEnabled(Feature.spread_collections),
-        this.enableControlFlowCollections =
+        enableControlFlowCollections =
             _featureSet.isEnabled(Feature.control_flow_collections),
-        this.enableTripleShift = _featureSet.isEnabled(Feature.triple_shift),
-        this.enableVariance = _featureSet.isEnabled(Feature.variance),
+        enableTripleShift = _featureSet.isEnabled(Feature.triple_shift),
+        enableVariance = _featureSet.isEnabled(Feature.variance),
         uri = uri ?? fileUri;
 
   NodeList<ClassMember> get currentDeclarationMembers {

@@ -296,7 +296,7 @@ class FileState {
   /// Return the signature of the file, based on API signatures of the
   /// transitive closure of imported / exported files.
   String get transitiveSignature {
-    this.libraryCycle; // sets _transitiveSignature
+    libraryCycle; // sets _transitiveSignature
     return _transitiveSignature;
   }
 

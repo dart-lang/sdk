@@ -165,7 +165,7 @@ class GenericInferrer {
     var knownTypes = <TypeParameterElement, DartType>{};
     for (int i = 0; i < typeFormals.length; i++) {
       TypeParameterElement typeParam = typeFormals[i];
-      var constraints = this._constraints[typeParam];
+      var constraints = _constraints[typeParam];
       var typeParamBound = typeParam.bound != null
           ? Substitution.fromPairs(typeFormals, inferredTypes)
               .substituteType(typeParam.bound)
