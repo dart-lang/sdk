@@ -53,6 +53,13 @@ class DynamicUse {
         "${_typeArguments?.length ?? 0} were passed.");
   }
 
+  DynamicUse withReceiverConstraint(Object otherReceiverConstraint) {
+    if (otherReceiverConstraint == receiverConstraint) {
+      return this;
+    }
+    return DynamicUse(selector, otherReceiverConstraint, _typeArguments);
+  }
+
   factory DynamicUse.readFromDataSource(DataSource source) {
     source.begin(tag);
     Selector selector = Selector.readFromDataSource(source);
