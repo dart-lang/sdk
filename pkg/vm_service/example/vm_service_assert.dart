@@ -940,6 +940,30 @@ List<vms.Protocol> assertListOfProtocol(List<vms.Protocol> list) {
   return list;
 }
 
+vms.ProcessMemoryUsage assertProcessMemoryUsage(vms.ProcessMemoryUsage obj) {
+  assertNotNull(obj);
+  assertString(obj.type);
+  assertProcessMemoryItem(obj.root);
+  return obj;
+}
+
+vms.ProcessMemoryItem assertProcessMemoryItem(vms.ProcessMemoryItem obj) {
+  assertNotNull(obj);
+  assertString(obj.name);
+  assertString(obj.description);
+  assertInt(obj.size);
+  assertListOfProcessMemoryItem(obj.children);
+  return obj;
+}
+
+List<vms.ProcessMemoryItem> assertListOfProcessMemoryItem(
+    List<vms.ProcessMemoryItem> list) {
+  for (vms.ProcessMemoryItem elem in list) {
+    assertProcessMemoryItem(elem);
+  }
+  return list;
+}
+
 vms.ReloadReport assertReloadReport(vms.ReloadReport obj) {
   assertNotNull(obj);
   assertString(obj.type);
@@ -1169,5 +1193,12 @@ vms.VM assertVM(vms.VM obj) {
   assertInt(obj.startTime);
   assertListOfIsolateRef(obj.isolates);
   assertListOfIsolateGroupRef(obj.isolateGroups);
+  return obj;
+}
+
+vms.WebSocketTarget assertWebSocketTarget(vms.WebSocketTarget obj) {
+  assertNotNull(obj);
+  assertString(obj.type);
+  assertString(obj.uri);
   return obj;
 }

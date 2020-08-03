@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.35.0';
+const String vmServiceVersion = '3.37.0';
 
 /// @optional
 const String optional = 'optional';
@@ -160,6 +160,8 @@ Map<String, Function> _typeFactories = {
   'ProfileFunction': ProfileFunction.parse,
   'ProtocolList': ProtocolList.parse,
   'Protocol': Protocol.parse,
+  'ProcessMemoryUsage': ProcessMemoryUsage.parse,
+  'ProcessMemoryItem': ProcessMemoryItem.parse,
   'ReloadReport': ReloadReport.parse,
   'RetainingObject': RetainingObject.parse,
   'RetainingPath': RetainingPath.parse,
@@ -184,6 +186,7 @@ Map<String, Function> _typeFactories = {
   'Version': Version.parse,
   '@VM': VMRef.parse,
   'VM': VM.parse,
+  'WebSocketTarget': WebSocketTarget.parse,
 };
 
 Map<String, List<String>> _methodReturnTypes = {
@@ -209,6 +212,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'getScripts': const ['ScriptList'],
   'getObject': const ['Obj'],
   'getRetainingPath': const ['RetainingPath'],
+  'getProcessMemoryUsage': const ['ProcessMemoryUsage'],
   'getStack': const ['Stack'],
   'getSupportedProtocols': const ['ProtocolList'],
   'getSourceReport': const ['SourceReport'],
@@ -217,6 +221,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'getVMTimeline': const ['Timeline'],
   'getVMTimelineFlags': const ['TimelineFlags'],
   'getVMTimelineMicros': const ['Timestamp'],
+  'getWebSocketTarget': const ['WebSocketTarget'],
   'pause': const ['Success'],
   'kill': const ['Success'],
   'registerService': const ['Success'],
@@ -722,6 +727,13 @@ abstract class VmServiceInterface {
   Future<RetainingPath> getRetainingPath(
       String isolateId, String targetId, int limit);
 
+  /// Returns a description of major uses of memory known to the VM.
+  ///
+  /// Adding or removing buckets is considered a backwards-compatible change for
+  /// the purposes of versioning. A client must gracefully handle the removal or
+  /// addition of any bucket.
+  Future<ProcessMemoryUsage> getProcessMemoryUsage();
+
   /// The `getStack` RPC is used to retrieve the current execution stack and
   /// message queue for an isolate. The isolate does not need to be paused.
   ///
@@ -841,6 +853,13 @@ abstract class VmServiceInterface {
   ///
   /// See [Timestamp] and [getVMTimeline].
   Future<Timestamp> getVMTimelineMicros();
+
+  /// The `getWebSocketTarget` RPC returns the web socket URI that should be
+  /// used by VM service clients with WebSocket implementations that do not
+  /// follow redirects (e.g., `dart:html`'s [WebSocket]).
+  ///
+  /// See [WebSocketTarget].
+  Future<WebSocketTarget> getWebSocketTarget();
 
   /// The `pause` RPC is used to interrupt a running isolate. The RPC enqueues
   /// the interrupt request and potentially returns before the isolate is
@@ -1359,6 +1378,9 @@ class VmServerConnection {
             params['limit'],
           );
           break;
+        case 'getProcessMemoryUsage':
+          response = await _serviceImplementation.getProcessMemoryUsage();
+          break;
         case 'getStack':
           response = await _serviceImplementation.getStack(
             params['isolateId'],
@@ -1394,6 +1416,9 @@ class VmServerConnection {
           break;
         case 'getVMTimelineMicros':
           response = await _serviceImplementation.getVMTimelineMicros();
+          break;
+        case 'getWebSocketTarget':
+          response = await _serviceImplementation.getWebSocketTarget();
           break;
         case 'pause':
           response = await _serviceImplementation.pause(
@@ -1823,6 +1848,10 @@ class VmService implements VmServiceInterface {
           {'isolateId': isolateId, 'targetId': targetId, 'limit': limit});
 
   @override
+  Future<ProcessMemoryUsage> getProcessMemoryUsage() =>
+      _call('getProcessMemoryUsage');
+
+  @override
   Future<Stack> getStack(String isolateId) =>
       _call('getStack', {'isolateId': isolateId});
 
@@ -1868,6 +1897,9 @@ class VmService implements VmServiceInterface {
 
   @override
   Future<Timestamp> getVMTimelineMicros() => _call('getVMTimelineMicros');
+
+  @override
+  Future<WebSocketTarget> getWebSocketTarget() => _call('getWebSocketTarget');
 
   @override
   Future<Success> pause(String isolateId) =>
@@ -5885,6 +5917,84 @@ class Protocol {
       'protocolName: ${protocolName}, major: ${major}, minor: ${minor}]';
 }
 
+/// Set [getProcessMemoryUsage].
+class ProcessMemoryUsage extends Response {
+  static ProcessMemoryUsage parse(Map<String, dynamic> json) =>
+      json == null ? null : ProcessMemoryUsage._fromJson(json);
+
+  ProcessMemoryItem root;
+
+  ProcessMemoryUsage({
+    @required this.root,
+  });
+
+  ProcessMemoryUsage._fromJson(Map<String, dynamic> json)
+      : super._fromJson(json) {
+    root = createServiceObject(json['root'], const ['ProcessMemoryItem']);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json['type'] = 'ProcessMemoryUsage';
+    json.addAll({
+      'root': root.toJson(),
+    });
+    return json;
+  }
+
+  String toString() => '[ProcessMemoryUsage type: ${type}, root: ${root}]';
+}
+
+class ProcessMemoryItem {
+  static ProcessMemoryItem parse(Map<String, dynamic> json) =>
+      json == null ? null : ProcessMemoryItem._fromJson(json);
+
+  /// A short name for this bucket of memory.
+  String name;
+
+  /// A longer description for this item.
+  String description;
+
+  /// The amount of memory in bytes. This is a retained size, not a shallow
+  /// size. That is, it includes the size of children.
+  int size;
+
+  /// Subdivisons of this bucket of memory.
+  List<ProcessMemoryItem> children;
+
+  ProcessMemoryItem({
+    @required this.name,
+    @required this.description,
+    @required this.size,
+    @required this.children,
+  });
+
+  ProcessMemoryItem._fromJson(Map<String, dynamic> json) {
+    name = json['name'];
+    description = json['description'];
+    size = json['size'];
+    children = List<ProcessMemoryItem>.from(
+        createServiceObject(json['children'], const ['ProcessMemoryItem']) ??
+            []);
+  }
+
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json.addAll({
+      'name': name,
+      'description': description,
+      'size': size,
+      'children': children.map((f) => f.toJson()).toList(),
+    });
+    return json;
+  }
+
+  String toString() => '[ProcessMemoryItem ' //
+      'name: ${name}, description: ${description}, size: ${size}, ' //
+      'children: ${children}]';
+}
+
 class ReloadReport extends Response {
   static ReloadReport parse(Map<String, dynamic> json) =>
       json == null ? null : ReloadReport._fromJson(json);
@@ -7002,4 +7112,33 @@ class VM extends Response implements VMRef {
   }
 
   String toString() => '[VM]';
+}
+
+/// See [getWebSocketTarget]
+class WebSocketTarget extends Response {
+  static WebSocketTarget parse(Map<String, dynamic> json) =>
+      json == null ? null : WebSocketTarget._fromJson(json);
+
+  /// The web socket URI that should be used to connect to the service.
+  String uri;
+
+  WebSocketTarget({
+    @required this.uri,
+  });
+
+  WebSocketTarget._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
+    uri = json['uri'];
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json['type'] = 'WebSocketTarget';
+    json.addAll({
+      'uri': uri,
+    });
+    return json;
+  }
+
+  String toString() => '[WebSocketTarget type: ${type}, uri: ${uri}]';
 }

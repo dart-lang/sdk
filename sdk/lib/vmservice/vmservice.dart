@@ -219,6 +219,8 @@ class VMService extends MessageRouter {
 
   final devfs = DevFS();
 
+  Uri? vmServiceUri;
+
   Uri? get ddsUri => _ddsUri;
   Uri? _ddsUri;
 
@@ -342,6 +344,19 @@ class VMService extends MessageRouter {
 
     clientResumePermissions[client.name]!.permissionsMask = pauseTypeMask;
     return encodeSuccess(message);
+  }
+
+  String _getWebSocketTarget(Message message) {
+    Uri uri = ((_ddsUri != null) ? _ddsUri : vmServiceUri)!;
+    uri = uri.replace(scheme: 'ws', pathSegments: [
+      // Strip empty path segment which causes an extra / to be inserted.
+      ...uri.pathSegments.where((e) => e.isNotEmpty),
+      'ws',
+    ]);
+    return encodeResult(message, {
+      'type': 'WebSocketTarget',
+      'uri': uri.toString(),
+    });
   }
 
   void _addClient(Client client) {
@@ -764,6 +779,9 @@ class VMService extends MessageRouter {
       if (message.method == 'getSupportedProtocols') {
         return await _getSupportedProtocols(message);
       }
+      if (message.method == 'getWebSocketTarget') {
+        return _getWebSocketTarget(message);
+      }
       if (devfs.shouldHandleMessage(message)) {
         return await devfs.handleMessage(message);
       }
@@ -808,7 +826,12 @@ void _onStart() native 'VMService_OnStart';
 void _onExit() native 'VMService_OnExit';
 
 /// Notify the VM that the server's address has changed.
-void onServerAddressChange(String? address)
+void onServerAddressChange(String? address) {
+  VMService().vmServiceUri = (address != null) ? Uri.parse(address) : null;
+  _onServerAddressChange(address);
+}
+
+void _onServerAddressChange(String? address)
     native 'VMService_OnServerAddressChange';
 
 /// Subscribe to a service stream.
