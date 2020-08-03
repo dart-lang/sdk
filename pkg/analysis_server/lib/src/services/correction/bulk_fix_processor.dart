@@ -21,6 +21,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_empty_constr
 import 'package:analysis_server/src/services/correction/dart/remove_empty_else.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_statement.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
@@ -62,6 +63,7 @@ class BulkFixProcessor {
     LintNames.no_duplicate_case_values: RemoveDuplicateCase.newInstance,
     LintNames.null_closures: ReplaceNullWithClosure.newInstance,
     LintNames.omit_local_variable_types: ReplaceWithVar.newInstance,
+    LintNames.prefer_adjacent_string_concatenation: RemoveOperator.newInstance,
     LintNames.prefer_contains: ConvertToContains.newInstance,
     LintNames.prefer_equal_for_default_values:
         ReplaceColonWithEquals.newInstance,
