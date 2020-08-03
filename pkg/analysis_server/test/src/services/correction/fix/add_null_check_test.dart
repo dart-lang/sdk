@@ -61,9 +61,20 @@ void f(int x, int? y) {
 ''');
   }
 
-  Future<void> test_assignment_differByMoreThanNullability() async {
+  Future<void>
+      test_assignment_differByMoreThanNullability_nonNullableRight() async {
     await resolveTestUnit('''
 void f(int x, String y) {
+  x = y;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void>
+      test_assignment_differByMoreThanNullability_nullableRight() async {
+    await resolveTestUnit('''
+void f(int x, String? y) {
   x = y;
 }
 ''');
