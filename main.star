@@ -720,6 +720,7 @@ dart_ci_sandbox_builder(
     channels = ["try"],
     execution_timeout = 8 * time.hour,
     triggered_by = ["dart-gitiles-trigger-flutter"],
+    properties = {"bisection_enabled": True},
 )
 
 # vm|nnbd
