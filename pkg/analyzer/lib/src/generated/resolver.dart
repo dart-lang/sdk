@@ -679,6 +679,7 @@ class ResolverVisitor extends ScopedVisitor {
     // We do not visit the label because it needs to be visited in the context
     // of the statement.
     //
+    checkUnreachableNode(node);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
     _flowAnalysis?.breakStatement(node);
@@ -933,6 +934,7 @@ class ResolverVisitor extends ScopedVisitor {
     // We do not visit the label because it needs to be visited in the context
     // of the statement.
     //
+    checkUnreachableNode(node);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
     _flowAnalysis?.continueStatement(node);

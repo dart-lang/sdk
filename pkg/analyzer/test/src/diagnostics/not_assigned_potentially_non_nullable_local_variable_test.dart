@@ -1030,7 +1030,6 @@ void f(int e) {
       break;
     case 2:
       continue L;
-      break;
     default:
       v = 0;
   }

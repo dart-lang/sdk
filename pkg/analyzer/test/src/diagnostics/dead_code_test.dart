@@ -316,61 +316,6 @@ f() {
     ]);
   }
 
-  test_deadFinalBreakInCase() async {
-    await assertNoErrorsInCode(r'''
-f() {
-  switch (true) {
-  case true:
-    try {
-      print(1);
-    } finally {
-      return;
-    }
-    break;
-  default:
-    break;
-  }
-}''');
-  }
-
-  test_deadFinalReturnInCase() async {
-    await assertErrorsInCode(r'''
-f() {
-  switch (true) {
-  case true:
-    try {
-      print(1);
-    } finally {
-      return;
-    }
-    return;
-  default:
-    break;
-  }
-}''', [
-      error(HintCode.DEAD_CODE, 103, 7),
-    ]);
-  }
-
-  test_deadFinalStatementInCase() async {
-    await assertErrorsInCode(r'''
-f() {
-  switch (true) {
-  case true:
-    try {
-      print(1);
-    } finally {
-      return;
-    }
-    throw 'msg';
-  default:
-    break;
-  }
-}''', [
-      error(HintCode.DEAD_CODE, 103, 12),
-    ]);
-  }
-
   test_deadOperandLHS_and() async {
     await assertErrorsInCode(r'''
 f() {
@@ -804,6 +749,97 @@ f() {
 }''', [
       error(HintCode.DEAD_CODE, 41, 9),
     ]);
+  }
+
+  test_switchCase_final_break() async {
+    var expectedErrors = expectedErrorsByNullability(nullable: [
+      error(HintCode.DEAD_CODE, 96, 6),
+    ], legacy: []);
+    await assertErrorsInCode(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+      try {} finally {
+        return;
+      }
+      break;
+  }
+}
+''', expectedErrors);
+  }
+
+  test_switchCase_final_continue() async {
+    var expectedErrors = expectedErrorsByNullability(nullable: [
+      error(HintCode.DEAD_CODE, 140, 9),
+    ], legacy: []);
+    await assertErrorsInCode(r'''
+void f(int a) {
+  for (var i = 0; i < 2; i++) {
+    switch (a) {
+      case 0:
+        try {} finally {
+          return;
+        }
+        continue;
+    }
+  }
+}
+''', expectedErrors);
+  }
+
+  test_switchCase_final_rethrow() async {
+    var expectedErrors = expectedErrorsByNullability(nullable: [
+      error(HintCode.DEAD_CODE, 142, 8),
+    ], legacy: []);
+    await assertErrorsInCode(r'''
+void f(int a) {
+  try {
+    // empty
+  } on int {
+    switch (a) {
+      case 0:
+        try {} finally {
+          return;
+        }
+        rethrow;
+    }
+  }
+}
+''', expectedErrors);
+  }
+
+  test_switchCase_final_return() async {
+    var expectedErrors = expectedErrorsByNullability(nullable: [
+      error(HintCode.DEAD_CODE, 96, 7),
+    ], legacy: []);
+    await assertErrorsInCode(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+      try {} finally {
+        return;
+      }
+      return;
+  }
+}
+''', expectedErrors);
+  }
+
+  test_switchCase_final_throw() async {
+    var expectedErrors = expectedErrorsByNullability(nullable: [
+      error(HintCode.DEAD_CODE, 96, 8),
+    ], legacy: []);
+    await assertErrorsInCode(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+      try {} finally {
+        return;
+      }
+      throw 0;
+  }
+}
+''', expectedErrors);
   }
 }
 
