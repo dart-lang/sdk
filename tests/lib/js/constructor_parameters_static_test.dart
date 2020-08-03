@@ -30,8 +30,22 @@ class Bar {
   //                 ^
   // [web] TODO(srujzs): Add error once supported.
 
+  // Factories of an anonymous class can only contain named parameters.
+  external factory Bar.barFactoryPositional(int? a);
+  //                                             ^
+  // [web] TODO(srujzs): Add error once supported.
+  external factory Bar.barFactoryOptional([int? a]);
+  //                                            ^
+  // [web] TODO(srujzs): Add error once supported.
+  external factory Bar.barFactoryMixedOptional(int? a, [int? b]);
+  //                                                ^
+  // [web] TODO(srujzs): Add error once supported.
+  external factory Bar.barFactoryMixedNamed(int? a, {int? b});
+  //                                             ^
+  // [web] TODO(srujzs): Add error once supported.
+
   // Named parameters are okay only for factories of an anonymous class.
-  external factory Bar.barFactory({int? a});
+  external factory Bar.barFactoryNamed({int? a});
 }
 
 @JS()

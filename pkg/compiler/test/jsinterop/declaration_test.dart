@@ -357,38 +357,6 @@ class A {
 
 main() => new A(a: 1);
 '''),
-  const Test('External factory constructor with required parameters.', '''
-@JS()
-library test;
-
-import 'package:js/js.dart';
-
-@JS()
-@anonymous
-class A {
-  external factory A(a, b);
-}
-
-main() => new A(1, 2);
-''', errors: const [
-    MessageKind.JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS
-  ]),
-  const Test('External factory constructor with optional parameters.', '''
-@JS()
-library test;
-
-import 'package:js/js.dart';
-
-@JS()
-@anonymous
-class A {
-  external factory A([a, b]);
-}
-
-main() => new A(1);
-''', errors: const [
-    MessageKind.JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS
-  ]),
   const Test('Function-typed return type', '''
 @JS()
 library lib;

@@ -5410,6 +5410,17 @@ Message _withArgumentsInvokeNonFunction(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropAnonymousFactoryPositionalParameters =
+    messageJsInteropAnonymousFactoryPositionalParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropAnonymousFactoryPositionalParameters =
+    const MessageCode("JsInteropAnonymousFactoryPositionalParameters",
+        message:
+            r"""Factory constructors for @anonymous JS interop classes should not contain any positional parameters.""",
+        tip: r"""Try replacing them with named parameters instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropIndexNotSupported =
     messageJsInteropIndexNotSupported;
 

@@ -151,16 +151,6 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
             _nativeBasicDataBuilder.markAsJsInteropMember(
                 constructor, memberName);
           }
-
-          if (constructor.isFactoryConstructor && isAnonymous) {
-            if (constructor.parameterStructure.positionalParameters > 0) {
-              reporter.reportErrorMessage(
-                  constructor,
-                  MessageKind
-                      .JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
-                  {'cls': cls.name});
-            }
-          }
         });
       } else {
         elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
