@@ -222,6 +222,12 @@ _onSignal(ProcessSignal signal) {
 Timer? _registerSignalHandlerTimer;
 
 _registerSignalHandler() {
+  if (VMService().isExiting) {
+    // If the VM started shutting down we don't want to register this signal
+    // handler, otherwise we'll cause the VM to hang after killing the service
+    // isolate.
+    return;
+  }
   _registerSignalHandlerTimer = null;
   if (_signalWatch == null) {
     // Cannot register for signals.
