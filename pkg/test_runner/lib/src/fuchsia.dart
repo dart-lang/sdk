@@ -28,11 +28,10 @@ class FuchsiaEmulator {
   Process _server;
   String _deviceName;
 
-  static Future<void> publishPackage(
-      int emuCpus, String buildDir, String mode) async {
+  static Future<void> publishPackage(String buildDir, String mode) async {
     if (_inst == null) {
       _inst = FuchsiaEmulator();
-      await _inst._start(emuCpus);
+      await _inst._start();
     }
     await _inst._publishPackage(buildDir, mode);
   }
@@ -48,18 +47,11 @@ class FuchsiaEmulator {
             arg.replaceAll(Repository.uri.toFilePath(), '/pkg/data/')));
   }
 
-  Future<void> _start(int emuCpus) async {
+  Future<void> _start() async {
     // Start the emulator.
-    DebugLogger.info('Starting Fuchsia emulator with $emuCpus CPUs');
-    _emu = await Process.start('xvfb-run', [
-      femuTool,
-      '--image',
-      'qemu-x64',
-      '-N',
-      '--headless',
-      '-s',
-      '$emuCpus'
-    ]);
+    DebugLogger.info('Starting Fuchsia emulator');
+    _emu = await Process.start(
+        'xvfb-run', [femuTool, '--image', 'qemu-x64', '-N', '--headless']);
 
     // Wait until the emulator is ready and has a valid device name.
     var deviceNameFuture = Completer<String>();

@@ -165,20 +165,27 @@ if (is_fuchsia) {
     resource_files = [
       ".packages",
       "pkg/testing/test/hello_test.dart",
+      "tools/addlatexhash.dart",
     ]
     resource_dirs = [
-      "tests/standalone",
-      "tests/language_2",
+      "tests/standalone_2",
       "pkg/async_helper",
       "pkg/expect",
       "pkg/meta",
+      "pkg/native_stack_traces",
       "pkg/smith",
       "third_party/pkg/args",
       "third_party/pkg/async",
+      "third_party/pkg/charcode",
       "third_party/pkg/collection",
+      "third_party/pkg/convert",
+      "third_party/pkg/crypto",
+      "third_party/pkg/http",
+      "third_party/pkg/http_parser",
       "third_party/pkg/path",
       "third_party/pkg/pool",
       "third_party/pkg/stack_trace",
+      "third_party/pkg/typed_data",
     ]
 
     resources = []
