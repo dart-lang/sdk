@@ -5511,12 +5511,17 @@ class InferenceVisitor
       isDefinitelyAssigned = inferrer.flowAnalysis.isAssigned(variable);
     }
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
-    DartType writeContext = declaredOrInferredType;
-    ExpressionInferenceResult rhsResult = inferrer.inferExpression(
-        node.value, writeContext ?? const UnknownType(), true,
+    DartType promotedType;
+    if (inferrer.isNonNullableByDefault) {
+      promotedType = inferrer.flowAnalysis.promotedType(variable);
+    }
+    ExpressionInferenceResult rhsResult = inferrer.inferExpression(node.value,
+        promotedType ?? declaredOrInferredType ?? const UnknownType(), true,
         isVoidAllowed: true);
-    Expression rhs = inferrer.ensureAssignableResult(writeContext, rhsResult,
-        fileOffset: node.fileOffset, isVoidAllowed: writeContext is VoidType);
+    Expression rhs = inferrer.ensureAssignableResult(
+        declaredOrInferredType, rhsResult,
+        fileOffset: node.fileOffset,
+        isVoidAllowed: declaredOrInferredType is VoidType);
     inferrer.flowAnalysis.write(variable, rhsResult.inferredType);
     DartType resultType = rhsResult.inferredType;
     Expression resultExpression;

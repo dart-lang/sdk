@@ -576,9 +576,6 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
 
   /// Retrieves the type that the [variable] is promoted to, if the [variable]
   /// is currently promoted.  Otherwise returns `null`.
-  ///
-  /// For testing only.  Please use [variableRead] instead.
-  @visibleForTesting
   Type promotedType(Variable variable);
 
   /// Call this method just before visiting one of the cases in the body of a
