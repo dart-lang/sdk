@@ -15,6 +15,7 @@ import 'package:analysis_server/src/services/correction/dart/create_method.dart'
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_duplicate_case.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_catch.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_constructor_body.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_else.dart';
@@ -56,6 +57,7 @@ class BulkFixProcessor {
     LintNames.empty_constructor_bodies: RemoveEmptyConstructorBody.newInstance,
     LintNames.empty_statements: RemoveEmptyStatement.newInstance,
     LintNames.hash_and_equals: CreateMethod.equalsOrHashCode,
+    LintNames.no_duplicate_case_values: RemoveDuplicateCase.newInstance,
     LintNames.prefer_contains: ConvertToContains.newInstance,
     LintNames.prefer_equal_for_default_values:
         ReplaceColonWithEquals.newInstance,

@@ -11,6 +11,7 @@ import 'convert_to_contains_test.dart' as convert_to_contains;
 import 'create_method_test.dart' as create_method;
 import 'remove_argument_test.dart' as remove_argument;
 import 'remove_await_test.dart' as remove_await;
+import 'remove_duplicate_case_test.dart' as remove_duplicate_case;
 import 'remove_empty_catch_test.dart' as remove_empty_catch;
 import 'remove_empty_constructor_body_test.dart'
     as remove_empty_constructor_body;
@@ -31,6 +32,7 @@ void main() {
     create_method.main();
     remove_argument.main();
     remove_await.main();
+    remove_duplicate_case.main();
     remove_initializer.main();
     remove_empty_catch.main();
     remove_empty_constructor_body.main();
