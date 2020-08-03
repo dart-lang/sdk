@@ -393,29 +393,6 @@ void main() {
 ''');
   }
 
-  test_constructors_inferenceFBounded() async {
-    var errors = 'error:COULD_NOT_INFER,error:COULD_NOT_INFER,'
-        'error:TYPE_ARGUMENT_NOT_MATCHING_BOUNDS';
-//    if (hasExtraTaskModelPass) errors = '$errors,$errors';
-    var unit = await checkFile('''
-class Cloneable<T> {}
-
-class Pair<T extends Cloneable<T>, U extends Cloneable<U>> {
-  T t;
-  U u;
-  Pair(this.t, this.u);
-  Pair._();
-  Pair<U, T> get reversed => new Pair(u, t);
-}
-
-main() {
-  final x = new /*$errors*/Pair._();
-}
-''');
-    var x = findLocalVariable(unit, 'x');
-    _assertTypeStr(x.type, 'Pair<Cloneable<dynamic>, Cloneable<dynamic>>');
-  }
-
   test_constructors_inferFromArguments() async {
     var unit = await checkFile('''
 class C<T> {
@@ -443,28 +420,6 @@ main() {
     _assertTypeStr(findLocalVariable(unit, 'c_int').type, 'C<int>');
     _assertTypeStr(findLocalVariable(unit, 'c_num').type, 'C<num>');
     _assertTypeStr(findLocalVariable(unit, 'c_dynamic').type, 'C<dynamic>');
-  }
-
-  test_constructors_inferFromArguments_argumentNotAssignable() async {
-    var unit = await checkFile('''
-class A {}
-
-typedef T F<T>();
-
-class C<T extends A> {
-  C(F<T> f);
-}
-
-class NotA {}
-NotA myF() => null;
-
-main() {
-  var x = new
-      /*error:COULD_NOT_INFER,error:TYPE_ARGUMENT_NOT_MATCHING_BOUNDS*/C(myF);
-}
-''');
-    var x = findLocalVariable(unit, 'x');
-    _assertTypeStr(x.type, 'C<NotA>');
   }
 
   test_constructors_inferFromArguments_const() async {
@@ -711,21 +666,6 @@ test() {
   x = 3;
 }
 ''');
-  }
-
-  test_downwardInference_fixes_noUpwardsErrors() async {
-    await checkFileElement(r'''
-import 'dart:math';
-// T max<T extends num>(T x, T y);
-main() {
-  num x;
-  dynamic y;
-
-  num a = max(x, y);
-  Object b = max(x, y);
-  dynamic c = /*error:COULD_NOT_INFER*/max(x, y);
-  var d = /*error:COULD_NOT_INFER*/max(x, y);
-}''');
   }
 
   test_downwardInference_miscellaneous() async {
@@ -1738,18 +1678,6 @@ main() {
 ''');
   }
 
-  test_genericMethods_correctlyRecognizeGenericUpperBound() async {
-    // Regression test for https://github.com/dart-lang/sdk/issues/25740.
-    await checkFileElement(r'''
-class Foo<T extends Pattern> {
-  U method<U extends T>(U u) => u;
-}
-main() {
-  new Foo<String>()./*error:COULD_NOT_INFER*/method(42);
-}
-''');
-  }
-
   test_genericMethods_dartMathMinMax() async {
     await checkFileElement('''
 import 'dart:math';
@@ -1898,100 +1826,6 @@ typedef V F<V>();
 ''');
     var f = mainUnit.getType('C').methods[0];
     _assertTypeStr(f.type, 'U Function() Function<U>(U)');
-  }
-
-  test_genericMethods_inferGenericInstantiation() async {
-    await checkFileElement('''
-import 'dart:math' as math;
-import 'dart:math' show min;
-
-class C {
-T m<T extends num>(T x, T y) => null;
-}
-
-main() {
-takeIII(math.max);
-takeDDD(math.max);
-takeNNN(math.max);
-takeIDN(math.max);
-takeDIN(math.max);
-takeIIN(math.max);
-takeDDN(math.max);
-takeIIO(math.max);
-takeDDO(math.max);
-
-takeOOI(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/math.max);
-takeIDI(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
-takeDID(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/math.max);
-takeOON(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/math.max);
-takeOOO(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/math.max);
-
-// Also test SimpleIdentifier
-takeIII(min);
-takeDDD(min);
-takeNNN(min);
-takeIDN(min);
-takeDIN(min);
-takeIIN(min);
-takeDDN(min);
-takeIIO(min);
-takeDDO(min);
-
-takeOOI(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/min);
-takeIDI(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
-takeDID(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/min);
-takeOON(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/min);
-takeOOO(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/min);
-
-// Also PropertyAccess
-takeIII(new C().m);
-takeDDD(new C().m);
-takeNNN(new C().m);
-takeIDN(new C().m);
-takeDIN(new C().m);
-takeIIN(new C().m);
-takeDDN(new C().m);
-takeIIO(new C().m);
-takeDDO(new C().m);
-
-// Note: this is a warning because a downcast of a method tear-off could work
-// (derived method can be a subtype):
-//
-//     class D extends C {
-//       S m<S extends num>(Object x, Object y);
-//     }
-//
-// That's legal because we're loosening parameter types.
-//
-// We do issue the inference error though, similar to generic function calls.
-takeOON(/*error:COULD_NOT_INFER*/new C().m);
-takeOOO(/*error:COULD_NOT_INFER*/new C().m);
-
-// Note: this is a warning because a downcast of a method tear-off could work
-// in "normal" Dart, due to bivariance.
-//
-// We do issue the inference error though, similar to generic function calls.
-takeOOI(/*error:COULD_NOT_INFER*/new C().m);
-
-takeIDI(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/new C().m);
-takeDID(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/new C().m);
-}
-
-void takeIII(int fn(int a, int b)) {}
-void takeDDD(double fn(double a, double b)) {}
-void takeIDI(int fn(double a, int b)) {}
-void takeDID(double fn(int a, double b)) {}
-void takeIDN(num fn(double a, int b)) {}
-void takeDIN(num fn(int a, double b)) {}
-void takeIIN(num fn(int a, int b)) {}
-void takeDDN(num fn(double a, double b)) {}
-void takeNNN(num fn(num a, num b)) {}
-void takeOON(num fn(Object a, Object b)) {}
-void takeOOO(num fn(Object a, Object b)) {}
-void takeOOI(int fn(Object a, Object b)) {}
-void takeIIO(Object fn(int a, int b)) {}
-void takeDDO(Object fn(double a, double b)) {}
-''');
   }
 
   test_genericMethods_inferGenericMethodType() async {
