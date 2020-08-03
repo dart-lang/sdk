@@ -218,14 +218,6 @@ class TypeInferrerImpl implements TypeInferrer {
   /// inside a closure.
   ClosureContext closureContext;
 
-  /// The [Substitution] inferred by the last [inferInvocation], or `null` if
-  /// the last invocation didn't require any inference.
-  Substitution lastInferredSubstitution;
-
-  /// The [FunctionType] of the callee in the last [inferInvocation], or `null`
-  /// if the last invocation didn't require any inference.
-  FunctionType lastCalleeType;
-
   TypeInferrerImpl(this.engine, this.uriForInstrumentation, bool topLevel,
       this.thisType, this.library, this.assignedVariables, this.dataForTesting)
       : assert(library != null),
@@ -1653,20 +1645,13 @@ class TypeInferrerImpl implements TypeInferrer {
       {List<VariableDeclaration> hoistedExpressions,
       bool isSpecialCasedBinaryOperator: false,
       bool isSpecialCasedTernaryOperator: false,
-      DartType returnType,
       DartType receiverType,
       bool skipTypeArgumentInference: false,
       bool isConst: false,
       bool isImplicitExtensionMember: false,
       bool isImplicitCall: false}) {
-    assert(
-        returnType == null || !containsFreeFunctionTypeVariables(returnType),
-        "Return type $returnType contains free variables."
-        "Provided function type: $calleeType.");
     int extensionTypeParameterCount = getExtensionTypeParameterCount(arguments);
     if (extensionTypeParameterCount != 0) {
-      assert(returnType == null,
-          "Unexpected explicit return type for extension method invocation.");
       return _inferGenericExtensionMethodInvocation(extensionTypeParameterCount,
           typeContext, offset, calleeType, arguments, hoistedExpressions,
           isSpecialCasedBinaryOperator: isSpecialCasedBinaryOperator,
@@ -1681,7 +1666,6 @@ class TypeInferrerImpl implements TypeInferrer {
         isSpecialCasedBinaryOperator: isSpecialCasedBinaryOperator,
         isSpecialCasedTernaryOperator: isSpecialCasedTernaryOperator,
         receiverType: receiverType,
-        returnType: returnType,
         skipTypeArgumentInference: skipTypeArgumentInference,
         isConst: isConst,
         isImplicitExtensionMember: isImplicitExtensionMember,
@@ -1770,17 +1754,10 @@ class TypeInferrerImpl implements TypeInferrer {
       {bool isSpecialCasedBinaryOperator: false,
       bool isSpecialCasedTernaryOperator: false,
       DartType receiverType,
-      DartType returnType,
       bool skipTypeArgumentInference: false,
       bool isConst: false,
       bool isImplicitExtensionMember: false,
       bool isImplicitCall}) {
-    assert(
-        returnType == null || !containsFreeFunctionTypeVariables(returnType),
-        "Return type $returnType contains free variables."
-        "Provided function type: $calleeType.");
-    lastInferredSubstitution = null;
-    lastCalleeType = null;
     List<TypeParameter> calleeTypeParameters = calleeType.typeParameters;
     if (calleeTypeParameters.isNotEmpty) {
       // It's possible that one of the callee type parameters might match a type
@@ -1794,9 +1771,6 @@ class TypeInferrerImpl implements TypeInferrer {
       // in which me must do this, to avoid a performance regression?
       FreshTypeParameters fresh = getFreshTypeParameters(calleeTypeParameters);
       calleeType = fresh.applyToFunctionType(calleeType);
-      if (returnType != null) {
-        returnType = fresh.substitute(returnType);
-      }
       calleeTypeParameters = fresh.freshTypeParameters;
     }
     List<DartType> explicitTypeArguments = getExplicitTypeArguments(arguments);
@@ -1825,8 +1799,8 @@ class TypeInferrerImpl implements TypeInferrer {
           calleeTypeParameters.length, const UnknownType());
       typeSchemaEnvironment.inferGenericFunctionOrType(
           isNonNullableByDefault
-              ? returnType ?? calleeType.returnType
-              : legacyErasure(coreTypes, returnType ?? calleeType.returnType),
+              ? calleeType.returnType
+              : legacyErasure(coreTypes, calleeType.returnType),
           calleeTypeParameters,
           null,
           null,
@@ -1893,12 +1867,16 @@ class TypeInferrerImpl implements TypeInferrer {
       }
     }
     if (isSpecialCasedBinaryOperator) {
-      returnType = typeSchemaEnvironment.getTypeOfSpecialCasedBinaryOperator(
-          receiverType, actualTypes[0],
-          isNonNullableByDefault: isNonNullableByDefault);
+      calleeType = replaceReturnType(
+          calleeType,
+          typeSchemaEnvironment.getTypeOfSpecialCasedBinaryOperator(
+              receiverType, actualTypes[0],
+              isNonNullableByDefault: isNonNullableByDefault));
     } else if (isSpecialCasedTernaryOperator) {
-      returnType = typeSchemaEnvironment.getTypeOfSpecialCasedTernaryOperator(
-          receiverType, actualTypes[0], actualTypes[1], library.library);
+      calleeType = replaceReturnType(
+          calleeType,
+          typeSchemaEnvironment.getTypeOfSpecialCasedTernaryOperator(
+              receiverType, actualTypes[0], actualTypes[1], library.library));
     }
     for (NamedExpression namedArgument in arguments.named) {
       DartType formalType =
@@ -1968,7 +1946,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
     if (inferenceNeeded) {
       typeSchemaEnvironment.inferGenericFunctionOrType(
-          returnType ?? calleeType.returnType,
+          calleeType.returnType,
           calleeTypeParameters,
           formalTypes,
           actualTypes,
@@ -2034,19 +2012,11 @@ class TypeInferrerImpl implements TypeInferrer {
       }
     }
     DartType inferredType;
-    lastInferredSubstitution = substitution;
-    lastCalleeType = calleeType;
-    if (returnType != null) {
-      inferredType = substitution == null
-          ? returnType
-          : substitution.substituteType(returnType);
-    } else {
-      if (substitution != null) {
-        calleeType =
-            substitution.substituteType(calleeType.withoutTypeParameters);
-      }
-      inferredType = calleeType.returnType;
+    if (substitution != null) {
+      calleeType =
+          substitution.substituteType(calleeType.withoutTypeParameters);
     }
+    inferredType = calleeType.returnType;
     assert(
         !containsFreeFunctionTypeVariables(inferredType),
         "Inferred return type $inferredType contains free variables."
@@ -4226,4 +4196,12 @@ class TypedTearoff {
   final Expression tearoff;
 
   TypedTearoff(this.tearoffType, this.tearoff);
+}
+
+FunctionType replaceReturnType(FunctionType functionType, DartType returnType) {
+  return new FunctionType(functionType.positionalParameters, returnType,
+      functionType.declaredNullability,
+      requiredParameterCount: functionType.requiredParameterCount,
+      namedParameters: functionType.namedParameters,
+      typeParameters: functionType.typeParameters);
 }
