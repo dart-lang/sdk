@@ -1912,6 +1912,10 @@ abstract class PackageBundleSdk extends base.SummaryClass {
   /// The content of the `allowed_experiments.json` from SDK.
   @Id(0)
   String get allowedExperimentsJson;
+
+  /// The language version of the SDK.
+  @Id(1)
+  LinkedLanguageVersion get languageVersion;
 }
 
 /// Summary information about a top-level type inference error.

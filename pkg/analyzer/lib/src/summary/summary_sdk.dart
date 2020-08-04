@@ -10,11 +10,12 @@ import 'package:analyzer/src/generated/source.dart'
     show DartUriResolver, Source, SourceFactory;
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// An implementation of [DartSdk] which provides analysis results for `dart:`
 /// libraries from the given summary file.  This implementation is limited and
 /// suitable only for command-line tools, but not for IDEs - it does not
-/// implement [sdkLibraries], [sdkVersion], [uris] and [fromFileUri].
+/// implement [sdkLibraries], [uris] and [fromFileUri].
 class SummaryBasedDartSdk implements DartSdk {
   SummaryDataStore _dataStore;
   InSummaryUriResolver _uriResolver;
@@ -41,7 +42,7 @@ class SummaryBasedDartSdk implements DartSdk {
 
   @override
   String get allowedExperimentsJson {
-    return _bundle.sdk?.allowedExperimentsJson;
+    return _bundle.sdk.allowedExperimentsJson;
   }
 
   /// Return the [PackageBundle] for this SDK, not `null`.
@@ -55,6 +56,12 @@ class SummaryBasedDartSdk implements DartSdk {
       _analysisContext = SdkAnalysisContext(analysisOptions, factory);
     }
     return _analysisContext;
+  }
+
+  @override
+  Version get languageVersion {
+    var version = _bundle.sdk.languageVersion;
+    return Version(version.major, version.minor, 0);
   }
 
   @override

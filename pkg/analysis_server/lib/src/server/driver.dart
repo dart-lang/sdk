@@ -470,13 +470,14 @@ class Driver implements ServerStarter {
         MulticastInstrumentationService(allInstrumentationServices);
 
     instrumentationService.logVersion(
-        results[TRAIN_USING] != null
-            ? 'training-0'
-            : _readUuid(instrumentationService),
-        analysisServerOptions.clientId,
-        analysisServerOptions.clientVersion,
-        PROTOCOL_VERSION,
-        defaultSdk.sdkVersion);
+      results[TRAIN_USING] != null
+          ? 'training-0'
+          : _readUuid(instrumentationService),
+      analysisServerOptions.clientId,
+      analysisServerOptions.clientVersion,
+      PROTOCOL_VERSION,
+      defaultSdk.languageVersion.toString(),
+    );
     AnalysisEngine.instance.instrumentationService = instrumentationService;
 
     int diagnosticServerPort;

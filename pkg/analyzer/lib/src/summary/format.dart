@@ -17792,6 +17792,7 @@ class PackageBundleSdkBuilder extends Object
     with _PackageBundleSdkMixin
     implements idl.PackageBundleSdk {
   String _allowedExperimentsJson;
+  LinkedLanguageVersionBuilder _languageVersion;
 
   @override
   String get allowedExperimentsJson => _allowedExperimentsJson ??= '';
@@ -17801,26 +17802,48 @@ class PackageBundleSdkBuilder extends Object
     this._allowedExperimentsJson = value;
   }
 
-  PackageBundleSdkBuilder({String allowedExperimentsJson})
-      : _allowedExperimentsJson = allowedExperimentsJson;
+  @override
+  LinkedLanguageVersionBuilder get languageVersion => _languageVersion;
+
+  /// The language version of the SDK.
+  set languageVersion(LinkedLanguageVersionBuilder value) {
+    this._languageVersion = value;
+  }
+
+  PackageBundleSdkBuilder(
+      {String allowedExperimentsJson,
+      LinkedLanguageVersionBuilder languageVersion})
+      : _allowedExperimentsJson = allowedExperimentsJson,
+        _languageVersion = languageVersion;
 
   /// Flush [informative] data recursively.
-  void flushInformative() {}
+  void flushInformative() {
+    _languageVersion?.flushInformative();
+  }
 
   /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._allowedExperimentsJson ?? '');
+    signature.addBool(this._languageVersion != null);
+    this._languageVersion?.collectApiSignature(signature);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_allowedExperimentsJson;
+    fb.Offset offset_languageVersion;
     if (_allowedExperimentsJson != null) {
       offset_allowedExperimentsJson =
           fbBuilder.writeString(_allowedExperimentsJson);
     }
+    if (_languageVersion != null) {
+      offset_languageVersion = _languageVersion.finish(fbBuilder);
+    }
     fbBuilder.startTable();
     if (offset_allowedExperimentsJson != null) {
       fbBuilder.addOffset(0, offset_allowedExperimentsJson);
+    }
+    if (offset_languageVersion != null) {
+      fbBuilder.addOffset(1, offset_languageVersion);
     }
     return fbBuilder.endTable();
   }
@@ -17843,12 +17866,20 @@ class _PackageBundleSdkImpl extends Object
   _PackageBundleSdkImpl(this._bc, this._bcOffset);
 
   String _allowedExperimentsJson;
+  idl.LinkedLanguageVersion _languageVersion;
 
   @override
   String get allowedExperimentsJson {
     _allowedExperimentsJson ??=
         const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
     return _allowedExperimentsJson;
+  }
+
+  @override
+  idl.LinkedLanguageVersion get languageVersion {
+    _languageVersion ??=
+        const _LinkedLanguageVersionReader().vTableGet(_bc, _bcOffset, 1, null);
+    return _languageVersion;
   }
 }
 
@@ -17859,12 +17890,16 @@ abstract class _PackageBundleSdkMixin implements idl.PackageBundleSdk {
     if (allowedExperimentsJson != '') {
       _result["allowedExperimentsJson"] = allowedExperimentsJson;
     }
+    if (languageVersion != null) {
+      _result["languageVersion"] = languageVersion.toJson();
+    }
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
         "allowedExperimentsJson": allowedExperimentsJson,
+        "languageVersion": languageVersion,
       };
 
   @override

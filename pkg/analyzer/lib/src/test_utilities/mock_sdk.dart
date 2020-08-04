@@ -5,10 +5,12 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/src/version.dart';
 
 const String sdkRoot = '/sdk';
 
@@ -1084,6 +1086,8 @@ class MockSdk implements DartSdk {
   @override
   final List<SdkLibrary> sdkLibraries = [];
 
+  File _versionFile;
+
   /// Optional [additionalLibraries] should have unique URIs, and paths in
   /// their units are relative (will be put into `sdkRoot/lib`).
   MockSdk({
@@ -1091,6 +1095,11 @@ class MockSdk implements DartSdk {
     AnalysisOptionsImpl analysisOptions,
     List<MockSdkLibrary> additionalLibraries = const [],
   }) : _analysisOptions = analysisOptions ?? AnalysisOptionsImpl() {
+    _versionFile = resourceProvider
+        .getFolder(resourceProvider.convertPath(sdkRoot))
+        .getChildAssumingFile('version');
+    _versionFile.writeAsStringSync('2.10.0');
+
     for (MockSdkLibrary library in _LIBRARIES) {
       var convertedLibrary = library._toProvider(resourceProvider);
       sdkLibraries.add(convertedLibrary);
@@ -1177,6 +1186,12 @@ class MockSdk implements DartSdk {
       _analysisContext = SdkAnalysisContext(_analysisOptions, factory);
     }
     return _analysisContext;
+  }
+
+  @override
+  Version get languageVersion {
+    var sdkVersionStr = _versionFile.readAsStringSync();
+    return languageVersionFromSdkVersion(sdkVersionStr);
   }
 
   @override
