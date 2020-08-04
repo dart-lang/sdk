@@ -131,7 +131,6 @@ class ObservatoryApplication {
     assert(app == null);
     app = this;
     _registerPages();
-    Analytics.initialize();
     // Visit the current page.
     locationManager._visit();
   }
