@@ -1887,10 +1887,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (typeInput is HLoadType) {
       TypeExpressionRecipe recipe = typeInput.typeExpression;
       DartType dartType = recipe.type;
-      if (_closedWorld.dartTypes.isTopType(dartType)) {
-        return _graph.addConstantBool(true, _closedWorld);
-      }
-
       IsTestSpecialization specialization =
           SpecializedChecks.findIsTestSpecialization(
               dartType, _graph, _closedWorld);

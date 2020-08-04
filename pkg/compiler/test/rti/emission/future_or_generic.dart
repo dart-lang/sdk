@@ -20,7 +20,7 @@ class B {}
 
 // TODO(johnniwinther): Do we need the implied `checkedTypeArgument` from
 // the `Future<C>` test in `A.m`?
-/*class: C:checkedInstance,checks=[],typeArgument*/
+/*class: C:checkedInstance,checks=[],onlyForRti,typeArgument*/
 class C {}
 
 /*class: FutureMock:checks=[$isFuture],instance*/

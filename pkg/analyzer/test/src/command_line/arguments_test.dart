@@ -36,16 +36,28 @@ class ArgumentsTest with ResourceProviderMixin {
       '--packages=$defaultPackageFilePath',
     ];
     ArgResults result = parse(resourceProvider, parser, args);
-    ContextBuilderOptions options = createContextBuilderOptions(result);
+    ContextBuilderOptions options =
+        createContextBuilderOptions(resourceProvider, result);
     expect(options, isNotNull);
-    expect(options.dartSdkSummaryPath, dartSdkSummaryPath);
+
+    expect(
+      options.defaultAnalysisOptionsFilePath,
+      endsWith(defaultAnalysisOptionsFilePath),
+    );
+    expect(
+      options.defaultPackageFilePath,
+      endsWith(defaultPackageFilePath),
+    );
+    expect(
+      options.dartSdkSummaryPath,
+      endsWith(dartSdkSummaryPath),
+    );
+
     Map<String, String> declaredVariables = options.declaredVariables;
     expect(declaredVariables, hasLength(2));
     expect(declaredVariables['foo'], '1');
     expect(declaredVariables['bar'], '2');
-    expect(
-        options.defaultAnalysisOptionsFilePath, defaultAnalysisOptionsFilePath);
-    expect(options.defaultPackageFilePath, defaultPackageFilePath);
+
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
     expect(defaultOptions.strongMode, true);
@@ -58,7 +70,8 @@ class ArgumentsTest with ResourceProviderMixin {
     defineAnalysisArguments(parser);
     List<String> args = [];
     ArgResults result = parse(resourceProvider, parser, args);
-    ContextBuilderOptions options = createContextBuilderOptions(result);
+    ContextBuilderOptions options =
+        createContextBuilderOptions(resourceProvider, result);
     expect(options, isNotNull);
     expect(options.dartSdkSummaryPath, isNull);
     expect(options.declaredVariables, isEmpty);
@@ -130,7 +143,8 @@ class ArgumentsTest with ResourceProviderMixin {
       '--implicit-casts',
     ];
     ArgResults result = parse(resourceProvider, parser, args);
-    ContextBuilderOptions options = createContextBuilderOptions(result);
+    ContextBuilderOptions options =
+        createContextBuilderOptions(resourceProvider, result);
     expect(options, isNotNull);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
@@ -144,7 +158,8 @@ class ArgumentsTest with ResourceProviderMixin {
       '--no-implicit-casts',
     ];
     ArgResults result = parse(resourceProvider, parser, args);
-    ContextBuilderOptions options = createContextBuilderOptions(result);
+    ContextBuilderOptions options =
+        createContextBuilderOptions(resourceProvider, result);
     expect(options, isNotNull);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);

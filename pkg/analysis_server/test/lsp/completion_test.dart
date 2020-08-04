@@ -352,6 +352,29 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(item.detail, isNot(contains('deprecated')));
   }
 
+  Future<void> test_namedArg_offsetBeforeCompletionTarget() async {
+    // This test checks for a previous bug where the completion target was a
+    // symbol far after the cursor offset (`aaaa` here) and caused the whole
+    // identifier to be used as the `targetPrefix` which would filter out
+    // other symbol.
+    // https://github.com/Dart-Code/Dart-Code/issues/2672#issuecomment-666085575
+    final content = '''
+    void main() {
+      myFunction(
+        ^
+        aaaa: '',
+      );
+    }
+
+    void myFunction({String aaaa, String aaab, String aaac}) {}
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'aaab: '), isTrue);
+  }
+
   Future<void> test_namedArg_plainText() async {
     final content = '''
     class A { const A({int one}); }

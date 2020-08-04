@@ -23,6 +23,7 @@ import 'add_missing_parameter_required_test.dart'
 import 'add_missing_required_argument_test.dart'
     as add_missing_required_argument;
 import 'add_ne_null_test.dart' as add_ne_null;
+import 'add_null_check_test.dart' as add_null_check;
 import 'add_override_test.dart' as add_override;
 import 'add_required_test.dart' as add_required;
 import 'add_return_type_test.dart' as add_return_type;
@@ -181,6 +182,7 @@ void main() {
     add_missing_parameter_required.main();
     add_missing_required_argument.main();
     add_ne_null.main();
+    add_null_check.main();
     add_override.main();
     add_required.main();
     add_return_type.main();

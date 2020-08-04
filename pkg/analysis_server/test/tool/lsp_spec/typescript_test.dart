@@ -317,6 +317,24 @@ export namespace ResourceOperationKind {
           equals('Supports deleting existing files and folders.'));
     });
 
+    test('parses an enum using keywords as identifiers', () {
+      final input = '''
+enum Foo {
+  namespace = 'namespace',
+  class = 'class',
+  enum = 'enum',
+}
+    ''';
+      final output = parseString(input);
+      expect(output, hasLength(1));
+      expect(output.first, const TypeMatcher<Namespace>());
+      final enum_ = output.first as Namespace;
+      expect(enum_.members, hasLength(3));
+      expect(enum_.members[0].name, equals('namespace'));
+      expect(enum_.members[1].name, equals('class'));
+      expect(enum_.members[2].name, equals('enum'));
+    });
+
     test('parses a tuple in an array', () {
       final input = '''
 interface SomeInformation {

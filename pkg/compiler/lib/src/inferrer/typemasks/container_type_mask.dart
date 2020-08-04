@@ -32,12 +32,12 @@ class ContainerTypeMask extends AllocationTypeMask {
 
   /// Deserializes a [ContainerTypeMask] object from [source].
   factory ContainerTypeMask.readFromDataSource(
-      DataSource source, JClosedWorld closedWorld) {
+      DataSource source, CommonMasks domain) {
     source.begin(tag);
-    TypeMask forwardTo = new TypeMask.readFromDataSource(source, closedWorld);
+    TypeMask forwardTo = new TypeMask.readFromDataSource(source, domain);
     ir.TreeNode allocationNode = source.readTreeNodeOrNull();
     MemberEntity allocationElement = source.readMemberOrNull();
-    TypeMask elementType = new TypeMask.readFromDataSource(source, closedWorld);
+    TypeMask elementType = new TypeMask.readFromDataSource(source, domain);
     int length = source.readIntOrNull();
     source.end(tag);
     return new ContainerTypeMask(

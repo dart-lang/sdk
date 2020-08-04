@@ -89,6 +89,37 @@ class B {}
     assertErrorsInResolvedUnit(result, []);
   }
 
+  test_changeFile_resolution_flushInheritanceManager() async {
+    newFile(aPath, content: r'''
+class A {
+  final int foo = 0;
+}
+''');
+
+    newFile(bPath, content: r'''
+import 'a.dart';
+
+void f(A a) {
+  a.foo = 1;
+}
+''');
+
+    result = await resolveFile(bPath);
+    assertErrorsInResolvedUnit(result, [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 36, 3),
+    ]);
+
+    newFile(aPath, content: r'''
+class A {
+  int foo = 0;
+}
+''');
+    fileResolver.changeFile(aPath);
+
+    result = await resolveFile(bPath);
+    assertErrorsInResolvedUnit(result, []);
+  }
+
   test_changePartFile_refreshedFiles() async {
     newFile(aPath, content: r'''
 part 'b.dart';

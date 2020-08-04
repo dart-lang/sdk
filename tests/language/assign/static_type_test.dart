@@ -13,7 +13,7 @@ int a = "String";
 class A {
   static const int c = "String";
   //                   ^^^^^^^^
-  // [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.VARIABLE_TYPE_MISMATCH
+  // [analyzer] COMPILE_TIME_ERROR.VARIABLE_TYPE_MISMATCH
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
   //                   ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT

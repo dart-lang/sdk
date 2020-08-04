@@ -126,7 +126,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
     linter.registerLintRules();
 
     // Parse commandline options.
-    var options = CommandLineOptions.parse(args);
+    var options = CommandLineOptions.parse(resourceProvider, args);
 
     // Do analysis.
     if (options.buildMode) {
@@ -140,7 +140,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
       batchRunner.runAsBatch(args, (List<String> args) async {
         // TODO(brianwilkerson) Determine whether this await is necessary.
         await null;
-        var options = CommandLineOptions.parse(args);
+        var options = CommandLineOptions.parse(resourceProvider, args);
         return await _analyzeAll(options);
       });
     } else {

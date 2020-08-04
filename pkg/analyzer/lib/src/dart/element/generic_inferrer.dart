@@ -165,7 +165,7 @@ class GenericInferrer {
     var knownTypes = <TypeParameterElement, DartType>{};
     for (int i = 0; i < typeFormals.length; i++) {
       TypeParameterElement typeParam = typeFormals[i];
-      var constraints = this._constraints[typeParam];
+      var constraints = _constraints[typeParam];
       var typeParamBound = typeParam.bound != null
           ? Substitution.fromPairs(typeFormals, inferredTypes)
               .substituteType(typeParam.bound)
@@ -224,8 +224,13 @@ class GenericInferrer {
         // by [infer], with [typeParam] filled in as its bounds. This is
         // considered a failure of inference, under the "strict-inference"
         // mode.
-        if (errorNode is ConstructorName) {
-          String constructorName = '${errorNode.type}.${errorNode.name}';
+        if (errorNode is ConstructorName &&
+            !(errorNode.type.type as InterfaceType)
+                .element
+                .hasOptionalTypeArgs) {
+          String constructorName = errorNode.name == null
+              ? errorNode.type.name.name
+              : '${errorNode.type}.${errorNode.name}';
           errorReporter?.reportErrorForNode(
               HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
               errorNode,

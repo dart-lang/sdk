@@ -637,8 +637,7 @@ class B extends A {
 }
 ''', [
       error(
-          CompileTimeErrorCode
-              .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+          CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
           71,
           3),
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 74, 3),
@@ -1654,8 +1653,7 @@ main() {
   foo<int, double>();
 }
 ''', [
-      error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 32, 13),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 32, 13),
     ]);
     var invocation = findNode.methodInvocation('foo<int, double>();');
     assertTypeArgumentTypes(invocation, ['dynamic']);

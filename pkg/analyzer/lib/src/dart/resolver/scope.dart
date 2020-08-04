@@ -453,14 +453,14 @@ extension ScopeExtension on Scope {
   // TODO(scheglov) check if it might be inlined
   Element lookupIdentifier(Identifier identifier) {
     if (identifier is SimpleIdentifier) {
-      var result = this.lookup2(identifier.name);
+      var result = lookup2(identifier.name);
       return result.getter ?? result.setter;
     } else {
       var prefixedIdentifier = identifier as PrefixedIdentifier;
 
       var prefixIdentifier = prefixedIdentifier.prefix;
       var prefixName = prefixIdentifier.name;
-      var prefixElement = this.lookup2(prefixName).getter;
+      var prefixElement = lookup2(prefixName).getter;
       prefixIdentifier.staticElement = prefixElement;
 
       if (prefixElement is PrefixElement) {

@@ -197,27 +197,6 @@ class MessageTemplate {
               """
           ]),
 
-      MessageKind.JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS:
-          const MessageTemplate(
-              MessageKind
-                  .JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
-              "Some parameters in anonymous js-interop class '#{cls}' "
-              "object literal constructor are positional instead of named."
-              ".",
-              howToFix: "Make all arguments in external factory object literal "
-                  "constructors named.",
-              examples: const [
-            """
-class Super {
-  factory Super.foo() => null;
-}
-class Class extends Super {
-  Class() : super.foo();
-}
-main() => new Class();
-"""
-          ]),
-
       MessageKind.JS_INTEROP_NON_EXTERNAL_MEMBER: const MessageTemplate(
           MessageKind.JS_INTEROP_NON_EXTERNAL_MEMBER,
           "Js-interop members must be 'external'."),

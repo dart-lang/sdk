@@ -29,12 +29,12 @@ class SetTypeMask extends AllocationTypeMask {
 
   /// Deserializes a [SetTypeMask] object from [source].
   factory SetTypeMask.readFromDataSource(
-      DataSource source, JClosedWorld closedWorld) {
+      DataSource source, CommonMasks domain) {
     source.begin(tag);
-    TypeMask forwardTo = new TypeMask.readFromDataSource(source, closedWorld);
+    TypeMask forwardTo = new TypeMask.readFromDataSource(source, domain);
     ir.TreeNode allocationNode = source.readTreeNodeOrNull();
     MemberEntity allocationElement = source.readMemberOrNull();
-    TypeMask elementType = new TypeMask.readFromDataSource(source, closedWorld);
+    TypeMask elementType = new TypeMask.readFromDataSource(source, domain);
     source.end(tag);
     return new SetTypeMask(
         forwardTo, allocationNode, allocationElement, elementType);

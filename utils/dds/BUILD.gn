@@ -12,12 +12,12 @@ dds_files = exec_script("../../tools/list_dart_files.py",
                         "list lines")
 
 group("dds") {
-  deps = [ ":copy_dds_snapshot" ]
+  public_deps = [ ":copy_dds_snapshot" ]
 }
 
 copy("copy_dds_snapshot") {
   visibility = [ ":dds" ]
-  deps = [ ":generate_dds_snapshot" ]
+  public_deps = [ ":generate_dds_snapshot" ]
   sources = [ "$root_gen_dir/dds.dart.snapshot" ]
   outputs = [ "$root_out_dir/dds.dart.snapshot" ]
 }

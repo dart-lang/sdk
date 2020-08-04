@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-/*class: A:checkedTypeArgument,checks=[],typeArgument*/
+/*class: A:checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
 class A<T> {}
 
 /*class: B:checkedInstance*/

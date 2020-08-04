@@ -112,8 +112,8 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
         }
 
         // Prepare options.
-        var options =
-            CommandLineOptions.parse(arguments, printAndFail: (String msg) {
+        var options = CommandLineOptions.parse(resourceProvider, arguments,
+            printAndFail: (String msg) {
           throw ArgumentError(msg);
         });
 

@@ -439,6 +439,8 @@ InvalidVoid/part_wrapped_script1: Fail
 InvalidVoid/part_wrapped_script2: Fail
 InvalidVoid/script1: Fail
 InvalidVoid/script2: Fail
+JsInteropAnonymousFactoryPositionalParameters/analyzerCode: Fail # Web compiler specific
+JsInteropAnonymousFactoryPositionalParameters/example: Fail # Web compiler specific
 JsInteropIndexNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropIndexNotSupported/example: Fail # Web compiler specific
 JsInteropNamedParameters/analyzerCode: Fail # Web compiler specific

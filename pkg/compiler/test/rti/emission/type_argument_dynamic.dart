@@ -6,16 +6,16 @@
 
 import 'package:expect/expect.dart';
 
-/*class: A:checkedTypeArgument,checks=[],typeArgument*/
+/*class: A:checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
 class A {}
 
-/*class: B:checks=[$isA],typeArgument*/
+/*class: B:checks=[$isA],onlyForRti,typeArgument*/
 class B implements A {}
 
 /*class: C:checkedInstance,checks=[],instance*/
 class C<T> {}
 
-/*class: D:checks=[],typeArgument*/
+/*class: D:checks=[],onlyForRti,typeArgument*/
 class D {}
 
 /*class: E:checks=[],instance*/

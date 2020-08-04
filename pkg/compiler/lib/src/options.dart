@@ -235,6 +235,13 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to generate code containing user's `assert` statements.
   bool enableUserAssertions = false;
 
+  /// Whether to generate code asserting that non-nullable parameters in opt-in
+  /// code are not null. In mixed mode code (some opting into non-nullable, some
+  /// not), null-safety is unsound, allowing `null` values to be assigned to
+  /// variables with non-nullable types. This assertion lets the opt-in code
+  /// operate with a stronger guarantee.
+  bool enableNullAssertions = false;
+
   /// Whether to generate a source-map file together with the output program.
   bool generateSourceMap = true;
 
@@ -445,6 +452,8 @@ class CompilerOptions implements DiagnosticOptions {
           !_hasOption(options, Flags.disableNativeLiveTypeAnalysis)
       ..enableUserAssertions = _hasOption(options, Flags.enableCheckedMode) ||
           _hasOption(options, Flags.enableAsserts)
+      ..enableNullAssertions = _hasOption(options, Flags.enableCheckedMode) ||
+          _hasOption(options, Flags.enableNullAssertions)
       ..experimentalTrackAllocations =
           _hasOption(options, Flags.experimentalTrackAllocations)
       ..experimentalAllocationsPath = _extractStringOption(

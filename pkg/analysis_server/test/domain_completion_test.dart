@@ -599,6 +599,7 @@ class B extends A {
             isTrue);
       });
     }
+    return Future.value(null);
   }
 
   Future<void> test_invocation_withTrailingStmt() {

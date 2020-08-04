@@ -8,7 +8,7 @@ final int x = 'foo';
 // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
 const int y = 'foo';
 //            ^^^^^
-// [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.VARIABLE_TYPE_MISMATCH
+// [analyzer] COMPILE_TIME_ERROR.VARIABLE_TYPE_MISMATCH
 // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
 //            ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT

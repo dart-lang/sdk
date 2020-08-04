@@ -65,9 +65,9 @@ class LibraryContext {
     @required SourceFactory sourceFactory,
     @required this.externalSummaries,
     @required FileState targetLibrary,
-  })  : this.logger = logger,
-        this.byteStore = byteStore,
-        this.analysisSession = session {
+  })  : logger = logger,
+        byteStore = byteStore,
+        analysisSession = session {
     var synchronousSession =
         SynchronousSession(analysisOptions, declaredVariables);
     analysisContext = AnalysisContextImpl(synchronousSession, sourceFactory);

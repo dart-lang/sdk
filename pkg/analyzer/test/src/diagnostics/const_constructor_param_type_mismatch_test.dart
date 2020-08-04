@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class ConstConstructorParamTypeMismatchTest extends DriverResolutionTest {
-  test_assignable_null() async {
+  test_assignable_fieldFormal_null() async {
     // Null is assignable to anything (before null safety).
     await assertNoErrorsInCode(r'''
 class A {
@@ -27,7 +27,7 @@ var v = const A(null);
 ''');
   }
 
-  test_assignable_omittedType() async {
+  test_assignable_fieldFormal_omittedType() async {
     // If a field is declared without a type, and no initializer, it's type is
     // dynamic.
     await assertNoErrorsInCode(r'''
@@ -39,7 +39,7 @@ var v = const A(5);
 ''');
   }
 
-  test_assignable_subtype() async {
+  test_assignable_fieldFormal_subtype() async {
     await assertNoErrorsInCode(r'''
 class A {
   const A();
@@ -55,7 +55,7 @@ var v = const C(const B());
 ''');
   }
 
-  test_assignable_typedef() async {
+  test_assignable_fieldFormal_typedef() async {
     // foo has the type dynamic -> dynamic, so it is not assignable to A.f.
     await assertErrorsInCode(r'''
 typedef String Int2String(int x);
@@ -71,7 +71,7 @@ var v = const A(foo);
     ]);
   }
 
-  test_assignable_typeSubstitution() async {
+  test_assignable_fieldFormal_typeSubstitution() async {
     await assertNoErrorsInCode(r'''
 class A<T> {
   final T x;
@@ -81,7 +81,7 @@ var v = const A<int>(3);
 ''');
   }
 
-  test_assignable_unresolved_null() async {
+  test_assignable_fieldFormal_unresolved_null() async {
     // Null always passes runtime type checks, even when the type is
     // unresolved.
     await assertErrorsInCode(r'''
@@ -92,6 +92,47 @@ class A {
 var v = const A(null);
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 18, 10),
+    ]);
+  }
+
+  test_assignable_null() async {
+    // Null is assignable to anything (before null safety).
+    await assertNoErrorsInCode(r'''
+class A {
+  const A(int x);
+}
+var v = const A(null);''');
+  }
+
+  test_assignable_typeSubstitution() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  const A(T x);
+}
+var v = const A<int>(3);''');
+  }
+
+  test_assignable_undefined() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A(Unresolved x);
+}
+var v = const A('foo');
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 20, 10),
+    ]);
+  }
+
+  test_assignable_undefined_null() async {
+    // Null always passes runtime type checks, even when the type is
+    // unresolved.
+    await assertErrorsInCode(r'''
+class A {
+  const A(Unresolved x);
+}
+var v = const A(null);
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 20, 10),
     ]);
   }
 
@@ -180,7 +221,7 @@ const c = C();
 ''');
   }
 
-  test_notAssignable_optional() async {
+  test_notAssignable_fieldFormal_optional() async {
     await assertErrorsInCode(r'''
 class A {
   final int x;
@@ -193,7 +234,7 @@ var v = const A();
     ]);
   }
 
-  test_notAssignable_supertype() async {
+  test_notAssignable_fieldFormal_supertype() async {
     await assertErrorsInCode(r'''
 class A {
   const A();
@@ -212,7 +253,7 @@ var v = const C(u);
     ]);
   }
 
-  test_notAssignable_typedef() async {
+  test_notAssignable_fieldFormal_typedef() async {
     // foo has type String -> int, so it is not assignable to A.f
     // (A.f requires it to be int -> String).
     await assertErrorsInCode(r'''
@@ -229,7 +270,7 @@ var v = const A(foo);
     ]);
   }
 
-  test_notAssignable_unrelated() async {
+  test_notAssignable_fieldFormal_unrelated() async {
     await assertErrorsInCode(r'''
 class A {
   final int x;
@@ -242,7 +283,7 @@ var v = const A('foo');
     ]);
   }
 
-  test_notAssignable_unresolved() async {
+  test_notAssignable_fieldFormal_unresolved() async {
     await assertErrorsInCode(r'''
 class A {
   final Unresolved x;
@@ -251,6 +292,30 @@ class A {
 var v = const A('foo');
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 18, 10),
+    ]);
+  }
+
+  test_notAssignable_typeSubstitution() async {
+    await assertErrorsInCode(r'''
+class A<T> {
+  const A(T x);
+}
+var v = const A<int>('foo');
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 52, 5),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 52, 5),
+    ]);
+  }
+
+  test_notAssignable_unrelated() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A(int x);
+}
+var v = const A('foo');
+''', [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 46, 5),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 46, 5),
     ]);
   }
 }

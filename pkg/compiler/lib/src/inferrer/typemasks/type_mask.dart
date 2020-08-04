@@ -222,24 +222,23 @@ abstract class TypeMask implements AbstractValue {
   }
 
   /// Deserializes a [TypeMask] object from [source].
-  factory TypeMask.readFromDataSource(
-      DataSource source, JClosedWorld closedWorld) {
+  factory TypeMask.readFromDataSource(DataSource source, CommonMasks domain) {
     TypeMaskKind kind = source.readEnum(TypeMaskKind.values);
     switch (kind) {
       case TypeMaskKind.flat:
-        return new FlatTypeMask.readFromDataSource(source, closedWorld);
+        return new FlatTypeMask.readFromDataSource(source, domain);
       case TypeMaskKind.union:
-        return new UnionTypeMask.readFromDataSource(source, closedWorld);
+        return new UnionTypeMask.readFromDataSource(source, domain);
       case TypeMaskKind.container:
-        return new ContainerTypeMask.readFromDataSource(source, closedWorld);
+        return new ContainerTypeMask.readFromDataSource(source, domain);
       case TypeMaskKind.set:
-        return new SetTypeMask.readFromDataSource(source, closedWorld);
+        return new SetTypeMask.readFromDataSource(source, domain);
       case TypeMaskKind.map:
-        return new MapTypeMask.readFromDataSource(source, closedWorld);
+        return new MapTypeMask.readFromDataSource(source, domain);
       case TypeMaskKind.dictionary:
-        return new DictionaryTypeMask.readFromDataSource(source, closedWorld);
+        return new DictionaryTypeMask.readFromDataSource(source, domain);
       case TypeMaskKind.value:
-        return new ValueTypeMask.readFromDataSource(source, closedWorld);
+        return new ValueTypeMask.readFromDataSource(source, domain);
     }
     throw new UnsupportedError("Unexpected TypeMaskKind $kind.");
   }
@@ -415,5 +414,5 @@ abstract class TypeMask implements AbstractValue {
 
   /// Returns the [element] that is known to always be hit at runtime
   /// on this mask. Returns null if there is none.
-  MemberEntity locateSingleMember(Selector selector, JClosedWorld closedWorld);
+  MemberEntity locateSingleMember(Selector selector, CommonMasks domain);
 }

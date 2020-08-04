@@ -16,6 +16,8 @@ import 'dart:io';
 
 import 'package:args/args.dart' show ArgParser;
 import 'package:path/path.dart' as p;
+import 'package:dev_compiler/src/compiler/module_builder.dart'
+    as module_builder;
 
 enum NullSafety { strict, weak, disabled }
 
@@ -122,8 +124,8 @@ void main(List<String> args) async {
   var out = (options['out'] as String) ?? p.setExtension(entry, '.js');
   var libRoot = p.dirname(entry);
   var basename = p.basenameWithoutExtension(entry);
-  var libname = p.relative(p.withoutExtension(entry)).replaceAll('/', '__');
-  libname = libname.replaceAll('-', '_');
+  var libname =
+      module_builder.pathToJSIdentifier(p.relative(p.withoutExtension(entry)));
 
   // By default (no `-d`), we use the `dartdevc` binary on the user's path to
   // compute the SDK we use for execution.  I.e., we assume that `dart` is
@@ -280,7 +282,7 @@ void main(List<String> args) async {
       sdk.dart.nonNullAsserts($nonNullAsserts);
     }
     sdk._debugger.registerDevtoolsFormatter();
-    app.$libname.main();
+    app.$libname.main([]);
   });
 </script>
 ''';
@@ -347,7 +349,7 @@ try {
     dart.nonNullAsserts($nonNullAsserts);
   }
   _isolate_helper.startRootIsolate(() => {}, []);
-  main();
+  main([]);
 } catch(e) {
   console.error(e);
 }

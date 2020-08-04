@@ -6,22 +6,22 @@
 
 import 'package:expect/expect.dart' show Expect;
 
-/*class: A:checks=[],typeArgument*/
+/*class: A:checks=[],onlyForRti,typeArgument*/
 class A {}
 
-/*class: B:checks=[],typeArgument*/
+/*class: B:checks=[],onlyForRti,typeArgument*/
 class B {}
 
-/*class: C:checks=[],typeArgument*/
+/*class: C:checks=[],onlyForRti,typeArgument*/
 class C {}
 
-/*class: D:checks=[],typeArgument*/
+/*class: D:checks=[],onlyForRti,typeArgument*/
 class D {}
 
-/*class: E:checks=[],typeArgument*/
+/*class: E:checks=[],onlyForRti,typeArgument*/
 class E {}
 
-/*class: F:checks=[],typeArgument*/
+/*class: F:checks=[],onlyForRti,typeArgument*/
 class F {}
 
 /*class: M1:checks=[]*/

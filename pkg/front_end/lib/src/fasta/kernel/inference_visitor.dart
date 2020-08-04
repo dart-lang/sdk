@@ -433,14 +433,12 @@ class InferenceVisitor
     inferrer.inferConstructorParameterTypes(node.target);
     bool hasExplicitTypeArguments =
         getExplicitTypeArguments(node.arguments) != null;
-    InvocationInferenceResult result = inferrer.inferInvocation(
-        typeContext,
-        node.fileOffset,
+    FunctionType functionType = replaceReturnType(
         node.target.function
             .computeThisFunctionType(inferrer.library.nonNullable),
-        node.arguments,
-        returnType:
-            computeConstructorReturnType(node.target, inferrer.coreTypes),
+        computeConstructorReturnType(node.target, inferrer.coreTypes));
+    InvocationInferenceResult result = inferrer.inferInvocation(
+        typeContext, node.fileOffset, functionType, node.arguments,
         isConst: node.isConst);
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.library;
@@ -721,14 +719,14 @@ class InferenceVisitor
       FactoryConstructorInvocationJudgment node, DartType typeContext) {
     bool hadExplicitTypeArguments =
         getExplicitTypeArguments(node.arguments) != null;
-    InvocationInferenceResult result = inferrer.inferInvocation(
-        typeContext,
-        node.fileOffset,
+
+    FunctionType functionType = replaceReturnType(
         node.target.function
             .computeThisFunctionType(inferrer.library.nonNullable),
-        node.arguments,
-        returnType:
-            computeConstructorReturnType(node.target, inferrer.coreTypes),
+        computeConstructorReturnType(node.target, inferrer.coreTypes));
+
+    InvocationInferenceResult result = inferrer.inferInvocation(
+        typeContext, node.fileOffset, functionType, node.arguments,
         isConst: node.isConst);
     node.hasBeenInferred = true;
     Expression resultNode = node;
@@ -757,9 +755,10 @@ class InferenceVisitor
     FunctionType calleeType = node.target.function
         .computeAliasedConstructorFunctionType(
             typedef, inferrer.library.library);
+    calleeType = replaceReturnType(calleeType, calleeType.returnType.unalias);
     InvocationInferenceResult result = inferrer.inferInvocation(
         typeContext, node.fileOffset, calleeType, node.arguments,
-        returnType: calleeType.returnType.unalias, isConst: node.isConst);
+        isConst: node.isConst);
     node.hasBeenInferred = true;
     Expression resultNode = node;
     if (!inferrer.isTopLevel) {
@@ -784,9 +783,10 @@ class InferenceVisitor
     Typedef typedef = node.typeAliasBuilder.typedef;
     FunctionType calleeType = node.target.function
         .computeAliasedFactoryFunctionType(typedef, inferrer.library.library);
+    calleeType = replaceReturnType(calleeType, calleeType.returnType.unalias);
     InvocationInferenceResult result = inferrer.inferInvocation(
         typeContext, node.fileOffset, calleeType, node.arguments,
-        returnType: calleeType.returnType.unalias, isConst: node.isConst);
+        isConst: node.isConst);
     node.hasBeenInferred = true;
     Expression resultNode = node;
     if (!inferrer.isTopLevel) {
@@ -1133,14 +1133,13 @@ class InferenceVisitor
     Substitution substitution = Substitution.fromSupertype(
         inferrer.classHierarchy.getClassAsInstanceOf(
             inferrer.thisType.classNode, node.target.enclosingClass));
-    inferrer.inferInvocation(
-        null,
-        node.fileOffset,
+    FunctionType functionType = replaceReturnType(
         substitution.substituteType(node.target.function
             .computeThisFunctionType(inferrer.library.nonNullable)
             .withoutTypeParameters),
-        node.argumentsJudgment,
-        returnType: inferrer.thisType,
+        inferrer.thisType);
+    inferrer.inferInvocation(
+        null, node.fileOffset, functionType, node.argumentsJudgment,
         skipTypeArgumentInference: true);
   }
 
@@ -5013,14 +5012,13 @@ class InferenceVisitor
           classTypeParameters[i], inferrer.library.library);
     }
     ArgumentsImpl.setNonInferrableArgumentTypes(node.arguments, typeArguments);
-    inferrer.inferInvocation(
-        null,
-        node.fileOffset,
+    FunctionType functionType = replaceReturnType(
         node.target.function
             .computeThisFunctionType(inferrer.library.nonNullable),
-        node.arguments,
-        returnType: inferrer.coreTypes.thisInterfaceType(
-            node.target.enclosingClass, inferrer.library.nonNullable),
+        inferrer.coreTypes.thisInterfaceType(
+            node.target.enclosingClass, inferrer.library.nonNullable));
+    inferrer.inferInvocation(
+        null, node.fileOffset, functionType, node.arguments,
         skipTypeArgumentInference: true);
     ArgumentsImpl.removeNonInferrableArgumentTypes(node.arguments);
   }
@@ -5225,14 +5223,13 @@ class InferenceVisitor
     Substitution substitution = Substitution.fromSupertype(
         inferrer.classHierarchy.getClassAsInstanceOf(
             inferrer.thisType.classNode, node.target.enclosingClass));
-    inferrer.inferInvocation(
-        null,
-        node.fileOffset,
+    FunctionType functionType = replaceReturnType(
         substitution.substituteType(node.target.function
             .computeThisFunctionType(inferrer.library.nonNullable)
             .withoutTypeParameters),
-        node.arguments,
-        returnType: inferrer.thisType,
+        inferrer.thisType);
+    inferrer.inferInvocation(
+        null, node.fileOffset, functionType, node.arguments,
         skipTypeArgumentInference: true);
   }
 
@@ -5511,12 +5508,17 @@ class InferenceVisitor
       isDefinitelyAssigned = inferrer.flowAnalysis.isAssigned(variable);
     }
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
-    DartType writeContext = declaredOrInferredType;
-    ExpressionInferenceResult rhsResult = inferrer.inferExpression(
-        node.value, writeContext ?? const UnknownType(), true,
+    DartType promotedType;
+    if (inferrer.isNonNullableByDefault) {
+      promotedType = inferrer.flowAnalysis.promotedType(variable);
+    }
+    ExpressionInferenceResult rhsResult = inferrer.inferExpression(node.value,
+        promotedType ?? declaredOrInferredType ?? const UnknownType(), true,
         isVoidAllowed: true);
-    Expression rhs = inferrer.ensureAssignableResult(writeContext, rhsResult,
-        fileOffset: node.fileOffset, isVoidAllowed: writeContext is VoidType);
+    Expression rhs = inferrer.ensureAssignableResult(
+        declaredOrInferredType, rhsResult,
+        fileOffset: node.fileOffset,
+        isVoidAllowed: declaredOrInferredType is VoidType);
     inferrer.flowAnalysis.write(variable, rhsResult.inferredType);
     DartType resultType = rhsResult.inferredType;
     Expression resultExpression;

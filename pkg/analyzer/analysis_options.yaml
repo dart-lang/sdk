@@ -11,8 +11,6 @@ analyzer:
     omit_local_variable_types: ignore
     # There are currently 3360 violations in lib/.
     prefer_single_quotes: ignore
-    # There are currently 2000 violations in lib/.
-    unnecessary_this: ignore
 
     # "strict-inference" is enabled, but "unused" parameters named '_' are
     # still reported.  Re-evaluate after

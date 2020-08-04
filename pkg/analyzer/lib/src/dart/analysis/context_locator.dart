@@ -47,7 +47,7 @@ class ContextLocatorImpl implements ContextLocator {
   /// supplied, it will be used to access the file system. Otherwise the default
   /// resource provider will be used.
   ContextLocatorImpl({ResourceProvider resourceProvider})
-      : this.resourceProvider =
+      : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
   @deprecated

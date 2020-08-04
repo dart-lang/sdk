@@ -416,6 +416,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         break;
       case TypeUseKind.RTI_VALUE:
       case TypeUseKind.TYPE_ARGUMENT:
+      case TypeUseKind.CONSTRUCTOR_REFERENCE:
         failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected type use: $typeUse.");
         break;
       case TypeUseKind.NAMED_TYPE_VARIABLE_NEW_RTI:

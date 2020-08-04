@@ -11,6 +11,16 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceCascadeWithDot extends CorrectionProducer {
+  static final Map<TokenType, String> _indexReplacement = {
+    TokenType.PERIOD_PERIOD: '',
+    TokenType.QUESTION_PERIOD_PERIOD: '?',
+  };
+
+  static final Map<TokenType, String> _propertyReplacement = {
+    TokenType.PERIOD_PERIOD: '.',
+    TokenType.QUESTION_PERIOD_PERIOD: '?.',
+  };
+
   @override
   FixKind get fixKind => DartFixKind.REPLACE_CASCADE_WITH_DOT;
 
@@ -20,52 +30,41 @@ class ReplaceCascadeWithDot extends CorrectionProducer {
     if (node is CascadeExpression) {
       var sections = node.cascadeSections;
       if (sections.length == 1) {
-        var section = sections[0];
-        Token cascadeOperator;
-        if (section is MethodInvocation) {
-          cascadeOperator = section.operator;
-        } else if (section is PropertyAccess) {
-          cascadeOperator = section.operator;
-        } else if (section is IndexExpression) {
-          await _handleIndexExpression(builder, section);
-          return;
-        } else if (section is AssignmentExpression) {
-          var leftHandSide = section.leftHandSide;
-          if (leftHandSide is PropertyAccess) {
-            cascadeOperator = leftHandSide.operator;
-          } else if (leftHandSide is IndexExpression) {
-            await _handleIndexExpression(builder, leftHandSide);
-            return;
-          } else {
-            return;
-          }
-        } else {
-          return;
-        }
-        var type = cascadeOperator.type;
-        if (type == TokenType.PERIOD_PERIOD ||
-            type == TokenType.QUESTION_PERIOD_PERIOD) {
-          await builder.addDartFileEdit(file, (builder) {
-            var end = cascadeOperator.end;
-            builder.addDeletion(range.startOffsetEndOffset(end - 1, end));
-          });
-        }
+        await _replaceFor(builder, sections[0]);
       }
     }
   }
 
-  void _handleIndexExpression(
-      ChangeBuilder builder, IndexExpression section) async {
-    var cascadeOperator = section.period;
-    var type = cascadeOperator.type;
-    if (type == TokenType.PERIOD_PERIOD) {
+  Future<void> _replaceFor(ChangeBuilder builder, Expression section) async {
+    if (section is AssignmentExpression) {
+      return _replaceFor(builder, section.leftHandSide);
+    }
+
+    if (section is IndexExpression) {
+      if (section.period != null) {
+        return _replaceToken(builder, section.period, _indexReplacement);
+      }
+      return _replaceFor(builder, section.target);
+    }
+
+    if (section is MethodInvocation) {
+      return _replaceToken(builder, section.operator, _propertyReplacement);
+    }
+
+    if (section is PropertyAccess) {
+      return _replaceToken(builder, section.operator, _propertyReplacement);
+    }
+  }
+
+  Future<void> _replaceToken(
+    ChangeBuilder builder,
+    Token token,
+    Map<TokenType, String> map,
+  ) async {
+    var replacement = map[token.type];
+    if (replacement != null) {
       await builder.addDartFileEdit(file, (builder) {
-        builder.addDeletion(
-            range.startStart(cascadeOperator, section.leftBracket));
-      });
-    } else if (type == TokenType.QUESTION_PERIOD_PERIOD) {
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(range.token(cascadeOperator), '?');
+        builder.addSimpleReplacement(range.token(token), replacement);
       });
     }
   }

@@ -23,6 +23,17 @@ main() {
 
 @reflectiveTest
 class ConstEvalThrowsExceptionTest extends DriverResolutionTest {
+  test_assertInitializerThrows() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A(int x, int y) : assert(x < y);
+}
+var v = const A(3, 2);
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 61, 13),
+    ]);
+  }
+
   test_CastError_intToDouble_constructor_importAnalyzedAfter() async {
     // See dartbug.com/35993
     newFile('/test/lib/other.dart', content: '''
@@ -277,6 +288,33 @@ import 'lib.dart';
 const a = const A();
 ''', [
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 29, 9),
+    ]);
+  }
+
+  test_redirectingConstructor_paramTypeMismatch() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A.a1(x) : this.a2(x);
+  const A.a2(String x);
+}
+var v = const A.a1(0);
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 74, 13),
+    ]);
+  }
+
+  test_superConstructor_paramTypeMismatch() async {
+    await assertErrorsInCode(r'''
+class C {
+  final double d;
+  const C(this.d);
+}
+class D extends C {
+  const D(d) : super(d);
+}
+const f = const D('0.0');
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 106, 14),
     ]);
   }
 

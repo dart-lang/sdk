@@ -133,11 +133,13 @@ bool _isSpecType(TypeBase type) {
 
 /// Maps reserved words and identifiers that cause issues in field names.
 String _makeValidIdentifier(String identifier) {
-  // The SymbolKind class has uses these names which cause issues for code that
-  // uses them as types.
+  // Some identifiers used in LSP are reserved words in Dart, so map them to
+  // other values.
   const map = {
     'Object': 'Obj',
     'String': 'Str',
+    'class': 'class_',
+    'enum': 'enum_',
   };
   return map[identifier] ?? identifier;
 }

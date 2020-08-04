@@ -307,6 +307,14 @@ class InheritanceManager3 {
     return interface._overridden[name];
   }
 
+  /// Remove interfaces for classes defined in specified libraries.
+  void removeOfLibraries(Set<String> uriStrSet) {
+    _interfaces.removeWhere((element, _) {
+      var uriStr = '${element.librarySource.uri}';
+      return uriStrSet.contains(uriStr);
+    });
+  }
+
   void _addCandidates({
     @required Map<Name, List<ExecutableElement>> namedCandidates,
     @required Substitution substitution,

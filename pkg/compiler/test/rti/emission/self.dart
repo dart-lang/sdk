@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-/*class: C:checks=[],instance,typeLiteral*/
+/*class: C:checks=[],instance*/
 class C {}
 
 @pragma('dart2js:noInline')

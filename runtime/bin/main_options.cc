@@ -340,6 +340,39 @@ bool Options::ProcessObserveOption(const char* arg,
   return true;
 }
 
+// Explicitly handle VM flags that can be parsed by DartDev's run command.
+bool Options::ProcessVMDebuggingOptions(const char* arg,
+                                        CommandLineOptions* vm_options) {
+#define IS_DEBUG_OPTION(name, arg)                                             \
+  if (strncmp(name, arg, strlen(name)) == 0) {                                 \
+    vm_options->AddArgument(arg);                                              \
+    return true;                                                               \
+  }
+
+// This is an exhaustive set of VM flags that are accepted by 'dart run'. Flags
+// defined in main_options.h do not need to be handled here as they already
+// have handlers generated.
+//
+// NOTE: When updating this list of VM flags, be sure to make the corresponding
+// changes in pkg/dartdev/lib/src/commands/run.dart.
+#define HANDLE_DARTDEV_VM_DEBUG_OPTIONS(V, arg)                                \
+  V("--enable-asserts", arg)                                                   \
+  V("--pause-isolates-on-exit", arg)                                           \
+  V("--no-pause-isolates-on-exit", arg)                                        \
+  V("--pause-isolates-on-start", arg)                                          \
+  V("--no-pause-isolates-on-start", arg)                                       \
+  V("--pause-isolates-on-unhandled-exception", arg)                            \
+  V("--no-pause-isolates-on-unhandled-exception", arg)                         \
+  V("--warn-on-pause-with-no-debugger", arg)                                   \
+  V("--no-warn-on-pause-with-no-debugger", arg)
+  HANDLE_DARTDEV_VM_DEBUG_OPTIONS(IS_DEBUG_OPTION, arg);
+
+#undef IS_DEBUG_OPTION
+#undef HANDLE_DARTDEV_VM_DEBUG_OPTIONS
+
+  return false;
+}
+
 int Options::target_abi_version_ = Options::kAbiVersionUnset;
 bool Options::ProcessAbiVersionOption(const char* arg,
                                       CommandLineOptions* vm_options) {

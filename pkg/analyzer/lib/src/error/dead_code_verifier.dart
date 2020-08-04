@@ -153,7 +153,7 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// to the given [errorReporter] and will use the given [typeSystem] if one is
   /// provided.
   LegacyDeadCodeVerifier(this._errorReporter, {TypeSystemImpl typeSystem})
-      : this._typeSystem = typeSystem ??
+      : _typeSystem = typeSystem ??
             TypeSystemImpl(
               implicitCasts: true,
               isNonNullableByDefault: false,
@@ -389,8 +389,10 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
         // dead, and it's a BreakStatement, then assume it is a statement
         // mandated by the language spec, there to avoid a
         // CASE_BLOCK_NOT_TERMINATED error.
-        if (allowMandated && i == size - 2 && nextStatement is BreakStatement) {
-          return;
+        if (allowMandated && i == size - 2) {
+          if (_isMandatedSwitchCaseTerminatingStatement(nextStatement)) {
+            return;
+          }
         }
         int offset = nextStatement.offset;
         int length = lastStatement.end - offset;
@@ -440,6 +442,21 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
     if (element is PropertyAccessorElement) {
       PropertyInducingElement variable = element.variable;
       return variable != null && variable.isConst;
+    }
+    return false;
+  }
+
+  static bool _isMandatedSwitchCaseTerminatingStatement(Statement node) {
+    if (node is BreakStatement ||
+        node is ContinueStatement ||
+        node is ReturnStatement) {
+      return true;
+    }
+    if (node is ExpressionStatement) {
+      var expression = node.expression;
+      if (expression is RethrowExpression || expression is ThrowExpression) {
+        return true;
+      }
     }
     return false;
   }

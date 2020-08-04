@@ -588,13 +588,15 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       // If the method is intercepted, we want the actual receiver
       // to be the first parameter.
       graph.entry.addBefore(graph.entry.last, parameter);
+      DartType type = _getDartTypeIfValid(node.type);
       HInstruction value = _typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
-          field, parameter, _getDartTypeIfValid(node.type));
+          field, parameter, type);
       // TODO(sra): Pass source information to
       // [potentiallyCheckOrTrustTypeOfParameter].
       // TODO(sra): The source information should indiciate the field and
       // possibly its type but not the initializer.
       value.sourceInformation ??= _sourceInformationBuilder.buildSet(node);
+      value = _potentiallyAssertNotNull(node, value, type);
       if (!_fieldAnalysis.getFieldData(field).isElided) {
         add(HFieldSet(_abstractValueDomain, field, thisInstruction, value));
       }
@@ -1237,27 +1239,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         parameterStructure: function.parameterStructure,
         checks: _checksForFunction(function));
 
-    // If [functionNode] is `operator==` we explicitly add a null check at the
-    // beginning of the method. This is to avoid having call sites do the null
-    // check.
-    if (function.name == '==') {
-      if (!_commonElements.operatorEqHandlesNullArgument(function)) {
-        _handleIf(
-            visitCondition: () {
-              HParameterValue parameter = parameters.values.first;
-              push(new HIdentity(parameter, graph.addConstantNull(closedWorld),
-                  _abstractValueDomain.boolType));
-            },
-            visitThen: () {
-              _closeAndGotoExit(HReturn(
-                  _abstractValueDomain,
-                  graph.addConstantBool(false, closedWorld),
-                  _sourceInformationBuilder.buildReturn(functionNode)));
-            },
-            visitElse: null,
-            sourceInformation: _sourceInformationBuilder.buildIf(functionNode));
-      }
-    }
     if (const bool.fromEnvironment('unreachable-throw')) {
       var emptyParameters = parameters.values.where((p) =>
           _abstractValueDomain.isEmpty(p.instructionType).isDefinitelyTrue);
@@ -1432,7 +1413,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         newParameter = _typeBuilder.trustTypeOfParameter(
             targetElement, newParameter, type);
       }
-
+      // TODO(sra): Hoist out of loop.
+      newParameter = _potentiallyAssertNotNull(variable, newParameter, type);
       localsHandler.updateLocal(local, newParameter);
     }
 
@@ -1457,6 +1439,41 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         }
       }
     }
+  }
+
+  /// In mixed mode, inserts an assertion of the form `assert(x != null)` for
+  /// parameters in opt-in libraries that have a static type that cannot be
+  /// nullable under a strong interpretation.
+  HInstruction _potentiallyAssertNotNull(
+      ir.TreeNode context, HInstruction value, DartType type) {
+    if (!options.enableNullAssertions) return value;
+    if (!_isNonNullableByDefault(context)) return value;
+    if (!dartTypes.isNonNullableIfSound(type)) return value;
+
+    if (options.enableUserAssertions) {
+      pushCheckNull(value);
+      push(HNot(pop(), _abstractValueDomain.boolType));
+      var sourceInformation = _sourceInformationBuilder.buildAssert(context);
+      _pushStaticInvocation(
+          _commonElements.assertHelper,
+          <HInstruction>[pop()],
+          _typeInferenceMap.getReturnTypeOf(_commonElements.assertHelper),
+          const <DartType>[],
+          sourceInformation: sourceInformation);
+      pop();
+      return value;
+    } else {
+      HInstruction nullCheck = HNullCheck(
+          value, _abstractValueDomain.excludeNull(value.instructionType))
+        ..sourceInformation = value.sourceInformation;
+      add(nullCheck);
+      return nullCheck;
+    }
+  }
+
+  bool _isNonNullableByDefault(ir.TreeNode node) {
+    if (node is ir.Library) return node.isNonNullableByDefault;
+    return _isNonNullableByDefault(node.parent);
   }
 
   /// Builds a SSA graph for FunctionNodes of external methods. This produces a
@@ -1616,6 +1633,29 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
     _addClassTypeVariablesIfNeeded(member);
     _addFunctionTypeVariablesIfNeeded(member);
+
+    // If [member] is `operator==` we explicitly add a null check at the
+    // beginning of the method. This is to avoid having call sites do the null
+    // check. The null check is added before the argument type checks since in
+    // strong mode, the parameter type might be non-nullable.
+    if (member.name == '==') {
+      if (!_commonElements.operatorEqHandlesNullArgument(member)) {
+        _handleIf(
+            visitCondition: () {
+              HParameterValue parameter = parameters.values.first;
+              push(new HIdentity(parameter, graph.addConstantNull(closedWorld),
+                  _abstractValueDomain.boolType));
+            },
+            visitThen: () {
+              _closeAndGotoExit(HReturn(
+                  _abstractValueDomain,
+                  graph.addConstantBool(false, closedWorld),
+                  _sourceInformationBuilder.buildReturn(functionNode)));
+            },
+            visitElse: null,
+            sourceInformation: _sourceInformationBuilder.buildIf(functionNode));
+      }
+    }
 
     if (functionNode != null) {
       _potentiallyAddFunctionParameterTypeChecks(functionNode, checks);
@@ -5493,10 +5533,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
       // Don't inline operator== methods if the parameter can be null.
       if (function.name == '==') {
-        if (function.enclosingClass != _commonElements.objectClass &&
-            providedArguments[1]
-                .isNull(_abstractValueDomain)
-                .isPotentiallyTrue) {
+        if (providedArguments[1]
+            .isNull(_abstractValueDomain)
+            .isPotentiallyTrue) {
           return false;
         }
       }
@@ -6046,6 +6085,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         checkedOrTrusted = _typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
             function, argument, type);
       }
+      checkedOrTrusted =
+          _potentiallyAssertNotNull(variable, checkedOrTrusted, type);
       localsHandler.updateLocal(parameter, checkedOrTrusted);
     });
   }
@@ -6267,7 +6308,7 @@ class TryCatchFinallyBuilder {
 
     AbstractValue unwrappedType = kernelBuilder._typeInferenceMap
         .getReturnTypeOf(kernelBuilder._commonElements.exceptionUnwrapper);
-    if (!kernelBuilder.options.useLegacySubtyping) {
+    if (kernelBuilder.options.useNullSafety) {
       // Global type analysis does not currently understand that strong mode
       // `Object` is not nullable, so is imprecise in the return type of the
       // unwrapper, which leads to unnecessary checks for 'on Object'.
@@ -6285,7 +6326,6 @@ class TryCatchFinallyBuilder {
     int catchesIndex = 0;
 
     void pushCondition(ir.Catch catchBlock) {
-      // `guard` is often `dynamic`, which generates `true`.
       kernelBuilder._pushIsTest(catchBlock.guard, unwrappedException,
           kernelBuilder._sourceInformationBuilder.buildCatch(catchBlock));
     }

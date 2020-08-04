@@ -115,7 +115,7 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
     this.sourceFactory,
     this.resourceProvider, {
     Workspace workspace,
-  }) : this._workspace = workspace;
+  }) : _workspace = workspace;
 
   @override
   AnalysisOptionsImpl get analysisOptions {

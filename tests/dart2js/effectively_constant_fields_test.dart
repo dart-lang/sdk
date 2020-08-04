@@ -70,5 +70,4 @@ main() {
   Expect.equals(0, method6(new Class1()));
   Expect.throws(() => method6(null));
   Expect.equals(4, method7(new Class1()));
-  Expect.throws(() => method7(null));
 }

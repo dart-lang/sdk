@@ -6880,9 +6880,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     InstanceCreationExpressionImpl expression =
         parseExpression('new a.b.c<C>()', errors: [
       expectedError(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          8,
-          1)
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 8, 1)
     ]);
     expect(expression, isNotNull);
     expect(expression.keyword.keyword, Keyword.NEW);

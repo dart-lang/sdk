@@ -39,6 +39,26 @@ void f(List<int> l) {
 ''');
   }
 
+  Future<void> test_assignment_index_propertyAccess_normalCascade() async {
+    await resolveTestUnit('''
+class A {
+  void foo() {
+    0..bar[1] = 2;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  void foo() {
+    0.bar[1] = 2;
+  }
+}
+''',
+        errorFilter: (e) =>
+            e.errorCode.name ==
+            LintNames.avoid_single_cascade_in_expression_statements);
+  }
+
   Future<void> test_assignment_property_normalCascade() async {
     await resolveTestUnit('''
 void f(C c) {

@@ -230,8 +230,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _requiredParametersVerifier = RequiredParametersVerifier(errorReporter),
         _duplicateDefinitionVerifier =
             DuplicateDefinitionVerifier(_currentLibrary, errorReporter) {
-    this._isInSystemLibrary = _currentLibrary.source.isInSystemLibrary;
-    this._hasExtUri = _currentLibrary.hasExtUri;
+    _isInSystemLibrary = _currentLibrary.source.isInSystemLibrary;
+    _hasExtUri = _currentLibrary.hasExtUri;
     _isInCatchClause = false;
     _isInStaticVariableDeclaration = false;
     _isInConstructorInitializer = false;
@@ -2463,8 +2463,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       // TODO(paulberry): this error should be based on the actual type of the
       // constant, not the static type.  See dartbug.com/21119.
       _errorReporter.reportErrorForNode(
-          CheckedModeCompileTimeErrorCode
-              .CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
+          CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
           expression,
           [staticType, fieldType]);
     }

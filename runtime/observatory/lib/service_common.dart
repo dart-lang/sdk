@@ -65,8 +65,8 @@ class _WebSocketRequest {
 
 /// Minimal common interface for 'WebSocket' in [dart:io] and [dart:html].
 abstract class CommonWebSocket {
-  void connect(String address, void onOpen(), void onMessage(dynamic data),
-      void onError(), void onClose());
+  Future<void> connect(WebSocketVMTarget target, void onOpen(),
+      void onMessage(dynamic data), void onError(), void onClose());
   bool get isOpen;
   void send(dynamic data);
   void close();
@@ -135,8 +135,8 @@ abstract class CommonWebSocketVM extends VM {
     if (!_hasInitiatedConnect) {
       _hasInitiatedConnect = true;
       try {
-        _webSocket.connect(
-            target.networkAddress, _onOpen, _onMessage, _onError, _onClose);
+        await _webSocket.connect(
+            target, _onOpen, _onMessage, _onError, _onClose);
       } catch (_, stack) {
         _webSocket = null;
         var exception = new NetworkRpcException('WebSocket closed');

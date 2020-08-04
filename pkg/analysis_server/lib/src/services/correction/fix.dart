@@ -176,6 +176,8 @@ class DartFixKind {
       "Add required argument '{0}'");
   static const ADD_NE_NULL = FixKind('dart.fix.add.neNull', 50, 'Add != null',
       appliedTogetherMessage: 'Add != null everywhere in file');
+  static const ADD_NULL_CHECK =
+      FixKind('dart.fix.add.nullCheck', 50, 'Add a null check (!)');
   static const ADD_OVERRIDE =
       FixKind('dart.fix.add.override', 50, "Add '@override' annotation");
   static const ADD_REQUIRED =

@@ -124,7 +124,7 @@ _platform_sdk_snapshots = [
   ],
   [
     "dartdev",
-    "../utils/dartdev:generate_dartdev_snapshot",
+    "../utils/dartdev:dartdev",
   ],
   [
     "dartdoc",
@@ -136,7 +136,7 @@ _platform_sdk_snapshots = [
   ],
   [
     "dds",
-    "../utils/dds:generate_dds_snapshot",
+    "../utils/dds:dds",
   ],
   [
     "pub",
@@ -173,7 +173,7 @@ _full_sdk_snapshots = [
   ],
   [
     "dartdev",
-    "../utils/dartdev:generate_dartdev_snapshot",
+    "../utils/dartdev:dartdev",
   ],
   [
     "dartdevc",
@@ -189,7 +189,7 @@ _full_sdk_snapshots = [
   ],
   [
     "dds",
-    "../utils/dds:generate_dds_snapshot",
+    "../utils/dds:dds",
   ],
   [
     "kernel_worker",
@@ -808,7 +808,10 @@ group("copy_libraries") {
 
 # This rule writes the version file.
 action("write_version_file") {
-  visibility = [ ":create_common_sdk" ]
+  visibility = [
+    ":create_common_sdk",
+    "../utils/dartanalyzer:generate_summary_strong",
+  ]
   inputs = [
     "../tools/VERSION",
     "$default_git_folder/logs/HEAD",

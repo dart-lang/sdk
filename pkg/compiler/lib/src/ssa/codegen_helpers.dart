@@ -290,8 +290,7 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
       return;
     }
 
-    ConstantValue constant =
-        DummyInterceptorConstantValue(receiverArgument.instructionType);
+    ConstantValue constant = DummyInterceptorConstantValue();
     HConstant dummy = graph.addConstant(constant, _closedWorld);
     receiverArgument.usedBy.remove(node);
     node.inputs[1] = dummy;

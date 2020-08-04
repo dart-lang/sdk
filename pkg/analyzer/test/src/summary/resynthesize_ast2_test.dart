@@ -9,6 +9,7 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -224,6 +225,9 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 class _AnalysisSessionForLinking implements AnalysisSessionImpl {
   @override
   final ClassHierarchy classHierarchy = ClassHierarchy();
+
+  @override
+  InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

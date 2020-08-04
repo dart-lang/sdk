@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show
         Message,
         LocatedMessage,
+        messageJsInteropAnonymousFactoryPositionalParameters,
         messageJsInteropIndexNotSupported,
         messageJsInteropNamedParameters,
         messageJsInteropNonExternalConstructor;
@@ -32,7 +33,20 @@ class JsInteropChecks extends RecursiveVisitor<void> {
           procedure.location.file);
     }
 
-    if (!isAnonymousClassMember(procedure) || !procedure.isFactory) {
+    var isAnonymousFactory =
+        isAnonymousClassMember(procedure) && procedure.isFactory;
+
+    if (isAnonymousFactory) {
+      if (procedure.function != null &&
+          !procedure.function.positionalParameters.isEmpty) {
+        var firstPositionalParam = procedure.function.positionalParameters[0];
+        _diagnosticsReporter.report(
+            messageJsInteropAnonymousFactoryPositionalParameters,
+            firstPositionalParam.fileOffset,
+            firstPositionalParam.name.length,
+            firstPositionalParam.location.file);
+      }
+    } else {
       // Only factory constructors for anonymous classes are allowed to have
       // named parameters.
       _checkNoNamedParameters(procedure.function);
@@ -57,12 +71,12 @@ class JsInteropChecks extends RecursiveVisitor<void> {
   /// Reports an error if [functionNode] has named parameters.
   void _checkNoNamedParameters(FunctionNode functionNode) {
     if (functionNode != null && !functionNode.namedParameters.isEmpty) {
-      var firstNameParam = functionNode.namedParameters[0];
+      var firstNamedParam = functionNode.namedParameters[0];
       _diagnosticsReporter.report(
           messageJsInteropNamedParameters,
-          firstNameParam.fileOffset,
-          firstNameParam.name.length,
-          firstNameParam.location.file);
+          firstNamedParam.fileOffset,
+          firstNamedParam.name.length,
+          firstNamedParam.location.file);
     }
   }
 }

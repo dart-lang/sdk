@@ -94,6 +94,16 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
       args = List.from(args)..remove('--launch-dds');
     }
 
+    // These flags have a format that can't be handled by package:args, so
+    // while they are valid flags we'll assume the VM has verified them by this
+    // point.
+    args = args
+        .where(
+          (element) => !(element.contains('--observe') ||
+              element.contains('--enable-vm-service')),
+        )
+        .toList();
+
     // Before calling to run, send the first ping to analytics to have the first
     // ping, as well as the command itself, running in parallel.
     if (analytics.enabled) {
@@ -194,7 +204,7 @@ class DartdevRunner<int> extends CommandRunner {
     addCommand(FormatCommand());
     addCommand(MigrateCommand(verbose: verbose));
     addCommand(PubCommand());
-    addCommand(RunCommand());
+    addCommand(RunCommand(verbose: verbose));
     addCommand(TestCommand());
   }
 

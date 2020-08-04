@@ -25,8 +25,7 @@ class ClassHierarchy {
   }
 
   /// Remove hierarchies for classes defined in specified libraries.
-  void removeOfLibraries(Iterable<String> uriStrIterable) {
-    var uriStrSet = uriStrIterable.toSet();
+  void removeOfLibraries(Set<String> uriStrSet) {
     _map.removeWhere((element, _) {
       var uriStr = '${element.librarySource.uri}';
       return uriStrSet.contains(uriStr);

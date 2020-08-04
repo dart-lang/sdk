@@ -84,8 +84,8 @@ class FileBasedSource extends Source {
   /// a [uri] is given, then it will be used as the URI from which the source
   /// was derived, otherwise a `file:` URI will be created based on the [file].
   FileBasedSource(JavaFile file, [Uri uri])
-      : this.uri = uri ?? file.toURI(),
-        this.file = file,
+      : uri = uri ?? file.toURI(),
+        file = file,
         id = _idTable.putIfAbsent(
             '${uri ?? file.toURI()}@${file.getPath()}', () => _idTable.length);
 

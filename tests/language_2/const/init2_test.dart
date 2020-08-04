@@ -6,7 +6,7 @@ const intValue = 0;
 const double c = 0.0;
 const double d = intValue;
 //               ^^^^^^^^
-// [analyzer] CHECKED_MODE_COMPILE_TIME_ERROR.VARIABLE_TYPE_MISMATCH
+// [analyzer] COMPILE_TIME_ERROR.VARIABLE_TYPE_MISMATCH
 // [cfe] A value of type 'int' can't be assigned to a variable of type 'double'.
 //               ^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT

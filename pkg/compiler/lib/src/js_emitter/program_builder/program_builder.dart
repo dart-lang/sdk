@@ -634,6 +634,8 @@ class ProgramBuilder {
   }
 
   Class _buildClass(ClassEntity cls) {
+    bool onlyForConstructor =
+        collector.classesOnlyNeededForConstructor.contains(cls);
     bool onlyForRti = collector.classesOnlyNeededForRti.contains(cls);
     bool hasRtiField = _rtiNeed.classNeedsTypeArguments(cls);
     if (_nativeData.isJsInteropClass(cls)) {
@@ -641,6 +643,7 @@ class ProgramBuilder {
       // if it does not we can suppress it completely.
       onlyForRti = true;
     }
+    bool onlyForConstructorOrRti = onlyForConstructor || onlyForRti;
     bool isClosureBaseClass = cls == _commonElements.closureClass;
 
     List<Method> methods = [];
@@ -700,14 +703,14 @@ class ProgramBuilder {
       callStubs.add(_buildStubMethod(name, function));
     }
 
-    if (_commonElements.isInstantiationClass(cls) && !onlyForRti) {
+    if (_commonElements.isInstantiationClass(cls) && !onlyForConstructorOrRti) {
       callStubs.addAll(_generateInstantiationStubs(cls));
     }
 
     // MixinApplications run through the members of their mixin. Here, we are
     // only interested in direct members.
     bool isSuperMixinApplication = false;
-    if (!onlyForRti) {
+    if (!onlyForConstructorOrRti) {
       if (_elementEnvironment.isSuperMixinApplication(cls)) {
         List<MemberEntity> members = <MemberEntity>[];
         void add(MemberEntity member) {
@@ -732,14 +735,14 @@ class ProgramBuilder {
       }
     }
     bool isInterceptedClass = _interceptorData.isInterceptedClass(cls);
-    List<Field> instanceFields = onlyForRti
-        ? const <Field>[]
+    List<Field> instanceFields = onlyForConstructorOrRti
+        ? const []
         : _buildFields(
             cls: cls,
             visitStatics: false,
             isHolderInterceptedClass: isInterceptedClass);
-    List<Field> staticFieldsForReflection = onlyForRti
-        ? const <Field>[]
+    List<Field> staticFieldsForReflection = onlyForConstructorOrRti
+        ? const []
         : _buildFields(
             cls: cls,
             visitStatics: true,
@@ -792,7 +795,7 @@ class ProgramBuilder {
 
     Class result;
     if (_elementEnvironment.isMixinApplication(cls) &&
-        !onlyForRti &&
+        !onlyForConstructorOrRti &&
         !isSuperMixinApplication) {
       assert(!_nativeData.isNativeClass(cls));
       assert(methods.isEmpty);
@@ -811,7 +814,8 @@ class ProgramBuilder {
           typeTests.functionTypeIndex,
           isDirectlyInstantiated: isInstantiated,
           hasRtiField: hasRtiField,
-          onlyForRti: onlyForRti);
+          onlyForRti: onlyForRti,
+          onlyForConstructor: onlyForConstructor);
     } else {
       result = new Class(
           cls,
@@ -829,6 +833,7 @@ class ProgramBuilder {
           isDirectlyInstantiated: isInstantiated,
           hasRtiField: hasRtiField,
           onlyForRti: onlyForRti,
+          onlyForConstructor: onlyForConstructor,
           isNative: _nativeData.isNativeClass(cls),
           isClosureBaseClass: isClosureBaseClass,
           isSoftDeferred: _isSoftDeferred(cls),

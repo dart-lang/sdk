@@ -4,20 +4,18 @@
 
 // @dart = 2.7
 
-// dart2jsOptions=--strong
-
 @JS()
 library foo;
 
-/*class: global#JavaScriptObject:checks=[$isA]*/
+/*class: global#JavaScriptObject:checks=[$isA],onlyForRti*/
 
 import 'package:expect/expect.dart';
 import 'package:js/js.dart';
 
 @JS()
 @anonymous
-/*spec.class: A:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
-/*prod.class: A:checkedTypeArgument,checks=[],typeArgument*/
+/*spec.class: A:checkedInstance,checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
+/*prod.class: A:checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
 class A<T> {
   external factory A();
 }

@@ -88,7 +88,7 @@ class RecursiveTypeVisitorTest extends AbstractTypeTest {
   }
 
   void test_functionType_typeFormal_noBound() {
-    final T = this.typeParameter('T');
+    final T = typeParameter('T');
     final type = functionType(
         returnType: dynamicType,
         typeFormals: [T],

@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.36
+# Dart VM Service Protocol 3.37
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.36_ of the Dart VM Service Protocol. This
+This document describes of _version 3.37_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -59,6 +59,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [getVMTimeline](#getvmtimeline)
   - [getVMTimelineFlags](#getvmtimelineflags)
   - [getVMTimelineMicros](#getvmtimelinemicros)
+  - [getWebSocketTarget](#getwebsockettarget)
   - [invoke](#invoke)
   - [pause](#pause)
   - [kill](#kill)
@@ -139,6 +140,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [UresolvedSourceLocation](#unresolvedsourcelocation)
   - [Version](#version)
   - [VM](#vm)
+  - [WebSocketTarget](#websockettarget)
 - [Revision History](#revision-history)
 
 ## RPCs, Requests, and Responses
@@ -422,6 +424,8 @@ When DDS connects to the VM service, the VM service enters single client
 mode and will no longer accept incoming web socket connections, instead forwarding
 the web socket connection request to DDS. If DDS disconnects from the VM service,
 the VM service will once again start accepting incoming web socket connections.
+
+The VM service forwards the web socket connection by issuing a redirect 
 
 ### Protocol Extensions
 
@@ -1139,6 +1143,17 @@ The _getVMTimelineMicros_ RPC returns the current time stamp from the clock used
 similar to `Timeline.now` in `dart:developer` and `Dart_TimelineGetMicros` in the VM embedding API.
 
 See [Timestamp](#timestamp) and [getVMTimeline](#getvmtimeline).
+
+### getWebSocketTarget
+
+```
+WebSocketTarget getWebSocketTarget()
+```
+
+The _getWebSocketTarget_ RPC returns the web socket URI that should be used by VM service clients
+with WebSocket implementations that do not follow redirects (e.g., `dart:html`'s [WebSocket](https://api.dart.dev/dart-html/WebSocket-class.html)).
+
+See [WebSocketTarget](#websockettarget).
 
 ### pause
 
@@ -3850,6 +3865,17 @@ class VM extends Response {
 }
 ```
 
+### WebSocketTarget
+
+```
+class WebSocketTarget extends Response {
+  // The web socket URI that should be used to connect to the service.
+  string uri;
+}
+```
+
+See [getWebSocketTarget](#getwebsockettarget)
+
 ## Revision History
 
 version | comments
@@ -3894,5 +3920,6 @@ the VM service.
 3.34 | Added `TimelineStreamSubscriptionsUpdate` event which is sent when `setVMTimelineFlags` is invoked.
 3.35 | Added `getSupportedProtocols` RPC and `ProtocolList`, `Protocol` objects.
 3.36 | Added `getProcessMemoryUsage` RPC and `ProcessMemoryUsage` and `ProcessMemoryItem` objects.
+3.37 | Added `getWebSocketTarget` RPC and `WebSocketTarget` object.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

@@ -537,7 +537,7 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode INFERENCE_FAILURE_ON_INSTANCE_CREATION = HintCode(
       'INFERENCE_FAILURE_ON_INSTANCE_CREATION',
-      "The type argument(s) of '{0}' can't be inferred.",
+      "The type argument(s) of the constructor '{0}' can't be inferred.",
       correction: "Use explicit type argument(s) for '{0}'.");
 
   /**

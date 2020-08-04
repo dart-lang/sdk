@@ -2858,6 +2858,11 @@ static void CacheRange(Range** slot,
   }
 }
 
+void BinaryIntegerOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  InferRangeHelper(analysis->GetSmiRange(left()),
+                   analysis->GetSmiRange(right()), range);
+}
+
 void BinarySmiOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   const Range* right_smi_range = analysis->GetSmiRange(right());
   // TODO(vegorov) completely remove this once GetSmiRange is eliminated.
@@ -2867,16 +2872,6 @@ void BinarySmiOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
                RangeBoundary::kRangeBoundarySmi);
   }
   InferRangeHelper(analysis->GetSmiRange(left()), right_smi_range, range);
-}
-
-void BinaryInt32OpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  InferRangeHelper(analysis->GetSmiRange(left()),
-                   analysis->GetSmiRange(right()), range);
-}
-
-void BinaryInt64OpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  InferRangeHelper(left()->definition()->range(),
-                   right()->definition()->range(), range);
 }
 
 void ShiftIntegerOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {

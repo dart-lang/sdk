@@ -11,14 +11,24 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
+import 'package:analysis_server/src/services/correction/dart/create_method.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_duplicate_case.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_empty_catch.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_empty_constructor_body.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_else.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_empty_statement.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_null_with_closure.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
+import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
@@ -43,6 +53,17 @@ class BulkFixProcessor {
         ReplaceCascadeWithDot.newInstance,
     LintNames.avoid_types_on_closure_parameters:
         RemoveTypeAnnotation.newInstance,
+    LintNames.await_only_futures: RemoveAwait.newInstance,
+    LintNames.curly_braces_in_flow_control_structures:
+        UseCurlyBraces.newInstance,
+    LintNames.empty_catches: RemoveEmptyCatch.newInstance,
+    LintNames.empty_constructor_bodies: RemoveEmptyConstructorBody.newInstance,
+    LintNames.empty_statements: RemoveEmptyStatement.newInstance,
+    LintNames.hash_and_equals: CreateMethod.equalsOrHashCode,
+    LintNames.no_duplicate_case_values: RemoveDuplicateCase.newInstance,
+    LintNames.null_closures: ReplaceNullWithClosure.newInstance,
+    LintNames.omit_local_variable_types: ReplaceWithVar.newInstance,
+    LintNames.prefer_adjacent_string_concatenation: RemoveOperator.newInstance,
     LintNames.prefer_contains: ConvertToContains.newInstance,
     LintNames.prefer_equal_for_default_values:
         ReplaceColonWithEquals.newInstance,

@@ -298,5 +298,20 @@ bool shouldIncludeScriptBlock(String input) {
     return false;
   }
 
+  // There are some example blocks that just contain arrays with no definitions.
+  // They're most easily noted by ending with `]` which no valid TypeScript blocks
+  // do.
+  if (input.trim().endsWith(']')) {
+    return false;
+  }
+
+  // There's a chunk of typescript that is just a partial snippet from a real
+  // interface declared elsewhere that we can only detect by the leading comment.
+  if (input
+      .replaceAll('\r', '')
+      .startsWith('/**\n\t * Window specific client capabilities.')) {
+    return false;
+  }
+
   return true;
 }

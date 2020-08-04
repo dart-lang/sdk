@@ -785,7 +785,7 @@ class CommonMasks implements AbstractValueDomain {
   @override
   MemberEntity locateSingleMember(
       covariant TypeMask receiver, Selector selector) {
-    return receiver.locateSingleMember(selector, _closedWorld);
+    return receiver.locateSingleMember(selector, this);
   }
 
   @override
@@ -815,7 +815,7 @@ class CommonMasks implements AbstractValueDomain {
         mask.containsOnly(
             _closedWorld.commonElements.jsUnmodifiableArrayClass) ||
         mask.containsOnlyString(_closedWorld) ||
-        _closedWorld.abstractValueDomain.isTypedArray(mask).isDefinitelyTrue) {
+        isTypedArray(mask).isDefinitelyTrue) {
       return AbstractBool.True;
     }
     return AbstractBool.Maybe;
@@ -963,7 +963,7 @@ class CommonMasks implements AbstractValueDomain {
   @override
   TypeMask readAbstractValueFromDataSource(DataSource source) {
     return source.readCached<TypeMask>(
-        () => new TypeMask.readFromDataSource(source, _closedWorld));
+        () => new TypeMask.readFromDataSource(source, this));
   }
 
   @override

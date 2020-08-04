@@ -267,6 +267,22 @@ void f() {
     _assertHasNamedArgument(name: 'bbb');
   }
 
+  Future<void> test_filterSort_namedArgument_noPrefix_beforeOther() async {
+    await _compute(r'''
+void foo({int aaa = 0, int aab = 0}) {}
+
+voif f() {
+  foo(
+    ^
+    aaa: 0,
+  );
+}
+
+''');
+
+    _assertHasNamedArgument(name: 'aab');
+  }
+
   Future<void> test_filterSort_preferLocal() async {
     await _compute(r'''
 var a = 0;

@@ -9,7 +9,6 @@ import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../deferred_load.dart' show OutputUnit;
-import '../inferrer/abstract_value_domain.dart';
 import '../js/js.dart' as js;
 import '../util/util.dart';
 
@@ -862,24 +861,17 @@ class JsNameConstantValue extends ConstantValue {
   String toStructuredText(DartTypes dartTypes) => 'JsNameConstant(${name})';
 }
 
-/// A constant used as the dummy interceptor value for intercepted calls with
+/// A constant used as the dummy receiver value for intercepted calls with
 /// a known non-interceptor target.
+// TODO(sra): Rename fo 'DummyReceiverConstantValue'.
 class DummyInterceptorConstantValue extends ConstantValue {
-  final AbstractValue abstractValue;
+  factory DummyInterceptorConstantValue() =>
+      const DummyInterceptorConstantValue._();
 
-  DummyInterceptorConstantValue(this.abstractValue);
+  const DummyInterceptorConstantValue._();
 
   @override
   bool get isDummy => true;
-
-  @override
-  bool operator ==(other) {
-    return other is DummyInterceptorConstantValue &&
-        abstractValue == other.abstractValue;
-  }
-
-  @override
-  get hashCode => abstractValue.hashCode * 17;
 
   @override
   List<ConstantValue> getDependencies() => const <ConstantValue>[];
@@ -896,11 +888,10 @@ class DummyInterceptorConstantValue extends ConstantValue {
   ConstantValueKind get kind => ConstantValueKind.DUMMY_INTERCEPTOR;
 
   @override
-  String toDartText(DartTypes dartTypes) => 'dummy_interceptor($abstractValue)';
+  String toDartText(DartTypes dartTypes) => 'dummy_interceptor()';
 
   @override
-  String toStructuredText(DartTypes dartTypes) =>
-      'DummyInterceptorConstant($abstractValue)';
+  String toStructuredText(DartTypes dartTypes) => 'DummyInterceptorConstant()';
 }
 
 // A constant with an empty type used in [HInstruction]s of an expression

@@ -17,7 +17,7 @@ problem-texts as reported by the compiler.
 `severity`: An integer representing severity. This should match the index in
 `package:_fe_analyzer_shared/src/messages/severity.dart`.
 
-`uri: A uri that this problems relates to.
+`uri`: A uri that this problems relates to.
 
 These values are subject to change, but this file will be updated along with any
 such changes. On the code-side these are defined in

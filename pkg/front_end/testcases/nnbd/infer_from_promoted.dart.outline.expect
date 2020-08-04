@@ -1,0 +1,11 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef F<invariant T extends core::Object? = dynamic> = (T%, T%) → T%;
+static method test1() → dynamic
+  ;
+static method test2() → dynamic
+  ;
+static method main() → dynamic
+  ;

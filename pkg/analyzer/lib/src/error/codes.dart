@@ -16,113 +16,6 @@ export 'package:analyzer/src/dart/error/todo_codes.dart';
 // ignore_for_file: slash_for_doc_comments
 
 /**
- * The error codes used for compile time errors caused by constant evaluation
- * that would throw an exception when run in checked mode. The client of the
- * analysis engine is responsible for determining how these errors should be
- * presented to the user (for example, a command-line compiler might elect to
- * treat these errors differently depending whether it is compiling it "checked"
- * mode).
- */
-class CheckedModeCompileTimeErrorCode extends AnalyzerErrorCode {
-  // TODO(paulberry): improve the text of these error messages so that it's
-  // clear to the user that the error is coming from constant evaluation (and
-  // hence the constant needs to be a subtype of the annotated type) as opposed
-  // to static type analysis (which only requires that the two types be
-  // assignable).  Also consider populating the "correction" field for these
-  // errors.
-
-  /**
-   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
-   * object results in an uncaught exception being thrown.
-   */
-  static const CheckedModeCompileTimeErrorCode
-      CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH = CheckedModeCompileTimeErrorCode(
-          'CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH',
-          "A value of type '{0}' can't be assigned to the field '{1}', which "
-              "has type '{2}'.");
-
-  /**
-   * 7.6.1 Generative Constructors: In checked mode, it is a dynamic type error
-   * if o is not <b>null</b> and the interface of the class of <i>o</i> is not a
-   * subtype of the static type of the field <i>v</i>.
-   *
-   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
-   * object results in an uncaught exception being thrown.
-   *
-   * Parameters:
-   * 0: the name of the type of the initializer expression
-   * 1: the name of the type of the field
-   */
-  static const CheckedModeCompileTimeErrorCode
-      CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE = CheckedModeCompileTimeErrorCode(
-          'CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE',
-          "The initializer type '{0}' can't be assigned to the field type "
-              "'{1}'.");
-
-  /**
-   * Parameters:
-   * 0: the type of the object being assigned.
-   * 1: the type of the variable being assigned to
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the evaluation of a constant
-  // expression would result in a `CastException`.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because the value of `x` is an
-  // `int`, which can't be assigned to `y` because an `int` isn't a `String`:
-  //
-  // ```dart
-  // const Object x = 0;
-  // const String y = [!x!];
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the declaration of the constant is correct, then change the value being
-  // assigned to be of the correct type:
-  //
-  // ```dart
-  // const Object x = 0;
-  // const String y = '$x';
-  // ```
-  //
-  // If the assigned value is correct, then change the declaration to have the
-  // correct type:
-  //
-  // ```dart
-  // const Object x = 0;
-  // const int y = x;
-  // ```
-  static const CheckedModeCompileTimeErrorCode VARIABLE_TYPE_MISMATCH =
-      CheckedModeCompileTimeErrorCode(
-          'VARIABLE_TYPE_MISMATCH',
-          "A value of type '{0}' can't be assigned to a variable of type "
-              "'{1}'.",
-          hasPublishedDocs: true);
-
-  /**
-   * Initialize a newly created error code to have the given [name]. The message
-   * associated with the error will be created from the given [message]
-   * template. The correction associated with the error will be created from the
-   * given [correction] template.
-   */
-  const CheckedModeCompileTimeErrorCode(String name, String message,
-      {String correction, bool hasPublishedDocs})
-      : super.temporary(name, message,
-            correction: correction, hasPublishedDocs: hasPublishedDocs);
-
-  @override
-  ErrorSeverity get errorSeverity =>
-      ErrorType.CHECKED_MODE_COMPILE_TIME_ERROR.severity;
-
-  @override
-  ErrorType get type => ErrorType.CHECKED_MODE_COMPILE_TIME_ERROR;
-}
-
-/**
  * The error codes used for compile time errors. The convention for this class
  * is for the name of the error code to indicate the problem that caused the
  * error to be generated and for the error message to explain what is wrong and,
@@ -1390,6 +1283,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try renaming either the type variable or the member.");
 
   /**
+   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
+   * object results in an uncaught exception being thrown.
+   */
+  static const CompileTimeErrorCode CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH =
+      CompileTimeErrorCode(
+    'CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH',
+    "In a const constructor, a value of type '{0}' can't be assigned to the "
+        "field '{1}', which has type '{2}'.",
+    correction: "Try using a subtype, or removing the keyword 'const'.",
+  );
+
+  /**
    * Parameters:
    * 0: The type of the runtime value of the argument
    * 1: The static type of the parameter
@@ -1440,7 +1345,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
           "A value of type '{0}' can't be assigned to a parameter of type "
-              "'{1}'.",
+              "'{1}' in a const constructor.",
+          correction: "Try using a subtype, or removing the keyword 'const'.",
           hasPublishedDocs: true);
 
   /**
@@ -1669,6 +1575,24 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       'CONST_EVAL_TYPE_TYPE',
       "In constant expressions, operands of this operator must be of type "
           "'Type'.");
+  /**
+   * 7.6.1 Generative Constructors: In checked mode, it is a dynamic type error
+   * if o is not <b>null</b> and the interface of the class of <i>o</i> is not a
+   * subtype of the static type of the field <i>v</i>.
+   *
+   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
+   * object results in an uncaught exception being thrown.
+   *
+   * Parameters:
+   * 0: the name of the type of the initializer expression
+   * 1: the name of the type of the field
+   */
+  static const CompileTimeErrorCode CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE =
+      CompileTimeErrorCode(
+          'CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE',
+          "The initializer type '{0}' can't be assigned to the field type "
+              "'{1}' in a const constructor.",
+          correction: "Try using a subtype, or removing the 'const' keyword");
 
   /**
    * 6.2 Formal Parameters: It is a compile-time error if a formal parameter is
@@ -10007,6 +9931,51 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "be a function or call that returns void you didn't expect. Also "
           "check type parameters and variables which might also be void.",
       hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the type of the object being assigned.
+   * 1: the type of the variable being assigned to
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the evaluation of a constant
+  // expression would result in a `CastException`.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the value of `x` is an
+  // `int`, which can't be assigned to `y` because an `int` isn't a `String`:
+  //
+  // ```dart
+  // const Object x = 0;
+  // const String y = [!x!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the declaration of the constant is correct, then change the value being
+  // assigned to be of the correct type:
+  //
+  // ```dart
+  // const Object x = 0;
+  // const String y = '$x';
+  // ```
+  //
+  // If the assigned value is correct, then change the declaration to have the
+  // correct type:
+  //
+  // ```dart
+  // const Object x = 0;
+  // const int y = x;
+  // ```
+  static const CompileTimeErrorCode VARIABLE_TYPE_MISMATCH =
+      CompileTimeErrorCode(
+          'VARIABLE_TYPE_MISMATCH',
+          "A value of type '{0}' can't be assigned to a const variable of type "
+              "'{1}'.",
+          correction: "Try using a subtype, or removing the 'const' keyword",
+          hasPublishedDocs: true);
 
   /**
    * Let `C` be a generic class that declares a formal type parameter `X`, and

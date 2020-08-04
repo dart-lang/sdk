@@ -309,6 +309,18 @@ main() {
     ]);
   }
 
+  test_function_call() async {
+    await assertErrorsInCode(r'''
+void f({required int a}) {}
+
+main() {
+  f.call();
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 46, 2),
+    ]);
+  }
+
   test_functionInvocation() async {
     await assertErrorsInCode(r'''
 void Function({required int a}) f() => throw '';

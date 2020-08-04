@@ -4086,6 +4086,10 @@ NullableInterfaceError:
 NullableMixinError:
   template: "Can't mix '#name' in because it's marked with '?'."
 
+JsInteropAnonymousFactoryPositionalParameters:
+  template: "Factory constructors for @anonymous JS interop classes should not contain any positional parameters."
+  tip: "Try replacing them with named parameters instead."
+
 JsInteropIndexNotSupported:
   template: "JS interop classes do not support [] and []= operator methods."
   tip: "Try replacing with a normal method."

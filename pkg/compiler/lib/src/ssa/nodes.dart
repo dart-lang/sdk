@@ -4130,26 +4130,30 @@ AbstractBool _isTestResult(
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
   AbstractValue subsetType = expression.instructionType;
   AbstractValue supersetType = checkedAbstractValue.abstractValue;
+  AbstractBool expressionIsNull = expression.isNull(abstractValueDomain);
 
-  if (useNullSafety &&
-      expression.isNull(abstractValueDomain).isDefinitelyTrue) {
-    if (dartType.isObject) return AbstractBool.False;
-    if (closedWorld.dartTypes.isTopType(dartType) ||
-        dartType is NullableType ||
-        dartType.isNull) {
-      return AbstractBool.True;
-    }
-    if (dartType is TypeVariableType || dartType is FunctionTypeVariable) {
-      return AbstractBool.Maybe;
-    }
-    if (dartType is LegacyType) {
-      DartType baseType = dartType.baseType;
-      if (baseType is NeverType) return AbstractBool.True;
-      if (baseType is TypeVariableType || baseType is FunctionTypeVariable) {
+  if (useNullSafety) {
+    if (expressionIsNull.isDefinitelyTrue) {
+      if (dartType.isObject) return AbstractBool.False;
+      if (closedWorld.dartTypes.isTopType(dartType) ||
+          dartType is NullableType ||
+          dartType.isNull) {
+        return AbstractBool.True;
+      }
+      if (dartType is TypeVariableType || dartType is FunctionTypeVariable) {
         return AbstractBool.Maybe;
       }
+      if (dartType is LegacyType) {
+        DartType baseType = dartType.baseType;
+        if (baseType is NeverType) return AbstractBool.True;
+        if (baseType is TypeVariableType || baseType is FunctionTypeVariable) {
+          return AbstractBool.Maybe;
+        }
+      }
+      return AbstractBool.False;
+    } else if (expressionIsNull.isPotentiallyTrue) {
+      if (dartType.isObject) return AbstractBool.Maybe;
     }
-    return AbstractBool.False;
   }
 
   if (checkedAbstractValue.isPrecise &&

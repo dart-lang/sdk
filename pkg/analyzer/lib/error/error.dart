@@ -60,9 +60,6 @@ const List<ErrorCode> errorCodeValues = [
   AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES,
   AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
   AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
-  CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
-  CheckedModeCompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
-  CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
   CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
   CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD,
   CompileTimeErrorCode.AMBIGUOUS_EXPORT,
@@ -106,6 +103,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION,
   CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS,
   CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION,
+  CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
   CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
   CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION,
   CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
@@ -122,6 +120,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
   CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
   CompileTimeErrorCode.CONST_EVAL_TYPE_TYPE,
+  CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
   CompileTimeErrorCode.CONST_FORMAL_PARAMETER,
   CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
   CompileTimeErrorCode
@@ -425,6 +424,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED,
   CompileTimeErrorCode.URI_WITH_INTERPOLATION,
   CompileTimeErrorCode.USE_OF_VOID_RESULT,
+  CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
   CompileTimeErrorCode.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
   CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR,
   CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS,
@@ -884,7 +884,7 @@ class AnalysisError implements Diagnostic {
     String message = formatList(errorCode.message, arguments);
     String correctionTemplate = errorCode.correction;
     if (correctionTemplate != null) {
-      this._correction = formatList(correctionTemplate, arguments);
+      _correction = formatList(correctionTemplate, arguments);
     }
     _problemMessage = DiagnosticMessageImpl(
         filePath: source?.fullName,

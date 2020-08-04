@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/token.dart' show Keyword;
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -49,25 +48,21 @@ class UnknownInferredType extends TypeImpl {
   }
 
   @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeUnknownInferredType();
+  R acceptWithArgument<R, A>(
+    TypeVisitorWithArgument<R, A> visitor,
+    A argument,
+  ) {
+    if (visitor is InferenceTypeVisitor1<R, A>) {
+      var visitor2 = visitor as InferenceTypeVisitor1<R, A>;
+      return visitor2.visitUnknownInferredType(this, argument);
+    } else {
+      throw StateError('Should not happen outside inference.');
+    }
   }
 
   @override
-  DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant = true}) {
-    // In theory this should never happen, since we only need to do this
-    // replacement when checking super-boundedness of explicitly-specified
-    // types, or types produced by mixin inference or instantiate-to-bounds, and
-    // the unknown type can't occur in any of those cases.
-    assert(
-        false, 'Attempted to check super-boundedness of a type including "_"');
-    // But just in case it does, behave similar to `dynamic`.
-    if (isCovariant) {
-      return typeProvider.nullType;
-    } else {
-      return this;
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeUnknownInferredType();
   }
 
   @override

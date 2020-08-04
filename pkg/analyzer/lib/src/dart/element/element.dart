@@ -85,7 +85,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
     for (PropertyAccessorElement accessor in accessors) {
       (accessor as PropertyAccessorElementImpl).enclosingElement = this;
     }
-    this._accessors = accessors;
+    _accessors = accessors;
   }
 
   @override
@@ -99,7 +99,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
     for (FieldElement field in fields) {
       (field as FieldElementImpl).enclosingElement = this;
     }
-    this._fields = fields;
+    _fields = fields;
   }
 
   @override
@@ -597,7 +597,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     for (ConstructorElement constructor in constructors) {
       (constructor as ConstructorElementImpl).enclosingElement = this;
     }
-    this._constructors = constructors;
+    _constructors = constructors;
   }
 
   @override
@@ -931,7 +931,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     for (TypeParameterElement typeParameter in typeParameters) {
       (typeParameter as TypeParameterElementImpl).enclosingElement = this;
     }
-    this._typeParameterElements = typeParameters;
+    _typeParameterElements = typeParameters;
   }
 
   @override
@@ -1312,7 +1312,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     for (PropertyAccessorElement accessor in accessors) {
       (accessor as PropertyAccessorElementImpl).enclosingElement = this;
     }
-    this._accessors = accessors;
+    _accessors = accessors;
   }
 
   @override
@@ -1365,7 +1365,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     for (ClassElement enumDeclaration in enums) {
       (enumDeclaration as EnumElementImpl).enclosingElement = this;
     }
-    this._enums = enums;
+    _enums = enums;
   }
 
   @override
@@ -1402,7 +1402,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     for (ExtensionElement extension in extensions) {
       (extension as ExtensionElementImpl).enclosingElement = this;
     }
-    this._extensions = extensions;
+    _extensions = extensions;
   }
 
   @override
@@ -1433,7 +1433,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     for (FunctionElement function in functions) {
       (function as FunctionElementImpl).enclosingElement = this;
     }
-    this._functions = functions;
+    _functions = functions;
   }
 
   @override
@@ -1510,7 +1510,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     for (MixinElementImpl type in mixins) {
       type.enclosingElement = this;
     }
-    this._mixins = mixins;
+    _mixins = mixins;
   }
 
   @override
@@ -1530,7 +1530,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     for (TopLevelVariableElement field in variables) {
       (field as TopLevelVariableElementImpl).enclosingElement = this;
     }
-    this._variables = variables;
+    _variables = variables;
   }
 
   /// Set the function type aliases contained in this compilation unit to the
@@ -1539,7 +1539,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     for (FunctionTypeAliasElement typeAlias in typeAliases) {
       (typeAlias as ElementImpl).enclosingElement = this;
     }
-    this._typeAliases = typeAliases;
+    _typeAliases = typeAliases;
   }
 
   @override
@@ -1588,7 +1588,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         type.enclosingElement = this;
       }
     }
-    this._types = types;
+    _types = types;
   }
 
   @override
@@ -2644,8 +2644,8 @@ abstract class ElementImpl implements Element {
   /// [_nameOffset].
   ElementImpl(String name, this._nameOffset, {this.reference})
       : linkedNode = null {
-    this._name = StringUtilities.intern(name);
-    this.reference?.element = this;
+    _name = StringUtilities.intern(name);
+    reference?.element = this;
   }
 
   /// Initialize from linked node.
@@ -2970,7 +2970,7 @@ abstract class ElementImpl implements Element {
 
   /// Changes the name of this element.
   set name(String name) {
-    this._name = name;
+    _name = name;
   }
 
   @override
@@ -3204,17 +3204,17 @@ class ElementLocationImpl implements ElementLocation {
       components.insert(0, (ancestor as ElementImpl).identifier);
       ancestor = ancestor.enclosingElement;
     }
-    this._components = components;
+    _components = components;
   }
 
   /// Initialize a newly created location from the given [encoding].
   ElementLocationImpl.con2(String encoding) {
-    this._components = _decode(encoding);
+    _components = _decode(encoding);
   }
 
   /// Initialize a newly created location from the given [components].
   ElementLocationImpl.con3(List<String> components) {
-    this._components = components;
+    _components = components;
   }
 
   @override
@@ -3531,7 +3531,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
     }
 
     // Build fields for all enum constants.
-    var containerRef = this.reference.getChild('@constant');
+    var containerRef = reference.getChild('@constant');
     var constants = linkedContext.getEnumConstants(linkedNode);
     for (var i = 0; i < constants.length; ++i) {
       var constant = constants[i];
@@ -3700,7 +3700,7 @@ abstract class ExecutableElementImpl extends ElementImpl
     for (ParameterElement parameter in parameters) {
       (parameter as ParameterElementImpl).enclosingElement = this;
     }
-    this._parameters = parameters;
+    _parameters = parameters;
   }
 
   /// Gets the element's parameters, without going through the indirection of
@@ -3782,7 +3782,7 @@ abstract class ExecutableElementImpl extends ElementImpl
     for (TypeParameterElement parameter in typeParameters) {
       (parameter as TypeParameterElementImpl).enclosingElement = this;
     }
-    this._typeParameterElements = typeParameters;
+    _typeParameterElements = typeParameters;
   }
 
   @override
@@ -4101,7 +4101,7 @@ class ExtensionElementImpl extends ElementImpl
     for (TypeParameterElement typeParameter in typeParameters) {
       (typeParameter as TypeParameterElementImpl).enclosingElement = this;
     }
-    this._typeParameterElements = typeParameters;
+    _typeParameterElements = typeParameters;
   }
 
   @override
@@ -4238,13 +4238,13 @@ class FieldElementImpl extends PropertyInducingElementImpl
     if (!linkedNode.isSynthetic) {
       var enclosingRef = enclosing.reference;
 
-      this.getter = PropertyAccessorElementImpl_ImplicitGetter(
+      getter = PropertyAccessorElementImpl_ImplicitGetter(
         this,
         reference: enclosingRef.getChild('@getter').getChild(name),
       );
 
       if (_hasSetter) {
-        this.setter = PropertyAccessorElementImpl_ImplicitSetter(
+        setter = PropertyAccessorElementImpl_ImplicitSetter(
           this,
           reference: enclosingRef.getChild('@setter').getChild(name),
         );
@@ -4403,7 +4403,7 @@ class FunctionElementImpl extends ExecutableElementImpl
   @override
   String get identifier {
     String identifier = super.identifier;
-    Element enclosing = this.enclosingElement;
+    Element enclosing = enclosingElement;
     if (enclosing is ExecutableElement) {
       identifier += "@$nameOffset";
     }
@@ -4515,7 +4515,7 @@ class GenericFunctionTypeElementImpl extends ElementImpl
     for (ParameterElement parameter in parameters) {
       (parameter as ParameterElementImpl).enclosingElement = this;
     }
-    this._parameters = parameters;
+    _parameters = parameters;
   }
 
   @override
@@ -4580,7 +4580,7 @@ class GenericFunctionTypeElementImpl extends ElementImpl
     for (TypeParameterElement parameter in typeParameters) {
       (parameter as TypeParameterElementImpl).enclosingElement = this;
     }
-    this._typeParameterElements = typeParameters;
+    _typeParameterElements = typeParameters;
   }
 
   @override
@@ -4786,7 +4786,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
     for (TypeParameterElement typeParameter in typeParameters) {
       (typeParameter as TypeParameterElementImpl).enclosingElement = this;
     }
-    this._typeParameterElements = typeParameters;
+    _typeParameterElements = typeParameters;
   }
 
   @override
@@ -5268,7 +5268,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   set definingCompilationUnit(CompilationUnitElement unit) {
     assert((unit as CompilationUnitElementImpl).librarySource == unit.source);
     (unit as CompilationUnitElementImpl).enclosingElement = this;
-    this._definingCompilationUnit = unit;
+    _definingCompilationUnit = unit;
   }
 
   @override
@@ -5349,7 +5349,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     for (ExportElement exportElement in exports) {
       (exportElement as ExportElementImpl).enclosingElement = this;
     }
-    this._exports = exports;
+    _exports = exports;
   }
 
   @override
@@ -5441,8 +5441,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         prefix.enclosingElement = this;
       }
     }
-    this._imports = imports;
-    this._prefixes = null;
+    _imports = imports;
+    _prefixes = null;
   }
 
   @override
@@ -5565,7 +5565,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
           source);
       (compilationUnit as CompilationUnitElementImpl).enclosingElement = this;
     }
-    this._parts = parts;
+    _parts = parts;
   }
 
   @override
@@ -6561,7 +6561,7 @@ class ParameterElementImpl extends VariableElementImpl
 
   /// Set Dart code of the default value.
   set defaultValueCode(String defaultValueCode) {
-    this._defaultValueCode = StringUtilities.intern(defaultValueCode);
+    _defaultValueCode = StringUtilities.intern(defaultValueCode);
   }
 
   @override
@@ -6719,7 +6719,7 @@ class ParameterElementImpl extends VariableElementImpl
     for (ParameterElement parameter in parameters) {
       (parameter as ParameterElementImpl).enclosingElement = this;
     }
-    this._parameters = parameters;
+    _parameters = parameters;
   }
 
   @override
@@ -6764,7 +6764,7 @@ class ParameterElementImpl extends VariableElementImpl
     for (TypeParameterElement parameter in typeParameters) {
       (parameter as TypeParameterElementImpl).enclosingElement = this;
     }
-    this._typeParameters = typeParameters;
+    _typeParameters = typeParameters;
   }
 
   @override
@@ -7422,13 +7422,13 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     if (!linkedNode.isSynthetic) {
       var enclosingRef = enclosing.reference;
 
-      this.getter = PropertyAccessorElementImpl_ImplicitGetter(
+      getter = PropertyAccessorElementImpl_ImplicitGetter(
         this,
         reference: enclosingRef.getChild('@getter').getChild(name),
       );
 
       if (_hasSetter) {
-        this.setter = PropertyAccessorElementImpl_ImplicitSetter(
+        setter = PropertyAccessorElementImpl_ImplicitSetter(
           this,
           reference: enclosingRef.getChild('@setter').getChild(name),
         );
@@ -7568,7 +7568,7 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   String get name {
     if (linkedNode != null) {
-      TypeParameter node = this.linkedNode;
+      TypeParameter node = linkedNode;
       return node.name.name;
     }
     return super.name;
@@ -7811,7 +7811,7 @@ abstract class VariableElementImpl extends ElementImpl
     if (function != null) {
       (function as FunctionElementImpl).enclosingElement = this;
     }
-    this._initializer = function;
+    _initializer = function;
   }
 
   @override

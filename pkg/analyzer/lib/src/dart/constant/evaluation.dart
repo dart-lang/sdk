@@ -232,7 +232,7 @@ class ConstantEvaluationEngine {
             //  CompileTimeErrorCode.INVALID_ASSIGNMENT has already been
             //  reported (that is, if the static types are also wrong).
             errorReporter.reportErrorForNode(
-                CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
+                CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
                 constantInitializer,
                 [dartObject.type, constant.type]);
           }
@@ -575,8 +575,7 @@ class ConstantEvaluationEngine {
             FieldMember.from(field, constructor.returnType).type;
         if (fieldValue != null && !runtimeTypeMatch(fieldValue, fieldType)) {
           errorReporter.reportErrorForNode(
-              CheckedModeCompileTimeErrorCode
-                  .CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+              CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
               node,
               [fieldValue.type, field.name, fieldType]);
         }
@@ -678,8 +677,7 @@ class ConstantEvaluationEngine {
             PropertyInducingElement field = getter.variable;
             if (!runtimeTypeMatch(evaluationResult, field.type)) {
               errorReporter.reportErrorForNode(
-                  CheckedModeCompileTimeErrorCode
-                      .CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+                  CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
                   node,
                   [evaluationResult.type, fieldName, field.type]);
             }
@@ -976,8 +974,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     Substitution substitution,
   })  : _lexicalEnvironment = lexicalEnvironment,
         _substitution = substitution {
-    this._dartObjectComputer =
-        DartObjectComputer(_errorReporter, evaluationEngine);
+    _dartObjectComputer = DartObjectComputer(_errorReporter, evaluationEngine);
   }
 
   /// Return the object representing the state of active experiments.
@@ -2227,13 +2224,13 @@ class EvaluationResultImpl {
   final DartObjectImpl value;
 
   EvaluationResultImpl(this.value, [List<AnalysisError> errors]) {
-    this._errors = errors ?? <AnalysisError>[];
+    _errors = errors ?? <AnalysisError>[];
   }
 
   List<AnalysisError> get errors => _errors;
 
   bool equalValues(TypeProvider typeProvider, EvaluationResultImpl result) {
-    if (this.value != null) {
+    if (value != null) {
       if (result.value == null) {
         return false;
       }

@@ -21,6 +21,7 @@ import 'package:analysis_server/src/services/correction/dart/add_missing_paramet
 import 'package:analysis_server/src/services/correction/dart/add_missing_parameter_named.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_required_argument.dart';
 import 'package:analysis_server/src/services/correction/dart/add_ne_null.dart';
+import 'package:analysis_server/src/services/correction/dart/add_null_check.dart';
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required_keyword.dart';
@@ -591,6 +592,7 @@ class FixProcessor extends BaseProcessor {
       MakeVariableNotFinal.newInstance,
     ],
     CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [
+      AddNullCheck.newInstance,
       WrapInText.newInstance,
     ],
     CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT: [
@@ -673,6 +675,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.INVALID_ASSIGNMENT: [
       AddExplicitCast.newInstance,
+      AddNullCheck.newInstance,
       ChangeTypeAnnotation.newInstance,
     ],
     CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION: [
