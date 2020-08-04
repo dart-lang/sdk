@@ -129,6 +129,9 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   "fake_async": {
     ExperimentalFlag.nonNullable,
   },
+  "file": {
+    ExperimentalFlag.nonNullable,
+  },
   "fixnum": {
     ExperimentalFlag.nonNullable,
   },
@@ -136,6 +139,12 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
     ExperimentalFlag.nonNullable,
   },
   "flutter_test": {
+    ExperimentalFlag.nonNullable,
+  },
+  "flutter_goldens": {
+    ExperimentalFlag.nonNullable,
+  },
+  "flutter_goldens_client": {
     ExperimentalFlag.nonNullable,
   },
   "js": {
@@ -153,7 +162,13 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   "pedantic": {
     ExperimentalFlag.nonNullable,
   },
+  "platform": {
+    ExperimentalFlag.nonNullable,
+  },
   "pool": {
+    ExperimentalFlag.nonNullable,
+  },
+  "process": {
     ExperimentalFlag.nonNullable,
   },
   "sky_engine": {
