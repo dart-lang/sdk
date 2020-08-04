@@ -1,6 +1,7 @@
 # Changelog
 
-## 0.5.1-dev.1
+## 0.5.2
+- Add support for package paths that look like `package:foo.bar.baz/src/foobar.dart`
 - Move `commands` back to lib.
 
 ## 0.5.0+1

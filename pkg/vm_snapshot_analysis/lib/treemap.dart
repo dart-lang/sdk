@@ -10,6 +10,7 @@ import 'dart:math';
 import 'package:vm_snapshot_analysis/program_info.dart';
 import 'package:vm_snapshot_analysis/instruction_sizes.dart'
     as instruction_sizes;
+import 'package:vm_snapshot_analysis/utils.dart';
 import 'package:vm_snapshot_analysis/v8_profile.dart' as v8_profile;
 
 /// Specifies the granularity at which snapshot nodes are represented when
@@ -234,7 +235,8 @@ void _addSymbol(Map<String, dynamic> root, String path, String name, int size,
   var node = root;
   var depth = 0;
   if (path != '') {
-    for (var part in path.split('/')) {
+    final parts = partsForPath(path);
+    for (var part in parts) {
       node = _addChild(node, kindPath, part);
       depth++;
     }
