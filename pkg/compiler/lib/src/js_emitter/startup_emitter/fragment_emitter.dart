@@ -158,20 +158,11 @@ function lazy(holder, name, getterName, initializer) {
   var uninitializedSentinel = holder;
   holder[name] = uninitializedSentinel;
   holder[getterName] = function() {
-    var result;
-    try {
-      if (holder[name] === uninitializedSentinel) {
-        result = holder[name] = initializer();
-      } else {
-        result = holder[name];
-      }
-    } finally {
-      // Use try-finally, not try-catch/throw as it destroys the stack trace.
-      // TODO(floitsch): for performance reasons the function should probably
-      // be unique for each static.
-      holder[getterName] = function() { return this[name]; };
+    if (holder[name] === uninitializedSentinel) {
+      holder[name] = initializer();
     }
-    return result;
+    holder[getterName] = function() { return this[name]; };
+    return holder[name];
   };
 }
 
