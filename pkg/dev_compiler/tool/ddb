@@ -308,6 +308,8 @@ try {
 } catch(e) {
 }
 let sdk = require(\"dart_sdk\");
+// Create a self reference for JS interop tests that set fields on self.
+sdk.dart.global.self = sdk.dart.global;
 let main = require(\"./$basename\").$libname.main;
 try {
   if ($nnbd) {
@@ -342,6 +344,8 @@ try {
       var runjs = '''
 import { dart, _isolate_helper } from '$sdkJsPath/dart_sdk.js';
 import { $libname } from '$basename.js';
+// Create a self reference for JS interop tests that set fields on self.
+dart.global.self = dart.global;
 let main = $libname.main;
 try {
   if ($nnbd) {
