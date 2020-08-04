@@ -1,4 +1,4 @@
-## 0.39.16-dev
+## 0.39.16
 * Added `TypeVisitorWithArgument` and `DartType.acceptWithArgument`.
 * Bumped the analyzer's SDK requirement to `>=2.7.0`, so that extension methods
   can be used within the analyzer implementation. Previously it was `2.6.0`,
