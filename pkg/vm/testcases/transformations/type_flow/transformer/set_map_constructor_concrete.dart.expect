@@ -1,0 +1,13 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static field core::Set<dynamic>* globalSet = [@vm.inferred-type.metadata=!] col::LinkedHashSet::•<dynamic>();
+static field core::Map<dynamic, dynamic>* globalMap = [@vm.inferred-type.metadata=!] core::Map::•<dynamic, dynamic>();
+[@vm.inferred-type.metadata=dart.collection::_InternalLinkedHashMap?<dynamic, dynamic>]static field core::Map<dynamic, dynamic>* globalMapLiteral = <dynamic, dynamic>{};
+static method main() → dynamic {
+  core::print(self::globalSet);
+  core::print(self::globalMap);
+  core::print([@vm.inferred-type.metadata=dart.collection::_InternalLinkedHashMap?<dynamic, dynamic>] self::globalMapLiteral);
+}

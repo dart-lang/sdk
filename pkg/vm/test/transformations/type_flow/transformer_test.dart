@@ -54,22 +54,35 @@ runTestCase(
 }
 
 main() {
-  group('transform-component', () {
-    final testCasesDir = new Directory(
-        pkgVmDir + '/testcases/transformations/type_flow/transformer');
 
-    for (var entry
-        in testCasesDir.listSync(recursive: true, followLinks: false)) {
-      final path = entry.path;
-      if (path.endsWith('.dart') && !path.endsWith('.pb.dart')) {
-        final bool enableNullSafety = path.endsWith('_nnbd_strong.dart');
-        final bool enableNNBD = enableNullSafety || path.endsWith('_nnbd.dart');
-        final List<String> experimentalFlags = [
-          if (enableNNBD) 'non-nullable',
-        ];
-        test(path,
-            () => runTestCase(entry.uri, experimentalFlags, enableNullSafety));
-      }
-    }
-  }, timeout: Timeout.none);
+  final path = pkgVmDir + '/testcases/transformations/type_flow/transformer' + '/set_map_constructor_concrete.dart';
+  if (path.endsWith('.dart') && !path.endsWith('.pb.dart')) {
+    final bool enableNullSafety = path.endsWith('_nnbd_strong.dart');
+    final bool enableNNBD = enableNullSafety || path.endsWith('_nnbd.dart');
+    final List<String> experimentalFlags = [
+      if (enableNNBD) 'non-nullable',
+    ];
+
+    test(path,
+            () =>
+            runTestCase(Uri.file(path), experimentalFlags, enableNullSafety));
+  }
+//  group('transform-component', () {
+//    final testCasesDir = new Directory(
+//        pkgVmDir + '/testcases/transformations/type_flow/transformer');
+//
+//    for (var entry
+//        in testCasesDir.listSync(recursive: true, followLinks: false)) {
+//      final path = entry.path;
+//      if (path.endsWith('.dart') && !path.endsWith('.pb.dart')) {
+//        final bool enableNullSafety = path.endsWith('_nnbd_strong.dart');
+//        final bool enableNNBD = enableNullSafety || path.endsWith('_nnbd.dart');
+//        final List<String> experimentalFlags = [
+//          if (enableNNBD) 'non-nullable',
+//        ];
+//        test(path,
+//            () => runTestCase(entry.uri, experimentalFlags, enableNullSafety));
+//      }
+//    }
+//  }, timeout: Timeout.none);
 }
