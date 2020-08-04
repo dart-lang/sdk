@@ -502,16 +502,6 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
   GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(10));
   GET_NATIVE_ARGUMENT(String, debugName, arguments->NativeArgAt(11));
 
-  if (Dart::vm_snapshot_kind() == Snapshot::kFullAOT) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(
-        0,
-        String::Handle(String::New(
-            "Isolate.spawnUri is not supported when using AOT compilation")));
-    Exceptions::ThrowByType(Exceptions::kUnsupported, args);
-    UNREACHABLE();
-  }
-
   bool fatal_errors = fatalErrors.IsNull() ? true : fatalErrors.value();
   Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
   Dart_Port on_error_port = onError.IsNull() ? ILLEGAL_PORT : onError.Id();
