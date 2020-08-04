@@ -1269,16 +1269,22 @@ void IsolateGroupReloadContext::CheckpointSharedClassTable() {
   // Copy the size table for isolate group.
   intptr_t* saved_size_table = nullptr;
   shared_class_table_->CopyBeforeHotReload(&saved_size_table, &saved_num_cids_);
+
+  Thread* thread = Thread::Current();
   {
-    NoSafepointScope no_safepoint_scope(Thread::Current());
+    NoSafepointScope no_safepoint_scope(thread);
 
     // The saved_size_table_ will now become source of truth for GC.
     saved_size_table_.store(saved_size_table, std::memory_order_release);
-
-    // We can therefore wipe out all of the old entries (if that table is used
-    // for GC during the hot-reload we have a bug).
-    shared_class_table_->ResetBeforeHotReload();
   }
+
+  // But the concurrent sweeper may still be reading from the old table.
+  thread->heap()->WaitForSweeperTasks(thread);
+
+  // Now we can clear the old table. This satisfies asserts during class
+  // registration and encourages fast failure if we use the wrong table
+  // for GC during reload, but isn't strictly needed for correctness.
+  shared_class_table_->ResetBeforeHotReload();
 }
 
 void IsolateReloadContext::CheckpointClasses() {
