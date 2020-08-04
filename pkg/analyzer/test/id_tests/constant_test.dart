@@ -93,28 +93,31 @@ class ConstantsDataExtractor extends AstDataExtractor<String> {
         return 'Symbol(${value.toSymbolValue()})';
       } else if (type.isDartCoreSet) {
         var elements = value.toSetValue().map(_stringify).join(',');
-        return 'Set<${type.typeArguments[0]}>($elements)';
+        return '${_stringifyType(type)}($elements)';
       } else if (type.isDartCoreList) {
         var elements = value.toListValue().map(_stringify).join(',');
-        return 'List<${type.typeArguments[0]}>($elements)';
+        return '${_stringifyType(type)}($elements)';
       } else if (type.isDartCoreMap) {
-        var typeArguments = type.typeArguments.join(',');
         var elements = value.toMapValue().entries.map((entry) {
           var key = _stringify(entry.key);
           var value = _stringify(entry.value);
           return '$key:$value';
         }).join(',');
-        return 'Map<$typeArguments>($elements)';
+        return '${_stringifyType(type)}($elements)';
       } else {
         // TODO(paulberry): Add `isDartCoreType` to properly recognize type
         // literal constants.
-        return 'TypeLiteral(${value.toTypeValue()})';
+        return 'TypeLiteral(${_stringifyType(value.toTypeValue())})';
       }
       // TODO(paulberry): Support object constants.
     } else if (type is FunctionType) {
       var element = value.toFunctionValue();
-      return 'Function(${element.name},type=${value.type})';
+      return 'Function(${element.name},type=${_stringifyType(value.type)})';
     }
     throw UnimplementedError('_stringify for type $type');
+  }
+
+  String _stringifyType(DartType type) {
+    return type.getDisplayString(withNullability: true);
   }
 }
