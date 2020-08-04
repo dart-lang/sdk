@@ -131,8 +131,15 @@ void _treemapFromInfo(Map<String, dynamic> root, ProgramInfo info,
       return;
     }
 
-    path = path != '' ? '$path/${node.name}' : node.name;
-    _addSymbol(root, path, '<self>', node.size);
+    // Don't add package node names to the path because nested library nodes
+    // already contain package name.
+    if (node.type == NodeType.packageNode) {
+      _addSymbol(root, node.name, '<self>', node.size);
+    } else {
+      path = path != '' ? '$path/${node.name}' : node.name;
+      _addSymbol(root, path, '<self>', node.size);
+    }
+
     for (var child in node.children.values) {
       recurse(child, path, root, format);
     }
