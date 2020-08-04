@@ -27,6 +27,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_null_with_closure.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_conditional_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -64,6 +65,8 @@ class BulkFixProcessor {
     LintNames.null_closures: ReplaceNullWithClosure.newInstance,
     LintNames.omit_local_variable_types: ReplaceWithVar.newInstance,
     LintNames.prefer_adjacent_string_concatenation: RemoveOperator.newInstance,
+    LintNames.prefer_conditional_assignment:
+        ReplaceWithConditionalAssignment.newInstance,
     LintNames.prefer_contains: ConvertToContains.newInstance,
     LintNames.prefer_equal_for_default_values:
         ReplaceColonWithEquals.newInstance,

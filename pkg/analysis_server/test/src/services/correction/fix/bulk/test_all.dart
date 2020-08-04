@@ -24,6 +24,8 @@ import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
 import 'remove_unnecessary_new_test.dart' as remove_unnecessary_new;
 import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
 import 'replace_null_with_closure_test.dart' as replace_null_with_closure;
+import 'replace_with_conditional_assignment_test.dart'
+    as replace_with_conditional_assignment;
 import 'replace_with_var_test.dart' as replace_with_var;
 import 'use_curly_braces_test.dart' as use_curly_braces;
 
@@ -45,6 +47,7 @@ void main() {
     remove_type_annotation.main();
     remove_unnecessary_const.main();
     remove_unnecessary_new.main();
+    replace_with_conditional_assignment.main();
     replace_colon_with_equals.main();
     replace_null_with_closure.main();
     replace_with_var.main();
