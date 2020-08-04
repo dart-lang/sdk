@@ -31,6 +31,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_condit
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_empty.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
+import 'package:analysis_server/src/services/correction/dart/use_is_not_empty.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
@@ -72,6 +73,7 @@ class BulkFixProcessor {
     LintNames.prefer_equal_for_default_values:
         ReplaceColonWithEquals.newInstance,
     LintNames.prefer_is_empty: ReplaceWithIsEmpty.newInstance,
+    LintNames.prefer_is_not_empty: UesIsNotEmpty.newInstance,
     LintNames.slash_for_doc_comments: ConvertDocumentationIntoLine.newInstance,
     LintNames.unnecessary_const: RemoveUnnecessaryConst.newInstance,
     LintNames.unnecessary_new: RemoveUnnecessaryNew.newInstance,
