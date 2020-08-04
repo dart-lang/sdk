@@ -11,8 +11,8 @@
 #include <string.h>
 
 #define DART_API_DL_DEFINITIONS(name)                                          \
-  using name##Type = decltype(&name);                                          \
-  name##Type name##_DL = nullptr;
+  using name##_Type = decltype(&name);                                          \
+  name##_Type name##_DL = nullptr;
 DART_API_ALL_DL_SYMBOLS(DART_API_DL_DEFINITIONS)
 #undef DART_API_DL_DEFINITIONS
 
@@ -50,7 +50,7 @@ intptr_t Dart_InitializeApiDL(void* data) {
   const DartApiEntry* dart_api_function_pointers = dart_api_data->functions;
 
 #define DART_API_DL_INIT(name)                                                 \
-  name##_DL = reinterpret_cast<name##Type>(                                    \
+  name##_DL = reinterpret_cast<name##_Type>(                                    \
       FindFunctionPointer(dart_api_function_pointers, #name));
   DART_API_ALL_DL_SYMBOLS(DART_API_DL_INIT)
 #undef DART_API_DL_INIT
