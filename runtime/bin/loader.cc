@@ -138,16 +138,11 @@ Dart_Handle Loader::ReloadNativeExtensions() {
   return Dart_True();
 }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
-                                      Dart_Handle library,
-                                      Dart_Handle url) {
-  return Dart_Null();
-}
-#else
+#if !defined(DART_PRECOMPILED_RUNTIME)
 static void MallocFinalizer(void* isolate_callback_data, void* peer) {
   free(peer);
 }
+#endif
 
 Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
                                       Dart_Handle library,
@@ -174,6 +169,7 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     }
     return Dart_DefaultCanonicalizeUrl(library_url, url);
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (tag == Dart_kKernelTag) {
     uint8_t* kernel_buffer = NULL;
     intptr_t kernel_buffer_size = 0;
@@ -216,8 +212,10 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     }
   }
   return DartUtils::NewError("Invalid tag : %d '%s'", tag, url_string);
-}
+#else   // !defined(DART_PRECOMPILED_RUNTIME)
+  return DartUtils::NewError("Unimplemented tag : %d '%s'", tag, url_string);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+}
 
 Dart_Handle Loader::DeferredLoadHandler(intptr_t loading_unit_id) {
   // A synchronous implementation. An asynchronous implementation would be
