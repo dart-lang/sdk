@@ -929,6 +929,7 @@ dart_vm_low_priority_builder(
 dart_vm_low_priority_builder(
     "vm-kernel-tsan-linux-release-x64",
     category = "vm|misc|t",
+    properties = {"bisection_enabled": True},
 )
 dart_vm_low_priority_builder(
     "vm-kernel-ubsan-linux-release-x64",
