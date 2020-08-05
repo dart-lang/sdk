@@ -10,7 +10,7 @@
 // This test verifies is-checks work with simple classes that have various
 // degrees of instantiation.
 
-/*class: Instantiated:checkedInstance,checks=[],instance,typeArgument*/
+/*class: Instantiated:checks=[],instance,typeArgument*/
 class Instantiated {} // instantiated and used in many ways
 
 /*class: Deferred:checks=[],instance*/
@@ -24,10 +24,10 @@ class Removed {} // allocated but optimized out of program
 /*class: DeferredAndRemoved:checks=[],onlyForConstructor*/
 class DeferredAndRemoved {} // allocated after first check and removed
 
-/*class: UsedAsTypeParameter:checkedInstance,checks=[],onlyForRti,typeArgument*/
+/*class: UsedAsTypeParameter:checks=[],onlyForRti,typeArgument*/
 class UsedAsTypeParameter {} // only used as a type parameter
 
-/*class: UsedAsTestedTypeParameter:checkedInstance,checks=[],onlyForRti,typeArgument*/
+/*class: UsedAsTestedTypeParameter:checks=[],onlyForRti,typeArgument*/
 class UsedAsTestedTypeParameter {} // only used as a type parameter
 
 /*class: Check:checks=[],instance*/
