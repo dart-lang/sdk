@@ -681,6 +681,24 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         if (fullCompile) {
           p = await sourceTarget.buildComponent(verify: context.verify);
         }
+
+        // To avoid possible crash in mixin transformation in the transformation
+        // of the user of this linked dependency we have to transform this too.
+        // We do that now.
+        Target backendTarget = sourceTarget.backendTarget;
+        if (backendTarget is TestVmTarget) {
+          backendTarget.enabled = true;
+        }
+        try {
+          if (sourceTarget.loader.coreTypes != null) {
+            sourceTarget.runBuildTransformations();
+          }
+        } finally {
+          if (backendTarget is TestVmTarget) {
+            backendTarget.enabled = false;
+          }
+        }
+
         linkDependenciesOptions.component = p;
         List<Library> keepLibraries = new List<Library>();
         for (Library lib in p.libraries) {
@@ -696,9 +714,13 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
     }
 
     return await CompilerContext.runWithOptions(options, (_) async {
+      Component alsoAppend = linkDependenciesOptions.component;
+      if (description.uri.pathSegments.last.endsWith(".no_link.dart")) {
+        alsoAppend = null;
+      }
       KernelTarget sourceTarget = await outlineInitialization(
           context, description, testOptions, <Uri>[description.uri],
-          alsoAppend: linkDependenciesOptions.component);
+          alsoAppend: alsoAppend);
       ValidatingInstrumentation instrumentation =
           new ValidatingInstrumentation();
       await instrumentation.loadExpectations(description.uri);

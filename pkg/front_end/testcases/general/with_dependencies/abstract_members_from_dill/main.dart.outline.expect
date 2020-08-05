@@ -18,7 +18,7 @@ import "dart:core" as core;
 class A extends core::Object {
   synthetic constructor •() → mai::A*
     ;
-  @core::override
+  @#C1
   abstract method noSuchMethod(core::Invocation* invocation) → dynamic;
   abstract member-signature get _identityHashCode() → core::int*;
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
@@ -29,4 +29,8 @@ class A extends core::Object {
   abstract member-signature get hashCode() → core::int*;
   abstract member-signature method toString() → core::String*;
   abstract member-signature get runtimeType() → core::Type*;
+}
+
+constants  {
+  #C1 = core::_Override {}
 }
