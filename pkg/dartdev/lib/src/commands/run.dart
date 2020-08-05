@@ -222,8 +222,9 @@ class RunCommand extends DartdevCommand<int> {
     final runArgs = (pathIndex + 1 == args.length)
         ? <String>[]
         : args.sublist(pathIndex + 1);
-    final uri = Uri.tryParse(path);
-    path = (uri != null) ? uri.toFilePath() : path;
+    try {
+      path = Uri.parse(path).toFilePath();
+    } catch (_) {}
     VmInteropHandler.run(path, runArgs);
     return 0;
   }
