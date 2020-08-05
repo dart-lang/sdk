@@ -1698,6 +1698,8 @@ class _SignatureShaker {
     final namedParameters = <VariableDeclaration>[];
     for (final param in func.namedParameters) {
       if (alwaysPassedOptionals.contains(param.name)) {
+        // Make sure to clear the isRequired flag in case it was set.
+        param.isRequired = false;
         namedPositionals.add(param..initializer = null);
       } else {
         namedParameters.add(param);

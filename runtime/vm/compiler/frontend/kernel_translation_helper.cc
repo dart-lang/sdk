@@ -3552,6 +3552,8 @@ void TypeTranslator::SetupFunctionParameters(
     // Read ith variable declaration.
     VariableDeclarationHelper helper(helper_);
     helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
+    // The required flag should only be set on named parameters.
+    ASSERT(!helper.IsRequired());
     const AbstractType& type = BuildTypeWithoutFinalization();  // read type.
     Tag tag = helper_->ReadTag();  // read (first part of) initializer.
     if (tag == kSomething) {
