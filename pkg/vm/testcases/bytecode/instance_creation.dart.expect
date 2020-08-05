@@ -501,17 +501,23 @@ Function 'test_reuse1', reflectable, debuggable
     return-type dynamic
 
 Bytecode {
-  Entry                0
+  Entry                1
   CheckStack           0
   Push                 FP[-5]
-  LoadTypeArgumentsField CP#0
-  DirectCall           CP#1, 1
+  LoadTypeArgumentsField CP#1
+  PushConstant         CP#0
+  AllocateT
+  StoreLocal           r0
+  Push                 r0
+  DirectCall           CP#2, 1
+  Drop1
   ReturnTOS
 }
 ConstantPool {
-  [0] = TypeArgumentsField #lib::E
-  [1] = DirectCall 'dart:core::Map:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
-  [2] = Reserved
+  [0] = Class dart:collection::_InternalLinkedHashMap
+  [1] = TypeArgumentsField #lib::E
+  [2] = DirectCall 'dart:collection::_InternalLinkedHashMap:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
 }
 
 
@@ -583,17 +589,23 @@ Function 'test_reuse2', reflectable, debuggable
     return-type dynamic
 
 Bytecode {
-  Entry                0
+  Entry                1
   CheckStack           0
   Push                 FP[-5]
-  LoadTypeArgumentsField CP#0
-  DirectCall           CP#1, 1
+  LoadTypeArgumentsField CP#1
+  PushConstant         CP#0
+  AllocateT
+  StoreLocal           r0
+  Push                 r0
+  DirectCall           CP#2, 1
+  Drop1
   ReturnTOS
 }
 ConstantPool {
-  [0] = TypeArgumentsField #lib::F
-  [1] = DirectCall 'dart:core::Map:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
-  [2] = Reserved
+  [0] = Class dart:collection::_InternalLinkedHashMap
+  [1] = TypeArgumentsField #lib::F
+  [2] = DirectCall 'dart:collection::_InternalLinkedHashMap:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
 }
 
 Class 'G', script = '#lib'
@@ -1003,7 +1015,7 @@ ConstantPool {
       : super dart.core::Object::•()
       ;
     method test_reuse1() → dynamic
-      return dart.core::Map::•<#lib::E::K*, #lib::E::V*>();
+      return new dart.collection::_InternalLinkedHashMap::•<#lib::E::K*, #lib::E::V*>();
     abstract member-signature get _identityHashCode() → dart.core::int*;
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
     abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
@@ -1020,7 +1032,7 @@ ConstantPool {
       : super #lib::E::•()
       ;
     method test_reuse2() → dynamic
-      return dart.core::Map::•<dart.core::String*, dart.core::List<#lib::F::V*>*>();
+      return new dart.collection::_InternalLinkedHashMap::•<dart.core::String*, dart.core::List<#lib::F::V*>*>();
   }
   class G<K extends dart.core::Object* = dynamic, V extends dart.core::Object* = dynamic> extends dart.core::Object {
     constructor •() → #lib::G<#lib::G::K*, #lib::G::V*>*

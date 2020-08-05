@@ -1495,38 +1495,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     return _makeNarrow(v, _staticType(node));
   }
 
-  TypeExpr transformSetMapTypeExpr(
-    InterfaceType constructedType,
-    Class concreteClass,
-  ) {
-    return _translator.instantiateConcreteType(
-      _entryPointsListener.addAllocatedClass(concreteClass),
-      constructedType.typeArguments.toList(),
-    );
-  }
-
   @override
   TypeExpr visitConstructorInvocation(ConstructorInvocation node) {
-    // Change Map() Constructor => Map<K, V> {} MapLiteral
-    final InterfaceType constructedType = node.constructedType;
-    final CoreTypes coreTypes = _environment.coreTypes;
-//    print(constructedType.className);
-//    if (constructedType.classNode == coreTypes.mapClass) {
-//      print('Map true');
-//      Class concreteClass = target.concreteMapLiteralClass(coreTypes);
-//      if (concreteClass != null) {
-//          return transformSetMapTypeExpr(constructedType, concreteClass);
-//      }
-//    }
-//    // Change Set() Constructor => Set<E> {} SetLiteral
-    if (constructedType.classNode == coreTypes.setClass) {
-      print('Set true');
-      Class concreteClass = target.concreteSetLiteralClass(coreTypes);
-      if (concreteClass != null) {
-          return transformSetMapTypeExpr(constructedType, concreteClass);
-      }
-    }
-
     ConcreteType klass =
         _entryPointsListener.addAllocatedClass(node.constructedType.classNode);
     TypeExpr receiver =
@@ -1850,15 +1820,6 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     final args = _visitArguments(null, node.arguments,
         passTypeArguments: node.target.isFactory);
     final target = node.target;
-    final coreTypes = _environment.coreTypes;
-    final Procedure linkedHashSet = coreTypes.index.getMember('dart:collection', 'LinkedHashSet', '');
-    if (target == linkedHashSet) {
-        return _translator.instantiateConcreteType(
-            _entryPointsListener
-                .addAllocatedClass(coreTypes.index.getClass('dart:collection', '_CompactLinkedHashSet')),
-          node.arguments.types,
-        );
-    }
     assertx((target is! Field) && !target.isGetter && !target.isSetter);
     TypeExpr result = _makeCall(node, new DirectSelector(target), args);
     if (target == unsafeCast) {
