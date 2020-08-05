@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_conditional_expression_to_if_element.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/create_method.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
@@ -77,6 +78,7 @@ class BulkFixProcessor {
         ConvertConditionalExpressionToIfElement.newInstance,
     LintNames.prefer_is_empty: ReplaceWithIsEmpty.newInstance,
     LintNames.prefer_is_not_empty: UesIsNotEmpty.newInstance,
+    LintNames.prefer_single_quotes: ConvertToSingleQuotes.newInstance,
     LintNames.slash_for_doc_comments: ConvertDocumentationIntoLine.newInstance,
     LintNames.unnecessary_const: RemoveUnnecessaryConst.newInstance,
     LintNames.unnecessary_new: RemoveUnnecessaryNew.newInstance,
