@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -90,7 +91,43 @@ void run() {
       '--enable-experiment=non-nullable',
       'main.dart',
       'argument1',
-      'argument2'
+      'argument2',
+    ]);
+
+    // --enable-experiment and main.dart should not be passed.
+    expect(result.stdout, equals('[argument1, argument2]\n'));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+  });
+
+  test('with absolute file path', () async {
+    p = project();
+    p.file('main.dart', 'void main(args) { print(args); }');
+    // Test with absolute path
+    final name = path.join(p.dirPath, 'main.dart');
+    final result = p.runSync('run', [
+      '--enable-experiment=non-nullable',
+      name,
+      'argument1',
+      'argument2',
+    ]);
+
+    // --enable-experiment and main.dart should not be passed.
+    expect(result.stdout, equals('[argument1, argument2]\n'));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+  });
+
+  test('with file uri', () async {
+    p = project();
+    p.file('main.dart', 'void main(args) { print(args); }');
+    // Test with File uri
+    final name = path.join(p.dirPath, 'main.dart');
+    final result = p.runSync('run', [
+      '--enable-experiment=non-nullable',
+      Uri.file(name).toString(),
+      'argument1',
+      'argument2',
     ]);
 
     // --enable-experiment and main.dart should not be passed.
