@@ -128,6 +128,28 @@ class IsolateVisitor {
   DISALLOW_COPY_AND_ASSIGN(IsolateVisitor);
 };
 
+class Callable : public ValueObject {
+ public:
+  Callable() {}
+  virtual ~Callable() {}
+
+  virtual void Call() = 0;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Callable);
+};
+
+template <typename T>
+class LambdaCallable : public Callable {
+ public:
+  explicit LambdaCallable(T& lambda) : lambda_(lambda) {}
+  void Call() { lambda_(); }
+
+ private:
+  T& lambda_;
+  DISALLOW_COPY_AND_ASSIGN(LambdaCallable);
+};
+
 // Disallow OOB message handling within this scope.
 class NoOOBMessageScope : public ThreadStackResource {
  public:
@@ -453,13 +475,25 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   //
   // During the duration of this function, no new isolates can be added to the
   // isolate group.
-  void RunWithStoppedMutators(std::function<void()> single_current_mutator,
-                              std::function<void()> otherwise,
-                              bool use_force_growth_in_otherwise = false);
+  void RunWithStoppedMutatorsCallable(
+      Callable* single_current_mutator,
+      Callable* otherwise,
+      bool use_force_growth_in_otherwise = false);
 
-  void RunWithStoppedMutators(std::function<void()> function,
-                              bool use_force_growth = false) {
-    RunWithStoppedMutators(function, function, use_force_growth);
+  template <typename T, typename S>
+  void RunWithStoppedMutators(T single_current_mutator,
+                              S otherwise,
+                              bool use_force_growth_in_otherwise = false) {
+    LambdaCallable<T> single_callable(single_current_mutator);
+    LambdaCallable<S> otherwise_callable(otherwise);
+    RunWithStoppedMutatorsCallable(&single_callable, &otherwise_callable,
+                                   use_force_growth_in_otherwise);
+  }
+
+  template <typename T>
+  void RunWithStoppedMutators(T function, bool use_force_growth = false) {
+    LambdaCallable<T> callable(function);
+    RunWithStoppedMutatorsCallable(&callable, &callable, use_force_growth);
   }
 
 #ifndef PRODUCT

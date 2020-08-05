@@ -2855,20 +2855,20 @@ Isolate* IsolateGroup::FirstIsolateLocked() const {
   return isolates_.IsEmpty() ? nullptr : isolates_.First();
 }
 
-void IsolateGroup::RunWithStoppedMutators(
-    std::function<void()> single_current_mutator,
-    std::function<void()> otherwise,
+void IsolateGroup::RunWithStoppedMutatorsCallable(
+    Callable* single_current_mutator,
+    Callable* otherwise,
     bool use_force_growth_in_otherwise) {
   auto thread = Thread::Current();
 
   if (thread->IsMutatorThread() && !FLAG_enable_isolate_groups) {
-    single_current_mutator();
+    single_current_mutator->Call();
     return;
   }
 
   if (thread->IsAtSafepoint()) {
     RELEASE_ASSERT(safepoint_handler()->IsOwnedByTheThread(thread));
-    single_current_mutator();
+    single_current_mutator->Call();
     return;
   }
 
@@ -2876,7 +2876,7 @@ void IsolateGroup::RunWithStoppedMutators(
     SafepointReadRwLocker ml(thread, isolates_lock_.get());
     const bool only_one_isolate = isolates_.First() == isolates_.Last();
     if (thread->IsMutatorThread() && only_one_isolate) {
-      single_current_mutator();
+      single_current_mutator->Call();
       return;
     }
   }
@@ -2886,10 +2886,10 @@ void IsolateGroup::RunWithStoppedMutators(
   // though we only need to ensure that the mutator threads are stopped.
   if (use_force_growth_in_otherwise) {
     ForceGrowthSafepointOperationScope safepoint_scope(thread);
-    otherwise();
+    otherwise->Call();
   } else {
     SafepointOperationScope safepoint_scope(thread);
-    otherwise();
+    otherwise->Call();
   }
 }
 
