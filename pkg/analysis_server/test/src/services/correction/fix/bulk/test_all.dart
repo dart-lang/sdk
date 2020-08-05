@@ -8,6 +8,7 @@ import 'add_override_test.dart' as add_override;
 import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
 import 'convert_to_contains_test.dart' as convert_to_contains;
+import 'convert_to_if_element_test.dart' as convert_to_if_element;
 import 'create_method_test.dart' as create_method;
 import 'remove_argument_test.dart' as remove_argument;
 import 'remove_await_test.dart' as remove_await;
@@ -36,6 +37,7 @@ void main() {
     add_override.main();
     convert_documentation_into_line.main();
     convert_to_contains.main();
+    convert_to_if_element.main();
     create_method.main();
     remove_argument.main();
     remove_await.main();
