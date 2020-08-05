@@ -84,7 +84,7 @@ class LibraryAnalyzer {
 
   final Set<ConstantEvaluationTarget> _constants = {};
 
-  final String Function(String path) getFileContent;
+  final String Function(FileState file) getFileContent;
 
   LibraryAnalyzer(
     this._analysisOptions,
@@ -237,7 +237,7 @@ class LibraryAnalyzer {
     if (_analysisOptions.lint) {
       performance.run('computeLints', (performance) {
         var allUnits = _library.libraryFiles.map((file) {
-          var content = _getFileContent(file.path);
+          var content = getFileContent(file);
           return LinterContextUnit(content, units[file]);
         }).toList();
         for (int i = 0; i < allUnits.length; i++) {
@@ -271,7 +271,7 @@ class LibraryAnalyzer {
       unit.accept(Dart2JSVerifier(errorReporter));
     }
 
-    var content = _getFileContent(file.path);
+    var content = getFileContent(file);
     unit.accept(
       BestPracticesVerifier(
         errorReporter,
@@ -453,15 +453,6 @@ class LibraryAnalyzer {
     });
   }
 
-  /// Catch all exceptions from the `getFileContent` function.
-  String _getFileContent(String path) {
-    try {
-      return getFileContent(path);
-    } catch (_) {
-      return '';
-    }
-  }
-
   WorkspacePackage _getPackage(CompilationUnit unit) {
     final libraryPath = _library.source.fullName;
     Workspace workspace =
@@ -521,7 +512,7 @@ class LibraryAnalyzer {
     @required FileState file,
     @required OperationPerformanceImpl performance,
   }) {
-    String content = _getFileContent(file.path);
+    String content = getFileContent(file);
 
     performance.getDataInt('count').increment();
     performance.getDataInt('length').add(content.length);

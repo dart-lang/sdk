@@ -306,7 +306,7 @@ class FileResolver {
             contextObjects.inheritanceManager,
             libraryFile,
             resourceProvider,
-            (String path) => resourceProvider.getFile(path).readAsStringSync(),
+            (file) => file.getContentWithSameDigest(),
           );
 
           results = performance.run('analyze', (performance) {
@@ -589,12 +589,7 @@ class _LibraryContext {
           for (var file in libraryFile.libraryFiles) {
             var isSynthetic = !file.exists;
 
-            var content = '';
-            try {
-              var resource = resourceProvider.getFile(file.path);
-              content = resource.readAsStringSync();
-            } catch (_) {}
-
+            var content = file.getContentWithSameDigest();
             performance.getDataInt('parseCount').increment();
             performance.getDataInt('parseLength').add(content.length);
 

@@ -120,6 +120,48 @@ class A {
     assertErrorsInResolvedUnit(result, []);
   }
 
+  test_changeFile_resolution_missingChangeFileForPart() async {
+    newFile(aPath, content: r'''
+part 'b.dart';
+
+var b = B(0);
+''');
+
+    result = await resolveFile(aPath);
+    assertErrorsInResolvedUnit(result, [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 8),
+      error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 24, 1),
+    ]);
+
+    // Update a.dart, and notify the resolver. We need this to have at least
+    // one change, so that we decided to rebuild the library summary.
+    newFile(aPath, content: r'''
+part 'b.dart';
+
+var b = B(1);
+''');
+    fileResolver.changeFile(aPath);
+
+    // Update b.dart, but do not notify the resolver.
+    // If we try to read it now, it will throw.
+    newFile(bPath, content: r'''
+part of 'a.dart';
+
+class B {
+  B(int _);
+}
+''');
+
+    expect(() async {
+      await resolveFile(aPath);
+    }, throwsStateError);
+
+    // Notify the resolver about b.dart, it is OK now.
+    fileResolver.changeFile(bPath);
+    result = await resolveFile(aPath);
+    assertErrorsInResolvedUnit(result, []);
+  }
+
   test_changePartFile_refreshedFiles() async {
     newFile(aPath, content: r'''
 part 'b.dart';
