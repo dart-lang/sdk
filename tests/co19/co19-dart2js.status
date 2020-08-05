@@ -19,6 +19,17 @@ Language/Expressions/Shift/integer_t02: SkipByDesign # big integer cannot be rep
 Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign
 Language/Metadata/before*: Skip # dart:mirrors not supported https://github.com/dart-lang/co19/issues/523.
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: SkipByDesign # binary '~' produces different results in JavaScript and Dart
+LibTest/core/DateTime/DateTime.fromMicrosecondsSinceEpoch_A01_t01: SkipByDesign # microseconds are not supported in JavaScript
+LibTest/core/DateTime/microsecond_A01_t01: SkipByDesign # microseconds are not supported in JavaScript
+LibTest/core/DateTime/microsecondsSinceEpoch_A01_t01: SkipByDesign # microseconds are not supported in JavaScript
+LibTest/core/DateTime/parse_A01_t03: SkipByDesign # microseconds are not supported in JavaScript
+LibTest/core/DateTime/to8601String_A01_t01: SkipByDesign # microseconds are not supported in JavaScript
+LibTest/core/DateTime/to8601String_A01_t02: SkipByDesign # microseconds are not supported in JavaScript
+LibTest/core/DateTime/to8601String_A01_t03: SkipByDesign # microseconds are not supported in JavaScript
+LibTest/core/int/operator_remainder_A01_t03: SkipByDesign # Division by zero is not an error in JavaScript
+LibTest/core/int/operator_truncating_division_A01_t02: SkipByDesign # Division by zero is not an error in JavaScript
+LibTest/core/int/parse_A01_t02: SkipByDesign # big integers cannot be represented in JavaScript
+LibTest/core/int/remainder_A01_t03: SkipByDesign # Division by zero is not an error in JavaScript
 LibTest/io/*: SkipByDesign # dart:io not supported.
 LibTest/isolate/*: SkipByDesign # dart:isolate not supported.
 
