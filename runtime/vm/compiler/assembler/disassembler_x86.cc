@@ -726,7 +726,7 @@ int DisassemblerX64::ShiftInstruction(uint8_t* data) {
     Print(",%d", imm8);
     num_bytes++;
   } else {
-    ASSERT(op = 0xD2);
+    ASSERT(op == 0xD2);
     Print(",cl");
   }
   return num_bytes;
