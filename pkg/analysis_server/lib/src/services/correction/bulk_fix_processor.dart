@@ -9,6 +9,7 @@ import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_add_all_to_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_conditional_expression_to_if_element.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
@@ -79,6 +80,7 @@ class BulkFixProcessor {
     LintNames.prefer_is_empty: ReplaceWithIsEmpty.newInstance,
     LintNames.prefer_is_not_empty: UesIsNotEmpty.newInstance,
     LintNames.prefer_single_quotes: ConvertToSingleQuotes.newInstance,
+    LintNames.prefer_spread_collections: ConvertAddAllToSpread.newInstance,
     LintNames.slash_for_doc_comments: ConvertDocumentationIntoLine.newInstance,
     LintNames.unnecessary_const: RemoveUnnecessaryConst.newInstance,
     LintNames.unnecessary_new: RemoveUnnecessaryNew.newInstance,

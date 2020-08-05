@@ -11,6 +11,7 @@ import 'convert_to_contains_test.dart' as convert_to_contains;
 import 'convert_to_if_element_test.dart' as convert_to_if_element;
 import 'convert_to_single_quoted_strings_test.dart'
     as convert_to_single_quoted_strings;
+import 'convert_to_spread_test.dart' as convert_to_spread;
 import 'create_method_test.dart' as create_method;
 import 'remove_argument_test.dart' as remove_argument;
 import 'remove_await_test.dart' as remove_await;
@@ -41,6 +42,7 @@ void main() {
     convert_to_contains.main();
     convert_to_if_element.main();
     convert_to_single_quoted_strings.main();
+    convert_to_spread.main();
     create_method.main();
     remove_argument.main();
     remove_await.main();
