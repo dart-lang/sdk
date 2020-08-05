@@ -7,7 +7,6 @@ library vm.transformations.type_flow.summary_collector;
 
 import 'dart:core' hide Type;
 
-import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/ast.dart' as ast show Statement, StatementVisitor;
@@ -1170,47 +1169,38 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       _typesBuilder.fromStaticType(_staticDartType(node), true);
 
   ConcreteType _cachedBoolType;
-
   ConcreteType get _boolType => _cachedBoolType ??=
       _entryPointsListener.addAllocatedClass(_environment.coreTypes.boolClass);
 
   ConcreteType _cachedBoolTrue;
-
   ConcreteType get _boolTrue => _cachedBoolTrue ??=
       new ConcreteType(_boolType.cls, null, BoolConstant(true));
 
   ConcreteType _cachedBoolFalse;
-
   ConcreteType get _boolFalse => _cachedBoolFalse ??=
       new ConcreteType(_boolType.cls, null, BoolConstant(false));
 
   Type _cachedDoubleType;
-
   Type get _doubleType => _cachedDoubleType ??= new ConeType(
       _typesBuilder.getTFClass(_environment.coreTypes.doubleClass));
 
   Type _cachedIntType;
-
   Type get _intType => _cachedIntType ??=
       new ConeType(_typesBuilder.getTFClass(_environment.coreTypes.intClass));
 
   Type _cachedStringType;
-
   Type get _stringType => _cachedStringType ??= new ConeType(
       _typesBuilder.getTFClass(_environment.coreTypes.stringClass));
 
   Type _cachedSymbolType;
-
   Type get _symbolType => _cachedSymbolType ??= new ConeType(
       _typesBuilder.getTFClass(_environment.coreTypes.symbolClass));
 
   Type _cachedTypeType;
-
   Type get _typeType => _cachedTypeType ??=
       new ConeType(_typesBuilder.getTFClass(_environment.coreTypes.typeClass));
 
   Type _cachedNullType;
-
   Type get _nullType =>
       _cachedNullType ??= new Type.nullable(const EmptyType());
 
@@ -1423,7 +1413,6 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   Procedure _cachedUnsafeCast;
-
   Procedure get unsafeCast => _cachedUnsafeCast ??= _environment.coreTypes.index
       .getTopLevelMember('dart:_internal', 'unsafeCast');
 
@@ -2309,13 +2298,10 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
 
   @override
   TypeExpr visitDynamicType(DynamicType type) => new RuntimeType(type, null);
-
   @override
   TypeExpr visitVoidType(VoidType type) => new RuntimeType(type, null);
-
   @override
   TypeExpr visitBottomType(BottomType type) => new RuntimeType(type, null);
-
   @override
   TypeExpr visitNeverType(NeverType type) => new RuntimeType(type, null);
 
