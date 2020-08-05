@@ -8,7 +8,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,13 +18,13 @@ main() {
 }
 
 @reflectiveTest
-class EqualElementsInConstSetTest extends DriverResolutionTest {
+class EqualElementsInConstSetTest extends PubPackageResolutionTest {
   test_const_entry() async {
     await assertErrorsInCode('''
 var c = const {1, 2, 1};
 ''', [
       error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 21, 1,
-          contextMessages: [message('/test/lib/test.dart', 15, 1)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 15, 1)]),
     ]);
   }
 
@@ -36,7 +36,9 @@ var c = const {1, if (1 < 0) 2 else 1};
         analysisOptions.experimentStatus.constant_update_2018
             ? [
                 error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 36, 1,
-                    contextMessages: [message('/test/lib/test.dart', 15, 1)]),
+                    contextMessages: [
+                      message('$testPackageLibPath/test.dart', 15, 1)
+                    ]),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 19),
@@ -99,7 +101,9 @@ var c = const {1, if (0 < 1) 1};
         analysisOptions.experimentStatus.constant_update_2018
             ? [
                 error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 29, 1,
-                    contextMessages: [message('/test/lib/test.dart', 15, 1)]),
+                    contextMessages: [
+                      message('$testPackageLibPath/test.dart', 15, 1)
+                    ]),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 12),
@@ -115,7 +119,7 @@ class A<T> {
 var c = const {const A<int>(), const A<int>()};
 ''', [
       error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 60, 14,
-          contextMessages: [message('/test/lib/test.dart', 44, 14)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 44, 14)]),
     ]);
   }
 
@@ -150,7 +154,9 @@ var c = const {1, ...{1}};
         analysisOptions.experimentStatus.constant_update_2018
             ? [
                 error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 21, 3,
-                    contextMessages: [message('/test/lib/test.dart', 15, 1)]),
+                    contextMessages: [
+                      message('$testPackageLibPath/test.dart', 15, 1)
+                    ]),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 6),

@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ReferencedBeforeDeclarationTest extends DriverResolutionTest {
+class ReferencedBeforeDeclarationTest extends PubPackageResolutionTest {
   test_cascade_after_declaration() async {
     await assertNoErrorsInCode(r'''
 testRequestHandler() {}
@@ -51,7 +51,7 @@ main() {
 print(x) {}
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 28, 1,
-          contextMessages: [message('/test/lib/test.dart', 34, 1)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 34, 1)]),
     ]);
   }
 
@@ -65,7 +65,7 @@ main() {
 print(x) {}
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 28, 1,
-          contextMessages: [message('/test/lib/test.dart', 38, 1)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 38, 1)]),
     ]);
   }
 
@@ -81,7 +81,7 @@ main() {
 print(x) {}
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 34, 1,
-          contextMessages: [message('/test/lib/test.dart', 48, 1)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 48, 1)]),
     ]);
   }
 
@@ -98,7 +98,7 @@ void f(int a) {
 }
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 61, 1,
-          contextMessages: [message('/test/lib/test.dart', 75, 1)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 75, 1)]),
     ]);
 
     assertElement(findNode.simple('v;'), findElement.localFunction('v'));
@@ -117,7 +117,7 @@ void f(int a) {
 }
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 61, 1,
-          contextMessages: [message('/test/lib/test.dart', 74, 1)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 74, 1)]),
     ]);
 
     assertElement(findNode.simple('v;'), findElement.localVar('v'));
@@ -136,7 +136,7 @@ void f(int a) {
 }
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 62, 1,
-          contextMessages: [message('/test/lib/test.dart', 76, 1)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 76, 1)]),
     ]);
 
     assertElement(findNode.simple('v;'), findElement.localFunction('v'));
@@ -155,7 +155,7 @@ void f(int a) {
 }
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 62, 1,
-          contextMessages: [message('/test/lib/test.dart', 75, 1)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 75, 1)]),
     ]);
 
     assertElement(findNode.simple('v;'), findElement.localVar('v'));
@@ -168,7 +168,7 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 25, 1,
-          contextMessages: [message('/test/lib/test.dart', 15, 1)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 15, 1)]),
     ]);
   }
 
@@ -179,7 +179,7 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 19, 1,
-          contextMessages: [message('/test/lib/test.dart', 15, 1)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 15, 1)]),
     ]);
   }
 
@@ -216,7 +216,7 @@ void testTypeRef() {
 }
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 23, 6,
-          contextMessages: [message('/test/lib/test.dart', 44, 6)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 44, 6)]),
     ]);
   }
 
@@ -229,7 +229,7 @@ void testTypeRef() {
 }
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 23, 6,
-          contextMessages: [message('/test/lib/test.dart', 44, 6)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 44, 6)]),
     ]);
   }
 }

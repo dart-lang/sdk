@@ -7,7 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class OptionalConstDriverResolutionTest extends DriverResolutionTest {
+class OptionalConstDriverResolutionTest extends PubPackageResolutionTest {
   Map<String, LibraryElement> libraries = {};
 
   LibraryElement get libraryA => libraries['package:test/a.dart'];
@@ -112,7 +112,7 @@ class OptionalConstDriverResolutionTest extends DriverResolutionTest {
   }
 
   test_prefixed_unnamed_generic() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class C<T> {
   const C();
 }
@@ -167,7 +167,7 @@ const x = p.C<int>();
 
   Future<InstanceCreationExpression> _resolveImplicitConst(String expr,
       {String prefix}) async {
-    newFile('/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 class A {
   const A();
   const A.named();
@@ -179,12 +179,12 @@ class B<T extends num> {
 ''');
 
     if (prefix != null) {
-      newFile('/test/lib/b.dart', content: '''
+      newFile('$testPackageLibPath/b.dart', content: '''
 import 'a.dart' as $prefix;
 const a = $expr;
 ''');
     } else {
-      newFile('/test/lib/b.dart', content: '''
+      newFile('$testPackageLibPath/b.dart', content: '''
 import 'a.dart';
 const a = $expr;
 ''');

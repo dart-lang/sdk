@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,9 +14,10 @@ main() {
 }
 
 @reflectiveTest
-class InvalidAnnotationFromDeferredLibraryTest extends DriverResolutionTest {
+class InvalidAnnotationFromDeferredLibraryTest
+    extends PubPackageResolutionTest {
   test_constructor() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 class C { const C(); }
 ''');
@@ -31,7 +32,7 @@ import 'lib1.dart' deferred as a;
   }
 
   test_from_deferred_library() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 class V { const V(); }
 const v = const V();
@@ -47,7 +48,7 @@ import 'lib1.dart' deferred as a;
   }
 
   test_namedConstructor() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 class C { const C.name(); }
 ''');

@@ -4,8 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../driver_resolution.dart';
-import '../with_null_safety_mixin.dart';
+import '../context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class ForElementWithNullSafetyTest extends DriverResolutionTest
+class ForElementWithNullSafetyTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_list_awaitForIn_dynamic_downward() async {
     await resolveTestCode('''
@@ -194,7 +193,7 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class IfElementWithNullSafetyTest extends DriverResolutionTest
+class IfElementWithNullSafetyTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_list_downward() async {
     await resolveTestCode('''
@@ -231,7 +230,7 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class SpreadElementWithNullSafetyTest extends DriverResolutionTest
+class SpreadElementWithNullSafetyTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_list_downward() async {
     await resolveTestCode('''

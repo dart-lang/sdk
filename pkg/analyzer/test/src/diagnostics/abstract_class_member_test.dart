@@ -5,8 +5,7 @@
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class AbstractClassMemberTest extends DriverResolutionTest {
+class AbstractClassMemberTest extends PubPackageResolutionTest {
   test_abstract_field_dynamic() async {
     await assertErrorsInCode(
         '''

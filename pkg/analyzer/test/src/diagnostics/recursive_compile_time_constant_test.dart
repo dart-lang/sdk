@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class RecursiveCompileTimeConstantTest extends DriverResolutionTest {
+class RecursiveCompileTimeConstantTest extends PubPackageResolutionTest {
   test_cycle() async {
     await assertErrorsInCode(r'''
 const x = y + 1;
@@ -38,7 +38,7 @@ class A {
 
   test_fromMapLiteral() async {
     newFile(
-      '/test/lib/constants.dart',
+      '$testPackageLibPath/constants.dart',
       content: r'''
 const int x = y;
 const int y = x;

@@ -8,7 +8,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class AssignmentDriverResolutionTest extends DriverResolutionTest {
+class AssignmentDriverResolutionTest extends PubPackageResolutionTest {
   test_compound_indexExpression() async {
     await resolveTestCode(r'''
 main() {

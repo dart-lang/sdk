@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,10 +14,14 @@ main() {
 }
 
 @reflectiveTest
-class InvalidImmutableAnnotationTest extends DriverResolutionTest
-    with PackageMixin {
+class InvalidImmutableAnnotationTest extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfigWithMeta();
+  }
+
   test_class() async {
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @immutable
@@ -29,7 +32,6 @@ class A {
   }
 
   test_method() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {

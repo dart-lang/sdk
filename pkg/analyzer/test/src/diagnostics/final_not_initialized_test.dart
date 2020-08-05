@@ -6,18 +6,16 @@ import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FinalNotInitializedTest);
-    defineReflectiveTests(FinalNotInitializedWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class FinalNotInitializedTest extends DriverResolutionTest {
+class FinalNotInitializedTest extends PubPackageResolutionTest {
   test_class_instanceField_final_factoryConstructor_only() async {
     await assertNoErrorsInCode('''
 class A {
@@ -84,7 +82,7 @@ mixin M {
 }
 
 @reflectiveTest
-class FinalNotInitializedWithNullSafetyTest extends DriverResolutionTest
+class FinalNotInitializedWithNullSafetyTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_field_noConstructor_initializer() async {
     await assertNoErrorsInCode('''

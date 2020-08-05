@@ -6,7 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class DefaultValueInFunctionTypeTest extends DriverResolutionTest {
+class DefaultValueInFunctionTypeTest extends PubPackageResolutionTest {
   test_new_named() async {
     await assertErrorsInCode('''
 typedef F = int Function({Map<String, String> m: const {}});

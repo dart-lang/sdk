@@ -6,7 +6,7 @@ import 'package:analyzer/src/dart/error/ffi_code.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class SubtypeOfFfiClassInExtendsTest extends DriverResolutionTest {
+class SubtypeOfFfiClassInExtendsTest extends PubPackageResolutionTest {
   test_Double() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
@@ -135,7 +135,7 @@ class C extends Void {}
 }
 
 @reflectiveTest
-class SubtypeOfFfiClassInImplementsTest extends DriverResolutionTest {
+class SubtypeOfFfiClassInImplementsTest extends PubPackageResolutionTest {
   test_Double() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
@@ -255,7 +255,7 @@ class C implements Void {}
 }
 
 @reflectiveTest
-class SubtypeOfFfiClassInWithTest extends DriverResolutionTest {
+class SubtypeOfFfiClassInWithTest extends PubPackageResolutionTest {
   test_Double() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';

@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class TypeArgumentNotMatchingBoundsTest extends DriverResolutionTest {
+class TypeArgumentNotMatchingBoundsTest extends PubPackageResolutionTest {
   test_classTypeAlias() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -417,7 +416,7 @@ class C extends Object with G<B>{}
 class TypeArgumentNotMatchingBoundsWithNullSafetyTest
     extends TypeArgumentNotMatchingBoundsTest with WithNullSafetyMixin {
   test_extends_optIn_fromOptOut_Null() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A<X extends int> {}
 ''');
 
@@ -430,7 +429,7 @@ class A1<T extends Null> extends A<T> {}
   }
 
   test_extends_optIn_fromOptOut_otherTypeParameter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 void foo<T extends U, U>() {
 }
 ''');

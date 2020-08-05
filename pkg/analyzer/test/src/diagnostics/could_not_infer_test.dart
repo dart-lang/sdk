@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class CouldNotInferTest extends DriverResolutionTest {
+class CouldNotInferTest extends PubPackageResolutionTest {
   test_constructors_inferenceFBounded() async {
     await assertErrorsInCode('''
 class C<T> {}
@@ -135,7 +135,7 @@ void main() {
   }
 
   test_functionType_parameterIsObject_returnIsBound_prefixedFunction() async {
-    newFile('/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 external T f<T extends num>(T a, T b);
 ''');
     await assertErrorsInCode('''

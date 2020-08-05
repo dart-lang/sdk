@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,9 +16,9 @@ main() {
 }
 
 @reflectiveTest
-class PrefixElementTest extends DriverResolutionTest {
+class PrefixElementTest extends PubPackageResolutionTest {
   test_scope_lookup() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 var foo = 0;
 ''');
 
@@ -44,7 +44,7 @@ import 'a.dart' as prefix;
   }
 
   test_scope_lookup2() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 var foo = 0;
 ''');
 
@@ -68,11 +68,11 @@ import 'a.dart' as prefix;
   }
 
   test_scope_lookup2_ambiguous_notSdk_both() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 var foo = 0;
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 var foo = 1.2;
 ''');
 
@@ -107,7 +107,7 @@ import 'b.dart' as prefix;
   }
 
   test_scope_lookup2_ambiguous_notSdk_first() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 var pi = 4;
 ''');
 
@@ -129,7 +129,7 @@ import 'dart:math' as prefix;
   }
 
   test_scope_lookup2_ambiguous_notSdk_second() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 var pi = 4;
 ''');
 
@@ -151,11 +151,11 @@ import 'a.dart' as prefix;
   }
 
   test_scope_lookup2_ambiguous_same() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 var foo = 0;
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 export 'a.dart';
 ''');
 
@@ -182,11 +182,11 @@ import 'b.dart' as prefix;
   }
 
   test_scope_lookup2_differentPrefix() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 var foo = 0;
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 var bar = 0;
 ''');
 
@@ -278,11 +278,11 @@ import 'dart:math' as math show sin;
   }
 
   test_scope_lookup_ambiguous_notSdk_both() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 var foo = 0;
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 var foo = 1.2;
 ''');
 
@@ -319,7 +319,7 @@ import 'b.dart' as prefix;
   }
 
   test_scope_lookup_ambiguous_notSdk_first() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 var pi = 4;
 ''');
 
@@ -342,7 +342,7 @@ import 'dart:math' as prefix;
   }
 
   test_scope_lookup_ambiguous_notSdk_second() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 var pi = 4;
 ''');
 
@@ -365,11 +365,11 @@ import 'a.dart' as prefix;
   }
 
   test_scope_lookup_ambiguous_same() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 var foo = 0;
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 export 'a.dart';
 ''');
 
@@ -398,11 +398,11 @@ import 'b.dart' as prefix;
   }
 
   test_scope_lookup_differentPrefix() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 var foo = 0;
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 var bar = 0;
 ''');
 

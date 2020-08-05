@@ -7,7 +7,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart' show expect;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class IntegerLiteralImpreciseAsDoubleTest extends DriverResolutionTest {
+class IntegerLiteralImpreciseAsDoubleTest extends PubPackageResolutionTest {
   test_excessiveExponent() async {
     await assertErrorsInCode(
         'double x = 0xfffffffffffff80000000000000000000000000000000000000000000'

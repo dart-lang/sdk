@@ -3,11 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,11 +15,15 @@ main() {
 }
 
 @reflectiveTest
-class InvalidUseOfProtectedMemberTest extends DriverResolutionTest
-    with PackageMixin {
+class InvalidUseOfProtectedMemberTest extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfigWithMeta();
+  }
+
   test_closure() async {
-    addMetaPackage();
-    newFile('/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -28,7 +31,7 @@ class A {
   int a() => 42;
 }
 ''');
-    newFile('/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 import 'lib1.dart';
 
 void main() {
@@ -37,14 +40,13 @@ void main() {
 }
 ''');
 
-    await _resolveFile('/lib1.dart');
-    await _resolveFile('/lib2.dart', [
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart', [
       error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 56, 1),
     ]);
   }
 
   test_extendingSubclass() async {
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -57,15 +59,14 @@ class B extends A {
   }
 
   test_extension_outsideClassAndFile() async {
-    addMetaPackage();
-    newFile('/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   void a(int i) {}
 }
 ''');
-    newFile('/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 import 'lib1.dart';
 extension E on A {
   e() {
@@ -74,14 +75,13 @@ extension E on A {
 }
 ''');
 
-    await _resolveFile('/lib1.dart');
-    await _resolveFile('/lib2.dart', [
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart', [
       error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 51, 1),
     ]);
   }
 
   test_field() async {
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -95,29 +95,27 @@ class B extends A {
   }
 
   test_field_outsideClassAndLibrary() async {
-    addMetaPackage();
-    newFile('/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   int a;
 }
 ''');
-    newFile('/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 import 'lib1.dart';
 abstract class B {
   int b() => new A().a;
 }
 ''');
 
-    await _resolveFile('/lib1.dart');
-    await _resolveFile('/lib2.dart', [
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart', [
       error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 60, 1),
     ]);
   }
 
   test_field_subclassAndSameLibrary() async {
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -130,15 +128,14 @@ abstract class B implements A {
   }
 
   test_fromSuperclassConstraint() async {
-    addMetaPackage();
-    newFile('/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 import 'package:meta/meta.dart';
 abstract class A {
   @protected
   void foo() {}
 }
 ''');
-    newFile('/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 import 'lib1.dart';
 mixin M on A {
   @override
@@ -148,20 +145,19 @@ mixin M on A {
 }
 ''');
 
-    await _resolveFile('/lib1.dart');
-    await _resolveFile('/lib2.dart');
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart');
   }
 
   test_function_outsideClassAndLibrary() async {
-    addMetaPackage();
-    newFile('/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   void a(){ }
 }
 ''');
-    newFile('/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 import 'lib1.dart';
 
 main() {
@@ -169,14 +165,13 @@ main() {
 }
 ''');
 
-    await _resolveFile('/lib1.dart');
-    await _resolveFile('/lib2.dart', [
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart', [
       error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 40, 1),
     ]);
   }
 
   test_function_sameLibrary() async {
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -189,7 +184,6 @@ main() {
   }
 
   test_function_subclass() async {
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -203,7 +197,6 @@ abstract class B implements A {
   }
 
   test_getter() async {
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -217,15 +210,14 @@ class B extends A {
   }
 
   test_getter_outsideClassAndLibrary() async {
-    addMetaPackage();
-    newFile('/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   int get a => 42;
 }
 ''');
-    newFile('/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 import 'lib1.dart';
 class B {
   A a;
@@ -233,14 +225,13 @@ class B {
 }
 ''');
 
-    await _resolveFile('/lib1.dart');
-    await _resolveFile('/lib2.dart', [
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart', [
       error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 52, 1),
     ]);
   }
 
   test_getter_subclass() async {
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -253,8 +244,7 @@ abstract class B implements A {
   }
 
   test_inDocs() async {
-    addMetaPackage();
-    newFile('/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -268,26 +258,25 @@ class A {
   int a() => 0;
 }
 ''');
-    newFile('/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 import 'lib1.dart';
 /// OK: [A.a], [A.b], [A.c].
 f() {}
 ''');
 
-    await _resolveFile('/lib1.dart');
-    await _resolveFile('/lib2.dart');
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart');
   }
 
   test_method_outsideClassAndLibrary() async {
-    addMetaPackage();
-    newFile('/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   void a() {}
 }
 ''');
-    newFile('/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 import 'lib1.dart';
 
 class B {
@@ -295,15 +284,14 @@ class B {
 }
 ''');
 
-    await _resolveFile('/lib1.dart');
-    await _resolveFile('/lib2.dart', [
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart', [
       error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 53, 1),
     ]);
   }
 
   test_method_subclass() async {
     // https://github.com/dart-lang/linter/issues/257
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -323,7 +311,6 @@ class Button extends State<Object> {
   }
 
   test_mixingIn() async {
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -339,7 +326,6 @@ class B extends Object with A {
     // TODO(srawlins): This test verifies that the analyzer **allows**
     // protected members to be called from static members, which violates the
     // protected spec.
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -351,7 +337,6 @@ class B extends A {
   }
 
   test_sameLibrary() async {
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -370,15 +355,14 @@ main() {
     // TODO(srawlins): This test verifies that the analyzer **allows**
     // protected members to be called on objects other than `this`, which
     // violates the protected spec.
-    addMetaPackage();
-    newFile('/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 import 'package:meta/meta.dart';
 class A {
   @protected
   void set a(int i) { }
 }
 ''');
-    newFile('/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 import 'lib1.dart';
 class B {
   A a;
@@ -388,14 +372,13 @@ class B {
 }
 ''');
 
-    await _resolveFile('/lib1.dart');
-    await _resolveFile('/lib2.dart', [
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart', [
       error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 56, 1),
     ]);
   }
 
   test_setter_sameClass() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -412,7 +395,6 @@ class A {
   }
 
   test_setter_subclass() async {
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -428,7 +410,6 @@ class B extends A {
   }
 
   test_setter_subclassImplementing() async {
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -443,7 +424,6 @@ abstract class B implements A {
   }
 
   test_topLevelVariable() async {
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @protected

@@ -1071,6 +1071,7 @@ final Map<String, String> _librariesDartEntries = {
   'io': 'const LibraryInfo("io/io.dart")',
   'isolate': 'const LibraryInfo("isolate/isolate.dart")',
   'math': 'const LibraryInfo("math/math.dart")',
+  '_internal': 'const LibraryInfo("_internal/internal.dart", categories: "")',
 };
 
 class MockSdk implements DartSdk {
@@ -1110,7 +1111,7 @@ class MockSdk implements DartSdk {
           library.units.map(
             (unit) {
               var pathContext = resourceProvider.pathContext;
-              var absoluteUri = pathContext.join(sdkRoot, unit.path);
+              var absoluteUri = pathContext.join(sdkRoot, 'lib', unit.path);
               return MockSdkLibraryUnit(
                 unit.uriStr,
                 resourceProvider.convertPath(absoluteUri),
@@ -1134,6 +1135,13 @@ class MockSdk implements DartSdk {
       buffer.writeln('const Map<String, LibraryInfo> libraries = const {');
       for (var e in _librariesDartEntries.entries) {
         buffer.writeln('"${e.key}": ${e.value},');
+      }
+      for (var library in additionalLibraries) {
+        for (var unit in library.units) {
+          var name = unit.uriStr.substring(5);
+          var libraryInfo = 'const LibraryInfo("${unit.path}")';
+          buffer.writeln('"$name": $libraryInfo,');
+        }
       }
       buffer.writeln('};');
       resourceProvider.newFile(

@@ -6,8 +6,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
-import 'with_null_safety_mixin.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class PostfixExpressionResolutionTest extends DriverResolutionTest {
+class PostfixExpressionResolutionTest extends PubPackageResolutionTest {
   test_dec_localVariable() async {
     await assertNoErrorsInCode(r'''
 f(int x) {

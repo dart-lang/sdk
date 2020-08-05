@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class InvalidUseOfNeverTest extends DriverResolutionTest
+class InvalidUseOfNeverTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_binaryExpression_never_eqEq() async {
     await assertErrorsInCode(r'''
@@ -510,7 +509,7 @@ void main(Never? x) {
 }
 
 @reflectiveTest
-class InvalidUseOfNeverTest_Legacy extends DriverResolutionTest {
+class InvalidUseOfNeverTest_Legacy extends PubPackageResolutionTest {
   test_binaryExpression_eqEq() async {
     await assertNoErrorsInCode(r'''
 void main() {

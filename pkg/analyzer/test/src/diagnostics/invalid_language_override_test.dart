@@ -5,7 +5,7 @@
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class InvalidLanguageOverrideTest extends DriverResolutionTest {
+class InvalidLanguageOverrideTest extends PubPackageResolutionTest {
   test_correct_11_12() async {
     await assertErrorsInCode(r'''
 // @dart = 11.12

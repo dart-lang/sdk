@@ -6,7 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class ConstConstructorParamTypeMismatchTest extends DriverResolutionTest {
+class ConstConstructorParamTypeMismatchTest extends PubPackageResolutionTest {
   test_assignable_fieldFormal_null() async {
     // Null is assignable to anything (before null safety).
     await assertNoErrorsInCode(r'''
@@ -137,7 +137,7 @@ var v = const A(null);
   }
 
   test_int_to_double_reference_from_other_library_other_file_after() async {
-    newFile('/test/lib/other.dart', content: '''
+    newFile('$testPackageLibPath/other.dart', content: '''
 import 'test.dart';
 class D {
   final C c;
@@ -153,7 +153,7 @@ class C {
 const C constant = const C(0);
 ''');
     var otherFileResult =
-        await resolveFile(convertPath('/test/lib/other.dart'));
+        await resolveFile(convertPath('$testPackageLibPath/other.dart'));
     expect(otherFileResult.errors, isEmpty);
   }
 
@@ -165,7 +165,7 @@ class C {
 }
 const C constant = const C(0);
 ''');
-    newFile('/test/lib/other.dart', content: '''
+    newFile('$testPackageLibPath/other.dart', content: '''
 import 'test.dart';
 class D {
   final C c;
@@ -174,7 +174,7 @@ class D {
 const D constant2 = const D(constant);
 ''');
     var otherFileResult =
-        await resolveFile(convertPath('/test/lib/other.dart'));
+        await resolveFile(convertPath('$testPackageLibPath/other.dart'));
     expect(otherFileResult.errors, isEmpty);
   }
 
@@ -189,7 +189,7 @@ const C constant = const C(0);
   }
 
   test_int_to_double_via_default_value_other_file_after() async {
-    newFile('/test/lib/other.dart', content: '''
+    newFile('$testPackageLibPath/other.dart', content: '''
 class C {
   final double x;
   const C([this.x = 0]);
@@ -200,19 +200,19 @@ import 'other.dart';
 const c = C();
 ''');
     var otherFileResult =
-        await resolveFile(convertPath('/test/lib/other.dart'));
+        await resolveFile(convertPath('$testPackageLibPath/other.dart'));
     expect(otherFileResult.errors, isEmpty);
   }
 
   test_int_to_double_via_default_value_other_file_before() async {
-    newFile('/test/lib/other.dart', content: '''
+    newFile('$testPackageLibPath/other.dart', content: '''
 class C {
   final double x;
   const C([this.x = 0]);
 }
 ''');
     var otherFileResult =
-        await resolveFile(convertPath('/test/lib/other.dart'));
+        await resolveFile(convertPath('$testPackageLibPath/other.dart'));
     expect(otherFileResult.errors, isEmpty);
 
     await assertNoErrorsInCode('''

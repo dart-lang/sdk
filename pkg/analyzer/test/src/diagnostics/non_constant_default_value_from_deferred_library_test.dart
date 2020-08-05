@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,9 +15,9 @@ main() {
 
 @reflectiveTest
 class NonConstantDefaultValueFromDeferredLibraryTest
-    extends DriverResolutionTest {
+    extends PubPackageResolutionTest {
   test_deferred() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 const V = 1;
 ''');
@@ -34,7 +34,7 @@ f({x : a.V}) {}
   }
 
   test_nested() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 const V = 1;
 ''');

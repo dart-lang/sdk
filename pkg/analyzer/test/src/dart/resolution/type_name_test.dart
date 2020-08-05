@@ -6,8 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
-import 'with_null_safety_mixin.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class TypeNameResolutionTest extends DriverResolutionTest {
+class TypeNameResolutionTest extends PubPackageResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 
@@ -296,7 +295,7 @@ class TypeNameResolutionWithNullSafetyTest extends TypeNameResolutionTest
   }
 
   test_optIn_fromOptOut_class() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 ''');
 
@@ -315,7 +314,7 @@ f(A a) {}
   }
 
   test_optIn_fromOptOut_class_generic_toBounds() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A<T extends num> {}
 ''');
 
@@ -334,7 +333,7 @@ f(A a) {}
   }
 
   test_optIn_fromOptOut_class_generic_toBounds_dynamic() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A<T> {}
 ''');
 
@@ -353,7 +352,7 @@ f(A a) {}
   }
 
   test_optIn_fromOptOut_class_generic_typeArguments() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A<T> {}
 ''');
 
@@ -372,7 +371,7 @@ f(A<int> a) {}
   }
 
   test_optIn_fromOptOut_functionTypeAlias() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 typedef F = int Function(bool);
 ''');
 
@@ -391,7 +390,7 @@ f(F a) {}
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_dynamic() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 typedef F<T> = T Function(bool);
 ''');
 
@@ -410,7 +409,7 @@ f(F a) {}
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_toBounds() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 typedef F<T extends num> = T Function(bool);
 ''');
 
@@ -429,7 +428,7 @@ f(F a) {}
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_typeArguments() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 typedef F<T> = T Function(bool);
 ''');
 
@@ -448,7 +447,7 @@ f(F<int> a) {}
   }
 
   test_optOut_fromOptIn_class() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 class A {}
 ''');
@@ -467,7 +466,7 @@ f(A a) {}
   }
 
   test_optOut_fromOptIn_class_generic_toBounds() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 class A<T extends num> {}
 ''');
@@ -486,7 +485,7 @@ f(A a) {}
   }
 
   test_optOut_fromOptIn_class_generic_toBounds_dynamic() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 class A<T> {}
 ''');
@@ -505,7 +504,7 @@ f(A a) {}
   }
 
   test_optOut_fromOptIn_class_generic_typeArguments() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 class A<T> {}
 ''');
@@ -524,7 +523,7 @@ f(A<int> a) {}
   }
 
   test_optOut_fromOptIn_functionTypeAlias() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 typedef F = int Function();
 ''');
@@ -543,7 +542,7 @@ f(F a) {}
   }
 
   test_optOut_fromOptIn_functionTypeAlias_generic_toBounds() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 typedef F<T extends num> = T Function();
 ''');
@@ -562,7 +561,7 @@ f(F a) {}
   }
 
   test_optOut_fromOptIn_functionTypeAlias_generic_toBounds_dynamic() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 typedef F<T> = T Function();
 ''');
@@ -581,7 +580,7 @@ f(F a) {}
   }
 
   test_optOut_fromOptIn_functionTypeAlias_generic_typeArguments() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 typedef F<T> = T Function();
 ''');

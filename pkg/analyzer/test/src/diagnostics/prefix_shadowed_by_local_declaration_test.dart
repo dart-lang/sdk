@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class PrefixShadowedByLocalDeclarationTest extends DriverResolutionTest {
+class PrefixShadowedByLocalDeclarationTest extends PubPackageResolutionTest {
   test_function_return_type_not_shadowed_by_parameter() async {
     await assertNoErrorsInCode('''
 import 'dart:async' as a;
@@ -48,7 +48,7 @@ f() {
 ''', [
       error(HintCode.UNUSED_IMPORT, 7, 12),
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 34, 1,
-          contextMessages: [message('/test/lib/test.dart', 59, 1)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 59, 1)]),
       error(CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION, 34, 1),
     ]);
   }

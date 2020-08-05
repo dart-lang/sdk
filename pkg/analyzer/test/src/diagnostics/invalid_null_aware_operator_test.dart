@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,8 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class InvalidNullAwareOperatorAfterShortCircuitTest extends DriverResolutionTest
-    with WithNullSafetyMixin {
+class InvalidNullAwareOperatorAfterShortCircuitTest
+    extends PubPackageResolutionTest with WithNullSafetyMixin {
   Future<void> test_getter_previousTarget() async {
     await assertErrorsInCode('''
 void f(String? s) {
@@ -26,7 +25,7 @@ void f(String? s) {
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           31, 2,
-          contextMessages: [message('/test/lib/test.dart', 23, 2)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 23, 2)]),
     ]);
   }
 
@@ -38,7 +37,7 @@ void f(String? s) {
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           27, 2,
-          contextMessages: [message('/test/lib/test.dart', 23, 1)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 23, 1)]),
     ]);
   }
 
@@ -54,7 +53,7 @@ class C {
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           75, 2,
-          contextMessages: [message('/test/lib/test.dart', 69, 2)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 69, 2)]),
     ]);
   }
 
@@ -66,7 +65,7 @@ void f(String? s) {
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           40, 2,
-          contextMessages: [message('/test/lib/test.dart', 23, 2)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 23, 2)]),
     ]);
   }
 
@@ -78,16 +77,16 @@ void f(String? s) {
 ''', [
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           40, 2,
-          contextMessages: [message('/test/lib/test.dart', 23, 2)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 23, 2)]),
       error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
           55, 2,
-          contextMessages: [message('/test/lib/test.dart', 23, 2)]),
+          contextMessages: [message('$testPackageLibPath/test.dart', 23, 2)]),
     ]);
   }
 }
 
 @reflectiveTest
-class InvalidNullAwareOperatorTest extends DriverResolutionTest
+class InvalidNullAwareOperatorTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_getter_class() async {
     await assertNoErrorsInCode('''
@@ -114,7 +113,7 @@ f() {
   }
 
   test_getter_legacy() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.5
 var x = 0;
 ''');
@@ -166,7 +165,7 @@ f(int? x) {
   /// report [StaticWarningCode.INVALID_NULL_AWARE_OPERATOR]. But we also
   /// report another error.
   test_getter_prefix() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 int x = 0;
 ''');
     await assertErrorsInCode('''
@@ -181,7 +180,7 @@ f() {
   }
 
   test_index_legacy() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.5
 var x = [0];
 ''');
@@ -242,7 +241,7 @@ f() {
   }
 
   test_method_legacy() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.5
 var x = 0;
 ''');
@@ -299,7 +298,7 @@ f(List<int> x) {
   }
 
   test_nullableSpread_legacyType() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.5
 var x = <int>[];
 ''');
@@ -371,7 +370,7 @@ f() {
   /// report [StaticWarningCode.INVALID_NULL_AWARE_OPERATOR]. But we also
   /// report another error.
   test_setter_prefix() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 int x = 0;
 ''');
     await assertErrorsInCode('''

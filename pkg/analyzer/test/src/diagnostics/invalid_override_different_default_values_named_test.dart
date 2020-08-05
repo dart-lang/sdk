@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,7 +18,7 @@ main() {
 
 @reflectiveTest
 class InvalidOverrideDifferentDefaultValuesNamedTest
-    extends DriverResolutionTest {
+    extends PubPackageResolutionTest {
   test_abstract_different_base_value() async {
     await assertErrorsInCode(r'''
 abstract class A {
@@ -172,7 +171,7 @@ class B extends A {
   }
 
   test_concrete_equal_otherLibrary() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   void foo([a = 0]) {}
 }
@@ -187,7 +186,7 @@ class C extends A {
   }
 
   test_concrete_equal_otherLibrary_listLiteral() async {
-    newFile('/test/lib/other.dart', content: '''
+    newFile('$testPackageLibPath/other.dart', content: '''
 class C {
   void foo({x: const ['x']}) {}
 }
@@ -302,7 +301,7 @@ class InvalidOverrideDifferentDefaultValuesNamedWithNullSafetyTest
     extends InvalidOverrideDifferentDefaultValuesNamedTest
     with WithNullSafetyMixin {
   test_concrete_equal_optIn_extends_optOut() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 class A {
   void foo({int a = 0}) {}
@@ -319,7 +318,7 @@ class B extends A {
   }
 
   test_concrete_equal_optOut_extends_optIn() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   void foo({int a = 0}) {}
 }

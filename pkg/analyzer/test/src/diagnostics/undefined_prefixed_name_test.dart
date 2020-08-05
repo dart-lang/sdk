@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,9 +14,9 @@ main() {
 }
 
 @reflectiveTest
-class UndefinedPrefixedNameTest extends DriverResolutionTest {
+class UndefinedPrefixedNameTest extends PubPackageResolutionTest {
   test_getterContext() async {
-    newFile('/test/lib/lib.dart');
+    newFile('$testPackageLibPath/lib.dart');
     await assertErrorsInCode('''
 import 'lib.dart' as p;
 f() => p.c;
@@ -26,7 +26,7 @@ f() => p.c;
   }
 
   test_setterContext() async {
-    newFile('/test/lib/lib.dart');
+    newFile('$testPackageLibPath/lib.dart');
     await assertErrorsInCode('''
 import 'lib.dart' as p;
 f() {

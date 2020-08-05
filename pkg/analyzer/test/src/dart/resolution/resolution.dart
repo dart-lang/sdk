@@ -79,6 +79,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   InterfaceType get stringType => typeProvider.stringType;
 
+  String get testFilePath => '/test/lib/test.dart';
+
   TypeProvider get typeProvider => result.typeProvider;
 
   TypeSystemImpl get typeSystem => result.typeSystem;
@@ -89,7 +91,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   VoidType get voidType => VoidTypeImpl.instance;
 
   void addTestFile(String content) {
-    newFile('/test/lib/test.dart', content: content);
+    newFile(testFilePath, content: content);
   }
 
   void assertAssignment(
@@ -772,7 +774,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   Future<void> resolveTestFile() async {
-    var path = convertPath('/test/lib/test.dart');
+    var path = convertPath(testFilePath);
     result = await resolveFile(path);
     findNode = FindNode(result.content, result.unit);
     findElement = FindElement(result.unit);

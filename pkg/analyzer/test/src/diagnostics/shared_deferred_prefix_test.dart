@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,13 +14,13 @@ main() {
 }
 
 @reflectiveTest
-class SharedDeferredPrefixTest extends DriverResolutionTest {
+class SharedDeferredPrefixTest extends PubPackageResolutionTest {
   test_hasSharedDeferredPrefix() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 f1() {}
 ''');
-    newFile('/test/lib/lib2.dart', content: '''
+    newFile('$testPackageLibPath/lib2.dart', content: '''
 library lib2;
 f2() {}
 ''');

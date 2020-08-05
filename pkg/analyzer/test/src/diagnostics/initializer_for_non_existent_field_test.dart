@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class InitializerForNonExistentFieldTest extends DriverResolutionTest {
+class InitializerForNonExistentFieldTest extends PubPackageResolutionTest {
   test_const() async {
     // Check that the absence of a matching field doesn't cause a
     // crash during constant evaluation.

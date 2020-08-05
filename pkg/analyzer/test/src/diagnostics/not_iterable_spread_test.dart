@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -29,7 +28,7 @@ void f<T extends List<int>?>(T a) {
 }
 
 @reflectiveTest
-class NotIterableSpreadTest extends DriverResolutionTest {
+class NotIterableSpreadTest extends PubPackageResolutionTest {
   test_iterable_list() async {
     await assertNoErrorsInCode('''
 var a = [0];

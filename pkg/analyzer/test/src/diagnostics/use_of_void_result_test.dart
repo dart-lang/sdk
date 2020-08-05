@@ -6,8 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class UseOfVoidResultTest extends DriverResolutionTest {
+class UseOfVoidResultTest extends PubPackageResolutionTest {
   test_andVoidLhsError() async {
     await assertErrorsInCode('''
 void main() {
@@ -727,7 +726,7 @@ main(void x) sync* {
 }
 
 @reflectiveTest
-class UseOfVoidResultTest_NonNullable extends DriverResolutionTest
+class UseOfVoidResultTest_NonNullable extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_await() async {
     await assertErrorsInCode('''
