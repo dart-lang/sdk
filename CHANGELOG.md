@@ -5,7 +5,7 @@
 *   Introduces `Dart_FinalizableHandle`s. They do auto-delete, and the weakly
     referred object cannot be accessed through them.
 
-## 2.9.0
+## 2.9.0 - 2020-08-05
 
 ### Language
 
