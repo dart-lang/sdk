@@ -59,7 +59,11 @@ class ListFactorySpecializer {
     assert(_fixedListGenerateFactory.isFactory);
   }
 
-  TreeNode transformStaticInvocation(StaticInvocation node) {
+  TreeNode transformStaticInvocation(TreeNode origin) {
+    if (origin is! StaticInvocation) {
+      return origin;
+    }
+    final node = origin as StaticInvocation;
     final target = node.target;
     if (target == _defaultListFactory) {
       final args = node.arguments;

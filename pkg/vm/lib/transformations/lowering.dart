@@ -9,8 +9,8 @@ import 'package:kernel/transformations/type_casts_optimizer.dart'
     as typeCastsOptimizer show transformAsExpression;
 import 'package:kernel/type_environment.dart'
     show StaticTypeContext, TypeEnvironment;
-import 'package:vm/transformations/map_factory_specializer.dart';
-
+import 'package:vm/transformations/map_factory_specializer.dart' show MapFactorySpecializer;
+import 'package:vm/transformations/set_factory_specializer.dart' show SetFactorySpecializer;
 import 'late_var_init_transformer.dart' show LateVarInitTransformer;
 import 'list_factory_specializer.dart' show ListFactorySpecializer;
 
@@ -50,6 +50,7 @@ class _Lowering extends Transformer {
   final bool nullSafety;
   final ListFactorySpecializer listFactorySpecializer;
   final MapFactorySpecializer mapFactorySpecializer;
+  final SetFactorySpecializer setFactorySpecializer;
   final LateVarInitTransformer lateVarInitTransformer;
 
   Member _currentMember;
@@ -59,6 +60,7 @@ class _Lowering extends Transformer {
       : env = TypeEnvironment(coreTypes, hierarchy),
         listFactorySpecializer = ListFactorySpecializer(coreTypes),
         mapFactorySpecializer = MapFactorySpecializer(coreTypes),
+        setFactorySpecializer = SetFactorySpecializer(coreTypes),
         lateVarInitTransformer = LateVarInitTransformer();
 
   StaticTypeContext get _staticTypeContext =>
@@ -82,6 +84,7 @@ class _Lowering extends Transformer {
     return combineSpecializer([
       listFactorySpecializer.transformStaticInvocation,
       mapFactorySpecializer.transformStaticInvocation,
+      setFactorySpecializer.transformStaticInvocation,
     ])(node);
   }
 

@@ -6,16 +6,24 @@ import "dart:collection" as col;
 import "dart:collection";
 import "dart:core";
 
-static field core::Set<dynamic>* globalSet = [@vm.inferred-type.metadata=!] col::LinkedHashSet::•<dynamic>();
+[@vm.inferred-type.metadata=dart.collection::_CompactLinkedHashSet?<dynamic>]static field core::Set<dynamic>* globalSet = new col::_CompactLinkedHashSet::•<dynamic>();
+[@vm.inferred-type.metadata=dart.collection::_CompactLinkedIdentityHashSet?<dynamic>]static field core::Set<dynamic>* identitySet = [@vm.inferred-type.metadata=dart.collection::_CompactLinkedIdentityHashSet<dynamic>] col::LinkedHashSet::identity<dynamic>();
+[@vm.inferred-type.metadata=dart.collection::_CompactLinkedHashSet?<dart.core::String*>]static field core::Set<core::String*>* linkedSet = new col::_CompactLinkedHashSet::•<core::String*>();
+[@vm.inferred-type.metadata=dart.collection::_CompactLinkedIdentityHashSet?<dart.core::String*>]static field core::Set<core::String*>* linkedIdentitySet = new col::_CompactLinkedIdentityHashSet::•<core::String*>();
+[@vm.inferred-type.metadata=dart.collection::_CompactLinkedCustomHashSet?<dart.core::String*>]static field core::Set<core::String*>* linkedCustomSet = new col::_CompactLinkedCustomHashSet::•<core::String*>((core::String* a, core::String* b) → core::bool* => a.{core::String::==}(b), (core::String* o) → core::int* => o.{core::String::hashCode}, (dynamic o) → core::bool* => true);
 [@vm.inferred-type.metadata=dart.collection::_InternalLinkedHashMap?<dynamic, dynamic>]static field core::Map<dynamic, dynamic>* globalMap = new col::_InternalLinkedHashMap::•<dynamic, dynamic>();
 [@vm.inferred-type.metadata=dart.collection::_CompactLinkedIdentityHashMap?<dynamic, dynamic>]static field core::Map<dynamic, dynamic>* identityMap = [@vm.inferred-type.metadata=dart.collection::_CompactLinkedIdentityHashMap<dynamic, dynamic>] col::LinkedHashMap::identity<dynamic, dynamic>();
-[@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView?<dynamic, dynamic>]static field core::Map<dynamic, dynamic>* unmodifiableMap = new col::UnmodifiableMapView::•<dynamic, dynamic>([@vm.inferred-type.metadata=!] col::LinkedHashMap::from<dynamic, dynamic>([@vm.inferred-type.metadata=dart.collection::_CompactLinkedIdentityHashMap?<dynamic, dynamic>] self::identityMap));
+[@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView?<dynamic, dynamic>]static field core::Map<dynamic, dynamic>* unmodifiableMap = new col::UnmodifiableMapView::•<dynamic, dynamic>([@vm.inferred-type.metadata=dart.collection::_InternalLinkedHashMap<dynamic, dynamic>] col::LinkedHashMap::from<dynamic, dynamic>([@vm.inferred-type.metadata=dart.collection::_CompactLinkedIdentityHashMap?<dynamic, dynamic>] self::identityMap));
 [@vm.inferred-type.metadata=dart.collection::_InternalLinkedHashMap?<dynamic, dynamic>]static field core::Map<dynamic, dynamic>* globalMapLiteral = <dynamic, dynamic>{};
 [@vm.inferred-type.metadata=dart.collection::_InternalLinkedHashMap?<dart.core::String*, dart.core::String*>]static field core::Map<core::String*, core::String*>* linkedMap = new col::_InternalLinkedHashMap::•<core::String*, core::String*>();
 [@vm.inferred-type.metadata=dart.collection::_CompactLinkedIdentityHashMap?<dart.core::String*, dart.core::String*>]static field core::Map<core::String*, core::String*>* linkedIdentityMap = new col::_CompactLinkedIdentityHashMap::•<core::String*, core::String*>();
 [@vm.inferred-type.metadata=dart.collection::_CompactLinkedCustomHashMap?<dart.core::String*, dart.core::String*>]static field core::Map<core::String*, core::String*>* linkedCustomMap = new col::_CompactLinkedCustomHashMap::•<core::String*, core::String*>((core::String* a, core::String* b) → core::bool* => a.{core::String::==}(b), (core::String* o) → core::int* => o.{core::String::hashCode}, (dynamic o) → core::bool* => true);
 static method main() → dynamic {
-  core::print(self::globalSet);
+  core::print([@vm.inferred-type.metadata=dart.collection::_CompactLinkedHashSet?<dynamic>] self::globalSet);
+  core::print([@vm.inferred-type.metadata=dart.collection::_CompactLinkedIdentityHashSet?<dynamic>] self::identitySet);
+  core::print([@vm.inferred-type.metadata=dart.collection::_CompactLinkedHashSet?<dart.core::String*>] self::linkedSet);
+  core::print([@vm.inferred-type.metadata=dart.collection::_CompactLinkedIdentityHashSet?<dart.core::String*>] self::linkedIdentitySet);
+  core::print([@vm.inferred-type.metadata=dart.collection::_CompactLinkedCustomHashSet?<dart.core::String*>] self::linkedCustomSet);
   core::print([@vm.inferred-type.metadata=dart.collection::_InternalLinkedHashMap?<dynamic, dynamic>] self::globalMap);
   core::print([@vm.inferred-type.metadata=dart.collection::_InternalLinkedHashMap?<dynamic, dynamic>] self::globalMapLiteral);
   core::print([@vm.inferred-type.metadata=dart.collection::_CompactLinkedIdentityHashMap?<dynamic, dynamic>] self::identityMap);

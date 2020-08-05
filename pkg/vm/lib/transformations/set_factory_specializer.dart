@@ -1,100 +1,65 @@
-import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
-import 'dart:core';
+import 'package:kernel/ast.dart';
 
 /// Replaces invocation of Map factory constructors with
 /// factories of VM-specific classes.
-/// new Map() => new _InternalLinkedHashMap<K, V>()
-/// new Map.identity() => new LinkedHashMap.identity() => new _CompactLinkedIdentityHashMap<K, V>();
-/// new Map.unmodifiable() => new UnmodifiableMapView<K, V>(new Map<K, V>.from(other))
-/// new LinkedHashMap<K, V>() => new _InternalLinkedHashMap<K, V>()
-/// new LinkedHashMap<K, V>(hashCode, equals) => new _CompactLinkedIdentityHashMap<K, V>()
-/// new LinkedHashMap<K, V>(hashCode, equals, isValidKey) => new _CompactLinkedCustomHashMap<K, V>(equals, hashCode, isValidKey)
-class MapFactorySpecializer {
-  final Procedure _defaultMapFactory;
-  final Procedure _mapIdentityFactory;
-  final Procedure _mapUnmodifiableFactory;
-  final Procedure _mapFromFactory;
-  final Procedure _linkedHashMapFromFactory;
-  final Procedure _linkedHashMapDefaultFactory;
-  final Constructor _internalLinkedHashMapConstructor;
-  final Constructor _compactLinkedIdentityHashMapConstructor;
-  final Constructor _unmodifiableMapViewConstructor;
-  final Constructor _compactLinkedCustomHashMapConstructor;
-
+/// new Set() => new _CompactLinkedHashSet<K, V>()
+/// new Set.identity() => new LinkedHashSet.identity() => new _CompactLinkedIdentityHashSet<E>();
+/// new LinkedHashSet<E>() => new _CompactLinkedHashSet<E>()
+/// new LinkedHashSet<E>(hashCode, equals) => new _CompactLinkedIdentityHashSet<E>()
+/// new LinkedHashSet<E>(hashCode, equals, isValidKey) => new _CompactLinkedCustomHashSet<E>(equals, hashCode, isValidKey)
+class SetFactorySpecializer {
+  final Procedure _defaultSetFactory;
+  final Procedure _setIdentityFactory;
+  final Procedure _linkedHashSetDefaultFactory;
+  final Constructor _compactLinkedHashSetConstructor;
+  final Constructor _compactLinkedIdentityHashSetConstructor;
+  final Constructor _compactLinkedCustomHashSetConstructor;
   final Procedure _identityHashCode;
   final Procedure _identical;
   final Procedure _defaultEqual;
   final Procedure _defaultHashCode;
 
-  MapFactorySpecializer(CoreTypes coreTypes)
-      : _defaultMapFactory = assertNotNull(
+  SetFactorySpecializer(CoreTypes coreTypes)
+      : _defaultSetFactory = assertNotNull(
           coreTypes.index.getMember(
             'dart:core',
-            'Map',
+            'Set',
             '',
           ),
         ),
-        _mapIdentityFactory = assertNotNull(
+        _setIdentityFactory = assertNotNull(
           coreTypes.index.getMember(
             'dart:core',
-            'Map',
+            'Set',
             'identity',
           ),
         ),
-        _mapUnmodifiableFactory = assertNotNull(
-          coreTypes.index.getMember(
-            'dart:core',
-            'Map',
-            'unmodifiable',
-          ),
-        ),
-        _mapFromFactory = assertNotNull(
-          coreTypes.index.getMember(
-            'dart:core',
-            'Map',
-            'from',
-          ),
-        ),
-        _linkedHashMapFromFactory = assertNotNull(
+        _linkedHashSetDefaultFactory = assertNotNull(
           coreTypes.index.getMember(
             'dart:collection',
-            'LinkedHashMap',
-            'from',
-          ),
-        ),
-        _linkedHashMapDefaultFactory = assertNotNull(
-          coreTypes.index.getMember(
-            'dart:collection',
-            'LinkedHashMap',
+            'LinkedHashSet',
             '',
           ),
         ),
-        _internalLinkedHashMapConstructor = assertNotNull(
+        _compactLinkedHashSetConstructor = assertNotNull(
           coreTypes.index.getMember(
             'dart:collection',
-            '_InternalLinkedHashMap',
+            '_CompactLinkedHashSet',
             '',
           ),
         ),
-        _compactLinkedIdentityHashMapConstructor = assertNotNull(
+        _compactLinkedIdentityHashSetConstructor = assertNotNull(
           coreTypes.index.getMember(
             'dart:collection',
-            '_CompactLinkedIdentityHashMap',
+            '_CompactLinkedIdentityHashSet',
             '',
           ),
         ),
-        _compactLinkedCustomHashMapConstructor = assertNotNull(
+        _compactLinkedCustomHashSetConstructor = assertNotNull(
           coreTypes.index.getMember(
             'dart:collection',
-            '_CompactLinkedCustomHashMap',
-            '',
-          ),
-        ),
-        _unmodifiableMapViewConstructor = assertNotNull(
-          coreTypes.index.getMember(
-            'dart:collection',
-            'UnmodifiableMapView',
+            '_CompactLinkedCustomHashSet',
             '',
           ),
         ),
@@ -135,44 +100,29 @@ class MapFactorySpecializer {
     final node = origin as StaticInvocation;
     final target = node.target;
     final args = node.arguments;
-    if (target == _defaultMapFactory) {
-      assert(args.positional.length == 0);
-      // new Map() => new _InternalLinkedHashMap<K, V>()
+    if (target == _defaultSetFactory) {
+      assert(args.positional.isEmpty);
       return ConstructorInvocation(
-        _internalLinkedHashMapConstructor,
+        _compactLinkedHashSetConstructor,
         Arguments([], types: args.types),
       )..fileOffset = node.fileOffset;
-    } else if (target == _mapIdentityFactory) {
-      assert(args.positional.length == 0);
-      // new Map.identity() => new _CompactLinkedIdentityHashMap<K, V>();
+    } else if (target == _setIdentityFactory) {
+      assert(args.positional.isEmpty);
       return ConstructorInvocation(
-        _compactLinkedIdentityHashMapConstructor,
+        _compactLinkedIdentityHashSetConstructor,
         Arguments([], types: args.types),
       )..fileOffset = node.fileOffset;
-    } else if (target == _mapUnmodifiableFactory) {
-      assert(args.positional.length == 1);
-      final other = args.positional[0];
-      // new Map.unmodifiable(other) => new UnmodifiableMapView<K, V>(new Map<K, V>.from(other))
-      return ConstructorInvocation(
-        _unmodifiableMapViewConstructor,
-        Arguments([
-          StaticInvocation(
-            _linkedHashMapFromFactory,
-            Arguments([other], types: args.types),
-          )..fileOffset = node.fileOffset,
-        ], types: args.types),
-      )..fileOffset = node.fileOffset;
-    } else if (target == _linkedHashMapDefaultFactory) {
+    } else if (target == _linkedHashSetDefaultFactory) {
       if (args.named.isEmpty) {
         return ConstructorInvocation(
-          _internalLinkedHashMapConstructor,
+          _compactLinkedHashSetConstructor,
           Arguments([], types: args.types),
-        )..fileOffset = node.fileOffset;
+        );
       }
 
       TreeNode getFieldFromArgs(String name) {
         return args.named.firstWhere(
-          (NamedExpression e) => e.name == name,
+              (NamedExpression e) => e.name == name,
           orElse: () => null,
         );
       }
@@ -187,7 +137,7 @@ class MapFactorySpecializer {
         if (hashCode == null) {
           if (equals == null) {
             return ConstructorInvocation(
-              _internalLinkedHashMapConstructor,
+              _compactLinkedHashSetConstructor,
               Arguments([], types: args.types),
             )..fileOffset = node.fileOffset;
           }
@@ -199,7 +149,7 @@ class MapFactorySpecializer {
               _identityHashCode == getConstProcedure(hashCode.value)
           ) {
             return ConstructorInvocation(
-              _compactLinkedIdentityHashMapConstructor,
+              _compactLinkedIdentityHashSetConstructor,
               Arguments([], types: args.types),
             )..fileOffset = node.fileOffset;
           }
@@ -212,7 +162,7 @@ class MapFactorySpecializer {
       }
 
       return ConstructorInvocation(
-        _compactLinkedCustomHashMapConstructor,
+        _compactLinkedCustomHashSetConstructor,
         Arguments([
           equals?.value, hashCode?.value, isValidKey?.value,
         ], types: args.types),
