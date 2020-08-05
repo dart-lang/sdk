@@ -55,6 +55,8 @@ import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/verifier.dart' show verifyGetStaticType;
 
+import 'package:kernel/transformations/value_class.dart' as valueClass;
+
 import 'package:package_config/package_config.dart';
 
 import '../../api_prototype/file_system.dart' show FileSystem;
@@ -1085,6 +1087,12 @@ class KernelTarget extends TargetImplementation {
             isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     ticker.logMs("Evaluated constants");
+
+    if (loader.target.context.options
+        .isExperimentEnabledGlobally(ExperimentalFlag.valueClass)) {
+      valueClass.transformComponent(component);
+      ticker.logMs("Lowered value classes");
+    }
 
     backendTarget.performModularTransformationsOnLibraries(
         component,
