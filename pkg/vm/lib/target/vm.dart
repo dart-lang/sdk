@@ -37,7 +37,6 @@ class VmTarget extends Target {
   Class _immutableList;
   Class _internalLinkedHashMap;
   Class _immutableMap;
-  Class _linkedHashSet;
   Class _oneByteString;
   Class _twoByteString;
   Class _smi;
@@ -421,12 +420,6 @@ class VmTarget extends Target {
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) {
     return _immutableMap ??=
         coreTypes.index.getClass('dart:core', '_ImmutableMap');
-  }
-
-  @override
-  Class concreteSetLiteralClass(CoreTypes coreTypes) {
-    return _linkedHashSet ??=
-        coreTypes.index.getClass('dart:collection', 'LinkedHashSet');
   }
 
   @override
