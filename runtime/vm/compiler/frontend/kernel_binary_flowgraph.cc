@@ -11,6 +11,7 @@
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/object_store.h"
+#include "vm/resolver.h"
 #include "vm/stack_frame.h"
 
 namespace dart {
@@ -1632,20 +1633,13 @@ Function& StreamingFlowGraphBuilder::FindMatchingFunction(
     int argument_count,
     const Array& argument_names) {
   // Search the superclass chain for the selector.
-  Function& function = Function::Handle(Z);
-  Class& iterate_klass = Class::Handle(Z, klass.raw());
-  while (!iterate_klass.IsNull()) {
-    function = iterate_klass.LookupDynamicFunctionAllowPrivate(name);
-    if (!function.IsNull()) {
-      if (function.AreValidArguments(type_args_len, argument_count,
-                                     argument_names,
-                                     /* error_message = */ NULL)) {
-        return function;
-      }
-    }
-    iterate_klass = iterate_klass.SuperClass();
-  }
-  return Function::Handle();
+  ArgumentsDescriptor args_desc(
+      Array::Handle(Z, ArgumentsDescriptor::NewBoxed(
+                           type_args_len, argument_count, argument_names)));
+  Function& function =
+      Function::Handle(Z, Resolver::ResolveDynamicForReceiverClassAllowPrivate(
+                              klass, name, args_desc, /*allow_add=*/false));
+  return function;
 }
 
 bool StreamingFlowGraphBuilder::NeedsDebugStepCheck(const Function& function,

@@ -30,40 +30,12 @@ FunctionPtr Resolver::ResolveDynamic(const Instance& receiver,
   return ResolveDynamicForReceiverClass(cls, function_name, args_desc);
 }
 
-FunctionPtr Resolver::ResolveDynamicForReceiverClass(
+static FunctionPtr ResolveDynamicAnyArgsWithCustomLookup(
+    Zone* zone,
     const Class& receiver_class,
     const String& function_name,
-    const ArgumentsDescriptor& args_desc,
-    bool allow_add) {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-
-  Function& function = Function::Handle(
-      zone,
-      ResolveDynamicAnyArgs(zone, receiver_class, function_name, allow_add));
-
-  if (function.IsNull() || !function.AreValidArguments(args_desc, NULL)) {
-    // Return a null function to signal to the upper levels to dispatch to
-    // "noSuchMethod" function.
-    if (FLAG_trace_resolving) {
-      String& error_message =
-          String::Handle(zone, Symbols::New(thread, "function not found"));
-      if (!function.IsNull()) {
-        // Obtain more detailed error message.
-        function.AreValidArguments(args_desc, &error_message);
-      }
-      THR_Print("ResolveDynamic error '%s': %s.\n", function_name.ToCString(),
-                error_message.ToCString());
-    }
-    return Function::null();
-  }
-  return function.raw();
-}
-
-FunctionPtr Resolver::ResolveDynamicAnyArgs(Zone* zone,
-                                            const Class& receiver_class,
-                                            const String& function_name,
-                                            bool allow_add) {
+    bool allow_add,
+    std::function<FunctionPtr(Class&, const String&)> lookup) {
   Class& cls = Class::Handle(zone, receiver_class.raw());
   if (FLAG_trace_resolving) {
     THR_Print("ResolveDynamic '%s' for class %s\n", function_name.ToCString(),
@@ -95,7 +67,7 @@ FunctionPtr Resolver::ResolveDynamicAnyArgs(Zone* zone,
     }
     if (!function.IsNull()) return function.raw();
 
-    function = cls.LookupDynamicFunction(demangled);
+    function = lookup(cls, demangled);
 #if !defined(DART_PRECOMPILED_RUNTIME)
     // In JIT we might need to lazily create a dyn:* forwarder.
     if (is_dyn_call && !function.IsNull()) {
@@ -124,6 +96,76 @@ FunctionPtr Resolver::ResolveDynamicAnyArgs(Zone* zone,
     cls = cls.SuperClass();
   }
   return function.raw();
+}
+
+static FunctionPtr ResolveDynamicForReceiverClassWithCustomLookup(
+    const Class& receiver_class,
+    const String& function_name,
+    const ArgumentsDescriptor& args_desc,
+    bool allow_add,
+    std::function<FunctionPtr(Class&, const String&)> lookup) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  Function& function = Function::Handle(
+      zone, ResolveDynamicAnyArgsWithCustomLookup(
+                zone, receiver_class, function_name, allow_add, lookup));
+
+  if (function.IsNull() || !function.AreValidArguments(args_desc, NULL)) {
+    // Return a null function to signal to the upper levels to dispatch to
+    // "noSuchMethod" function.
+    if (FLAG_trace_resolving) {
+      String& error_message =
+          String::Handle(zone, Symbols::New(thread, "function not found"));
+      if (!function.IsNull()) {
+        // Obtain more detailed error message.
+        function.AreValidArguments(args_desc, &error_message);
+      }
+      THR_Print("ResolveDynamic error '%s': %s.\n", function_name.ToCString(),
+                error_message.ToCString());
+    }
+    return Function::null();
+  }
+  return function.raw();
+}
+
+FunctionPtr Resolver::ResolveDynamicForReceiverClass(
+    const Class& receiver_class,
+    const String& function_name,
+    const ArgumentsDescriptor& args_desc,
+    bool allow_add) {
+  return ResolveDynamicForReceiverClassWithCustomLookup(
+      receiver_class, function_name, args_desc, allow_add,
+      &Class::LookupDynamicFunction);
+}
+
+FunctionPtr Resolver::ResolveDynamicForReceiverClassAllowPrivate(
+    const Class& receiver_class,
+    const String& function_name,
+    const ArgumentsDescriptor& args_desc,
+    bool allow_add) {
+  return ResolveDynamicForReceiverClassWithCustomLookup(
+      receiver_class, function_name, args_desc, allow_add,
+      &Class::LookupDynamicFunctionAllowPrivate);
+}
+
+FunctionPtr Resolver::ResolveDynamicAnyArgs(Zone* zone,
+                                            const Class& receiver_class,
+                                            const String& function_name,
+                                            bool allow_add) {
+  return ResolveDynamicAnyArgsWithCustomLookup(
+      zone, receiver_class, function_name, allow_add,
+      std::mem_fn(&Class::LookupDynamicFunctionAllowPrivate));
+}
+
+FunctionPtr Resolver::ResolveDynamicAnyArgsAllowPrivate(
+    Zone* zone,
+    const Class& receiver_class,
+    const String& function_name,
+    bool allow_add) {
+  return ResolveDynamicAnyArgsWithCustomLookup(
+      zone, receiver_class, function_name, allow_add,
+      std::mem_fn(&Class::LookupDynamicFunctionAllowPrivate));
 }
 
 FunctionPtr Resolver::ResolveStatic(const Library& library,
