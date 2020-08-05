@@ -288,6 +288,10 @@ template("_built_tool_action") {
 #  script:
 #    The un-rebased path to the Dart script.
 #
+#  dfe (optional):
+#    Sets the DFE file used by Dart. If not set the VM will attempt to load it
+#    from a snapshot, or fall back on its built-in kernel.
+#
 #  vm_args (optional):
 #    Arguments to pass to the Dart VM.
 #
@@ -323,6 +327,17 @@ template("dart_action") {
                                "visibility",
                                "vm_args",
                              ])
+
+      # Dart has an implicit dependency on the kernel service so unless DFE is
+      # passed, we need to add this dep.
+      if (defined(invoker.dfe)) {
+        vm_args += [ "--dfe=" + rebase_path(invoker.dfe) ]
+      } else {
+        if (!defined(invoker.deps)) {
+          deps = []
+        }
+        deps += [ "$_dart_root/utils/kernel-service:kernel-service" ]
+      }
     }
   } else {
     prebuilt_dart_action(target_name) {
