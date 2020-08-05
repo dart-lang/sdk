@@ -148,7 +148,6 @@ class MapFactorySpecializer {
     } else if (target == _mapUnmodifiableFactory) {
       assert(args.positional.length == 1);
       final other = args.positional[0];
-      assert(other is Map);
       // new Map.unmodifiable(other) => new UnmodifiableMapView<K, V>(new Map<K, V>.from(other))
       return ConstructorInvocation(
         _unmodifiableMapViewConstructor,
@@ -174,6 +173,9 @@ class MapFactorySpecializer {
         );
       }
 
+      Procedure getConstProcedure(ConstantExpression expr) {
+        return (expr.constant as TearOffConstant).procedure;
+      }
       NamedExpression equals = getFieldFromArgs('equals');
       NamedExpression hashCode = getFieldFromArgs('hashCode');
       NamedExpression isValidKey = getFieldFromArgs('isValidKey');
@@ -187,7 +189,11 @@ class MapFactorySpecializer {
           }
           hashCode = NamedExpression('hashCode', StaticGet(_defaultHashCode));
         } else {
-          if (_identical == equals && _identityHashCode == hashCode) {
+          if (equals.value is ConstantExpression &&
+              hashCode.value is ConstantExpression &&
+              _identical == getConstProcedure(equals.value) &&
+              _identityHashCode == getConstProcedure(hashCode.value)
+          ) {
             return ConstructorInvocation(
               _compactLinkedIdentityHashMapConstructor,
               Arguments([], types: args.types),

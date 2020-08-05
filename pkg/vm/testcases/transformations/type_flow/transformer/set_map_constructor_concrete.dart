@@ -9,6 +9,7 @@ main() {
   print(unmodifiableMap);
   print(linkedMap);
   print(linkedIdentityMap);
+  print(linkedCustomMap);
 }
 
 Set globalSet = Set();

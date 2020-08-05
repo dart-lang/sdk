@@ -36,7 +36,7 @@ SpecializerTransformer<T> combine<T extends TreeNode>(
 }
 
 /// Combine a list of Specializer Transformer Method.
-SpecializerTransformer<T> combineAll<T extends TreeNode>(
+SpecializerTransformer<T> combineSpecializer<T extends TreeNode>(
   List<SpecializerTransformer<T>> transformers,
 ) {
   return transformers.fold(
@@ -79,7 +79,7 @@ class _Lowering extends Transformer {
   @override
   visitStaticInvocation(StaticInvocation node) {
     node.transformChildren(this);
-    return combineAll([
+    return combineSpecializer([
       listFactorySpecializer.transformStaticInvocation,
       mapFactorySpecializer.transformStaticInvocation,
     ])(node);
