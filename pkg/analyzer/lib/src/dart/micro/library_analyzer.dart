@@ -125,7 +125,7 @@ class LibraryAnalyzer {
     });
 
     // Resolve URIs in directives to corresponding sources.
-    FeatureSet featureSet = units[_library].featureSet;
+    FeatureSet featureSet = units.values.first.featureSet;
 
     performance.run('resolveUriDirectives', (performance) {
       units.forEach((file, unit) {
@@ -139,7 +139,7 @@ class LibraryAnalyzer {
     });
 
     performance.run('resolveDirectives', (performance) {
-      _resolveDirectives(units, forCompletion);
+      _resolveDirectives(units, completionPath);
     });
 
     performance.run('resolveFiles', (performance) {
@@ -529,14 +529,16 @@ class LibraryAnalyzer {
 
   void _resolveDirectives(
     Map<FileState, CompilationUnit> units,
-    bool forCompletion,
+    String completionPath,
   ) {
-    CompilationUnit definingCompilationUnit = units[_library];
-    definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
-
-    if (forCompletion) {
+    if (completionPath != null) {
+      var completionUnit = units.values.first;
+      completionUnit.element = _unitElementWithPath(completionPath);
       return;
     }
+
+    CompilationUnit definingCompilationUnit = units[_library];
+    definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
 
     bool matchNodeElement(Directive node, Element element) {
       return node.keyword.offset == element.nameOffset;
@@ -755,6 +757,15 @@ class LibraryAnalyzer {
         directive.uriSource = defaultSource;
       }
     }
+  }
+
+  CompilationUnitElement _unitElementWithPath(String path) {
+    for (var unitElement in _libraryElement.units) {
+      if (unitElement.source.fullName == path) {
+        return unitElement;
+      }
+    }
+    return null;
   }
 
   /// Validate that the feature set associated with the compilation [unit] is
