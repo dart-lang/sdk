@@ -2695,14 +2695,6 @@
           "arguments": [
             "api_docs"
           ]
-        },
-        {
-          "name": "upload abi dills",
-          "script": "tools/upload_abi_dills.sh",
-          "arguments": [
-            "tools/VERSION",
-            "out/ReleaseX64"
-          ]
         }
       ]
     },

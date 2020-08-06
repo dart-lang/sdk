@@ -616,12 +616,6 @@ copy("copy_vm_dill_files") {
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
 
-copy("copy_abi_dill_files") {
-  visibility = [ ":create_sdk_with_abi_versions" ]
-  sources = [ "../tools/abiversions" ]
-  outputs = [ "$root_out_dir/dart-sdk/lib/_internal/abiversions" ]
-}
-
 copy("copy_dart2js_dill_files") {
   visibility = [ ":create_full_sdk" ]
   deps = [
@@ -967,12 +961,4 @@ group("create_sdk") {
   } else {
     public_deps += [ ":create_full_sdk" ]
   }
-}
-
-# Same as create_sdk, but with abi version files.
-group("create_sdk_with_abi_versions") {
-  public_deps = [
-    ":copy_abi_dill_files",
-    ":create_sdk",
-  ]
 }

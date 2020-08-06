@@ -7,7 +7,6 @@
 # io_impl_sources.gypi.
 
 builtin_impl_sources = [
-  "abi_version.h",
   "crypto.cc",
   "crypto.h",
   "crypto_android.cc",

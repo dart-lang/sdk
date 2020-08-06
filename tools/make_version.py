@@ -108,14 +108,6 @@ def FormatVersionString(version,
         version_time = 'Unknown timestamp'
     version = version.replace('{{COMMIT_TIME}}', version_time.decode('utf-8'))
 
-    abi_version = utils.GetAbiVersion(version_file)
-    version = version.replace('{{ABI_VERSION}}', abi_version)
-
-    oldest_supported_abi_version = utils.GetOldestSupportedAbiVersion(
-        version_file)
-    version = version.replace('{{OLDEST_SUPPORTED_ABI_VERSION}}',
-                              oldest_supported_abi_version)
-
     snapshot_hash = MakeSnapshotHashString()
     version = version.replace('{{SNAPSHOT_HASH}}', snapshot_hash)
 

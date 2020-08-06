@@ -1080,15 +1080,8 @@ abstract class VMKernelCompilerMixin {
     var pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
     var genKernel = '$pkgVmDir/tool/gen_kernel$shellScriptExtension';
 
-    var useAbiVersion = arguments.firstWhere(
-        (arg) => arg.startsWith('--use-abi-version='),
-        orElse: () => null);
-
     var kernelBinariesFolder = '${_configuration.buildDirectory}';
-    if (useAbiVersion != null) {
-      var version = useAbiVersion.split('=')[1];
-      kernelBinariesFolder += '/dart-sdk/lib/_internal/abiversions/$version';
-    } else if (_useSdk) {
+    if (_useSdk) {
       kernelBinariesFolder += '/dart-sdk/lib/_internal';
     }
 
@@ -1119,10 +1112,8 @@ abstract class VMKernelCompilerMixin {
       ..._configuration.genKernelOptions,
     ];
 
-    var batchArgs = [if (useAbiVersion != null) useAbiVersion];
-
     return VMKernelCompilationCommand(dillFile, bootstrapDependencies(),
-        genKernel, args, environmentOverrides, batchArgs,
+        genKernel, args, environmentOverrides,
         alwaysCompile: true);
   }
 }

@@ -1163,7 +1163,7 @@ void main(int argc, char** argv) {
 // they might affect how the platform is loaded.
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (script_name != nullptr) {
-    dfe.Init(Options::target_abi_version());
+    dfe.Init();
     uint8_t* application_kernel_buffer = NULL;
     intptr_t application_kernel_buffer_size = 0;
     dfe.ReadScript(script_name, &application_kernel_buffer,

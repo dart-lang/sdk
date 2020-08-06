@@ -677,12 +677,6 @@ hooks = [
     'pattern': '.',
     'action': ['python', 'sdk/build/vs_toolchain.py', 'update'],
   },
-  {
-    # Download dill files for all supported ABI versions, if necessary.
-    'name': 'abiversions',
-    'pattern': '.',
-    'action': ['python', 'sdk/tools/download_abi_dills.py'],
-  },
 ]
 
 hooks_os = {
