@@ -10,12 +10,18 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonAbstractClassInheritsAbstractMemberTest);
+    defineReflectiveTests(
+        NonAbstractClassInheritsAbstractMemberWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class NonAbstractClassInheritsAbstractMemberTest
-    extends PubPackageResolutionTest {
+    extends PubPackageResolutionTest
+    with NonAbstractClassInheritsAbstractMemberTestCases {}
+
+mixin NonAbstractClassInheritsAbstractMemberTestCases
+    on PubPackageResolutionTest {
   test_abstractsDontOverrideConcretes_getter() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -606,3 +612,8 @@ class C implements I {
     ]);
   }
 }
+
+@reflectiveTest
+class NonAbstractClassInheritsAbstractMemberWithNullSafetyTest
+    extends PubPackageResolutionTest
+    with WithNullSafetyMixin, NonAbstractClassInheritsAbstractMemberTestCases {}
