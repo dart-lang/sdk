@@ -291,6 +291,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertErrorsInList(result.errors, expectedErrors);
   }
 
+  void assertErrorsInResult(List<ExpectedError> expectedErrors) {
+    assertErrorsInResolvedUnit(result, expectedErrors);
+  }
+
   void assertFunctionExpressionInvocation(
     FunctionExpressionInvocation node, {
     @required ExecutableElement element,
@@ -514,6 +518,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
     await resolveTestFile();
 
     assertErrorsInResolvedUnit(result, const []);
+  }
+
+  void assertNoErrorsInResult() {
+    assertErrorsInResult(const []);
   }
 
   void assertParameterElement(
@@ -766,6 +774,17 @@ mixin ResolutionTest implements ResourceProviderMixin {
       ExpectedContextMessage(convertPath(filePath), offset, length);
 
   Future<ResolvedUnitResult> resolveFile(String path);
+
+  /// Create a new file with the [path] and [content], resolve it into [result].
+  Future<void> resolveFileCode(String path, String content) async {
+    path = convertPath(path);
+    newFile(path, content: content);
+
+    result = await resolveFile(path);
+
+    findNode = FindNode(result.content, result.unit);
+    findElement = FindElement(result.unit);
+  }
 
   /// Put the [code] into the test file, and resolve it.
   Future<void> resolveTestCode(String code) async {

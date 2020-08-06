@@ -76,6 +76,26 @@ class AnalysisOptionsFileConfig {
   }
 }
 
+class BazelWorkspaceResolutionTest extends ContextResolutionTest {
+  @override
+  List<String> get collectionIncludedPaths => [workspaceRootPath];
+
+  String get myPackageLibPath => '$myPackageRootPath/lib';
+
+  String get myPackageRootPath => '$workspaceRootPath/dart/my';
+
+  @override
+  String get testFilePath => '$myPackageLibPath/my.dart';
+
+  String get workspaceRootPath => '/workspace';
+
+  @override
+  void setUp() {
+    super.setUp();
+    newFile('$workspaceRootPath/WORKSPACE', content: '');
+  }
+}
+
 /// [AnalysisContextCollection] based implementation of [ResolutionTest].
 abstract class ContextResolutionTest
     with ResourceProviderMixin, ResolutionTest {

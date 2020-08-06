@@ -5,7 +5,9 @@
 import 'dart:collection';
 import 'dart:core';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -483,8 +485,42 @@ class BazelWorkspacePackage extends WorkspacePackage {
   @override
   final BazelWorkspace workspace;
 
+  bool _featureSetReady = false;
+  FeatureSet _featureSet;
+
   BazelWorkspacePackage(String packageName, this.root, this.workspace)
       : _uriPrefix = 'package:$packageName/';
+
+  @override
+  FeatureSet get featureSet {
+    if (_featureSetReady) {
+      return _featureSet;
+    }
+
+    try {
+      _featureSetReady = true;
+      var buildContent = workspace.provider
+          .getFolder(root)
+          .getChildAssumingFile('BUILD')
+          .readAsStringSync();
+      var hasNonNullableFlag = buildContent
+          .split('\n')
+          .map((e) => e.trim())
+          .where((e) => !e.startsWith('#'))
+          .map((e) => e.replaceAll(' ', ''))
+          .join()
+          .contains('dart_package(non_nullable=True');
+      if (hasNonNullableFlag) {
+        _featureSet = FeatureSet.fromEnableFlags(
+          [EnableString.non_nullable],
+        );
+      }
+    } on FileSystemException {
+      // ignored
+    }
+
+    return _featureSet;
+  }
 
   @override
   bool contains(Source source) {
