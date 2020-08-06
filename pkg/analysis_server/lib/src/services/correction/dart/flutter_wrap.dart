@@ -29,6 +29,9 @@ class FlutterWrap extends MultiCorrectionProducer {
       if (!flutter.isExactWidgetTypePadding(widgetType)) {
         yield _FlutterWrapPadding(widgetExpr);
       }
+      if (!flutter.isExactWidgetTypeSizedBox(widgetType)) {
+        yield _FlutterWrapSizedBox(widgetExpr);
+      }
     }
     yield* _wrapMultipleWidgets();
   }
@@ -163,6 +166,21 @@ class _FlutterWrapRow extends _WrapMultipleWidgets {
 
   @override
   String get _parentClassName => 'Row';
+}
+
+/// A correction processor that can make one of the possible change computed by
+/// the [FlutterWrap] producer.
+class _FlutterWrapSizedBox extends _WrapSingleWidget {
+  _FlutterWrapSizedBox(Expression widgetExpr) : super(widgetExpr);
+
+  @override
+  AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_SIZED_BOX;
+
+  @override
+  String get _parentClassName => 'SizedBox';
+
+  @override
+  String get _parentLibraryUri => flutter.widgetsUri;
 }
 
 /// A correction processor that can make one of the possible change computed by
