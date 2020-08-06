@@ -1110,6 +1110,10 @@ abstract class FieldElement
   @override
   FieldElement get declaration;
 
+  /// Return `true` if this field is abstract. Executable fields are abstract if
+  /// they are declared with the `abstract` keyword.
+  bool get isAbstract;
+
   /// Return `true` if this field was explicitly marked as being covariant.
   bool get isCovariant;
 

@@ -6062,6 +6062,20 @@ extension E on int {
 ''');
   }
 
+  test_field_abstract() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+abstract class C {
+  abstract int i;
+}
+''');
+    checkElementText(library, '''
+abstract class C {
+  abstract int i;
+}
+''');
+  }
+
   test_field_covariant() async {
     var library = await checkLibrary('''
 class C {

@@ -300,6 +300,26 @@ class ResolutionCopierTest with ElementsTypesMixin {
     expect(toNode.element, same(element));
   }
 
+  void test_visitFieldDeclaration_abstract() {
+    FieldDeclaration fromNode = AstTestFactory.fieldDeclaration(
+        false, Keyword.VAR, null, [AstTestFactory.variableDeclaration('x')],
+        isAbstract: false);
+    FieldElement element = FieldElementImpl('x', -1);
+    fromNode.fields.variables[0].name.staticElement = element;
+    FieldDeclaration toNode1 = AstTestFactory.fieldDeclaration(
+        false, Keyword.VAR, null, [AstTestFactory.variableDeclaration('x')],
+        isAbstract: false);
+    ResolutionCopier.copyResolutionData(fromNode, toNode1);
+    // Nodes matched so resolution data should have been copied.
+    expect(toNode1.fields.variables[0].declaredElement, same(element));
+    FieldDeclaration toNode2 = AstTestFactory.fieldDeclaration(
+        false, Keyword.VAR, null, [AstTestFactory.variableDeclaration('x')],
+        isAbstract: true);
+    ResolutionCopier.copyResolutionData(fromNode, toNode1);
+    // Nodes didn't match so resolution data should not have been copied.
+    expect(toNode2.fields.variables[0].declaredElement, isNull);
+  }
+
   void test_visitForEachPartsWithDeclaration() {
     ForEachPartsWithDeclaration createNode() =>
         astFactory.forEachPartsWithDeclaration(

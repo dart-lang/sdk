@@ -2131,7 +2131,19 @@ abstract class ExtensionOverride implements Expression {
 /// The declaration of one or more fields of the same type.
 ///
 ///    fieldDeclaration ::=
-///        'static'? [VariableDeclarationList] ';'
+///        'static' 'const' <type>? <staticFinalDeclarationList>
+///      | 'static' 'final' <type>? <staticFinalDeclarationList>
+///      | 'static' 'late' 'final' <type>? <initializedIdentifierList>
+///      | 'static' 'late'? <varOrType> <initializedIdentifierList>
+///      | 'covariant' 'late'? <varOrType> <initializedIdentifierList>
+///      | 'late'? 'final' <type>? <initializedIdentifierList>
+///      | 'late'? <varOrType> <initializedIdentifierList>
+///      | 'abstract' (<finalVarOrType> | 'covariant' <varOrType>)
+///            <identifierList>
+///
+/// (Note: there is no <fieldDeclaration> production in the grammar; this is a
+/// subset of the grammar production <declaration>, which encompasses everything
+/// that can appear inside a class declaration except methods).
 ///
 /// Prior to the 'extension-methods' experiment, these nodes were always
 /// children of a class declaration. When the experiment is enabled, these nodes
@@ -2139,6 +2151,9 @@ abstract class ExtensionOverride implements Expression {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FieldDeclaration implements ClassMember {
+  /// The `abstract` keyword, or `null` if the keyword was not used.
+  Token get abstractKeyword;
+
   /// The 'covariant' keyword, or `null` if the keyword was not used.
   Token get covariantKeyword;
 

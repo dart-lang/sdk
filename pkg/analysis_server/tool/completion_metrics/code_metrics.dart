@@ -563,6 +563,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
     _visitChildren(node, {
       'documentationComment': node.documentationComment,
       'metadata': node.metadata,
+      'abstractKeyword': node.abstractKeyword,
       'covariantKeyword': node.covariantKeyword,
       'staticKeyword': node.staticKeyword,
       'fields': node.fields,

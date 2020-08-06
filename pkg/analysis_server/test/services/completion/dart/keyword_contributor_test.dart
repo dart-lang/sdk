@@ -385,7 +385,12 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   List<Keyword> get staticMember {
-    var keywords = <Keyword>[Keyword.CONST, Keyword.COVARIANT, Keyword.FINAL];
+    var keywords = <Keyword>[
+      Keyword.ABSTRACT,
+      Keyword.CONST,
+      Keyword.COVARIANT,
+      Keyword.FINAL
+    ];
     if (isEnabled(ExperimentalFeatures.non_nullable)) {
       keywords.add(Keyword.LATE);
     }
