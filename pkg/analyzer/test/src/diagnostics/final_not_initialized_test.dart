@@ -11,6 +11,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FinalNotInitializedTest);
+    defineReflectiveTests(FinalNotInitializedWithNullSafetyTest);
   });
 }
 
