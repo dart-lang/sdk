@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ErrorSuppressionTest extends DriverResolutionTest with PackageMixin {
+class ErrorSuppressionTest extends PubPackageResolutionTest {
   String get ignoredCode => 'unused_element';
 
   test_does_not_ignore_errors() async {
@@ -116,7 +115,7 @@ String _foo; // ignore: $ignoredCode
   }
 
   test_ignore_uniqueName() async {
-    addMetaPackage();
+    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta.dart';
 
@@ -245,7 +244,7 @@ int y = (0 as int);
 
   test_undefined_function_within_flutter_can_be_ignored() async {
     await assertErrorsInFile(
-      '/workspace/flutterlib/flutter.dart',
+      '$workspaceRootPath/flutterlib/flutter.dart',
       '''
 // ignore: undefined_function
 f() => g();
@@ -256,7 +255,7 @@ f() => g();
 
   test_undefined_function_within_flutter_without_ignore() async {
     await assertErrorsInFile(
-      '/workspace/flutterlib/flutter.dart',
+      '$workspaceRootPath/flutterlib/flutter.dart',
       '''
 f() => g();
 ''',
@@ -266,7 +265,7 @@ f() => g();
 
   test_undefined_prefixed_name_within_flutter_can_be_ignored() async {
     await assertErrorsInFile(
-      '/workspace/flutterlib/flutter.dart',
+      '$workspaceRootPath/flutterlib/flutter.dart',
       '''
 import 'dart:collection' as c;
 // ignore: undefined_prefixed_name

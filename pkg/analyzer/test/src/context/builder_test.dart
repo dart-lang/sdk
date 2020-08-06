@@ -552,7 +552,7 @@ linter:
     newFile(filePath, content: '''
 linter:
   rules:
-    - empty_constructor_bodies
+    - non_existent_lint_rule
 ''');
 
     AnalysisOptions options = builder.getAnalysisOptions(path);
@@ -648,7 +648,7 @@ linter:
     newFile(filePath, content: '''
 linter:
   rules:
-    - empty_constructor_bodies
+    - non_existent_lint_rule
 ''');
 
     AnalysisOptions options = builder.getAnalysisOptions(path);

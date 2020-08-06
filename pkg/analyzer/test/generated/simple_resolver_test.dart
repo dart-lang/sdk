@@ -8,7 +8,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 import 'resolver_test_case.dart';
 
 main() {
@@ -18,7 +18,7 @@ main() {
 }
 
 @reflectiveTest
-class SimpleResolverTest extends DriverResolutionTest {
+class SimpleResolverTest extends PubPackageResolutionTest {
   test_argumentResolution_required_matching() async {
     await resolveTestCode(r'''
 class A {
@@ -422,7 +422,7 @@ void f() {
   }
 
   test_entryPoint_exported() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 main() {}
 ''');
 
@@ -457,7 +457,7 @@ main() {}
   }
 
   test_enum_externalLibrary() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 enum EEE {A, B, C}
 ''');
     await assertNoErrorsInCode(r'''
@@ -667,11 +667,11 @@ class B {toString() => super.toString();}''');
   }
 
   test_import_hide() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 set foo(value) {}
 class A {}''');
 
-    newFile('/test/lib/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 set foo(value) {}''');
 
     await assertNoErrorsInCode(r'''
@@ -686,7 +686,7 @@ A a;''');
   }
 
   test_import_prefix() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 f(int x) {
   return x * x;
 }''');
@@ -755,7 +755,7 @@ class H extends D<W> {
   }
 
   test_import_spaceInUri() async {
-    newFile('/test/lib/sub folder/a.dart', content: r'''
+    newFile('$testPackageLibPath/sub folder/a.dart', content: r'''
 foo() {}''');
 
     await assertNoErrorsInCode(r'''

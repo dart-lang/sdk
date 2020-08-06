@@ -48,7 +48,7 @@ class B extends A {
   }
 
   test_class_getter_different_importScope() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 set foo(int _) {}
 ''');
     await resolve('''
@@ -86,7 +86,7 @@ class B extends A {
   }
 
   test_class_getter_requested_importScope() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 int get foo => 0;
 ''');
     await resolve('''
@@ -246,7 +246,7 @@ var foo = 0;
   }
 
   test_class_method_requested_importScope() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 void foo() {}
 ''');
     await resolve('''
@@ -490,7 +490,7 @@ var foo = 0;
   }
 
   test_class_setter_requested_importScope() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 set foo(int _) {}
 ''');
     await resolve('''

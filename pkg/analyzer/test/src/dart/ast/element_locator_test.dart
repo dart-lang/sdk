@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../util/element_type_matchers.dart';
-import '../resolution/driver_resolution.dart';
+import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class ElementLocatorTest extends DriverResolutionTest {
+class ElementLocatorTest extends PubPackageResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions {
     return AnalysisOptionsImpl()..hint = false;
@@ -199,7 +199,7 @@ void main() {
   }
 
   test_locate_InstanceCreationExpression_type_prefixedIdentifier() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 ''');
     await resolveTestCode(r'''
@@ -215,7 +215,7 @@ void main() {
   }
 
   test_locate_InstanceCreationExpression_type_simpleIdentifier() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 ''');
     await resolveTestCode(r'''
 class A {}
@@ -275,19 +275,22 @@ void main() {
     expect(element, isFunctionElement);
   }
 
-  test_locate_PartOfDirective() async {
-    var libPath = convertPath('/test/lib/lib.dart');
-    var partPath = convertPath('/test/lib/test.dart');
+  test_locate_PartOfDirective_withName() async {
+    var libPath = convertPath('$testPackageLibPath/lib.dart');
+    var partPath = convertPath('$testPackageLibPath/test.dart');
 
     newFile(libPath, content: r'''
 library my.lib;
 part 'test.dart';
 ''');
 
-    driver.addFile(libPath);
-    driver.addFile(partPath);
+    newFile(partPath, content: r'''
+part of my.lib;
+''');
 
-    await resolveTestCode('part of my.lib;');
+    await resolveFile(libPath);
+
+    await resolveFile2(partPath);
     var node = findNode.partOf('part of');
     var element = ElementLocator.locate(node);
     expect(element, isLibraryElement);
@@ -318,7 +321,7 @@ core.int value;
   }
 
   test_locate_StringLiteral_exportUri() async {
-    newFile("/test/lib/foo.dart", content: '');
+    newFile("$testPackageLibPath/foo.dart", content: '');
     await resolveTestCode("export 'foo.dart';");
     var node = findNode.stringLiteral('foo.dart');
     var element = ElementLocator.locate(node);
@@ -333,7 +336,7 @@ core.int value;
   }
 
   test_locate_StringLiteral_importUri() async {
-    newFile("/test/lib/foo.dart", content: '');
+    newFile("$testPackageLibPath/foo.dart", content: '');
     await resolveTestCode("import 'foo.dart';");
     var node = findNode.stringLiteral('foo.dart');
     var element = ElementLocator.locate(node);
@@ -341,7 +344,7 @@ core.int value;
   }
 
   test_locate_StringLiteral_partUri() async {
-    newFile("/test/lib/foo.dart", content: 'part of lib;');
+    newFile("$testPackageLibPath/foo.dart", content: 'part of lib;');
     await resolveTestCode('''
 library lib;
 

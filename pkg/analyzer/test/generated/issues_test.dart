@@ -4,7 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,7 @@ main() {
 /// Tests for various end-to-end cases reported as user issues, where it is
 /// not obvious where to put the test otherwise.
 @reflectiveTest
-class IssuesTest extends DriverResolutionTest {
+class IssuesTest extends PubPackageResolutionTest {
   /// https://github.com/dart-lang/sdk/issues/38565
   ///
   /// The issue was that type inference for annotation instantiation

@@ -26,7 +26,7 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 import '../util/element_type_matchers.dart';
 import 'elements_types_mixin.dart';
 import 'test_analysis_context.dart';
@@ -49,9 +49,9 @@ void _fail(String message) {
 }
 
 @reflectiveTest
-class AnnotationElementResolverTest extends DriverResolutionTest {
+class AnnotationElementResolverTest extends PubPackageResolutionTest {
   test_class_namedConstructor() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A.named();
 }
@@ -80,7 +80,7 @@ class A {
   }
 
   test_class_prefixed_namedConstructor() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A.named();
 }
@@ -111,7 +111,7 @@ class A {
   }
 
   test_class_prefixed_staticConstField() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static const V = 0;
 }
@@ -141,7 +141,7 @@ class A {
   }
 
   test_class_prefixed_unnamedConstructor() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A();
 }
@@ -169,7 +169,7 @@ class A {
   }
 
   test_class_staticConstField() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static const V = 0;
 }
@@ -197,7 +197,7 @@ class A {
   }
 
   test_class_unnamedConstructor() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A();
 }
@@ -223,7 +223,7 @@ class A {
   }
 
   test_topLevelVariable() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const V = 0;
 ''');
     await _validateAnnotation('', '@V', (SimpleIdentifier name1,
@@ -247,7 +247,7 @@ const V = 0;
   }
 
   test_topLevelVariable_prefixed() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const V = 0;
 ''');
     await _validateAnnotation('as p', '@p.V', (SimpleIdentifier name1,

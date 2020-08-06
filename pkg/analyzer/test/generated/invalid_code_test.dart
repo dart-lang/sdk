@@ -7,8 +7,7 @@ import 'dart:async';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
-import '../src/dart/resolution/with_null_safety_mixin.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -22,7 +21,7 @@ main() {
 /// errors generated, but we want to make sure that there is at least one,
 /// and analysis finishes without exceptions.
 @reflectiveTest
-class InvalidCodeTest extends DriverResolutionTest {
+class InvalidCodeTest extends PubPackageResolutionTest {
   /// This code results in a method with the empty name, and the default
   /// constructor, which also has the empty name. The `Map` in `f` initializer
   /// references the empty name.
@@ -347,7 +346,7 @@ class B {
 }
 
 @reflectiveTest
-class InvalidCodeWithNullSafetyTest extends DriverResolutionTest
+class InvalidCodeWithNullSafetyTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_issue_40837() async {
     await _assertCanBeAnalyzed('''
