@@ -34,9 +34,8 @@ class ChangeTypeAnnotation extends CorrectionProducer {
           Expression initializer = coveredNode;
           var newType = initializer.staticType;
           if (newType is InterfaceType || newType is FunctionType) {
-            _oldAnnotation =
-                typeNode.type.getDisplayString(withNullability: false);
-            _newAnnotation = newType.getDisplayString(withNullability: false);
+            _oldAnnotation = displayStringForType(typeNode.type);
+            _newAnnotation = displayStringForType(newType);
             await builder.addDartFileEdit(file, (builder) {
               builder.addReplacement(range.node(typeNode), (builder) {
                 builder.writeType(newType);
