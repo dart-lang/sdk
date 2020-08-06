@@ -108,12 +108,12 @@ void run() {
     final result = p.runSync('run', [
       '--enable-experiment=non-nullable',
       name,
-      'argument1',
+      '--argument1',
       'argument2',
     ]);
 
     // --enable-experiment and main.dart should not be passed.
-    expect(result.stdout, equals('[argument1, argument2]\n'));
+    expect(result.stdout, equals('[--argument1, argument2]\n'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   });
@@ -126,12 +126,12 @@ void run() {
     final result = p.runSync('run', [
       '--enable-experiment=non-nullable',
       Uri.file(name).toString(),
-      'argument1',
+      '--argument1',
       'argument2',
     ]);
 
     // --enable-experiment and main.dart should not be passed.
-    expect(result.stdout, equals('[argument1, argument2]\n'));
+    expect(result.stdout, equals('[--argument1, argument2]\n'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   });
