@@ -131,7 +131,7 @@
       "name": "convert",
       "rootUri": "../third_party/pkg/convert",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.10"
     },
     {
       "name": "crypto",
