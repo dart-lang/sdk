@@ -1575,6 +1575,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitFieldDeclaration(FieldDeclaration node) {
     FieldDeclaration other = _other as FieldDeclaration;
     return isEqualTokens(node.abstractKeyword, other.abstractKeyword) &&
+        isEqualTokens(node.covariantKeyword, other.covariantKeyword) &&
         isEqualNodes(node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.staticKeyword, other.staticKeyword) &&
