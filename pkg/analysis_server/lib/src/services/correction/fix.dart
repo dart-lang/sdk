@@ -315,6 +315,8 @@ class DartFixKind {
   static const MAKE_FIELD_NOT_FINAL =
       FixKind('dart.fix.makeFieldNotFinal', 50, "Make field '{0}' not final");
   static const MAKE_FINAL = FixKind('dart.fix.makeFinal', 50, 'Make final');
+  static const MAKE_RETURN_TYPE_NULLABLE = FixKind(
+      'dart.fix.makeReturnTypeNullable', 50, 'Make the return type nullable');
   static const MOVE_TYPE_ARGUMENTS_TO_CLASS = FixKind(
       'dart.fix.moveTypeArgumentsToClass',
       50,
