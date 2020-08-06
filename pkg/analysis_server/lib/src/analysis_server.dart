@@ -299,14 +299,6 @@ class AnalysisServer extends AbstractAnalysisServer {
     flutterWidgetDescriptions.flush();
   }
 
-  /// Read all files, resolve all URIs, and perform required analysis in
-  /// all current analysis drivers.
-  void reanalyze() {
-    for (var driver in driverMap.values) {
-      driver.resetUriResolution();
-    }
-  }
-
   /// Send the given [notification] to the client.
   void sendNotification(Notification notification) {
     channel.sendNotification(notification);

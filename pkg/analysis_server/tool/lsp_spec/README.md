@@ -111,6 +111,14 @@ Returns: `{ port: number }`
 
 Starts the analzyer diagnostics server (if not already running) and returns the port number it's listening on.
 
+### dart/reanalyze Method
+
+Direction: Client -> Server
+Params: None
+Returns: None
+
+Forces re-reading of all potentially changed files, re-resolving of all referenced URIs, and corresponding re-analysis of everything affected in the current analysis roots. Clients should not usually need to call this method - needing to do so may indicate a bug in the server.
+
 ### dart/textDocument/super Method
 
 Direction: Client -> Server
