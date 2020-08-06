@@ -151,6 +151,7 @@ import 'replace_with_identifier_test.dart' as replace_with_identifier;
 import 'replace_with_interpolation_test.dart' as replace_with_interpolation;
 import 'replace_with_is_empty_test.dart' as replace_with_is_empty;
 import 'replace_with_is_not_empty_test.dart' as replace_with_is_not_empty;
+import 'replace_with_not_null_aware_test.dart' as replace_with_not_null_aware;
 import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'replace_with_var_test.dart' as replace_with_var;
@@ -300,6 +301,7 @@ void main() {
     replace_with_interpolation.main();
     replace_with_is_empty.main();
     replace_with_is_not_empty.main();
+    replace_with_not_null_aware.main();
     replace_with_null_aware.main();
     replace_with_tear_off.main();
     replace_with_var.main();

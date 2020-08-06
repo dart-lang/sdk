@@ -132,6 +132,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_filled
 import 'package:analysis_server/src/services/correction/dart/replace_with_identifier.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_interpolation.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_empty.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
@@ -1003,6 +1004,9 @@ class FixProcessor extends BaseProcessor {
     ],
     StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [
       RemoveDeadIfNull.newInstance,
+    ],
+    StaticWarningCode.INVALID_NULL_AWARE_OPERATOR: [
+      ReplaceWithNotNullAware.newInstance,
     ],
     StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH: [
       AddMissingEnumCaseClauses.newInstance,
