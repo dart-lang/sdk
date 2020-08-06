@@ -110,6 +110,9 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// A mapping from classes to their import set.
   Map<ClassEntity, ImportSet> _classToSet = {};
 
+  /// A mapping from interface types (keyed by classes) to their import set.
+  Map<ClassEntity, ImportSet> _classTypeToSet = {};
+
   /// A mapping from members to their import set.
   Map<MemberEntity, ImportSet> _memberToSet = {};
 
@@ -135,6 +138,7 @@ abstract class DeferredLoadTask extends CompilerTask {
   bool get newDeferredSplit => compiler.options.newDeferredSplit;
   bool get reportInvalidInferredDeferredTypes =>
       compiler.options.reportInvalidInferredDeferredTypes;
+  bool get deferClassTypes => compiler.options.deferClassTypes;
 
   DeferredLoadTask(this.compiler) : super(compiler.measurer) {
     _mainOutputUnit = OutputUnit(true, 'main', <ImportEntity>{});
@@ -207,7 +211,9 @@ abstract class DeferredLoadTask extends CompilerTask {
     ClassEntity cls = element;
     elementEnvironment.forEachLocalClassMember(cls, addLiveInstanceMember);
     elementEnvironment.forEachSupertype(cls, (InterfaceType type) {
-      _collectTypeDependencies(type, dependencies);
+      // TODO(joshualitt): Only gather classes for mixins and super classes.
+      // Otherwise, just collect the type.
+      _collectClassDependencies(type, dependencies);
     });
     dependencies.addClass(cls);
   }
@@ -254,14 +260,24 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// Recursively collects all the dependencies of [type].
   void _collectTypeDependencies(DartType type, Dependencies dependencies,
       [ImportEntity import]) {
-    TypeDependencyVisitor(dependencies, import, commonElements).visit(type);
+    TypeDependencyVisitor(dependencies, import, commonElements,
+            collectClassesAndTypes: !deferClassTypes)
+        .visit(type);
+  }
+
+  void _collectClassDependencies(DartType type, Dependencies dependencies,
+      [ImportEntity import]) {
+    TypeDependencyVisitor(dependencies, import, commonElements,
+            collectClassesAndTypes: true)
+        .visit(type);
   }
 
   void _collectTypeArgumentDependencies(
       Iterable<DartType> typeArguments, Dependencies dependencies,
       [ImportEntity import]) {
     if (typeArguments == null) return;
-    TypeDependencyVisitor(dependencies, import, commonElements)
+    TypeDependencyVisitor(dependencies, import, commonElements,
+            collectClassesAndTypes: !deferClassTypes)
         .visitList(typeArguments);
   }
 
@@ -309,21 +325,28 @@ abstract class DeferredLoadTask extends CompilerTask {
             default:
           }
         }, visitTypeUse: (MemberEntity member, TypeUse typeUse) {
+          void addClassIfInterfaceType(DartType t, [ImportEntity import]) {
+            var typeWithoutNullability = t.withoutNullability;
+            if (typeWithoutNullability is InterfaceType) {
+              dependencies.addClass(typeWithoutNullability.element, import);
+            }
+          }
+
           DartType type = typeUse.type;
           switch (typeUse.kind) {
             case TypeUseKind.TYPE_LITERAL:
-              var typeWithoutNullability = type.withoutNullability;
-              if (typeWithoutNullability is InterfaceType) {
-                dependencies.addClass(
-                    typeWithoutNullability.element, typeUse.deferredImport);
-              }
+              addClassIfInterfaceType(type, typeUse.deferredImport);
               break;
             case TypeUseKind.CONST_INSTANTIATION:
+              addClassIfInterfaceType(type, typeUse.deferredImport);
               _collectTypeDependencies(
                   type, dependencies, typeUse.deferredImport);
               break;
             case TypeUseKind.INSTANTIATION:
             case TypeUseKind.NATIVE_INSTANTIATION:
+              addClassIfInterfaceType(type);
+              _collectTypeDependencies(type, dependencies);
+              break;
             case TypeUseKind.IS_CHECK:
             case TypeUseKind.CATCH_TYPE:
               _collectTypeDependencies(type, dependencies);
@@ -444,6 +467,33 @@ abstract class DeferredLoadTask extends CompilerTask {
           closedWorld, library, dependencies, oldSet, newSet, queue, element);
     } else {
       queue.addClass(element, newSet);
+    }
+  }
+
+  void _updateClassTypeRecursive(KClosedWorld closedWorld, ClassEntity element,
+      ImportSet oldSet, ImportSet newSet, WorkQueue queue) {
+    if (element == null) return;
+
+    ImportSet currentSet = _classTypeToSet[element];
+
+    // Already visited. We may visit some root nodes a second time with
+    // [isMirrorUsage] in order to mark static members used reflectively.
+    if (currentSet == newSet) return;
+
+    // Elements in the main output unit always remain there.
+    if (currentSet == importSets.mainSet) return;
+
+    if (currentSet == oldSet) {
+      // Continue recursively updating from [oldSet] to [newSet].
+      _classTypeToSet[element] = newSet;
+
+      Dependencies dependencies = Dependencies();
+      dependencies.addClassType(element);
+      LibraryEntity library = element.library;
+      _processDependencies(
+          closedWorld, library, dependencies, oldSet, newSet, queue, element);
+    } else {
+      queue.addClassType(element, newSet);
     }
   }
 
@@ -579,6 +629,19 @@ abstract class DeferredLoadTask extends CompilerTask {
       }
     });
 
+    dependencies.classType.forEach((ClassEntity cls, DependencyInfo info) {
+      _fixClassDependencyInfo(info, cls, library, context);
+      if (info.isDeferred) {
+        if (_shouldAddDeferredDependency(newSet)) {
+          for (ImportEntity deferredImport in info.imports) {
+            queue.addClassType(cls, importSets.singleton(deferredImport));
+          }
+        }
+      } else {
+        _updateClassTypeRecursive(closedWorld, cls, oldSet, newSet, queue);
+      }
+    });
+
     dependencies.members.forEach((MemberEntity member, DependencyInfo info) {
       _fixMemberDependencyInfo(info, member, library, context);
       if (info.isDeferred) {
@@ -626,6 +689,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     // Generate an output unit for all import sets that are associated with an
     // element or constant.
     _classToSet.values.forEach(addUnit);
+    _classTypeToSet.values.forEach(addUnit);
     _memberToSet.values.forEach(addUnit);
     _localFunctionToSet.values.forEach(addUnit);
     _constantToSet.values.forEach(addUnit);
@@ -814,16 +878,19 @@ abstract class DeferredLoadTask extends CompilerTask {
     _createOutputUnits();
     Map<String, List<OutputUnit>> hunksToLoad = _setupHunksToLoad();
     Map<ClassEntity, OutputUnit> classMap = {};
+    Map<ClassEntity, OutputUnit> classTypeMap = {};
     Map<MemberEntity, OutputUnit> memberMap = {};
     Map<Local, OutputUnit> localFunctionMap = {};
     Map<ConstantValue, OutputUnit> constantMap = {};
     _classToSet.forEach((cls, s) => classMap[cls] = s.unit);
+    _classTypeToSet.forEach((cls, s) => classTypeMap[cls] = s.unit);
     _memberToSet.forEach((member, s) => memberMap[member] = s.unit);
     _localFunctionToSet.forEach(
         (localFunction, s) => localFunctionMap[localFunction] = s.unit);
     _constantToSet.forEach((constant, s) => constantMap[constant] = s.unit);
 
     _classToSet = null;
+    _classTypeToSet = null;
     _memberToSet = null;
     _localFunctionToSet = null;
     _constantToSet = null;
@@ -831,8 +898,10 @@ abstract class DeferredLoadTask extends CompilerTask {
     cleanup();
     return OutputUnitData(
         this.isProgramSplit && !disableProgramSplit,
+        deferClassTypes,
         this._mainOutputUnit,
         classMap,
+        classTypeMap,
         memberMap,
         localFunctionMap,
         constantMap,
@@ -881,6 +950,13 @@ abstract class DeferredLoadTask extends CompilerTask {
       var elements = elementMap.putIfAbsent(importSet.unit, () => <String>[]);
       var id = element.name ?? '$element';
       id = '$id cls';
+      elements.add(id);
+    });
+    _classTypeToSet.forEach((ClassEntity element, ImportSet importSet) {
+      if (ignoreEntityInDump(element)) return;
+      var elements = elementMap.putIfAbsent(importSet.unit, () => <String>[]);
+      var id = element.name ?? '$element';
+      id = '$id type';
       elements.add(id);
     });
     _memberToSet.forEach((MemberEntity element, ImportSet importSet) {
@@ -1137,6 +1213,10 @@ class WorkQueue {
   /// An index to find work items in the queue corresponding to a class.
   final Map<ClassEntity, WorkItem> pendingClasses = {};
 
+  /// An index to find work items in the queue corresponding to an
+  /// [InterfaceType] represented here by its [ClassEntitiy].
+  final Map<ClassEntity, WorkItem> pendingClassType = {};
+
   /// An index to find work items in the queue corresponding to a member.
   final Map<MemberEntity, WorkItem> pendingMembers = {};
 
@@ -1166,6 +1246,22 @@ class WorkQueue {
     if (item == null) {
       item = ClassWorkItem(element, importSet);
       pendingClasses[element] = item;
+      queue.add(item);
+    } else {
+      item.importsToAdd = _importSets.union(item.importsToAdd, importSet);
+    }
+  }
+
+  /// Add to the queue that class type (represented by [element]) should be
+  /// updated to include all imports in [importSet]. If there is already a
+  /// work item in the queue for [element], this makes sure that the work
+  /// item now includes the union of [importSet] and the existing work
+  /// item's import set.
+  void addClassType(ClassEntity element, ImportSet importSet) {
+    var item = pendingClassType[element];
+    if (item == null) {
+      item = ClassTypeWorkItem(element, importSet);
+      pendingClassType[element] = item;
       queue.add(item);
     } else {
       item.importsToAdd = _importSets.union(item.importsToAdd, importSet);
@@ -1235,6 +1331,23 @@ class ClassWorkItem extends WorkItem {
   }
 }
 
+/// Summary of the work that needs to be done on a class.
+class ClassTypeWorkItem extends WorkItem {
+  /// Class to be recursively updated.
+  final ClassEntity cls;
+
+  ClassTypeWorkItem(this.cls, ImportSet newSet) : super(newSet);
+
+  @override
+  void update(
+      DeferredLoadTask task, KClosedWorld closedWorld, WorkQueue queue) {
+    queue.pendingClassType.remove(cls);
+    ImportSet oldSet = task._classTypeToSet[cls];
+    ImportSet newSet = task.importSets.union(oldSet, importsToAdd);
+    task._updateClassTypeRecursive(closedWorld, cls, oldSet, newSet, queue);
+  }
+}
+
 /// Summary of the work that needs to be done on a member.
 class MemberWorkItem extends WorkItem {
   /// Member to be recursively updated.
@@ -1298,8 +1411,10 @@ class OutputUnitData {
   static const String tag = 'output-unit-data';
 
   final bool isProgramSplit;
+  final bool deferClassTypes;
   final OutputUnit mainOutputUnit;
   final Map<ClassEntity, OutputUnit> _classToUnit;
+  final Map<ClassEntity, OutputUnit> _classTypeToUnit;
   final Map<MemberEntity, OutputUnit> _memberToUnit;
   final Map<Local, OutputUnit> _localFunctionToUnit;
   final Map<ConstantValue, OutputUnit> _constantToUnit;
@@ -1321,8 +1436,10 @@ class OutputUnitData {
 
   OutputUnitData(
       this.isProgramSplit,
+      this.deferClassTypes,
       this.mainOutputUnit,
       this._classToUnit,
+      this._classTypeToUnit,
       this._memberToUnit,
       this._localFunctionToUnit,
       this._constantToUnit,
@@ -1345,6 +1462,8 @@ class OutputUnitData {
           convertConstantMap) {
     Map<ClassEntity, OutputUnit> classToUnit =
         convertClassMap(other._classToUnit, other._localFunctionToUnit);
+    Map<ClassEntity, OutputUnit> classTypeToUnit =
+        convertClassMap(other._classTypeToUnit, other._localFunctionToUnit);
     Map<MemberEntity, OutputUnit> memberToUnit =
         convertMemberMap(other._memberToUnit, other._localFunctionToUnit);
     Map<ConstantValue, OutputUnit> constantToUnit =
@@ -1360,8 +1479,10 @@ class OutputUnitData {
 
     return OutputUnitData(
         other.isProgramSplit,
+        other.deferClassTypes,
         other.mainOutputUnit,
         classToUnit,
+        classTypeToUnit,
         memberToUnit,
         // Local functions only make sense in the K-world model.
         const <Local, OutputUnit>{},
@@ -1376,6 +1497,7 @@ class OutputUnitData {
   factory OutputUnitData.readFromDataSource(DataSource source) {
     source.begin(tag);
     bool isProgramSplit = source.readBool();
+    bool deferClassTypes = source.readBool();
     List<OutputUnit> outputUnits = source.readList(() {
       bool isMainOutput = source.readBool();
       String name = source.readString();
@@ -1385,6 +1507,9 @@ class OutputUnitData {
     OutputUnit mainOutputUnit = outputUnits[source.readInt()];
 
     Map<ClassEntity, OutputUnit> classToUnit = source.readClassMap(() {
+      return outputUnits[source.readInt()];
+    });
+    Map<ClassEntity, OutputUnit> classTypeToUnit = source.readClassMap(() {
       return outputUnits[source.readInt()];
     });
     Map<MemberEntity, OutputUnit> memberToUnit =
@@ -1411,8 +1536,10 @@ class OutputUnitData {
     source.end(tag);
     return OutputUnitData(
         isProgramSplit,
+        deferClassTypes,
         mainOutputUnit,
         classToUnit,
+        classTypeToUnit,
         memberToUnit,
         // Local functions only make sense in the K-world model.
         const <Local, OutputUnit>{},
@@ -1427,6 +1554,7 @@ class OutputUnitData {
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
     sink.writeBool(isProgramSplit);
+    sink.writeBool(deferClassTypes);
     Map<OutputUnit, int> outputUnitIndices = {};
     sink.writeList(outputUnits, (OutputUnit outputUnit) {
       outputUnitIndices[outputUnit] = outputUnitIndices.length;
@@ -1436,6 +1564,9 @@ class OutputUnitData {
     });
     sink.writeInt(outputUnitIndices[mainOutputUnit]);
     sink.writeClassMap(_classToUnit, (OutputUnit outputUnit) {
+      sink.writeInt(outputUnitIndices[outputUnit]);
+    });
+    sink.writeClassMap(_classTypeToUnit, (OutputUnit outputUnit) {
       sink.writeInt(outputUnitIndices[outputUnit]);
     });
     sink.writeMemberMap(_memberToUnit,
@@ -1472,6 +1603,23 @@ class OutputUnitData {
   }
 
   OutputUnit outputUnitForClassForTesting(ClassEntity cls) => _classToUnit[cls];
+
+  /// Returns the [OutputUnit] where [cls]'s type belongs.
+  // TODO(joshualitt): see above TODO regarding allowNull.
+  OutputUnit outputUnitForClassType(ClassEntity cls, {bool allowNull: false}) {
+    if (!isProgramSplit) return mainOutputUnit;
+    OutputUnit unit;
+    if (deferClassTypes) {
+      unit = _classTypeToUnit[cls];
+    } else {
+      unit = _classToUnit[cls];
+    }
+    assert(allowNull || unit != null, 'No output unit for type $cls');
+    return unit ?? mainOutputUnit;
+  }
+
+  OutputUnit outputUnitForClassTypeForTesting(ClassEntity cls) =>
+      deferClassTypes ? _classTypeToUnit[cls] : _classToUnit[cls];
 
   /// Returns the [OutputUnit] where [member] belongs.
   OutputUnit outputUnitForMember(MemberEntity member) {
@@ -1630,12 +1778,21 @@ String deferredPartFileName(CompilerOptions options, String name,
 
 class Dependencies {
   final Map<ClassEntity, DependencyInfo> classes = {};
+  final Map<ClassEntity, DependencyInfo> classType = {};
   final Map<MemberEntity, DependencyInfo> members = {};
   final Set<Local> localFunctions = {};
   final Map<ConstantValue, DependencyInfo> constants = {};
 
   void addClass(ClassEntity cls, [ImportEntity import]) {
     (classes[cls] ??= DependencyInfo()).registerImport(import);
+
+    // Add a classType dependency as well just in case we optimize out
+    // the class later.
+    addClassType(cls, import);
+  }
+
+  void addClassType(ClassEntity cls, [ImportEntity import]) {
+    (classType[cls] ??= DependencyInfo()).registerImport(import);
   }
 
   void addMember(MemberEntity m, [ImportEntity import]) {
@@ -1664,11 +1821,16 @@ class DependencyInfo {
 }
 
 class TypeDependencyVisitor implements DartTypeVisitor<void, Null> {
+  // If true, collect classes and types, otherwise just collect types.
+  // Note: When collecting classes, types are added implicitly by the
+  // dependencies class.
+  final bool collectClassesAndTypes;
   final Dependencies _dependencies;
   final ImportEntity _import;
   final CommonElements _commonElements;
 
-  TypeDependencyVisitor(this._dependencies, this._import, this._commonElements);
+  TypeDependencyVisitor(this._dependencies, this._import, this._commonElements,
+      {this.collectClassesAndTypes});
 
   @override
   void visit(DartType type, [_]) {
@@ -1691,7 +1853,11 @@ class TypeDependencyVisitor implements DartTypeVisitor<void, Null> {
 
   @override
   void visitFutureOrType(FutureOrType type, Null argument) {
-    _dependencies.addClass(_commonElements.futureClass);
+    if (collectClassesAndTypes) {
+      _dependencies.addClass(_commonElements.futureClass);
+    } else {
+      _dependencies.addClassType(_commonElements.futureClass);
+    }
     visit(type.typeArgument);
   }
 
@@ -1718,10 +1884,11 @@ class TypeDependencyVisitor implements DartTypeVisitor<void, Null> {
   @override
   void visitInterfaceType(InterfaceType type, Null argument) {
     visitList(type.typeArguments);
-    // TODO(sigmund): when we are able to split classes from types in our
-    // runtime-type representation, this should track type.element as a type
-    // dependency instead.
-    _dependencies.addClass(type.element, _import);
+    if (collectClassesAndTypes) {
+      _dependencies.addClass(type.element, _import);
+    } else {
+      _dependencies.addClassType(type.element, _import);
+    }
   }
 
   @override

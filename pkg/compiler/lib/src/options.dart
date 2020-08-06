@@ -157,6 +157,11 @@ class CompilerOptions implements DiagnosticOptions {
   /// This flag is presented to help developers find and fix the affected code.
   bool reportInvalidInferredDeferredTypes = false;
 
+  /// Whether to defer load class types.
+  bool deferClassTypes = false; // default value.
+  bool _deferClassTypes = false;
+  bool _noDeferClassTypes = false;
+
   /// Whether to disable inlining during the backend optimizations.
   // TODO(sigmund): negate, so all flags are positive
   bool disableInlining = false;
@@ -426,6 +431,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..newDeferredSplit = _hasOption(options, Flags.newDeferredSplit)
       ..reportInvalidInferredDeferredTypes =
           _hasOption(options, Flags.reportInvalidInferredDeferredTypes)
+      .._deferClassTypes = _hasOption(options, Flags.deferClassTypes)
+      .._noDeferClassTypes = _hasOption(options, Flags.noDeferClassTypes)
       ..fatalWarnings = _hasOption(options, Flags.fatalWarnings)
       ..terseDiagnostics = _hasOption(options, Flags.terse)
       ..suppressWarnings = _hasOption(options, Flags.suppressWarnings)
@@ -527,6 +534,10 @@ class CompilerOptions implements DiagnosticOptions {
       throw ArgumentError("'${Flags.soundNullSafety}' requires the "
           "'non-nullable' experiment to be enabled");
     }
+    if (_deferClassTypes && _noDeferClassTypes) {
+      throw ArgumentError("'${Flags.deferClassTypes}' incompatible with "
+          "'${Flags.noDeferClassTypes}'");
+    }
   }
 
   void deriveOptions() {
@@ -588,6 +599,9 @@ class CompilerOptions implements DiagnosticOptions {
     if (_disableMinification) {
       enableMinification = false;
     }
+
+    if (_deferClassTypes) deferClassTypes = true;
+    if (_noDeferClassTypes) deferClassTypes = false;
   }
 
   /// Returns `true` if warnings and hints are shown for all packages.

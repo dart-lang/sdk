@@ -1998,15 +1998,15 @@ class FragmentEmitter {
     ClassEntity jsObjectClass = _commonElements.jsJavaScriptObjectClass;
     InterfaceType jsObjectType = _elementEnvironment.getThisType(jsObjectClass);
 
-    Map<Class, List<Class>> nativeRedirections =
+    Map<ClassTypeData, List<ClassTypeData>> nativeRedirections =
         _nativeEmitter.typeRedirections;
 
     Ruleset ruleset = Ruleset.empty();
     Map<ClassEntity, int> erasedTypes = {};
-    Iterable<Class> classes =
-        fragment.libraries.expand((Library library) => library.classes);
-    classes.forEach((Class cls) {
-      ClassEntity element = cls.element;
+    Iterable<ClassTypeData> classTypeData =
+        fragment.libraries.expand((Library library) => library.classTypeData);
+    classTypeData.forEach((ClassTypeData typeData) {
+      ClassEntity element = typeData.element;
       InterfaceType targetType = _elementEnvironment.getThisType(element);
 
       // TODO(fishythefish): Prune uninstantiated classes.
@@ -2016,7 +2016,7 @@ class FragmentEmitter {
 
       bool isInterop = _classHierarchy.isSubclassOf(element, jsObjectClass);
 
-      Iterable<TypeCheck> checks = cls.classChecksNewRti?.checks ?? [];
+      Iterable<TypeCheck> checks = typeData.classChecks?.checks ?? [];
       Iterable<InterfaceType> supertypes = isInterop
           ? checks
               .map((check) => _elementEnvironment.getJsInteropType(check.cls))
@@ -2024,11 +2024,11 @@ class FragmentEmitter {
               .map((check) => _dartTypes.asInstanceOf(targetType, check.cls));
 
       Map<TypeVariableType, DartType> typeVariables = {};
-      Set<TypeVariableType> namedTypeVariables = cls.namedTypeVariablesNewRti;
-      nativeRedirections[cls]?.forEach((Class redirectee) {
-        namedTypeVariables.addAll(redirectee.namedTypeVariablesNewRti);
+      Set<TypeVariableType> namedTypeVariables = typeData.namedTypeVariables;
+      nativeRedirections[typeData]?.forEach((ClassTypeData redirectee) {
+        namedTypeVariables.addAll(redirectee.namedTypeVariables);
       });
-      for (TypeVariableType typeVariable in cls.namedTypeVariablesNewRti) {
+      for (TypeVariableType typeVariable in typeData.namedTypeVariables) {
         TypeVariableEntity element = typeVariable.element;
         InterfaceType supertype = isInterop
             ? _elementEnvironment.getJsInteropType(element.typeDeclaration)
@@ -2053,8 +2053,9 @@ class FragmentEmitter {
       });
     }
 
-    nativeRedirections.forEach((Class target, List<Class> redirectees) {
-      for (Class redirectee in redirectees) {
+    nativeRedirections
+        .forEach((ClassTypeData target, List<ClassTypeData> redirectees) {
+      for (ClassTypeData redirectee in redirectees) {
         ruleset.addRedirection(redirectee.element, target.element);
       }
     });

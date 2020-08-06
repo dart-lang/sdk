@@ -135,6 +135,7 @@ class ProgramBuilder {
       this._rtiNeededClasses,
       this._mainFunction)
       : this.collector = new Collector(
+            _options,
             _commonElements,
             _elementEnvironment,
             _outputUnitData,
@@ -152,6 +153,10 @@ class ProgramBuilder {
   /// Mapping from [ClassEntity] to constructed [Class]. We need this to
   /// update the superclass in the [Class].
   final Map<ClassEntity, Class> _classes = <ClassEntity, Class>{};
+
+  /// Mapping from [ClassEntity] to constructed [ClassTypeData] object. Used to build
+  /// libraries.
+  final Map<ClassEntity, ClassTypeData> _classTypeData = {};
 
   /// Mapping from [OutputUnit] to constructed [Fragment]. We need this to
   /// generate the deferredLoadingMap (to know which hunks to load).
@@ -184,6 +189,7 @@ class ProgramBuilder {
     _closedWorld.outputUnitData.outputUnits
         .forEach(_registry.registerOutputUnit);
     collector.outputClassLists.forEach(_registry.registerClasses);
+    collector.outputClassTypeLists.forEach(_registry.registerClassTypes);
     collector.outputStaticLists.forEach(_registry.registerMembers);
     collector.outputConstantLists.forEach(_registerConstants);
     collector.outputStaticNonFinalFieldLists.forEach(_registry.registerMembers);
@@ -197,6 +203,11 @@ class ProgramBuilder {
     collector.outputClassLists
         .forEach((OutputUnit _, List<ClassEntity> classes) {
       classes.forEach(_buildClass);
+    });
+
+    collector.outputClassTypeLists
+        .forEach((OutputUnit _, List<ClassEntity> types) {
+      types.forEach(_buildClassTypeData);
     });
 
     // Resolve the superclass references after we've processed all the classes.
@@ -473,8 +484,9 @@ class ProgramBuilder {
     List<Library> libraries = new List<Library>(librariesMap.length);
     int count = 0;
     librariesMap.forEach((LibraryEntity library, List<ClassEntity> classes,
-        List<MemberEntity> members) {
-      libraries[count++] = _buildLibrary(library, classes, members);
+        List<MemberEntity> members, List<ClassEntity> classTypeElements) {
+      libraries[count++] =
+          _buildLibrary(library, classes, members, classTypeElements);
     });
     return libraries;
   }
@@ -500,8 +512,8 @@ class ProgramBuilder {
 
     interceptorClass?.isChecks?.addAll(_jsInteropIsChecks);
     Set<String> stubNames = {};
-    librariesMap
-        .forEach((LibraryEntity library, List<ClassEntity> classElements, _) {
+    librariesMap.forEach((LibraryEntity library,
+        List<ClassEntity> classElements, _memberElement, _typeElement) {
       for (ClassEntity cls in classElements) {
         if (_nativeData.isJsInteropClass(cls)) {
           _elementEnvironment.forEachLocalClassMember(cls,
@@ -601,7 +613,7 @@ class ProgramBuilder {
   // Note that a library-element may have multiple [Library]s, if it is split
   // into multiple output units.
   Library _buildLibrary(LibraryEntity library, List<ClassEntity> classElements,
-      List<MemberEntity> memberElements) {
+      List<MemberEntity> memberElements, List<ClassEntity> classTypeElements) {
     String uri = library.canonicalUri.toString();
 
     List<StaticMethod> statics = memberElements
@@ -621,12 +633,17 @@ class ProgramBuilder {
             !cls.isNative || !_unneededNativeClasses.contains(cls))
         .toList(growable: false);
 
+    List<ClassTypeData> classTypeData = classTypeElements
+        .map((ClassEntity classTypeElement) => _classTypeData[classTypeElement])
+        .toList();
+    classTypeData.addAll(classes.map((Class cls) => cls.typeData).toList());
+
     bool visitStatics = true;
     List<Field> staticFieldsForReflection =
         _buildFields(library: library, visitStatics: visitStatics);
 
-    return new Library(
-        library, uri, statics, classes, staticFieldsForReflection);
+    return new Library(library, uri, statics, classes, classTypeData,
+        staticFieldsForReflection);
   }
 
   bool _isSoftDeferred(ClassEntity element) {
@@ -636,9 +653,12 @@ class ProgramBuilder {
   Class _buildClass(ClassEntity cls) {
     bool onlyForConstructor =
         collector.classesOnlyNeededForConstructor.contains(cls);
-    bool onlyForRti = collector.classesOnlyNeededForRti.contains(cls);
+    bool onlyForRti = _options.deferClassTypes
+        ? false
+        : collector.classesOnlyNeededForRti.contains(cls);
     bool hasRtiField = _rtiNeed.classNeedsTypeArguments(cls);
     if (_nativeData.isJsInteropClass(cls)) {
+      // TODO(joshualitt): Can we just emit JSInteropClasses as types?
       // TODO(jacobr): check whether the class has any active static fields
       // if it does not we can suppress it completely.
       onlyForRti = true;
@@ -793,6 +813,7 @@ class ProgramBuilder {
     bool isInstantiated = !_nativeData.isJsInteropClass(cls) &&
         _codegenWorld.directlyInstantiatedClasses.contains(cls);
 
+    ClassTypeData typeData = ClassTypeData(cls, _rtiChecks.requiredChecks[cls]);
     Class result;
     if (_elementEnvironment.isMixinApplication(cls) &&
         !onlyForConstructorOrRti &&
@@ -803,6 +824,7 @@ class ProgramBuilder {
 
       result = new MixinApplication(
           cls,
+          typeData,
           name,
           holder,
           instanceFields,
@@ -810,7 +832,6 @@ class ProgramBuilder {
           callStubs,
           checkedSetters,
           isChecks,
-          _rtiChecks.requiredChecks[cls],
           typeTests.functionTypeIndex,
           isDirectlyInstantiated: isInstantiated,
           hasRtiField: hasRtiField,
@@ -819,6 +840,7 @@ class ProgramBuilder {
     } else {
       result = new Class(
           cls,
+          typeData,
           name,
           holder,
           methods,
@@ -828,7 +850,6 @@ class ProgramBuilder {
           noSuchMethodStubs,
           checkedSetters,
           isChecks,
-          _rtiChecks.requiredChecks[cls],
           typeTests.functionTypeIndex,
           isDirectlyInstantiated: isInstantiated,
           hasRtiField: hasRtiField,
@@ -843,6 +864,10 @@ class ProgramBuilder {
     return result;
   }
 
+  void _buildClassTypeData(ClassEntity cls) {
+    _classTypeData[cls] = ClassTypeData(cls, _rtiChecks.requiredChecks[cls]);
+  }
+
   void associateNamedTypeVariablesNewRti() {
     for (TypeVariableType typeVariable in _codegenWorld.namedTypeVariablesNewRti
         .union(_lateNamedTypeVariablesNewRti)) {
@@ -853,8 +878,13 @@ class ProgramBuilder {
               : _classHierarchy.subclassesOf(declaration);
       for (ClassEntity entity in subtypes) {
         Class cls = _classes[entity];
-        if (cls == null) continue;
-        cls.namedTypeVariablesNewRti.add(typeVariable);
+        if (cls != null) {
+          cls.typeData.namedTypeVariables.add(typeVariable);
+        }
+        ClassTypeData classTypeData = _classTypeData[entity];
+        if (classTypeData != null) {
+          classTypeData.namedTypeVariables.add(typeVariable);
+        }
       }
     }
   }

@@ -9,6 +9,7 @@ part of dart2js.js_emitter.program_builder;
 ///
 /// The code for the containing (used) methods must exist in the `universe`.
 class Collector {
+  final CompilerOptions _options;
   final JCommonElements _commonElements;
   final JElementEnvironment _elementEnvironment;
   final OutputUnitData _outputUnitData;
@@ -27,6 +28,7 @@ class Collector {
   // This field is set in [computeNeededDeclarations].
   Set<ClassEntity> classesOnlyNeededForConstructor;
   final Map<OutputUnit, List<ClassEntity>> outputClassLists = {};
+  final Map<OutputUnit, List<ClassEntity>> outputClassTypeLists = {};
   final Map<OutputUnit, List<ConstantValue>> outputConstantLists = {};
   final Map<OutputUnit, List<MemberEntity>> outputStaticLists = {};
   final Map<OutputUnit, List<FieldEntity>> outputStaticNonFinalFieldLists = {};
@@ -41,6 +43,7 @@ class Collector {
   final List<ClassEntity> nativeClassesAndSubclasses = [];
 
   Collector(
+      this._options,
       this._commonElements,
       this._elementEnvironment,
       this._outputUnitData,
@@ -134,6 +137,14 @@ class Collector {
     }
   }
 
+  Map<OutputUnit, List<ClassEntity>> get _outputListsForClassType {
+    if (_options.deferClassTypes) {
+      return outputClassTypeLists;
+    } else {
+      return outputClassLists;
+    }
+  }
+
   /// Compute all the classes and typedefs that must be emitted.
   void computeNeededDeclarations() {
     Set<ClassEntity> backendTypeHelpers =
@@ -199,8 +210,11 @@ class Collector {
     List<ClassEntity> sortedClasses = _sorter.sortClasses(neededClasses);
 
     for (ClassEntity cls in sortedClasses) {
-      if (_nativeData.isNativeOrExtendsNative(cls) &&
-          !classesOnlyNeededForRti.contains(cls) &&
+      if (classesOnlyNeededForRti.contains(cls)) {
+        _outputListsForClassType
+            .putIfAbsent(_outputUnitData.outputUnitForClassType(cls), () => [])
+            .add(cls);
+      } else if (_nativeData.isNativeOrExtendsNative(cls) &&
           !classesOnlyNeededForConstructor.contains(cls)) {
         // For now, native classes and related classes cannot be deferred.
         nativeClassesAndSubclasses.add(cls);
@@ -285,7 +299,9 @@ class Collector {
       outputLibraryLists.putIfAbsent(unit, () => {}).add(library);
     });
     neededClasses.forEach((ClassEntity element) {
-      OutputUnit unit = _outputUnitData.outputUnitForClass(element);
+      OutputUnit unit = classesOnlyNeededForRti.contains(element)
+          ? _outputUnitData.outputUnitForClassType(element)
+          : _outputUnitData.outputUnitForClass(element);
       LibraryEntity library = element.library;
       outputLibraryLists.putIfAbsent(unit, () => {}).add(library);
     });
