@@ -3531,9 +3531,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (_isEnclosingClassFfiStruct) return;
 
     for (var field in fields.variables) {
+      var fieldElement = field.declaredElement as FieldElement;
+      if (fieldElement.isAbstract) continue;
       if (field.initializer != null) continue;
 
-      var type = field.declaredElement.type;
+      var type = fieldElement.type;
       if (!_typeSystem.isPotentiallyNonNullable(type)) continue;
 
       _errorReporter.reportErrorForNode(

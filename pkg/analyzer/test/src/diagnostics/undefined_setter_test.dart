@@ -142,4 +142,15 @@ f(C c) {
 
 @reflectiveTest
 class UndefinedSetterWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin, UndefinedSetterTestCases {}
+    with WithNullSafetyMixin, UndefinedSetterTestCases {
+  test_set_abstract_field_valid() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+void f(A a, int x) {
+  a.x = x;
+}
+''');
+  }
+}

@@ -16,6 +16,23 @@ main() {
 @reflectiveTest
 class NotInitializedNonNullableInstanceFieldTest
     extends PubPackageResolutionTest with WithNullSafetyMixin {
+  test_abstract_field_non_nullable() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+''');
+  }
+
+  test_abstract_field_non_nullable_with_constructor() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract int x;
+  A();
+}
+''');
+  }
+
   test_class_factoryConstructor() async {
     await assertNoErrorsInCode('''
 class A {
