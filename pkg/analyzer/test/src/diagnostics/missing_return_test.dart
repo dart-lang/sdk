@@ -3,11 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,9 +15,9 @@ main() {
 }
 
 @reflectiveTest
-class MissingReturnTest extends DriverResolutionTest with PackageMixin {
+class MissingReturnTest extends PubPackageResolutionTest {
   test_alwaysThrows() async {
-    addMetaPackage();
+    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -217,10 +215,10 @@ class B extends A {
 }
 
 @reflectiveTest
-class MissingReturnWithNullSafetyTest extends DriverResolutionTest
+class MissingReturnWithNullSafetyTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_returnNever() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 Never foo() {
   throw 0;
 }

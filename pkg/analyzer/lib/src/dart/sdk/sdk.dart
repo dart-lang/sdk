@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
@@ -14,7 +15,15 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
+
+Version languageVersionFromSdkVersion(String sdkVersionStr) {
+  var sdkVersionParts = sdkVersionStr.split('.');
+  var sdkVersionMajor = int.parse(sdkVersionParts[0]);
+  var sdkVersionMinor = int.parse(sdkVersionParts[1]);
+  return Version(sdkVersionMajor, sdkVersionMinor, 0);
+}
 
 /// An abstract implementation of a Dart SDK in which the available libraries
 /// are stored in a library map. Subclasses are responsible for populating the
@@ -197,11 +206,21 @@ class EmbedderSdk extends AbstractDartSdk {
   static const String _DART_COLON_PREFIX = 'dart:';
 
   static const String _EMBEDDED_LIB_MAP_KEY = 'embedded_libs';
+
+  Version _languageVersion;
+
   final Map<String, String> _urlMappings = HashMap<String, String>();
 
+  /// TODO(scheglov) Make [languageVersion] required.
+  /// https://github.com/dart-lang/sdk/issues/42890
   EmbedderSdk(
-      ResourceProvider resourceProvider, Map<Folder, YamlMap> embedderYamls) {
+    ResourceProvider resourceProvider,
+    Map<Folder, YamlMap> embedderYamls, {
+    Version languageVersion,
+  }) {
     this.resourceProvider = resourceProvider;
+    this._languageVersion =
+        languageVersion ?? languageVersionFromSdkVersion(io.Platform.version);
     embedderYamls?.forEach(_processEmbedderYaml);
   }
 
@@ -220,6 +239,9 @@ class EmbedderSdk extends AbstractDartSdk {
     }
     return null;
   }
+
+  @override
+  Version get languageVersion => _languageVersion;
 
   @override
   // TODO(danrubel) Determine SDK version
@@ -364,6 +386,9 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   /// discovered.
   String _sdkVersion;
 
+  /// The cached language version of this SDK.
+  Version _languageVersion;
+
   /// The file containing the pub executable.
   File _pubExecutable;
 
@@ -394,6 +419,18 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   /// Return the directory containing documentation for the SDK.
   Folder get docDirectory =>
       _sdkDirectory.getChildAssumingFolder(_DOCS_DIRECTORY_NAME);
+
+  @override
+  Version get languageVersion {
+    if (_languageVersion == null) {
+      var sdkVersionStr = _sdkDirectory
+          .getChildAssumingFile(_VERSION_FILE_NAME)
+          .readAsStringSync();
+      _languageVersion = languageVersionFromSdkVersion(sdkVersionStr);
+    }
+
+    return _languageVersion;
+  }
 
   /// Return the directory within the SDK directory that contains the libraries.
   Folder get libraryDirectory {

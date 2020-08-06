@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
-import 'with_null_safety_mixin.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class PrefixedIdentifierResolutionTest extends DriverResolutionTest {
+class PrefixedIdentifierResolutionTest extends PubPackageResolutionTest {
   test_dynamic_explicitCore_withPrefix() async {
     await assertNoErrorsInCode(r'''
 import 'dart:core' as mycore;
@@ -34,7 +33,7 @@ main() {
   }
 
   test_implicitCall_tearOff() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int call() => 0;
 }
@@ -62,7 +61,7 @@ int Function() foo() {
 class PrefixedIdentifierResolutionWithNullSafetyTest
     extends PrefixedIdentifierResolutionTest with WithNullSafetyMixin {
   test_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 ''');
 
@@ -88,7 +87,7 @@ main() {
   }
 
   test_implicitCall_tearOff_nullable() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int call() => 0;
 }

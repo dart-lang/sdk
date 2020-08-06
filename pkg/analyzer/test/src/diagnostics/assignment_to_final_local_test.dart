@@ -6,8 +6,7 @@ import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class AssignmentToFinalLocalTest extends DriverResolutionTest {
+class AssignmentToFinalLocalTest extends PubPackageResolutionTest {
   test_localVariable() async {
     await assertErrorsInCode('''
 f() {
@@ -137,7 +136,7 @@ f() { x = 1; }''', [
 }
 
 @reflectiveTest
-class AssignmentToFinalLocalWithNullSafetyTest extends DriverResolutionTest
+class AssignmentToFinalLocalWithNullSafetyTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_localVariable_late() async {
     await assertNoErrorsInCode('''

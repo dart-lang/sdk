@@ -6,8 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../driver_resolution.dart';
-import '../with_null_safety_mixin.dart';
+import '../context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class SetLiteralTest extends DriverResolutionTest {
+class SetLiteralTest extends PubPackageResolutionTest {
   AstNode setLiteral(String search) => findNode.setOrMapLiteral(search);
 
   test_context_noTypeArgs_expression_conflict() async {

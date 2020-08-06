@@ -4,7 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -13,12 +13,12 @@ main() {
 }
 
 @reflectiveTest
-class YieldStatementResolutionTest extends DriverResolutionTest {
+class YieldStatementResolutionTest extends PubPackageResolutionTest {
   @override
   setUp() {
     super.setUp();
 
-    newFile('/test/lib/my_stream.dart', content: r'''
+    newFile('$testPackageLibPath/my_stream.dart', content: r'''
 import 'dart:async';
 
 export 'dart:async';

@@ -11,8 +11,7 @@ import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -21,13 +20,14 @@ main() {
 }
 
 @reflectiveTest
-class NonNullOptOutTest extends DriverResolutionTest with WithNullSafetyMixin {
+class NonNullOptOutTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
   ImportFindElement get _import_a {
     return findElement.importFind('package:test/a.dart');
   }
 
   test_assignment_indexExpression() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   void operator[]=(int a, int b) {}
 }
@@ -51,7 +51,7 @@ main(A a) {
   }
 
   test_assignment_prefixedIdentifier_instanceTarget_class_field() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo = 0;
 }
@@ -78,7 +78,7 @@ main(A a) {
   }
 
   test_assignment_prefixedIdentifier_instanceTarget_extension_setter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 extension E on A {
   void set foo(int _) {}
@@ -106,7 +106,7 @@ main(A a) {
   }
 
   test_assignment_prefixedIdentifier_staticTarget_class_field() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static int foo = 0;
 }
@@ -133,7 +133,7 @@ main() {
   }
 
   test_assignment_prefixedIdentifier_staticTarget_extension_field() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 extension E on int {
   static int foo = 0;
 }
@@ -160,7 +160,7 @@ main() {
   }
 
   test_assignment_prefixedIdentifier_topLevelVariable() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 int foo = 0;
 ''');
     await assertNoErrorsInCode(r'''
@@ -182,7 +182,7 @@ main() {
   }
 
   test_assignment_propertyAccess_class_field() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo = 0;
 }
@@ -206,7 +206,7 @@ main() {
   }
 
   test_assignment_propertyAccess_extension_setter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 extension E on A {
   void set foo(int a) {}
@@ -231,7 +231,7 @@ main() {
   }
 
   test_assignment_propertyAccess_extensionOverride_setter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 extension E on A {
   void set foo(int a) {}
@@ -256,7 +256,7 @@ main(A a) {
   }
 
   test_assignment_propertyAccess_superTarget() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo = 0;
 }
@@ -282,7 +282,7 @@ class B extends A {
   }
 
   test_assignment_simpleIdentifier_topLevelVariable() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 int foo = 0;
 ''');
     await assertNoErrorsInCode(r'''
@@ -304,7 +304,7 @@ main() {
   }
 
   test_binaryExpression() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int operator+(int a) => 0;
 }
@@ -326,7 +326,7 @@ main(A a) {
   }
 
   test_functionExpressionInvocation() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 int Function(int, int?)? foo;
 ''');
     await assertNoErrorsInCode(r'''
@@ -349,7 +349,7 @@ main() {
   }
 
   test_functionExpressionInvocation_call() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int call(int a, int? b) => 0;
 }
@@ -374,7 +374,7 @@ main(A a) {
   }
 
   test_functionExpressionInvocation_extension_staticTarget() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 extension E on int {
   static int Function(int) get foo => (_) => 0;
 }
@@ -399,7 +399,7 @@ main() {
   }
 
   test_instanceCreation() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   A(int a, int? b);
 }
@@ -422,7 +422,7 @@ main() {
   }
 
   test_instanceCreation_generic() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A<T> {
   A(T a, T? b);
 }
@@ -446,7 +446,7 @@ main() {
   }
 
   test_instanceCreation_generic_instantiateToBounds() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A<T extends num> {}
 ''');
     await assertNoErrorsInCode(r'''
@@ -461,7 +461,7 @@ var v = A();
   }
 
   test_methodInvocation_extension_functionTarget() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 extension E on void Function() {
   int foo(int a) => 0;
 }
@@ -486,7 +486,7 @@ main(void Function() a) {
   }
 
   test_methodInvocation_extension_interfaceTarget() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 extension E on int {
   int foo(int a) => 0;
 }
@@ -511,7 +511,7 @@ main() {
   }
 
   test_methodInvocation_extension_nullTarget() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 extension E on A {
   int foo(int a) => 0;
@@ -539,7 +539,7 @@ class B extends A {
   }
 
   test_methodInvocation_extension_staticTarget() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 extension E on int {
   static int foo(int a) => 0;
 }
@@ -564,7 +564,7 @@ main() {
   }
 
   test_methodInvocation_extensionOverride() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 extension E on int {
   int foo(int a) => 0;
 }
@@ -589,7 +589,7 @@ main() {
   }
 
   test_methodInvocation_function() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 int foo(int a, int? b) => 0;
 ''');
     await assertNoErrorsInCode(r'''
@@ -612,7 +612,7 @@ main() {
   }
 
   test_methodInvocation_function_prefixed() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 int foo(int a, int? b) => 0;
 ''');
     await assertNoErrorsInCode(r'''
@@ -635,7 +635,7 @@ main() {
   }
 
   test_methodInvocation_method_cascade() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo(int a, int? b) => 0;
 }
@@ -660,7 +660,7 @@ main(A a) {
   }
 
   test_methodInvocation_method_interfaceTarget() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo(int a, int? b) => 0;
 }
@@ -685,7 +685,7 @@ main(A a) {
   }
 
   test_methodInvocation_method_nullTarget() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo(int a, int? b) => 0;
 }
@@ -712,7 +712,7 @@ class B extends A {
   }
 
   test_methodInvocation_method_staticTarget() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static int foo(int a, int? b) => 0;
 }
@@ -737,7 +737,7 @@ main() {
   }
 
   test_methodInvocation_method_superTarget() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo(int a, int? b) => 0;
 }
@@ -791,7 +791,7 @@ f(String x) {
   }
 
   test_postfixExpression() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   A operator+(int a) => this;
 }
@@ -812,7 +812,7 @@ main(A a) {
   }
 
   test_prefixExpression() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int operator-() => 0;
 }
@@ -833,7 +833,7 @@ main(A a) {
   }
 
   test_read_indexExpression_class() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int operator[](int a) => 0;
 }
@@ -854,7 +854,7 @@ main(A a) {
   }
 
   test_read_prefixedIdentifier_instanceTarget_class_field() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo;
 }
@@ -878,7 +878,7 @@ main(A a) {
   }
 
   test_read_prefixedIdentifier_instanceTarget_extension_getter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 extension E on A {
   int get foo => 0;
@@ -903,7 +903,7 @@ main(A a) {
   }
 
   test_read_prefixedIdentifier_staticTarget_class_field() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static int foo;
 }
@@ -927,7 +927,7 @@ main() {
   }
 
   test_read_prefixedIdentifier_staticTarget_class_method() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static int foo(int a) => 0;
 }
@@ -951,7 +951,7 @@ main() {
   }
 
   test_read_prefixedIdentifier_staticTarget_extension_field() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 extension E {
   static int foo;
 }
@@ -975,7 +975,7 @@ main() {
   }
 
   test_read_prefixedIdentifier_staticTarget_extension_method() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 extension E {
   static int foo(int a) => 0;
 }
@@ -999,7 +999,7 @@ main() {
   }
 
   test_read_prefixedIdentifier_topLevelVariable() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 int foo = 0;
 ''');
     await assertNoErrorsInCode(r'''
@@ -1021,7 +1021,7 @@ main() {
   }
 
   test_read_propertyAccessor_class_field() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo = 0;
 }
@@ -1045,7 +1045,7 @@ main() {
   }
 
   test_read_propertyAccessor_class_method() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo() => 0;
 }
@@ -1069,7 +1069,7 @@ main() {
   }
 
   test_read_propertyAccessor_extensionOverride_getter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 extension E on A {
   int get foo => 0;
@@ -1094,7 +1094,7 @@ main(A a) {
   }
 
   test_read_propertyAccessor_superTarget() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo = 0;
 }
@@ -1120,7 +1120,7 @@ class B extends A {
   }
 
   test_read_simpleIdentifier_class_field() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo = 0;
 }
@@ -1143,7 +1143,7 @@ class B extends A {
   }
 
   test_read_simpleIdentifier_class_method() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo(int a) => 0;
 }
@@ -1166,7 +1166,7 @@ class B extends A {
   }
 
   test_read_simpleIdentifier_extension_getter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 extension E on A {
   int get foo => 0;
@@ -1190,7 +1190,7 @@ class B extends A {
   }
 
   test_read_simpleIdentifier_extension_method() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 extension E on A {
   int foo(int a) => 0;
@@ -1214,7 +1214,7 @@ class B extends A {
   }
 
   test_read_simpleIdentifier_topLevelVariable() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 int foo = 0;
 ''');
     await assertNoErrorsInCode(r'''
@@ -1233,7 +1233,7 @@ main() {
   }
 
   test_superConstructorInvocation() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   A(int a, int? b);
 }

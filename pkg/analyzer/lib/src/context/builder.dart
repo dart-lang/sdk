@@ -225,6 +225,20 @@ class ContextBuilder {
           resourceProvider: resourceProvider);
     }
 
+    DartSdk folderSdk;
+    {
+      String sdkPath = sdkManager.defaultSdkDirectory;
+      SdkDescription description = SdkDescription(sdkPath);
+      folderSdk = sdkManager.getSdk(description, () {
+        var sdk = FolderBasedDartSdk(
+          resourceProvider,
+          resourceProvider.getFolder(sdkPath),
+        );
+        sdk.analysisOptions = analysisOptions;
+        return sdk;
+      });
+    }
+
     if (workspace != null) {
       var partialSourceFactory = workspace.createSourceFactory(null, null);
       var embedderYamlSource = partialSourceFactory.forUri(
@@ -237,22 +251,17 @@ class ContextBuilder {
             EmbedderYamlLocator.forLibFolder(libFolder);
         Map<Folder, YamlMap> embedderMap = locator.embedderYamls;
         if (embedderMap.isNotEmpty) {
-          EmbedderSdk embedderSdk = EmbedderSdk(resourceProvider, embedderMap);
+          EmbedderSdk embedderSdk = EmbedderSdk(
+            resourceProvider,
+            embedderMap,
+            languageVersion: folderSdk.languageVersion,
+          );
           return embedderSdk;
         }
       }
     }
 
-    String sdkPath = sdkManager.defaultSdkDirectory;
-    SdkDescription description = SdkDescription(sdkPath);
-    return sdkManager.getSdk(description, () {
-      var sdk = FolderBasedDartSdk(
-        resourceProvider,
-        resourceProvider.getFolder(sdkPath),
-      );
-      sdk.analysisOptions = analysisOptions;
-      return sdk;
-    });
+    return folderSdk;
   }
 
   /// Return the analysis options that should be used to analyze code in the

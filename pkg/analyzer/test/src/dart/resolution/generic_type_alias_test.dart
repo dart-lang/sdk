@@ -8,7 +8,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class GenericTypeAliasDriverResolutionTest extends DriverResolutionTest {
+class GenericTypeAliasDriverResolutionTest extends PubPackageResolutionTest {
   test_genericFunctionTypeCannotBeTypeArgument_def_class() async {
     await assertErrorsInCode(r'''
 class C<T> {}
@@ -127,7 +127,7 @@ void f() {
   }
 
   test_missingGenericFunction_imported_withPrefix() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 typedef F<T> = ;
 ''');
     await assertErrorsInCode(r'''

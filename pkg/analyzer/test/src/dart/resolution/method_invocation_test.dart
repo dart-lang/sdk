@@ -8,8 +8,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
-import 'with_null_safety_mixin.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,12 +18,12 @@ main() {
 }
 
 @reflectiveTest
-class MethodInvocationResolutionTest extends DriverResolutionTest {
+class MethodInvocationResolutionTest extends PubPackageResolutionTest {
   test_error_ambiguousImport_topFunction() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 void foo(int _) {}
 ''');
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 void foo(int _) {}
 ''');
 
@@ -45,10 +44,10 @@ main() {
   }
 
   test_error_ambiguousImport_topFunction_prefixed() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 void foo(int _) {}
 ''');
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 void foo(int _) {}
 ''');
 
@@ -331,7 +330,7 @@ class B extends A {
   }
 
   test_error_prefixIdentifierNotFollowedByDot() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 void foo() {}
 ''');
 
@@ -562,7 +561,7 @@ main(Object o) {
   }
 
   test_error_undefinedMethod_private() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   void _foo(int _) {}
 }
@@ -987,7 +986,7 @@ main() {
   }
 
   test_hasReceiver_importPrefix_topFunction() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 T foo<T extends num>(T a, T b) => a;
 ''');
 
@@ -1012,7 +1011,7 @@ main() {
   }
 
   test_hasReceiver_importPrefix_topGetter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 T Function<T>(T a, T b) get foo => null;
 ''');
 
@@ -1181,7 +1180,7 @@ class C<T extends A> {
   }
 
   test_hasReceiver_prefixed_class_staticGetter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class C {
   static double Function(int) get foo => null;
 }
@@ -1213,7 +1212,7 @@ main() {
   }
 
   test_hasReceiver_prefixed_class_staticMethod() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class C {
   static void foo(int _) => null;
 }
@@ -1717,10 +1716,10 @@ main() {
 }
 
 @reflectiveTest
-class MethodInvocationResolutionWithNullSafetyTest extends DriverResolutionTest
-    with WithNullSafetyMixin {
+class MethodInvocationResolutionWithNullSafetyTest
+    extends PubPackageResolutionTest with WithNullSafetyMixin {
   test_hasReceiver_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 ''');
 

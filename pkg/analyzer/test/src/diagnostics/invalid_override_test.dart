@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class InvalidOverrideTest extends DriverResolutionTest {
+class InvalidOverrideTest extends PubPackageResolutionTest {
   test_getter_returnType() async {
     await assertErrorsInCode('''
 class A {
@@ -561,10 +560,10 @@ class B implements I<int>, J<String> {
 }
 
 @reflectiveTest
-class InvalidOverrideWithNullSafetyTest extends DriverResolutionTest
+class InvalidOverrideWithNullSafetyTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_method_parameter_functionTyped_optOut_extends_optIn() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 abstract class A {
   A catchError(void Function(Object) a);
 }
@@ -581,7 +580,7 @@ class B implements A {
   }
 
   test_method_parameter_interfaceOptOut_concreteOptIn() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   void foo(Object a) {}
 }
@@ -598,7 +597,7 @@ class B extends A {
   }
 
   test_mixedInheritance_1() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class B {
   List<int Function(int)> get a => [];
   set a(List<int Function(int)> _) {}
@@ -612,7 +611,7 @@ class Bq {
 }
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 // @dart = 2.7
 import 'a.dart';
 
@@ -628,7 +627,7 @@ class D extends C implements Bq {}
   }
 
   test_mixedInheritance_2() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class B {
   List<int Function(int)> get a => [];
   set a(List<int Function(int)> _) {}
@@ -642,7 +641,7 @@ class Bq {
 }
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 // @dart = 2.7
 import 'a.dart';
 
@@ -661,7 +660,7 @@ class D extends C {
   }
 
   test_viaLegacy_class() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A1 {
   int m() => 0;
   int get g => 0;
@@ -675,7 +674,7 @@ class A2 {
 }
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 // @dart=2.6
 import 'a.dart';
 
@@ -698,7 +697,7 @@ class Y extends L {
   }
 
   test_viaLegacy_mixin() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A1 {
   int m() => 0;
   int get g => 0;
@@ -712,7 +711,7 @@ mixin A2 {
 }
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 // @dart=2.6
 import 'a.dart';
 

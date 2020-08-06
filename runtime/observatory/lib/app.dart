@@ -28,4 +28,3 @@ part 'src/app/notification.dart';
 part 'src/app/page.dart';
 part 'src/app/settings.dart';
 part 'src/app/view_model.dart';
-part 'src/app/analytics.dart';

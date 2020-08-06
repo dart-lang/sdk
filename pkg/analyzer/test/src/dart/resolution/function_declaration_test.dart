@@ -4,7 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -13,7 +13,7 @@ main() {
 }
 
 @reflectiveTest
-class FunctionDeclarationResolutionTest extends DriverResolutionTest {
+class FunctionDeclarationResolutionTest extends PubPackageResolutionTest {
   test_formalParameterScope_defaultValue() async {
     await assertNoErrorsInCode('''
 const foo = 0;

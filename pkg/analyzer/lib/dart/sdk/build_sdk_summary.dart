@@ -22,6 +22,7 @@ import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 /// Build summary for SDK at the given [sdkPath].
@@ -44,7 +45,11 @@ Uint8List buildSdkSummary({
     var file = resourceProvider.getFile(embedderYamlPath);
     var content = file.readAsStringSync();
     var map = loadYaml(content) as YamlMap;
-    var embedderSdk = EmbedderSdk(resourceProvider, {file.parent: map});
+    var embedderSdk = EmbedderSdk(
+      resourceProvider,
+      {file.parent: map},
+      languageVersion: sdk.languageVersion,
+    );
     for (var library in embedderSdk.sdkLibraries) {
       var uriStr = library.shortName;
       if (sdk.libraryMap.getLibrary(uriStr) == null) {
@@ -60,6 +65,7 @@ Uint8List buildSdkSummary({
   return _Builder(
     sdk.context,
     sdk.allowedExperimentsJson,
+    sdk.languageVersion,
     librarySources,
   ).build();
 }
@@ -73,11 +79,13 @@ class _Builder {
   final List<LinkInputLibrary> inputLibraries = [];
 
   AllowedExperiments allowedExperiments;
+  Version languageVersion;
   final PackageBundleAssembler bundleAssembler = PackageBundleAssembler();
 
   _Builder(
     this.context,
     this.allowedExperimentsJson,
+    this.languageVersion,
     this.librarySources,
   ) {
     allowedExperiments = _parseAllowedExperiments(allowedExperimentsJson);
@@ -100,6 +108,10 @@ class _Builder {
       bundle2: linkResult.bundle,
       sdk: PackageBundleSdkBuilder(
         allowedExperimentsJson: allowedExperimentsJson,
+        languageVersion: LinkedLanguageVersionBuilder(
+          major: languageVersion.major,
+          minor: languageVersion.minor,
+        ),
       ),
     ).toBuffer();
 

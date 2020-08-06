@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source;
+import 'package:pub_semver/pub_semver.dart';
 
 /// A Dart SDK installed in a specified location.
 abstract class DartSdk {
@@ -33,6 +34,12 @@ abstract class DartSdk {
 
   /// Return the analysis context used for all of the sources in this [DartSdk].
   AnalysisContext get context;
+
+  /// Return the language version of this SDK, or throws an exception.
+  ///
+  /// The language version has only major/minor components, the patch number
+  /// is always zero, because the patch number does not change the language.
+  Version get languageVersion;
 
   /// Return a list containing all of the libraries defined in this SDK.
   List<SdkLibrary> get sdkLibraries;

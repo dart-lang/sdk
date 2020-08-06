@@ -168,7 +168,7 @@ void outputSummary(File input,
   if (traceJson != null &&
       (granularity == HistogramType.byLibrary ||
           granularity == HistogramType.byPackage)) {
-    final traceJsonRaw = loadJsonFromFile(traceJson);
+    final traceJsonRaw = await loadJsonFromFile(traceJson);
     var callGraph = loadTrace(traceJsonRaw);
 
     // Convert call graph into the approximate dependency graph, dropping any

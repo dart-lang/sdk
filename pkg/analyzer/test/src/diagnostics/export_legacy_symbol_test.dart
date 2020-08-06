@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ExportLegacySymbolTest extends DriverResolutionTest
+class ExportLegacySymbolTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_exportDartAsync() async {
     await assertNoErrorsInCode(r'''
@@ -30,7 +29,7 @@ export 'dart:core';
   }
 
   test_exportOptedIn() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 ''');
     await assertNoErrorsInCode(r'''
@@ -39,11 +38,11 @@ export 'a.dart';
   }
 
   test_exportOptedOut_exportOptedIn_hasLegacySymbol() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 // @dart = 2.5
 export 'a.dart';
 class B {}
@@ -57,11 +56,11 @@ export 'b.dart';
   }
 
   test_exportOptedOut_exportOptedIn_hideLegacySymbol() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 // @dart = 2.5
 export 'a.dart';
 class B {}
@@ -73,7 +72,7 @@ export 'b.dart' hide B;
   }
 
   test_exportOptedOut_hasLegacySymbol() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.5
 class A {}
 class B {}

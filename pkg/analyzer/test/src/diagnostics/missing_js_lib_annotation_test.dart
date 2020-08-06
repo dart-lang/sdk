@@ -7,7 +7,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,10 +16,19 @@ main() {
 }
 
 @reflectiveTest
-class MissingJSLibAnnotationTest extends DriverResolutionTest
-    with PackageMixin {
+class MissingJSLibAnnotationTest extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+
+    var path = '/packages/js';
+    PackagesContent.addJsPackageFiles(
+      getFolder(path),
+    );
+    writeTestPackageConfig({'js': path});
+  }
+
   test_class() async {
-    addJsPackage();
     await assertErrorsInCode('''
 library foo;
 
@@ -34,7 +43,6 @@ class A { }
 
   test_externalField() async {
     // https://github.com/dart-lang/sdk/issues/26987
-    addJsPackage();
     await assertErrorsInCode('''
 import 'package:js/js.dart';
 
@@ -47,7 +55,6 @@ external dynamic exports;
   }
 
   test_function() async {
-    addJsPackage();
     await assertErrorsInCode('''
 library foo;
 
@@ -62,7 +69,6 @@ set _currentZIndex(int value) { }
   }
 
   test_method() async {
-    addJsPackage();
     await assertErrorsInCode('''
 library foo;
 
@@ -78,7 +84,6 @@ class A {
   }
 
   test_notMissing() async {
-    addJsPackage();
     await assertNoErrorsInCode('''
 @JS()
 library foo;
@@ -91,7 +96,6 @@ class A { }
   }
 
   test_variable() async {
-    addJsPackage();
     await assertErrorsInCode('''
 import 'package:js/js.dart';
 

@@ -8,7 +8,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,7 +19,7 @@ main() {
 }
 
 @reflectiveTest
-class ConstSetElementTypeImplementsEqualsTest extends DriverResolutionTest {
+class ConstSetElementTypeImplementsEqualsTest extends PubPackageResolutionTest {
   test_constField() async {
     await assertErrorsInCode(r'''
 class A {

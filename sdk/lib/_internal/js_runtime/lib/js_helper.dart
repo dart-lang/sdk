@@ -1518,7 +1518,7 @@ class TypeErrorDecoder {
   }
 }
 
-class NullError extends Error implements NoSuchMethodError {
+class NullError extends TypeError implements NoSuchMethodError {
   final String _message;
   final String? _method;
 

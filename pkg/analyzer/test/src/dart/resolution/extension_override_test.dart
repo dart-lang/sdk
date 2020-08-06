@@ -10,8 +10,7 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
-import 'with_null_safety_mixin.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -21,7 +20,7 @@ main() {
 }
 
 @reflectiveTest
-class ExtensionOverrideTest extends DriverResolutionTest {
+class ExtensionOverrideTest extends PubPackageResolutionTest {
   ExtensionElement extension;
   ExtensionOverride extensionOverride;
 
@@ -72,7 +71,7 @@ void f(A a) {
   }
 
   test_call_prefix_noTypeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E on A {
   int call(String s) => 0;
@@ -94,7 +93,7 @@ void f(p.A a) {
 
   test_call_prefix_typeArguments() async {
     // The test is failing because we're not yet doing type inference.
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E<T> on A {
   int call(T s) => 0;
@@ -170,7 +169,7 @@ void f(A a) {
   }
 
   test_getter_prefix_noTypeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E on A {
   int get g => 0;
@@ -191,7 +190,7 @@ void f(p.A a) {
   }
 
   test_getter_prefix_typeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E<T> on A {
   int get g => 0;
@@ -242,7 +241,7 @@ void f(A a) {
   }
 
   test_method_prefix_noTypeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E on A {
   void m() {}
@@ -263,7 +262,7 @@ void f(p.A a) {
   }
 
   test_method_prefix_typeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E<T> on A {
   void m() {}
@@ -331,7 +330,7 @@ f(){
   }
 
   test_operator_prefix_noTypeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E on A {
   void operator +(int offset) {}
@@ -352,7 +351,7 @@ void f(p.A a) {
   }
 
   test_operator_prefix_typeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E<T> on A {
   void operator +(int offset) {}
@@ -403,7 +402,7 @@ void f(A a) {
   }
 
   test_setter_prefix_noTypeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E on A {
   set s(int x) {}
@@ -424,7 +423,7 @@ void f(p.A a) {
   }
 
   test_setter_prefix_typeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E<T> on A {
   set s(int x) {}
@@ -477,7 +476,7 @@ void f(A a) {
   }
 
   test_setterAndGetter_prefix_noTypeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E on A {
   int get s => 0;
@@ -499,7 +498,7 @@ void f(p.A a) {
   }
 
   test_setterAndGetter_prefix_typeArguments() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 extension E<T> on A {
   int get s => 0;

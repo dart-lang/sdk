@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,10 +14,14 @@ main() {
 }
 
 @reflectiveTest
-class InvalidFactoryMethodImplTest extends DriverResolutionTest
-    with PackageMixin {
+class InvalidFactoryMethodImplTest extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfigWithMeta();
+  }
+
   test_abstract() async {
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 abstract class Stateful {
@@ -30,7 +33,6 @@ class State { }
   }
 
   test_badReturn() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class Stateful {
@@ -46,7 +48,6 @@ class State { }
   }
 
   test_block() async {
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class Stateful {
@@ -60,7 +61,6 @@ class State { }
   }
 
   test_block_returnNull() async {
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class Stateful {
@@ -74,7 +74,6 @@ class State { }
   }
 
   test_expr() async {
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class Stateful {
@@ -86,7 +85,6 @@ class State { }
   }
 
   test_expr_returnNull() async {
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class Stateful {
@@ -98,7 +96,6 @@ class State { }
   }
 
   test_noReturnType() async {
-    addMetaPackage();
     // Null return types will get flagged elsewhere, no need to pile on here.
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -112,7 +109,6 @@ class Stateful {
   }
 
   test_subclass() async {
-    addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 abstract class Stateful {
@@ -132,7 +128,6 @@ class MyState extends State { }
   }
 
   test_voidReturn() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 

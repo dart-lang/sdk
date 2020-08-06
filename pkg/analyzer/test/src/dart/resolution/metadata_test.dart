@@ -11,8 +11,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../summary/resolved_ast_printer.dart';
-import 'driver_resolution.dart';
-import 'with_null_safety_mixin.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -22,7 +21,7 @@ main() {
 }
 
 @reflectiveTest
-class MetadataResolutionTest extends DriverResolutionTest {
+class MetadataResolutionTest extends PubPackageResolutionTest {
   test_onFieldFormal() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -62,14 +61,14 @@ Annotation
   }
 
   test_otherLibrary_constructor_named() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   final int f;
   const A.named(this.f);
 }
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 import 'a.dart';
 
 @A.named(42)
@@ -90,14 +89,14 @@ B b;
   }
 
   test_otherLibrary_constructor_unnamed() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   final int f;
   const A(this.f);
 }
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 import 'a.dart';
 
 @A(42)
@@ -118,7 +117,7 @@ B b;
   }
 
   test_otherLibrary_implicitConst() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   final int f;
   const A(this.f);
@@ -182,14 +181,14 @@ class B {}
 }
 
 @reflectiveTest
-class MetadataResolutionWithNullSafetyTest extends DriverResolutionTest
+class MetadataResolutionWithNullSafetyTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   ImportFindElement get import_a {
     return findElement.importFind('package:test/a.dart');
   }
 
   test_optIn_fromOptOut_class() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A(int a);
 }
@@ -216,7 +215,7 @@ void f() {}
   }
 
   test_optIn_fromOptOut_class_constructor() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   final int a;
   const A.named(this.a);
@@ -250,7 +249,7 @@ void f() {}
   }
 
   test_optIn_fromOptOut_class_constructor_withDefault() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   final int a;
   const A.named({this.a = 42});
@@ -284,7 +283,7 @@ void f() {}
   }
 
   test_optIn_fromOptOut_class_getter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static const foo = 42;
 }
@@ -313,7 +312,7 @@ void f() {}
   }
 
   test_optIn_fromOptOut_getter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const foo = 42;
 ''');
 
@@ -335,7 +334,7 @@ void f() {}
   }
 
   test_optIn_fromOptOut_prefix_class() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A(int a);
 }
@@ -362,7 +361,7 @@ void f() {}
   }
 
   test_optIn_fromOptOut_prefix_class_constructor() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A.named(int a);
 }
@@ -389,7 +388,7 @@ void f() {}
   }
 
   test_optIn_fromOptOut_prefix_class_getter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static const foo = 0;
 }
@@ -416,7 +415,7 @@ void f() {}
   }
 
   test_optIn_fromOptOut_prefix_getter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const foo = 0;
 ''');
 

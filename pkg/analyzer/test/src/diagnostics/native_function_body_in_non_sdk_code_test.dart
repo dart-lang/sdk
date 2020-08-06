@@ -5,7 +5,7 @@
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class NativeFunctionBodyInNonSdkCodeTest extends DriverResolutionTest {
+class NativeFunctionBodyInNonSdkCodeTest extends PubPackageResolutionTest {
   test_function() async {
     await assertErrorsInCode('''
 int m(a) native 'string';

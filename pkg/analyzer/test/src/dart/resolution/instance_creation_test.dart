@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class InstanceCreationDriverResolutionTest extends DriverResolutionTest {
+class InstanceCreationDriverResolutionTest extends PubPackageResolutionTest {
   test_error_newWithInvalidTypeParameters_implicitNew_inference_top() async {
     await assertErrorsInCode(r'''
 final foo = Map<int>();
@@ -58,7 +58,7 @@ main() {
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew_prefix() async {
-    newFile('/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 class Foo<X> {
   Foo.bar();
 }
@@ -117,7 +117,7 @@ main() {
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_implicitNew_prefix() async {
-    newFile('/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 class Foo<X> {
   Foo.bar();
 }

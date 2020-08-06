@@ -16,13 +16,14 @@ const map4 = /*cfe.Map<String,int>(String(foo):Int(42),String(bar):Int(87))*/
     {'foo': 42, 'bar': 87};
 
 main() {
-  print(/*Map<dynamic,dynamic>()*/ map0);
   print(
-      /*cfe|analyzer.Map<String,int>()*/ /*dart2js.Map<String*,int*>()*/ map1);
+      /*analyzer.Map<dynamic, dynamic>*()*/ /*cfe|dart2js.Map<dynamic,dynamic>()*/ map0);
   print(
-      /*cfe|analyzer.Map<String,int>()*/ /*dart2js.Map<String*,int*>()*/ map2);
+      /*analyzer.Map<String*, int*>*()*/ /*cfe.Map<String,int>()*/ /*dart2js.Map<String*,int*>()*/ map1);
   print(
-      /*cfe|analyzer.Map<String,int>(String(foo):Int(42))*/ /*dart2js.Map<String*,int*>(String(foo):Int(42))*/ map3);
+      /*analyzer.Map<String*, int*>*()*/ /*cfe.Map<String,int>()*/ /*dart2js.Map<String*,int*>()*/ map2);
   print(
-      /*cfe|analyzer.Map<String,int>(String(foo):Int(42),String(bar):Int(87))*/ /*dart2js.Map<String*,int*>(String(foo):Int(42),String(bar):Int(87))*/ map4);
+      /*analyzer.Map<String*, int*>*(String(foo):Int(42))*/ /*cfe.Map<String,int>(String(foo):Int(42))*/ /*dart2js.Map<String*,int*>(String(foo):Int(42))*/ map3);
+  print(
+      /*analyzer.Map<String*, int*>*(String(foo):Int(42),String(bar):Int(87))*/ /*cfe.Map<String,int>(String(foo):Int(42),String(bar):Int(87))*/ /*dart2js.Map<String*,int*>(String(foo):Int(42),String(bar):Int(87))*/ map4);
 }

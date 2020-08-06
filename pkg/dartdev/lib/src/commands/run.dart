@@ -217,11 +217,14 @@ class RunCommand extends DartdevCommand<int> {
       }
     }
 
-    final path = args.firstWhere((e) => !e.startsWith('-'));
+    var path = args.firstWhere((e) => !e.startsWith('-'));
     final pathIndex = args.indexOf(path);
     final runArgs = (pathIndex + 1 == args.length)
         ? <String>[]
         : args.sublist(pathIndex + 1);
+    try {
+      path = Uri.parse(path).toFilePath();
+    } catch (_) {}
     VmInteropHandler.run(path, runArgs);
     return 0;
   }

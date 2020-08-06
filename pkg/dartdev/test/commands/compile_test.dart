@@ -159,6 +159,29 @@ void defineCompileTests() {
     expect(result.exitCode, 0);
   });
 
+  test('Compile and run kernel snapshot', () {
+    final p = project(mainSrc: 'void main() { print("I love kernel"); }');
+    final outFile = path.join(p.dirPath, 'main.dill');
+    var result = p.runSync(
+      'compile',
+      [
+        'kernel',
+        '-o',
+        outFile,
+        p.relativeFilePath,
+      ],
+    );
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+
+    result = p.runSync('run', ['main.dill']);
+    expect(result.stdout, contains('I love kernel'));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+  });
+
   test('Compile JS', () {
     final p = project(mainSrc: "void main() { print('Hello from JS'); }");
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));

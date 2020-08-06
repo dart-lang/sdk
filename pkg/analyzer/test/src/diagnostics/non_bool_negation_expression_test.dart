@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class NonBoolNegationExpressionTest extends DriverResolutionTest {
+class NonBoolNegationExpressionTest extends PubPackageResolutionTest {
   test_nonBool() async {
     await assertErrorsInCode(r'''
 f() {
@@ -29,8 +28,8 @@ f() {
 }
 
 @reflectiveTest
-class NonBoolNegationExpressionWithNullSafetyTest extends DriverResolutionTest
-    with WithNullSafetyMixin {
+class NonBoolNegationExpressionWithNullSafetyTest
+    extends PubPackageResolutionTest with WithNullSafetyMixin {
   test_null() async {
     await assertErrorsInCode(r'''
 m() {

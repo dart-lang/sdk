@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class GetterNotAssignableSetterTypesTest extends DriverResolutionTest {
+class GetterNotAssignableSetterTypesTest extends PubPackageResolutionTest {
   test_class_instance_dynamicGetter() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -50,7 +50,7 @@ abstract class X implements A, B {}
   }
 
   test_class_instance_private_getter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int get _foo => 0;
 }
@@ -67,12 +67,12 @@ class B extends A {
   }
 
   test_class_instance_private_interfaces() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int get _foo => 0;
 }
 ''');
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 class B {
   set _foo(String _) {}
 }
@@ -86,7 +86,7 @@ class X implements A, B {}
   }
 
   test_class_instance_private_interfaces2() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int get _foo => 0;
 }
@@ -103,7 +103,7 @@ class X implements A, B {}
   }
 
   test_class_instance_private_setter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   set _foo(String _) {}
 }

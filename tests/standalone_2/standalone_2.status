@@ -98,13 +98,3 @@ io/many_directory_operations_test: SkipSlow
 io/many_file_operations_test: SkipSlow
 package/*: SkipByDesign # Launches VMs in interesting ways.
 typed_data_isolate_test: SkipSlow
-
-[ $system == fuchsia ]
-# Fuchsia test runner doesn't support multi-tests yet.
-deny_listed_test: Skip
-io/dart_std_io_pipe_test: Skip
-io/platform_resolved_executable_test: Skip
-io/signals_exception_test: Skip
-io/socket_ipv6_test: Skip
-package/invalid_uri_test: Skip
-regress_29350_test: Skip

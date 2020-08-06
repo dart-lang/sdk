@@ -5,8 +5,7 @@
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
-import 'with_null_safety_mixin.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class BinaryExpressionResolutionTest extends DriverResolutionTest {
+class BinaryExpressionResolutionTest extends PubPackageResolutionTest {
   test_bangEq() async {
     await assertNoErrorsInCode(r'''
 f(int a, int b) {
@@ -230,8 +229,8 @@ f(int a, int b) {
 }
 
 @reflectiveTest
-class BinaryExpressionResolutionWithNullSafetyTest extends DriverResolutionTest
-    with WithNullSafetyMixin {
+class BinaryExpressionResolutionWithNullSafetyTest
+    extends PubPackageResolutionTest with WithNullSafetyMixin {
   test_ifNull_left_nullableContext() async {
     await assertNoErrorsInCode(r'''
 T f<T>(T t) => t;

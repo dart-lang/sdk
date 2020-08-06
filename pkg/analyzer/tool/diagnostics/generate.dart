@@ -390,6 +390,9 @@ that might work in unexpected ways.
 
 This page uses the following terms.
 
+[constant context]: #constant-context
+[potentially non-nullable]: #potentially-non-nullable
+
 ### Constant context
 
 A _constant context_ is a region of code in which it isn't necessary to include

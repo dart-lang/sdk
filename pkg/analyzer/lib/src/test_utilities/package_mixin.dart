@@ -13,9 +13,40 @@ mixin PackageMixin implements ResourceProviderMixin {
 
   /// Create a fake 'js' package that can be used by tests.
   void addJsPackage() {
-    Folder lib = addPubPackage('js');
-    newFile(join(lib.path, 'js.dart'), content: r'''
+    var rootFolder = getFolder('/.pub-cache/js');
+    PackagesContent.addJsPackageFiles(rootFolder);
+    addPubPackage('js');
+  }
+
+  /// Create a fake 'meta' package that can be used by tests.
+  void addMetaPackage() {
+    var rootFolder = getFolder('/.pub-cache/meta');
+    PackagesContent.addMetaPackageFiles(rootFolder);
+    addPubPackage('meta');
+  }
+
+  /// Return a newly created directory in which the contents of a pub package
+  /// with the given [packageName] can be written. The package will be added to
+  /// the package map so that the package can be referenced from the code being
+  /// analyzed.
+  Folder addPubPackage(String packageName) {
+    // TODO(brianwilkerson) Consider renaming this to `addPackage` and passing
+    //  in a `PackageStyle` (pub, bazel, gn, build, plain) in order to support
+    //  creating other styles of packages.
+    Folder lib = getFolder('/.pub-cache/$packageName/lib');
+    packageMap[packageName] = [lib];
+    return lib;
+  }
+}
+
+/// Helper for creating mock packages.
+class PackagesContent {
+  /// Create a fake 'js' package that can be used by tests.
+  static void addJsPackageFiles(Folder rootFolder) {
+    var libFolder = rootFolder.getChildAssumingFolder('lib');
+    libFolder.getChildAssumingFile('js.dart').writeAsStringSync(r'''
 library js;
+
 class JS {
   const JS([String js]);
 }
@@ -23,9 +54,9 @@ class JS {
   }
 
   /// Create a fake 'meta' package that can be used by tests.
-  void addMetaPackage() {
-    Folder lib = addPubPackage('meta');
-    newFile(join(lib.path, 'meta.dart'), content: r'''
+  static void addMetaPackageFiles(Folder rootFolder) {
+    var libFolder = rootFolder.getChildAssumingFolder('lib');
+    libFolder.getChildAssumingFile('meta.dart').writeAsStringSync(r'''
 library meta;
 
 const _AlwaysThrows alwaysThrows = const _AlwaysThrows();
@@ -76,18 +107,5 @@ class _VisibleForTesting {
   const _VisibleForTesting();
 }
 ''');
-  }
-
-  /// Return a newly created directory in which the contents of a pub package
-  /// with the given [packageName] can be written. The package will be added to
-  /// the package map so that the package can be referenced from the code being
-  /// analyzed.
-  Folder addPubPackage(String packageName) {
-    // TODO(brianwilkerson) Consider renaming this to `addPackage` and passing
-    //  in a `PackageStyle` (pub, bazel, gn, build, plain) in order to support
-    //  creating other styles of packages.
-    Folder lib = getFolder('/.pub-cache/$packageName/lib');
-    packageMap[packageName] = [lib];
-    return lib;
   }
 }

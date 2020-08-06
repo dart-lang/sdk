@@ -4,8 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../driver_resolution.dart';
-import '../with_null_safety_mixin.dart';
+import '../context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class LocalVariableTest extends DriverResolutionTest {
+class LocalVariableTest extends PubPackageResolutionTest {
   test_int() async {
     await resolveTestCode('''
 void f() {

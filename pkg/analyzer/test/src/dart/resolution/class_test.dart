@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/elements_types_mixin.dart';
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class ClassDriverResolutionTest extends DriverResolutionTest
+class ClassDriverResolutionTest extends PubPackageResolutionTest
     with ElementsTypesMixin {
   test_element_allSupertypes() async {
     await assertNoErrorsInCode(r'''

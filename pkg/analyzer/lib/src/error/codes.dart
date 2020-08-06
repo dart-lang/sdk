@@ -713,9 +713,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a method or function has a
-  // return type that's <a href=”#potentially-non-nullable”>potentially
-  // non-nullable</a> but would implicitly return `null` if control reached the
-  // end of the function.
+  // return type that's [potentially non-nullable][] but would implicitly return
+  // `null` if control reached the end of the function.
   //
   // #### Example
   //
@@ -5307,11 +5306,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when an optional parameter, whether
-  // positional or named, has a <a href=”#potentially-non-nullable”>potentially
-  // non-nullable</a> type and doesn't specify a default value. Optional
-  // parameters that have no explicit default value have an implicit default
-  // value of `null`. If the type of the parameter doesn't allow the parameter
-  // to have a value of `null`, then the implicit default value isn't valid.
+  // positional or named, has a [potentially non-nullable][] type and doesn't
+  // specify a default value. Optional parameters that have no explicit default
+  // value have an implicit default value of `null`. If the type of the
+  // parameter doesn't allow the parameter to have a value of `null`, then the
+  // implicit default value isn't valid.
   //
   // #### Example
   //
@@ -6319,7 +6318,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // The analyzer produces this diagnostic when an element in a constant list
   // literal isn't a constant value. The list literal can be constant either
   // explicitly (because it's prefixed by the `const` keyword) or implicitly
-  // (because it appears in a [constant context](#constant-context)).
+  // (because it appears in a [constant context][]).
   //
   // #### Examples
   //
@@ -6745,8 +6744,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // The analyzer produces this diagnostic when a local variable is referenced
   // and has all these characteristics:
-  // - Has a type that's <a href=”#potentially-non-nullable”>potentially
-  //   non-nullable</a>.
+  // - Has a type that's [potentially non-nullable][].
   // - Doesn't have an initializer.
   // - Isn't marked as `late`.
   // - The analyzer can't prove that the local variable will be assigned before
@@ -6916,8 +6914,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // The analyzer produces this diagnostic when a field is declared and has all
   // these characteristics:
-  // - Has a type that's <a href=”#potentially-non-nullable”>potentially
-  //   non-nullable</a>
+  // - Has a type that's [potentially non-nullable][]
   // - Doesn't have an initializer
   // - Isn't marked as `late`
   //
@@ -8629,8 +8626,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when an expression whose type is
-  // <a href=”#potentially-non-nullable”>potentially non-nullable</a> is
-  // dereferenced without first verifying that the value isn't `null`.
+  // [potentially non-nullable][] is dereferenced without first verifying that
+  // the value isn't `null`.
   //
   // #### Example
   //

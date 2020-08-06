@@ -221,10 +221,8 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
   if (Dart_IsError(result)) goto failed;
 
   if (isolate_run_app_snapshot) {
-    if (Dart_IsVMFlagSet("support_service") || !Dart_IsPrecompiledRuntime()) {
-      result = Loader::InitForSnapshot(script_uri, isolate_data);
-      if (Dart_IsError(result)) goto failed;
-    }
+    result = Loader::InitForSnapshot(script_uri, isolate_data);
+    if (Dart_IsError(result)) goto failed;
   } else {
     result = DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri));
     if (Dart_IsError(result)) return result != nullptr;
@@ -333,10 +331,8 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   }
 
   if (isolate_run_app_snapshot) {
-    if (Dart_IsVMFlagSet("support_service") || !Dart_IsPrecompiledRuntime()) {
-      Dart_Handle result = Loader::InitForSnapshot(script_uri, isolate_data);
-      CHECK_RESULT(result);
-    }
+    Dart_Handle result = Loader::InitForSnapshot(script_uri, isolate_data);
+    CHECK_RESULT(result);
 #if !defined(DART_PRECOMPILED_RUNTIME)
     if (is_main_isolate) {
       // Find the canonical uri of the app snapshot. We'll use this to decide if

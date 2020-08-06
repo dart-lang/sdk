@@ -8,6 +8,10 @@ import 'add_override_test.dart' as add_override;
 import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
 import 'convert_to_contains_test.dart' as convert_to_contains;
+import 'convert_to_if_element_test.dart' as convert_to_if_element;
+import 'convert_to_single_quoted_strings_test.dart'
+    as convert_to_single_quoted_strings;
+import 'convert_to_spread_test.dart' as convert_to_spread;
 import 'create_method_test.dart' as create_method;
 import 'remove_argument_test.dart' as remove_argument;
 import 'remove_await_test.dart' as remove_await;
@@ -24,14 +28,21 @@ import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
 import 'remove_unnecessary_new_test.dart' as remove_unnecessary_new;
 import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
 import 'replace_null_with_closure_test.dart' as replace_null_with_closure;
+import 'replace_with_conditional_assignment_test.dart'
+    as replace_with_conditional_assignment;
+import 'replace_with_is_empty_test.dart' as replace_with_is_empty;
 import 'replace_with_var_test.dart' as replace_with_var;
 import 'use_curly_braces_test.dart' as use_curly_braces;
+import 'use_is_not_empty_test.dart' as use_is_not_empty;
 
 void main() {
   defineReflectiveSuite(() {
     add_override.main();
     convert_documentation_into_line.main();
     convert_to_contains.main();
+    convert_to_if_element.main();
+    convert_to_single_quoted_strings.main();
+    convert_to_spread.main();
     create_method.main();
     remove_argument.main();
     remove_await.main();
@@ -45,9 +56,12 @@ void main() {
     remove_type_annotation.main();
     remove_unnecessary_const.main();
     remove_unnecessary_new.main();
+    replace_with_conditional_assignment.main();
     replace_colon_with_equals.main();
     replace_null_with_closure.main();
+    replace_with_is_empty.main();
     replace_with_var.main();
     use_curly_braces.main();
+    use_is_not_empty.main();
   }, name: 'bulk');
 }

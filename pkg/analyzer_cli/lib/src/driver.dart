@@ -441,7 +441,11 @@ class Driver with HasContextMixin implements CommandLineStarter {
 
     // Setup embedding.
     if (includeSdkResolver) {
-      var embedderSdk = EmbedderSdk(resourceProvider, embedderMap);
+      var embedderSdk = EmbedderSdk(
+        resourceProvider,
+        embedderMap,
+        languageVersion: sdk.languageVersion,
+      );
       if (embedderSdk.libraryMap.size() == 0) {
         // The embedder uri resolver has no mappings. Use the default Dart SDK
         // uri resolver.

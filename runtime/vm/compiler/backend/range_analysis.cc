@@ -2859,8 +2859,12 @@ static void CacheRange(Range** slot,
 }
 
 void BinaryIntegerOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  InferRangeHelper(analysis->GetSmiRange(left()),
-                   analysis->GetSmiRange(right()), range);
+  auto const left_size =
+      RepresentationToRangeSize(RequiredInputRepresentation(0));
+  auto const right_size =
+      RepresentationToRangeSize(RequiredInputRepresentation(1));
+  InferRangeHelper(GetInputRange(analysis, left_size, left()),
+                   GetInputRange(analysis, right_size, right()), range);
 }
 
 void BinarySmiOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {

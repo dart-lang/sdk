@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,9 +14,9 @@ main() {
 }
 
 @reflectiveTest
-class PrivateSetterTest extends DriverResolutionTest {
+class PrivateSetterTest extends PubPackageResolutionTest {
   test_typeLiteral_privateField_differentLibrary() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static int _foo = 0;
 }
@@ -64,7 +64,7 @@ main() {
   }
 
   test_typeLiteral_privateSetter_differentLibrary_hasGetter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static set _foo(int _) {}
   
@@ -89,7 +89,7 @@ main() {
   }
 
   test_typeLiteral_privateSetter_differentLibrary_noGetter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static set _foo(int _) {}
 }

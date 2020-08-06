@@ -108,3 +108,12 @@ void printHistogram(ProgramInfo info, Histogram histogram,
   }
   print('Total: ${totalSize} bytes');
 }
+
+List<String> partsForPath(String path) {
+  final parts = path.split('/');
+  if (parts.first.startsWith('package:')) {
+    // Convert dot separated package name into a path from which this package originated.
+    parts.replaceRange(0, 1, parts.first.split('.'));
+  }
+  return parts;
+}

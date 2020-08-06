@@ -1,11 +1,18 @@
 ## 2.10.0
 
+### Core libraries
+
+#### `dart:typed_data`
+
+*   Class `BytesBuilder` is moved from `dart:io` to `dart:typed_data`.
+    It's temporarily being exported from `dart:io` as well.
+
 ### Dart VM
 
 *   Introduces `Dart_FinalizableHandle`s. They do auto-delete, and the weakly
     referred object cannot be accessed through them.
 
-## 2.9.0
+## 2.9.0 - 2020-08-05
 
 ### Language
 
@@ -76,11 +83,6 @@
     flutter tools, we expect few projects to run into this problem.
 
 [#42714]: https://github.com/dart-lang/sdk/issues/42714
-
-#### `dart:typed_data`
-
-*   Class `BytesBuilder` is moved from `dart:io` to `dart:typed_data`.
-    It's temporarily being exported from `dart:io` as well.
 
 ### Tools
 

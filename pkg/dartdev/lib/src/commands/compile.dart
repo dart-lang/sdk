@@ -243,6 +243,12 @@ class CompileCommand extends Command {
       fileExt: 'jit',
       formatName: 'app-jit',
     ));
+    addSubcommand(CompileSnapshotCommand(
+      commandName: 'kernel',
+      help: 'to a kernel snapshot',
+      fileExt: 'dill',
+      formatName: 'kernel',
+    ));
     addSubcommand(CompileNativeCommand(
       commandName: 'exe',
       help: 'to a self-contained executable',

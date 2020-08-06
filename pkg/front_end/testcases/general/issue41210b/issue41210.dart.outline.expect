@@ -88,7 +88,7 @@ abstract class Interface2 extends core::Object {
   abstract member-signature get runtimeType() → core::Type*;
 }
 abstract class A extends core::Object implements iss::Interface /*isMixinDeclaration*/  {
-  method method(core::num* i, {core::String* s = "hello"}) → core::String*
+  method method(core::num* i, {core::String* s = #C1}) → core::String*
     ;
   abstract member-signature get _identityHashCode() → core::int*;
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
@@ -130,4 +130,8 @@ abstract class D extends core::Object implements iss::Interface, iss::Interface2
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
   abstract member-signature get runtimeType() → core::Type*;
   abstract forwarding-stub method method(covariant core::num* i) → core::String*;
+}
+
+constants  {
+  #C1 = "hello"
 }

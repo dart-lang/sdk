@@ -213,6 +213,7 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
          i < function.NumParameters(); ++i) {
       const intptr_t flags = reader_.ReadUInt();
       if ((flags & Parameter::kIsRequiredFlag) != 0) {
+        RELEASE_ASSERT(i >= function.num_fixed_parameters());
         function.SetIsRequiredAt(i);
       }
     }
@@ -610,6 +611,7 @@ TypePtr BytecodeReaderHelper::ReadFunctionSignature(
     for (intptr_t i = 0; i < num_flags; ++i) {
       intptr_t flag = reader_.ReadUInt();
       if ((flag & Parameter::kIsRequiredFlag) != 0) {
+        RELEASE_ASSERT(kImplicitClosureParam + i >= num_required_params);
         func.SetIsRequiredAt(kImplicitClosureParam + i);
       }
     }
@@ -3072,6 +3074,7 @@ void BytecodeReaderHelper::ParseForwarderFunction(
   if (has_parameters_flags) {
     const intptr_t num_params = reader_.ReadUInt();
     const intptr_t num_implicit_params = function.NumImplicitParameters();
+    const intptr_t num_fixed_params = function.num_fixed_parameters();
     for (intptr_t i = 0; i < num_params; ++i) {
       const intptr_t flags = reader_.ReadUInt();
 
@@ -3081,6 +3084,7 @@ void BytecodeReaderHelper::ParseForwarderFunction(
       bool is_required = (flags & Parameter::kIsRequiredFlag) != 0;
 
       if (is_required) {
+        RELEASE_ASSERT(num_implicit_params + i >= num_fixed_params);
         function.SetIsRequiredAt(num_implicit_params + i);
       }
 

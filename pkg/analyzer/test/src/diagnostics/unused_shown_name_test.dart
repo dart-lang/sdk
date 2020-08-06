@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,9 +14,9 @@ main() {
 }
 
 @reflectiveTest
-class UnusedShownNameTest extends DriverResolutionTest {
+class UnusedShownNameTest extends PubPackageResolutionTest {
   test_extension_instance_method_unused() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 extension E on String {
   String empty() => '';
 }
@@ -34,7 +34,7 @@ f() {
   }
 
   test_extension_instance_method_used() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 extension E on String {
   String empty() => '';
 }
@@ -49,7 +49,7 @@ f() {
   }
 
   test_unreferenced() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 class A {}
 class B {}
 ''');
@@ -73,7 +73,7 @@ main() {
   }
 
   test_unusedShownName_as() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 class A {}
 class B {}
 ''');
@@ -86,7 +86,7 @@ p.A a;
   }
 
   test_unusedShownName_duplicates() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 class A {}
 class B {}
 class C {}
@@ -104,7 +104,7 @@ C c;
   }
 
   test_unusedShownName_topLevelVariable() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 const int var1 = 1;
 const int var2 = 2;
 const int var3 = 3;

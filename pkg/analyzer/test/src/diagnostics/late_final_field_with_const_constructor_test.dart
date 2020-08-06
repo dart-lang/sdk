@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class LateFinalFieldWithConstConstructorTest extends DriverResolutionTest
+class LateFinalFieldWithConstConstructorTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   static const _errorCode =
       CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR;

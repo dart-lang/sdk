@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../driver_resolution.dart';
-import '../with_null_safety_mixin.dart';
+import '../context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class FunctionExpressionTest extends DriverResolutionTest {
+class FunctionExpressionTest extends PubPackageResolutionTest {
   test_contextFunctionType_returnType_async_blockBody_futureOrVoid() async {
     var expectedErrors = expectedErrorsByNullability(
       nullable: [
@@ -344,7 +343,7 @@ main() {
   }
 
   test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_imported() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 enum E { a, b }
 ''');
 
@@ -463,7 +462,7 @@ var v = () sync* {
 class FunctionExpressionWithNullSafetyTest extends FunctionExpressionTest
     with WithNullSafetyMixin {
   test_contextFunctionType_nonNullify() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 
 int Function(int a) v;
@@ -485,7 +484,7 @@ void f() {
   }
 
   test_contextFunctionType_nonNullify_returnType_takeActual() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 
 void foo(int Function() x) {}
@@ -501,7 +500,7 @@ void test(int? a) {
   }
 
   test_contextFunctionType_nonNullify_returnType_takeContext() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 
 void foo(int Function() x) {}
@@ -556,7 +555,7 @@ Object? Function() v = () async => foo();
   }
 
   test_optOut_downward_returnType_expressionBody_Null() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 void foo(Map<String, String> Function() f) {}
 ''');
     await resolveTestCode('''

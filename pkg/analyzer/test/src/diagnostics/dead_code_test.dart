@@ -3,11 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +15,13 @@ main() {
 }
 
 @reflectiveTest
-class DeadCodeTest extends DriverResolutionTest with PackageMixin {
+class DeadCodeTest extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfigWithMeta();
+  }
+
   test_afterForEachWithBreakLabel() async {
     await assertNoErrorsInCode(r'''
 f(List<Object> values) {
@@ -166,7 +170,7 @@ f() {
   }
 
   test_deadBlock_if_debugConst_prefixedIdentifier2() async {
-    newFile('/test/lib/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 class A {
   static const bool DEBUG = false;
 }''');
@@ -178,7 +182,7 @@ f() {
   }
 
   test_deadBlock_if_debugConst_propertyAccessor() async {
-    newFile('/test/lib/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 class A {
   static const bool DEBUG = false;
 }''');
@@ -453,7 +457,6 @@ main() {
   }
 
   test_statementAfterAlwaysThrowsFunction() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -473,7 +476,6 @@ f() {
 
   @failingTest
   test_statementAfterAlwaysThrowsGetter() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -493,7 +495,6 @@ f() {
   }
 
   test_statementAfterAlwaysThrowsMethod() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 

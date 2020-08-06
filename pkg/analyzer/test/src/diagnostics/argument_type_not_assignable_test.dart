@@ -6,8 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,10 +16,10 @@ main() {
 }
 
 @reflectiveTest
-class ArgumentTypeNotAssignableTest extends DriverResolutionTest {
+class ArgumentTypeNotAssignableTest extends PubPackageResolutionTest {
   test_ambiguousClassName() async {
     // See dartbug.com/19624
-    newFile("/test/lib/lib2.dart", content: '''
+    newFile('$testPackageLibPath/lib2.dart', content: '''
 class _A {}
 g(h(_A a)) {}''');
     await assertErrorsInCode('''

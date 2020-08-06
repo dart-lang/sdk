@@ -6,8 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class UndefinedIdentifierTest extends DriverResolutionTest {
+class UndefinedIdentifierTest extends PubPackageResolutionTest {
   @failingTest
   test_commentReference() async {
     await assertErrorsInCode('''
@@ -116,7 +115,7 @@ f() { C.m(); }
   }
 
   test_private_getter() async {
-    newFile("/test/lib/lib.dart", content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 class A {
   var _foo;
@@ -134,7 +133,7 @@ class B extends A {
   }
 
   test_private_setter() async {
-    newFile("/test/lib/lib.dart", content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 class A {
   var _foo;

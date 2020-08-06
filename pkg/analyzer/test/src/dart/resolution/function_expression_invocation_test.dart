@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
-import 'with_null_safety_mixin.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class FunctionExpressionInvocationTest extends DriverResolutionTest {
+class FunctionExpressionInvocationTest extends PubPackageResolutionTest {
   test_dynamic_withoutTypeArguments() async {
     await assertNoErrorsInCode(r'''
 main() {
@@ -52,7 +51,7 @@ main() {
 
 @reflectiveTest
 class FunctionExpressionInvocationWithNullSafetyTest
-    extends DriverResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest with WithNullSafetyMixin {
   test_call_infer_fromArguments() async {
     await assertNoErrorsInCode(r'''
 class A {

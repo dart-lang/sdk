@@ -3,12 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,11 +15,16 @@ main() {
 }
 
 @reflectiveTest
-class InferenceFailureOnInstanceCreationTest extends DriverResolutionTest
-    with PackageMixin {
+class InferenceFailureOnInstanceCreationTest extends PubPackageResolutionTest {
   @override
-  AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..strictInference = true;
+  void setUp() {
+    super.setUp();
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        strictInference: true,
+      ),
+    );
+  }
 
   test_constructorNames_named() async {
     await assertErrorsInCode('''
@@ -77,7 +80,7 @@ void f() {
   }
 
   test_missingTypeArgument_noInference_optionalTypeArgs() async {
-    addMetaPackage();
+    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @optionalTypeArgs

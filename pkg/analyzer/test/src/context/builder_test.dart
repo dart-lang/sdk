@@ -67,19 +67,9 @@ class ContextBuilderTest with ResourceProviderMixin {
         windows: resourceProvider.pathContext.style == path.windows.style);
   }
 
-  void createDefaultSdk(Folder sdkDir) {
-    defaultSdkPath = join(sdkDir.path, 'default', 'sdk');
-    String librariesFilePath = join(defaultSdkPath, 'lib', '_internal',
-        'sdk_library_metadata', 'lib', 'libraries.dart');
-    newFile(librariesFilePath, content: r'''
-const Map<String, LibraryInfo> libraries = const {
-  "async": const LibraryInfo("async/async.dart"),
-  "core": const LibraryInfo("core/core.dart"),
-};
-''');
-    sdkManager = DartSdkManager(defaultSdkPath);
-    builder = ContextBuilder(resourceProvider, sdkManager, contentCache,
-        options: builderOptions);
+  void createDefaultSdk() {
+    defaultSdkPath = convertPath(sdkRoot);
+    MockSdk(resourceProvider: resourceProvider);
   }
 
   void setUp() {
@@ -347,8 +337,7 @@ bar:${toUriStr('/pkg/bar')}
 
   void test_createSourceFactory_noProvider_packages_embedder_noExtensions() {
     String rootPath = convertPath('/root');
-    Folder rootFolder = getFolder(rootPath);
-    createDefaultSdk(rootFolder);
+    createDefaultSdk();
     String projectPath = join(rootPath, 'project');
     String packageFilePath = join(projectPath, '.packages');
 
@@ -387,8 +376,7 @@ b:${resourceProvider.pathContext.toUri(packageB)}
 
   void test_createSourceFactory_noProvider_packages_noEmbedder_noExtensions() {
     String rootPath = convertPath('/root');
-    Folder rootFolder = getFolder(rootPath);
-    createDefaultSdk(rootFolder);
+    createDefaultSdk();
     String projectPath = join(rootPath, 'project');
     String packageFilePath = join(projectPath, '.packages');
     String packageA = join(rootPath, 'pkgs', 'a');

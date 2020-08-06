@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class AmbiguousSetOrMapLiteralBothTest extends DriverResolutionTest {
+class AmbiguousSetOrMapLiteralBothTest extends PubPackageResolutionTest {
   test_map() async {
     await assertNoErrorsInCode('''
 f(Map<int, int> map) {
@@ -109,7 +108,7 @@ f(Map<int?, int> map, Set<int?> set) {
 }
 
 @reflectiveTest
-class AmbiguousSetOrMapLiteralEitherTest extends DriverResolutionTest {
+class AmbiguousSetOrMapLiteralEitherTest extends PubPackageResolutionTest {
   test_invalidPrefixOperator() async {
     // Guard against an exception being thrown.
     await assertErrorsInCode('''

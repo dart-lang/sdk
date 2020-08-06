@@ -5,8 +5,7 @@
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class UnnecessaryTypeCheckFalseTest extends DriverResolutionTest {
+class UnnecessaryTypeCheckFalseTest extends PubPackageResolutionTest {
   test_null_not_Null() async {
     await assertErrorsInCode(r'''
 var b = null is! Null;
@@ -72,7 +71,7 @@ void f<T>(T a) {
 }
 
 @reflectiveTest
-class UnnecessaryTypeCheckTrueTest extends DriverResolutionTest {
+class UnnecessaryTypeCheckTrueTest extends PubPackageResolutionTest {
   test_null_is_Null() async {
     await assertErrorsInCode(r'''
 var b = null is Null;

@@ -11,8 +11,7 @@ import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
-import 'with_null_safety_mixin.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -22,9 +21,9 @@ main() {
 }
 
 @reflectiveTest
-class ConstantResolutionTest extends DriverResolutionTest {
+class ConstantResolutionTest extends PubPackageResolutionTest {
   test_constantValue_defaultParameter_noDefaultValue() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A({int p});
 }
@@ -106,7 +105,7 @@ class A<T, U> {
   }
 
   test_functionType_element_typeArguments() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 typedef F<T> = T Function(int);
 const a = C<F<double>>();
 
@@ -139,7 +138,7 @@ const v = a;
   }
 
   test_imported_prefixedIdentifier_staticField_class() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const a = C.f;
 
 class C {
@@ -156,7 +155,7 @@ import 'a.dart';
   }
 
   test_imported_prefixedIdentifier_staticField_extension() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const a = E.f;
 
 extension E on int {
@@ -173,7 +172,7 @@ import 'a.dart';
   }
 
   test_imported_prefixedIdentifier_staticField_mixin() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const a = M.f;
 
 class C {}
@@ -192,7 +191,7 @@ import 'a.dart';
   }
 
   test_imported_super_defaultFieldFormalParameter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 import 'test.dart';
 
 class A {
@@ -213,7 +212,7 @@ class B extends A {
 }
 ''');
 
-    result = await resolveFile(convertPath('/test/lib/a.dart'));
+    result = await resolveFile(convertPath('$testPackageLibPath/a.dart'));
     assertErrorsInResolvedUnit(result, []);
 
     var bElement = FindElement(result.unit).field('b') as ConstVariableElement;
@@ -236,7 +235,7 @@ extension E on int {
 }
 
 @reflectiveTest
-class ConstantResolutionWithNullSafetyTest extends DriverResolutionTest
+class ConstantResolutionWithNullSafetyTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_context_eliminateTypeVariables() async {
     await assertNoErrorsInCode(r'''
@@ -260,7 +259,7 @@ class A<T, U> {
   }
 
   test_field_optIn_fromOptOut() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static const foo = 42;
 }
@@ -278,7 +277,7 @@ const bar = A.foo;
   }
 
   test_fromEnvironment_optOut_fromOptIn() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.5
 
 const cBool = const bool.fromEnvironment('foo', defaultValue: false);
@@ -304,7 +303,7 @@ const vString = cString;
   }
 
   test_topLevelVariable_optIn_fromOptOut() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const foo = 42;
 ''');
 
@@ -321,11 +320,11 @@ const bar = foo;
   }
 
   test_topLevelVariable_optOut2() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const a = 42;
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 import 'a.dart';
 
 const b = a;
@@ -344,7 +343,7 @@ const c = b;
   }
 
   test_topLevelVariable_optOut3() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 const a = int.fromEnvironment('a', defaultValue: 42);
 ''');

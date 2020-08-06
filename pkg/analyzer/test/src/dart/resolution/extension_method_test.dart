@@ -9,8 +9,7 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
-import 'with_null_safety_mixin.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -28,7 +27,7 @@ main() {
 /// Tests that show that extension declarations and the members inside them are
 /// resolved correctly.
 @reflectiveTest
-class ExtensionMethodsDeclarationTest extends DriverResolutionTest {
+class ExtensionMethodsDeclarationTest extends PubPackageResolutionTest {
   @override
   List<MockSdkLibrary> get additionalMockSdkLibraries => [
         MockSdkLibrary([
@@ -39,12 +38,14 @@ extension E on Object {
 
 class A {}
 '''),
+        ]),
+        MockSdkLibrary([
           MockSdkLibraryUnit('dart:test2', 'test2/test2.dart', r'''
 extension E on Object {
   int get a => 1;
 }
 '''),
-        ])
+        ]),
       ];
 
   test_constructor() async {
@@ -136,7 +137,7 @@ extension E<T extends Object> on T {
   }
 
   test_visibility_hidden() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 extension E on C {
   int a = 1;
@@ -154,7 +155,7 @@ f(C c) {
   }
 
   test_visibility_notShown() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 extension E on C {
   int a = 1;
@@ -172,7 +173,7 @@ f(C c) {
   }
 
   test_visibility_shadowed_byClass() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 extension E on C {
   int get a => 1;
@@ -193,12 +194,12 @@ f(C c) {
   }
 
   test_visibility_shadowed_byImport() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 extension E on Object {
   int get a => 1;
 }
 ''');
-    newFile('/test/lib/lib2.dart', content: '''
+    newFile('$testPackageLibPath/lib2.dart', content: '''
 class E {}
 class A {}
 ''');
@@ -217,7 +218,7 @@ f(Object o, A a) {
   }
 
   test_visibility_shadowed_byLocal_imported() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 extension E on C {
   int get a => 1;
@@ -258,7 +259,7 @@ f(C c) {
   }
 
   test_visibility_shadowed_byTopLevelVariable() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 extension E on C {
   int get a => 1;
@@ -279,7 +280,7 @@ f(C c) {
   }
 
   test_visibility_shadowed_platformByNonPlatform() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 extension E on Object {
   int get a => 1;
 }
@@ -296,7 +297,7 @@ f(Object o, A a, B b) {
   }
 
   test_visibility_withPrefix() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 extension E on C {
   int get a => 1;
@@ -315,8 +316,8 @@ f(p.C c) {
 /// Tests that show that extension declarations and the members inside them are
 /// resolved correctly.
 @reflectiveTest
-class ExtensionMethodsDeclarationWithNullSafetyTest extends DriverResolutionTest
-    with WithNullSafetyMixin {
+class ExtensionMethodsDeclarationWithNullSafetyTest
+    extends PubPackageResolutionTest with WithNullSafetyMixin {
   test_this_type_interface() async {
     await assertNoErrorsInCode('''
 extension E on int {
@@ -354,7 +355,7 @@ extension E<T extends Object> on T {
 /// Tests that show that extension declarations support all of the possible
 /// types in the `on` clause.
 @reflectiveTest
-class ExtensionMethodsExtendedTypeTest extends DriverResolutionTest {
+class ExtensionMethodsExtendedTypeTest extends PubPackageResolutionTest {
   test_named_generic() async {
     await assertNoErrorsInCode('''
 class C<T> {}
@@ -481,7 +482,7 @@ class ExtensionMethodsExtendedTypeWithNullSafetyTest
 /// Tests that extension members can be correctly resolved when referenced
 /// by code external to the extension declaration.
 @reflectiveTest
-class ExtensionMethodsExternalReferenceTest extends DriverResolutionTest {
+class ExtensionMethodsExternalReferenceTest extends PubPackageResolutionTest {
   /// Corresponds to: extension_member_resolution_t07
   test_dynamicInvocation() async {
     await assertNoErrorsInCode(r'''
@@ -1225,7 +1226,7 @@ f(C c) => c.a;
   }
 
   test_static_field_importedWithPrefix() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 
 extension E on C {
@@ -1263,7 +1264,7 @@ f() {
   }
 
   test_static_getter_importedWithPrefix() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 
 extension E on C {
@@ -1301,7 +1302,7 @@ f() {
   }
 
   test_static_method_importedWithPrefix() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 
 extension E on C {
@@ -1339,7 +1340,7 @@ f() {
   }
 
   test_static_setter_importedWithPrefix() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 
 extension E on C {
@@ -1681,7 +1682,7 @@ f(int? a) {
 /// Tests that extension members can be correctly resolved when referenced
 /// by code internal to (within) the extension declaration.
 @reflectiveTest
-class ExtensionMethodsInternalReferenceTest extends DriverResolutionTest {
+class ExtensionMethodsInternalReferenceTest extends PubPackageResolutionTest {
   test_instance_call() async {
     await assertNoErrorsInCode('''
 class C {}

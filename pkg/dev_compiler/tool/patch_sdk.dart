@@ -40,7 +40,7 @@ void main(List<String> argv) {
   var outDir = resolveInputUri(outPath.endsWith('/') ? outPath : '$outPath/');
   var outLibRoot = outDir.resolve('lib/');
 
-  var inputVersion = Platform.script.resolve('../../../tools/VERSION');
+  var inputVersion = Uri.file(Platform.executable).resolve('../version');
   var outVersion = outDir.resolve('version');
 
   var specification = LibrariesSpecification.parse(

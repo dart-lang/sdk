@@ -456,6 +456,7 @@ px
 py
 python
 quot
+quux
 qux
 r"
 r"\s

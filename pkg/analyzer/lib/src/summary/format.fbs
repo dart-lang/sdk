@@ -1274,6 +1274,9 @@ table PackageBundle {
 table PackageBundleSdk {
   /// The content of the `allowed_experiments.json` from SDK.
   allowedExperimentsJson:string (id: 0);
+
+  /// The language version of the SDK.
+  languageVersion:LinkedLanguageVersion (id: 1);
 }
 
 /// Summary information about a top-level type inference error.

@@ -8,8 +8,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
-import 'with_null_safety_mixin.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,7 +18,8 @@ main() {
 }
 
 @reflectiveTest
-class NonNullableTest extends DriverResolutionTest with WithNullSafetyMixin {
+class NonNullableTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
   test_class_hierarchy() async {
     await assertNoErrorsInCode('''
 class A {}
@@ -60,7 +60,7 @@ class C {
   }
 
   test_library_typeProvider_typeSystem() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 ''');
     await resolveTestCode(r'''
@@ -435,7 +435,7 @@ main() {
 }
 
 @reflectiveTest
-class NullableTest extends DriverResolutionTest {
+class NullableTest extends PubPackageResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 

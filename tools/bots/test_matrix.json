@@ -2571,20 +2571,28 @@
           ]
         },
         {
-          "name": "dart2js nnbd weak tests",
+          "name": "dart2js nnbd weak d8 tests",
           "arguments": [
             "-ndart2js-hostasserts-weak-linux-x64-d8",
             "--dart2js-batch",
             "language",
-            "corelib",
-            "dart2js",
-            "kernel"
+            "corelib"
           ],
           "shards": 6,
           "fileset": "web_platform_hostasserts_nnbd"
         },
         {
-          "name": "dart2js legacy weak lib tests",
+          "name": "dart2js nnbd weak chrome tests",
+          "arguments": [
+            "-ndart2js-hostasserts-weak-linux-x64-chrome",
+            "--dart2js-batch",
+            "dart2js"
+          ],
+          "shards": 3,
+          "fileset": "web_platform_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js nnbd weak lib tests",
           "arguments": [
             "-ndart2js-hostasserts-weak-linux-x64-chrome",
             "--dart2js-batch",
@@ -2594,7 +2602,7 @@
           "fileset": "web_platform_hostasserts_nnbd"
         },
         {
-          "name": "dart2js legacy weak co19 tests",
+          "name": "dart2js nnbd weak co19 tests",
           "arguments": [
             "-ndart2js-hostasserts-weak-linux-x64-chrome",
             "--dart2js-batch",
@@ -2604,16 +2612,24 @@
           "fileset": "web_platform_hostasserts_nnbd"
         },
         {
-          "name": "dart2js nnbd strong tests",
+          "name": "dart2js nnbd strong d8 tests",
           "arguments": [
             "-ndart2js-hostasserts-strong-linux-x64-d8",
             "--dart2js-batch",
             "language",
-            "corelib",
-            "dart2js",
-            "kernel"
+            "corelib"
           ],
           "shards": 6,
+          "fileset": "web_platform_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js nnbd strong chrome tests",
+          "arguments": [
+            "-ndart2js-hostasserts-strong-linux-x64-chrome",
+            "--dart2js-batch",
+            "dart2js"
+          ],
+          "shards": 3,
           "fileset": "web_platform_hostasserts_nnbd"
         },
         {

@@ -7,7 +7,7 @@ import 'package:meta/meta.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class InconsistentLanguageVersionOverrideTest extends DriverResolutionTest {
+class InconsistentLanguageVersionOverrideTest extends PubPackageResolutionTest {
   CompileTimeErrorCode get _errorCode =>
       CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE;
 
@@ -97,8 +97,8 @@ part of 'a.dart';
     @required String partContent,
     @required List<ExpectedError> libraryErrors,
   }) async {
-    var libraryPath = convertPath('/test/lib/a.dart');
-    var partPath = convertPath('/test/lib/b.dart');
+    var libraryPath = convertPath('$testPackageLibPath/a.dart');
+    var partPath = convertPath('$testPackageLibPath/b.dart');
 
     newFile(libraryPath, content: libraryContent);
 
