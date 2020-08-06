@@ -85,6 +85,23 @@ mixin M {
 @reflectiveTest
 class FinalNotInitializedWithNullSafetyTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
+  test_field_abstract() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract final int x;
+}
+''');
+  }
+
+  test_field_abstract_with_constructor() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract final int x;
+  A();
+}
+''');
+  }
+
   test_field_noConstructor_initializer() async {
     await assertNoErrorsInCode('''
 class C {
