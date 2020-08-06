@@ -4750,19 +4750,12 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
   for (intptr_t i = 0; i < catch_count; ++i) {
     intptr_t catch_offset = ReaderOffset();   // Catch has no tag.
     TokenPosition position = ReadPosition();  // read position.
-    Tag tag = PeekTag();                      // peek guard type.
-    AbstractType* type_guard = NULL;
-    if (tag != kDynamicType) {
-      type_guard = &T.BuildType();  // read guard.
-      handler_types.SetAt(i, *type_guard);
-    } else {
-      SkipDartType();  // read guard.
-      handler_types.SetAt(i, Object::dynamic_type());
-    }
+    const AbstractType& type_guard = T.BuildType();  // read guard.
+    handler_types.SetAt(i, type_guard);
 
     Fragment catch_handler_body = EnterScope(catch_offset);
 
-    tag = ReadTag();  // read first part of exception.
+    Tag tag = ReadTag();  // read first part of exception.
     if (tag == kSomething) {
       catch_handler_body += LoadLocal(CurrentException());
       catch_handler_body +=
@@ -4796,22 +4789,22 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
       }
     }
 
-    if (type_guard != NULL) {
+    if (!type_guard.IsCatchAllType()) {
       catch_body += LoadLocal(CurrentException());
 
-      if (!type_guard->IsInstantiated(kCurrentClass)) {
+      if (!type_guard.IsInstantiated(kCurrentClass)) {
         catch_body += LoadInstantiatorTypeArguments();
       } else {
         catch_body += NullConstant();
       }
 
-      if (!type_guard->IsInstantiated(kFunctions)) {
+      if (!type_guard.IsInstantiated(kFunctions)) {
         catch_body += LoadFunctionTypeArguments();
       } else {
         catch_body += NullConstant();
       }
 
-      catch_body += Constant(*type_guard);
+      catch_body += Constant(type_guard);
 
       catch_body += InstanceCall(
           position, Library::PrivateCoreLibName(Symbols::_instanceOf()),

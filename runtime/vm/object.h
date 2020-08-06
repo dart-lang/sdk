@@ -7997,6 +7997,11 @@ class AbstractType : public Instance {
   // Returns unmodified type if this type is not a 'FutureOr' type.
   AbstractTypePtr UnwrapFutureOr() const;
 
+  // Returns true if catching this type will catch all exceptions.
+  // Exception objects are guaranteed to be non-nullable, so
+  // non-nullable Object is also a catch-all type.
+  bool IsCatchAllType() const { return IsDynamicType() || IsObjectType(); }
+
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractType& other,
                    Heap::Space space,

@@ -4387,7 +4387,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       tryBlock.types.add(cp.addType(catchClause.guard));
 
       Label skipCatch;
-      if (catchClause.guard == const DynamicType()) {
+      final guardType = catchClause.guard;
+      // Exception objects are guaranteed to be non-nullable, so
+      // non-nullable Object is also a catch-all type.
+      if (guardType is DynamicType ||
+          (guardType is InterfaceType &&
+              guardType.classNode == coreTypes.objectClass)) {
         hasCatchAll = true;
       } else {
         asm.emitPush(exception);
