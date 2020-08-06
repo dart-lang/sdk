@@ -77,6 +77,6 @@ class InvalidListener extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
   abstract member-signature get runtimeType() → core::Type*;
 }
-external static abstract method createExternal() → self::External*;
+external static method createExternal() → self::External*;
 static method main() → dynamic
   ;

@@ -58,6 +58,6 @@ class Class extends core::Object {
 static method method([core::int i]) → void
   ;
 @_in::patch
-external static abstract method patchedMethod([core::int i]) → void;
+external static method patchedMethod([core::int i]) → void;
 static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([core::int i]) → void
   ;

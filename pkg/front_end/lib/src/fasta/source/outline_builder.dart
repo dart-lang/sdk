@@ -813,9 +813,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
     }
     int modifiers = pop();
-    if (isAbstract) {
-      modifiers |= abstractMask;
-    }
+    modifiers = Modifier.addAbstractMask(modifiers, isAbstract: isAbstract);
     if (nativeMethodName != null) {
       modifiers |= externalMask;
     }
@@ -1059,12 +1057,10 @@ class OutlineBuilder extends StackListenerImpl {
         isAbstract = false;
       }
     }
-    int modifiers = Modifier.validate(pop(), isAbstract: isAbstract);
+    int modifiers = Modifier.toMask(pop());
+    modifiers = Modifier.addAbstractMask(modifiers, isAbstract: isAbstract);
     if (nativeMethodName != null) {
       modifiers |= externalMask;
-    }
-    if ((modifiers & externalMask) != 0) {
-      modifiers &= ~abstractMask;
     }
     bool isConst = (modifiers & constMask) != 0;
     int varFinalOrConstOffset = pop();
