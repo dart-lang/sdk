@@ -10,11 +10,15 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConcreteClassWithAbstractMemberTest);
+    defineReflectiveTests(ConcreteClassWithAbstractMemberWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ConcreteClassWithAbstractMemberTest extends PubPackageResolutionTest {
+class ConcreteClassWithAbstractMemberTest extends PubPackageResolutionTest
+    with ConcreteClassWithAbstractMemberTestCases {}
+
+mixin ConcreteClassWithAbstractMemberTestCases on PubPackageResolutionTest {
   test_direct() async {
     await assertErrorsInCode('''
 class A {
@@ -36,3 +40,8 @@ class A implements I {
     ]);
   }
 }
+
+@reflectiveTest
+class ConcreteClassWithAbstractMemberWithNullSafetyTest
+    extends PubPackageResolutionTest
+    with WithNullSafetyMixin, ConcreteClassWithAbstractMemberTestCases {}
