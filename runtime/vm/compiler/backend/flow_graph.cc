@@ -1295,6 +1295,14 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
     // Trim extra inputs of ClosureCall and LoadField instructions from
     // the environment. Inputs of those instructions are not pushed onto
     // the stack at the point where deoptimization can occur.
+    // Note that in case of LoadField there can be two possible situations,
+    // the code here handles LoadField to LoadField lazy deoptimization in
+    // which we are transitioning from position after the call to initialization
+    // stub in optimized code to a similar position after the call to
+    // initialization stub in unoptimized code. There is another variant
+    // (LoadField deoptimizing into a position after a getter call) which is
+    // handled in a different way (see
+    // CallSpecializer::InlineImplicitInstanceGetter).
     deopt_env =
         deopt_env->DeepCopy(zone(), deopt_env->Length() - instr->InputCount() +
                                         instr->ArgumentCount());

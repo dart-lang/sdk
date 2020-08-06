@@ -774,18 +774,16 @@ void CallSpecializer::InlineImplicitInstanceGetter(Definition* call,
       new (Z) Value(receiver), slot, call->token_pos(), calls_initializer,
       calls_initializer ? call->deopt_id() : DeoptId::kNone);
 
-  Environment* load_env = nullptr;
-  if (calls_initializer) {
-    // Drop getter argument from the environment as it is not
-    // pushed on the stack when initializer is called.
-    load_env =
-        call->env()->DeepCopy(Z, call->env()->Length() - call->ArgumentCount());
+  // Note that this is a case of LoadField -> InstanceCall lazy deopt.
+  // Which means that we don't need to remove arguments from the environment
+  // because normal getter call expects receiver pushed (unlike the case
+  // of LoadField -> LoadField deoptimization handled by
+  // FlowGraph::AttachEnvironment).
+  if (!calls_initializer) {
+    // If we don't call initializer then we don't need an environment.
+    call->RemoveEnvironment();
   }
-  call->RemoveEnvironment();
   ReplaceCall(call, load);
-  if (calls_initializer) {
-    load_env->DeepCopyTo(Z, load);
-  }
 
   if (load->slot().nullable_cid() != kDynamicCid) {
     // Reset value types if we know concrete cid.
