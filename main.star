@@ -720,7 +720,31 @@ dart_ci_sandbox_builder(
     channels = ["try"],
     execution_timeout = 8 * time.hour,
     triggered_by = ["dart-gitiles-trigger-flutter"],
-    properties = {"bisection_enabled": True},
+    properties = {
+        "bisection_enabled": True,
+        "flutter_test_suites": [
+            "add_to_app_life_cycle_tests",
+            "build_tests",
+            "framework_coverage",
+            "framework_tests",
+            "hostonly_devicelab_tests",
+            "tool_coverage",
+            "tool_tests",
+        ],
+    },
+)
+
+dart_ci_sandbox_builder(
+    "flutter-engine-linux-web_tests",
+    recipe = "dart/flutter_engine",
+    category = "flutter|web",
+    channels = ["try"],
+    execution_timeout = 8 * time.hour,
+    triggered_by = ["dart-gitiles-trigger-flutter"],
+    properties = {
+        "bisection_enabled": True,
+        "flutter_test_suites": ["web_tests"],
+    },
 )
 
 # vm|nnbd
