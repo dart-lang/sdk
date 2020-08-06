@@ -1,3 +1,16 @@
+# 0.1.118
+
+* new lint: `unnecessary_nullable_for_final_variable_declarations`
+* fixed NPE in `prefer_asserts_in_initializer_lists`
+* fixed range error in `unnecessary_string_escapes`
+* `unsafe_html` updated to support unique error codes
+* updates to `diagnostic_describe_all_properties` to check for `Diagnosticable`s (not `DiagnosticableMixin`s)
+* new lint: `use_late`
+* fixed `unnecessary_lambdas` to respect deferred imports
+* updated `public_member_api_docs` to check mixins
+* updated `unnecessary_statements` to skip `as` expressions
+* fixed `prefer_relative_imports` to work with path dependencies
+
 # 0.1.117
 
 * fixed `directives_ordering` to remove third party package special-casing
