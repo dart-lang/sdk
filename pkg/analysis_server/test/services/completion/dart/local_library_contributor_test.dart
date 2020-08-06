@@ -133,15 +133,9 @@ void f() {^}
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     // A is suggested with a higher relevance
-    assertSuggestConstructor('A',
-        elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
-    assertSuggestConstructor('B',
-        elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    assertSuggestConstructor('C',
-        elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('A', elemOffset: -1);
+    assertSuggestConstructor('B', elemOffset: -1);
+    assertSuggestConstructor('C', elemOffset: -1);
     // D has the default relevance
     assertSuggestConstructor('D', elemOffset: -1);
 
@@ -184,15 +178,9 @@ void f() {^}
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     // A is suggested with a higher relevance
-    assertSuggestConstructor('A',
-        elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
-    assertSuggestConstructor('B',
-        elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    assertSuggestConstructor('C',
-        elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('A', elemOffset: -1);
+    assertSuggestConstructor('B', elemOffset: -1);
+    assertSuggestConstructor('C', elemOffset: -1);
     // D has the default relevance
     assertSuggestConstructor('D', elemOffset: -1);
 
@@ -235,12 +223,9 @@ void f() {^}
     if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('A');
     }
-    assertSuggestFunction('af', 'int',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
-    assertSuggestTopLevelVar('m', null,
-        relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
-    assertSuggestFunctionTypeAlias('t1', null,
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    assertSuggestFunction('af', 'int');
+    assertSuggestTopLevelVar('m', null);
+    assertSuggestFunctionTypeAlias('t1', null);
     assertNotSuggested('a1');
     assertNotSuggested('a2');
     // Suggested by LocalConstructorContributor
@@ -281,12 +266,9 @@ void f() {^}
     if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('B');
     }
-    assertSuggestFunction('bf', 'int',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
-    assertSuggestTopLevelVar('n', null,
-        relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
-    assertSuggestFunctionTypeAlias('t1', null,
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    assertSuggestFunction('bf', 'int');
+    assertSuggestTopLevelVar('n', null);
+    assertSuggestFunctionTypeAlias('t1', null);
     assertNotSuggested('b1');
     assertNotSuggested('b2');
     // Suggested by ConstructorContributor

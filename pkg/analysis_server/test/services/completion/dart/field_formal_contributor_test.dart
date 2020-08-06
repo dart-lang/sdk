@@ -50,8 +50,8 @@ mixin M {
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestField('b', null, relevance: DART_RELEVANCE_LOCAL_FIELD);
-    assertSuggestField('_c', 'X', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestField('b', null);
+    assertSuggestField('_c', 'X');
     assertNotSuggested('sb');
     assertNotSuggested('d');
     assertNotSuggested('_e');
@@ -86,8 +86,8 @@ mixin M {
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
-    assertSuggestField('b', null, relevance: DART_RELEVANCE_LOCAL_FIELD);
-    assertSuggestField('_c', 'X', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestField('b', null);
+    assertSuggestField('_c', 'X');
     assertNotSuggested('d');
     assertNotSuggested('_e');
     assertNotSuggested('f');
@@ -121,8 +121,8 @@ mixin M {
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 1);
-    assertSuggestField('b', null, relevance: DART_RELEVANCE_LOCAL_FIELD);
-    assertSuggestField('_c', 'X', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestField('b', null);
+    assertSuggestField('_c', 'X');
     assertNotSuggested('d');
     assertNotSuggested('_e');
     assertNotSuggested('f');
@@ -157,7 +157,7 @@ mixin M {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertNotSuggested('b');
-    assertSuggestField('_c', 'X', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestField('_c', 'X');
     assertNotSuggested('d');
     assertNotSuggested('_e');
     assertNotSuggested('f');
@@ -186,7 +186,7 @@ mixin M {
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestField('y', 'int', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestField('y', 'int');
     assertNotSuggested('x');
   }
 
@@ -202,7 +202,7 @@ mixin M {
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestField('y', 'int', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestField('y', 'int');
     assertNotSuggested('x');
   }
 }

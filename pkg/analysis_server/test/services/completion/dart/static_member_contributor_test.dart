@@ -50,8 +50,8 @@ void f() {
     addTestSource('enum E { one, two } main() {E.^}');
     await computeSuggestions();
     assertNotSuggested('E');
-    assertSuggestEnumConst('one', relevance: DART_RELEVANCE_LOCAL_FIELD);
-    assertSuggestEnumConst('two', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestEnumConst('one');
+    assertSuggestEnumConst('two');
     assertNotSuggested('index');
     assertSuggestField('values', 'List<E>');
   }
@@ -60,8 +60,8 @@ void f() {
     addTestSource('enum E { one, two } main() {E.o^}');
     await computeSuggestions();
     assertNotSuggested('E');
-    assertSuggestEnumConst('one', relevance: DART_RELEVANCE_LOCAL_FIELD);
-    assertSuggestEnumConst('two', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestEnumConst('one');
+    assertSuggestEnumConst('two');
     assertNotSuggested('index');
     assertSuggestField('values', 'List<E>');
   }
@@ -70,8 +70,8 @@ void f() {
     addTestSource('enum E { one, two } main() {E.^ int g;}');
     await computeSuggestions();
     assertNotSuggested('E');
-    assertSuggestEnumConst('one', relevance: DART_RELEVANCE_LOCAL_FIELD);
-    assertSuggestEnumConst('two', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestEnumConst('one');
+    assertSuggestEnumConst('two');
     assertNotSuggested('index');
     assertSuggestField('values', 'List<E>');
   }
@@ -86,8 +86,8 @@ void f() {
     addTestSource('enum E { one, two } main() {E.^.}');
     await computeSuggestions();
     assertNotSuggested('E');
-    assertSuggestEnumConst('one', relevance: DART_RELEVANCE_LOCAL_FIELD);
-    assertSuggestEnumConst('two', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestEnumConst('one');
+    assertSuggestEnumConst('two');
     assertNotSuggested('index');
     assertSuggestField('values', 'List<E>');
   }
@@ -102,8 +102,8 @@ void f() {
     addTestSource('enum E { one, two } main() {E.^.o}');
     await computeSuggestions();
     assertNotSuggested('E');
-    assertSuggestEnumConst('one', relevance: DART_RELEVANCE_LOCAL_FIELD);
-    assertSuggestEnumConst('two', relevance: DART_RELEVANCE_LOCAL_FIELD);
+    assertSuggestEnumConst('one');
+    assertSuggestEnumConst('two');
     assertNotSuggested('index');
     assertSuggestField('values', 'List<E>');
   }
