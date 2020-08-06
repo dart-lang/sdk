@@ -10,11 +10,15 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedSetterTest);
+    defineReflectiveTests(UndefinedSetterWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class UndefinedSetterTest extends PubPackageResolutionTest {
+class UndefinedSetterTest extends PubPackageResolutionTest
+    with UndefinedSetterTestCases {}
+
+mixin UndefinedSetterTestCases on PubPackageResolutionTest {
   test_importWithPrefix_defined() async {
     newFile('$testPackageLibPath/lib.dart', content: r'''
 library lib;
@@ -135,3 +139,7 @@ f(C c) {
     ]);
   }
 }
+
+@reflectiveTest
+class UndefinedSetterWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin, UndefinedSetterTestCases {}
