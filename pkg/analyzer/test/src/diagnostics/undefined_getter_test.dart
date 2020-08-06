@@ -10,11 +10,15 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedGetterTest);
+    defineReflectiveTests(UndefinedGetterWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class UndefinedGetterTest extends PubPackageResolutionTest {
+class UndefinedGetterTest extends PubPackageResolutionTest
+    with UndefinedGetterTestCases {}
+
+mixin UndefinedGetterTestCases on PubPackageResolutionTest {
   test_compoundAssignment_hasSetter_instance() async {
     await assertErrorsInCode('''
 class C {
@@ -222,14 +226,19 @@ mixin M {
   }
 
   test_nullMember_undefined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+        r'''
 m() {
   Null _null;
   _null.foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
-    ]);
+''',
+        expectedErrorsByNullability(nullable: [
+          error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 22, 5),
+          error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
+        ], legacy: [
+          error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
+        ]));
   }
 
   test_object_call() async {
@@ -332,12 +341,24 @@ f() => A?.hashCode;
     await assertNoErrorsInCode(r'''
 class A<E> {
   E element;
+  A(this.element);
 }
 class B extends A<List> {
+  B(List element) : super(element);
   m() {
     element.last;
   }
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class UndefinedGetterWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin, UndefinedGetterTestCases {
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42957')
+  test_typeLiteral_conditionalAccess() {
+    return super.test_typeLiteral_conditionalAccess();
   }
 }
