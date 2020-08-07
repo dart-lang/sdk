@@ -29,6 +29,7 @@ class Flags {
   static const String experimentalAllocationsPath =
       '--experimental-allocations-path';
 
+  static const String experimentalWrapped = '--experimental-wrapped';
   static const String experimentalPowersets = '--experimental-powersets';
 
   // Temporary experiment for code generation of locals for frequently used
