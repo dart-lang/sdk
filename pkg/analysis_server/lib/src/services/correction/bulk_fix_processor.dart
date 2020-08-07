@@ -32,6 +32,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_colon_with_
 import 'package:analysis_server/src/services/correction/dart/replace_null_with_closure.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_conditional_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_empty.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/use_is_not_empty.dart';
@@ -83,6 +84,7 @@ class BulkFixProcessor {
     LintNames.prefer_spread_collections: ConvertAddAllToSpread.newInstance,
     LintNames.slash_for_doc_comments: ConvertDocumentationIntoLine.newInstance,
     LintNames.unnecessary_const: RemoveUnnecessaryConst.newInstance,
+    LintNames.unnecessary_lambdas: ReplaceWithTearOff.newInstance,
     LintNames.unnecessary_new: RemoveUnnecessaryNew.newInstance,
   };
 
