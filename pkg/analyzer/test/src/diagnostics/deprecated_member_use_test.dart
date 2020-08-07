@@ -362,8 +362,8 @@ f(A a, A b) {
     configureWorkspace(root: '/workspace');
 
     newFolder('/workspace/.dart_tool/build/generated/project/lib');
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
-    newFileWithBytes('/workspace/.packages', 'project:lib/'.codeUnits);
+    newFile('/workspace/pubspec.yaml', content: 'name: project');
+    newFile('/workspace/.packages', content: 'project:lib/');
 
     newFile('/workspace/lib/deprecated_library.dart', content: r'''
 @deprecated
@@ -707,7 +707,7 @@ class A {}
 ''');
 
     newFolder('/workspace/.dart_tool/build/generated/project/lib');
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    newFile('/workspace/pubspec.yaml', content: 'name: project');
 
     await assertErrorsInFile('/workspace/package/lib/lib1.dart', r'''
 import 'package:aaa/a.dart';

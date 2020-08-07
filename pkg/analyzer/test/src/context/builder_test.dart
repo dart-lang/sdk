@@ -402,7 +402,7 @@ b:${resourceProvider.pathContext.toUri(packageB)}
   void test_createWorkspace_hasPackagesFile_hasDartToolAndPubspec() {
     newFile('/workspace/.packages');
     newFolder('/workspace/.dart_tool/build/generated/project/lib');
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    newFile('/workspace/pubspec.yaml', content: 'name: project');
     Workspace workspace = ContextBuilder.createWorkspace(resourceProvider,
         convertPath('/workspace/project/lib/lib.dart'), builder);
     expect(workspace, TypeMatcher<PackageBuildWorkspace>());
@@ -410,7 +410,7 @@ b:${resourceProvider.pathContext.toUri(packageB)}
 
   void test_createWorkspace_hasPackagesFile_hasPubspec() {
     newFile('/workspace/.packages');
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    newFile('/workspace/pubspec.yaml', content: 'name: project');
     Workspace workspace = ContextBuilder.createWorkspace(resourceProvider,
         convertPath('/workspace/project/lib/lib.dart'), builder);
     expect(workspace, TypeMatcher<PubWorkspace>());
@@ -433,7 +433,7 @@ b:${resourceProvider.pathContext.toUri(packageB)}
 
   void test_createWorkspace_noPackagesFile_hasDartToolAndPubspec() {
     newFolder('/workspace/.dart_tool/build/generated/project/lib');
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    newFile('/workspace/pubspec.yaml', content: 'name: project');
     Workspace workspace = ContextBuilder.createWorkspace(resourceProvider,
         convertPath('/workspace/project/lib/lib.dart'), builder);
     expect(workspace, TypeMatcher<PackageBuildWorkspace>());
@@ -449,7 +449,7 @@ b:${resourceProvider.pathContext.toUri(packageB)}
   }
 
   void test_createWorkspace_noPackagesFile_hasPubspec() {
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    newFile('/workspace/pubspec.yaml', content: 'name: project');
     Workspace workspace = ContextBuilder.createWorkspace(resourceProvider,
         convertPath('/workspace/project/lib/lib.dart'), builder);
     expect(workspace, TypeMatcher<PubWorkspace>());
