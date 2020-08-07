@@ -7528,9 +7528,6 @@ class TypeArguments : public Instance {
   // architecture.
   static const intptr_t kHashBits = 30;
 
-  // Hash value for a type argument vector consisting solely of dynamic types.
-  static const intptr_t kAllDynamicHash = 1;
-
   intptr_t Length() const;
   AbstractTypePtr TypeAt(intptr_t index) const;
   AbstractTypePtr TypeAtNullSafe(intptr_t index) const;
@@ -7745,7 +7742,6 @@ class TypeArguments : public Instance {
     return 0;
   }
   intptr_t Hash() const;
-  intptr_t HashForRange(intptr_t from_index, intptr_t len) const;
 
   static TypeArgumentsPtr New(intptr_t len, Heap::Space space = Heap::kOld);
 
@@ -11330,7 +11326,7 @@ inline void TypeParameter::SetHash(intptr_t value) const {
 }
 
 inline intptr_t TypeArguments::Hash() const {
-  if (IsNull()) return kAllDynamicHash;
+  if (IsNull()) return 0;
   intptr_t result = Smi::Value(raw_ptr()->hash_);
   if (result != 0) {
     return result;
