@@ -196,7 +196,7 @@ bool _isExecutableCode(v8_profile.Node node) =>
 /// given [v8_profile.Node].
 final Map<TreemapFormat, String Function(v8_profile.Node)> _nameFormatters = {
   TreemapFormat.dataAndCode: (n) => _isExecutableCode(n) ? '<code>' : '<data>',
-  TreemapFormat.objectType: (n) => n.type,
+  TreemapFormat.objectType: (n) => '<${n.type}>',
 };
 
 /// Returns a /-separated path to the given symbol within the treemap.
