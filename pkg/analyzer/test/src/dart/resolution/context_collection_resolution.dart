@@ -224,12 +224,23 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     );
   }
 
-  void writeTestPackageConfigWithMeta() {
-    var path = '/packages/meta';
+  void writeTestPackageConfigWith(
+    Map<String, String> nameToRootPath, {
+    bool meta = false,
+  }) {
+    var metaPath = '/packages/meta';
     PackagesContent.addMetaPackageFiles(
-      getFolder(path),
+      getFolder(metaPath),
     );
-    writeTestPackageConfig({'meta': path});
+
+    writeTestPackageConfig({
+      if (meta) 'meta': metaPath,
+      ...nameToRootPath,
+    });
+  }
+
+  void writeTestPackageConfigWithMeta() {
+    writeTestPackageConfigWith({}, meta: true);
   }
 }
 

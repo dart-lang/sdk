@@ -3,22 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:path/path.dart';
-import 'package:pub_semver/src/version_constraint.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/diagnostics/generate.dart';
-import 'src/dart/resolution/driver_resolution.dart';
+import 'src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -399,51 +395,48 @@ class _SnippetData {
 
 /// A test class that creates an environment suitable for analyzing the
 /// snippets.
-class _SnippetTest extends DriverResolutionTest with PackageMixin {
+class _SnippetTest extends PubPackageResolutionTest {
   /// The snippet being tested.
   final _SnippetData snippet;
 
-  @override
-  AnalysisOptionsImpl analysisOptions = AnalysisOptionsImpl();
-
   /// Initialize a newly created test to test the given [snippet].
   _SnippetTest(this.snippet) {
-    analysisOptions.contextFeatures =
-        FeatureSet.fromEnableFlags(snippet.experiments ?? []);
-    String pubspecContent = snippet.auxiliaryFiles['pubspec.yaml'];
-    if (pubspecContent != null) {
-      for (String line in pubspecContent.split('\n')) {
-        if (line.indexOf('sdk:') > 0) {
-          int start = line.indexOf("'") + 1;
-          String constraint = line.substring(start, line.indexOf("'", start));
-          analysisOptions.sdkVersionConstraint =
-              VersionConstraint.parse(constraint);
-        }
-      }
-    }
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        experiments: snippet.experiments,
+      ),
+    );
   }
 
   @override
   void setUp() {
     super.setUp();
-    addMetaPackage();
     _createAuxiliaryFiles(snippet.auxiliaryFiles);
     addTestFile(snippet.content);
   }
 
   void _createAuxiliaryFiles(Map<String, String> auxiliaryFiles) {
-    Map<String, String> packageMap = {};
-    for (String uri in auxiliaryFiles.keys) {
-      if (uri.startsWith('package:')) {
-        int slash = uri.indexOf('/');
-        String packageName = uri.substring(8, slash);
-        String libPath = packageMap.putIfAbsent(
-            packageName, () => addPubPackage(packageName).path);
-        String relativePath = uri.substring(slash + 1);
-        newFile('$libPath/$relativePath', content: auxiliaryFiles[uri]);
+    Map<String, String> packageNameToRootPath = {};
+    for (String uriStr in auxiliaryFiles.keys) {
+      if (uriStr.startsWith('package:')) {
+        Uri uri = Uri.parse(uriStr);
+
+        String packageName = uri.pathSegments[0];
+        String packageRootPath = '/packages/$packageName';
+        packageNameToRootPath[packageName] = convertPath(packageRootPath);
+
+        String pathInLib = uri.pathSegments.skip(1).join('/');
+        newFile(
+          '$packageRootPath/lib/$pathInLib',
+          content: auxiliaryFiles[uriStr],
+        );
       } else {
-        newFile('/test/$uri', content: auxiliaryFiles[uri]);
+        newFile(
+          '$testPackageRootPath/$uriStr',
+          content: auxiliaryFiles[uriStr],
+        );
       }
     }
+    writeTestPackageConfigWith(packageNameToRootPath, meta: true);
   }
 }
