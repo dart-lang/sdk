@@ -477,6 +477,8 @@ luci.builder.defaults.properties.set({
     },
 })
 
+lkgr_builders = []
+
 def dart_builder(
         name,
         bucket,
@@ -499,7 +501,8 @@ def dart_builder(
         triggering_policy = None,
         on_cq = False,
         experiment_percentage = None,
-        location_regexp = None):
+        location_regexp = None,
+        lkgr = False):
     """
     Creates a Dart builder on all the specified channels.
 
@@ -526,9 +529,13 @@ def dart_builder(
         on_cq: Whether the build is added to the default set of CQ tryjobs.
         experiment_percentage: What experiment percentage to use.
         location_regexp: Locations that trigger this builder.
+        lkgr: If true, this builder needs to be green to advance the LKGR.
     """
     dimensions = defaults.dimensions(dimensions)
     properties = defaults.properties(properties)
+
+    if lkgr:
+        lkgr_builders.append({"project": "dart", "bucket": bucket, "builder": name})
 
     def builder(channel, triggered_by):
         if channel == "try":
@@ -1151,13 +1158,19 @@ dart_ci_sandbox_builder(
 )
 
 # sdk
-dart_ci_builder("dart-sdk-linux", category = "sdk|l", channels = CHANNELS)
+dart_ci_builder(
+    "dart-sdk-linux",
+    category = "sdk|l",
+    channels = CHANNELS,
+    lkgr = True,
+)
 dart_ci_builder(
     "dart-sdk-mac",
     category = "sdk|m",
     channels = CHANNELS,
     dimensions = mac(),
     goma_rbe = True,
+    lkgr = True,
 )
 dart_ci_builder(
     "dart-sdk-win",
@@ -1165,6 +1178,7 @@ dart_ci_builder(
     channels = CHANNELS,
     dimensions = windows(),
     on_cq = True,
+    lkgr = True,
 )
 
 # ddc
@@ -1206,6 +1220,7 @@ dart_ci_builder(
     category = "misc|dp",
     channels = RELEASE_CHANNELS,
     notifies = "infra",
+    lkgr = True,
 )
 dart_ci_builder(
     "versionchecker-linux",
@@ -1246,6 +1261,14 @@ dart_infra_builder(
         "dart-flutter-flutter-trigger",
     ],
     triggering_policy = scheduler.greedy_batching(max_batch_size = 1),
+)
+dart_infra_builder(
+    "lkgr",
+    execution_timeout = 15 * time.minute,
+    notifies = "infra",
+    properties = {"builders": lkgr_builders, "ref": "refs/heads/lkgr"},
+    recipe = "roller/lkgr",
+    schedule = "with 1h interval",
 )
 dart_infra_builder(
     "nightly",
