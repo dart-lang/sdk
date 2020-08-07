@@ -22,6 +22,7 @@ import 'remove_empty_constructor_body_test.dart'
 import 'remove_empty_else_test.dart' as remove_empty_else;
 import 'remove_empty_statement_test.dart' as remove_empty_statement;
 import 'remove_initializer_test.dart' as remove_initializer;
+import 'remove_method_declaration_test.dart' as remove_method_declaration;
 import 'remove_operator_test.dart' as remove_operator;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
@@ -53,6 +54,7 @@ void main() {
     remove_empty_constructor_body.main();
     remove_empty_else.main();
     remove_empty_statement.main();
+    remove_method_declaration.main();
     remove_operator.main();
     remove_type_annotation.main();
     remove_unnecessary_const.main();
