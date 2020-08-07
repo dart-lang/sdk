@@ -2283,6 +2283,15 @@ abstract class ElementEnvironment {
   /// Calls [f] for each supertype of [cls].
   void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype));
 
+  /// Calls [f] for each SuperClass of [cls].
+  void forEachSuperClass(ClassEntity cls, void f(ClassEntity superClass)) {
+    for (var superClass = getSuperClass(cls);
+        superClass != null;
+        superClass = getSuperClass(superClass)) {
+      f(superClass);
+    }
+  }
+
   /// Create the instantiation of [cls] with the given [typeArguments] and
   /// [nullability].
   InterfaceType createInterfaceType(
@@ -2336,6 +2345,23 @@ abstract class ElementEnvironment {
 
   /// Returns `true` if [cls] is a Dart enum class.
   bool isEnumClass(ClassEntity cls);
+
+  /// Returns the 'effective' mixin class if [cls] is a mixin application, and
+  /// `null` otherwise.
+  ///
+  /// The 'effective' mixin class is the class from which members are mixed in.
+  /// Normally this is the mixin class itself, but not if the mixin class itself
+  /// is a mixin application.
+  ///
+  /// Consider this hierarchy:
+  ///
+  ///     class A {}
+  ///     class B = Object with A {}
+  ///     class C = Object with B {}
+  ///
+  /// The mixin classes of `B` and `C` are `A` and `B`, respectively, but the
+  /// _effective_ mixin class of both is `A`.
+  ClassEntity getEffectiveMixinClass(ClassEntity cls);
 }
 
 abstract class KElementEnvironment extends ElementEnvironment {
@@ -2376,23 +2402,6 @@ abstract class JElementEnvironment extends ElementEnvironment {
   /// Returns `true` if [cls] is a mixin application that mixes in methods with
   /// super calls.
   bool isSuperMixinApplication(ClassEntity cls);
-
-  /// Returns the 'effective' mixin class if [cls] is a mixin application, and
-  /// `null` otherwise.
-  ///
-  /// The 'effective' mixin class is the class from which members are mixed in.
-  /// Normally this is the mixin class itself, but not if the mixin class itself
-  /// is a mixin application.
-  ///
-  /// Consider this hierarchy:
-  ///
-  ///     class A {}
-  ///     class B = Object with A {}
-  ///     class C = Object with B {}
-  ///
-  /// The mixin classes of `B` and `C` are `A` and `B`, respectively, but the
-  /// _effective_ mixin class of both is `A`.
-  ClassEntity getEffectiveMixinClass(ClassEntity cls);
 
   /// The default type of the [typeVariable].
   ///

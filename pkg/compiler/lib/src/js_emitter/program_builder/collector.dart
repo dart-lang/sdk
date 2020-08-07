@@ -158,18 +158,11 @@ class Collector {
             .where(computeClassFilter(backendTypeHelpers))
             .toSet();
 
-    void addClassWithSuperclasses(ClassEntity cls) {
-      neededClasses.add(cls);
-      for (ClassEntity superclass = _elementEnvironment.getSuperClass(cls);
-          superclass != null;
-          superclass = _elementEnvironment.getSuperClass(superclass)) {
-        neededClasses.add(superclass);
-      }
-    }
-
     void addClassesWithSuperclasses(Iterable<ClassEntity> classes) {
       for (ClassEntity cls in classes) {
-        addClassWithSuperclasses(cls);
+        neededClasses.add(cls);
+        _elementEnvironment.forEachSuperClass(
+            cls, (superClass) => neededClasses.add(superClass));
       }
     }
 

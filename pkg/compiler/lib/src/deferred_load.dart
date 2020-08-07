@@ -208,14 +208,24 @@ abstract class DeferredLoadTask extends CompilerTask {
       _collectDirectMemberDependencies(closedWorld, member, dependencies);
     }
 
+    void addClassAndMaybeAddEffectiveMixinClass(ClassEntity cls) {
+      dependencies.addClass(cls);
+      if (elementEnvironment.isMixinApplication(cls)) {
+        dependencies.addClass(elementEnvironment.getEffectiveMixinClass(cls));
+      }
+    }
+
     ClassEntity cls = element;
     elementEnvironment.forEachLocalClassMember(cls, addLiveInstanceMember);
     elementEnvironment.forEachSupertype(cls, (InterfaceType type) {
-      // TODO(joshualitt): Only gather classes for mixins and super classes.
-      // Otherwise, just collect the type.
-      _collectClassDependencies(type, dependencies);
+      _collectTypeDependencies(type, dependencies);
     });
-    dependencies.addClass(cls);
+    elementEnvironment.forEachSuperClass(cls, (superClass) {
+      addClassAndMaybeAddEffectiveMixinClass(superClass);
+      _collectTypeDependencies(
+          elementEnvironment.getThisType(superClass), dependencies);
+    });
+    addClassAndMaybeAddEffectiveMixinClass(cls);
   }
 
   /// Finds all elements and constants that [element] depends directly on.
@@ -262,13 +272,6 @@ abstract class DeferredLoadTask extends CompilerTask {
       [ImportEntity import]) {
     TypeDependencyVisitor(dependencies, import, commonElements,
             collectClassesAndTypes: !deferClassTypes)
-        .visit(type);
-  }
-
-  void _collectClassDependencies(DartType type, Dependencies dependencies,
-      [ImportEntity import]) {
-    TypeDependencyVisitor(dependencies, import, commonElements,
-            collectClassesAndTypes: true)
         .visit(type);
   }
 
@@ -335,7 +338,8 @@ abstract class DeferredLoadTask extends CompilerTask {
           DartType type = typeUse.type;
           switch (typeUse.kind) {
             case TypeUseKind.TYPE_LITERAL:
-              addClassIfInterfaceType(type, typeUse.deferredImport);
+              _collectTypeDependencies(
+                  type, dependencies, typeUse.deferredImport);
               break;
             case TypeUseKind.CONST_INSTANTIATION:
               addClassIfInterfaceType(type, typeUse.deferredImport);

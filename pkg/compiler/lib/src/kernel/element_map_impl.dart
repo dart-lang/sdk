@@ -1913,6 +1913,15 @@ class KernelElementEnvironment extends ElementEnvironment
     KClassData classData = elementMap.classes.getData(cls);
     return classData.isEnumClass;
   }
+
+  @override
+  ClassEntity getEffectiveMixinClass(ClassEntity cls) {
+    if (!isMixinApplication(cls)) return null;
+    do {
+      cls = elementMap.getAppliedMixin(cls);
+    } while (isMixinApplication(cls));
+    return cls;
+  }
 }
 
 /// [BehaviorBuilder] for kernel based elements.
