@@ -103,11 +103,20 @@ abstract class ContextResolutionTest
     with ResourceProviderMixin, ResolutionTest {
   static bool _lintRulesAreRegistered = false;
 
+  Map<String, String> _declaredVariables = {};
   AnalysisContextCollection _analysisContextCollection;
 
   List<MockSdkLibrary> get additionalMockSdkLibraries => [];
 
   List<String> get collectionIncludedPaths;
+
+  set declaredVariables(Map<String, String> map) {
+    if (_analysisContextCollection != null) {
+      throw StateError('Declared variables cannot be changed after analysis.');
+    }
+
+    _declaredVariables = map;
+  }
 
   AnalysisContext contextFor(String path) {
     if (_analysisContextCollection == null) {
@@ -157,8 +166,9 @@ abstract class ContextResolutionTest
   /// Create all analysis contexts in [collectionIncludedPaths].
   void _createAnalysisContexts() {
     _analysisContextCollection = AnalysisContextCollectionImpl(
-      includedPaths: collectionIncludedPaths.map(convertPath).toList(),
+      declaredVariables: _declaredVariables,
       enableIndex: true,
+      includedPaths: collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
       sdkPath: convertPath('/sdk'),
     );

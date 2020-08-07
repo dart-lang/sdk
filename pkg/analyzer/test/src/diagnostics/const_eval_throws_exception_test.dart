@@ -188,18 +188,16 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);
     ]);
   }
 
-  @FailingTest(reason: 'Requires DeclaredVariables support')
   test_fromEnvironment_bool_badDefault_whenDefined() async {
-    throw UnimplementedError('DeclaredVariables are not supported yet');
     // The type of the defaultValue needs to be correct even when the default
     // value isn't used (because the variable is defined in the environment).
-//    driver.declaredVariables = DeclaredVariables.fromMap({'x': 'true'});
-//    await assertErrorsInCode('''
-//var b = const bool.fromEnvironment('x', defaultValue: 1);
-//''', [
-//      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 8, 48),
-//      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 40, 15),
-//    ]);
+    declaredVariables = {'x': 'true'};
+    await assertErrorsInCode('''
+var b = const bool.fromEnvironment('x', defaultValue: 1);
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 8, 48),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 40, 15),
+    ]);
   }
 
   test_ifElement_false_thenNotEvaluated() async {
