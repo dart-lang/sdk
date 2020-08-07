@@ -608,7 +608,7 @@ static void WriteLoadingUnitManifest(File* manifest_file,
   line.Printf("{ \"id\": %" Pd ", \"path\": \"", id);
   line.AddEscapedString(path);
   line.Printf("\" }");
-  if (!manifest_file->Print("%s\n", line.buf())) {
+  if (!manifest_file->Print("%s\n", line.buffer())) {
     PrintErrAndExit("Error: Unable to write file: %s\n\n",
                     loading_unit_manifest_filename);
   }

@@ -10,12 +10,11 @@
 
 namespace dart {
 
-// TextBuffer maintains a dynamic character buffer with a printf-style way to
-// append text.
-class TextBuffer : ValueObject {
+// BaseTextBuffer maintains a dynamic character buffer with a printf-style way
+// to append text. Internal buffer management is handled by subclasses.
+class BaseTextBuffer : public ValueObject {
  public:
-  explicit TextBuffer(intptr_t buf_size);
-  ~TextBuffer();
+  virtual ~BaseTextBuffer() {}
 
   intptr_t Printf(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void AddChar(char ch);
@@ -25,25 +24,47 @@ class TextBuffer : ValueObject {
   void AddEscapedString(const char* s);
   void AddRaw(const uint8_t* buffer, intptr_t buffer_length);
 
-  void Clear();
+  // Returns a pointer to the current internal buffer. Whether the pointer is
+  // still valid after the BaseTextBuffer dies depends on the subclass.
+  char* buffer() const { return buffer_; }
+  intptr_t length() const { return length_; }
 
-  char* buf() { return buf_; }
-  intptr_t length() { return msg_len_; }
+  // Clears the stored contents. Unless specified otherwise by the subclass,
+  // should be assumed to invalidate the contents of previous calls to buffer().
+  virtual void Clear() = 0;
+
+ protected:
+  virtual void EnsureCapacity(intptr_t len) = 0;
+
+  char* buffer_ = nullptr;
+  intptr_t capacity_ = 0;
+  intptr_t length_ = 0;
+};
+
+// TextBuffer uses manual memory management for the character buffer. Unless
+// Steal() is used, the internal buffer is deallocated when the object dies.
+class TextBuffer : public BaseTextBuffer {
+ public:
+  explicit TextBuffer(intptr_t buf_size);
+  ~TextBuffer();
+
+  // Resets the contents of the internal buffer.
+  void Clear() { set_length(0); }
+
   void set_length(intptr_t len) {
     ASSERT(len >= 0);
-    ASSERT(len <= msg_len_);
-    msg_len_ = len;
+    ASSERT(len <= length_);
+    length_ = len;
+    buffer_[len] = '\0';
   }
 
-  // Steal ownership of the buffer pointer.
+  // Take ownership of the buffer contents. Future uses of the TextBuffer object
+  // will not affect the contents of the returned buffer.
   // NOTE: TextBuffer is empty afterwards.
   char* Steal();
 
  private:
   void EnsureCapacity(intptr_t len);
-  char* buf_;
-  intptr_t buf_size_;
-  intptr_t msg_len_;
 };
 
 class BufferFormatter : public ValueObject {

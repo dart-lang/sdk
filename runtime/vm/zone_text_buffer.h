@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_ZONE_TEXT_BUFFER_H_
 #define RUNTIME_VM_ZONE_TEXT_BUFFER_H_
 
+#include "platform/text_buffer.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
 
@@ -13,29 +14,20 @@ namespace dart {
 class String;
 class Zone;
 
-// TextBuffer maintains a dynamic character buffer with a printf-style way to
-// append text.
-class ZoneTextBuffer : ValueObject {
+// ZoneTextBuffer allocates the character buffer in the given zone. Thus,
+// pointers returned by buffer() have the same lifetime as the zone.
+class ZoneTextBuffer : public BaseTextBuffer {
  public:
   explicit ZoneTextBuffer(Zone* zone, intptr_t initial_capacity = 64);
   ~ZoneTextBuffer() {}
 
-  intptr_t Printf(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
-  void AddChar(char ch);
-  void AddString(const char* s);
-  void AddString(const String& s);
-
-  char* buffer() { return buffer_; }
-  intptr_t length() const { return length_; }
-
+  // Allocates a new internal buffer. Thus, the contents of buffers returned by
+  // previous calls to buffer() are no longer affected by this object.
   void Clear();
 
  private:
   void EnsureCapacity(intptr_t len);
   Zone* zone_;
-  char* buffer_;
-  intptr_t length_;
-  intptr_t capacity_;
 };
 
 }  // namespace dart

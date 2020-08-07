@@ -71,7 +71,7 @@ REUSABLE_HANDLE_LIST(REUSABLE_FORWARD_DECLARATION)
 #undef REUSABLE_FORWARD_DECLARATION
 
 class Symbols;
-class ZoneTextBuffer;
+class BaseTextBuffer;
 
 #if defined(DEBUG)
 #define CHECK_HANDLE() CheckHandle();
@@ -2478,7 +2478,7 @@ class Function : public Object {
   const char* NameCString(NameVisibility name_visibility) const;
 
   void PrintName(const NameFormattingParams& params,
-                 ZoneTextBuffer* printer) const;
+                 BaseTextBuffer* printer) const;
   StringPtr QualifiedScrubbedName() const;
   StringPtr QualifiedUserVisibleName() const;
 
@@ -2552,7 +2552,7 @@ class Function : public Object {
   StringPtr UserVisibleSignature() const;
 
   void PrintSignature(NameVisibility name_visibility,
-                      ZoneTextBuffer* printer) const;
+                      BaseTextBuffer* printer) const;
 
   // Returns true if the signature of this function is instantiated, i.e. if it
   // does not involve generic parameter types or generic result type.
@@ -3792,7 +3792,7 @@ class Function : public Object {
   void PrintSignatureParameters(Thread* thread,
                                 Zone* zone,
                                 NameVisibility name_visibility,
-                                ZoneTextBuffer* printer) const;
+                                BaseTextBuffer* printer) const;
 
   // Returns true if the type of the formal parameter at the given position in
   // this function is contravariant with the type of the other formal parameter
@@ -7583,7 +7583,7 @@ class TypeArguments : public Instance {
       intptr_t from_index,
       intptr_t len,
       NameVisibility name_visibility,
-      ZoneTextBuffer* printer,
+      BaseTextBuffer* printer,
       NameDisambiguation name_disambiguation = NameDisambiguation::kNo) const;
 
   // Check if the subvector of length 'len' starting at 'from_index' of this
@@ -7910,7 +7910,7 @@ class AbstractType : public Instance {
   // type arguments, if any.
   void PrintName(
       NameVisibility visibility,
-      ZoneTextBuffer* printer,
+      BaseTextBuffer* printer,
       NameDisambiguation name_disambiguation = NameDisambiguation::kNo) const;
 
   // Add the class name and URI of each occuring type to the uris

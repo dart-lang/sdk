@@ -69,7 +69,7 @@ void JSONWriter::OpenObject(const char* property_name) {
 void JSONWriter::UncloseObject() {
   intptr_t len = buffer_.length();
   ASSERT(len > 0);
-  ASSERT(buffer_.buf()[len - 1] == '}');
+  ASSERT(buffer_.buffer()[len - 1] == '}');
   open_objects_++;
   buffer_.set_length(len - 1);
 }
@@ -315,7 +315,7 @@ void JSONWriter::PrintCommaIfNeeded() {
 }
 
 bool JSONWriter::NeedComma() {
-  const char* buffer = buffer_.buf();
+  const char* buffer = buffer_.buffer();
   intptr_t length = buffer_.length();
   if (length == 0) {
     return false;

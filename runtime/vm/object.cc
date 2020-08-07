@@ -8,6 +8,7 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "platform/text_buffer.h"
 #include "platform/unaligned.h"
 #include "platform/unicode.h"
 #include "vm/bit_vector.h"
@@ -183,7 +184,7 @@ ClassPtr Object::weak_serialization_reference_class_ =
 
 const double MegamorphicCache::kLoadFactor = 0.50;
 
-static void AppendSubString(ZoneTextBuffer* buffer,
+static void AppendSubString(BaseTextBuffer* buffer,
                             const char* name,
                             intptr_t start_pos,
                             intptr_t len) {
@@ -5941,7 +5942,7 @@ void TypeArguments::PrintSubvectorName(
     intptr_t from_index,
     intptr_t len,
     NameVisibility name_visibility,
-    ZoneTextBuffer* printer,
+    BaseTextBuffer* printer,
     NameDisambiguation name_disambiguation /* = NameDisambiguation::kNo */)
     const {
   printer->AddString("<");
@@ -8900,7 +8901,7 @@ StringPtr Function::UserVisibleSignature() const {
 void Function::PrintSignatureParameters(Thread* thread,
                                         Zone* zone,
                                         NameVisibility name_visibility,
-                                        ZoneTextBuffer* printer) const {
+                                        BaseTextBuffer* printer) const {
   AbstractType& param_type = AbstractType::Handle(zone);
   const intptr_t num_params = NumParameters();
   const intptr_t num_fixed_params = num_fixed_parameters();
@@ -8941,7 +8942,7 @@ void Function::PrintSignatureParameters(Thread* thread,
       if (num_opt_named_params > 0) {
         name = ParameterNameAt(i);
         printer->AddString(" ");
-        printer->AddString(name);
+        printer->AddString(name.ToCString());
       }
       if (i != (num_params - 1)) {
         printer->AddString(", ");
@@ -8993,7 +8994,7 @@ intptr_t Function::ComputeClosureHash() const {
 }
 
 void Function::PrintSignature(NameVisibility name_visibility,
-                              ZoneTextBuffer* printer) const {
+                              BaseTextBuffer* printer) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -9279,7 +9280,7 @@ StringPtr Function::QualifiedUserVisibleName() const {
 }
 
 void Function::PrintName(const NameFormattingParams& params,
-                         ZoneTextBuffer* printer) const {
+                         BaseTextBuffer* printer) const {
   // If |this| is the generated asynchronous body closure, use the
   // name of the parent function.
   Function& fun = Function::Handle(raw());
@@ -19220,14 +19221,14 @@ StringPtr AbstractType::UserVisibleName() const {
 
 void AbstractType::PrintName(
     NameVisibility name_visibility,
-    ZoneTextBuffer* printer,
+    BaseTextBuffer* printer,
     NameDisambiguation name_disambiguation /* = NameDisambiguation::kNo */)
     const {
   ASSERT(name_visibility != kScrubbedName);
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Class& cls = Class::Handle(zone);
-  String& class_name = String::Handle(zone);
+  String& name_str = String::Handle(zone);
   if (IsTypeParameter()) {
     const TypeParameter& param = TypeParameter::Cast(*this);
 
@@ -19249,7 +19250,8 @@ void AbstractType::PrintName(
       }
     }
 
-    printer->AddString(String::Handle(zone, param.name()));
+    name_str = param.name();
+    printer->AddString(name_str.ToCString());
     printer->AddString(NullabilitySuffix(name_visibility));
     return;
   }
@@ -19275,10 +19277,10 @@ void AbstractType::PrintName(
     }
     // Instead of printing the actual signature, use the typedef name with
     // its type arguments, if any.
-    class_name = cls.Name();  // Typedef name.
+    name_str = cls.Name();  // Typedef name.
     if (!IsFinalized() || IsBeingFinalized()) {
       // TODO(regis): Check if this is dead code.
-      printer->AddString(class_name);
+      printer->AddString(name_str.ToCString());
       printer->AddString(NullabilitySuffix(name_visibility));
       return;
     }
@@ -19287,8 +19289,8 @@ void AbstractType::PrintName(
   // Do not print the full vector, but only the declared type parameters.
   num_type_params = cls.NumTypeParameters();
   if (name_visibility == kInternalName) {
-    class_name = cls.Name();
-    printer->AddString(class_name);
+    name_str = cls.Name();
+    printer->AddString(name_str.ToCString());
   } else {
     ASSERT(name_visibility == kUserVisibleName);
     // Map internal types to their corresponding public interfaces.
@@ -21021,18 +21023,21 @@ void TypeParameter::set_flags(uint8_t flags) const {
 const char* TypeParameter::ToCString() const {
   Thread* thread = Thread::Current();
   ZoneTextBuffer printer(thread->zone());
+  auto& name_str = String::Handle(thread->zone(), name());
   printer.Printf("TypeParameter: name ");
-  printer.AddString(String::Handle(name()));
+  printer.AddString(name_str.ToCString());
   printer.AddString(NullabilitySuffix(kInternalName));
   printer.Printf("; index: %" Pd ";", index());
   if (IsFunctionTypeParameter()) {
     const Function& function = Function::Handle(parameterized_function());
     printer.Printf(" function: ");
-    printer.AddString(String::Handle(function.name()));
+    name_str = function.name();
+    printer.AddString(name_str.ToCString());
   } else {
     const Class& cls = Class::Handle(parameterized_class());
     printer.Printf(" class: ");
-    printer.AddString(String::Handle(cls.Name()));
+    name_str = cls.Name();
+    printer.AddString(name_str.ToCString());
   }
   printer.Printf("; bound: ");
   const AbstractType& upper_bound = AbstractType::Handle(bound());
@@ -24320,7 +24325,7 @@ StackTracePtr StackTrace::New(const Array& code_array,
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 // Prints the best representation(s) for the call address.
-static void PrintNonSymbolicStackFrameBody(ZoneTextBuffer* buffer,
+static void PrintNonSymbolicStackFrameBody(BaseTextBuffer* buffer,
                                            uword call_addr,
                                            uword isolate_instructions,
                                            uword vm_instructions,
@@ -24356,12 +24361,12 @@ static void PrintNonSymbolicStackFrameBody(ZoneTextBuffer* buffer,
 }
 #endif
 
-static void PrintSymbolicStackFrameIndex(ZoneTextBuffer* buffer,
+static void PrintSymbolicStackFrameIndex(BaseTextBuffer* buffer,
                                          intptr_t frame_index) {
   buffer->Printf("#%-6" Pd "", frame_index);
 }
 
-static void PrintSymbolicStackFrameBody(ZoneTextBuffer* buffer,
+static void PrintSymbolicStackFrameBody(BaseTextBuffer* buffer,
                                         const char* function_name,
                                         const char* url,
                                         intptr_t line = -1,
@@ -24377,7 +24382,7 @@ static void PrintSymbolicStackFrameBody(ZoneTextBuffer* buffer,
 }
 
 static void PrintSymbolicStackFrame(Zone* zone,
-                                    ZoneTextBuffer* buffer,
+                                    BaseTextBuffer* buffer,
                                     const Function& function,
                                     TokenPosition token_pos,
                                     intptr_t frame_index) {

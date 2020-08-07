@@ -102,7 +102,7 @@ static void PrintRoundTripResults(Zone* zone, const RoundTripResults& results) {
   if (results.serialized != nullptr) {
     TextBuffer buf(1000);
     results.serialized->SerializeTo(zone, &buf, "");
-    js.PrintProperty("serialized", buf.buf());
+    js.PrintProperty("serialized", buf.buffer());
   }
 
   if (results.error_message != nullptr) {
@@ -112,7 +112,7 @@ static void PrintRoundTripResults(Zone* zone, const RoundTripResults& results) {
     ASSERT(results.error_sexp != nullptr);
     TextBuffer buf(1000);
     results.error_sexp->SerializeTo(zone, &buf, "");
-    js.PrintProperty("expression", buf.buf());
+    js.PrintProperty("expression", buf.buffer());
 
     auto const sexp_position =
         GetSExpressionPosition(zone, results.serialized, results.error_sexp);
@@ -121,7 +121,7 @@ static void PrintRoundTripResults(Zone* zone, const RoundTripResults& results) {
   }
 
   js.CloseObject();
-  THR_Print("Results of round trip serialization: %s\n", js.buffer()->buf());
+  THR_Print("Results of round trip serialization: %s\n", js.buffer()->buffer());
 }
 
 void FlowGraphDeserializer::RoundTripSerialization(CompilerPassState* state) {
@@ -159,7 +159,7 @@ void FlowGraphDeserializer::RoundTripSerialization(CompilerPassState* state) {
     if (FLAG_trace_round_trip_serialization && results.serialized != nullptr) {
       TextBuffer buf(1000);
       results.serialized->SerializeTo(zone, &buf, "");
-      THR_Print("Serialized flow graph:\n%s\n", buf.buf());
+      THR_Print("Serialized flow graph:\n%s\n", buf.buffer());
     }
 
     // For the deserializer, use the thread from the compiler pass and zone

@@ -774,7 +774,7 @@ const char* Dwarf::Deobfuscate(const char* cstr) {
     i += offset;
   }
   if (!changed) return cstr;
-  return OS::SCreate(zone_, "%s", buffer.buf());
+  return OS::SCreate(zone_, "%s", buffer.buffer());
 }
 
 Trie<const char>* Dwarf::CreateReverseObfuscationTrie(Zone* zone) {
