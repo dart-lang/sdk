@@ -228,8 +228,6 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
 
 @reflectiveTest
 class PackageBuildWorkspacePackageTest with ResourceProviderMixin {
-  MockUriResolver packageUriResolver;
-
   void test_contains_differentWorkspace() {
     PackageBuildWorkspace workspace = _createPackageBuildWorkspace();
     newFile('/workspace2/project2/lib/file.dart');
@@ -310,16 +308,13 @@ class PackageBuildWorkspacePackageTest with ResourceProviderMixin {
   PackageBuildWorkspace _createPackageBuildWorkspace() {
     newFolder('/workspace/.dart_tool/build');
     newFile('/workspace/pubspec.yaml', content: 'name: project');
-    PackageBuildWorkspace workspace = PackageBuildWorkspace.find(
+    return PackageBuildWorkspace.find(
       resourceProvider,
       {
         'project': [getFolder('/workspace')]
       },
       convertPath('/workspace'),
     );
-    packageUriResolver = MockUriResolver();
-    PackageBuildPackageUriResolver(workspace, packageUriResolver);
-    return workspace;
   }
 }
 
