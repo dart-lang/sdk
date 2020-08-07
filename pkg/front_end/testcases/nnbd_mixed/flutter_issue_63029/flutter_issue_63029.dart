@@ -1,0 +1,8 @@
+import 'flutter_issue_63029_lib1.dart';
+import 'flutter_issue_63029_lib2.dart';
+
+class E extends A {}
+
+class F extends B<E> with D<E> {}
+
+main() {}
