@@ -4990,9 +4990,9 @@ void Class::set_declaration_type(const Type& value) const {
   ASSERT(!value.IsNull() && value.IsCanonical() && value.IsOld());
   ASSERT((declaration_type() == Object::null()) ||
          (declaration_type() == value.raw()));  // Set during own finalization.
-  // Since declaration type is used as the runtime type of instances of a
-  // non-generic class, the nullability is set to kNonNullable instead of
-  // kLegacy when the non-nullable experiment is enabled.
+  // Since DeclarationType is used as the runtime type of instances of a
+  // non-generic class, its nullability must be kNonNullable.
+  // The exception is DeclarationType of Null which is kNullable.
   ASSERT(value.type_class_id() != kNullCid || value.IsNullable());
   ASSERT(value.type_class_id() == kNullCid || value.IsNonNullable());
   StorePointer(&raw_ptr()->declaration_type_, value.raw());
@@ -5862,14 +5862,13 @@ void TypeArguments::set_nullability(intptr_t value) const {
   StoreSmi(&raw_ptr()->nullability_, Smi::New(value));
 }
 
-intptr_t TypeArguments::ComputeHash() const {
-  if (IsNull()) return 0;
-  const intptr_t num_types = Length();
-  if (IsRaw(0, num_types)) return 0;
+intptr_t TypeArguments::HashForRange(intptr_t from_index, intptr_t len) const {
+  if (IsNull()) return kAllDynamicHash;
+  if (IsRaw(from_index, len)) return kAllDynamicHash;
   uint32_t result = 0;
   AbstractType& type = AbstractType::Handle();
-  for (intptr_t i = 0; i < num_types; i++) {
-    type = TypeAt(i);
+  for (intptr_t i = 0; i < len; i++) {
+    type = TypeAt(from_index + i);
     // The hash may be calculated during type finalization (for debugging
     // purposes only) while a type argument is still temporarily null.
     if (type.IsNull() || type.IsNullTypeRef()) {
@@ -5878,7 +5877,16 @@ intptr_t TypeArguments::ComputeHash() const {
     result = CombineHashes(result, type.Hash());
   }
   result = FinalizeHash(result, kHashBits);
-  SetHash(result);
+  return result;
+}
+
+intptr_t TypeArguments::ComputeHash() const {
+  if (IsNull()) return kAllDynamicHash;
+  const intptr_t num_types = Length();
+  const uint32_t result = HashForRange(0, num_types);
+  if (result != 0) {
+    SetHash(result);
+  }
   return result;
 }
 
@@ -20301,7 +20309,7 @@ void Type::EnumerateURIs(URIs* uris) const {
 
 intptr_t Type::ComputeHash() const {
   ASSERT(IsFinalized());
-  uint32_t result = 1;
+  uint32_t result = 0;
   result = CombineHashes(result, type_class_id());
   // A legacy type should have the same hash as its non-nullable version to be
   // consistent with the definition of type equality in Dart code.
@@ -20310,7 +20318,20 @@ intptr_t Type::ComputeHash() const {
     type_nullability = Nullability::kNonNullable;
   }
   result = CombineHashes(result, static_cast<uint32_t>(type_nullability));
-  result = CombineHashes(result, TypeArguments::Handle(arguments()).Hash());
+  uint32_t type_args_hash = TypeArguments::kAllDynamicHash;
+  if (arguments() != TypeArguments::null()) {
+    // Only include hashes of type arguments corresponding to type parameters.
+    // This prevents obtaining different hashes depending on the location of
+    // TypeRefs in the super class type argument vector.
+    const TypeArguments& type_args = TypeArguments::Handle(arguments());
+    const Class& cls = Class::Handle(type_class());
+    const intptr_t num_type_params = cls.NumTypeParameters();
+    if (num_type_params > 0) {
+      const intptr_t from_index = cls.NumTypeArguments() - num_type_params;
+      type_args_hash = type_args.HashForRange(from_index, num_type_params);
+    }
+  }
+  result = CombineHashes(result, type_args_hash);
   if (IsFunctionType()) {
     AbstractType& type = AbstractType::Handle();
     const Function& sig_fun = Function::Handle(signature());
