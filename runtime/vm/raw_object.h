@@ -138,8 +138,6 @@ class ObjectLayout {
   // See Object::MakeUnusedSpaceTraversable.
   COMPILE_ASSERT(kCardRememberedBit == 0);
 
-  COMPILE_ASSERT(8 * sizeof(uint16_t) == kClassIdTagSize);
-
   // Encodes the object size in the tag in units of object alignment.
   class SizeTag {
    public:
@@ -181,8 +179,11 @@ class ObjectLayout {
     }
   };
 
-  class ClassIdTag
-      : public BitField<uint32_t, intptr_t, kClassIdTagPos, kClassIdTagSize> {};
+  class ClassIdTag : public BitField<uint32_t,
+                                     ClassIdTagType,
+                                     kClassIdTagPos,
+                                     kClassIdTagSize> {};
+  COMPILE_ASSERT(kBitsPerByte * sizeof(ClassIdTagType) == kClassIdTagSize);
 
   class CardRememberedBit
       : public BitField<uint32_t, bool, kCardRememberedBit, 1> {};
@@ -1195,9 +1196,9 @@ class FieldLayout : public ObjectLayout {
 #endif
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
-  uint16_t guarded_cid_;
-  uint16_t is_nullable_;  // kNullCid if field can contain null value and
-                          // kInvalidCid otherwise.
+  ClassIdTagType guarded_cid_;
+  ClassIdTagType is_nullable_;  // kNullCid if field can contain null value and
+                                // kInvalidCid otherwise.
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
@@ -1402,7 +1403,7 @@ class WeakSerializationReferenceLayout : public ObjectLayout {
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   VISIT_NOTHING();
-  uint16_t cid_;
+  ClassIdTagType cid_;
 #else
   VISIT_FROM(ObjectPtr, target_);
   ObjectPtr target_;
@@ -1988,8 +1989,8 @@ class SingleTargetCacheLayout : public ObjectLayout {
   CodePtr target_;
   VISIT_TO(ObjectPtr, target_);
   uword entry_point_;
-  uint16_t lower_limit_;
-  uint16_t upper_limit_;
+  ClassIdTagType lower_limit_;
+  ClassIdTagType upper_limit_;
 };
 
 class MonomorphicSmiableCallLayout : public ObjectLayout {
@@ -2256,7 +2257,7 @@ class TypeParameterLayout : public AbstractTypeLayout {
   AbstractTypePtr bound_;  // ObjectType if no explicit bound specified.
   FunctionPtr parameterized_function_;
   VISIT_TO(ObjectPtr, parameterized_function_)
-  uint16_t parameterized_class_id_;
+  ClassIdTagType parameterized_class_id_;
   TokenPosition token_pos_;
   int16_t index_;
   uint8_t flags_;

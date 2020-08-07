@@ -79,6 +79,10 @@ dart/snapshot_version_test: RuntimeError
 dart_2/redirection_type_shuffling_test/none: RuntimeError
 dart_2/snapshot_version_test: RuntimeError
 
+[ $compiler != dartk ]
+dart/b162922506_test: SkipByDesign # Only run in JIT
+dart_2/b162922506_test: SkipByDesign # Only run in JIT
+
 [ $compiler == dartkb ]
 dart/generic_field_invocation_test: SkipByDesign # KBC interpreters do not support --no_lazy_dispatchers
 dart_2/generic_field_invocation_test: SkipByDesign # KBC interpreters do not support --no_lazy_dispatchers
@@ -112,11 +116,13 @@ cc/CorelibIsolateStartup: SkipByDesign # This is a benchmark that is not informa
 cc/VerifyExplicit_Crash: Crash # Negative tests of VerifiedMemory should crash iff in DEBUG mode. TODO(koda): Improve support for negative tests.
 cc/VerifyImplicit_Crash: Crash # Negative tests of VerifiedMemory should crash iff in DEBUG mode. TODO(koda): Improve support for negative tests.
 dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
+dart/b162922506_test: SkipSlow # Generates very large input file
 dart/minimal_kernel_bytecode_test: SkipSlow # gen_kernel is too slow in debug mode
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow in debug mode
 dart/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow in debug mode
 dart/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time for all the isolates to shutdown in a Debug build.
 dart_2/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
+dart_2/b162922506_test: SkipSlow # Generates very large input file
 dart_2/minimal_kernel_bytecode_test: SkipSlow # gen_kernel is too slow in debug mode
 dart_2/minimal_kernel_test: SkipSlow # gen_kernel is too slow in debug mode
 dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow in debug mode

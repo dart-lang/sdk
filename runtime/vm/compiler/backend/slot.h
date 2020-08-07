@@ -197,7 +197,7 @@ class Slot : public ZoneAllocated {
 
   Slot(Kind kind,
        int8_t bits,
-       int16_t cid,
+       ClassIdTagType cid,
        intptr_t offset_in_bytes,
        const void* data,
        const AbstractType* static_type)
@@ -229,7 +229,7 @@ class Slot : public ZoneAllocated {
 
   const Kind kind_;
   const int8_t flags_;  // is_immutable, is_nullable
-  const int16_t cid_;   // Concrete cid of a value or kDynamicCid.
+  const ClassIdTagType cid_;  // Concrete cid of a value or kDynamicCid.
 
   const intptr_t offset_in_bytes_;
 
