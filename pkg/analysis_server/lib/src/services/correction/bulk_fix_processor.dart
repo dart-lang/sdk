@@ -26,6 +26,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_empty_statem
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_method_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_operator.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
@@ -88,6 +89,7 @@ class BulkFixProcessor {
     LintNames.unnecessary_lambdas: ReplaceWithTearOff.newInstance,
     LintNames.unnecessary_new: RemoveUnnecessaryNew.newInstance,
     LintNames.unnecessary_overrides: RemoveMethodDeclaration.newInstance,
+    LintNames.unnecessary_this: RemoveThisExpression.newInstance,
   };
 
   /// A map from an error code to a generator used to create the correction

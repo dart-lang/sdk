@@ -24,6 +24,7 @@ import 'remove_empty_statement_test.dart' as remove_empty_statement;
 import 'remove_initializer_test.dart' as remove_initializer;
 import 'remove_method_declaration_test.dart' as remove_method_declaration;
 import 'remove_operator_test.dart' as remove_operator;
+import 'remove_this_expression_test.dart' as remove_this_expression;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
 import 'remove_unnecessary_new_test.dart' as remove_unnecessary_new;
@@ -56,6 +57,7 @@ void main() {
     remove_empty_statement.main();
     remove_method_declaration.main();
     remove_operator.main();
+    remove_this_expression.main();
     remove_type_annotation.main();
     remove_unnecessary_const.main();
     remove_unnecessary_new.main();
