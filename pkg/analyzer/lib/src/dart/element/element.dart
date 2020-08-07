@@ -7028,6 +7028,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
       {Reference reference})
       : super(variable.name, variable.nameOffset, reference: reference) {
     this.variable = variable;
+    isAbstract = variable is FieldElementImpl && variable.isAbstract;
     isStatic = variable.isStatic;
     isSynthetic = true;
   }
