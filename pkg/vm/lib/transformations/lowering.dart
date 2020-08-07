@@ -9,10 +9,11 @@ import 'package:kernel/transformations/type_casts_optimizer.dart'
     as typeCastsOptimizer show transformAsExpression;
 import 'package:kernel/type_environment.dart'
     show StaticTypeContext, TypeEnvironment;
-import 'package:vm/transformations/map_factory_specializer.dart' show MapFactorySpecializer;
-import 'package:vm/transformations/set_factory_specializer.dart' show SetFactorySpecializer;
+import 'package:vm/transformations/specializer/factory_specializer.dart';
+import './specializer/map_factory_specializer.dart' show MapFactorySpecializer;
+import './specializer/set_factory_specializer.dart' show SetFactorySpecializer;
+import './specializer/list_factory_specializer.dart' show ListFactorySpecializer;
 import 'late_var_init_transformer.dart' show LateVarInitTransformer;
-import 'list_factory_specializer.dart' show ListFactorySpecializer;
 
 /// VM-specific lowering transformations and optimizations combined into a
 /// single transformation pass.
@@ -25,43 +26,19 @@ void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
   libraries.forEach(transformer.visitLibrary);
 }
 
-typedef SpecializerTransformer<T extends TreeNode> = TreeNode Function(T node);
-
-/// Combine Two Specializer Transformer Method.
-SpecializerTransformer<T> combine<T extends TreeNode>(
-    SpecializerTransformer<T> a,
-    SpecializerTransformer<T> b,
-) {
-  return (node) => b(a(node));
-}
-
-/// Combine a list of Specializer Transformer Method.
-SpecializerTransformer<T> combineSpecializer<T extends TreeNode>(
-  List<SpecializerTransformer<T>> transformers,
-) {
-  return transformers.fold(
-    (node) => node,
-    (previousValue, element) => combine(previousValue, element),
-  );
-}
-
 class _Lowering extends Transformer {
   final TypeEnvironment env;
   final bool nullSafety;
-  final ListFactorySpecializer listFactorySpecializer;
-  final MapFactorySpecializer mapFactorySpecializer;
-  final SetFactorySpecializer setFactorySpecializer;
   final LateVarInitTransformer lateVarInitTransformer;
+  final FactorySpecializer factorySpecializer;
 
   Member _currentMember;
   StaticTypeContext _cachedStaticTypeContext;
 
   _Lowering(CoreTypes coreTypes, ClassHierarchy hierarchy, this.nullSafety)
       : env = TypeEnvironment(coreTypes, hierarchy),
-        listFactorySpecializer = ListFactorySpecializer(coreTypes),
-        mapFactorySpecializer = MapFactorySpecializer(coreTypes),
-        setFactorySpecializer = SetFactorySpecializer(coreTypes),
-        lateVarInitTransformer = LateVarInitTransformer();
+        lateVarInitTransformer = LateVarInitTransformer(),
+        factorySpecializer = FactorySpecializer(coreTypes);
 
   StaticTypeContext get _staticTypeContext =>
       _cachedStaticTypeContext ??= StaticTypeContext(_currentMember, env);
@@ -81,11 +58,7 @@ class _Lowering extends Transformer {
   @override
   visitStaticInvocation(StaticInvocation node) {
     node.transformChildren(this);
-    return combineSpecializer([
-      listFactorySpecializer.transformStaticInvocation,
-      mapFactorySpecializer.transformStaticInvocation,
-      setFactorySpecializer.transformStaticInvocation,
-    ])(node);
+    return factorySpecializer.specialize(node);
   }
 
   @override
