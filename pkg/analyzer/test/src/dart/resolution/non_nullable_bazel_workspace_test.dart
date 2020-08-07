@@ -20,7 +20,7 @@ class NonNullableBazelWorkspaceTest extends BazelWorkspaceResolutionTest {
   test_buildFile_legacy_commentedOut() async {
     newFile('$myPackageRootPath/BUILD', content: r'''
 dart_package(
-#  non_nullable = True,
+#  null_safety = True,
 ''');
 
     await resolveFileCode(
@@ -34,7 +34,7 @@ dart_package(
   test_buildFile_nonNullable() async {
     newFile('$myPackageRootPath/BUILD', content: r'''
 dart_package(
-  non_nullable = True,
+  null_safety = True,
 )
 ''');
 
@@ -73,7 +73,7 @@ dart_package(
 
   test_buildFile_nonNullable_oneLine_noComma() async {
     newFile('$myPackageRootPath/BUILD', content: r'''
-dart_package(non_nullable = True)
+dart_package(null_safety = True)
 ''');
 
     await resolveFileCode(
@@ -88,7 +88,7 @@ dart_package(non_nullable = True)
     newFile('$myPackageRootPath/BUILD', content: r'''
 dart_package(
   # Preceding comment.
-  non_nullable = True,  # Trailing comment.
+  null_safety = True,  # Trailing comment.
 )  # Last comment.
 ''');
 

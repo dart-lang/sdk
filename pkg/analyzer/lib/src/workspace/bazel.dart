@@ -509,7 +509,7 @@ class BazelWorkspacePackage extends WorkspacePackage {
           .where((e) => !e.startsWith('#'))
           .map((e) => e.replaceAll(' ', ''))
           .join()
-          .contains('dart_package(non_nullable=True');
+          .contains('dart_package(null_safety=True');
       if (hasNonNullableFlag) {
         _featureSet = FeatureSet.fromEnableFlags(
           [EnableString.non_nullable],
