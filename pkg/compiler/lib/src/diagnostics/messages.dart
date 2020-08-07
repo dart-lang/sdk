@@ -77,7 +77,6 @@ enum MessageKind {
   JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
   JS_INTEROP_FIELD_NOT_SUPPORTED,
   JS_INTEROP_NON_EXTERNAL_MEMBER,
-  JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS,
   JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
   JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
   JS_PLACEHOLDER_CAPTURE,
@@ -200,12 +199,6 @@ class MessageTemplate {
       MessageKind.JS_INTEROP_NON_EXTERNAL_MEMBER: const MessageTemplate(
           MessageKind.JS_INTEROP_NON_EXTERNAL_MEMBER,
           "Js-interop members must be 'external'."),
-
-      MessageKind.JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS: const MessageTemplate(
-          MessageKind.JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS,
-          "Js-interop class members are only supported in js-interop classes.",
-          howToFix: "Try marking the enclosing class as js-interop or "
-              "remove the js-interop annotation from the member."),
 
       MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER: const MessageTemplate(
           MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,

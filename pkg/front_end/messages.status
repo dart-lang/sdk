@@ -441,6 +441,8 @@ InvalidVoid/script1: Fail
 InvalidVoid/script2: Fail
 JsInteropAnonymousFactoryPositionalParameters/analyzerCode: Fail # Web compiler specific
 JsInteropAnonymousFactoryPositionalParameters/example: Fail # Web compiler specific
+JsInteropEnclosingClassJSAnnotation/analyzerCode: Fail # Web compiler specific
+JsInteropEnclosingClassJSAnnotation/example: Fail # Web compiler specific
 JsInteropIndexNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropIndexNotSupported/example: Fail # Web compiler specific
 JsInteropNamedParameters/analyzerCode: Fail # Web compiler specific
