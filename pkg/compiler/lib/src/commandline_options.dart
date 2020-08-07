@@ -157,6 +157,9 @@ class Option {
       '${Flags.enableLanguageExperiments}|'
       '${Flags.enableLanguageExperiments}=.*';
 
+  static const String multiRoots = '--multi-root=.+';
+  static const String multiRootScheme = '--multi-root-scheme=.+';
+
   // Experimental options.
   static const String resolutionInput = '--resolution-input=.+';
   static const String bazelPaths = '--bazel-paths=.+';
