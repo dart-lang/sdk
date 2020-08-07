@@ -14,6 +14,9 @@ namespace dart {
 // to append text. Internal buffer management is handled by subclasses.
 class BaseTextBuffer : public ValueObject {
  public:
+  BaseTextBuffer() : buffer_(nullptr), capacity_(0), length_(0) {}
+  BaseTextBuffer(char* buffer, intptr_t capacity)
+      : buffer_(buffer), capacity_(capacity), length_(0) {}
   virtual ~BaseTextBuffer() {}
 
   intptr_t Printf(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
@@ -34,11 +37,13 @@ class BaseTextBuffer : public ValueObject {
   virtual void Clear() = 0;
 
  protected:
-  virtual void EnsureCapacity(intptr_t len) = 0;
+  virtual bool EnsureCapacity(intptr_t len) = 0;
 
-  char* buffer_ = nullptr;
-  intptr_t capacity_ = 0;
-  intptr_t length_ = 0;
+  char* buffer_;
+  intptr_t capacity_;
+  intptr_t length_;
+
+  DISALLOW_COPY_AND_ASSIGN(BaseTextBuffer);
 };
 
 // TextBuffer uses manual memory management for the character buffer. Unless
@@ -64,21 +69,25 @@ class TextBuffer : public BaseTextBuffer {
   char* Steal();
 
  private:
-  void EnsureCapacity(intptr_t len);
+  bool EnsureCapacity(intptr_t len);
+
+  DISALLOW_COPY_AND_ASSIGN(TextBuffer);
 };
 
-class BufferFormatter : public ValueObject {
+class BufferFormatter : public BaseTextBuffer {
  public:
-  BufferFormatter(char* buffer, intptr_t size)
-      : position_(0), buffer_(buffer), size_(size) {}
+  BufferFormatter(char* buffer, intptr_t size) : BaseTextBuffer(buffer, size) {
+    buffer_[length_] = '\0';
+  }
 
-  void VPrint(const char* format, va_list args);
-  void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+  void Clear() {
+    length_ = 0;
+    buffer_[length_] = '\0';
+  }
 
  private:
-  intptr_t position_;
-  char* buffer_;
-  const intptr_t size_;
+  // We can't extend, so only return true if there's room.
+  bool EnsureCapacity(intptr_t len) { return length_ + len <= capacity_ - 1; }
 
   DISALLOW_COPY_AND_ASSIGN(BufferFormatter);
 };

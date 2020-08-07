@@ -35,12 +35,12 @@
 
 namespace dart {
 
+class BaseTextBuffer;
 class BinaryFeedback;
 class BitVector;
 class BlockEntryInstr;
 class BlockEntryWithInitialDefs;
 class BoxIntegerInstr;
-class BufferFormatter;
 class CallTargets;
 class CatchBlockEntryInstr;
 class CheckBoundBase;
@@ -145,7 +145,7 @@ class Value : public ZoneAllocated {
   void RefineReachingType(CompileType* type);
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
-  void PrintTo(BufferFormatter* f) const;
+  void PrintTo(BaseTextBuffer* f) const;
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
   SExpression* ToSExpression(FlowGraphSerializer* s) const;
@@ -550,14 +550,14 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
   DECLARE_COMPARISON_METHODS
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
-#define PRINT_TO_SUPPORT virtual void PrintTo(BufferFormatter* f) const;
+#define PRINT_TO_SUPPORT virtual void PrintTo(BaseTextBuffer* f) const;
 #else
 #define PRINT_TO_SUPPORT
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 #define PRINT_OPERANDS_TO_SUPPORT                                              \
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
+  virtual void PrintOperandsTo(BaseTextBuffer* f) const;
 #else
 #define PRINT_OPERANDS_TO_SUPPORT
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
@@ -911,8 +911,8 @@ class Instruction : public ZoneAllocated {
   // Printing support.
   const char* ToCString() const;
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
-  virtual void PrintTo(BufferFormatter* f) const;
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
+  virtual void PrintTo(BaseTextBuffer* f) const;
+  virtual void PrintOperandsTo(BaseTextBuffer* f) const;
 #endif
   virtual SExpression* ToSExpression(FlowGraphSerializer* s) const;
   virtual void AddOperandsToSExpression(SExpList* sexp,
@@ -1614,7 +1614,7 @@ class BlockEntryWithInitialDefs : public BlockEntryInstr {
   }
 
  protected:
-  void PrintInitialDefinitionsTo(BufferFormatter* f) const;
+  void PrintInitialDefinitionsTo(BaseTextBuffer* f) const;
 
  private:
   GrowableArray<Definition*> initial_definitions_;
@@ -5864,7 +5864,7 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  void PrintOperandsTo(BufferFormatter* f) const;
+  void PrintOperandsTo(BaseTextBuffer* f) const;
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
@@ -9330,7 +9330,7 @@ class Environment : public ZoneAllocated {
                        Definition* dead,
                        Definition* result) const;
 
-  void PrintTo(BufferFormatter* f) const;
+  void PrintTo(BaseTextBuffer* f) const;
   SExpression* ToSExpression(FlowGraphSerializer* s) const;
   const char* ToCString() const;
 

@@ -26,8 +26,10 @@ class ZoneTextBuffer : public BaseTextBuffer {
   void Clear();
 
  private:
-  void EnsureCapacity(intptr_t len);
+  bool EnsureCapacity(intptr_t len);
   Zone* zone_;
+
+  DISALLOW_COPY_AND_ASSIGN(ZoneTextBuffer);
 };
 
 }  // namespace dart

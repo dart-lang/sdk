@@ -19,7 +19,11 @@ intptr_t BaseTextBuffer::Printf(const char* format, ...) {
   intptr_t len = Utils::VSNPrint(buffer_ + length_, remaining, format, args);
   va_end(args);
   if (len >= remaining) {
-    EnsureCapacity(len);
+    if (!EnsureCapacity(len)) {
+      length_ = capacity_ - 1;
+      buffer_[length_] = '\0';
+      return remaining - 1;
+    }
     remaining = capacity_ - length_;
     ASSERT(remaining > len);
     va_list args2;
@@ -35,14 +39,16 @@ intptr_t BaseTextBuffer::Printf(const char* format, ...) {
 }
 
 void BaseTextBuffer::AddChar(char ch) {
-  EnsureCapacity(sizeof(ch));
+  if (!EnsureCapacity(sizeof(ch))) return;
   buffer_[length_] = ch;
   length_++;
   buffer_[length_] = '\0';
 }
 
 void BaseTextBuffer::AddRaw(const uint8_t* buffer, intptr_t buffer_length) {
-  EnsureCapacity(buffer_length);
+  if (!EnsureCapacity(buffer_length)) {
+    buffer_length = capacity_ - length_ - 1;  // Copy what fits.
+  }
   memmove(&buffer_[length_], buffer, buffer_length);
   length_ += buffer_length;
   buffer_[length_] = '\0';
@@ -128,7 +134,7 @@ char* TextBuffer::Steal() {
   return r;
 }
 
-void TextBuffer::EnsureCapacity(intptr_t len) {
+bool TextBuffer::EnsureCapacity(intptr_t len) {
   intptr_t remaining = capacity_ - length_;
   if (remaining <= len) {
     intptr_t new_size = capacity_ + Utils::Maximum(capacity_, len + 1);
@@ -139,23 +145,7 @@ void TextBuffer::EnsureCapacity(intptr_t len) {
     buffer_ = new_buf;
     capacity_ = new_size;
   }
-}
-
-void BufferFormatter::Print(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  VPrint(format, args);
-  va_end(args);
-}
-
-void BufferFormatter::VPrint(const char* format, va_list args) {
-  intptr_t available = size_ - position_;
-  if (available <= 0) return;
-  intptr_t written =
-      Utils::VSNPrint(buffer_ + position_, available, format, args);
-  if (written >= 0) {
-    position_ += (available <= written) ? available : written;
-  }
+  return true;
 }
 
 }  // namespace dart

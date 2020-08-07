@@ -16,7 +16,7 @@
 namespace dart {
 
 class AbstractType;
-class BufferFormatter;
+class BaseTextBuffer;
 class Definition;
 class FlowGraphSerializer;
 class SExpression;
@@ -247,7 +247,7 @@ class CompileType : public ZoneAllocated {
 
   bool Specialize(GrowableArray<intptr_t>* class_ids);
 
-  void PrintTo(BufferFormatter* f) const;
+  void PrintTo(BaseTextBuffer* f) const;
   SExpression* ToSExpression(FlowGraphSerializer* s) const;
   void AddExtraInfoToSExpression(SExpList* sexp, FlowGraphSerializer* s) const;
 

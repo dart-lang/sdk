@@ -249,24 +249,24 @@ const char* Location::Name() const {
   return "?";
 }
 
-void Location::PrintTo(BufferFormatter* f) const {
+void Location::PrintTo(BaseTextBuffer* f) const {
   if (!FLAG_support_il_printer) {
     return;
   }
   if (kind() == kStackSlot) {
-    f->Print("S%+" Pd "", stack_index());
+    f->Printf("S%+" Pd "", stack_index());
   } else if (kind() == kDoubleStackSlot) {
-    f->Print("DS%+" Pd "", stack_index());
+    f->Printf("DS%+" Pd "", stack_index());
   } else if (kind() == kQuadStackSlot) {
-    f->Print("QS%+" Pd "", stack_index());
+    f->Printf("QS%+" Pd "", stack_index());
   } else if (IsPairLocation()) {
-    f->Print("(");
+    f->AddString("(");
     AsPairLocation()->At(0).PrintTo(f);
-    f->Print(", ");
+    f->AddString(", ");
     AsPairLocation()->At(1).PrintTo(f);
-    f->Print(")");
+    f->AddString(")");
   } else {
-    f->Print("%s", Name());
+    f->Printf("%s", Name());
   }
 }
 
@@ -371,34 +371,34 @@ Location LocationRemapForSlowPath(Location loc,
   return loc;
 }
 
-void LocationSummary::PrintTo(BufferFormatter* f) const {
+void LocationSummary::PrintTo(BaseTextBuffer* f) const {
   if (!FLAG_support_il_printer) {
     return;
   }
   if (input_count() > 0) {
-    f->Print(" (");
+    f->AddString(" (");
     for (intptr_t i = 0; i < input_count(); i++) {
-      if (i != 0) f->Print(", ");
+      if (i != 0) f->AddString(", ");
       in(i).PrintTo(f);
     }
-    f->Print(")");
+    f->AddString(")");
   }
 
   if (temp_count() > 0) {
-    f->Print(" [");
+    f->AddString(" [");
     for (intptr_t i = 0; i < temp_count(); i++) {
-      if (i != 0) f->Print(", ");
+      if (i != 0) f->AddString(", ");
       temp(i).PrintTo(f);
     }
-    f->Print("]");
+    f->AddString("]");
   }
 
   if (!out(0).IsInvalid()) {
-    f->Print(" => ");
+    f->AddString(" => ");
     out(0).PrintTo(f);
   }
 
-  if (always_calls()) f->Print(" C");
+  if (always_calls()) f->AddString(" C");
 }
 
 #if defined(DEBUG)

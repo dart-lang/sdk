@@ -29,13 +29,14 @@ void ZoneTextBuffer::Clear() {
   buffer_[length_] = '\0';
 }
 
-void ZoneTextBuffer::EnsureCapacity(intptr_t len) {
+bool ZoneTextBuffer::EnsureCapacity(intptr_t len) {
   intptr_t remaining = capacity_ - length_;
   if (remaining <= len) {
     intptr_t new_capacity = capacity_ + Utils::Maximum(capacity_, len);
     buffer_ = zone_->Realloc<char>(buffer_, capacity_, new_capacity);
     capacity_ = new_capacity;
   }
+  return true;
 }
 
 }  // namespace dart

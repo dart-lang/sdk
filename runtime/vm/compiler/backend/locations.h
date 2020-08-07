@@ -18,7 +18,7 @@
 
 namespace dart {
 
-class BufferFormatter;
+class BaseTextBuffer;
 class ConstantInstr;
 class Definition;
 class PairLocation;
@@ -351,7 +351,7 @@ class Location : public ValueObject {
   intptr_t ToStackSlotOffset() const;
 
   const char* Name() const;
-  void PrintTo(BufferFormatter* f) const;
+  void PrintTo(BaseTextBuffer* f) const;
   void Print() const;
   const char* ToCString() const;
 
@@ -723,7 +723,7 @@ class LocationSummary : public ZoneAllocated {
     return contains_call_ == kCallOnSharedSlowPath;
   }
 
-  void PrintTo(BufferFormatter* f) const;
+  void PrintTo(BaseTextBuffer* f) const;
 
   static LocationSummary* Make(Zone* zone,
                                intptr_t input_count,
