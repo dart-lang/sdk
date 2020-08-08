@@ -4,13 +4,11 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/package_build.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../generated/test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -228,93 +226,168 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
 
 @reflectiveTest
 class PackageBuildWorkspacePackageTest with ResourceProviderMixin {
-  void test_contains_differentWorkspace() {
-    PackageBuildWorkspace workspace = _createPackageBuildWorkspace();
-    newFile('/workspace2/project2/lib/file.dart');
+  PackageBuildWorkspace myWorkspace;
+  PackageBuildWorkspacePackage myPackage;
 
-    var package = workspace
-        .findPackageFor(convertPath('/workspace/project/lib/code.dart'));
-    expect(
-        package.contains(
-            TestSource(convertPath('/workspace2/project2/lib/file.dart'))),
-        isFalse);
+  String get fooPackageLibPath => '$fooPackageRootPath/lib';
+
+  String get fooPackageRootPath => '$myWorkspacePath/foo';
+
+  String get myPackageGeneratedPath {
+    return '$myPackageRootPath/.dart_tool/build/generated';
   }
 
-  void test_contains_packageUris() {
-    PackageBuildWorkspace workspace = _createPackageBuildWorkspace();
-    newFile('/workspace/project/lib/file2.dart');
-    var package = workspace
-        .findPackageFor(convertPath('/workspace/project/lib/code.dart'));
-    var file2Source = InSummarySource(
-        Uri.parse('package:project/file2.dart'), '' /* summaryPath */);
-    expect(package.contains(file2Source), isTrue);
-  }
+  String get myPackageLibPath => '$myPackageRootPath/lib';
 
-  void test_contains_packageUris_unrelatedFile() {
-    PackageBuildWorkspace workspace = _createPackageBuildWorkspace();
-    newFile('/workspace/project/lib/file2.dart');
-    var package = workspace
-        .findPackageFor(convertPath('/workspace/project/lib/code.dart'));
-    var file2Source = InSummarySource(
-        Uri.parse('package:project2/file2.dart'), '' /* summaryPath */);
-    expect(package.contains(file2Source), isFalse);
-  }
+  String get myPackageRootPath => '$myWorkspacePath/my';
 
-  void test_contains_sameWorkspace() {
-    PackageBuildWorkspace workspace = _createPackageBuildWorkspace();
-    newFile('/workspace/project/lib/file2.dart');
+  String get myWorkspacePath => '/workspace';
 
-    var package = workspace
-        .findPackageFor(convertPath('/workspace/project/lib/code.dart'));
-    var file2Path = convertPath('/workspace/project/lib/file2.dart');
-    expect(package.contains(TestSource(file2Path)), isTrue);
-    var binPath = convertPath('/workspace/project/bin/bin.dart');
-    expect(package.contains(TestSource(binPath)), isTrue);
-    var testPath = convertPath('/workspace/project/test/test.dart');
-    expect(package.contains(TestSource(testPath)), isTrue);
-  }
+  void setUp() {
+    newFile('$myPackageRootPath/pubspec.yaml', content: 'name: my');
+    newFolder(myPackageGeneratedPath);
 
-  void test_findPackageFor_includedFile() {
-    PackageBuildWorkspace workspace = _createPackageBuildWorkspace();
-    newFile('/workspace/project/lib/file.dart');
-
-    var package = workspace
-        .findPackageFor(convertPath('/workspace/project/lib/file.dart'));
-    expect(package, isNotNull);
-    expect(package.root, convertPath('/workspace'));
-    expect(package.workspace, equals(workspace));
-  }
-
-  void test_findPackageFor_testFile() {
-    PackageBuildWorkspace workspace = _createPackageBuildWorkspace();
-    newFile('/workspace/project/test/test.dart');
-
-    var package = workspace
-        .findPackageFor(convertPath('/workspace/project/test/test.dart'));
-    expect(package, isNotNull);
-    expect(package.root, convertPath('/workspace'));
-    expect(package.workspace, equals(workspace));
-  }
-
-  void test_findPackageFor_unrelatedFile() {
-    PackageBuildWorkspace workspace = _createPackageBuildWorkspace();
-    newFile('/workspace/project/lib/file.dart');
-
-    var package = workspace
-        .findPackageFor(convertPath('/workspace2/project2/lib/file.dart'));
-    expect(package, isNull);
-  }
-
-  PackageBuildWorkspace _createPackageBuildWorkspace() {
-    newFolder('/workspace/.dart_tool/build');
-    newFile('/workspace/pubspec.yaml', content: 'name: project');
-    return PackageBuildWorkspace.find(
+    myWorkspace = PackageBuildWorkspace.find(
       resourceProvider,
       {
-        'project': [getFolder('/workspace')]
+        'my': [getFolder(myPackageLibPath)],
+        'foo': [getFolder(fooPackageLibPath)],
       },
-      convertPath('/workspace'),
+      convertPath(myPackageRootPath),
     );
+
+    myPackage = myWorkspace.findPackageFor('$myPackageLibPath/fake.dart');
+  }
+
+  test_contains_fileUri() {
+    expect(
+      myPackage.contains(
+        _sourceWithFileUri('$myPackageRootPath/test/a.dart'),
+      ),
+      isTrue,
+    );
+
+    expect(
+      myPackage.contains(
+        _sourceWithFileUri('$fooPackageRootPath/test/a.dart'),
+      ),
+      isFalse,
+    );
+  }
+
+  test_contains_fileUri_generated() {
+    var myGeneratedPath = '$myPackageGeneratedPath/my/test/a.dart';
+    newFile(myGeneratedPath, content: '');
+
+    var fooGeneratedPath = '$myPackageGeneratedPath/foo/test/a.dart';
+    newFile(fooGeneratedPath, content: '');
+
+    expect(
+      myPackage.contains(
+        _sourceWithFileUri(myGeneratedPath),
+      ),
+      isTrue,
+    );
+
+    expect(
+      myPackage.contains(
+        _sourceWithFileUri(fooGeneratedPath),
+      ),
+      isFalse,
+    );
+  }
+
+  test_contains_packageUri() {
+    expect(
+      myPackage.contains(
+        _sourceWithPackageUriWithoutPath('package:my/a.dart'),
+      ),
+      isTrue,
+    );
+
+    expect(
+      myPackage.contains(
+        _sourceWithPackageUriWithoutPath('package:foo/a.dart'),
+      ),
+      isFalse,
+    );
+  }
+
+  test_findPackageFor_my_generated_libFile() {
+    var package = myWorkspace.findPackageFor(
+      convertPath('$myPackageGeneratedPath/my/lib/a.dart'),
+    );
+    expect(package, isNotNull);
+    expect(package.root, convertPath(myPackageRootPath));
+    expect(package.workspace, myWorkspace);
+  }
+
+  test_findPackageFor_my_generated_other() {
+    expect(
+      myWorkspace.findPackageFor(
+        convertPath('$myPackageGeneratedPath/foo/lib/a.dart'),
+      ),
+      isNull,
+    );
+
+    expect(
+      myWorkspace.findPackageFor(
+        convertPath('$myPackageGeneratedPath/foo/test/a.dart'),
+      ),
+      isNull,
+    );
+  }
+
+  test_findPackageFor_my_generated_testFile() {
+    var package = myWorkspace.findPackageFor(
+      convertPath('$myPackageGeneratedPath/my/test/a.dart'),
+    );
+    expect(package, isNotNull);
+    expect(package.root, convertPath(myPackageRootPath));
+    expect(package.workspace, myWorkspace);
+  }
+
+  test_findPackageFor_my_libFile() {
+    var package = myWorkspace.findPackageFor(
+      convertPath('$myPackageLibPath/a.dart'),
+    );
+    expect(package, isNotNull);
+    expect(package.root, convertPath(myPackageRootPath));
+    expect(package.workspace, myWorkspace);
+  }
+
+  test_findPackageFor_my_testFile() {
+    var package = myWorkspace.findPackageFor(
+      convertPath('$myPackageRootPath/test/a.dart'),
+    );
+    expect(package, isNotNull);
+    expect(package.root, convertPath(myPackageRootPath));
+    expect(package.workspace, myWorkspace);
+  }
+
+  test_findPackageFor_other() {
+    expect(
+      myWorkspace.findPackageFor(
+        convertPath('$fooPackageRootPath/lib/a.dart'),
+      ),
+      isNull,
+    );
+
+    expect(
+      myWorkspace.findPackageFor(
+        convertPath('$fooPackageRootPath/test/a.dart'),
+      ),
+      isNull,
+    );
+  }
+
+  Source _sourceWithFileUri(String path) {
+    return _MockSource(path: convertPath(path), uri: toUri(path));
+  }
+
+  Source _sourceWithPackageUriWithoutPath(String uriStr) {
+    var uri = Uri.parse(uriStr);
+    return _MockSource(path: null, uri: uri);
   }
 }
 
@@ -592,4 +665,25 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
       convertPath(root),
     );
   }
+}
+
+class _MockSource implements Source {
+  final String path;
+
+  @override
+  final Uri uri;
+
+  _MockSource({@required this.path, @required this.uri});
+
+  @override
+  String get fullName {
+    if (path == null) {
+      throw StateError('This source has no path, '
+          'and we do not expect that it will be accessed.');
+    }
+    return path;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
