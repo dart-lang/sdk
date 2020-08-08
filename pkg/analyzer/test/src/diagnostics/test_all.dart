@@ -5,6 +5,9 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_class_member_test.dart' as abstract_class_member;
+import 'abstract_field_constructor_initializer_test.dart'
+    as abstract_field_constructor_initializer;
+import 'abstract_field_initializer_test.dart' as abstract_field_initializer;
 import 'abstract_super_member_reference_test.dart'
     as abstract_super_member_reference;
 import 'access_private_enum_field_test.dart' as access_private_enum_field;
@@ -631,6 +634,8 @@ import 'yield_of_invalid_type_test.dart' as yield_of_invalid_type;
 main() {
   defineReflectiveSuite(() {
     abstract_class_member.main();
+    abstract_field_constructor_initializer.main();
+    abstract_field_initializer.main();
     abstract_super_member_reference.main();
     access_private_enum_field.main();
     ambiguous_export.main();

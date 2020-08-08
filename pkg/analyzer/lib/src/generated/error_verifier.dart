@@ -491,6 +491,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForInvalidField(node, fieldName, staticElement);
       if (staticElement is FieldElement) {
         _checkForFieldInitializerNotAssignable(node, staticElement);
+        _checkForAbstractFieldConstructorInitializer(
+            node.fieldName, staticElement);
       }
       super.visitConstructorFieldInitializer(node);
     } finally {
@@ -599,6 +601,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkForPrivateOptionalParameter(node);
     _checkForFieldInitializingFormalRedirectingConstructor(node);
     _checkForTypeAnnotationDeferredClass(node.type);
+    ParameterElement element = node.declaredElement;
+    if (element is FieldFormalParameterElement) {
+      FieldElement fieldElement = element.field;
+      if (fieldElement != null) {
+        _checkForAbstractFieldConstructorInitializer(
+            node.identifier, fieldElement);
+      }
+    }
     super.visitFieldFormalParameter(node);
   }
 
@@ -1190,6 +1200,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // do checks
     _checkForInvalidAssignment(nameNode, initializerNode);
     _checkForImplicitDynamicIdentifier(node, nameNode);
+    _checkForAbstractFieldInitializer(node);
     // visit name
     nameNode.accept(this);
     // visit initializer
@@ -1280,6 +1291,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               CompileTimeErrorCode.SHARED_DEFERRED_PREFIX, deferredToken);
         }
       }
+    }
+  }
+
+  void _checkForAbstractFieldConstructorInitializer(
+      AstNode node, FieldElement fieldElement) {
+    if (fieldElement.isAbstract) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER, node);
+    }
+  }
+
+  void _checkForAbstractFieldInitializer(VariableDeclaration node) {
+    var declaredElement = node.declaredElement;
+    if (declaredElement is FieldElement &&
+        declaredElement.isAbstract &&
+        node.initializer != null) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER, node.name);
     }
   }
 

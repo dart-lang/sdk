@@ -60,6 +60,8 @@ const List<ErrorCode> errorCodeValues = [
   AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES,
   AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
   AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
+  CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER,
+  CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER,
   CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
   CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD,
   CompileTimeErrorCode.AMBIGUOUS_EXPORT,
