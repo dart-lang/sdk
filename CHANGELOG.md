@@ -12,6 +12,23 @@
 *   Introduces `Dart_FinalizableHandle`s. They do auto-delete, and the weakly
     referred object cannot be accessed through them.
 
+### Tools
+
+#### Linter
+
+Updated the Linter to `0.1.118`, which includes:
+
+* New lint: `unnecessary_nullable_for_final_variable_declarations`.
+* Fixed NPE in `prefer_asserts_in_initializer_lists`.
+* Fixed range error in `unnecessary_string_escapes`.
+* `unsafe_html` updated to support unique error codes.
+* Updates to `diagnostic_describe_all_properties` to check for `Diagnosticable`s (not `DiagnosticableMixin`s).
+* New lint: `use_late`.
+* Fixed `unnecessary_lambdas` to respect deferred imports.
+* Updated `public_member_api_docs` to check mixins.
+* Updated `unnecessary_statements` to skip `as` expressions.
+* Fixed `prefer_relative_imports` to work with path dependencies.
+
 ## 2.9.0 - 2020-08-05
 
 ### Language
@@ -99,18 +116,8 @@
 
 #### Linter
 
-Updated the Linter to `0.1.118`, which includes:
+Updated the Linter to `0.1.117`, which includes:
 
-* New lint: `unnecessary_nullable_for_final_variable_declarations`.
-* Fixed NPE in `prefer_asserts_in_initializer_lists`.
-* Fixed range error in `unnecessary_string_escapes`.
-* `unsafe_html` updated to support unique error codes.
-* Updates to `diagnostic_describe_all_properties` to check for `Diagnosticable`s (not `DiagnosticableMixin`s).
-* New lint: `use_late`.
-* Fixed `unnecessary_lambdas` to respect deferred imports.
-* Updated `public_member_api_docs` to check mixins.
-* Updated `unnecessary_statements` to skip `as` expressions.
-* Fixed `prefer_relative_imports` to work with path dependencies.
 * New lint: `do_not_use_environment`.
 * New lint: `exhaustive_cases`.
 * New lint: `no_default_cases` (experimental).
