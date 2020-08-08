@@ -12,6 +12,7 @@ void main() {
     defineReflectiveTests(RemoveDynamicTypeAnnotationTest);
     defineReflectiveTests(RemoveSetterReturnTypeAnnotationTest);
     defineReflectiveTests(RemoveTypeAnnotationOnClosureParamsTest);
+    defineReflectiveTests(TypeInitFormalsTest);
   });
 }
 
@@ -72,6 +73,37 @@ var y = (Future<int> defaultValue) => null;
     await assertHasFix('''
 var x = ({defaultValue}) => null;
 var y = (defaultValue) => null;
+''');
+  }
+}
+
+@reflectiveTest
+class TypeInitFormalsTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.type_init_formals;
+
+  Future<void> test_singleFile() async {
+    await resolveTestUnit('''
+class C {
+  int f;
+  C(int this.f);
+}
+
+class Point {
+  int x, y;
+  Point(int this.x, int this.y);
+}
+''');
+    await assertHasFix('''
+class C {
+  int f;
+  C(this.f);
+}
+
+class Point {
+  int x, y;
+  Point(this.x, this.y);
+}
 ''');
   }
 }

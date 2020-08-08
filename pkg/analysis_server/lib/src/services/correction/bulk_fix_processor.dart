@@ -85,6 +85,7 @@ class BulkFixProcessor {
     LintNames.prefer_single_quotes: ConvertToSingleQuotes.newInstance,
     LintNames.prefer_spread_collections: ConvertAddAllToSpread.newInstance,
     LintNames.slash_for_doc_comments: ConvertDocumentationIntoLine.newInstance,
+    LintNames.type_init_formals: RemoveTypeAnnotation.newInstance,
     LintNames.unnecessary_const: RemoveUnnecessaryConst.newInstance,
     LintNames.unnecessary_lambdas: ReplaceWithTearOff.newInstance,
     LintNames.unnecessary_new: RemoveUnnecessaryNew.newInstance,
