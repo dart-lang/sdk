@@ -10,9 +10,6 @@ import 'package:kernel/transformations/type_casts_optimizer.dart'
 import 'package:kernel/type_environment.dart'
     show StaticTypeContext, TypeEnvironment;
 import 'package:vm/transformations/specializer/factory_specializer.dart';
-import './specializer/map_factory_specializer.dart' show MapFactorySpecializer;
-import './specializer/set_factory_specializer.dart' show SetFactorySpecializer;
-import './specializer/list_factory_specializer.dart' show ListFactorySpecializer;
 import 'late_var_init_transformer.dart' show LateVarInitTransformer;
 
 /// VM-specific lowering transformations and optimizations combined into a
@@ -58,7 +55,7 @@ class _Lowering extends Transformer {
   @override
   visitStaticInvocation(StaticInvocation node) {
     node.transformChildren(this);
-    return factorySpecializer.specialize(node);
+    return factorySpecializer.transformStaticInvocation(node);
   }
 
   @override

@@ -12,22 +12,13 @@ import 'package:vm/transformations/specializer/factory_specializer.dart';
 
 /// Replaces invocation of Map factory constructors with
 /// factories of VM-specific classes.
-/// new Set() => new _CompactLinkedHashSet<K, V>()
 /// new LinkedHashSet<E>() => new _CompactLinkedHashSet<E>()
 class SetFactorySpecializer extends BaseSpecializer {
-  final Procedure _defaultSetFactory;
   final Procedure _linkedHashSetDefaultFactory;
   final Constructor _compactLinkedHashSetConstructor;
 
   SetFactorySpecializer(CoreTypes coreTypes)
-      : _defaultSetFactory = assertNotNull(
-          coreTypes.index.getMember(
-            'dart:core',
-            'Set',
-            '',
-          ),
-        ),
-        _linkedHashSetDefaultFactory = assertNotNull(
+      : _linkedHashSetDefaultFactory = assertNotNull(
           coreTypes.index.getMember(
             'dart:collection',
             'LinkedHashSet',
@@ -40,18 +31,18 @@ class SetFactorySpecializer extends BaseSpecializer {
             '_CompactLinkedHashSet',
             '',
           ),
-        );
+        ) {
+    transformers.addAll({
+      _linkedHashSetDefaultFactory: transformLinkedHashSet,
+    });
+  }
 
   static T assertNotNull<T>(T t) {
     assert(t != null);
     return t;
   }
 
-  TreeNode transformDefaultSetFactory(TreeNode origin) {
-    if (origin is! StaticInvocation) {
-      return origin;
-    }
-    final node = origin as StaticInvocation;
+  TreeNode transformDefaultSetFactory(StaticInvocation node) {
     final args = node.arguments;
     assert(args.positional.isEmpty);
     return ConstructorInvocation(
@@ -60,11 +51,7 @@ class SetFactorySpecializer extends BaseSpecializer {
     )..fileOffset = node.fileOffset;
   }
 
-  TreeNode transformLinkedHashSet(TreeNode origin) {
-    if (origin is! StaticInvocation) {
-      return origin;
-    }
-    final node = origin as StaticInvocation;
+  TreeNode transformLinkedHashSet(StaticInvocation node) {
     final args = node.arguments;
     assert(args.positional.isEmpty);
     if (args.named.isEmpty) {
@@ -73,12 +60,6 @@ class SetFactorySpecializer extends BaseSpecializer {
         Arguments([], types: args.types),
       );
     }
-    return origin;
+    return node;
   }
-
-  @override
-  Map<Member, SpecializerTransformer> get transformersMap => {
-        _defaultSetFactory: transformDefaultSetFactory,
-        _linkedHashSetDefaultFactory: transformLinkedHashSet,
-      };
 }

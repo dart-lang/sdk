@@ -12,22 +12,13 @@ import 'package:vm/transformations/specializer/factory_specializer.dart';
 
 /// Replaces invocation of Map factory constructors with
 /// factories of VM-specific classes.
-/// new Map() => new _InternalLinkedHashMap<K, V>()
 /// new LinkedHashMap<K, V>() => new _InternalLinkedHashMap<K, V>()
 class MapFactorySpecializer extends BaseSpecializer {
-  final Procedure _defaultMapFactory;
   final Procedure _linkedHashMapDefaultFactory;
   final Constructor _internalLinkedHashMapConstructor;
 
   MapFactorySpecializer(CoreTypes coreTypes)
-      : _defaultMapFactory = assertNotNull(
-          coreTypes.index.getMember(
-            'dart:core',
-            'Map',
-            '',
-          ),
-        ),
-        _linkedHashMapDefaultFactory = assertNotNull(
+      : _linkedHashMapDefaultFactory = assertNotNull(
           coreTypes.index.getMember(
             'dart:collection',
             'LinkedHashMap',
@@ -40,32 +31,18 @@ class MapFactorySpecializer extends BaseSpecializer {
             '_InternalLinkedHashMap',
             '',
           ),
-        );
+        ) {
+    transformers.addAll({
+      _linkedHashMapDefaultFactory: transformLinkedHashMap,
+    });
+  }
 
   static T assertNotNull<T>(T t) {
     assert(t != null);
     return t;
   }
 
-  TreeNode transformDefaultMapFactory(TreeNode origin) {
-    if (origin is! StaticInvocation) {
-      return origin;
-    }
-    final node = origin as StaticInvocation;
-    final args = node.arguments;
-    assert(args.positional.length == 0);
-    // new Map() => new _InternalLinkedHashMap<K, V>()
-    return ConstructorInvocation(
-      _internalLinkedHashMapConstructor,
-      Arguments([], types: args.types),
-    )..fileOffset = node.fileOffset;
-  }
-
-  TreeNode transformLinkedHashMap(TreeNode origin) {
-    if (origin is! StaticInvocation) {
-      return origin;
-    }
-    final node = origin as StaticInvocation;
+  TreeNode transformLinkedHashMap(StaticInvocation node) {
     final args = node.arguments;
     if (args.named.isEmpty) {
       return ConstructorInvocation(
@@ -74,12 +51,6 @@ class MapFactorySpecializer extends BaseSpecializer {
       )..fileOffset = node.fileOffset;
     }
 
-    return origin;
+    return node;
   }
-
-  @override
-  Map<Member, SpecializerTransformer> get transformersMap => {
-        _defaultMapFactory: transformDefaultMapFactory,
-        _linkedHashMapDefaultFactory: transformLinkedHashMap,
-      };
 }

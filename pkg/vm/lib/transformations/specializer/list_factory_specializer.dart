@@ -58,6 +58,11 @@ class ListFactorySpecializer extends BaseSpecializer {
     assert(_fixedListFactory.isFactory);
     assert(_fixedListFilledFactory.isFactory);
     assert(_fixedListGenerateFactory.isFactory);
+    transformers.addAll({
+      _defaultListFactory: transformDefaultFactory,
+      _listFilledFactory: transformListFilledFactory,
+      _listGenerateFactory: transformListGeneratorFactory,
+    });
   }
 
   TreeNode transformDefaultFactory(TreeNode origin) {
@@ -159,11 +164,4 @@ class ListFactorySpecializer extends BaseSpecializer {
     }
     return null;
   }
-
-  @override
-  Map<Member, SpecializerTransformer> get transformersMap => {
-        _defaultListFactory: transformDefaultFactory,
-        _listFilledFactory: transformListFilledFactory,
-        _listGenerateFactory: transformListGeneratorFactory,
-      };
 }

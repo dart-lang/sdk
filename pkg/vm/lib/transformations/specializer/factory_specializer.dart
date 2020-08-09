@@ -10,11 +10,11 @@ import 'package:vm/transformations/specializer/list_factory_specializer.dart';
 import 'package:vm/transformations/specializer/map_factory_specializer.dart';
 import 'package:vm/transformations/specializer/set_factory_specializer.dart';
 
-typedef SpecializerTransformer<T extends TreeNode> = TreeNode Function(T node);
+typedef SpecializerTransformer = TreeNode Function(StaticInvocation node);
 
 abstract class BaseSpecializer {
-  /// Map from Memeber to Transformer
-  Map<Member, SpecializerTransformer> get transformersMap;
+  final Map<Member, SpecializerTransformer> transformers = {};
+  Map<Member, SpecializerTransformer> get transformersMap => transformers;
 }
 
 class FactorySpecializer extends BaseSpecializer {
@@ -28,7 +28,7 @@ class FactorySpecializer extends BaseSpecializer {
         _mapFactorySpecializer = MapFactorySpecializer(coreTypes);
 
   @override
-  Map<Member, SpecializerTransformer<TreeNode>> get transformersMap {
+  Map<Member, SpecializerTransformer> get transformersMap {
     final transformers = <Member, SpecializerTransformer>{};
     transformers.addAll(_listFactorySpecializer.transformersMap);
     transformers.addAll(_setFactorySpecializer.transformersMap);
@@ -36,17 +36,19 @@ class FactorySpecializer extends BaseSpecializer {
     return transformers;
   }
 
-  TreeNode specialize(StaticInvocation invocation) {
+  TreeNode transformStaticInvocation(StaticInvocation invocation) {
+    if (invocation == null) {
+      return invocation;
+    }
     final target = invocation.target;
     if (target == null) {
       return invocation;
     }
 
-    if (!transformersMap.containsKey(target)) {
-      return invocation;
+    final transformer = transformersMap[target];
+    if (transformer != null) {
+      return transformer(invocation);
     }
-
-    final result = transformersMap[target](invocation);
-    return result ?? invocation;
+    return invocation;
   }
 }
