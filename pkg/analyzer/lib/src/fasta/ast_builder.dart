@@ -8,6 +8,8 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         Message,
         MessageCode,
         messageAbstractClassMember,
+        messageAbstractLateField,
+        messageAbstractStaticField,
         messageConstConstructorWithBody,
         messageConstructorWithTypeParameters,
         messageDirectiveAfterDeclaration,
@@ -849,9 +851,20 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("Fields");
 
-    if (!enableNonNullable && abstractToken != null) {
-      handleRecoverableError(
-          messageAbstractClassMember, abstractToken, abstractToken);
+    if (abstractToken != null) {
+      if (!enableNonNullable) {
+        handleRecoverableError(
+            messageAbstractClassMember, abstractToken, abstractToken);
+      } else {
+        if (staticToken != null) {
+          handleRecoverableError(
+              messageAbstractStaticField, abstractToken, abstractToken);
+        }
+        if (lateToken != null) {
+          handleRecoverableError(
+              messageAbstractLateField, abstractToken, abstractToken);
+        }
+      }
     }
     if (externalToken != null) {
       handleRecoverableError(

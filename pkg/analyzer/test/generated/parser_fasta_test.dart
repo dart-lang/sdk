@@ -182,6 +182,42 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(field.abstractKeyword, isNotNull);
   }
 
+  void test_parseField_abstract_late() {
+    createParser('abstract late int? i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.ABSTRACT_LATE_FIELD, 0, 8),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.abstractKeyword, isNotNull);
+  }
+
+  void test_parseField_abstract_late_final() {
+    createParser('abstract late final int? i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.ABSTRACT_LATE_FIELD, 0, 8),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.abstractKeyword, isNotNull);
+  }
+
+  void test_parseField_abstract_static() {
+    createParser('abstract static int? i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.ABSTRACT_STATIC_FIELD, 0, 8),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.abstractKeyword, isNotNull);
+  }
+
   void test_parseField_const_late() {
     createParser('const late T f = 0;', featureSet: nonNullable);
     ClassMember member = parser.parseClassMember('C');

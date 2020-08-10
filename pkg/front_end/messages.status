@@ -11,10 +11,8 @@ AbstractFieldInitializer/analyzerCode: Fail
 AbstractExtensionField/analyzerCode: Fail
 AbstractExtensionField/example: Fail
 AbstractExternalField/analyzerCode: Fail
-AbstractLateField/analyzerCode: Fail
 AbstractNotSync/example: Fail
 AbstractRedirectedClassInstantiation/example: Fail
-AbstractStaticField/analyzerCode: Fail
 AccessError/analyzerCode: Fail
 AccessError/example: Fail
 AmbiguousExtensionMethod/analyzerCode: Fail

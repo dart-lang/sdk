@@ -114,6 +114,8 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _SETTER_CONSTRUCTOR,
   _MEMBER_WITH_CLASS_NAME,
   _EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER,
+  _ABSTRACT_STATIC_FIELD,
+  _ABSTRACT_LATE_FIELD,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = ParserErrorCode(
@@ -121,6 +123,14 @@ const ParserErrorCode _ABSTRACT_CLASS_MEMBER = ParserErrorCode(
     r"Members of classes can't be declared to be 'abstract'.",
     correction:
         "Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration.");
+
+const ParserErrorCode _ABSTRACT_LATE_FIELD = ParserErrorCode(
+    'ABSTRACT_LATE_FIELD', r"Abstract fields cannot be late.",
+    correction: "Try removing the 'abstract' or 'late' keyword.");
+
+const ParserErrorCode _ABSTRACT_STATIC_FIELD = ParserErrorCode(
+    'ABSTRACT_STATIC_FIELD', r"Static fields can't be declared 'abstract'.",
+    correction: "Try removing the 'abstract' or 'static' keyword.");
 
 const ParserErrorCode _ANNOTATION_WITH_TYPE_ARGUMENTS = ParserErrorCode(
     'ANNOTATION_WITH_TYPE_ARGUMENTS',
