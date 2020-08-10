@@ -257,12 +257,10 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     writeTestPackageConfig({});
   }
 
-  void writeTestPackageAnalysisOptionsFile(
-    AnalysisOptionsFileConfig builder,
-  ) {
+  void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
     newFile(
       '$testPackageRootPath/analysis_options.yaml',
-      content: builder.toContent(),
+      content: config.toContent(),
     );
   }
 
@@ -299,6 +297,30 @@ class PubPackageResolutionTest extends ContextResolutionTest {
 
   void writeTestPackageConfigWithMeta() {
     writeTestPackageConfigWith({}, meta: true);
+  }
+
+  void writeTestPackagePubspecYamlFile(PubspecYamlFileConfig config) {
+    newFile(
+      '$testPackageRootPath/pubspec.yaml',
+      content: config.toContent(),
+    );
+  }
+}
+
+class PubspecYamlFileConfig {
+  final String sdkVersion;
+
+  PubspecYamlFileConfig({this.sdkVersion});
+
+  String toContent() {
+    var buffer = StringBuffer();
+
+    if (sdkVersion != null) {
+      buffer.writeln('environment:');
+      buffer.writeln("  sdk: '$sdkVersion'");
+    }
+
+    return buffer.toString();
   }
 }
 
