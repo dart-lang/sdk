@@ -10,9 +10,7 @@
 
 #include <string.h>
 
-#define DART_API_DL_DEFINITIONS(name, R, A)                                    \
-  typedef R(*name##_Type) A;                                                   \
-  name##_Type name##_DL = NULL;
+#define DART_API_DL_DEFINITIONS(name, R, A) name##_Type name##_DL = NULL;
 
 DART_API_ALL_DL_SYMBOLS(DART_API_DL_DEFINITIONS)
 
