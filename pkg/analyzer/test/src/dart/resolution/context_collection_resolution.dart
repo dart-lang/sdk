@@ -16,8 +16,14 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/workspace/basic.dart';
+import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:analyzer/src/workspace/gn.dart';
+import 'package:analyzer/src/workspace/package_build.dart';
+import 'package:analyzer/src/workspace/pub.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
+import 'package:test/test.dart';
 
 import 'resolution.dart';
 
@@ -91,10 +97,21 @@ class BazelWorkspaceResolutionTest extends ContextResolutionTest {
 
   String get workspaceRootPath => '/workspace';
 
+  String get workspaceThirdPartyDartPath {
+    return '$workspaceRootPath/third_party/dart';
+  }
+
   @override
   void setUp() {
     super.setUp();
     newFile('$workspaceRootPath/WORKSPACE', content: '');
+    newFile('$myPackageRootPath/BUILD', content: '');
+  }
+
+  @override
+  void verifyCreatedCollection() {
+    super.verifyCreatedCollection();
+    assertBazelWorkspaceFor(testFilePath);
   }
 }
 
@@ -118,10 +135,33 @@ abstract class ContextResolutionTest
     _declaredVariables = map;
   }
 
+  void assertBasicWorkspaceFor(String path) {
+    var workspace = contextFor(path).workspace;
+    expect(workspace, TypeMatcher<BasicWorkspace>());
+  }
+
+  void assertBazelWorkspaceFor(String path) {
+    var workspace = contextFor(path).workspace;
+    expect(workspace, TypeMatcher<BazelWorkspace>());
+  }
+
+  void assertGnWorkspaceFor(String path) {
+    var workspace = contextFor(path).workspace;
+    expect(workspace, TypeMatcher<GnWorkspace>());
+  }
+
+  void assertPackageBuildWorkspaceFor(String path) {
+    var workspace = contextFor(path).workspace;
+    expect(workspace, TypeMatcher<PackageBuildWorkspace>());
+  }
+
+  void assertPubWorkspaceFor(String path) {
+    var workspace = contextFor(path).workspace;
+    expect(workspace, TypeMatcher<PubWorkspace>());
+  }
+
   AnalysisContext contextFor(String path) {
-    if (_analysisContextCollection == null) {
-      _createAnalysisContexts();
-    }
+    _createAnalysisContexts();
 
     path = convertPath(path);
     return _analysisContextCollection.contextFor(path);
@@ -163,8 +203,14 @@ abstract class ContextResolutionTest
     );
   }
 
+  void verifyCreatedCollection() {}
+
   /// Create all analysis contexts in [collectionIncludedPaths].
   void _createAnalysisContexts() {
+    if (_analysisContextCollection != null) {
+      return;
+    }
+
     _analysisContextCollection = AnalysisContextCollectionImpl(
       declaredVariables: _declaredVariables,
       enableIndex: true,
@@ -172,6 +218,8 @@ abstract class ContextResolutionTest
       resourceProvider: resourceProvider,
       sdkPath: convertPath('/sdk'),
     );
+
+    verifyCreatedCollection();
   }
 }
 
