@@ -1763,6 +1763,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       } else if (left is Generator) {
         push(left.buildBinaryOperation(token, name, right));
       } else {
+        if (left is ProblemBuilder) {
+          ProblemBuilder problem = left;
+          left = buildProblem(problem.message, problem.charOffset, noLength);
+        }
         assert(left is Expression);
         push(forest.createBinary(fileOffset, left, name, right));
       }
