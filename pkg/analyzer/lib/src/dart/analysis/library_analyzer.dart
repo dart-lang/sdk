@@ -26,7 +26,6 @@ import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/error/dart2js_verifier.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/imports_verifier.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
@@ -271,11 +270,6 @@ class LibraryAnalyzer {
     }
 
     unit.accept(DeadCodeVerifier(errorReporter));
-
-    // Dart2js analysis.
-    if (_analysisOptions.dart2jsHint) {
-      unit.accept(Dart2JSVerifier(errorReporter));
-    }
 
     unit.accept(
       BestPracticesVerifier(

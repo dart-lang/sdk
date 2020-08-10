@@ -995,46 +995,6 @@ class HintCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
-   * Hint for the `x is double` type checks.
-   */
-  static const HintCode IS_DOUBLE = HintCode(
-      'IS_DOUBLE',
-      "When compiled to JS, this test might return true when the left hand "
-          "side is an int.",
-      correction: "Try testing for 'num' instead.");
-
-  /**
-   * Hint for the `x is int` type checks.
-   */
-  // TODO(brianwilkerson) This hint isn't being generated. Decide whether to
-  //  generate it or remove it.
-  static const HintCode IS_INT = HintCode(
-      'IS_INT',
-      "When compiled to JS, this test might return true when the left hand "
-          "side is a double.",
-      correction: "Try testing for 'num' instead.");
-
-  /**
-   * Hint for the `x is! double` type checks.
-   */
-  static const HintCode IS_NOT_DOUBLE = HintCode(
-      'IS_NOT_DOUBLE',
-      "When compiled to JS, this test might return false when the left hand "
-          "side is an int.",
-      correction: "Try testing for 'num' instead.");
-
-  /**
-   * Hint for the `x is! int` type checks.
-   */
-  // TODO(brianwilkerson) This hint isn't being generated. Decide whether to
-  //  generate it or remove it.
-  static const HintCode IS_NOT_INT = HintCode(
-      'IS_NOT_INT',
-      "When compiled to JS, this test might return false when the left hand "
-          "side is a double.",
-      correction: "Try testing for 'num' instead.");
-
-  /**
    * Generate a hint for an element that is annotated with `@JS(...)` whose
    * library declaration is not similarly annotated.
    */
