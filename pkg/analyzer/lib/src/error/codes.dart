@@ -1588,23 +1588,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       "In constant expressions, operands of this operator must be of type "
           "'Type'.");
   /**
-   * 7.6.1 Generative Constructors: In checked mode, it is a dynamic type error
-   * if o is not <b>null</b> and the interface of the class of <i>o</i> is not a
-   * subtype of the static type of the field <i>v</i>.
-   *
-   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
-   * object results in an uncaught exception being thrown.
-   *
    * Parameters:
    * 0: the name of the type of the initializer expression
    * 1: the name of the type of the field
    */
   static const CompileTimeErrorCode CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE =
-      CompileTimeErrorCode(
+      CompileTimeErrorCodeWithUniqueName(
+          'FIELD_INITIALIZER_NOT_ASSIGNABLE',
           'CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE',
           "The initializer type '{0}' can't be assigned to the field type "
               "'{1}' in a const constructor.",
-          correction: "Try using a subtype, or removing the 'const' keyword");
+          correction: "Try using a subtype, or removing the 'const' keyword",
+          hasPublishedDocs: true);
 
   /**
    * 6.2 Formal Parameters: It is a compile-time error if a formal parameter is
