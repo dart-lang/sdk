@@ -10,7 +10,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/core_types.dart';
 import 'package:vm/transformations/specializer/factory_specializer.dart';
 
-/// Replaces invocation of Map factory constructors with
+/// Replaces invocation of Set factory constructors with
 /// factories of VM-specific classes.
 /// new LinkedHashSet<E>() => new _CompactLinkedHashSet<E>()
 class SetFactorySpecializer extends BaseSpecializer {
@@ -40,15 +40,6 @@ class SetFactorySpecializer extends BaseSpecializer {
   static T assertNotNull<T>(T t) {
     assert(t != null);
     return t;
-  }
-
-  TreeNode transformDefaultSetFactory(StaticInvocation node) {
-    final args = node.arguments;
-    assert(args.positional.isEmpty);
-    return ConstructorInvocation(
-      _compactLinkedHashSetConstructor,
-      Arguments([], types: args.types),
-    )..fileOffset = node.fileOffset;
   }
 
   TreeNode transformLinkedHashSet(StaticInvocation node) {

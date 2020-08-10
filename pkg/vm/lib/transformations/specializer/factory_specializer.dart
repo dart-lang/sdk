@@ -25,21 +25,13 @@ class FactorySpecializer extends BaseSpecializer {
   FactorySpecializer(CoreTypes coreTypes)
       : _listFactorySpecializer = ListFactorySpecializer(coreTypes),
         _setFactorySpecializer = SetFactorySpecializer(coreTypes),
-        _mapFactorySpecializer = MapFactorySpecializer(coreTypes);
-
-  @override
-  Map<Member, SpecializerTransformer> get transformersMap {
-    final transformers = <Member, SpecializerTransformer>{};
+        _mapFactorySpecializer = MapFactorySpecializer(coreTypes) {
     transformers.addAll(_listFactorySpecializer.transformersMap);
     transformers.addAll(_setFactorySpecializer.transformersMap);
     transformers.addAll(_mapFactorySpecializer.transformersMap);
-    return transformers;
   }
 
   TreeNode transformStaticInvocation(StaticInvocation invocation) {
-    if (invocation == null) {
-      return invocation;
-    }
     final target = invocation.target;
     if (target == null) {
       return invocation;
