@@ -852,7 +852,9 @@ class FileSystemState {
       // Create a new file.
       FileSource uriSource = FileSource(resource, uri);
       WorkspacePackage workspacePackage = _workspace?.findPackageFor(path);
-      FeatureSet featureSet = featureSetProvider.getFeatureSet(path, uri);
+      FeatureSet workspacePackageFeatureSet = workspacePackage?.featureSet;
+      FeatureSet featureSet = workspacePackageFeatureSet ??
+          featureSetProvider.getFeatureSet(path, uri);
       Version packageLanguageVersion =
           featureSetProvider.getLanguageVersion(path, uri);
       file = FileState._(this, path, uri, uriSource, workspacePackage,
@@ -896,7 +898,9 @@ class FileSystemState {
       File resource = _resourceProvider.getFile(path);
       FileSource source = FileSource(resource, uri);
       WorkspacePackage workspacePackage = _workspace?.findPackageFor(path);
-      FeatureSet featureSet = featureSetProvider.getFeatureSet(path, uri);
+      FeatureSet workspacePackageFeatureSet = workspacePackage?.featureSet;
+      FeatureSet featureSet = workspacePackageFeatureSet ??
+          featureSetProvider.getFeatureSet(path, uri);
       Version packageLanguageVersion =
           featureSetProvider.getLanguageVersion(path, uri);
       file = FileState._(this, path, uri, source, workspacePackage, featureSet,

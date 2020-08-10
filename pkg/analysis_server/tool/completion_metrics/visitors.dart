@@ -347,6 +347,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
+    safelyRecordKeywordCompletion(node.abstractKeyword);
     safelyRecordKeywordCompletion(node.covariantKeyword);
     safelyRecordKeywordCompletion(node.staticKeyword);
     return super.visitFieldDeclaration(node);

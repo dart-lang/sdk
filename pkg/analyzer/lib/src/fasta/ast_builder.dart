@@ -872,6 +872,7 @@ class AstBuilder extends StackListener {
     currentDeclarationMembers.add(ast.fieldDeclaration2(
         comment: comment,
         metadata: metadata,
+        abstractKeyword: abstractToken,
         covariantKeyword: covariantKeyword,
         staticKeyword: staticToken,
         fieldList: variableList,

@@ -10,11 +10,15 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConcreteClassWithAbstractMemberTest);
+    defineReflectiveTests(ConcreteClassWithAbstractMemberWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ConcreteClassWithAbstractMemberTest extends PubPackageResolutionTest {
+class ConcreteClassWithAbstractMemberTest extends PubPackageResolutionTest
+    with ConcreteClassWithAbstractMemberTestCases {}
+
+mixin ConcreteClassWithAbstractMemberTestCases on PubPackageResolutionTest {
   test_direct() async {
     await assertErrorsInCode('''
 class A {
@@ -33,6 +37,35 @@ class A implements I {
   m();
 }''', [
       error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 62, 4),
+    ]);
+  }
+}
+
+@reflectiveTest
+class ConcreteClassWithAbstractMemberWithNullSafetyTest
+    extends PubPackageResolutionTest
+    with WithNullSafetyMixin, ConcreteClassWithAbstractMemberTestCases {
+  test_abstract_field() async {
+    await assertErrorsInCode('''
+class A {
+  abstract int? x;
+}
+''', [
+      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 16,
+          text: "'x' must have a method body because 'A' isn't abstract."),
+      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 16,
+          text: "'x=' must have a method body because 'A' isn't abstract."),
+    ]);
+  }
+
+  test_abstract_field_final() async {
+    await assertErrorsInCode('''
+class A {
+  abstract final int? x;
+}
+''', [
+      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 22,
+          text: "'x' must have a method body because 'A' isn't abstract."),
     ]);
   }
 }

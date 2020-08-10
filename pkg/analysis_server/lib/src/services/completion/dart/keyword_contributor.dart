@@ -306,6 +306,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (variables.isEmpty || request.offset > variables.first.beginToken.end) {
       return;
     }
+    if (node.abstractKeyword == null) {
+      _addSuggestion(Keyword.ABSTRACT);
+    }
     if (node.covariantKeyword == null) {
       _addSuggestion(Keyword.COVARIANT);
     }

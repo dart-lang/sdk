@@ -562,7 +562,7 @@ COMPILER_PASS(SerializeGraph, {
     FlowGraphSerializer::SerializeToBuffer(stack_zone.GetZone(), flow_graph,
                                            &buffer);
 
-    file_write(buffer.buf(), buffer.length(), stream);
+    file_write(buffer.buffer(), buffer.length(), stream);
   }
 });
 #endif

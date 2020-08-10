@@ -16,7 +16,11 @@ class AddMissingEnumCaseClauses extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    if (node is! SwitchStatement) {
+      return;
+    }
     var statement = node as SwitchStatement;
+
     String enumName;
     var enumConstantNames = <String>[];
     var expressionType = statement.expression.staticType;

@@ -76,7 +76,6 @@ class ArgListContributorTest extends DartCompletionContributorTest {
       bool includeColon = true,
       bool includeComma = false}) {
     var expected = <CompletionSuggestion>[];
-    var paramIndex = 0;
     namedArgumentsWithTypes.forEach((String name, String type) {
       var completion = includeColon ? '$name: ' : name;
       // Selection should be before any trailing commas.
@@ -84,12 +83,8 @@ class ArgListContributorTest extends DartCompletionContributorTest {
       if (includeComma) {
         completion = '$completion,';
       }
-      var relevance = requiredParamIndices.contains(paramIndex++)
-          ? DART_RELEVANCE_NAMED_PARAMETER_REQUIRED
-          : DART_RELEVANCE_NAMED_PARAMETER;
       expected.add(assertSuggest(completion,
           csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-          relevance: relevance,
           paramName: name,
           paramType: type,
           selectionOffset: selectionOffset));
@@ -106,7 +101,6 @@ class ArgListContributorTest extends DartCompletionContributorTest {
           suggestion.endsWith(',') ? suggestion.length - 1 : suggestion.length;
       expected.add(assertSuggest('$suggestion',
           csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-          relevance: DART_RELEVANCE_NAMED_PARAMETER,
           selectionOffset: selectionOffset));
     }
     assertNoOtherSuggestions(expected);
@@ -253,7 +247,6 @@ void main() {
 
     assertSuggest(
       '(a, b) => ,',
-      relevance: DART_RELEVANCE_HIGH,
       selectionOffset: 10,
     );
 
@@ -349,7 +342,6 @@ void main() {
 
     assertSuggest(
       '(a, {b, c}) => ,',
-      relevance: DART_RELEVANCE_HIGH,
       selectionOffset: 15,
     );
   }
@@ -382,7 +374,6 @@ void main() {
 
     assertSuggest(
       '(a, [b, c]) => ,',
-      relevance: DART_RELEVANCE_HIGH,
       selectionOffset: 15,
     );
   }
@@ -402,7 +393,6 @@ build() => new Row(
 
     assertSuggest('children: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
         selectionOffset: 11,
         defaultArgumentListTextRanges: null);
@@ -425,7 +415,6 @@ import 'package:flutter/material.dart';
 
     assertSuggest('backgroundColor: ,',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null, // No default values.
         selectionOffset: 17);
   }
@@ -446,7 +435,6 @@ build() => new Row(
 
     assertSuggest('children: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
         selectionOffset: 11,
         defaultArgumentListTextRanges: null);
@@ -468,7 +456,6 @@ build() => new Row(
 
     assertSuggest('children: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
         selectionOffset: 11,
         defaultArgumentListTextRanges: null);
@@ -496,7 +483,6 @@ class DynamicRow extends Widget {
 
     assertSuggest('children: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
         selectionOffset: 11,
         defaultArgumentListTextRanges: null);
@@ -523,7 +509,6 @@ class MapRow extends Widget {
 
     assertSuggest('children: ,',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         selectionOffset: 10,
         defaultArgListString: null);
   }
@@ -548,7 +533,6 @@ class CustomScrollView extends Widget {
 
     assertSuggest('slivers: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
         selectionOffset: 10,
         defaultArgumentListTextRanges: null);
@@ -575,7 +559,6 @@ foo({String children}) {}
 
     assertSuggest('children: ',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null);
   }
 

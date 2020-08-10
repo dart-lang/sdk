@@ -315,6 +315,8 @@ class DartFixKind {
   static const MAKE_FIELD_NOT_FINAL =
       FixKind('dart.fix.makeFieldNotFinal', 50, "Make field '{0}' not final");
   static const MAKE_FINAL = FixKind('dart.fix.makeFinal', 50, 'Make final');
+  static const MAKE_RETURN_TYPE_NULLABLE = FixKind(
+      'dart.fix.makeReturnTypeNullable', 50, 'Make the return type nullable');
   static const MOVE_TYPE_ARGUMENTS_TO_CLASS = FixKind(
       'dart.fix.moveTypeArgumentsToClass',
       50,
@@ -446,6 +448,8 @@ class DartFixKind {
       FixKind('dart.fix.replace.withIsEmpty', 50, "Replace with 'isEmpty'");
   static const REPLACE_WITH_IS_NOT_EMPTY = FixKind(
       'dart.fix.replace.withIsNotEmpty', 50, "Replace with 'isNotEmpty'");
+  static const REPLACE_WITH_NOT_NULL_AWARE =
+      FixKind('dart.fix.replace.withNotNullAware', 50, "Replace with '{0}'");
   static const REPLACE_WITH_NULL_AWARE = FixKind(
       'dart.fix.replace.withNullAware',
       50,

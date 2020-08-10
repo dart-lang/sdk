@@ -334,6 +334,9 @@ class FieldMember extends VariableMember implements FieldElement {
   }
 
   @override
+  bool get isAbstract => declaration.isAbstract;
+
+  @override
   bool get isCovariant => declaration.isCovariant;
 
   @override

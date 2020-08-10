@@ -416,6 +416,21 @@ part 'a.dart';
     _assertHasClass(text: 'A');
   }
 
+  Future<void> test_limitedResolution_inPart() async {
+    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+part 'test.dart';
+class A {}
+''');
+
+    await _compute(r'''
+part of 'a.dart';
+^
+''');
+
+    _assertHasClass(text: 'int');
+    _assertHasClass(text: 'A');
+  }
+
   Future<void> test_limitedResolution_unit_function_body() async {
     _configureToCheckNotResolved(
       identifiers: {'print'},

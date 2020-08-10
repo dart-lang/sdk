@@ -24,7 +24,9 @@ import 'package:analysis_server/src/services/correction/dart/remove_empty_constr
 import 'package:analysis_server/src/services/correction/dart/remove_empty_else.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_statement.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_method_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_operator.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
@@ -32,6 +34,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_colon_with_
 import 'package:analysis_server/src/services/correction/dart/replace_null_with_closure.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_conditional_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_empty.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/use_is_not_empty.dart';
@@ -82,8 +85,12 @@ class BulkFixProcessor {
     LintNames.prefer_single_quotes: ConvertToSingleQuotes.newInstance,
     LintNames.prefer_spread_collections: ConvertAddAllToSpread.newInstance,
     LintNames.slash_for_doc_comments: ConvertDocumentationIntoLine.newInstance,
+    LintNames.type_init_formals: RemoveTypeAnnotation.newInstance,
     LintNames.unnecessary_const: RemoveUnnecessaryConst.newInstance,
+    LintNames.unnecessary_lambdas: ReplaceWithTearOff.newInstance,
     LintNames.unnecessary_new: RemoveUnnecessaryNew.newInstance,
+    LintNames.unnecessary_overrides: RemoveMethodDeclaration.newInstance,
+    LintNames.unnecessary_this: RemoveThisExpression.newInstance,
   };
 
   /// A map from an error code to a generator used to create the correction

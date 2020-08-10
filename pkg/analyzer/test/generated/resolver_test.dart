@@ -15,7 +15,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 import 'resolver_test_case.dart';
 
 main() {
@@ -28,7 +28,7 @@ main() {
 }
 
 @reflectiveTest
-class ErrorResolverTest extends DriverResolutionTest {
+class ErrorResolverTest extends PubPackageResolutionTest {
   test_breakLabelOnSwitchMember() async {
     await assertErrorsInCode(r'''
 class A {
@@ -107,7 +107,7 @@ C toSpan(dynamic element) {
 }
 
 @reflectiveTest
-class PrefixedNamespaceTest extends DriverResolutionTest {
+class PrefixedNamespaceTest extends PubPackageResolutionTest {
   void test_lookup_missing() {
     ClassElement element = ElementFactory.classElement2('A');
     PrefixedNamespace namespace = PrefixedNamespace('p', _toMap([element]));
@@ -307,7 +307,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
 /// The class `StrictModeTest` contains tests to ensure that the correct errors
 /// and warnings are reported when the analysis engine is run in strict mode.
 @reflectiveTest
-class StrictModeTest extends DriverResolutionTest {
+class StrictModeTest extends PubPackageResolutionTest {
   test_assert_is() async {
     await assertErrorsInCode(r'''
 int f(num n) {
@@ -447,7 +447,7 @@ int f() {
 }
 
 @reflectiveTest
-class TypePropagationTest extends DriverResolutionTest {
+class TypePropagationTest extends PubPackageResolutionTest {
   test_assignment_null() async {
     String code = r'''
 main() {
@@ -496,7 +496,7 @@ main() {
   }
 
   test_invocation_target_prefixed() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 int max(int x, int y) => 0;
 ''');
     await resolveTestCode('''
@@ -558,7 +558,7 @@ void g() {
   }
 
   test_objectAccessInference_disabled_for_library_prefix() async {
-    newFile('/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 dynamic get hashCode => 42;
 ''');
     await assertNoErrorsInCode('''
@@ -579,7 +579,7 @@ main() {
   }
 
   test_objectMethodInference_disabled_for_library_prefix() async {
-    newFile('/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 dynamic toString = (int x) => x + 42;
 ''');
     await assertNoErrorsInCode('''

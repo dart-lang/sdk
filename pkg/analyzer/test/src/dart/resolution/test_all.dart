@@ -46,6 +46,7 @@ import 'method_declaration_test.dart' as method_declaration;
 import 'method_invocation_test.dart' as method_invocation;
 import 'mixin_test.dart' as mixin_resolution;
 import 'namespace_test.dart' as namespace;
+import 'non_nullable_bazel_workspace_test.dart' as non_nullable_bazel_workspace;
 import 'non_nullable_test.dart' as non_nullable;
 import 'optional_const_test.dart' as optional_const;
 import 'postfix_expression_test.dart' as postfix_expression;
@@ -102,6 +103,7 @@ main() {
     method_invocation.main();
     mixin_resolution.main();
     namespace.main();
+    non_nullable_bazel_workspace.main();
     non_nullable.main();
     optional_const.main();
     postfix_expression.main();

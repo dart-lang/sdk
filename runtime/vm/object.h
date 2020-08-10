@@ -71,7 +71,7 @@ REUSABLE_HANDLE_LIST(REUSABLE_FORWARD_DECLARATION)
 #undef REUSABLE_FORWARD_DECLARATION
 
 class Symbols;
-class ZoneTextBuffer;
+class BaseTextBuffer;
 
 #if defined(DEBUG)
 #define CHECK_HANDLE() CheckHandle();
@@ -2478,7 +2478,7 @@ class Function : public Object {
   const char* NameCString(NameVisibility name_visibility) const;
 
   void PrintName(const NameFormattingParams& params,
-                 ZoneTextBuffer* printer) const;
+                 BaseTextBuffer* printer) const;
   StringPtr QualifiedScrubbedName() const;
   StringPtr QualifiedUserVisibleName() const;
 
@@ -2552,7 +2552,7 @@ class Function : public Object {
   StringPtr UserVisibleSignature() const;
 
   void PrintSignature(NameVisibility name_visibility,
-                      ZoneTextBuffer* printer) const;
+                      BaseTextBuffer* printer) const;
 
   // Returns true if the signature of this function is instantiated, i.e. if it
   // does not involve generic parameter types or generic result type.
@@ -3792,7 +3792,7 @@ class Function : public Object {
   void PrintSignatureParameters(Thread* thread,
                                 Zone* zone,
                                 NameVisibility name_visibility,
-                                ZoneTextBuffer* printer) const;
+                                BaseTextBuffer* printer) const;
 
   // Returns true if the type of the formal parameter at the given position in
   // this function is contravariant with the type of the other formal parameter
@@ -7528,6 +7528,9 @@ class TypeArguments : public Instance {
   // architecture.
   static const intptr_t kHashBits = 30;
 
+  // Hash value for a type argument vector consisting solely of dynamic types.
+  static const intptr_t kAllDynamicHash = 1;
+
   intptr_t Length() const;
   AbstractTypePtr TypeAt(intptr_t index) const;
   AbstractTypePtr TypeAtNullSafe(intptr_t index) const;
@@ -7583,7 +7586,7 @@ class TypeArguments : public Instance {
       intptr_t from_index,
       intptr_t len,
       NameVisibility name_visibility,
-      ZoneTextBuffer* printer,
+      BaseTextBuffer* printer,
       NameDisambiguation name_disambiguation = NameDisambiguation::kNo) const;
 
   // Check if the subvector of length 'len' starting at 'from_index' of this
@@ -7742,6 +7745,7 @@ class TypeArguments : public Instance {
     return 0;
   }
   intptr_t Hash() const;
+  intptr_t HashForRange(intptr_t from_index, intptr_t len) const;
 
   static TypeArgumentsPtr New(intptr_t len, Heap::Space space = Heap::kOld);
 
@@ -7910,7 +7914,7 @@ class AbstractType : public Instance {
   // type arguments, if any.
   void PrintName(
       NameVisibility visibility,
-      ZoneTextBuffer* printer,
+      BaseTextBuffer* printer,
       NameDisambiguation name_disambiguation = NameDisambiguation::kNo) const;
 
   // Add the class name and URI of each occuring type to the uris
@@ -7996,6 +8000,11 @@ class AbstractType : public Instance {
   // Returns the type argument of this (possibly nested) 'FutureOr' type.
   // Returns unmodified type if this type is not a 'FutureOr' type.
   AbstractTypePtr UnwrapFutureOr() const;
+
+  // Returns true if catching this type will catch all exceptions.
+  // Exception objects are guaranteed to be non-nullable, so
+  // non-nullable Object is also a catch-all type.
+  bool IsCatchAllType() const { return IsDynamicType() || IsObjectType(); }
 
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractType& other,
@@ -11321,7 +11330,7 @@ inline void TypeParameter::SetHash(intptr_t value) const {
 }
 
 inline intptr_t TypeArguments::Hash() const {
-  if (IsNull()) return 0;
+  if (IsNull()) return kAllDynamicHash;
   intptr_t result = Smi::Value(raw_ptr()->hash_);
   if (result != 0) {
     return result;

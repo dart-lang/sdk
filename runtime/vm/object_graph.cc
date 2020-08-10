@@ -643,7 +643,7 @@ void HeapSnapshotWriter::Flush(bool last) {
   }
 
   Service::SendEventWithData(Service::heapsnapshot_stream.id(), "HeapSnapshot",
-                             kMetadataReservation, js.buffer()->buf(),
+                             kMetadataReservation, js.buffer()->buffer(),
                              js.buffer()->length(), buffer_, size_);
   buffer_ = nullptr;
   size_ = 0;

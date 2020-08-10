@@ -293,6 +293,9 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
     currentMember = node;
     var oldParent = enterParent(node);
     classTypeParametersAreInScope = !node.isStatic;
+    if (node.isAbstract && node.isExternal) {
+      problem(node, "Procedure cannot be both abstract and external.");
+    }
     node.function.accept(this);
     classTypeParametersAreInScope = false;
     visitList(node.annotations, this);

@@ -383,6 +383,11 @@ abstract class _AbstractCorrectionProducer {
     _context = context;
   }
 
+  /// Return the text that should be displayed to users when referring to the
+  /// given [type].
+  String displayStringForType(DartType type) => type.getDisplayString(
+      withNullability: libraryElement.isNonNullableByDefault);
+
   /// Return the function body of the most deeply nested method or function that
   /// encloses the [node], or `null` if the node is not in a method or function.
   FunctionBody getEnclosingFunctionBody() {

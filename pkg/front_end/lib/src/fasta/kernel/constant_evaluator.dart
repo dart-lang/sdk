@@ -2302,6 +2302,14 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       if (a.value.isNaN && b.value.isNaN) return falseConstant;
       if (a.value == 0.0 && b.value == 0.0) return trueConstant;
     }
+
+    if (a is DoubleConstant && b is IntConstant) {
+      return makeBoolConstant(a.value == b.value);
+    }
+
+    if (a is IntConstant && b is DoubleConstant) {
+      return makeBoolConstant(a.value == b.value);
+    }
     return null;
   }
 

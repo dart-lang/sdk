@@ -39,16 +39,16 @@ vars = {
 
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
   # cipd package used to run Dart scripts in the build and test infrastructure.
-  "sdk_tag": "version:2.10.0-0.0.dev",
+  "sdk_tag": "version:2.10.0-3.0.dev",
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "a9bd47e85862b4af9006c24ea0cb626850bc5de7",
+  "co19_rev": "74eec903ea06fa09dc8799b0552d55b581a82996",
   "co19_2_rev": "e48b3090826cf40b8037648f19d211e8eab1b4b6",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
-  "benchmarks_internal_rev": "1682e8c568cf1899a6da6b5993f0506949253b22",
+  "benchmarks_internal_rev": "991d4cb32af0e914763ebbdeced91395bed874d8",
   "checkout_benchmarks_internal": False,
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -75,9 +75,9 @@ vars = {
   "browser-compat-data_tag": "v1.0.22",
   "charcode_rev": "af1e2d59a9c383da94f99ea51dac4b93fb0626c4",
   "chrome_rev" : "19997",
-  "cli_util_tag" : "0.1.4",
+  "cli_util_tag" : "0.2.0",
   "collection_rev": "583693680fc067e34ca5b72503df25e8b80579f9",
-  "convert_rev": "49bde5b371eb5c2c8e721557cf762f17c75e49fc",
+  "convert_rev": "c1b01f832835d3d8a06b0b246a361c0eaab35d3c",
   "crypto_rev": "7422fb2f6584fe1839eb30bc4ca56e9f9760b801",
   "csslib_rev": "451448a9ac03f87a8d0377fc0b411d8c388a6cb4",
   "dart2js_info_tag" : "0.6.0",
@@ -113,7 +113,7 @@ vars = {
   "intl_tag": "0.16.1",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "d589e635d8ccb7cda6a804bd571f88abbabab146",
-  "linter_tag": "0.1.117",
+  "linter_tag": "0.1.118",
   "logging_rev": "9561ba016ae607747ae69b846c0e10958ca58ed4",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_rev": "acaddfe74217f62498b5cf0cf5429efa6a700be3",
@@ -676,12 +676,6 @@ hooks = [
     'name': 'win_toolchain',
     'pattern': '.',
     'action': ['python', 'sdk/build/vs_toolchain.py', 'update'],
-  },
-  {
-    # Download dill files for all supported ABI versions, if necessary.
-    'name': 'abiversions',
-    'pattern': '.',
-    'action': ['python', 'sdk/tools/download_abi_dills.py'],
   },
 ]
 

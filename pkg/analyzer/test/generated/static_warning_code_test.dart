@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class StaticWarningCodeTest extends DriverResolutionTest {
+class StaticWarningCodeTest extends PubPackageResolutionTest {
   // TODO(brianwilkerson) Figure out what to do with the rest of these tests.
   //  The names do not correspond to diagnostic codes, so it isn't clear what
   //  they're testing.

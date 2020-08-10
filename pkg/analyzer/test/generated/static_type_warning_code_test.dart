@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class StaticTypeWarningCodeTest extends DriverResolutionTest {
+class StaticTypeWarningCodeTest extends PubPackageResolutionTest {
   test_assert_message_suppresses_type_promotion() async {
     // If a variable is assigned to inside the expression for an assert
     // message, type promotion should be suppressed, just as it would be if the
@@ -597,7 +597,7 @@ main(A<NoSuchType> a) {
 }
 
 @reflectiveTest
-class StrongModeStaticTypeWarningCodeTest extends DriverResolutionTest {
+class StrongModeStaticTypeWarningCodeTest extends PubPackageResolutionTest {
   test_legalAsyncGeneratorReturnType_function_supertypeOfStream() async {
     await assertNoErrorsInCode('''
 import 'dart:async';

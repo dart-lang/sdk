@@ -198,12 +198,13 @@ class Library implements FieldContainer {
   final String uri;
   final List<StaticMethod> statics;
   final List<Class> classes;
+  final List<ClassTypeData> classTypeData;
 
   @override
   final List<Field> staticFieldsForReflection;
 
   Library(this.element, this.uri, this.statics, this.classes,
-      this.staticFieldsForReflection);
+      this.classTypeData, this.staticFieldsForReflection);
 
   @override
   String toString() {
@@ -239,11 +240,27 @@ class StaticField {
   }
 }
 
-// TODO(fishythefish, sra): Split type information into separate model object.
+class ClassTypeData {
+  /// The element should only be used during the transition to the new model.
+  /// Uses indicate missing information in the model.
+  final ClassEntity element;
+
+  final ClassChecks classChecks;
+  final Set<TypeVariableType> namedTypeVariables = {};
+
+  ClassTypeData(this.element, this.classChecks);
+
+  bool isTriviallyChecked(CommonElements commonElements) =>
+      classChecks.checks.every((TypeCheck check) =>
+          check.cls == commonElements.objectClass || check.cls == element);
+}
+
 class Class implements FieldContainer {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
   final ClassEntity element;
+
+  final ClassTypeData typeData;
 
   final js.Name name;
   final Holder holder;
@@ -252,8 +269,6 @@ class Class implements FieldContainer {
   final List<Method> methods;
   final List<Field> fields;
   final List<StubMethod> isChecks;
-  final ClassChecks classChecksNewRti;
-  final Set<TypeVariableType> namedTypeVariablesNewRti = {};
   final List<StubMethod> checkedSetters;
 
   /// Stub methods for this class that are call stubs for getters.
@@ -295,6 +310,7 @@ class Class implements FieldContainer {
 
   Class(
       this.element,
+      this.typeData,
       this.name,
       this.holder,
       this.methods,
@@ -304,7 +320,6 @@ class Class implements FieldContainer {
       this.noSuchMethodStubs,
       this.checkedSetters,
       this.isChecks,
-      this.classChecksNewRti,
       this.functionTypeIndex,
       {this.hasRtiField,
       this.onlyForRti,
@@ -322,10 +337,6 @@ class Class implements FieldContainer {
   }
 
   bool get isSimpleMixinApplication => false;
-
-  bool isTriviallyChecked(CommonElements commonElements) =>
-      classChecksNewRti.checks.every((TypeCheck check) =>
-          check.cls == commonElements.objectClass || check.cls == element);
 
   Class get superclass => _superclass;
 
@@ -351,6 +362,7 @@ class Class implements FieldContainer {
 class MixinApplication extends Class {
   MixinApplication(
       ClassEntity element,
+      ClassTypeData typeData,
       js.Name name,
       Holder holder,
       List<Field> instanceFields,
@@ -358,7 +370,6 @@ class MixinApplication extends Class {
       List<StubMethod> callStubs,
       List<StubMethod> checkedSetters,
       List<StubMethod> isChecks,
-      ClassChecks classChecksNewRti,
       js.Expression functionTypeIndex,
       {bool hasRtiField,
       bool onlyForRti,
@@ -366,6 +377,7 @@ class MixinApplication extends Class {
       bool isDirectlyInstantiated})
       : super(
             element,
+            typeData,
             name,
             holder,
             const <Method>[],
@@ -375,7 +387,6 @@ class MixinApplication extends Class {
             const <StubMethod>[],
             checkedSetters,
             isChecks,
-            classChecksNewRti,
             functionTypeIndex,
             hasRtiField: hasRtiField,
             onlyForRti: onlyForRti,

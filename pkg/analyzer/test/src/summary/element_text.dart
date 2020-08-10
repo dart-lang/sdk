@@ -965,6 +965,7 @@ class _ElementWriter {
 
       writeIf(e.isSynthetic, 'synthetic ');
       writeIf(e.isStatic, 'static ');
+      writeIf(e is FieldElementImpl && e.isAbstract, 'abstract ');
       writeIf(e is FieldElementImpl && e.isCovariant, 'covariant ');
     } else {
       writeDocumentation(e);

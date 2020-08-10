@@ -191,13 +191,13 @@ ISOLATE_UNIT_TEST_CASE(DeserializeSExpRoundTrip) {
 
   TextBuffer buf(100);
   sexp->SerializeTo(zone, &buf, "", 9999);
-  SExpression* round_trip = SExpression::FromCString(zone, buf.buf());
+  SExpression* round_trip = SExpression::FromCString(zone, buf.buffer());
   CheckDeserializedSExpParts(round_trip);
   EXPECT(sexp->Equals(round_trip));
 
   char* const old_serialization = buf.Steal();
   round_trip->SerializeTo(zone, &buf, "", 9999);
-  char* const new_serialization = buf.buf();
+  char* const new_serialization = buf.buffer();
   EXPECT_STREQ(old_serialization, new_serialization);
   free(old_serialization);
 }

@@ -10,11 +10,15 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedSetterTest);
+    defineReflectiveTests(UndefinedSetterWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class UndefinedSetterTest extends PubPackageResolutionTest {
+class UndefinedSetterTest extends PubPackageResolutionTest
+    with UndefinedSetterTestCases {}
+
+mixin UndefinedSetterTestCases on PubPackageResolutionTest {
   test_importWithPrefix_defined() async {
     newFile('$testPackageLibPath/lib.dart', content: r'''
 library lib;
@@ -133,5 +137,20 @@ f(C c) {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_SETTER, 46, 1),
     ]);
+  }
+}
+
+@reflectiveTest
+class UndefinedSetterWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin, UndefinedSetterTestCases {
+  test_set_abstract_field_valid() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+void f(A a, int x) {
+  a.x = x;
+}
+''');
   }
 }

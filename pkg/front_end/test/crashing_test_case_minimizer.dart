@@ -20,6 +20,9 @@ import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
+import 'package:front_end/src/api_prototype/experimental_flags.dart'
+    show ExperimentalFlag;
+
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 
@@ -545,6 +548,10 @@ Future<Component> getInitialComponent() async {
 
 CompilerContext setupCompilerContext() {
   CompilerOptions options = getOptions();
+
+  if (nnbd) {
+    options.experimentalFlags = {ExperimentalFlag.nonNullable: true};
+  }
 
   TargetFlags targetFlags = new TargetFlags(
       enableNullSafety: nnbd, trackWidgetCreation: widgetTransformation);

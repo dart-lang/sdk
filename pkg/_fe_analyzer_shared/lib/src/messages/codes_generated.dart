@@ -5421,6 +5421,27 @@ const MessageCode messageJsInteropAnonymousFactoryPositionalParameters =
         tip: r"""Try replacing them with named parameters instead.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropEnclosingClassJSAnnotation =
+    messageJsInteropEnclosingClassJSAnnotation;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropEnclosingClassJSAnnotation = const MessageCode(
+    "JsInteropEnclosingClassJSAnnotation",
+    message:
+        r"""Member has a JS interop annotation but the enclosing class does not.""",
+    tip: r"""Try adding the annotation to the enclosing class.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropEnclosingClassJSAnnotationContext =
+    messageJsInteropEnclosingClassJSAnnotationContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropEnclosingClassJSAnnotationContext =
+    const MessageCode("JsInteropEnclosingClassJSAnnotationContext",
+        severity: Severity.context,
+        message: r"""This is the enclosing class.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropIndexNotSupported =
     messageJsInteropIndexNotSupported;
 

@@ -67,6 +67,16 @@ class TestLogger implements Logger {
   }
 
   @override
+  void write(String message) {
+    stdoutBuffer.write(message);
+  }
+
+  @override
+  void writeCharCode(int charCode) {
+    stdoutBuffer.writeCharCode(charCode);
+  }
+
+  @override
   void trace(String message) {
     if (debug) {
       stdoutBuffer.writeln(message);

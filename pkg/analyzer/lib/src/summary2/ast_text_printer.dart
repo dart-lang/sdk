@@ -357,6 +357,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   void visitFieldDeclaration(FieldDeclaration node) {
     _classMember(node);
     _token(node.staticKeyword);
+    _token(node.abstractKeyword);
     _token(node.covariantKeyword);
     node.fields.accept(this);
     _token(node.semicolon);

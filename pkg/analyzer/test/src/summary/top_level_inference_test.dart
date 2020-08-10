@@ -12,7 +12,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/analysis/base.dart';
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 import 'element_text.dart';
 
 main() {
@@ -32,7 +32,7 @@ class ApplyCheckElementTextReplacements {
 }
 
 @reflectiveTest
-class TopLevelInferenceErrorsTest extends DriverResolutionTest {
+class TopLevelInferenceErrorsTest extends PubPackageResolutionTest {
   test_initializer_additive() async {
     await _assertErrorOnlyLeft(['+', '-']);
   }

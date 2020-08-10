@@ -762,6 +762,13 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         }
       }
 
+      if (member.name.name == '==') {
+        // In addition to what is returned from the function body,
+        // operator == performs implicit comparison with null
+        // and returns bool.
+        _returnValue.values.add(_boolType);
+      }
+
       _summary.result = _returnValue;
     }
 

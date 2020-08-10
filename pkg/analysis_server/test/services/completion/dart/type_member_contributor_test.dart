@@ -3053,10 +3053,8 @@ void main() {new C().^}''');
     expect(replacementLength, 0);
     assertSuggestGetter('f', 'X');
     assertSuggestGetter('_g', null);
-    assertSuggestField(r'$p', 'dynamic',
-        relevance: useNewRelevance ? null : DART_RELEVANCE_LOW);
-    assertSuggestMethod(r'$q', 'I', 'void',
-        relevance: useNewRelevance ? null : DART_RELEVANCE_LOW);
+    assertSuggestField(r'$p', 'dynamic');
+    assertSuggestMethod(r'$q', 'I', 'void');
     assertNotSuggested('b');
     assertNotSuggested('_c');
     assertNotSuggested('d');
@@ -3829,8 +3827,7 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('fs2');
     assertSuggestMethod('mi2', 'C2', null);
     assertNotSuggested('ms2');
-    assertSuggestMethod('m', 'C2', null,
-        relevance: useNewRelevance ? null : DART_RELEVANCE_HIGH);
+    assertSuggestMethod('m', 'C2', null);
     assertNotSuggested('fi3');
     assertNotSuggested('fs3');
     assertNotSuggested('mi3');

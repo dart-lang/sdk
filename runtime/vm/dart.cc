@@ -855,7 +855,7 @@ static void PrintLLVMConstantPool(Thread* T, Isolate* I) {
     }
     b.AddString("End of function pool.\n\n");
   }
-  THR_Print("%s", b.buf());
+  THR_Print("%s", b.buffer());
 }
 #endif
 

@@ -30,8 +30,13 @@ Map<String, dynamic> buildComparisonTreemap(Object oldJson, Object newJson,
   final newSizes = loadProgramInfoFromJson(newJson,
       collapseAnonymousClosures: collapseAnonymousClosures);
 
-  final diff = computeDiff(oldSizes, newSizes);
+  return compareProgramInfo(oldSizes, newSizes, format: format);
+}
 
+Map<String, dynamic> compareProgramInfo(
+    ProgramInfo oldSizes, ProgramInfo newSizes,
+    {TreemapFormat format = TreemapFormat.collapsed}) {
+  final diff = computeDiff(oldSizes, newSizes);
   return treemapFromInfo(diff, format: format);
 }
 

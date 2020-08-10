@@ -7,7 +7,7 @@ environment:
   sdk: '>=2.6.0 <3.0.0'
 dependencies:
   args: ^1.6.0
-  cli_util: ^0.1.4
+  cli_util: '>=0.1.4 <0.3.0'
   dart2native:
     path: ../dart2native
   dds:

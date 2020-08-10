@@ -4269,6 +4269,14 @@ class FieldElementImpl extends PropertyInducingElementImpl
   FieldElement get declaration => this;
 
   @override
+  bool get isAbstract {
+    if (linkedNode != null) {
+      return enclosingUnit.linkedContext.isAbstract(linkedNode);
+    }
+    return hasModifier(Modifier.ABSTRACT);
+  }
+
+  @override
   bool get isCovariant {
     if (linkedNode != null) {
       return linkedContext.isExplicitlyCovariant(linkedNode);
@@ -7020,6 +7028,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
       {Reference reference})
       : super(variable.name, variable.nameOffset, reference: reference) {
     this.variable = variable;
+    isAbstract = variable is FieldElementImpl && variable.isAbstract;
     isStatic = variable.isStatic;
     isSynthetic = true;
   }

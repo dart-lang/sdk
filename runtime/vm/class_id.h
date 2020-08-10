@@ -14,6 +14,9 @@
 
 namespace dart {
 
+// Size of the class-id part of the object header. See ObjectLayout.
+typedef uint16_t ClassIdTagType;
+
 #define CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                           \
   V(Class)                                                                     \
   V(PatchClass)                                                                \

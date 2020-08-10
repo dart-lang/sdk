@@ -8,6 +8,7 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "platform/text_buffer.h"
 #include "platform/unaligned.h"
 #include "platform/unicode.h"
 #include "vm/bit_vector.h"
@@ -183,7 +184,7 @@ ClassPtr Object::weak_serialization_reference_class_ =
 
 const double MegamorphicCache::kLoadFactor = 0.50;
 
-static void AppendSubString(ZoneTextBuffer* buffer,
+static void AppendSubString(BaseTextBuffer* buffer,
                             const char* name,
                             intptr_t start_pos,
                             intptr_t len) {
@@ -1051,6 +1052,7 @@ void Object::Init(Isolate* isolate) {
                                     Smi::New(0));
     empty_type_arguments_->StoreSmi(&empty_type_arguments_->raw_ptr()->hash_,
                                     Smi::New(0));
+    empty_type_arguments_->ComputeHash();
     empty_type_arguments_->SetCanonical();
   }
 
@@ -4990,9 +4992,9 @@ void Class::set_declaration_type(const Type& value) const {
   ASSERT(!value.IsNull() && value.IsCanonical() && value.IsOld());
   ASSERT((declaration_type() == Object::null()) ||
          (declaration_type() == value.raw()));  // Set during own finalization.
-  // Since declaration type is used as the runtime type of instances of a
-  // non-generic class, the nullability is set to kNonNullable instead of
-  // kLegacy when the non-nullable experiment is enabled.
+  // Since DeclarationType is used as the runtime type of instances of a
+  // non-generic class, its nullability must be kNonNullable.
+  // The exception is DeclarationType of Null which is kNullable.
   ASSERT(value.type_class_id() != kNullCid || value.IsNullable());
   ASSERT(value.type_class_id() == kNullCid || value.IsNonNullable());
   StorePointer(&raw_ptr()->declaration_type_, value.raw());
@@ -5862,14 +5864,13 @@ void TypeArguments::set_nullability(intptr_t value) const {
   StoreSmi(&raw_ptr()->nullability_, Smi::New(value));
 }
 
-intptr_t TypeArguments::ComputeHash() const {
-  if (IsNull()) return 0;
-  const intptr_t num_types = Length();
-  if (IsRaw(0, num_types)) return 0;
+intptr_t TypeArguments::HashForRange(intptr_t from_index, intptr_t len) const {
+  if (IsNull()) return kAllDynamicHash;
+  if (IsRaw(from_index, len)) return kAllDynamicHash;
   uint32_t result = 0;
   AbstractType& type = AbstractType::Handle();
-  for (intptr_t i = 0; i < num_types; i++) {
-    type = TypeAt(i);
+  for (intptr_t i = 0; i < len; i++) {
+    type = TypeAt(from_index + i);
     // The hash may be calculated during type finalization (for debugging
     // purposes only) while a type argument is still temporarily null.
     if (type.IsNull() || type.IsNullTypeRef()) {
@@ -5878,7 +5879,16 @@ intptr_t TypeArguments::ComputeHash() const {
     result = CombineHashes(result, type.Hash());
   }
   result = FinalizeHash(result, kHashBits);
-  SetHash(result);
+  return result;
+}
+
+intptr_t TypeArguments::ComputeHash() const {
+  if (IsNull()) return kAllDynamicHash;
+  const intptr_t num_types = Length();
+  const uint32_t result = HashForRange(0, num_types);
+  if (result != 0) {
+    SetHash(result);
+  }
   return result;
 }
 
@@ -5941,7 +5951,7 @@ void TypeArguments::PrintSubvectorName(
     intptr_t from_index,
     intptr_t len,
     NameVisibility name_visibility,
-    ZoneTextBuffer* printer,
+    BaseTextBuffer* printer,
     NameDisambiguation name_disambiguation /* = NameDisambiguation::kNo */)
     const {
   printer->AddString("<");
@@ -8900,7 +8910,7 @@ StringPtr Function::UserVisibleSignature() const {
 void Function::PrintSignatureParameters(Thread* thread,
                                         Zone* zone,
                                         NameVisibility name_visibility,
-                                        ZoneTextBuffer* printer) const {
+                                        BaseTextBuffer* printer) const {
   AbstractType& param_type = AbstractType::Handle(zone);
   const intptr_t num_params = NumParameters();
   const intptr_t num_fixed_params = num_fixed_parameters();
@@ -8941,7 +8951,7 @@ void Function::PrintSignatureParameters(Thread* thread,
       if (num_opt_named_params > 0) {
         name = ParameterNameAt(i);
         printer->AddString(" ");
-        printer->AddString(name);
+        printer->AddString(name.ToCString());
       }
       if (i != (num_params - 1)) {
         printer->AddString(", ");
@@ -8993,7 +9003,7 @@ intptr_t Function::ComputeClosureHash() const {
 }
 
 void Function::PrintSignature(NameVisibility name_visibility,
-                              ZoneTextBuffer* printer) const {
+                              BaseTextBuffer* printer) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -9279,7 +9289,7 @@ StringPtr Function::QualifiedUserVisibleName() const {
 }
 
 void Function::PrintName(const NameFormattingParams& params,
-                         ZoneTextBuffer* printer) const {
+                         BaseTextBuffer* printer) const {
   // If |this| is the generated asynchronous body closure, use the
   // name of the parent function.
   Function& fun = Function::Handle(raw());
@@ -14682,7 +14692,7 @@ ExceptionHandlersPtr ExceptionHandlers::New(const Array& handled_types_data) {
 }
 
 const char* ExceptionHandlers::ToCString() const {
-#define FORMAT1 "%" Pd " => %#x  (%" Pd " types) (outer %d) %s\n"
+#define FORMAT1 "%" Pd " => %#x  (%" Pd " types) (outer %d)%s%s\n"
 #define FORMAT2 "  %d. %s\n"
   if (num_entries() == 0) {
     return "empty ExceptionHandlers\n";
@@ -14697,9 +14707,11 @@ const char* ExceptionHandlers::ToCString() const {
     handled_types = GetHandledTypes(i);
     const intptr_t num_types =
         handled_types.IsNull() ? 0 : handled_types.Length();
-    len += Utils::SNPrint(NULL, 0, FORMAT1, i, info.handler_pc_offset,
-                          num_types, info.outer_try_index,
-                          info.is_generated != 0 ? "(generated)" : "");
+    len += Utils::SNPrint(
+        NULL, 0, FORMAT1, i, info.handler_pc_offset, num_types,
+        info.outer_try_index,
+        ((info.needs_stacktrace != 0) ? " (needs stack trace)" : ""),
+        ((info.is_generated != 0) ? " (generated)" : ""));
     for (int k = 0; k < num_types; k++) {
       type ^= handled_types.At(k);
       ASSERT(!type.IsNull());
@@ -14715,10 +14727,11 @@ const char* ExceptionHandlers::ToCString() const {
     handled_types = GetHandledTypes(i);
     const intptr_t num_types =
         handled_types.IsNull() ? 0 : handled_types.Length();
-    num_chars +=
-        Utils::SNPrint((buffer + num_chars), (len - num_chars), FORMAT1, i,
-                       info.handler_pc_offset, num_types, info.outer_try_index,
-                       info.is_generated != 0 ? "(generated)" : "");
+    num_chars += Utils::SNPrint(
+        (buffer + num_chars), (len - num_chars), FORMAT1, i,
+        info.handler_pc_offset, num_types, info.outer_try_index,
+        ((info.needs_stacktrace != 0) ? " (needs stack trace)" : ""),
+        ((info.is_generated != 0) ? " (generated)" : ""));
     for (int k = 0; k < num_types; k++) {
       type ^= handled_types.At(k);
       num_chars += Utils::SNPrint((buffer + num_chars), (len - num_chars),
@@ -19217,14 +19230,14 @@ StringPtr AbstractType::UserVisibleName() const {
 
 void AbstractType::PrintName(
     NameVisibility name_visibility,
-    ZoneTextBuffer* printer,
+    BaseTextBuffer* printer,
     NameDisambiguation name_disambiguation /* = NameDisambiguation::kNo */)
     const {
   ASSERT(name_visibility != kScrubbedName);
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Class& cls = Class::Handle(zone);
-  String& class_name = String::Handle(zone);
+  String& name_str = String::Handle(zone);
   if (IsTypeParameter()) {
     const TypeParameter& param = TypeParameter::Cast(*this);
 
@@ -19246,7 +19259,8 @@ void AbstractType::PrintName(
       }
     }
 
-    printer->AddString(String::Handle(zone, param.name()));
+    name_str = param.name();
+    printer->AddString(name_str.ToCString());
     printer->AddString(NullabilitySuffix(name_visibility));
     return;
   }
@@ -19272,10 +19286,10 @@ void AbstractType::PrintName(
     }
     // Instead of printing the actual signature, use the typedef name with
     // its type arguments, if any.
-    class_name = cls.Name();  // Typedef name.
+    name_str = cls.Name();  // Typedef name.
     if (!IsFinalized() || IsBeingFinalized()) {
       // TODO(regis): Check if this is dead code.
-      printer->AddString(class_name);
+      printer->AddString(name_str.ToCString());
       printer->AddString(NullabilitySuffix(name_visibility));
       return;
     }
@@ -19284,8 +19298,8 @@ void AbstractType::PrintName(
   // Do not print the full vector, but only the declared type parameters.
   num_type_params = cls.NumTypeParameters();
   if (name_visibility == kInternalName) {
-    class_name = cls.Name();
-    printer->AddString(class_name);
+    name_str = cls.Name();
+    printer->AddString(name_str.ToCString());
   } else {
     ASSERT(name_visibility == kUserVisibleName);
     // Map internal types to their corresponding public interfaces.
@@ -20298,7 +20312,7 @@ void Type::EnumerateURIs(URIs* uris) const {
 
 intptr_t Type::ComputeHash() const {
   ASSERT(IsFinalized());
-  uint32_t result = 1;
+  uint32_t result = 0;
   result = CombineHashes(result, type_class_id());
   // A legacy type should have the same hash as its non-nullable version to be
   // consistent with the definition of type equality in Dart code.
@@ -20307,7 +20321,20 @@ intptr_t Type::ComputeHash() const {
     type_nullability = Nullability::kNonNullable;
   }
   result = CombineHashes(result, static_cast<uint32_t>(type_nullability));
-  result = CombineHashes(result, TypeArguments::Handle(arguments()).Hash());
+  uint32_t type_args_hash = TypeArguments::kAllDynamicHash;
+  if (arguments() != TypeArguments::null()) {
+    // Only include hashes of type arguments corresponding to type parameters.
+    // This prevents obtaining different hashes depending on the location of
+    // TypeRefs in the super class type argument vector.
+    const TypeArguments& type_args = TypeArguments::Handle(arguments());
+    const Class& cls = Class::Handle(type_class());
+    const intptr_t num_type_params = cls.NumTypeParameters();
+    if (num_type_params > 0) {
+      const intptr_t from_index = cls.NumTypeArguments() - num_type_params;
+      type_args_hash = type_args.HashForRange(from_index, num_type_params);
+    }
+  }
+  result = CombineHashes(result, type_args_hash);
   if (IsFunctionType()) {
     AbstractType& type = AbstractType::Handle();
     const Function& sig_fun = Function::Handle(signature());
@@ -21018,18 +21045,21 @@ void TypeParameter::set_flags(uint8_t flags) const {
 const char* TypeParameter::ToCString() const {
   Thread* thread = Thread::Current();
   ZoneTextBuffer printer(thread->zone());
+  auto& name_str = String::Handle(thread->zone(), name());
   printer.Printf("TypeParameter: name ");
-  printer.AddString(String::Handle(name()));
+  printer.AddString(name_str.ToCString());
   printer.AddString(NullabilitySuffix(kInternalName));
   printer.Printf("; index: %" Pd ";", index());
   if (IsFunctionTypeParameter()) {
     const Function& function = Function::Handle(parameterized_function());
     printer.Printf(" function: ");
-    printer.AddString(String::Handle(function.name()));
+    name_str = function.name();
+    printer.AddString(name_str.ToCString());
   } else {
     const Class& cls = Class::Handle(parameterized_class());
     printer.Printf(" class: ");
-    printer.AddString(String::Handle(cls.Name()));
+    name_str = cls.Name();
+    printer.AddString(name_str.ToCString());
   }
   printer.Printf("; bound: ");
   const AbstractType& upper_bound = AbstractType::Handle(bound());
@@ -24317,7 +24347,7 @@ StackTracePtr StackTrace::New(const Array& code_array,
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 // Prints the best representation(s) for the call address.
-static void PrintNonSymbolicStackFrameBody(ZoneTextBuffer* buffer,
+static void PrintNonSymbolicStackFrameBody(BaseTextBuffer* buffer,
                                            uword call_addr,
                                            uword isolate_instructions,
                                            uword vm_instructions,
@@ -24353,12 +24383,12 @@ static void PrintNonSymbolicStackFrameBody(ZoneTextBuffer* buffer,
 }
 #endif
 
-static void PrintSymbolicStackFrameIndex(ZoneTextBuffer* buffer,
+static void PrintSymbolicStackFrameIndex(BaseTextBuffer* buffer,
                                          intptr_t frame_index) {
   buffer->Printf("#%-6" Pd "", frame_index);
 }
 
-static void PrintSymbolicStackFrameBody(ZoneTextBuffer* buffer,
+static void PrintSymbolicStackFrameBody(BaseTextBuffer* buffer,
                                         const char* function_name,
                                         const char* url,
                                         intptr_t line = -1,
@@ -24374,7 +24404,7 @@ static void PrintSymbolicStackFrameBody(ZoneTextBuffer* buffer,
 }
 
 static void PrintSymbolicStackFrame(Zone* zone,
-                                    ZoneTextBuffer* buffer,
+                                    BaseTextBuffer* buffer,
                                     const Function& function,
                                     TokenPosition token_pos,
                                     intptr_t frame_index) {

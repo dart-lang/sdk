@@ -2910,7 +2910,7 @@ class VariableResolverVisitor extends ScopedVisitor {
       return;
     }
     // Prepare VariableElement.
-    Element element = nameScope.lookupIdentifier(node);
+    Element element = nameScope.lookup2(node.name).getter;
     if (element is! VariableElement) {
       return;
     }

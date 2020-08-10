@@ -112,6 +112,8 @@ Future<api.CompilationResult> compile(List<String> argv,
   int codegenShard;
   int codegenShards;
   List<String> bazelPaths;
+  List<String> multiRoots;
+  String multiRootScheme = 'org-dartlang-app';
   Uri packageConfig = null;
   List<String> options = new List<String>();
   bool wantHelp = false;
@@ -194,6 +196,16 @@ Future<api.CompilationResult> compile(List<String> argv,
   void setBazelPaths(String argument) {
     String paths = extractParameter(argument);
     bazelPaths = <String>[]..addAll(paths.split(','));
+  }
+
+  void setMultiRoots(String argument) {
+    String paths = extractParameter(argument);
+    multiRoots ??= <String>[];
+    multiRoots.addAll(paths.split(','));
+  }
+
+  void setMultiRootScheme(String argument) {
+    multiRootScheme = extractParameter(argument);
   }
 
   String getDepsOutput(Iterable<Uri> sourceFiles) {
@@ -438,6 +450,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.noSourceMaps, passThrough),
     new OptionHandler(Option.resolutionInput, ignoreOption),
     new OptionHandler(Option.bazelPaths, setBazelPaths),
+    new OptionHandler(Option.multiRoots, setMultiRoots),
+    new OptionHandler(Option.multiRootScheme, setMultiRootScheme),
     new OptionHandler(Flags.resolveOnly, ignoreOption),
     new OptionHandler(Flags.disableNativeLiveTypeAnalysis, passThrough),
     new OptionHandler('--categories=.*', setCategories),
@@ -446,12 +460,15 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.disableProgramSplit, passThrough),
     new OptionHandler(Flags.disableTypeInference, passThrough),
     new OptionHandler(Flags.useTrivialAbstractValueDomain, passThrough),
+    new OptionHandler(Flags.experimentalWrapped, passThrough),
     new OptionHandler(Flags.experimentalPowersets, passThrough),
     new OptionHandler(Flags.disableRtiOptimization, passThrough),
     new OptionHandler(Flags.terse, passThrough),
     new OptionHandler('--deferred-map=.+', passThrough),
     new OptionHandler(Flags.newDeferredSplit, passThrough),
     new OptionHandler(Flags.reportInvalidInferredDeferredTypes, passThrough),
+    new OptionHandler(Flags.deferClassTypes, passThrough),
+    new OptionHandler(Flags.noDeferClassTypes, passThrough),
     new OptionHandler('${Flags.dumpInfo}|${Flags.dumpInfo}=.+', setDumpInfo),
     new OptionHandler('--disallow-unsafe-eval', ignoreOption),
     new OptionHandler(Option.showPackageWarnings, passThrough),
@@ -515,7 +532,14 @@ Future<api.CompilationResult> compile(List<String> argv,
   // TODO(johnniwinther): Measure time for reading files.
   SourceFileProvider inputProvider;
   if (bazelPaths != null) {
+    if (multiRoots != null) {
+      helpAndFail(
+          'The options --bazel-root and --multi-root cannot be supplied '
+          'together, please choose one or the other.');
+    }
     inputProvider = new BazelInputProvider(bazelPaths);
+  } else if (multiRoots != null) {
+    inputProvider = new MultiRootInputProvider(multiRootScheme, multiRoots);
   } else {
     inputProvider = new CompilerSourceFileProvider();
   }

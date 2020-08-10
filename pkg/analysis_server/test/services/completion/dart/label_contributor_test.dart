@@ -19,9 +19,8 @@ void main() {
 @reflectiveTest
 class LabelContributorTest extends DartCompletionContributorTest {
   CompletionSuggestion assertSuggestLabel(String name,
-      {int relevance = DART_RELEVANCE_DEFAULT,
-      CompletionSuggestionKind kind = CompletionSuggestionKind.IDENTIFIER}) {
-    var cs = assertSuggest(name, csKind: kind, relevance: relevance);
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.IDENTIFIER}) {
+    var cs = assertSuggest(name, csKind: kind);
     expect(cs.returnType, isNull);
     var element = cs.element;
     expect(element, isNotNull);

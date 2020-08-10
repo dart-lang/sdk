@@ -71,4 +71,31 @@ class A {
 }
 ''');
   }
+
+  test_set_abstract_field_final_invalid() async {
+    await assertErrorsInCode('''
+abstract class A {
+  abstract final int x;
+}
+void f(A a, int x) {
+  a.x = x;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 70, 1),
+    ]);
+  }
+
+  test_set_abstract_field_final_overridden_valid() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract final int x;
+}
+abstract class B extends A {
+  void set x(int value);
+}
+void f(B b, int x) {
+  b.x = x; // ok because setter provided in derived class
+}
+''');
+  }
 }

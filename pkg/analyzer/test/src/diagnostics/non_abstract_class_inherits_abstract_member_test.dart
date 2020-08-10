@@ -10,12 +10,18 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonAbstractClassInheritsAbstractMemberTest);
+    defineReflectiveTests(
+        NonAbstractClassInheritsAbstractMemberWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class NonAbstractClassInheritsAbstractMemberTest
-    extends PubPackageResolutionTest {
+    extends PubPackageResolutionTest
+    with NonAbstractClassInheritsAbstractMemberTestCases {}
+
+mixin NonAbstractClassInheritsAbstractMemberTestCases
+    on PubPackageResolutionTest {
   test_abstractsDontOverrideConcretes_getter() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -602,6 +608,94 @@ class C implements I {
       error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
           27,
+          1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class NonAbstractClassInheritsAbstractMemberWithNullSafetyTest
+    extends PubPackageResolutionTest
+    with WithNullSafetyMixin, NonAbstractClassInheritsAbstractMemberTestCases {
+  test_abstract_field_final_implement_getter() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract final int x;
+}
+class B implements A {
+  int get x => 0;
+}
+''');
+  }
+
+  test_abstract_field_final_implement_none() async {
+    await assertErrorsInCode('''
+abstract class A {
+  abstract final int x;
+}
+class B implements A {}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          51,
+          1),
+    ]);
+  }
+
+  test_abstract_field_implement_getter() async {
+    await assertErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+class B implements A {
+  int get x => 0;
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          45,
+          1),
+    ]);
+  }
+
+  test_abstract_field_implement_getter_and_setter() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+class B implements A {
+  int get x => 0;
+  void set x(int value) {}
+}
+''');
+  }
+
+  test_abstract_field_implement_none() async {
+    await assertErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+class B implements A {}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
+          45,
+          1),
+    ]);
+  }
+
+  test_abstract_field_implement_setter() async {
+    await assertErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+class B implements A {
+  void set x(int value) {}
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          45,
           1),
     ]);
   }

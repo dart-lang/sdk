@@ -1142,7 +1142,7 @@ void Service::HandleEvent(ServiceEvent* event) {
       event->stream_info()->consumer() != nullptr) {
     auto length = js.buffer()->length();
     event->stream_info()->consumer()(
-        reinterpret_cast<uint8_t*>(js.buffer()->buf()), length);
+        reinterpret_cast<uint8_t*>(js.buffer()->buffer()), length);
   }
 }
 
@@ -1623,8 +1623,9 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
   data[reservation + 0] = 0;
   data[reservation + 1] = 128;
   data[reservation + 2] = 255;
-  SendEventWithData(echo_stream.id(), "_Echo", reservation, js.buffer()->buf(),
-                    js.buffer()->length(), data, data_size);
+  SendEventWithData(echo_stream.id(), "_Echo", reservation,
+                    js.buffer()->buffer(), js.buffer()->length(), data,
+                    data_size);
 }
 
 static bool TriggerEchoEvent(Thread* thread, JSONStream* js) {

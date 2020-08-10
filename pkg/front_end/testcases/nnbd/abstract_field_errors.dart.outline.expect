@@ -193,22 +193,22 @@ abstract class A extends core::Object {
   abstract set initializedField1(core::int #t2) → void;
   abstract get initializedField2() → core::int;
   abstract set initializedField2(core::int #t3) → void;
-  external abstract get externalInstanceField() → core::int;
-  external abstract set externalInstanceField(core::int #t4) → void;
-  external abstract get externalFinalInstanceField() → core::int;
-  external abstract get externalCovariantInstanceField() → core::num;
-  external abstract set externalCovariantInstanceField(covariant core::num #t5) → void;
+  external get externalInstanceField() → core::int;
+  external set externalInstanceField(core::int #t4) → void;
+  external get externalFinalInstanceField() → core::int;
+  external get externalCovariantInstanceField() → core::num;
+  external set externalCovariantInstanceField(covariant core::num #t5) → void;
   external get externalLateInstanceField() → core::int;
   external set externalLateInstanceField(core::int #t6) → void;
 }
 abstract class B extends core::Object /*isMixinDeclaration*/  {
   static field core::int staticField;
   static final field core::int finalStaticField;
-  external abstract get externalInstanceField() → core::int;
-  external abstract set externalInstanceField(core::int #t7) → void;
-  external abstract get externalFinalInstanceField() → core::int;
-  external abstract get externalCovariantInstanceField() → core::num;
-  external abstract set externalCovariantInstanceField(covariant core::num #t8) → void;
+  external get externalInstanceField() → core::int;
+  external set externalInstanceField(core::int #t7) → void;
+  external get externalFinalInstanceField() → core::int;
+  external get externalCovariantInstanceField() → core::num;
+  external set externalCovariantInstanceField(covariant core::num #t8) → void;
 }
 extension Extension on self::A {
   get extensionInstanceField = get self::Extension|extensionInstanceField;

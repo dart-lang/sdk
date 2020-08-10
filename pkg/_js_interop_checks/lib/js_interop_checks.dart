@@ -9,6 +9,8 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         Message,
         LocatedMessage,
         messageJsInteropAnonymousFactoryPositionalParameters,
+        messageJsInteropEnclosingClassJSAnnotation,
+        messageJsInteropEnclosingClassJSAnnotationContext,
         messageJsInteropIndexNotSupported,
         messageJsInteropNamedParameters,
         messageJsInteropNonExternalConstructor;
@@ -21,7 +23,15 @@ class JsInteropChecks extends RecursiveVisitor<void> {
   JsInteropChecks(this._diagnosticsReporter);
 
   @override
+  void defaultMember(Member member) {
+    _checkMemberJSInteropAnnotation(member);
+    super.defaultMember(member);
+  }
+
+  @override
   void visitProcedure(Procedure procedure) {
+    _checkMemberJSInteropAnnotation(procedure);
+
     if (!procedure.isExternal || !isJSInteropMember(procedure)) return;
 
     if (!procedure.isStatic &&
@@ -55,6 +65,8 @@ class JsInteropChecks extends RecursiveVisitor<void> {
 
   @override
   void visitConstructor(Constructor constructor) {
+    _checkMemberJSInteropAnnotation(constructor);
+
     if (!isJSInteropMember(constructor)) return;
 
     if (!constructor.isExternal && !constructor.isSynthetic) {
@@ -77,6 +89,23 @@ class JsInteropChecks extends RecursiveVisitor<void> {
           firstNamedParam.fileOffset,
           firstNamedParam.name.length,
           firstNamedParam.location.file);
+    }
+  }
+
+  /// Reports an error if [m] has a JS interop annotation and is part of a class
+  /// that does not.
+  void _checkMemberJSInteropAnnotation(Member m) {
+    if (!hasJSInteropAnnotation(m)) return;
+    var enclosingClass = m.enclosingClass;
+    if (enclosingClass != null && !hasJSInteropAnnotation(enclosingClass)) {
+      _diagnosticsReporter.report(messageJsInteropEnclosingClassJSAnnotation,
+          m.fileOffset, m.name.name.length, m.location.file,
+          context: <LocatedMessage>[
+            messageJsInteropEnclosingClassJSAnnotationContext.withLocation(
+                enclosingClass.location.file,
+                enclosingClass.fileOffset,
+                enclosingClass.name.length)
+          ]);
     }
   }
 }

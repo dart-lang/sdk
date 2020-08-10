@@ -190,9 +190,11 @@ class ExceptionHandlerList : public ZoneAllocated {
     list_[try_index].needs_stacktrace = true;
   }
 
-  static bool ContainsDynamic(const Array& array) {
+  static bool ContainsCatchAllType(const Array& array) {
+    auto& type = AbstractType::Handle();
     for (intptr_t i = 0; i < array.Length(); i++) {
-      if (array.At(i) == Type::DynamicType()) {
+      type ^= array.At(i);
+      if (type.IsCatchAllType()) {
         return true;
       }
     }

@@ -3920,6 +3920,9 @@ class ExtensionOverrideImpl extends ExpressionImpl
 ///    fieldDeclaration ::=
 ///        'static'? [VariableDeclarationList] ';'
 class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
+  @override
+  Token abstractKeyword;
+
   /// The 'covariant' keyword, or `null` if the keyword was not used.
   @override
   Token covariantKeyword;
@@ -3943,6 +3946,7 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   FieldDeclarationImpl(
       CommentImpl comment,
       List<Annotation> metadata,
+      this.abstractKeyword,
       this.covariantKeyword,
       this.staticKeyword,
       VariableDeclarationListImpl fieldList,
@@ -3971,7 +3975,9 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    if (covariantKeyword != null) {
+    if (abstractKeyword != null) {
+      return abstractKeyword;
+    } else if (covariantKeyword != null) {
       return covariantKeyword;
     } else if (staticKeyword != null) {
       return staticKeyword;

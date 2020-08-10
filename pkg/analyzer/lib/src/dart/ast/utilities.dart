@@ -447,6 +447,7 @@ class AstCloner implements AstVisitor<AstNode> {
       astFactory.fieldDeclaration2(
           comment: cloneNode(node.documentationComment),
           metadata: cloneNodeList(node.metadata),
+          abstractKeyword: cloneToken(node.abstractKeyword),
           covariantKeyword: cloneToken(node.covariantKeyword),
           staticKeyword: cloneToken(node.staticKeyword),
           fieldList: cloneNode(node.fields),
@@ -1573,8 +1574,9 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitFieldDeclaration(FieldDeclaration node) {
     FieldDeclaration other = _other as FieldDeclaration;
-    return isEqualNodes(
-            node.documentationComment, other.documentationComment) &&
+    return isEqualTokens(node.abstractKeyword, other.abstractKeyword) &&
+        isEqualTokens(node.covariantKeyword, other.covariantKeyword) &&
+        isEqualNodes(node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.staticKeyword, other.staticKeyword) &&
         isEqualNodes(node.fields, other.fields) &&
@@ -4462,6 +4464,7 @@ class ResolutionCopier implements AstVisitor<bool> {
   bool visitFieldDeclaration(FieldDeclaration node) {
     FieldDeclaration toNode = _toNode as FieldDeclaration;
     return _and(
+        _isEqualTokens(node.abstractKeyword, toNode.abstractKeyword),
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
         _isEqualTokens(node.staticKeyword, toNode.staticKeyword),

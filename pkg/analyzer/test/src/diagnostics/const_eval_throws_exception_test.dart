@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -10,8 +9,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -22,7 +20,7 @@ main() {
 }
 
 @reflectiveTest
-class ConstEvalThrowsExceptionTest extends DriverResolutionTest {
+class ConstEvalThrowsExceptionTest extends PubPackageResolutionTest {
   test_assertInitializerThrows() async {
     await assertErrorsInCode(r'''
 class A {
@@ -36,7 +34,7 @@ var v = const A(3, 2);
 
   test_CastError_intToDouble_constructor_importAnalyzedAfter() async {
     // See dartbug.com/35993
-    newFile('/test/lib/other.dart', content: '''
+    newFile('$testPackageLibPath/other.dart', content: '''
 class Foo {
   final double value;
 
@@ -60,13 +58,13 @@ void main() {
 }
 ''');
     var otherFileResult =
-        await resolveFile(convertPath('/test/lib/other.dart'));
+        await resolveFile(convertPath('$testPackageLibPath/other.dart'));
     expect(otherFileResult.errors, isEmpty);
   }
 
   test_CastError_intToDouble_constructor_importAnalyzedBefore() async {
     // See dartbug.com/35993
-    newFile('/test/lib/other.dart', content: '''
+    newFile('$testPackageLibPath/other.dart', content: '''
 class Foo {
   final double value;
 
@@ -90,12 +88,12 @@ void main() {
 }
 ''');
     var otherFileResult =
-        await resolveFile(convertPath('/test/lib/other.dart'));
+        await resolveFile(convertPath('$testPackageLibPath/other.dart'));
     expect(otherFileResult.errors, isEmpty);
   }
 
   test_default_constructor_arg_empty_map_import() async {
-    newFile('/test/lib/other.dart', content: '''
+    newFile('$testPackageLibPath/other.dart', content: '''
 class C {
   final Map<String, int> m;
   const C({this.m = const <String, int>{}})
@@ -112,7 +110,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 37, 1),
     ]);
     var otherFileResult =
-        await resolveFile(convertPath('/test/lib/other.dart'));
+        await resolveFile(convertPath('$testPackageLibPath/other.dart'));
     assertErrorsInList(
       otherFileResult.errors,
       expectedErrorsByNullability(
@@ -193,7 +191,7 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);
   test_fromEnvironment_bool_badDefault_whenDefined() async {
     // The type of the defaultValue needs to be correct even when the default
     // value isn't used (because the variable is defined in the environment).
-    driver.declaredVariables = DeclaredVariables.fromMap({'x': 'true'});
+    declaredVariables = {'x': 'true'};
     await assertErrorsInCode('''
 var b = const bool.fromEnvironment('x', defaultValue: 1);
 ''', [
@@ -277,7 +275,7 @@ const c = [if (0 < 1) 3 else nil + 1];
   }
 
   test_invalid_constructorFieldInitializer_fromSeparateLibrary() async {
-    newFile('/test/lib/lib.dart', content: r'''
+    newFile('$testPackageLibPath/lib.dart', content: r'''
 class A<T> {
   final int f;
   const A() : f = T.foo;

@@ -769,6 +769,20 @@ class LinkedUnitContext {
       return false;
     } else if (node is MethodDeclaration) {
       return LazyMethodDeclaration.isAbstract(node);
+    } else if (node is VariableDeclaration) {
+      var parent = node.parent;
+      if (parent is VariableDeclarationList) {
+        var grandParent = parent.parent;
+        if (grandParent is FieldDeclaration) {
+          return grandParent.abstractKeyword != null;
+        } else {
+          throw UnimplementedError('${grandParent.runtimeType}');
+        }
+      } else {
+        throw UnimplementedError('${parent.runtimeType}');
+      }
+    } else if (node is EnumConstantDeclaration) {
+      return false;
     }
     throw UnimplementedError('${node.runtimeType}');
   }

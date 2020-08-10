@@ -33,7 +33,7 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 import 'test_analysis_context.dart';
 import 'test_support.dart';
 
@@ -638,7 +638,7 @@ class ResolverTestCase with ResourceProviderMixin {
 }
 
 /// Shared infrastructure for [StaticTypeAnalyzer2Test].
-class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
+class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
   /// Find the expression that starts at the offset of [search] and validate its
   /// that its static type matches the given [type].
   ///

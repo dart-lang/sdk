@@ -9,6 +9,8 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -76,23 +78,60 @@ class AnalysisOptionsFileConfig {
   }
 }
 
+class BazelWorkspaceResolutionTest extends ContextResolutionTest {
+  @override
+  List<String> get collectionIncludedPaths => [workspaceRootPath];
+
+  String get myPackageLibPath => '$myPackageRootPath/lib';
+
+  String get myPackageRootPath => '$workspaceRootPath/dart/my';
+
+  @override
+  String get testFilePath => '$myPackageLibPath/my.dart';
+
+  String get workspaceRootPath => '/workspace';
+
+  @override
+  void setUp() {
+    super.setUp();
+    newFile('$workspaceRootPath/WORKSPACE', content: '');
+  }
+}
+
 /// [AnalysisContextCollection] based implementation of [ResolutionTest].
 abstract class ContextResolutionTest
     with ResourceProviderMixin, ResolutionTest {
   static bool _lintRulesAreRegistered = false;
 
+  Map<String, String> _declaredVariables = {};
   AnalysisContextCollection _analysisContextCollection;
 
   List<MockSdkLibrary> get additionalMockSdkLibraries => [];
 
   List<String> get collectionIncludedPaths;
 
+  set declaredVariables(Map<String, String> map) {
+    if (_analysisContextCollection != null) {
+      throw StateError('Declared variables cannot be changed after analysis.');
+    }
+
+    _declaredVariables = map;
+  }
+
   AnalysisContext contextFor(String path) {
     if (_analysisContextCollection == null) {
       _createAnalysisContexts();
     }
 
+    path = convertPath(path);
     return _analysisContextCollection.contextFor(path);
+  }
+
+  /// TODO(scheglov) Replace this with a method that changes a file in
+  /// [AnalysisContextCollectionImpl].
+  AnalysisDriver driverFor(String path) {
+    var context = contextFor(path) as DriverBasedAnalysisContext;
+    return context.driver;
   }
 
   @override
@@ -127,8 +166,9 @@ abstract class ContextResolutionTest
   /// Create all analysis contexts in [collectionIncludedPaths].
   void _createAnalysisContexts() {
     _analysisContextCollection = AnalysisContextCollectionImpl(
-      includedPaths: collectionIncludedPaths.map(convertPath).toList(),
+      declaredVariables: _declaredVariables,
       enableIndex: true,
+      includedPaths: collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
       sdkPath: convertPath('/sdk'),
     );
@@ -184,12 +224,23 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     );
   }
 
-  void writeTestPackageConfigWithMeta() {
-    var path = '/packages/meta';
+  void writeTestPackageConfigWith(
+    Map<String, String> nameToRootPath, {
+    bool meta = false,
+  }) {
+    var metaPath = '/packages/meta';
     PackagesContent.addMetaPackageFiles(
-      getFolder(path),
+      getFolder(metaPath),
     );
-    writeTestPackageConfig({'meta': path});
+
+    writeTestPackageConfig({
+      if (meta) 'meta': metaPath,
+      ...nameToRootPath,
+    });
+  }
+
+  void writeTestPackageConfigWithMeta() {
+    writeTestPackageConfigWith({}, meta: true);
   }
 }
 

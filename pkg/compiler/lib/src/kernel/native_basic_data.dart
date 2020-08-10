@@ -156,10 +156,7 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
         elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
           String memberName = getJsInteropName(
               library, elementEnvironment.getMemberMetadata(member));
-          if (memberName != null) {
-            reporter.reportErrorMessage(
-                member, MessageKind.JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS);
-          } else if (member is FunctionEntity) {
+          if (memberName == null && member is FunctionEntity) {
             if (member.isExternal &&
                 !commonElements.isExternalAllowed(member)) {
               reporter.reportErrorMessage(
@@ -171,10 +168,7 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
             (ConstructorEntity constructor) {
           String memberName = getJsInteropName(
               library, elementEnvironment.getMemberMetadata(constructor));
-          if (memberName != null) {
-            reporter.reportErrorMessage(constructor,
-                MessageKind.JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS);
-          } else {
+          if (memberName == null) {
             if (constructor.isExternal &&
                 !commonElements.isExternalAllowed(constructor)) {
               reporter.reportErrorMessage(

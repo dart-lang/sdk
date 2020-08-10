@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bin/abi_version.h"
 #include "bin/dartdev_isolate.h"
 #include "bin/error_exit.h"
 #include "bin/options.h"
@@ -371,33 +370,6 @@ bool Options::ProcessVMDebuggingOptions(const char* arg,
 #undef HANDLE_DARTDEV_VM_DEBUG_OPTIONS
 
   return false;
-}
-
-int Options::target_abi_version_ = Options::kAbiVersionUnset;
-bool Options::ProcessAbiVersionOption(const char* arg,
-                                      CommandLineOptions* vm_options) {
-  const char* value = OptionProcessor::ProcessOption(arg, "--use_abi_version=");
-  if (value == NULL) {
-    return false;
-  }
-  int ver = 0;
-  for (int i = 0; value[i] != '\0'; ++i) {
-    if (value[i] >= '0' && value[i] <= '9') {
-      ver = (ver * 10) + value[i] - '0';
-    } else {
-      Syslog::PrintErr("--use_abi_version must be an int\n");
-      return false;
-    }
-  }
-  if (ver < AbiVersion::GetOldestSupported() ||
-      ver > AbiVersion::GetCurrent()) {
-    Syslog::PrintErr("--use_abi_version must be between %d and %d inclusive\n",
-                     AbiVersion::GetOldestSupported(),
-                     AbiVersion::GetCurrent());
-    return false;
-  }
-  target_abi_version_ = ver;
-  return true;
 }
 
 bool Options::ProcessEnableExperimentOption(const char* arg,

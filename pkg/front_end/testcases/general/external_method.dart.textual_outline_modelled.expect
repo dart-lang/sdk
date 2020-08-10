@@ -1,0 +1,6 @@
+class Class {
+  external void externalMethod();
+}
+
+external void externalMethod();
+void main() {}

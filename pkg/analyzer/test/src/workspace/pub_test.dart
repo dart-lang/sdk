@@ -21,7 +21,7 @@ class PubWorkspacePackageTest with ResourceProviderMixin {
   PubWorkspace workspace;
 
   setUp() {
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    newFile('/workspace/pubspec.yaml', content: 'name: project');
     workspace =
         PubWorkspace.find(resourceProvider, {}, convertPath('/workspace'));
     expect(workspace.isBazel, isFalse);
@@ -79,7 +79,7 @@ class PubWorkspacePackageTest with ResourceProviderMixin {
 @reflectiveTest
 class PubWorkspaceTest with ResourceProviderMixin {
   void test_find_directory() {
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    newFile('/workspace/pubspec.yaml', content: 'name: project');
     PubWorkspace workspace =
         PubWorkspace.find(resourceProvider, {}, convertPath('/workspace'));
     expect(workspace.isBazel, isFalse);
@@ -94,7 +94,7 @@ class PubWorkspaceTest with ResourceProviderMixin {
   }
 
   void test_find_file() {
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    newFile('/workspace/pubspec.yaml', content: 'name: project');
     PubWorkspace workspace = PubWorkspace.find(
         resourceProvider, {}, convertPath('/workspace/lib/lib1.dart'));
     expect(workspace.root, convertPath('/workspace'));

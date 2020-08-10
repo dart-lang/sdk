@@ -516,8 +516,12 @@ class AstTestFactory {
           argumentList: argumentList);
 
   static FieldDeclaration fieldDeclaration(bool isStatic, Keyword keyword,
-          TypeAnnotation type, List<VariableDeclaration> variables) =>
+          TypeAnnotation type, List<VariableDeclaration> variables,
+          {bool isAbstract = false}) =>
       astFactory.fieldDeclaration2(
+          abstractKeyword: isAbstract
+              ? TokenFactory.tokenFromKeyword(Keyword.ABSTRACT)
+              : null,
           staticKeyword:
               isStatic ? TokenFactory.tokenFromKeyword(Keyword.STATIC) : null,
           fieldList: variableDeclarationList(keyword, type, variables),

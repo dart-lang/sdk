@@ -525,7 +525,6 @@ method() {
       failedCompletion('expected $completion', suggestions);
     }
     expect(cs.kind, equals(CompletionSuggestionKind.OVERRIDE));
-    expect(cs.relevance, equals(DART_RELEVANCE_HIGH));
     if (selectionOffset != null && selectionLength != null) {
       expect(cs.selectionOffset, selectionOffset);
       expect(cs.selectionLength, selectionLength);

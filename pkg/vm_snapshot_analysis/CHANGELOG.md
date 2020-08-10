@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.3
+- Add `compareProgramInfo` that takes in two program info objects and outputs
+a `Map` object containing the diff data.
+
 ## 0.5.2
 - Add support for package paths that look like `package:foo.bar.baz/src/foobar.dart`
 - Move `commands` back to lib.

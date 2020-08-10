@@ -4090,6 +4090,14 @@ JsInteropAnonymousFactoryPositionalParameters:
   template: "Factory constructors for @anonymous JS interop classes should not contain any positional parameters."
   tip: "Try replacing them with named parameters instead."
 
+JsInteropEnclosingClassJSAnnotation:
+  template: "Member has a JS interop annotation but the enclosing class does not."
+  tip: "Try adding the annotation to the enclosing class."
+
+JsInteropEnclosingClassJSAnnotationContext:
+  template: "This is the enclosing class."
+  severity: CONTEXT
+
 JsInteropIndexNotSupported:
   template: "JS interop classes do not support [] and []= operator methods."
   tip: "Try replacing with a normal method."

@@ -15,9 +15,9 @@ namespace dart {
 TEST_CASE(JSON_TextBuffer) {
   TextBuffer w(5);  // Small enough to make buffer grow at least once.
   w.Printf("{ \"%s\" : %d", "length", 175);
-  EXPECT_STREQ("{ \"length\" : 175", w.buf());
+  EXPECT_STREQ("{ \"length\" : 175", w.buffer());
   w.Printf(", \"%s\" : \"%s\" }", "command", "stopIt");
-  EXPECT_STREQ("{ \"length\" : 175, \"command\" : \"stopIt\" }", w.buf());
+  EXPECT_STREQ("{ \"length\" : 175, \"command\" : \"stopIt\" }", w.buffer());
 }
 
 TEST_CASE(JSON_JSONStream_Primitives) {

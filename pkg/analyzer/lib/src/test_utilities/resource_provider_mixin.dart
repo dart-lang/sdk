@@ -55,11 +55,6 @@ mixin ResourceProviderMixin {
     return resourceProvider.newFile(convertedPath, content);
   }
 
-  File newFileWithBytes(String path, List<int> bytes) {
-    String convertedPath = convertPath(path);
-    return resourceProvider.newFileWithBytes(convertedPath, bytes);
-  }
-
   Folder newFolder(String path) {
     String convertedPath = convertPath(path);
     return resourceProvider.newFolder(convertedPath);

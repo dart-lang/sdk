@@ -245,7 +245,8 @@ CObject* SSLFilter::ProcessFilterRequest(const CObjectArray& request) {
     SecureSocketUtils::FetchErrorString(filter->ssl_, &error_string);
     CObjectArray* result = new CObjectArray(CObject::NewArray(2));
     result->SetAt(0, new CObjectInt32(CObject::NewInt32(error_code)));
-    result->SetAt(1, new CObjectString(CObject::NewString(error_string.buf())));
+    result->SetAt(1,
+                  new CObjectString(CObject::NewString(error_string.buffer())));
     return result;
   }
 }

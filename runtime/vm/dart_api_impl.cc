@@ -1081,15 +1081,15 @@ DART_EXPORT void Dart_UpdateFinalizableExternalSize(
     Dart_FinalizableHandle object,
     Dart_Handle strong_ref_to_object,
     intptr_t external_allocation_size) {
-  if (!Dart_IdentityEquals(strong_ref_to_object,
-                           HandleFromFinalizable(object))) {
+  if (!::Dart_IdentityEquals(strong_ref_to_object,
+                             HandleFromFinalizable(object))) {
     FATAL1(
         "%s expects arguments 'object' and 'strong_ref_to_object' to point to "
         "the same object.",
         CURRENT_FUNC);
   }
   auto wph_object = reinterpret_cast<Dart_WeakPersistentHandle>(object);
-  Dart_UpdateExternalSize(wph_object, external_allocation_size);
+  ::Dart_UpdateExternalSize(wph_object, external_allocation_size);
 }
 
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
@@ -1122,8 +1122,8 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
 DART_EXPORT void Dart_DeleteFinalizableHandle(
     Dart_FinalizableHandle object,
     Dart_Handle strong_ref_to_object) {
-  if (!Dart_IdentityEquals(strong_ref_to_object,
-                           HandleFromFinalizable(object))) {
+  if (!::Dart_IdentityEquals(strong_ref_to_object,
+                             HandleFromFinalizable(object))) {
     FATAL1(
         "%s expects arguments 'object' and 'strong_ref_to_object' to point to "
         "the same object.",
@@ -1132,7 +1132,7 @@ DART_EXPORT void Dart_DeleteFinalizableHandle(
 
   auto wph_object = reinterpret_cast<Dart_WeakPersistentHandle>(object);
 
-  return Dart_DeleteWeakPersistentHandle(wph_object);
+  ::Dart_DeleteWeakPersistentHandle(wph_object);
 }
 
 // --- Initialization and Globals ---

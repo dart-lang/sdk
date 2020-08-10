@@ -19,7 +19,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/elements_types_mixin.dart';
 import '../../../generated/test_analysis_context.dart';
-import '../resolution/driver_resolution.dart';
+import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -838,9 +838,9 @@ class CompilationUnitElementImplTest {
 }
 
 @reflectiveTest
-class ElementAnnotationImplTest extends DriverResolutionTest {
+class ElementAnnotationImplTest extends PubPackageResolutionTest {
   test_computeConstantValue() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   final String f;
   const A(this.f);
@@ -1039,7 +1039,7 @@ class ElementLocationImplTest {
 }
 
 @reflectiveTest
-class FieldElementImplTest extends DriverResolutionTest {
+class FieldElementImplTest extends PubPackageResolutionTest {
   test_isEnumConstant() async {
     await resolveTestCode(r'''
 enum B {B1, B2, B3}
@@ -2213,9 +2213,9 @@ class LibraryElementImplTest {
 }
 
 @reflectiveTest
-class TopLevelVariableElementImplTest extends DriverResolutionTest {
+class TopLevelVariableElementImplTest extends PubPackageResolutionTest {
   test_computeConstantValue() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const int C = 42;
 ''');
     await resolveTestCode(r'''

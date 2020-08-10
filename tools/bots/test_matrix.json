@@ -1339,24 +1339,6 @@
           ]
         },
         {
-          "name": "co19 nnbd tests in weak mode with asserts",
-          "arguments": [
-            "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
-            "co19"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 3
-        },
-        {
-          "name": "co19 nnbd tests in strong mode",
-          "arguments": [
-            "-ndartkp-strong-${system}-${mode}-${arch}",
-            "co19"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 3
-        },
-        {
           "name": "vm nnbd tests in weak mode with asserts",
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
@@ -1368,7 +1350,7 @@
             "vm"
           ],
           "fileset": "vm-kernel",
-          "shards": 3
+          "shards": 4
         },
         {
           "name": "vm nnbd tests in strong mode",
@@ -1382,7 +1364,25 @@
             "vm"
           ],
           "fileset": "vm-kernel",
-          "shards": 3
+          "shards": 4
+        },
+        {
+          "name": "co19 nnbd tests in strong mode",
+          "arguments": [
+            "-ndartkp-strong-${system}-${mode}-${arch}",
+            "co19"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 4
+        },
+        {
+          "name": "co19 nnbd tests in weak mode with asserts",
+          "arguments": [
+            "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
+            "co19"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 4
         }
       ]
     },
@@ -2694,14 +2694,6 @@
           "script": "tools/bots/dart_sdk.py",
           "arguments": [
             "api_docs"
-          ]
-        },
-        {
-          "name": "upload abi dills",
-          "script": "tools/upload_abi_dills.sh",
-          "arguments": [
-            "tools/VERSION",
-            "out/ReleaseX64"
           ]
         }
       ]

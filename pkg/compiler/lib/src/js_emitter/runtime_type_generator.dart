@@ -263,7 +263,7 @@ class _TypeContainedInOutputUnitVisitor
 
   @override
   bool visitInterfaceType(InterfaceType type, OutputUnit argument) {
-    if (_outputUnitData.outputUnitForClass(type.element) != argument) {
+    if (_outputUnitData.outputUnitForClassType(type.element) != argument) {
       return false;
     }
     return visitList(type.typeArguments, argument);

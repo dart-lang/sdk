@@ -219,7 +219,7 @@ class EmbedderSdk extends AbstractDartSdk {
     Version languageVersion,
   }) {
     this.resourceProvider = resourceProvider;
-    this._languageVersion =
+    _languageVersion =
         languageVersion ?? languageVersionFromSdkVersion(io.Platform.version);
     embedderYamls?.forEach(_processEmbedderYaml);
   }

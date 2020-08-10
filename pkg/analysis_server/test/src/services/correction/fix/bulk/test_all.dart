@@ -22,7 +22,9 @@ import 'remove_empty_constructor_body_test.dart'
 import 'remove_empty_else_test.dart' as remove_empty_else;
 import 'remove_empty_statement_test.dart' as remove_empty_statement;
 import 'remove_initializer_test.dart' as remove_initializer;
+import 'remove_method_declaration_test.dart' as remove_method_declaration;
 import 'remove_operator_test.dart' as remove_operator;
+import 'remove_this_expression_test.dart' as remove_this_expression;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
 import 'remove_unnecessary_new_test.dart' as remove_unnecessary_new;
@@ -31,6 +33,7 @@ import 'replace_null_with_closure_test.dart' as replace_null_with_closure;
 import 'replace_with_conditional_assignment_test.dart'
     as replace_with_conditional_assignment;
 import 'replace_with_is_empty_test.dart' as replace_with_is_empty;
+import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'replace_with_var_test.dart' as replace_with_var;
 import 'use_curly_braces_test.dart' as use_curly_braces;
 import 'use_is_not_empty_test.dart' as use_is_not_empty;
@@ -52,7 +55,9 @@ void main() {
     remove_empty_constructor_body.main();
     remove_empty_else.main();
     remove_empty_statement.main();
+    remove_method_declaration.main();
     remove_operator.main();
+    remove_this_expression.main();
     remove_type_annotation.main();
     remove_unnecessary_const.main();
     remove_unnecessary_new.main();
@@ -60,6 +65,7 @@ void main() {
     replace_colon_with_equals.main();
     replace_null_with_closure.main();
     replace_with_is_empty.main();
+    replace_with_tear_off.main();
     replace_with_var.main();
     use_curly_braces.main();
     use_is_not_empty.main();

@@ -28,6 +28,7 @@ void main() {
   testParseMultitest();
   testParseErrorFlags();
   testParseErrorExpectations();
+  testIsRuntimeTest();
   testName();
   testMultitest();
   testShardHash();
@@ -588,6 +589,53 @@ int i = "s";
 /\/ [web] Web 1.
 /\/ [web] Web 2.
 """);
+}
+
+void testIsRuntimeTest() {
+  // No static errors at all.
+  var file = parseTestFile("");
+  Expect.isTrue(file.isRuntimeTest);
+
+  // Only warnings.
+  file = parseTestFile("""
+  int i = "s";
+  /\/ ^^^
+  /\/ [analyzer] STATIC_WARNING.INVALID_OPTION
+  /\/ ^^^
+  /\/ [analyzer] STATIC_WARNING.INVALID_OPTION
+  """);
+  Expect.isTrue(file.isRuntimeTest);
+
+  // Errors.
+  file = parseTestFile("""
+  int i = "s";
+  /\/ ^^^
+  /\/ [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  """);
+  Expect.isFalse(file.isRuntimeTest);
+
+  file = parseTestFile("""
+  int i = "s";
+  /\/ ^^^
+  /\/ [cfe] Error message.
+  """);
+  Expect.isFalse(file.isRuntimeTest);
+
+  file = parseTestFile("""
+  int i = "s";
+  /\/ ^^^
+  /\/ [web] Error message.
+  """);
+  Expect.isFalse(file.isRuntimeTest);
+
+  // Mixed errors and warnings.
+  file = parseTestFile("""
+  int i = "s";
+  /\/ ^^^
+  /\/ [analyzer] STATIC_WARNING.INVALID_OPTION
+  /\/ [cfe] Error message.
+  """);
+  Expect.isFalse(file.isRuntimeTest);
 }
 
 void testName() {
