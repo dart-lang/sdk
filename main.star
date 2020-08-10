@@ -1271,6 +1271,14 @@ dart_infra_builder(
     schedule = "with 1h interval",
 )
 dart_infra_builder(
+    "roll-to-dev",
+    execution_timeout = 15 * time.minute,
+    notifies = "infra",
+    properties = {"from_ref": "refs/heads/lkgr"},
+    recipe = "roller/roll_to_dev",
+    schedule = "with 4h interval",
+)
+dart_infra_builder(
     "nightly",
     notifies = "infra",
     properties = {"builders": nightly_builders},
