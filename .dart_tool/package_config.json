@@ -172,7 +172,7 @@
       "name": "crypto",
       "rootUri": "../third_party/pkg/crypto",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.10"
     },
     {
       "name": "csslib",
