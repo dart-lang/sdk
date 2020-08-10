@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -120,6 +121,8 @@ abstract class ContextResolutionTest
     with ResourceProviderMixin, ResolutionTest {
   static bool _lintRulesAreRegistered = false;
 
+  final ByteStore _byteStore = MemoryByteStore();
+
   Map<String, String> _declaredVariables = {};
   AnalysisContextCollection _analysisContextCollection;
 
@@ -167,6 +170,12 @@ abstract class ContextResolutionTest
     return _analysisContextCollection.contextFor(path);
   }
 
+  void disposeAnalysisContextCollection() {
+    if (_analysisContextCollection != null) {
+      _analysisContextCollection = null;
+    }
+  }
+
   /// TODO(scheglov) Replace this with a method that changes a file in
   /// [AnalysisContextCollectionImpl].
   AnalysisDriver driverFor(String path) {
@@ -212,6 +221,7 @@ abstract class ContextResolutionTest
     }
 
     _analysisContextCollection = AnalysisContextCollectionImpl(
+      byteStore: _byteStore,
       declaredVariables: _declaredVariables,
       enableIndex: true,
       includedPaths: collectionIncludedPaths.map(convertPath).toList(),
