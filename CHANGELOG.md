@@ -9,8 +9,12 @@
 
 ### Dart VM
 
+*   **Breaking Change** [#42982][]: `dart_api_dl.cc` is renamed to
+    `dart_api_dl.c` and changed to a pure C file.
 *   Introduces `Dart_FinalizableHandle`s. They do auto-delete, and the weakly
     referred object cannot be accessed through them.
+
+[#42982]: https://github.com/dart-lang/sdk/issues/42982
 
 ### Tools
 

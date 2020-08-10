@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "include/dart_api.h"
+#include "include/dart_api_dl.h"
 #include "include/dart_native_api.h"
 #include "include/dart_version.h"
 #include "include/internal/dart_api_dl_impl.h"
@@ -501,7 +502,7 @@ DEFINE_NATIVE_ENTRY(DartNativeApiFunctionPointer, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, name_dart, arguments->NativeArgAt(0));
   const char* name = name_dart.ToCString();
 
-#define RETURN_FUNCTION_ADDRESS(function_name)                                 \
+#define RETURN_FUNCTION_ADDRESS(function_name, R, A)                           \
   if (strcmp(name, #function_name) == 0) {                                     \
     return Integer::New(reinterpret_cast<intptr_t>(function_name));            \
   }
@@ -522,7 +523,8 @@ DEFINE_NATIVE_ENTRY(DartApiDLMinorVersion, 0, 0) {
 }
 
 static const DartApiEntry dart_api_entries[] = {
-#define ENTRY(name) DartApiEntry{#name, reinterpret_cast<void (*)()>(name)},
+#define ENTRY(name, R, A)                                                      \
+  DartApiEntry{#name, reinterpret_cast<void (*)()>(name)},
     DART_API_ALL_DL_SYMBOLS(ENTRY)
 #undef ENTRY
         DartApiEntry{nullptr, nullptr}};
