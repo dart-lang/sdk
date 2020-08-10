@@ -335,13 +335,15 @@ void ObjectStore::InitKnownObjects() {
 }
 
 void ObjectStore::LazyInitCoreTypes() {
-  if (non_nullable_list_rare_type_ == Type::null()) {
+  if (list_class_ == Type::null()) {
+    ASSERT(non_nullable_list_rare_type_ == Type::null());
     ASSERT(non_nullable_map_rare_type_ == Type::null());
     Thread* thread = Thread::Current();
     Zone* zone = thread->zone();
     const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
     Class& cls = Class::Handle(zone, core_lib.LookupClass(Symbols::List()));
     ASSERT(!cls.IsNull());
+    set_list_class(cls);
     Type& type = Type::Handle(zone);
     type ^= cls.RareType();
     set_non_nullable_list_rare_type(type);

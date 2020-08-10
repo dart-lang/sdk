@@ -5528,6 +5528,7 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
 
   DECLARE_INSTRUCTION(LoadIndexed)
   virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0 || idx == 1);
