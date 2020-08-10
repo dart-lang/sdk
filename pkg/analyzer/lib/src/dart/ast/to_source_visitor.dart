@@ -496,6 +496,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitFieldDeclaration(FieldDeclaration node) {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     safelyVisitTokenWithSuffix(node.abstractKeyword, " ");
+    safelyVisitTokenWithSuffix(node.externalKeyword, " ");
     safelyVisitTokenWithSuffix(node.staticKeyword, " ");
     safelyVisitNode(node.fields);
     sink.write(";");

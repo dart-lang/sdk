@@ -4297,6 +4297,14 @@ class FieldElementImpl extends PropertyInducingElementImpl
       !isSynthetic;
 
   @override
+  bool get isExternal {
+    if (linkedNode != null) {
+      return enclosingUnit.linkedContext.isExternal(linkedNode);
+    }
+    return hasModifier(Modifier.EXTERNAL);
+  }
+
+  @override
   bool get isStatic {
     if (linkedNode != null) {
       return enclosingUnit.linkedContext.isStatic(linkedNode);

@@ -835,6 +835,20 @@ class LinkedUnitContext {
       return node.externalKeyword != null;
     } else if (node is MethodDeclaration) {
       return node.externalKeyword != null || node.body is NativeFunctionBody;
+    } else if (node is VariableDeclaration) {
+      var parent = node.parent;
+      if (parent is VariableDeclarationList) {
+        var grandParent = parent.parent;
+        if (grandParent is FieldDeclaration) {
+          return grandParent.externalKeyword != null;
+        } else {
+          throw UnimplementedError('${grandParent.runtimeType}');
+        }
+      } else {
+        throw UnimplementedError('${parent.runtimeType}');
+      }
+    } else if (node is EnumConstantDeclaration) {
+      return false;
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }

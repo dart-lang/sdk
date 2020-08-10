@@ -906,6 +906,14 @@ class ToSourceVisitor2Test {
             isAbstract: true));
   }
 
+  void test_visitFieldDeclaration_external() {
+    _assertSource(
+        "external var a;",
+        AstTestFactory.fieldDeclaration(
+            false, Keyword.VAR, null, [AstTestFactory.variableDeclaration("a")],
+            isExternal: true));
+  }
+
   void test_visitFieldDeclaration_instance() {
     _assertSource(
         "var a;",

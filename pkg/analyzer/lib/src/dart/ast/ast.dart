@@ -3927,6 +3927,9 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   @override
   Token covariantKeyword;
 
+  @override
+  Token externalKeyword;
+
   /// The token representing the 'static' keyword, or `null` if the fields are
   /// not static.
   @override
@@ -3948,6 +3951,7 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
       List<Annotation> metadata,
       this.abstractKeyword,
       this.covariantKeyword,
+      this.externalKeyword,
       this.staticKeyword,
       VariableDeclarationListImpl fieldList,
       this.semicolon)
@@ -3977,6 +3981,8 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   Token get firstTokenAfterCommentAndMetadata {
     if (abstractKeyword != null) {
       return abstractKeyword;
+    } else if (externalKeyword != null) {
+      return externalKeyword;
     } else if (covariantKeyword != null) {
       return covariantKeyword;
     } else if (staticKeyword != null) {

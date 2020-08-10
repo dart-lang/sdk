@@ -244,6 +244,16 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(variable.name, isNotNull);
   }
 
+  void test_parseField_external() {
+    createParser('external int i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.externalKeyword, isNotNull);
+  }
+
   void test_parseField_final_late() {
     createParser('final late T f;', featureSet: nonNullable);
     ClassMember member = parser.parseClassMember('C');
@@ -375,6 +385,16 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(member, isFieldDeclaration);
     FieldDeclaration field = member;
     expect(field.abstractKeyword, isNull);
+  }
+
+  void test_parseField_non_external() {
+    createParser('int i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.externalKeyword, isNull);
   }
 
   void test_parseField_var_late() {

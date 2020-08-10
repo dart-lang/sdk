@@ -312,6 +312,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (node.covariantKeyword == null) {
       _addSuggestion(Keyword.COVARIANT);
     }
+    if (node.externalKeyword == null) {
+      _addSuggestion(Keyword.EXTERNAL);
+    }
     if (node.fields.lateKeyword == null &&
         request.featureSet.isEnabled(Feature.non_nullable)) {
       _addSuggestion(Keyword.LATE);

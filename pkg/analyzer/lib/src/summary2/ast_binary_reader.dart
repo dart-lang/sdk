@@ -653,6 +653,8 @@ class AstBinaryReader {
           AstBinaryFlags.isAbstract(data.flags) ? _Tokens.ABSTRACT : null,
       covariantKeyword:
           AstBinaryFlags.isCovariant(data.flags) ? _Tokens.COVARIANT : null,
+      externalKeyword:
+          AstBinaryFlags.isExternal(data.flags) ? _Tokens.EXTERNAL : null,
       fieldList: _readNode(data.fieldDeclaration_fields),
       metadata: _readNodeListLazy(data.annotatedNode_metadata),
       semicolon: _Tokens.SEMICOLON,

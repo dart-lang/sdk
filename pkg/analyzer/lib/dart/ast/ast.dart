@@ -2138,6 +2138,8 @@ abstract class ExtensionOverride implements Expression {
 ///      | 'covariant' 'late'? <varOrType> <initializedIdentifierList>
 ///      | 'late'? 'final' <type>? <initializedIdentifierList>
 ///      | 'late'? <varOrType> <initializedIdentifierList>
+///      | 'external' ('static'? <finalVarOrType> | 'covariant' <varOrType>)
+///            <identifierList>
 ///      | 'abstract' (<finalVarOrType> | 'covariant' <varOrType>)
 ///            <identifierList>
 ///
@@ -2159,6 +2161,9 @@ abstract class FieldDeclaration implements ClassMember {
 
   /// Set the token for the 'covariant' keyword to the given [token].
   set covariantKeyword(Token token);
+
+  /// The `external` keyword, or `null` if the keyword was not used.
+  Token get externalKeyword;
 
   /// Return the fields being declared.
   VariableDeclarationList get fields;

@@ -866,7 +866,7 @@ class AstBuilder extends StackListener {
         }
       }
     }
-    if (externalToken != null) {
+    if (externalToken != null && !enableNonNullable) {
       handleRecoverableError(
           messageExternalField, externalToken, externalToken);
     }
@@ -887,6 +887,7 @@ class AstBuilder extends StackListener {
         metadata: metadata,
         abstractKeyword: abstractToken,
         covariantKeyword: covariantKeyword,
+        externalKeyword: externalToken,
         staticKeyword: staticToken,
         fieldList: variableList,
         semicolon: semicolon));
