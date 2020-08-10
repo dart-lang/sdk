@@ -235,9 +235,6 @@ abstract class AnalysisOptions {
   /// The set of features that are globally enabled for this context.
   FeatureSet get contextFeatures;
 
-  /// Return `true` if analysis is to generate dart2js related hint results.
-  bool get dart2jsHint;
-
   /// Return `true` if cache flushing should be disabled.  Setting this option to
   /// `true` can improve analysis speed at the expense of memory usage.  It may
   /// also be useful for working around bugs.
@@ -429,9 +426,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @deprecated
   int cacheSize = 64;
 
-  @override
-  bool dart2jsHint = false;
-
   ExperimentStatus _contextFeatures = ExperimentStatus();
 
   /// The set of features to use for libraries that are not in a package.
@@ -535,7 +529,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   AnalysisOptionsImpl.from(AnalysisOptions options) {
     // ignore: deprecated_member_use_from_same_package
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
-    dart2jsHint = options.dart2jsHint;
     contextFeatures = options.contextFeatures;
     enabledPluginNames = options.enabledPluginNames;
     // ignore: deprecated_member_use_from_same_package
@@ -832,7 +825,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   void resetToDefaults() {
     contextFeatures = ExperimentStatus();
-    dart2jsHint = false;
     disableCacheFlushing = false;
     enabledPluginNames = const <String>[];
     enableLazyAssignmentOperators = false;

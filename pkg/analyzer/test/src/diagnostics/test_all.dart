@@ -324,10 +324,6 @@ import 'invocation_of_extension_without_call_test.dart'
     as invocation_of_extension_without_call;
 import 'invocation_of_non_function_expression_test.dart'
     as invocation_of_non_function_expression;
-import 'is_double_test.dart' as is_double;
-import 'is_int_test.dart' as is_int;
-import 'is_not_double_test.dart' as is_not_double;
-import 'is_not_int_test.dart' as is_not_int;
 import 'label_in_outer_scope_test.dart' as label_in_outer_scope;
 import 'label_undefined_test.dart' as label_undefined;
 import 'late_final_field_with_const_constructor_test.dart'
@@ -844,10 +840,6 @@ main() {
     invalid_visibility_annotation.main();
     invocation_of_extension_without_call.main();
     invocation_of_non_function_expression.main();
-    is_double.main();
-    is_int.main();
-    is_not_double.main();
-    is_not_int.main();
     label_in_outer_scope.main();
     label_undefined.main();
     late_final_field_with_const_constructor.main();
