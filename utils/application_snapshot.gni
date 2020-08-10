@@ -48,6 +48,9 @@ declare_args() {
 template("_application_snapshot") {
   assert(defined(invoker.main_dart), "Must specify 'main_dart'")
   assert(defined(invoker.training_args), "Must specify 'training_args'")
+  if (defined(invoker.dart_snapshot_kind)) {
+    dart_snapshot_kind = invoker.dart_snapshot_kind
+  }
   snapshot_vm_args = []
   if (defined(invoker.vm_args)) {
     snapshot_vm_args = invoker.vm_args
