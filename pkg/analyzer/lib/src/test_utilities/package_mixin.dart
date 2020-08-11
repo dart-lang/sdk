@@ -3,41 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-
-/// A mixin for test classes that provides support for creating packages.
-mixin PackageMixin implements ResourceProviderMixin {
-  /// Return the map from package names to lists of folders that is used to
-  /// resolve 'package:' URIs.
-  Map<String, List<Folder>> get packageMap;
-
-  /// Create a fake 'js' package that can be used by tests.
-  void addJsPackage() {
-    var rootFolder = getFolder('/.pub-cache/js');
-    PackagesContent.addJsPackageFiles(rootFolder);
-    addPubPackage('js');
-  }
-
-  /// Create a fake 'meta' package that can be used by tests.
-  void addMetaPackage() {
-    var rootFolder = getFolder('/.pub-cache/meta');
-    PackagesContent.addMetaPackageFiles(rootFolder);
-    addPubPackage('meta');
-  }
-
-  /// Return a newly created directory in which the contents of a pub package
-  /// with the given [packageName] can be written. The package will be added to
-  /// the package map so that the package can be referenced from the code being
-  /// analyzed.
-  Folder addPubPackage(String packageName) {
-    // TODO(brianwilkerson) Consider renaming this to `addPackage` and passing
-    //  in a `PackageStyle` (pub, bazel, gn, build, plain) in order to support
-    //  creating other styles of packages.
-    Folder lib = getFolder('/.pub-cache/$packageName/lib');
-    packageMap[packageName] = [lib];
-    return lib;
-  }
-}
 
 /// Helper for creating mock packages.
 class PackagesContent {
