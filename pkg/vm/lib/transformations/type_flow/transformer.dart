@@ -705,6 +705,12 @@ class TreeShaker {
                   isSetter: m.isSetter);
           addUsedMember(m.forwardingStubInterfaceTarget);
         }
+        if (m.memberSignatureOrigin != null) {
+          m.memberSignatureOrigin = fieldMorpher.adjustInstanceCallTarget(
+              m.memberSignatureOrigin,
+              isSetter: m.isSetter);
+          addUsedMember(m.memberSignatureOrigin);
+        }
       } else if (m is Constructor) {
         func = m.function;
       } else {
