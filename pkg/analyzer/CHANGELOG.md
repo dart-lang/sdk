@@ -1,3 +1,6 @@
+## 0.39.17
+* Depend on cli_util 0.2.0.
+
 ## 0.39.16
 * Added `TypeVisitorWithArgument` and `DartType.acceptWithArgument`.
 * Bumped the analyzer's SDK requirement to `>=2.7.0`, so that extension methods
