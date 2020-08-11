@@ -14,8 +14,8 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
@@ -293,7 +293,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     bool meta = false,
   }) {
     var metaPath = '/packages/meta';
-    PackagesContent.addMetaPackageFiles(
+    MockPackages.addMetaPackageFiles(
       getFolder(metaPath),
     );
 

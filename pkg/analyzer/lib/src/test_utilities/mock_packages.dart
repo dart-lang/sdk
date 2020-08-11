@@ -5,7 +5,7 @@
 import 'package:analyzer/file_system/file_system.dart';
 
 /// Helper for creating mock packages.
-class PackagesContent {
+class MockPackages {
   /// Create a fake 'js' package that can be used by tests.
   static void addJsPackageFiles(Folder rootFolder) {
     var libFolder = rootFolder.getChildAssumingFolder('lib');

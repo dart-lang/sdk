@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../src/utilities/mock_packages.dart';
 import 'completion_relevance.dart';
 
 void main() {
@@ -20,13 +20,10 @@ class NamedArgumentRelevanceTest extends CompletionRelevanceTest {
   void setUp() {
     super.setUp();
 
-    var metaPath = '/.pub-cache/meta';
-    PackagesContent.addMetaPackageFiles(
-      getFolder(metaPath),
-    );
+    var metaLibFolder = MockPackages.instance.addMeta(resourceProvider);
 
     newFile('$projectPath/.packages', content: '''
-meta:${toUri('$metaPath/lib')}
+meta:${metaLibFolder.toUri()}
 project:${toUri('$projectPath/lib')}
 ''');
   }
