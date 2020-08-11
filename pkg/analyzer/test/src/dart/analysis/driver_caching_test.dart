@@ -55,8 +55,9 @@ void f() {
     _assertNoLinkedCycles();
   }
 
-  void _assertContainsLinkedCycle(Set<String> expected,
+  void _assertContainsLinkedCycle(Set<String> expectedPosix,
       {bool andClear = false}) {
+    var expected = expectedPosix.map(convertPath).toSet();
     expect(_linkedCycles, contains(unorderedEquals(expected)));
     if (andClear) {
       _linkedCycles.clear();
