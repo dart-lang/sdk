@@ -1343,6 +1343,13 @@ luci.console_view_entry(
     console_view = "flutter-hhh",
 )
 
+luci.console_view_entry(
+    builder = "flutter-engine-linux-web_tests",
+    short_name = "web",
+    category = "flutter",
+    console_view = "flutter-hhh",
+)
+
 # Rolls dart recipe dependencies.
 dart_infra_builder(
     name = "recipe-deps-roller",
