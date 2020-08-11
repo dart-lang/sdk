@@ -27,31 +27,23 @@ void main() async {
     'path',
     Directory.current.path,
     '-j',
-    '--scores'
   ]);
   expectOk(output);
   print(output.stdout);
 
   var panaJson = jsonDecode(output.stdout as String);
-  var health = panaJson['health'];
-  print(health);
   var scores = panaJson['scores'];
   print(scores);
 
   var failureReport = '';
-  var baselineHealth = baseline['health'] as double;
-  var currentHealth = scores['health'] as double;
-  var baselineMaintenance = baseline['maintenance'] as double;
-  var currentMaintenance = scores['maintenance'] as double;
-  if (currentHealth < baselineHealth) {
-    failureReport = 'health dropped from $baselineHealth to $currentHealth';
-  }
-  if (currentMaintenance < baselineMaintenance) {
+  var baselinePoints = baseline['grantedPoints'] as int;
+  var currentPoints = scores['grantedPoints'] as int;
+  if (currentPoints < baselinePoints) {
     if (failureReport.isNotEmpty) {
       failureReport += ', ';
     }
     failureReport +=
-        'maintenance dropped from $baselineMaintenance to $currentMaintenance';
+        'granted points dropped from $baselinePoints to $currentPoints';
   }
   if (failureReport.isNotEmpty) {
     print('Baseline check failed: $failureReport');
@@ -59,8 +51,7 @@ void main() async {
   }
   print('Baseline check passed ✅');
 
-  if (currentHealth != baselineHealth ||
-      currentMaintenance != baselineMaintenance) {
+  if (currentPoints != baselinePoints) {
     print(
         '... you have a new baseline! 🎉 Consider updating $baseLinePath to match.');
   }
