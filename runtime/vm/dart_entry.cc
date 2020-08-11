@@ -16,6 +16,7 @@
 #include "vm/simulator.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/zone_text_buffer.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/frontend/bytecode_reader.h"
@@ -430,6 +431,32 @@ ArrayPtr ArgumentsDescriptor::GetArgumentNames() const {
     names.SetAt(index, name);
   }
   return names.raw();
+}
+
+void ArgumentsDescriptor::PrintTo(BaseTextBuffer* buffer) const {
+  buffer->Printf("%" Pd " arg%s", Count(), Count() == 1 ? "" : "s");
+  if (TypeArgsLen() > 0) {
+    buffer->Printf(", %" Pd " type arg%s", TypeArgsLen(),
+                   TypeArgsLen() == 1 ? "" : "s");
+  }
+  if (NamedCount() > 0) {
+    buffer->AddString(", names [");
+    auto& str = String::Handle();
+    for (intptr_t i = 0; i < NamedCount(); i++) {
+      if (i != 0) {
+        buffer->AddString(", ");
+      }
+      str = NameAt(i);
+      buffer->Printf("'%s'", str.ToCString());
+    }
+    buffer->Printf("]");
+  }
+}
+
+const char* ArgumentsDescriptor::ToCString() const {
+  ZoneTextBuffer buf(Thread::Current()->zone());
+  PrintTo(&buf);
+  return buf.buffer();
 }
 
 ArrayPtr ArgumentsDescriptor::New(intptr_t type_args_len,

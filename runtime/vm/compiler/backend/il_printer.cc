@@ -52,7 +52,17 @@ void FlowGraphPrinter::PrintBlock(BlockEntryInstr* block,
 
 void FlowGraphPrinter::PrintBlocks() {
   if (!function_.IsNull()) {
-    THR_Print("==== %s\n", function_.ToFullyQualifiedCString());
+    THR_Print("==== %s (%s", function_.ToFullyQualifiedCString(),
+              Function::KindToCString(function_.kind()));
+    // Output saved arguments descriptor information for dispatchers that
+    // have it, so it's easy to see which dispatcher this graph represents.
+    if (function_.IsInvokeFieldDispatcher() ||
+        function_.IsNoSuchMethodDispatcher()) {
+      const auto& args_desc_array = Array::Handle(function_.saved_args_desc());
+      const ArgumentsDescriptor args_desc(args_desc_array);
+      THR_Print(", %s", args_desc.ToCString());
+    }
+    THR_Print(")\n");
   }
 
   for (intptr_t i = 0; i < block_order_.length(); ++i) {

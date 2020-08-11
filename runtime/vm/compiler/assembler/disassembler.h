@@ -191,6 +191,7 @@ class Disassembler : public AllStatic {
 
  private:
   static void DisassembleCodeHelper(const char* function_fullname,
+                                    const char* function_info,
                                     const Code& code,
                                     bool optimized);
 
