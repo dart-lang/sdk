@@ -371,17 +371,21 @@ class ExtensionMemberResolver {
   ) {
     var element = node.staticElement;
     var typeParameters = element.typeParameters;
-    if (typeParameters.isEmpty) {
-      return const <DartType>[];
-    }
-
     var typeArguments = node.typeArguments;
+
     if (typeArguments != null) {
       var arguments = typeArguments.arguments;
       if (arguments.length == typeParameters.length) {
+        if (typeParameters.isEmpty) {
+          return const <DartType>[];
+        }
         return arguments.map((a) => a.type).toList();
       } else {
-        // TODO(scheglov) Report an error.
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
+          typeArguments,
+          [element.name, typeParameters.length, arguments.length],
+        );
         return _listOfDynamic(typeParameters);
       }
     } else {
