@@ -151,10 +151,10 @@ Updated the Linter to `0.1.117`, which includes:
 ### Pub
 * `pub run` and `pub global run` accepts a `--enable-experiment` flag enabling
   experiments in the Dart VM (and language).
+* `pub run` and `pub global run` accepts a `--(no-)-sound-null-safety flag, that
+  is passed to the VM.
 * Warn when publishing the first null-safe version of a package.
 * `pub outdated`:
-  * Introduce `--mode=null-safety` flag that will report which of your
-    dependencies you can upgrade to fully support null safety.
   * If the current version of a dependency is a prerelease
     version, use prereleases for latest if there is no newer stable.
   * Don't require a `pubspec.lock` file. When the lockfile is missing, the
@@ -172,6 +172,7 @@ Updated the Linter to `0.1.117`, which includes:
 * Fix git folder names in cache, allowing for ssh-style git
   dependencies.
 * Fix: Avoid precompilation of dependencies of global packages.
+* Fix: avoid multiple recompilation of binaries in global packages.
 
 ## 2.8.4 - 2020-06-04
 
