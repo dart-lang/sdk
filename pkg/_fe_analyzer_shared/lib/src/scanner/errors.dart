@@ -156,8 +156,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
             type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
           return _makeError(ScannerErrorCode.EXPECTED_TOKEN, ['}']);
         }
-        if (type == TokenType.OPEN_SQUARE_BRACKET ||
-            type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET) {
+        if (type == TokenType.OPEN_SQUARE_BRACKET) {
           return _makeError(ScannerErrorCode.EXPECTED_TOKEN, [']']);
         }
         if (type == TokenType.OPEN_PAREN) {

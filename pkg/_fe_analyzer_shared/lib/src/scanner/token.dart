@@ -51,7 +51,6 @@ class BeginToken extends SimpleToken {
         type == TokenType.OPEN_CURLY_BRACKET ||
         type == TokenType.OPEN_PAREN ||
         type == TokenType.OPEN_SQUARE_BRACKET ||
-        type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET ||
         type == TokenType.STRING_INTERPOLATION_EXPRESSION);
   }
 
@@ -1506,12 +1505,6 @@ class TokenType {
       'PERIOD_PERIOD_PERIOD_QUESTION',
       NO_PRECEDENCE,
       PERIOD_PERIOD_PERIOD_QUESTION_TOKEN);
-
-  static const TokenType QUESTION_PERIOD_OPEN_SQUARE_BRACKET = const TokenType(
-      '?.[',
-      'QUESTION_PERIOD_OPEN_SQUARE_BRACKET',
-      SELECTOR_PRECEDENCE,
-      QUESTION_PERIOD_OPEN_SQUARE_BRACKET_TOKEN);
 
   static const TokenType QUESTION_PERIOD_PERIOD = const TokenType(
       '?..',

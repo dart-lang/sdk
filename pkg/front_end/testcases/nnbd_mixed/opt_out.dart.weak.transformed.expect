@@ -127,9 +127,13 @@ library;
 //   c?..f;
 //      ^
 //
-// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:37:6: Error: Expected an identifier, but got '['.
-//   c?.[0];
-//      ^
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:37:5: Error: Null safety features are disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version higher.
+//   c?[0];
+//     ^
+// pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
+// // @dart=2.5
+// ^^^^^^^^^^^^
 //
 import self as self2;
 import "dart:core" as core;
@@ -170,9 +174,7 @@ static method errors() → dynamic {
   invalid-expression "pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:36:6: Error: Expected an identifier, but got ''.
   c?..f;
      ^".f;
-  invalid-expression "pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:37:6: Error: Expected an identifier, but got '['.
-  c?.[0];
-     ^";
+  let final dynamic #t3 = c in #t3.{core::Object::==}(null) ?{dynamic} null : #t3.[](0);
 }
 
 constants  {

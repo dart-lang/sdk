@@ -914,12 +914,15 @@ bool skipForConfig(
 /// This assumes that the current working directory is the repository root.
 Future<void> updateAllTests(List<String> relativeTestPaths) async {
   for (String testPath in relativeTestPaths) {
-    List<String> arguments = [
-      '--packages=${Platform.packageConfig}',
+    List<String> arguments = [];
+    if (Platform.packageConfig != null) {
+      arguments.add('--packages=${Platform.packageConfig}');
+    }
+    arguments.addAll([
       testPath,
       '-g',
-      '--run-all'
-    ];
+      '--run-all',
+    ]);
     print('Running: ${Platform.resolvedExecutable} ${arguments.join(' ')}');
     Process process = await Process.start(
         Platform.resolvedExecutable, arguments,
