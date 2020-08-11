@@ -7808,20 +7808,26 @@ import 'dart:math' show min;
 var x = min(0, 1);
 {% endprettify %}
 
-### undefined_super_method
+### undefined_super_member
+
+_The getter '{0}' isn't defined in a superclass of '{1}'._
 
 _The method '{0}' isn't defined in a superclass of '{1}'._
 
+_The operator '{0}' isn't defined in a superclass of '{1}'._
+
+_The setter '{0}' isn't defined in a superclass of '{1}'._
+
 #### Description
 
-The analyzer produces this diagnostic when an inherited method is
-referenced using `super`, but there’s no method with that name in the
+The analyzer produces this diagnostic when an inherited member is
+referenced using `super`, but there’s no member with that name in the
 superclass chain.
 
 #### Examples
 
 The following code produces this diagnostic because `Object` doesn't define
-a member named `n`:
+a method named `n`:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -7831,15 +7837,26 @@ class C {
 }
 {% endprettify %}
 
+The following code produces this diagnostic because `Object` doesn't define
+a getter named `g`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  void m() {
+    super.[!g!];
+  }
+}
+{% endprettify %}
+
 #### Common fixes
 
-If the inherited method you intend to invoke has a different name, then
-make the name of the invoked method  match the inherited method.
+If the inherited member you intend to invoke has a different name, then
+make the name of the invoked member match the inherited member.
 
-If the method you intend to invoke is defined in the same class, then
+If the member you intend to invoke is defined in the same class, then
 remove the `super.`.
 
-If not, then either add the method to one of the superclasses or remove the
+If not, then either add the member to one of the superclasses or remove the
 invocation.
 
 ### unnecessary_cast
@@ -8525,3 +8542,7 @@ class C<E> {}
 
 void f(C<int> x) {}
 {% endprettify %}
+
+### undefined_super_method
+
+See [undefined_super_member](#undefined-super-member).
