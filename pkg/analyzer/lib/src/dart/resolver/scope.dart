@@ -449,26 +449,4 @@ extension ScopeExtension on Scope {
     }
     throw StateError('Can only be used in a LibraryScope.');
   }
-
-  // TODO(scheglov) check if it might be inlined
-  Element lookupIdentifier(Identifier identifier) {
-    if (identifier is SimpleIdentifier) {
-      var result = lookup2(identifier.name);
-      return result.getter ?? result.setter;
-    } else {
-      var prefixedIdentifier = identifier as PrefixedIdentifier;
-
-      var prefixIdentifier = prefixedIdentifier.prefix;
-      var prefixName = prefixIdentifier.name;
-      var prefixElement = lookup2(prefixName).getter;
-      prefixIdentifier.staticElement = prefixElement;
-
-      if (prefixElement is PrefixElement) {
-        var name = prefixedIdentifier.identifier.name;
-        var result = prefixElement.scope.lookup2(name);
-        return result.getter ?? result.setter;
-      }
-    }
-    return null;
-  }
 }
