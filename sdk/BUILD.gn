@@ -61,11 +61,6 @@ declare_args() {
 # ...........packages
 # ..........resources/
 # ..........templates/
-# ......model/
-# ........lexeme/
-# ..........idx2word.json
-# ..........model.tflite
-# ..........word2idx.json
 # ....include/
 # ......dart_api.h
 # ......dart_native_api.h
@@ -323,16 +318,6 @@ if (is_win) {
 }
 
 if (target_cpu == "x64") {
-  copy_tree_specs += [
-    {
-      target = "copy_language_model"
-      visibility = [ ":create_common_sdk" ]
-      deps = [ ":copy_libraries" ]
-      source = "../pkg/analysis_server/language_model"
-      dest = "$root_out_dir/dart-sdk/bin/model"
-      ignore_patterns = "{}"
-    },
-  ]
   if (is_linux || is_android || is_fuchsia) {
     copy_tree_specs += [
       {
@@ -915,10 +900,7 @@ group("create_common_sdk") {
     public_deps += [ ":copy_7zip" ]
   }
   if (target_cpu == "x64") {
-    public_deps += [
-      ":copy_language_model",
-      ":copy_libtensorflowlite_c",
-    ]
+    public_deps += [ ":copy_libtensorflowlite_c" ]
   }
 }
 
