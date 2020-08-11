@@ -79,7 +79,7 @@ static FunctionPtr ResolveDynamicAnyArgsWithCustomLookup(
 
     // Getter invocation might actually be a method extraction.
     if (is_getter) {
-      function = cls.LookupDynamicFunction(demangled_getter_name);
+      function = lookup(cls, demangled_getter_name);
       if (!function.IsNull()) {
         if (allow_add && FLAG_lazy_dispatchers) {
           // We were looking for the getter but found a method with the same
@@ -136,7 +136,7 @@ FunctionPtr Resolver::ResolveDynamicForReceiverClass(
     bool allow_add) {
   return ResolveDynamicForReceiverClassWithCustomLookup(
       receiver_class, function_name, args_desc, allow_add,
-      &Class::LookupDynamicFunction);
+      std::mem_fn(&Class::LookupDynamicFunction));
 }
 
 FunctionPtr Resolver::ResolveDynamicForReceiverClassAllowPrivate(
@@ -146,7 +146,7 @@ FunctionPtr Resolver::ResolveDynamicForReceiverClassAllowPrivate(
     bool allow_add) {
   return ResolveDynamicForReceiverClassWithCustomLookup(
       receiver_class, function_name, args_desc, allow_add,
-      &Class::LookupDynamicFunctionAllowPrivate);
+      std::mem_fn(&Class::LookupDynamicFunctionAllowPrivate));
 }
 
 FunctionPtr Resolver::ResolveDynamicAnyArgs(Zone* zone,
