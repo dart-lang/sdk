@@ -3603,6 +3603,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
+    var parent = node.parent;
+    if (parent is FieldDeclaration && parent.externalKeyword != null) {
+      return;
+    }
+
     if (node.type == null) {
       return;
     }
