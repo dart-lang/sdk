@@ -15,6 +15,8 @@ import 'utils.dart';
 Logger log;
 bool isDiagnostics = false;
 
+const kMaxLogCharWidth = 120;
+
 abstract class DartdevCommand<int> extends Command {
   final String _name;
   final String _description;

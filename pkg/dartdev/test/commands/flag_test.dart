@@ -34,7 +34,11 @@ void command() {
         .commands
         .forEach((String commandKey, Command command) {
       if (command.argParser != null) {
-        expect(command.argParser.usageLineLength, isNull);
+        if (command.name == 'run') {
+          expect(command.argParser.usageLineLength, 120);
+        } else {
+          expect(command.argParser.usageLineLength, isNull);
+        }
       }
     });
   });
