@@ -153,6 +153,8 @@ class ForwardingNode {
         Procedure procedure = stub;
         if (forMemberSignature) {
           procedure.isMemberSignature = true;
+          procedure.memberSignatureOrigin =
+              interfaceMember.memberSignatureOrigin ?? interfaceMember;
         } else {
           procedure.isForwardingStub = true;
         }
@@ -161,7 +163,9 @@ class ForwardingNode {
       if (interfaceMember.enclosingClass == enclosingClass) return;
       stub = _createForwardingStub(
           stubTypeParameters, substitution, interfaceMember,
-          forMemberSignature: forMemberSignature);
+          memberSignatureTarget: forMemberSignature
+              ? interfaceMember.memberSignatureOrigin ?? interfaceMember
+              : null);
     }
 
     bool isImplCreated = false;
@@ -409,6 +413,11 @@ class ForwardingNode {
       createStubIfNeeded(forMemberSignature: true);
       stub.function.returnType = type;
     }
+    assert(
+        !(stub is Procedure &&
+            (stub as Procedure).isMemberSignature &&
+            stub.memberSignatureOrigin == null),
+        "No member signature origin for member signature $stub.");
     return stub;
   }
 
@@ -477,7 +486,7 @@ class ForwardingNode {
   /// Creates a forwarding stub based on the given [target].
   Procedure _createForwardingStub(List<TypeParameter> typeParameters,
       Substitution substitution, Member target,
-      {bool forMemberSignature: false}) {
+      {Member memberSignatureTarget}) {
     VariableDeclaration copyParameter(VariableDeclaration parameter) {
       return new VariableDeclaration(parameter.name,
           type: substitution.substituteType(parameter.type),
@@ -533,11 +542,12 @@ class ForwardingNode {
     }
     return new Procedure(name, kind, function,
         isAbstract: true,
-        isForwardingStub: !forMemberSignature,
-        isMemberSignature: forMemberSignature,
+        isForwardingStub: memberSignatureTarget == null,
+        isMemberSignature: memberSignatureTarget != null,
         fileUri: enclosingClass.fileUri,
         forwardingStubInterfaceTarget: finalTarget,
-        reference: referenceFrom?.reference)
+        reference: referenceFrom?.reference,
+        memberSignatureOrigin: memberSignatureTarget)
       ..startFileOffset = enclosingClass.fileOffset
       ..fileOffset = enclosingClass.fileOffset
       ..parent = enclosingClass

@@ -2308,7 +2308,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
   const Function* interface_target = &Function::null_function();
   const Function* tearoff_interface_target = &Function::null_function();
   const NameIndex itarget_name =
-      ReadCanonicalNameReference();  // read interface_target_reference.
+      ReadInterfaceMemberNameReference();  // read interface_target_reference.
   if (!H.IsRoot(itarget_name) &&
       (H.IsGetter(itarget_name) || H.IsField(itarget_name))) {
     interface_target = &Function::ZoneHandle(
@@ -2401,7 +2401,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
 
   const Function* interface_target = &Function::null_function();
   const NameIndex itarget_name =
-      ReadCanonicalNameReference();  // read interface_target_reference.
+      ReadInterfaceMemberNameReference();  // read interface_target_reference.
   if (!H.IsRoot(itarget_name)) {
     interface_target = &Function::ZoneHandle(
         Z,
@@ -2536,7 +2536,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertyGet(TokenPosition* p) {
   const String& getter_name = H.DartGetterName(library_reference, name_index);
   const String& method_name = H.DartMethodName(library_reference, name_index);
 
-  SkipCanonicalNameReference();  // skip target_reference.
+  SkipInterfaceMemberNameReference();  // skip target_reference.
 
   // Search the superclass chain for the selector looking for either getter or
   // method.
@@ -2627,7 +2627,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertySet(TokenPosition* p) {
         /* argument_names = */ Object::empty_array(), actuals_array,
         build_rest_of_actuals);
 
-    SkipCanonicalNameReference();  // skip target_reference.
+    SkipInterfaceMemberNameReference();  // skip target_reference.
 
     Function& nsm_function = GetNoSuchMethodOrDie(Z, klass);
     instructions +=
@@ -2642,7 +2642,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertySet(TokenPosition* p) {
     instructions += BuildExpression();  // read value.
     instructions += StoreLocal(position, value);
 
-    SkipCanonicalNameReference();  // skip target_reference.
+    SkipInterfaceMemberNameReference();  // skip target_reference.
 
     instructions += StaticCall(
         position, Function::ZoneHandle(Z, function.raw()),
@@ -2666,7 +2666,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertyGet(TokenPosition* p) {
   const Tag receiver_tag = PeekTag();         // peek tag for receiver.
   Fragment instructions = BuildExpression();  // read receiver.
   const NameIndex kernel_name =
-      ReadCanonicalNameReference();  // read target_reference.
+      ReadInterfaceMemberNameReference();  // read target_reference.
 
   Function& target = Function::ZoneHandle(Z);
   if (H.IsProcedure(kernel_name)) {
@@ -2720,7 +2720,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertySet(TokenPosition* p) {
   instructions += BuildExpression();  // read receiver.
 
   const NameIndex target_reference =
-      ReadCanonicalNameReference();  // read target_reference.
+      ReadInterfaceMemberNameReference();  // read target_reference.
   const String& method_name = H.DartSetterName(target_reference);
   const Function& target = Function::ZoneHandle(
       Z, H.LookupMethodByMember(target_reference, method_name));
@@ -2924,7 +2924,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     instructions +=
         BuildArguments(NULL /* named */, NULL /* arg count */,
                        NULL /* positional arg count */);  // read arguments.
-    SkipCanonicalNameReference();          // read interface_target_reference.
+    SkipInterfaceMemberNameReference();  // read interface_target_reference.
     Token::Kind strict_cmp_kind =
         token_kind == Token::kEQ ? Token::kEQ_STRICT : Token::kNE_STRICT;
     return instructions +
@@ -2964,7 +2964,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
 
   const Function* interface_target = &Function::null_function();
   const NameIndex itarget_name =
-      ReadCanonicalNameReference();  // read interface_target_reference.
+      ReadInterfaceMemberNameReference();  // read interface_target_reference.
   // TODO(dartbug.com/34497): Once front-end desugars calls via
   // fields/getters, filtering of field and getter interface targets here
   // can be turned into assertions.
@@ -3066,7 +3066,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
   {
     AlternativeReadingScope alt(&reader_);
     SkipExpression();                         // skip receiver
-    ReadCanonicalNameReference();             // skip target reference
+    ReadInterfaceMemberNameReference();       // skip target reference
     ReadUInt();                               // read argument count.
     intptr_t list_length = ReadListLength();  // read types list length.
     if (list_length > 0) {
@@ -3080,7 +3080,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
   instructions += BuildExpression();  // read receiver.
 
   NameIndex kernel_name =
-      ReadCanonicalNameReference();  // read target_reference.
+      ReadInterfaceMemberNameReference();  // read target_reference.
   const String& method_name = H.DartProcedureName(kernel_name);
   const Token::Kind token_kind =
       MethodTokenRecognizer::RecognizeTokenKind(method_name);
@@ -3215,7 +3215,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
         /* num_arguments = */ argument_count + 1, argument_names, actuals_array,
         build_rest_of_actuals);
 
-    SkipCanonicalNameReference();  //  skip target_reference.
+    SkipInterfaceMemberNameReference();  //  skip target_reference.
 
     Function& nsm_function = GetNoSuchMethodOrDie(Z, klass);
     instructions += StaticCall(TokenPosition::kNoSource,
@@ -3246,7 +3246,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
         &argument_names, &argument_count,
         /* positional_argument_count = */ NULL);  // read arguments.
     ++argument_count;                             // include receiver
-    SkipCanonicalNameReference();                 // interfaceTargetReference
+    SkipInterfaceMemberNameReference();           // interfaceTargetReference
     return instructions +
            StaticCall(position, Function::ZoneHandle(Z, function.raw()),
                       argument_count, argument_names, ICData::kSuper,

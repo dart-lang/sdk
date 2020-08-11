@@ -1099,6 +1099,10 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       helper_->ReadCanonicalNameReference();
       if (++next_read_ == field) return;
       FALL_THROUGH;
+    case kMemberSignatureTarget:
+      helper_->ReadCanonicalNameReference();
+      if (++next_read_ == field) return;
+      FALL_THROUGH;
     case kFunction:
       if (helper_->ReadTag() == kSomething) {
         helper_->SkipFunctionNode();  // read function node.
@@ -1995,6 +1999,13 @@ NameIndex KernelReaderHelper::ReadCanonicalNameReference() {
   return reader_.ReadCanonicalNameReference();
 }
 
+NameIndex KernelReaderHelper::ReadInterfaceMemberNameReference() {
+  NameIndex name_index = reader_.ReadCanonicalNameReference();
+  reader_
+      .ReadCanonicalNameReference();  // read interface target origin reference
+  return name_index;
+}
+
 StringIndex KernelReaderHelper::ReadNameAsStringIndex() {
   StringIndex name_index = ReadStringReference();  // read name index.
   if ((H.StringSize(name_index) >= 1) && H.CharacterAt(name_index, 0) == '_') {
@@ -2061,6 +2072,11 @@ void KernelReaderHelper::SkipConstantReference() {
 
 void KernelReaderHelper::SkipCanonicalNameReference() {
   ReadUInt();
+}
+
+void KernelReaderHelper::SkipInterfaceMemberNameReference() {
+  SkipCanonicalNameReference();
+  SkipCanonicalNameReference();
 }
 
 void KernelReaderHelper::ReportUnexpectedTag(const char* variant, Tag tag) {
@@ -2286,35 +2302,35 @@ void KernelReaderHelper::SkipExpression() {
       ReadPosition();                // read position.
       SkipExpression();              // read receiver.
       SkipName();                    // read name.
-      SkipCanonicalNameReference();  // read interface_target_reference.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kPropertySet:
       ReadPosition();                // read position.
       SkipExpression();              // read receiver.
       SkipName();                    // read name.
       SkipExpression();              // read value.
-      SkipCanonicalNameReference();  // read interface_target_reference.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kSuperPropertyGet:
       ReadPosition();                // read position.
       SkipName();                    // read name.
-      SkipCanonicalNameReference();  // read interface_target_reference.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kSuperPropertySet:
       ReadPosition();                // read position.
       SkipName();                    // read name.
       SkipExpression();              // read value.
-      SkipCanonicalNameReference();  // read interface_target_reference.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kDirectPropertyGet:
       ReadPosition();                // read position.
       SkipExpression();              // read receiver.
-      SkipCanonicalNameReference();  // read target_reference.
+      SkipInterfaceMemberNameReference();  // read target_reference.
       return;
     case kDirectPropertySet:
       ReadPosition();                // read position.
       SkipExpression();              // read receiver.
-      SkipCanonicalNameReference();  // read target_reference.
+      SkipInterfaceMemberNameReference();  // read target_reference.
       SkipExpression();              // read value·
       return;
     case kStaticGet:
@@ -2331,18 +2347,18 @@ void KernelReaderHelper::SkipExpression() {
       SkipExpression();              // read receiver.
       SkipName();                    // read name.
       SkipArguments();               // read arguments.
-      SkipCanonicalNameReference();  // read interface_target_reference.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kSuperMethodInvocation:
       ReadPosition();                // read position.
       SkipName();                    // read name.
       SkipArguments();               // read arguments.
-      SkipCanonicalNameReference();  // read interface_target_reference.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kDirectMethodInvocation:
       ReadPosition();                // read position.
       SkipExpression();              // read receiver.
-      SkipCanonicalNameReference();  // read target_reference.
+      SkipInterfaceMemberNameReference();  // read target_reference.
       SkipArguments();               // read arguments.
       return;
     case kStaticInvocation:
