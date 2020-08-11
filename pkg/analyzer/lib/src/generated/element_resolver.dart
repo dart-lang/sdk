@@ -8,9 +8,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/ast/ast.dart'
-    show PrefixedIdentifierImpl, SimpleIdentifierImpl;
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -22,7 +19,6 @@ import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
@@ -190,49 +186,48 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
     } else if (identifier is PrefixedIdentifier) {
       SimpleIdentifier prefix = identifier.prefix;
+      Element prefixElement = _resolveSimpleIdentifier(prefix);
+      prefix.staticElement = prefixElement;
+
       SimpleIdentifier name = identifier.identifier;
-      Element element = _resolveSimpleIdentifier(prefix);
-      if (element == null) {
+
+      if (prefixElement == null) {
 //        resolver.reportError(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, prefix, prefix.getName());
-      } else {
-        prefix.staticElement = element;
-        if (element is PrefixElement) {
-          // TODO(brianwilkerson) Report this error?
-          element = _resolver.nameScope.lookupIdentifier(identifier);
-          name.staticElement = element;
-          return;
-        }
-        LibraryElement library = element.library;
-        if (library == null) {
-          // TODO(brianwilkerson) We need to understand how the library could
-          // ever be null.
-          AnalysisEngine.instance.instrumentationService
-              .logError("Found element with null library: ${element.name}");
-        } else if (library != _definingLibrary) {
+        return;
+      }
+
+      if (prefixElement is PrefixElement) {
+        var prefixScope = prefixElement.scope;
+        var lookupResult = prefixScope.lookup2(name.name);
+        var element = lookupResult.getter ?? lookupResult.setter;
+        element = _resolver.toLegacyElement(element);
+        name.staticElement = element;
+        return;
+      }
+
+      LibraryElement library = prefixElement.library;
+      if (library != _definingLibrary) {
+        // TODO(brianwilkerson) Report this error.
+      }
+
+      if (node.newKeyword == null) {
+        if (prefixElement is ClassElement) {
+          name.staticElement = prefixElement.getMethod(name.name) ??
+              prefixElement.getGetter(name.name) ??
+              prefixElement.getSetter(name.name) ??
+              prefixElement.getNamedConstructor(name.name);
+        } else {
           // TODO(brianwilkerson) Report this error.
         }
-        if (node.newKeyword == null) {
-          if (element is ClassElement) {
-            name.staticElement = element.getMethod(name.name) ??
-                element.getGetter(name.name) ??
-                element.getSetter(name.name) ??
-                element.getNamedConstructor(name.name);
-          } else {
-            // TODO(brianwilkerson) Report this error.
-          }
+      } else if (prefixElement is ClassElement) {
+        var constructor = prefixElement.getNamedConstructor(name.name);
+        if (constructor == null) {
+          // TODO(brianwilkerson) Report this error.
         } else {
-          if (element is ClassElement) {
-            ConstructorElement constructor =
-                element.getNamedConstructor(name.name);
-            if (constructor == null) {
-              // TODO(brianwilkerson) Report this error.
-            } else {
-              name.staticElement = constructor;
-            }
-          } else {
-            // TODO(brianwilkerson) Report this error.
-          }
+          name.staticElement = constructor;
         }
+      } else {
+        // TODO(brianwilkerson) Report this error.
       }
     }
   }
@@ -500,13 +495,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
     //
     Element prefixElement = prefix.staticElement;
     if (prefixElement is PrefixElement) {
-      Element element = _resolver.nameScope.lookupIdentifier(node);
+      var lookupResult = prefixElement.scope.lookup2(identifier.name);
+      var element = lookupResult.getter;
       if (element == null && identifier.inSetterContext()) {
-        Identifier setterName = PrefixedIdentifierImpl.temp(
-            node.prefix,
-            SimpleIdentifierImpl(StringToken(TokenType.STRING,
-                "${node.identifier.name}=", node.identifier.offset - 1)));
-        element = _resolver.nameScope.lookupIdentifier(setterName);
+        element = lookupResult.setter;
       }
       element = _resolver.toLegacyElement(element);
       if (element == null && _resolver.nameScope.shouldIgnoreUndefined(node)) {
