@@ -3566,7 +3566,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     for (var field in fields.variables) {
       var fieldElement = field.declaredElement as FieldElement;
-      if (fieldElement.isAbstract) continue;
+      if (fieldElement.isAbstract || fieldElement.isExternal) continue;
       if (field.initializer != null) continue;
 
       var type = fieldElement.type;
@@ -3600,6 +3600,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (node.isLate) {
+      return;
+    }
+
+    var parent = node.parent;
+    if (parent is FieldDeclaration && parent.externalKeyword != null) {
       return;
     }
 

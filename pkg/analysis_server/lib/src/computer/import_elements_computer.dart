@@ -7,13 +7,8 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/ast_factory.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -243,24 +238,12 @@ class ImportElementsComputer {
   /// name as in the original source.
   List<ImportedElements> _filterImportedElements(
       List<ImportedElements> originalList) {
-    var libraryElement = libraryResult.libraryElement;
-    var libraryScope = libraryElement.scope;
-    AstFactory factory = AstFactoryImpl();
     var filteredList = <ImportedElements>[];
     for (var elements in originalList) {
       var originalElements = elements.elements;
       var filteredElements = originalElements.toList();
       for (var name in originalElements) {
-        Identifier identifier = factory
-            .simpleIdentifier(StringToken(TokenType.IDENTIFIER, name, -1));
-        if (elements.prefix.isNotEmpty) {
-          var prefix = factory.simpleIdentifier(
-              StringToken(TokenType.IDENTIFIER, elements.prefix, -1));
-          Token period = SimpleToken(TokenType.PERIOD, -1);
-          identifier = factory.prefixedIdentifier(prefix, period, identifier);
-        }
-        var element = libraryScope.lookupIdentifier(identifier);
-        if (element != null) {
+        if (_hasElement(elements.prefix, name)) {
           filteredElements.remove(name);
         }
       }
@@ -338,6 +321,22 @@ class ImportElementsComputer {
     var fromFolder = context.dirname(from.source.fullName);
     var relativeFile = context.relative(whatPath, from: fromFolder);
     return context.split(relativeFile).join('/');
+  }
+
+  bool _hasElement(String prefix, String name) {
+    var scope = libraryResult.libraryElement.scope;
+
+    if (prefix.isNotEmpty) {
+      var prefixElement = scope.lookup2(prefix).getter;
+      if (prefixElement is PrefixElement) {
+        scope = prefixElement.scope;
+      } else {
+        return false;
+      }
+    }
+
+    var lookupResult = scope.lookup2(name);
+    return lookupResult.getter != null || lookupResult.setter != null;
   }
 
   /// Return `true` if the given [import] matches the given specification of

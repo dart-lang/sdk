@@ -2005,7 +2005,7 @@ class VmService implements VmServiceInterface {
 
   /// Invoke a specific service protocol extension method.
   ///
-  /// See https://api.dartlang.org/stable/dart-developer/dart-developer-library.html.
+  /// See https://api.dart.dev/stable/dart-developer/dart-developer-library.html.
   @override
   Future<Response> callServiceExtension(String method,
       {String isolateId, Map args}) {
