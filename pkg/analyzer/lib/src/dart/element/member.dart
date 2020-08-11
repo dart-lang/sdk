@@ -343,6 +343,9 @@ class FieldMember extends VariableMember implements FieldElement {
   bool get isEnumConstant => declaration.isEnumConstant;
 
   @override
+  bool get isExternal => declaration.isExternal;
+
+  @override
   PropertyAccessorElement get setter {
     var baseSetter = declaration.setter;
     if (baseSetter == null) {

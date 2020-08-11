@@ -498,6 +498,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       var properties = _Properties();
       properties.addToken('abstractKeyword', node.abstractKeyword);
+      properties.addToken('externalKeyword', node.externalKeyword);
       properties.addToken('covariantKeyword', node.covariantKeyword);
       properties.addNode('fields', node.fields);
       properties.addToken('semicolon', node.semicolon);

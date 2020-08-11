@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/with_null_safety_mixin.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 import 'sdk_constraint_verifier_support.dart';
 
 main() {
@@ -19,10 +17,6 @@ main() {
 
 @reflectiveTest
 class SdkVersionNeverTest extends SdkConstraintVerifierTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(sdkVersion: '2.7.0');
-
   test_languageVersionBeforeNullSafety() async {
     await verifyVersion('2.7.0', r'''
 Never foo;

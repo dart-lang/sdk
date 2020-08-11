@@ -365,6 +365,7 @@ abstract class AstFactory {
       List<Annotation> metadata,
       Token abstractKeyword,
       Token covariantKeyword,
+      Token externalKeyword,
       Token staticKeyword,
       @required VariableDeclarationList fieldList,
       @required Token semicolon});

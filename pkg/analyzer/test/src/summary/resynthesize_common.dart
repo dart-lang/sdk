@@ -6106,6 +6106,20 @@ class C {
 ''');
   }
 
+  test_field_external() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+abstract class C {
+  external int i;
+}
+''');
+    checkElementText(library, '''
+abstract class C {
+  external int i;
+}
+''');
+  }
+
   test_field_final_hasInitializer_hasConstConstructor() async {
     var library = await checkLibrary('''
 class C {

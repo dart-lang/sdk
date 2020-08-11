@@ -78,7 +78,7 @@ vars = {
   "cli_util_tag" : "0.2.0",
   "collection_rev": "583693680fc067e34ca5b72503df25e8b80579f9",
   "convert_rev": "c1b01f832835d3d8a06b0b246a361c0eaab35d3c",
-  "crypto_rev": "7422fb2f6584fe1839eb30bc4ca56e9f9760b801",
+  "crypto_rev": "f7c48b334b1386bc5ab0f706fbcd6df8496a87fc",
   "csslib_rev": "451448a9ac03f87a8d0377fc0b411d8c388a6cb4",
   "dart2js_info_tag" : "0.6.0",
 

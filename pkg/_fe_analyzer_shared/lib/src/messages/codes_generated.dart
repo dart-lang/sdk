@@ -89,6 +89,7 @@ const Code<Null> codeAbstractLateField = messageAbstractLateField;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAbstractLateField = const MessageCode(
     "AbstractLateField",
+    index: 108,
     message: r"""Abstract fields cannot be late.""",
     tip: r"""Try removing the 'abstract' or 'late' keyword.""");
 
@@ -134,6 +135,7 @@ const Code<Null> codeAbstractStaticField = messageAbstractStaticField;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAbstractStaticField = const MessageCode(
     "AbstractStaticField",
+    index: 107,
     message: r"""Static fields can't be declared 'abstract'.""",
     tip: r"""Try removing the 'abstract' or 'static' keyword.""");
 

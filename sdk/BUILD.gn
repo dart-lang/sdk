@@ -48,7 +48,6 @@ declare_args() {
 # ........dart2js.dart.snapshot
 # ........dartanalyzer.dart.snapshot
 # ........dds.dart.snapshot
-# ........dartdev.dart.snapshot
 # ........dartdoc.dart.snapshot
 # ........dartfmt.dart.snapshot
 # ........dartdevc.dart.snapshot
@@ -79,6 +78,7 @@ declare_args() {
 # ........dart2js_server_platform.dill
 # ........dart2js_platform_strong.dill
 # ........dart2js_server_platform_strong.dill
+# ........dartdev.dill
 # ........vm_platform_strong.dill
 # ........dev_compiler/
 # ......async/
@@ -121,10 +121,6 @@ _platform_sdk_snapshots = [
   [
     "dartanalyzer",
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
-  ],
-  [
-    "dartdev",
-    "../utils/dartdev:dartdev",
   ],
   [
     "dartdoc",
@@ -170,10 +166,6 @@ _full_sdk_snapshots = [
   [
     "dartanalyzer",
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
-  ],
-  [
-    "dartdev",
-    "../utils/dartdev:dartdev",
   ],
   [
     "dartdevc",
@@ -616,6 +608,16 @@ copy("copy_vm_dill_files") {
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
 
+copy("copy_dartdev_dill_files") {
+  visibility = [ ":create_common_sdk" ]
+  deps = [
+    ":copy_libraries",
+    "../utils/dartdev:dartdev",
+  ]
+  sources = [ "$root_out_dir/dartdev.dill" ]
+  outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
+}
+
 copy("copy_dart2js_dill_files") {
   visibility = [ ":create_full_sdk" ]
   deps = [
@@ -890,6 +892,7 @@ group("create_common_sdk") {
     ":copy_analysis_summaries",
     ":copy_api_readme",
     ":copy_dart",
+    ":copy_dartdev_dill_files",
     ":copy_dartdoc_files",
     ":copy_headers",
     ":copy_libraries_dart",

@@ -1588,23 +1588,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       "In constant expressions, operands of this operator must be of type "
           "'Type'.");
   /**
-   * 7.6.1 Generative Constructors: In checked mode, it is a dynamic type error
-   * if o is not <b>null</b> and the interface of the class of <i>o</i> is not a
-   * subtype of the static type of the field <i>v</i>.
-   *
-   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
-   * object results in an uncaught exception being thrown.
-   *
    * Parameters:
    * 0: the name of the type of the initializer expression
    * 1: the name of the type of the field
    */
   static const CompileTimeErrorCode CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE =
-      CompileTimeErrorCode(
+      CompileTimeErrorCodeWithUniqueName(
+          'FIELD_INITIALIZER_NOT_ASSIGNABLE',
           'CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE',
           "The initializer type '{0}' can't be assigned to the field type "
               "'{1}' in a const constructor.",
-          correction: "Try using a subtype, or removing the 'const' keyword");
+          correction: "Try using a subtype, or removing the 'const' keyword",
+          hasPublishedDocs: true);
 
   /**
    * 6.2 Formal Parameters: It is a compile-time error if a formal parameter is
@@ -9638,19 +9633,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
-   * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is
-   * a static type warning if <i>T</i> does not have a getter named <i>m</i>.
-   *
    * Parameters:
    * 0: the name of the getter
    * 1: the name of the enclosing type where the getter is being looked for
    */
   static const CompileTimeErrorCode UNDEFINED_SUPER_GETTER =
-      CompileTimeErrorCode('UNDEFINED_SUPER_GETTER',
+      CompileTimeErrorCodeWithUniqueName(
+          'UNDEFINED_SUPER_MEMBER',
+          'UNDEFINED_SUPER_GETTER',
           "The getter '{0}' isn't defined in a superclass of '{1}'.",
           correction:
               "Try correcting the name to the name of an existing getter, or "
-              "defining a getter or field named '{0}' in a superclass.");
+              "defining a getter or field named '{0}' in a superclass.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -9659,14 +9654,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when an inherited method is
-  // referenced using `super`, but there’s no method with that name in the
+  // The analyzer produces this diagnostic when an inherited member is
+  // referenced using `super`, but there’s no member with that name in the
   // superclass chain.
   //
   // #### Examples
   //
   // The following code produces this diagnostic because `Object` doesn't define
-  // a member named `n`:
+  // a method named `n`:
   //
   // ```dart
   // class C {
@@ -9676,18 +9671,31 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // }
   // ```
   //
+  // The following code produces this diagnostic because `Object` doesn't define
+  // a getter named `g`:
+  //
+  // ```dart
+  // class C {
+  //   void m() {
+  //     super.[!g!];
+  //   }
+  // }
+  // ```
+  //
   // #### Common fixes
   //
-  // If the inherited method you intend to invoke has a different name, then
-  // make the name of the invoked method  match the inherited method.
+  // If the inherited member you intend to invoke has a different name, then
+  // make the name of the invoked member match the inherited member.
   //
-  // If the method you intend to invoke is defined in the same class, then
+  // If the member you intend to invoke is defined in the same class, then
   // remove the `super.`.
   //
-  // If not, then either add the method to one of the superclasses or remove the
+  // If not, then either add the member to one of the superclasses or remove the
   // invocation.
   static const CompileTimeErrorCode UNDEFINED_SUPER_METHOD =
-      CompileTimeErrorCode('UNDEFINED_SUPER_METHOD',
+      CompileTimeErrorCodeWithUniqueName(
+          'UNDEFINED_SUPER_MEMBER',
+          'UNDEFINED_SUPER_METHOD',
           "The method '{0}' isn't defined in a superclass of '{1}'.",
           correction:
               "Try correcting the name to the name of an existing method, or "
@@ -9695,45 +9703,32 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 12.18 Assignment: Evaluation of an assignment of the form
-   * <i>e<sub>1</sub></i>[<i>e<sub>2</sub></i>] = <i>e<sub>3</sub></i> is
-   * equivalent to the evaluation of the expression (a, i, e){a.[]=(i, e);
-   * return e;} (<i>e<sub>1</sub></i>, <i>e<sub>2</sub></i>,
-   * <i>e<sub>2</sub></i>).
-   *
-   * 12.29 Assignable Expressions: An assignable expression of the form
-   * <i>e<sub>1</sub></i>[<i>e<sub>2</sub></i>] is evaluated as a method
-   * invocation of the operator method [] on <i>e<sub>1</sub></i> with argument
-   * <i>e<sub>2</sub></i>.
-   *
-   * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>.
-   * It is a static type warning if <i>T</i> does not have an accessible
-   * instance member named <i>m</i>.
-   *
    * Parameters:
    * 0: the name of the operator
    * 1: the name of the enclosing type where the operator is being looked for
    */
   static const CompileTimeErrorCode UNDEFINED_SUPER_OPERATOR =
-      CompileTimeErrorCode('UNDEFINED_SUPER_OPERATOR',
+      CompileTimeErrorCodeWithUniqueName(
+          'UNDEFINED_SUPER_MEMBER',
+          'UNDEFINED_SUPER_OPERATOR',
           "The operator '{0}' isn't defined in a superclass of '{1}'.",
-          correction: "Try defining the operator '{0}' in a superclass.");
+          correction: "Try defining the operator '{0}' in a superclass.",
+          hasPublishedDocs: true);
 
   /**
-   * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>.
-   * It is a static type warning if <i>T</i> does not have an accessible
-   * instance setter named <i>v=</i>.
-   *
    * Parameters:
    * 0: the name of the setter
    * 1: the name of the enclosing type where the setter is being looked for
    */
   static const CompileTimeErrorCode UNDEFINED_SUPER_SETTER =
-      CompileTimeErrorCode('UNDEFINED_SUPER_SETTER',
+      CompileTimeErrorCodeWithUniqueName(
+          'UNDEFINED_SUPER_MEMBER',
+          'UNDEFINED_SUPER_SETTER',
           "The setter '{0}' isn't defined in a superclass of '{1}'.",
           correction:
               "Try correcting the name to the name of an existing setter, or "
-              "defining a setter or field named '{0}' in a superclass.");
+              "defining a setter or field named '{0}' in a superclass.",
+          hasPublishedDocs: true);
 
   /**
    * 12.15.1 Ordinary Invocation: It is a static type warning if <i>T</i> does

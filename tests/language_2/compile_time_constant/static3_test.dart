@@ -6,7 +6,7 @@ class A {
   final int x;
   const A.a1() : x = 'foo';
   //                 ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_NOT_ASSIGNABLE
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
   //                 ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_NOT_ASSIGNABLE
@@ -22,7 +22,7 @@ class A {
   // [cfe] The type of parameter 'x', 'String' is not a subtype of the corresponding field's type, 'int'.
   const A.a5(String x) : this.x = x;
   //                              ^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_NOT_ASSIGNABLE
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
   //                              ^
   // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_NOT_ASSIGNABLE

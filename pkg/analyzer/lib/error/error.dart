@@ -570,6 +570,8 @@ const List<ErrorCode> errorCodeValues = [
   ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE,
   ParserErrorCode.ABSTRACT_CLASS_MEMBER,
   ParserErrorCode.ABSTRACT_ENUM,
+  ParserErrorCode.ABSTRACT_LATE_FIELD,
+  ParserErrorCode.ABSTRACT_STATIC_FIELD,
   ParserErrorCode.ABSTRACT_STATIC_METHOD,
   ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION,
   ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE,

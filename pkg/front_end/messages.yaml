@@ -563,7 +563,9 @@ AbstractExternalField:
     - "abstract class C {external abstract var f;}"
 
 AbstractStaticField:
+  index: 107
   template: "Static fields can't be declared 'abstract'."
+  analyzerCode: ParserErrorCode.ABSTRACT_STATIC_FIELD
   tip: "Try removing the 'abstract' or 'static' keyword."
   configuration: nnbd-strong
   script:
@@ -593,7 +595,9 @@ AbstractFieldConstructorInitializer:
     - "abstract class C {abstract var f; C() : this.f = 0;}"
 
 AbstractLateField:
+  index: 108
   template: "Abstract fields cannot be late."
+  analyzerCode: ParserErrorCode.ABSTRACT_LATE_FIELD
   tip: "Try removing the 'abstract' or 'late' keyword."
   configuration: nnbd-strong
   script:
