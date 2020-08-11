@@ -1,14 +1,4 @@
 library /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/nnbd_mixed/flutter_issue_63029/flutter_issue_63029.dart:6:7: Error: 'B<E>' doesn't implement 'B<E>' so it can't be used with 'D<E>'.
-//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/flutter_issue_63029/flutter_issue_63029_lib1.dart'.
-//  - 'E' is from 'pkg/front_end/testcases/nnbd_mixed/flutter_issue_63029/flutter_issue_63029.dart'.
-//  - 'D' is from 'pkg/front_end/testcases/nnbd_mixed/flutter_issue_63029/flutter_issue_63029_lib2.dart'.
-// class F extends B<E> with D<E> {}
-//       ^
-//
 import self as self;
 import "flutter_issue_63029_lib1.dart" as flu;
 import "flutter_issue_63029_lib2.dart" as flu2;
