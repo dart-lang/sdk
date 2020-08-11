@@ -2002,8 +2002,11 @@ NameIndex KernelReaderHelper::ReadCanonicalNameReference() {
 
 NameIndex KernelReaderHelper::ReadInterfaceMemberNameReference() {
   NameIndex name_index = reader_.ReadCanonicalNameReference();
-  reader_
-      .ReadCanonicalNameReference();  // read interface target origin reference
+  NameIndex origin_name_index = reader_.ReadCanonicalNameReference();
+  if (!FLAG_precompiled_mode && origin_name_index != NameIndex::kInvalidName) {
+    // Reference to a skipped member signature target, return the origin target.
+    return origin_name_index;
+  }
   return name_index;
 }
 
