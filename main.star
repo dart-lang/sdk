@@ -40,7 +40,8 @@ STANDARD_PATHS = [
     "BUILD.gn",
     "sdk_args.gni",
     # core libraries
-    "sdk(_nnbd)?/.+",
+    ".dart_tool/package_config.json",
+    "sdk/.+",
     # testing
     TEST_PY_PATHS,
     "tools/bots/test_matrix.json",
