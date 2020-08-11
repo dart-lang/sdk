@@ -399,11 +399,16 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
 
   DartType get builtType => fieldType;
 
-  @override
-  List<ClassMember> get localMembers => _fieldEncoding.getLocalMembers(this);
+  List<ClassMember> _localMembers;
+  List<ClassMember> _localSetters;
 
   @override
-  List<ClassMember> get localSetters => _fieldEncoding.getLocalSetters(this);
+  List<ClassMember> get localMembers =>
+      _localMembers ??= _fieldEncoding.getLocalMembers(this);
+
+  @override
+  List<ClassMember> get localSetters =>
+      _localSetters ??= _fieldEncoding.getLocalSetters(this);
 
   static String createFieldName(FieldNameType type, String name,
       {bool isInstanceMember,
