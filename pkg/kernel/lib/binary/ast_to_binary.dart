@@ -834,6 +834,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeUInt30(index);
   }
 
+  void writeNullAllowedInstanceMemberReference(Reference reference) {
+    writeNullAllowedReference(reference);
+    Member member = reference?.asMember;
+    writeNullAllowedReference(member?.memberSignatureOrigin?.reference);
+  }
+
   void writeNullAllowedReference(Reference reference) {
     if (reference == null) {
       writeUInt30(0);
@@ -845,6 +851,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       checkCanonicalName(name);
       writeUInt30(name.index + 1);
     }
+  }
+
+  void writeNonNullInstanceMemberReference(Reference reference) {
+    writeNonNullReference(reference);
+    Member member = reference.asMember;
+    writeNullAllowedReference(member?.memberSignatureOrigin?.reference);
   }
 
   void writeNonNullReference(Reference reference) {
@@ -1175,6 +1187,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitProcedure(Procedure node) {
+    assert(
+        !(node.isMemberSignature &&
+            node.memberSignatureOriginReference == null),
+        "No member signature origin for member signature $node.");
+
     procedureOffsets.add(getBufferOffset());
 
     if (node.canonicalName == null) {
@@ -1200,6 +1217,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeAnnotationList(node.annotations);
     writeNullAllowedReference(node.forwardingStubSuperTargetReference);
     writeNullAllowedReference(node.forwardingStubInterfaceTargetReference);
+    writeNullAllowedReference(node.memberSignatureOriginReference);
     writeOptionalFunctionNode(node.function);
     leaveScope(memberScope: true);
 
@@ -1381,7 +1399,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeNode(node.receiver);
     writeName(node.name);
-    writeNullAllowedReference(node.interfaceTargetReference);
+    writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
   }
 
   @override
@@ -1391,7 +1409,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNode(node.receiver);
     writeName(node.name);
     writeNode(node.value);
-    writeNullAllowedReference(node.interfaceTargetReference);
+    writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
   }
 
   @override
@@ -1399,7 +1417,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.SuperPropertyGet);
     writeOffset(node.fileOffset);
     writeName(node.name);
-    writeNullAllowedReference(node.interfaceTargetReference);
+    writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
   }
 
   @override
@@ -1408,7 +1426,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeName(node.name);
     writeNode(node.value);
-    writeNullAllowedReference(node.interfaceTargetReference);
+    writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
   }
 
   @override
@@ -1416,7 +1434,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.DirectPropertyGet);
     writeOffset(node.fileOffset);
     writeNode(node.receiver);
-    writeNonNullReference(node.targetReference);
+    writeNonNullInstanceMemberReference(node.targetReference);
   }
 
   @override
@@ -1424,7 +1442,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.DirectPropertySet);
     writeOffset(node.fileOffset);
     writeNode(node.receiver);
-    writeNonNullReference(node.targetReference);
+    writeNonNullInstanceMemberReference(node.targetReference);
     writeNode(node.value);
   }
 
@@ -1450,7 +1468,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNode(node.receiver);
     writeName(node.name);
     writeArgumentsNode(node.arguments);
-    writeNullAllowedReference(node.interfaceTargetReference);
+    writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
   }
 
   @override
@@ -1459,7 +1477,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeName(node.name);
     writeArgumentsNode(node.arguments);
-    writeNullAllowedReference(node.interfaceTargetReference);
+    writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
   }
 
   @override
@@ -1467,7 +1485,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.DirectMethodInvocation);
     writeOffset(node.fileOffset);
     writeNode(node.receiver);
-    writeNonNullReference(node.targetReference);
+    writeNonNullInstanceMemberReference(node.targetReference);
     writeArgumentsNode(node.arguments);
   }
 

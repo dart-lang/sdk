@@ -2990,12 +2990,13 @@ main() {
   }
 
   void test_indexed_nullAware() {
-    CompilationUnit unit = parseCompilationUnit('main() { a?.[7]; }');
+    CompilationUnit unit = parseCompilationUnit('main() { a?[7]; }');
     FunctionDeclaration method = unit.declarations[0];
     BlockFunctionBody body = method.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
     IndexExpression expression = statement.expression;
-    expect(expression.leftBracket.lexeme, '?.[');
+    expect(expression.question, isNotNull);
+    expect(expression.leftBracket.lexeme, '[');
     expect(expression.rightBracket.lexeme, ']');
     expect(expression.leftBracket.endGroup, expression.rightBracket);
   }
@@ -3003,14 +3004,17 @@ main() {
   void test_indexed_nullAware_optOut() {
     CompilationUnit unit = parseCompilationUnit('''
 // @dart = 2.2
-main() { a?.[7]; }''',
-        errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 27, 1)]);
+main() { a?[7]; }''',
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 25, 1)]);
     FunctionDeclaration method = unit.declarations[0];
     BlockFunctionBody body = method.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
-    PropertyAccess expression = statement.expression;
+    IndexExpressionImpl expression = statement.expression;
     expect(expression.target.toSource(), 'a');
-    expect(expression.operator.lexeme, '?.');
+    expect(expression.question, isNotNull);
+    expect(expression.leftBracket.lexeme, '[');
+    expect(expression.rightBracket.lexeme, ']');
+    expect(expression.leftBracket.endGroup, expression.rightBracket);
   }
 
   void test_indexExpression_nullable_disabled() {

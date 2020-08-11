@@ -30,5 +30,5 @@ noErrors() {
   String? s = null;
   dynamic c;
   c?..f;
-  c?.[0];
+  c?[0];
 }

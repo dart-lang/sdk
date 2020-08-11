@@ -1,5 +1,8 @@
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import "dart:convert";
-import "dart:developer";
 import "dart:io";
 
 import "package:vm_service/vm_service.dart" as vmService;
@@ -214,10 +217,13 @@ class VMServiceHeapHelperBase {
 
 abstract class LaunchingVMServiceHeapHelper extends VMServiceHeapHelperBase {
   Process _process;
+  Process get process => _process;
 
   bool _started = false;
 
-  void start(List<String> scriptAndArgs) async {
+  void start(List<String> scriptAndArgs,
+      {void stdinReceiver(String line),
+      void stderrReceiver(String line)}) async {
     if (_started) throw "Already started";
     _started = true;
     _process = await Process.start(
@@ -232,15 +238,29 @@ abstract class LaunchingVMServiceHeapHelper extends VMServiceHeapHelperBase {
       if (line.startsWith(kObservatoryListening)) {
         Uri observatoryUri =
             Uri.parse(line.substring(kObservatoryListening.length));
-        _setupAndRun(observatoryUri);
+        _setupAndRun(observatoryUri).catchError((e, st) {
+          // Manually kill the process or it will leak,
+          // see http://dartbug.com/42918
+          killProcess();
+          // This seems to rethrow.
+          throw e;
+        });
       }
-      stdout.writeln("> $line");
+      if (stdinReceiver != null) {
+        stdinReceiver(line);
+      } else {
+        stdout.writeln("> $line");
+      }
     });
     _process.stderr
         .transform(utf8.decoder)
         .transform(new LineSplitter())
         .listen((line) {
-      stderr.writeln("> $line");
+      if (stderrReceiver != null) {
+        stderrReceiver(line);
+      } else {
+        stderr.writeln("> $line");
+      }
     });
     // ignore: unawaited_futures
     _process.exitCode.then((value) {
@@ -254,7 +274,7 @@ abstract class LaunchingVMServiceHeapHelper extends VMServiceHeapHelperBase {
     _process.kill();
   }
 
-  void _setupAndRun(Uri observatoryUri) async {
+  Future _setupAndRun(Uri observatoryUri) async {
     await connect(observatoryUri);
     await run();
   }
@@ -269,9 +289,13 @@ class VMServiceHeapHelperSpecificExactLeakFinder
   final Map<Uri, Map<String, List<String>>> _prettyPrints =
       new Map<Uri, Map<String, List<String>>>();
   final bool throwOnPossibleLeak;
+  final bool tryToFindShortestPathToLeaks;
 
-  VMServiceHeapHelperSpecificExactLeakFinder(List<Interest> interests,
-      List<Interest> prettyPrints, this.throwOnPossibleLeak) {
+  VMServiceHeapHelperSpecificExactLeakFinder(
+      List<Interest> interests,
+      List<Interest> prettyPrints,
+      this.throwOnPossibleLeak,
+      this.tryToFindShortestPathToLeaks) {
     if (interests.isEmpty) throw "Empty list of interests given";
     for (Interest interest in interests) {
       Map<String, List<String>> classToFields = _interests[interest.uri];
@@ -301,28 +325,50 @@ class VMServiceHeapHelperSpecificExactLeakFinder
     }
   }
 
+  void pause() async {
+    await _serviceClient.pause(_isolateRef.id);
+  }
+
+  vmService.VM _vm;
+  vmService.IsolateRef _isolateRef;
+  int _iterationNumber;
+  int get iterationNumber => _iterationNumber;
+
+  /// Best effort check if the isolate is idle.
+  Future<bool> isIdle() async {
+    dynamic tmp = await _serviceClient.getIsolate(_isolateRef.id);
+    if (tmp is vmService.Isolate) {
+      vmService.Isolate isolate = tmp;
+      return isolate.pauseEvent.topFrame == null;
+    }
+    return false;
+  }
+
   @override
   Future<void> run() async {
-    vmService.VM vm = await _serviceClient.getVM();
-    if (vm.isolates.length != 1) {
-      throw "Expected 1 isolate, got ${vm.isolates.length}";
+    _vm = await _serviceClient.getVM();
+    if (_vm.isolates.length != 1) {
+      throw "Expected 1 isolate, got ${_vm.isolates.length}";
     }
-    vmService.IsolateRef isolateRef = vm.isolates.single;
-    await forceGC(isolateRef.id);
+    _isolateRef = _vm.isolates.single;
+    await forceGC(_isolateRef.id);
 
-    assert(await _isPausedAtStart(isolateRef.id));
-    await _serviceClient.resume(isolateRef.id);
+    assert(await _isPausedAtStart(_isolateRef.id));
+    await _serviceClient.resume(_isolateRef.id);
 
-    int iterationNumber = 1;
+    _iterationNumber = 1;
     while (true) {
-      await waitUntilPaused(isolateRef.id);
-      print("Iteration: #$iterationNumber");
-      iterationNumber++;
-      await forceGC(isolateRef.id);
+      await waitUntilPaused(_isolateRef.id);
+      print("Iteration: #$_iterationNumber");
+      await forceGC(_isolateRef.id);
 
       vmService.HeapSnapshotGraph heapSnapshotGraph =
           await vmService.HeapSnapshotGraph.getSnapshot(
-              _serviceClient, isolateRef);
+              _serviceClient, _isolateRef);
+      // TODO: Considering the single source shortest path algorithm
+      // doesn't seem to give a useful trace anymore (the snapshot seems to
+      // have changed) and that converting the graph is very costly,
+      // maybe don't do that...
       HeapGraph graph = convertHeapGraph(heapSnapshotGraph);
 
       Set<String> seenPrints = {};
@@ -363,48 +409,54 @@ class VMServiceHeapHelperSpecificExactLeakFinder
         for (String s in duplicatePrints) {
           int count = groupedByToString[s].length;
           print("$s ($count)");
+          for (HeapGraphElement duplicate in groupedByToString[s]) {
+            print(" => ${duplicate.getPrettyPrint(_prettyPrints)}");
+          }
           print("");
         }
-        print("======================================");
-        for (String duplicateString in duplicatePrints) {
-          print("$duplicateString:");
-          List<HeapGraphElement> Function(HeapGraphElement target)
-              dijkstraTarget = dijkstra(graph.elements.first, graph);
-          for (HeapGraphElement duplicate
-              in groupedByToString[duplicateString]) {
-            print("${duplicate} pointed to from:");
-            print(duplicate.getPrettyPrint(_prettyPrints));
-            List<HeapGraphElement> shortestPath = dijkstraTarget(duplicate);
-            for (int i = 0; i < shortestPath.length - 1; i++) {
-              HeapGraphElement thisOne = shortestPath[i];
-              HeapGraphElement nextOne = shortestPath[i + 1];
-              String indexFieldName;
-              if (thisOne is HeapGraphElementActual) {
-                HeapGraphClass c = thisOne.class_;
-                if (c is HeapGraphClassActual) {
-                  for (vmService.HeapSnapshotField field in c.origin.fields) {
-                    if (thisOne.references[field.index] == nextOne) {
-                      indexFieldName = field.name;
+        if (tryToFindShortestPathToLeaks) {
+          print("======================================");
+          for (String duplicateString in duplicatePrints) {
+            print("$duplicateString:");
+            List<HeapGraphElement> Function(HeapGraphElement target)
+                dijkstraTarget = dijkstra(graph.elements.first, graph);
+            for (HeapGraphElement duplicate
+                in groupedByToString[duplicateString]) {
+              print("${duplicate} pointed to from:");
+              print(duplicate.getPrettyPrint(_prettyPrints));
+              List<HeapGraphElement> shortestPath = dijkstraTarget(duplicate);
+              for (int i = 0; i < shortestPath.length - 1; i++) {
+                HeapGraphElement thisOne = shortestPath[i];
+                HeapGraphElement nextOne = shortestPath[i + 1];
+                String indexFieldName;
+                if (thisOne is HeapGraphElementActual) {
+                  HeapGraphClass c = thisOne.class_;
+                  if (c is HeapGraphClassActual) {
+                    for (vmService.HeapSnapshotField field in c.origin.fields) {
+                      if (thisOne.references[field.index] == nextOne) {
+                        indexFieldName = field.name;
+                      }
                     }
                   }
                 }
+                if (indexFieldName == null) {
+                  indexFieldName = "no field found; index "
+                      "${thisOne.references.indexOf(nextOne)}";
+                }
+                print("  $thisOne -> $nextOne ($indexFieldName)");
               }
-              if (indexFieldName == null) {
-                indexFieldName = "no field found; index "
-                    "${thisOne.references.indexOf(nextOne)}";
-              }
-              print("  $thisOne -> $nextOne ($indexFieldName)");
+              print("---------------------------");
             }
-            print("---------------------------");
           }
         }
 
         if (throwOnPossibleLeak) {
-          debugger();
           throw "Possible leak detected.";
         }
       }
-      await _serviceClient.resume(isolateRef.id);
+
+      await _serviceClient.resume(_isolateRef.id);
+      _iterationNumber++;
     }
   }
 
@@ -545,7 +597,6 @@ HeapGraph convertHeapGraph(vmService.HeapSnapshotGraph graph) {
       }
     };
   }
-
   return new HeapGraph(classSentinel, classes, elementSentinel, elements);
 }
 

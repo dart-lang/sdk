@@ -4596,8 +4596,7 @@ class Parser {
               assert(optional('(', token.next));
             }
           } else if (identical(type, TokenType.OPEN_PAREN) ||
-              identical(type, TokenType.OPEN_SQUARE_BRACKET) ||
-              identical(type, TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET)) {
+              identical(type, TokenType.OPEN_SQUARE_BRACKET)) {
             token = parseArgumentOrIndexStar(
                 token, typeArg, /* checkedNullAware = */ false);
           } else if (identical(type, TokenType.QUESTION)) {
@@ -4661,8 +4660,7 @@ class Parser {
           identical(nextType, TokenType.QUESTION) ||
           identical(nextType, TokenType.OPEN_PAREN) ||
           identical(nextType, TokenType.OPEN_SQUARE_BRACKET) ||
-          identical(nextType, TokenType.QUESTION_PERIOD) ||
-          identical(nextType, TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET)) {
+          identical(nextType, TokenType.QUESTION_PERIOD)) {
         return SELECTOR_PRECEDENCE;
       }
       return POSTFIX_PRECEDENCE;
@@ -4808,7 +4806,7 @@ class Parser {
         if (isConditional) potentialNullAware = false;
       }
 
-      if (optional('[', next) || optional('?.[', next) || potentialNullAware) {
+      if (optional('[', next) || potentialNullAware) {
         assert(typeArg == noTypeParamOrArg);
         Token openSquareBracket = next;
         Token question;

@@ -60,6 +60,10 @@ E.g.: dart2native --packages=/tmp/pkgs main.dart
     ..addOption('save-debugging-info', abbr: 'S', valueHelp: 'path', help: '''
 Remove debugging information from the output and save it separately to the specified file. <path> can be relative or absolute.
 ''')
+    ..addOption('enable-experiment',
+        defaultsTo: '', valueHelp: 'feature', hide: true, help: '''
+Comma separated list of experimental features.
+''')
     ..addFlag('verbose',
         abbr: 'v', negatable: false, help: 'Show verbose output.');
 
@@ -99,6 +103,7 @@ Remove debugging information from the output and save it separately to the speci
         debugFile: parsedArgs['save-debugging-info'],
         packages: parsedArgs['packages'],
         defines: parsedArgs['define'],
+        enableExperiment: parsedArgs['enable-experiment'],
         enableAsserts: parsedArgs['enable-asserts'],
         verbose: parsedArgs['verbose'],
         extraOptions: parsedArgs['extra-gen-snapshot-options']);

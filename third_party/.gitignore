@@ -13,5 +13,6 @@
 !unittest.tar.gz.sha1
 !update.sh
 !/wasmer
+!/sqlite
 # but ignore a subfolder of tcmalloc (some client ignores /tcmalloc/.gitignore)
 /tcmalloc/gperftools

@@ -73,14 +73,14 @@ vars = {
   "boringssl_gen_rev": "429ccb1877f7987a6f3988228bc2440e61293499",
   "boringssl_rev" : "4dfd5af70191b068aebe567b8e29ce108cee85ce",
   "browser-compat-data_tag": "v1.0.22",
-  "charcode_rev": "af1e2d59a9c383da94f99ea51dac4b93fb0626c4",
+  "charcode_rev": "4a685faba42d86ebd9d661eadd1e79d0a1c34c43",
   "chrome_rev" : "19997",
   "cli_util_tag" : "0.2.0",
   "collection_rev": "583693680fc067e34ca5b72503df25e8b80579f9",
   "convert_rev": "c1b01f832835d3d8a06b0b246a361c0eaab35d3c",
   "crypto_rev": "f7c48b334b1386bc5ab0f706fbcd6df8496a87fc",
   "csslib_rev": "451448a9ac03f87a8d0377fc0b411d8c388a6cb4",
-  "dart2js_info_tag" : "0.6.0",
+  "dart2js_info_rev" : "94ba36cb77067f28b75a4212e77b810a2d7385e9",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter in `tools/sdks/dart-sdk/bin/dartfmt`
@@ -324,7 +324,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg_tested/dart_style":
       Var("dart_git") + "dart_style.git" + "@" + Var("dart_style_tag"),
   Var("dart_root") + "/third_party/pkg/dart2js_info":
-      Var("dart_git") + "dart2js_info.git" + "@" + Var("dart2js_info_tag"),
+      Var("dart_git") + "dart2js_info.git" + "@" + Var("dart2js_info_rev"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
       Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_rev"),
   Var("dart_root") + "/third_party/pkg/ffi":
@@ -539,7 +539,7 @@ deps = {
     "packages": [
       {
         "package": "dart/cfe/dart2js_dills",
-        "version": "binary_version:44_2",
+        "version": "binary_version:45",
       }
     ],
     "dep_type": "cipd",
